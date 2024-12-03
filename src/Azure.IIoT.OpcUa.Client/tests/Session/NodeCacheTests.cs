@@ -57,7 +57,7 @@ namespace Opc.Ua.Client
                     It.IsAny<RequestHeader>(),
                     It.Is<NodeId>(i => i == datatypeId),
                     It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ReferenceDescriptionCollection())
+                .ReturnsAsync([])
                 .Verifiable(Times.Once);
 
             // Act
@@ -188,14 +188,14 @@ namespace Opc.Ua.Client
                     It.IsAny<RequestHeader>(),
                     It.Is<NodeId>(i => i == ReferenceTypeIds.HierarchicalReferences),
                     It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ReferenceDescriptionCollection())
+                .ReturnsAsync([])
                 .Verifiable(Times.Once);
             context
                 .Setup(c => c.FetchReferencesAsync(
                     It.IsAny<RequestHeader>(),
                     It.Is<NodeId>(i => i == id),
                     It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ReferenceDescriptionCollection())
+                .ReturnsAsync([])
                 .Verifiable(Times.Once);
             var nodeCache = new NodeCache(context.Object);
 
@@ -235,7 +235,7 @@ namespace Opc.Ua.Client
                     It.IsAny<RequestHeader>(),
                     It.Is<NodeId>(i => i == ReferenceTypeIds.HierarchicalReferences),
                     It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ReferenceDescriptionCollection())
+                .ReturnsAsync([])
                 .Verifiable(Times.Once);
             context
                 .Setup(c => c.FetchReferencesAsync(
@@ -327,7 +327,7 @@ namespace Opc.Ua.Client
                     It.IsAny<RequestHeader>(),
                     It.Is<NodeId>(i => i == ReferenceTypeIds.HierarchicalReferences),
                     It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ReferenceDescriptionCollection())
+                .ReturnsAsync([])
                 .Verifiable(Times.Once);
             context
                 .Setup(c => c.FetchReferencesAsync(
@@ -489,15 +489,15 @@ namespace Opc.Ua.Client
                     It.IsAny<RequestHeader>(),
                     It.Is<NodeId>(i => i == referenceTypeId),
                     It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ReferenceDescriptionCollection
-                {
+                .ReturnsAsync(
+                [
                     new ()
                     {
                         ReferenceTypeId = ReferenceTypeIds.HasSubtype,
                         BrowseName = new QualifiedName("HasSubtype"),
                         NodeId = new ExpandedNodeId(referenceSubTypeId)
                     }
-                })
+                ])
                 .Verifiable(Times.Once);
             context
                 .Setup(c => c.FetchNodesAsync(
@@ -522,8 +522,8 @@ namespace Opc.Ua.Client
                     It.IsAny<RequestHeader>(),
                     It.Is<NodeId>(i => i == referenceSubTypeId),
                     It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ReferenceDescriptionCollection
-                {
+                .ReturnsAsync(
+                [
                     new ()
                     {
                         ReferenceTypeId = ReferenceTypeIds.HasSubtype,
@@ -531,7 +531,7 @@ namespace Opc.Ua.Client
                         BrowseName = new QualifiedName("HasSuperType"),
                         NodeId = new ExpandedNodeId(referenceTypeId)
                     }
-                })
+                ])
                 .Verifiable(Times.Once);
             context
                 .Setup(c => c.FetchReferencesAsync(
@@ -606,7 +606,7 @@ namespace Opc.Ua.Client
                     It.IsAny<RequestHeader>(),
                     It.Is<NodeId>(i => i == referenceTypeId),
                     It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ReferenceDescriptionCollection())
+                .ReturnsAsync([])
                 .Verifiable(Times.Once);
             context
                 .Setup(c => c.FetchReferencesAsync(
@@ -669,7 +669,7 @@ namespace Opc.Ua.Client
                     It.IsAny<RequestHeader>(),
                     It.Is<NodeId>(i => i == typeId),
                     It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ReferenceDescriptionCollection())
+                .ReturnsAsync([])
                 .Verifiable(Times.Once);
             var nodeCache = new NodeCache(context.Object);
 
@@ -898,7 +898,7 @@ namespace Opc.Ua.Client
                     It.IsAny<RequestHeader>(),
                     It.Is<NodeId>(i => i == subTypeId),
                     It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ReferenceDescriptionCollection())
+                .ReturnsAsync([])
                 .Verifiable(Times.Once);
             var nodeCache = new NodeCache(context.Object);
 
@@ -961,7 +961,7 @@ namespace Opc.Ua.Client
                     It.IsAny<RequestHeader>(),
                     It.Is<NodeId>(i => i == typeId),
                     It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ReferenceDescriptionCollection())
+                .ReturnsAsync([])
                 .Verifiable(Times.Once);
             var nodeCache = new NodeCache(context.Object);
 
@@ -1000,7 +1000,7 @@ namespace Opc.Ua.Client
                     It.IsAny<RequestHeader>(),
                     It.Is<NodeId>(i => i == subTypeId),
                     It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ReferenceDescriptionCollection())
+                .ReturnsAsync([])
                 .Verifiable(Times.Once);
             context
                 .Setup(c => c.FetchNodesAsync(

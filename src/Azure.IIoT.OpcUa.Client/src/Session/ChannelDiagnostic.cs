@@ -10,7 +10,7 @@ namespace Opc.Ua.Client
     using System.Collections.Generic;
     using System.Globalization;
     using System.IO;
-    using System.Linq;
+    using System.Net;
 
     /// <summary>
     /// Channel token key
@@ -40,7 +40,7 @@ namespace Opc.Ua.Client
         /// Effective remote ip address used for the
         /// connection if connected. Empty if disconnected.
         /// </summary>
-        public string? RemoteIpAddress { get; init; }
+        public IPAddress? RemoteIpAddress { get; init; }
 
         /// <summary>
         /// The effective remote port used when connected,
@@ -52,7 +52,7 @@ namespace Opc.Ua.Client
         /// Effective local ip address used for the connection
         /// if connected. Empty if disconnected.
         /// </summary>
-        public string? LocalIpAddress { get; init; }
+        public IPAddress? LocalIpAddress { get; init; }
 
         /// <summary>
         /// The effective local port used when connected,
@@ -121,15 +121,15 @@ namespace Opc.Ua.Client
                 return;
             }
             keyset.Write($"client_iv_{ChannelId}_{TokenId}: ");
-            keyset.WriteLine(Convert.ToHexString(Client.Iv.ToArray()));
+            keyset.WriteLine(Convert.ToHexString([.. Client.Iv]));
             keyset.Write($"client_key_{ChannelId}_{TokenId}: ");
-            keyset.WriteLine(Convert.ToHexString(Client.Key.ToArray()));
+            keyset.WriteLine(Convert.ToHexString([.. Client.Key]));
             keyset.Write($"client_siglen_{ChannelId}_{TokenId}: ");
             keyset.WriteLine(Client.SigLen.ToString(CultureInfo.InvariantCulture));
             keyset.Write($"server_iv_{ChannelId}_{TokenId}: ");
-            keyset.WriteLine(Convert.ToHexString(Server.Iv.ToArray()));
+            keyset.WriteLine(Convert.ToHexString([.. Server.Iv]));
             keyset.Write($"server_key_{ChannelId}_{TokenId}: ");
-            keyset.WriteLine(Convert.ToHexString(Server.Key.ToArray()));
+            keyset.WriteLine(Convert.ToHexString([.. Server.Key]));
             keyset.Write($"server_siglen_{ChannelId}_{TokenId}: ");
             keyset.WriteLine(Server.SigLen.ToString(CultureInfo.InvariantCulture));
             keyset.Flush();

@@ -5,111 +5,95 @@
 
 namespace Opc.Ua.Client
 {
-    using Microsoft.Extensions.Logging;
     using System;
-    using System.Threading;
     using Opc.Ua.Bindings;
+    using System.Net.Sockets;
+    using System.Net;
+    using System.Security.Cryptography.X509Certificates;
 
     /// <summary>
     /// Channel factory
     /// </summary>
-    public sealed class ChannelFactory
+    internal sealed class ChannelFactory : IChannelFactory
     {
         /// <summary>
-        /// Create channel manager
+        /// Callback to register channel diagnostics
         /// </summary>
-        /// <param name="observability"></param>
-        public ChannelFactory(IObservability observability)
-        {
+        public event Action<ITransportChannel, ChannelDiagnostic>? OnDiagnostics;
 
+        /// <summary>
+        /// Create channel factory
+        /// </summary>
+        /// <param name="configuration"></param>
+        /// <param name="observability"></param>
+        public ChannelFactory(ApplicationConfiguration configuration,
+            IObservability observability)
+        {
+            _observability = observability;
+            _configuration = configuration;
+        }
+
+        /// <inheritdoc/>
+        public ITransportChannel CreateChannel(ConfiguredEndpoint endpoint,
+            IServiceMessageContext context, X509Certificate2? clientCertificate,
+            X509Certificate2Collection? clientCertificateChain,
+            ITransportWaitingConnection? connection = null)
+        {
+            // initialize the channel which will be created with the server.
+            ITransportChannel channel;
+            if (connection != null)
+            {
+                channel = SessionChannel.CreateUaBinaryChannel(_configuration,
+                    connection, endpoint.Description, endpoint.Configuration,
+                    clientCertificate, clientCertificateChain, context);
+            }
+            else
+            {
+                channel = SessionChannel.CreateUaBinaryChannel(_configuration,
+                    endpoint.Description, endpoint.Configuration, clientCertificate,
+                    clientCertificateChain, context);
+            }
+            //   channel.OnTokenActivated += OnChannelTokenActivated;
+            return channel;
+        }
+
+        public void CloseChannel(ITransportChannel channel)
+        {
+            //   channel.OnTokenActivated -= OnChannelTokenActivated;
+            channel.Dispose();
         }
 
         /// <summary>
-        /// Update session diagnostics
+        /// Called when the token is changing
         /// </summary>
-        /// <param name="session"></param>
-        private void UpdateConnectionDiagnosticFromSession(OpcUaSession session)
+        /// <param name="token"></param>
+        /// <param name="channel"></param>
+        /// <param name="previousToken"></param>
+        internal void OnChannelTokenActivated(ITransportChannel channel,
+            ChannelToken? token, ChannelToken? previousToken)
         {
-            // Called under lock
-
-            var channel = session.TransportChannel;
-            var token = channel?.CurrentToken;
-
-            var now = _observability.TimeProvider.GetUtcNow();
-
-            var lastDiagnostics = LastDiagnostics;
-            var elapsed = now - lastDiagnostics.TimeStamp;
-
-            var channelChanged = false;
-            if (token != null)
+            if (token == null || OnDiagnostics == null)
             {
-                //
-                // Monitor channel's token lifetime and update diagnostics
-                // Check wether the token or channel changed. If so set a
-                // timer to monitor the new token lifetime, if not then
-                // try again after the remaining lifetime or every second
-                // until it changed unless the token is then later gone.
-                //
-                channelChanged = !(lastDiagnostics != null &&
-                    lastDiagnostics.ChannelId == token.ChannelId &&
-                    lastDiagnostics.TokenId == token.TokenId &&
-                    lastDiagnostics.CreatedAt == token.CreatedAt);
-
-                var lifetime = TimeSpan.FromMilliseconds(Math.Min(token.Lifetime,
-                    _configuration.TransportQuotas.SecurityTokenLifetime));
-                if (channelChanged)
-                {
-                    _channelMonitor.Change(lifetime, Timeout.InfiniteTimeSpan);
-                    _logger.LogInformation(
-                        "Channel {Channel} got new token {TokenId} ({Created}).",
-                        token.ChannelId, token.TokenId, token.CreatedAt);
-                }
-                else
-                {
-                    //
-                    // Token has not yet been updated, let's retry later
-                    // It is also assumed that the port/ip are still the same
-                    //
-                    if (lifetime > elapsed)
-                    {
-                        _channelMonitor.Change(lifetime - elapsed,
-                            Timeout.InfiniteTimeSpan);
-                    }
-                    else
-                    {
-                        _channelMonitor.Change(TimeSpan.FromSeconds(1),
-                            Timeout.InfiniteTimeSpan);
-                    }
-                }
-            }
-
-            var sessionId = session.SessionId?.AsString(session.MessageContext,
-                NamespaceFormat.Index);
-
-            // Get effective ip address and port
-            var socket = (channel as UaSCUaBinaryTransportChannel)?.Socket;
-            var remoteIpAddress = socket?.RemoteEndpoint?.GetIPAddress()?.ToString();
-            var remotePort = socket?.RemoteEndpoint?.GetPort();
-            var localIpAddress = socket?.LocalEndpoint?.GetIPAddress()?.ToString();
-            var localPort = socket?.LocalEndpoint?.GetPort();
-
-            if (LastDiagnostics.SessionCreated == session.CreatedAt &&
-                LastDiagnostics.SessionId == sessionId &&
-                LastDiagnostics.RemoteIpAddress == remoteIpAddress &&
-                LastDiagnostics.RemotePort == remotePort &&
-                LastDiagnostics.LocalIpAddress == localIpAddress &&
-                LastDiagnostics.LocalPort == localPort &&
-                !channelChanged)
-            {
+                // Closed
                 return;
             }
 
-            LastDiagnostics = new ChannelDiagnosticModel
+            if (previousToken == null)
             {
-                Connection = _connection,
-                TimeStamp = now,
-                SessionCreated = session.CreatedAt,
-                SessionId = sessionId,
+                // Created
+            }
+
+            // Get effective ip address and port
+            var socket = (channel as UaSCUaBinaryTransportChannel)?.Socket;
+            var remoteIpAddress = GetIPAddress(socket?.RemoteEndpoint);
+            var remotePort = GetPort(socket?.RemoteEndpoint);
+            var localIpAddress = GetIPAddress(socket?.LocalEndpoint);
+            var localPort = GetPort(socket?.LocalEndpoint);
+
+            OnDiagnostics?.Invoke(channel, new ChannelDiagnostic
+            {
+                Endpoint = channel.EndpointDescription,
+                TimeStamp = _observability.TimeProvider.GetUtcNow(),
                 RemoteIpAddress = remoteIpAddress,
                 RemotePort = remotePort == -1 ? null : remotePort,
                 LocalIpAddress = localIpAddress,
@@ -123,27 +107,59 @@ namespace Opc.Ua.Client
                     token?.ClientEncryptingKey, token?.ClientSigningKey),
                 Server = ToChannelKey(token?.ServerInitializationVector,
                     token?.ServerEncryptingKey, token?.ServerSigningKey)
-            };
-            _diagnosticsCb(LastDiagnostics);
+            });
 
-            _logger.LogInformation("Channel diagnostics for session {SessionId} updated.",
-                sessionId);
-
-            static ChannelKeyModel? ToChannelKey(byte[]? iv, byte[]? key, byte[]? sk)
+            static ChannelKey? ToChannelKey(byte[]? iv, byte[]? key, byte[]? sk)
             {
                 if (iv == null || key == null || sk == null ||
                     iv.Length == 0 || key.Length == 0 || sk.Length == 0)
                 {
                     return null;
                 }
-                return new ChannelKeyModel
-                {
-                    Iv = iv,
-                    Key = key,
-                    SigLen = sk.Length
-                };
+                return new ChannelKey(iv, key, sk.Length);
             }
         }
 
+        /// <summary>
+        /// Get ip address from endpoint if the endpoint is an
+        /// IPEndPoint.  Otherwise return null.
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="preferv4"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        private static IPAddress? GetIPAddress(EndPoint? endpoint, bool preferv4 = false)
+        {
+            if (endpoint is not IPEndPoint ipe)
+            {
+                return null;
+            }
+            var address = ipe.Address;
+            if (preferv4 &&
+                address.AddressFamily == AddressFamily.InterNetworkV6 &&
+                address.IsIPv4MappedToIPv6)
+            {
+                return address.MapToIPv4();
+            }
+            return address;
+        }
+
+        /// <summary>
+        /// Get port from endpoint if the endpoint is an
+        /// IPEndPoint.  Otherwise return -1.
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <returns></returns>
+        private static int GetPort(EndPoint? endpoint)
+        {
+            if (endpoint is IPEndPoint ipe)
+            {
+                return ipe.Port;
+            }
+            return -1;
+        }
+
+        private readonly IObservability _observability;
+        private readonly ApplicationConfiguration _configuration;
     }
 }

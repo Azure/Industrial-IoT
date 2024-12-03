@@ -767,57 +767,57 @@ namespace Azure.IIoT.OpcUa.Encoders
                 switch (builtInType)
                 {
                     case BuiltInType.Boolean:
-                        return new Matrix(elements.Cast<bool>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
+                        return new Matrix(elements.Cast<bool>().ToArray(), builtInType, [.. dimensions]).ToArray();
                     case BuiltInType.SByte:
-                        return new Matrix(elements.Cast<sbyte>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
+                        return new Matrix(elements.Cast<sbyte>().ToArray(), builtInType, [.. dimensions]).ToArray();
                     case BuiltInType.Byte:
-                        return new Matrix(elements.Cast<byte>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
+                        return new Matrix(elements.Cast<byte>().ToArray(), builtInType, [.. dimensions]).ToArray();
                     case BuiltInType.Int16:
-                        return new Matrix(elements.Cast<short>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
+                        return new Matrix(elements.Cast<short>().ToArray(), builtInType, [.. dimensions]).ToArray();
                     case BuiltInType.UInt16:
-                        return new Matrix(elements.Cast<ushort>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
+                        return new Matrix(elements.Cast<ushort>().ToArray(), builtInType, [.. dimensions]).ToArray();
                     case BuiltInType.Int32:
-                        return new Matrix(elements.Cast<int>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
+                        return new Matrix(elements.Cast<int>().ToArray(), builtInType, [.. dimensions]).ToArray();
                     case BuiltInType.UInt32:
-                        return new Matrix(elements.Cast<uint>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
+                        return new Matrix(elements.Cast<uint>().ToArray(), builtInType, [.. dimensions]).ToArray();
                     case BuiltInType.Int64:
-                        return new Matrix(elements.Cast<long>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
+                        return new Matrix(elements.Cast<long>().ToArray(), builtInType, [.. dimensions]).ToArray();
                     case BuiltInType.UInt64:
-                        return new Matrix(elements.Cast<ulong>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
+                        return new Matrix(elements.Cast<ulong>().ToArray(), builtInType, [.. dimensions]).ToArray();
                     case BuiltInType.Float:
-                        return new Matrix(elements.Cast<float>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
+                        return new Matrix(elements.Cast<float>().ToArray(), builtInType, [.. dimensions]).ToArray();
                     case BuiltInType.Double:
-                        return new Matrix(elements.Cast<double>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
+                        return new Matrix(elements.Cast<double>().ToArray(), builtInType, [.. dimensions]).ToArray();
                     case BuiltInType.String:
-                        return new Matrix(elements.Cast<string>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
+                        return new Matrix(elements.Cast<string>().ToArray(), builtInType, [.. dimensions]).ToArray();
                     case BuiltInType.DateTime:
-                        return new Matrix(elements.Cast<DateTime>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
+                        return new Matrix(elements.Cast<DateTime>().ToArray(), builtInType, [.. dimensions]).ToArray();
                     case BuiltInType.Guid:
-                        return new Matrix(elements.Cast<Uuid>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
+                        return new Matrix(elements.Cast<Uuid>().ToArray(), builtInType, [.. dimensions]).ToArray();
                     case BuiltInType.ByteString:
-                        return new Matrix(elements.Cast<byte[]>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
+                        return new Matrix(elements.Cast<byte[]>().ToArray(), builtInType, [.. dimensions]).ToArray();
                     case BuiltInType.XmlElement:
-                        return new Matrix(elements.Cast<XmlElement>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
+                        return new Matrix(elements.Cast<XmlElement>().ToArray(), builtInType, [.. dimensions]).ToArray();
                     case BuiltInType.NodeId:
-                        return new Matrix(elements.Cast<NodeId>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
+                        return new Matrix(elements.Cast<NodeId>().ToArray(), builtInType, [.. dimensions]).ToArray();
                     case BuiltInType.ExpandedNodeId:
-                        return new Matrix(elements.Cast<ExpandedNodeId>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
+                        return new Matrix(elements.Cast<ExpandedNodeId>().ToArray(), builtInType, [.. dimensions]).ToArray();
                     case BuiltInType.StatusCode:
-                        return new Matrix(elements.Cast<StatusCode>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
+                        return new Matrix(elements.Cast<StatusCode>().ToArray(), builtInType, [.. dimensions]).ToArray();
                     case BuiltInType.QualifiedName:
-                        return new Matrix(elements.Cast<QualifiedName>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
+                        return new Matrix(elements.Cast<QualifiedName>().ToArray(), builtInType, [.. dimensions]).ToArray();
                     case BuiltInType.LocalizedText:
-                        return new Matrix(elements.Cast<LocalizedText>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
+                        return new Matrix(elements.Cast<LocalizedText>().ToArray(), builtInType, [.. dimensions]).ToArray();
                     case BuiltInType.DataValue:
-                        return new Matrix(elements.Cast<DataValue>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
+                        return new Matrix(elements.Cast<DataValue>().ToArray(), builtInType, [.. dimensions]).ToArray();
                     case BuiltInType.Enumeration:
-                        return new Matrix(elements.Cast<int>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
+                        return new Matrix(elements.Cast<int>().ToArray(), builtInType, [.. dimensions]).ToArray();
                     case BuiltInType.Variant:
-                        return new Matrix(elements.Cast<Variant>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
+                        return new Matrix(elements.Cast<Variant>().ToArray(), builtInType, [.. dimensions]).ToArray();
                     case BuiltInType.ExtensionObject:
-                        return new Matrix(elements.Cast<ExtensionObject>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
+                        return new Matrix(elements.Cast<ExtensionObject>().ToArray(), builtInType, [.. dimensions]).ToArray();
                     case BuiltInType.DiagnosticInfo:
-                        return new Matrix(elements.Cast<DiagnosticInfo>().ToArray(), builtInType, dimensions.ToArray()).ToArray();
+                        return new Matrix(elements.Cast<DiagnosticInfo>().ToArray(), builtInType, [.. dimensions]).ToArray();
                 }
             }
             return null;
@@ -1017,7 +1017,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             if (!TryGetToken(fieldName, out var token))
             {
-                return new ByteCollection();
+                return [];
             }
             if (token.Type is JTokenType.Bytes or
                 JTokenType.String)
@@ -1025,7 +1025,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 var s = (string?)token;
                 if (s == null)
                 {
-                    return new ByteCollection();
+                    return [];
                 }
                 return Convert.FromBase64String(s);
             }
@@ -1034,9 +1034,9 @@ namespace Azure.IIoT.OpcUa.Encoders
                 return a.Select(t => ReadToken(t,
                     () => ReadByte(null))).ToArray();
             }
-            return new ByteCollection {
+            return [
                 ReadToken(token, () => ReadByte(null))
-            };
+            ];
         }
 
         /// <inheritdoc/>
@@ -1044,7 +1044,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             if (!TryGetToken(fieldName, out var token))
             {
-                return new SByteCollection();
+                return [];
             }
             if (token.Type is JTokenType.Bytes or
                 JTokenType.String)
@@ -1052,7 +1052,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 var s = (string?)token;
                 if (s == null)
                 {
-                    return new SByteCollection();
+                    return [];
                 }
                 return Convert.FromBase64String(s)
                     .Select(b => (sbyte)b).ToArray();
@@ -1062,9 +1062,9 @@ namespace Azure.IIoT.OpcUa.Encoders
                 return a.Select(t => ReadToken(t,
                     () => ReadSByte(null))).ToArray();
             }
-            return new SByteCollection {
+            return [
                 ReadToken(token, () => ReadSByte(null))
-            };
+            ];
         }
 
         /// <inheritdoc/>
@@ -2233,7 +2233,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 type = array[0].Type;
                 array = array[0] as JArray;
             }
-            return dimensions.ToArray();
+            return [.. dimensions];
         }
 
         /// <summary>

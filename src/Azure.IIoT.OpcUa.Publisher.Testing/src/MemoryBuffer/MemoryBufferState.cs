@@ -438,7 +438,7 @@ namespace MemoryBuffer
             {
                 Server = server;
                 NodeManager = nodeManager;
-                _nonValueMonitoredItems = new Dictionary<uint, MemoryBufferMonitoredItem>();
+                _nonValueMonitoredItems = [];
             }
         }
 
@@ -671,7 +671,7 @@ namespace MemoryBuffer
             }
         }
 
-        private readonly object _dataLock = new();
+        private readonly Lock _dataLock = new();
         private MemoryBufferMonitoredItem[][] _monitoringTable;
         private Dictionary<uint, MemoryBufferMonitoredItem> _nonValueMonitoredItems;
         private int _elementSize;

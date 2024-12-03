@@ -74,7 +74,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Arrange
             // Act
             var messages = await ProcessMessagesAsync(nameof(CanSendHeartbeatToIoTHubTestAsync) + timestamp, "./Resources/Heartbeat.json",
-                TimeSpan.FromMinutes(2), 5, arguments: new[] { "--fm=True", $"--mts={timestamp}", $"--hbb={behavior}" });
+                TimeSpan.FromMinutes(2), 5, arguments: ["--fm=True", $"--mts={timestamp}", $"--hbb={behavior}"]);
 
             // Assert
             Assert.True(messages.Count > 1);
@@ -119,7 +119,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Act
             var messages = await ProcessMessagesAsync(nameof(CanSendHeartbeatWithMIErrorToIoTHubTestAsync),
                 "./Resources/HeartbeatErrors.json",
-                TimeSpan.FromMinutes(2), 5, arguments: new[] { "--fm=True", $"--hbb={behavior}" });
+                TimeSpan.FromMinutes(2), 5, arguments: ["--fm=True", $"--hbb={behavior}"]);
 
             // Assert
             Assert.True(messages.Count > 1);
@@ -140,7 +140,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Act
             var messages = await ProcessMessagesAsync(nameof(CanSendDeadbandItemsToIoTHubTestAsync),
                 "./Resources/Deadband.json",
-                TimeSpan.FromMinutes(2), 20, arguments: new[] { "--fm=True" });
+                TimeSpan.FromMinutes(2), 20, arguments: ["--fm=True"]);
 
             // Assert
             messages.ForEach(m => _output.WriteLine(m.Topic + m.Message.ToJsonString()));
@@ -205,7 +205,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Act
             var messages = await ProcessMessagesAsync(
                 nameof(CanSendEventToIoTHubTestFullFeaturedMessageAsync), "./Resources/SimpleEvents.json",
-                arguments: new string[] { "--fm=true", useCurrentTime ? "--mts=CurrentTimeUtc" : "--mts=PublishTime" });
+                arguments: ["--fm=true", useCurrentTime ? "--mts=CurrentTimeUtc" : "--mts=PublishTime"]);
 
             // Assert
             var message = Assert.Single(messages).Message;
@@ -223,7 +223,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Act
             var result = await ProcessMessagesAsync(
                 nameof(CanEncodeWithReversibleEncodingSamplesTestAsync), "./Resources/SimpleEvents.json",
-                arguments: new[] { "--mm=Samples", "--me=JsonReversible" }
+                arguments: ["--mm=Samples", "--me=JsonReversible"]
             );
 
             var m = Assert.Single(result).Message;
@@ -307,7 +307,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         {
             const string name = nameof(CanSendDataItemToIoTHubTestWithDeviceMethodAsync);
             var testInput = GetEndpointsFromFile(name, "./Resources/DataItems.json");
-            StartPublisher(name, arguments: new string[] { "--mm=FullSamples" }); // Alternative to --fm=True
+            StartPublisher(name, arguments: ["--mm=FullSamples"]); // Alternative to --fm=True
             try
             {
                 var endpoints = await PublisherApi.GetConfiguredEndpointsAsync();
@@ -434,7 +434,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             var testInput1 = GetEndpointsFromFile(name, "./Resources/DataItems.json");
             var testInput2 = GetEndpointsFromFile(name, "./Resources/SimpleEvents.json");
             var testInput3 = GetEndpointsFromFile(name, "./Resources/PendingAlarms.json");
-            StartPublisher(name, arguments: new[] { "--xmi=" + maxMonitoredItems });
+            StartPublisher(name, arguments: ["--xmi=" + maxMonitoredItems]);
             try
             {
                 var endpoints = await PublisherApi.GetConfiguredEndpointsAsync();
@@ -457,7 +457,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 {
                     new ()
                     {
-                        OpcNodes = nodes.OpcNodes.ToList(),
+                        OpcNodes = [.. nodes.OpcNodes],
                         EndpointUrl = e.EndpointUrl,
                         UseSecurity = e.UseSecurity,
                         DataSetWriterGroup = name

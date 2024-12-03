@@ -56,9 +56,9 @@ namespace Opc.Ua.Sample
             SystemContext.NodeIdFactory = this;
 
             // create the table of nodes.
-            PredefinedNodes = new NodeIdDictionary<NodeState>();
-            RootNotifiers = new List<NodeState>();
-            _sampledItems = new List<DataChangeMonitoredItem>();
+            PredefinedNodes = [];
+            RootNotifiers = [];
+            _sampledItems = [];
             _minimumSamplingInterval = 100;
         }
 
@@ -212,7 +212,7 @@ namespace Opc.Ua.Sample
                 }
                 else
                 {
-                    _namespaceUris = new List<string>();
+                    _namespaceUris = [];
                 }
 
                 _namespaceIndexes = new ushort[_namespaceUris.Count];
@@ -248,7 +248,7 @@ namespace Opc.Ua.Sample
         /// <param name="context"></param>
         protected virtual NodeStateCollection LoadPredefinedNodes(ISystemContext context)
         {
-            return new NodeStateCollection();
+            return [];
         }
 
         /// <summary>
@@ -523,7 +523,7 @@ namespace Opc.Ua.Sample
 
             if (!externalReferences.TryGetValue(sourceId, out var referencesToAdd))
             {
-                externalReferences[sourceId] = referencesToAdd = new List<IReference>();
+                externalReferences[sourceId] = referencesToAdd = [];
             }
 
             // add reserve reference from external node.

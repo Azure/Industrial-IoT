@@ -1621,7 +1621,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             if (value == null)
             {
-                return new List<T?>();
+                return [];
             }
             if (value is T[] t)
             {
@@ -1633,7 +1633,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
             if (arr.Length == 0)
             {
-                return new List<T?>();
+                return [];
             }
             var result = new T?[arr.Length];
             for (var index = 0; index < arr.Length; index++)

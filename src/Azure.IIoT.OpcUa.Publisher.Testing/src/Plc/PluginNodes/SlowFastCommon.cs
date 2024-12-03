@@ -326,8 +326,8 @@ namespace Plc.PluginNodes
             return true;
         }
 
-        private readonly (StatusCode, bool)[] _badStatusSequence = new (StatusCode, bool)[]
-        {
+        private readonly (StatusCode, bool)[] _badStatusSequence =
+        [
             ( StatusCodes.Good, true ),
             ( StatusCodes.Good, true ),
             ( StatusCodes.Good, true ),
@@ -338,7 +338,7 @@ namespace Plc.PluginNodes
             ( StatusCodes.UncertainLastUsableValue, true),
             ( StatusCodes.BadDataLost, true),
             ( StatusCodes.BadNoCommunication, false)
-        };
+        ];
 
         private readonly PlcNodeManager _plcNodeManager;
         private readonly TimeService _timeService;

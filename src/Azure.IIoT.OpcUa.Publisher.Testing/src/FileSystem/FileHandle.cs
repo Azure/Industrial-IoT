@@ -10,6 +10,7 @@ namespace FileSystem
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Threading;
 
     /// <summary>
     /// File handle
@@ -172,8 +173,8 @@ namespace FileSystem
         }
 
         private uint _handles = 1;
-        private readonly Dictionary<uint, Stream> _reads = new();
-        private readonly object _lock = new();
+        private readonly Dictionary<uint, Stream> _reads = [];
+        private readonly Lock _lock = new();
         private Stream _write;
     }
 }

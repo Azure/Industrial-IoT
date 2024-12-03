@@ -103,19 +103,19 @@ namespace Opc.Ua.Client.ComplexTypes.Reflection
             var ctorInfo = attributeType.GetConstructor(Type.EmptyTypes)!;
             var builder = new CustomAttributeBuilder(
                 ctorInfo,
-                Array.Empty<object>(),  // constructor arguments
-                new[]           // properties to assign
-                {
+                [],  // constructor arguments
+                                        // properties to assign
+                [
                     attributeType.GetProperty("DefaultEncodingId")!,
                     attributeType.GetProperty("BaseDataType")!,
                     attributeType.GetProperty("StructureType")!
-                },
-                new object?[]    // values to assign
-                {
+                ],
+                // values to assign
+                [
                     structureDefinition.DefaultEncodingId?.ToString(),
                     baseDataType,
                     structureDefinition.StructureType
-                });
+                ]);
             typeBuilder.SetCustomAttribute(builder);
         }
 
@@ -134,19 +134,19 @@ namespace Opc.Ua.Client.ComplexTypes.Reflection
             var ctorInfo = attributeType.GetConstructor(Type.EmptyTypes)!;
             var builder = new CustomAttributeBuilder(
                 ctorInfo,
-                Array.Empty<object>(),  // constructor arguments
-                new[]           // properties to assign
-                {
+                [],  // constructor arguments
+                                        // properties to assign
+                [
                     attributeType.GetProperty("ComplexTypeId")!,
                     attributeType.GetProperty("BinaryEncodingId")!,
                     attributeType.GetProperty("XmlEncodingId")!
-                },
-                new object?[]    // values to assign
-                {
+                ],
+                // values to assign
+                [
                     complexTypeId?.ToString(),
                     binaryEncodingId?.ToString(),
                     xmlEncodingId?.ToString()
-                });
+                ]);
             typeBuilder.SetCustomAttribute(builder);
         }
 
@@ -184,9 +184,9 @@ namespace Opc.Ua.Client.ComplexTypes.Reflection
 
             var builder = new CustomAttributeBuilder(
                 ctorInfo,
-                Array.Empty<object>(),  // constructor arguments
+                [],  // constructor arguments
                 pi.ToArray(),           // properties to assign
-                pv.ToArray()            // values to assign
+                [.. pv]            // values to assign
             );
             typeBuilder.SetCustomAttribute(builder);
         }
@@ -203,15 +203,15 @@ namespace Opc.Ua.Client.ComplexTypes.Reflection
             var attributeType = typeof(EnumMemberAttribute);
             var ctorInfo = attributeType.GetConstructor(Type.EmptyTypes)!;
             var builder = new CustomAttributeBuilder(ctorInfo,
-                Array.Empty<object>(),  // constructor arguments
-                new[]           // properties to assign
-                {
+                [],  // constructor arguments
+                                        // properties to assign
+                [
                     attributeType.GetProperty("Value")!
-                },
-                new object[]    // values to assign
-                {
+                ],
+                // values to assign
+                [
                     Name+"_"+Value.ToString(CultureInfo.InvariantCulture)
-                });
+                ]);
             typeBuilder.SetCustomAttribute(builder);
         }
 
@@ -228,19 +228,19 @@ namespace Opc.Ua.Client.ComplexTypes.Reflection
             var ctorInfo = attributeType.GetConstructor(Type.EmptyTypes)!;
             return new CustomAttributeBuilder(
                 ctorInfo,
-                Array.Empty<object>(),  // constructor arguments
-                new[]           // properties to assign
-                {
+                [],  // constructor arguments
+                                        // properties to assign
+                [
                     attributeType.GetProperty("Name")!,
                     attributeType.GetProperty("IsRequired")!,
                     attributeType.GetProperty("Order")!
-                },
-                new object[]    // values to assign
-                {
+                ],
+                // values to assign
+                [
                     name,
                     isRequired,
                     order
-                });
+                ]);
         }
 
         /// <summary>
@@ -254,15 +254,15 @@ namespace Opc.Ua.Client.ComplexTypes.Reflection
             var ctorInfo = attributeType.GetConstructor(Type.EmptyTypes)!;
             return new CustomAttributeBuilder(
                 ctorInfo,
-                Array.Empty<object>(),  // constructor arguments
-                new[]           // properties to assign
-                {
+                [],  // constructor arguments
+                                        // properties to assign
+                [
                     attributeType.GetProperty("Namespace")!
-                },
-                new object[]    // values to assign
-                {
+                ],
+                // values to assign
+                [
                     Namespace
-                });
+                ]);
         }
 
         /// <summary>

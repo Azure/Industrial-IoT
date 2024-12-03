@@ -25,7 +25,7 @@ namespace Opc.Ua.Client
         /// <returns></returns>
         Task<BrowseResponse> BrowseAsync(RequestHeader? requestHeader,
             ViewDescription? view, uint requestedMaxReferencesPerNode,
-            BrowseDescriptionCollection nodesToBrowse, CancellationToken ct);
+            BrowseDescriptionCollection nodesToBrowse, CancellationToken ct = default);
 
         /// <summary>
         /// Browse next service
@@ -37,7 +37,7 @@ namespace Opc.Ua.Client
         /// <returns></returns>
         Task<BrowseNextResponse> BrowseNextAsync(RequestHeader? requestHeader,
             bool releaseContinuationPoints, ByteStringCollection continuationPoints,
-            CancellationToken ct);
+            CancellationToken ct = default);
 
         /// <summary>
         /// Translate browse path service
@@ -48,7 +48,7 @@ namespace Opc.Ua.Client
         /// <returns></returns>
         Task<TranslateBrowsePathsToNodeIdsResponse> TranslateBrowsePathsToNodeIdsAsync(
             RequestHeader? requestHeader, BrowsePathCollection browsePaths,
-            CancellationToken ct);
+            CancellationToken ct = default);
 
         /// <summary>
         /// Call service
@@ -58,7 +58,7 @@ namespace Opc.Ua.Client
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<CallResponse> CallAsync(RequestHeader? requestHeader,
-            CallMethodRequestCollection methodsToCall, CancellationToken ct);
+            CallMethodRequestCollection methodsToCall, CancellationToken ct = default);
 
         /// <summary>
         /// Cancel service call
@@ -68,7 +68,7 @@ namespace Opc.Ua.Client
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<CancelResponse> CancelAsync(RequestHeader? requestHeader,
-            uint requestHandle, CancellationToken ct);
+            uint requestHandle, CancellationToken ct = default);
 
         /// <summary>
         /// Read service
@@ -81,7 +81,7 @@ namespace Opc.Ua.Client
         /// <returns></returns>
         Task<ReadResponse> ReadAsync(RequestHeader? requestHeader, double maxAge,
             TimestampsToReturn timestampsToReturn, ReadValueIdCollection nodesToRead,
-            CancellationToken ct);
+            CancellationToken ct = default);
 
         /// <summary>
         /// Write service
@@ -91,7 +91,7 @@ namespace Opc.Ua.Client
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<WriteResponse> WriteAsync(RequestHeader? requestHeader,
-            WriteValueCollection nodesToWrite, CancellationToken ct);
+            WriteValueCollection nodesToWrite, CancellationToken ct = default);
 
         /// <summary>
         /// History read service
@@ -106,7 +106,7 @@ namespace Opc.Ua.Client
         Task<HistoryReadResponse> HistoryReadAsync(RequestHeader? requestHeader,
             ExtensionObject historyReadDetails, TimestampsToReturn timestampsToReturn,
             bool releaseContinuationPoints, HistoryReadValueIdCollection nodesToRead,
-            CancellationToken ct);
+            CancellationToken ct = default);
 
         /// <summary>
         /// History update service
@@ -116,7 +116,7 @@ namespace Opc.Ua.Client
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<HistoryUpdateResponse> HistoryUpdateAsync(RequestHeader? requestHeader,
-            ExtensionObjectCollection historyUpdateDetails, CancellationToken ct);
+            ExtensionObjectCollection historyUpdateDetails, CancellationToken ct = default);
 
         /// <summary>
         /// Register nodes service
@@ -126,7 +126,7 @@ namespace Opc.Ua.Client
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<RegisterNodesResponse> RegisterNodesAsync(RequestHeader? requestHeader,
-            NodeIdCollection nodesToRegister, CancellationToken ct);
+            NodeIdCollection nodesToRegister, CancellationToken ct = default);
 
         /// <summary>
         /// Unregister nodes service
@@ -136,7 +136,7 @@ namespace Opc.Ua.Client
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<UnregisterNodesResponse> UnregisterNodesAsync(RequestHeader? requestHeader,
-            NodeIdCollection nodesToUnregister, CancellationToken ct);
+            NodeIdCollection nodesToUnregister, CancellationToken ct = default);
 
         /// <summary>
         /// Add nodes service
@@ -146,7 +146,7 @@ namespace Opc.Ua.Client
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<AddNodesResponse> AddNodesAsync(RequestHeader? requestHeader,
-            AddNodesItemCollection nodesToAdd, CancellationToken ct);
+            AddNodesItemCollection nodesToAdd, CancellationToken ct = default);
 
         /// <summary>
         /// Add references service
@@ -156,7 +156,7 @@ namespace Opc.Ua.Client
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<AddReferencesResponse> AddReferencesAsync(RequestHeader? requestHeader,
-            AddReferencesItemCollection referencesToAdd, CancellationToken ct);
+            AddReferencesItemCollection referencesToAdd, CancellationToken ct = default);
 
         /// <summary>
         /// Delete nodes service
@@ -166,7 +166,7 @@ namespace Opc.Ua.Client
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<DeleteNodesResponse> DeleteNodesAsync(RequestHeader? requestHeader,
-            DeleteNodesItemCollection nodesToDelete, CancellationToken ct);
+            DeleteNodesItemCollection nodesToDelete, CancellationToken ct = default);
 
         /// <summary>
         /// Delete references service
@@ -175,9 +175,8 @@ namespace Opc.Ua.Client
         /// <param name="referencesToDelete"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<DeleteReferencesResponse> DeleteReferencesAsync(
-            RequestHeader? requestHeader, DeleteReferencesItemCollection referencesToDelete,
-            CancellationToken ct);
+        Task<DeleteReferencesResponse> DeleteReferencesAsync(RequestHeader? requestHeader,
+            DeleteReferencesItemCollection referencesToDelete, CancellationToken ct = default);
 
         /// <summary>
         /// Set triggering --- TODO: Add to subscription interface
@@ -191,6 +190,6 @@ namespace Opc.Ua.Client
         /// <returns></returns>
         Task<SetTriggeringResponse> SetTriggeringAsync(RequestHeader? requestHeader,
             uint subscriptionId, uint triggeringItemId, UInt32Collection linksToAdd,
-            UInt32Collection linksToRemove, CancellationToken ct);
+            UInt32Collection linksToRemove, CancellationToken ct = default);
     }
 }

@@ -91,7 +91,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
                 Entry = request.Entry,
                 Header = request.Header,
                 WaitTime = request.WaitTime,
-                Configuration = buffer.ToArray()
+                Configuration = [.. buffer]
             };
             return await _httpClient.PostAsync<ServiceResponse<PublishedNodesEntryModel>>(uri,
                 requestWithBuffer, _serializer, ct: ct).ConfigureAwait(false);

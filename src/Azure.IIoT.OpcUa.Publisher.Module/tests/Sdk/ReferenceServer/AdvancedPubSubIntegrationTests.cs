@@ -32,7 +32,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             EndpointUrl = server.EndpointUrl;
             const string name = nameof(RestartServerTestAsync);
             StartPublisher(name, "./Resources/Fixedvalue.json",
-                arguments: new string[] { "--mm=PubSub", "--dm=false" }, keepAliveInterval: 1);
+                arguments: ["--mm=PubSub", "--dm=false"], keepAliveInterval: 1);
             try
             {
                 // Arrange
@@ -69,7 +69,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             EndpointUrl = server.EndpointUrl;
             const string name = nameof(RestartServerWithHeartbeatTestAsync);
             StartPublisher(name, "./Resources/Heartbeat2.json",
-                arguments: new string[] { "--mm=PubSub", "--dm=false", "--bs=1" }, keepAliveInterval: 1);
+                arguments: ["--mm=PubSub", "--dm=false", "--bs=1"], keepAliveInterval: 1);
             try
             {
                 // Arrange
@@ -109,7 +109,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             EndpointUrl = server.EndpointUrl;
             const string name = nameof(RestartServerWithCyclicReadTestAsync);
             StartPublisher(name, "./Resources/CyclicRead.json",
-                arguments: new string[] { "--mm=PubSub", "--dm=false" }, keepAliveInterval: 1);
+                arguments: ["--mm=PubSub", "--dm=false"], keepAliveInterval: 1);
             try
             {
                 // Arrange
@@ -145,7 +145,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             EndpointUrl = server.EndpointUrl;
 
             const string name = nameof(SwitchServerWithSameWriterGroupTestAsync);
-            StartPublisher(name, "./Resources/DataItems.json", arguments: new string[] { "--mm=PubSub", "--dm=false" });
+            StartPublisher(name, "./Resources/DataItems.json", arguments: ["--mm=PubSub", "--dm=false"]);
             try
             {
                 // Arrange
@@ -209,7 +209,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             var server = new ReferenceServer();
             EndpointUrl = server.EndpointUrl;
             const string name = nameof(SwitchServerWithDifferentWriterGroupTestAsync);
-            StartPublisher(name, "./Resources/DataItems2.json", arguments: new string[] { "--mm=PubSub", "--dm=false" });
+            StartPublisher(name, "./Resources/DataItems2.json", arguments: ["--mm=PubSub", "--dm=false"]);
             try
             {
                 // Arrange
@@ -287,7 +287,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 // Set both to the same so that there is a single writer instead of 2
                 testInput2[0].OpcNodes[0].OpcPublishingInterval = testInput1[0].OpcNodes[0].OpcPublishingInterval;
             }
-            StartPublisher(name, arguments: new string[] { "--mm=PubSub", "--dm=false", "--xmi=" + maxMonitoredItems });
+            StartPublisher(name, arguments: ["--mm=PubSub", "--dm=false", "--xmi=" + maxMonitoredItems]);
             try
             {
                 var endpoints = await PublisherApi.GetConfiguredEndpointsAsync();
@@ -352,7 +352,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             var server = new ReferenceServer();
             EndpointUrl = server.EndpointUrl;
             const string name = nameof(SwitchServerWithDifferentDataTestAsync);
-            StartPublisher(name, "./Resources/DataItems.json", arguments: new string[] { "--mm=PubSub", "--dm=false" });
+            StartPublisher(name, "./Resources/DataItems.json", arguments: ["--mm=PubSub", "--dm=false"]);
             try
             {
                 // Arrange
@@ -418,7 +418,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             var server = new ReferenceServer();
             EndpointUrl = server.EndpointUrl;
             const string name = nameof(SwitchSecuritySettingsTestAsync);
-            StartPublisher(name, "./Resources/Fixedvalue.json", arguments: new string[] { "--mm=PubSub", "--dm=false", "--aa" },
+            StartPublisher(name, "./Resources/Fixedvalue.json", arguments: ["--mm=PubSub", "--dm=false", "--aa"],
                 securityMode: Models.SecurityMode.SignAndEncrypt);
             try
             {
@@ -477,7 +477,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             for (var cycles = 0; cycles < 3; cycles++)
             {
                 const string name = nameof(RestartConfigurationTestAsync);
-                StartPublisher(name, "./Resources/DataItems.json", arguments: new string[] { "--mm=PubSub", "--dm=false" });
+                StartPublisher(name, "./Resources/DataItems.json", arguments: ["--mm=PubSub", "--dm=false"]);
                 try
                 {
                     // Arrange

@@ -798,10 +798,10 @@ namespace Opc.Ua.Client.ComplexTypes.Reflection
 
         /// <summary> The list of properties of this complex type. </summary>
         protected readonly IList<ComplexTypePropertyInfo> _propertyList
-            = new List<ComplexTypePropertyInfo>();
+            = [];
         /// <summary> The list of properties as dictionary. </summary>
         protected readonly Dictionary<string, ComplexTypePropertyInfo> _propertyDict
-            = new();
+            = [];
         private XmlQualifiedName? _xmlName;
     }
 }

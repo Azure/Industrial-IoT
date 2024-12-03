@@ -252,7 +252,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             try
             {
                 // just take the public key
-                Certificate = new X509Certificate2(
+                Certificate = X509CertificateLoader.LoadCertificate(
                     config.SecurityConfiguration.ApplicationCertificate.Certificate.RawData);
             }
             catch

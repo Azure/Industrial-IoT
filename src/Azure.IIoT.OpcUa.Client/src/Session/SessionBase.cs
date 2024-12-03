@@ -24,7 +24,7 @@ namespace Opc.Ua.Client
     /// </summary>
     public abstract class SessionBase : SessionServices, ISubscriptionContext,
         IComplexTypeContext, INodeCacheContext, ISubscriptionManagerContext,
-        ISession, ISessionConnectivity
+        ISession, IConnection
     {
         /// <inheritdoc/>
         public IUserIdentity Identity { get; private set; }
@@ -127,7 +127,7 @@ namespace Opc.Ua.Client
         /// <summary>
         /// Current session options
         /// </summary>
-        protected internal SessionOptions Options { get; protected set; }
+        protected internal SessionCreateOptions Options { get; protected set; }
 
         /// <summary>
         /// Type system has loaded
@@ -147,12 +147,15 @@ namespace Opc.Ua.Client
         /// <param name="options">Session options</param>
         /// <param name="observability">The obs services to use</param>
         /// <param name="reverseConnect">Reverse connect manager</param>
+        /// <param name="channelFactory">A factory to create new secure or
+        /// http channels</param>
         protected SessionBase(ApplicationConfiguration configuration,
-            ConfiguredEndpoint endpoint, IOptionsMonitor<SessionOptions> options,
-            IObservability observability, ReverseConnectManager? reverseConnect)
-            : base(observability, options.CurrentValue.Channel)
+            ConfiguredEndpoint endpoint, SessionCreateOptions options,
+            IObservability observability, ReverseConnectManager? reverseConnect,
+            IChannelFactory? channelFactory = null)
+            : base(observability, options.Channel)
         {
-            Options = options.CurrentValue;
+            Options = options;
             _meter = Observability.MeterFactory.Create(nameof(SessionBase));
             _logger = Observability.LoggerFactory.CreateLogger<SessionBase>();
             _keepAliveTimer = Observability.TimeProvider.CreateTimer(
@@ -161,6 +164,8 @@ namespace Opc.Ua.Client
 
             _configuration = configuration;
             _reverseConnect = reverseConnect;
+            _channelFactory = channelFactory
+                ?? new ChannelFactory(configuration, observability);
 
             CreatedAt = Observability.TimeProvider.GetUtcNow();
             MessageContext = Options.Channel?.MessageContext
@@ -185,7 +190,6 @@ namespace Opc.Ua.Client
                 SessionId = null,
                 UserIdentity = null
             };
-            _changeTracking = options.OnChange((o, _) => OnOptionsChanged(o));
             _sessionWorker = SessionWorkerAsync(_cts.Token);
         }
 
@@ -349,8 +353,8 @@ namespace Opc.Ua.Client
 
             var nodeClassValues = readResponse.Results;
             var diagnosticInfos = readResponse.DiagnosticInfos;
-            ClientBase.ValidateResponse(nodeClassValues, itemsToRead);
-            ClientBase.ValidateDiagnosticInfos(diagnosticInfos, itemsToRead);
+            Ua.ClientBase.ValidateResponse(nodeClassValues, itemsToRead);
+            Ua.ClientBase.ValidateDiagnosticInfos(diagnosticInfos, itemsToRead);
 
             // second determine attributes to read per nodeclass
             var attributesPerNodeId = new List<IDictionary<uint, DataValue?>?>(
@@ -411,8 +415,8 @@ namespace Opc.Ua.Client
 
                 var values = readResponse.Results;
                 diagnosticInfos = readResponse.DiagnosticInfos;
-                ClientBase.ValidateResponse(values, attributesToRead);
-                ClientBase.ValidateDiagnosticInfos(diagnosticInfos, attributesToRead);
+                Ua.ClientBase.ValidateResponse(values, attributesToRead);
+                Ua.ClientBase.ValidateDiagnosticInfos(diagnosticInfos, attributesToRead);
                 responseHeader = readResponse.ResponseHeader;
                 var readIndex = 0;
                 for (var index = 0; index < nodeCollection.Count; index++)
@@ -464,8 +468,8 @@ namespace Opc.Ua.Client
                 itemsToRead, ct).ConfigureAwait(false);
             var values = readResponse.Results;
             var diagnosticInfos = readResponse.DiagnosticInfos;
-            ClientBase.ValidateResponse(values, itemsToRead);
-            ClientBase.ValidateDiagnosticInfos(diagnosticInfos, itemsToRead);
+            Ua.ClientBase.ValidateResponse(values, itemsToRead);
+            Ua.ClientBase.ValidateDiagnosticInfos(diagnosticInfos, itemsToRead);
             return ProcessReadResponse(readResponse.ResponseHeader, attributes,
                 itemsToRead, values, diagnosticInfos);
         }
@@ -475,8 +479,8 @@ namespace Opc.Ua.Client
             RequestHeader? header, NodeId nodeId, CancellationToken ct)
         {
             var collection = new ReferenceDescriptionCollection();
-            await foreach (var result in BrowseAsync(header, null, new BrowseDescriptionCollection
-            {
+            await foreach (var result in BrowseAsync(header, null,
+            [
                 new BrowseDescription
                 {
                     NodeId = nodeId,
@@ -486,7 +490,7 @@ namespace Opc.Ua.Client
                     NodeClassMask = 0,
                     ResultMask = (uint)BrowseResultMask.All
                 }
-            }, ct).ConfigureAwait(false))
+            ], ct).ConfigureAwait(false))
             {
                 collection.AddRange(result.Result.References);
             }
@@ -544,12 +548,12 @@ namespace Opc.Ua.Client
 
             var values = readResponse.Results;
             var diagnosticInfos = readResponse.DiagnosticInfos;
-            ClientBase.ValidateResponse(values, itemsToRead);
-            ClientBase.ValidateDiagnosticInfos(diagnosticInfos, itemsToRead);
+            Ua.ClientBase.ValidateResponse(values, itemsToRead);
+            Ua.ClientBase.ValidateDiagnosticInfos(diagnosticInfos, itemsToRead);
 
             if (StatusCode.IsBad(values[0].StatusCode))
             {
-                var result = ClientBase.GetResult(values[0].StatusCode, 0,
+                var result = Ua.ClientBase.GetResult(values[0].StatusCode, 0,
                     diagnosticInfos, readResponse.ResponseHeader);
                 throw new ServiceResultException(result);
             }
@@ -582,15 +586,15 @@ namespace Opc.Ua.Client
             var values = readResponse.Results;
             var diagnosticInfos = readResponse.DiagnosticInfos;
 
-            ClientBase.ValidateResponse(values, itemsToRead);
-            ClientBase.ValidateDiagnosticInfos(diagnosticInfos, itemsToRead);
+            Ua.ClientBase.ValidateResponse(values, itemsToRead);
+            Ua.ClientBase.ValidateDiagnosticInfos(diagnosticInfos, itemsToRead);
 
             foreach (var value in values)
             {
                 var result = ServiceResult.Good;
                 if (StatusCode.IsBad(value.StatusCode))
                 {
-                    result = ClientBase.GetResult(value.StatusCode, 0,
+                    result = Ua.ClientBase.GetResult(value.StatusCode, 0,
                         diagnosticInfos, readResponse.ResponseHeader);
                 }
                 errors.Add(result);
@@ -621,8 +625,8 @@ namespace Opc.Ua.Client
         {
             var first = await BrowseAsync(requestHeader, view, 0,
                 nodesToBrowse, ct).ConfigureAwait(false);
-            ClientBase.ValidateResponse(first.Results, nodesToBrowse);
-            ClientBase.ValidateDiagnosticInfos(first.DiagnosticInfos, nodesToBrowse);
+            Ua.ClientBase.ValidateResponse(first.Results, nodesToBrowse);
+            Ua.ClientBase.ValidateDiagnosticInfos(first.DiagnosticInfos, nodesToBrowse);
 
             var browseDescriptions = new BrowseDescriptionCollection();
             var continuationPoints = new ByteStringCollection();
@@ -658,9 +662,9 @@ namespace Opc.Ua.Client
                 {
                     var next = await BrowseNextAsync(requestHeader, false,
                         continuationPoints, ct).ConfigureAwait(false);
-                    ClientBase.ValidateResponse(next.Results, continuationPoints);
-                    ClientBase.ValidateDiagnosticInfos(next.DiagnosticInfos, continuationPoints);
-                    continuationPoints = new ByteStringCollection();
+                    Ua.ClientBase.ValidateResponse(next.Results, continuationPoints);
+                    Ua.ClientBase.ValidateDiagnosticInfos(next.DiagnosticInfos, continuationPoints);
+                    continuationPoints = [];
 
                     for (var i = 0; i < next.Results.Count; i++)
                     {
@@ -811,7 +815,7 @@ namespace Opc.Ua.Client
                     {
                         clientCertificateChain.AddRange(_clientCertificateChain[i].RawData);
                     }
-                    clientCertificateChainData = clientCertificateChain.ToArray();
+                    clientCertificateChainData = [.. clientCertificateChain];
                 }
 
                 var clientDescription = new ApplicationDescription
@@ -862,7 +866,7 @@ namespace Opc.Ua.Client
 
                 var sessionId = response.SessionId;
                 var authenticationToken = response.AuthenticationToken;
-                var serverNonce = response.ServerNonce ?? Array.Empty<byte>();
+                var serverNonce = response.ServerNonce ?? [];
                 var serverCertificateData = response.ServerCertificate;
                 var serverSignature = response.ServerSignature;
                 var serverEndpoints = response.ServerEndpoints;
@@ -908,7 +912,7 @@ namespace Opc.Ua.Client
                     }
 
                     var previousServerNonce = NullableTransportChannel?.CurrentToken?.ServerNonce
-                        ?? Array.Empty<byte>();
+                        ?? [];
 
                     // validate server nonce and security parameters for user identity.
                     ValidateServerNonce(Identity, serverNonce, securityPolicyUri,
@@ -929,7 +933,7 @@ namespace Opc.Ua.Client
                         new ExtensionObject(identityToken), userTokenSignature,
                         ct).ConfigureAwait(false);
 
-                    serverNonce = activateResponse.ServerNonce ?? Array.Empty<byte>();
+                    serverNonce = activateResponse.ServerNonce ?? [];
                     var certificateResults = activateResponse.Results;
                     var certificateDiagnosticInfos = activateResponse.DiagnosticInfos;
 
@@ -1078,7 +1082,7 @@ namespace Opc.Ua.Client
                         new ExtensionObject(identityToken), userTokenSignature,
                         cts.Token).ConfigureAwait(false);
 
-                    var serverNonce = activation.ServerNonce ?? Array.Empty<byte>();
+                    var serverNonce = activation.ServerNonce ?? [];
                     var certificateResult = activation.Results;
                     var diagnostic = activation.DiagnosticInfos;
 
@@ -1191,42 +1195,15 @@ namespace Opc.Ua.Client
         }
 
         /// <inheritdoc/>
-        public abstract IManagedSubscription CreateSubscription(
-            IOptionsMonitor<SubscriptionOptions> options, IMessageAckQueue queue);
-
-        /// <summary>
-        /// Options changed
-        /// </summary>
-        /// <param name="options"></param>
-        protected virtual void OnOptionsChanged(SessionOptions options)
+        public IManagedSubscription CreateSubscription(
+            IOptionsMonitor<SubscriptionOptions> options, IMessageAckQueue queue)
         {
-            // Check what needs to happen based on the change that took place
-            var resetKeepAlive =
-                Options.KeepAliveInterval != options.KeepAliveInterval;
-            var needsReactivation =
-                (options.Identity ?? new UserIdentity()) != Identity;
-            var sessionTimeout = GetSessionTimeout(options);
-            var needsRecreation = needsReactivation &&
-                (Options.SessionName != options.SessionName ||
-                (sessionTimeout != SessionTimeout &&
-                    sessionTimeout != GetSessionTimeout(Options)) ||
-                (options.ClientCertificate != Options.ClientCertificate &&
-                    options.ClientCertificate != _clientCertificate) ||
-                (options.Connection != Options.Connection &&
-                    _connection != options.Connection));
-
-            // Update options
-            Options = options;
-
-            if (needsReactivation)
-            {
-                TriggerReconnect(needsRecreation);
-            }
-            else if (resetKeepAlive)
-            {
-                ResetKeepAliveTimer();
-            }
+            return CreateSubscription(Observability, options, queue);
         }
+
+        /// <inheritdoc/>
+        public abstract IManagedSubscription CreateSubscription(IObservability observability,
+            IOptionsMonitor<SubscriptionOptions> options, IMessageAckQueue queue);
 
         /// <summary>
         /// Trigger reconnect because of changes to the configuration
@@ -1270,7 +1247,6 @@ namespace Opc.Ua.Client
                     _keepAliveTimer.Dispose();
                     _cts.Dispose();
                     _meter.Dispose();
-                    _changeTracking?.Dispose();
                 }
             }
         }
@@ -1310,7 +1286,7 @@ namespace Opc.Ua.Client
         /// </summary>
         protected virtual SignedSoftwareCertificateCollection GetSoftwareCertificates()
         {
-            return new SignedSoftwareCertificateCollection();
+            return [];
         }
 
         /// <summary>
@@ -1363,8 +1339,8 @@ namespace Opc.Ua.Client
             var index = 0;
             OperationLimits.MaxNodesPerRead = Get<uint>(ref index, values, errors);
 
-            nodeIds = new[]
-            {
+            nodeIds =
+            [
         VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryReadData,
         VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryReadEvents,
         VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerWrite,
@@ -1392,7 +1368,7 @@ namespace Opc.Ua.Client
         VariableIds.Server_ServerCapabilities_MaxSubscriptionsPerSession,
         VariableIds.Server_ServerCapabilities_MaxWhereClauseParameters,
         VariableIds.Server_ServerCapabilities_MaxSelectClauseParameters
-            };
+            ];
 
             (values, errors) = await FetchValuesAsync(null, nodeIds, ct).ConfigureAwait(false);
             index = 0;
@@ -1444,7 +1420,7 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        internal TimeSpan GetSessionTimeout(SessionOptions options)
+        internal TimeSpan GetSessionTimeout(SessionCreateOptions options)
         {
             var sessionTimeout = options.SessionTimeout;
             if (sessionTimeout.HasValue &&
@@ -1988,7 +1964,7 @@ namespace Opc.Ua.Client
             {
                 if (value.Value is ExtensionObject[] rolePermissions)
                 {
-                    node.RolePermissions = new RolePermissionTypeCollection();
+                    node.RolePermissions = [];
                     foreach (var rolePermission in rolePermissions)
                     {
                         node.RolePermissions.Add(rolePermission.Body as RolePermissionType);
@@ -2002,7 +1978,7 @@ namespace Opc.Ua.Client
             {
                 if (value.Value is ExtensionObject[] userRolePermissions)
                 {
-                    node.UserRolePermissions = new RolePermissionTypeCollection();
+                    node.UserRolePermissions = [];
                     foreach (var rolePermission in userRolePermissions)
                     {
                         node.UserRolePermissions.Add(rolePermission.Body as RolePermissionType);
@@ -2127,11 +2103,9 @@ namespace Opc.Ua.Client
             if (Options.CheckDomain &&
                 endpoint.Description.ServerCertificate?.Length > 0)
             {
-#pragma warning disable CA2000 // Dispose objects before losing scope
-                _configuration.CertificateValidator?.ValidateDomains(
-                    new X509Certificate2(endpoint.Description.ServerCertificate),
-                    endpoint);
-#pragma warning restore CA2000 // Dispose objects before losing scope
+                using var cert = X509CertificateLoader.LoadCertificate(
+                    endpoint.Description.ServerCertificate);
+                _configuration.CertificateValidator?.ValidateDomains(cert, endpoint);
             }
 
             if (endpoint.Description.SecurityPolicyUri != SecurityPolicies.None)
@@ -2144,17 +2118,8 @@ namespace Opc.Ua.Client
                 _configuration.SecurityConfiguration.SendCertificateChain ?
                 _clientCertificateChain : null;
 
-            // initialize the channel which will be created with the server.
-            if (_connection != null)
-            {
-                return SessionChannel.CreateUaBinaryChannel(_configuration,
-                    _connection, endpoint.Description, endpoint.Configuration,
-                    clientCertificate, clientCertificateChain, MessageContext);
-            }
-
-            return SessionChannel.CreateUaBinaryChannel(_configuration,
-                endpoint.Description, endpoint.Configuration, clientCertificate,
-                clientCertificateChain, MessageContext);
+            return _channelFactory.CreateChannel(endpoint, MessageContext,
+                clientCertificate, clientCertificateChain);
         }
 
         /// <summary>
@@ -2366,7 +2331,7 @@ namespace Opc.Ua.Client
                 {
                     // Select EndpointDescriptions with a transportProfileUri that matches the
                     // profileUris specified in the original GetEndpoints() request.
-                    expectedServerEndpoints = new EndpointDescriptionCollection();
+                    expectedServerEndpoints = [];
 
                     foreach (var serverEndpoint in serverEndpoints)
                     {
@@ -2665,16 +2630,16 @@ namespace Opc.Ua.Client
         private readonly Task _sessionWorker;
         private readonly Nito.AsyncEx.AsyncAutoResetEvent _trigger = new();
         private readonly ReverseConnectManager? _reverseConnect;
+        private readonly IChannelFactory _channelFactory;
         private readonly ApplicationConfiguration _configuration;
         private readonly ITimer _keepAliveTimer;
         private readonly CancellationTokenSource _cts = new();
         private readonly SystemContext _systemContext;
         private readonly SubscriptionManager _subscriptions;
         private readonly SemaphoreSlim _connecting = new(1, 1);
-        private readonly IDisposable? _changeTracking;
         private readonly NodeCache _nodeCache;
-        private byte[] _previousServerNonce = Array.Empty<byte>();
-        internal byte[] _serverNonce = Array.Empty<byte>();
+        private byte[] _previousServerNonce = [];
+        internal byte[] _serverNonce = [];
 #pragma warning disable IDE1006 // Naming Styles
         internal readonly ILogger _logger;
         internal readonly Meter _meter;

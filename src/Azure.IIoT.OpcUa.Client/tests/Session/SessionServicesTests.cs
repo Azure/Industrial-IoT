@@ -316,8 +316,8 @@ namespace Opc.Ua.Client
                     It.Is<CancellationToken>(t => t == ct)))
                 .ReturnsAsync(new AddNodesResponse
                 {
-                    Results = new AddNodesResultCollection { new AddNodesResult { StatusCode = StatusCodes.Good } },
-                    DiagnosticInfos = new DiagnosticInfoCollection { new DiagnosticInfo() }
+                    Results = [new AddNodesResult { StatusCode = StatusCodes.Good }],
+                    DiagnosticInfos = [new DiagnosticInfo()]
                 })
                 .Verifiable(Times.Once);
 
@@ -501,8 +501,8 @@ namespace Opc.Ua.Client
                     It.Is<CancellationToken>(t => t == ct)))
                 .ReturnsAsync(new AddReferencesResponse
                 {
-                    Results = new StatusCodeCollection { StatusCodes.Good },
-                    DiagnosticInfos = new DiagnosticInfoCollection { new DiagnosticInfo() }
+                    Results = [StatusCodes.Good],
+                    DiagnosticInfos = [new DiagnosticInfo()]
                 })
                 .Verifiable(Times.Once);
 
@@ -793,13 +793,13 @@ namespace Opc.Ua.Client
                 {
                     Results = new BrowseResultCollection(
                         Enumerable.Repeat(new BrowseResult(), 10).ToList()),
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    DiagnosticInfos = []
                 })
                 .ReturnsAsync(new BrowseResponse
                 {
                     Results = new BrowseResultCollection(
                         Enumerable.Repeat(new BrowseResult(), 5).ToList()),
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    DiagnosticInfos = []
                 });
 
             // Act
@@ -847,7 +847,7 @@ namespace Opc.Ua.Client
                         Enumerable.Repeat(diagnosticInfo1, 10).ToList()),
                     ResponseHeader = new ResponseHeader
                     {
-                        StringTable = new StringCollection()
+                        StringTable = []
                     }
                 })
                 .ReturnsAsync(new BrowseResponse
@@ -858,7 +858,7 @@ namespace Opc.Ua.Client
                         Enumerable.Repeat(diagnosticInfo1, 5).ToList()),
                     ResponseHeader = new ResponseHeader
                     {
-                        StringTable = new StringCollection()
+                        StringTable = []
                     }
                 });
 
@@ -917,7 +917,7 @@ namespace Opc.Ua.Client
                 {
                     Results = new BrowseResultCollection(
                         Enumerable.Repeat(new BrowseResult(), 5).ToList()),
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    DiagnosticInfos = []
                 });
 
             // Act
@@ -965,7 +965,7 @@ namespace Opc.Ua.Client
                         Enumerable.Range(0, 10).Select(_ => diagnosticInfo())),
                     ResponseHeader = new ResponseHeader
                     {
-                        StringTable = new StringCollection { "String1", "String2", "String3", "String4" }
+                        StringTable = ["String1", "String2", "String3", "String4"]
                     }
                 })
                 .ReturnsAsync(new BrowseResponse
@@ -976,7 +976,7 @@ namespace Opc.Ua.Client
                         Enumerable.Range(0, 5).Select(_ => diagnosticInfo())),
                     ResponseHeader = new ResponseHeader
                     {
-                        StringTable = new StringCollection { "String5", "String6", "String7", "String8" }
+                        StringTable = ["String5", "String6", "String7", "String8"]
                     }
                 });
 
@@ -1047,7 +1047,7 @@ namespace Opc.Ua.Client
                         Enumerable.Range(0, 10).Select(_ => diagnosticInfo1())),
                     ResponseHeader = new ResponseHeader
                     {
-                        StringTable = new StringCollection { "String1", "String2", "String3", "String4" }
+                        StringTable = ["String1", "String2", "String3", "String4"]
                     }
                 })
                 .ReturnsAsync(new BrowseResponse
@@ -1058,7 +1058,7 @@ namespace Opc.Ua.Client
                         Enumerable.Range(0, 5).Select(_ => diagnosticInfo2())),
                     ResponseHeader = new ResponseHeader
                     {
-                        StringTable = new StringCollection { "String5", "String6", "String7", "String8" }
+                        StringTable = ["String5", "String6", "String7", "String8"]
                     }
                 });
 
@@ -1130,7 +1130,7 @@ namespace Opc.Ua.Client
                         Enumerable.Range(0, 10).Select(_ => diagnosticInfo1())),
                     ResponseHeader = new ResponseHeader
                     {
-                        StringTable = new StringCollection { "String1", "String2" }
+                        StringTable = ["String1", "String2"]
                     }
                 })
                 .ReturnsAsync(new BrowseResponse
@@ -1141,7 +1141,7 @@ namespace Opc.Ua.Client
                         Enumerable.Range(0, 5).Select(_ => diagnosticInfo2())),
                     ResponseHeader = new ResponseHeader
                     {
-                        StringTable = new StringCollection { "String1", "String2", "String3", "String4" }
+                        StringTable = ["String1", "String2", "String3", "String4"]
                     }
                 });
 
@@ -1279,8 +1279,8 @@ namespace Opc.Ua.Client
                     It.Is<CancellationToken>(t => t == ct)))
                 .ReturnsAsync(new BrowseResponse
                 {
-                    Results = new BrowseResultCollection { new BrowseResult { StatusCode = StatusCodes.Good } },
-                    DiagnosticInfos = new DiagnosticInfoCollection { new DiagnosticInfo() }
+                    Results = [new BrowseResult { StatusCode = StatusCodes.Good }],
+                    DiagnosticInfos = [new DiagnosticInfo()]
                 })
                 .Verifiable(Times.Once);
 
@@ -1470,8 +1470,8 @@ namespace Opc.Ua.Client
                     It.Is<CancellationToken>(t => t == ct)))
                 .ReturnsAsync(new BrowseNextResponse
                 {
-                    Results = new BrowseResultCollection { new BrowseResult { StatusCode = StatusCodes.Good } },
-                    DiagnosticInfos = new DiagnosticInfoCollection { new DiagnosticInfo() }
+                    Results = [new BrowseResult { StatusCode = StatusCodes.Good }],
+                    DiagnosticInfos = [new DiagnosticInfo()]
                 })
                 .Verifiable(Times.Once);
 
@@ -1655,8 +1655,8 @@ namespace Opc.Ua.Client
                     It.Is<CancellationToken>(t => t == ct)))
                 .ReturnsAsync(new CallResponse
                 {
-                    Results = new CallMethodResultCollection { new CallMethodResult { StatusCode = StatusCodes.Good } },
-                    DiagnosticInfos = new DiagnosticInfoCollection { new DiagnosticInfo() }
+                    Results = [new CallMethodResult { StatusCode = StatusCodes.Good }],
+                    DiagnosticInfos = [new DiagnosticInfo()]
                 })
                 .Verifiable(Times.Once);
 
@@ -2019,8 +2019,8 @@ namespace Opc.Ua.Client
                     It.Is<CancellationToken>(t => t == ct)))
                 .ReturnsAsync(new CreateMonitoredItemsResponse
                 {
-                    Results = new MonitoredItemCreateResultCollection { new MonitoredItemCreateResult { StatusCode = StatusCodes.Good } },
-                    DiagnosticInfos = new DiagnosticInfoCollection { new DiagnosticInfo() }
+                    Results = [new MonitoredItemCreateResult { StatusCode = StatusCodes.Good }],
+                    DiagnosticInfos = [new DiagnosticInfo()]
                 })
                 .Verifiable(Times.Once);
 
@@ -2466,8 +2466,8 @@ namespace Opc.Ua.Client
                     It.Is<CancellationToken>(t => t == ct)))
                 .ReturnsAsync(new DeleteNodesResponse
                 {
-                    Results = new StatusCodeCollection { StatusCodes.Good },
-                    DiagnosticInfos = new DiagnosticInfoCollection { new DiagnosticInfo() }
+                    Results = [StatusCodes.Good],
+                    DiagnosticInfos = [new DiagnosticInfo()]
                 })
                 .Verifiable(Times.Once);
 
@@ -2651,8 +2651,8 @@ namespace Opc.Ua.Client
                     It.Is<CancellationToken>(t => t == ct)))
                 .ReturnsAsync(new DeleteReferencesResponse
                 {
-                    Results = new StatusCodeCollection { StatusCodes.Good },
-                    DiagnosticInfos = new DiagnosticInfoCollection { new DiagnosticInfo() }
+                    Results = [StatusCodes.Good],
+                    DiagnosticInfos = [new DiagnosticInfo()]
                 })
                 .Verifiable(Times.Once);
 
@@ -2941,8 +2941,8 @@ namespace Opc.Ua.Client
                     It.Is<CancellationToken>(t => t == ct)))
                 .ReturnsAsync(new HistoryReadResponse
                 {
-                    Results = new HistoryReadResultCollection { new HistoryReadResult { StatusCode = StatusCodes.Good } },
-                    DiagnosticInfos = new DiagnosticInfoCollection { new DiagnosticInfo() }
+                    Results = [new HistoryReadResult { StatusCode = StatusCodes.Good }],
+                    DiagnosticInfos = [new DiagnosticInfo()]
                 })
                 .Verifiable(Times.Once);
 
@@ -3123,8 +3123,8 @@ namespace Opc.Ua.Client
                     It.Is<CancellationToken>(t => t == ct)))
                 .ReturnsAsync(new HistoryUpdateResponse
                 {
-                    Results = new HistoryUpdateResultCollection { new HistoryUpdateResult { StatusCode = StatusCodes.Good } },
-                    DiagnosticInfos = new DiagnosticInfoCollection { new DiagnosticInfo() }
+                    Results = [new HistoryUpdateResult { StatusCode = StatusCodes.Good }],
+                    DiagnosticInfos = [new DiagnosticInfo()]
                 })
                 .Verifiable(Times.Once);
 
@@ -3321,8 +3321,8 @@ namespace Opc.Ua.Client
                     It.Is<CancellationToken>(t => t == ct)))
                 .ReturnsAsync(new ModifyMonitoredItemsResponse
                 {
-                    Results = new MonitoredItemModifyResultCollection { new MonitoredItemModifyResult { StatusCode = StatusCodes.Good } },
-                    DiagnosticInfos = new DiagnosticInfoCollection { new DiagnosticInfo() }
+                    Results = [new MonitoredItemModifyResult { StatusCode = StatusCodes.Good }],
+                    DiagnosticInfos = [new DiagnosticInfo()]
                 })
                 .Verifiable(Times.Once);
 
@@ -3884,8 +3884,8 @@ namespace Opc.Ua.Client
                     It.Is<CancellationToken>(t => t == ct)))
                 .ReturnsAsync(new ReadResponse
                 {
-                    Results = new DataValueCollection { new DataValue { StatusCode = StatusCodes.Good } },
-                    DiagnosticInfos = new DiagnosticInfoCollection { new DiagnosticInfo() }
+                    Results = [new DataValue { StatusCode = StatusCodes.Good }],
+                    DiagnosticInfos = [new DiagnosticInfo()]
                 })
                 .Verifiable(Times.Once);
 
@@ -4319,8 +4319,8 @@ namespace Opc.Ua.Client
                     It.Is<CancellationToken>(t => t == ct)))
                 .ReturnsAsync(new SetMonitoringModeResponse
                 {
-                    Results = new StatusCodeCollection { StatusCodes.Good },
-                    DiagnosticInfos = new DiagnosticInfoCollection { new DiagnosticInfo() }
+                    Results = [StatusCodes.Good],
+                    DiagnosticInfos = [new DiagnosticInfo()]
                 })
                 .Verifiable(Times.Once);
 
@@ -4618,10 +4618,10 @@ namespace Opc.Ua.Client
                     It.Is<CancellationToken>(t => t == ct)))
                 .ReturnsAsync(new SetTriggeringResponse
                 {
-                    AddResults = new StatusCodeCollection { StatusCodes.Good },
-                    AddDiagnosticInfos = new DiagnosticInfoCollection { new DiagnosticInfo() },
-                    RemoveResults = new StatusCodeCollection { StatusCodes.Good },
-                    RemoveDiagnosticInfos = new DiagnosticInfoCollection { new DiagnosticInfo() }
+                    AddResults = [StatusCodes.Good],
+                    AddDiagnosticInfos = [new DiagnosticInfo()],
+                    RemoveResults = [StatusCodes.Good],
+                    RemoveDiagnosticInfos = [new DiagnosticInfo()]
                 })
                 .Verifiable(Times.Once);
 
@@ -4738,8 +4738,8 @@ namespace Opc.Ua.Client
                     It.Is<CancellationToken>(t => t == ct)))
                 .ReturnsAsync(new TransferSubscriptionsResponse
                 {
-                    Results = new TransferResultCollection { new TransferResult { StatusCode = StatusCodes.Good } },
-                    DiagnosticInfos = new DiagnosticInfoCollection { new DiagnosticInfo() }
+                    Results = [new TransferResult { StatusCode = StatusCodes.Good }],
+                    DiagnosticInfos = [new DiagnosticInfo()]
                 })
                 .Verifiable(Times.Once);
 
@@ -4860,8 +4860,8 @@ namespace Opc.Ua.Client
                     It.Is<CancellationToken>(t => t == ct)))
                 .ReturnsAsync(new TranslateBrowsePathsToNodeIdsResponse
                 {
-                    Results = new BrowsePathResultCollection { new BrowsePathResult { StatusCode = StatusCodes.Good } },
-                    DiagnosticInfos = new DiagnosticInfoCollection { new DiagnosticInfo() }
+                    Results = [new BrowsePathResult { StatusCode = StatusCodes.Good }],
+                    DiagnosticInfos = [new DiagnosticInfo()]
                 })
                 .Verifiable(Times.Once);
 
@@ -5185,8 +5185,8 @@ namespace Opc.Ua.Client
                     It.Is<CancellationToken>(t => t == ct)))
                 .ReturnsAsync(new WriteResponse
                 {
-                    Results = new StatusCodeCollection { StatusCodes.Good },
-                    DiagnosticInfos = new DiagnosticInfoCollection { new DiagnosticInfo() }
+                    Results = [StatusCodes.Good],
+                    DiagnosticInfos = [new DiagnosticInfo()]
                 })
                 .Verifiable(Times.Once);
 

@@ -44,7 +44,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanSendAddressSpaceDataToUnifiedNamespaceAsync), "./Resources/DataItems1.json",
                 messageCollectionTimeout: TimeSpan.FromMinutes(1), messageCount: 10,
-                arguments: new string[] { "--mm=SingleRawDataSet", "--uns=UseBrowseNamesWithNamespaceIndex" }, version: MqttVersion.v5);
+                arguments: ["--mm=SingleRawDataSet", "--uns=UseBrowseNamesWithNamespaceIndex"], version: MqttVersion.v5);
 
             // Assert
             Assert.NotEmpty(messages);
@@ -81,7 +81,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanSendAddressSpaceDataToUnifiedNamespaceRawAsync), "./Resources/DataItems1.json",
                 messageCollectionTimeout: TimeSpan.FromMinutes(1), messageCount: 10,
-                arguments: new string[] { "--mm=SingleRawDataSet", "--uns=UseBrowseNames" }, version: MqttVersion.v311);
+                arguments: ["--mm=SingleRawDataSet", "--uns=UseBrowseNames"], version: MqttVersion.v311);
 
             // Assert
             Assert.NotEmpty(messages);

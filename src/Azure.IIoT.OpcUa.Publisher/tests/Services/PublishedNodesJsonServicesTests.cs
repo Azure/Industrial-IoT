@@ -1020,12 +1020,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 Assert.Single(nodes);
                 Assert.Equal("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1", nodes[0].Id);
 
-                endpoint.OpcNodes = new List<OpcNodeModel>
-                {
+                endpoint.OpcNodes =
+                [
                     new() {
                         Id = "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt2"
                     }
-                };
+                ];
 
                 await configService.PublishNodesAsync(endpoint);
 
@@ -1201,7 +1201,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 .ThrowAsync<BadRequestException>()
                 .WithMessage("null or empty OpcNodes is provided in request");
 
-            request.OpcNodes = new List<OpcNodeModel>();
+            request.OpcNodes = [];
 
             // Check empty OpcNodes in request.
             await FluentActions
@@ -1514,8 +1514,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 .Select(i => GenerateEndpoint(i, opcNodes))
                 .ToList();
             updateRequest[0].OpcNodes = null; // Should result in endpoint deletion.
-            updateRequest[1].OpcNodes = new List<OpcNodeModel>(); // Should result in endpoint deletion.
-            updateRequest[2].OpcNodes = opcNodes.GetRange(0, 4).ToList();
+            updateRequest[1].OpcNodes = []; // Should result in endpoint deletion.
+            updateRequest[2].OpcNodes = [.. opcNodes.GetRange(0, 4)];
             updateRequest[3].OpcNodes = null; // Should throw as endpoint does not exist.
 
             // Should throw as updateRequest[3] endpoint is not present in current configuratoin.
@@ -1617,12 +1617,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 Assert.Single(nodes);
                 Assert.Equal("nsu=http://microsoft.com/Opc/OpcPlc/;s=StepUp", nodes[0].Id);
 
-                endpoints[0].OpcNodes = new List<OpcNodeModel>
-                {
+                endpoints[0].OpcNodes =
+                [
                     new() {
                         Id = "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt2"
                     }
-                };
+                ];
 
                 await configService.PublishNodesAsync(endpoints[0]);
 
@@ -1797,7 +1797,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 var model = new PublishedNodesEntryModel
                 {
                     EndpointUrl = $"opc.tcp://server{endpointIndex}:49580",
-                    OpcNodes = new List<OpcNodeModel>()
+                    OpcNodes = []
                 };
                 for (var nodeIndex = 0; nodeIndex < numberOfNodes; ++nodeIndex)
                 {
@@ -1842,11 +1842,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 var model = new PublishedNodesEntryModel
                 {
                     EndpointUrl = $"opc.tcp://server{endpointIndex}:49580",
-                    OpcNodes = new List<OpcNodeModel> {
+                    OpcNodes = [
                         new() {
                             Id = $"ns=2;s=Node-Server-{numberOfNodes}"
                         }
-                    }
+                    ]
                 };
 
                 payloadDiff.Add(model);
@@ -1890,7 +1890,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 DataSetWriterId = $"DataSetWriterId{dataSetIndex}",
                 DataSetWriterGroup = "DataSetWriterGroup",
                 DataSetPublishingInterval = (dataSetIndex + 1) * 1000,
-                OpcNodes = opcNodes.GetRange(0, dataSetIndex + 1).ToList()
+                OpcNodes = [.. opcNodes.GetRange(0, dataSetIndex + 1)]
             };
         }
 

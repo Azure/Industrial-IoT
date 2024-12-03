@@ -268,7 +268,7 @@ namespace Opc.Ua.Client
             {
                 if (nodes is not List<INode> subTypes)
                 {
-                    subTypes = nodes.ToList();
+                    subTypes = [.. nodes];
                 }
                 await LoadTypeHierarchyAync(subTypes.ConvertAll(n => ToNodeId(n.NodeId)),
                     ct).ConfigureAwait(false);

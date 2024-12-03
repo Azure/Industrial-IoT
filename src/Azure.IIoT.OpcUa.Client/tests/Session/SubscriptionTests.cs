@@ -134,7 +134,7 @@ namespace Opc.Ua.Client
                     true, new UInt32Collection { 22 }, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new SetPublishingModeResponse
                 {
-                    Results = new StatusCodeCollection { StatusCodes.Good }
+                    Results = [StatusCodes.Good]
                 })
                 .Verifiable(Times.Once);
 
@@ -183,7 +183,7 @@ namespace Opc.Ua.Client
                     true, new UInt32Collection { 22 }, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new SetPublishingModeResponse
                 {
-                    Results = new StatusCodeCollection { StatusCodes.Good }
+                    Results = [StatusCodes.Good]
                 })
                 .Verifiable(Times.Once);
 
@@ -222,8 +222,8 @@ namespace Opc.Ua.Client
                     It.IsAny<MonitoredItemCreateRequestCollection>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new CreateMonitoredItemsResponse
                 {
-                    Results = new MonitoredItemCreateResultCollection
-                    {
+                    Results =
+                    [
                         new ()
                         {
                             StatusCode = StatusCodes.Good,
@@ -231,7 +231,7 @@ namespace Opc.Ua.Client
                             RevisedSamplingInterval = 10000,
                             RevisedQueueSize = 10
                         }
-                    }
+                    ]
                 })
                 .Verifiable(Times.Once);
 
@@ -274,15 +274,15 @@ namespace Opc.Ua.Client
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ModifyMonitoredItemsResponse
                 {
-                    Results = new MonitoredItemModifyResultCollection
-                    {
+                    Results =
+                    [
                         new ()
                         {
                             StatusCode = StatusCodes.Good,
                             RevisedSamplingInterval = 100000,
                             RevisedQueueSize = 1000
                         }
-                    }
+                    ]
                 })
                 .Verifiable(Times.Once);
 
@@ -322,7 +322,7 @@ namespace Opc.Ua.Client
                     new UInt32Collection { monitoredItem.ServerId }, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new DeleteMonitoredItemsResponse
                 {
-                    Results = new StatusCodeCollection { StatusCodes.Good }
+                    Results = [StatusCodes.Good]
                 })
                 .Verifiable(Times.Once);
             _mockSession
@@ -333,8 +333,8 @@ namespace Opc.Ua.Client
                         It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new CreateMonitoredItemsResponse
                 {
-                    Results = new MonitoredItemCreateResultCollection
-                    {
+                    Results =
+                    [
                         new ()
                         {
                             StatusCode = StatusCodes.Good,
@@ -342,7 +342,7 @@ namespace Opc.Ua.Client
                             RevisedSamplingInterval = 10000,
                             RevisedQueueSize = 10
                         }
-                    }
+                    ]
                 })
                 .Verifiable(Times.Once);
             // Act
@@ -386,7 +386,7 @@ namespace Opc.Ua.Client
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new SetMonitoringModeResponse
                 {
-                    Results = new StatusCodeCollection { StatusCodes.Good }
+                    Results = [StatusCodes.Good]
                 })
                 .Verifiable(Times.Once);
 
@@ -421,7 +421,7 @@ namespace Opc.Ua.Client
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new DeleteMonitoredItemsResponse
                 {
-                    Results = new StatusCodeCollection { StatusCodes.Good }
+                    Results = [StatusCodes.Good]
                 })
                 .Verifiable(Times.Once);
 
@@ -457,15 +457,15 @@ namespace Opc.Ua.Client
                     {
                         ServiceResult = StatusCodes.Bad
                     },
-                    Results = new StatusCodeCollection()
+                    Results = []
                 })
                 .ReturnsAsync(new DeleteMonitoredItemsResponse
                 {
-                    Results = new StatusCodeCollection { StatusCodes.Bad }
+                    Results = [StatusCodes.Bad]
                 })
                 .ReturnsAsync(new DeleteMonitoredItemsResponse
                 {
-                    Results = new StatusCodeCollection { StatusCodes.Good }
+                    Results = [StatusCodes.Good]
                 })
                 ;
 
@@ -493,13 +493,13 @@ namespace Opc.Ua.Client
                     It.IsAny<CallMethodRequestCollection>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new CallResponse
                 {
-                    Results = new CallMethodResultCollection
-                    {
+                    Results =
+                    [
                         new ()
                         {
                             StatusCode = StatusCodes.Good
                         }
-                    }
+                    ]
                 })
                 .Verifiable(Times.Once);
 
@@ -539,7 +539,7 @@ namespace Opc.Ua.Client
                     It.IsAny<RequestHeader>(), new UInt32Collection { 22 }, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new DeleteSubscriptionsResponse
                 {
-                    Results = new StatusCodeCollection { StatusCodes.Good }
+                    Results = [StatusCodes.Good]
                 }).
                 Verifiable(Times.Once);
 
@@ -563,7 +563,7 @@ namespace Opc.Ua.Client
                     It.IsAny<RequestHeader>(), new UInt32Collection { 22 }, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new DeleteSubscriptionsResponse
                 {
-                    Results = new StatusCodeCollection { StatusCodes.Good }
+                    Results = [StatusCodes.Good]
                 }).
                 Verifiable(Times.Once);
 
@@ -591,7 +591,7 @@ namespace Opc.Ua.Client
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new DeleteSubscriptionsResponse
                 {
-                    Results = new StatusCodeCollection { StatusCodes.Good }
+                    Results = [StatusCodes.Good]
                 }).
                 Verifiable(Times.Once);
 
@@ -618,7 +618,7 @@ namespace Opc.Ua.Client
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new DeleteSubscriptionsResponse
                 {
-                    Results = new StatusCodeCollection { StatusCodes.Bad }
+                    Results = [StatusCodes.Bad]
                 }).
                 Verifiable(Times.Once);
 
@@ -717,8 +717,8 @@ namespace Opc.Ua.Client
                     It.IsAny<MonitoredItemCreateRequestCollection>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new CreateMonitoredItemsResponse
                 {
-                    Results = new MonitoredItemCreateResultCollection
-                    {
+                    Results =
+                    [
                         new ()
                         {
                             StatusCode = StatusCodes.Good,
@@ -726,7 +726,7 @@ namespace Opc.Ua.Client
                             RevisedSamplingInterval = 10000,
                             RevisedQueueSize = 10
                         }
-                    }
+                    ]
                 })
                 .Verifiable(Times.Once);
 
@@ -777,8 +777,8 @@ namespace Opc.Ua.Client
                     It.IsAny<MonitoredItemCreateRequestCollection>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new CreateMonitoredItemsResponse
                 {
-                    Results = new MonitoredItemCreateResultCollection
-                    {
+                    Results =
+                    [
                         new ()
                         {
                             StatusCode = StatusCodes.Good,
@@ -786,7 +786,7 @@ namespace Opc.Ua.Client
                             RevisedSamplingInterval = 10000,
                             RevisedQueueSize = 10
                         }
-                    }
+                    ]
                 })
                 .Verifiable(Times.Once);
             sut.Created.Should().BeTrue();
@@ -844,18 +844,18 @@ namespace Opc.Ua.Client
                         && r[0].MethodId == MethodIds.Server_GetMonitoredItems), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new CallResponse
                 {
-                    Results = new CallMethodResultCollection
-                    {
+                    Results =
+                    [
                         new ()
                         {
                             StatusCode = StatusCodes.Good,
-                            OutputArguments = new VariantCollection
-                            {
-                                new Variant(new[]{199u, 22u, 33u}), // serverHandles
-                                new Variant(new[]{22})  // clientHandles
-                            }
+                            OutputArguments =
+                            [
+                                new Variant([199u, 22u, 33u]), // serverHandles
+                                new Variant([22])  // clientHandles
+                            ]
                         }
-                    }
+                    ]
                 })
                 .Verifiable(Times.Once);
 
@@ -888,18 +888,18 @@ namespace Opc.Ua.Client
                         && r[0].MethodId == MethodIds.Server_GetMonitoredItems), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new CallResponse
                 {
-                    Results = new CallMethodResultCollection
-                    {
+                    Results =
+                    [
                         new ()
                         {
                             StatusCode = StatusCodes.Good,
-                            OutputArguments = new VariantCollection
-                            {
-                                new Variant(new[]{"string"}), // serverHandles
-                                new Variant(new[]{22})  // clientHandles
-                            }
+                            OutputArguments =
+                            [
+                                new Variant(["string"]), // serverHandles
+                                new Variant([22])  // clientHandles
+                            ]
                         }
-                    }
+                    ]
                 })
                 .Verifiable(Times.Once);
 
@@ -932,18 +932,18 @@ namespace Opc.Ua.Client
                         && r[0].MethodId == MethodIds.Server_GetMonitoredItems), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new CallResponse
                 {
-                    Results = new CallMethodResultCollection
-                    {
+                    Results =
+                    [
                         new ()
                         {
                             StatusCode = StatusCodes.Good,
-                            OutputArguments = new VariantCollection
-                            {
-                                new Variant(new[]{199u}), // serverHandles
-                                new Variant(new[]{monitoredItem.ClientHandle})  // clientHandles
-                            }
+                            OutputArguments =
+                            [
+                                new Variant([199u]), // serverHandles
+                                new Variant([monitoredItem.ClientHandle])  // clientHandles
+                            ]
                         }
-                    }
+                    ]
                 })
                 .Verifiable(Times.Once);
 
@@ -979,18 +979,18 @@ namespace Opc.Ua.Client
                         && r[0].MethodId == MethodIds.Server_GetMonitoredItems), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new CallResponse
                 {
-                    Results = new CallMethodResultCollection
-                    {
+                    Results =
+                    [
                         new ()
                         {
                             StatusCode = StatusCodes.Good,
-                            OutputArguments = new VariantCollection
-                            {
-                                new Variant(new[]{monitoredItem.ServerId}), // serverHandles
-                                new Variant(new[]{monitoredItem.ClientHandle})  // clientHandles
-                            }
+                            OutputArguments =
+                            [
+                                new Variant([monitoredItem.ServerId]), // serverHandles
+                                new Variant([monitoredItem.ClientHandle])  // clientHandles
+                            ]
                         }
-                    }
+                    ]
                 })
                 .Verifiable(Times.Once);
 
@@ -1022,18 +1022,18 @@ namespace Opc.Ua.Client
                         && r[0].MethodId == MethodIds.Server_GetMonitoredItems), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new CallResponse
                 {
-                    Results = new CallMethodResultCollection
-                    {
+                    Results =
+                    [
                         new ()
                         {
                             StatusCode = StatusCodes.Good,
-                            OutputArguments = new VariantCollection
-                            {
-                                new Variant(new[]{199u}), // serverHandles
-                                new Variant(new[]{3u})  // clientHandles
-                            }
+                            OutputArguments =
+                            [
+                                new Variant([199u]), // serverHandles
+                                new Variant([3u])  // clientHandles
+                            ]
                         }
-                    }
+                    ]
                 })
                 .Verifiable(Times.Once);
 
@@ -1042,7 +1042,7 @@ namespace Opc.Ua.Client
                     new UInt32Collection { 199 }, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new DeleteMonitoredItemsResponse
                 {
-                    Results = new StatusCodeCollection { StatusCodes.Good }
+                    Results = [StatusCodes.Good]
                 })
                 .Verifiable(Times.Once);
 
@@ -1075,14 +1075,14 @@ namespace Opc.Ua.Client
                         && r[0].MethodId == MethodIds.Server_GetMonitoredItems), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new CallResponse
                 {
-                    Results = new CallMethodResultCollection
-                    {
+                    Results =
+                    [
                         new ()
                         {
                             StatusCode = StatusCodes.Bad,
-                            OutputArguments = new VariantCollection()
+                            OutputArguments = []
                         }
-                    }
+                    ]
                 })
                 .Verifiable(Times.Once);
 
@@ -1118,18 +1118,18 @@ namespace Opc.Ua.Client
                         && r[0].MethodId == MethodIds.Server_GetMonitoredItems), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new CallResponse
                 {
-                    Results = new CallMethodResultCollection
-                    {
+                    Results =
+                    [
                         new ()
                         {
                             StatusCode = StatusCodes.Good,
-                            OutputArguments = new VariantCollection
-                            {
-                                new Variant(new[]{serverId}), // serverHandles
-                                new Variant(new[]{199})  // clientHandles
-                            }
+                            OutputArguments =
+                            [
+                                new Variant([serverId]), // serverHandles
+                                new Variant([199])  // clientHandles
+                            ]
                         }
-                    }
+                    ]
                 })
                 .Verifiable(Times.Once);
 
@@ -1166,18 +1166,18 @@ namespace Opc.Ua.Client
                         && r[0].MethodId == MethodIds.Server_GetMonitoredItems), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new CallResponse
                 {
-                    Results = new CallMethodResultCollection
-                    {
+                    Results =
+                    [
                         new ()
                         {
                             StatusCode = StatusCodes.Good,
-                            OutputArguments = new VariantCollection
-                            {
-                                new Variant(new[]{33}), // serverHandles
-                                new Variant(new[]{199})  // clientHandles
-                            }
+                            OutputArguments =
+                            [
+                                new Variant([33]), // serverHandles
+                                new Variant([199])  // clientHandles
+                            ]
                         }
-                    }
+                    ]
                 })
                 .Verifiable(Times.Once);
 
@@ -1187,7 +1187,7 @@ namespace Opc.Ua.Client
                     new UInt32Collection { 33 }, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new DeleteMonitoredItemsResponse
                 {
-                    Results = new StatusCodeCollection { StatusCodes.Good }
+                    Results = [StatusCodes.Good]
                 })
                 .Verifiable(Times.Once);
             _mockSession
@@ -1196,8 +1196,8 @@ namespace Opc.Ua.Client
                     It.IsAny<MonitoredItemCreateRequestCollection>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new CreateMonitoredItemsResponse
                 {
-                    Results = new MonitoredItemCreateResultCollection
-                    {
+                    Results =
+                    [
                         new ()
                         {
                             StatusCode = StatusCodes.Good,
@@ -1205,7 +1205,7 @@ namespace Opc.Ua.Client
                             RevisedSamplingInterval = 10000,
                             RevisedQueueSize = 10
                         }
-                    }
+                    ]
                 })
                 .Verifiable(Times.Once);
 
@@ -1263,7 +1263,7 @@ namespace Opc.Ua.Client
                         MonitoredItemId = ClientHandle,
                         RevisedSamplingInterval = 10000,
                         RevisedQueueSize = 10
-                    }, 0, new DiagnosticInfoCollection(), new ResponseHeader());
+                    }, 0, [], new ResponseHeader());
                 }
             }
         }
@@ -1315,7 +1315,8 @@ namespace Opc.Ua.Client
                 base.OnSubscriptionStateChanged(state);
             }
 
-            protected override MonitoredItem CreateMonitoredItem(IOptionsMonitor<MonitoredItemOptions> options)
+            protected override MonitoredItem CreateMonitoredItem(IObservability observability,
+                IOptionsMonitor<MonitoredItemOptions> options)
             {
                 return new TestMonitoredItem(this,
                     (OptionsMonitor<MonitoredItemOptions>)options, new Mock<ILogger>().Object);

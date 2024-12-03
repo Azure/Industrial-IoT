@@ -35,7 +35,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         /// <inheritdoc/>
         public ImmutableList<WriterGroupModel> WriterGroups { get; private set; }
-            = ImmutableList<WriterGroupModel>.Empty;
+            = [];
 
         /// <inheritdoc/>
         public DateTimeOffset LastChange { get; private set; }
@@ -65,12 +65,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _timeProvider = timeProvider ?? TimeProvider.System;
             LastChange = _timeProvider.GetUtcNow();
 
-            _currentJobs = new Dictionary<string, WriterGroupJob>();
+            _currentJobs = [];
 
-            TagList = new TagList(new[]
-            {
+            TagList = new TagList(
+            [
                 new KeyValuePair<string, object?>(Constants.PublisherIdTag, PublisherId)
-            });
+            ]);
             _completedTask = new TaskCompletionSource();
             _cts = new CancellationTokenSource();
             _changeFeed

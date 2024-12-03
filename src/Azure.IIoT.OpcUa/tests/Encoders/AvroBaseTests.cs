@@ -666,7 +666,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             encoder.WriteGuidArray(null, expected);
             stream.Position = 0;
             using var decoder = new SchemalessAvroDecoder(stream, context);
-            Assert.Equal(expected, decoder.ReadGuidArray(null).ToArray());
+            Assert.Equal(expected, decoder.ReadGuidArray(null));
         }
 
         [Fact]

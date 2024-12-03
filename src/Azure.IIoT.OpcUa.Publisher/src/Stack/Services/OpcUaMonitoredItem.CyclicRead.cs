@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
+    using System.Threading;
 
     internal abstract partial class OpcUaMonitoredItem
     {
@@ -180,7 +181,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             private readonly OpcUaClient _client;
             private IAsyncDisposable? _sampler;
-            private readonly object _lock = new();
+            private readonly Lock _lock = new();
             private bool _disposed;
         }
     }

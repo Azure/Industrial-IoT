@@ -53,7 +53,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser
             // If we failed before, fail again
             if (ErrorInfo != null)
             {
-                return Enumerable.Empty<IdentifierMetaData>();
+                return [];
             }
 
             await _session.CollectTypeHierarchyAsync(_header, nodeId, hierarchy,
@@ -80,7 +80,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser
             }
             if (ErrorInfo != null)
             {
-                return Enumerable.Empty<IdentifierMetaData>();
+                return [];
             }
             return declarations
                 .Where(declaration =>

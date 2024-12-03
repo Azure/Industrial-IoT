@@ -582,7 +582,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     {
                         WriteWithSchema(currentSchema, () => WriteScalar(builtInType,
                             values?.Select(v => v.Value).Cast<byte>().ToArray()
-                            ?? Array.Empty<byte>()));
+                            ?? []));
                         return;
                     }
                     //
@@ -593,7 +593,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     {
                         WriteWithSchema(currentSchema, () => WriteArray(builtInType,
                             values?.Select(v => v.Value).ToArray()
-                            ?? Array.Empty<object>()));
+                            ?? []));
                         return;
                     }
 
@@ -630,7 +630,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public override void WriteEnumeratedArray(string? fieldName, Array? values,
             Type? systemType)
         {
-            var ints = values == null ? Array.Empty<int>() : Enumerable
+            var ints = values == null ? [] : Enumerable
                 .Range(0, values.GetLength(0))
                 .Select(i => Convert.ToInt32((Enum?)values.GetValue(i),
                     CultureInfo.InvariantCulture))

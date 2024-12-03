@@ -120,10 +120,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
-        public void OnOpened(string deviceId, string? moduleId)
+        public void OnOpened(int counter, string deviceId, string? moduleId)
         {
-            _logger.LogInformation("0: Module {ModuleId} opened.",
-                moduleId ?? deviceId);
+            _logger.LogInformation("{Counter}: Module {ModuleId} opened.",
+                counter, moduleId ?? deviceId);
+        }
+
+        /// <inheritdoc/>
+        public void OnError(int counter, string deviceId, string? moduleId, string reason)
+        {
+            _logger.LogInformation("{Counter}: Module {ModuleId} error {Reason}...",
+                counter, moduleId ?? deviceId, reason);
         }
 
         /// <inheritdoc/>

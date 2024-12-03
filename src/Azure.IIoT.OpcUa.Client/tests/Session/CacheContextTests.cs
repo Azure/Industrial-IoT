@@ -42,12 +42,11 @@ namespace Opc.Ua.Client
                 .Returns(_mockTimer.Object);
             _mockObservability
                 .Setup(o => o.TimeProvider).Returns(_mockTimeProvider.Object);
-            _options = OptionsFactory.Create<SessionOptions>(
-                new SessionOptions
-                {
-                    SessionName = "TestSession",
-                    Channel = _mockChannel.Object
-                });
+            _options = new SessionCreateOptions
+            {
+                SessionName = "TestSession",
+                Channel = _mockChannel.Object
+            };
             _configuration = new ApplicationConfiguration
             {
                 ClientConfiguration = new ClientConfiguration
@@ -112,7 +111,7 @@ namespace Opc.Ua.Client
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ReadResponse
                 {
-                    Results = new DataValueCollection { dataValue },
+                    Results = [dataValue],
                     DiagnosticInfos = diagnosticInfos
                 })
                 .Verifiable(Times.Once);
@@ -160,7 +159,7 @@ namespace Opc.Ua.Client
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ReadResponse
                 {
-                    Results = new DataValueCollection { dataValue },
+                    Results = [dataValue],
                     DiagnosticInfos = diagnosticInfos
                 })
                 .Verifiable(Times.Once);
@@ -281,7 +280,7 @@ namespace Opc.Ua.Client
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ReadResponse
                 {
-                    Results = new DataValueCollection { dataValue },
+                    Results = [dataValue],
                     DiagnosticInfos = diagnosticInfos
                 })
                 .Verifiable(Times.Once);
@@ -399,7 +398,7 @@ namespace Opc.Ua.Client
                     return Task.FromResult<IServiceResponse>(new ReadResponse
                     {
                         Results = results,
-                        DiagnosticInfos = new DiagnosticInfoCollection()
+                        DiagnosticInfos = []
                     });
                 })
                 .Verifiable(Times.Exactly(2));
@@ -483,7 +482,7 @@ namespace Opc.Ua.Client
                     return Task.FromResult<IServiceResponse>(new ReadResponse
                     {
                         Results = results,
-                        DiagnosticInfos = new DiagnosticInfoCollection()
+                        DiagnosticInfos = []
                     });
                 })
                 .Verifiable(Times.Exactly(2));
@@ -534,7 +533,7 @@ namespace Opc.Ua.Client
                     return Task.FromResult<IServiceResponse>(new ReadResponse
                     {
                         Results = results,
-                        DiagnosticInfos = new DiagnosticInfoCollection()
+                        DiagnosticInfos = []
                     });
                 })
                 .Verifiable(Times.Once);
@@ -986,14 +985,14 @@ namespace Opc.Ua.Client
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new BrowseResponse
                 {
-                    Results = new BrowseResultCollection
-                    {
+                    Results =
+                    [
                 new BrowseResult
                 {
                     References = references
                 }
-                    },
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    ],
+                    DiagnosticInfos = []
                 })
                 .Verifiable(Times.Once);
 
@@ -1059,8 +1058,8 @@ namespace Opc.Ua.Client
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new BrowseResponse
                 {
-                    Results = new BrowseResultCollection
-                    {
+                    Results =
+                    [
                         new BrowseResult
                         {
                             References = references,
@@ -1071,8 +1070,8 @@ namespace Opc.Ua.Client
                             References = references,
                             StatusCode = StatusCodes.Bad
                         }
-                    },
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    ],
+                    DiagnosticInfos = []
                 })
                 .Verifiable(Times.Once);
 
@@ -1141,14 +1140,14 @@ namespace Opc.Ua.Client
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new BrowseResponse
                 {
-                    Results = new BrowseResultCollection
-                    {
+                    Results =
+                    [
                 new BrowseResult
                 {
-                    References = new ReferenceDescriptionCollection { reference }
+                    References = [reference]
                 }
-                    },
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    ],
+                    DiagnosticInfos = []
                 })
                 .Verifiable(Times.Once);
 
@@ -1185,14 +1184,14 @@ namespace Opc.Ua.Client
                 .ReturnsAsync(new BrowseResponse
                 {
                     ResponseHeader = new ResponseHeader { ServiceResult = StatusCodes.Bad },
-                    Results = new BrowseResultCollection
-                    {
+                    Results =
+                    [
                         new BrowseResult
                         {
-                            References = new ReferenceDescriptionCollection { reference }
+                            References = [reference]
                         }
-                    },
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    ],
+                    DiagnosticInfos = []
                 })
                 .Verifiable(Times.Once);
 
@@ -1234,13 +1233,13 @@ namespace Opc.Ua.Client
         private sealed class TestCacheContext : SessionBase
         {
             public TestCacheContext(ApplicationConfiguration configuration,
-                ConfiguredEndpoint endpoint, IOptionsMonitor<SessionOptions> _options,
+                ConfiguredEndpoint endpoint, SessionCreateOptions _options,
                 IObservability observability, ReverseConnectManager reverseConnect)
                 : base(configuration, endpoint, _options, observability, reverseConnect)
             {
-                if (_options.CurrentValue.Channel != null)
+                if (_options.Channel != null)
                 {
-                    AttachChannel(_options.CurrentValue.Channel);
+                    AttachChannel(_options.Channel);
                 }
             }
 
@@ -1249,7 +1248,7 @@ namespace Opc.Ua.Client
                 // No implementation needed for tests
             }
 
-            public override IManagedSubscription CreateSubscription(
+            public override IManagedSubscription CreateSubscription(IObservability observability,
                 IOptionsMonitor<SubscriptionOptions> _options, IMessageAckQueue queue)
             {
                 throw new NotImplementedException();
@@ -1262,7 +1261,7 @@ namespace Opc.Ua.Client
         private readonly Mock<IMeterFactory> _mockMeterFactory;
         private readonly Mock<TimeProvider> _mockTimeProvider;
         private readonly Mock<ITimer> _mockTimer;
-        private readonly IOptionsMonitor<SessionOptions> _options;
+        private readonly SessionCreateOptions _options;
         private readonly ApplicationConfiguration _configuration;
     }
 }

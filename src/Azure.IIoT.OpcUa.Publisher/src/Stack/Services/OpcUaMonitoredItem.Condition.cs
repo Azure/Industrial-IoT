@@ -294,7 +294,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     conditionHandlingState.ConditionIdIndex = eventFilter.SelectClauses.Count;
                     var selectClause = new SimpleAttributeOperand()
                     {
-                        BrowsePath = new QualifiedNameCollection(),
+                        BrowsePath = [],
                         TypeDefinitionId = ObjectTypeIds.ConditionType,
                         AttributeId = Attributes.NodeId
                     };
@@ -449,7 +449,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 /// Cache of the latest events for the pending alarms optionally monitored
                 /// </summary>
                 public Dictionary<string, List<MonitoredItemNotificationModel>> Active { get; }
-                    = new Dictionary<string, List<MonitoredItemNotificationModel>>();
+                    = [];
             }
 
             private ConditionHandlingState _conditionHandlingState;
@@ -457,7 +457,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private int _snapshotInterval;
             private int _updateInterval;
             private TimerEx? _conditionTimer;
-            private readonly object _timerLock = new();
+            private readonly Lock _timerLock = new();
             private bool _disposed;
         }
     }

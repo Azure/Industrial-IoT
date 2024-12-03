@@ -93,7 +93,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <summary>
             /// List of field names.
             /// </summary>
-            public List<(string? Name, Guid DataSetFieldId)> Fields { get; } = new();
+            public List<(string? Name, Guid DataSetFieldId)> Fields { get; } = [];
 
             /// <summary>
             /// Create wrapper
@@ -543,9 +543,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     await ParseFieldsAsync(session, fieldNames, node, string.Empty,
                         ct).ConfigureAwait(false);
                 }
-                fieldNames = fieldNames
+                fieldNames = [.. fieldNames
                     .Distinct()
-                    .OrderBy(x => x.Name).ToList();
+                    .OrderBy(x => x.Name)];
 
                 var eventFilter = new EventFilter();
                 // Let's add ConditionId manually first if event is derived from ConditionType
@@ -553,7 +553,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     eventFilter.SelectClauses.Add(new SimpleAttributeOperand()
                     {
-                        BrowsePath = new QualifiedNameCollection(),
+                        BrowsePath = [],
                         TypeDefinitionId = ObjectTypeIds.ConditionType,
                         AttributeId = Attributes.NodeId
                     });

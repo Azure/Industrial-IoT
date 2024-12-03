@@ -199,7 +199,7 @@ namespace Asset
                 }
                 else
                 {
-                    data = Array.Empty<byte>();
+                    data = [];
                 }
             }
 
@@ -357,7 +357,7 @@ namespace Asset
         private readonly WoTAssetFileTypeState _file;
         private readonly ILogger _logger;
         private readonly string _folder;
-        private readonly Dictionary<uint, Handle> _handles = new();
+        private readonly Dictionary<uint, Handle> _handles = [];
         private bool _writing;
         private uint _nextHandle = 1u;
     }

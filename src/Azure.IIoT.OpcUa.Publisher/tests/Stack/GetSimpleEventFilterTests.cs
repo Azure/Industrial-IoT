@@ -320,6 +320,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             NodeId = VariableIds.ConditionType_EnabledState_Id
         };
 
-        private readonly Dictionary<uint, Node> _nodes = new();
+        private readonly Dictionary<uint, Node> _nodes = [];
     }
 }

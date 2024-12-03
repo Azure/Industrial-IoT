@@ -40,7 +40,7 @@ namespace DeterministicAlarms.SimBackend
 
     public class SimSourceNodeBackend
     {
-        public Dictionary<string, SimAlarmStateBackend> Alarms { get; } = new Dictionary<string, SimAlarmStateBackend>();
+        public Dictionary<string, SimAlarmStateBackend> Alarms { get; } = [];
 
         public string Name { get; internal set; }
 

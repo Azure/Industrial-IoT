@@ -468,7 +468,7 @@ dotnet_diagnostic.xUnit1044.severity = silent
 
 # CA1716: Identifiers should not match keywords
 dotnet_diagnostic.CA1716.severity = none
-csharp_style_prefer_primary_constructors = true:suggestion
+csharp_style_prefer_primary_constructors = false:suggestion
 
 # CA1861: Avoid constant arrays as arguments
 dotnet_diagnostic.CA1861.severity = silent

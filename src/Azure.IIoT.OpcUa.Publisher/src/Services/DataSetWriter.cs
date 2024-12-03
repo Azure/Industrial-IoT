@@ -1125,7 +1125,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         {
                             return _extensionFields;
                         }
-                        var extensionFields = _extensionFields?.ToList() ?? new List<ExtensionFieldModel>();
+                        var extensionFields = _extensionFields?.ToList() ?? [];
                         if ((_fieldMask & DataSetFieldContentFlags.EndpointUrl) != 0 &&
                             !extensionFields
                             .Any(f => f.DataSetFieldName == nameof(DataSetFieldContentFlags.EndpointUrl)))

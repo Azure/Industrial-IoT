@@ -69,7 +69,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
                             MetaDataVersion = $"{dataSetMessage.MetaDataVersion?.MajorVersion ?? 1}" +
                                 $".{dataSetMessage.MetaDataVersion?.MinorVersion ?? 0}",
                             Timestamp = dataSetMessage.Timestamp,
-                            Payload = new Dictionary<string, DataValueModel?>()
+                            Payload = []
                         };
                         foreach (var (Name, Value) in dataSetMessage.Payload.DataSetFields)
                         {

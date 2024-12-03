@@ -88,7 +88,7 @@ namespace FileSystem
                 {
                     if (!externalReferences.TryGetValue(ObjectIds.Server, out var references))
                     {
-                        externalReferences[ObjectIds.Server] = references = new List<IReference>();
+                        externalReferences[ObjectIds.Server] = references = [];
                     }
 
                     // construct the NodeId of a segment.

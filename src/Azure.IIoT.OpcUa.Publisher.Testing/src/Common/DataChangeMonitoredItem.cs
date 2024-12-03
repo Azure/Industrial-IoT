@@ -29,6 +29,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Opc.Ua.Server;
 
 namespace Opc.Ua.Sample
@@ -794,7 +795,7 @@ namespace Opc.Ua.Sample
             diagnostics.Enqueue(diagnosticInfo);
         }
 
-        private readonly object _lock = new();
+        private readonly Lock _lock = new();
         private readonly MonitoredNode _source;
         private DataValue _lastValue;
         private ServiceResult _lastError;

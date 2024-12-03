@@ -108,8 +108,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                 {
                     new MemoryBuffer.MemoryBufferConfiguration
                     {
-                        Buffers = new MemoryBuffer.MemoryBufferInstanceCollection
-                        {
+                        Buffers =
+                        [
                             new MemoryBuffer.MemoryBufferInstance
                             {
                                 Name = "UInt32",
@@ -122,7 +122,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                                 TagCount = 100,
                                 DataType = "Double"
                             }
-                        }
+                        ]
                     }
                     /// ...
                 };
@@ -167,22 +167,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                         AutoAcceptUntrustedCertificates = true,
                         AddAppCertToTrustedStore = true
                     },
-                    TransportConfigurations = new TransportConfigurationCollection(),
+                    TransportConfigurations = [],
                     TransportQuotas = new TransportQuotas(),
                     ServerConfiguration = new ServerConfiguration
                     {
                         // Sample server specific
-                        ServerProfileArray = new StringCollection {
+                        ServerProfileArray = [
                              "Standard UA Server Profile",
                              "Data Access Server Facet",
                              "Method Server Facet"
-                        },
-                        ServerCapabilities = new StringCollection {
+                        ],
+                        ServerCapabilities = [
                             "DA"
-                        },
-                        SupportedPrivateKeyFormats = new StringCollection {
+                        ],
+                        SupportedPrivateKeyFormats = [
                             "PFX", "PEM"
-                        },
+                        ],
 
                         NodeManagerSaveFile = "nodes.xml",
                         DiagnosticsEnabled = false,
@@ -193,7 +193,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                             .Distinct()
                             .Select(p => $"opc.tcp://localhost:{p}/UA/SampleServer")),
 
-                        SecurityPolicies = new ServerSecurityPolicyCollection {
+                        SecurityPolicies = [
                             new ServerSecurityPolicy {
                                 SecurityMode = MessageSecurityMode.Sign,
                                 SecurityPolicyUri = SecurityPolicies.Basic256Sha256
@@ -206,8 +206,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                                 SecurityMode = MessageSecurityMode.None,
                                 SecurityPolicyUri = SecurityPolicies.None
                             }
-                        },
-                        UserTokenPolicies = new UserTokenPolicyCollection {
+                        ],
+                        UserTokenPolicies = [
                             new UserTokenPolicy {
                                 TokenType = UserTokenType.Anonymous,
                                 SecurityPolicyUri = SecurityPolicies.None
@@ -218,7 +218,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                             new UserTokenPolicy {
                                 TokenType = UserTokenType.Certificate
                             }
-                        },
+                        ],
 
                         MinRequestThreadCount = 200,
                         MaxRequestThreadCount = 2000,

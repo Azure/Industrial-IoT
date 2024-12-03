@@ -40,10 +40,10 @@ namespace Boiler
         {
             get
             {
-                return new StringCollection {
+                return [
                     Namespaces.Boiler,
                     Namespaces.Boiler + "Instance"
-                };
+                ];
             }
         }
 

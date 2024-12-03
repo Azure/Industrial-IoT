@@ -62,7 +62,7 @@ namespace Alarms
         /// </summary>
         private void Initialize()
         {
-            Areas = new AreaConfigurationCollection();
+            Areas = [];
         }
 
         /// <summary>

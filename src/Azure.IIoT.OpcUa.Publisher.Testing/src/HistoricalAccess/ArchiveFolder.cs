@@ -58,7 +58,7 @@ namespace HistoricalAccess
 
             if (!DirectoryInfo.Exists)
             {
-                return folders.ToArray();
+                return [.. folders];
             }
 
             foreach (var directory in DirectoryInfo.GetDirectories())
@@ -69,7 +69,7 @@ namespace HistoricalAccess
                 folders.Add(new ArchiveFolder(buffer.ToString(), directory));
             }
 
-            return folders.ToArray();
+            return [.. folders];
         }
 
         /// <summary>
@@ -81,7 +81,7 @@ namespace HistoricalAccess
 
             if (!DirectoryInfo.Exists)
             {
-                return items.ToArray();
+                return [.. items];
             }
 
             foreach (var file in DirectoryInfo.GetFiles("*.csv"))
@@ -92,7 +92,7 @@ namespace HistoricalAccess
                 items.Add(new ArchiveItem(buffer.ToString(), file));
             }
 
-            return items.ToArray();
+            return [.. items];
         }
 
         /// <summary>

@@ -46,7 +46,7 @@ namespace Alarms
         /// <param name="timeService"></param>
         public UnderlyingSystem(TimeService timeService)
         {
-            _sources = new Dictionary<string, UnderlyingSystemSource>();
+            _sources = [];
             _timeService = timeService;
         }
 
@@ -217,7 +217,7 @@ namespace Alarms
             }
         }
 
-        private readonly object _lock = new();
+        private readonly Lock _lock = new();
         private readonly Dictionary<string, UnderlyingSystemSource> _sources;
         private readonly TimeService _timeService;
         private Timer _simulationTimer;

@@ -209,7 +209,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 });
 
             // Found one item
-            found = new List<DiscoveryEventModel> { found[0] };
+            found = [found[0]];
             // Assert there is still the same content as originally
 
             using (registry)
@@ -275,7 +275,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 }, true);
 
             // Found one app and endpoint
-            found = new List<DiscoveryEventModel> { found[0] };
+            found = [found[0]];
             var count = registry.Devices.Count();
             // Assert disabled items are now enabled
 
@@ -312,7 +312,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 });
 
             // Found nothing
-            found = new List<DiscoveryEventModel>();
+            found = [];
             // Assert there is still the same content as originally
 
             using (registry)
@@ -335,7 +335,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 out var found, out var registry);
 
             // Found nothing
-            found = new List<DiscoveryEventModel>();
+            found = [];
             var count = registry.Devices.Count();
             // Assert there is still the same content as originally but now disabled
 

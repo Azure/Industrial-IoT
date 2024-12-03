@@ -10,7 +10,7 @@ namespace Opc.Ua
     /// <summary>
     /// Node id comparer
     /// </summary>
-    public class Comparers : IEqualityComparer<ExpandedNodeId>, IEqualityComparer<NodeId>
+    internal class Comparers : IEqualityComparer<ExpandedNodeId>, IEqualityComparer<NodeId>
     {
         /// <summary>
         /// Get singleton comparer

@@ -134,7 +134,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <returns></returns>
         protected virtual IEnumerable<T> HandleCompletion(ServiceCallContext context)
         {
-            return Enumerable.Empty<T>();
+            return [];
         }
 
         /// <summary>
@@ -178,7 +178,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
             var refs = MatchReferences(frame, context, results[0].Result.References,
                 results[0].ErrorInfo);
-            var continuation = results[0].Result.ContinuationPoint ?? Array.Empty<byte>();
+            var continuation = results[0].Result.ContinuationPoint ?? [];
             if (continuation.Length > 0)
             {
                 Push(context => BrowseNextAsync(context, continuation, frame));
@@ -217,7 +217,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var refs = MatchReferences(frame, context, results[0].Result.References,
                 results[0].ErrorInfo);
 
-            var continuation = results[0].Result.ContinuationPoint ?? Array.Empty<byte>();
+            var continuation = results[0].Result.ContinuationPoint ?? [];
             if (continuation.Length > 0)
             {
                 Push(session => BrowseNextAsync(session, continuation, frame));
@@ -281,7 +281,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             if (matching.Count == 0)
             {
-                return Enumerable.Empty<T>();
+                return [];
             }
 
             // Pass matching on
@@ -450,7 +450,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private NodeId? _typeDefinitionId;
         private bool _includeTypeDefinitionSubtypes;
         private readonly Stack<BrowseFrame> _browseStack = new();
-        private readonly HashSet<NodeId> _visited = new();
+        private readonly HashSet<NodeId> _visited = [];
         private readonly ActivitySource _activitySource = Diagnostics.NewActivitySource();
     }
 }

@@ -300,8 +300,8 @@ namespace Opc.Ua.Client
 
                 var transferResults = response.Results;
                 var diagnosticInfos = response.DiagnosticInfos;
-                ClientBase.ValidateResponse(transferResults, subscriptionIds);
-                ClientBase.ValidateDiagnosticInfos(diagnosticInfos, subscriptionIds);
+                Ua.ClientBase.ValidateResponse(transferResults, subscriptionIds);
+                Ua.ClientBase.ValidateDiagnosticInfos(diagnosticInfos, subscriptionIds);
                 for (var index = 0; index < subscriptions.Count; index++)
                 {
                     if (transferResults[index].StatusCode == StatusCodes.BadNothingToDo)
@@ -585,8 +585,8 @@ namespace Opc.Ua.Client
 
                         var acknowledgeResults = response.Results;
                         var acknowledgeDiagnosticInfos = response.DiagnosticInfos;
-                        ClientBase.ValidateResponse(acknowledgeResults, acks);
-                        ClientBase.ValidateDiagnosticInfos(acknowledgeDiagnosticInfos, acks);
+                        Ua.ClientBase.ValidateResponse(acknowledgeResults, acks);
+                        Ua.ClientBase.ValidateDiagnosticInfos(acknowledgeDiagnosticInfos, acks);
                         TooManyPublishRequests = false;
 
                         // Get the subscription with the provided identifier
@@ -611,7 +611,7 @@ namespace Opc.Ua.Client
                                 Index, handle, subscriptionId);
                             Interlocked.Increment(ref _outer._badPublishRequestCount);
                             await _outer._session.DeleteSubscriptionsAsync(null,
-                                new UInt32Collection { subscriptionId }, ct).ConfigureAwait(false);
+                                [subscriptionId], ct).ConfigureAwait(false);
                             moreNotifications = true;
                         }
                     }
@@ -743,7 +743,7 @@ namespace Opc.Ua.Client
                     _logger.LogInformation(
                         "PUBLISH Worker #{Handle} - Publish with no acks after waiting {Duration}.",
                         Index, sw.Elapsed);
-                    return new SubscriptionAcknowledgementCollection();
+                    return [];
                 }
             }
 
@@ -852,8 +852,8 @@ namespace Opc.Ua.Client
         private readonly Nito.AsyncEx.AsyncAutoResetEvent _publishControl = new();
         private readonly ConcurrentQueue<uint> _subscriptionHistory = new();
         private readonly Task _publishController;
-        private readonly object _subscriptionLock = new();
-        private readonly HashSet<IManagedSubscription> _subscriptions = new();
+        private readonly Lock _subscriptionLock = new();
+        private readonly HashSet<IManagedSubscription> _subscriptions = [];
         private readonly CancellationTokenSource _cts = new();
         private readonly ISubscriptionManagerContext _session;
         private readonly ILoggerFactory _loggerFactory;

@@ -344,7 +344,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                     DataSetWriterId = i != 0
                         ? $"DataSetWriterId{i}"
                         : null,
-                    OpcNodes = opcNodes.GetRange(0, i + 1).ToList()
+                    OpcNodes = [.. opcNodes.GetRange(0, i + 1)]
                 })
                 .ToList();
 

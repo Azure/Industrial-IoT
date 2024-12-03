@@ -7,7 +7,6 @@ namespace Opc.Ua.Client
 {
     using Opc.Ua.Redaction;
     using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Options;
     using Polly;
     using System;
     using System.Threading;
@@ -30,7 +29,7 @@ namespace Opc.Ua.Client
         /// <param name="observability">The obs services to use</param>
         /// <param name="reverseConnect">Reverse connect manager</param>
         protected Session(ApplicationConfiguration configuration,
-            ConfiguredEndpoint endpoint, IOptionsMonitor<SessionOptions> options,
+            ConfiguredEndpoint endpoint, SessionCreateOptions options,
             IObservability observability, ReverseConnectManager? reverseConnect) :
             base(configuration, endpoint, options, observability, reverseConnect)
         {

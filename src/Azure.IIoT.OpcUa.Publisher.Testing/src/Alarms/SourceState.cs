@@ -78,9 +78,9 @@ namespace Alarms
             _dialog = CreateDialog("OnlineState");
 
             // create the table of conditions.
-            _alarms = new Dictionary<string, AlarmConditionState>();
-            _events = new Dictionary<string, AlarmConditionState>();
-            _branches = new Dictionary<NodeId, AlarmConditionState>();
+            _alarms = [];
+            _events = [];
+            _branches = [];
 
             // request an updated for all alarms.
             _source.Refresh();
@@ -280,11 +280,11 @@ namespace Alarms
         /// <summary>
         /// The responses used with the dialog condition.
         /// </summary>
-        private readonly LocalizedText[] _responseOptions = {
+        private readonly LocalizedText[] _responseOptions = [
             "Online",
             "Offline",
             "No Change"
-        };
+        ];
 
         /// <summary>
         /// Creates a new alarm for the source.

@@ -40,11 +40,11 @@ namespace Vehicles
         {
             get
             {
-                return new StringCollection {
+                return [
                     Namespaces.Vehicles,
                     Types.Namespaces.Vehicles,
                     Instances.Namespaces.VehiclesInstances
-                };
+                ];
             }
         }
 

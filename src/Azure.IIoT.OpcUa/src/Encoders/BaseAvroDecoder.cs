@@ -711,7 +711,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             if (dimensions?.Count > 0)
             {
                 Matrix.ValidateDimensions(false, dimensions, Context.MaxArrayLength);
-                return new Matrix(array, builtInType, dimensions.ToArray()).ToArray();
+                return new Matrix(array, builtInType, [.. dimensions]).ToArray();
             }
             throw new DecodingException(
                 "Unexpected null or empty Dimensions for multidimensional matrix.");
@@ -795,7 +795,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <returns></returns>
         public virtual T[] ReadArray<T>(string? fieldName, Func<T> reader)
         {
-            return ReadArray(reader).ToArray();
+            return [.. ReadArray(reader)];
         }
 
         /// <summary>

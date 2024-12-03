@@ -41,9 +41,9 @@ namespace HistoricalAccess
         {
             get
             {
-                return new StringCollection {
+                return [
                     Namespaces.HistoricalAccess
-                };
+                ];
             }
         }
 

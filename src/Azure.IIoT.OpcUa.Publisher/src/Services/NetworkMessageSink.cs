@@ -528,7 +528,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     _logger.LogError(e, "Encoding failure on partition #{Partition}.", _índex);
                     input.ForEach(a => a.Dispose());
-                    return Enumerable.Empty<(IEvent, Action)>();
+                    return [];
                 }
             }
 

@@ -14,8 +14,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack.Transport
         [Fact]
         public void TestCopy()
         {
-            var addr1 = new PhysicalAddress(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7 });
-            var addr2 = new PhysicalAddress(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7 });
+            var addr1 = new PhysicalAddress([0, 1, 2, 3, 4, 5, 6, 7]);
+            var addr2 = new PhysicalAddress([0, 1, 2, 3, 4, 5, 6, 7]);
             var addr3 = addr1.Copy();
 
             Assert.Equal(addr1, addr2);
@@ -28,9 +28,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack.Transport
         [Fact]
         public void TestNotEqual()
         {
-            var addr1 = new PhysicalAddress(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7 });
-            var addr2 = new PhysicalAddress(new byte[] { 1, 1, 2, 3, 4, 5, 6, 7 });
-            var addr3 = new PhysicalAddress(new byte[] { 1, 1, 2, 3, 4, 5, 6 });
+            var addr1 = new PhysicalAddress([0, 1, 2, 3, 4, 5, 6, 7]);
+            var addr2 = new PhysicalAddress([1, 1, 2, 3, 4, 5, 6, 7]);
+            var addr3 = new PhysicalAddress([1, 1, 2, 3, 4, 5, 6]);
 
             Assert.NotEqual(addr1, addr2);
             Assert.NotEqual(addr1, addr3);

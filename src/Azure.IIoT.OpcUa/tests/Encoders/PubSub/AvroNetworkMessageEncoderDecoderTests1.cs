@@ -705,7 +705,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 { "1", new DataValue(new Variant(true), StatusCodes.Good, DateTime.Now, DateTime.UtcNow) },
                 { "2", new DataValue(new Variant(0.5), StatusCodes.Good, DateTime.Now) },
                 { "3", new DataValue(Variant.Null, StatusCodes.Good, DateTime.Now) },
-                { "4", new DataValue(new Variant(new string[]{"test", "Test"}), StatusCodes.Good, DateTime.Now) },
+                { "4", new DataValue(new Variant(["test", "Test"]), StatusCodes.Good, DateTime.Now) },
                 { "5", new DataValue(new Variant(Array.Empty<float>()), StatusCodes.Good, DateTime.Now) },
                 { "6", new DataValue() },
                 { "7", new DataValue("abcd") }

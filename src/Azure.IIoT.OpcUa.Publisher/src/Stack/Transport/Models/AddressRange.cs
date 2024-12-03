@@ -229,7 +229,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models
             {
                 throw new ArgumentNullException(nameof(value));
             }
-            var split = value.Split(new char[] { ';', ',' },
+            var split = value.Split([';', ','],
                 StringSplitOptions.RemoveEmptyEntries);
             var unmerged = split
                 .SelectMany(s =>

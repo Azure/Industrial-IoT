@@ -110,47 +110,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ArgumentNullException.ThrowIfNull(endpoint);
             ArgumentNullException.ThrowIfNullOrWhiteSpace(endpoint.Endpoint?.Url);
 
-            var endpointUrl = new Uri(endpoint.Endpoint.Url);
-            try
-            {
-                var endpointDescription = await OpcUaClient.SelectEndpointAsync(
-                    _configuration.Value, endpointUrl, null,
-                    endpoint.Endpoint.SecurityMode ?? SecurityMode.NotNone,
-                    endpoint.Endpoint.SecurityPolicy, _logger, endpoint,
-                    ct: ct).ConfigureAwait(false);
+            var builder = new ClientBuilder().NewClient.WithName("test")
+                .WithUri("uri")
+                .WithProductUri("r")
+                .Build();
+            var userIdentity = await endpoint.User.ToUserIdentityAsync(
+                _configuration.Value).ConfigureAwait(false);
+            var result = await builder.ConnectTo(endpoint.Endpoint.Url)
+               // .WithSecurityMode((endpoint.Endpoint.SecurityMode ?? SecurityMode.NotNone))
+                .WithSecurityPolicy(endpoint.Endpoint.SecurityPolicy ?? SecurityPolicies.None)
+                .WithOption(o => o.WithUser(userIdentity))
+                .TestAsync(ct).ConfigureAwait(false);
 
-                var endpointConfiguration = EndpointConfiguration.Create(
-                    _configuration.Value);
-                var configuredEndpoint = new ConfiguredEndpoint(null,
-                    endpointDescription, endpointConfiguration);
-                var userIdentity = await endpoint.User.ToUserIdentityAsync(
-                    _configuration.Value).ConfigureAwait(false);
-
-                var application = new ClientApplication(_configuration.Value,
-                    LoggerFactory, null, TimeProvider);
-                using var session = await application.ConnectAsync(configuredEndpoint,
-                    OptionsFactory.Create(new SessionOptions
-                    {
-                        SessionName = "Test" + Guid.NewGuid().ToString(),
-                        Identity = userIdentity
-                    }), ct).ConfigureAwait(false);
-                try
-                {
-                    await session.CloseAsync(true, true, ct).ConfigureAwait(false);
-                }
-                catch
-                {
-                    // We close as a courtesy to the server
-                }
-                return new TestConnectionResponseModel();
-            }
-            catch (Exception ex)
+            return new TestConnectionResponseModel
             {
-                return new TestConnectionResponseModel
-                {
-                    ErrorInfo = ex.ToServiceResultModel()
-                };
-            }
+                ErrorInfo = result.ToServiceResultModel()
+            };
         }
 
         /// <inheritdoc/>
@@ -442,8 +417,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             try
             {
                 var response = await client.FindServersOnNetworkAsync(new RequestHeader(),
-                    0, 1000, new StringCollection()).ConfigureAwait(false);
-                foreach (var server in response?.Servers ?? new ServerOnNetworkCollection())
+                    0, 1000, []).ConfigureAwait(false);
+                foreach (var server in response?.Servers ?? [])
                 {
                     var url = CreateDiscoveryUri(server.DiscoveryUrl, discoveryUrl.Port);
                     if (!visitedUris.Contains(url))
@@ -643,13 +618,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     HoldTime = 120000,
                     WaitTimeout = 120000,
-                    ClientEndpoints = new ReverseConnectClientEndpointCollection
-                    {
+                    ClientEndpoints =
+                    [
                         new ReverseConnectClientEndpoint
                         {
                             EndpointUrl = $"opc.tcp://localhost:{port}"
                         }
-                    }
+                    ]
                 });
                 return null;
             }

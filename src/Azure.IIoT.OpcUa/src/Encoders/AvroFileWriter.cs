@@ -238,7 +238,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             private void WriteMetaData(string schema,
                 Dictionary<string, byte[]>? metadata)
             {
-                metadata ??= new Dictionary<string, byte[]>();
+                metadata ??= [];
                 metadata.Add(DataFileConstants.MetaDataCodec,
                     Encoding.UTF8.GetBytes(_codec.GetName()));
                 metadata.Add(DataFileConstants.MetaDataSchema,

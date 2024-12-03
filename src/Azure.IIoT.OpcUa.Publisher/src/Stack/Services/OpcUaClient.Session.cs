@@ -61,9 +61,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="reverseConnectManager"></param>
             public OpcUaSession(OpcUaClient client, IJsonSerializer serializer,
                 ApplicationConfiguration configuration, ConfiguredEndpoint endpoint,
-                SessionOptions options, IObservability observability,
+                SessionCreateOptions options, IObservability observability,
                 ReverseConnectManager? reverseConnectManager = null) : base(configuration,
-                    endpoint, OptionsFactory.Create(options), observability, reverseConnectManager)
+                    endpoint, options, observability, reverseConnectManager)
             {
                 _logger = observability.LoggerFactory.CreateLogger<OpcUaSession>();
                 _client = client;
@@ -73,7 +73,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override IManagedSubscription CreateSubscription(
+            public override IManagedSubscription CreateSubscription(IObservability observability,
                 IOptionsMonitor<SubscriptionOptions> options, IMessageAckQueue queue)
             {
                 if (options.CurrentValue is not VRef vref)

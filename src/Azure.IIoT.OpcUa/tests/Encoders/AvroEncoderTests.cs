@@ -1136,7 +1136,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             encoder.WriteGuidArray(null, expected);
             stream.Position = 0;
             using var decoder = new AvroDecoder(stream, builder.Schema, context);
-            Assert.Equal(expected, decoder.ReadGuidArray(null).ToArray());
+            Assert.Equal(expected, decoder.ReadGuidArray(null));
         }
 
         [Theory]
@@ -1384,7 +1384,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 new Variant(4L),
                 new Variant("test"),
                 new Variant(new long[] {1, 2, 3, 4, 5 }),
-                new Variant(new string[] {"1", "2", "3", "4", "5" })
+                new Variant(["1", "2", "3", "4", "5"])
             };
             using var stream = new MemoryStream();
             using var builder = new AvroSchemaBuilder(stream, context, true, concise);
@@ -1416,7 +1416,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     new Variant(4L),
                     new Variant("test"),
                     new Variant(new long[] {1, 2, 3, 4, 5 }),
-                    new Variant(new string[] {"1", "2", "3", "4", "5" })
+                    new Variant(["1", "2", "3", "4", "5"])
                 })
             };
             using var stream = new MemoryStream();

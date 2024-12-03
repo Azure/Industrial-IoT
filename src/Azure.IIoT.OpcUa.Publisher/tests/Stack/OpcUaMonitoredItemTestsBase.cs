@@ -78,7 +78,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             {
             }
 
-            protected override MonitoredItem CreateMonitoredItem(
+            protected override MonitoredItem CreateMonitoredItem(IObservability observability,
                 IOptionsMonitor<MonitoredItemOptions> options)
             {
                 return ((OpcUaSubscription.Precreated)options.CurrentValue).Item;

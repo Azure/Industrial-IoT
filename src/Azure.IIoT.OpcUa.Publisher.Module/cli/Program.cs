@@ -223,7 +223,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 moduleId = "publisher";
                 logger.LogInformation("Using <moduleId> '{ModuleId}'", moduleId);
 
-                args = unknownArgs.ToArray();
+                args = [.. unknownArgs];
             }
             catch (Exception e)
             {
@@ -423,7 +423,7 @@ Options:
                     // default the profile to use reverse connect
                     arguments.Add("--urc");
                 }
-                await Publisher.Module.Program.RunAsync(arguments.ToArray(), ct).ConfigureAwait(false);
+                await Publisher.Module.Program.RunAsync([.. arguments], ct).ConfigureAwait(false);
                 logger.LogInformation("Publisher module {DeviceId} {ModuleId} exited.",
                     deviceId, moduleId);
             }
@@ -629,7 +629,7 @@ Options:
                     arguments.Add($"--pi={publishInitFile}");
                 }
                 args.ForEach(a => arguments.Add(a));
-                await Publisher.Module.Program.RunAsync(arguments.ToArray(), ct).ConfigureAwait(false);
+                await Publisher.Module.Program.RunAsync([.. arguments], ct).ConfigureAwait(false);
             }
         }
 

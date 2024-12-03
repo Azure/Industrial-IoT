@@ -99,7 +99,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return registrations.Select(r => r.Owner);
             }
 
-            return Enumerable.Empty<ISubscriber>();
+            return [];
         }
 
         /// <summary>
@@ -544,7 +544,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 _outer._registrations.Add(Owner, this);
                 _outer._s2r.AddOrUpdate(Subscription, _
-                    => new List<Registration> { this },
+                    => [this],
                 (_, c) =>
                 {
                     c.Add(this);
@@ -557,7 +557,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _outer._s2r.AddOrUpdate(Subscription, _ =>
                 {
                     Debug.Fail("Unexpected");
-                    return new List<Registration>();
+                    return [];
                 }, (_, c) =>
                 {
                     c.Remove(this);
@@ -999,7 +999,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <summary>
             /// Monitored items that should be in the subscription partition
             /// </summary>
-            public List<(ISubscriber, BaseMonitoredItemModel)> Items { get; } = new();
+            public List<(ISubscriber, BaseMonitoredItemModel)> Items { get; } = [];
 
             /// <summary>
             /// Create
@@ -1050,9 +1050,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly SemaphoreSlim _subscriptionLock = new(1, 1);
         private readonly ITimer _resyncTimer;
 #pragma warning restore CA2213 // Disposable fields should be disposed
-        private readonly Dictionary<ISubscriber, Registration> _registrations = new();
+        private readonly Dictionary<ISubscriber, Registration> _registrations = [];
         private readonly ConcurrentDictionary<SubscriptionModel, List<Registration>> _s2r = new();
-        private readonly Dictionary<SubscriptionModel, VirtualSubscription> _subscriptions = new();
+        private readonly Dictionary<SubscriptionModel, VirtualSubscription> _subscriptions = [];
         private readonly IOptions<OpcUaSubscriptionOptions> _subscriptionOptions;
     }
 }

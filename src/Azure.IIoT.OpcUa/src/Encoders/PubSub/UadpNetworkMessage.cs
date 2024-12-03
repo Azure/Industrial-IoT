@@ -1312,7 +1312,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 if (!chunks.All(a => a.TotalSize == totalSize))
                 {
                     chunks.Clear();
-                    return Array.Empty<byte>();
+                    return [];
                 }
                 var total = chunks.Sum(c => c.ChunkData.Length);
                 if (total >= totalSize)
@@ -1331,7 +1331,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                             if (c.MessageSequenceNumber != firstIndex)
                             {
                                 chunks.Clear();
-                                return Array.Empty<byte>();
+                                return [];
                             }
                         }
                         Array.Copy(c.ChunkData.ToArray(), 0, message, c.ChunkOffset,

@@ -5,10 +5,8 @@
 
 namespace Opc.Ua.Client
 {
-    using Polly;
     using System;
     using System.Collections.Generic;
-    using System.Security.Cryptography.X509Certificates;
 
     /// <summary>
     /// Session options
@@ -18,9 +16,9 @@ namespace Opc.Ua.Client
         /// <summary>
         /// The name of the session. The name is displayed
         /// on the server to help administrators identify the
-        /// client. The name is mandatory.
+        /// client. If not name is set a default name is chosen.
         /// </summary>
-        public required string SessionName { get; init; }
+        public string? SessionName { get; init; }
 
         /// <summary>
         /// Desired Session timeout after which the session
@@ -30,12 +28,6 @@ namespace Opc.Ua.Client
         /// <see cref="ISession"/>.
         /// </summary>
         public TimeSpan? SessionTimeout { get; init; }
-
-        /// <summary>
-        /// The user identity to use on the session.
-        /// The default is anonymous user.
-        /// </summary>
-        public IUserIdentity? Identity { get; init; }
 
         /// <summary>
         /// Preferred locales to use on this session. The default
@@ -62,20 +54,6 @@ namespace Opc.Ua.Client
         public bool CheckDomain { get; init; }
 
         /// <summary>
-        /// Available endpoints the server presented during initial
-        /// discovery. Leave blank to disable any validation during
-        /// session creation against the available endpoints found
-        /// in discovery.
-        /// </summary>
-        public EndpointDescriptionCollection? AvailableEndpoints { get; init; }
-
-        /// <summary>
-        /// Discovery profile uris that were returned in the initial
-        /// discovery sequence.
-        /// </summary>
-        public StringCollection? DiscoveryProfileUris { get; init; }
-
-        /// <summary>
         /// No complex type loading ever. This will effectively
         /// disable any use of the GetComplexTypeSystemAsync() API.
         /// </summary>
@@ -87,34 +65,5 @@ namespace Opc.Ua.Client
         /// GetComplexTypeSystemAsync() API.
         /// </summary>
         public bool DisableComplexTypePreloading { get; init; }
-
-        /// <summary>
-        /// Client certificate to use. If not provided or not valid
-        /// the session will load the certificate from the own
-        /// store.
-        /// </summary>
-        public X509Certificate2? ClientCertificate { get; init; }
-
-        /// <summary>
-        /// An existing channel to use. This can be an open channel
-        /// that was used during discovery. The session will create
-        /// a new channel if the channel is not workable.
-        /// </summary>
-        public ITransportChannel? Channel { get; init; }
-
-        /// <summary>
-        /// Connection to use. One can pass an existing reverse
-        /// connection, the session however will create one if the
-        /// connection is closed or unusable.
-        /// </summary>
-        public ITransportWaitingConnection? Connection { get; init; }
-
-        /// <summary>
-        /// Reconnect policy to use. The resiliency pipelines will
-        /// be used to reconnect the session when the connection
-        /// is determined lost. Use rate limiting to limit the
-        /// number of reconnects across the entire client.
-        /// </summary>
-        public ResiliencePipeline? ReconnectStrategy { get; init; }
     }
 }

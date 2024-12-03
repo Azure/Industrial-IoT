@@ -49,13 +49,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
         {
             var encoding = new AvroBuiltInSchemas();
             var version = RecordSchema.Create(nameof(ConfigurationVersionDataType),
-                new List<Field>
-            {
+                [
                 new(encoding.GetSchemaForBuiltInType(BuiltInType.UInt32),
                     "MajorVersion", 0),
                 new(encoding.GetSchemaForBuiltInType(BuiltInType.UInt32),
                     "MinorVersion", 1)
-            }, SchemaUtils.NamespaceZeroName,
+            ], SchemaUtils.NamespaceZeroName,
                 new[] { "i_" + DataTypes.ConfigurationVersionDataType });
 
             return new List<Field>

@@ -84,7 +84,7 @@ namespace Asset
                 _ => form.Function ?? ModbusFunction.ReadHoldingRegisters
             };
             // Read the amount of registers/coils referenced in this URL
-            var queryParts = modbusTag.Address.Query.Split(new char[] { '?', '&', '=' },
+            var queryParts = modbusTag.Address.Query.Split(['?', '&', '='],
                 StringSplitOptions.RemoveEmptyEntries);
             ushort quantity = kDefaultQuantity;
             if (queryParts.Length > 0)
@@ -126,7 +126,7 @@ namespace Asset
 
             var form = modbusTag.Form;
             // Read the amount of registers/coils referenced in this URL
-            var queryParts = modbusTag.Address.Query.Split(new char[] { '?', '&', '=' },
+            var queryParts = modbusTag.Address.Query.Split(['?', '&', '='],
                 StringSplitOptions.RemoveEmptyEntries);
             ushort quantity = kDefaultQuantity;
             if (queryParts.Length > 0)

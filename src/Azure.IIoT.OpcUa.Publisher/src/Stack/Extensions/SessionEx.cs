@@ -66,7 +66,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             }));
             if (itemsToRead.Count == 0)
             {
-                return Enumerable.Empty<(T?, ServiceResultModel?)>();
+                return [];
             }
             var response = await session.Services.ReadAsync(header,
                 0, Opc.Ua.TimestampsToReturn.Neither, itemsToRead, ct).ConfigureAwait(false);
@@ -1309,7 +1309,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                         return (targetIds, nextResults.ErrorInfo);
                     }
 
-                    continuationPoints = new ByteStringCollection();
+                    continuationPoints = [];
                     foreach (var result in nextResults)
                     {
                         // check for error.
@@ -1468,7 +1468,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             this IOpcUaSession session, NodeId rootId, NodeState parent,
             RelativePath? parentPath, List<BrowsePath>? browsePaths = null)
         {
-            browsePaths ??= new List<BrowsePath>();
+            browsePaths ??= [];
             var children = new List<BaseInstanceState>();
             parent.GetChildren(session.SystemContext, children);
             foreach (var child in children)

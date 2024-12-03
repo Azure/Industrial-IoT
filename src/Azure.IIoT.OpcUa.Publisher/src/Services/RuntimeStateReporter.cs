@@ -254,7 +254,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     // Load certificate
                     Certificate?.Dispose();
-                    Certificate = new X509Certificate2((byte[])cert!, ApiKey);
+                    Certificate = X509CertificateLoader.LoadPkcs12((byte[])cert!, ApiKey);
                     var now = _timeProvider.GetUtcNow().AddDays(1);
                     if (now < Certificate.NotAfter && Certificate.HasPrivateKey &&
                         Certificate.SubjectName.EnumerateRelativeDistinguishedNames()
@@ -300,7 +300,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         // On Windows the certificate in 'result' gives an error
                         // when used with kestrel: "No credentials are available"
                         //
-                        Certificate = new X509Certificate2(
+                        Certificate = X509CertificateLoader.LoadCertificate(
                             certificate.Export(X509ContentType.Pkcs12));
                     }
                     else

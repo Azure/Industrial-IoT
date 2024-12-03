@@ -30,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
             _jsonSettings = jsonSettings;
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _clients = new Dictionary<string, SignalRClientRegistrar>();
+            _clients = [];
             _lock = new SemaphoreSlim(1, 1);
         }
 

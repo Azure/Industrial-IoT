@@ -55,7 +55,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 {
                     await writer.WriteAsync(file, DateTime.UtcNow, new[]
                     {
-                        new ReadOnlySequence<byte>(new byte[] { 1, 2, 3 })
+                        new ReadOnlySequence<byte>([1, 2, 3])
                     }, null, new DummyEventSchema(), ContentType.Avro);
                 }
 
@@ -92,9 +92,9 @@ namespace Azure.IIoT.OpcUa.Encoders
                 {
                     await writer.WriteAsync(file, DateTime.UtcNow, new[]
                     {
-                        new ReadOnlySequence<byte>(new byte[] { 1, 2, 3 }),
-                        new ReadOnlySequence<byte>(new byte[] { 1, 2, 3 }),
-                        new ReadOnlySequence<byte>(new byte[] { 1, 2, 3 })
+                        new ReadOnlySequence<byte>([1, 2, 3]),
+                        new ReadOnlySequence<byte>([1, 2, 3]),
+                        new ReadOnlySequence<byte>([1, 2, 3])
                     }, null, new DummyEventSchema(), ContentType.Avro);
                 }
 

@@ -140,7 +140,7 @@ namespace Asset
                     out var objectsFolderReferences))
                 {
                     externalReferences[Opc.Ua.ObjectIds.ObjectsFolder]
-                        = objectsFolderReferences = new List<IReference>();
+                        = objectsFolderReferences = [];
                 }
 
                 AddNodesFromEmbeddedNodesetXml();
@@ -744,7 +744,7 @@ $"{type.Assembly.GetName().Name}.Generated.{type.Namespace}.Design.{type.Namespa
             // check if we need to create a new asset first
             if (!_tags.TryGetValue(assetId, out var tagList))
             {
-                tagList = new Dictionary<string, AssetTag>();
+                tagList = [];
                 _tags.Add(assetId, tagList);
             }
             if (!Uri.TryCreate(td.Base, UriKind.Absolute, out var baseUri))
@@ -895,10 +895,10 @@ $"{type.Assembly.GetName().Name}.Generated.{type.Namespace}.Design.{type.Namespa
         }
 
         private readonly WoTAssetConnectionManagementTypeState _assetManagement = new(null);
-        private readonly Dictionary<string, BaseDataVariableState> _uaVariables = new();
-        private readonly Dictionary<string, IAsset> _assets = new();
-        private readonly Dictionary<string, Dictionary<string, AssetTag>> _tags = new();
-        private readonly Dictionary<NodeId, FileManager> _fileManagers = new();
+        private readonly Dictionary<string, BaseDataVariableState> _uaVariables = [];
+        private readonly Dictionary<string, IAsset> _assets = [];
+        private readonly Dictionary<string, Dictionary<string, AssetTag>> _tags = [];
+        private readonly Dictionary<NodeId, FileManager> _fileManagers = [];
         private readonly ILogger _logger;
         private readonly string _folder;
         private long _lastUsedId;

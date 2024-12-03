@@ -114,19 +114,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// No complex type loading ever
         /// </summary>
         public bool DisableComplexTypeLoading
-            => _connection.Options.HasFlag(ConnectionOptions.NoComplexTypeSystem);
+            => _connection.Options.HasFlag(Publisher.Models.ConnectionOptions.NoComplexTypeSystem);
 
         /// <summary>
         /// Transfer subscription on reconnect
         /// </summary>
         public bool DisableTransferSubscriptionOnReconnect
-            => _connection.Options.HasFlag(ConnectionOptions.NoSubscriptionTransfer);
+            => _connection.Options.HasFlag(Publisher.Models.ConnectionOptions.NoSubscriptionTransfer);
 
         /// <summary>
         /// Dump diagnostics for this client
         /// </summary>
         public bool DumpDiagnostics
-            => _connection.Options.HasFlag(ConnectionOptions.DumpDiagnostics);
+            => _connection.Options.HasFlag(Publisher.Models.ConnectionOptions.DumpDiagnostics);
 
         /// <summary>
         /// Client is connected
@@ -221,7 +221,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             InitializeMetrics();
 
             _logger = _observability.LoggerFactory.CreateLogger<OpcUaClient>();
-            _tokens = new Dictionary<string, CancellationTokenSource>();
+            _tokens = [];
             State = EndpointConnectivityState.Disconnected;
             _sessionName = sessionName ?? connection.ToString();
 
@@ -987,7 +987,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         "{Client}: #{Attempt} - Creating session {Name} with endpoint {EndpointUrl}...",
                         ++attempt, this, _sessionName, endpointUrl);
 
-                    var preferredLocales = _connection.Locales?.ToList() ?? new List<string>();
+                    var preferredLocales = _connection.Locales?.ToList() ?? [];
                     if (preferredLocales.Count == 0)
                     {
                         // Create the session with english as default
@@ -1006,7 +1006,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
 #pragma warning disable CA2000 // Dispose objects before losing scope
                     var session = new OpcUaSession(this, _serializer, _configuration,
-                        endpoint, new SessionOptions
+                        endpoint, new SessionCreateOptions
                         {
                             DisableComplexTypeLoading = DisableComplexTypeLoading,
                             DisableComplexTypePreloading = DisableComplexTypePreloading,
@@ -1724,7 +1724,7 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
         private readonly ILogger _logger;
         private readonly IObservability _observability;
         private readonly IMetricsContext _metrics;
-        private readonly object _channelLock = new();
+        private readonly Lock _channelLock = new();
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private readonly ITimer _channelMonitor;
         private readonly Task? _diagnosticsDumper;
@@ -1735,8 +1735,8 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
         private readonly Channel<(ConnectionEvent, object?)> _channel;
         private readonly Action<ChannelDiagnosticModel> _diagnosticsCb;
         private readonly EventHandler<EndpointConnectivityStateEventArgs>? _notifier;
-        private readonly Dictionary<(OpcUaSubscription, TimeSpan, TimeSpan), Sampler> _samplers = new();
-        private readonly Dictionary<(OpcUaSubscription, TimeSpan), Browser> _browsers = new();
+        private readonly Dictionary<(OpcUaSubscription, TimeSpan, TimeSpan), Sampler> _samplers = [];
+        private readonly Dictionary<(OpcUaSubscription, TimeSpan), Browser> _browsers = [];
         private readonly Dictionary<string, CancellationTokenSource> _tokens;
         private static readonly TimeSpan kDefaultServiceCallTimeout = TimeSpan.FromMinutes(5);
         private static readonly TimeSpan kDefaultConnectTimeout = TimeSpan.FromMinutes(1);

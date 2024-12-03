@@ -29,7 +29,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .Where(t => typeof(Hub).IsAssignableFrom(t)))
             {
                 var result = typeof(SignalRHubEx).GetMethod(nameof(MapHub))!.MakeGenericMethod(hub)
-                    .Invoke(null, new object[] { endpoints });
+                    .Invoke(null, [endpoints]);
             }
         }
 

@@ -42,12 +42,11 @@ namespace Opc.Ua.Client
                 .Returns(_mockTimer.Object);
             _mockObservability
                 .Setup(o => o.TimeProvider).Returns(_mockTimeProvider.Object);
-            _options = OptionsFactory.Create<SessionOptions>(
-                new SessionOptions
-                {
-                    SessionName = "TestSession",
-                    Channel = _mockChannel.Object
-                });
+            _options = new SessionCreateOptions
+            {
+                SessionName = "TestSession",
+                Channel = _mockChannel.Object
+            };
             _configuration = new ApplicationConfiguration
             {
                 ClientConfiguration = new ClientConfiguration
@@ -103,13 +102,13 @@ namespace Opc.Ua.Client
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ReadResponse
                 {
-                    Results = new DataValueCollection { new DataValue(new Variant(1000u)) },
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    Results = [new DataValue(new Variant(1000u))],
+                    DiagnosticInfos = []
                 })
                 .ReturnsAsync(new ReadResponse
                 {
                     Results = dataValues,
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    DiagnosticInfos = []
                 });
 
             // Act
@@ -201,13 +200,13 @@ namespace Opc.Ua.Client
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ReadResponse
                 {
-                    Results = new DataValueCollection { new DataValue(new Variant(1000u)) },
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    Results = [new DataValue(new Variant(1000u))],
+                    DiagnosticInfos = []
                 })
                 .ReturnsAsync(new ReadResponse
                 {
                     Results = dataValues,
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    DiagnosticInfos = []
                 });
 
             // Act
@@ -325,8 +324,8 @@ namespace Opc.Ua.Client
                 _options, _mockObservability.Object, null);
             var ct = CancellationToken.None;
 
-            var namespaceArray = new DataValue(new Variant(new string[] { Opc.Ua.Namespaces.OpcUa, "http://namespace2" }));
-            var serverArray = new DataValue(new Variant(new string[] { "http://server1", "http://server2" }));
+            var namespaceArray = new DataValue(new Variant([Opc.Ua.Namespaces.OpcUa, "http://namespace2"]));
+            var serverArray = new DataValue(new Variant(["http://server1", "http://server2"]));
 
             _mockChannel
                 .Setup(c => c.SendRequestAsync(
@@ -334,8 +333,8 @@ namespace Opc.Ua.Client
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ReadResponse
                 {
-                    Results = new DataValueCollection { namespaceArray, serverArray },
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    Results = [namespaceArray, serverArray],
+                    DiagnosticInfos = []
                 })
                 .Verifiable(Times.Once);
 
@@ -343,8 +342,8 @@ namespace Opc.Ua.Client
             await sut.FetchNamespaceTablesAsync(ct);
 
             // Assert
-            sut.NamespaceUris.ToArray().Should().BeEquivalentTo(new[] { Opc.Ua.Namespaces.OpcUa, "http://namespace2" });
-            sut.ServerUris.ToArray().Should().BeEquivalentTo(new[] { "http://server1", "http://server2" });
+            sut.NamespaceUris.ToArray().Should().BeEquivalentTo([Opc.Ua.Namespaces.OpcUa, "http://namespace2"]);
+            sut.ServerUris.ToArray().Should().BeEquivalentTo(["http://server1", "http://server2"]);
 
             _mockChannel.Verify();
         }
@@ -358,10 +357,10 @@ namespace Opc.Ua.Client
                 _options, _mockObservability.Object, null);
             var ct = CancellationToken.None;
 
-            var namespaceArray1 = new DataValue(new Variant(new string[] { Opc.Ua.Namespaces.OpcUa, "http://namespace2", "http://namespace3" }));
-            var serverArray1 = new DataValue(new Variant(new string[] { "http://server1", "http://server2" }));
-            var namespaceArray2 = new DataValue(new Variant(new string[] { Opc.Ua.Namespaces.OpcUa, "http://namespace3", "http://namespace2" }));
-            var serverArray2 = new DataValue(new Variant(new string[] { "http://server1", "http://server2", "http://server3" }));
+            var namespaceArray1 = new DataValue(new Variant([Opc.Ua.Namespaces.OpcUa, "http://namespace2", "http://namespace3"]));
+            var serverArray1 = new DataValue(new Variant(["http://server1", "http://server2"]));
+            var namespaceArray2 = new DataValue(new Variant([Opc.Ua.Namespaces.OpcUa, "http://namespace3", "http://namespace2"]));
+            var serverArray2 = new DataValue(new Variant(["http://server1", "http://server2", "http://server3"]));
 
             _mockChannel
                 .SetupSequence(c => c.SendRequestAsync(
@@ -369,28 +368,28 @@ namespace Opc.Ua.Client
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ReadResponse
                 {
-                    Results = new DataValueCollection { namespaceArray1, serverArray1 },
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    Results = [namespaceArray1, serverArray1],
+                    DiagnosticInfos = []
                 })
                 .ReturnsAsync(new ReadResponse
                 {
-                    Results = new DataValueCollection { namespaceArray2, serverArray2 },
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    Results = [namespaceArray2, serverArray2],
+                    DiagnosticInfos = []
                 });
 
             // Act
             await sut.FetchNamespaceTablesAsync(ct);
 
             // Assert
-            sut.NamespaceUris.ToArray().Should().BeEquivalentTo(new[] { Opc.Ua.Namespaces.OpcUa, "http://namespace2", "http://namespace3" });
-            sut.ServerUris.ToArray().Should().BeEquivalentTo(new[] { "http://server1", "http://server2" });
+            sut.NamespaceUris.ToArray().Should().BeEquivalentTo([Opc.Ua.Namespaces.OpcUa, "http://namespace2", "http://namespace3"]);
+            sut.ServerUris.ToArray().Should().BeEquivalentTo(["http://server1", "http://server2"]);
 
             // Act
             await sut.FetchNamespaceTablesAsync(ct);
 
             // Assert
-            sut.NamespaceUris.ToArray().Should().BeEquivalentTo(new[] { Opc.Ua.Namespaces.OpcUa, "http://namespace3", "http://namespace2" });
-            sut.ServerUris.ToArray().Should().BeEquivalentTo(new[] { "http://server1", "http://server2", "http://server3" });
+            sut.NamespaceUris.ToArray().Should().BeEquivalentTo([Opc.Ua.Namespaces.OpcUa, "http://namespace3", "http://namespace2"]);
+            sut.ServerUris.ToArray().Should().BeEquivalentTo(["http://server1", "http://server2", "http://server3"]);
 
             _mockChannel.Verify();
         }
@@ -404,10 +403,10 @@ namespace Opc.Ua.Client
                 _options, _mockObservability.Object, null);
             var ct = CancellationToken.None;
 
-            var namespaceArray1 = new DataValue(new Variant(new string[] { Opc.Ua.Namespaces.OpcUa, "http://namespace2", "http://namespace3" }));
-            var serverArray1 = new DataValue(new Variant(new string[] { "http://server1", "http://server2" }));
-            var namespaceArray2 = new DataValue(new Variant(new string[] { Opc.Ua.Namespaces.OpcUa, "http://namespace3" }));
-            var serverArray2 = new DataValue(new Variant(new string[] { "http://server1" }));
+            var namespaceArray1 = new DataValue(new Variant([Opc.Ua.Namespaces.OpcUa, "http://namespace2", "http://namespace3"]));
+            var serverArray1 = new DataValue(new Variant(["http://server1", "http://server2"]));
+            var namespaceArray2 = new DataValue(new Variant([Opc.Ua.Namespaces.OpcUa, "http://namespace3"]));
+            var serverArray2 = new DataValue(new Variant(["http://server1"]));
 
             _mockChannel
                 .SetupSequence(c => c.SendRequestAsync(
@@ -415,28 +414,28 @@ namespace Opc.Ua.Client
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ReadResponse
                 {
-                    Results = new DataValueCollection { namespaceArray1, serverArray1 },
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    Results = [namespaceArray1, serverArray1],
+                    DiagnosticInfos = []
                 })
                 .ReturnsAsync(new ReadResponse
                 {
-                    Results = new DataValueCollection { namespaceArray2, serverArray2 },
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    Results = [namespaceArray2, serverArray2],
+                    DiagnosticInfos = []
                 });
 
             // Act
             await sut.FetchNamespaceTablesAsync(ct);
 
             // Assert
-            sut.NamespaceUris.ToArray().Should().BeEquivalentTo(new[] { Opc.Ua.Namespaces.OpcUa, "http://namespace2", "http://namespace3" });
-            sut.ServerUris.ToArray().Should().BeEquivalentTo(new[] { "http://server1", "http://server2" });
+            sut.NamespaceUris.ToArray().Should().BeEquivalentTo([Opc.Ua.Namespaces.OpcUa, "http://namespace2", "http://namespace3"]);
+            sut.ServerUris.ToArray().Should().BeEquivalentTo(["http://server1", "http://server2"]);
 
             // Act
             await sut.FetchNamespaceTablesAsync(ct);
 
             // Assert
-            sut.NamespaceUris.ToArray().Should().BeEquivalentTo(new[] { Opc.Ua.Namespaces.OpcUa, "http://namespace3" });
-            sut.ServerUris.ToArray().Should().BeEquivalentTo(new[] { "http://server1" });
+            sut.NamespaceUris.ToArray().Should().BeEquivalentTo([Opc.Ua.Namespaces.OpcUa, "http://namespace3"]);
+            sut.ServerUris.ToArray().Should().BeEquivalentTo(["http://server1"]);
 
             _mockChannel.Verify();
         }
@@ -450,7 +449,7 @@ namespace Opc.Ua.Client
                 _options, _mockObservability.Object, null);
             var ct = CancellationToken.None;
 
-            var namespaceArray = new DataValue(new Variant(new string[] { Opc.Ua.Namespaces.OpcUa, "http://namespace2" }));
+            var namespaceArray = new DataValue(new Variant([Opc.Ua.Namespaces.OpcUa, "http://namespace2"]));
             var serverArray = new DataValue(StatusCodes.BadUnexpectedError);
 
             _mockChannel
@@ -459,8 +458,8 @@ namespace Opc.Ua.Client
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ReadResponse
                 {
-                    Results = new DataValueCollection { namespaceArray, serverArray },
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    Results = [namespaceArray, serverArray],
+                    DiagnosticInfos = []
                 })
                 .Verifiable(Times.Once);
 
@@ -468,7 +467,7 @@ namespace Opc.Ua.Client
             await sut.FetchNamespaceTablesAsync(ct);
 
             // Assert
-            sut.NamespaceUris.ToArray().Should().BeEquivalentTo(new[] { Opc.Ua.Namespaces.OpcUa, "http://namespace2" });
+            sut.NamespaceUris.ToArray().Should().BeEquivalentTo([Opc.Ua.Namespaces.OpcUa, "http://namespace2"]);
             sut.ServerUris.ToArray().Should().BeEmpty();
 
             _mockChannel.Verify();
@@ -483,8 +482,8 @@ namespace Opc.Ua.Client
                 _options, _mockObservability.Object, null);
             var ct = CancellationToken.None;
 
-            var namespaceArray = new DataValue(new Variant(new string[] { Opc.Ua.Namespaces.OpcUa, "http://namespace2" }));
-            var serverArray = new DataValue(new Variant(new string[] { "http://server1", "http://server2" }));
+            var namespaceArray = new DataValue(new Variant([Opc.Ua.Namespaces.OpcUa, "http://namespace2"]));
+            var serverArray = new DataValue(new Variant(["http://server1", "http://server2"]));
 
             _mockChannel
                 .Setup(c => c.SendRequestAsync(
@@ -493,8 +492,8 @@ namespace Opc.Ua.Client
                 .ReturnsAsync(new ReadResponse
                 {
                     ResponseHeader = new ResponseHeader { ServiceResult = StatusCodes.BadUnexpectedError },
-                    Results = new DataValueCollection { namespaceArray, serverArray },
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    Results = [namespaceArray, serverArray],
+                    DiagnosticInfos = []
                 })
                 .Verifiable(Times.Once);
 
@@ -527,8 +526,8 @@ namespace Opc.Ua.Client
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ReadResponse
                 {
-                    Results = new DataValueCollection { namespaceArray, serverArray },
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    Results = [namespaceArray, serverArray],
+                    DiagnosticInfos = []
                 })
                 .Verifiable(Times.Once);
 
@@ -593,8 +592,8 @@ namespace Opc.Ua.Client
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ReadResponse
                 {
-                    Results = new DataValueCollection { namespaceArray, serverArray },
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    Results = [namespaceArray, serverArray],
+                    DiagnosticInfos = []
                 })
                 .Verifiable(Times.Once);
 
@@ -618,7 +617,7 @@ namespace Opc.Ua.Client
                 _options, _mockObservability.Object, null);
             var ct = CancellationToken.None;
 
-            var namespaceArray = new DataValue(new Variant(new string[] { Opc.Ua.Namespaces.OpcUa, "http://namespace2" }));
+            var namespaceArray = new DataValue(new Variant([Opc.Ua.Namespaces.OpcUa, "http://namespace2"]));
             var serverArray = new DataValue(new Variant(67890));
 
             _mockChannel
@@ -627,8 +626,8 @@ namespace Opc.Ua.Client
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ReadResponse
                 {
-                    Results = new DataValueCollection { namespaceArray, serverArray },
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    Results = [namespaceArray, serverArray],
+                    DiagnosticInfos = []
                 })
                 .Verifiable(Times.Once);
 
@@ -660,8 +659,8 @@ namespace Opc.Ua.Client
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ReadResponse
                 {
-                    Results = new DataValueCollection { serverState },
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    Results = [serverState],
+                    DiagnosticInfos = []
                 })
                 .Verifiable(Times.Once);
 
@@ -690,8 +689,8 @@ namespace Opc.Ua.Client
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ReadResponse
                 {
-                    Results = new DataValueCollection { serverState },
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    Results = [serverState],
+                    DiagnosticInfos = []
                 })
                 .Verifiable(Times.Once);
 
@@ -1055,10 +1054,10 @@ namespace Opc.Ua.Client
                     SecurityMode = MessageSecurityMode.None,
                     SecurityPolicyUri = SecurityPolicies.None,
                     EndpointUrl = "opc.tcp://localhost:4840",
-                    UserIdentityTokens = new UserTokenPolicyCollection
-                    {
+                    UserIdentityTokens =
+                    [
                         new UserTokenPolicy()
-                    }
+                    ]
                 }),
                 _options, _mockObservability.Object, null);
             sut.SetConnected();
@@ -1080,8 +1079,8 @@ namespace Opc.Ua.Client
                 .ReturnsAsync(new ActivateSessionResponse
                 {
                     ServerNonce = serverNonce,
-                    Results = new StatusCodeCollection(),
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    Results = [],
+                    DiagnosticInfos = []
                 })
                 .Verifiable(Times.Once);
 
@@ -1103,10 +1102,10 @@ namespace Opc.Ua.Client
                     SecurityMode = MessageSecurityMode.None,
                     SecurityPolicyUri = SecurityPolicies.None,
                     EndpointUrl = "opc.tcp://localhost:4840",
-                    UserIdentityTokens = new UserTokenPolicyCollection
-                    {
+                    UserIdentityTokens =
+                    [
                         new UserTokenPolicy()
-                    }
+                    ]
                 }),
                 _options, _mockObservability.Object, null);
             sut.SetConnected();
@@ -1139,10 +1138,10 @@ namespace Opc.Ua.Client
                     SecurityMode = MessageSecurityMode.None,
                     SecurityPolicyUri = SecurityPolicies.None,
                     EndpointUrl = "opc.tcp://notreallytherehostorelsetestfails:1234",
-                    UserIdentityTokens = new UserTokenPolicyCollection
-                    {
+                    UserIdentityTokens =
+                    [
                         new UserTokenPolicy()
-                    }
+                    ]
                 }),
                 _options, _mockObservability.Object, null);
             sut.SetConnected();
@@ -1172,10 +1171,10 @@ namespace Opc.Ua.Client
                     SecurityMode = MessageSecurityMode.None,
                     SecurityPolicyUri = SecurityPolicies.None,
                     EndpointUrl = "opc.tcp://localhost:4840",
-                    UserIdentityTokens = new UserTokenPolicyCollection
-                    {
+                    UserIdentityTokens =
+                    [
                         new UserTokenPolicy()
-                    }
+                    ]
                 }),
                 _options, _mockObservability.Object, null);
             sut.SetConnected();
@@ -1206,10 +1205,10 @@ namespace Opc.Ua.Client
                     SecurityMode = MessageSecurityMode.None,
                     SecurityPolicyUri = SecurityPolicies.None,
                     EndpointUrl = "opc.tcp://localhost:4840",
-                    UserIdentityTokens = new UserTokenPolicyCollection
-                    {
+                    UserIdentityTokens =
+                    [
                         new UserTokenPolicy()
-                    }
+                    ]
                 }),
                 _options, _mockObservability.Object, null);
             sut.SetConnected();
@@ -1228,8 +1227,8 @@ namespace Opc.Ua.Client
                 .ReturnsAsync(new ActivateSessionResponse
                 {
                     ServerNonce = null,
-                    Results = new StatusCodeCollection(),
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    Results = [],
+                    DiagnosticInfos = []
                 })
                 .Verifiable(Times.Once);
 
@@ -1250,14 +1249,14 @@ namespace Opc.Ua.Client
                     SecurityMode = MessageSecurityMode.None,
                     SecurityPolicyUri = SecurityPolicies.None,
                     EndpointUrl = "opc.tcp://localhost:4840",
-                    UserIdentityTokens = new UserTokenPolicyCollection
-                    {
+                    UserIdentityTokens =
+                    [
                         new UserTokenPolicy
                         {
                             PolicyId = "T",
                             TokenType = UserTokenType.Certificate
                         }
-                    }
+                    ]
                 }),
                 _options, _mockObservability.Object, null);
             sut.SetConnected();
@@ -1282,10 +1281,10 @@ namespace Opc.Ua.Client
                     SecurityMode = MessageSecurityMode.None,
                     SecurityPolicyUri = SecurityPolicies.None,
                     EndpointUrl = "opc.tcp://localhost:4840",
-                    UserIdentityTokens = new UserTokenPolicyCollection
-                    {
+                    UserIdentityTokens =
+                    [
                         new UserTokenPolicy()
-                    }
+                    ]
                 }),
                 _options, _mockObservability.Object, null);
             sut.SetConnected();
@@ -1304,8 +1303,8 @@ namespace Opc.Ua.Client
                 .ReturnsAsync(new ActivateSessionResponse
                 {
                     ResponseHeader = new ResponseHeader { ServiceResult = StatusCodes.BadSessionNotActivated },
-                    Results = new StatusCodeCollection(),
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    Results = [],
+                    DiagnosticInfos = []
                 })
                 .Verifiable(Times.Once);
 
@@ -1328,10 +1327,10 @@ namespace Opc.Ua.Client
                     SecurityMode = MessageSecurityMode.None,
                     SecurityPolicyUri = SecurityPolicies.None,
                     EndpointUrl = "opc.tcp://localhost:4840",
-                    UserIdentityTokens = new UserTokenPolicyCollection
-                    {
+                    UserIdentityTokens =
+                    [
                         new UserTokenPolicy()
-                    }
+                    ]
                 }),
                 _options, _mockObservability.Object, null);
             sut.SetConnected();
@@ -1368,12 +1367,12 @@ namespace Opc.Ua.Client
                 SecurityMode = MessageSecurityMode.None,
                 SecurityPolicyUri = SecurityPolicies.None,
                 EndpointUrl = "opc.tcp://localhost:4840",
-                UserIdentityTokens = new UserTokenPolicyCollection
-                {
+                UserIdentityTokens =
+                [
                     new UserTokenPolicy()
-                }
+                ]
             };
-            _options.Configure(o => o with { DisableComplexTypeLoading = true });
+            _options = _options with { DisableComplexTypeLoading = true };
             using var sut = new TestSessionBase(_configuration,
                 new ConfiguredEndpoint(null, ep),
                 _options, _mockObservability.Object, null);
@@ -1390,7 +1389,7 @@ namespace Opc.Ua.Client
                     ServerNonce = serverNonce,
                     SessionId = NodeId.Parse("s=connected"),
                     AuthenticationToken = authToken,
-                    ServerEndpoints = new EndpointDescriptionCollection { ep }
+                    ServerEndpoints = [ep]
                 })
                 .Verifiable(Times.Once);
 
@@ -1401,8 +1400,8 @@ namespace Opc.Ua.Client
                 .ReturnsAsync(new ActivateSessionResponse
                 {
                     ServerNonce = serverNonce,
-                    Results = new StatusCodeCollection(),
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    Results = [],
+                    DiagnosticInfos = []
                 })
                 .Verifiable(Times.Once);
 
@@ -1413,11 +1412,11 @@ namespace Opc.Ua.Client
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ReadResponse
                 {
-                    Results = new DataValueCollection
-                    {
+                    Results =
+                    [
                         new (new Variant(0u))
-                    },
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    ],
+                    DiagnosticInfos = []
                 })
                 .Verifiable(Times.Once);
 
@@ -1431,7 +1430,7 @@ namespace Opc.Ua.Client
                     Results = new DataValueCollection(Enumerable
                         .Range(0, 27)
                         .Select(_ => new DataValue(Variant.Null))),
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    DiagnosticInfos = []
                 })
                 .Verifiable(Times.Once);
 
@@ -1442,12 +1441,12 @@ namespace Opc.Ua.Client
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ReadResponse
                 {
-                    Results = new DataValueCollection
-                    {
+                    Results =
+                    [
                         new (new[] { Opc.Ua.Namespaces.OpcUa }),
                         new(Array.Empty<string>())
-                    },
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    ],
+                    DiagnosticInfos = []
                 })
                 .Verifiable(Times.Once);
 
@@ -1468,12 +1467,12 @@ namespace Opc.Ua.Client
                 SecurityMode = MessageSecurityMode.None,
                 SecurityPolicyUri = SecurityPolicies.None,
                 EndpointUrl = "opc.tcp://localhost:4840",
-                UserIdentityTokens = new UserTokenPolicyCollection
-                {
+                UserIdentityTokens =
+                [
                     new UserTokenPolicy()
-                }
+                ]
             };
-            _options.Configure(o => o with { DisableComplexTypeLoading = true });
+            _options = _options with { DisableComplexTypeLoading = true };
             using var sut = new TestSessionBase(_configuration,
                 new ConfiguredEndpoint(null, ep),
                 _options, _mockObservability.Object, null);
@@ -1490,7 +1489,7 @@ namespace Opc.Ua.Client
                     ServerNonce = serverNonce,
                     SessionId = NodeId.Parse("s=connected"),
                     AuthenticationToken = authToken,
-                    ServerEndpoints = new EndpointDescriptionCollection { ep }
+                    ServerEndpoints = [ep]
                 })
                 .Verifiable(Times.Once);
 
@@ -1502,8 +1501,8 @@ namespace Opc.Ua.Client
                 {
                     ResponseHeader = new ResponseHeader { ServiceResult = StatusCodes.BadSessionNotActivated },
                     ServerNonce = serverNonce,
-                    Results = new StatusCodeCollection(),
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    Results = [],
+                    DiagnosticInfos = []
                 })
                 .Verifiable(Times.Once);
 
@@ -1540,12 +1539,12 @@ namespace Opc.Ua.Client
                 SecurityMode = MessageSecurityMode.None,
                 SecurityPolicyUri = SecurityPolicies.None,
                 EndpointUrl = "opc.tcp://localhost:4840",
-                UserIdentityTokens = new UserTokenPolicyCollection
-                {
+                UserIdentityTokens =
+                [
                     new UserTokenPolicy()
-                }
+                ]
             };
-            _options.Configure(o => o with { DisableComplexTypeLoading = true });
+            _options = _options with { DisableComplexTypeLoading = true };
             using var sut = new TestSessionBase(_configuration,
                 new ConfiguredEndpoint(null, ep),
                 _options, _mockObservability.Object, null);
@@ -1562,7 +1561,7 @@ namespace Opc.Ua.Client
                     ServerNonce = serverNonce,
                     SessionId = NodeId.Parse("s=connected"),
                     AuthenticationToken = authToken,
-                    ServerEndpoints = new EndpointDescriptionCollection { ep }
+                    ServerEndpoints = [ep]
                 })
                 .Verifiable(Times.Once);
 
@@ -1574,8 +1573,8 @@ namespace Opc.Ua.Client
                 {
                     ResponseHeader = new ResponseHeader { ServiceResult = StatusCodes.BadSessionNotActivated },
                     ServerNonce = serverNonce,
-                    Results = new StatusCodeCollection(),
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    Results = [],
+                    DiagnosticInfos = []
                 })
                 .Verifiable(Times.Once);
 
@@ -1613,10 +1612,10 @@ namespace Opc.Ua.Client
                     SecurityMode = MessageSecurityMode.None,
                     SecurityPolicyUri = SecurityPolicies.None,
                     EndpointUrl = "opc.tcp://localhost:4840",
-                    UserIdentityTokens = new UserTokenPolicyCollection
-                    {
+                    UserIdentityTokens =
+                    [
                         new UserTokenPolicy()
-                    }
+                    ]
                 }),
                 _options, _mockObservability.Object, null);
 
@@ -1646,10 +1645,10 @@ namespace Opc.Ua.Client
                     SecurityMode = MessageSecurityMode.None,
                     SecurityPolicyUri = "Bad",
                     EndpointUrl = "opc.tcp://localhost:4840",
-                    UserIdentityTokens = new UserTokenPolicyCollection
-                    {
+                    UserIdentityTokens =
+                    [
                         new UserTokenPolicy()
-                    }
+                    ]
                 }),
                 _options, _mockObservability.Object, null);
 
@@ -1672,14 +1671,14 @@ namespace Opc.Ua.Client
                     SecurityMode = MessageSecurityMode.None,
                     SecurityPolicyUri = SecurityPolicies.None,
                     EndpointUrl = "opc.tcp://localhost:4840",
-                    UserIdentityTokens = new UserTokenPolicyCollection
-                    {
+                    UserIdentityTokens =
+                    [
                         new UserTokenPolicy
                         {
                             PolicyId = "PolicyId",
                             TokenType = UserTokenType.IssuedToken
                         }
-                    }
+                    ]
                 }),
                 _options, _mockObservability.Object, null);
 
@@ -1702,10 +1701,10 @@ namespace Opc.Ua.Client
                     SecurityMode = MessageSecurityMode.None,
                     SecurityPolicyUri = SecurityPolicies.None,
                     EndpointUrl = "opc.tcp://localhost:4840",
-                    UserIdentityTokens = new UserTokenPolicyCollection
-                    {
+                    UserIdentityTokens =
+                    [
                         new UserTokenPolicy()
-                    }
+                    ]
                 }),
                 _options, _mockObservability.Object, null);
 
@@ -1734,10 +1733,10 @@ namespace Opc.Ua.Client
                     SecurityMode = MessageSecurityMode.None,
                     SecurityPolicyUri = SecurityPolicies.None,
                     EndpointUrl = "opc.tcp://localhost:4840",
-                    UserIdentityTokens = new UserTokenPolicyCollection
-                    {
+                    UserIdentityTokens =
+                    [
                 new UserTokenPolicy()
-                    }
+                    ]
                 }),
                 _options, _mockObservability.Object, null);
             var ct = CancellationToken.None;
@@ -1770,12 +1769,12 @@ namespace Opc.Ua.Client
                 SecurityMode = MessageSecurityMode.None,
                 SecurityPolicyUri = SecurityPolicies.None,
                 EndpointUrl = "opc.tcp://localhost:4840",
-                UserIdentityTokens = new UserTokenPolicyCollection
-                {
+                UserIdentityTokens =
+                [
                     new UserTokenPolicy()
-                }
+                ]
             };
-            _options.Configure(o => o with { DisableComplexTypeLoading = true });
+            _options = _options with { DisableComplexTypeLoading = true };
             using var sut = new TestSessionBase(_configuration,
                 new ConfiguredEndpoint(null, ep),
                 _options, _mockObservability.Object, null);
@@ -1792,7 +1791,7 @@ namespace Opc.Ua.Client
                     ServerNonce = serverNonce,
                     SessionId = NodeId.Parse("s=connected"),
                     AuthenticationToken = authToken,
-                    ServerEndpoints = new EndpointDescriptionCollection { ep }
+                    ServerEndpoints = [ep]
                 })
                 .Verifiable(Times.Once);
 
@@ -1803,8 +1802,8 @@ namespace Opc.Ua.Client
                 .ReturnsAsync(new ActivateSessionResponse
                 {
                     ServerNonce = serverNonce,
-                    Results = new StatusCodeCollection(),
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    Results = [],
+                    DiagnosticInfos = []
                 })
                 .Verifiable(Times.Once);
 
@@ -1815,11 +1814,11 @@ namespace Opc.Ua.Client
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ReadResponse
                 {
-                    Results = new DataValueCollection
-                    {
+                    Results =
+                    [
                 new (new Variant(0u))
-                    },
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    ],
+                    DiagnosticInfos = []
                 })
                 .Verifiable(Times.Once);
 
@@ -1833,7 +1832,7 @@ namespace Opc.Ua.Client
                     Results = new DataValueCollection(Enumerable
                         .Range(0, 27)
                         .Select(_ => new DataValue(Variant.Null))),
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    DiagnosticInfos = []
                 })
                 .Verifiable(Times.Once);
 
@@ -1844,12 +1843,12 @@ namespace Opc.Ua.Client
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ReadResponse
                 {
-                    Results = new DataValueCollection
-                    {
+                    Results =
+                    [
                 new (new[] { Opc.Ua.Namespaces.OpcUa }),
                 new(Array.Empty<string>())
-                    },
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    ],
+                    DiagnosticInfos = []
                 })
                 .Verifiable(Times.Once);
 
@@ -1883,18 +1882,18 @@ namespace Opc.Ua.Client
                     ct))
                 .ReturnsAsync(new BrowseResponse
                 {
-                    Results = new BrowseResultCollection
-                    {
+                    Results =
+                    [
                         new ()
                         {
-                            References = new ReferenceDescriptionCollection
-                            {
+                            References =
+                            [
                                 new () { NodeId = nodeIds[0] }
-                            },
-                            ContinuationPoint = new byte[] { 1, 2, 3, 4 }
+                            ],
+                            ContinuationPoint = [1, 2, 3, 4]
                         }
-                    },
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    ],
+                    DiagnosticInfos = []
                 })
                 .Verifiable(Times.Once);
             _mockChannel
@@ -1903,23 +1902,22 @@ namespace Opc.Ua.Client
                     ct))
                 .ReturnsAsync(new BrowseNextResponse
                 {
-                    Results = new BrowseResultCollection
-                    {
+                    Results =
+                    [
                         new BrowseResult
                         {
-                            References = new ReferenceDescriptionCollection(),
-                            ContinuationPoint = new byte[] { 1, 2, 3, 4 }
+                            References = [],
+                            ContinuationPoint = [1, 2, 3, 4]
                         }
-                    },
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    ],
+                    DiagnosticInfos = []
                 })
                 .Verifiable(Times.Once);
 
             // Act
             var results = new List<SessionBase.BrowseDescriptionResult>();
             await foreach (var result in sut.BrowseAsync(null, null,
-                new BrowseDescriptionCollection
-                {
+                [
                     new ()
                     {
                         NodeId = NodeId.Parse("ns=1;s=TestNode"),
@@ -1929,7 +1927,7 @@ namespace Opc.Ua.Client
                         NodeClassMask = 0,
                         ResultMask = (uint)BrowseResultMask.All
                     }
-                }, ct))
+                ], ct))
             {
                 results.Add(result);
             }
@@ -1964,18 +1962,18 @@ namespace Opc.Ua.Client
                     ct))
                 .ReturnsAsync(new BrowseResponse
                 {
-                    Results = new BrowseResultCollection
-                    {
+                    Results =
+                    [
                         new ()
                         {
-                            References = new ReferenceDescriptionCollection
-                            {
+                            References =
+                            [
                                 new () { NodeId = nodeIds[0] }
-                            },
-                            ContinuationPoint = new byte[] { 1, 2, 3, 4 }
+                            ],
+                            ContinuationPoint = [1, 2, 3, 4]
                         }
-                    },
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    ],
+                    DiagnosticInfos = []
                 })
                 .Verifiable(Times.Once);
             _mockChannel
@@ -1984,40 +1982,39 @@ namespace Opc.Ua.Client
                     ct))
                 .ReturnsAsync(new BrowseNextResponse
                 {
-                    Results = new BrowseResultCollection
-                    {
+                    Results =
+                    [
                         new BrowseResult
                         {
-                            References = new ReferenceDescriptionCollection
-                            {
+                            References =
+                            [
                                 new () { NodeId = nodeIds[1] }
-                            },
-                            ContinuationPoint = new byte[] { 1, 2, 3, 4 }
+                            ],
+                            ContinuationPoint = [1, 2, 3, 4]
                         }
-                    },
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    ],
+                    DiagnosticInfos = []
                 })
                 .ReturnsAsync(new BrowseNextResponse
                 {
-                    Results = new BrowseResultCollection
-                    {
+                    Results =
+                    [
                         new BrowseResult
                         {
-                            References = new ReferenceDescriptionCollection
-                            {
+                            References =
+                            [
                                 new () { NodeId = nodeIds[2] }
-                            },
-                            ContinuationPoint = Array.Empty<byte>()
+                            ],
+                            ContinuationPoint = []
                         }
-                    },
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    ],
+                    DiagnosticInfos = []
                 });
 
             // Act
             var results = new List<SessionBase.BrowseDescriptionResult>();
             await foreach (var result in sut.BrowseAsync(null, null,
-                new BrowseDescriptionCollection
-                {
+                [
                     new ()
                     {
                         NodeId = NodeId.Parse("ns=1;s=TestNode"),
@@ -2027,7 +2024,7 @@ namespace Opc.Ua.Client
                         NodeClassMask = 0,
                         ResultMask = (uint)BrowseResultMask.All
                     }
-                }, ct))
+                ], ct))
             {
                 results.Add(result);
             }
@@ -2062,18 +2059,18 @@ namespace Opc.Ua.Client
                     ct))
                 .ReturnsAsync(new BrowseResponse
                 {
-                    Results = new BrowseResultCollection
-                    {
+                    Results =
+                    [
                         new ()
                         {
-                            References = new ReferenceDescriptionCollection
-                            {
+                            References =
+                            [
                                 new () { NodeId = nodeIds[0] }
-                            },
-                            ContinuationPoint = new byte[] { 1, 2, 3, 4 }
+                            ],
+                            ContinuationPoint = [1, 2, 3, 4]
                         }
-                    },
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    ],
+                    DiagnosticInfos = []
                 })
                 .Verifiable(Times.Once);
             _mockChannel
@@ -2082,27 +2079,26 @@ namespace Opc.Ua.Client
                     ct))
                 .ReturnsAsync(new BrowseNextResponse
                 {
-                    Results = new BrowseResultCollection
-                    {
+                    Results =
+                    [
                         new BrowseResult
                         {
-                            References = new ReferenceDescriptionCollection
-                            {
+                            References =
+                            [
                                 new () { NodeId = nodeIds[1] },
                                 new () { NodeId = nodeIds[2] }
-                            },
+                            ],
                             ContinuationPoint = null
                         }
-                    },
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    ],
+                    DiagnosticInfos = []
                 })
                 .Verifiable(Times.Once);
 
             // Act
             var results = new List<SessionBase.BrowseDescriptionResult>();
             await foreach (var result in sut.BrowseAsync(null, null,
-                new BrowseDescriptionCollection
-                {
+                [
                     new ()
                     {
                         NodeId = NodeId.Parse("ns=1;s=TestNode"),
@@ -2112,7 +2108,7 @@ namespace Opc.Ua.Client
                         NodeClassMask = 0,
                         ResultMask = (uint)BrowseResultMask.All
                     }
-                }, ct))
+                ], ct))
             {
                 results.Add(result);
             }
@@ -2148,23 +2144,22 @@ namespace Opc.Ua.Client
                     ct))
                 .ReturnsAsync(new BrowseResponse
                 {
-                    Results = new BrowseResultCollection
-                    {
+                    Results =
+                    [
                         new ()
                         {
-                            References = new ReferenceDescriptionCollection(),
-                            ContinuationPoint = new byte[] { 1, 2, 3, 4 }
+                            References = [],
+                            ContinuationPoint = [1, 2, 3, 4]
                         }
-                    },
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    ],
+                    DiagnosticInfos = []
                 })
                 .Verifiable(Times.Once);
 
             // Act
             var results = new List<SessionBase.BrowseDescriptionResult>();
             await foreach (var result in sut.BrowseAsync(null, null,
-                new BrowseDescriptionCollection
-                {
+                [
                     new ()
                     {
                         NodeId = NodeId.Parse("ns=1;s=TestNode"),
@@ -2174,7 +2169,7 @@ namespace Opc.Ua.Client
                         NodeClassMask = 0,
                         ResultMask = (uint)BrowseResultMask.All
                     }
-                }, ct))
+                ], ct))
             {
                 results.Add(result);
             }
@@ -2208,18 +2203,18 @@ namespace Opc.Ua.Client
                     ct))
                 .ReturnsAsync(new BrowseResponse
                 {
-                    Results = new BrowseResultCollection
-                    {
+                    Results =
+                    [
                         new ()
                         {
-                            References = new ReferenceDescriptionCollection
-                            {
+                            References =
+                            [
                                 new () { NodeId = nodeIds[0] }
-                            },
-                            ContinuationPoint = new byte[] { 1, 2, 3, 4 }
+                            ],
+                            ContinuationPoint = [1, 2, 3, 4]
                         }
-                    },
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    ],
+                    DiagnosticInfos = []
                 })
                 .Verifiable(Times.Once);
             _mockChannel
@@ -2240,8 +2235,7 @@ namespace Opc.Ua.Client
             Func<Task> act = async () =>
             {
                 await foreach (var result in sut.BrowseAsync(null, null,
-                    new BrowseDescriptionCollection
-                    {
+                    [
                         new ()
                         {
                             NodeId = NodeId.Parse("ns=1;s=TestNode"),
@@ -2251,7 +2245,7 @@ namespace Opc.Ua.Client
                             NodeClassMask = 0,
                             ResultMask = (uint)BrowseResultMask.All
                         }
-                    }, ct))
+                    ], ct))
                 {
                     results.Add(result);
                 }
@@ -2286,18 +2280,18 @@ namespace Opc.Ua.Client
                     ct))
                 .ReturnsAsync(new BrowseResponse
                 {
-                    Results = new BrowseResultCollection
-                    {
+                    Results =
+                    [
                         new ()
                         {
-                            References = new ReferenceDescriptionCollection
-                            {
+                            References =
+                            [
                                 new () { NodeId = nodeIds[0] }
-                            },
-                            ContinuationPoint = new byte[] { 1, 2, 3, 4 }
+                            ],
+                            ContinuationPoint = [1, 2, 3, 4]
                         }
-                    },
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    ],
+                    DiagnosticInfos = []
                 })
                 .Verifiable(Times.Once);
             _mockChannel
@@ -2324,8 +2318,7 @@ namespace Opc.Ua.Client
             Func<Task> act = async () =>
             {
                 await foreach (var result in sut.BrowseAsync(null, null,
-                    new BrowseDescriptionCollection
-                    {
+                    [
                         new ()
                         {
                             NodeId = NodeId.Parse("ns=1;s=TestNode"),
@@ -2335,7 +2328,7 @@ namespace Opc.Ua.Client
                             NodeClassMask = 0,
                             ResultMask = (uint)BrowseResultMask.All
                         }
-                    }, ct))
+                    ], ct))
                 {
                     results.Add(result);
                 }
@@ -2372,18 +2365,18 @@ namespace Opc.Ua.Client
                     ct))
                 .ReturnsAsync(new BrowseResponse
                 {
-                    Results = new BrowseResultCollection
-                    {
+                    Results =
+                    [
                         new ()
                         {
-                            References = new ReferenceDescriptionCollection
-                            {
+                            References =
+                            [
                                 new () { NodeId = nodeIds[0] }
-                            },
-                            ContinuationPoint = new byte[] { 1, 2, 3, 4 }
+                            ],
+                            ContinuationPoint = [1, 2, 3, 4]
                         }
-                    },
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    ],
+                    DiagnosticInfos = []
                 })
                 .Verifiable(Times.Once);
             _mockChannel
@@ -2392,22 +2385,21 @@ namespace Opc.Ua.Client
                     ct))
                 .ReturnsAsync(new BrowseNextResponse
                 {
-                    Results = new BrowseResultCollection
-                    {
+                    Results =
+                    [
                         new BrowseResult()
                         {
                             StatusCode = StatusCodes.BadUnexpectedError
                         }
-                    },
-                    DiagnosticInfos = new DiagnosticInfoCollection()
+                    ],
+                    DiagnosticInfos = []
                 })
                 .Verifiable(Times.Once);
 
             // Act
             var results = new List<SessionBase.BrowseDescriptionResult>();
             await foreach (var result in sut.BrowseAsync(null, null,
-                new BrowseDescriptionCollection
-                {
+                [
                     new ()
                     {
                         NodeId = NodeId.Parse("ns=1;s=TestNode"),
@@ -2417,7 +2409,7 @@ namespace Opc.Ua.Client
                         NodeClassMask = 0,
                         ResultMask = (uint)BrowseResultMask.All
                     }
-                }, ct))
+                ], ct))
             {
                 results.Add(result);
             }
@@ -2432,13 +2424,13 @@ namespace Opc.Ua.Client
         private sealed class TestSessionBase : SessionBase
         {
             public TestSessionBase(ApplicationConfiguration configuration,
-                ConfiguredEndpoint endpoint, IOptionsMonitor<SessionOptions> _options,
+                ConfiguredEndpoint endpoint, SessionCreateOptions options,
                 IObservability observability, ReverseConnectManager reverseConnect)
-                : base(configuration, endpoint, _options, observability, reverseConnect)
+                : base(configuration, endpoint, options, observability, reverseConnect)
             {
-                if (_options.CurrentValue.Channel != null)
+                if (options.Channel != null)
                 {
-                    AttachChannel(_options.CurrentValue.Channel);
+                    AttachChannel(options.Channel);
                 }
             }
 
@@ -2452,7 +2444,7 @@ namespace Opc.Ua.Client
                 base.SessionCreated(NodeId.Parse("s=connected"), NodeId.Parse("s=cookie"));
             }
 
-            public override IManagedSubscription CreateSubscription(
+            public override IManagedSubscription CreateSubscription(IObservability observability,
                 IOptionsMonitor<SubscriptionOptions> _options, IMessageAckQueue queue)
             {
                 throw new NotImplementedException();
@@ -2465,7 +2457,7 @@ namespace Opc.Ua.Client
         private readonly Mock<IMeterFactory> _mockMeterFactory;
         private readonly Mock<TimeProvider> _mockTimeProvider;
         private readonly Mock<ITimer> _mockTimer;
-        private readonly OptionsMonitor<SessionOptions> _options;
         private readonly ApplicationConfiguration _configuration;
+        private SessionCreateOptions _options;
     }
 }

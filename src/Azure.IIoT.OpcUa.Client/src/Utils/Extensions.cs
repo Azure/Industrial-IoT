@@ -24,7 +24,7 @@ namespace Opc.Ua
         /// <param name="collection">The collection from which items are batched.</param>
         /// <param name="batchSize">The size of a batch.</param>
         /// <returns>The collection.</returns>
-        internal static IEnumerable<C> Batch<T, C>(this C collection, uint batchSize)
+        public static IEnumerable<C> Batch<T, C>(this C collection, uint batchSize)
             where C : List<T>, new()
         {
             if (collection.Count < batchSize || batchSize == 0)

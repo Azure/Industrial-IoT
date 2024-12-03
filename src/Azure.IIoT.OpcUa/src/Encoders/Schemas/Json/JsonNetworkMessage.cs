@@ -64,7 +64,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
             ArgumentNullException.ThrowIfNull(networkMessage);
 
             UseCompatibilityMode = useCompatibilityMode;
-            Definitions = definitions ?? new();
+            Definitions = definitions ?? [];
             _options = options ?? new SchemaOptions();
 
             Name = GetName(networkMessage.TypeName);
@@ -255,6 +255,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
         }
 
         private readonly SchemaOptions _options;
-        private readonly HashSet<string> _uniqueNames = new();
+        private readonly HashSet<string> _uniqueNames = [];
     }
 }

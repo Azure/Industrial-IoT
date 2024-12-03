@@ -85,7 +85,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             return this;
         }
 
-        public IList<ReadOnlySequence<byte>> Buffers { get; } = new List<ReadOnlySequence<byte>>();
+        public IList<ReadOnlySequence<byte>> Buffers { get; } = [];
 
         public IEvent AddBuffers(IEnumerable<ReadOnlySequence<byte>> value)
         {
@@ -93,7 +93,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             return this;
         }
 
-        public Dictionary<string, string> Properties { get; } = new();
+        public Dictionary<string, string> Properties { get; } = [];
 
         public IEvent AddProperty(string name, string value)
         {

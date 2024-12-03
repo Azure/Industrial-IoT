@@ -96,7 +96,7 @@ namespace Opc.Ua.Client.ComplexTypes
                         DataTypeIds.Structure, true, ct: ct).ConfigureAwait(false);
 
                 if (DisableDataTypeDefinition ||
-                    !await LoadBaseDataTypesAsync(serverEnumTypes.ToList(), serverStructTypes.ToList(),
+                    !await LoadBaseDataTypesAsync([.. serverEnumTypes], [.. serverStructTypes],
                         ct).ConfigureAwait(false))
                 {
                     if (DisableDataTypeDictionary)
@@ -619,7 +619,7 @@ namespace Opc.Ua.Client.ComplexTypes
                     loopCounter < kMaxLoopCount)
                 {
                     structTypesWorkList = structTypesToDoList;
-                    structTypesToDoList = new List<INode>();
+                    structTypesToDoList = [];
                 }
                 else
                 {
@@ -916,7 +916,7 @@ namespace Opc.Ua.Client.ComplexTypes
                     {
                         if (missingTypes == null)
                         {
-                            missingTypes = new ExpandedNodeIdCollection { field.DataType };
+                            missingTypes = [field.DataType];
                         }
                         else if (!missingTypes.Contains(field.DataType))
                         {
@@ -1172,12 +1172,12 @@ namespace Opc.Ua.Client.ComplexTypes
         }
 
         private const int kMaxLoopCount = 100;
-        private static readonly string[] kSupportedEncodings = new string[]
-        {
+        private static readonly string[] kSupportedEncodings =
+        [
             BrowseNames.DefaultBinary,
             BrowseNames.DefaultXml,
             BrowseNames.DefaultJson
-        };
+        ];
 
         private readonly ILogger _logger;
         private readonly NodeCacheResolver _typeResolver;

@@ -124,7 +124,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var length = ReadInteger();
             if (length == 0)
             {
-                return Array.Empty<byte>();
+                return [];
             }
             if (MaxBytesLength > 0 && MaxBytesLength < length)
             {

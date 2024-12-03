@@ -87,16 +87,16 @@ namespace Opc.Ua.Client
             message = new NotificationMessage
             {
                 SequenceNumber = 4,
-                NotificationData = new ExtensionObjectCollection
-                {
+                NotificationData =
+                [
                     new ExtensionObject(new DataChangeNotification
                     {
-                        MonitoredItems = new MonitoredItemNotificationCollection
-                        {
+                        MonitoredItems =
+                        [
                             new MonitoredItemNotification()
-                        }
+                        ]
                     })
-                }
+                ]
             };
 
             // Act
@@ -139,16 +139,16 @@ namespace Opc.Ua.Client
                     NotificationMessage = new NotificationMessage
                     {
                         SequenceNumber = 2,
-                        NotificationData = new ExtensionObjectCollection
-                        {
+                        NotificationData =
+                        [
                             new ExtensionObject(new DataChangeNotification
                             {
-                                MonitoredItems = new MonitoredItemNotificationCollection
-                                {
+                                MonitoredItems =
+                                [
                                     new MonitoredItemNotification()
-                                }
+                                ]
                             })
-                        }
+                        ]
                     }
                 })
                 .Verifiable(Times.Once);
@@ -157,16 +157,16 @@ namespace Opc.Ua.Client
             await sut.OnPublishReceivedAsync(new NotificationMessage
             {
                 SequenceNumber = 3,
-                NotificationData = new ExtensionObjectCollection
-                {
+                NotificationData =
+                [
                     new ExtensionObject(new EventNotificationList
                     {
-                        Events = new EventFieldListCollection
-                        {
+                        Events =
+                        [
                             new EventFieldList()
-                        }
+                        ]
                     })
-                }
+                ]
             }, availableSequenceNumbers, stringTable);
             await sut.EventNotificationReceived.WaitAsync().WaitAsync(TimeSpan.FromSeconds(1));
 
@@ -237,13 +237,13 @@ namespace Opc.Ua.Client
             await sut.OnPublishReceivedAsync(new NotificationMessage
             {
                 SequenceNumber = 3,
-                NotificationData = new ExtensionObjectCollection
-                {
+                NotificationData =
+                [
                     new ExtensionObject(new StatusChangeNotification
                     {
                         Status = StatusCodes.GoodSubscriptionTransferred
                     })
-                }
+                ]
             }, availableSequenceNumbers, stringTable);
             await sut.StatusChangeNotificationReceived.WaitAsync().WaitAsync(TimeSpan.FromSeconds(1));
 
@@ -259,13 +259,13 @@ namespace Opc.Ua.Client
             await sut.OnPublishReceivedAsync(new NotificationMessage
             {
                 SequenceNumber = 4,
-                NotificationData = new ExtensionObjectCollection
-                {
+                NotificationData =
+                [
                     new ExtensionObject(new StatusChangeNotification
                     {
                         Status = StatusCodes.BadTimeout
                     })
-                }
+                ]
             }, availableSequenceNumbers, stringTable);
             await sut.StatusChangeNotificationReceived.WaitAsync().WaitAsync(TimeSpan.FromSeconds(1));
 
@@ -303,7 +303,7 @@ namespace Opc.Ua.Client
                 set => _lastSequenceNumberProcessed = value;
             }
             public PublishState PublishState { get; set; }
-            public List<uint> ReceivedSequenceNumbers { get; } = new List<uint>();
+            public List<uint> ReceivedSequenceNumbers { get; } = [];
             public AsyncManualResetEvent StatusChangeNotificationReceived { get; } = new();
             public async ValueTask WaitAsync()
             {

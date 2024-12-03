@@ -33,7 +33,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var existing = parent?.TagList ?? default;
             var tags = existing.ToDictionary(kv => kv.Key, kv => kv.Value);
 
-            TagList = new TagList(tags.ToArray().AsSpan())
+            TagList = new TagList([.. tags])
             {
                  new KeyValuePair<string, object?>("endpointUrl",
                     connection.Endpoint.Url),

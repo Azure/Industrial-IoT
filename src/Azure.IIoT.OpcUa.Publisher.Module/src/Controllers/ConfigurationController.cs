@@ -16,7 +16,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -353,7 +352,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         {
             ArgumentNullException.ThrowIfNull(request);
             await _configServices.SetConfiguredEndpointsAsync(new List<PublishedNodesEntryModel>(
-                request.Endpoints ?? Enumerable.Empty<PublishedNodesEntryModel>()),
+                request.Endpoints ?? []),
                 ct).ConfigureAwait(false);
         }
 

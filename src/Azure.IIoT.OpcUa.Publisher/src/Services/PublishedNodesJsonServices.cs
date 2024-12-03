@@ -130,13 +130,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             string dataSetWriterId, IReadOnlyList<OpcNodeModel> nodes,
             string? insertAfterFieldId = null, CancellationToken ct = default)
         {
-            var opcNodes = ValidateNodes(nodes.ToList(), true);
+            var opcNodes = ValidateNodes([.. nodes], true);
             await _api.WaitAsync(ct).ConfigureAwait(false);
             try
             {
                 var currentNodes = GetCurrentPublishedNodes().ToList();
                 var entry = Find(writerGroupId, dataSetWriterId, currentNodes);
-                entry.OpcNodes ??= new List<OpcNodeModel>();
+                entry.OpcNodes ??= [];
 
                 var insertAt = -1;
                 if (insertAfterFieldId != null)
@@ -426,7 +426,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     Items = entries
                         .Where(n => n.HasSameDataSet(entry))
-                        .SelectMany(n => n.OpcNodes ?? new List<OpcNodeModel>())
+                        .SelectMany(n => n.OpcNodes ?? [])
                         .Where(n => n.EventFilter == null) // Exclude event filtering
                         .Select(n => new PublishedItemModel
                         {
@@ -474,7 +474,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         {
                             // Create HashSet of nodes for this entry.
                             var existingNodesSet = new HashSet<OpcNodeModel>(OpcNodeModelEx.Comparer);
-                            entry.OpcNodes ??= new List<OpcNodeModel>();
+                            entry.OpcNodes ??= [];
                             existingNodesSet.UnionWith(entry.OpcNodes);
 
                             foreach (var nodeToAdd in request.OpcNodes)
@@ -559,7 +559,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 // Report error if there were entries that we were not able to find.
                 if (nodesToRemoveSet.Count != 0)
                 {
-                    request.OpcNodes = nodesToRemoveSet.ToList();
+                    request.OpcNodes = [.. nodesToRemoveSet];
                     var entriesNotFoundJson = _jsonSerializer.SerializeToString(request);
                     throw new ResourceNotFoundException($"Nodes not found: \n{entriesNotFoundJson}");
                 }
@@ -666,7 +666,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
                 else
                 {
-                    await _publisherHost.UpdateAsync(Enumerable.Empty<WriterGroupModel>()).ConfigureAwait(false);
+                    await _publisherHost.UpdateAsync([]).ConfigureAwait(false);
                 }
                 await PersistPublishedNodesAsync().ConfigureAwait(false);
             }
@@ -1207,7 +1207,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
             found.MessageEncoding = MessageEncoding.Json;
             found.MessagingMode = MessagingMode.FullSamples;
-            found.OpcNodes ??= new List<OpcNodeModel>();
+            found.OpcNodes ??= [];
             var node = found.OpcNodes.FirstOrDefault(n => n.Id == item.NodeId);
             if (node == null)
             {
@@ -1245,7 +1245,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 if (!string.IsNullOrEmpty(entry.NodeId?.Identifier))
                 {
-                    entry.OpcNodes ??= new List<OpcNodeModel>();
+                    entry.OpcNodes ??= [];
 
                     if (entry.OpcNodes.Count != 0)
                     {

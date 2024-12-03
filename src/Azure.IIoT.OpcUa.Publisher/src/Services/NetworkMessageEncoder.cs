@@ -402,10 +402,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                             },
                                                             DataSetFieldName = notificationsInGroup[0].DataSetName
                                                         };
-                                                        notificationsInGroup = new List<MonitoredItemNotificationModel>
-                                                        {
+                                                        notificationsInGroup =
+                                                        [
                                                             eventNotification
-                                                        };
+                                                        ];
                                                     }
                                                     else if (_options.Value.RemoveDuplicatesFromBatch ?? false)
                                                     {
@@ -481,7 +481,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                             currentNotifications.ForEach(n => n.MarkProcessed());
 #endif
                                             currentMessage = null;
-                                            currentNotifications = new List<OpcUaSubscriptionNotification>();
+                                            currentNotifications = [];
                                         }
                                     }
                                 }
@@ -497,7 +497,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         currentNotifications.ForEach(n => n.MarkProcessed());
 #endif
                                         currentMessage = null;
-                                        currentNotifications = new List<OpcUaSubscriptionNotification>();
+                                        currentNotifications = [];
                                     }
 
                                     if (PubSubMessage.TryCreateMetaDataMessage(encoding, publisherId,

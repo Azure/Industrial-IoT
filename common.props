@@ -15,7 +15,7 @@
     <PackageTags>Industrial;Industrial IoT;Manufacturing;Azure;IoT;.NET</PackageTags>
     <HighEntropyVA>true</HighEntropyVA>
     <NeutralLanguage>en-US</NeutralLanguage>
-    <LangVersion>11.0</LangVersion>
+    <LangVersion>13.0</LangVersion>
     <IsPackable>false</IsPackable>
     <Nullable>disable</Nullable>
     <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>

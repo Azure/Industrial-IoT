@@ -164,6 +164,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
             return uniqueName;
         }
 
-        private readonly HashSet<string> _uniqueNames = new();
+        private readonly HashSet<string> _uniqueNames = [];
     }
 }

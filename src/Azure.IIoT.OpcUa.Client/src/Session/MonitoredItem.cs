@@ -434,7 +434,7 @@ namespace Opc.Ua.Client
 
                 if (StatusCode.IsBad(result.StatusCode))
                 {
-                    error = ClientBase.GetResult(result.StatusCode, index,
+                    error = Ua.ClientBase.GetResult(result.StatusCode, index,
                         diagnosticInfos, responseHeader);
                 }
 
@@ -476,7 +476,7 @@ namespace Opc.Ua.Client
                 var error = ServiceResult.Good;
                 if (StatusCode.IsBad(result.StatusCode))
                 {
-                    error = ClientBase.GetResult(result.StatusCode, index,
+                    error = Ua.ClientBase.GetResult(result.StatusCode, index,
                         diagnosticInfos, responseHeader);
                 }
 
@@ -532,7 +532,7 @@ namespace Opc.Ua.Client
                 var error = ServiceResult.Good;
                 if (StatusCode.IsBad(statusCode))
                 {
-                    error = ClientBase.GetResult(statusCode, index, diagnosticInfos,
+                    error = Ua.ClientBase.GetResult(statusCode, index, diagnosticInfos,
                         responseHeader);
                 }
 
@@ -569,7 +569,7 @@ namespace Opc.Ua.Client
                 var error = ServiceResult.Good;
                 if (StatusCode.IsBad(statusCode))
                 {
-                    error = ClientBase.GetResult(statusCode, index, diagnosticInfos,
+                    error = Ua.ClientBase.GetResult(statusCode, index, diagnosticInfos,
                         responseHeader);
                 }
 

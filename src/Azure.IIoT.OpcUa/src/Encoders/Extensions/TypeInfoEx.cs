@@ -89,14 +89,14 @@ namespace Opc.Ua
                 {
                     systemType = typeof(Matrix);
                 }
-                var constructor = typeof(Variant).GetConstructor(new Type[] {
+                var constructor = typeof(Variant).GetConstructor([
                     systemType
-                });
+                ]);
                 try
                 {
                     if (constructor != null)
                     {
-                        return (Variant)constructor.Invoke(new object[] { value });
+                        return (Variant)constructor.Invoke([value]);
                     }
                 }
                 catch (Exception ex)

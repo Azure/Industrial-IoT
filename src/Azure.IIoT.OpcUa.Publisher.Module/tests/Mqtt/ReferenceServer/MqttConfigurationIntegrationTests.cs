@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
     using Json.More;
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Text.Json;
     using System.Threading.Tasks;
     using Xunit;
@@ -47,7 +46,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
         {
             var name = nameof(CanSendDataItemToTopicConfiguredWithMethodAsync) + (useMqtt5 ? "v5" : "v311");
             var testInput = GetEndpointsFromFile(name, "./Resources/DataItems.json");
-            StartPublisher(name, arguments: new string[] { "--mm=FullSamples" }, // Alternative to --fm=True
+            StartPublisher(name, arguments: ["--mm=FullSamples"], // Alternative to --fm=True
                 version: useMqtt5 ? MqttVersion.v5 : MqttVersion.v311);
             try
             {
@@ -201,7 +200,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 await PublisherApi.AddOrUpdateEndpointsAsync(new List<PublishedNodesEntryModel>
                 {
                     new() {
-                        OpcNodes = nodes.OpcNodes.ToList(),
+                        OpcNodes = [.. nodes.OpcNodes],
                         EndpointUrl = e.EndpointUrl,
                         UseSecurity = e.UseSecurity,
                         DataSetWriterGroup = name

@@ -273,7 +273,7 @@ namespace Opc.Ua.Client
                         ResponseHeader = new ResponseHeader
                         {
                             ServiceResult = StatusCodes.Good,
-                            StringTable = new StringCollection()
+                            StringTable = []
                         }
                     });
 

@@ -686,7 +686,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 return Nothing.ToDo;
             }
-            var schema = RecordSchema.Create(typeName, new List<Field>(),
+            var schema = RecordSchema.Create(typeName, [],
                 customProperties: AvroSchema.Properties(
                     typeId?.AsString(Context, NamespaceFormat.Uri)));
             return PushSchema(fieldName, schema);
@@ -719,7 +719,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 return Nothing.ToDo;
             }
-            var schema = UnionSchema.Create(new List<Schema>());
+            var schema = UnionSchema.Create([]);
             if (nullable)
             {
                 schema.Schemas.Add(AvroSchema.Null);

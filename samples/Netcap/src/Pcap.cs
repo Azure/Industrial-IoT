@@ -15,10 +15,6 @@ using System.Diagnostics;
 using System;
 using System.Threading.Channels;
 using System.Collections.Concurrent;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Collections;
-using System.Text.RegularExpressions;
 
 internal abstract class Pcap
 {
@@ -86,7 +82,7 @@ internal abstract class Pcap
                     LinkLayerType = reader.LinkType
                 });
             }
-            while ((reader.GetNextPacket(out var packet))
+            while (reader.GetNextPacket(out var packet)
                 == GetPacketStatus.PacketRead)
             {
                 writer.Write(packet.GetPacket());
@@ -145,7 +141,7 @@ internal abstract class Pcap
                 throw new NetcapException("Cannot run capture without devices.");
             }
 
-            _devices = LibPcapLiveDeviceList.New().ToList();
+            _devices = [.. LibPcapLiveDeviceList.New()];
 
             // Open devices
             var open = _devices
@@ -253,7 +249,7 @@ internal abstract class Pcap
                             device.Name, device.Description, ex.Message);
                     }
                 }
-                return capturing.ToArray();
+                return [.. capturing];
             }
         }
 
@@ -384,8 +380,8 @@ internal abstract class Pcap
         private static int _handles;
         private int _index;
         private long _captureCount;
-        private readonly Stopwatch _captureWatch = new Stopwatch();
-        private readonly object _lock = new();
+        private readonly Stopwatch _captureWatch = new ();
+        private readonly Lock _lock = new();
         private readonly CaptureConfiguration _configuration;
         private List<LibPcapLiveDevice>? _devices;
         private CaptureFileWriterDevice _writer;
@@ -443,7 +439,7 @@ internal abstract class Pcap
         /// <returns></returns>
         private async Task RunAsync(CancellationToken ct = default)
         {
-            await foreach (var index in Reader.ReadAllAsync(ct))
+            await foreach (var index in Reader.ReadAllAsync(ct).ConfigureAwait(false))
             {
                 var file = GetFilePath(_folder, index);
                 await _storage.UploadAsync(file, ct).ConfigureAwait(false);
@@ -529,7 +525,7 @@ internal abstract class Pcap
                 try
                 {
                     await foreach (var index in _client
-                        .GetFromJsonAsAsyncEnumerable<int>(new Uri($"/{_handle}"), ct))
+                        .GetFromJsonAsAsyncEnumerable<int>(new Uri($"/{_handle}"), ct).ConfigureAwait(false))
                     {
                         var s = await _client.GetStreamAsync(new Uri($"/{_handle}/{index}"),
                             ct).ConfigureAwait(false);
@@ -677,13 +673,11 @@ internal abstract class Pcap
         /// <summary>
         /// Remote capture
         /// </summary>
-        private sealed class CaptureAdapter : Base
+        /// <param name="logger"></param>
+        /// <param name="configuration"></param>
+        private sealed class CaptureAdapter(ILogger logger,
+            Pcap.CaptureConfiguration configuration) : Base(logger, configuration)
         {
-            public CaptureAdapter(ILogger logger, CaptureConfiguration configuration) :
-                base(logger, configuration)
-            {
-            }
-
             /// <summary>
             /// Download
             /// </summary>
@@ -705,7 +699,9 @@ internal abstract class Pcap
             /// <param name="ct"></param>
             /// <returns></returns>
             public IAsyncEnumerable<int> ReadAllAsync(CancellationToken ct = default)
-                => Reader.ReadAllAsync(ct);
+            {
+                return Reader.ReadAllAsync(ct);
+            }
         }
 
         private readonly ConcurrentDictionary<int, CaptureAdapter> _captures = new();

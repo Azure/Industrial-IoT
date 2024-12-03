@@ -182,7 +182,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             string? password, CancellationToken ct)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
-            using var cert = new X509Certificate2(pfxBlob, password, X509KeyStorageFlags.Exportable);
+            using var cert = X509CertificateLoader.LoadPkcs12(pfxBlob, password, X509KeyStorageFlags.Exportable);
             using var certStore = await OpenAsync(store).ConfigureAwait(false);
             try
             {

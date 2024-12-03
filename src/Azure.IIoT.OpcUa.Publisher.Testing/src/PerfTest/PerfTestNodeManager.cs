@@ -101,7 +101,7 @@ namespace PerfTest
 
                     if (!externalReferences.TryGetValue(ObjectIds.ObjectsFolder, out var references))
                     {
-                        externalReferences[ObjectIds.ObjectsFolder] = references = new List<IReference>();
+                        externalReferences[ObjectIds.ObjectsFolder] = references = [];
                     }
 
                     references.Add(new NodeStateReference(ReferenceTypeIds.Organizes, false, targetId));

@@ -24,7 +24,7 @@ namespace Irony.Parsing
         {
             if (node?.ChildNodes == null)
             {
-                return Enumerable.Empty<ParseTreeNode>();
+                return [];
             }
             return node.ChildNodes;
         }
@@ -40,7 +40,7 @@ namespace Irony.Parsing
         {
             if (node?.ChildNodes == null)
             {
-                return Enumerable.Empty<ParseTreeNode>();
+                return [];
             }
             return node.ChildNodes.Where(
                 node => node.Term?.Name == name);

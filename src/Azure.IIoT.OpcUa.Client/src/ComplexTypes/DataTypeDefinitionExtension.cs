@@ -49,7 +49,7 @@ namespace Opc.Ua.Client.ComplexTypes
                 BaseDataType = null,
                 DefaultEncodingId =
                     ExpandedNodeId.ToNodeId(defaultEncodingId, namespaceTable),
-                Fields = new StructureFieldCollection(),
+                Fields = [],
                 StructureType = StructureType.Structure
             };
 

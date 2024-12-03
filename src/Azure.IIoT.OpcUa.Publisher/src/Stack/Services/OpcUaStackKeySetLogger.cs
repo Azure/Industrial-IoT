@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System;
     using System.Globalization;
     using System.IO;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -161,11 +160,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 await keysets.WriteAsync($"client_iv_{change.ChannelId}_{change.TokenId}: ")
                     .ConfigureAwait(false);
-                await keysets.WriteLineAsync(Convert.ToHexString(change.Client.Iv.ToArray()))
+                await keysets.WriteLineAsync(Convert.ToHexString([.. change.Client.Iv]))
                     .ConfigureAwait(false);
                 await keysets.WriteAsync($"client_key_{change.ChannelId}_{change.TokenId}: ")
                     .ConfigureAwait(false);
-                await keysets.WriteLineAsync(Convert.ToHexString(change.Client.Key.ToArray()))
+                await keysets.WriteLineAsync(Convert.ToHexString([.. change.Client.Key]))
                     .ConfigureAwait(false);
                 await keysets.WriteAsync($"client_siglen_{change.ChannelId}_{change.TokenId}: ")
                     .ConfigureAwait(false);
@@ -174,11 +173,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 await keysets.WriteAsync($"server_iv_{change.ChannelId}_{change.TokenId}: ")
                     .ConfigureAwait(false);
-                await keysets.WriteLineAsync(Convert.ToHexString(change.Server.Iv.ToArray()))
+                await keysets.WriteLineAsync(Convert.ToHexString([.. change.Server.Iv]))
                     .ConfigureAwait(false);
                 await keysets.WriteAsync($"server_key_{change.ChannelId}_{change.TokenId}: ")
                     .ConfigureAwait(false);
-                await keysets.WriteLineAsync(Convert.ToHexString(change.Server.Key.ToArray()))
+                await keysets.WriteLineAsync(Convert.ToHexString([.. change.Server.Key]))
                     .ConfigureAwait(false);
                 await keysets.WriteAsync($"server_siglen_{change.ChannelId}_{change.TokenId}: ")
                     .ConfigureAwait(false);

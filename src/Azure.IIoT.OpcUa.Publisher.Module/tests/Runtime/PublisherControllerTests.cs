@@ -25,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
         public async Task GetApiKeyAndCertificateTestAsync()
         {
             const string name = nameof(GetApiKeyAndCertificateTestAsync);
-            StartPublisher(name, "./Resources/empty_pn.json", arguments: new string[] { "--mm=PubSub" });
+            StartPublisher(name, "./Resources/empty_pn.json", arguments: ["--mm=PubSub"]);
             try
             {
                 var apiKey = await PublisherApi.GetApiKeyAsync();

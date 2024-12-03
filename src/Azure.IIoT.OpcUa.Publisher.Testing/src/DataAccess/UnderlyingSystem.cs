@@ -44,7 +44,7 @@ namespace DataAccess
         /// </summary>
         public UnderlyingSystem()
         {
-            _blocks = new Dictionary<string, UnderlyingSystemBlock>();
+            _blocks = [];
         }
 
         /// <summary>
@@ -87,7 +87,7 @@ namespace DataAccess
         /// The same block can have many paths.
         /// Each preceding element is a segment.
         /// </remarks>
-        private readonly string[] s_BlockPathDatabase = {
+        private readonly string[] s_BlockPathDatabase = [
             "Factory/East/Boiler1/Pipe1001",
             "Factory/East/Boiler1/Drum1002",
             "Factory/East/Boiler1/Pipe1002",
@@ -118,7 +118,7 @@ namespace DataAccess
             "TestData/Static/FC2001",
             "TestData/Static/LC2001",
             "TestData/Static/CC2001"
-        };
+        ];
 
         /// <summary>
         /// A database which stores all known blocks.
@@ -133,7 +133,7 @@ namespace DataAccess
         /// The type of block is the second element.
         /// </para>
         /// </remarks>
-        private readonly string[] s_BlockDatabase = {
+        private readonly string[] s_BlockDatabase = [
             "Pipe1001/FlowSensor",
             "Drum1002/LevelSensor",
             "Pipe1002/FlowSensor",
@@ -146,7 +146,7 @@ namespace DataAccess
             "FC2001/Controller",
             "LC2001/Controller",
             "CC2001/CustomController"
-        };
+        ];
 
         /// <summary>
         /// Returns the segment
@@ -620,7 +620,7 @@ namespace DataAccess
             }
         }
 
-        private readonly object _lock = new();
+        private readonly Lock _lock = new();
         private readonly Dictionary<string, UnderlyingSystemBlock> _blocks;
         private Timer _simulationTimer;
         private long _simulationCounter;

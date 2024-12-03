@@ -16,7 +16,6 @@ using Microsoft.Azure.Devices.Shared;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.Win32;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
@@ -155,9 +154,7 @@ internal sealed class App : IDisposable
     }
 
     [Verb("sidecar", HelpText = "Run netcap as capture host.")]
-    public sealed class SidecarOptions
-    {
-    }
+    public sealed class SidecarOptions;
 
     [Verb("install", HelpText = "Install netcap into a publisher.")]
     public sealed class InstallOptions
@@ -495,7 +492,7 @@ internal sealed class App : IDisposable
             var twin = await moduleClient.GetTwinAsync(ct).ConfigureAwait(false);
 
             var deviceId = twin.DeviceId ?? Environment.GetEnvironmentVariable("IOTEDGE_DEVICEID");
-            var moduleId = twin.ModuleId ?? Environment.GetEnvironmentVariable("IOTEDGE_MODULEID");
+            // var moduleId = twin.ModuleId ?? Environment.GetEnvironmentVariable("IOTEDGE_MODULEID");
             _run.PublisherModuleId = twin.GetProperty(nameof(_run.PublisherModuleId),
                 _run.PublisherModuleId);
             _run.PublisherDeviceId = deviceId; // Override as we must be in the same device
@@ -561,7 +558,7 @@ internal sealed class App : IDisposable
             var apiKey = twin.GetProperty("__apikey__", desired: false);
             if (cert != null && apiKey != null)
             {
-                _sidecarCertificate = new X509Certificate2(
+                _sidecarCertificate = X509CertificateLoader.LoadPkcs12(
                     Convert.FromBase64String(cert.Trim()), apiKey);
             }
             else
@@ -761,10 +758,8 @@ internal sealed class App : IDisposable
             return;
         }
 
-        var cert = Convert.FromBase64String(
-            _run.HostCaptureCertificate.Trim());
-        _sidecarCertificate = new X509Certificate2(
-            cert!, _run.HostCaptureApiKey);
+        var cert = Convert.FromBase64String(_run.HostCaptureCertificate.Trim());
+        _sidecarCertificate = X509CertificateLoader.LoadPkcs12(cert, _run.HostCaptureApiKey);
 
         _sidecarHttpClient?.Dispose();
 #pragma warning disable CA2000 // Dispose objects before losing scope
@@ -781,9 +776,11 @@ internal sealed class App : IDisposable
                 }
                 return true;
             }
-        });
+        })
+        {
+            BaseAddress = new Uri(_run.HostCaptureEndpointUrl)
+        };
 #pragma warning restore CA2000 // Dispose objects before losing scope
-        _sidecarHttpClient.BaseAddress = new Uri(_run.HostCaptureEndpointUrl);
         _sidecarHttpClient.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("ApiKey", _run?.HostCaptureApiKey);
     }
@@ -809,7 +806,7 @@ internal sealed class App : IDisposable
                 {
                     var cert = Convert.FromBase64String(
                         _run.PublisherRestCertificate.Trim());
-                    _publisherCertificate = new X509Certificate2(
+                    _publisherCertificate = X509CertificateLoader.LoadPkcs12(
                         cert!, _run.PublisherRestApiKey);
                 }
             }
@@ -829,10 +826,12 @@ internal sealed class App : IDisposable
                     }
                     return true;
                 }
-            });
+            })
+            {
 #pragma warning restore CA2000 // Dispose objects before losing scope
-            _publisherHttpClient.BaseAddress =
-                await GetOpcPublisherRestEndpoint().ConfigureAwait(false);
+                BaseAddress =
+                await GetOpcPublisherRestEndpoint().ConfigureAwait(false)
+            };
             _publisherHttpClient.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("ApiKey", _run?.PublisherRestApiKey);
         }
@@ -856,7 +855,9 @@ internal sealed class App : IDisposable
                 {
                     var result = await Dns.GetHostEntryAsync(host).ConfigureAwait(false);
                     if (result.AddressList.Length == 0)
+                    {
                         host = null;
+                    }
                 }
                 catch { host = null; }
             }
@@ -892,7 +893,7 @@ internal sealed class App : IDisposable
     /// Create module client
     /// </summary>
     /// <returns></returns>
-    private async static ValueTask<ModuleClient> CreateModuleClientAsync()
+    private static async ValueTask<ModuleClient> CreateModuleClientAsync()
     {
         var edgeHubConnectionString = Environment.GetEnvironmentVariable("EdgeHubConnectionString");
         if (!string.IsNullOrWhiteSpace(edgeHubConnectionString))
@@ -913,26 +914,20 @@ internal sealed class App : IDisposable
     /// <summary>
     /// Api key authentication handler
     /// </summary>
-    internal sealed class ApiKeyHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+    /// <remarks>
+    /// Create authentication handler
+    /// </remarks>
+    /// <param name="options"></param>
+    /// <param name="logger"></param>
+    /// <param name="encoder"></param>
+    /// <param name="context"></param>
+    /// <param name="apiKeyProvider"></param>
+    internal sealed class ApiKeyHandler(IOptionsMonitor<AuthenticationSchemeOptions> options,
+        ILoggerFactory logger, UrlEncoder encoder, IHttpContextAccessor context,
+            App.ApiKeyProvider apiKeyProvider) :
+        AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
     {
         public const string SchemeName = "ApiKey";
-
-        /// <summary>
-        /// Create authentication handler
-        /// </summary>
-        /// <param name="options"></param>
-        /// <param name="logger"></param>
-        /// <param name="encoder"></param>
-        /// <param name="context"></param>
-        /// <param name="apiKeyProvider"></param>
-        public ApiKeyHandler(IOptionsMonitor<AuthenticationSchemeOptions> options,
-            ILoggerFactory logger, UrlEncoder encoder, IHttpContextAccessor context,
-            ApiKeyProvider apiKeyProvider) :
-            base(options, logger, encoder)
-        {
-            _context = context;
-            _apiKeyProvider = apiKeyProvider;
-        }
 
         /// <inheritdoc/>
         protected override Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -979,8 +974,8 @@ internal sealed class App : IDisposable
             }
         }
 
-        private readonly IHttpContextAccessor _context;
-        private readonly ApiKeyProvider _apiKeyProvider;
+        private readonly IHttpContextAccessor _context = context;
+        private readonly ApiKeyProvider _apiKeyProvider = apiKeyProvider;
     }
 
     private static TokenCredential GetAzureCredentials(string? tenantId,

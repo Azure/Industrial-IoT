@@ -17,7 +17,7 @@ namespace Opc.Ua.Client
     /// The client side interface with support for batching according
     /// to operation limits.
     /// </summary>
-    public abstract class SessionServices : Opc.Ua.Client.Obsolete.SessionClient,
+    public abstract class SessionServices : SessionClient,
         ISessionServiceSets, ISubscriptionServiceSets
     {
         /// <summary>
@@ -196,8 +196,8 @@ namespace Opc.Ua.Client
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
 
-                ClientBase.ValidateResponse(batchResults, nodesToBrowseBatch);
-                ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, nodesToBrowseBatch);
+                Ua.ClientBase.ValidateResponse(batchResults, nodesToBrowseBatch);
+                Ua.ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, nodesToBrowseBatch);
 
                 AddResponses<BrowseResult, BrowseResultCollection>(
                     ref results, ref diagnosticInfos, ref stringTable, batchResults,
@@ -238,8 +238,8 @@ namespace Opc.Ua.Client
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
 
-                ClientBase.ValidateResponse(batchResults, continuationPointsBatch);
-                ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, continuationPointsBatch);
+                Ua.ClientBase.ValidateResponse(batchResults, continuationPointsBatch);
+                Ua.ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, continuationPointsBatch);
 
                 AddResponses<BrowseResult, BrowseResultCollection>(
                     ref results, ref diagnosticInfos, ref stringTable, batchResults,
@@ -279,8 +279,8 @@ namespace Opc.Ua.Client
 
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
-                ClientBase.ValidateResponse(batchResults, batchBrowsePaths);
-                ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, batchBrowsePaths);
+                Ua.ClientBase.ValidateResponse(batchResults, batchBrowsePaths);
+                Ua.ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, batchBrowsePaths);
 
                 AddResponses<BrowsePathResult, BrowsePathResultCollection>(
                     ref results, ref diagnosticInfos, ref stringTable, batchResults,
@@ -319,7 +319,7 @@ namespace Opc.Ua.Client
                     batchNodesToRegister, ct).ConfigureAwait(false);
 
                 var batchRegisteredNodeIds = response.RegisteredNodeIds;
-                ClientBase.ValidateResponse(batchRegisteredNodeIds, batchNodesToRegister);
+                Ua.ClientBase.ValidateResponse(batchRegisteredNodeIds, batchNodesToRegister);
                 registeredNodeIds.AddRange(batchRegisteredNodeIds);
             }
 
@@ -383,8 +383,8 @@ namespace Opc.Ua.Client
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
 
-                ClientBase.ValidateResponse(batchResults, batchAttributesToRead);
-                ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, batchAttributesToRead);
+                Ua.ClientBase.ValidateResponse(batchResults, batchAttributesToRead);
+                Ua.ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, batchAttributesToRead);
 
                 AddResponses<DataValue, DataValueCollection>(
                     ref results, ref diagnosticInfos, ref stringTable, batchResults,
@@ -436,8 +436,8 @@ namespace Opc.Ua.Client
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
 
-                ClientBase.ValidateResponse(batchResults, batchNodesToRead);
-                ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, batchNodesToRead);
+                Ua.ClientBase.ValidateResponse(batchResults, batchNodesToRead);
+                Ua.ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, batchNodesToRead);
 
                 AddResponses<HistoryReadResult, HistoryReadResultCollection>(
                     ref results, ref diagnosticInfos, ref stringTable,
@@ -478,8 +478,8 @@ namespace Opc.Ua.Client
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
 
-                ClientBase.ValidateResponse(batchResults, batchNodesToWrite);
-                ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, batchNodesToWrite);
+                Ua.ClientBase.ValidateResponse(batchResults, batchNodesToWrite);
+                Ua.ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, batchNodesToWrite);
 
                 AddResponses<StatusCode, StatusCodeCollection>(
                     ref results, ref diagnosticInfos, ref stringTable, batchResults,
@@ -529,8 +529,8 @@ namespace Opc.Ua.Client
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
 
-                ClientBase.ValidateResponse(batchResults, batchHistoryUpdateDetails);
-                ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, batchHistoryUpdateDetails);
+                Ua.ClientBase.ValidateResponse(batchResults, batchHistoryUpdateDetails);
+                Ua.ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, batchHistoryUpdateDetails);
 
                 AddResponses<HistoryUpdateResult, HistoryUpdateResultCollection>(
                     ref results, ref diagnosticInfos, ref stringTable, batchResults,
@@ -571,8 +571,8 @@ namespace Opc.Ua.Client
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
 
-                ClientBase.ValidateResponse(batchResults, batchMethodsToCall);
-                ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, batchMethodsToCall);
+                Ua.ClientBase.ValidateResponse(batchResults, batchMethodsToCall);
+                Ua.ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, batchMethodsToCall);
 
                 AddResponses<CallMethodResult, CallMethodResultCollection>(
                     ref results, ref diagnosticInfos, ref stringTable, batchResults,
@@ -614,8 +614,8 @@ namespace Opc.Ua.Client
 
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
-                ClientBase.ValidateResponse(batchResults, batchItemsToCreate);
-                ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, batchItemsToCreate);
+                Ua.ClientBase.ValidateResponse(batchResults, batchItemsToCreate);
+                Ua.ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, batchItemsToCreate);
 
                 AddResponses<MonitoredItemCreateResult, MonitoredItemCreateResultCollection>(
                     ref results, ref diagnosticInfos, ref stringTable, batchResults,
@@ -657,8 +657,8 @@ namespace Opc.Ua.Client
 
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
-                ClientBase.ValidateResponse(batchResults, batchItemsToModify);
-                ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, batchItemsToModify);
+                Ua.ClientBase.ValidateResponse(batchResults, batchItemsToModify);
+                Ua.ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, batchItemsToModify);
 
                 AddResponses<MonitoredItemModifyResult, MonitoredItemModifyResultCollection>(
                     ref results, ref diagnosticInfos, ref stringTable, batchResults,
@@ -700,8 +700,8 @@ namespace Opc.Ua.Client
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
 
-                ClientBase.ValidateResponse(batchResults, batchMonitoredItemIds);
-                ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, batchMonitoredItemIds);
+                Ua.ClientBase.ValidateResponse(batchResults, batchMonitoredItemIds);
+                Ua.ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, batchMonitoredItemIds);
 
                 AddResponses<StatusCode, StatusCodeCollection>(
                     ref results, ref diagnosticInfos, ref stringTable, batchResults,
@@ -743,7 +743,7 @@ namespace Opc.Ua.Client
                 if (operationLimit == 0)
                 {
                     batchLinksToRemove = linksToRemove;
-                    linksToRemove = new UInt32Collection();
+                    linksToRemove = [];
                 }
                 else if (batchLinksToAdd.Count < operationLimit)
                 {
@@ -754,7 +754,7 @@ namespace Opc.Ua.Client
                 }
                 else
                 {
-                    batchLinksToRemove = new UInt32Collection();
+                    batchLinksToRemove = [];
                 }
 
                 requestHeader.RequestHandle = 0;
@@ -766,10 +766,10 @@ namespace Opc.Ua.Client
                 var batchRemoveResults = response.RemoveResults;
                 var batchRemoveDiagnosticInfos = response.RemoveDiagnosticInfos;
 
-                ClientBase.ValidateResponse(batchAddResults, batchLinksToAdd);
-                ClientBase.ValidateDiagnosticInfos(batchAddDiagnosticInfos, batchLinksToAdd);
-                ClientBase.ValidateResponse(batchRemoveResults, batchLinksToRemove);
-                ClientBase.ValidateDiagnosticInfos(batchRemoveDiagnosticInfos, batchLinksToRemove);
+                Ua.ClientBase.ValidateResponse(batchAddResults, batchLinksToAdd);
+                Ua.ClientBase.ValidateDiagnosticInfos(batchAddDiagnosticInfos, batchLinksToAdd);
+                Ua.ClientBase.ValidateResponse(batchRemoveResults, batchLinksToRemove);
+                Ua.ClientBase.ValidateDiagnosticInfos(batchRemoveDiagnosticInfos, batchLinksToRemove);
 
                 AddResponses<StatusCode, StatusCodeCollection>(
                     ref addResults, ref addDiagnosticInfos, ref stringTable,
@@ -798,10 +798,10 @@ namespace Opc.Ua.Client
                     var batchRemoveResults = response.RemoveResults;
                     var batchRemoveDiagnosticInfos = response.RemoveDiagnosticInfos;
 
-                    ClientBase.ValidateResponse(batchAddResults, batchLinksToAdd);
-                    ClientBase.ValidateDiagnosticInfos(batchAddDiagnosticInfos, batchLinksToAdd);
-                    ClientBase.ValidateResponse(batchRemoveResults, batchLinksToRemove);
-                    ClientBase.ValidateDiagnosticInfos(batchRemoveDiagnosticInfos, batchLinksToRemove);
+                    Ua.ClientBase.ValidateResponse(batchAddResults, batchLinksToAdd);
+                    Ua.ClientBase.ValidateDiagnosticInfos(batchAddDiagnosticInfos, batchLinksToAdd);
+                    Ua.ClientBase.ValidateResponse(batchRemoveResults, batchLinksToRemove);
+                    Ua.ClientBase.ValidateDiagnosticInfos(batchRemoveDiagnosticInfos, batchLinksToRemove);
 
                     AddResponses<StatusCode, StatusCodeCollection>(
                         ref addResults, ref addDiagnosticInfos, ref stringTable,
@@ -851,8 +851,8 @@ namespace Opc.Ua.Client
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
 
-                ClientBase.ValidateResponse(batchResults, batchMonitoredItemIds);
-                ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, batchMonitoredItemIds);
+                Ua.ClientBase.ValidateResponse(batchResults, batchMonitoredItemIds);
+                Ua.ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, batchMonitoredItemIds);
 
                 AddResponses<StatusCode, StatusCodeCollection>(
                     ref results, ref diagnosticInfos, ref stringTable, batchResults,
@@ -891,8 +891,8 @@ namespace Opc.Ua.Client
                     ct).ConfigureAwait(false);
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
-                ClientBase.ValidateResponse(batchResults, batchNodesToAdd);
-                ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, batchNodesToAdd);
+                Ua.ClientBase.ValidateResponse(batchResults, batchNodesToAdd);
+                Ua.ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, batchNodesToAdd);
 
                 AddResponses<AddNodesResult, AddNodesResultCollection>(ref results,
                     ref diagnosticInfos, ref stringTable, batchResults, batchDiagnosticInfos,
@@ -933,8 +933,8 @@ namespace Opc.Ua.Client
 
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
-                ClientBase.ValidateResponse(batchResults, batchReferencesToAdd);
-                ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, batchReferencesToAdd);
+                Ua.ClientBase.ValidateResponse(batchResults, batchReferencesToAdd);
+                Ua.ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, batchReferencesToAdd);
 
                 AddResponses<StatusCode, StatusCodeCollection>(ref results, ref diagnosticInfos,
                     ref stringTable, batchResults, batchDiagnosticInfos,
@@ -974,8 +974,8 @@ namespace Opc.Ua.Client
 
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
-                ClientBase.ValidateResponse(batchResults, batchNodesToDelete);
-                ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, batchNodesToDelete);
+                Ua.ClientBase.ValidateResponse(batchResults, batchNodesToDelete);
+                Ua.ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, batchNodesToDelete);
 
                 AddResponses<StatusCode, StatusCodeCollection>(ref results, ref diagnosticInfos,
                     ref stringTable, batchResults, batchDiagnosticInfos,
@@ -1017,8 +1017,8 @@ namespace Opc.Ua.Client
 
                 var batchResults = response.Results;
                 var batchDiagnosticInfos = response.DiagnosticInfos;
-                ClientBase.ValidateResponse(batchResults, batchReferencesToDelete);
-                ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, batchReferencesToDelete);
+                Ua.ClientBase.ValidateResponse(batchResults, batchReferencesToDelete);
+                Ua.ClientBase.ValidateDiagnosticInfos(batchDiagnosticInfos, batchReferencesToDelete);
 
                 AddResponses<StatusCode, StatusCodeCollection>(ref results, ref diagnosticInfos,
                     ref stringTable, batchResults, batchDiagnosticInfos,
@@ -1059,11 +1059,11 @@ namespace Opc.Ua.Client
             {
                 return;
             }
-            context.AddEvent(new ActivityEvent("Completed", tags: new ActivityTagsCollection
-            {
+            context.AddEvent(new ActivityEvent("Completed", tags:
+            [
                 System.Collections.Generic.KeyValuePair.Create("RequestHandle", (object?)requestHandle),
                 System.Collections.Generic.KeyValuePair.Create("ServiceResult", (object?)result)
-            }));
+            ]));
         }
 
         /// <inheritdoc/>
@@ -1095,13 +1095,13 @@ namespace Opc.Ua.Client
                 return;
             }
 
-            context.AddEvent(new ActivityEvent("Started", tags: new ActivityTagsCollection
-            {
+            context.AddEvent(new ActivityEvent("Started", tags:
+            [
                 System.Collections.Generic.KeyValuePair.Create("RequestHandle",
                     (object?)request.RequestHeader.RequestHandle),
                 System.Collections.Generic.KeyValuePair.Create("AuditEntryId",
                     (object?)request.RequestHeader.AuditEntryId)
-            }));
+            ]));
             var traceData = new AdditionalParametersType();
             // Determine the trace flag based on the 'Recorded' status.
             var traceFlags = (context.ActivityTraceFlags & ActivityTraceFlags.Recorded) != 0
@@ -1158,7 +1158,7 @@ namespace Opc.Ua.Client
             Debug.Assert(count > operationLimit);
             results = new C() { Capacity = count };
             diagnosticInfos = new DiagnosticInfoCollection(count);
-            stringTable = new StringCollection();
+            stringTable = [];
         }
 
         /// <summary>

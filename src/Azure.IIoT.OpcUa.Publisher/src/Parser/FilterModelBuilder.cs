@@ -60,7 +60,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser
                     n => n.GetChildTokenText(0, _syntaxTree), // prefix
                     n => ExpandNamespaceUri(
                          n.GetChildTokenText(1, _syntaxTree))) // nsuri
-                        ?? new Dictionary<string, string>();
+                        ?? [];
 
             var selList = selectStmt
                 .GetChild("selList", ref index);
@@ -956,7 +956,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser
         }
 
         private record class ContentFilterElement2Model(int Id, ContentFilterElementModel Element);
-        private readonly List<ContentFilterElement2Model> _contentFilter = new();
+        private readonly List<ContentFilterElement2Model> _contentFilter = [];
         private readonly HashSet<SimpleAttributeOperandModel> _selectClauses =
             new(new SimpleAttributeOperandComperer());
         private readonly IJsonSerializer _serializer;
@@ -972,9 +972,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser
         private readonly Dictionary<string,
             string> _prefixToNamespaceUri;
         private readonly Dictionary<string,
-            SimpleAttributeOperandModel> _aliasForId = new();
+            SimpleAttributeOperandModel> _aliasForId = [];
         private readonly Dictionary<string,
-            Dictionary<ImmutableRelativePath, IdentifierMetaData>> _validIdsForType = new();
+            Dictionary<ImmutableRelativePath, IdentifierMetaData>> _validIdsForType = [];
         private readonly IReadOnlyList<(string type, string alias)> _typeToAliasOrdered;
     }
 }

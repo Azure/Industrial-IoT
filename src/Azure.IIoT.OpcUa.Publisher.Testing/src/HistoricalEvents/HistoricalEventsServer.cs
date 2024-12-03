@@ -41,9 +41,9 @@ namespace HistoricalEvents
         {
             get
             {
-                return new StringCollection {
+                return [
                     Namespaces.HistoricalEvents
-                };
+                ];
             }
         }
 

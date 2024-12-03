@@ -143,7 +143,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 // Read probetype
                 DiscoveryType = binaryDecoder.ReadByte(null);
-                DataSetWriterIds = binaryDecoder.ReadUInt16Array(null).ToArray();
+                DataSetWriterIds = [.. binaryDecoder.ReadUInt16Array(null)];
                 IsProbe = true;
                 return true;
             }
@@ -169,7 +169,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 // Write probe type
                 encoder.WriteByte(null, DiscoveryType);
-                encoder.WriteUInt16Array(null, DataSetWriterIds ?? Array.Empty<ushort>());
+                encoder.WriteUInt16Array(null, DataSetWriterIds ?? []);
                 ExtendedFlags2 &= ~ExtendedFlags2EncodingMask.DiscoveryAnnouncement;
                 ExtendedFlags2 |= ExtendedFlags2EncodingMask.DiscoveryProbe;
             }
@@ -228,7 +228,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             // consumed. To get here the bug in BinaryEncoder that it
             // disposes the underlying stream even if leaveOpen: true
             // is set must be fixed.
-            return new[] { new Message(stream.ToArray(), DataSetWriterId) };
+            return [new Message(stream.ToArray(), DataSetWriterId)];
         }
 
         /// <inheritdoc/>

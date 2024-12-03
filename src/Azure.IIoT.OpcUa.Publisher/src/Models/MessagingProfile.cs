@@ -482,6 +482,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 NetworkMessageContentFlags.DataSetMessageHeader;
         }
 
-        private static readonly Dictionary<(MessagingMode, MessageEncoding), MessagingProfile> kProfiles = new();
+        private static readonly Dictionary<(MessagingMode, MessageEncoding), MessagingProfile> kProfiles = [];
     }
 }

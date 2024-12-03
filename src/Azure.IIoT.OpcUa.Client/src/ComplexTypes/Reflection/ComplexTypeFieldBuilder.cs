@@ -74,7 +74,7 @@ namespace Opc.Ua.Client.ComplexTypes.Reflection
                 System.Reflection.MethodAttributes.Virtual;
 
             var setBuilder = _structureBuilder.DefineMethod("set_" + field.Name,
-                methodAttributes, null, new[] { fieldType });
+                methodAttributes, null, [fieldType]);
             var setIl = setBuilder.GetILGenerator();
             setIl.Emit(OpCodes.Ldarg_0);
             setIl.Emit(OpCodes.Ldarg_1);

@@ -53,7 +53,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanSendDataItemToIoTHubTestAsync), "./Resources/DataItems.json",
-                messageType: "ua-data", arguments: new string[] { "--mm=PubSub", "--dm=false" });
+                messageType: "ua-data", arguments: ["--mm=PubSub", "--dm=false"]);
 
             // Assert
             var message = Assert.Single(messages).Message;
@@ -70,7 +70,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Arrange
             // Act
             var messages = await ProcessMessagesAsync(nameof(CanSendModelChangeEventsToIoTHubTestAsync), "./Resources/ModelChanges.json",
-                TimeSpan.FromMinutes(2), 5, messageType: "ua-data", arguments: new[] { "--mm=PubSub", "--dm=false" });
+                TimeSpan.FromMinutes(2), 5, messageType: "ua-data", arguments: ["--mm=PubSub", "--dm=false"]);
 
             // Assert
             Assert.NotEmpty(messages);
@@ -107,7 +107,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanSendDataItemButNotMetaDataWhenMetaDataIsDisabledTestAsync),
                 "./Resources/DataItems.json",
-                arguments: new string[] { "-c", "--dm", "--mm=DataSetMessages" });
+                arguments: ["-c", "--dm", "--mm=DataSetMessages"]);
 
             // Assert
             var message = Assert.Single(messages).Message;
@@ -126,7 +126,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanSendDataItemButNotMetaDataWhenComplexTypeSystemIsDisabledTestAsync),
                 "./Resources/DataItems.json",
-                arguments: new string[] { "-c", "--dct", "--mm=DataSetMessages" });
+                arguments: ["-c", "--dct", "--mm=DataSetMessages"]);
 
             // Assert
             var message = Assert.Single(messages).Message;
@@ -144,7 +144,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanSendDataItemAsDataSetMessagesToIoTHubWithCompliantEncodingTestAsync), "./Resources/DataItems.json",
-                messageType: "ua-deltaframe", arguments: new string[] { "-c", "--mm=DataSetMessages" });
+                messageType: "ua-deltaframe", arguments: ["-c", "--mm=DataSetMessages"]);
 
             // Assert
             var message = Assert.Single(messages).Message;
@@ -162,7 +162,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanSendDataItemAsRawDataSetsToIoTHubWithCompliantEncodingTestAsync), "./Resources/DataItems.json",
-                messageType: "ua-deltaframe", arguments: new string[] { "-c", "--dm=False", "--mm=RawDataSets" });
+                messageType: "ua-deltaframe", arguments: ["-c", "--dm=False", "--mm=RawDataSets"]);
 
             // Assert
             var output = Assert.Single(messages).Message;
@@ -181,7 +181,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             var (metadata, result) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanEncodeWithoutReversibleEncodingTestAsync),
                 "./Resources/SimpleEvents.json", messageType: "ua-data",
-                arguments: new[] { "--mm=PubSub", "--me=Json", "--dm=false" }
+                arguments: ["--mm=PubSub", "--me=Json", "--dm=false"]
             );
 
             Assert.Single(result);
@@ -220,7 +220,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             var (metadata, result) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanEncodeWithReversibleEncodingTestAsync),
                 "./Resources/SimpleEvents.json", TimeSpan.FromMinutes(2), 4, messageType: "ua-data",
-                arguments: new[] { "--mm=PubSub", "--me=JsonReversible", "--dm=false" }
+                arguments: ["--mm=PubSub", "--me=JsonReversible", "--dm=false"]
             );
 
             var messages = result
@@ -265,7 +265,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             var (metadata, result) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanEncodeEventWithCompliantEncodingTestAsync),
                 "./Resources/SimpleEvents.json", messageType: "ua-data",
-                arguments: new[] { "-c", "--mm=PubSub", "--me=Json" });
+                arguments: ["-c", "--mm=PubSub", "--me=Json"]);
 
             Assert.Single(result);
 
@@ -303,7 +303,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             var (metadata, result) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanEncodeWithReversibleEncodingAndWithCompliantEncodingTestAsync),
                 "./Resources/SimpleEvents.json", TimeSpan.FromMinutes(2), 4, messageType: "ua-data",
-                arguments: new[] { "-c", "--mm=PubSub", "--me=JsonReversible" });
+                arguments: ["-c", "--mm=PubSub", "--me=JsonReversible"]);
 
             var messages = result
                 .SelectMany(x => x.Message.GetProperty("Messages").EnumerateArray())
@@ -348,7 +348,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             var (metadata, result) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanEncode2EventsWithCompliantEncodingTestAsync),
                 "./Resources/SimpleEvents2.json", GetBothEvents, messageType: "ua-data",
-                arguments: new[] { "-c", "--mm=PubSub", "--me=Json" });
+                arguments: ["-c", "--mm=PubSub", "--me=Json"]);
 
             Assert.Single(result);
 
@@ -404,7 +404,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanSendPendingConditionsToIoTHubTestAsync), "./Resources/PendingAlarms.json", GetAlarmCondition,
-                messageType: "ua-data", arguments: new string[] { "--mm=PubSub", "--dm=False" });
+                messageType: "ua-data", arguments: ["--mm=PubSub", "--dm=False"]);
 
             // Assert
             Assert.NotEmpty(messages);
@@ -424,7 +424,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Act
             var (metadata, result) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanSendExtensionFieldsToIoTHubTestAsync), "./Resources/ExtensionFields.json",
-                messageType: "ua-data", arguments: new string[] { "--mm=FullNetworkMessages", "--dm=false" });
+                messageType: "ua-data", arguments: ["--mm=FullNetworkMessages", "--dm=false"]);
 
             Assert.Single(result);
 
@@ -462,7 +462,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanSendDataItemToIoTHubTestAsync), "./Resources/KeyFrames.json",
-                messageType: "ua-data", arguments: new string[] { "--mm=FullNetworkMessages", "--dm=false" });
+                messageType: "ua-data", arguments: ["--mm=FullNetworkMessages", "--dm=false"]);
 
             // Assert
             var message = Assert.Single(messages).Message;
@@ -496,7 +496,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanSendDataItemToIoTHubTestAsync), "./Resources/DataItems.json", messageType: "ua-data",
-                arguments: new string[] { "--mm=PubSub", "--fm=true", "--strict" });
+                arguments: ["--mm=PubSub", "--fm=true", "--strict"]);
 
             // Assert
             var message = Assert.Single(messages).Message;
@@ -529,7 +529,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanSendKeyFramesWithExtensionFieldsToIoTHubTestJsonReversibleAsync), "./Resources/KeyFrames.json", messageType: "ua-data",
             // NOTE: while we --fm and fullnetworkmessage, the keyframes.json overrides this back to PubSub
-                arguments: new string[] { "--mm=FullNetworkMessages", "--me=JsonReversible", "--fm=true", "--strict" });
+                arguments: ["--mm=FullNetworkMessages", "--me=JsonReversible", "--fm=true", "--strict"]);
 
             // Assert
             var message = Assert.Single(messages).Message;
@@ -569,7 +569,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
                 nameof(CyclicReadWithAgeTestAsync), "./Resources/CyclicRead.json",
                 TimeSpan.FromMinutes(1), 10, messageType: "ua-data",
-                arguments: new string[] { "--mm=PubSub", "--dm=false" });
+                arguments: ["--mm=PubSub", "--dm=false"]);
 
             // Assert
             Assert.Equal(10, messages.Count);
@@ -588,7 +588,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
                 nameof(PeriodicHeartbeatTestAsync), "./Resources/Heartbeat2.json",
                 TimeSpan.FromMinutes(1), 10, messageType: "ua-data",
-                arguments: new string[] { "--mm=PubSub", "-c" });
+                arguments: ["--mm=PubSub", "-c"]);
 
             // Assert
             Assert.NotNull(metadata);
@@ -629,7 +629,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Act
             var (metadata, messages) = await ProcessMessagesAndMetadataAsync(
                 nameof(CanSendKeyFramesToIoTHubTestAsync), "./Resources/KeyFrames.json", TimeSpan.FromMinutes(2), 11,
-                messageType: "ua-data", arguments: new[] { "--dm=false", "--xmi=" + maxMonitoredItems });
+                messageType: "ua-data", arguments: ["--dm=false", "--xmi=" + maxMonitoredItems]);
 
             // Assert
             var allDataSetMessages = messages.Select(m => m.Message.GetProperty("Messages")).SelectMany(m => m.EnumerateArray()).ToList();

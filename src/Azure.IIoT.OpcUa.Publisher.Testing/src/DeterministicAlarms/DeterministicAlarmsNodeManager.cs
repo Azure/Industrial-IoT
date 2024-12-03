@@ -43,12 +43,12 @@ namespace DeterministicAlarms
     public class DeterministicAlarmsNodeManager : CustomNodeManager2
     {
         private readonly SimBackendService _system;
-        private readonly List<SimFolderState> _folders = new();
+        private readonly List<SimFolderState> _folders = [];
         private uint _nodeIdCounter;
         private List<NodeState> _rootNotifiers;
         private readonly IServerInternal _server;
         private readonly ServerSystemContext _defaultSystemContext;
-        private readonly Dictionary<string, SimSourceNodeState> _sourceNodes = new();
+        private readonly Dictionary<string, SimSourceNodeState> _sourceNodes = [];
         private readonly AlarmsConfiguration _scriptconfiguration;
         private readonly TimeService _timeService;
         private Dictionary<string, string> _scriptAlarmToSources;
@@ -99,7 +99,7 @@ namespace DeterministicAlarms
         /// <exception cref="ScriptException"></exception>
         private void VerifyScriptConfiguration(AlarmsConfiguration scriptConfiguration)
         {
-            _scriptAlarmToSources = new Dictionary<string, string>();
+            _scriptAlarmToSources = [];
             foreach (var folder in scriptConfiguration.Folders)
             {
                 foreach (var source in folder.Sources)
@@ -524,7 +524,7 @@ namespace DeterministicAlarms
             {
                 if (!externalReferences.TryGetValue(ObjectIds.Server, out var references))
                 {
-                    externalReferences[ObjectIds.Server] = references = new List<IReference>();
+                    externalReferences[ObjectIds.Server] = references = [];
                 }
 
                 // Folders Nodes
@@ -626,7 +626,7 @@ namespace DeterministicAlarms
         /// </remarks>
         protected override void AddRootNotifier(NodeState notifier)
         {
-            _rootNotifiers ??= new List<NodeState>();
+            _rootNotifiers ??= [];
 
             for (var ii = 0; ii < _rootNotifiers.Count; ii++)
             {
@@ -692,7 +692,7 @@ namespace DeterministicAlarms
         /// <param name="context"></param>
         protected override NodeStateCollection LoadPredefinedNodes(ISystemContext context)
         {
-            return new NodeStateCollection();
+            return [];
         }
     }
 }

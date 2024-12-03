@@ -50,7 +50,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
             string browseName)
         {
             var browsePath = parentPath != null ?
-                new List<string>(parentPath) : new List<string>();
+                new List<string>(parentPath) : [];
             browsePath.Add(browseName);
             return new ImmutableRelativePath(browsePath);
         }

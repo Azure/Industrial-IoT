@@ -114,7 +114,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
             }
             if (fields.Count == 0)
             {
-                return Enumerable.Empty<Schema>();
+                return [];
             }
             // Type name of the message record
             name ??= dataSet.DataSetMetaData.Name;

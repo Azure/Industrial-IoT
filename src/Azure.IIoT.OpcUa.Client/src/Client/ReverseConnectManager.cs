@@ -68,12 +68,12 @@ namespace Opc.Ua.Client
         /// Initializes the object with default values.
         /// </summary>
         /// <param name="loggerFactory"></param>
-        public ReverseConnectManager(ILoggerFactory loggerFactory)
+        public ReverseConnectManager(ILoggerFactory loggerFactory) // TODO: Make internal
         {
             _logger = loggerFactory.CreateLogger<ReverseConnectManager>();
             _state = ReverseConnectManagerState.New;
-            _registrations = new List<Registration>();
-            _endpointUrls = new Dictionary<Uri, ReverseConnectInfo>();
+            _registrations = [];
+            _endpointUrls = [];
             _configuration = new ReverseConnectClientConfiguration();
             _cts = new CancellationTokenSource();
         }
@@ -164,10 +164,10 @@ namespace Opc.Ua.Client
                 tcs.TrySetCanceled(ct);
             }
 
-            await Task.WhenAny(new Task[] {
+            await Task.WhenAny([
                 tcs.Task,
                 listenForCancelTaskFnc()
-            }).ConfigureAwait(false);
+            ]).ConfigureAwait(false);
 
             if (!tcs.Task.IsCompleted || tcs.Task.IsCanceled)
             {
@@ -504,50 +504,42 @@ namespace Opc.Ua.Client
         /// <summary>
         /// Entry for a client reverse connect registration.
         /// </summary>
-        private sealed class ReverseConnectInfo
+        /// <param name="reverseConnectHost"></param>
+        /// <param name="configEntry"></param>
+        private sealed class ReverseConnectInfo(ReverseConnectHost reverseConnectHost,
+            bool configEntry)
         {
-            public ReverseConnectHostState State { get; set; }
-            public ReverseConnectHost ReverseConnectHost { get; }
-            public bool ConfigEntry { get; }
-
-            public ReverseConnectInfo(ReverseConnectHost reverseConnectHost,
-                bool configEntry)
-            {
-                ReverseConnectHost = reverseConnectHost;
-                State = ReverseConnectHostState.New;
-                ConfigEntry = configEntry;
-            }
+            public ReverseConnectHostState State { get; set; } = ReverseConnectHostState.New;
+            public ReverseConnectHost ReverseConnectHost { get; } = reverseConnectHost;
+            public bool ConfigEntry { get; } = configEntry;
         }
 
         /// <summary>
         /// Record to store information on a client
         /// registration for a reverse connect event.
         /// </summary>
-        private sealed class Registration
+        /// <param name="serverUri"></param>
+        /// <param name="endpointUrl"></param>
+        /// <param name="onConnectionWaiting"></param>
+        /// <param name="strategy"></param>
+        private sealed class Registration(string? serverUri, Uri endpointUrl,
+            EventHandler<ConnectionWaitingEventArgs> onConnectionWaiting,
+            ReverseConnectManager.ReverseConnectStrategy strategy
+                = ReverseConnectManager.ReverseConnectStrategy.Once)
         {
-            public string? ServerUri { get; }
-            public Uri EndpointUrl { get; }
-            public EventHandler<ConnectionWaitingEventArgs> OnConnectionWaiting { get; }
-            public ReverseConnectStrategy Strategy { get; }
-
-            public Registration(string? serverUri, Uri endpointUrl,
-                EventHandler<ConnectionWaitingEventArgs> onConnectionWaiting,
-                ReverseConnectStrategy strategy = ReverseConnectStrategy.Once)
-            {
-                ServerUri = Utils.ReplaceLocalhost(serverUri);
-                EndpointUrl = new Uri(Utils.ReplaceLocalhost(endpointUrl.ToString()));
-                OnConnectionWaiting = onConnectionWaiting;
-                Strategy = strategy;
-            }
+            public string? ServerUri { get; } = Utils.ReplaceLocalhost(serverUri);
+            public Uri EndpointUrl { get; } = new Uri(Utils.ReplaceLocalhost(endpointUrl.ToString()));
+            public EventHandler<ConnectionWaitingEventArgs> OnConnectionWaiting { get; } = onConnectionWaiting;
+            public ReverseConnectStrategy Strategy { get; } = strategy;
         }
 
-        private readonly object _lock = new();
+        private readonly Lock _lock = new();
         private ReverseConnectClientConfiguration _configuration;
         private readonly ILogger _logger;
         private Dictionary<Uri, ReverseConnectInfo> _endpointUrls;
         private ReverseConnectManagerState _state;
         private CancellationTokenSource _cts;
-        private readonly object _registrationsLock = new();
+        private readonly Lock _registrationsLock = new();
         private readonly List<Registration> _registrations;
     }
 }

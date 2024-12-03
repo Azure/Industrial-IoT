@@ -73,7 +73,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
             var scope = $"{serviceAppId}/.default";
 
             var tokenProvider = new TokenProvider(clientId, instance, tenantId);
-            return () => tokenProvider.GetTokenAsync(new[] { scope }, false);
+            return () => tokenProvider.GetTokenAsync([scope], false);
         }
     }
 }

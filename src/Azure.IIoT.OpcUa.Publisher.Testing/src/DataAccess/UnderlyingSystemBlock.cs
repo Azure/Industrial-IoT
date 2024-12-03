@@ -43,7 +43,7 @@ namespace DataAccess
         /// </summary>
         public UnderlyingSystemBlock()
         {
-            _tags = new List<UnderlyingSystemTag>();
+            _tags = [];
         }
 
         /// <summary>
@@ -105,7 +105,7 @@ namespace DataAccess
                     {
                         tag.Description = "An analog value.";
                         tag.TagType = UnderlyingSystemTagType.Analog;
-                        tag.EuRange = new double[] { 100, 0 };
+                        tag.EuRange = [100, 0];
                         break;
                     }
 
@@ -113,7 +113,7 @@ namespace DataAccess
                     {
                         tag.Description = "A digital value.";
                         tag.TagType = UnderlyingSystemTagType.Digital;
-                        tag.Labels = new string[] { "Online", "Offline" };
+                        tag.Labels = ["Online", "Offline"];
                         break;
                     }
 
@@ -121,7 +121,7 @@ namespace DataAccess
                     {
                         tag.Description = "An enumerated value.";
                         tag.TagType = UnderlyingSystemTagType.Enumerated;
-                        tag.Labels = new string[] { "Red", "Yellow", "Green" };
+                        tag.Labels = ["Red", "Yellow", "Green"];
                         break;
                     }
 

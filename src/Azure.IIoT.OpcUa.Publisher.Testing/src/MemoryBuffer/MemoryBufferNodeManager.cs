@@ -60,7 +60,7 @@ namespace MemoryBuffer
             _configuration = configuration.ParseExtension<MemoryBufferConfiguration>()
                 ?? new MemoryBufferConfiguration();
 
-            _buffers = new Dictionary<string, MemoryBufferState>();
+            _buffers = [];
         }
 
         /// <summary>

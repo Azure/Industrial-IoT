@@ -113,7 +113,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             // Create module identitity
             deviceId ??= Utils.GetHostName();
             moduleId ??= Guid.NewGuid().ToString();
-            arguments ??= Array.Empty<string>();
+            arguments ??= [];
 
             var publisherModule = new DeviceTwinModel
             {
@@ -158,22 +158,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 $"KeepAlivePeriod={mqttOptions.Value.KeepAlivePeriod}"
                 ;
             var publisherId = Guid.NewGuid().ToString();
-            arguments = arguments.Concat(
-                new[]
+            arguments =
+            [
+                .. arguments,
+                .. new[]
                 {
                     $"--id={publisherId}",
                     $"--ec={edgeHubCs}",
                     $"--mqc={mqttCs}",
                     $"--ki={keepAliveInterval}",
                     "--aa"
-                }).ToArray();
+                },
+            ];
             if (OperatingSystem.IsLinux())
             {
-                arguments = arguments.Append("--pol").ToArray();
+                arguments = [.. arguments, "--pol"];
             }
             if (_useMqtt)
             {
-                arguments = arguments.Append("-t=Mqtt").ToArray();
+                arguments = [.. arguments, "-t=Mqtt"];
             }
 
             if (!arguments.Any(a =>
@@ -181,8 +184,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 a.StartsWith("--pf=", StringComparison.Ordinal) ||
                 a.StartsWith("--publishfile=", StringComparison.Ordinal)))
             {
-                arguments = arguments.Append("--cf").Append("--pf=" +
-                    Path.Combine(CurrentDirectory, "publishednodes.json")).ToArray();
+                arguments =
+                [
+                    .. arguments,
+                    "--cf",
+                    "--pf=" +
+                        Path.Combine(CurrentDirectory, "publishednodes.json"),
+                ];
             }
 
             var configBuilder = new ConfigurationBuilder()

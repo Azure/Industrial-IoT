@@ -239,7 +239,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        protected override MonitoredItem CreateMonitoredItem(
+        protected override MonitoredItem CreateMonitoredItem(IObservability observability,
             IOptionsMonitor<MonitoredItemOptions> options)
         {
             if (options.CurrentValue is not Precreated pre || pre.Item is null)
@@ -1830,6 +1830,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private long _unassignedNotifications;
         private bool _publishingStopped;
         private bool _disposed;
-        private readonly object _timers = new();
+        private readonly Lock _timers = new();
     }
 }

@@ -123,10 +123,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             const int maxMessageSize = 256 * 1024;
             var messages = NetworkMessage.GenerateSampleSubscriptionNotifications(20, false,
                 encoding: MessageEncoding.JsonGzip, isSampleMode: true);
-            messages = new List<OpcUaSubscriptionNotification>
-            {
+            messages =
+            [
                 new (messages[0], messages.SelectMany(n => n.Notifications).ToList())
-            };
+            ];
 
             using var encoder = GetEncoder();
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);

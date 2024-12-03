@@ -11,7 +11,7 @@ namespace Opc.Ua.Client
     /// <summary>
     /// Control session connectivity
     /// </summary>
-    internal interface ISessionConnectivity
+    internal interface IConnection
     {
         /// <summary>
         /// Create or recreate the session

@@ -6,7 +6,6 @@
 namespace Opc.Ua.Client
 {
     using System;
-    using System.Threading;
     using FluentAssertions;
     using Microsoft.Extensions.Logging;
     using Moq;
@@ -51,7 +50,7 @@ namespace Opc.Ua.Client
                 MonitoredItemId = serverId,
                 RevisedSamplingInterval = 10000,
                 RevisedQueueSize = 10
-            }, 0, new DiagnosticInfoCollection(), new ResponseHeader());
+            }, 0, [], new ResponseHeader());
 
             // Assert
             sut.ServerId.Should().Be(serverId);
@@ -89,7 +88,7 @@ namespace Opc.Ua.Client
             // Act
             sut.TryGetPendingChange(out var change);
             change.SetMonitoringModeResult(MonitoringMode.Sampling, StatusCodes.Bad,
-                0, new DiagnosticInfoCollection(), new ResponseHeader());
+                0, [], new ResponseHeader());
 
             // Assert
             _mockContext.Verify(s => s.NotifyItemChangeResult(sut, 1,
@@ -125,7 +124,7 @@ namespace Opc.Ua.Client
             }, new MonitoredItemCreateResult
             {
                 StatusCode = StatusCodes.Bad
-            }, 0, new DiagnosticInfoCollection(), new ResponseHeader());
+            }, 0, [], new ResponseHeader());
 
             // Assert
             _mockContext.Verify(s => s.NotifyItemChangeResult(sut, 1,
@@ -163,7 +162,7 @@ namespace Opc.Ua.Client
             {
                 StatusCode = StatusCodes.Good,
                 FilterResult = new ExtensionObject(filterResult)
-            }, 0, new DiagnosticInfoCollection(), new ResponseHeader());
+            }, 0, [], new ResponseHeader());
 
             // Assert
             _mockContext.Verify(s => s.NotifyItemChangeResult(sut, 0,
@@ -201,7 +200,7 @@ namespace Opc.Ua.Client
             }, new MonitoredItemCreateResult
             {
                 StatusCode = StatusCodes.Good
-            }, 0, new DiagnosticInfoCollection(), new ResponseHeader());
+            }, 0, [], new ResponseHeader());
 
             // Assert
             sut.CurrentMonitoringMode.Should().Be(MonitoringMode.Sampling);
@@ -224,7 +223,7 @@ namespace Opc.Ua.Client
             // Act
             sut.TryGetPendingChange(out var change);
             change.SetMonitoringModeResult(MonitoringMode.Sampling, StatusCodes.Good,
-                0, new DiagnosticInfoCollection(), new ResponseHeader());
+                0, [], new ResponseHeader());
 
             // Assert
             sut.CurrentMonitoringMode.Should().Be(MonitoringMode.Sampling);
@@ -258,7 +257,7 @@ namespace Opc.Ua.Client
             {
                 RevisedSamplingInterval = currentSamplingInterval.TotalMilliseconds,
                 StatusCode = StatusCodes.Good
-            }, 0, new DiagnosticInfoCollection(), new ResponseHeader());
+            }, 0, [], new ResponseHeader());
 
             // Assert
             sut.CurrentSamplingInterval.Should().Be(currentSamplingInterval);
@@ -292,7 +291,7 @@ namespace Opc.Ua.Client
             {
                 RevisedQueueSize = currentQueueSize,
                 StatusCode = StatusCodes.Good
-            }, 0, new DiagnosticInfoCollection(), new ResponseHeader());
+            }, 0, [], new ResponseHeader());
 
             // Assert
             sut.CurrentQueueSize.Should().Be(currentQueueSize);
