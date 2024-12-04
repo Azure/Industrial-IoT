@@ -645,6 +645,7 @@ namespace Opc.Ua.Sample
         /// No filters supported.
         /// </summary>
         public DataChangeFilter DataChangeFilter { get; private set; }
+        public IUserIdentity EffectiveIdentity { get; }
 
         /// <summary>
         /// Increments the sample time to the next interval.
@@ -703,12 +704,9 @@ namespace Opc.Ua.Sample
                 // check if queuing is enabled.
                 if (_queue != null && (!_resendData || _queue.ItemsInQueue != 0))
                 {
-                    DataValue value = null;
-                    ServiceResult error = null;
-
-                    while (_queue.Publish(out value, out error))
+                    while (_queue.Publish(out var value, out var error))
                     {
-                        Publish(context, value, notifications, diagnostics);
+                        Publish(context, null, notifications, diagnostics);
 
                         if (_resendData)
                         {

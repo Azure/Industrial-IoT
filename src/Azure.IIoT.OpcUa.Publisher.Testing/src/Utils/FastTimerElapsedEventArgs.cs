@@ -31,7 +31,5 @@ namespace Opc.Ua.Test
 {
     using System;
 
-    public class FastTimerElapsedEventArgs : EventArgs
-    {
-    }
+    public class FastTimerElapsedEventArgs : EventArgs;
 }

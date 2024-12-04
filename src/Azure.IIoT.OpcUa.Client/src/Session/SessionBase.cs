@@ -255,17 +255,14 @@ public abstract class SessionBase : SessionServices, ISubscriptionContext,
             throw new ServiceResultException(errors[0]);
         }
         // validate namespace is a string array.
-        if (values[0].Value is string[] namespaces)
-        {
-            var oldTables = NamespaceUris.ToArray();
-            NamespaceUris.Update(namespaces);
-            LogNamespaceTableChanges(false, oldTables, namespaces);
-        }
-        else
+        if (values[0].Value is not string[] namespaces)
         {
             throw ServiceResultException.Create(StatusCodes.BadTypeMismatch,
                 $"{this}: Returned namespace array in wrong type!");
         }
+        var oldNsTable = NamespaceUris.ToArray();
+        NamespaceUris.Update(namespaces);
+        LogNamespaceTableChanges(false, oldNsTable, namespaces);
 
         if (errors.Count > 1 && ServiceResult.IsBad(errors[1]))
         {
@@ -280,12 +277,9 @@ public abstract class SessionBase : SessionServices, ISubscriptionContext,
             throw ServiceResultException.Create(StatusCodes.BadTypeMismatch,
                 $"{this}: Returned server array with wrong type!");
         }
-        else
-        {
-            var oldTables = ServerUris.ToArray();
-            ServerUris.Update(serverUris);
-            LogNamespaceTableChanges(true, oldTables, serverUris);
-        }
+        var oldSrvTables = ServerUris.ToArray();
+        ServerUris.Update(serverUris);
+        LogNamespaceTableChanges(true, oldSrvTables, serverUris);
 
         void LogNamespaceTableChanges(bool serverUris, string[] oldTable, string[] newTable)
         {
@@ -1258,11 +1252,10 @@ public abstract class SessionBase : SessionServices, ISubscriptionContext,
         base.Dispose(disposing);
     }
 
-    /// <summary>
-    /// Closes the session and the underlying channel.
-    /// </summary>
-    /// <param name="disposing"></param>
+    /// <inheritdoc/>
+#pragma warning disable CA2215 // Dispose methods should call base class dispose
     protected sealed override void Dispose(bool disposing)
+#pragma warning restore CA2215 // Dispose methods should call base class dispose
     {
         if (!_disposeAsyncCalled) // Dispose async which will call base dispose
         {

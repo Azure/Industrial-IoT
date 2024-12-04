@@ -276,7 +276,7 @@ public abstract class Subscription : MessageProcessor,
 
                 foreach (var monitoredItem in MonitoredItems)
                 {
-                    await monitoredItem.DisposeAsync();
+                    await monitoredItem.DisposeAsync().ConfigureAwait(false);
                 }
             }
             finally
@@ -502,7 +502,6 @@ public abstract class Subscription : MessageProcessor,
                 options.Priority, options.MaxNotificationsPerPublish,
                 options.PublishingEnabled);
         }
-
         else if (options.PublishingEnabled != CurrentPublishingEnabled)
         {
             await SetPublishingModeAsync(options, ct).ConfigureAwait(false);

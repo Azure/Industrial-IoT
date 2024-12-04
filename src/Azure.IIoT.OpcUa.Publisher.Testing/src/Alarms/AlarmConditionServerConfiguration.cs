@@ -129,7 +129,5 @@ namespace Alarms
     /// A collection of AreaConfiguration objects.
     /// </summary>
     [CollectionDataContract(Name = "ListOfAreaConfiguration", Namespace = Namespaces.AlarmCondition, ItemName = "AreaConfiguration")]
-    public class AreaConfigurationCollection : List<AreaConfiguration>
-    {
-    }
+    public class AreaConfigurationCollection : List<AreaConfiguration>;
 }

@@ -53,21 +53,22 @@ internal sealed class ChannelFactory : IChannelFactory
                 endpoint.Description, endpoint.Configuration, clientCertificate,
                 clientCertificateChain, context);
         }
-        //   channel.OnTokenActivated += OnChannelTokenActivated;
+        channel.OnTokenActivated += OnChannelTokenActivated;
         return channel;
     }
 
+    /// <inheritdoc/>
     public void CloseChannel(ITransportChannel channel)
     {
-        //   channel.OnTokenActivated -= OnChannelTokenActivated;
+        channel.OnTokenActivated -= OnChannelTokenActivated;
         channel.Dispose();
     }
 
     /// <summary>
     /// Called when the token is changing
     /// </summary>
-    /// <param name="token"></param>
     /// <param name="channel"></param>
+    /// <param name="token"></param>
     /// <param name="previousToken"></param>
     internal void OnChannelTokenActivated(ITransportChannel channel,
         ChannelToken? token, ChannelToken? previousToken)

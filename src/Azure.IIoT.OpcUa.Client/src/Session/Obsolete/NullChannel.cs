@@ -40,6 +40,13 @@ internal sealed class NullChannel : ITransportChannel
     public int OperationTimeout { get; set; }
 
     /// <inheritdoc/>
+    public event ChannelTokenActivatedEventHandler OnTokenActivated
+    {
+        add => throw NotSupported(nameof(OnTokenActivated));
+        remove => throw NotSupported(nameof(OnTokenActivated));
+    }
+
+    /// <inheritdoc/>
     public IAsyncResult BeginClose(AsyncCallback callback,
         object callbackData)
     {

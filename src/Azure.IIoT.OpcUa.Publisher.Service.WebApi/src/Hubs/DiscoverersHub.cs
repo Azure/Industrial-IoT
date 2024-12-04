@@ -14,7 +14,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
     /// </summary>
     [MapTo("events/v2/discovery/events")]
     [Authorize(Policy = Policies.CanRead)]
-    public class DiscoverersHub : Hub
-    {
-    }
+    public class DiscoverersHub : Hub;
 }

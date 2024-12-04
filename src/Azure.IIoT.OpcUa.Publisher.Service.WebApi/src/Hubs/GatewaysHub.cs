@@ -14,7 +14,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
     /// </summary>
     [MapTo("events/v2/gateways/events")]
     [Authorize(Policy = Policies.CanRead)]
-    public class GatewaysHub : Hub
-    {
-    }
+    public class GatewaysHub : Hub;
 }
