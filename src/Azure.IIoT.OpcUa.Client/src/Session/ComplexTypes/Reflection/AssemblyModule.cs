@@ -27,31 +27,34 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Opc.Ua.Client.ComplexTypes.Reflection
+namespace Opc.Ua.Client.ComplexTypes.Reflection;
+
+using System;
+using System.Reflection;
+using System.Reflection.Emit;
+
+/// <summary>
+/// Use a single assembly and module builder instance to build the type system.
+/// </summary>
+public class AssemblyModule
 {
     /// <summary>
-    /// Factory function for the default complex type builder
-    /// using classes created with Reflection.Emit.
+    /// Initializes the object with default values.
     /// </summary>
-    public sealed class ComplexTypeBuilderFactory : IComplexTypeFactory
+    /// <param name="assemblyName"></param>
+    public AssemblyModule(string? assemblyName = null)
     {
-        /// <summary>
-        /// Factory creates types in the assembly module.
-        /// </summary>
-        /// <param name="assemblyName"></param>
-        public ComplexTypeBuilderFactory(string? assemblyName = null)
-        {
-            _moduleFactory = new AssemblyModule(assemblyName);
-        }
-
-        /// <inheritdoc/>
-        public IComplexTypeBuilder Create(string targetNamespace,
-            int targetNamespaceIndex, string? moduleName = null)
-        {
-            return new ComplexTypeBuilder(_moduleFactory,
-                targetNamespace, targetNamespaceIndex, moduleName);
-        }
-
-        private readonly AssemblyModule _moduleFactory;
+        _assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(
+            new AssemblyName(assemblyName ?? Guid.NewGuid().ToString()),
+            AssemblyBuilderAccess.Run);
+        ModuleBuilder = _assemblyBuilder.DefineDynamicModule(kOpcTypesModuleName);
     }
+
+    /// <summary>
+    /// Get the module builder instance.
+    /// </summary>
+    public ModuleBuilder ModuleBuilder { get; }
+
+    private readonly AssemblyBuilder _assemblyBuilder;
+    private const string kOpcTypesModuleName = "Opc.Ua.ComplexTypes.Module";
 }

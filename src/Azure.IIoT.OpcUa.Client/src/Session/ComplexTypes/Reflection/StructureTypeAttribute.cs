@@ -1,4 +1,4 @@
-﻿/* ========================================================================
+/* ========================================================================
  * Copyright (c) 2005-2022 The OPC Foundation, Inc. All rights reserved.
  *
  * OPC Foundation MIT License 1.00
@@ -27,26 +27,28 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Opc.Ua.Client.ComplexTypes.Reflection
+namespace Opc.Ua.Client.ComplexTypes.Reflection;
+
+using System;
+
+/// <summary>
+/// Attribute for type ids of a structure definition.
+/// </summary>
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
+public sealed class StructureTypeIdAttribute : Attribute
 {
     /// <summary>
-    /// The known base complex types.
+    /// The complex type id attribute.
     /// </summary>
-    public enum StructureBaseDataType
-    {
-        /// <summary>
-        /// The type is a structure.
-        /// </summary>
-        Structure = 0,
+    public string? ComplexTypeId { get; set; }
 
-        /// <summary>
-        /// The type is an OptionSet.
-        /// </summary>
-        OptionSet = 1,
+    /// <summary>
+    /// The binary encoding id attribute.
+    /// </summary>
+    public string? BinaryEncodingId { get; set; }
 
-        /// <summary>
-        /// The type is a Union.
-        /// </summary>
-        Union = 2
-    }
+    /// <summary>
+    /// The xml encoding id attribute.
+    /// </summary>
+    public string? XmlEncodingId { get; set; }
 }

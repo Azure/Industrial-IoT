@@ -110,7 +110,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ArgumentNullException.ThrowIfNull(endpoint);
             ArgumentNullException.ThrowIfNullOrWhiteSpace(endpoint.Endpoint?.Url);
 
-            var builder = new ClientBuilder().NewClient.WithName("test")
+            var builder = new ClientBuilder().NewClient().WithName("test")
                 .WithUri("uri")
                 .WithProductUri("r")
                 .Build();

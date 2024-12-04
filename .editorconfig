@@ -332,7 +332,7 @@ dotnet_naming_style.begins_with_k.required_suffix =
 dotnet_naming_style.begins_with_k.word_separator =
 dotnet_naming_style.begins_with_k.capitalization = pascal_case
 
-csharp_style_namespace_declarations= block_scoped:warning
+csharp_style_namespace_declarations= file_scoped:warning
 
 # IDE0046: Convert to conditional expression
 dotnet_diagnostic.IDE0046.severity = silent
@@ -544,7 +544,7 @@ dotnet_style_prefer_inferred_tuple_names = true:suggestion
 dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
 dotnet_style_prefer_compound_assignment = true:suggestion
 dotnet_style_prefer_simplified_interpolation = true:suggestion
-dotnet_style_namespace_match_folder = true:suggestion
+dotnet_style_namespace_match_folder = false:suggestion
 dotnet_style_readonly_field = true:warning
 dotnet_style_predefined_type_for_locals_parameters_members = true:suggestion
 dotnet_style_predefined_type_for_member_access = true:suggestion

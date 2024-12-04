@@ -434,7 +434,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             if (!Disposed)
             {
-                ((Subscription)Context).AddMonitoredItem(new OptionsMonitor<MonitoredItemOptions>(
+                ((Subscription)Context).AddMonitoredItems(new OptionsMonitor<MonitoredItemOptions>(
                     new OpcUaSubscription.Precreated(this) { StartNodeId = StartNodeId }));
                 _logger.LogDebug(
                     "Added monitored item {Item} to subscription {Subscription}.",

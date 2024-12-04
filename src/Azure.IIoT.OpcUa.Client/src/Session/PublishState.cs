@@ -3,56 +3,55 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Opc.Ua.Client
+namespace Opc.Ua.Client;
+
+using System;
+
+/// <summary>
+/// Flags indicating the publish state.
+/// </summary>
+[Flags]
+public enum PublishState
 {
-    using System;
+    /// <summary>
+    /// The publish state has not changed.
+    /// </summary>
+    None = 0,
 
     /// <summary>
-    /// Flags indicating the publish state.
+    /// A keep alive message was received.
     /// </summary>
-    [Flags]
-    public enum PublishState
-    {
-        /// <summary>
-        /// The publish state has not changed.
-        /// </summary>
-        None = 0,
+    KeepAlive = 1 << 1,
 
-        /// <summary>
-        /// A keep alive message was received.
-        /// </summary>
-        KeepAlive = 1 << 1,
+    /// <summary>
+    /// A republish for a missing message was issued.
+    /// </summary>
+    Republish = 1 << 2,
 
-        /// <summary>
-        /// A republish for a missing message was issued.
-        /// </summary>
-        Republish = 1 << 2,
+    /// <summary>
+    /// The publishing stopped.
+    /// </summary>
+    Stopped = 1 << 3,
 
-        /// <summary>
-        /// The publishing stopped.
-        /// </summary>
-        Stopped = 1 << 3,
+    /// <summary>
+    /// The publishing recovered.
+    /// </summary>
+    Recovered = 1 << 4,
 
-        /// <summary>
-        /// The publishing recovered.
-        /// </summary>
-        Recovered = 1 << 4,
+    /// <summary>
+    /// The subscription timed out on the
+    /// server and was closed
+    /// </summary>
+    Timeout = 1 << 5,
 
-        /// <summary>
-        /// The subscription timed out on the
-        /// server and was closed
-        /// </summary>
-        Timeout = 1 << 5,
+    /// <summary>
+    /// The Subscription was transferred
+    /// to another session.
+    /// </summary>
+    Transferred = 1 << 6,
 
-        /// <summary>
-        /// The Subscription was transferred
-        /// to another session.
-        /// </summary>
-        Transferred = 1 << 6,
-
-        /// <summary>
-        /// Subscription closed on the client
-        /// </summary>
-        Completed = 1 << 7,
-    }
+    /// <summary>
+    /// Subscription closed on the client
+    /// </summary>
+    Completed = 1 << 7,
 }

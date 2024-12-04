@@ -239,15 +239,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        protected override MonitoredItem CreateMonitoredItem(IObservability observability,
-            IOptionsMonitor<MonitoredItemOptions> options)
+        protected override List<MonitoredItem> CreateMonitoredItems(IObservability observability,
+            List<IOptionsMonitor<MonitoredItemOptions>> options)
         {
-            if (options.CurrentValue is not Precreated pre || pre.Item is null)
+            var items = new List<MonitoredItem>(options.Count);
+            foreach (var option in options)
             {
-                throw ServiceResultException.Create(
-                    StatusCodes.BadUnexpectedError, "Bad");
+                if (option.CurrentValue is not Precreated pre || pre.Item is null)
+                {
+                    throw ServiceResultException.Create(
+                        StatusCodes.BadUnexpectedError, "Bad");
+                }
+                items.Add(pre.Item);
             }
-            return pre.Item;
+            return items;
         }
 
         /// <summary>

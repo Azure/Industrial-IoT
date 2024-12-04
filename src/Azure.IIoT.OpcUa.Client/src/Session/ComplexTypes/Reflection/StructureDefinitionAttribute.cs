@@ -27,54 +27,53 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Opc.Ua.Client.ComplexTypes.Reflection
+namespace Opc.Ua.Client.ComplexTypes.Reflection;
+
+using System;
+
+/// <summary>
+/// Attribute for a base complex type structure definition.
+/// </summary>
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
+public sealed class StructureDefinitionAttribute : Attribute
 {
-    using System;
+    /// <summary>
+    /// The default encoding Id.
+    /// </summary>
+    public string? DefaultEncodingId { get; set; }
 
     /// <summary>
-    /// Attribute for a base complex type structure definition.
+    /// The base DataType.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
-    public sealed class StructureDefinitionAttribute : Attribute
+    public StructureBaseDataType BaseDataType { get; set; }
+
+    /// <summary>
+    /// The structure type.
+    /// </summary>
+    public StructureType StructureType { get; set; }
+
+    /// <summary>
+    /// Create the attribute for a structure definition.
+    /// </summary>
+    public StructureDefinitionAttribute()
     {
-        /// <summary>
-        /// The default encoding Id.
-        /// </summary>
-        public string? DefaultEncodingId { get; set; }
+        StructureType = StructureType.Structure;
+    }
 
-        /// <summary>
-        /// The base DataType.
-        /// </summary>
-        public StructureBaseDataType BaseDataType { get; set; }
-
-        /// <summary>
-        /// The structure type.
-        /// </summary>
-        public StructureType StructureType { get; set; }
-
-        /// <summary>
-        /// Create the attribute for a structure definition.
-        /// </summary>
-        public StructureDefinitionAttribute()
+    /// <summary>
+    /// Convert the base type node id to a <see cref="StructureBaseDataType"/>.
+    /// </summary>
+    /// <param name="baseTypeId">The base type nodeId.</param>
+    public static StructureBaseDataType FromBaseType(NodeId baseTypeId)
+    {
+        if (baseTypeId == DataTypeIds.Union)
         {
-            StructureType = StructureType.Structure;
+            return StructureBaseDataType.Union;
         }
-
-        /// <summary>
-        /// Convert the base type node id to a <see cref="StructureBaseDataType"/>.
-        /// </summary>
-        /// <param name="baseTypeId">The base type nodeId.</param>
-        public static StructureBaseDataType FromBaseType(NodeId baseTypeId)
+        if (baseTypeId == DataTypeIds.OptionSet)
         {
-            if (baseTypeId == DataTypeIds.Union)
-            {
-                return StructureBaseDataType.Union;
-            }
-            if (baseTypeId == DataTypeIds.OptionSet)
-            {
-                return StructureBaseDataType.OptionSet;
-            }
-            return StructureBaseDataType.Structure;
+            return StructureBaseDataType.OptionSet;
         }
+        return StructureBaseDataType.Structure;
     }
 }

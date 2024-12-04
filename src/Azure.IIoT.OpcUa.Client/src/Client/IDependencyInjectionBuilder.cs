@@ -3,18 +3,17 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Opc.Ua.Client
-{
-    using Microsoft.Extensions.DependencyInjection;
+namespace Opc.Ua.Client;
 
+using Microsoft.Extensions.DependencyInjection;
+
+/// <summary>
+/// Add services to the container
+/// </summary>
+public interface IDependencyInjectionBuilder
+{
     /// <summary>
-    /// Add services to the container
+    /// DI services
     /// </summary>
-    public interface IDependencyInjectionBuilder
-    {
-        /// <summary>
-        /// DI services
-        /// </summary>
-        IServiceCollection Services { get; }
-    }
+    IServiceCollection Services { get; }
 }

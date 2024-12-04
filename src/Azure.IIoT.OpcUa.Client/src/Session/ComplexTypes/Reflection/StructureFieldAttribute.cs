@@ -27,34 +27,33 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace Opc.Ua.Client.ComplexTypes.Reflection
+namespace Opc.Ua.Client.ComplexTypes.Reflection;
+
+using System;
+
+/// <summary>
+/// Attribute for a base complex type field definition.
+/// </summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class StructureFieldAttribute : Attribute
 {
-    using System;
+    /// <summary>
+    /// The value rank of the field.
+    /// </summary>
+    public int ValueRank { get; set; } = -1;
 
     /// <summary>
-    /// Attribute for a base complex type field definition.
+    /// The maximum string length of the field.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Property)]
-    public sealed class StructureFieldAttribute : Attribute
-    {
-        /// <summary>
-        /// The value rank of the field.
-        /// </summary>
-        public int ValueRank { get; set; } = -1;
+    public uint MaxStringLength { get; set; }
 
-        /// <summary>
-        /// The maximum string length of the field.
-        /// </summary>
-        public uint MaxStringLength { get; set; }
+    /// <summary>
+    /// If the field is optional.
+    /// </summary>
+    public bool IsOptional { get; set; }
 
-        /// <summary>
-        /// If the field is optional.
-        /// </summary>
-        public bool IsOptional { get; set; }
-
-        /// <summary>
-        /// The datatype of a field as BuiltInType.
-        /// </summary>
-        public int BuiltInType { get; set; }
-    }
+    /// <summary>
+    /// The datatype of a field as BuiltInType.
+    /// </summary>
+    public int BuiltInType { get; set; }
 }

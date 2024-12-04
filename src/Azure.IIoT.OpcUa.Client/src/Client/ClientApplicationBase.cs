@@ -3,458 +3,459 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Opc.Ua.Client
+namespace Opc.Ua.Client;
+
+using BitFaster.Caching;
+using BitFaster.Caching.Lfu;
+using Microsoft.Extensions.Logging;
+using Opc.Ua;
+using Opc.Ua.Configuration;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
+/// <summary>
+/// Client manager
+/// </summary>
+public abstract class ClientApplicationBase : ApplicationBase, IConnectionManager
 {
-    using BitFaster.Caching;
-    using BitFaster.Caching.Lfu;
-    using Microsoft.Extensions.Logging;
-    using Opc.Ua;
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Linq;
-    using System.Threading;
-    using System.Threading.Tasks;
+    /// <summary>
+    /// Reverse connect manager
+    /// </summary>
+    public ReverseConnectManager ReverseConnectManager { get; }
 
     /// <summary>
-    /// Client manager
+    /// Create connection manager
     /// </summary>
-    public abstract class ClientApplicationBase : ApplicationBase, IConnectionManager
+    /// <param name="instance"></param>
+    /// <param name="applicationUri"></param>
+    /// <param name="productUri"></param>
+    /// <param name="options"></param>
+    /// <param name="observability"></param>
+    protected ClientApplicationBase(ApplicationInstance instance, string applicationUri,
+        string productUri, ClientOptions options, IObservability observability) :
+        base(instance, applicationUri, productUri, options, observability)
     {
-        /// <summary>
-        /// Reverse connect manager
-        /// </summary>
-        public ReverseConnectManager ReverseConnectManager { get; }
+        _options = options;
+        _observability = observability;
+        _logger = observability.LoggerFactory.CreateLogger<ClientApplicationBase>();
 
-        /// <summary>
-        /// Create kv manager
-        /// </summary>
-        /// <param name="configuration"></param>
-        /// <param name="options"></param>
-        /// <param name="observability"></param>
-        protected ClientApplicationBase(ApplicationConfiguration configuration,
-            ClientOptions options, IObservability observability) :
-            base(configuration, options.UpdateApplicationFromExistingCert,
-                observability, options.HostName)
+        // Connection pooling of managed sessions
+        _pool = new ConcurrentLfuBuilder<PooledSessionOptions, ISession>()
+            .WithAtomicGetOrAdd()
+            .WithKeyComparer(new ClientOptionsComparer())
+            .WithCapacity(options.MaxPooledSessions)
+            .WithExpireAfterAccess(options.LingerTimeout)
+            .AsAsyncCache()
+            .AsScopedCache()
+            .Build();
+
+        ReverseConnectManager = new ReverseConnectManager(observability.LoggerFactory);
+        _reverseConnectStartException = new Lazy<Exception?>(
+            StartReverseConnectManager, isThreadSafe: true);
+        InitializeMetrics();
+    }
+
+    /// <inheritdoc/>
+    public async ValueTask<ServiceResult> TestAsync(EndpointDescription endpoint,
+        bool useReverseConnect = false, CancellationToken ct = default)
+    {
+        try
         {
-            _options = options;
-            _observability = observability;
-            _logger = observability.LoggerFactory.CreateLogger<ClientApplicationBase>();
-
-            // Connection pooling of managed sessions
-            _pool = new ConcurrentLfuBuilder<PooledSessionOptions, ISession>()
-                .WithAtomicGetOrAdd()
-                .WithKeyComparer(new ClientOptionsComparer())
-                .WithCapacity(options.MaxPooledSessions)
-                .WithExpireAfterAccess(options.LingerTimeout)
-                .AsAsyncCache()
-                .AsScopedCache()
-                .Build();
-
-            ReverseConnectManager = new ReverseConnectManager(observability.LoggerFactory);
-            _reverseConnectStartException = new Lazy<Exception?>(
-                StartReverseConnectManager, isThreadSafe: true);
-            InitializeMetrics();
-        }
-
-        /// <inheritdoc/>
-        public async ValueTask<ServiceResult> TestAsync(EndpointDescription endpoint,
-            bool useReverseConnect = false, CancellationToken ct = default)
-        {
+            using var session = await ConnectCoreAsync(endpoint,
+                new SessionCreateOptions { SessionName = "Test" + Guid.NewGuid() },
+                useReverseConnect, ct).ConfigureAwait(false);
             try
             {
-                using var session = await ConnectCoreAsync(endpoint,
-                    new SessionCreateOptions { SessionName = "Test" + Guid.NewGuid() },
-                    useReverseConnect, ct).ConfigureAwait(false);
-                try
-                {
-                    await session.CloseAsync(true, true, ct).ConfigureAwait(false);
-                }
-                catch
-                {
-                    // We close as a courtesy to the server
-                }
-                return ServiceResult.Good;
-            }
-            catch (Exception ex)
-            {
-                return new ServiceResult(ex);
-            }
-        }
-
-        /// <inheritdoc/>
-        public ValueTask<PooledSession> GetOrConnectAsync(PooledSessionOptions connection,
-            CancellationToken ct)
-        {
-            // Lazy start connect manager
-            var reverseConnect = connection.UseReverseConnect;
-            if (reverseConnect && _reverseConnectStartException.Value != null)
-            {
-                throw _reverseConnectStartException.Value;
-            }
-
-            if (_pool.ScopedTryGet(connection, out var lifetime))
-            {
-                return ValueTask.FromResult(new PooledSession(lifetime));
-            }
-
-            return GetOrConnectAsyncCore(connection, ct);
-            async ValueTask<PooledSession> GetOrConnectAsyncCore(PooledSessionOptions connection,
-                CancellationToken ct)
-            {
-                return new PooledSession(await _pool.ScopedGetOrAddAsync(connection,
-                    ConnectAsync, (this, ct)).ConfigureAwait(false));
-                static async Task<Scoped<ISession>> ConnectAsync(PooledSessionOptions key,
-                    (ClientApplicationBase client, CancellationToken ct) context)
-                {
-                    var session = await context.client.ConnectAsync(key.Endpoint,
-                        new SessionCreateOptions
-                        {
-                            SessionName =
-                                key.SessionOptions?.SessionName ?? "Default",
-                            Identity =
-                                key.User,
-                            KeepAliveInterval =
-                                key.SessionOptions?.KeepAliveInterval,
-                            CheckDomain =
-                                key.SessionOptions?.CheckDomain ?? false,
-                            DisableComplexTypeLoading =
-                                key.SessionOptions?.DisableComplexTypeLoading ?? false,
-                            DisableComplexTypePreloading =
-                                key.SessionOptions?.DisableComplexTypePreloading ?? false,
-                            PreferredLocales =
-                                key.SessionOptions?.PreferredLocales,
-                            SessionTimeout =
-                                key.SessionOptions?.SessionTimeout,
-                            ReconnectStrategy =
-                                context.client._options.ConnectStrategy
-                        }, key.UseReverseConnect, context.ct).ConfigureAwait(false);
-                    return new Scoped<ISession>(session);
-                }
-            }
-        }
-
-        /// <inheritdoc/>
-        public virtual async ValueTask<ISession> ConnectAsync(EndpointDescription endpoint,
-            SessionCreateOptions? options = null, bool useReverseConnect = false,
-            CancellationToken ct = default)
-        {
-            if (_options.ConnectStrategy != null)
-            {
-                return await _options.ConnectStrategy.ExecuteAsync(
-                    (state, ct) => ConnectCoreAsync(
-                        state.endpoint, state.options, state.useReverseConnect, ct),
-                    (endpoint, options, useReverseConnect), ct).ConfigureAwait(false);
-            }
-            return await ConnectCoreAsync(endpoint, options, useReverseConnect,
-                ct).ConfigureAwait(false);
-        }
-
-        /// <inheritdoc/>
-        protected override void Dispose(bool disposing)
-        {
-            if (!_disposed && disposing)
-            {
-                _logger.LogInformation("Stopping all {Count} sessions...", _pool.Count);
-                foreach (var client in _pool)
-                {
-                    try
-                    {
-                        // await client.Value.Dispose(); // TODO
-                    }
-                    catch (OperationCanceledException) { }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Unexpected exception disposing client {Name}",
-                            client.Key);
-                    }
-                }
-                _pool.Clear();
-                _logger.LogInformation("Stopped all sessions, current number of clients is 0");
-                ReverseConnectManager.Dispose();
-                _disposed = true;
-            }
-            base.Dispose(disposing);
-        }
-
-        /// <summary>
-        /// Create session
-        /// </summary>
-        /// <param name="configuration"></param>
-        /// <param name="endpoint"></param>
-        /// <param name="options"></param>
-        /// <param name="observability"></param>
-        /// <returns></returns>
-        protected abstract Session CreateSession(ApplicationConfiguration configuration,
-            ConfiguredEndpoint endpoint, SessionCreateOptions options, IObservability observability);
-
-        /// <summary>
-        /// Connect a session without resiliency applied
-        /// </summary>
-        /// <param name="endpoint"></param>
-        /// <param name="options"></param>
-        /// <param name="useReverseConnect"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        internal async ValueTask<ISession> ConnectCoreAsync(EndpointDescription endpoint,
-            SessionCreateOptions? options, bool useReverseConnect, CancellationToken ct)
-        {
-            ITransportWaitingConnection? connection = null;
-
-            options ??= new SessionCreateOptions { SessionName = Guid.NewGuid().ToString() };
-            if (useReverseConnect)
-            {
-                connection = await ReverseConnectManager.WaitForConnectionAsync(
-                    new Uri(endpoint.EndpointUrl), null, ct).ConfigureAwait(false);
-                options = options with { Connection = connection };
-            }
-
-            var configuration = await GetConfigurationAsync().ConfigureAwait(false);
-            var configuredEndpoint = await SelectEndpointAsync(configuration, endpoint,
-                null, connection, ct).ConfigureAwait(false);
-            var session = CreateSession(configuration, configuredEndpoint, options, _observability);
-            try
-            {
-                await session.OpenAsync(ct).ConfigureAwait(false);
+                await session.CloseAsync(true, true, ct).ConfigureAwait(false);
             }
             catch
             {
-                session.Dispose();
-                throw;
+                // We close as a courtesy to the server
             }
-            return session;
+            return ServiceResult.Good;
+        }
+        catch (Exception ex)
+        {
+            return new ServiceResult(ex);
+        }
+    }
+
+    /// <inheritdoc/>
+    public ValueTask<PooledSession> GetOrConnectAsync(PooledSessionOptions connection,
+        CancellationToken ct)
+    {
+        // Lazy start connect manager
+        var reverseConnect = connection.UseReverseConnect;
+        if (reverseConnect && _reverseConnectStartException.Value != null)
+        {
+            throw _reverseConnectStartException.Value;
         }
 
-        /// <summary>
-        /// Select the endpoint to use
-        /// </summary>
-        /// <param name="configuration"></param>
-        /// <param name="endpoint"></param>
-        /// <param name="discoveryUrl"></param>
-        /// <param name="connection"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        /// <exception cref="ServiceResultException"></exception>
-        internal async Task<ConfiguredEndpoint> SelectEndpointAsync(ApplicationConfiguration configuration,
-            EndpointDescription endpoint, Uri? discoveryUrl, ITransportWaitingConnection? connection,
-            CancellationToken ct = default)
+        if (_pool.ScopedTryGet(connection, out var lifetime))
         {
-            var endpointConfiguration = EndpointConfiguration.Create();
-            endpointConfiguration.OperationTimeout =
-                (int)TimeSpan.FromSeconds(15).TotalMilliseconds;
+            return ValueTask.FromResult(new PooledSession(lifetime));
+        }
 
-            // needs to add the /discovery onto http urls
-            if (connection == null)
+        return GetOrConnectAsyncCore(connection, ct);
+        async ValueTask<PooledSession> GetOrConnectAsyncCore(PooledSessionOptions connection,
+            CancellationToken ct)
+        {
+            return new PooledSession(await _pool.ScopedGetOrAddAsync(connection,
+                ConnectAsync, (this, ct)).ConfigureAwait(false));
+            static async Task<Scoped<ISession>> ConnectAsync(PooledSessionOptions key,
+                (ClientApplicationBase client, CancellationToken ct) context)
             {
-                if (discoveryUrl == null)
-                {
-                    if (!Uri.TryCreate(endpoint.EndpointUrl, UriKind.Absolute,
-                        out var endpointUrl))
+                var session = await context.client.ConnectAsync(key.Endpoint,
+                    new SessionCreateOptions
                     {
-                        throw ServiceResultException.Create(StatusCodes.BadArgumentsMissing,
-                            "No discovery url provided and no valid endpoint url.");
-                    }
-                    discoveryUrl = endpointUrl;
+                        SessionName =
+                            key.SessionOptions?.SessionName ?? "Default",
+                        Identity =
+                            key.User,
+                        KeepAliveInterval =
+                            key.SessionOptions?.KeepAliveInterval,
+                        CheckDomain =
+                            key.SessionOptions?.CheckDomain ?? false,
+                        DisableComplexTypeLoading =
+                            key.SessionOptions?.DisableComplexTypeLoading ?? false,
+                        DisableComplexTypePreloading =
+                            key.SessionOptions?.DisableComplexTypePreloading ?? false,
+                        PreferredLocales =
+                            key.SessionOptions?.PreferredLocales,
+                        SessionTimeout =
+                            key.SessionOptions?.SessionTimeout,
+                        ReconnectStrategy =
+                            context.client._options.ConnectStrategy
+                    }, key.UseReverseConnect, context.ct).ConfigureAwait(false);
+                return new Scoped<ISession>(session);
+            }
+        }
+    }
+
+    /// <inheritdoc/>
+    public virtual async ValueTask<ISession> ConnectAsync(EndpointDescription endpoint,
+        SessionCreateOptions? options = null, bool useReverseConnect = false,
+        CancellationToken ct = default)
+    {
+        if (_options.ConnectStrategy != null)
+        {
+            return await _options.ConnectStrategy.ExecuteAsync(
+                (state, ct) => ConnectCoreAsync(
+                    state.endpoint, state.options, state.useReverseConnect, ct),
+                (endpoint, options, useReverseConnect), ct).ConfigureAwait(false);
+        }
+        return await ConnectCoreAsync(endpoint, options, useReverseConnect,
+            ct).ConfigureAwait(false);
+    }
+
+    /// <inheritdoc/>
+    protected override void Dispose(bool disposing)
+    {
+        if (!_disposed && disposing)
+        {
+            _logger.LogInformation("Stopping all {Count} sessions...", _pool.Count);
+            foreach (var client in _pool)
+            {
+                try
+                {
+                    // await client.Value.Dispose(); // TODO
                 }
-                if (discoveryUrl.Scheme == Utils.UriSchemeHttp &&
-                    !discoveryUrl.AbsolutePath.EndsWith("/discovery",
-                        StringComparison.OrdinalIgnoreCase))
+                catch (OperationCanceledException) { }
+                catch (Exception ex)
                 {
-                    discoveryUrl = new UriBuilder(discoveryUrl)
-                    {
-                        Path = discoveryUrl.AbsolutePath.TrimEnd('/') + "/discovery"
-                    }.Uri;
+                    _logger.LogError(ex, "Unexpected exception disposing client {Name}",
+                        client.Key);
                 }
             }
+            _pool.Clear();
+            _logger.LogInformation("Stopped all sessions, current number of clients is 0");
+            ReverseConnectManager.Dispose();
+            _disposed = true;
+        }
+        base.Dispose(disposing);
+    }
 
-            using var client = connection != null ?
-                DiscoveryClient.Create(configuration, connection, endpointConfiguration) :
-                DiscoveryClient.Create(configuration, discoveryUrl, endpointConfiguration);
-            var uri = new Uri(client.Endpoint.EndpointUrl);
-            var endpoints = await client.GetEndpointsAsync(null, ct).ConfigureAwait(false);
-            discoveryUrl ??= uri;
+    /// <summary>
+    /// Create session
+    /// </summary>
+    /// <param name="configuration"></param>
+    /// <param name="endpoint"></param>
+    /// <param name="options"></param>
+    /// <param name="observability"></param>
+    /// <returns></returns>
+    protected abstract Session CreateSession(ApplicationConfiguration configuration,
+        ConfiguredEndpoint endpoint, SessionCreateOptions options, IObservability observability);
 
-            _logger.LogInformation("{Client}: Discovery endpoint {DiscoveryUrl} returned " +
-                "endpoints. Selecting endpoint {EndpointUri} with SecurityMode " +
-                "{SecurityMode} and {SecurityPolicy} SecurityPolicyUri from:\n{Endpoints}",
-                this, discoveryUrl, uri, endpoint.SecurityMode,
-                    endpoint.SecurityPolicyUri ?? "any", endpoints.Select(
-                        ep => "      " + ToString(ep)).Aggregate((a, b) => $"{a}\n{b}"));
+    /// <summary>
+    /// Connect a session without resiliency applied
+    /// </summary>
+    /// <param name="endpoint"></param>
+    /// <param name="options"></param>
+    /// <param name="useReverseConnect"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    internal async ValueTask<ISession> ConnectCoreAsync(EndpointDescription endpoint,
+        SessionCreateOptions? options, bool useReverseConnect, CancellationToken ct)
+    {
+        ITransportWaitingConnection? connection = null;
 
-            var filtered = endpoints
-                .Where(ep =>
-                    SecurityPolicies.GetDisplayName(ep.SecurityPolicyUri) != null &&
-                    ep.SecurityMode == endpoint.SecurityMode &&
-                    (endpoint.SecurityPolicyUri == null ||
-                     string.Equals(ep.SecurityPolicyUri,
-                        endpoint.SecurityPolicyUri,
-                        StringComparison.OrdinalIgnoreCase) ||
-                     string.Equals(ep.SecurityPolicyUri,
-                        "http://opcfoundation.org/UA/SecurityPolicy#"
-                            + endpoint.SecurityPolicyUri,
-                        StringComparison.OrdinalIgnoreCase)))
-                //
-                // The security level is a relative measure assigned by the server
-                // to the endpoints that it returns. Clients should always pick the
-                // highest level unless they have a reason not too. Some servers
-                // however, mess this up a bit. So group SecurityLevel also by
-                // security mode and then pick the highest in that group.
-                //
-                .OrderByDescending(ep => ((int)ep.SecurityMode << 8) | ep.SecurityLevel)
-                .ToList();
+        options ??= new SessionCreateOptions { SessionName = Guid.NewGuid().ToString() };
+        if (useReverseConnect)
+        {
+            connection = await ReverseConnectManager.WaitForConnectionAsync(
+                new Uri(endpoint.EndpointUrl), null, ct).ConfigureAwait(false);
+            options = options with { Connection = connection };
+        }
 
-            //
-            // Try to find endpoint that matches scheme and endpoint url path
-            // but fall back to match just the scheme. We need to match only
-            // scheme to support the reverse connect (indicated by connection
-            // being not null here).
-            //
-            var selected = filtered.Find(ep => Match(ep, uri, true, true))
-                        ?? filtered.Find(ep => Match(ep, uri, true, false));
-            if (connection != null)
+        var configuration = await GetConfigurationAsync().ConfigureAwait(false);
+        var configuredEndpoint = await SelectEndpointAsync(configuration, endpoint,
+            null, connection, ct).ConfigureAwait(false);
+        var session = CreateSession(configuration, configuredEndpoint, options, _observability);
+        try
+        {
+            await session.OpenAsync(ct).ConfigureAwait(false);
+        }
+        catch
+        {
+            session.Dispose();
+            throw;
+        }
+        return session;
+    }
+
+    /// <summary>
+    /// Select the endpoint to use
+    /// </summary>
+    /// <param name="configuration"></param>
+    /// <param name="endpoint"></param>
+    /// <param name="discoveryUrl"></param>
+    /// <param name="connection"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    /// <exception cref="ServiceResultException"></exception>
+    internal async Task<ConfiguredEndpoint> SelectEndpointAsync(ApplicationConfiguration configuration,
+        EndpointDescription endpoint, Uri? discoveryUrl, ITransportWaitingConnection? connection,
+        CancellationToken ct = default)
+    {
+        var endpointConfiguration = EndpointConfiguration.Create();
+        endpointConfiguration.OperationTimeout =
+            (int)TimeSpan.FromSeconds(15).TotalMilliseconds;
+
+        // needs to add the /discovery onto http urls
+        if (connection == null)
+        {
+            if (discoveryUrl == null)
             {
-                //
-                // Only allow same uri scheme (which must also be opc.tcp)
-                // for when reverse connection is used.
-                //
-                if (selected != null)
+                if (!Uri.TryCreate(endpoint.EndpointUrl, UriKind.Absolute,
+                    out var endpointUrl))
                 {
-                    _logger.LogInformation(
-                        "{Client}: Endpoint {Endpoint} selected via reverse connect!",
-                        this, ToString(selected));
+                    throw ServiceResultException.Create(StatusCodes.BadArgumentsMissing,
+                        "No discovery url provided and no valid endpoint url.");
                 }
-                return new ConfiguredEndpoint(null, selected,
-                    EndpointConfiguration.Create(configuration));
+                discoveryUrl = endpointUrl;
             }
+            if (discoveryUrl.Scheme == Utils.UriSchemeHttp &&
+                !discoveryUrl.AbsolutePath.EndsWith("/discovery",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                discoveryUrl = new UriBuilder(discoveryUrl)
+                {
+                    Path = discoveryUrl.AbsolutePath.TrimEnd('/') + "/discovery"
+                }.Uri;
+            }
+        }
+
+        using var client = connection != null ?
+            DiscoveryClient.Create(configuration, connection, endpointConfiguration) :
+            DiscoveryClient.Create(configuration, discoveryUrl, endpointConfiguration);
+        var uri = new Uri(client.Endpoint.EndpointUrl);
+        var endpoints = await client.GetEndpointsAsync(null, ct).ConfigureAwait(false);
+        discoveryUrl ??= uri;
+
+        _logger.LogInformation("{Client}: Discovery endpoint {DiscoveryUrl} returned " +
+            "endpoints. Selecting endpoint {EndpointUri} with SecurityMode " +
+            "{SecurityMode} and {SecurityPolicy} SecurityPolicyUri from:\n{Endpoints}",
+            this, discoveryUrl, uri, endpoint.SecurityMode,
+                endpoint.SecurityPolicyUri ?? "any", endpoints.Select(
+                    ep => "      " + ToString(ep)).Aggregate((a, b) => $"{a}\n{b}"));
+
+        var filtered = endpoints
+            .Where(ep =>
+                SecurityPolicies.GetDisplayName(ep.SecurityPolicyUri) != null &&
+                ep.SecurityMode == endpoint.SecurityMode &&
+                (endpoint.SecurityPolicyUri == null ||
+                 string.Equals(ep.SecurityPolicyUri,
+                    endpoint.SecurityPolicyUri,
+                    StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(ep.SecurityPolicyUri,
+                    "http://opcfoundation.org/UA/SecurityPolicy#"
+                        + endpoint.SecurityPolicyUri,
+                    StringComparison.OrdinalIgnoreCase)))
+            //
+            // The security level is a relative measure assigned by the server
+            // to the endpoints that it returns. Clients should always pick the
+            // highest level unless they have a reason not too. Some servers
+            // however, mess this up a bit. So group SecurityLevel also by
+            // security mode and then pick the highest in that group.
+            //
+            .OrderByDescending(ep => ((int)ep.SecurityMode << 8) | ep.SecurityLevel)
+            .ToList();
+
+        //
+        // Try to find endpoint that matches scheme and endpoint url path
+        // but fall back to match just the scheme. We need to match only
+        // scheme to support the reverse connect (indicated by connection
+        // being not null here).
+        //
+        var selected = filtered.Find(ep => Match(ep, uri, true, true))
+                    ?? filtered.Find(ep => Match(ep, uri, true, false));
+        if (connection != null)
+        {
+            //
+            // Only allow same uri scheme (which must also be opc.tcp)
+            // for when reverse connection is used.
+            //
+            if (selected != null)
+            {
+                _logger.LogInformation(
+                    "{Client}: Endpoint {Endpoint} selected via reverse connect!",
+                    this, ToString(selected));
+            }
+            return new ConfiguredEndpoint(null, selected,
+                EndpointConfiguration.Create(configuration));
+        }
+
+        if (selected == null)
+        {
+            //
+            // Fall back to first supported endpoint matching absolute path
+            // then fall back to first endpoint (backwards compatibilty)
+            //
+            selected = filtered.Find(ep => Match(ep, uri, false, true))
+                    ?? filtered.Find(ep => Match(ep, uri, false, false));
 
             if (selected == null)
             {
-                //
-                // Fall back to first supported endpoint matching absolute path
-                // then fall back to first endpoint (backwards compatibilty)
-                //
-                selected = filtered.Find(ep => Match(ep, uri, false, true))
-                        ?? filtered.Find(ep => Match(ep, uri, false, false));
-
-                if (selected == null)
-                {
-                    throw ServiceResultException.Create(StatusCodes.BadNotFound,
-                        "No endpoint found that matches the desired configuration.");
-                }
+                throw ServiceResultException.Create(StatusCodes.BadNotFound,
+                    "No endpoint found that matches the desired configuration.");
             }
+        }
 
-            //
-            // Adjust the host name and port to the host name and port
-            // that was use to successfully connect the discovery client
-            //
-            var selectedUrl = Utils.ParseUri(selected.EndpointUrl);
-            if (selectedUrl != null && discoveryUrl != null &&
-                selectedUrl.Scheme == discoveryUrl.Scheme)
+        //
+        // Adjust the host name and port to the host name and port
+        // that was use to successfully connect the discovery client
+        //
+        var selectedUrl = Utils.ParseUri(selected.EndpointUrl);
+        if (selectedUrl != null && discoveryUrl != null &&
+            selectedUrl.Scheme == discoveryUrl.Scheme)
+        {
+            selected.EndpointUrl = new UriBuilder(selectedUrl)
             {
-                selected.EndpointUrl = new UriBuilder(selectedUrl)
-                {
-                    Host = discoveryUrl.DnsSafeHost,
-                    Port = discoveryUrl.Port
-                }.ToString();
-            }
+                Host = discoveryUrl.DnsSafeHost,
+                Port = discoveryUrl.Port
+            }.ToString();
+        }
 
-            _logger.LogInformation("{Client}: Endpoint {Endpoint} selected!", this,
-                ToString(selected));
-            return new ConfiguredEndpoint(null, selected,
-                EndpointConfiguration.Create(configuration));
+        _logger.LogInformation("{Client}: Endpoint {Endpoint} selected!", this,
+            ToString(selected));
+        return new ConfiguredEndpoint(null, selected,
+            EndpointConfiguration.Create(configuration));
 
-            static string ToString(EndpointDescription ep) =>
+        static string ToString(EndpointDescription ep) =>
 $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolicyUri}]";
-            // Match endpoint returned against desired endpoint url
-            static bool Match(EndpointDescription endpointDescription,
-                Uri endpointUrl, bool includeScheme, bool includePath)
-            {
-                var url = Utils.ParseUri(endpointDescription.EndpointUrl);
-                return url != null &&
-                    (!includeScheme || string.Equals(url.Scheme,
-                        endpointUrl.Scheme, StringComparison.OrdinalIgnoreCase)) &&
-                    (!includePath || string.Equals(url.AbsolutePath,
-                        endpointUrl.AbsolutePath, StringComparison.OrdinalIgnoreCase));
-            }
-        }
-
-        /// <summary>
-        /// Start reverse connect manager service
-        /// </summary>
-        /// <returns></returns>
-        private Exception? StartReverseConnectManager()
+        // Match endpoint returned against desired endpoint url
+        static bool Match(EndpointDescription endpointDescription,
+            Uri endpointUrl, bool includeScheme, bool includePath)
         {
-            var port = _options.ReverseConnectPort ?? 4840;
-            try
-            {
-                ReverseConnectManager.StartService(new ReverseConnectClientConfiguration
-                {
-                    HoldTime = 120000,
-                    WaitTimeout = 120000,
-                    ClientEndpoints =
-                    [
-                        new ReverseConnectClientEndpoint
-                        {
-                            EndpointUrl = $"opc.tcp://localhost:{port}"
-                        }
-                    ]
-                });
-                return null;
-            }
-            catch (Exception ex)
-            {
-                return ex;
-            }
+            var url = Utils.ParseUri(endpointDescription.EndpointUrl);
+            return url != null &&
+                (!includeScheme || string.Equals(url.Scheme,
+                    endpointUrl.Scheme, StringComparison.OrdinalIgnoreCase)) &&
+                (!includePath || string.Equals(url.AbsolutePath,
+                    endpointUrl.AbsolutePath, StringComparison.OrdinalIgnoreCase));
         }
-
-        /// <summary>
-        /// Create metrics
-        /// </summary>
-        private void InitializeMetrics()
-        {
-        }
-
-        /// <summary>
-        /// Compare connectivity options
-        /// </summary>
-        private class ClientOptionsComparer : IEqualityComparer<PooledSessionOptions>
-        {
-            /// <inheritdoc/>
-            public bool Equals(PooledSessionOptions? x, PooledSessionOptions? y)
-            {
-                if (x?.Endpoint == null || y?.Endpoint == null)
-                {
-                    return false;
-                }
-                if (!Utils.IsEqual(x.Endpoint, y.Endpoint) ||
-                    !Utils.IsEqual(x.User, y.User) ||
-                    x.SessionOptions != y.SessionOptions ||
-                    x.UseReverseConnect != y.UseReverseConnect)
-                {
-                    return false;
-                }
-                return true;
-            }
-
-            /// <inheritdoc/>
-            public int GetHashCode([DisallowNull] PooledSessionOptions obj)
-            {
-                return HashCode.Combine(
-                    obj.Endpoint?.EndpointUrl,
-                    obj.Endpoint?.SecurityLevel,
-                    obj.Endpoint?.TransportProfileUri,
-                    obj.Endpoint?.SecurityMode,
-                    obj.Endpoint?.SecurityPolicyUri,
-                    obj.SessionOptions,
-                    obj.UseReverseConnect);
-            }
-        }
-
-        private readonly ILogger _logger;
-        private readonly IObservability _observability;
-        private readonly ClientOptions _options;
-        private readonly Lazy<Exception?> _reverseConnectStartException;
-        private readonly IScopedAsyncCache<PooledSessionOptions, ISession> _pool;
-        private bool _disposed;
     }
+
+    /// <summary>
+    /// Start reverse connect manager service
+    /// </summary>
+    /// <returns></returns>
+    private Exception? StartReverseConnectManager()
+    {
+        var port = _options.ReverseConnectPort ?? 4840;
+        try
+        {
+            ReverseConnectManager.StartService(new ReverseConnectClientConfiguration
+            {
+                HoldTime = 120000,
+                WaitTimeout = 120000,
+                ClientEndpoints =
+                [
+                    new ReverseConnectClientEndpoint
+                    {
+                        EndpointUrl = $"opc.tcp://localhost:{port}"
+                    }
+                ]
+            });
+            return null;
+        }
+        catch (Exception ex)
+        {
+            return ex;
+        }
+    }
+
+    /// <summary>
+    /// Create metrics
+    /// </summary>
+    private void InitializeMetrics()
+    {
+    }
+
+    /// <summary>
+    /// Compare connectivity options
+    /// </summary>
+    private class ClientOptionsComparer : IEqualityComparer<PooledSessionOptions>
+    {
+        /// <inheritdoc/>
+        public bool Equals(PooledSessionOptions? x, PooledSessionOptions? y)
+        {
+            if (x?.Endpoint == null || y?.Endpoint == null)
+            {
+                return false;
+            }
+            if (!Utils.IsEqual(x.Endpoint, y.Endpoint) ||
+                !Utils.IsEqual(x.User, y.User) ||
+                x.SessionOptions != y.SessionOptions ||
+                x.UseReverseConnect != y.UseReverseConnect)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        /// <inheritdoc/>
+        public int GetHashCode([DisallowNull] PooledSessionOptions obj)
+        {
+            return HashCode.Combine(
+                obj.Endpoint?.EndpointUrl,
+                obj.Endpoint?.SecurityLevel,
+                obj.Endpoint?.TransportProfileUri,
+                obj.Endpoint?.SecurityMode,
+                obj.Endpoint?.SecurityPolicyUri,
+                obj.SessionOptions,
+                obj.UseReverseConnect);
+        }
+    }
+
+    private readonly ILogger _logger;
+    private readonly IObservability _observability;
+    private readonly ClientOptions _options;
+    private readonly Lazy<Exception?> _reverseConnectStartException;
+    private readonly IScopedAsyncCache<PooledSessionOptions, ISession> _pool;
+    private bool _disposed;
 }

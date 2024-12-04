@@ -3,78 +3,77 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Opc.Ua.Client
+namespace Opc.Ua.Client;
+
+using Microsoft.Extensions.Options;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+/// <summary>
+/// Subscription services
+/// </summary>
+public interface ISubscription
 {
-    using Microsoft.Extensions.Options;
-    using System;
-    using System.Collections.Generic;
-    using System.Threading;
-    using System.Threading.Tasks;
+    /// <summary>
+    /// Created subscription
+    /// </summary>
+    bool Created { get; }
 
     /// <summary>
-    /// Subscription services
+    /// The current publishing interval on the server
     /// </summary>
-    public interface ISubscription
-    {
-        /// <summary>
-        /// Created subscription
-        /// </summary>
-        bool Created { get; }
+    TimeSpan CurrentPublishingInterval { get; }
 
-        /// <summary>
-        /// The current publishing interval on the server
-        /// </summary>
-        TimeSpan CurrentPublishingInterval { get; }
+    /// <summary>
+    /// The current priority of the subscription
+    /// </summary>
+    byte CurrentPriority { get; }
 
-        /// <summary>
-        /// The current priority of the subscription
-        /// </summary>
-        byte CurrentPriority { get; }
+    /// <summary>
+    /// The current lifetime count on the server
+    /// </summary>
+    uint CurrentLifetimeCount { get; }
 
-        /// <summary>
-        /// The current lifetime count on the server
-        /// </summary>
-        uint CurrentLifetimeCount { get; }
+    /// <summary>
+    /// The current keep alive count on the server
+    /// </summary>
+    uint CurrentKeepAliveCount { get; }
 
-        /// <summary>
-        /// The current keep alive count on the server
-        /// </summary>
-        uint CurrentKeepAliveCount { get; }
+    /// <summary>
+    /// The current publishing enabled state
+    /// </summary>
+    bool CurrentPublishingEnabled { get; }
 
-        /// <summary>
-        /// The current publishing enabled state
-        /// </summary>
-        bool CurrentPublishingEnabled { get; }
+    /// <summary>
+    /// Current max notifications per publish
+    /// </summary>
+    uint CurrentMaxNotificationsPerPublish { get; }
 
-        /// <summary>
-        /// Current max notifications per publish
-        /// </summary>
-        uint CurrentMaxNotificationsPerPublish { get; }
+    /// <summary>
+    /// Monitored item count
+    /// </summary>
+    uint MonitoredItemCount { get; }
 
-        /// <summary>
-        /// Monitored item count
-        /// </summary>
-        uint MonitoredItemCount { get; }
+    /// <summary>
+    /// Monitored items
+    /// </summary>
+    IEnumerable<MonitoredItem> MonitoredItems { get; }
 
-        /// <summary>
-        /// Monitored items
-        /// </summary>
-        IEnumerable<MonitoredItem> MonitoredItems { get; }
+    /// <summary>
+    /// Add a monitored item to the subscription
+    /// </summary>
+    /// <param name="options"></param>
+    /// <returns></returns>
+    List<MonitoredItem> AddMonitoredItems(
+        params List<IOptionsMonitor<MonitoredItemOptions>> options);
 
-        /// <summary>
-        /// Add a monitored item to the subscription
-        /// </summary>
-        /// <param name="options"></param>
-        /// <returns></returns>
-        MonitoredItem AddMonitoredItem(
-            IOptionsMonitor<MonitoredItemOptions> options);
-
-        /// <summary>
-        /// Tells the server to refresh all conditions being
-        /// monitored by the subscription.
-        /// </summary>
-        /// <param name="ct"></param>
-        ValueTask ConditionRefreshAsync(
-            CancellationToken ct = default);
-    }
+    /// <summary>
+    /// Tells the server to refresh all conditions being
+    /// monitored by the subscription.
+    /// </summary>
+    /// <param name="ct"></param>
+    ValueTask ConditionRefreshAsync(
+        CancellationToken ct = default);
 }

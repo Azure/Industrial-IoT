@@ -3,18 +3,17 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Opc.Ua.Client
+namespace Opc.Ua.Client;
+
+/// <summary>
+/// Build options of type T
+/// </summary>
+/// <typeparam name="T"></typeparam>
+internal interface IOptionsBuilder<T>
 {
     /// <summary>
-    /// Build options of type T
+    /// Build the options
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    internal interface IOptionsBuilder<T>
-    {
-        /// <summary>
-        /// Build the options
-        /// </summary>
-        /// <returns></returns>
-        T Options { get; }
-    }
+    /// <returns></returns>
+    T Options { get; }
 }

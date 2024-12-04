@@ -3,185 +3,396 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Opc.Ua.Client
+namespace Opc.Ua.Client;
+
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Opc.Ua.Configuration;
+using Polly;
+using System;
+using System.Diagnostics;
+using System.Diagnostics.Metrics;
+
+/// <summary>
+/// Builds clients that are then used to connect sessions to a server. Theses
+/// sessions can then be used to create subscriptions and monitored items or
+/// send service requests and receive responses.
+/// </summary>
+/// <typeparam name="TPooledSessionOptions"></typeparam>
+/// <typeparam name="TSessionOptions"></typeparam>
+/// <typeparam name="TSessionCreateOptions"></typeparam>
+/// <typeparam name="TClientOptions"></typeparam>
+/// <param name="services"></param>
+public abstract class ClientBuilderBase<TPooledSessionOptions,
+    TSessionOptions, TSessionCreateOptions, TClientOptions>(
+        IServiceCollection? services = null) :
+    IClientBuilder<TPooledSessionOptions, TSessionOptions,
+        TSessionCreateOptions, TClientOptions>,
+    IClientOptionsBuilder<TPooledSessionOptions, TSessionOptions,
+        TSessionCreateOptions, TClientOptions>,
+    IApplicationNameBuilder<TPooledSessionOptions, TSessionOptions,
+        TSessionCreateOptions, TClientOptions>,
+    IApplicationUriBuilder<TPooledSessionOptions, TSessionOptions,
+        TSessionCreateOptions, TClientOptions>,
+    IProductBuilder<TPooledSessionOptions, TSessionOptions,
+        TSessionCreateOptions, TClientOptions>,
+    ICertificatePasswordProvider,
+    IOptionsBuilder<TClientOptions>
+    where TPooledSessionOptions : PooledSessionOptions, new()
+    where TSessionOptions : SessionOptions, new()
+    where TSessionCreateOptions : SessionCreateOptions, new()
+    where TClientOptions : ClientOptions, new()
 {
-    using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Options;
-    using Opc.Ua.Configuration;
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.Metrics;
+    /// <inheritdoc/>
+    public IServiceCollection Services { get; } = services
+        ?? new ServiceCollection();
+
+    /// <inheritdoc/>
+    public TClientOptions Options { get; set; } = new();
+
+    /// <inheritdoc/>
+    public IApplicationNameBuilder<TPooledSessionOptions,
+        TSessionOptions, TSessionCreateOptions, TClientOptions>
+        NewClientServer()
+    {
+        _applicationType = ApplicationType.ClientAndServer;
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IApplicationNameBuilder<TPooledSessionOptions,
+        TSessionOptions, TSessionCreateOptions, TClientOptions>
+        NewClient()
+    {
+        _applicationType = ApplicationType.Client;
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IApplicationUriBuilder<TPooledSessionOptions,
+        TSessionOptions, TSessionCreateOptions, TClientOptions>
+        WithName(string applicationName)
+    {
+        _applicationName = applicationName;
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IProductBuilder<TPooledSessionOptions,
+        TSessionOptions, TSessionCreateOptions, TClientOptions>
+        WithUri(string applicationUri)
+    {
+        _applicationUri = applicationUri;
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IClientOptionsBuilder<TPooledSessionOptions,
+        TSessionOptions, TSessionCreateOptions, TClientOptions>
+        WithProductUri(string productUri)
+    {
+        _productUri = productUri;
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IClientOptionsBuilder<TPooledSessionOptions,
+        TSessionOptions, TSessionCreateOptions, TClientOptions>
+        WithReverseConnectPort(int reverseConnectPort)
+    {
+        Options = Options with { ReverseConnectPort = reverseConnectPort };
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IClientOptionsBuilder<TPooledSessionOptions,
+        TSessionOptions, TSessionCreateOptions, TClientOptions>
+        WithMaxPooledSessions(int maxPooledSessions)
+    {
+        Options = Options with { MaxPooledSessions = maxPooledSessions };
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IClientOptionsBuilder<TPooledSessionOptions,
+        TSessionOptions, TSessionCreateOptions, TClientOptions>
+        WithLingerTimeout(TimeSpan lingerTimeout)
+    {
+        Options = Options with { LingerTimeout = lingerTimeout };
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IClientOptionsBuilder<TPooledSessionOptions,
+        TSessionOptions, TSessionCreateOptions, TClientOptions>
+        WithConnectStrategy(ResiliencePipeline connectStrategy)
+    {
+        Options = Options with { ConnectStrategy = connectStrategy };
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IClientOptionsBuilder<TPooledSessionOptions,
+        TSessionOptions, TSessionCreateOptions, TClientOptions>
+        WithConnectStrategy(Action<ResiliencePipelineBuilder> connectStrategy)
+    {
+        var builder = new ResiliencePipelineBuilder();
+        connectStrategy(builder);
+        Options = Options with { ConnectStrategy = builder.Build() };
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IClientOptionsBuilder<TPooledSessionOptions,
+        TSessionOptions, TSessionCreateOptions, TClientOptions>
+        WithSecurityOption(Action<ISecurityOptionsBuilder> configure)
+    {
+        var builder = new SecurityOptionsBuilder(Options.Security);
+        configure(builder);
+        Options = Options with { Security = builder.Options };
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IClientOptionsBuilder<TPooledSessionOptions,
+        TSessionOptions, TSessionCreateOptions, TClientOptions>
+        WithTransportOption(Action<ITransportQuotaOptionsBuilder> configure)
+    {
+        var builder = new TransportQuotaOptionsBuilder(Options.Quotas);
+        configure(builder);
+        Options = Options with { Quotas = builder.Options };
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public string GetPassword(CertificateIdentifier certificateIdentifier)
+    {
+        return Options.Security.ApplicationCertificatePassword ?? string.Empty;
+    }
 
     /// <summary>
-    /// Builds clients that are then used to connect sessions to a server. Theses
-    /// sessions can then be used to create subscriptions and monitored items or
-    /// send service requests and receive responses.
+    /// Security options builder
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <typeparam name="S"></typeparam>
-    /// <typeparam name="C"></typeparam>
-    /// <typeparam name="O"></typeparam>
-    /// <typeparam name="OBuilder"></typeparam>
-    /// <param name="services"></param>
-    public abstract class ClientBuilderBase<T, S, C, O, OBuilder>(IServiceCollection? services = null) :
-        IClientBuilder<T, S, C, O>, IApplicationConfigurationBuilder<T, S, C, O>,
-        IApplicationNameBuilder<T, S, C, O>, IApplicationUriBuilder<T, S, C, O>,
-        IProductBuilder<T, S, C, O>
-        where T : PooledSessionOptions, new()
-        where S : SessionOptions, new()
-        where C : SessionCreateOptions, new()
-        where O : ClientOptions, new()
-        where OBuilder : IClientOptionsBuilder<O>, new()
+    /// <param name="options"></param>
+    internal sealed class SecurityOptionsBuilder(SecurityOptions options) :
+        IOptionsBuilder<SecurityOptions>, ISecurityOptionsBuilder
     {
         /// <inheritdoc/>
-        public IServiceCollection Services { get; } = services ?? new ServiceCollection();
+        public SecurityOptions Options { get; set; } = options;
 
         /// <inheritdoc/>
-        public IApplicationNameBuilder<T, S, C, O> NewClientServer
+        public ISecurityOptionsBuilder SetPkiRootPath(string pkiRootPath)
         {
-            get
-            {
-                _applicationType = ApplicationType.ClientAndServer;
-                return this;
-            }
-        }
-
-        /// <inheritdoc/>
-        public IApplicationNameBuilder<T, S, C, O> NewClient
-        {
-            get
-            {
-                _applicationType = ApplicationType.Client;
-                return this;
-            }
-        }
-
-        /// <inheritdoc/>
-        public IApplicationUriBuilder<T, S, C, O> WithName(string applicationName)
-        {
-            _application = new ApplicationInstance
-            {
-                ApplicationName = applicationName,
-                ApplicationType = _applicationType
-            };
+            Options = Options with { PkiRootPath = pkiRootPath };
             return this;
         }
 
         /// <inheritdoc/>
-        public IProductBuilder<T, S, C, O> WithUri(string applicationUri)
+        public ISecurityOptionsBuilder SetApplicationCertificateSubjectName(string subjectName)
         {
-            _applicationUri = applicationUri;
+            Options = Options with { ApplicationCertificateSubjectName = subjectName };
             return this;
         }
 
         /// <inheritdoc/>
-        public IApplicationConfigurationBuilder<T, S, C, O> WithProductUri(
-            string productUri)
+        public ISecurityOptionsBuilder SetApplicationCertificatePassword(string password)
         {
-            _builder = _application!.Build(_applicationUri, productUri);
+            Options = Options with { ApplicationCertificatePassword = password };
             return this;
         }
 
         /// <inheritdoc/>
-        public IApplicationConfigurationBuilder<T, S, C, O> WithConfiguration(
-            Action<IApplicationConfigurationBuilderClientOptions> configure)
+        public ISecurityOptionsBuilder UpdateApplicationFromExistingCert(bool update)
         {
-            var builder = _builder!.AsClient();
-            configure(builder);
+            Options = Options with { UpdateApplicationFromExistingCert = update };
             return this;
         }
 
         /// <inheritdoc/>
-        public IApplicationConfigurationBuilder<T, S, C, O> WithSecuritySetting(
-            Action<IApplicationConfigurationBuilderSecurity> configure)
+        public ISecurityOptionsBuilder AddAppCertToTrustedStore(bool add)
         {
-            var builder = _builder!.AsClient();
-            configure(builder);
+            Options = Options with { AddAppCertToTrustedStore = add };
             return this;
         }
 
         /// <inheritdoc/>
-        public IApplicationConfigurationBuilder<T, S, C, O> WithTransportQuota(
-            Action<IApplicationConfigurationBuilderTransportQuotas> configure)
+        public ISecurityOptionsBuilder SetHostName(string? hostName)
         {
-            configure(_builder!);
+            Options = Options with { HostName = hostName };
             return this;
         }
 
         /// <inheritdoc/>
-        public IApplicationConfigurationBuilder<T, S, C, O> WithOption(
-            Action<IClientOptionsBuilder<O>> configure)
+        public ISecurityOptionsBuilder AutoAcceptUntrustedCertificates(bool autoAccept)
         {
-            configure(_optionsBuilder);
+            Options = Options with { AutoAcceptUntrustedCertificates = autoAccept };
             return this;
         }
 
         /// <inheritdoc/>
-        public ISessionBuilder<T, S, C> Build()
+        public ISecurityOptionsBuilder SetMinimumCertificateKeySize(ushort keySize)
         {
-            // Resolve missing services from DI
-            var provider = Services.BuildServiceProvider();
-
-            var options = provider.GetService<IOptions<ClientOptions>>();
-            var observability = provider.GetService<IObservability>();
-            if (observability == null)
-            {
-                var loggerFactory = provider.GetService<ILoggerFactory>();
-                if (loggerFactory == null)
-                {
-                    Services.AddLogging(builder => builder.AddConsole());
-                    provider = Services.BuildServiceProvider();
-                    loggerFactory = provider.GetRequiredService<ILoggerFactory>();
-                }
-
-                var meterFactory = provider.GetService<IMeterFactory>();
-                var timeProvider = provider.GetService<TimeProvider>();
-                var activitySource = provider.GetService<ActivitySource>();
-
-                observability = new Observability(loggerFactory,
-                     timeProvider ?? TimeProvider.System,
-                     meterFactory ?? new Meters(), activitySource);
-            }
-            return Build(provider, ((IOptionsBuilder<O>)_optionsBuilder).Options,
-                _application!.ApplicationConfiguration, observability);
+            Options = Options with { MinimumCertificateKeySize = keySize };
+            return this;
         }
 
-        /// <summary>
-        /// Create
-        /// </summary>
-        /// <param name="provider"></param>
-        /// <param name="options"></param>
-        /// <param name="applicationConfiguration"></param>
-        /// <param name="observability"></param>
-        /// <returns></returns>
-        protected abstract ISessionBuilder<T, S, C> Build(ServiceProvider provider, O options,
-            ApplicationConfiguration applicationConfiguration, IObservability observability);
-
         /// <inheritdoc/>
-        private sealed record class Observability(ILoggerFactory LoggerFactory,
-             TimeProvider TimeProvider, IMeterFactory MeterFactory,
-             ActivitySource? ActivitySource) : IObservability;
-
-        /// <inheritdoc/>
-        private sealed class Meters : IMeterFactory
+        public ISecurityOptionsBuilder RejectSha1SignedCertificates(bool reject)
         {
-            /// <inheritdoc/>
-            public Meter Create(MeterOptions options)
-            {
-                return new Meter(options);
-            }
-
-            /// <inheritdoc/>
-            public void Dispose()
-            {
-            }
+            Options = Options with { RejectSha1SignedCertificates = reject };
+            return this;
         }
 
-        private ApplicationType _applicationType;
-        private string? _applicationUri;
-        private ApplicationInstance? _application;
-        private IApplicationConfigurationBuilderTypes? _builder;
-        private readonly OBuilder _optionsBuilder = new();
+        /// <inheritdoc/>
+        public ISecurityOptionsBuilder RejectUnknownRevocationStatus(bool reject)
+        {
+            Options = Options with { RejectUnknownRevocationStatus = reject };
+            return this;
+        }
     }
+
+    /// <summary>
+    /// Transport options builder
+    /// </summary>
+    internal sealed class TransportQuotaOptionsBuilder(TransportQuotaOptions options) :
+        IOptionsBuilder<TransportQuotaOptions>, ITransportQuotaOptionsBuilder
+    {
+        /// <inheritdoc/>
+        public TransportQuotaOptions Options { get; set; } = options;
+
+        /// <inheritdoc/>
+        public ITransportQuotaOptionsBuilder SetMaxArrayLength(int maxArrayLength)
+        {
+            Options = Options with { MaxArrayLength = maxArrayLength };
+            return this;
+        }
+
+        /// <inheritdoc/>
+        public ITransportQuotaOptionsBuilder SetMaxByteStringLength(int maxByteStringLength)
+        {
+            Options = Options with { MaxByteStringLength = maxByteStringLength };
+            return this;
+        }
+
+        /// <inheritdoc/>
+        public ITransportQuotaOptionsBuilder SetMaxMessageSize(int maxMessageSize)
+        {
+            Options = Options with { MaxMessageSize = maxMessageSize };
+            return this;
+        }
+
+        /// <inheritdoc/>
+        public ITransportQuotaOptionsBuilder SetMaxStringLength(int maxStringLength)
+        {
+            Options = Options with { MaxStringLength = maxStringLength };
+            return this;
+        }
+
+        /// <inheritdoc/>
+        public ITransportQuotaOptionsBuilder SetMaxBufferSize(int maxBufferSize)
+        {
+            Options = Options with { MaxBufferSize = maxBufferSize };
+            return this;
+        }
+
+        /// <inheritdoc/>
+        public ITransportQuotaOptionsBuilder SetOperationTimeout(TimeSpan operationTimeout)
+        {
+            Options = Options with { OperationTimeout = operationTimeout };
+            return this;
+        }
+
+        /// <inheritdoc/>
+        public ITransportQuotaOptionsBuilder SetChannelLifetime(TimeSpan channelLifetime)
+        {
+            Options = Options with { ChannelLifetime = channelLifetime };
+            return this;
+        }
+
+        /// <inheritdoc/>
+        public ITransportQuotaOptionsBuilder SetSecurityTokenLifetime(TimeSpan securityTokenLifetime)
+        {
+            Options = Options with { SecurityTokenLifetime = securityTokenLifetime };
+            return this;
+        }
+    }
+
+    /// <inheritdoc/>
+    private sealed record class Observability(ILoggerFactory LoggerFactory,
+         TimeProvider TimeProvider, IMeterFactory MeterFactory,
+         ActivitySource? ActivitySource) : IObservability;
+
+    /// <inheritdoc/>
+    private sealed class Meters : IMeterFactory
+    {
+        /// <inheritdoc/>
+        public Meter Create(MeterOptions options)
+        {
+            return new Meter(options);
+        }
+
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+        }
+    }
+
+    /// <inheritdoc/>
+    public ISessionBuilder<TPooledSessionOptions, TSessionOptions,
+        TSessionCreateOptions>
+        Build()
+    {
+        // Resolve missing services from DI
+        var provider = Services.BuildServiceProvider();
+
+        var options = provider.GetService<IPostConfigureOptions<ClientOptions>>();
+        options?.PostConfigure(null, Options);
+
+        var observability = provider.GetService<IObservability>();
+        if (observability == null)
+        {
+            var loggerFactory = provider.GetService<ILoggerFactory>();
+            if (loggerFactory == null)
+            {
+                Services.AddLogging(builder => builder.AddConsole());
+                provider = Services.BuildServiceProvider();
+                loggerFactory = provider.GetRequiredService<ILoggerFactory>();
+            }
+
+            var meterFactory = provider.GetService<IMeterFactory>();
+            var timeProvider = provider.GetService<TimeProvider>();
+            var activitySource = provider.GetService<ActivitySource>();
+
+            observability = new Observability(loggerFactory,
+                 timeProvider ?? TimeProvider.System,
+                 meterFactory ?? new Meters(), activitySource);
+        }
+
+        return Build(provider, new ApplicationInstance
+        {
+            ApplicationType = _applicationType,
+            ApplicationName = _applicationName
+        }, _applicationUri!, _productUri!, Options, observability);
+    }
+
+    /// <summary>
+    /// Create session builder
+    /// </summary>
+    /// <param name="provider"></param>
+    /// <param name="application"></param>
+    /// <param name="applicationUri"></param>
+    /// <param name="productUri"></param>
+    /// <param name="options"></param>
+    /// <param name="observability"></param>
+    /// <returns></returns>
+    protected abstract ISessionBuilder<TPooledSessionOptions, TSessionOptions,
+        TSessionCreateOptions>
+        Build(ServiceProvider provider, ApplicationInstance application, string applicationUri,
+            string productUri, TClientOptions options, IObservability observability);
+
+    private ApplicationType _applicationType;
+    private string? _applicationUri;
+    private string? _productUri;
+    private string? _applicationName;
 }
