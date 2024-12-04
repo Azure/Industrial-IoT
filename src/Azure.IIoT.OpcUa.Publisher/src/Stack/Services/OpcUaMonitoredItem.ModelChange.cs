@@ -55,7 +55,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            protected override void Dispose(bool disposing)
+            protected override async ValueTask DisposeAsync(bool disposing)
             {
                 // Cleanup
                 var browser = _browser;
@@ -63,14 +63,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     _disposed = true;
                     _browser = null;
-                    if (browser != null)
-                    {
-                        browser.OnReferenceChange -= OnReferenceChange;
-                        browser.OnNodeChange -= OnNodeChange;
-                        browser.CloseAsync().AsTask().GetAwaiter().GetResult();
-                    }
+
                 }
-                base.Dispose(disposing);
+                if (browser != null)
+                {
+                    browser.OnReferenceChange -= OnReferenceChange;
+                    browser.OnNodeChange -= OnNodeChange;
+                    await browser.CloseAsync().ConfigureAwait(false);
+                }
+                await base.DisposeAsync(disposing).ConfigureAwait(false);
             }
 
             /// <inheritdoc/>

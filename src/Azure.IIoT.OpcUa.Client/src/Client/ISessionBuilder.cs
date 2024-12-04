@@ -99,7 +99,7 @@ public interface IUnpooledSessionBuilder<T>
     /// </summary>
     /// <param name="ct"></param>
     /// <returns></returns>
-    ValueTask<ISession> CreateAsync(
+    ValueTask<ISessionHandle> CreateAsync(
         CancellationToken ct = default);
 
     /// <summary>
@@ -125,7 +125,7 @@ public interface IPooledSessionBuilder<T, S>
     /// </summary>
     /// <param name="ct"></param>
     /// <returns></returns>
-    ValueTask<PooledSession> CreateAsync(
+    ValueTask<ISessionHandle> CreateAsync(
         CancellationToken ct = default);
 
     /// <summary>

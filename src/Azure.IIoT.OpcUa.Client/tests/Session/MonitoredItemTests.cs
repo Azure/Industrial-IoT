@@ -6,6 +6,7 @@
 namespace Opc.Ua.Client;
 
 using System;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -314,7 +315,7 @@ public sealed class MonitoredItemTests
     }
 
     [Fact]
-    public void DisposeShouldCallRemoveItemOnSubscription()
+    public async Task DisposeShouldCallRemoveItemOnSubscriptionAsync()
     {
         // Act
         _options.Configure(o => o with
@@ -323,14 +324,14 @@ public sealed class MonitoredItemTests
         });
         var sut = new TestMonitoredItem(_mockContext.Object,
           _options, _mockLogger.Object);
-        sut.Dispose();
+        await sut.DisposeAsync();
 
         // Assert
         _mockContext.Verify(s => s.RemoveItem(sut), Times.Once);
     }
 
     [Fact]
-    public void DisposeCanBeCalledTwiceWithoutException()
+    public async Task DisposeCanBeCalledTwiceWithoutExceptionAsync()
     {
         // Act
         _options.Configure(o => o with
@@ -339,8 +340,8 @@ public sealed class MonitoredItemTests
         });
         var sut = new TestMonitoredItem(_mockContext.Object,
           _options, _mockLogger.Object);
-        sut.Dispose();
-        sut.Dispose();
+        await sut.DisposeAsync();
+        await sut.DisposeAsync();
 
         // Assert
         _mockContext.Verify(s => s.RemoveItem(sut), Times.Once);

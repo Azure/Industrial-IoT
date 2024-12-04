@@ -191,7 +191,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        protected override ValueTask DisposeAsync(bool disposing)
+        protected override async ValueTask DisposeAsync(bool disposing)
         {
             if (disposing && !_disposed)
             {
@@ -207,7 +207,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         // When the entire session is disposed and recreated we must
                         // still dispose all monitored items that are remaining
                         //
-                        items.ForEach(item => item.Dispose());
+                        foreach (var item in items)
+                        {
+                            await item.DisposeAsync().ConfigureAwait(false);
+                        }
                         Debug.Assert(!CurrentlyMonitored.Any());
 
                         _logger.LogInformation(
@@ -235,7 +238,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _meter.Dispose();
                 }
             }
-            return base.DisposeAsync(disposing);
+            await base.DisposeAsync(disposing).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -638,7 +641,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 finally
                 {
-                    theDesiredUpdate.Dispose();
+                    await theDesiredUpdate.DisposeAsync().ConfigureAwait(false);
                 }
             }
 
@@ -647,7 +650,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 try
                 {
-                    toRemove.Dispose();
+                    await toRemove.DisposeAsync().ConfigureAwait(false);
                     _logger.LogDebug(
                         "Trying to remove monitored item '{Item}' from {Subscription}...",
                         toRemove, this);
@@ -854,8 +857,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var dispose = previouslyMonitored
                 .Except(set)
                 .ToList();
-            dispose.ForEach(m => m.Dispose());
-
+            foreach (var item in dispose)
+            {
+                await item.DisposeAsync().ConfigureAwait(false);
+            }
             // Notify semantic change now that we have update the monitored items
             foreach (var owner in metadataChanged)
             {

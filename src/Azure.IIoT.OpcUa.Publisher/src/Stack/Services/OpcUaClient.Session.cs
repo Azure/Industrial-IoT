@@ -119,16 +119,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            protected override void Dispose(bool disposing)
+            protected override async ValueTask DisposeAsync(bool disposing)
             {
-                base.Dispose(disposing);
+                await base.DisposeAsync(disposing).ConfigureAwait(false);
                 if (disposing && !_disposed)
                 {
                     _disposed = true;
                     CloseChannel(); // Ensure channel is closed
                     try
                     {
-                        _cts.Cancel();
+                        await _cts.CancelAsync().ConfigureAwait(false);
                         _logger.LogDebug("{Session}: Session disposed.", this);
                     }
                     finally

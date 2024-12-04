@@ -12,12 +12,13 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using System.Threading.Tasks;
 
 /// <summary>
 /// A monitored item that can be extended to add extra
 /// information as context in the subscription.
 /// </summary>
-public abstract class MonitoredItem : IDisposable
+public abstract class MonitoredItem : IAsyncDisposable
 {
     /// <summary>
     /// The identifier assigned by the server.
@@ -94,10 +95,10 @@ public abstract class MonitoredItem : IDisposable
     }
 
     /// <inheritdoc/>
-    public void Dispose()
+    public ValueTask DisposeAsync()
     {
-        Dispose(disposing: true);
         GC.SuppressFinalize(this);
+        return DisposeAsync(disposing: true);
     }
 
     /// <inheritdoc/>
@@ -119,7 +120,7 @@ public abstract class MonitoredItem : IDisposable
     /// Dispose monitored item
     /// </summary>
     /// <param name="disposing"></param>
-    protected virtual void Dispose(bool disposing)
+    protected virtual ValueTask DisposeAsync(bool disposing)
     {
         if (disposing && !_disposedValue)
         {
@@ -135,6 +136,7 @@ public abstract class MonitoredItem : IDisposable
             _changeTracking?.Dispose();
             _disposedValue = true;
         }
+        return default;
     }
 
     /// <summary>

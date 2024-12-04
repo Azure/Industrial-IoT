@@ -24,7 +24,7 @@ using System.Threading.Tasks;
 /// </summary>
 public abstract class SessionBase : SessionServices, ISubscriptionContext,
     IComplexTypeContext, INodeCacheContext, ISubscriptionManagerContext,
-    ISession, IConnection
+    ISession, IConnection, IAsyncDisposable
 {
     /// <inheritdoc/>
     public IUserIdentity Identity { get; private set; }
@@ -191,6 +191,13 @@ public abstract class SessionBase : SessionServices, ISubscriptionContext,
             UserIdentity = null
         };
         _sessionWorker = SessionWorkerAsync(_cts.Token);
+    }
+
+    /// <inheritdoc/>
+    public ValueTask DisposeAsync()
+    {
+        GC.SuppressFinalize(this);
+        return DisposeAsync(true);
     }
 
     /// <inheritdoc/>
@@ -1118,16 +1125,16 @@ public abstract class SessionBase : SessionServices, ISubscriptionContext,
     public virtual async ValueTask<ServiceResult> CloseAsync(bool closeChannel,
         bool deleteSubscriptions, CancellationToken ct = default)
     {
+        // check if already closed.
+        if (Disposed)
+        {
+            return ServiceResult.Good;
+        }
+
         var result = ServiceResult.Good;
         await _connecting.WaitAsync(ct).ConfigureAwait(false);
         try
         {
-            // check if already closed.
-            if (Disposed)
-            {
-                return ServiceResult.Good;
-            }
-
             _subscriptions.Pause();
             // stop the keep alive timer.
             StopKeepAliveTimer();
@@ -1212,42 +1219,54 @@ public abstract class SessionBase : SessionServices, ISubscriptionContext,
     protected abstract void TriggerReconnect(bool recreateSession);
 
     /// <summary>
-    /// Closes the session and the underlying channel.
+    /// Dispose the session
     /// </summary>
     /// <param name="disposing"></param>
-    protected override void Dispose(bool disposing)
+    /// <returns></returns>
+    protected virtual async ValueTask DisposeAsync(bool disposing)
     {
-        if (disposing)
+        if (_disposeAsyncCalled)
+        {
+            return;
+        }
+        _disposeAsyncCalled = true;
+        if (disposing && !Disposed)
         {
             try
             {
-                _cts.Cancel();
+                await _cts.CancelAsync().ConfigureAwait(false);
                 StopKeepAliveTimer();
-                _subscriptions.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                await _subscriptions.DisposeAsync().ConfigureAwait(false);
+
+                // Should not throw
+                TriggerWorker();
+                await _sessionWorker.ConfigureAwait(false);
+
+                // Will not do anything if already disposed
+                await CloseAsync(true, true, default).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "{Session}: Exception during dispose", this);
             }
+
+            _nodeCache.Clear();
+            _keepAliveTimer.Dispose();
+            _cts.Dispose();
+            _meter.Dispose();
         }
-
         base.Dispose(disposing);
+    }
 
-        if (disposing)
+    /// <summary>
+    /// Closes the session and the underlying channel.
+    /// </summary>
+    /// <param name="disposing"></param>
+    protected sealed override void Dispose(bool disposing)
+    {
+        if (!_disposeAsyncCalled) // Dispose async which will call base dispose
         {
-            try
-            {
-                // Should not throw
-                TriggerWorker();
-                _sessionWorker.GetAwaiter().GetResult();
-            }
-            finally
-            {
-                _nodeCache.Clear();
-                _keepAliveTimer.Dispose();
-                _cts.Dispose();
-                _meter.Dispose();
-            }
+            DisposeAsync(true).AsTask().GetAwaiter().GetResult();
         }
     }
 
@@ -2627,6 +2646,7 @@ public abstract class SessionBase : SessionServices, ISubscriptionContext,
     private Task<ComplexTypeSystem>? _complexTypeSystem;
     private int _namespaceTableChanges;
     private int _serverTableChanges;
+    private bool _disposeAsyncCalled;
     private readonly Task _sessionWorker;
     private readonly Nito.AsyncEx.AsyncAutoResetEvent _trigger = new();
     private readonly ReverseConnectManager? _reverseConnect;

@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Collections.Generic;
     using System.Runtime.Serialization;
     using System.Threading;
+    using System.Threading.Tasks;
 
     internal abstract partial class OpcUaMonitoredItem
     {
@@ -56,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            protected override void Dispose(bool disposing)
+            protected override async ValueTask DisposeAsync(bool disposing)
             {
                 // Cleanup
                 var sampler = _sampler;
@@ -65,8 +66,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _disposed = true;
                     _sampler = null;
                 }
-                sampler?.DisposeAsync().AsTask().GetAwaiter().GetResult();
-                base.Dispose(disposing);
+                if (sampler != null)
+                {
+                    await sampler.DisposeAsync().ConfigureAwait(false);
+                }
+                await base.DisposeAsync(disposing).ConfigureAwait(false);
             }
 
             /// <inheritdoc/>

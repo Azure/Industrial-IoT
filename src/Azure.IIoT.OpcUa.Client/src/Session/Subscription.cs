@@ -276,7 +276,7 @@ public abstract class Subscription : MessageProcessor,
 
                 foreach (var monitoredItem in MonitoredItems)
                 {
-                    monitoredItem.Dispose();
+                    await monitoredItem.DisposeAsync();
                 }
             }
             finally

@@ -72,7 +72,7 @@ public class ClientBuilder(IServiceCollection? services = null) : ClientBuilderB
     /// <param name="provider"></param>
     /// <param name="application"></param>
     internal class ClientSessionBuilder(ServiceProvider provider,
-        ClientApplicationBase application) :
+        SessionManagerBase application) :
         SessionBuilderBase<PooledSessionOptions, SessionOptions, SessionCreateOptions,
             SessionCreateOptionsBuilder<SessionCreateOptions>>(application,
             new PooledSessionBuilderBase<PooledSessionOptions, SessionOptions,
@@ -106,7 +106,7 @@ public class ClientBuilder(IServiceCollection? services = null) : ClientBuilderB
     /// <param name="observability"></param>
     internal class ClientApplication(ApplicationInstance instance, string applicationUri,
         string productUri, ClientOptions options, IObservability observability) :
-        ClientApplicationBase(instance, applicationUri, productUri, options, observability)
+        SessionManagerBase(instance, applicationUri, productUri, options, observability)
     {
         /// <summary>
         /// Gets or sets the data change callback.

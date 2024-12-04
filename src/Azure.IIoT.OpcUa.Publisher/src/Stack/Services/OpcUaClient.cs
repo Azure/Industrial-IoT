@@ -393,7 +393,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <returns></returns>
         /// <exception cref="ConnectionException"></exception>
         /// <exception cref="TimeoutException"></exception>
-        internal async Task<ISessionHandle> AcquireAsync(int? connectTimeout,
+        internal async Task<Publisher.Stack.ISessionHandle> AcquireAsync(int? connectTimeout,
             int? serviceCallTimeout, CancellationToken cancellationToken)
         {
             var timeout = GetConnectCallTimeout(connectTimeout, serviceCallTimeout);

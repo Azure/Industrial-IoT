@@ -20,7 +20,7 @@ using System.Threading.Tasks;
 /// <param name="application"></param>
 /// <param name="pooledSessionBuilder"></param>
 public class SessionBuilderBase<TPooledSessionOptions, TSessionOptions,
-    TSessionCreateOptions, TOptionsBuilder>(ClientApplicationBase application,
+    TSessionCreateOptions, TOptionsBuilder>(SessionManagerBase application,
     IPooledSessionBuilder<TPooledSessionOptions, TSessionOptions> pooledSessionBuilder) :
     ISessionBuilder<TPooledSessionOptions, TSessionOptions, TSessionCreateOptions>,
     IOptionsBuilder<EndpointDescription>
@@ -110,7 +110,7 @@ public class SessionBuilderBase<TPooledSessionOptions, TSessionOptions,
     }
 
     /// <inheritdoc/>
-    public ValueTask<ISession> CreateAsync(CancellationToken ct = default)
+    public ValueTask<ISessionHandle> CreateAsync(CancellationToken ct = default)
     {
         return application.ConnectAsync(Options,
             ((IOptionsBuilder<TSessionCreateOptions>)_optionsBuilder).Options,
@@ -146,7 +146,7 @@ public class SessionBuilderBase<TPooledSessionOptions, TSessionOptions,
 /// <typeparam name="SBuilder"></typeparam>
 /// <param name="application"></param>
 public class PooledSessionBuilderBase<TPooledSessionOptions,
-    TSessionOptions, SBuilder>(IConnectionManager application) :
+    TSessionOptions, SBuilder>(ISessionManager application) :
     IPooledSessionBuilder<TPooledSessionOptions, TSessionOptions>,
     IOptionsBuilder<TPooledSessionOptions>
     where TPooledSessionOptions : PooledSessionOptions, new()
@@ -157,7 +157,7 @@ public class PooledSessionBuilderBase<TPooledSessionOptions,
     public TPooledSessionOptions Options { get; set; } = new();
 
     /// <inheritdoc/>
-    public ValueTask<PooledSession> CreateAsync(CancellationToken ct = default)
+    public ValueTask<ISessionHandle> CreateAsync(CancellationToken ct = default)
     {
         Debug.Assert(Options.Endpoint.EndpointUrl != null);
         return application.GetOrConnectAsync(Options, ct);

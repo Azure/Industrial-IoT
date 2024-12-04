@@ -312,7 +312,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public async Task<ISessionHandle> AcquireSessionAsync(ConnectionModel connection,
+        public async Task<Publisher.Stack.ISessionHandle> AcquireSessionAsync(ConnectionModel connection,
             RequestHeaderModel? header, CancellationToken ct)
         {
             connection = UpdateConnectionFromHeader(connection, header);

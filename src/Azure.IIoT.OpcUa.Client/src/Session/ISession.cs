@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 /// <summary>
 /// Session interface
 /// </summary>
-public interface ISession : ISessionServiceSets, IDisposable
+public interface ISession : ISessionServiceSets
 {
     /// <summary>
     /// Connected?
@@ -72,16 +72,5 @@ public interface ISession : ISessionServiceSets, IDisposable
     /// <param name="ct"></param>
     /// <returns></returns>
     ValueTask<ComplexTypeSystem?> GetComplexTypeSystemAsync(
-        CancellationToken ct = default);
-
-    /// <summary>
-    /// Close session
-    /// </summary>
-    /// <param name="closeChannel"></param>
-    /// <param name="deleteSubscriptions"></param>
-    /// <param name="ct"></param>
-    /// <returns></returns>
-    ValueTask<ServiceResult> CloseAsync(bool closeChannel = true,
-        bool deleteSubscriptions = true,
         CancellationToken ct = default);
 }

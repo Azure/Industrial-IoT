@@ -45,8 +45,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// <summary>
     /// Monitored item
     /// </summary>
-    internal abstract partial class OpcUaMonitoredItem : MonitoredItem,
-        IDisposable
+    internal abstract partial class OpcUaMonitoredItem : MonitoredItem
     {
         /// <summary>
         /// A display name for the monitored item.
@@ -383,13 +382,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        protected override void Dispose(bool disposing)
+        protected override ValueTask DisposeAsync(bool disposing)
         {
             if (disposing)
             {
                 Disposed = true;
             }
-            base.Dispose(disposing);
+            return base.DisposeAsync(disposing);
         }
 
         /// <summary>

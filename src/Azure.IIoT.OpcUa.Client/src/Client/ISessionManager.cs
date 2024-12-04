@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 /// <summary>
 /// Manages connecting sessions
 /// </summary>
-public interface IConnectionManager : IDisposable
+public interface ISessionManager : IDisposable
 {
     /// <summary>
     /// Connect a session or get a session from the session pool. The session
@@ -25,7 +25,7 @@ public interface IConnectionManager : IDisposable
     /// <param name="connection"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    ValueTask<PooledSession> GetOrConnectAsync(PooledSessionOptions connection,
+    ValueTask<ISessionHandle> GetOrConnectAsync(PooledSessionOptions connection,
         CancellationToken ct = default);
 
     /// <summary>
@@ -38,7 +38,7 @@ public interface IConnectionManager : IDisposable
     /// <param name="useReverseConnect"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    ValueTask<ISession> ConnectAsync(EndpointDescription endpoint,
+    ValueTask<ISessionHandle> ConnectAsync(EndpointDescription endpoint,
         SessionCreateOptions? options = null, bool useReverseConnect = false,
         CancellationToken ct = default);
 

@@ -434,7 +434,7 @@ public sealed class SubscriptionTests
 
         // Act
         sut.SubscriptionStateChanged.Reset();
-        monitoredItem[0].Dispose();
+        await monitoredItem[0].DisposeAsync();
         await sut.SubscriptionStateChanged.WaitAsync();
 
         // Assert
@@ -479,7 +479,7 @@ public sealed class SubscriptionTests
 
         // Act
         sut.SubscriptionStateChanged.Reset();
-        monitoredItem[0].Dispose();
+        await monitoredItem[0].DisposeAsync();
         await sut.SubscriptionStateChanged.WaitAsync();
 
         // Assert

@@ -5,457 +5,303 @@
 
 namespace Opc.Ua.Client;
 
-using BitFaster.Caching;
-using BitFaster.Caching.Lfu;
 using Microsoft.Extensions.Logging;
 using Opc.Ua;
 using Opc.Ua.Configuration;
+using Opc.Ua.Security.Certificates;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Threading;
+using System.Net;
+using System.Net.NetworkInformation;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 
 /// <summary>
-/// Client manager
+/// The basis of a client or server application providing services like
+/// managing the application's private key infrastructure and certificate
+/// stores.
 /// </summary>
-public abstract class ClientApplicationBase : ApplicationBase, IConnectionManager
+public abstract class ClientApplicationBase : ApplicationBase, IDisposable,
+    ICertificatePasswordProvider
 {
     /// <summary>
-    /// Reverse connect manager
-    /// </summary>
-    public ReverseConnectManager ReverseConnectManager { get; }
-
-    /// <summary>
-    /// Create connection manager
+    /// Create application
     /// </summary>
     /// <param name="instance"></param>
     /// <param name="applicationUri"></param>
     /// <param name="productUri"></param>
     /// <param name="options"></param>
     /// <param name="observability"></param>
+    /// <exception cref="ArgumentException"></exception>
     protected ClientApplicationBase(ApplicationInstance instance, string applicationUri,
-        string productUri, ClientOptions options, IObservability observability) :
-        base(instance, applicationUri, productUri, options, observability)
+        string productUri, ClientOptions options, IObservability observability)
+        : base(observability)
     {
-        _options = options;
-        _observability = observability;
         _logger = observability.LoggerFactory.CreateLogger<ClientApplicationBase>();
-
-        // Connection pooling of managed sessions
-        _pool = new ConcurrentLfuBuilder<PooledSessionOptions, ISession>()
-            .WithAtomicGetOrAdd()
-            .WithKeyComparer(new ClientOptionsComparer())
-            .WithCapacity(options.MaxPooledSessions)
-            .WithExpireAfterAccess(options.LingerTimeout)
-            .AsAsyncCache()
-            .AsScopedCache()
-            .Build();
-
-        ReverseConnectManager = new ReverseConnectManager(observability.LoggerFactory);
-        _reverseConnectStartException = new Lazy<Exception?>(
-            StartReverseConnectManager, isThreadSafe: true);
-        InitializeMetrics();
+        _options = options;
+        _timeProvider = observability.TimeProvider;
+        _application = BuildAsync(instance, applicationUri, productUri);
     }
 
     /// <inheritdoc/>
-    public async ValueTask<ServiceResult> TestAsync(EndpointDescription endpoint,
-        bool useReverseConnect = false, CancellationToken ct = default)
-    {
-        try
-        {
-            using var session = await ConnectCoreAsync(endpoint,
-                new SessionCreateOptions { SessionName = "Test" + Guid.NewGuid() },
-                useReverseConnect, ct).ConfigureAwait(false);
-            try
-            {
-                await session.CloseAsync(true, true, ct).ConfigureAwait(false);
-            }
-            catch
-            {
-                // We close as a courtesy to the server
-            }
-            return ServiceResult.Good;
-        }
-        catch (Exception ex)
-        {
-            return new ServiceResult(ex);
-        }
-    }
-
-    /// <inheritdoc/>
-    public ValueTask<PooledSession> GetOrConnectAsync(PooledSessionOptions connection,
-        CancellationToken ct)
-    {
-        // Lazy start connect manager
-        var reverseConnect = connection.UseReverseConnect;
-        if (reverseConnect && _reverseConnectStartException.Value != null)
-        {
-            throw _reverseConnectStartException.Value;
-        }
-
-        if (_pool.ScopedTryGet(connection, out var lifetime))
-        {
-            return ValueTask.FromResult(new PooledSession(lifetime));
-        }
-
-        return GetOrConnectAsyncCore(connection, ct);
-        async ValueTask<PooledSession> GetOrConnectAsyncCore(PooledSessionOptions connection,
-            CancellationToken ct)
-        {
-            return new PooledSession(await _pool.ScopedGetOrAddAsync(connection,
-                ConnectAsync, (this, ct)).ConfigureAwait(false));
-            static async Task<Scoped<ISession>> ConnectAsync(PooledSessionOptions key,
-                (ClientApplicationBase client, CancellationToken ct) context)
-            {
-                var session = await context.client.ConnectAsync(key.Endpoint,
-                    new SessionCreateOptions
-                    {
-                        SessionName =
-                            key.SessionOptions?.SessionName ?? "Default",
-                        Identity =
-                            key.User,
-                        KeepAliveInterval =
-                            key.SessionOptions?.KeepAliveInterval,
-                        CheckDomain =
-                            key.SessionOptions?.CheckDomain ?? false,
-                        DisableComplexTypeLoading =
-                            key.SessionOptions?.DisableComplexTypeLoading ?? false,
-                        DisableComplexTypePreloading =
-                            key.SessionOptions?.DisableComplexTypePreloading ?? false,
-                        PreferredLocales =
-                            key.SessionOptions?.PreferredLocales,
-                        SessionTimeout =
-                            key.SessionOptions?.SessionTimeout,
-                        ReconnectStrategy =
-                            context.client._options.ConnectStrategy
-                    }, key.UseReverseConnect, context.ct).ConfigureAwait(false);
-                return new Scoped<ISession>(session);
-            }
-        }
-    }
-
-    /// <inheritdoc/>
-    public virtual async ValueTask<ISession> ConnectAsync(EndpointDescription endpoint,
-        SessionCreateOptions? options = null, bool useReverseConnect = false,
-        CancellationToken ct = default)
-    {
-        if (_options.ConnectStrategy != null)
-        {
-            return await _options.ConnectStrategy.ExecuteAsync(
-                (state, ct) => ConnectCoreAsync(
-                    state.endpoint, state.options, state.useReverseConnect, ct),
-                (endpoint, options, useReverseConnect), ct).ConfigureAwait(false);
-        }
-        return await ConnectCoreAsync(endpoint, options, useReverseConnect,
-            ct).ConfigureAwait(false);
-    }
+    public abstract string GetPassword(CertificateIdentifier certificateIdentifier);
 
     /// <inheritdoc/>
     protected override void Dispose(bool disposing)
     {
-        if (!_disposed && disposing)
+        if (disposing)
         {
-            _logger.LogInformation("Stopping all {Count} sessions...", _pool.Count);
-            foreach (var client in _pool)
-            {
-                try
-                {
-                    // await client.Value.Dispose(); // TODO
-                }
-                catch (OperationCanceledException) { }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Unexpected exception disposing client {Name}",
-                        client.Key);
-                }
-            }
-            _pool.Clear();
-            _logger.LogInformation("Stopped all sessions, current number of clients is 0");
-            ReverseConnectManager.Dispose();
-            _disposed = true;
+            _application.GetAwaiter().GetResult();
         }
         base.Dispose(disposing);
     }
 
     /// <summary>
-    /// Create session
+    /// Get application configuration
     /// </summary>
-    /// <param name="configuration"></param>
-    /// <param name="endpoint"></param>
-    /// <param name="options"></param>
-    /// <param name="observability"></param>
     /// <returns></returns>
-    protected abstract Session CreateSession(ApplicationConfiguration configuration,
-        ConfiguredEndpoint endpoint, SessionCreateOptions options, IObservability observability);
-
-    /// <summary>
-    /// Connect a session without resiliency applied
-    /// </summary>
-    /// <param name="endpoint"></param>
-    /// <param name="options"></param>
-    /// <param name="useReverseConnect"></param>
-    /// <param name="ct"></param>
-    /// <returns></returns>
-    internal async ValueTask<ISession> ConnectCoreAsync(EndpointDescription endpoint,
-        SessionCreateOptions? options, bool useReverseConnect, CancellationToken ct)
+    protected override Task<ApplicationConfiguration> GetConfigurationAsync()
     {
-        ITransportWaitingConnection? connection = null;
-
-        options ??= new SessionCreateOptions { SessionName = Guid.NewGuid().ToString() };
-        if (useReverseConnect)
-        {
-            connection = await ReverseConnectManager.WaitForConnectionAsync(
-                new Uri(endpoint.EndpointUrl), null, ct).ConfigureAwait(false);
-            options = options with { Connection = connection };
-        }
-
-        var configuration = await GetConfigurationAsync().ConfigureAwait(false);
-        var configuredEndpoint = await SelectEndpointAsync(configuration, endpoint,
-            null, connection, ct).ConfigureAwait(false);
-        var session = CreateSession(configuration, configuredEndpoint, options, _observability);
-        try
-        {
-            await session.OpenAsync(ct).ConfigureAwait(false);
-        }
-        catch
-        {
-            session.Dispose();
-            throw;
-        }
-        return session;
+        return _application;
     }
 
     /// <summary>
-    /// Select the endpoint to use
+    /// Build application instance
     /// </summary>
-    /// <param name="configuration"></param>
-    /// <param name="endpoint"></param>
-    /// <param name="discoveryUrl"></param>
-    /// <param name="connection"></param>
-    /// <param name="ct"></param>
+    /// <param name="appInstance"></param>
+    /// <param name="applicationUri"></param>
+    /// <param name="productUri"></param>
     /// <returns></returns>
     /// <exception cref="ServiceResultException"></exception>
-    internal async Task<ConfiguredEndpoint> SelectEndpointAsync(ApplicationConfiguration configuration,
-        EndpointDescription endpoint, Uri? discoveryUrl, ITransportWaitingConnection? connection,
-        CancellationToken ct = default)
+    private async Task<ApplicationConfiguration> BuildAsync(ApplicationInstance appInstance,
+        string applicationUri, string productUri)
     {
-        var endpointConfiguration = EndpointConfiguration.Create();
-        endpointConfiguration.OperationTimeout =
-            (int)TimeSpan.FromSeconds(15).TotalMilliseconds;
-
-        // needs to add the /discovery onto http urls
-        if (connection == null)
-        {
-            if (discoveryUrl == null)
+        // Set transport quotas
+        var appBuilder = appInstance.Build(applicationUri, productUri)
+            .SetTransportQuotas(new TransportQuotas
             {
-                if (!Uri.TryCreate(endpoint.EndpointUrl, UriKind.Absolute,
-                    out var endpointUrl))
+                OperationTimeout = (int)_options.Quotas.OperationTimeout.TotalMilliseconds,
+                MaxStringLength = _options.Quotas.MaxStringLength,
+                MaxByteStringLength = _options.Quotas.MaxByteStringLength,
+                MaxArrayLength = _options.Quotas.MaxArrayLength,
+                MaxMessageSize = _options.Quotas.MaxMessageSize,
+                MaxBufferSize = _options.Quotas.MaxBufferSize,
+                ChannelLifetime = (int)_options.Quotas.ChannelLifetime.TotalMilliseconds,
+                SecurityTokenLifetime = (int)_options.Quotas.SecurityTokenLifetime.TotalMilliseconds
+            })
+            .AsClient()
+            .AddSecurityConfiguration(null!, // Deliberate - otherwise we try and get hostname
+                _options.Security.PkiRootPath)
+            .SetAutoAcceptUntrustedCertificates(
+                _options.Security.AutoAcceptUntrustedCertificates)
+            .SetRejectSHA1SignedCertificates(
+                _options.Security.RejectSha1SignedCertificates)
+            .SetMinimumCertificateKeySize(
+                _options.Security.MinimumCertificateKeySize)
+            .SetAddAppCertToTrustedStore(
+                _options.Security.AddAppCertToTrustedStore)
+            .SetRejectUnknownRevocationStatus(
+                _options.Security.RejectUnknownRevocationStatus)
+            .AddCertificatePasswordProvider(this);
+
+        var applicationConfiguration = appInstance.ApplicationConfiguration;
+        //    applicationConfiguration.SecurityConfiguration.ApplicationCertificate
+        //        .ApplyLocalConfig(securityOptions.ApplicationCertificate);
+        //    applicationConfiguration.SecurityConfiguration.TrustedPeerCertificates
+        //        .ApplyLocalConfig(securityOptions.TrustedPeerCertificates);
+        //    applicationConfiguration.SecurityConfiguration.TrustedIssuerCertificates
+        //        .ApplyLocalConfig(securityOptions.TrustedIssuerCertificates);
+        //    applicationConfiguration.SecurityConfiguration.RejectedCertificateStore
+        //        .ApplyLocalConfig(securityOptions.RejectedCertificateStore);
+        //    applicationConfiguration.SecurityConfiguration.TrustedUserCertificates
+        //        .ApplyLocalConfig(securityOptions.TrustedUserCertificates);
+        //    applicationConfiguration.SecurityConfiguration.TrustedHttpsCertificates
+        //        .ApplyLocalConfig(securityOptions.TrustedHttpsCertificates);
+        //    applicationConfiguration.SecurityConfiguration.HttpsIssuerCertificates
+        //        .ApplyLocalConfig(securityOptions.HttpsIssuerCertificates);
+        //    applicationConfiguration.SecurityConfiguration.UserIssuerCertificates
+        //        .ApplyLocalConfig(securityOptions.UserIssuerCertificates);
+        //
+
+        // Fix up and build security configuration
+        Exception innerException = ServiceResultException.Create(StatusCodes.BadNotConnected,
+            "Missing network.");
+        for (var attempt = 0; attempt < 60; attempt++)
+        {
+            var hostname = _options.Security.HostName;
+            if (hostname != null && Uri.CheckHostName(hostname) == UriHostNameType.Unknown)
+            {
+                hostname = new IPAddress(SHA256.HashData(Encoding.UTF8.GetBytes(hostname))
+                    .AsSpan()[..16], 0).ToString();
+            }
+            var subjectName = _options.Security.ApplicationCertificateSubjectName;
+            if (subjectName == null)
+            {
+                hostname ??= await GetHostNameAsync().ConfigureAwait(false);
+                subjectName = $"CN={hostname}";
+            }
+            if (_options.Security.UpdateApplicationFromExistingCert)
+            {
+                (applicationUri, appInstance.ApplicationName, hostname, subjectName) =
+                    await UpdateFromExistingCertificateAsync(
+                        applicationUri, appInstance.ApplicationName, hostname, subjectName,
+                        applicationConfiguration.SecurityConfiguration).ConfigureAwait(false);
+            }
+            hostname ??= await GetHostNameAsync().ConfigureAwait(false);
+
+            // Fixup hostname in application uri and subject names
+            applicationUri = applicationUri.Replace("urn:localhost", $"urn:{hostname}",
+                StringComparison.Ordinal);
+
+            applicationConfiguration.ApplicationUri = applicationUri;
+            applicationConfiguration.SecurityConfiguration.ApplicationCertificate.SubjectName =
+                Utils.ReplaceDCLocalhost(subjectName, hostname);
+
+            // Allow private keys in this store so user identities can be side loaded
+            applicationConfiguration.SecurityConfiguration.TrustedUserCertificates =
+                new TrustedUserCertificateStore();
+            try
+            {
+                var appConfig = await appBuilder.Create().ConfigureAwait(false);
+                var ownCertificate =
+                    appConfig.SecurityConfiguration.ApplicationCertificate.Certificate;
+                if (ownCertificate == null)
                 {
-                    throw ServiceResultException.Create(StatusCodes.BadArgumentsMissing,
-                        "No discovery url provided and no valid endpoint url.");
+                    _logger.LogInformation(
+                        "No application own certificate found. Creating a self-signed " +
+                        "own certificate valid since yesterday for {DefaultLifeTime} months, " +
+                        "with a {DefaultKeySize} bit key and {DefaultHashSize} bit hash.",
+                        CertificateFactory.DefaultLifeTime,
+                        CertificateFactory.DefaultKeySize,
+                        CertificateFactory.DefaultHashSize);
                 }
-                discoveryUrl = endpointUrl;
-            }
-            if (discoveryUrl.Scheme == Utils.UriSchemeHttp &&
-                !discoveryUrl.AbsolutePath.EndsWith("/discovery",
-                    StringComparison.OrdinalIgnoreCase))
-            {
-                discoveryUrl = new UriBuilder(discoveryUrl)
+                else
                 {
-                    Path = discoveryUrl.AbsolutePath.TrimEnd('/') + "/discovery"
-                }.Uri;
+                    _logger.LogInformation(
+                        "Own certificate Subject '{Subject}' (Thumbprint: {Tthumbprint}) loaded.",
+                        ownCertificate.Subject, ownCertificate.Thumbprint);
+                }
+
+                var hasAppCertificate = await appInstance.CheckApplicationInstanceCertificate(true,
+                    CertificateFactory.DefaultKeySize,
+                    CertificateFactory.DefaultLifeTime).ConfigureAwait(false);
+                if (!hasAppCertificate || appInstance.ApplicationConfiguration.SecurityConfiguration
+                    .ApplicationCertificate.Certificate == null)
+                {
+                    _logger.LogError("Failed to load or create application own certificate.");
+                    throw ServiceResultException.Create(StatusCodes.BadConfigurationError,
+                        "OPC UA application own certificate invalid");
+                }
+
+                if (ownCertificate == null)
+                {
+                    ownCertificate = appInstance.ApplicationConfiguration.SecurityConfiguration
+                        .ApplicationCertificate.Certificate;
+                    _logger.LogInformation(
+                        "Own certificate Subject '{Subject}' (Thumbprint: {Thumbprint}) created.",
+                        ownCertificate.Subject, ownCertificate.Thumbprint);
+                }
+                await ShowCertificateStoreInformationAsync(appConfig).ConfigureAwait(false);
+                return appConfig;
             }
-        }
-
-        using var client = connection != null ?
-            DiscoveryClient.Create(configuration, connection, endpointConfiguration) :
-            DiscoveryClient.Create(configuration, discoveryUrl, endpointConfiguration);
-        var uri = new Uri(client.Endpoint.EndpointUrl);
-        var endpoints = await client.GetEndpointsAsync(null, ct).ConfigureAwait(false);
-        discoveryUrl ??= uri;
-
-        _logger.LogInformation("{Client}: Discovery endpoint {DiscoveryUrl} returned " +
-            "endpoints. Selecting endpoint {EndpointUri} with SecurityMode " +
-            "{SecurityMode} and {SecurityPolicy} SecurityPolicyUri from:\n{Endpoints}",
-            this, discoveryUrl, uri, endpoint.SecurityMode,
-                endpoint.SecurityPolicyUri ?? "any", endpoints.Select(
-                    ep => "      " + ToString(ep)).Aggregate((a, b) => $"{a}\n{b}"));
-
-        var filtered = endpoints
-            .Where(ep =>
-                SecurityPolicies.GetDisplayName(ep.SecurityPolicyUri) != null &&
-                ep.SecurityMode == endpoint.SecurityMode &&
-                (endpoint.SecurityPolicyUri == null ||
-                 string.Equals(ep.SecurityPolicyUri,
-                    endpoint.SecurityPolicyUri,
-                    StringComparison.OrdinalIgnoreCase) ||
-                 string.Equals(ep.SecurityPolicyUri,
-                    "http://opcfoundation.org/UA/SecurityPolicy#"
-                        + endpoint.SecurityPolicyUri,
-                    StringComparison.OrdinalIgnoreCase)))
-            //
-            // The security level is a relative measure assigned by the server
-            // to the endpoints that it returns. Clients should always pick the
-            // highest level unless they have a reason not too. Some servers
-            // however, mess this up a bit. So group SecurityLevel also by
-            // security mode and then pick the highest in that group.
-            //
-            .OrderByDescending(ep => ((int)ep.SecurityMode << 8) | ep.SecurityLevel)
-            .ToList();
-
-        //
-        // Try to find endpoint that matches scheme and endpoint url path
-        // but fall back to match just the scheme. We need to match only
-        // scheme to support the reverse connect (indicated by connection
-        // being not null here).
-        //
-        var selected = filtered.Find(ep => Match(ep, uri, true, true))
-                    ?? filtered.Find(ep => Match(ep, uri, true, false));
-        if (connection != null)
-        {
-            //
-            // Only allow same uri scheme (which must also be opc.tcp)
-            // for when reverse connection is used.
-            //
-            if (selected != null)
+            catch (Exception e)
             {
                 _logger.LogInformation(
-                    "{Client}: Endpoint {Endpoint} selected via reverse connect!",
-                    this, ToString(selected));
-            }
-            return new ConfiguredEndpoint(null, selected,
-                EndpointConfiguration.Create(configuration));
-        }
-
-        if (selected == null)
-        {
-            //
-            // Fall back to first supported endpoint matching absolute path
-            // then fall back to first endpoint (backwards compatibilty)
-            //
-            selected = filtered.Find(ep => Match(ep, uri, false, true))
-                    ?? filtered.Find(ep => Match(ep, uri, false, false));
-
-            if (selected == null)
-            {
-                throw ServiceResultException.Create(StatusCodes.BadNotFound,
-                    "No endpoint found that matches the desired configuration.");
+                    "Error {Message} while configuring OPC UA stack - retry...", e.Message);
+                _logger.LogDebug(e, "Detailed error while configuring OPC UA stack.");
+                innerException = e;
+                await Task.Delay(3000).ConfigureAwait(false);
             }
         }
 
-        //
-        // Adjust the host name and port to the host name and port
-        // that was use to successfully connect the discovery client
-        //
-        var selectedUrl = Utils.ParseUri(selected.EndpointUrl);
-        if (selectedUrl != null && discoveryUrl != null &&
-            selectedUrl.Scheme == discoveryUrl.Scheme)
+        _logger.LogCritical("Failed to configure OPC UA stack - exit.");
+        throw new InvalidProgramException("OPC UA stack configuration not possible.",
+            innerException);
+
+        async ValueTask<(string, string, string?, string)> UpdateFromExistingCertificateAsync(
+            string applicationUri, string appName, string? hostName, string subjectName,
+            SecurityConfiguration options)
         {
-            selected.EndpointUrl = new UriBuilder(selectedUrl)
+            try
             {
-                Host = discoveryUrl.DnsSafeHost,
-                Port = discoveryUrl.Port
-            }.ToString();
-        }
-
-        _logger.LogInformation("{Client}: Endpoint {Endpoint} selected!", this,
-            ToString(selected));
-        return new ConfiguredEndpoint(null, selected,
-            EndpointConfiguration.Create(configuration));
-
-        static string ToString(EndpointDescription ep) =>
-$"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolicyUri}]";
-        // Match endpoint returned against desired endpoint url
-        static bool Match(EndpointDescription endpointDescription,
-            Uri endpointUrl, bool includeScheme, bool includePath)
-        {
-            var url = Utils.ParseUri(endpointDescription.EndpointUrl);
-            return url != null &&
-                (!includeScheme || string.Equals(url.Scheme,
-                    endpointUrl.Scheme, StringComparison.OrdinalIgnoreCase)) &&
-                (!includePath || string.Equals(url.AbsolutePath,
-                    endpointUrl.AbsolutePath, StringComparison.OrdinalIgnoreCase));
-        }
-    }
-
-    /// <summary>
-    /// Start reverse connect manager service
-    /// </summary>
-    /// <returns></returns>
-    private Exception? StartReverseConnectManager()
-    {
-        var port = _options.ReverseConnectPort ?? 4840;
-        try
-        {
-            ReverseConnectManager.StartService(new ReverseConnectClientConfiguration
-            {
-                HoldTime = 120000,
-                WaitTimeout = 120000,
-                ClientEndpoints =
-                [
-                    new ReverseConnectClientEndpoint
+                var now = _timeProvider.GetUtcNow();
+                if (options.ApplicationCertificate?.StorePath != null &&
+                    options.ApplicationCertificate.StoreType != null)
+                {
+                    using var certStore = CertificateStoreIdentifier.CreateStore(
+                        options.ApplicationCertificate.StoreType);
+                    certStore.Open(options.ApplicationCertificate.StorePath, false);
+                    var certs = await certStore.Enumerate().ConfigureAwait(false);
+                    var subjects = new List<string>();
+                    foreach (var cert in certs.Where(c => c != null).OrderBy(c => c.NotAfter))
                     {
-                        EndpointUrl = $"opc.tcp://localhost:{port}"
+                        // Select first certificate that has valid information
+                        var name = cert.SubjectName.EnumerateRelativeDistinguishedNames()
+                            .Where(dn => dn.GetSingleElementType().FriendlyName == "CN")
+                            .Select(dn => dn.GetSingleElementValue())
+                            .FirstOrDefault(dn => dn != null);
+                        if (name != null)
+                        {
+                            appName = name;
+                        }
+                        var san = cert.FindExtension<X509SubjectAltNameExtension>();
+                        var uris = san?.Uris;
+                        var hostNames = san?.DomainNames;
+                        if (uris != null && hostNames != null &&
+                            uris.Count > 0 && hostNames.Count > 0)
+                        {
+                            return (uris[0], appName, hostNames[0], cert.Subject);
+                        }
+                        _logger.LogDebug(
+                            "Found invalid certificate for {Subject} [{Thumbprint}].",
+                            cert.Subject, cert.Thumbprint);
                     }
-                ]
-            });
-            return null;
+                }
+                _logger.LogDebug("Could not find a certificate to take information from.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Failed to find a certificate to take information from.");
+            }
+            return (applicationUri, appName, hostName, subjectName);
         }
-        catch (Exception ex)
+
+        async ValueTask<string?> GetHostNameAsync()
         {
-            return ex;
+            string? hostname = null;
+            while (string.IsNullOrWhiteSpace(hostname))
+            {
+                // wait with the configuration until network is up
+                if (!NetworkInterface.GetIsNetworkAvailable())
+                {
+                    _logger.LogWarning("Network not available...");
+                    await Task.Delay(3000).ConfigureAwait(false);
+                    continue;
+                }
+                hostname = Utils.GetHostName();
+            }
+            return hostname;
         }
     }
 
     /// <summary>
-    /// Create metrics
+    /// Override to support private keys
     /// </summary>
-    private void InitializeMetrics()
-    {
-    }
-
-    /// <summary>
-    /// Compare connectivity options
-    /// </summary>
-    private class ClientOptionsComparer : IEqualityComparer<PooledSessionOptions>
+    private class TrustedUserCertificateStore : CertificateTrustList
     {
         /// <inheritdoc/>
-        public bool Equals(PooledSessionOptions? x, PooledSessionOptions? y)
+        public override ICertificateStore OpenStore()
         {
-            if (x?.Endpoint == null || y?.Endpoint == null)
-            {
-                return false;
-            }
-            if (!Utils.IsEqual(x.Endpoint, y.Endpoint) ||
-                !Utils.IsEqual(x.User, y.User) ||
-                x.SessionOptions != y.SessionOptions ||
-                x.UseReverseConnect != y.UseReverseConnect)
-            {
-                return false;
-            }
-            return true;
-        }
-
-        /// <inheritdoc/>
-        public int GetHashCode([DisallowNull] PooledSessionOptions obj)
-        {
-            return HashCode.Combine(
-                obj.Endpoint?.EndpointUrl,
-                obj.Endpoint?.SecurityLevel,
-                obj.Endpoint?.TransportProfileUri,
-                obj.Endpoint?.SecurityMode,
-                obj.Endpoint?.SecurityPolicyUri,
-                obj.SessionOptions,
-                obj.UseReverseConnect);
+            var store = CreateStore(StoreType);
+            store.Open(StorePath, false); // Allow private keys
+            return store;
         }
     }
 
-    private readonly ILogger _logger;
-    private readonly IObservability _observability;
+    private readonly Task<ApplicationConfiguration> _application;
+    private readonly ILogger<ClientApplicationBase> _logger;
+    private readonly TimeProvider _timeProvider;
     private readonly ClientOptions _options;
-    private readonly Lazy<Exception?> _reverseConnectStartException;
-    private readonly IScopedAsyncCache<PooledSessionOptions, ISession> _pool;
-    private bool _disposed;
 }

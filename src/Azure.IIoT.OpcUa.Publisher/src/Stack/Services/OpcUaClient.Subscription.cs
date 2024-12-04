@@ -915,7 +915,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             "{Client}: Force recreate {Subscription} ...", _client, subscription);
                         await subscription.DisposeAsync().ConfigureAwait(false);
                         subscriptions[i] = (OpcUaSubscription)session.Subscriptions.Add(
-                            new Opc.Ua.Client.OptionsMonitor<SubscriptionOptions>(new VRef(this)));
+                            new Opc.Ua.Client.OptionsMonitor<SubscriptionOptions>(new VRef(this)))[0];
                     }
                     if (subscriptions.Count < partitions.Count)
                     {
@@ -923,7 +923,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         for (var idx = subscriptions.Count; idx < partitions.Count; idx++)
                         {
                             var subscription = (OpcUaSubscription)session.Subscriptions.Add(
-                                new Opc.Ua.Client.OptionsMonitor<SubscriptionOptions>(new VRef(this)));
+                                new Opc.Ua.Client.OptionsMonitor<SubscriptionOptions>(new VRef(this)))[0];
                             subscriptions.Add(subscription);
                         }
                     }
