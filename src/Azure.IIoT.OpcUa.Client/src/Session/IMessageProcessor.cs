@@ -6,7 +6,6 @@
 namespace Opc.Ua.Client;
 
 using Opc.Ua;
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -14,7 +13,7 @@ using System.Threading.Tasks;
 /// A subscription component that processes received messages
 /// and dispatches to the subscribers.
 /// </summary>
-public interface IMessageProcessor : IAsyncDisposable
+public interface IMessageProcessor
 {
     /// <summary>
     /// Subscription id on the server. Used to look up and

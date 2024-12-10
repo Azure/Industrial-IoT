@@ -1,19 +1,18 @@
 ﻿// ------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation, The OPC Foundation, Inc.  All rights reserved.
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
 namespace Opc.Ua.Client;
 
-using System;
-
 /// <summary>
-/// Subscription context
+/// Client capabilities
 /// </summary>
-public interface ISubscriptionContext : ISubscriptionServiceSet, IMethodServiceSet
+public interface IClientHandle
 {
     /// <summary>
-    /// Current session timeout
+    /// Manage certificates throuhg the certificates
+    /// management api
     /// </summary>
-    TimeSpan SessionTimeout { get; }
+    ICertificates Certificates { get; }
 }

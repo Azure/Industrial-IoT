@@ -43,16 +43,6 @@ public interface ISubscriptionManager
     int MinPublishWorkerCount { get; set; }
 
     /// <summary>
-    /// Number of subscriptions
-    /// </summary>
-    int Count { get; }
-
-    /// <summary>
-    /// Subscriptions
-    /// </summary>
-    IEnumerable<ISubscription> Items { get; }
-
-    /// <summary>
     /// Get the number of current publishing workers
     /// </summary>
     int PublishWorkerCount { get; }
@@ -68,19 +58,29 @@ public interface ISubscriptionManager
     int BadPublishRequestCount { get; }
 
     /// <summary>
-    /// Create new subscriptions inside the session. The
-    /// subscription will not be created as part of this call.
-    /// It must be explicitly created using CreateAsync.
-    /// Disposing the session will remove it from the
-    /// session but not from the server. The subscription
-    /// must also explicitly be deleted using DeleteAsync to
-    /// remove it from the server.
+    /// Number of subscriptions
     /// </summary>
+    int Count { get; }
+
+    /// <summary>
+    /// Subscriptions
+    /// </summary>
+    IEnumerable<ISubscription> Items { get; }
+
+    /// <summary>
+    /// Create new subscriptions inside the session.
+    /// The subscription will not be created but will
+    /// be created asynchronously. Disposing the session
+    /// will remove it from the session but not from
+    /// the server. The subscription must also explicitly
+    /// be deleted using DeleteAsync to remove it from
+    /// the server.
+    /// </summary>
+    /// <param name="handler"></param>
     /// <param name="options"></param>
     /// <returns></returns>
-    /// <exception cref="ServiceResultException"></exception>
-    List<ISubscription> Add(
-        params List<IOptionsMonitor<SubscriptionOptions>> options);
+    ISubscription Add(INotificationDataHandler handler,
+        IOptionsMonitor<SubscriptionOptions> options);
 
     /// <summary>
     /// Update subscriptions

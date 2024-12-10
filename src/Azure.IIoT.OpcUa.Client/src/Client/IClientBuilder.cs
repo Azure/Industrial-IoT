@@ -5,6 +5,7 @@
 
 namespace Opc.Ua.Client;
 
+using Microsoft.Extensions.Logging;
 using Polly;
 using System;
 
@@ -163,6 +164,15 @@ public interface IClientOptionsBuilder<TPooledSessionOptions,
     IClientOptionsBuilder<TPooledSessionOptions,
         TSessionOptions, TSessionCreateOptions, TClientOptions>
         WithTransportOption(Action<ITransportQuotaOptionsBuilder> configure);
+
+    /// <summary>
+    /// Enable and optionally set stack logging level
+    /// </summary>
+    /// <param name="maxLevel"></param>
+    /// <returns></returns>
+    IClientOptionsBuilder<TPooledSessionOptions,
+        TSessionOptions, TSessionCreateOptions, TClientOptions>
+        WithStackLogging(LogLevel maxLevel = LogLevel.Error);
 
     /// <summary>
     /// Build session builder

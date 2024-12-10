@@ -18,46 +18,36 @@ using System.Threading.Tasks;
 /// A monitored item that can be extended to add extra
 /// information as context in the subscription.
 /// </summary>
-public abstract class MonitoredItem : IAsyncDisposable
+public abstract class MonitoredItem : IMonitoredItem, IAsyncDisposable
 {
-    /// <summary>
-    /// The identifier assigned by the server.
-    /// </summary>
+    /// <inheritdoc/>
+    public string Name { get; }
+
+    /// <inheritdoc/>
+    public uint Order => _currentOptions?.Order ?? 0u;
+
+    /// <inheritdoc/>
     public uint ServerId { get; private set; }
 
-    /// <summary>
-    /// Whether the item has been created on the server.
-    /// </summary>
+    /// <inheritdoc/>
     public bool Created => ServerId != 0;
 
-    /// <summary>
-    /// The last error result associated with the item
-    /// </summary>
+    /// <inheritdoc/>
     public ServiceResult Error { get; private set; }
 
-    /// <summary>
-    /// The filter result of the last change applied.
-    /// </summary>
+    /// <inheritdoc/>
     public MonitoringFilterResult? FilterResult { get; private set; }
 
-    /// <summary>
-    /// The monitoring mode.
-    /// </summary>
+    /// <inheritdoc/>
     public MonitoringMode CurrentMonitoringMode { get; internal set; }
 
-    /// <summary>
-    /// The sampling interval.
-    /// </summary>
+    /// <inheritdoc/>
     public TimeSpan CurrentSamplingInterval { get; private set; }
 
-    /// <summary>
-    /// The length of the queue used to buffer values.
-    /// </summary>
+    /// <inheritdoc/>
     public uint CurrentQueueSize { get; private set; }
 
-    /// <summary>
-    /// The identifier assigned by the client.
-    /// </summary>
+    /// <inheritdoc/>
     public uint ClientHandle { get; private set; }
 
     /// <summary>
@@ -66,31 +56,41 @@ public abstract class MonitoredItem : IAsyncDisposable
     protected IMonitoredItemContext Context { get; }
 
     /// <summary>
-    /// Current monitored item options (TODO: REMOVE)
+    /// Current monitored item options
     /// </summary>
-    protected MonitoredItemOptions Options
+    internal IOptionsMonitor<MonitoredItemOptions> Options
     {
-        get => _currentOptions ?? new();
-        set => _currentOptions = value;
+        get => _options;
+        set
+        {
+            if (_options != value)
+            {
+                _options = value;
+                QueuePendingChanges(_options.CurrentValue, _currentOptions);
+                _changeTracking?.Dispose();
+                _changeTracking = _options.OnChange(
+                    (o, _) => OnOptionsChanged(o));
+            }
+        }
     }
 
     /// <summary>
     /// Create monitored item
     /// </summary>
-    /// <param name="subscription"></param>
+    /// <param name="context"></param>
+    /// <param name="name"></param>
     /// <param name="options"></param>
     /// <param name="logger"></param>
-    protected MonitoredItem(IMonitoredItemContext subscription,
+    protected MonitoredItem(IMonitoredItemContext context, string name,
         IOptionsMonitor<MonitoredItemOptions> options, ILogger logger)
     {
-        Context = subscription;
-        ClientHandle = Utils.IncrementIdentifier(ref _globalClientHandle);
+        Context = context;
+        Name = name;
         Error = ServiceResult.Good;
+        ClientHandle = Utils.IncrementIdentifier(ref _globalClientHandle);
 
         _logger = logger;
-
-        QueuePendingChanges(options.CurrentValue, _currentOptions);
-        _changeTracking = options.OnChange((o, _) => OnOptionsChanged(o));
+        Options = _options = options;
         _logger.LogDebug("{Item} CREATED.", this);
     }
 
@@ -111,7 +111,7 @@ public abstract class MonitoredItem : IAsyncDisposable
           .Append('|')
           .Append(ServerId)
           .Append(" (")
-          .Append(Options.DisplayName ?? Options.StartNodeId.ToString())
+          .Append(Name)
           .Append(')');
         return sb.ToString();
     }
@@ -129,7 +129,7 @@ public abstract class MonitoredItem : IAsyncDisposable
                 change.Abandon();
             }
 
-            Context.RemoveItem(this);
+            Context.NotifyItemChange(this);
             _logger.LogDebug("{Item} REMOVED.", this);
 
             ServerId = 0;
@@ -189,7 +189,17 @@ public abstract class MonitoredItem : IAsyncDisposable
     protected virtual void OnOptionsChanged(MonitoredItemOptions options)
     {
         QueuePendingChanges(options, _currentOptions);
-        Context.Update();
+        Context.NotifyItemChange(this);
+    }
+
+    /// <summary>
+    /// Notify subscription that the subscription manager has paused or
+    /// resumed operations.
+    /// </summary>
+    /// <param name="paused"></param>
+    protected internal virtual void NotifySubscriptionManagerPaused(bool paused)
+    {
+        // empty
     }
 
     /// <summary>
@@ -686,8 +696,9 @@ public abstract class MonitoredItem : IAsyncDisposable
 
     private bool _disposedValue;
     private MonitoredItemOptions? _currentOptions;
+    private IDisposable? _changeTracking;
     private readonly ConcurrentQueue<Change> _pendingChanges = new();
-    private readonly IDisposable? _changeTracking;
     private readonly ILogger _logger;
     internal static long _globalClientHandle;
+    private IOptionsMonitor<MonitoredItemOptions> _options;
 }

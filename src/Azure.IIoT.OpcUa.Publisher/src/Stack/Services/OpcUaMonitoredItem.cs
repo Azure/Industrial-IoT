@@ -308,8 +308,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 new OptionsMonitor<MonitoredItemOptions>(new OpcUaSubscription.Precreated
                 {
                     StartNodeId = Opc.Ua.NodeId.Null
-                }), // TODO
-                logger)
+                }))
         {
             Session = session;
             Owner = owner;
@@ -433,7 +432,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             if (!Disposed)
             {
-                ((Subscription)Context).AddMonitoredItems(new OptionsMonitor<MonitoredItemOptions>(
+                ((Subscription)Context).AddMonitoredItem(new OptionsMonitor<MonitoredItemOptions>(
                     new OpcUaSubscription.Precreated(this) { StartNodeId = StartNodeId }));
                 _logger.LogDebug(
                     "Added monitored item {Item} to subscription {Subscription}.",

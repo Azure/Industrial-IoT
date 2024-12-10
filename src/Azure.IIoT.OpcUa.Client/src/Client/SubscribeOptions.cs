@@ -5,14 +5,21 @@
 
 namespace Opc.Ua.Client;
 
+using Microsoft.Extensions.Options;
+using System.Collections.Generic;
+
 /// <summary>
-/// Client capabilities
+/// Subscriber options
 /// </summary>
-public interface IClient
+public record class SubscribeOptions
 {
     /// <summary>
-    /// Manage certificates throuhg the certificates
-    /// management api
+    /// The monitored items to subscribe to
     /// </summary>
-    ICertificates Certificates { get; }
+    public List<IOptionsMonitor<MonitoredItemOptions>> MonitoredItems { get; init; } = [];
+
+    /// <summary>
+    /// Options
+    /// </summary>
+    public SubscriptionOptions? Options { get; init; }
 }

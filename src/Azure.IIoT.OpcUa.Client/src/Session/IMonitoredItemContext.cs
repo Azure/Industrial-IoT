@@ -13,12 +13,6 @@ namespace Opc.Ua.Client;
 public interface IMonitoredItemContext
 {
     /// <summary>
-    /// Update subscription when an item or the subscription
-    /// state has changed.
-    /// </summary>
-    void Update();
-
-    /// <summary>
     /// Notify item change results. This includes intermittent
     /// errors trying to apply the monitored item options.
     /// </summary>
@@ -37,5 +31,5 @@ public interface IMonitoredItemContext
     /// Removes an item from the subscription.
     /// </summary>
     /// <param name="monitoredItem"></param>
-    void RemoveItem(MonitoredItem monitoredItem);
+    void NotifyItemChange(MonitoredItem monitoredItem);
 }

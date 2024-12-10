@@ -37,7 +37,6 @@ public abstract class ClientBuilderBase<TPooledSessionOptions,
         TSessionCreateOptions, TClientOptions>,
     IProductBuilder<TPooledSessionOptions, TSessionOptions,
         TSessionCreateOptions, TClientOptions>,
-    ICertificatePasswordProvider,
     IOptionsBuilder<TClientOptions>
     where TPooledSessionOptions : PooledSessionOptions, new()
     where TSessionOptions : SessionOptions, new()
@@ -126,6 +125,15 @@ public abstract class ClientBuilderBase<TPooledSessionOptions,
     /// <inheritdoc/>
     public IClientOptionsBuilder<TPooledSessionOptions,
         TSessionOptions, TSessionCreateOptions, TClientOptions>
+        WithStackLogging(LogLevel maxLevel)
+    {
+        Options = Options with { StackLoggingLevel = maxLevel };
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public IClientOptionsBuilder<TPooledSessionOptions,
+        TSessionOptions, TSessionCreateOptions, TClientOptions>
         WithConnectStrategy(ResiliencePipeline connectStrategy)
     {
         Options = Options with { ConnectStrategy = connectStrategy };
@@ -163,12 +171,6 @@ public abstract class ClientBuilderBase<TPooledSessionOptions,
         configure(builder);
         Options = Options with { Quotas = builder.Options };
         return this;
-    }
-
-    /// <inheritdoc/>
-    public string GetPassword(CertificateIdentifier certificateIdentifier)
-    {
-        return Options.Security.ApplicationCertificatePassword ?? string.Empty;
     }
 
     /// <summary>
@@ -255,6 +257,7 @@ public abstract class ClientBuilderBase<TPooledSessionOptions,
     /// <summary>
     /// Transport options builder
     /// </summary>
+    /// <param name="options"></param>
     internal sealed class TransportQuotaOptionsBuilder(TransportQuotaOptions options) :
         IOptionsBuilder<TransportQuotaOptions>, ITransportQuotaOptionsBuilder
     {

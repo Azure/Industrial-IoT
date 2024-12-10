@@ -17,10 +17,11 @@ internal interface ISubscriptionManagerContext
     /// <summary>
     /// Create a managed subscription
     /// </summary>
+    /// <param name="handler"></param>
     /// <param name="options">The subscription options to pass</param>
     /// <param name="queue">The completion queue</param>
     /// <returns></returns>
-    IManagedSubscription CreateSubscription(
+    IManagedSubscription CreateSubscription(INotificationDataHandler handler,
         IOptionsMonitor<SubscriptionOptions> options, IMessageAckQueue queue);
 
     /// <summary>

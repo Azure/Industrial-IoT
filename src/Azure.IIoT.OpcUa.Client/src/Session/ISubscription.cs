@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 /// <summary>
 /// Subscription services
 /// </summary>
-public interface ISubscription
+public interface ISubscription : IAsyncDisposable
 {
     /// <summary>
     /// Created subscription
@@ -52,22 +52,9 @@ public interface ISubscription
     uint CurrentMaxNotificationsPerPublish { get; }
 
     /// <summary>
-    /// Monitored item count
-    /// </summary>
-    uint MonitoredItemCount { get; }
-
-    /// <summary>
     /// Monitored items
     /// </summary>
-    IEnumerable<MonitoredItem> MonitoredItems { get; }
-
-    /// <summary>
-    /// Add a monitored item to the subscription
-    /// </summary>
-    /// <param name="options"></param>
-    /// <returns></returns>
-    List<MonitoredItem> AddMonitoredItems(
-        params List<IOptionsMonitor<MonitoredItemOptions>> options);
+    IMonitoredItemManager MonitoredItems { get; }
 
     /// <summary>
     /// Tells the server to refresh all conditions being

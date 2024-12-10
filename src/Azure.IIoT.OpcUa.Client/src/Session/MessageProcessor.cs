@@ -15,11 +15,10 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 
 /// <summary>
-/// Processes messages inside a subscription, it is the base
-/// class for all subscription objects but basis to support
-/// better testing in isolation.
+/// Processes messages inside a subscription, it is the base class for all
+/// subscription objects but basis to support better testing in isolation.
 /// </summary>
-public abstract class MessageProcessor : IMessageProcessor
+public abstract class MessageProcessor : IMessageProcessor, IAsyncDisposable
 {
     /// <inheritdoc/>
     public uint Id { get; internal set; }
@@ -46,7 +45,9 @@ public abstract class MessageProcessor : IMessageProcessor
         _messages = Channel.CreateUnboundedPrioritized<IncomingMessage>(
             new UnboundedPrioritizedChannelOptions<IncomingMessage>
             {
-                SingleReader = true
+                SingleReader = true,
+                Comparer = Comparer<IncomingMessage>.Create(
+                    IncomingMessage.Compare),
             });
         _messageWorkerTask = ProcessReceivedMessagesAsync(_cts.Token);
     }
@@ -68,8 +69,8 @@ public abstract class MessageProcessor : IMessageProcessor
             _availableInRetransmissionQueue = availableSequenceNumbers;
         }
         _lastNotificationTimestamp = Observability.TimeProvider.GetTimestamp();
-        await _messages.Writer.WriteAsync(new IncomingMessage(
-            message, stringTable, DateTime.UtcNow)).ConfigureAwait(false);
+        await _messages.Writer.WriteAsync(new IncomingMessage(message, stringTable,
+            Observability.TimeProvider.GetUtcNow())).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -95,7 +96,7 @@ public abstract class MessageProcessor : IMessageProcessor
         }
     }
 
-    /// <summary>S
+    /// <summary>
     /// Process status change notification
     /// </summary>
     /// <param name="sequenceNumber"></param>
@@ -104,13 +105,9 @@ public abstract class MessageProcessor : IMessageProcessor
     /// <param name="publishStateMask"></param>
     /// <param name="stringTable"></param>
     /// <returns></returns>
-    protected virtual ValueTask OnStatusChangeNotificationAsync(uint sequenceNumber,
+    protected abstract ValueTask OnStatusChangeNotificationAsync(uint sequenceNumber,
         DateTime publishTime, StatusChangeNotification notification,
-        PublishState publishStateMask, IReadOnlyList<string> stringTable)
-    {
-        // TODO
-        return ValueTask.CompletedTask;
-    }
+        PublishState publishStateMask, IReadOnlyList<string> stringTable);
 
     /// <summary>
     /// Process keep alive notification
@@ -314,24 +311,17 @@ public abstract class MessageProcessor : IMessageProcessor
             }
             else
             {
-#if PARALLEL_DISPATCH
-                await Task.WhenAll(message.NotificationData.Select(
-                    notificationData => DispatchAsync(message, publishStateMask,
-                        notificationData))).ConfigureAwait(false);
-#else
                 foreach (var notificationData in message.NotificationData)
                 {
                     await DispatchAsync(message, publishStateMask,
                         notificationData).ConfigureAwait(false);
                 }
-#endif
             }
-            await _completion.QueueAsync(
-                new SubscriptionAcknowledgement
-                {
-                    SequenceNumber = message.SequenceNumber,
-                    SubscriptionId = Id
-                }, ct).ConfigureAwait(false);
+            await _completion.QueueAsync(new SubscriptionAcknowledgement
+            {
+                SequenceNumber = message.SequenceNumber,
+                SubscriptionId = Id
+            }, ct).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -393,15 +383,16 @@ public abstract class MessageProcessor : IMessageProcessor
     /// <param name="Message"></param>
     /// <param name="StringTable"></param>
     /// <param name="Enqueued"></param>
-    private sealed record class IncomingMessage(NotificationMessage Message,
-        IReadOnlyList<string> StringTable, DateTime Enqueued) :
-        IComparable<IncomingMessage>
+    private readonly record struct IncomingMessage(NotificationMessage Message,
+        IReadOnlyList<string> StringTable, DateTimeOffset Enqueued)
     {
-        /// <inheritdoc/>
-        public int CompareTo(IncomingMessage? other)
+        public static int Compare(IncomingMessage message, IncomingMessage other)
         {
-            // Greater than zero – This instance follows the next message in the sort order.
-            return (int)(Message.SequenceNumber - (other?.Message.SequenceNumber ?? uint.MinValue));
+            // Greater than zero – message follows the
+            // other message in sort order.
+            return
+                (int)message.Message.SequenceNumber -
+                  (int)other.Message.SequenceNumber;
         }
     }
 

@@ -153,9 +153,10 @@ public class ClientBuilder(IServiceCollection? services = null) : ClientBuilderB
 
         /// <inheritdoc/>
         public override IManagedSubscription CreateSubscription(IObservability observability,
-            IOptionsMonitor<SubscriptionOptions> options, IMessageAckQueue queue)
+            INotificationDataHandler handler, IOptionsMonitor<SubscriptionOptions> options,
+            IMessageAckQueue queue)
         {
-            return new ClientSubscription(this, queue, options, observability);
+            return new ClientSubscription(this, handler, queue, options, observability);
         }
     }
 
@@ -163,9 +164,10 @@ public class ClientBuilder(IServiceCollection? services = null) : ClientBuilderB
     internal sealed class ClientSubscription : Subscription
     {
         /// <inheritdoc/>
-        internal ClientSubscription(ClientSession session, IMessageAckQueue completion,
-            IOptionsMonitor<SubscriptionOptions> options, IObservability observability) :
-            base(session, completion, options, observability)
+        internal ClientSubscription(ClientSession session, INotificationDataHandler handler,
+            IMessageAckQueue completion, IOptionsMonitor<SubscriptionOptions> options,
+            IObservability observability) :
+            base(session, handler, completion, options, observability)
         {
             _session = session;
         }
@@ -221,7 +223,7 @@ public class ClientBuilder(IServiceCollection? services = null) : ClientBuilderB
         /// <inheritdoc/>
         internal ClientItem(ClientSubscription subscription,
             IOptionsMonitor<MonitoredItemOptions> options, ILogger logger)
-            : base(subscription, options, logger)
+            : base(subscription, options)
         {
         }
     }

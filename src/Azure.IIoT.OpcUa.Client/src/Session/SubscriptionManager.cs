@@ -202,23 +202,21 @@ internal sealed class SubscriptionManager : ISubscriptionManager,
     }
 
     /// <inheritdoc/>
-    public List<ISubscription> Add(params List<IOptionsMonitor<SubscriptionOptions>> options)
+    public ISubscription Add(INotificationDataHandler handler,
+        IOptionsMonitor<SubscriptionOptions> options)
     {
-        var subscriptions = options.ConvertAll(o => _session.CreateSubscription(o, this));
+        var subscription = _session.CreateSubscription(handler, options, this);
         lock (_subscriptionLock)
         {
-            foreach (var subscription in subscriptions)
+            if (!_subscriptions.Add(subscription))
             {
-                if (!_subscriptions.Add(subscription))
-                {
-                    throw ServiceResultException.Create(StatusCodes.BadAlreadyExists,
-                        "Failed to add subscription.");
-                }
-                _logger.LogInformation("{Subscription} ADDED.", subscription);
+                throw ServiceResultException.Create(StatusCodes.BadAlreadyExists,
+                    "Failed to add subscription.");
             }
+            _logger.LogInformation("{Subscription} ADDED.", subscription);
         }
         _publishControl.Set();
-        return subscriptions.ConvertAll(s => (ISubscription)s);
+        return subscription;
     }
 
     /// <summary>
@@ -226,6 +224,13 @@ internal sealed class SubscriptionManager : ISubscriptionManager,
     /// </summary>
     internal void Resume()
     {
+        lock (_subscriptionLock)
+        {
+            foreach (var item in _subscriptions)
+            {
+                item.NotifySubscriptionManagerPaused(false);
+            }
+        }
         _running.Set();
     }
 
@@ -234,6 +239,13 @@ internal sealed class SubscriptionManager : ISubscriptionManager,
     /// </summary>
     internal void Pause()
     {
+        lock (_subscriptionLock)
+        {
+            foreach (var item in _subscriptions)
+            {
+                item.NotifySubscriptionManagerPaused(true);
+            }
+        }
         _running.Reset();
     }
 

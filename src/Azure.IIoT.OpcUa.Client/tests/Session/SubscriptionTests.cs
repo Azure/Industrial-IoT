@@ -52,8 +52,8 @@ public sealed class SubscriptionTests
             _mockCompletion.Object, _options, _mockObservability.Object);
 
         // Act
-        var monitoredItem = sut.AddMonitoredItems(options);
-        monitoredItem.Count.Should().Be(1);
+        var monitoredItem = sut.AddMonitoredItem("Test", 1, options);
+        monitoredItem.Should().NotBeNull();
 
         // Assert
         sut.MonitoredItems.Should().Contain(monitoredItem);
@@ -240,20 +240,18 @@ public sealed class SubscriptionTests
           _mockCompletion.Object, _options, _mockObservability.Object, 2);
 
         sut.SubscriptionStateChanged.Reset();
-        var monitoredItem = sut.AddMonitoredItems(OptionsFactory.Create(new MonitoredItemOptions
+        var monitoredItem = sut.AddMonitoredItem("Test", 1, OptionsFactory.Create(new MonitoredItemOptions
         {
             StartNodeId = NodeId.Parse("ns=2;s=Demo")
         }));
-        monitoredItem.Count.Should().Be(1);
 
         // Act
         await sut.SubscriptionStateChanged.WaitAsync();
 
-        monitoredItem.Count.Should().Be(1);
-        monitoredItem[0].ServerId.Should().Be(100);
-        monitoredItem[0].CurrentSamplingInterval.Should().Be(TimeSpan.FromSeconds(10));
-        monitoredItem[0].CurrentQueueSize.Should().Be(10);
-        monitoredItem[0].CurrentMonitoringMode.Should().Be(MonitoringMode.Reporting);
+        monitoredItem.ServerId.Should().Be(100);
+        monitoredItem.CurrentSamplingInterval.Should().Be(TimeSpan.FromSeconds(10));
+        monitoredItem.CurrentQueueSize.Should().Be(10);
+        monitoredItem.CurrentMonitoringMode.Should().Be(MonitoringMode.Reporting);
         _mockSession.Verify();
     }
 
@@ -265,11 +263,10 @@ public sealed class SubscriptionTests
           _mockCompletion.Object, _options, _mockObservability.Object, 2);
 
         var options = OptionsFactory.Create<MonitoredItemOptions>();
-        var monitoredItem = sut.AddMonitoredItems(options);
+        var monitoredItem = sut.AddMonitoredItem("Test", 1, options);
 
-        monitoredItem.Count.Should().Be(1);
-        monitoredItem[0].ServerId.Should().Be(monitoredItem[0].ClientHandle);
-        monitoredItem[0].CurrentMonitoringMode.Should().Be(MonitoringMode.Sampling);
+        monitoredItem.ServerId.Should().Be(monitoredItem.ClientHandle);
+        monitoredItem.CurrentMonitoringMode.Should().Be(MonitoringMode.Sampling);
 
         _mockSession
             .Setup(s => s.ModifyMonitoredItemsAsync(It.IsAny<RequestHeader>(), 2,
@@ -302,9 +299,9 @@ public sealed class SubscriptionTests
         });
         await sut.SubscriptionStateChanged.WaitAsync();
 
-        monitoredItem[0].CurrentSamplingInterval.Should().Be(TimeSpan.FromSeconds(100));
-        monitoredItem[0].CurrentQueueSize.Should().Be(1000);
-        monitoredItem[0].CurrentMonitoringMode.Should().Be(MonitoringMode.Sampling);
+        monitoredItem.CurrentSamplingInterval.Should().Be(TimeSpan.FromSeconds(100));
+        monitoredItem.CurrentQueueSize.Should().Be(1000);
+        monitoredItem.CurrentMonitoringMode.Should().Be(MonitoringMode.Sampling);
         _mockSession.Verify();
     }
 
@@ -316,15 +313,14 @@ public sealed class SubscriptionTests
           _mockCompletion.Object, _options, _mockObservability.Object, 2);
 
         var options = OptionsFactory.Create<MonitoredItemOptions>();
-        var monitoredItem = sut.AddMonitoredItems(options);
+        var monitoredItem = sut.AddMonitoredItem("Test", 1, options);
 
-        monitoredItem.Count.Should().Be(1);
-        monitoredItem[0].ServerId.Should().Be(monitoredItem[0].ClientHandle);
-        monitoredItem[0].CurrentMonitoringMode.Should().Be(MonitoringMode.Sampling);
+        monitoredItem.ServerId.Should().Be(monitoredItem.ClientHandle);
+        monitoredItem.CurrentMonitoringMode.Should().Be(MonitoringMode.Sampling);
 
         _mockSession
             .Setup(s => s.DeleteMonitoredItemsAsync(It.IsAny<RequestHeader>(), 2,
-                new UInt32Collection { monitoredItem[0].ServerId }, It.IsAny<CancellationToken>()))
+                new UInt32Collection { monitoredItem.ServerId }, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DeleteMonitoredItemsResponse
             {
                 Results = [StatusCodes.Good]
@@ -362,10 +358,10 @@ public sealed class SubscriptionTests
         });
         await sut.SubscriptionStateChanged.WaitAsync();
 
-        monitoredItem[0].CurrentSamplingInterval.Should().Be(TimeSpan.FromSeconds(10));
-        monitoredItem[0].CurrentQueueSize.Should().Be(10);
-        monitoredItem[0].ServerId.Should().Be(400);
-        monitoredItem[0].CurrentMonitoringMode.Should().Be(MonitoringMode.Reporting);
+        monitoredItem.CurrentSamplingInterval.Should().Be(TimeSpan.FromSeconds(10));
+        monitoredItem.CurrentQueueSize.Should().Be(10);
+        monitoredItem.ServerId.Should().Be(400);
+        monitoredItem.CurrentMonitoringMode.Should().Be(MonitoringMode.Reporting);
         _mockSession.Verify();
     }
 
@@ -377,18 +373,17 @@ public sealed class SubscriptionTests
             _mockCompletion.Object, _options, _mockObservability.Object, 2);
 
         var options = OptionsFactory.Create<MonitoredItemOptions>();
-        var monitoredItem = sut.AddMonitoredItems(options);
+        var monitoredItem = sut.AddMonitoredItem("Test", 1, options);
 
-        monitoredItem.Count.Should().Be(1);
-        monitoredItem[0].ServerId.Should().Be(monitoredItem[0].ClientHandle);
-        monitoredItem[0].CurrentMonitoringMode.Should().Be(MonitoringMode.Sampling);
+        monitoredItem.ServerId.Should().Be(monitoredItem.ClientHandle);
+        monitoredItem.CurrentMonitoringMode.Should().Be(MonitoringMode.Sampling);
         // Now we have a monitored item in sampling mode
 
         // Only set monitoring mode should be called for the item
         _mockSession
             .Setup(s => s.SetMonitoringModeAsync(It.IsAny<RequestHeader>(),
                 sut.Id, MonitoringMode.Reporting,
-                new UInt32Collection { monitoredItem[0].ServerId },
+                new UInt32Collection { monitoredItem.ServerId },
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new SetMonitoringModeResponse
             {
@@ -405,7 +400,7 @@ public sealed class SubscriptionTests
         await sut.SubscriptionStateChanged.WaitAsync();
 
         // Assert
-        monitoredItem[0].CurrentMonitoringMode.Should().Be(MonitoringMode.Reporting);
+        monitoredItem.CurrentMonitoringMode.Should().Be(MonitoringMode.Reporting);
         _mockSession.Verify();
     }
 
@@ -416,15 +411,14 @@ public sealed class SubscriptionTests
         var sut = new TestSubscription(_mockSession.Object,
           _mockCompletion.Object, _options, _mockObservability.Object, 2);
         var options = OptionsFactory.Create<MonitoredItemOptions>();
-        var monitoredItem = sut.AddMonitoredItems(options);
-        monitoredItem.Count.Should().Be(1);
+        var monitoredItem = sut.AddMonitoredItem("Test", 1, options);
         sut.MonitoredItemCount.Should().Be(1);
         // Now we got an item that is created
 
         // Only delete monitored item should be called
         _mockSession
             .Setup(s => s.DeleteMonitoredItemsAsync(It.IsAny<RequestHeader>(), 2,
-                new UInt32Collection { monitoredItem[0].ServerId },
+                new UInt32Collection { monitoredItem.ServerId },
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DeleteMonitoredItemsResponse
             {
@@ -434,7 +428,7 @@ public sealed class SubscriptionTests
 
         // Act
         sut.SubscriptionStateChanged.Reset();
-        await monitoredItem[0].DisposeAsync();
+        await monitoredItem.DisposeAsync();
         await sut.SubscriptionStateChanged.WaitAsync();
 
         // Assert
@@ -449,15 +443,14 @@ public sealed class SubscriptionTests
         var sut = new TestSubscription(_mockSession.Object,
           _mockCompletion.Object, _options, _mockObservability.Object, 2);
         var options = OptionsFactory.Create<MonitoredItemOptions>();
-        var monitoredItem = sut.AddMonitoredItems(options);
-        monitoredItem.Count.Should().Be(1);
+        var monitoredItem = sut.AddMonitoredItem("Test", 1, options);
         sut.MonitoredItemCount.Should().Be(1);
         // Now we got an item that is created
 
         // Only delete monitored item should be called
         _mockSession
             .SetupSequence(s => s.DeleteMonitoredItemsAsync(It.IsAny<RequestHeader>(),
-                2, new UInt32Collection { monitoredItem[0].ServerId },
+                2, new UInt32Collection { monitoredItem.ServerId },
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DeleteMonitoredItemsResponse
             {
@@ -479,7 +472,7 @@ public sealed class SubscriptionTests
 
         // Act
         sut.SubscriptionStateChanged.Reset();
-        await monitoredItem[0].DisposeAsync();
+        await monitoredItem.DisposeAsync();
         await sut.SubscriptionStateChanged.WaitAsync();
 
         // Assert
@@ -591,8 +584,7 @@ public sealed class SubscriptionTests
         var sut = new TestSubscription(_mockSession.Object,
             _mockCompletion.Object, _options, _mockObservability.Object, 22);
         var options = OptionsFactory.Create<MonitoredItemOptions>();
-        var monitoredItem = sut.AddMonitoredItems(options);
-        monitoredItem.Count.Should().Be(1);
+        var monitoredItem = sut.AddMonitoredItem("Test", 1, options);
 
         _mockSession
             .Setup(s => s.DeleteSubscriptionsAsync(
@@ -657,14 +649,13 @@ public sealed class SubscriptionTests
         var options = OptionsFactory.Create<MonitoredItemOptions>();
         var sut = new TestSubscription(_mockSession.Object,
             _mockCompletion.Object, _options, _mockObservability.Object);
-        var monitoredItem = sut.AddMonitoredItems(options);
-        monitoredItem.Count.Should().Be(1);
+        var monitoredItem = sut.AddMonitoredItem("Test", 1, options);
 
         // Act
-        var result = sut.FindItemByClientHandle(monitoredItem[0].ClientHandle);
+        var result = sut.FindItemByClientHandle(monitoredItem.ClientHandle);
 
         // Assert
-        result.Should().Be(monitoredItem[0]);
+        result.Should().Be(monitoredItem);
     }
 
     [Fact]
@@ -674,7 +665,7 @@ public sealed class SubscriptionTests
         var options = OptionsFactory.Create<MonitoredItemOptions>();
         var sut = new TestSubscription(_mockSession.Object,
             _mockCompletion.Object, _options, _mockObservability.Object);
-        sut.AddMonitoredItems(options);
+        sut.AddMonitoredItem("Test", 1, options);
 
         // Act
         var result = sut.FindItemByClientHandle(55);
@@ -706,8 +697,8 @@ public sealed class SubscriptionTests
         var sut = new TestSubscription(_mockSession.Object,
             _mockCompletion.Object, _options, _mockObservability.Object, 10);
         var options = OptionsFactory.Create<MonitoredItemOptions>();
-        var monitoredItem = sut.AddMonitoredItems(options);
-        monitoredItem.Count.Should().Be(1);
+        var monitoredItem = sut.AddMonitoredItem("Test", 1, options);
+
         // We have a running subscription with one monitored item.
 
         _mockSession
@@ -754,7 +745,7 @@ public sealed class SubscriptionTests
         sut.CurrentMaxNotificationsPerPublish.Should().Be(10);
         sut.CurrentPriority.Should().Be(3);
         sut.Id.Should().Be(22);
-        monitoredItem[0].ServerId.Should().Be(200);
+        monitoredItem.ServerId.Should().Be(200);
         _mockSession.Verify();
     }
 
@@ -767,8 +758,7 @@ public sealed class SubscriptionTests
             _mockCompletion.Object, _options, _mockObservability.Object, 10);
 
         var options = OptionsFactory.Create<MonitoredItemOptions>();
-        var monitoredItem = sut.AddMonitoredItems(options);
-        monitoredItem.Count.Should().Be(1);
+        var monitoredItem = sut.AddMonitoredItem("Test", 1, options);
 
         _mockSession
             .Setup(s => s.CreateSubscriptionAsync(It.IsAny<RequestHeader>(),
@@ -815,7 +805,7 @@ public sealed class SubscriptionTests
         sut.CurrentPriority.Should().Be(3);
         sut.Id.Should().Be(22);
         sut.MonitoredItemCount.Should().Be(1);
-        monitoredItem[0].ServerId.Should().Be(200);
+        monitoredItem.ServerId.Should().Be(200);
         _mockSession.Verify();
     }
 
@@ -826,11 +816,10 @@ public sealed class SubscriptionTests
         var options = OptionsFactory.Create<MonitoredItemOptions>();
         var sut = new TestSubscription(_mockSession.Object,
             _mockCompletion.Object, _options, _mockObservability.Object);
-        var monitoredItem = sut.AddMonitoredItems(options);
-        monitoredItem.Count.Should().Be(1);
+        var monitoredItem = sut.AddMonitoredItem("Test", 1, options);
 
         // Act
-        sut.RemoveItem(monitoredItem[0]);
+        sut.NotifyItemChange(monitoredItem);
 
         // Assert
         sut.MonitoredItems.Should().NotContain(monitoredItem);
@@ -844,8 +833,7 @@ public sealed class SubscriptionTests
             _mockCompletion.Object, _options, _mockObservability.Object, 2);
 
         var options = OptionsFactory.Create<MonitoredItemOptions>();
-        var monitoredItem = sut.AddMonitoredItems(options);
-        monitoredItem.Count.Should().Be(1);
+        var monitoredItem = sut.AddMonitoredItem("Test", 1, options);
 
         _mockSession
             .Setup(s => s.CallAsync(
@@ -889,8 +877,7 @@ public sealed class SubscriptionTests
             _mockCompletion.Object, _options, _mockObservability.Object, 2);
 
         var options = OptionsFactory.Create<MonitoredItemOptions>();
-        var monitoredItem = sut.AddMonitoredItems(options);
-        monitoredItem.Count.Should().Be(1);
+        var monitoredItem = sut.AddMonitoredItem("Test", 1, options);
 
         _mockSession
             .Setup(s => s.CallAsync(
@@ -934,8 +921,7 @@ public sealed class SubscriptionTests
             _mockCompletion.Object, _options, _mockObservability.Object, 2);
 
         var options = OptionsFactory.Create<MonitoredItemOptions>();
-        var monitoredItem = sut.AddMonitoredItems(options);
-        monitoredItem.Count.Should().Be(1);
+        var monitoredItem = sut.AddMonitoredItem("Test", 1, options);
 
         _mockSession
             .Setup(s => s.CallAsync(
@@ -956,7 +942,7 @@ public sealed class SubscriptionTests
                         OutputArguments =
                         [
                             new Variant([199u]), // serverHandles
-                            new Variant([monitoredItem[0].ClientHandle])  // clientHandles
+                            new Variant([monitoredItem.ClientHandle])  // clientHandles
                         ]
                     }
                 ]
@@ -969,7 +955,7 @@ public sealed class SubscriptionTests
         // Assert
         _mockSession.Verify();
         success.Should().BeTrue();
-        monitoredItem[0].ServerId.Should().Be(199);
+        monitoredItem.ServerId.Should().Be(199);
     }
 
     [Fact]
@@ -981,9 +967,8 @@ public sealed class SubscriptionTests
             _mockCompletion.Object, _options, _mockObservability.Object, 2);
 
         var options = OptionsFactory.Create<MonitoredItemOptions>();
-        var monitoredItem = sut.AddMonitoredItems(options);
-        monitoredItem.Count.Should().Be(1);
-        var serverId = monitoredItem[0].ServerId;
+        var monitoredItem = sut.AddMonitoredItem("Test", 1, options);
+        var serverId = monitoredItem.ServerId;
 
         _mockSession
             .Setup(s => s.CallAsync(
@@ -1003,8 +988,8 @@ public sealed class SubscriptionTests
                         StatusCode = StatusCodes.Good,
                         OutputArguments =
                         [
-                            new Variant([monitoredItem[0].ServerId]), // serverHandles
-                            new Variant([monitoredItem[0].ClientHandle])  // clientHandles
+                            new Variant([monitoredItem.ServerId]), // serverHandles
+                            new Variant([monitoredItem.ClientHandle])  // clientHandles
                         ]
                     }
                 ]
@@ -1016,7 +1001,7 @@ public sealed class SubscriptionTests
 
         // Assert
         _mockSession.Verify();
-        monitoredItem[0].ServerId.Should().Be(serverId);
+        monitoredItem.ServerId.Should().Be(serverId);
         success.Should().BeTrue();
     }
 
@@ -1078,9 +1063,8 @@ public sealed class SubscriptionTests
         var sut = new TestSubscription(_mockSession.Object,
             _mockCompletion.Object, _options, _mockObservability.Object, 2);
         var options = OptionsFactory.Create<MonitoredItemOptions>();
-        var monitoredItem = sut.AddMonitoredItems(options);
-        monitoredItem.Count.Should().Be(1);
-        monitoredItem[0].Created.Should().BeTrue();
+        var monitoredItem = sut.AddMonitoredItem("Test", 1, options);
+        monitoredItem.Created.Should().BeTrue();
 
         _mockSession
             .Setup(s => s.CallAsync(
@@ -1110,7 +1094,7 @@ public sealed class SubscriptionTests
         // Assert
         _mockSession.Verify();
         success.Should().BeFalse();
-        monitoredItem[0].Created.Should().BeFalse();
+        monitoredItem.Created.Should().BeFalse();
     }
 
     [Fact]
@@ -1120,11 +1104,10 @@ public sealed class SubscriptionTests
         var sut = new TestSubscription(_mockSession.Object,
             _mockCompletion.Object, _options, _mockObservability.Object, 2);
         var options = OptionsFactory.Create<MonitoredItemOptions>();
-        var monitoredItem = sut.AddMonitoredItems(options);
-        monitoredItem.Count.Should().Be(1);
-        monitoredItem[0].Created.Should().BeTrue();
-        var clientId = monitoredItem[0].ClientHandle;
-        var serverId = monitoredItem[0].ServerId;
+        var monitoredItem = sut.AddMonitoredItem("Test", 1, options);
+        monitoredItem.Created.Should().BeTrue();
+        var clientId = monitoredItem.ClientHandle;
+        var serverId = monitoredItem.ServerId;
 
         _mockSession
             .Setup(s => s.CallAsync(
@@ -1158,8 +1141,8 @@ public sealed class SubscriptionTests
         // Assert
         _mockSession.Verify();
         success.Should().BeTrue();
-        monitoredItem[0].ClientHandle.Should().Be(199);
-        monitoredItem[0].ServerId.Should().Be(serverId);
+        monitoredItem.ClientHandle.Should().Be(199);
+        monitoredItem.ServerId.Should().Be(serverId);
     }
 
     [Fact]
@@ -1169,11 +1152,10 @@ public sealed class SubscriptionTests
         var sut = new TestSubscription(_mockSession.Object,
             _mockCompletion.Object, _options, _mockObservability.Object, 2);
         var options = OptionsFactory.Create<MonitoredItemOptions>();
-        var monitoredItem = sut.AddMonitoredItems(options);
-        monitoredItem.Count.Should().Be(1);
-        monitoredItem[0].Created.Should().BeTrue();
-        var clientId = monitoredItem[0].ClientHandle;
-        var serverId = monitoredItem[0].ServerId;
+        var monitoredItem = sut.AddMonitoredItem("Test", 1, options);
+        monitoredItem.Created.Should().BeTrue();
+        var clientId = monitoredItem.ClientHandle;
+        var serverId = monitoredItem.ServerId;
 
         _mockSession
             .Setup(s => s.CallAsync(
@@ -1235,8 +1217,8 @@ public sealed class SubscriptionTests
         // Assert
         _mockSession.Verify();
         success.Should().BeTrue();
-        monitoredItem[0].Created.Should().BeTrue();
-        monitoredItem[0].ServerId.Should().Be(4444);
+        monitoredItem.Created.Should().BeTrue();
+        monitoredItem.ServerId.Should().Be(4444);
     }
 
     private sealed class TestMonitoredItem : MonitoredItem
@@ -1252,9 +1234,9 @@ public sealed class SubscriptionTests
             DiscardOldest = true
         };
 
-        public TestMonitoredItem(IMonitoredItemContext subscription,
+        public TestMonitoredItem(IMonitoredItemContext subscription, string name, uint order,
             OptionsMonitor<MonitoredItemOptions> options, ILogger logger)
-            : base(subscription, options, logger)
+            : base(subscription, name, options, logger)
         {
             if (NodeId.IsNull(options.CurrentValue.StartNodeId))
             {
@@ -1265,16 +1247,16 @@ public sealed class SubscriptionTests
                 {
                     ItemToMonitor = new ReadValueId
                     {
-                        AttributeId = Options.AttributeId,
-                        NodeId = Options.StartNodeId
+                        AttributeId = Options.CurrentValue.AttributeId,
+                        NodeId = Options.CurrentValue.StartNodeId
                     },
                     MonitoringMode = MonitoringMode.Sampling,
                     RequestedParameters = new MonitoringParameters
                     {
                         ClientHandle = ClientHandle,
-                        SamplingInterval = Options.SamplingInterval.TotalMilliseconds,
-                        QueueSize = Options.QueueSize,
-                        DiscardOldest = Options.DiscardOldest
+                        SamplingInterval = Options.CurrentValue.SamplingInterval.TotalMilliseconds,
+                        QueueSize = Options.CurrentValue.QueueSize,
+                        DiscardOldest = Options.CurrentValue.DiscardOldest
                     }
                 },
                 new MonitoredItemCreateResult
@@ -1335,11 +1317,11 @@ public sealed class SubscriptionTests
             base.OnSubscriptionStateChanged(state);
         }
 
-        protected override List<MonitoredItem> CreateMonitoredItems(IObservability observability,
-            List<IOptionsMonitor<MonitoredItemOptions>> options)
+        protected override MonitoredItem CreateMonitoredItem(IObservability observability,
+            string name, uint order, IOptionsMonitor<MonitoredItemOptions> options)
         {
-            return options.ConvertAll(c => (MonitoredItem)new TestMonitoredItem(this,
-                (OptionsMonitor<MonitoredItemOptions>)c, new Mock<ILogger>().Object));
+            return new TestMonitoredItem(this, name, order,
+                (OptionsMonitor<MonitoredItemOptions>)c, new Mock<ILogger>().Object);
         }
 
         protected override ValueTask OnKeepAliveNotificationAsync(uint sequenceNumber,

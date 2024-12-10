@@ -1196,14 +1196,15 @@ public abstract class SessionBase : SessionServices, ISubscriptionContext,
     }
 
     /// <inheritdoc/>
-    public IManagedSubscription CreateSubscription(
+    public IManagedSubscription CreateSubscription(INotificationDataHandler handler,
         IOptionsMonitor<SubscriptionOptions> options, IMessageAckQueue queue)
     {
-        return CreateSubscription(Observability, options, queue);
+        return CreateSubscription(Observability, handler, options, queue);
     }
 
     /// <inheritdoc/>
-    public abstract IManagedSubscription CreateSubscription(IObservability observability,
+    public abstract IManagedSubscription CreateSubscription(
+        IObservability observability, INotificationDataHandler handler,
         IOptionsMonitor<SubscriptionOptions> options, IMessageAckQueue queue);
 
     /// <summary>

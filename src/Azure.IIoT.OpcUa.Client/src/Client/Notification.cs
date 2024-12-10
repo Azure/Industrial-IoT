@@ -1,0 +1,84 @@
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
+
+namespace Opc.Ua.Client;
+
+using System.Collections.Generic;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+/// <summary>
+/// Notification
+/// </summary>
+/// <param name="SequenceNumber"></param>
+/// <param name="PublishTime"></param>
+/// <param name="PublishStateMask"></param>
+public abstract record class Notification(uint SequenceNumber,
+    DateTime PublishTime, PublishState PublishStateMask);
+
+/// <summary>
+/// Dataset
+/// </summary>
+/// <param name="SequenceNumber"></param>
+/// <param name="PublishTime"></param>
+/// <param name="Values"></param>
+/// <param name="PublishStateMask"></param>
+/// <param name="StringTable"></param>
+public sealed record Data(uint SequenceNumber,
+    DateTime PublishTime, IReadOnlyList<DataValueChange> Values,
+    PublishState PublishStateMask, IReadOnlyList<string> StringTable) :
+    Notification(SequenceNumber, PublishTime, PublishStateMask);
+
+/// <summary>
+/// Event
+/// </summary>
+/// <param name="SequenceNumber"></param>
+/// <param name="PublishTime"></param>
+/// <param name="Fields"></param>
+/// <param name="PublishStateMask"></param>
+/// <param name="StringTable"></param>
+public sealed record Event(uint SequenceNumber,
+    DateTime PublishTime, EventNotification Fields,
+    PublishState PublishStateMask, IReadOnlyList<string> StringTable) :
+    Notification(SequenceNumber, PublishTime, PublishStateMask);
+
+/// <summary>
+/// Keep alive
+/// </summary>
+/// <param name="SequenceNumber"></param>
+/// <param name="PublishTime"></param>
+/// <param name="PublishStateMask"></param>
+public sealed record KeepAlive(uint SequenceNumber,
+    DateTime PublishTime, PublishState PublishStateMask) :
+    Notification(SequenceNumber, PublishTime, PublishStateMask);
+
+/// <summary>
+/// Status change
+/// </summary>
+/// <param name="SequenceNumber"></param>
+/// <param name="PublishTime"></param>
+/// <param name="Status"></param>
+/// <param name="PublishStateMask"></param>
+/// <param name="StringTable"></param>
+public sealed record StatusChange(uint SequenceNumber,
+    DateTime PublishTime, StatusChangeNotification Status,
+    PublishState PublishStateMask, IReadOnlyList<string> StringTable) :
+    Notification(SequenceNumber, PublishTime, PublishStateMask);
+
+/// <summary>
+/// Queue notifications
+/// </summary>
+internal interface INotificationQueue
+{
+    /// <summary>
+    /// Queues notifications to consumers
+    /// </summary>
+    /// <param name="notification"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    ValueTask QueueAsync(Notification notification,
+        CancellationToken ct = default);
+}

@@ -9,8 +9,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,8 +21,8 @@ using System.Threading.Tasks;
 /// state management of the subscription on the server using the
 /// subscription and monitored item service set provided as context.
 /// </summary>
-public abstract class Subscription : MessageProcessor,
-    IManagedSubscription, IMonitoredItemContext
+public abstract class Subscription : MessageProcessor, IManagedSubscription,
+    IMonitoredItemManagerContext
 {
     /// <inheritdoc/>
     public byte CurrentPriority { get; private set; }
@@ -45,31 +43,16 @@ public abstract class Subscription : MessageProcessor,
     public uint CurrentMaxNotificationsPerPublish { get; private set; }
 
     /// <inheritdoc/>
-    public IEnumerable<MonitoredItem> MonitoredItems
-    {
-        get
-        {
-            lock (_monitoredItems)
-            {
-                return new List<MonitoredItem>(_monitoredItems.Values);
-            }
-        }
-    }
-
-    /// <inheritdoc/>
-    public uint MonitoredItemCount
-    {
-        get
-        {
-            lock (_monitoredItemsLock)
-            {
-                return (uint)_monitoredItems.Count;
-            }
-        }
-    }
+    public IMonitoredItemManager MonitoredItems => _monitoredItems;
 
     /// <inheritdoc/>
     public bool Created => Id != 0;
+
+    /// <inheritdoc/>
+    public IMonitoredItemServiceSet Session => _session;
+
+    /// <inheritdoc/>
+    public IMethodServiceSet Methods => _session;
 
     /// <summary>
     /// Returns true if the subscription is not receiving publishes.
@@ -99,13 +82,16 @@ public abstract class Subscription : MessageProcessor,
     /// Create subscription
     /// </summary>
     /// <param name="session"></param>
+    /// <param name="handler"></param>
     /// <param name="completion"></param>
     /// <param name="options"></param>
     /// <param name="observability"></param>
-    protected Subscription(ISubscriptionContext session,
+    protected Subscription(ISubscriptionContext session, INotificationDataHandler handler,
         IMessageAckQueue completion, IOptionsMonitor<SubscriptionOptions> options,
         IObservability observability) : base(session, completion, observability)
     {
+        _handler = handler;
+        _monitoredItems = new MonitoredItemManager(this, observability);
         _publishTimer = Observability.TimeProvider.CreateTimer(OnKeepAlive,
             null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         OnOptionsChanged(options.CurrentValue);
@@ -117,22 +103,6 @@ public abstract class Subscription : MessageProcessor,
     public override string ToString()
     {
         return $"{_session}:{Id}";
-    }
-
-    /// <inheritdoc/>
-    public List<MonitoredItem> AddMonitoredItems(
-        params List<IOptionsMonitor<MonitoredItemOptions>> options)
-    {
-        var monitoredItems = CreateMonitoredItems(Observability, options);
-        lock (_monitoredItemsLock)
-        {
-            foreach (var monitoredItem in monitoredItems)
-            {
-                _monitoredItems.Add(monitoredItem.ClientHandle, monitoredItem);
-            }
-        }
-        Update();
-        return monitoredItems;
     }
 
     /// <inheritdoc/>
@@ -172,16 +142,18 @@ public abstract class Subscription : MessageProcessor,
             // Recreate subscription
             await CreateAsync(Options, ct).ConfigureAwait(false);
 
-            if (TryGetMonitoredItemChanges(out var itemsToDelete, out var itemsToModify, true))
-            {
-                await ApplyMonitoredItemChangesAsync(itemsToDelete, itemsToModify,
-                    ct).ConfigureAwait(false);
-            }
+            await _monitoredItems.ApplyChangesAsync(true, ct).ConfigureAwait(false);
         }
         finally
         {
             _stateLock.Release();
         }
+    }
+
+    /// <inheritdoc/>
+    public void NotifySubscriptionManagerPaused(bool paused)
+    {
+        _monitoredItems.NotifySubscriptionManagerPaused(paused);
     }
 
     /// <inheritdoc/>
@@ -192,7 +164,9 @@ public abstract class Subscription : MessageProcessor,
         try
         {
             StopKeepAliveTimer();
-            if (!await TrySynchronizeServerAndClientHandlesAsync(ct).ConfigureAwait(false))
+            var success = await _monitoredItems.TrySynchronizeHandlesAsync(
+                ct).ConfigureAwait(false);
+            if (!success)
             {
                 return false;
             }
@@ -200,11 +174,7 @@ public abstract class Subscription : MessageProcessor,
             // save available sequence numbers
             _availableInRetransmissionQueue = availableSequenceNumbers;
 
-            if (TryGetMonitoredItemChanges(out var itemsToDelete, out var itemsToModify))
-            {
-                await ApplyMonitoredItemChangesAsync(itemsToDelete, itemsToModify,
-                    ct).ConfigureAwait(false);
-            }
+            await _monitoredItems.ApplyChangesAsync(true, ct).ConfigureAwait(false);
             StartKeepAliveTimer();
             return true;
         }
@@ -212,38 +182,6 @@ public abstract class Subscription : MessageProcessor,
         {
             _stateLock.Release();
         }
-    }
-
-    /// <inheritdoc/>
-    public void RemoveItem(MonitoredItem monitoredItem)
-    {
-        Debug.Assert(monitoredItem != null);
-        lock (_monitoredItemsLock)
-        {
-            if (!_monitoredItems.Remove(monitoredItem.ClientHandle))
-            {
-                return;
-            }
-        }
-        if (monitoredItem.Created)
-        {
-            _deletedItems.Add(monitoredItem.ServerId);
-            _stateControl.Set();
-        }
-    }
-
-    /// <inheritdoc/>
-    public void Update()
-    {
-        _stateControl.Set();
-    }
-
-    /// <inheritdoc/>
-    public virtual bool NotifyItemChangeResult(MonitoredItem monitoredItem,
-        int retryCount, MonitoredItemOptions source, ServiceResult serviceResult,
-        bool final, MonitoringFilterResult? filterResult)
-    {
-        return final || retryCount > 5; // TODO: Resiliency policy
     }
 
     /// <inheritdoc/>
@@ -274,10 +212,7 @@ public abstract class Subscription : MessageProcessor,
                 await _cts.CancelAsync().ConfigureAwait(false);
                 await _stateManagement.ConfigureAwait(false);
 
-                foreach (var monitoredItem in MonitoredItems)
-                {
-                    await monitoredItem.DisposeAsync().ConfigureAwait(false);
-                }
+                await _monitoredItems.DisposeAsync().ConfigureAwait(false);
             }
             finally
             {
@@ -290,20 +225,34 @@ public abstract class Subscription : MessageProcessor,
         await base.DisposeAsync(disposing).ConfigureAwait(false);
     }
 
+    /// <inheritdoc/>
+    public void Update()
+    {
+        _stateControl.Set();
+    }
+
+    /// <inheritdoc/>
+    public MonitoredItem CreateMonitoredItem(string name, uint order,
+        IOptionsMonitor<MonitoredItemOptions> options)
+    {
+        return CreateMonitoredItem(Observability, name, order, options);
+    }
+
     /// <summary>
     /// Create monitored item
     /// </summary>
     /// <param name="observability"></param>
+    /// <param name="name"></param>
+    /// <param name="order"></param>
     /// <param name="options"></param>
     /// <returns></returns>
-    protected abstract List<MonitoredItem> CreateMonitoredItems(IObservability observability,
-        List<IOptionsMonitor<MonitoredItemOptions>> options);
+    protected abstract MonitoredItem CreateMonitoredItem(IObservability observability,
+        string name, uint order, IOptionsMonitor<MonitoredItemOptions> options);
 
     /// <summary>
     /// Called when the options changed
     /// </summary>
     /// <param name="options"></param>
-    ///
     protected virtual void OnOptionsChanged(SubscriptionOptions options)
     {
         var currentOptions = Options;
@@ -315,6 +264,50 @@ public abstract class Subscription : MessageProcessor,
         _stateControl.Set();
     }
 
+    /// <inheritdoc/>
+    protected override ValueTask OnKeepAliveNotificationAsync(uint sequenceNumber,
+        DateTime publishTime, PublishState publishStateMask)
+    {
+        return _handler.OnKeepAliveNotificationAsync(this, sequenceNumber,
+            publishTime, publishStateMask);
+    }
+
+    /// <inheritdoc/>
+    protected override ValueTask OnStatusChangeNotificationAsync(uint sequenceNumber,
+        DateTime publishTime, StatusChangeNotification notification,
+        PublishState publishStateMask, IReadOnlyList<string> stringTable)
+    {
+        return _handler.OnStatusChangeNotificationAsync(this, sequenceNumber,
+            publishTime, notification, publishStateMask, stringTable);
+    }
+
+    /// <inheritdoc/>
+    protected override ValueTask OnDataChangeNotificationAsync(uint sequenceNumber,
+        DateTime publishTime, DataChangeNotification notification,
+        PublishState publishStateMask, IReadOnlyList<string> stringTable)
+    {
+        return _handler.OnDataChangeNotificationAsync(this, sequenceNumber,
+            publishTime, _monitoredItems.CreateNotification(notification),
+            publishStateMask, stringTable);
+    }
+
+    /// <inheritdoc/>
+    protected override ValueTask OnEventDataNotificationAsync(uint sequenceNumber,
+        DateTime publishTime, EventNotificationList notification,
+        PublishState publishStateMask, IReadOnlyList<string> stringTable)
+    {
+        return _handler.OnEventDataNotificationAsync(this, sequenceNumber,
+            publishTime, _monitoredItems.CreateNotification(notification),
+            publishStateMask, stringTable);
+    }
+
+    /// <inheritdoc/>
+    protected override void OnPublishStateChanged(PublishState stateMask)
+    {
+        _handler.OnPublishStateChanged(this, stateMask);
+        base.OnPublishStateChanged(stateMask);
+    }
+
     /// <summary>
     /// Called when the subscription state changed
     /// </summary>
@@ -322,22 +315,6 @@ public abstract class Subscription : MessageProcessor,
     protected virtual void OnSubscriptionStateChanged(SubscriptionState state)
     {
         _logger.LogInformation("{Subscription}: {State}.", this, state);
-    }
-
-    /// <summary>
-    /// Returns the monitored item identified by the client handle.
-    /// </summary>
-    /// <param name="clientHandle"></param>
-    protected internal MonitoredItem? FindItemByClientHandle(uint clientHandle)
-    {
-        lock (_monitoredItemsLock)
-        {
-            if (_monitoredItems.TryGetValue(clientHandle, out var monitoredItem))
-            {
-                return monitoredItem;
-            }
-            return null;
-        }
     }
 
     /// <summary>
@@ -375,16 +352,8 @@ public abstract class Subscription : MessageProcessor,
                             await ModifyAsync(options, ct).ConfigureAwait(false);
                         }
 
-                        var modified = false;
-                        while (!ct.IsCancellationRequested &&
-                            TryGetMonitoredItemChanges(out var itemsToDelete,
-                            out var itemsToModify))
-                        {
-                            await ApplyMonitoredItemChangesAsync(itemsToDelete,
-                                itemsToModify, ct).ConfigureAwait(false);
-                            // While there are changes pending to be applied apply them
-                            modified = true;
-                        }
+                        var modified = await _monitoredItems.ApplyChangesAsync(
+                            false, ct).ConfigureAwait(false);
                         if (modified)
                         {
                             OnSubscriptionStateChanged(SubscriptionState.Modified);
@@ -610,14 +579,7 @@ public abstract class Subscription : MessageProcessor,
         // Notify all monitored items of the changes
         var state = created ?
             SubscriptionState.Created : SubscriptionState.Modified;
-        lock (_monitoredItemsLock)
-        {
-            foreach (var item in _monitoredItems.Values)
-            {
-                item.OnSubscriptionStateChange(state,
-                    CurrentPublishingInterval);
-            }
-        }
+        _monitoredItems.OnSubscriptionStateChange(state, CurrentPublishingInterval);
         OnSubscriptionStateChanged(state);
     }
 
@@ -639,342 +601,9 @@ public abstract class Subscription : MessageProcessor,
         _deletedItems.Clear();
 
         // Notify all monitored items of the changes
-        lock (_monitoredItemsLock)
-        {
-            foreach (var item in _monitoredItems.Values)
-            {
-                item.OnSubscriptionStateChange(SubscriptionState.Deleted,
-                    CurrentPublishingInterval);
-            }
-        }
+        _monitoredItems.OnSubscriptionStateChange(SubscriptionState.Deleted,
+            CurrentPublishingInterval);
         OnSubscriptionStateChanged(SubscriptionState.Deleted);
-    }
-
-    /// <summary>
-    /// Apply monitored item changes
-    /// </summary>
-    /// <param name="itemsToDelete"></param>
-    /// <param name="itemsToModify"></param>
-    /// <param name="ct"></param>
-    /// <returns></returns>
-    private async ValueTask ApplyMonitoredItemChangesAsync(List<uint> itemsToDelete,
-        List<MonitoredItem.Change> itemsToModify, CancellationToken ct)
-    {
-        if (itemsToDelete.Count != 0)
-        {
-            try
-            {
-                var monitoredItemIds = new UInt32Collection(itemsToDelete);
-                var response = await _session.DeleteMonitoredItemsAsync(null, Id,
-                    monitoredItemIds, ct).ConfigureAwait(false);
-                Ua.ClientBase.ValidateResponse(response.Results, monitoredItemIds);
-                Ua.ClientBase.ValidateDiagnosticInfos(response.DiagnosticInfos,
-                    monitoredItemIds);
-
-                for (var index = 0; index < response.Results.Count; index++)
-                {
-                    if (StatusCode.IsGood(response.Results[index]) ||
-                        response.Results[index] == StatusCodes.BadMonitoredItemIdInvalid)
-                    {
-                        continue;
-                    }
-                    _deletedItems.Add(itemsToDelete[index]); // Retry this
-                    // TODO: Give up after a while
-                }
-            }
-            catch (Exception ex)
-            {
-                _deletedItems.AddRange(itemsToDelete);
-                _logger.LogInformation(ex, "Failed to delete monitored items.");
-            }
-        }
-
-        // To force recreate if item is created therefore, we need to delete the item first.
-        var deletes = itemsToModify
-            .Where(c => c.Item.Created && c.ForceRecreate)
-            .ToList();
-        if (deletes.Count > 0)
-        {
-            var monitoredItemIds = new UInt32Collection(deletes.Select(c => c.Item.ServerId));
-            var response = await _session.DeleteMonitoredItemsAsync(null, Id,
-                monitoredItemIds, ct).ConfigureAwait(false);
-            Ua.ClientBase.ValidateResponse(response.Results, deletes);
-            Ua.ClientBase.ValidateDiagnosticInfos(response.DiagnosticInfos, deletes);
-            for (var index = 0; index < response.Results.Count; index++)
-            {
-                deletes[index].SetDeleteResult(
-                    response.Results[index], index, response.DiagnosticInfos,
-                    response.ResponseHeader);
-            }
-        }
-
-        // Modify all items that need to be modified.
-        var modifications = itemsToModify
-            .Where(c => c.Item.Created)
-            .ToList();
-        foreach (var group in modifications
-            .Where(c => c.Modify != null)
-            .GroupBy(c => c.Timestamps))
-        {
-            var monitoredItems = group.ToList();
-            var requests = new MonitoredItemModifyRequestCollection(group.Select(c => c.Modify));
-            if (requests.Count > 0)
-            {
-                var response = await _session.ModifyMonitoredItemsAsync(null, Id,
-                    group.Key, requests, ct).ConfigureAwait(false);
-                Ua.ClientBase.ValidateResponse(response.Results, monitoredItems);
-                Ua.ClientBase.ValidateDiagnosticInfos(response.DiagnosticInfos, monitoredItems);
-                // update results.
-                for (var index = 0; index < response.Results.Count; index++)
-                {
-                    monitoredItems[index].SetModifyResult(requests[index],
-                        response.Results[index], index, response.DiagnosticInfos,
-                        response.ResponseHeader);
-                }
-            }
-        }
-
-        // Finalize by updating the monitoring mode where needed
-        foreach (var mode in modifications
-            .Where(c => c.MonitoringModeChange != null)
-            .GroupBy(c => c.MonitoringModeChange!.Value))
-        {
-            var monitoredItems = mode
-                .Where(c => c.Item.Created && c.Item.CurrentMonitoringMode != mode.Key)
-                .ToList();
-            var requests = new UInt32Collection(monitoredItems.Select(c => c.Item.ServerId));
-            if (requests.Count > 0)
-            {
-                var response = await _session.SetMonitoringModeAsync(null, Id,
-                    mode.Key, requests, ct).ConfigureAwait(false);
-                Ua.ClientBase.ValidateResponse(response.Results, monitoredItems);
-                Ua.ClientBase.ValidateDiagnosticInfos(response.DiagnosticInfos, monitoredItems);
-                // update results.
-                for (var index = 0; index < response.Results.Count; index++)
-                {
-                    monitoredItems[index].SetMonitoringModeResult(
-                        mode.Key, response.Results[index], index, response.DiagnosticInfos,
-                        response.ResponseHeader);
-                }
-            }
-        }
-
-        // Create all items
-        var creations = itemsToModify
-            .Where(c => !c.Item.Created)
-            .ToList();
-        foreach (var group in creations
-            .Where(c => c.Create != null)
-            .GroupBy(c => c.Timestamps))
-        {
-            var monitoredItems = group.ToList();
-            var requests = new MonitoredItemCreateRequestCollection(group.Select(c => c.Create));
-            if (requests.Count > 0)
-            {
-                var response = await _session.CreateMonitoredItemsAsync(null, Id,
-                    group.Key, requests, ct).ConfigureAwait(false);
-                Ua.ClientBase.ValidateResponse(response.Results, monitoredItems);
-                Ua.ClientBase.ValidateDiagnosticInfos(response.DiagnosticInfos, monitoredItems);
-                // update results.
-                for (var index = 0; index < response.Results.Count; index++)
-                {
-                    monitoredItems[index].SetCreateResult(requests[index],
-                        response.Results[index], index, response.DiagnosticInfos,
-                        response.ResponseHeader);
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// Get monitored item changes
-    /// </summary>
-    /// <param name="itemsToDelete"></param>
-    /// <param name="itemsToModify"></param>
-    /// <param name="resetAll"></param>
-    /// <returns></returns>
-    private bool TryGetMonitoredItemChanges(out List<uint> itemsToDelete,
-        out List<MonitoredItem.Change> itemsToModify, bool resetAll = false)
-    {
-        // modify the subscription.
-        itemsToModify = [];
-        lock (_monitoredItemsLock)
-        {
-            itemsToDelete = [.. _deletedItems];
-            _deletedItems.Clear();
-
-            foreach (var monitoredItem in _monitoredItems.Values)
-            {
-                if (resetAll)
-                {
-                    monitoredItem.Reset();
-                }
-                // build item request.
-                if (monitoredItem.TryGetPendingChange(out var change))
-                {
-                    itemsToModify.Add(change);
-                }
-            }
-        }
-        if (itemsToDelete.Count == 0 &&
-            itemsToModify.Count == 0)
-        {
-            return false;
-        }
-        return true;
-    }
-
-    /// <summary>
-    /// <para>
-    /// If a Client called CreateMonitoredItems during the network interruption
-    /// and the call succeeded in the Server but did not return to the Client,
-    /// then the Client does not know if the call succeeded. The Client may
-    /// receive data changes for these monitored items but is not able to remove
-    /// them since it does not know the Server handle.
-    /// </para>
-    /// <para>
-    /// There is also no way for the Client to detect if the create succeeded.
-    /// To delete and recreate the Subscription is also not an option since
-    /// there may be several monitored items operating normally that should
-    /// not be interrupted.
-    /// </para>
-    /// </summary>
-    /// <param name="ct"></param>
-    /// <returns></returns>
-    private async ValueTask<bool> TrySynchronizeServerAndClientHandlesAsync(
-        CancellationToken ct)
-    {
-        var (success, serverHandleStateMap) = await GetMonitoredItemsAsync(
-            ct).ConfigureAwait(false);
-
-        lock (_monitoredItemsLock)
-        {
-            if (!success)
-            {
-                // Reset all items
-                foreach (var monitoredItem in _monitoredItems.Values)
-                {
-                    monitoredItem.Reset();
-                }
-                return false;
-            }
-
-            var monitoredItems = _monitoredItems.ToDictionary();
-            _monitoredItems.Clear();
-
-            //
-            // Assign the server id to the item with the matching client handle. This
-            // handles the case where the CreateMonitoredItems call succeeded on the
-            // server side, but the response was not provided back.
-            //
-            var clientServerHandleMap = serverHandleStateMap
-                .ToDictionary(m => m.clientHandle, m => m.serverHandle);
-            foreach (var monitoredItem in monitoredItems.ToList())
-            {
-                //
-                // Adjust any items where the server handles does not map to the
-                // handle the server has assigned.
-                //
-                var clientHandle = monitoredItem.Value.ClientHandle;
-                if (clientServerHandleMap.Remove(clientHandle, out var serverHandle))
-                {
-                    monitoredItem.Value.SetTransferResult(clientHandle, serverHandle);
-                    monitoredItems.Remove(monitoredItem.Key);
-                    _monitoredItems.Add(clientHandle, monitoredItem.Value);
-                }
-            }
-
-            //
-            // Assign the server side client handle to the item with the same server id
-            // This handles the case where we are recreating the subscription from a
-            // previously stored state.
-            //
-            var serverClientHandleMap = clientServerHandleMap
-                .ToDictionary(m => m.Value, m => m.Key);
-            foreach (var monitoredItem in monitoredItems.ToList())
-            {
-                var serverHandle = monitoredItem.Value.ServerId;
-                if (serverClientHandleMap.Remove(serverHandle, out var clientHandle))
-                {
-                    //
-                    // There should not be any more item with the same client handle
-                    // in this subscription, they were updated before. TODO: Assert
-                    //
-                    monitoredItem.Value.SetTransferResult(clientHandle, serverHandle);
-                    monitoredItems.Remove(monitoredItem.Key);
-                    _monitoredItems.Add(clientHandle, monitoredItem.Value);
-                }
-            }
-
-            // Ensure all items on the server that are not in the subscription are deleted
-            _deletedItems.Clear();
-            _deletedItems.AddRange(serverClientHandleMap.Keys);
-
-            // Remaining items do not exist anymore on the server and need to be recreated
-            foreach (var missingOnServer in monitoredItems.Values)
-            {
-                if (missingOnServer.Created)
-                {
-                    _logger.LogDebug("{Subscription}: Recreate client item {Item}.", this,
-                        missingOnServer);
-                    missingOnServer.Reset();
-                }
-                _monitoredItems.Add(missingOnServer.ClientHandle, missingOnServer);
-            }
-        }
-        return true;
-    }
-
-    private record struct MonitoredItemsHandles(bool Success,
-        IReadOnlyList<(uint serverHandle, uint clientHandle)> Handles);
-
-    /// <summary>
-    /// Call the GetMonitoredItems method on the server.
-    /// </summary>
-    /// <param name="ct"></param>
-    private async ValueTask<MonitoredItemsHandles> GetMonitoredItemsAsync(
-        CancellationToken ct)
-    {
-        try
-        {
-            var requests = new CallMethodRequestCollection
-            {
-                new CallMethodRequest
-                {
-                    ObjectId = ObjectIds.Server,
-                    MethodId = MethodIds.Server_GetMonitoredItems,
-                    InputArguments = [new Variant(Id)]
-                }
-            };
-
-            var response = await _session.CallAsync(null, requests, ct).ConfigureAwait(false);
-            var results = response.Results;
-            var diagnosticInfos = response.DiagnosticInfos;
-            Ua.ClientBase.ValidateResponse(results, requests);
-            Ua.ClientBase.ValidateDiagnosticInfos(diagnosticInfos, requests);
-            if (StatusCode.IsBad(results[0].StatusCode))
-            {
-                throw ServiceResultException.Create(results[0].StatusCode,
-                    0, diagnosticInfos, response.ResponseHeader.StringTable);
-            }
-
-            var outputArguments = results[0].OutputArguments;
-            if (outputArguments.Count != 2 ||
-                outputArguments[0].Value is not uint[] serverHandles ||
-                outputArguments[1].Value is not uint[] clientHandles ||
-                clientHandles.Length != serverHandles.Length)
-            {
-                throw ServiceResultException.Create(StatusCodes.BadUnexpectedError,
-                    "Output arguments incorrect");
-            }
-            return new MonitoredItemsHandles(true, serverHandles.Zip(clientHandles).ToList());
-        }
-        catch (ServiceResultException sre)
-        {
-            _logger.LogError(sre,
-                "{Subscription}: Failed to call GetMonitoredItems on server", this);
-            return new MonitoredItemsHandles(false, Array.Empty<(uint, uint)>());
-        }
     }
 
     /// <summary>
@@ -1112,7 +741,7 @@ public abstract class Subscription : MessageProcessor,
     private readonly SemaphoreSlim _stateLock = new(1, 1);
     private readonly List<uint> _deletedItems = [];
     private readonly ITimer _publishTimer;
-    private readonly Lock _monitoredItemsLock = new();
-    private readonly Dictionary<uint, MonitoredItem> _monitoredItems = [];
     private readonly IDisposable? _changeTracking;
+    private readonly INotificationDataHandler _handler;
+    private readonly MonitoredItemManager _monitoredItems;
 }

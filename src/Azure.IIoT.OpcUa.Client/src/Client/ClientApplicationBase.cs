@@ -39,9 +39,17 @@ public abstract class ClientApplicationBase : ApplicationBase, IDisposable,
         string productUri, ClientOptions options, IObservability observability)
         : base(observability)
     {
-        _logger = observability.LoggerFactory.CreateLogger<ClientApplicationBase>();
         _options = options;
+        _logger = observability.LoggerFactory.CreateLogger<ClientApplicationBase>();
         _timeProvider = observability.TimeProvider;
+
+        // Install a logger
+        var stackLogger = observability.LoggerFactory.CreateLogger(
+            instance.ApplicationName);
+        if (_options.StackLoggingLevel != null)
+        {
+            Utils.SetLogger(new MaxLevel(stackLogger, _options.StackLoggingLevel.Value));
+        }
         _application = BuildAsync(instance, applicationUri, productUri);
     }
 
@@ -217,8 +225,8 @@ public abstract class ClientApplicationBase : ApplicationBase, IDisposable,
         }
 
         _logger.LogCritical("Failed to configure OPC UA stack - exit.");
-        throw new InvalidProgramException("OPC UA stack configuration not possible.",
-            innerException);
+        throw ServiceResultException.Create(StatusCodes.BadConfigurationError,
+            "OPC UA stack configuration not possible.", innerException);
 
         async ValueTask<(string, string, string?, string)> UpdateFromExistingCertificateAsync(
             string applicationUri, string appName, string? hostName, string subjectName,
@@ -284,6 +292,45 @@ public abstract class ClientApplicationBase : ApplicationBase, IDisposable,
             }
             return hostname;
         }
+    }
+
+    /// <summary>
+    /// Just log at max level
+    /// </summary>
+    private sealed class MaxLevel : ILogger
+    {
+        /// <inheritdoc/>
+        public MaxLevel(ILogger logger, LogLevel maxLevel = LogLevel.Error)
+        {
+            _logger = logger;
+            _maxLevel = maxLevel;
+        }
+
+        /// <inheritdoc/>
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state,
+            Exception? exception, Func<TState, Exception?, string> formatter)
+        {
+            if (logLevel >= _maxLevel)
+            {
+                _logger.Log(logLevel, eventId, state, exception, formatter);
+            }
+        }
+
+        /// <inheritdoc/>
+        public bool IsEnabled(LogLevel logLevel)
+        {
+            return logLevel >= _maxLevel;
+        }
+
+        /// <inheritdoc/>
+        public IDisposable? BeginScope<TState>(TState state)
+            where TState : notnull
+        {
+            return _logger.BeginScope(state);
+        }
+
+        private readonly ILogger _logger;
+        private readonly LogLevel _maxLevel;
     }
 
     /// <summary>

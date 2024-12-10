@@ -13,9 +13,9 @@ using System;
 public record class MonitoredItemOptions
 {
     /// <summary>
-    /// A display name for the monitored item.
+    /// The order of the item in the subscription
     /// </summary>
-    public string? DisplayName { get; init; }
+    public uint Order { get; init; }
 
     /// <summary>
     /// The start node for the browse path that

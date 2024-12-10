@@ -25,6 +25,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Threading;
     using System.Threading.Tasks;
 
+    internal sealed class Stub : INotificationDataHandler
+    {
+        public override ValueTask OnDataChangeNotificationAsync(uint sequenceNumber,
+            DateTime publishTime, DataChangeNotification notification,
+            PublishState publishStateMask, IReadOnlyList<string> stringTable)
+        {
+            return default;
+        }
+
+        public override ValueTask OnEventDataNotificationAsync(uint sequenceNumber,
+            DateTime publishTime, EventNotificationList notification,
+            PublishState publishStateMask, IReadOnlyList<string> stringTable)
+        {
+            return default;
+        }
+
+        public override ValueTask OnKeepAliveNotificationAsync(uint sequenceNumber,
+            DateTime publishTime, PublishState publishStateMask)
+        {
+            return default;
+        }
+    }
+
     /// <summary>
     /// Concrete subscription
     /// </summary>
@@ -166,14 +189,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         internal OpcUaSubscription(OpcUaClient client, OpcUaClient.OpcUaSession session,
             OpcUaClient.VirtualSubscription owner, IOptions<OpcUaSubscriptionOptions> options,
             IObservability observability, IMetricsContext metrics)
-            : base(session, (IMessageAckQueue)session.Subscriptions,
+            : base(session, new Stub(), (IMessageAckQueue)session.Subscriptions,
                   new Opc.Ua.Client.OptionsMonitor<SubscriptionOptions>( // TODO
                       new OpcUaClient.VRef(owner)), observability)
         {
             _client = client;
             Session = session;
             _options = options;
-
             _metrics = metrics;
             _owner = owner;
             _meter = Observability.MeterFactory.Create(nameof(OpcUaSubscription));
@@ -1264,7 +1286,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
-        protected override async ValueTask OnDataChangeNotificationAsync(uint sequenceNumber,
+        protected async ValueTask OnDataChangeNotificationAsync(uint sequenceNumber,
             DateTime publishTime, DataChangeNotification notification,
             PublishState publishStateMask, IReadOnlyList<string> stringTable)
         {

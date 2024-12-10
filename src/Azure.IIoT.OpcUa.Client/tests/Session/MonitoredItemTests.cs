@@ -327,7 +327,7 @@ public sealed class MonitoredItemTests
         await sut.DisposeAsync();
 
         // Assert
-        _mockContext.Verify(s => s.RemoveItem(sut), Times.Once);
+        _mockContext.Verify(s => s.NotifyItemChange(sut), Times.Once);
     }
 
     [Fact]
@@ -344,7 +344,7 @@ public sealed class MonitoredItemTests
         await sut.DisposeAsync();
 
         // Assert
-        _mockContext.Verify(s => s.RemoveItem(sut), Times.Once);
+        _mockContext.Verify(s => s.NotifyItemChange(sut), Times.Once);
     }
 
     [Fact]
@@ -482,7 +482,6 @@ public sealed class MonitoredItemTests
         var options = OptionsFactory.Create<MonitoredItemOptions>();
         options.Configure(o => o with
         {
-            DisplayName = "TestItem",
             StartNodeId = new NodeId("ns=2;s=TestNode")
         });
 
@@ -500,7 +499,7 @@ public sealed class MonitoredItemTests
     {
         public TestMonitoredItem(IMonitoredItemContext subscription,
             OptionsMonitor<MonitoredItemOptions> options, ILogger logger)
-            : base(subscription, options, logger)
+            : base(subscription, "TestItem", options, logger)
         {
             options.Configure(o => o with
             {

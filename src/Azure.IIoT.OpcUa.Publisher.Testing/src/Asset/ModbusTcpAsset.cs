@@ -173,7 +173,7 @@ namespace Asset
 
         public void Observe(AssetTag tag, uint id, OnAssetTagChange callback)
         {
-            if (tag is not AssetTag<ModbusForm> modbusTag)
+            if (tag is not AssetTag<ModbusForm>)
             {
                 throw ServiceResultException.Create(StatusCodes.BadInvalidArgument,
                     "Not a modbus tag");
@@ -184,7 +184,7 @@ namespace Asset
 
         public void Unobserve(AssetTag tag, uint id)
         {
-            if (tag is not AssetTag<ModbusForm> modbusTag)
+            if (tag is not AssetTag<ModbusForm>)
             {
                 throw ServiceResultException.Create(StatusCodes.BadInvalidArgument,
                     "Not a modbus tag");

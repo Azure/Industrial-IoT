@@ -485,6 +485,7 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
     /// A pooled session wraps a session from the session pool.
     /// Disposing the client returns the session to the pool.
     /// </summary>
+    /// <param name="lifetime"></param>
     private sealed class Pooled(Lifetime<Session> lifetime) : ISessionHandle
     {
         /// <summary>

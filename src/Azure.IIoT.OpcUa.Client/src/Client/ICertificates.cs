@@ -11,7 +11,8 @@ using System.Threading;
 using System.Threading.Tasks;
 
 /// <summary>
-/// Certificate api
+/// Certificate management capabilities. The certificate management
+/// capabilities are exposed by the application.
 /// </summary>
 public interface ICertificates
 {
@@ -34,8 +35,9 @@ public interface ICertificates
     /// <param name="password"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    ValueTask AddCertificateAsync(CertificateStoreName store, byte[] pfxBlob,
-        string? password = null, CancellationToken ct = default);
+    ValueTask AddCertificateAsync(CertificateStoreName store,
+        byte[] pfxBlob, string? password = null,
+        CancellationToken ct = default);
 
     /// <summary>
     /// Add certificate to trusted and issuer stores

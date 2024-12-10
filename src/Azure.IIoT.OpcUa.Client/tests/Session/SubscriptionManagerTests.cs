@@ -26,6 +26,7 @@ public sealed class SubscriptionManagerTests : IDisposable
         _mockSession = new Mock<ISubscriptionManagerContext>();
         _mockLoggerFactory = new Mock<ILoggerFactory>();
         _mockLogger = new Mock<ILogger<SubscriptionManager>>();
+        _mockNotificationDataHandler = new Mock<INotificationDataHandler>();
         _mockLoggerFactory
             .Setup(f => f.CreateLogger(It.IsAny<string>())).Returns(_mockLogger.Object);
         _subscriptionManager = new SubscriptionManager(
@@ -55,12 +56,14 @@ public sealed class SubscriptionManagerTests : IDisposable
 
         session
             .Setup(s => s.CreateSubscription(
+                It.IsAny<INotificationDataHandler>(),
                 It.Is<IOptionsMonitor<SubscriptionOptions>>(o => o == so1),
                 It.Is<IMessageAckQueue>(q => q == sut)))
             .Returns(() => ms1.Object)
             .Verifiable(Times.Once);
         session
             .Setup(s => s.CreateSubscription(
+                It.IsAny<INotificationDataHandler>(),
                 It.Is<IOptionsMonitor<SubscriptionOptions>>(o => o == so2),
                 It.Is<IMessageAckQueue>(q => q == sut)))
             .Returns(() => ms2.Object);
@@ -68,11 +71,11 @@ public sealed class SubscriptionManagerTests : IDisposable
         sut.PublishWorkerCount.Should().Be(0);
 
         // Test adding and removing a subscription from
-        var s1 = sut.Add(so1)[0];
-        var s2 = sut.Add(so2)[0];
+        var s1 = sut.Add(_mockNotificationDataHandler.Object, so1);
+        var s2 = sut.Add(_mockNotificationDataHandler.Object, so2);
         sut.Count.Should().Be(2);
 
-        sut.Invoking(s => s.Add(so2)).Should().Throw<ServiceResultException>()
+        sut.Invoking(s => s.Add(_mockNotificationDataHandler.Object, so2)).Should().Throw<ServiceResultException>()
             .Which.StatusCode.Should().Be(StatusCodes.BadAlreadyExists);
         await Task.Delay(100); // Give time to workers to start
         sut.PublishWorkerCount.Should().Be(0);
@@ -105,11 +108,13 @@ public sealed class SubscriptionManagerTests : IDisposable
 
         session
             .Setup(s => s.CreateSubscription(
+                It.IsAny<INotificationDataHandler>(),
                 It.Is<IOptionsMonitor<SubscriptionOptions>>(o => o == so1),
                 It.Is<IMessageAckQueue>(q => q == sut)))
             .Returns(() => ms1.Object);
         session
             .Setup(s => s.CreateSubscription(
+                It.IsAny<INotificationDataHandler>(),
                 It.Is<IOptionsMonitor<SubscriptionOptions>>(o => o == so2),
                 It.Is<IMessageAckQueue>(q => q == sut)))
             .Returns(() => ms2.Object);
@@ -117,10 +122,9 @@ public sealed class SubscriptionManagerTests : IDisposable
         sut.PublishWorkerCount.Should().Be(0);
 
         // Test adding and removing a subscription from
-        var s = sut.Add(so1, so2);
+        var s1 = sut.Add(_mockNotificationDataHandler.Object, so1);
+        var s2 = sut.Add(_mockNotificationDataHandler.Object, so2);
         sut.Count.Should().Be(2);
-        var s1 = s[0];
-        var s2 = s[1];
 
         ms1.SetupGet(s => s.Created).Returns(true);
         sut.Update();
@@ -166,12 +170,14 @@ public sealed class SubscriptionManagerTests : IDisposable
 
         session
             .Setup(s => s.CreateSubscription(
+                It.IsAny<INotificationDataHandler>(),
                 It.Is<IOptionsMonitor<SubscriptionOptions>>(o => o == so1),
                 It.Is<IMessageAckQueue>(q => q == sut)))
             .Returns(() => ms1.Object)
             .Verifiable(Times.Once);
         session
             .Setup(s => s.CreateSubscription(
+                It.IsAny<INotificationDataHandler>(),
                 It.Is<IOptionsMonitor<SubscriptionOptions>>(o => o == so2),
                 It.Is<IMessageAckQueue>(q => q == sut)))
             .Returns(() => ms2.Object)
@@ -180,8 +186,8 @@ public sealed class SubscriptionManagerTests : IDisposable
         sut.PublishWorkerCount.Should().Be(0);
 
         // Test adding and removing a subscription from
-        var s1 = sut.Add(so1)[0];
-        var s2 = sut.Add(so2)[0];
+        var s1 = sut.Add(_mockNotificationDataHandler.Object, so1);
+        var s2 = sut.Add(_mockNotificationDataHandler.Object, so2);
         sut.Count.Should().Be(2);
 
         sut.MinPublishWorkerCount = 0;
@@ -232,12 +238,13 @@ public sealed class SubscriptionManagerTests : IDisposable
             loggerFactory, DiagnosticsMasks.None);
         session
             .Setup(s => s.CreateSubscription(
+                It.IsAny<INotificationDataHandler>(),
                 It.Is<IOptionsMonitor<SubscriptionOptions>>(o => o == so1),
                 It.Is<IMessageAckQueue>(q => q == sut)))
             .Returns(() => ms1.Object)
             .Verifiable(Times.Once);
         // Test adding subscription
-        var s1 = sut.Add(so1)[0];
+        var s1 = sut.Add(_mockNotificationDataHandler.Object, so1);
         sut.Count.Should().Be(1);
         sut.MaxPublishWorkerCount = 1;
 
@@ -320,11 +327,12 @@ public sealed class SubscriptionManagerTests : IDisposable
     {
         var mockSubscription = new Mock<IManagedSubscription>();
         _mockSession.Setup(s => s.CreateSubscription(
+            It.IsAny<INotificationDataHandler>(),
             It.IsAny<IOptionsMonitor<SubscriptionOptions>>(),
             It.IsAny<IMessageAckQueue>()))
             .Returns(mockSubscription.Object);
 
-        _subscriptionManager.Add(Mock.Of<IOptionsMonitor<SubscriptionOptions>>());
+        _subscriptionManager.Add(_mockNotificationDataHandler.Object, Mock.Of<IOptionsMonitor<SubscriptionOptions>>());
         _subscriptionManager.Items.Should().ContainSingle();
     }
 
@@ -334,11 +342,13 @@ public sealed class SubscriptionManagerTests : IDisposable
         var mockSubscription = new Mock<IManagedSubscription>();
         _mockSession
             .Setup(s => s.CreateSubscription(
+                It.IsAny<INotificationDataHandler>(),
                 It.IsAny<IOptionsMonitor<SubscriptionOptions>>(),
                 It.IsAny<IMessageAckQueue>()))
             .Returns(mockSubscription.Object);
 
-        _subscriptionManager.Add(Mock.Of<IOptionsMonitor<SubscriptionOptions>>());
+        _subscriptionManager.Add(_mockNotificationDataHandler.Object,
+            Mock.Of<IOptionsMonitor<SubscriptionOptions>>());
         _subscriptionManager.Count.Should().Be(1);
     }
 
@@ -366,11 +376,13 @@ public sealed class SubscriptionManagerTests : IDisposable
         var mockSubscription = new Mock<IManagedSubscription>();
         _mockSession
             .Setup(s => s.CreateSubscription(
+                It.IsAny<INotificationDataHandler>(),
                 It.IsAny<IOptionsMonitor<SubscriptionOptions>>(),
                 It.IsAny<IMessageAckQueue>()))
             .Returns(mockSubscription.Object);
 
-        _subscriptionManager.Add(Mock.Of<IOptionsMonitor<SubscriptionOptions>>());
+        _subscriptionManager.Add(_mockNotificationDataHandler.Object,
+            Mock.Of<IOptionsMonitor<SubscriptionOptions>>());
         await _subscriptionManager.DisposeAsync();
         mockSubscription.Verify(s => s.DisposeAsync(), Times.Once);
     }
@@ -397,11 +409,13 @@ public sealed class SubscriptionManagerTests : IDisposable
         mockSubscription.SetupGet(s => s.Id).Returns(1);
         _mockSession
             .Setup(s => s.CreateSubscription(
+                It.IsAny<INotificationDataHandler>(),
                 It.IsAny<IOptionsMonitor<SubscriptionOptions>>(),
                 It.IsAny<IMessageAckQueue>()))
             .Returns(mockSubscription.Object);
 
-        _subscriptionManager.Add(Mock.Of<IOptionsMonitor<SubscriptionOptions>>());
+        _subscriptionManager.Add(_mockNotificationDataHandler.Object,
+            Mock.Of<IOptionsMonitor<SubscriptionOptions>>());
         await _subscriptionManager.CompleteAsync(1, CancellationToken.None);
         _subscriptionManager.Items.Should().BeEmpty();
     }
@@ -412,15 +426,15 @@ public sealed class SubscriptionManagerTests : IDisposable
         var mockSubscription = new Mock<IManagedSubscription>();
         _mockSession
             .Setup(s => s.CreateSubscription(
+                It.IsAny<INotificationDataHandler>(),
                 It.IsAny<IOptionsMonitor<SubscriptionOptions>>(),
                 It.IsAny<IMessageAckQueue>()))
             .Returns(mockSubscription.Object);
 
-        var subscription = _subscriptionManager.Add(
+        var subscription = _subscriptionManager.Add(_mockNotificationDataHandler.Object,
             Mock.Of<IOptionsMonitor<SubscriptionOptions>>());
 
-        subscription.Count.Should().Be(1);
-        subscription[0].Should().NotBeNull();
+        subscription.Should().NotBeNull();
         _subscriptionManager.Items.Should().ContainSingle();
     }
 
@@ -444,11 +458,12 @@ public sealed class SubscriptionManagerTests : IDisposable
         var mockSubscription = new Mock<IManagedSubscription>();
         _mockSession
             .Setup(s => s.CreateSubscription(
+                It.IsAny<INotificationDataHandler>(),
                 It.IsAny<IOptionsMonitor<SubscriptionOptions>>(),
                 It.IsAny<IMessageAckQueue>()))
             .Returns(mockSubscription.Object);
 
-        _subscriptionManager.Add(Mock.Of<IOptionsMonitor<SubscriptionOptions>>());
+        _subscriptionManager.Add(_mockNotificationDataHandler.Object, Mock.Of<IOptionsMonitor<SubscriptionOptions>>());
         await _subscriptionManager.RecreateSubscriptionsAsync(null, CancellationToken.None);
         mockSubscription.Verify(s => s.RecreateAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -457,5 +472,6 @@ public sealed class SubscriptionManagerTests : IDisposable
     private readonly Mock<ISubscriptionManagerContext> _mockSession;
     private readonly Mock<ILoggerFactory> _mockLoggerFactory;
     private readonly Mock<ILogger<SubscriptionManager>> _mockLogger;
+    private readonly Mock<INotificationDataHandler> _mockNotificationDataHandler;
     private readonly SubscriptionManager _subscriptionManager;
 }

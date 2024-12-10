@@ -34,4 +34,11 @@ public interface IManagedSubscription : ISubscription, IMessageProcessor
     /// <param name="ct"></param>
     /// <returns></returns>
     ValueTask RecreateAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Notify subscription that the subscription manager has paused or
+    /// resumed operations.
+    /// </summary>
+    /// <param name="paused"></param>
+    void NotifySubscriptionManagerPaused(bool paused);
 }

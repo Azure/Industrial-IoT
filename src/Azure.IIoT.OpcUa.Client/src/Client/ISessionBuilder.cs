@@ -20,7 +20,7 @@ using System.Collections.Generic;
 /// <typeparam name="S"></typeparam>
 /// <typeparam name="C"></typeparam>
 public interface ISessionBuilder<T, S, C> :
-    IUnpooledSessionBuilder<C>, IClient, IDisposable
+    IUnpooledSessionBuilder<C>, IClientHandle, IDisposable
     where T : PooledSessionOptions, new()
     where S : SessionOptions, new()
     where C : SessionCreateOptions, new()

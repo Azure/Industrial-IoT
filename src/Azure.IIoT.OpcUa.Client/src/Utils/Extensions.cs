@@ -55,4 +55,16 @@ internal static class Extensions
             }
         }
     }
+
+    /// <summary>
+    /// Helper to batch a list.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="collection"></param>
+    /// <param name="batchSize"></param>
+    /// <returns></returns>
+    public static IEnumerable<List<T>> Batch<T>(this List<T> collection, uint batchSize)
+    {
+        return Batch<T, List<T>>(collection, batchSize);
+    }
 }

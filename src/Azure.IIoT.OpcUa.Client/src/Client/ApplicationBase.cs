@@ -241,7 +241,6 @@ public abstract class ApplicationBase : ICertificates, IDisposable
             }
             else
             {
-
                 Add(configuration.SecurityConfiguration.TrustedPeerCertificates,
                     false, x509Certificate);
                 chain.RemoveAt(0);
