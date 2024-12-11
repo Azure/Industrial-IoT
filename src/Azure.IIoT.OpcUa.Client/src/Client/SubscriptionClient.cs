@@ -252,17 +252,17 @@ internal sealed class SubscriptionClient : IAsyncDisposable
             await Task.WhenAll(existing.Keys
                 .Except(s2r.Keys)
                 .Select(k => existing[k])
-                .Select(async vsub =>
+                .Select(async subscription =>
                 {
                     try
                     {
                         lock (_subscriptions)
                         {
-                            _subscriptions.Remove(vsub.CurrentValue);
+                            _subscriptions.Remove(subscription.CurrentValue);
                         }
 
                         // Removes the item from the session and dispose
-                        await vsub.DisposeAsync().ConfigureAwait(false);
+                        await subscription.DisposeAsync().ConfigureAwait(false);
                         Interlocked.Increment(ref removals);
                     }
                     catch (OperationCanceledException) { }
@@ -270,7 +270,7 @@ internal sealed class SubscriptionClient : IAsyncDisposable
                     {
                         _logger.LogError(ex, "{Client}: Failed to close " +
                             "subscription {Subscription} in session.",
-                            this, vsub);
+                            this, subscription);
                     }
                 })).ConfigureAwait(false);
 
@@ -286,15 +286,15 @@ internal sealed class SubscriptionClient : IAsyncDisposable
                         // subscription configuration template that as
                         // of yet has no representation
                         //
-                        var vsub = new VirtualSubscription(this,
+                        var subscription = new VirtualSubscription(this,
                             add, [.. s2r[add]]);
                         lock (_subscriptions)
                         {
-                            _subscriptions.Add(add, vsub);
+                            _subscriptions.Add(add, subscription);
                         }
 
                         // Sync the subscription which will get it to go live.
-                        await vsub.SyncAsync(_session.OperationLimits,
+                        await subscription.SyncAsync(_session.OperationLimits,
                             ct).ConfigureAwait(false);
                         Interlocked.Increment(ref additions);
 
@@ -322,9 +322,9 @@ internal sealed class SubscriptionClient : IAsyncDisposable
                 {
                     try
                     {
-                        var vsub = existing[update];
-                        vsub.Registrations = [.. s2r[update]];
-                        await vsub.SyncAsync(_session.OperationLimits,
+                        var subscription = existing[update];
+                        subscription.Registrations = [.. s2r[update]];
+                        await subscription.SyncAsync(_session.OperationLimits,
                             ct).ConfigureAwait(false);
                         Interlocked.Increment(ref updates);
                         s2r[update].ForEach(r => r.Dirty = false);
@@ -391,7 +391,9 @@ internal sealed class SubscriptionClient : IAsyncDisposable
     }
 
     /// <summary>
-    /// Virtual subscription
+    /// Virtual subscription is a subscription that pools subscriptions across
+    /// several partitions that are made up of actual subscriptions in the
+    /// underlying session.
     /// </summary>
     internal sealed class VirtualSubscription : OptionsMonitor<SubscriptionOptions>,
         INotificationDataHandler, IAsyncDisposable

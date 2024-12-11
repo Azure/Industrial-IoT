@@ -14,6 +14,7 @@
     <PackageReference Include="Microsoft.Extensions.Diagnostics" Version="9.0.0" />
     <PackageReference Include="Nito.AsyncEx" Version="5.1.2" />
     <PackageReference Include="Polly.Core" Version="8.5.0" />
+    <PackageReference Include="Stateless" Version="5.16.0" />
     <PackageReference Include="System.Threading.Channels" Version="9.0.0" />
   </ItemGroup>
   <ItemGroup>

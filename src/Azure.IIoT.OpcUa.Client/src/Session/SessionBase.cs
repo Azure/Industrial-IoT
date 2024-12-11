@@ -20,7 +20,10 @@ using System.Threading;
 using System.Threading.Tasks;
 
 /// <summary>
-/// Manages a session with a server.
+/// The session base class combines the session services and adds
+/// subscription management, complex type handling, and node cache
+/// as layers. It provides the connection services that are used by
+/// the Session class that automatically manages the session state.
 /// </summary>
 public abstract class SessionBase : SessionServices, ISubscriptionContext,
     IComplexTypeContext, INodeCacheContext, ISubscriptionManagerContext,

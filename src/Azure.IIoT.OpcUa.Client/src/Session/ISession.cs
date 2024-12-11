@@ -17,32 +17,23 @@ using System.Threading.Tasks;
 public interface ISession : ISessionServiceSets
 {
     /// <summary>
-    /// Connected?
+    /// Returns the current connection state of
+    /// the session.
     /// </summary>
     bool Connected { get; }
 
     /// <summary>
-    /// Endpoint the session is connected to
+    /// The endpoint the session is connected to.
     /// </summary>
     EndpointDescription Endpoint { get; }
 
     /// <summary>
-    /// Type factory
-    /// </summary>
-    IEncodeableFactory Factory { get; }
-
-    /// <summary>
-    /// User identity of the session
+    /// The current user identity of the session
     /// </summary>
     IUserIdentity Identity { get; }
 
     /// <summary>
-    /// Message context
-    /// </summary>
-    IServiceMessageContext MessageContext { get; }
-
-    /// <summary>
-    /// Node cache
+    /// Cache of the server address space.
     /// </summary>
     INodeCache NodeCache { get; }
 
@@ -52,17 +43,13 @@ public interface ISession : ISessionServiceSets
     ISubscriptionManager Subscriptions { get; }
 
     /// <summary>
-    /// System context (legacy)
+    /// Encoder context providing limits and access to type
+    /// namespace and server tables
     /// </summary>
-    ISystemContext SystemContext { get; }
+    IServiceMessageContext MessageContext { get; }
 
     /// <summary>
-    /// Session timeout
-    /// </summary>
-    TimeSpan SessionTimeout { get; }
-
-    /// <summary>
-    /// Operation limits for the session
+    /// Operation limits for this session
     /// </summary>
     Limits OperationLimits { get; }
 
@@ -73,4 +60,10 @@ public interface ISession : ISessionServiceSets
     /// <returns></returns>
     ValueTask<ComplexTypeSystem?> GetComplexTypeSystemAsync(
         CancellationToken ct = default);
+
+    /// <summary>
+    /// System context (legacy)
+    /// </summary>
+    [Obsolete("Use MessageContext instead.")]
+    ISystemContext SystemContext { get; }
 }
