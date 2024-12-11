@@ -7,7 +7,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Encoders;
+    using Opc.Ua;
     using Opc.Ua.Client;
+    using Opc.Ua.Client.ComplexTypes;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -24,17 +26,53 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     /// the session is not connected and appropriate timeout cancellation must
     /// be used.
     /// </summary>
-    public interface IOpcUaSession : ISession
+    public interface IOpcUaSession
     {
         /// <summary>
         /// Get services of the session
         /// </summary>
-        INoThrowServices Services { get; }
+        ISessionServices Services { get; }
+
+        /// <summary>
+        /// Get the system context
+        /// </summary>
+        ISystemContext SystemContext { get; }
+
+        /// <summary>
+        /// Get the type tree
+        /// </summary>
+        ITypeTable TypeTree { get; }
+
+        /// <summary>
+        /// Get the node cache
+        /// </summary>
+        INodeCache NodeCache { get; }
+
+        /// <summary>
+        /// Get the message context
+        /// </summary>
+        IServiceMessageContext MessageContext { get; }
 
         /// <summary>
         /// Get the codec
         /// </summary>
         IVariantEncoder Codec { get; }
+
+        /// <summary>
+        /// Get complex type system for the session
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        ValueTask<ComplexTypeSystem?> GetComplexTypeSystemAsync(
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Get operation limits
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        ValueTask<OperationLimitsModel> GetOperationLimitsAsync(
+            CancellationToken ct = default);
 
         /// <summary>
         /// Get server diagnostics

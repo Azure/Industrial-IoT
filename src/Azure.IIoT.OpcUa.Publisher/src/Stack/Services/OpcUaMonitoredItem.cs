@@ -24,14 +24,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// Update display name
     /// </summary>
     /// <param name="displayName"></param>
-    public delegate bool UpdateString(string displayName);
+    public delegate void UpdateString(string displayName);
 
     /// <summary>
     /// Update node id
     /// </summary>
     /// <param name="nodeId"></param>
     /// <param name="messageContext"></param>
-    public delegate bool UpdateNodeId(NodeId nodeId,
+    public delegate void UpdateNodeId(NodeId nodeId,
         IServiceMessageContext messageContext);
 
     /// <summary>
@@ -39,174 +39,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// </summary>
     /// <param name="path"></param>
     /// <param name="messageContext"></param>
-    public delegate bool UpdateRelativePath(RelativePath path,
+    public delegate void UpdateRelativePath(RelativePath path,
         IServiceMessageContext messageContext);
 
     /// <summary>
     /// Monitored item
     /// </summary>
-    internal abstract partial class OpcUaMonitoredItem : MonitoredItem
+    internal abstract partial class OpcUaMonitoredItem : MonitoredItem, IDisposable
     {
-        /// <summary>
-        /// A display name for the monitored item.
-        /// </summary>
-        public string? DisplayName
-        {
-            get => Options.DisplayName;
-            set
-            {
-                if (Options.DisplayName != value)
-                {
-                    OnOptionsChanged(Options with { DisplayName = value });
-                }
-            }
-        }
-
-        /// <summary>
-        /// The start node for the browse path that
-        /// identifies the node to monitor.
-        /// </summary>
-        public NodeId StartNodeId
-        {
-            get => Options.StartNodeId;
-            set
-            {
-                if (Options.StartNodeId != value)
-                {
-                    OnOptionsChanged(Options with { StartNodeId = value });
-                }
-            }
-        }
-
-        /// <summary>
-        /// The attribute to monitor.
-        /// </summary>
-        public uint AttributeId
-        {
-            get => Options.AttributeId;
-            set
-            {
-                if (Options.AttributeId != value)
-                {
-                    OnOptionsChanged(Options with { AttributeId = value });
-                }
-            }
-        }
-
-        /// <summary>
-        /// The range of array indexes to monitor.
-        /// </summary>
-        public string? IndexRange
-        {
-            get => Options.IndexRange;
-            set
-            {
-                if (Options.IndexRange != value)
-                {
-                    OnOptionsChanged(Options with { IndexRange = value });
-                }
-            }
-        }
-
-        /// <summary>
-        /// The encoding to use when returning notifications.
-        /// </summary>
-        public QualifiedName? Encoding
-        {
-            get => Options.Encoding;
-            set
-            {
-                if (Options.Encoding != value)
-                {
-                    OnOptionsChanged(Options with { Encoding = value });
-                }
-            }
-        }
-
-        /// <summary>
-        /// The monitoring mode.
-        /// </summary>
-        public Opc.Ua.MonitoringMode MonitoringMode
-        {
-            get => Options.MonitoringMode;
-            set
-            {
-                if (Options.MonitoringMode != value)
-                {
-                    OnOptionsChanged(Options with { MonitoringMode = value });
-                }
-            }
-        }
-
-        /// <summary>
-        /// The sampling interval.
-        /// </summary>
-        public TimeSpan SamplingInterval
-        {
-            get => Options.SamplingInterval;
-            set
-            {
-                if (Options.SamplingInterval != value)
-                {
-                    OnOptionsChanged(Options with { SamplingInterval = value });
-                }
-            }
-        }
-
-        /// <summary>
-        /// The filter to use to select values to return.
-        /// </summary>
-        public MonitoringFilter? Filter
-        {
-            get => Options.Filter;
-            set
-            {
-                if (Options.Filter != value)
-                {
-                    OnOptionsChanged(Options with { Filter = value });
-                }
-            }
-        }
-
-        /// <summary>
-        /// The length of the queue used to buffer values.
-        /// </summary>
-        public uint QueueSize
-        {
-            get => Options.QueueSize;
-            set
-            {
-                if (Options.QueueSize != value)
-                {
-                    OnOptionsChanged(Options with { QueueSize = value });
-                }
-            }
-        }
-
-        /// <summary>
-        /// Whether to discard the oldest entries in the queue when it is full.
-        /// </summary>
-        public bool DiscardOldest
-        {
-            get => Options.DiscardOldest;
-            set
-            {
-                if (Options.DiscardOldest != value)
-                {
-                    OnOptionsChanged(Options with { DiscardOldest = value });
-                }
-            }
-        }
-
         /// <summary>
         /// Assigned monitored item id on server
         /// </summary>
-        public uint? RemoteId => Created ? ServerId : null;
+        public uint? RemoteId => Created ? Status.Id : null;
 
         /// <summary>
-        /// Whether the item is disposed
+        /// The item is valid once added to the subscription. Contract:
+        /// The item will be invalid until the subscription calls
+        /// <see cref="AddTo(Subscription, IOpcUaSession, out bool)"/>
+        /// to add it to the subscription. After removal the item
+        /// is still Valid, but not Created. The item is
+        /// again invalid after <see cref="IDisposable.Dispose"/> is
+        /// called.
         /// </summary>
-        public bool Disposed { get; private set; }
+        public bool Valid { get; protected internal set; }
 
         /// <summary>
         /// Item is good
@@ -226,7 +81,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Status code
         /// </summary>
-        public StatusCode StatusCode => Error.StatusCode;
+        public StatusCode StatusCode => Status == null ?
+            StatusCodes.BadNotConnected :
+                (Status.Error?.StatusCode ?? StatusCodes.Good);
 
         /// <summary>
         /// Event name
@@ -234,14 +91,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public virtual string? EventTypeName { get; }
 
         /// <summary>
-        /// Session
-        /// </summary>
-        public IOpcUaSession Session { get; }
-
-        /// <summary>
         /// The owner of the item that is to be notified of changes
         /// </summary>
         public ISubscriber Owner { get; }
+
+        /// <summary>
+        /// Whether the item is part of a subscription or not
+        /// </summary>
+        public bool AttachedToSubscription => Subscription != null;
 
         /// <summary>
         /// Registered read node updater. If this property is null then
@@ -295,22 +152,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Create item
         /// </summary>
-        /// <param name="subscription"></param>
         /// <param name="owner"></param>
         /// <param name="logger"></param>
-        /// <param name="session"></param>
         /// <param name="nodeId"></param>
         /// <param name="timeProvider"></param>
-        protected OpcUaMonitoredItem(IMonitoredItemContext subscription,
-            ISubscriber owner, ILogger logger, IOpcUaSession session,
-            string nodeId, TimeProvider timeProvider) :
-            base(subscription,
-                new OptionsMonitor<MonitoredItemOptions>(new OpcUaSubscription.Precreated
-                {
-                    StartNodeId = Opc.Ua.NodeId.Null
-                }))
+        protected OpcUaMonitoredItem(ISubscriber owner,
+            ILogger logger, string nodeId, TimeProvider timeProvider)
         {
-            Session = session;
             Owner = owner;
             NodeId = nodeId;
             TimeProvider = timeProvider;
@@ -318,20 +166,47 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
+        /// Copy constructor
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="copyEventHandlers"></param>
+        /// <param name="copyClientHandle"></param>
+        protected OpcUaMonitoredItem(OpcUaMonitoredItem item,
+            bool copyEventHandlers, bool copyClientHandle)
+            : base(item, copyEventHandlers, copyClientHandle)
+        {
+            Owner = item.Owner;
+            NodeId = item.NodeId;
+            TimeProvider = item.TimeProvider;
+            _logger = item._logger;
+
+            LastReceivedTime = item.LastReceivedTime;
+            LastReceivedValue = item.LastReceivedValue;
+            Valid = item.Valid;
+        }
+
+        /// <inheritdoc/>
+        public override abstract MonitoredItem CloneMonitoredItem(
+            bool copyEventHandlers, bool copyClientHandle);
+
+        /// <inheritdoc/>
+        public override object Clone()
+        {
+            return CloneMonitoredItem(true, true);
+        }
+
+        /// <summary>
         /// Create items
         /// </summary>
         /// <param name="client"></param>
-        /// <param name="session"></param>
-        /// <param name="subscription"></param>
         /// <param name="items"></param>
-        /// <param name="observability"></param>
+        /// <param name="factory"></param>
+        /// <param name="timeProvider"></param>
         /// <returns></returns>
-        public static IEnumerable<OpcUaMonitoredItem> Create(OpcUaClient client, IOpcUaSession session,
-            IMonitoredItemContext subscription, IEnumerable<(ISubscriber, BaseMonitoredItemModel)> items,
-            IObservability observability)
+        public static IEnumerable<OpcUaMonitoredItem> Create(OpcUaClient client,
+            IEnumerable<(ISubscriber, BaseMonitoredItemModel)> items,
+            ILoggerFactory factory, TimeProvider timeProvider)
         {
-            var factory = observability.LoggerFactory;
-            var timeProvider = observability.TimeProvider;
             foreach (var (owner, item) in items)
             {
                 switch (item)
@@ -340,37 +215,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         if (dmi.SamplingUsingCyclicRead == true &&
                             client != null)
                         {
-                            yield return new CyclicRead(subscription, owner, client, dmi,
-                                session, factory.CreateLogger<CyclicRead>(), timeProvider);
+                            yield return new CyclicRead(owner, client, dmi,
+                                factory.CreateLogger<CyclicRead>(), timeProvider);
                         }
                         else if (dmi.HeartbeatInterval != null)
                         {
-                            yield return new Heartbeat(subscription, owner, dmi,
-                                session, factory.CreateLogger<Heartbeat>(), timeProvider);
+                            yield return new Heartbeat(owner, dmi,
+                                factory.CreateLogger<Heartbeat>(), timeProvider);
                         }
                         else
                         {
-                            yield return new DataChange(subscription, owner, dmi,
-                                session, factory.CreateLogger<DataChange>(), timeProvider);
+                            yield return new DataChange(owner, dmi,
+                                factory.CreateLogger<DataChange>(), timeProvider);
                         }
                         break;
                     case EventMonitoredItemModel emi:
                         if (emi.ConditionHandling?.SnapshotInterval != null)
                         {
-                            yield return new Condition(subscription, owner, emi,
-                                session, factory.CreateLogger<Condition>(), timeProvider);
+                            yield return new Condition(owner, emi,
+                                factory.CreateLogger<Condition>(), timeProvider);
                         }
                         else
                         {
-                            yield return new Event(subscription, owner, emi,
-                                session, factory.CreateLogger<Event>(), timeProvider);
+                            yield return new Event(owner, emi,
+                                factory.CreateLogger<Event>(), timeProvider);
                         }
                         break;
                     case MonitoredAddressSpaceModel mam:
                         if (client != null)
                         {
-                            yield return new ModelChangeEventItem(subscription, owner, mam, client,
-                                session, factory.CreateLogger<ModelChangeEventItem>(), timeProvider);
+                            yield return new ModelChangeEventItem(owner, mam, client,
+                                factory.CreateLogger<ModelChangeEventItem>(), timeProvider);
                         }
                         break;
                     default:
@@ -381,13 +256,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        protected override ValueTask DisposeAsync(bool disposing)
+        public void Dispose()
         {
-            if (disposing)
-            {
-                Disposed = true;
-            }
-            return base.DisposeAsync(disposing);
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
 
         /// <summary>
@@ -417,7 +289,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <returns></returns>
         public virtual bool WasLastValueReceivedBefore(DateTimeOffset dateTime)
         {
-            if (Disposed)
+            if (!Valid || !AttachedToSubscription)
             {
                 return IsLate = false;
             }
@@ -425,66 +297,125 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
+        /// Dispose
+        /// </summary>
+        /// <param name="disposing"></param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing && Valid)
+            {
+                Valid = false;
+            }
+        }
+
+        /// <summary>
         /// Add the item to the subscription
         /// </summary>
+        /// <param name="subscription"></param>
+        /// <param name="session"></param>
+        /// <param name="metadataChanged"></param>
         /// <returns></returns>
-        public virtual bool Initialize()
+        public virtual bool AddTo(Subscription subscription, IOpcUaSession session,
+            out bool metadataChanged)
         {
-            if (!Disposed)
+            if (Valid)
             {
-                ((Subscription)Context).AddMonitoredItem(new OptionsMonitor<MonitoredItemOptions>(
-                    new OpcUaSubscription.Precreated(this) { StartNodeId = StartNodeId }));
+                subscription.AddItem(this);
                 _logger.LogDebug(
-                    "Added monitored item {Item} to subscription {Subscription}.",
-                    this, Context);
+                    "Added monitored item {Item} to subscription #{SubscriptionId}.",
+                    this, subscription.Id);
+                metadataChanged = true;
                 return true;
             }
+            metadataChanged = false;
             return false;
         }
 
         /// <summary>
         /// Finalize add
         /// </summary>
-        public virtual Func<CancellationToken, Task>? FinalizeInitialize { get; }
+        public virtual Func<IOpcUaSession, CancellationToken, Task>? FinalizeAddTo { get; }
 
         /// <summary>
         /// Merge item in the subscription with this item
         /// </summary>
         /// <param name="item"></param>
+        /// <param name="session"></param>
         /// <param name="metadataChanged"></param>
         /// <returns></returns>
         public abstract bool MergeWith(OpcUaMonitoredItem item,
-            out bool metadataChanged);
+            IOpcUaSession session, out bool metadataChanged);
 
         /// <summary>
         /// Finalize merge
         /// </summary>
-        public virtual Func<CancellationToken, Task>? FinalizeMergeWith { get; }
+        public virtual Func<IOpcUaSession, CancellationToken, Task>? FinalizeMergeWith { get; }
+
+        /// <summary>
+        /// Remove from subscription
+        /// </summary>
+        /// <param name="subscription"></param>
+        /// <param name="metadataChanged"></param>
+        /// <returns></returns>
+        public virtual bool RemoveFrom(Subscription subscription,
+            out bool metadataChanged)
+        {
+            if (AttachedToSubscription)
+            {
+                subscription.RemoveItem(this);
+                _logger.LogDebug(
+                    "Removed monitored item {Item} from subscription #{SubscriptionId}.",
+                    this, subscription.Id);
+                metadataChanged = true;
+                return true;
+            }
+            metadataChanged = false;
+            return false;
+        }
+
+        /// <summary>
+        /// Finalize remove from
+        /// </summary>
+        public virtual Func<CancellationToken, Task>? FinalizeRemoveFrom { get; }
 
         /// <summary>
         /// Complete changes previously made and provide callback
         /// </summary>
+        /// <param name="subscription"></param>
         /// <param name="applyChanges"></param>
         /// <returns></returns>
-        public virtual bool TryCompleteChanges(ref bool applyChanges)
+        public virtual bool TryCompleteChanges(Subscription subscription,
+            ref bool applyChanges)
         {
-            if (Disposed)
+            if (!Valid)
             {
-                _logger.LogError("{Item}: Item was disposed.", this);
+                _logger.LogError("{Item}: Item was disposed or moved to another subscription",
+                    this);
                 return false;
             }
 
-            if (CurrentMonitoringMode == Opc.Ua.MonitoringMode.Disabled)
+            if (!AttachedToSubscription)
+            {
+                _logger.LogDebug(
+                    "Item {Item} removed from subscription #{SubscriptionId} with {Status}.",
+                    this, subscription.Id, Status.Error);
+                // Complete removal
+                return true;
+            }
+
+            Debug.Assert(subscription == Subscription);
+
+            if (Status.MonitoringMode == Opc.Ua.MonitoringMode.Disabled)
             {
                 _logger.LogDebug("{Item}: Item is disabled while trying to complete.", this);
                 return true;
             }
 
-            if (StatusCode.IsNotGood(Error.StatusCode))
+            if (Status.Error != null && StatusCode.IsNotGood(Status.Error.StatusCode))
             {
                 _logger.LogWarning("Error adding monitored item {Item} " +
-                    "to subscription {Subscription} due to {Status}.",
-                    this, Context, Error);
+                    "to subscription #{SubscriptionId} due to {Status}.",
+                    this, subscription.Id, Status.Error);
 
                 // Not needed, mode changes applied after
                 // applyChanges = true;
@@ -492,7 +423,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             if (OnSamplingIntervalOrQueueSizeRevised(
-                SamplingInterval != CurrentSamplingInterval, QueueSize != CurrentQueueSize))
+                SamplingInterval != Status.SamplingInterval, QueueSize != Status.QueueSize))
             {
                 applyChanges = true;
             }
@@ -500,19 +431,80 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
+        /// Log revised sampling rate and queue size
+        /// </summary>
+        public void LogRevisedSamplingRateAndQueueSize()
+        {
+            if (!AttachedToSubscription || SamplingInterval < 0)
+            {
+                return;
+            }
+            Debug.Assert(Subscription != null);
+            if (SamplingInterval != Status.SamplingInterval &&
+                QueueSize != Status.QueueSize && Status.QueueSize != 0)
+            {
+                _logger.LogInformation("Server revised SamplingInterval from {SamplingInterval} " +
+                    "to {CurrentSamplingInterval} and QueueSize from {QueueSize} " +
+                    "to {CurrentQueueSize} for #{SubscriptionId}|{Item}('{Name}').",
+                    SamplingInterval, Status.SamplingInterval, QueueSize, Status.QueueSize,
+                    Subscription.Id, StartNodeId, DisplayName);
+            }
+            else if (SamplingInterval != Status.SamplingInterval)
+            {
+                _logger.LogInformation("Server revised SamplingInterval from {SamplingInterval} " +
+                    "to {CurrentSamplingInterval} for #{SubscriptionId}|{Item}('{Name}').",
+                    SamplingInterval, Status.SamplingInterval,
+                    Subscription.Id, StartNodeId, DisplayName);
+            }
+            else if (QueueSize != Status.QueueSize && Status.QueueSize != 0)
+            {
+                _logger.LogInformation("Server revised QueueSize from {QueueSize} " +
+                    "to {CurrentQueueSize} for #{SubscriptionId}|{Item}('{Name}').",
+                    QueueSize, Status.QueueSize,
+                    Subscription.Id, StartNodeId, DisplayName);
+            }
+            else
+            {
+                _logger.LogDebug("Server accepted configuration " +
+                    "unchanged for #{SubscriptionId}|{Item}('{Name}').",
+                    Subscription.Id, StartNodeId, DisplayName);
+            }
+
+            _logger.LogDebug("SamplingInterval set to {SamplingInterval} and QueueSize " +
+                "to {QueueSize} for #{SubscriptionId}|{Item}('{Name}').",
+                Status.SamplingInterval, Status.QueueSize,
+                Subscription.Id, StartNodeId, DisplayName);
+        }
+
+        /// <summary>
+        /// Called on all items after monitoring mode was changed
+        /// successfully.
+        /// </summary>
+        /// <returns></returns>
+        public virtual Func<CancellationToken, Task>? FinalizeCompleteChanges { get; }
+
+        /// <summary>
         /// Get any changes in the monitoring mode to apply if any.
         /// Otherwise the returned value is null.
         /// </summary>
         public virtual Opc.Ua.MonitoringMode? GetMonitoringModeChange()
         {
-            if (Disposed)
+            if (!AttachedToSubscription || !Valid)
             {
                 return null;
             }
-            var currentMode = CurrentMonitoringMode;
+            var currentMode = Status?.MonitoringMode
+                ?? Opc.Ua.MonitoringMode.Disabled;
             var desiredMode = MonitoringMode;
             return currentMode != desiredMode ? desiredMode : null;
         }
+
+        /// <summary>
+        /// Called on all items after monitoring mode was changed
+        /// successfully.
+        /// </summary>
+        /// <returns></returns>
+        public virtual Func<CancellationToken, Task>? FinalizeMonitoringModeChange { get; }
 
         /// <summary>
         /// Try get monitored item notifications from
@@ -526,7 +518,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             DateTimeOffset publishTime, IEncodeable encodeablePayload,
             MonitoredItemNotifications notifications)
         {
-            if (Disposed)
+            if (!Valid)
             {
                 return false;
             }
@@ -557,14 +549,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return TryGetErrorMonitoredItemNotifications(
                     StatusCodes.BadNoData, notifications);
             }
-            if (ServiceResult.IsNotGood(Error))
+            if (Status.Error != null && ServiceResult.IsNotGood(Status.Error))
             {
-                return TryGetErrorMonitoredItemNotifications(Error.StatusCode,
-                    notifications);
+                return TryGetErrorMonitoredItemNotifications(
+                    Status.Error.StatusCode, notifications);
             }
             return TryGetMonitoredItemNotifications(TimeProvider.GetUtcNow(),
                 lastValue, notifications);
         }
+
+        /// <summary>
+        /// Create triggered items
+        /// </summary>
+        /// <param name="factory"></param>
+        /// <param name="client"></param>
+        /// <returns></returns>
+        protected abstract IEnumerable<OpcUaMonitoredItem> CreateTriggeredItems(
+            ILoggerFactory factory, OpcUaClient client);
 
         /// <summary>
         /// Add error to notification list
@@ -611,7 +612,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             metadataChanged = false;
             updated = template;
 
-            if (Disposed)
+            if (!Valid)
             {
                 return false;
             }
@@ -638,9 +639,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     QueueSize = desired.QueueSize,
                     AutoSetQueueSize = desired.AutoSetQueueSize
                 };
-                if (Context != null)
+                if (Subscription != null)
                 {
-                    itemChange = UpdateQueueSize(Context, updated);
+                    itemChange = UpdateQueueSize(Subscription, updated);
                 }
             }
             if ((updated.MonitoringMode ?? Publisher.Models.MonitoringMode.Reporting) !=
@@ -699,8 +700,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             byte builtInType = 0;
             try
             {
-                builtInType = (byte)await session.NodeCache.GetBuiltInTypeAsync(
-                    variable.DataType, ct).ConfigureAwait(false);
+                builtInType = (byte)await TypeInfo.GetBuiltInTypeAsync(variable.DataType,
+                    session.TypeTree, ct).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -755,7 +756,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     try
                     {
-                        var dataType = await session.NodeCache.GetNodeAsync(baseType,
+                        var dataType = await session.NodeCache.FetchNodeAsync(baseType,
                             ct).ConfigureAwait(false);
                         if (dataType == null)
                         {
@@ -765,7 +766,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             break;
                         }
 
-                        dataTypeId = ExpandedNodeId.ToNodeId(dataType.NodeId, session.MessageContext.NamespaceUris);
+                        dataTypeId = dataType.NodeId;
                         Debug.Assert(!Opc.Ua.NodeId.IsNull(dataTypeId));
                         if (IsBuiltInType(dataTypeId))
                         {
@@ -773,9 +774,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             break;
                         }
 
-                        var builtInType = await session.NodeCache.GetBuiltInTypeAsync(dataTypeId,
-                            ct).ConfigureAwait(false);
-                        baseType = await session.NodeCache.GetSuperTypeAsync(dataTypeId,
+                        var builtInType = await TypeInfo.GetBuiltInTypeAsync(dataTypeId,
+                            session.TypeTree, ct).ConfigureAwait(false);
+                        baseType = await session.TypeTree.FindSuperTypeAsync(dataTypeId,
                             ct).ConfigureAwait(false);
 
                         var browseName = dataType.BrowseName
@@ -796,26 +797,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     dataType.NodeId);
                                 if (types == null || types.Count == 0)
                                 {
-                                    var dtNode = await session.NodeCache.GetNodeAsync(dataTypeId,
+                                    var dtNode = await session.NodeCache.FetchNodeAsync(dataTypeId,
                                             ct).ConfigureAwait(false);
                                     if (dtNode is DataTypeNode v &&
-                                        v.DataTypeDefinition?.Body is DataTypeDefinition t)
+                                        v.DataTypeDefinition.Body is DataTypeDefinition t)
                                     {
-                                        types ??= new Dictionary<ExpandedNodeId, DataTypeDefinition>();
-                                        types.Add(dtNode.NodeId, t);
+                                        types ??= [];
+                                        types.Add(dataTypeId, t);
                                     }
                                     else
                                     {
-                                        dataTypes.AddOrUpdate(dataTypeId, GetDefault(
+                                        dataTypes.AddOrUpdate(dataType.NodeId, GetDefault(
                                             dataType, builtInType, session.MessageContext));
                                         break;
                                     }
                                 }
                                 foreach (var type in types)
                                 {
-                                    var typeId = ExpandedNodeId.ToNodeId(type.Key,
-                                        session.MessageContext.NamespaceUris);
-                                    if (!dataTypes.ContainsKey(typeId))
+                                    if (!dataTypes.ContainsKey(type.Key))
                                     {
                                         var description = type.Value switch
                                         {
@@ -852,7 +851,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                                 },
                                             _ => GetDefault(dataType, builtInType, session.MessageContext),
                                         };
-                                        dataTypes.AddOrUpdate(typeId, description);
+                                        dataTypes.AddOrUpdate(type.Key, description);
                                     }
                                 }
                                 break;
@@ -878,7 +877,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                 }
 
-                object GetDefault(INode dataType, BuiltInType builtInType, IServiceMessageContext context)
+                object GetDefault(Node dataType, BuiltInType builtInType, IServiceMessageContext context)
                 {
                     _logger.LogError("{Item}: Could not find a valid type definition for {Type} " +
                         "({BuiltInType}). Adding a default placeholder with no fields instead.",
@@ -931,10 +930,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
 
-            static bool IsBuiltInType(ExpandedNodeId dataTypeId)
+            static bool IsBuiltInType(NodeId dataTypeId)
             {
-                if (!dataTypeId.IsAbsolute && dataTypeId.NamespaceIndex == 0 &&
-                    dataTypeId.IdType == IdType.Numeric)
+                if (dataTypeId.NamespaceIndex == 0 && dataTypeId.IdType == IdType.Numeric)
                 {
                     var id = (BuiltInType)(int)(uint)dataTypeId.Identifier;
                     if (id >= BuiltInType.Null && id <= BuiltInType.Enumeration)
@@ -951,27 +949,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="subscription"></param>
         /// <param name="item"></param>
-        protected bool UpdateQueueSize(IMonitoredItemContext subscription, BaseMonitoredItemModel item)
+        protected bool UpdateQueueSize(Subscription subscription, BaseMonitoredItemModel item)
         {
             var queueSize = item.QueueSize ?? 1;
             if (item.AutoSetQueueSize == true)
             {
-                var s = subscription as OpcUaSubscription;
-                var publishingInterval = s?.CurrentPublishingInterval ?? TimeSpan.Zero;
-                if (publishingInterval == TimeSpan.Zero)
+                var publishingInterval = subscription.CurrentPublishingInterval;
+                if (publishingInterval == 0)
                 {
-                    publishingInterval = ((OpcUaSubscription)subscription).PublishingInterval;
+                    publishingInterval = subscription.PublishingInterval;
                 }
-                var samplingInterval = CurrentSamplingInterval;
-                if (samplingInterval == TimeSpan.Zero)
+                var samplingInterval = Status.SamplingInterval;
+                if (samplingInterval == 0)
                 {
                     samplingInterval = SamplingInterval;
                 }
-                if (samplingInterval > TimeSpan.Zero)
+                if (samplingInterval > 0)
                 {
                     queueSize = Math.Max(queueSize, (uint)Math.Ceiling(
-                        publishingInterval.TotalMilliseconds / SamplingInterval.TotalMilliseconds))
-                        + 1;
+                        (double)publishingInterval / SamplingInterval)) + 1;
                     if (queueSize != QueueSize && item.QueueSize != queueSize)
                     {
                         _logger.LogDebug("Auto-set queue size for {Item} to '{QueueSize}'.",
@@ -1030,7 +1026,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             string? eventTypeName = null, bool diagnosticsOnly = false,
             DateTimeOffset? timestamp = null)
         {
-            if (Context is not OpcUaSubscription subscription)
+            if (Subscription is not OpcUaSubscription subscription)
             {
                 _logger.LogDebug(
                     "Cannot publish notification. Missing subscription for {Item}.",

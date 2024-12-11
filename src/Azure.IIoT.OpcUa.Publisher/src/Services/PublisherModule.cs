@@ -129,7 +129,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <inheritdoc/>
         public void OnError(int counter, string deviceId, string? moduleId, string reason)
         {
-            _logger.LogInformation("{Counter}: Module {ModuleId} error {Reason}...",
+            _logger.LogError("{Counter}: Module {ModuleId} error {Reason}...",
                 counter, moduleId ?? deviceId, reason);
         }
 

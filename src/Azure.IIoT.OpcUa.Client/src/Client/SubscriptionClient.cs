@@ -48,7 +48,7 @@ internal sealed class SubscriptionClient : IAsyncDisposable
         _resyncTimer = _observability.TimeProvider.CreateTimer(
             _ => _syncEvent.Set(),
             null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-        _sync = VirtualSubscriptionManagementAsync(_cts.Token);
+        _syncTask = VirtualSubscriptionManagementAsync(_cts.Token);
     }
 
     /// <inheritdoc/>
@@ -60,7 +60,7 @@ internal sealed class SubscriptionClient : IAsyncDisposable
             try
             {
                 await _cts.CancelAsync().ConfigureAwait(false);
-                await _sync.ConfigureAwait(false);
+                await _syncTask.ConfigureAwait(false);
             }
             finally
             {
@@ -375,8 +375,8 @@ internal sealed class SubscriptionClient : IAsyncDisposable
         {
             foreach (var registration in Registrations)
             {
-                await registration.Queue.QueueAsync(new StatusChange(sequenceNumber,
-                    publishTime, notification, publishStateMask, stringTable)).ConfigureAwait(false);
+                await registration.Queue.QueueAsync(new StatusChange(sequenceNumber, publishTime,
+                    notification, publishStateMask, stringTable)).ConfigureAwait(false);
             }
         }
 
@@ -386,8 +386,8 @@ internal sealed class SubscriptionClient : IAsyncDisposable
         {
             foreach (var registration in Registrations)
             {
-                await registration.Queue.QueueAsync(new KeepAlive(sequenceNumber,
-                    publishTime, publishStateMask)).ConfigureAwait(false);
+                await registration.Queue.QueueAsync(new KeepAlive(sequenceNumber, publishTime,
+                    publishStateMask)).ConfigureAwait(false);
             }
         }
 
@@ -418,7 +418,7 @@ internal sealed class SubscriptionClient : IAsyncDisposable
             }
             foreach (var (registration, changes) in split)
             {
-                await registration.Queue.QueueAsync(new Data(sequenceNumber, publishTime,
+                await registration.Queue.QueueAsync(new DataChanges(sequenceNumber, publishTime,
                     changes, publishStateMask, stringTable)).ConfigureAwait(false);
             }
         }
@@ -429,7 +429,7 @@ internal sealed class SubscriptionClient : IAsyncDisposable
             PublishState publishStateMask, IReadOnlyList<string> stringTable)
         {
             var m2r = _m2r;
-            foreach (var eventNotification in notification.Span)
+            foreach (var eventNotification in notification.ToArray())
             {
                 if (eventNotification.MonitoredItem != null &&
                     m2r.TryGetValue(eventNotification.MonitoredItem, out var registration))
@@ -498,7 +498,8 @@ internal sealed class SubscriptionClient : IAsyncDisposable
                 {
                     var monitoredItems = _subscriptions[partitionIdx].MonitoredItems.Update(
                         partitions[partitionIdx].Items
-                            .Select((i, idx) => (idx.ToString(), i.Options)));
+                            .Select((i, idx) => (idx.ToString(), i.Options))
+                            .ToList());
 
                     // Create lookup to split the monitored item notifications on receive
                     _m2r = partitions[partitionIdx].Items.Zip(monitoredItems)
@@ -649,7 +650,7 @@ internal sealed class SubscriptionClient : IAsyncDisposable
     private readonly CancellationTokenSource _cts = new();
     private readonly AsyncAutoResetEvent _syncEvent = new();
     private readonly ITimer _resyncTimer;
-    private readonly Task _sync;
+    private readonly Task _syncTask;
     private readonly ISession _session;
     private readonly IObservability _observability;
     private readonly ILogger _logger;

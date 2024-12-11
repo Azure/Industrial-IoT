@@ -16,59 +16,68 @@ using System.Collections.Generic;
 /// <summary>
 /// Session builder
 /// </summary>
-/// <typeparam name="T"></typeparam>
-/// <typeparam name="S"></typeparam>
-/// <typeparam name="C"></typeparam>
-public interface ISessionBuilder<T, S, C> :
-    IUnpooledSessionBuilder<C>, IClientHandle, IDisposable
-    where T : PooledSessionOptions, new()
-    where S : SessionOptions, new()
-    where C : SessionCreateOptions, new()
+/// <typeparam name="TPooledSessionOptions"></typeparam>
+/// <typeparam name="TSessionOptions"></typeparam>
+/// <typeparam name="TSessionCreateOptions"></typeparam>
+public interface ISessionBuilder<TPooledSessionOptions,
+    TSessionOptions, TSessionCreateOptions> :
+    IUnpooledSessionBuilder<TSessionCreateOptions>,
+    IClientHandle, IDisposable
+    where TPooledSessionOptions : PooledSessionOptions, new()
+    where TSessionOptions : SessionOptions, new()
+    where TSessionCreateOptions : SessionCreateOptions, new()
 {
     /// <summary>
     /// With the endpoint url
     /// </summary>
     /// <param name="endpointUrl"></param>
     /// <returns></returns>
-    ISessionBuilder<T, S, C> ConnectTo(
-        string endpointUrl);
+    ISessionBuilder<TPooledSessionOptions,
+        TSessionOptions, TSessionCreateOptions>
+        ConnectTo(string endpointUrl);
 
     /// <summary>
     /// And the security mode
     /// </summary>
     /// <param name="securityMode"></param>
     /// <returns></returns>
-    ISessionBuilder<T, S, C> WithSecurityMode(
-        MessageSecurityMode securityMode);
+    ISessionBuilder<TPooledSessionOptions,
+        TSessionOptions, TSessionCreateOptions>
+        WithSecurityMode(MessageSecurityMode securityMode);
 
     /// <summary>
     /// And security policy
     /// </summary>
     /// <param name="securityPolicyUri"></param>
     /// <returns></returns>
-    ISessionBuilder<T, S, C> WithSecurityPolicy(
-        string securityPolicyUri);
+    ISessionBuilder<TPooledSessionOptions,
+        TSessionOptions, TSessionCreateOptions>
+        WithSecurityPolicy(string securityPolicyUri);
 
     /// <summary>
     /// And the server certificate
     /// </summary>
     /// <param name="serverCertificate"></param>
     /// <returns></returns>
-    ISessionBuilder<T, S, C> WithServerCertificate(
-        byte[] serverCertificate);
+    ISessionBuilder<TPooledSessionOptions,
+        TSessionOptions, TSessionCreateOptions>
+        WithServerCertificate(byte[] serverCertificate);
 
     /// <summary>
     /// Using the provided transport
     /// </summary>
     /// <param name="transportProfileUri"></param>
     /// <returns></returns>
-    ISessionBuilder<T, S, C> WithTransportProfileUri(
-        string transportProfileUri);
+    ISessionBuilder<TPooledSessionOptions,
+        TSessionOptions, TSessionCreateOptions>
+        WithTransportProfileUri(string transportProfileUri);
 
     /// <summary>
     /// Pooled session
     /// </summary>
-    IPooledSessionBuilder<T, S> FromPool { get; }
+    IPooledSessionBuilder<TPooledSessionOptions,
+        TSessionOptions>
+        FromPool { get; }
 }
 
 /// <summary>
@@ -114,11 +123,12 @@ public interface IUnpooledSessionBuilder<T>
 /// <summary>
 /// Pooled session builder
 /// </summary>
-/// <typeparam name="T"></typeparam>
-/// <typeparam name="S"></typeparam>
-public interface IPooledSessionBuilder<T, S>
-    where T : PooledSessionOptions, new()
-    where S : SessionOptions, new()
+/// <typeparam name="TPooledSessionOptions"></typeparam>
+/// <typeparam name="TSessionOptions"></typeparam>
+public interface IPooledSessionBuilder<TPooledSessionOptions,
+    TSessionOptions>
+    where TPooledSessionOptions : PooledSessionOptions, new()
+    where TSessionOptions : SessionOptions, new()
 {
     /// <summary>
     /// Connect the pooled client
@@ -133,24 +143,27 @@ public interface IPooledSessionBuilder<T, S>
     /// </summary>
     /// <param name="useReverseConnect"></param>
     /// <returns></returns>
-    IPooledSessionBuilder<T, S> UseReverseConnect(
-        bool useReverseConnect = true);
+    IPooledSessionBuilder<TPooledSessionOptions,
+        TSessionOptions>
+        UseReverseConnect(bool useReverseConnect = true);
 
     /// <summary>
     /// Conbfigure the session options
     /// </summary>
     /// <param name="configure"></param>
     /// <returns></returns>
-    IPooledSessionBuilder<T, S> WithOption(
-        Action<ISessionOptionsBuilder<S>> configure);
+    IPooledSessionBuilder<TPooledSessionOptions,
+        TSessionOptions>
+        WithOption(Action<ISessionOptionsBuilder<TSessionOptions>> configure);
 
     /// <summary>
     /// User identity to use when connecting
     /// </summary>
     /// <param name="user"></param>
     /// <returns></returns>
-    IPooledSessionBuilder<T, S> WithUser(
-        IUserIdentity user);
+    IPooledSessionBuilder<TPooledSessionOptions,
+        TSessionOptions>
+        WithUser(IUserIdentity user);
 }
 
 /// <summary>

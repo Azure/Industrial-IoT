@@ -197,19 +197,19 @@ internal sealed class SamplingClient : IAsyncDisposable
                         nodesToRead, ct).ConfigureAwait(false);
 
                     // Notify clients of the values
-                    await SendAsync(sequenceNumber, sampledNodes, response.Results,
+                    await QueueAsync(sequenceNumber, sampledNodes, response.Results,
                         sw.Elapsed).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException) { }
                 catch (ServiceResultException sre)
                 {
-                    await SendAsync(sequenceNumber, sampledNodes,
+                    await QueueAsync(sequenceNumber, sampledNodes,
                         sre.StatusCode, sw.Elapsed).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
                     var error = new ServiceResult(ex).StatusCode;
-                    await SendAsync(sequenceNumber, sampledNodes,
+                    await QueueAsync(sequenceNumber, sampledNodes,
                         error.Code, sw.Elapsed).ConfigureAwait(false);
                 }
             }
@@ -222,21 +222,21 @@ internal sealed class SamplingClient : IAsyncDisposable
         /// <param name="nodesToRead"></param>
         /// <param name="values"></param>
         /// <param name="elapsed"></param>
-        private async ValueTask SendAsync(uint seq, ImmutableHashSet<SampledNodeId> nodesToRead,
+        private async ValueTask QueueAsync(uint seq, ImmutableHashSet<SampledNodeId> nodesToRead,
             IReadOnlyList<DataValue> values, TimeSpan elapsed)
         {
             var missed = GetMissed(elapsed);
             await Task.WhenAll(nodesToRead.Zip(values)
                 .GroupBy(n => n.First.Queue)
-                .Select(b => SendAsyncCore(seq, StatusCodes.Good, missed, b.Key, [.. b])))
+                .Select(b => QueueAsyncCore(seq, StatusCodes.Good, missed, b.Key, [.. b])))
                 .ConfigureAwait(false);
 
-            async Task SendAsyncCore(uint seq, uint statusCode, int missed,
+            async Task QueueAsyncCore(uint seq, uint statusCode, int missed,
                 INotificationQueue queue, List<(SampledNodeId, DataValue)> items)
             {
                 var values = items
-                    .ConvertAll(v => CreateChange(v.Item1, statusCode, missed > 0, v.Item2));
-                var changes = new DataChanges(seq,
+                    .ConvertAll(v => CreateSample(v.Item1, statusCode, missed > 0, v.Item2));
+                var changes = new SampledData(seq,
                     _outer._observability.TimeProvider.GetUtcNow().UtcDateTime, values,
                     PublishState.None, Array.Empty<string>());
                 await queue.QueueAsync(changes).ConfigureAwait(false);
@@ -250,21 +250,21 @@ internal sealed class SamplingClient : IAsyncDisposable
         /// <param name="nodesToRead"></param>
         /// <param name="statusCode"></param>
         /// <param name="elapsed"></param>
-        private async ValueTask SendAsync(uint seq, ImmutableHashSet<SampledNodeId> nodesToRead,
+        private async ValueTask QueueAsync(uint seq, ImmutableHashSet<SampledNodeId> nodesToRead,
             uint statusCode, TimeSpan elapsed)
         {
             var missed = GetMissed(elapsed);
             await Task.WhenAll(nodesToRead
                 .GroupBy(n => n.Queue)
-                .Select(batch => SendAsyncCore(seq, statusCode, missed, batch.Key, [.. batch])))
+                .Select(batch => QueueAsyncCore(seq, statusCode, missed, batch.Key, [.. batch])))
                 .ConfigureAwait(false);
 
-            async Task SendAsyncCore(uint seq, uint statusCode, int missed,
+            async Task QueueAsyncCore(uint seq, uint statusCode, int missed,
                 INotificationQueue queue, List<SampledNodeId> items)
             {
                 var values = items
-                    .ConvertAll(v => CreateChange(v, statusCode, missed > 0));
-                var changes = new DataChanges(seq,
+                    .ConvertAll(v => CreateSample(v, statusCode, missed > 0));
+                var changes = new SampledData(seq,
                     _outer._observability.TimeProvider.GetUtcNow().UtcDateTime, values,
                     PublishState.None, Array.Empty<string>());
                 await queue.QueueAsync(changes).ConfigureAwait(false);
@@ -272,21 +272,21 @@ internal sealed class SamplingClient : IAsyncDisposable
         }
 
         /// <summary>
-        /// Create data change
+        /// Create sample value
         /// </summary>
         /// <param name="node"></param>
         /// <param name="statusCode"></param>
+        /// <param name="overflowBit"></param>
         /// <param name="dataValue"></param>
         /// <param name="diagnosticInfo"></param>
-        /// <param name="overflowBit"></param>
         /// <returns></returns>
-        private static DataChange CreateChange(SampledNodeId node, uint statusCode,
+        private static Sample CreateSample(SampledNodeId node, uint statusCode,
             bool overflowBit, DataValue? dataValue = null, DiagnosticInfo? diagnosticInfo = null)
         {
             dataValue ??= new DataValue();
             dataValue.StatusCode = statusCode;
             dataValue.StatusCode.SetOverflow(overflowBit);
-            return new DataChange(node.Name, node.InitialValue, dataValue, diagnosticInfo);
+            return new Sample(node.Name, node.InitialValue, dataValue, diagnosticInfo);
         }
 
         private int GetMissed(TimeSpan elapsed)

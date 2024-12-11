@@ -41,6 +41,8 @@
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisMode>All</AnalysisMode>
     <AnalysisLevel>preview</AnalysisLevel>
+    <AnalysisModeStyle>default</AnalysisModeStyle>
+    <CodeAnalysisTreatWarningsAsErrors>false</CodeAnalysisTreatWarningsAsErrors>
     <!--<TreatWarningsAsErrors>true</TreatWarningsAsErrors>-->
   </PropertyGroup>
   <ItemGroup Condition="$(NO_RCS) == ''">

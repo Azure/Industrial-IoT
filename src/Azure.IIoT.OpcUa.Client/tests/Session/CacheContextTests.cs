@@ -1248,8 +1248,9 @@ public sealed class CacheContextTests
             // No implementation needed for tests
         }
 
-        public override IManagedSubscription CreateSubscription(IObservability observability,
-            IOptionsMonitor<SubscriptionOptions> _options, IMessageAckQueue queue)
+        public override IManagedSubscription CreateSubscription(INotificationDataHandler handler,
+            IOptionsMonitor<SubscriptionOptions> _options, IMessageAckQueue queue,
+            IObservability observability)
         {
             throw new NotImplementedException();
         }

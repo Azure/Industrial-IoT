@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Furly.Extensions.Messaging;
     using Microsoft.Extensions.Logging;
@@ -393,7 +394,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private int ConnectCount => UsedClients
             .Sum(s => s.ConnectCount);
         private int OutstandingRequestCount => UsedClients
-            .Sum(s => s.PublishWorkerCount);
+            .Sum(s => s.OutstandingRequestCount);
         private int GoodPublishRequestCount => UsedClients
             .Sum(s => s.GoodPublishRequestCount);
         private int BadPublishRequestCount => UsedClients

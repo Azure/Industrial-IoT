@@ -7,11 +7,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using Opc.Ua;
     using Opc.Ua.Client;
     using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Runtime.Serialization;
     using System.Threading;
     using System.Threading.Tasks;
@@ -32,21 +34,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <summary>
             /// Create cyclic read item
             /// </summary>
-            /// <param name="subscription"></param>
             /// <param name="owner"></param>
             /// <param name="client"></param>
             /// <param name="template"></param>
-            /// <param name="session"></param>
             /// <param name="logger"></param>
             /// <param name="timeProvider"></param>
-            public CyclicRead(IMonitoredItemContext subscription, ISubscriber owner,
-                OpcUaClient client, DataMonitoredItemModel template, IOpcUaSession session,
-                ILogger<CyclicRead> logger, TimeProvider timeProvider) :
-                base(subscription, owner, template with
+            public CyclicRead(ISubscriber owner, OpcUaClient client,
+                DataMonitoredItemModel template, ILogger<CyclicRead> logger,
+                TimeProvider timeProvider) :
+                base(owner, template with
                 {
                     // Always ensure item is disabled
                     MonitoringMode = Publisher.Models.MonitoringMode.Disabled
-                }, session, logger, timeProvider)
+                }, logger, timeProvider)
             {
                 _client = client;
 
@@ -56,8 +56,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 };
             }
 
+            /// <summary>
+            /// Copy constructor
+            /// </summary>
+            /// <param name="item"></param>
+            /// <param name="copyEventHandlers"></param>
+            /// <param name="copyClientHandle"></param>
+            private CyclicRead(CyclicRead item, bool copyEventHandlers,
+                bool copyClientHandle)
+                : base(item, copyEventHandlers, copyClientHandle)
+            {
+                _client = item._client;
+                _subscriptionName = item._subscriptionName;
+                if (_subscriptionName != null)
+                {
+                    EnsureSamplerRunning();
+                }
+            }
+
             /// <inheritdoc/>
-            protected override async ValueTask DisposeAsync(bool disposing)
+            public override MonitoredItem CloneMonitoredItem(
+                bool copyEventHandlers, bool copyClientHandle)
+            {
+                return new CyclicRead(this, copyEventHandlers, copyClientHandle);
+            }
+
+            /// <inheritdoc/>
+            protected override void Dispose(bool disposing)
             {
                 // Cleanup
                 var sampler = _sampler;
@@ -66,11 +91,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _disposed = true;
                     _sampler = null;
                 }
-                if (sampler != null)
-                {
-                    await sampler.DisposeAsync().ConfigureAwait(false);
-                }
-                await base.DisposeAsync(disposing).ConfigureAwait(false);
+                sampler?.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                base.Dispose(disposing);
             }
 
             /// <inheritdoc/>
@@ -120,22 +142,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override bool MergeWith(OpcUaMonitoredItem item, out bool metadataChanged)
+            public override bool MergeWith(OpcUaMonitoredItem item, IOpcUaSession session,
+                out bool metadataChanged)
             {
                 if (item is not CyclicRead)
                 {
                     metadataChanged = false;
                     return false;
                 }
-                return base.MergeWith(item, out metadataChanged);
+                return base.MergeWith(item, session, out metadataChanged);
             }
 
             /// <inheritdoc/>
-            public override bool TryCompleteChanges(ref bool applyChanges)
+            public override Func<CancellationToken, Task>? FinalizeMonitoringModeChange => async _ =>
             {
-                EnsureSamplerRunning();
-                return true;
-            }
+                if (!AttachedToSubscription)
+                {
+                    // Disabling sampling
+                    await StopSamplerAsync().ConfigureAwait(false);
+                }
+                else
+                {
+                    Debug.Assert(Subscription != null);
+                    _subscriptionName = Subscription.DisplayName;
+                    Debug.Assert(MonitoringMode == MonitoringMode.Disabled);
+                    EnsureSamplerRunning();
+                }
+            };
 
             /// <summary>
             /// Ensure sampler is started
@@ -149,10 +182,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         return;
                     }
                     if (_sampler == null &&
-                        Context is OpcUaSubscription subscription)
+                        Subscription is OpcUaSubscription subscription)
                     {
                         var resolvedNodeId = TheResolvedNodeId.ToNodeId(subscription.Session.MessageContext);
-                        _sampler = _client.Sample(SamplingInterval,
+                        Debug.Assert(_subscriptionName != null);
+                        _sampler = _client.Sample(
+                            TimeSpan.FromMilliseconds(SamplingInterval),
                             Template.CyclicReadMaxAge ?? TimeSpan.Zero,
                             new ReadValueId
                             {
@@ -160,10 +195,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                 IndexRange = IndexRange,
                                 NodeId = resolvedNodeId
                             },
-                            subscription, ClientHandle);
+                            _subscriptionName, ClientHandle);
                         _logger.LogDebug("Item {Item} successfully registered with sampler.",
                             this);
                     }
+                }
+            }
+
+            /// <summary>
+            /// Stop sampling
+            /// </summary>
+            /// <returns></returns>
+            private async Task StopSamplerAsync()
+            {
+                var sampler = _sampler;
+                lock (_lock)
+                {
+                    _sampler = null;
+                    _subscriptionName = null;
+                }
+                if (sampler != null)
+                {
+                    await sampler.DisposeAsync().ConfigureAwait(false);
+                    _logger.LogDebug("Item {Item} unregistered from sampler.", this);
                 }
             }
 
@@ -171,7 +225,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public override bool TryGetMonitoredItemNotifications(DateTimeOffset timestamp,
                 IEncodeable encodeablePayload, MonitoredItemNotifications notifications)
             {
-                if (Disposed || encodeablePayload is not SampledDataValueModel cyclicReadNotification)
+                if (!Valid || encodeablePayload is not SampledDataValueModel cyclicReadNotification)
                 {
                     return false;
                 }
@@ -185,7 +239,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             private readonly OpcUaClient _client;
             private IAsyncDisposable? _sampler;
-            private readonly Lock _lock = new();
+            private string? _subscriptionName;
+            private readonly object _lock = new();
             private bool _disposed;
         }
     }

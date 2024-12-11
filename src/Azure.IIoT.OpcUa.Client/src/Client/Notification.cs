@@ -20,14 +20,14 @@ public abstract record class Notification(uint SequenceNumber,
     DateTime PublishTime, PublishState PublishStateMask);
 
 /// <summary>
-/// Dataset
+/// Data changes
 /// </summary>
 /// <param name="SequenceNumber"></param>
 /// <param name="PublishTime"></param>
 /// <param name="Values"></param>
 /// <param name="PublishStateMask"></param>
 /// <param name="StringTable"></param>
-public sealed record Data(uint SequenceNumber,
+public sealed record DataChanges(uint SequenceNumber,
     DateTime PublishTime, IReadOnlyList<DataValueChange> Values,
     PublishState PublishStateMask, IReadOnlyList<string> StringTable) :
     Notification(SequenceNumber, PublishTime, PublishStateMask);
@@ -65,6 +65,29 @@ public sealed record KeepAlive(uint SequenceNumber,
 /// <param name="StringTable"></param>
 public sealed record StatusChange(uint SequenceNumber,
     DateTime PublishTime, StatusChangeNotification Status,
+    PublishState PublishStateMask, IReadOnlyList<string> StringTable) :
+    Notification(SequenceNumber, PublishTime, PublishStateMask);
+
+/// <summary>
+/// Sample
+/// </summary>
+/// <param name="Name"></param>
+/// <param name="Item"></param>
+/// <param name="Value"></param>
+/// <param name="DiagnosticInfo"></param>
+public record struct Sample(string Name, ReadValueId Item,
+    DataValue Value, DiagnosticInfo? DiagnosticInfo);
+
+/// <summary>
+/// Sampled data
+/// </summary>
+/// <param name="SequenceNumber"></param>
+/// <param name="PublishTime"></param>
+/// <param name="Values"></param>
+/// <param name="PublishStateMask"></param>
+/// <param name="StringTable"></param>
+public sealed record SampledData(uint SequenceNumber,
+    DateTime PublishTime, IReadOnlyList<Sample> Values,
     PublishState PublishStateMask, IReadOnlyList<string> StringTable) :
     Notification(SequenceNumber, PublishTime, PublishStateMask);
 

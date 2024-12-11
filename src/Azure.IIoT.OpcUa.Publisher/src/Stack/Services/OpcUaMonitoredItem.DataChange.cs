@@ -34,64 +34,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <inheritdoc/>
             public override (string NodeId, string[] Path, UpdateNodeId Update)? Resolve
                 => Template.RelativePath != null &&
-                    (TheResolvedNodeId == Template.StartNodeId ||
-                        string.IsNullOrEmpty(TheResolvedNodeId)) ?
-                    (Template.StartNodeId, Template.RelativePath.ToArray(), (v, context) =>
-                    {
-                        TheResolvedNodeId = NodeId =
-                            v.AsString(context, Template.NamespaceFormat) ?? string.Empty;
-                        return true;
-                    }
-
-            ) : null;
+                    (TheResolvedNodeId == Template.StartNodeId || string.IsNullOrEmpty(TheResolvedNodeId)) ?
+                    (Template.StartNodeId, Template.RelativePath.ToArray(),
+                        (v, context) => TheResolvedNodeId = NodeId
+                            = v.AsString(context, Template.NamespaceFormat) ?? string.Empty) : null;
 
             /// <inheritdoc/>
             public override (string NodeId, UpdateNodeId Update)? Register
                 => Template.RegisterRead == true && !_registeredForReading &&
-                    !string.IsNullOrEmpty(TheResolvedNodeId) ?
-                    (TheResolvedNodeId, (v, context) =>
+                    !string.IsNullOrEmpty(TheResolvedNodeId) ? (TheResolvedNodeId, (v, context) =>
                     {
-                        if (_registeredForReading)
-                        {
-                            return false;
-                        }
                         NodeId = v.AsString(context, Template.NamespaceFormat) ?? string.Empty;
                         // We only want to register the node once for reading inside a session
                         _registeredForReading = true;
-                        return true;
                     }
             ) : null;
 
             /// <inheritdoc/>
             public override (string NodeId, UpdateString Update)? GetDisplayName
-                => Template.FetchDataSetFieldName == true && !string.IsNullOrEmpty(NodeId) ?
-                    (NodeId, name =>
-                    {
-                        if (Template.DataSetFieldName == name)
-                        {
-                            return false;
-                        }
-                        Template = Template with { DataSetFieldName = name };
-                        return true;
-                    }
-            ) : null;
+                => Template.FetchDataSetFieldName == true && Template.DataSetFieldName != null &&
+                    !string.IsNullOrEmpty(NodeId) ?
+                    (NodeId, v => Template = Template with { DataSetFieldName = v }) : null;
 
             /// <inheritdoc/>
             public override (string NodeId, UpdateRelativePath Update)? GetPath
-                => TheResolvedRelativePath == null && !string.IsNullOrEmpty(TheResolvedNodeId) ?
-                    (TheResolvedNodeId, (path, context) =>
+                => TheResolvedRelativePath == null &&
+                !string.IsNullOrEmpty(TheResolvedNodeId) ? (TheResolvedNodeId, (path, context) =>
+                {
+                    if (path == null)
                     {
-                        if (path == null)
-                        {
-                            NodeId = string.Empty;
-                        }
-                        if (TheResolvedRelativePath?.Equals(path) == true)
-                        {
-                            return false;
-                        }
-                        TheResolvedRelativePath = path;
-                        return true;
+                        NodeId = string.Empty;
                     }
+                    TheResolvedRelativePath = path;
+                }
             ) : null;
 
             /// <summary>
@@ -120,16 +95,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <summary>
             /// Create wrapper
             /// </summary>
-            /// <param name="subscription"></param>
             /// <param name="owner"></param>
             /// <param name="template"></param>
-            /// <param name="session"></param>
             /// <param name="logger"></param>
             /// <param name="timeProvider"></param>
-            public DataChange(IMonitoredItemContext subscription, ISubscriber owner,
-                DataMonitoredItemModel template, IOpcUaSession session,
+            public DataChange(ISubscriber owner, DataMonitoredItemModel template,
                 ILogger<DataChange> logger, TimeProvider timeProvider) :
-                base(subscription, owner, logger, session, template.StartNodeId, timeProvider)
+                base(owner, logger, template.StartNodeId, timeProvider)
             {
                 Template = template;
 
@@ -138,6 +110,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 // from the registered and thus effective node id
                 //
                 TheResolvedNodeId = template.StartNodeId;
+            }
+
+            /// <summary>
+            /// Copy constructor
+            /// </summary>
+            /// <param name="item"></param>
+            /// <param name="copyEventHandlers"></param>
+            /// <param name="copyClientHandle"></param>
+            protected DataChange(DataChange item, bool copyEventHandlers,
+                bool copyClientHandle)
+                : base(item, copyEventHandlers, copyClientHandle)
+            {
+                TheResolvedNodeId = item.TheResolvedNodeId;
+                TheResolvedRelativePath = item.TheResolvedRelativePath;
+                Template = item.Template;
+                _fieldId = item._fieldId;
+                _skipDataChangeNotification = item._skipDataChangeNotification;
+                _registeredForReading = false;
+            }
+
+            /// <inheritdoc/>
+            public override MonitoredItem CloneMonitoredItem(
+                bool copyEventHandlers, bool copyClientHandle)
+            {
+                return new DataChange(this, copyEventHandlers, copyClientHandle);
             }
 
             /// <inheritdoc/>
@@ -204,7 +201,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var str = $"Data Item '{Template.StartNodeId}'";
                 if (RemoteId.HasValue)
                 {
-                    str += $" with server id {RemoteId} ({(Created ? "" : "not ")}created)";
+                    str += $" with server id {RemoteId} ({(Status?.Created == true ? "" : "not ")}created)";
                 }
                 return str;
             }
@@ -214,7 +211,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 ComplexTypeSystem? typeSystem, List<PublishedFieldMetaDataModel> fields,
                 NodeIdDictionary<object> dataTypes, CancellationToken ct)
             {
-                var nodeId = NodeId.ToNodeId(session.MessageContext);
+                var nodeId = NodeId.ToExpandedNodeId(session.MessageContext);
                 if (Opc.Ua.NodeId.IsNull(nodeId))
                 {
                     // Failed.
@@ -222,7 +219,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 try
                 {
-                    var node = await session.NodeCache.GetNodeAsync(nodeId, ct).ConfigureAwait(false);
+                    var node = await session.NodeCache.FetchNodeAsync(nodeId, ct).ConfigureAwait(false);
                     if (node is VariableNode variable)
                     {
                         await AddVariableFieldAsync(fields, dataTypes, session, typeSystem, variable,
@@ -238,11 +235,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override bool Initialize()
+            public override bool AddTo(Subscription subscription, IOpcUaSession session,
+                out bool metadataChanged)
             {
-                var nodeId = NodeId.ToNodeId(Session.MessageContext);
+                var nodeId = NodeId.ToNodeId(session.MessageContext);
                 if (Opc.Ua.NodeId.IsNull(nodeId))
                 {
+                    metadataChanged = false;
                     return false;
                 }
 
@@ -253,29 +252,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 StartNodeId = nodeId;
                 MonitoringMode = Template.MonitoringMode.ToStackType()
                     ?? Opc.Ua.MonitoringMode.Reporting;
-                SamplingInterval = Template.SamplingInterval
-                    ?? TimeSpan.FromSeconds(1);
-                UpdateQueueSize(Context, Template);
+                SamplingInterval = (int)Template.SamplingInterval.
+                    GetValueOrDefault(TimeSpan.FromSeconds(1)).TotalMilliseconds;
+                UpdateQueueSize(subscription, Template);
                 Filter = Template.DataChangeFilter.ToStackModel() ??
                     (MonitoringFilter?)Template.AggregateFilter.ToStackModel(
-                        Session.MessageContext);
+                        session.MessageContext);
                 DiscardOldest = !(Template.DiscardNew ?? false);
+                Valid = true;
 
                 if (!TrySetSkipFirst(Template.SkipFirst ?? false))
                 {
                     Debug.Fail("Unexpected: Failed to set skip first setting.");
                 }
-                return base.Initialize();
+                return base.AddTo(subscription, session, out metadataChanged);
             }
 
             /// <inheritdoc/>
-            public override bool TryCompleteChanges(ref bool applyChanges)
+            public override bool TryCompleteChanges(Subscription subscription, ref bool applyChanges)
             {
-                var msgContext = Session?.MessageContext;
+                var msgContext = subscription.Session?.MessageContext;
                 if (Filter is AggregateFilter &&
-                    FilterResult is AggregateFilterResult afr && msgContext != null)
+                    Status?.FilterResult is AggregateFilterResult afr && msgContext != null)
                 {
-                    if (ServiceResult.IsNotGood(Error))
+                    if (Status.Error != null && ServiceResult.IsNotGood(Status.Error))
                     {
                         _logger.LogError("Aggregate filter applied with result {Result} for {Item}",
                             afr.AsJson(msgContext), this);
@@ -286,7 +286,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             afr.AsJson(msgContext), this);
                     }
                 }
-                return base.TryCompleteChanges(ref applyChanges);
+                return base.TryCompleteChanges(subscription, ref applyChanges);
             }
 
             /// <inheritdoc/>
@@ -307,10 +307,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override bool MergeWith(OpcUaMonitoredItem item, out bool metadataChanged)
+            public override bool MergeWith(OpcUaMonitoredItem item, IOpcUaSession session,
+                 out bool metadataChanged)
             {
                 metadataChanged = false;
-                if (item is not DataChange model || Disposed)
+                if (item is not DataChange model || !Valid)
                 {
                     return false;
                 }
@@ -322,14 +323,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     Template = updated;
                 }
 
-                var currentSamplingInterval = Template.SamplingInterval ?? TimeSpan.FromSeconds(1);
-                var samplingInterval = model.Template.SamplingInterval ?? TimeSpan.FromSeconds(1);
-                if (currentSamplingInterval != samplingInterval)
+                if ((Template.SamplingInterval ?? TimeSpan.FromSeconds(1)) !=
+                    (Template.SamplingInterval ?? TimeSpan.FromSeconds(1)))
                 {
                     _logger.LogDebug("{Item}: Changing sampling interval from {Old} to {New}",
-                        this, currentSamplingInterval, samplingInterval);
+                        this, Template.SamplingInterval.GetValueOrDefault(
+                            TimeSpan.FromSeconds(1)).TotalMilliseconds,
+                        model.Template.SamplingInterval.GetValueOrDefault(
+                            TimeSpan.FromSeconds(1)).TotalMilliseconds);
                     Template = Template with { SamplingInterval = model.Template.SamplingInterval };
-                    SamplingInterval = samplingInterval;
+                    SamplingInterval =
+                        (int)Template.SamplingInterval.GetValueOrDefault(
+                            TimeSpan.FromSeconds(1)).TotalMilliseconds;
                     itemChange = true;
                 }
 
@@ -356,7 +361,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     Template = Template with { AggregateFilter = model.Template.AggregateFilter };
                     _logger.LogDebug("{Item}: Changing aggregate change filter.", this);
-                    Filter = Template.AggregateFilter.ToStackModel(Session.MessageContext);
+                    Filter = Template.AggregateFilter.ToStackModel(session.MessageContext);
                     itemChange = true;
                 }
                 if ((model.Template.SkipFirst ?? false) != (Template.SkipFirst ?? false))
@@ -382,11 +387,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             protected override bool OnSamplingIntervalOrQueueSizeRevised(
                 bool samplingIntervalChanged, bool queueSizeChanged)
             {
+                Debug.Assert(Subscription != null);
                 var applyChanges = base.OnSamplingIntervalOrQueueSizeRevised(
                     samplingIntervalChanged, queueSizeChanged);
                 if (samplingIntervalChanged)
                 {
-                    applyChanges |= UpdateQueueSize(Context, Template);
+                    applyChanges |= UpdateQueueSize(Subscription, Template);
                 }
                 return applyChanges;
             }
@@ -397,6 +403,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 SkipMonitoredItemNotification(); // Key frames should always be sent
                 return base.TryGetLastMonitoredItemNotifications(notifications);
+            }
+
+            /// <inheritdoc/>
+            protected override IEnumerable<OpcUaMonitoredItem> CreateTriggeredItems(
+                ILoggerFactory factory, OpcUaClient client)
+            {
+                if (Template.TriggeredItems != null)
+                {
+                    return Create(client, Template.TriggeredItems.Select(i => (Owner, i)),
+                        factory, TimeProvider);
+                }
+                return [];
             }
 
             /// <inheritdoc/>
@@ -436,7 +454,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             protected MonitoredItemNotificationModel ToMonitoredItemNotification(
                 DataValue dataValue, int? overflow = null)
             {
-                Debug.Assert(!Disposed);
+                Debug.Assert(Valid);
                 Debug.Assert(Template != null);
 
                 return new MonitoredItemNotificationModel
@@ -487,7 +505,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return true;
             }
 
-            private enum SkipSetting
+            enum SkipSetting
             {
                 /// <summary> Default </summary>
                 DontSkip,

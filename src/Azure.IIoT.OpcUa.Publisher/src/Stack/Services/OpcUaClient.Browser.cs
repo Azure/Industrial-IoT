@@ -24,11 +24,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// the differences from last browsing operation.
         /// </summary>
         /// <param name="rebrowsePeriod"></param>
-        /// <param name="subscription"></param>
+        /// <param name="subscriptionName"></param>
         /// <returns></returns>
-        internal IOpcUaBrowser Browse(TimeSpan rebrowsePeriod, OpcUaSubscription subscription)
+        internal IOpcUaBrowser Browse(TimeSpan rebrowsePeriod, string subscriptionName)
         {
-            return Browser.Register(this, rebrowsePeriod, subscription);
+            return Browser.Register(this, rebrowsePeriod, subscriptionName);
         }
 
         /// <summary>
@@ -50,19 +50,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// Create browser
             /// </summary>
             /// <param name="client"></param>
-            /// <param name="subscription"></param>
+            /// <param name="subscriptionId"></param>
             /// <param name="browseDelay"></param>
-            private Browser(OpcUaClient client, OpcUaSubscription subscription, TimeSpan browseDelay)
+            private Browser(OpcUaClient client, string subscriptionId, TimeSpan browseDelay)
             {
                 _client = client;
                 _logger = client._logger;
-                _subscription = subscription;
+                _subscriptionId = subscriptionId;
                 _browseDelay = browseDelay == TimeSpan.Zero ? Timeout.InfiniteTimeSpan : browseDelay;
                 _channel = Channel.CreateUnbounded<bool>();
 
                 // Order is important
-                _rebrowseTimer = _client._observability.TimeProvider.CreateTimer(
-                    _ => _channel.Writer.TryWrite(true),
+                _rebrowseTimer = _client._timeProvider.CreateTimer(_ => _channel.Writer.TryWrite(true),
                     null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
                 _browser = RunAsync(_cts.Token);
                 _channel.Writer.TryWrite(true);
@@ -452,7 +451,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 try
                 {
-                    var node = await session.FetchNodeAsync(null, targetNodeId, ct).ConfigureAwait(false);
+                    var node = await session.ReadNodeAsync(targetNodeId, ct).ConfigureAwait(false);
                     if (NodeId.IsNull(node.NodeId))
                     {
                         return;
@@ -490,11 +489,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="existing"></param>
             /// <param name="New"></param>
             /// <returns></returns>
-            private Change<T> CreateChange<T>(NodeId source, RelativePath path, T? existing, T? New)
-                where T : class
+            private Change<T> CreateChange<T>(NodeId source, RelativePath path, T? existing, T? New) where T : class
             {
                 return new(source, path, existing, New, Interlocked.Increment(ref _sequenceNumber),
-                    _client._observability.TimeProvider.GetUtcNow());
+                    _client._timeProvider.GetUtcNow());
             }
 
             /// <summary>
@@ -502,17 +500,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// </summary>
             /// <param name="outer"></param>
             /// <param name="rebrowsePeriod"></param>
-            /// <param name="subscription"></param>
+            /// <param name="subscriptionId"></param>
             /// <returns></returns>
-            public static Browser Register(OpcUaClient outer, TimeSpan rebrowsePeriod,
-                OpcUaSubscription subscription)
+            public static Browser Register(OpcUaClient outer, TimeSpan rebrowsePeriod, string subscriptionId)
             {
                 lock (outer._browsers)
                 {
-                    if (!outer._browsers.TryGetValue((subscription, rebrowsePeriod), out var browser))
+                    if (!outer._browsers.TryGetValue((subscriptionId, rebrowsePeriod), out var browser))
                     {
-                        browser = new Browser(outer, subscription, rebrowsePeriod);
-                        outer._browsers.Add((subscription, rebrowsePeriod), browser);
+                        browser = new Browser(outer, subscriptionId, rebrowsePeriod);
+                        outer._browsers.Add((subscriptionId, rebrowsePeriod), browser);
                     }
                     browser.AddRef();
                     return browser;
@@ -537,7 +534,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var cleanup = false;
                 lock (_client._browsers)
                 {
-                    if (--_refCount == 0 && _client._browsers.Remove((_subscription, _browseDelay)))
+                    if (--_refCount == 0 && _client._browsers.Remove((_subscriptionId, _browseDelay)))
                     {
                         cleanup = true;
                     }
@@ -560,7 +557,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private Dictionary<NodeId, (RelativePath, Node)> _knownNodes = [];
             private Dictionary<ReferenceDescription, (NodeId, RelativePath)> _knownReferences =
                 new(Compare.Using<ReferenceDescription>(Utils.IsEqual));
-            private readonly OpcUaSubscription _subscription;
+            private readonly string _subscriptionId;
             private readonly Task _browser;
             private readonly OpcUaClient _client;
             private readonly ILogger _logger;

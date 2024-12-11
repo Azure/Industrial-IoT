@@ -15,17 +15,6 @@ using System.Collections.Generic;
 public interface ISubscriptionManager
 {
     /// <summary>
-    /// If the subscriptions are transferred when a session is
-    /// recreated.
-    /// </summary>
-    /// <remarks>
-    /// Default <c>false</c>, set to <c>true</c> if subscriptions
-    /// should be transferred after recreating the session.
-    /// Service must be supported by server.
-    /// </remarks>
-    bool TransferSubscriptionsOnRecreate { get; set; }
-
-    /// <summary>
     /// Return diagnostics mask to use when sending publish requests.
     /// </summary>
     DiagnosticsMasks ReturnDiagnostics { get; set; }
@@ -81,9 +70,4 @@ public interface ISubscriptionManager
     /// <returns></returns>
     ISubscription Add(INotificationDataHandler handler,
         IOptionsMonitor<SubscriptionOptions> options);
-
-    /// <summary>
-    /// Update subscriptions
-    /// </summary>
-    void Update();
 }

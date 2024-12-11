@@ -636,7 +636,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         $"{nodeId} does not have a data type to fall back on.");
                 }
             }
-            return await session.NodeCache.GetBuiltInTypeAsync(dataTypeId!,
+            return await TypeInfo.GetBuiltInTypeAsync(dataTypeId, session.TypeTree,
                 ct).ConfigureAwait(false);
         }
 

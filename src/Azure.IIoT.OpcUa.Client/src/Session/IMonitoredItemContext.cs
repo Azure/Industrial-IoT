@@ -6,9 +6,8 @@
 namespace Opc.Ua.Client;
 
 /// <summary>
-/// Non sdk interface that allows monitored items to get the
-/// information needed about the subscription they are attached
-/// to.
+/// Non sdk interface that allows monitored items to signal
+/// state changes to the monitored item manager.
 /// </summary>
 public interface IMonitoredItemContext
 {
@@ -28,8 +27,10 @@ public interface IMonitoredItemContext
         MonitoringFilterResult? filterResult);
 
     /// <summary>
-    /// Removes an item from the subscription.
+    /// Notify item change
     /// </summary>
     /// <param name="monitoredItem"></param>
-    void NotifyItemChange(MonitoredItem monitoredItem);
+    /// <param name="itemDisposed"></param>
+    void NotifyItemChange(MonitoredItem monitoredItem,
+        bool itemDisposed = false);
 }

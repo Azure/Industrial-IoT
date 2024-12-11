@@ -142,7 +142,8 @@ public abstract class Subscription : MessageProcessor, IManagedSubscription,
             // Recreate subscription
             await CreateAsync(Options, ct).ConfigureAwait(false);
 
-            await _monitoredItems.ApplyChangesAsync(true, ct).ConfigureAwait(false);
+            await _monitoredItems.ApplyChangesAsync(true, true,
+                ct).ConfigureAwait(false);
         }
         finally
         {
@@ -174,7 +175,8 @@ public abstract class Subscription : MessageProcessor, IManagedSubscription,
             // save available sequence numbers
             _availableInRetransmissionQueue = availableSequenceNumbers;
 
-            await _monitoredItems.ApplyChangesAsync(true, ct).ConfigureAwait(false);
+            await _monitoredItems.ApplyChangesAsync(true, false,
+                ct).ConfigureAwait(false);
             StartKeepAliveTimer();
             return true;
         }
@@ -232,22 +234,23 @@ public abstract class Subscription : MessageProcessor, IManagedSubscription,
     }
 
     /// <inheritdoc/>
-    public MonitoredItem CreateMonitoredItem(string name, uint order,
-        IOptionsMonitor<MonitoredItemOptions> options)
+    public MonitoredItem CreateMonitoredItem(string name,
+        IOptionsMonitor<MonitoredItemOptions> options, IMonitoredItemContext context)
     {
-        return CreateMonitoredItem(Observability, name, order, options);
+        return CreateMonitoredItem(name, options, context, Observability);
     }
 
     /// <summary>
     /// Create monitored item
     /// </summary>
-    /// <param name="observability"></param>
     /// <param name="name"></param>
-    /// <param name="order"></param>
     /// <param name="options"></param>
+    /// <param name="context"></param>
+    /// <param name="observability"></param>
     /// <returns></returns>
-    protected abstract MonitoredItem CreateMonitoredItem(IObservability observability,
-        string name, uint order, IOptionsMonitor<MonitoredItemOptions> options);
+    protected abstract MonitoredItem CreateMonitoredItem(string name,
+        IOptionsMonitor<MonitoredItemOptions> options, IMonitoredItemContext context,
+        IObservability observability);
 
     /// <summary>
     /// Called when the options changed
@@ -353,7 +356,7 @@ public abstract class Subscription : MessageProcessor, IManagedSubscription,
                         }
 
                         var modified = await _monitoredItems.ApplyChangesAsync(
-                            false, ct).ConfigureAwait(false);
+                            false, false, ct).ConfigureAwait(false);
                         if (modified)
                         {
                             OnSubscriptionStateChanged(SubscriptionState.Modified);

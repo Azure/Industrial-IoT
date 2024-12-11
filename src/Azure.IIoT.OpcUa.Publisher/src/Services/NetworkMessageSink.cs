@@ -88,7 +88,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
-        public async ValueTask OnMessageAsync(OpcUaSubscriptionNotification notification)
+        public void OnMessage(OpcUaSubscriptionNotification notification)
         {
             if (_dataFlowStartTime == 0)
             {
@@ -96,18 +96,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _dataFlowStartTime = _timeProvider.GetTimestamp();
             }
 
-            if (!await _queue.SendAsync(notification).ConfigureAwait(false))
+            if (!_queue.TryPublish(notification))
             {
                 notification.Dispose();
             }
         }
 
         /// <inheritdoc/>
-        public ValueTask OnCounterResetAsync()
+        public void OnCounterReset()
         {
             _dataFlowStartTime = 0;
             _queue.Reset();
-            return ValueTask.CompletedTask;
         }
 
         /// <inheritdoc/>
@@ -178,7 +177,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// </summary>
             /// <param name="args"></param>
             /// <returns></returns>
-            ValueTask<bool> SendAsync(OpcUaSubscriptionNotification args);
+            bool TryPublish(OpcUaSubscriptionNotification args);
         }
 
         /// <summary>
@@ -211,9 +210,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <inheritdoc/>
-            public ValueTask<bool> SendAsync(OpcUaSubscriptionNotification args)
+            public bool TryPublish(OpcUaSubscriptionNotification args)
             {
-                return ValueTask.FromResult(false);
+                return false;
             }
         }
 
@@ -250,11 +249,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <inheritdoc/>
-            public ValueTask<bool> SendAsync(OpcUaSubscriptionNotification args)
+            public bool TryPublish(OpcUaSubscriptionNotification args)
             {
                 var hash = (args.Context as DataSetWriterContext)?
                     .Topic?.GetHashCode(StringComparison.Ordinal) ?? 0;
-                return _partitions[(uint)hash % _partitions.Length].SendAsync(args);
+                return _partitions[(uint)hash % _partitions.Length].TryPublish(args);
             }
 
             /// <inheritdoc/>
@@ -379,7 +378,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <inheritdoc/>
-            public async ValueTask<bool> SendAsync(OpcUaSubscriptionNotification args)
+            public bool TryPublish(OpcUaSubscriptionNotification args)
             {
                 if (!_started)
                 {
@@ -402,7 +401,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         _outer.LogNotification(args, true);
                     }
-
                     return false;
                 }
 
@@ -412,7 +410,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
 
                 Interlocked.Increment(ref _outer._notificationBufferInputCount);
-                if (!await _notificationBufferBlock.SendAsync(args).ConfigureAwait(false))
+                if (!_notificationBufferBlock.Post(args))
                 {
                     Interlocked.Increment(ref _outer._dataflowInputDroppedCount);
                     return false;

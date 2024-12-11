@@ -47,7 +47,7 @@ public abstract class MessageProcessor : IMessageProcessor, IAsyncDisposable
             {
                 SingleReader = true,
                 Comparer = Comparer<IncomingMessage>.Create(
-                    IncomingMessage.Compare),
+                    IncomingMessage.Compare)
             });
         _messageWorkerTask = ProcessReceivedMessagesAsync(_cts.Token);
     }

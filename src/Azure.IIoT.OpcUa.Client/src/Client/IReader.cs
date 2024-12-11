@@ -9,8 +9,9 @@ using System.Collections.Generic;
 using System.Threading;
 
 /// <summary>
-/// Data reader
+/// Reader interface
 /// </summary>
+/// <typeparam name="T"></typeparam>
 public interface IReader<T> : IAsyncDisposable
 {
     /// <summary>

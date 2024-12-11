@@ -17,23 +17,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
     using System;
     using System.Linq;
     using System.Threading.Tasks;
-    using System.Collections.Generic;
-    using Microsoft.Extensions.Logging;
-    using System.Diagnostics.Metrics;
-    using System.Diagnostics;
-    using Microsoft.Extensions.Options;
 
-    public abstract class OpcUaMonitoredItemTestsBase : IObservability
+    public abstract class OpcUaMonitoredItemTestsBase
     {
-        public ILoggerFactory LoggerFactory => Log.ConsoleFactory();
-        public IMeterFactory MeterFactory => null!;
-        public TimeProvider TimeProvider => TimeProvider.System;
-        public ActivitySource ActivitySource { get; }
-
         protected virtual Mock<INodeCache> SetupMockedNodeCache(NamespaceTable namespaceTable = null)
         {
             using var mock = Autofac.Extras.Moq.AutoMock.GetLoose();
-            return mock.Mock<INodeCache>();
+            var nodeCache = mock.Mock<INodeCache>();
+            namespaceTable ??= new NamespaceTable();
+            var typeTable = new TypeTable(namespaceTable);
+            nodeCache.SetupGet(x => x.TypeTree).Returns(typeTable);
+            nodeCache.SetupGet(x => x.NamespaceUris).Returns(namespaceTable);
+            return nodeCache;
         }
 
         protected virtual Mock<IOpcUaSession> SetupMockedSession(NamespaceTable namespaceTable = null)
@@ -41,6 +36,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             namespaceTable ??= new NamespaceTable();
 
             var nodeCache = SetupMockedNodeCache(namespaceTable).Object;
+            var typeTable = nodeCache.TypeTree;
 
             using var mock = Autofac.Extras.Moq.AutoMock.GetLoose();
             var session = mock.Mock<IOpcUaSession>();
@@ -50,6 +46,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             };
             var codec = new JsonVariantEncoder(messageContext, new NewtonsoftJsonSerializer());
             session.SetupGet(x => x.Codec).Returns(codec);
+            session.SetupGet(x => x.TypeTree).Returns(typeTable);
             session.SetupGet(x => x.NodeCache).Returns(nodeCache);
             session.SetupGet(x => x.MessageContext).Returns(messageContext);
             return session;
@@ -60,53 +57,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         {
             var session = SetupMockedSession(namespaceUris).Object;
             var subscriber = new Mock<ISubscriber>();
-            var subscription = new SimpleSubscription(this);
-            var monitoredItemWrapper = OpcUaMonitoredItem.Create(null!, session, subscription,
-                (subscriber.Object, template).YieldReturn(), this).Single();
-            monitoredItemWrapper.Initialize();
-            if (monitoredItemWrapper.FinalizeInitialize != null)
+            var monitoredItemWrapper = OpcUaMonitoredItem.Create(null!,
+                (subscriber.Object, template).YieldReturn(),
+                Log.ConsoleFactory(), TimeProvider.System).Single();
+            using var subscription = new SimpleSubscription();
+            monitoredItemWrapper.AddTo(subscription, session, out _);
+            if (monitoredItemWrapper.FinalizeAddTo != null)
             {
-                await monitoredItemWrapper.FinalizeInitialize(default);
+                await monitoredItemWrapper.FinalizeAddTo(session, default);
             }
             return monitoredItemWrapper;
         }
 
         internal sealed class SimpleSubscription : Subscription
         {
-            public SimpleSubscription(OpcUaMonitoredItemTestsBase outer)
-                : base(null!, null!, OptionsFactory.Create<SubscriptionOptions>(), outer)
+            public SimpleSubscription()
             {
             }
 
-            protected override List<MonitoredItem> CreateMonitoredItems(IObservability observability,
-                List<IOptionsMonitor<MonitoredItemOptions>> options)
+            public SimpleSubscription(Subscription template, bool copyEventHandlers)
+                : base(template, copyEventHandlers)
             {
-                return options.ConvertAll(c => ((OpcUaSubscription.Precreated)c.CurrentValue).Item);
             }
 
-            protected override ValueTask OnDataChangeNotificationAsync(
-                uint sequenceNumber, DateTime publishTime, DataChangeNotification notification,
-                PublishState publishStateMask, IReadOnlyList<string> stringTable)
-            {
-                throw new NotImplementedException();
-            }
-
-            protected override ValueTask OnEventDataNotificationAsync(uint sequenceNumber,
-                DateTime publishTime, EventNotificationList notification,
-                PublishState publishStateMask, IReadOnlyList<string> stringTable)
-            {
-                throw new NotImplementedException();
-            }
-
-            protected override ValueTask OnKeepAliveNotificationAsync(uint sequenceNumber,
-                DateTime publishTime, PublishState publishStateMask)
-            {
-                throw new NotImplementedException();
-            }
-
-            protected override ValueTask OnStatusChangeNotificationAsync(uint sequenceNumber,
-                DateTime publishTime, StatusChangeNotification notification,
-                PublishState publishStateMask, IReadOnlyList<string> stringTable)
+            public override Subscription CloneSubscription(bool copyEventHandlers)
             {
                 throw new NotImplementedException();
             }

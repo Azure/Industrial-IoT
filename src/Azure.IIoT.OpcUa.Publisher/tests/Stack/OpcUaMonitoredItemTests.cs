@@ -31,7 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
 
             Assert.Equal(Attributes.Value, monitoredItem.AttributeId);
             Assert.Equal(Opc.Ua.MonitoringMode.Reporting, monitoredItem.MonitoringMode);
-            Assert.Equal(TimeSpan.FromSeconds(1), monitoredItem.SamplingInterval);
+            Assert.Equal(1000, monitoredItem.SamplingInterval);
             Assert.True(monitoredItem.DiscardOldest);
             Assert.False(monitoredItem.SkipMonitoredItemNotification());
         }
@@ -115,8 +115,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             Assert.Equal(Opc.Ua.MonitoringMode.Sampling, monitoredItem.MonitoringMode);
             Assert.Equal("i=2258", monitoredItem.StartNodeId);
             Assert.Equal(10u, monitoredItem.QueueSize);
-            Assert.Equal(TimeSpan.FromSeconds(10), monitoredItem.SamplingInterval);
+            Assert.Equal(10000, monitoredItem.SamplingInterval);
             Assert.False(monitoredItem.DiscardOldest);
+            Assert.Null(monitoredItem.Handle);
             Assert.True(monitoredItem.SkipMonitoredItemNotification());
         }
 

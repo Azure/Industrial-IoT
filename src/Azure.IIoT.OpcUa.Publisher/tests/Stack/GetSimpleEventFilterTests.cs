@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
     using Moq;
     using Opc.Ua;
     using Opc.Ua.Client;
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
@@ -198,42 +197,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             _commentNode.ReferenceTable.Add(ReferenceTypeIds.HasProperty, true, ObjectTypeIds.ConditionType);
 
             var nodeCache = base.SetupMockedNodeCache(namespaceTable);
-            var typeTable = new TypeTable(namespaceTable);
+            var typeTable = nodeCache.Object.TypeTree as TypeTable;
             typeTable.Add(_baseObjectTypeNode);
             typeTable.Add(_baseEventTypeNode);
             typeTable.Add(_conditionTypeNode);
             typeTable.AddSubtype(ObjectTypeIds.BaseEventType, ObjectTypeIds.BaseObjectType);
             typeTable.AddSubtype(ObjectTypeIds.ConditionType, ObjectTypeIds.BaseEventType);
-            nodeCache.Setup(x => x.GetNodeAsync(It.IsAny<NodeId>(), It.IsAny<CancellationToken>()))
-                .Returns((NodeId x, CancellationToken _) =>
+            nodeCache.Setup(x => x.FetchNodeAsync(It.IsAny<ExpandedNodeId>(), It.IsAny<CancellationToken>()))
+				.Returns((ExpandedNodeId x, CancellationToken _) =>
                 {
                     if (x.IdType == IdType.Numeric && x.Identifier is uint id)
                     {
-                        return ValueTask.FromResult<INode>(_nodes[id]);
+                        return Task.FromResult(_nodes[id]);
                     }
-                    return ValueTask.FromResult<INode>(null);
-                });
-            nodeCache.Setup(x => x.GetReferencesAsync(It.IsAny<NodeId>(),
-                It.IsAny<NodeId>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-                .Returns((NodeId x, NodeId referenceTypeId, bool isInverse, bool IsSubtype, CancellationToken _) =>
-                {
-                    if (x.IdType == IdType.Numeric && x.Identifier is uint id)
-                    {
-                        var references = _nodes[id].ReferenceTable.Find(referenceTypeId, isInverse, IsSubtype, typeTable);
-                        return ValueTask.FromResult<IReadOnlyList<INode>>(
-                            references
-                                .Where(r => r.TargetId.Identifier is uint i && _nodes.ContainsKey(i))
-                                .Select(r => (INode)_nodes[(uint)r.TargetId.Identifier]).ToList());
-                    }
-                    return ValueTask.FromResult<IReadOnlyList<INode>>(Array.Empty<INode>());
+                    return Task.FromResult<Node>(null);
                 });
 
-            nodeCache.Setup(x => x.IsTypeOf(It.IsAny<NodeId>(), It.IsAny<NodeId>()))
-                .Returns((NodeId subTypeId, NodeId superTypeId) => typeTable.IsTypeOf(subTypeId, superTypeId));
-            nodeCache.Setup(x => x.GetSuperTypeAsync(It.IsAny<NodeId>(), It.IsAny<CancellationToken>()))
-                .Returns((NodeId subTypeId, CancellationToken ct) => new ValueTask<NodeId>(typeTable.FindSuperTypeAsync(subTypeId, ct)));
-            nodeCache.Setup(x => x.GetBuiltInTypeAsync(It.IsAny<NodeId>(), It.IsAny<CancellationToken>()))
-                .Returns((NodeId dataTypeId, CancellationToken ct) => new ValueTask<BuiltInType>(TypeInfo.GetBuiltInTypeAsync(dataTypeId, typeTable, ct)));
             return nodeCache;
         }
 

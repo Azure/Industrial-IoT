@@ -126,7 +126,6 @@ public sealed class Subscriber : ISubscribe, IDisposable
             return _channel.Writer.WriteAsync(notification, ct);
         }
 
-
         private readonly Subscriber _outer;
         private readonly Channel<Notification> _channel;
     }

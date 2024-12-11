@@ -631,7 +631,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     var bufferSize = fileInfo?.MaxBufferSize;
                     if (bufferSize == null || bufferSize == 0)
                     {
-                        bufferSize = handle.Session.OperationLimits.MaxByteStringLength;
+                        var caps = await handle.Session.GetOperationLimitsAsync(
+                            ct).ConfigureAwait(false);
+                        bufferSize = caps.MaxByteStringLength;
                         if (bufferSize == null || bufferSize == 0)
                         {
                             bufferSize = 4096;

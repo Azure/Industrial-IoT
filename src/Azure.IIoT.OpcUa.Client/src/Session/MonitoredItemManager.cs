@@ -85,12 +85,13 @@ internal sealed class MonitoredItemManager : IMonitoredItemManager,
                 monitoredItem = item;
                 return false;
             }
-            item = _context.CreateMonitoredItem(name, options);
+            item = _context.CreateMonitoredItem(name, options, this);
             _monitoredItems.Add(item.ClientHandle, item);
             _monitoredItemsByName.Add(name, item);
             monitoredItem = item;
-            return true;
         }
+        _context.Update();
+        return true;
     }
 
     /// <inheritdoc/>
@@ -122,20 +123,22 @@ internal sealed class MonitoredItemManager : IMonitoredItemManager,
     {
         lock (_monitoredItemsLock)
         {
-            if (_monitoredItems.Remove(clientHandle, out var monitoredItem))
+            if (!_monitoredItems.Remove(clientHandle, out var monitoredItem))
             {
-                _monitoredItemsByName.Remove(monitoredItem.Name);
-                _deletedItems.Add(monitoredItem);
-                return true;
+                return false;
             }
-            return false;
+            _monitoredItemsByName.Remove(monitoredItem.Name);
+            _deletedItems.Add(monitoredItem);
         }
+        _context.Update();
+        return true;
     }
 
     /// <inheritdoc/>
-    public IEnumerable<IMonitoredItem> Update(IEnumerable<(
+    public IReadOnlyList<IMonitoredItem> Update(IReadOnlyList<(
         string Name, IOptionsMonitor<MonitoredItemOptions> Options)> state)
     {
+        var monitoredItems = new List<IMonitoredItem>(state.Count);
         lock (_monitoredItemsLock)
         {
             // Capture current state
@@ -147,7 +150,7 @@ internal sealed class MonitoredItemManager : IMonitoredItemManager,
                 if (!_monitoredItemsByName.TryGetValue(name, out var item))
                 {
                     // Create new item
-                    item = _context.CreateMonitoredItem(name, options);
+                    item = _context.CreateMonitoredItem(name, options, this);
                     _monitoredItems.Add(item.ClientHandle, item);
                     _monitoredItemsByName.Add(name, item);
                 }
@@ -156,7 +159,7 @@ internal sealed class MonitoredItemManager : IMonitoredItemManager,
                     item.Options = options;
                     remove.Remove(item.ClientHandle);
                 }
-                yield return item;
+                monitoredItems.Add(item);
             }
 
             // Remove all items not in state
@@ -169,19 +172,18 @@ internal sealed class MonitoredItemManager : IMonitoredItemManager,
                 }
             }
         }
-    }
-
-    /// <inheritdoc/>
-    public void Update()
-    {
         _context.Update();
+        return monitoredItems;
     }
 
     /// <inheritdoc/>
-    public void NotifyItemChange(MonitoredItem monitoredItem)
+    public void NotifyItemChange(MonitoredItem monitoredItem, bool itemDisposed)
     {
         Debug.Assert(monitoredItem != null);
-        _context.Update();
+        if (!itemDisposed)
+        {
+            _context.Update();
+        }
     }
 
     /// <inheritdoc/>
@@ -270,13 +272,15 @@ internal sealed class MonitoredItemManager : IMonitoredItemManager,
     /// Apply changes to monitored items
     /// </summary>
     /// <param name="once"></param>
+    /// <param name="resetAll"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    internal async Task<bool> ApplyChangesAsync(bool once, CancellationToken ct)
+    internal async Task<bool> ApplyChangesAsync(bool once, bool resetAll,
+        CancellationToken ct)
     {
         var modified = false;
         while (!ct.IsCancellationRequested && TryGetMonitoredItemChanges(
-            out var itemsToDelete, out var itemsToModify))
+            out var itemsToDelete, out var itemsToModify, resetAll))
         {
             await ApplyMonitoredItemChangesAsync(itemsToDelete,
                 itemsToModify, ct).ConfigureAwait(false);

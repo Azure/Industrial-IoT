@@ -37,25 +37,45 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <summary>
             /// Create model change item
             /// </summary>
-            /// <param name="subscription"></param>
             /// <param name="owner"></param>
             /// <param name="template"></param>
             /// <param name="client"></param>
-            /// <param name="session"></param>
             /// <param name="logger"></param>
             /// <param name="timeProvider"></param>
-            public ModelChangeEventItem(IMonitoredItemContext subscription, ISubscriber owner,
-                MonitoredAddressSpaceModel template, OpcUaClient client, IOpcUaSession session,
+            public ModelChangeEventItem(ISubscriber owner,
+                MonitoredAddressSpaceModel template, OpcUaClient client,
                 ILogger<ModelChangeEventItem> logger, TimeProvider timeProvider) :
-                base(subscription, owner, logger, session, template.StartNodeId, timeProvider)
+                base(owner, logger, template.StartNodeId, timeProvider)
             {
                 Template = template;
                 _client = client;
                 _fields = GetEventFields().ToArray();
             }
 
+            /// <summary>
+            /// Copy constructor
+            /// </summary>
+            /// <param name="item"></param>
+            /// <param name="copyEventHandlers"></param>
+            /// <param name="copyClientHandle"></param>
+            private ModelChangeEventItem(ModelChangeEventItem item, bool copyEventHandlers,
+                bool copyClientHandle)
+                : base(item, copyEventHandlers, copyClientHandle)
+            {
+                Template = item.Template;
+                _client = item._client;
+                _fields = item._fields;
+            }
+
             /// <inheritdoc/>
-            protected override async ValueTask DisposeAsync(bool disposing)
+            public override MonitoredItem CloneMonitoredItem(
+                bool copyEventHandlers, bool copyClientHandle)
+            {
+                return new ModelChangeEventItem(this, copyEventHandlers, copyClientHandle);
+            }
+
+            /// <inheritdoc/>
+            protected override void Dispose(bool disposing)
             {
                 // Cleanup
                 var browser = _browser;
@@ -63,15 +83,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     _disposed = true;
                     _browser = null;
-
+                    if (browser != null)
+                    {
+                        browser.OnReferenceChange -= OnReferenceChange;
+                        browser.OnNodeChange -= OnNodeChange;
+                        browser.CloseAsync().AsTask().GetAwaiter().GetResult();
+                    }
                 }
-                if (browser != null)
-                {
-                    browser.OnReferenceChange -= OnReferenceChange;
-                    browser.OnNodeChange -= OnNodeChange;
-                    await browser.CloseAsync().ConfigureAwait(false);
-                }
-                await base.DisposeAsync(disposing).ConfigureAwait(false);
+                base.Dispose(disposing);
             }
 
             /// <inheritdoc/>
@@ -119,16 +138,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var str = "Model Change Item";
                 if (RemoteId.HasValue)
                 {
-                    str += $" with server id {RemoteId} ({(Created ? "" : "not ")}created)";
+                    str += $" with server id {RemoteId} ({(Status?.Created == true ? "" : "not ")}created)";
                 }
                 return str;
             }
 
             /// <inheritdoc/>
-            public override bool MergeWith(OpcUaMonitoredItem item, out bool metadataChanged)
+            public override bool MergeWith(OpcUaMonitoredItem item, IOpcUaSession session,
+                 out bool metadataChanged)
             {
                 metadataChanged = false;
-                if (item is not ModelChangeEventItem || Disposed)
+                if (item is not ModelChangeEventItem || !Valid)
                 {
                     return false;
                 }
@@ -145,19 +165,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override bool TryCompleteChanges(ref bool applyChanges)
+            public override Func<CancellationToken, Task>? FinalizeCompleteChanges => async _ =>
             {
-                var result = base.TryCompleteChanges(ref applyChanges);
-                EnsureBrowserStarted();
-                return result;
-            }
+                if (!AttachedToSubscription)
+                {
+                    await StopBrowserAsync().ConfigureAwait(false);
+                }
+                else
+                {
+                    EnsureBrowserStarted();
+                }
+            };
 
             /// <inheritdoc/>
-            public override bool Initialize()
+            public override bool AddTo(Subscription subscription,
+                IOpcUaSession session, out bool metadataChanged)
             {
-                var nodeId = NodeId.ToNodeId(Session.MessageContext);
+                var nodeId = NodeId.ToNodeId(session.MessageContext);
                 if (Opc.Ua.NodeId.IsNull(nodeId))
                 {
+                    metadataChanged = false;
                     return false;
                 }
 
@@ -165,12 +192,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 AttributeId = Attributes.EventNotifier;
                 MonitoringMode = Opc.Ua.MonitoringMode.Reporting;
                 StartNodeId = nodeId;
-                SamplingInterval = TimeSpan.Zero;
-                UpdateQueueSize(Context, Template);
+                SamplingInterval = 0;
+                UpdateQueueSize(subscription, Template);
                 Filter = GetEventFilter();
                 DiscardOldest = !(Template.DiscardNew ?? false);
+                Valid = true;
 
-                return base.Initialize();
+                return base.AddTo(subscription, session, out metadataChanged);
 
                 static MonitoringFilter GetEventFilter()
                 {
@@ -205,7 +233,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
 
                 // Rebrowse and find changes or just process and send the changes
-                Debug.Assert(!Disposed);
+                Debug.Assert(Valid);
                 Debug.Assert(Template != null);
 
                 var evFilter = Filter as EventFilter;
@@ -242,15 +270,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
+            protected override IEnumerable<OpcUaMonitoredItem> CreateTriggeredItems(
+                ILoggerFactory factory, OpcUaClient client)
+            {
+                if (Template.TriggeredItems != null)
+                {
+                    return Create(client, Template.TriggeredItems.Select(i => (Owner, i)),
+                        factory, TimeProvider);
+                }
+                return [];
+            }
+
+            /// <inheritdoc/>
             protected override bool OnSamplingIntervalOrQueueSizeRevised(
                 bool samplingIntervalChanged, bool queueSizeChanged)
             {
+                Debug.Assert(Subscription != null);
                 var applyChanges = base.OnSamplingIntervalOrQueueSizeRevised(
                     samplingIntervalChanged, queueSizeChanged);
-                if (samplingIntervalChanged && CurrentSamplingInterval != TimeSpan.Zero)
+                if (samplingIntervalChanged && Status.SamplingInterval != 0)
                 {
                     // Not necessary as sampling interval will likely always stay 0
-                    applyChanges |= UpdateQueueSize(Context, Template);
+                    applyChanges |= UpdateQueueSize(Subscription, Template);
                 }
                 return applyChanges;
             }
@@ -263,7 +304,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private void OnNodeChange(object? sender, Change<Node> e)
             {
                 Publish(Owner, MessageType.Event,
-                    CreateEvent(kNodeChangeType, e).ToList(),
+                    CreateEvent(_nodeChangeType, e).ToList(),
                     eventTypeName: EventTypeName);
             }
 
@@ -275,7 +316,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private void OnReferenceChange(object? sender, Change<ReferenceDescription> e)
             {
                 Publish(Owner, MessageType.Event,
-                    CreateEvent(kRefChangeType, e).ToList(),
+                    CreateEvent(_refChangeType, e).ToList(),
                     eventTypeName: EventTypeName);
             }
 
@@ -338,7 +379,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 yield return Create(BrowseNames.Time, builtInType: BuiltInType.NodeId);
                 yield return Create("Change", builtInType: BuiltInType.ExtensionObject);
 
-                static PublishedFieldMetaDataModel Create(string fieldName,
+                static PublishedFieldMetaDataModel Create(string fieldName, NodeId? dataType = null,
                     BuiltInType builtInType = BuiltInType.ExtensionObject)
                 {
                     return new PublishedFieldMetaDataModel
@@ -365,11 +406,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         return;
                     }
                     // Start the browser
-                    if (_browser == null &&
-                        Context is OpcUaSubscription subscription)
+                    if (_browser == null && Subscription != null)
                     {
                         _browser = _client.Browse(Template.RebrowsePeriod ??
-                            TimeSpan.FromHours(12), subscription);
+                            TimeSpan.FromHours(12), Subscription.DisplayName);
 
                         _browser.OnReferenceChange += OnReferenceChange;
                         _browser.OnNodeChange += OnNodeChange;
@@ -378,9 +418,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
 
-            private static readonly ExpandedNodeId kRefChangeType
+            /// <summary>
+            /// Stop browser
+            /// </summary>
+            /// <returns></returns>
+            private async Task StopBrowserAsync()
+            {
+                // Stop the browser
+                IOpcUaBrowser? browser;
+                lock (_lock)
+                {
+                    browser = _browser;
+                    if (browser != null)
+                    {
+                        browser.OnReferenceChange -= OnReferenceChange;
+                        browser.OnNodeChange -= OnNodeChange;
+                    }
+                    _browser = null;
+                }
+                if (browser != null)
+                {
+                    await browser.CloseAsync().ConfigureAwait(false);
+                    _logger.LogInformation("Item {Item} unregistered from browser.", this);
+                }
+            }
+
+            private static readonly ExpandedNodeId _refChangeType
                 = new("ReferenceChange", "http://www.microsoft.com/opc-publisher");
-            private static readonly ExpandedNodeId kNodeChangeType
+            private static readonly ExpandedNodeId _nodeChangeType
                 = new("NodeChange", "http://www.microsoft.com/opc-publisher");
             private readonly PublishedFieldMetaDataModel[] _fields;
             private readonly OpcUaClient _client;

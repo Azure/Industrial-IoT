@@ -90,7 +90,7 @@ public abstract class MonitoredItem : IMonitoredItem, IAsyncDisposable
         ClientHandle = Utils.IncrementIdentifier(ref _globalClientHandle);
 
         _logger = logger;
-        Options = _options = options;
+        _options = Options = options;
         _logger.LogDebug("{Item} CREATED.", this);
     }
 
@@ -129,7 +129,7 @@ public abstract class MonitoredItem : IMonitoredItem, IAsyncDisposable
                 change.Abandon();
             }
 
-            Context.NotifyItemChange(this);
+            Context.NotifyItemChange(this, true);
             _logger.LogDebug("{Item} REMOVED.", this);
 
             ServerId = 0;

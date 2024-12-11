@@ -17,11 +17,11 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// Subscribe to writer messages
         /// </summary>
         /// <param name="notification"></param>
-        ValueTask OnMessageAsync(OpcUaSubscriptionNotification notification);
+        void OnMessage(OpcUaSubscriptionNotification notification);
 
         /// <summary>
         /// Called when ValueChangesCount or DataChangesCount are resetted
         /// </summary>
-        ValueTask OnCounterResetAsync();
+        void OnCounterReset();
     }
 }

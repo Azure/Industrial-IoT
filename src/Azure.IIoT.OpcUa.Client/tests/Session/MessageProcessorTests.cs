@@ -354,7 +354,7 @@ public sealed class MessageProcessorTests
         }
 
         protected override async ValueTask OnStatusChangeNotificationAsync(uint sequenceNumber,
-                        DateTime publishTime, StatusChangeNotification notification,
+            DateTime publishTime, StatusChangeNotification notification,
             PublishState publishStateMask, IReadOnlyList<string> stringTable)
         {
             StatusChangeNotificationReceived.Set();
@@ -364,8 +364,6 @@ public sealed class MessageProcessorTests
                 PublishState = publishStateMask;
             }
             await WaitAsync();
-            await base.OnStatusChangeNotificationAsync(sequenceNumber, publishTime, notification,
-                publishStateMask, stringTable);
         }
     }
     private readonly Mock<IMessageAckQueue> _mockCompletion;

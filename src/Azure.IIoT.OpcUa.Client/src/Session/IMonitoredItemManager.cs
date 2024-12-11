@@ -6,6 +6,7 @@
 namespace Opc.Ua.Client;
 
 using Microsoft.Extensions.Options;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -54,16 +55,11 @@ public interface IMonitoredItemManager
         out IMonitoredItem? monitoredItem);
 
     /// <summary>
-    /// Try remove remove monitored item
+    /// Try remove monitored item
     /// </summary>
     /// <param name="clientHandle"></param>
     /// <returns></returns>
     bool TryRemove(uint clientHandle);
-
-    /// <summary>
-    /// Update
-    /// </summary>
-    void Update();
 
     /// <summary>
     /// Update the state of the subscription. This applies the
@@ -73,6 +69,6 @@ public interface IMonitoredItemManager
     /// </summary>
     /// <param name="state"></param>
     /// <returns></returns>
-    IEnumerable<IMonitoredItem> Update(IEnumerable<(string Name,
+    IReadOnlyList<IMonitoredItem> Update(IReadOnlyList<(string Name,
         IOptionsMonitor<MonitoredItemOptions> Options)> state);
 }

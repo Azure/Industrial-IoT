@@ -2444,8 +2444,9 @@ public sealed class SessionBaseTests
             base.SessionCreated(NodeId.Parse("s=connected"), NodeId.Parse("s=cookie"));
         }
 
-        public override IManagedSubscription CreateSubscription(IObservability observability,
-            IOptionsMonitor<SubscriptionOptions> _options, IMessageAckQueue queue)
+        public override IManagedSubscription CreateSubscription(INotificationDataHandler handler,
+            IOptionsMonitor<SubscriptionOptions> _options, IMessageAckQueue queue,
+            IObservability observability)
         {
             throw new NotImplementedException();
         }

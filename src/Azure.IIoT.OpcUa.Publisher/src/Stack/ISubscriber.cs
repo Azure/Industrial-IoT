@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using System.Collections.Generic;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// Lightweight subscription a client can create on
@@ -27,35 +26,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// changed, therefore the subscriber should update
         /// its information
         /// </summary>
-        ValueTask OnMonitoredItemSemanticsChangedAsync();
+        void OnMonitoredItemSemanticsChanged();
 
         /// <summary>
         /// Called when a keep alive notification is received
         /// in the subscription.
         /// </summary>
         /// <param name="notification"></param>
-        ValueTask OnSubscriptionKeepAliveAsync(
+        void OnSubscriptionKeepAlive(
             OpcUaSubscriptionNotification notification);
 
         /// <summary>
         /// Called when subscription data changes
         /// </summary>
         /// <param name="notification"></param>
-        ValueTask OnSubscriptionDataChangeReceivedAsync(
+        void OnSubscriptionDataChangeReceived(
             OpcUaSubscriptionNotification notification);
 
         /// <summary>
         /// Called when sampled values were received
         /// </summary>
         /// <param name="notification"></param>
-        ValueTask OnSubscriptionCyclicReadCompletedAsync(
+        void OnSubscriptionCyclicReadCompleted(
             OpcUaSubscriptionNotification notification);
 
         /// <summary>
         /// Called when event changes
         /// </summary>
         /// <param name="notification"></param>
-        ValueTask OnSubscriptionEventReceivedAsync(
+        void OnSubscriptionEventReceived(
             OpcUaSubscriptionNotification notification);
 
         /// <summary>
@@ -65,7 +64,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="valueChanges"></param>
         /// <param name="overflow"></param>
         /// <param name="heartbeats"></param>
-        ValueTask OnSubscriptionDataDiagnosticsChangeAsync(bool liveData,
+        void OnSubscriptionDataDiagnosticsChange(bool liveData,
             int valueChanges, int overflow, int heartbeats);
 
         /// <summary>
@@ -73,7 +72,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// </summary>
         /// <param name="valuesSampled"></param>
         /// <param name="overflow"></param>
-        ValueTask OnSubscriptionCyclicReadDiagnosticsChangeAsync(
+        void OnSubscriptionCyclicReadDiagnosticsChange(
             int valuesSampled, int overflow);
 
         /// <summary>
@@ -83,7 +82,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="events"></param>
         /// <param name="overflow"></param>
         /// <param name="modelChanges"></param>
-        ValueTask OnSubscriptionEventDiagnosticsChangeAsync(bool liveData,
+        void OnSubscriptionEventDiagnosticsChange(bool liveData,
             int events, int overflow, int modelChanges);
     }
 }

@@ -31,7 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// </summary>
     internal sealed class OpcUaClientManager : IOpcUaClientManager<ConnectionModel>,
         IEndpointDiscovery, ICertificateServices<EndpointModel>, IClientDiagnostics,
-        IConnectionServices<ConnectionModel>, IObservability, IDisposable
+        IConnectionServices<ConnectionModel>, IDisposable
     {
         /// <inheritdoc/>
         public event EventHandler<EndpointConnectivityStateEventArgs>? OnConnectionStateChange;
@@ -43,15 +43,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public IReadOnlyList<ConnectionModel> ActiveConnections
             => _clients.Keys.Select(c => c.Connection).ToList();
-
-        /// <inheritdoc/>
-        public ILoggerFactory LoggerFactory { get; }
-        /// <inheritdoc/>
-        public IMeterFactory MeterFactory { get; } = new Diagnostics();
-        /// <inheritdoc/>
-        public TimeProvider TimeProvider { get; }
-        /// <inheritdoc/>
-        public ActivitySource? ActivitySource { get; } = Diagnostics.NewActivitySource();
 
         /// <summary>
         /// Create kv manager
@@ -70,7 +61,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             _metrics = metrics ??
                 IMetricsContext.Empty;
-            TimeProvider = timeProvider ??
+            _timeProvider = timeProvider ??
                 TimeProvider.System;
             _clientOptions = clientOptions ??
                 throw new ArgumentNullException(nameof(clientOptions));
@@ -78,13 +69,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 throw new ArgumentNullException(nameof(subscriptionOptions));
             _serializer = serializer ??
                 throw new ArgumentNullException(nameof(serializer));
-            LoggerFactory = loggerFactory ??
+            _loggerFactory = loggerFactory ??
                 throw new ArgumentNullException(nameof(loggerFactory));
             _configuration = configuration ??
                 throw new ArgumentNullException(nameof(configuration));
 
-            _logger = LoggerFactory.CreateLogger<OpcUaClientManager>();
-            _reverseConnectManager = new ReverseConnectManager(LoggerFactory);
+            _logger = _loggerFactory.CreateLogger<OpcUaClientManager>();
+            _reverseConnectManager = new ReverseConnectManager();
             _reverseConnectStartException = new Lazy<Exception?>(
                 StartReverseConnectManager, isThreadSafe: true);
             _configuration.Validate += OnValidate;
@@ -92,7 +83,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public async ValueTask<Stack.ISubscriptionRegistration> CreateSubscriptionAsync(
+        public async ValueTask<ISubscription> CreateSubscriptionAsync(
             ConnectionModel connection, SubscriptionModel subscription,
             ISubscriber callback, CancellationToken ct)
         {
@@ -110,22 +101,45 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ArgumentNullException.ThrowIfNull(endpoint);
             ArgumentNullException.ThrowIfNullOrWhiteSpace(endpoint.Endpoint?.Url);
 
-            var builder = new ClientBuilder().NewClient().WithName("test")
-                .WithUri("uri")
-                .WithProductUri("r")
-                .Build();
-            var userIdentity = await endpoint.User.ToUserIdentityAsync(
-                _configuration.Value).ConfigureAwait(false);
-            var result = await builder.ConnectTo(endpoint.Endpoint.Url)
-               // .WithSecurityMode((endpoint.Endpoint.SecurityMode ?? SecurityMode.NotNone))
-                .WithSecurityPolicy(endpoint.Endpoint.SecurityPolicy ?? SecurityPolicies.None)
-                .WithOption(o => o.WithUser(userIdentity))
-                .TestAsync(ct).ConfigureAwait(false);
-
-            return new TestConnectionResponseModel
+            var endpointUrl = new Uri(endpoint.Endpoint.Url);
+            try
             {
-                ErrorInfo = result.ToServiceResultModel()
-            };
+                var endpointDescription = await OpcUaClient.SelectEndpointAsync(
+                    _configuration.Value, endpointUrl, null,
+                    endpoint.Endpoint.SecurityMode ?? SecurityMode.NotNone,
+                    endpoint.Endpoint.SecurityPolicy, _logger, endpoint,
+                    ct: ct).ConfigureAwait(false);
+
+                var endpointConfiguration = EndpointConfiguration.Create(
+                    _configuration.Value);
+                var configuredEndpoint = new ConfiguredEndpoint(null,
+                    endpointDescription, endpointConfiguration);
+                var userIdentity = await endpoint.User.ToUserIdentityAsync(
+                    _configuration.Value).ConfigureAwait(false);
+                using var session = await DefaultSessionFactory.Instance.CreateAsync(
+                    _configuration.Value, reverseConnectManager: null, configuredEndpoint,
+                    updateBeforeConnect: true, // Update endpoint through discovery
+                    checkDomain: false, // Domain must match on connect
+                    "Test" + Guid.NewGuid().ToString(),
+                    10000, userIdentity, null, ct).ConfigureAwait(false);
+                try
+                {
+                    Debug.Assert(session != null);
+                    await session.CloseAsync(ct).ConfigureAwait(false);
+                }
+                catch
+                {
+                    // We close as a courtesy to the server
+                }
+                return new TestConnectionResponseModel();
+            }
+            catch (Exception ex)
+            {
+                return new TestConnectionResponseModel
+                {
+                    ErrorInfo = ex.ToServiceResultModel()
+                };
+            }
         }
 
         /// <inheritdoc/>
@@ -312,7 +326,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public async Task<Publisher.Stack.ISessionHandle> AcquireSessionAsync(ConnectionModel connection,
+        public async Task<ISessionHandle> AcquireSessionAsync(ConnectionModel connection,
             RequestHeaderModel? header, CancellationToken ct)
         {
             connection = UpdateConnectionFromHeader(connection, header);
@@ -594,7 +608,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var client = _clients.GetOrAdd(id, id =>
             {
                 var client = new OpcUaClient(_configuration.Value, id, _serializer,
-                    this, _metrics, OnConnectionStateChange,
+                    _loggerFactory, _timeProvider, _meter, _metrics, OnConnectionStateChange,
                     reverseConnect ? _reverseConnectManager : null,
                     OnClientConnectionDiagnosticChange, _clientOptions, _subscriptionOptions);
                 _logger.LogInformation("{Client}: Created new client.", client);
@@ -659,6 +673,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private const int kMaxDiscoveryAttempts = 3;
         private bool _disposed;
         private readonly ILogger _logger;
+        private readonly ILoggerFactory _loggerFactory;
+        private readonly TimeProvider _timeProvider;
         private readonly IOpcUaConfiguration _configuration;
         private readonly IOptions<OpcUaClientOptions> _clientOptions;
         private readonly IOptions<OpcUaSubscriptionOptions> _subscriptionOptions;

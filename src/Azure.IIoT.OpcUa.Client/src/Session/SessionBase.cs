@@ -1199,13 +1199,13 @@ public abstract class SessionBase : SessionServices, ISubscriptionContext,
     public IManagedSubscription CreateSubscription(INotificationDataHandler handler,
         IOptionsMonitor<SubscriptionOptions> options, IMessageAckQueue queue)
     {
-        return CreateSubscription(Observability, handler, options, queue);
+        return CreateSubscription(handler, options, queue, Observability);
     }
 
     /// <inheritdoc/>
     public abstract IManagedSubscription CreateSubscription(
-        IObservability observability, INotificationDataHandler handler,
-        IOptionsMonitor<SubscriptionOptions> options, IMessageAckQueue queue);
+        INotificationDataHandler handler, IOptionsMonitor<SubscriptionOptions> options,
+        IMessageAckQueue queue, IObservability observability);
 
     /// <summary>
     /// Trigger reconnect because of changes to the configuration

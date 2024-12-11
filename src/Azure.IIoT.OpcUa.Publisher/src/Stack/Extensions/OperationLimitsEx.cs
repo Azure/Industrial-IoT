@@ -3,11 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Opc.Ua.Client
+namespace Opc.Ua.Extensions
 {
+    using Opc.Ua;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
-    using System.Numerics;
 
     /// <summary>
     /// Operation limits extensions
@@ -20,37 +20,39 @@ namespace Opc.Ua.Client
         /// <param name="limits"></param>
         /// <param name="update"></param>
         /// <returns></returns>
-        public static void Override(this Limits limits, Limits? update)
+        public static OperationLimits Override(this OperationLimits limits, OperationLimits? update)
         {
             if (update == null)
             {
-                return;
+                return limits;
             }
-
-            limits.MaxMonitoredItemsPerCall
-                = Override(limits.MaxMonitoredItemsPerCall, update.MaxMonitoredItemsPerCall);
-            limits.MaxNodesPerBrowse
-                = Override(limits.MaxNodesPerBrowse, update.MaxNodesPerBrowse);
-            limits.MaxNodesPerHistoryReadData
-                = Override(limits.MaxNodesPerHistoryReadData, update.MaxNodesPerHistoryReadData);
-            limits.MaxNodesPerHistoryReadEvents
-                = Override(limits.MaxNodesPerHistoryReadEvents, update.MaxNodesPerHistoryReadEvents);
-            limits.MaxNodesPerHistoryUpdateData
-                = Override(limits.MaxNodesPerHistoryUpdateData, update.MaxNodesPerHistoryUpdateData);
-            limits.MaxNodesPerHistoryUpdateEvents
-                = Override(limits.MaxNodesPerHistoryUpdateEvents, update.MaxNodesPerHistoryUpdateEvents);
-            limits.MaxNodesPerMethodCall
-                = Override(limits.MaxNodesPerMethodCall, update.MaxNodesPerMethodCall);
-            limits.MaxNodesPerNodeManagement
-                = Override(limits.MaxNodesPerNodeManagement, update.MaxNodesPerNodeManagement);
-            limits.MaxNodesPerRead
-                = Override(limits.MaxNodesPerRead, update.MaxNodesPerRead);
-            limits.MaxNodesPerRegisterNodes
-                = Override(limits.MaxNodesPerRegisterNodes, update.MaxNodesPerRegisterNodes);
-            limits.MaxNodesPerTranslateBrowsePathsToNodeIds
-                = Override(limits.MaxNodesPerTranslateBrowsePathsToNodeIds, update.MaxNodesPerTranslateBrowsePathsToNodeIds);
-            limits.MaxNodesPerWrite
-                = Override(limits.MaxNodesPerWrite, update.MaxNodesPerWrite);
+            return new OperationLimits
+            {
+                MaxMonitoredItemsPerCall
+                    = Override(limits.MaxMonitoredItemsPerCall, update.MaxMonitoredItemsPerCall),
+                MaxNodesPerBrowse
+                    = Override(limits.MaxNodesPerBrowse, update.MaxNodesPerBrowse),
+                MaxNodesPerHistoryReadData
+                    = Override(limits.MaxNodesPerHistoryReadData, update.MaxNodesPerHistoryReadData),
+                MaxNodesPerHistoryReadEvents
+                    = Override(limits.MaxNodesPerHistoryReadEvents, update.MaxNodesPerHistoryReadEvents),
+                MaxNodesPerHistoryUpdateData
+                    = Override(limits.MaxNodesPerHistoryUpdateData, update.MaxNodesPerHistoryUpdateData),
+                MaxNodesPerHistoryUpdateEvents
+                    = Override(limits.MaxNodesPerHistoryUpdateEvents, update.MaxNodesPerHistoryUpdateEvents),
+                MaxNodesPerMethodCall
+                    = Override(limits.MaxNodesPerMethodCall, update.MaxNodesPerMethodCall),
+                MaxNodesPerNodeManagement
+                    = Override(limits.MaxNodesPerNodeManagement, update.MaxNodesPerNodeManagement),
+                MaxNodesPerRead
+                    = Override(limits.MaxNodesPerRead, update.MaxNodesPerRead),
+                MaxNodesPerRegisterNodes
+                    = Override(limits.MaxNodesPerRegisterNodes, update.MaxNodesPerRegisterNodes),
+                MaxNodesPerTranslateBrowsePathsToNodeIds
+                    = Override(limits.MaxNodesPerTranslateBrowsePathsToNodeIds, update.MaxNodesPerTranslateBrowsePathsToNodeIds),
+                MaxNodesPerWrite
+                    = Override(limits.MaxNodesPerWrite, update.MaxNodesPerWrite)
+            };
 
             static uint Override(uint a, uint b) => b == 0u ? a : b < a ? b : a;
         }
@@ -60,9 +62,9 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static int GetMaxNodesPerBrowse(this Limits model)
+        public static int GetMaxNodesPerBrowse(this OperationLimitsModel model)
         {
-            var cur = model.MaxNodesPerBrowse;
+            var cur = model.MaxNodesPerBrowse ?? 0;
             return Math.Min(Math.Max((int)cur, 1), kMaxBrowseNodes);
         }
 
@@ -71,9 +73,9 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static int GetMaxBrowseContinuationPoints(this Limits model)
+        public static int GetMaxBrowseContinuationPoints(this OperationLimitsModel model)
         {
-            var cur = model.MaxBrowseContinuationPoints;
+            var cur = model.MaxBrowseContinuationPoints ?? 0;
             return Math.Min(Math.Max((int)cur, 1), kMaxBrowseContinuationPoints);
         }
 
@@ -82,9 +84,9 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static int GetMaxNodesPerRead(this Limits model)
+        public static int GetMaxNodesPerRead(this OperationLimitsModel model)
         {
-            var cur = model.MaxNodesPerRead;
+            var cur = model.MaxNodesPerRead ?? 0;
             return Math.Min(Math.Max((int)cur, 1), kMaxReadNodes);
         }
 
@@ -93,9 +95,9 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static int GetMaxNodesPerTranslatePathsToNodeIds(this Limits model)
+        public static int GetMaxNodesPerTranslatePathsToNodeIds(this OperationLimitsModel model)
         {
-            var cur = model.MaxNodesPerTranslateBrowsePathsToNodeIds;
+            var cur = model.MaxNodesPerTranslatePathsToNodeIds ?? 0;
             return Math.Min(Math.Max((int)cur, 1), kMaxNodesPerTranslate);
         }
 
@@ -104,9 +106,9 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static int GetMaxNodesPerRegisterNodes(this Limits model)
+        public static int GetMaxNodesPerRegisterNodes(this OperationLimitsModel model)
         {
-            var cur = model.MaxNodesPerRegisterNodes;
+            var cur = model.MaxNodesPerRegisterNodes ?? 0;
             return Math.Min(Math.Max((int)cur, 1), kMaxNodesPerRegister);
         }
 
@@ -115,42 +117,10 @@ namespace Opc.Ua.Client
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static int GetMaxMonitoredItemsPerCall(this Limits model)
+        public static int GetMaxMonitoredItemsPerCall(this OperationLimitsModel model)
         {
-            var cur = model.MaxMonitoredItemsPerCall;
+            var cur = model.MaxMonitoredItemsPerCall ?? 0;
             return Math.Min(Math.Max((int)cur, 1), kMaxMonitoredItemsPerCall);
-        }
-
-        /// <summary>
-        /// Convert limits
-        /// </summary>
-        /// <param name="l"></param>
-        /// <returns></returns>
-        public static OperationLimitsModel ToServiceModel(this Limits l)
-        {
-            return new OperationLimitsModel
-            {
-                MaxArrayLength = Null(l.MaxArrayLength),
-                MaxBrowseContinuationPoints = Null(l.MaxBrowseContinuationPoints),
-                MaxByteStringLength = Null(l.MaxByteStringLength),
-                MaxHistoryContinuationPoints = Null(l.MaxHistoryContinuationPoints),
-                MaxQueryContinuationPoints = Null(l.MaxQueryContinuationPoints),
-                MaxStringLength = Null(l.MaxStringLength),
-                MinSupportedSampleRate = Null(l.MinSupportedSampleRate),
-                MaxNodesPerHistoryReadData = Null(l.MaxNodesPerHistoryReadData),
-                MaxNodesPerHistoryReadEvents = Null(l.MaxNodesPerHistoryReadEvents),
-                MaxNodesPerWrite = Null(l.MaxNodesPerWrite),
-                MaxNodesPerRead = Null(l.MaxNodesPerRead),
-                MaxNodesPerHistoryUpdateData = Null(l.MaxNodesPerHistoryUpdateData),
-                MaxNodesPerHistoryUpdateEvents = Null(l.MaxNodesPerHistoryUpdateEvents),
-                MaxNodesPerMethodCall = Null(l.MaxNodesPerMethodCall),
-                MaxNodesPerBrowse = Null(l.MaxNodesPerBrowse),
-                MaxNodesPerRegisterNodes = Null(l.MaxNodesPerRegisterNodes),
-                MaxNodesPerTranslatePathsToNodeIds = Null(l.MaxNodesPerTranslateBrowsePathsToNodeIds),
-                MaxNodesPerNodeManagement = Null(l.MaxNodesPerNodeManagement),
-                MaxMonitoredItemsPerCall = Null(l.MaxMonitoredItemsPerCall)
-            };
-            static T? Null<T>(T v) where T : struct, INumberBase<T> => T.IsZero(v) ? null : v;
         }
 
         private const int kMaxReadNodes = 10000;

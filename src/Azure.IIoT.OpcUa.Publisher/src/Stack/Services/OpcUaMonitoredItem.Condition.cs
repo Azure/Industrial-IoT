@@ -39,16 +39,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <summary>
             /// Create condition item
             /// </summary>
-            /// <param name="subscription"></param>
             /// <param name="owner"></param>
             /// <param name="template"></param>
-            /// <param name="session"></param>
             /// <param name="logger"></param>
             /// <param name="timeProvider"></param>
-            public Condition(IMonitoredItemContext subscription, ISubscriber owner,
-                EventMonitoredItemModel template, IOpcUaSession session,
+            public Condition(ISubscriber owner, EventMonitoredItemModel template,
                 ILogger<Event> logger, TimeProvider timeProvider) :
-                base(subscription, owner, template, session, logger, timeProvider)
+                base(owner, template, logger, timeProvider)
             {
                 _snapshotInterval = template.ConditionHandling?.SnapshotInterval
                     ?? throw new ArgumentException("Invalid snapshot interval");
@@ -56,6 +53,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     ?? _snapshotInterval;
                 _lastSentPendingConditions = timeProvider.GetUtcNow();
                 _conditionHandlingState = new ConditionHandlingState();
+            }
+
+            /// <summary>
+            /// Copy constructor
+            /// </summary>
+            /// <param name="item"></param>
+            /// <param name="copyEventHandlers"></param>
+            /// <param name="copyClientHandle"></param>
+            private Condition(Condition item, bool copyEventHandlers,
+                bool copyClientHandle)
+                : base(item, copyEventHandlers, copyClientHandle)
+            {
+                _snapshotInterval = item._snapshotInterval;
+                _updateInterval = item._updateInterval;
+                _conditionHandlingState = item._conditionHandlingState;
+                _lastSentPendingConditions = item._lastSentPendingConditions;
+                if (item.TimerEnabled)
+                {
+                    EnableConditionTimer();
+                }
+            }
+
+            /// <inheritdoc/>
+            public override MonitoredItem CloneMonitoredItem(
+                bool copyEventHandlers, bool copyClientHandle)
+            {
+                return new Condition(this, copyEventHandlers, copyClientHandle);
             }
 
             /// <inheritdoc/>
@@ -80,13 +104,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var str = $"Condition Item '{Template.StartNodeId}'";
                 if (RemoteId.HasValue)
                 {
-                    str += $" with server id {RemoteId} ({(Created ? "" : "not ")}created)";
+                    str += $" with server id {RemoteId} ({(Status?.Created == true ? "" : "not ")}created)";
                 }
                 return str;
             }
 
             /// <inheritdoc/>
-            protected override ValueTask DisposeAsync(bool disposing)
+            protected override void Dispose(bool disposing)
             {
                 if (disposing)
                 {
@@ -101,14 +125,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         }
                     }
                 }
-                return base.DisposeAsync(disposing);
+                base.Dispose(disposing);
             }
 
             /// <inheritdoc/>
             protected override bool ProcessEventNotification(DateTimeOffset publishTime,
                 EventFieldList eventFields, MonitoredItemNotifications notifications)
             {
-                Debug.Assert(!Disposed);
+                Debug.Assert(Valid);
                 Debug.Assert(Template != null);
 
                 if (_disposed)
@@ -148,29 +172,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     else if (eventType == ObjectTypeIds.RefreshRequiredEventType)
                     {
                         var noErrorFound = true;
+                        Debug.Assert(Subscription != null);
 
                         // issue a condition refresh to make sure we are in a correct state
                         _logger.LogInformation("{Item}: Issuing ConditionRefresh for " +
                             "item {Name} on subscription {Subscription} due to receiving " +
                             "a RefreshRequired event", this, Template.DisplayName,
-                            Context);
+                            Subscription.DisplayName);
                         try
                         {
-                            var s = Context as OpcUaSubscription;
-                            s?.ConditionRefreshAsync(default).AsTask().GetAwaiter().GetResult(); // TODO
+                            Subscription.ConditionRefreshAsync(default).GetAwaiter().GetResult(); // TODO
                         }
                         catch (Exception e)
                         {
                             _logger.LogInformation("{Item}: ConditionRefresh for item {Name} " +
                                 "on subscription {Subscription} failed with error '{Message}'",
-                                this, Template.DisplayName, Context, e.Message);
+                                this, Template.DisplayName, Subscription.DisplayName, e.Message);
                             noErrorFound = false;
                         }
                         if (noErrorFound)
                         {
                             _logger.LogInformation("{Item}: ConditionRefresh for item {Name} " +
                                 "on subscription {Subscription} has completed", this,
-                                Template.DisplayName, Context);
+                                Template.DisplayName, Subscription.DisplayName);
                         }
                         return true;
                     }
@@ -214,10 +238,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override bool MergeWith(OpcUaMonitoredItem item, out bool metadataChanged)
+            public override bool MergeWith(OpcUaMonitoredItem item, IOpcUaSession session,
+                 out bool metadataChanged)
             {
                 metadataChanged = false;
-                if (item is not Condition model || Disposed)
+                if (item is not Condition model || !Valid)
                 {
                     return false;
                 }
@@ -243,8 +268,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     itemChange = true;
                 }
 
-                itemChange |= base.MergeWith(model, out metadataChanged);
+                itemChange |= base.MergeWith(model, session, out metadataChanged);
                 return itemChange;
+            }
+
+            /// <inheritdoc/>
+            public override bool TryCompleteChanges(Subscription subscription,
+                ref bool applyChanges)
+            {
+                var result = base.TryCompleteChanges(subscription, ref applyChanges);
+                if (!AttachedToSubscription || !result)
+                {
+                    DisableConditionTimer();
+                }
+                else
+                {
+                    EnableConditionTimer();
+                }
+                return result;
             }
 
             /// <summary>
@@ -457,7 +498,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private int _snapshotInterval;
             private int _updateInterval;
             private TimerEx? _conditionTimer;
-            private readonly Lock _timerLock = new();
+            private readonly object _timerLock = new();
             private bool _disposed;
         }
     }

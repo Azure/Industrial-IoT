@@ -88,7 +88,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="callback">Callbacks from the subscription</param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        ValueTask<ISubscriptionRegistration> CreateSubscriptionAsync(T connection,
+        ValueTask<ISubscription> CreateSubscriptionAsync(T connection,
             SubscriptionModel subscription, ISubscriber callback,
             CancellationToken ct = default);
     }

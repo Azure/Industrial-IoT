@@ -17,7 +17,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     /// registration must be disposed when done which will
     /// release the reference on the client.
     /// </summary>
-    public interface ISubscriptionRegistration : IAsyncDisposable
+    public interface ISubscription : IAsyncDisposable
     {
         /// <summary>
         /// State of the underlying client
@@ -33,13 +33,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// Collect metadata
         /// </summary>
         /// <param name="owner"></param>
+        /// <param name="fieldMask"></param>
         /// <param name="dataSetMetaData"></param>
         /// <param name="minorVersion"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         ValueTask<PublishedDataSetMetaDataModel> CollectMetaDataAsync(
-            ISubscriber owner, DataSetMetaDataModel dataSetMetaData,
-            uint minorVersion, CancellationToken ct = default);
+            ISubscriber owner, DataSetFieldContentFlags? fieldMask,
+            DataSetMetaDataModel dataSetMetaData, uint minorVersion,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Create a keep alive notification

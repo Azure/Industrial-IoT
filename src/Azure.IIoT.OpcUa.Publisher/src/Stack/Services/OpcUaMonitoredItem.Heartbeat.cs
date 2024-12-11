@@ -16,7 +16,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Linq;
     using System.Runtime.Serialization;
     using System.Threading;
-    using System.Threading.Tasks;
 
     internal abstract partial class OpcUaMonitoredItem
     {
@@ -48,21 +47,43 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <summary>
             /// Create data item with heartbeat
             /// </summary>
-            /// <param name="subscription"></param>
             /// <param name="owner"></param>
             /// <param name="dataTemplate"></param>
-            /// <param name="session"></param>
             /// <param name="logger"></param>
             /// <param name="timeProvider"></param>
-            public Heartbeat(IMonitoredItemContext subscription, ISubscriber owner,
-                DataMonitoredItemModel dataTemplate, IOpcUaSession session,
+            public Heartbeat(ISubscriber owner, DataMonitoredItemModel dataTemplate,
                 ILogger<DataChange> logger, TimeProvider timeProvider) :
-                base(subscription, owner, dataTemplate, session, logger, timeProvider)
+                base(owner, dataTemplate, logger, timeProvider)
             {
                 _heartbeatInterval = dataTemplate.HeartbeatInterval
                     ?? dataTemplate.SamplingInterval ?? TimeSpan.FromSeconds(1);
                 _heartbeatBehavior = dataTemplate.HeartbeatBehavior
                     ?? HeartbeatBehavior.WatchdogLKV;
+            }
+
+            /// <summary>
+            /// Copy constructor
+            /// </summary>
+            /// <param name="item"></param>
+            /// <param name="copyEventHandlers"></param>
+            /// <param name="copyClientHandle"></param>
+            private Heartbeat(Heartbeat item, bool copyEventHandlers,
+                bool copyClientHandle)
+                : base(item, copyEventHandlers, copyClientHandle)
+            {
+                _heartbeatInterval = item._heartbeatInterval;
+                _heartbeatBehavior = item._heartbeatBehavior;
+                if (item.TimerEnabled)
+                {
+                    EnableHeartbeatTimer();
+                }
+            }
+
+            /// <inheritdoc/>
+            public override MonitoredItem CloneMonitoredItem(
+                bool copyEventHandlers, bool copyClientHandle)
+            {
+                return new Heartbeat(this, copyEventHandlers, copyClientHandle);
             }
 
             /// <inheritdoc/>
@@ -88,13 +109,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     $"(with {Template.HeartbeatBehavior ?? HeartbeatBehavior.WatchdogLKV} Heartbeat) ";
                 if (RemoteId.HasValue)
                 {
-                    str += $" with server id {RemoteId} ({(Created ? "" : "not ")}created)";
+                    str += $" with server id {RemoteId} ({(Status?.Created == true ? "" : "not ")}created)";
                 }
                 return str;
             }
 
             /// <inheritdoc/>
-            protected override ValueTask DisposeAsync(bool disposing)
+            protected override void Dispose(bool disposing)
             {
                 if (disposing)
                 {
@@ -109,7 +130,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         }
                     }
                 }
-                return base.DisposeAsync(disposing);
+                base.Dispose(disposing);
             }
 
             /// <inheritdoc/>
@@ -117,7 +138,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 MonitoredItemNotification monitoredItemNotification,
                 MonitoredItemNotifications notifications)
             {
-                Debug.Assert(!Disposed);
+                Debug.Assert(Valid);
                 var result = base.ProcessMonitoredItemNotification(publishTime,
                     monitoredItemNotification, notifications);
 
@@ -129,10 +150,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
-            public override bool MergeWith(OpcUaMonitoredItem item, out bool metadataChanged)
+            public override bool MergeWith(OpcUaMonitoredItem item, IOpcUaSession session,
+                 out bool metadataChanged)
             {
                 metadataChanged = false;
-                if (item is not Heartbeat model || Disposed)
+                if (item is not Heartbeat model || !Valid)
                 {
                     return false;
                 }
@@ -157,24 +179,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     itemChange = true;
                 }
 
-                itemChange |= base.MergeWith(model, out metadataChanged);
+                itemChange |= base.MergeWith(model, session, out metadataChanged);
                 return itemChange;
             }
 
             /// <inheritdoc/>
-            public override bool TryCompleteChanges(ref bool applyChanges)
+            public override bool TryCompleteChanges(Subscription subscription,
+                ref bool applyChanges)
             {
-                var result = base.TryCompleteChanges(ref applyChanges);
-                var lkg = (_heartbeatBehavior & HeartbeatBehavior.WatchdogLKG)
-                        == HeartbeatBehavior.WatchdogLKG;
-                if (!result && lkg)
+                if (_disposed)
                 {
-                    // Stop heartbeat
-                    DisableHeartbeatTimer();
+                    _logger.LogError("{Item}: Item was moved to another subscription " +
+                        "and the timer is handled by the new subscription now.", this);
+                    return false;
                 }
-                else
+                var result = base.TryCompleteChanges(subscription, ref applyChanges);
                 {
-                    EnableHeartbeatTimer();
+                    var lkg = (_heartbeatBehavior & HeartbeatBehavior.WatchdogLKG)
+                            == HeartbeatBehavior.WatchdogLKG;
+                    if (!AttachedToSubscription || (!result && lkg))
+                    {
+                        // Stop heartbeat
+                        DisableHeartbeatTimer();
+                    }
+                    else
+                    {
+                        Debug.Assert(AttachedToSubscription);
+                        EnableHeartbeatTimer();
+                    }
                 }
                 return result;
             }
@@ -254,8 +286,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="e"></param>
             private void SendHeartbeatNotifications(object? sender, ElapsedEventArgs e)
             {
-                if (Disposed)
+                if (!Valid)
                 {
+                    return;
+                }
+
+                if (!AttachedToSubscription)
+                {
+                    _logger.LogInformation("{Item}: Missing subscription.", this);
                     return;
                 }
 
@@ -271,9 +309,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
 
                 var lastValue = lastNotification?.Value;
-                if (lastValue == null && ServiceResult.IsNotGood(Error))
+                if (lastValue == null && ServiceResult.IsNotGood(Status.Error))
                 {
-                    lastValue = new DataValue(Error.StatusCode);
+                    lastValue = new DataValue(Status.Error.StatusCode);
                 }
 
                 if (lastValue == null)

@@ -327,7 +327,7 @@ public sealed class MonitoredItemTests
         await sut.DisposeAsync();
 
         // Assert
-        _mockContext.Verify(s => s.NotifyItemChange(sut), Times.Once);
+        _mockContext.Verify(s => s.NotifyItemChange(sut, true), Times.Once);
     }
 
     [Fact]
@@ -344,7 +344,7 @@ public sealed class MonitoredItemTests
         await sut.DisposeAsync();
 
         // Assert
-        _mockContext.Verify(s => s.NotifyItemChange(sut), Times.Once);
+        _mockContext.Verify(s => s.NotifyItemChange(sut, true), Times.Once);
     }
 
     [Fact]

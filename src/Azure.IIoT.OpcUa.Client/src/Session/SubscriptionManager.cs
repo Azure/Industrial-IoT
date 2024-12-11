@@ -31,7 +31,15 @@ using System.Threading.Tasks;
 internal sealed class SubscriptionManager : ISubscriptionManager,
     IMessageAckQueue, IAsyncDisposable
 {
-    /// <inheritdoc/>
+    /// <summary>
+    /// If the subscriptions are transferred when a session is
+    /// recreated.
+    /// </summary>
+    /// <remarks>
+    /// Default <c>false</c>, set to <c>true</c> if subscriptions
+    /// should be transferred after recreating the session.
+    /// Service must be supported by server.
+    /// </remarks>
     public bool TransferSubscriptionsOnRecreate { get; set; }
 
     /// <inheritdoc/>

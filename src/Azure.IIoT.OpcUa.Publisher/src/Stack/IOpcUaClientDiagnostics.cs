@@ -25,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <summary>
         /// Outstanding requests
         /// </summary>
-        int PublishWorkerCount { get; }
+        int OutstandingRequestCount { get; }
 
         /// <summary>
         /// Number of subscriptions tracked by client

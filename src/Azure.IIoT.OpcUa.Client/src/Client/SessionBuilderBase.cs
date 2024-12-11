@@ -143,15 +143,15 @@ public class SessionBuilderBase<TPooledSessionOptions, TSessionOptions,
 /// </summary>
 /// <typeparam name="TPooledSessionOptions"></typeparam>
 /// <typeparam name="TSessionOptions"></typeparam>
-/// <typeparam name="SBuilder"></typeparam>
+/// <typeparam name="TBuilder"></typeparam>
 /// <param name="application"></param>
 public class PooledSessionBuilderBase<TPooledSessionOptions,
-    TSessionOptions, SBuilder>(ISessionManager application) :
+    TSessionOptions, TBuilder>(ISessionManager application) :
     IPooledSessionBuilder<TPooledSessionOptions, TSessionOptions>,
     IOptionsBuilder<TPooledSessionOptions>
     where TPooledSessionOptions : PooledSessionOptions, new()
     where TSessionOptions : SessionOptions, new()
-    where SBuilder: ISessionOptionsBuilder<TSessionOptions>, new()
+    where TBuilder: ISessionOptionsBuilder<TSessionOptions>, new()
 {
     /// <inheritdoc/>
     public TPooledSessionOptions Options { get; set; } = new();
@@ -194,5 +194,5 @@ public class PooledSessionBuilderBase<TPooledSessionOptions,
         return this;
     }
 
-    private readonly SBuilder _optionsBuilder = new();
+    private readonly TBuilder _optionsBuilder = new();
 }

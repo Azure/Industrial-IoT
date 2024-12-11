@@ -747,9 +747,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         var builtinType = inputs[i].Item1.BuiltInType;
                         if (!string.IsNullOrEmpty(arg.DataType))
                         {
-                            builtinType = await context.Session.NodeCache.GetBuiltInTypeAsync(
+                            builtinType = await TypeInfo.GetBuiltInTypeAsync(
                                 arg.DataType.ToNodeId(context.Session.MessageContext),
-                                context.Ct).ConfigureAwait(false);
+                                context.Session.TypeTree, context.Ct).ConfigureAwait(false);
                         }
                         requests[0].InputArguments[i] = context.Session.Codec.Decode(
                             arg.Value ?? VariantValue.Null, builtinType);
@@ -912,8 +912,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
                 }
 
-                var builtinType = await context.Session.NodeCache.GetBuiltInTypeAsync(
-                    dataTypeId!, context.Ct).ConfigureAwait(false);
+                var builtinType = await TypeInfo.GetBuiltInTypeAsync(dataTypeId,
+                    context.Session.TypeTree, context.Ct).ConfigureAwait(false);
                 var value = context.Session.Codec.Decode(request.Value, builtinType);
                 var nodesToWrite = new WriteValueCollection{
                     new WriteValue {
@@ -1125,8 +1125,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         ErrorInfo = errorInfo
                     };
                 }
-                var startTime = config.StartOfOnlineArchive.GetValueOrDefault()
-                    ?? config.StartOfArchive.GetValueOrDefault();
+                var startTime = config.StartOfOnlineArchive.GetValueOrDefaultEx()
+                    ?? config.StartOfArchive.GetValueOrDefaultEx();
                 if (startTime == null)
                 {
                     startTime = await HistoryReadTimestampAsync(
@@ -1150,42 +1150,42 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     Configuration = errorInfo != null ? null : new HistoryConfigurationModel
                     {
                         MinTimeInterval =
-                            config.MinTimeInterval.GetValueOrDefault(
+                            config.MinTimeInterval.GetValueOrDefaultEx(
                                 v => v.HasValue && v.Value != 0 ?
                                 TimeSpan.FromMilliseconds(v.Value) : (TimeSpan?)null),
                         MaxTimeInterval =
-                            config.MaxTimeInterval.GetValueOrDefault(
+                            config.MaxTimeInterval.GetValueOrDefaultEx(
                                 v => v.HasValue && v.Value != 0 ?
                                 TimeSpan.FromMilliseconds(v.Value) : (TimeSpan?)null),
                         ExceptionDeviation =
-                            config.ExceptionDeviation.GetValueOrDefault(),
+                            config.ExceptionDeviation.GetValueOrDefaultEx(),
                         ExceptionDeviationType =
-                            config.ExceptionDeviationFormat.GetValueOrDefault(
+                            config.ExceptionDeviationFormat.GetValueOrDefaultEx(
                                 v => v.ToExceptionDeviationType()),
                         ServerTimestampSupported =
-                            config.ServerTimestampSupported.GetValueOrDefault(),
+                            config.ServerTimestampSupported.GetValueOrDefaultEx(),
                         Stepped =
-                            config.Stepped.GetValueOrDefault(),
+                            config.Stepped.GetValueOrDefaultEx(),
                         Definition =
-                            config.Definition.GetValueOrDefault(),
+                            config.Definition.GetValueOrDefaultEx(),
                         AggregateFunctions =
                             aggregateFunctions.Count == 0 ? null : aggregateFunctions,
                         AggregateConfiguration = new AggregateConfigurationModel
                         {
                             PercentDataBad =
-                                aggregate.PercentDataBad.GetValueOrDefault(),
+                                aggregate.PercentDataBad.GetValueOrDefaultEx(),
                             PercentDataGood =
-                                aggregate.PercentDataGood.GetValueOrDefault(),
+                                aggregate.PercentDataGood.GetValueOrDefaultEx(),
                             TreatUncertainAsBad =
-                                aggregate.TreatUncertainAsBad.GetValueOrDefault(),
+                                aggregate.TreatUncertainAsBad.GetValueOrDefaultEx(),
                             UseSlopedExtrapolation =
-                                aggregate.UseSlopedExtrapolation.GetValueOrDefault()
+                                aggregate.UseSlopedExtrapolation.GetValueOrDefaultEx()
                         },
                         StartOfOnlineArchive = startTime ??
-                            config.StartOfOnlineArchive.GetValueOrDefault(
+                            config.StartOfOnlineArchive.GetValueOrDefaultEx(
                                 v => v == DateTime.MinValue ? startTime : v),
                         StartOfArchive =
-                            config.StartOfArchive.GetValueOrDefault(
+                            config.StartOfArchive.GetValueOrDefaultEx(
                                 v => v == DateTime.MinValue ? startTime : v) ?? startTime,
                         EndOfArchive = endTime
                     }

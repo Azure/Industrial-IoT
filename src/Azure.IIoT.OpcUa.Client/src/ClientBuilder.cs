@@ -152,9 +152,9 @@ public class ClientBuilder(IServiceCollection? services = null) : ClientBuilderB
         }
 
         /// <inheritdoc/>
-        public override IManagedSubscription CreateSubscription(IObservability observability,
-            INotificationDataHandler handler, IOptionsMonitor<SubscriptionOptions> options,
-            IMessageAckQueue queue)
+        public override IManagedSubscription CreateSubscription(INotificationDataHandler handler,
+            IOptionsMonitor<SubscriptionOptions> options, IMessageAckQueue queue,
+            IObservability observability)
         {
             return new ClientSubscription(this, handler, queue, options, observability);
         }
@@ -207,11 +207,12 @@ public class ClientBuilder(IServiceCollection? services = null) : ClientBuilderB
         }
 
         /// <inheritdoc/>
-        protected override List<MonitoredItem> CreateMonitoredItems(IObservability observability,
-            List<IOptionsMonitor<MonitoredItemOptions>> options)
+        protected override MonitoredItem CreateMonitoredItem(string name,
+            IOptionsMonitor<MonitoredItemOptions> options, IMonitoredItemContext context,
+            IObservability observability)
         {
-            return options.ConvertAll(option => (MonitoredItem)new ClientItem(this, option,
-                observability.LoggerFactory.CreateLogger<ClientItem>()));
+            return new ClientItem(context, name, options,
+                observability.LoggerFactory.CreateLogger<ClientItem>());
         }
 
         private new readonly ClientSession _session;
@@ -221,9 +222,9 @@ public class ClientBuilder(IServiceCollection? services = null) : ClientBuilderB
     internal sealed class ClientItem : MonitoredItem
     {
         /// <inheritdoc/>
-        internal ClientItem(ClientSubscription subscription,
+        internal ClientItem(IMonitoredItemContext context, string name,
             IOptionsMonitor<MonitoredItemOptions> options, ILogger logger)
-            : base(subscription, options)
+            : base(context, name, options, logger)
         {
         }
     }

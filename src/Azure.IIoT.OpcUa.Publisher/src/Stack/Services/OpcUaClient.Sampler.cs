@@ -24,14 +24,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="samplingRate"></param>
         /// <param name="maxAge"></param>
         /// <param name="nodeToRead"></param>
-        /// <param name="subscription"></param>
+        /// <param name="subscriptionName"></param>
         /// <param name="clientHandle"></param>
         /// <returns></returns>
         internal IAsyncDisposable Sample(TimeSpan samplingRate, TimeSpan maxAge,
-            ReadValueId nodeToRead, OpcUaSubscription subscription, uint clientHandle)
+            ReadValueId nodeToRead, string subscriptionName, uint clientHandle)
         {
             return Sampler.Register(this, samplingRate, maxAge,
-                nodeToRead, subscription, clientHandle);
+                nodeToRead, subscriptionName, clientHandle);
         }
 
         /// <summary>
@@ -48,7 +48,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="subscription"></param>
             /// <param name="value"></param>
             private Sampler(OpcUaClient outer, TimeSpan samplingRate,
-                TimeSpan maxAge, OpcUaSubscription subscription, SampledNodeId value)
+                TimeSpan maxAge, string subscription, SampledNodeId value)
             {
                 _sampledNodes = ImmutableHashSet<SampledNodeId>.Empty.Add(value);
 
@@ -128,8 +128,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         var session = _client._session;
                         if (session == null)
                         {
-                            await SendAsync(sequenceNumber, nodesToRead, StatusCodes.BadNotConnected,
-                                TimeSpan.Zero).ConfigureAwait(false);
+                            NotifyAll(sequenceNumber, nodesToRead, StatusCodes.BadNotConnected,
+                                TimeSpan.Zero);
                             continue;
                         }
 
@@ -140,7 +140,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         var timeout = _samplingRate.TotalMilliseconds / 2;
                         var response = await session.ReadAsync(new RequestHeader
                         {
-                            Timestamp = _client._observability.TimeProvider.GetUtcNow().UtcDateTime,
+                            Timestamp = _client._timeProvider.GetUtcNow().UtcDateTime,
                             TimeoutHint = (uint)timeout,
                             ReturnDiagnostics = 0
                         }, _maxAge.TotalMilliseconds, Opc.Ua.TimestampsToReturn.Both,
@@ -151,25 +151,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                         if (values.ErrorInfo != null)
                         {
-                            await SendAsync(sequenceNumber, nodesToRead, values.ErrorInfo.StatusCode,
-                                sw.Elapsed).ConfigureAwait(false);
+                            NotifyAll(sequenceNumber, nodesToRead, values.ErrorInfo.StatusCode, sw.Elapsed);
                             continue;
                         }
 
                         // Notify clients of the values
-                        await SendAsync(sequenceNumber, values, sw.Elapsed).ConfigureAwait(false);
+                        NotifyAll(sequenceNumber, values, sw.Elapsed);
                     }
                     catch (OperationCanceledException) { }
                     catch (ServiceResultException sre)
                     {
-                        await SendAsync(sequenceNumber, nodesToRead,
-                            sre.StatusCode, sw.Elapsed).ConfigureAwait(false);
+                        NotifyAll(sequenceNumber, nodesToRead, sre.StatusCode, sw.Elapsed);
                     }
                     catch (Exception ex)
                     {
                         var error = new ServiceResult(ex).StatusCode;
-                        await SendAsync(sequenceNumber, nodesToRead,
-                            error.Code, sw.Elapsed).ConfigureAwait(false);
+                        NotifyAll(sequenceNumber, nodesToRead, error.Code, sw.Elapsed);
                     }
                 }
             }
@@ -180,16 +177,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="seq"></param>
             /// <param name="values"></param>
             /// <param name="elapsed"></param>
-            private ValueTask SendAsync(uint seq, ServiceResponse<ReadValueId, DataValue> values,
+            private void NotifyAll(uint seq, ServiceResponse<ReadValueId, DataValue> values,
                 TimeSpan elapsed)
             {
+                if (_client._session?.Subscriptions.FirstOrDefault(n => n.DisplayName == _subscription)
+                    is not OpcUaSubscription target)
+                {
+                    return;
+                }
+
                 var missed = GetMissed(elapsed);
-                return _subscription.OnSubscriptionCylicReadNotificationAsync(seq,
-                    _client._observability.TimeProvider.GetUtcNow().UtcDateTime, values
+                target.OnSubscriptionCylicReadNotification(target, values
                     .Select(i => new SampledDataValueModel(
-                        SetOverflow(i.Result, missed > 0),
-                            ((SampledNodeId)i.Request.Handle).ClientHandle, missed))
-                    .ToList());
+                        SetOverflow(i.Result, missed > 0), ((SampledNodeId)i.Request.Handle).ClientHandle, missed))
+                    .ToList(), seq, _client._timeProvider.GetUtcNow().UtcDateTime);
 
                 static DataValue SetOverflow(DataValue result, bool overflowBit)
                 {
@@ -205,16 +206,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="nodesToRead"></param>
             /// <param name="statusCode"></param>
             /// <param name="elapsed"></param>
-            private ValueTask SendAsync(uint seq, ReadValueIdCollection nodesToRead, uint statusCode,
+            private void NotifyAll(uint seq, ReadValueIdCollection nodesToRead, uint statusCode,
                 TimeSpan elapsed)
             {
+                if (_client._session?.Subscriptions.FirstOrDefault(n => n.DisplayName == _subscription)
+                    is not OpcUaSubscription target)
+                {
+                    return;
+                }
+
                 var missed = GetMissed(elapsed);
-                return _subscription.OnSubscriptionCylicReadNotificationAsync(seq,
-                    _client._observability.TimeProvider.GetUtcNow().UtcDateTime, nodesToRead
+                target.OnSubscriptionCylicReadNotification(target, nodesToRead
                     .Select(i => new SampledDataValueModel(
-                        SetOverflow(statusCode, missed > 0),
-                            ((SampledNodeId)i.Handle).ClientHandle, missed))
-                    .ToList());
+                        SetOverflow(statusCode, missed > 0), ((SampledNodeId)i.Handle).ClientHandle, missed))
+                    .ToList(), seq, _client._timeProvider.GetUtcNow().UtcDateTime);
 
                 static DataValue SetOverflow(uint statusCode, bool overflowBit)
                 {
@@ -237,7 +242,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 /// <summary>
                 /// Sampler key
                 /// </summary>
-                public (OpcUaSubscription, TimeSpan, TimeSpan) Key { get; }
+                public (string, TimeSpan, TimeSpan) Key { get; }
 
                 /// <summary>
                 /// Item to monito
@@ -256,8 +261,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 /// <param name="key"></param>
                 /// <param name="item"></param>
                 /// <param name="clientHandle"></param>
-                public SampledNodeId(OpcUaClient outer,
-                    (OpcUaSubscription, TimeSpan, TimeSpan) key,
+                public SampledNodeId(OpcUaClient outer, (string, TimeSpan, TimeSpan) key,
                     ReadValueId item, uint clientHandle)
                 {
                     _outer = outer;
@@ -293,11 +297,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="samplingRate"></param>
             /// <param name="maxAge"></param>
             /// <param name="item"></param>
-            /// <param name="subscription"></param>
+            /// <param name="subscriptionName"></param>
             /// <param name="clientHandle"></param>
             /// <returns></returns>
             public static IAsyncDisposable Register(OpcUaClient outer, TimeSpan samplingRate,
-                TimeSpan maxAge, ReadValueId item, OpcUaSubscription subscription, uint clientHandle)
+                TimeSpan maxAge, ReadValueId item, string subscriptionName, uint clientHandle)
             {
                 if (samplingRate <= TimeSpan.Zero)
                 {
@@ -309,14 +313,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 lock (outer._samplers)
                 {
-                    var key = (subscription, samplingRate, maxAge);
+                    var key = (subscriptionName, samplingRate, maxAge);
 #pragma warning disable CA2000 // Dispose objects before losing scope
                     var sampledNode = new SampledNodeId(outer, key, item, clientHandle);
 #pragma warning restore CA2000 // Dispose objects before losing scope
                     if (!outer._samplers.TryGetValue(key, out var sampler))
                     {
                         sampler = new Sampler(outer, samplingRate, maxAge,
-                            subscription, sampledNode);
+                            subscriptionName, sampledNode);
                         outer._samplers.Add(key, sampler);
                     }
                     else
@@ -333,7 +337,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private readonly OpcUaClient _client;
             private readonly TimeSpan _samplingRate;
             private readonly TimeSpan _maxAge;
-            private readonly OpcUaSubscription _subscription;
+            private readonly string _subscription;
             private readonly PeriodicTimer _timer;
         }
     }

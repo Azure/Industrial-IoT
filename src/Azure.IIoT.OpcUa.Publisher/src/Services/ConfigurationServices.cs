@@ -621,13 +621,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         var errorInfo = readResults.ErrorInfo ??
                             readResults[0].ErrorInfo;
                         var nodeClass = errorInfo != null ? Opc.Ua.NodeClass.Unspecified :
-                            readResults[0].Result.GetValueOrDefault<Opc.Ua.NodeClass>();
+                            readResults[0].Result.GetValueOrDefaultEx<Opc.Ua.NodeClass>();
                         var browseName = errorInfo != null ? null :
-                            readResults[1].Result.GetValueOrDefault<QualifiedName>();
+                            readResults[1].Result.GetValueOrDefaultEx<QualifiedName>();
                         var displayName = errorInfo != null ? null :
-                            readResults[2].Result.GetValueOrDefault<LocalizedText>();
+                            readResults[2].Result.GetValueOrDefaultEx<LocalizedText>();
                         var eventNotifier = errorInfo != null ? (byte)0 :
-                            readResults[3].Result.GetValueOrDefault<byte>();
+                            readResults[3].Result.GetValueOrDefaultEx<byte>();
 
                         ExpandedNodeId? typeDefinitionId = null;
                         if (errorInfo == null)
