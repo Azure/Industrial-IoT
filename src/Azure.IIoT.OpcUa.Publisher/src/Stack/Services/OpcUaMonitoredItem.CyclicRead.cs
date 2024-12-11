@@ -181,10 +181,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     {
                         return;
                     }
-                    if (_sampler == null &&
-                        Subscription is OpcUaSubscription subscription)
+                    if (_sampler == null)
                     {
-                        var resolvedNodeId = TheResolvedNodeId.ToNodeId(subscription.Session.MessageContext);
                         Debug.Assert(_subscriptionName != null);
                         _sampler = _client.Sample(
                             TimeSpan.FromMilliseconds(SamplingInterval),
@@ -193,7 +191,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             {
                                 AttributeId = AttributeId,
                                 IndexRange = IndexRange,
-                                NodeId = resolvedNodeId
+                                NodeId = ResolvedNodeId
                             },
                             _subscriptionName, ClientHandle);
                         _logger.LogDebug("Item {Item} successfully registered with sampler.",

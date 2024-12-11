@@ -56,7 +56,7 @@ public sealed record KeepAlive(uint SequenceNumber,
     Notification(SequenceNumber, PublishTime, PublishStateMask);
 
 /// <summary>
-/// Status change
+/// Status change of a subscription
 /// </summary>
 /// <param name="SequenceNumber"></param>
 /// <param name="PublishTime"></param>
@@ -69,25 +69,25 @@ public sealed record StatusChange(uint SequenceNumber,
     Notification(SequenceNumber, PublishTime, PublishStateMask);
 
 /// <summary>
-/// Sample
+/// Result of a periodic read is a periodic value
 /// </summary>
 /// <param name="Name"></param>
 /// <param name="Item"></param>
 /// <param name="Value"></param>
 /// <param name="DiagnosticInfo"></param>
-public record struct Sample(string Name, ReadValueId Item,
+public record struct PeriodicValue(string Name, ReadValueId Item,
     DataValue Value, DiagnosticInfo? DiagnosticInfo);
 
 /// <summary>
-/// Sampled data
+/// Periodically (cyclic) read data
 /// </summary>
 /// <param name="SequenceNumber"></param>
 /// <param name="PublishTime"></param>
 /// <param name="Values"></param>
 /// <param name="PublishStateMask"></param>
 /// <param name="StringTable"></param>
-public sealed record SampledData(uint SequenceNumber,
-    DateTime PublishTime, IReadOnlyList<Sample> Values,
+public sealed record PeriodicData(uint SequenceNumber,
+    DateTime PublishTime, IReadOnlyList<PeriodicValue> Values,
     PublishState PublishStateMask, IReadOnlyList<string> StringTable) :
     Notification(SequenceNumber, PublishTime, PublishStateMask);
 

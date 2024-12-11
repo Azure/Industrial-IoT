@@ -10,7 +10,8 @@ using System.Collections.Generic;
 /// <summary>
 /// Node id comparer
 /// </summary>
-internal class Comparers : IEqualityComparer<ExpandedNodeId>, IEqualityComparer<NodeId>
+internal class Comparers : IEqualityComparer<ExpandedNodeId>,
+    IEqualityComparer<NodeId>
 {
     /// <summary>
     /// Get singleton comparer

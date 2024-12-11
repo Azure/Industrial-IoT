@@ -16,7 +16,7 @@ public record class SubscribeOptions
     /// <summary>
     /// The monitored items to subscribe to
     /// </summary>
-    public List<IOptionsMonitor<MonitoredItemOptions>> MonitoredItems { get; init; } = [];
+    public Dictionary<string, MonitoredItemOptions> MonitoredItems { get; init; } = [];
 
     /// <summary>
     /// Options

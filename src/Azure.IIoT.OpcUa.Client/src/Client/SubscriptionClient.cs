@@ -136,6 +136,76 @@ internal sealed class SubscriptionClient : IAsyncDisposable
     }
 
     /// <summary>
+    /// Subscription registration which tracks the registered options and
+    /// provides the channel to communicate back with the api client.
+    /// </summary>
+    internal sealed record Registration : IAsyncDisposable
+    {
+        /// <summary>
+        /// Monitored items on the subscriber
+        /// </summary>
+        public IOptionsMonitor<SubscribeOptions> Options { get; }
+
+        /// <summary>
+        /// Queue to publish notifications to
+        /// </summary>
+        public INotificationQueue Queue { get; }
+
+        /// <summary>
+        /// Mark the registration as dirty
+        /// </summary>
+        internal bool Dirty { get; set; }
+
+        /// <summary>
+        /// Create subscription
+        /// </summary>
+        /// <param name="outer"></param>
+        /// <param name="queue"></param>
+        /// <param name="options"></param>
+        public Registration(SubscriptionClient outer, INotificationQueue queue,
+            IOptionsMonitor<SubscribeOptions> options)
+        {
+            Queue = queue;
+            Options = options;
+            options.OnChange((_, __) =>
+            {
+                Dirty = true;
+                outer._syncEvent.Set();
+            });
+            _outer = outer;
+        }
+
+        /// <inheritdoc/>
+        public async ValueTask DisposeAsync()
+        {
+            if (_outer._disposed)
+            {
+                //
+                // Possibly the client has shut down before the owners of
+                // the registration have disposed it. This is not an error.
+                // It might however be better to order the clients to get
+                // disposed before clients.
+                //
+                return;
+            }
+
+            // Remove registration
+            await _outer._subscriptionLock.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                _outer._registrations.Remove(Queue);
+                _outer._syncEvent.Set();
+            }
+            finally
+            {
+                _outer._subscriptionLock.Release();
+            }
+        }
+
+        private readonly SubscriptionClient _outer;
+    }
+
+    /// <summary>
     /// Called by the management thread to synchronize the subscriptions with the
     /// current view of the registrations.
     /// </summary>
@@ -341,7 +411,7 @@ internal sealed class SubscriptionClient : IAsyncDisposable
         public VirtualSubscription(SubscriptionClient client, SubscriptionOptions option,
             List<Registration> registrations) : base(option)
         {
-            _client = client;
+            _subscriptionClient = client;
             _logger = client._observability.LoggerFactory.CreateLogger<VirtualSubscription>();
             Registrations = registrations;
         }
@@ -365,18 +435,6 @@ internal sealed class SubscriptionClient : IAsyncDisposable
             finally
             {
                 _lock.Dispose();
-            }
-        }
-
-        /// <inheritdoc/>
-        public async ValueTask OnStatusChangeNotificationAsync(ISubscription subscription,
-            uint sequenceNumber, DateTime publishTime, StatusChangeNotification notification,
-            PublishState publishStateMask, IReadOnlyList<string> stringTable)
-        {
-            foreach (var registration in Registrations)
-            {
-                await registration.Queue.QueueAsync(new StatusChange(sequenceNumber, publishTime,
-                    notification, publishStateMask, stringTable)).ConfigureAwait(false);
             }
         }
 
@@ -444,14 +502,9 @@ internal sealed class SubscriptionClient : IAsyncDisposable
             }
         }
 
-        /// <inheritdoc/>
-        public void OnPublishStateChanged(ISubscription subscription, PublishState stateMask)
-        {
-        }
-
         /// <summary>
-        /// Create or update the subscription now using the currently configured
-        /// subscription configuration template and session inside the client.
+        /// Create or update the subscriptions inside using the currently configured
+        /// subscription options and complying to the provided limits.
         /// </summary>
         /// <param name="limits"></param>
         /// <param name="ct"></param>
@@ -469,17 +522,14 @@ internal sealed class SubscriptionClient : IAsyncDisposable
             await _lock.WaitAsync(ct).ConfigureAwait(false);
             try
             {
-                var partitions = Partition.Create(Registrations, maxMonitoredItems);
-                //
-                // Force recreate subscriptions that are marked as such. Only need to
-                // do this for subscriptions that are below or equal the partition count.
-                //
+                var partitions = BagPackedPartition.Create(Registrations, maxMonitoredItems);
+
                 if (_subscriptions.Count < partitions.Count)
                 {
                     // Grow
                     for (var idx = _subscriptions.Count; idx < partitions.Count; idx++)
                     {
-                        var subscription = _client._session.Subscriptions.Add(this, this);
+                        var subscription = _subscriptionClient._session.Subscriptions.Add(this, this);
                         _subscriptions.Add(subscription);
                     }
                 }
@@ -497,9 +547,9 @@ internal sealed class SubscriptionClient : IAsyncDisposable
                 for (var partitionIdx = 0; partitionIdx < partitions.Count; partitionIdx++)
                 {
                     var monitoredItems = _subscriptions[partitionIdx].MonitoredItems.Update(
-                        partitions[partitionIdx].Items
-                            .Select((i, idx) => (idx.ToString(), i.Options))
-                            .ToList());
+                        partitions[partitionIdx].Items.ConvertAll(item =>
+                            (item.Name, (IOptionsMonitor<MonitoredItemOptions>)item.Options))
+);
 
                     // Create lookup to split the monitored item notifications on receive
                     _m2r = partitions[partitionIdx].Items.Zip(monitoredItems)
@@ -515,35 +565,38 @@ internal sealed class SubscriptionClient : IAsyncDisposable
         /// <summary>
         /// Helper to partition subscribers across subscriptions.
         /// </summary>
-        internal sealed class Partition
+        internal sealed class BagPackedPartition
         {
             /// <summary>
             /// Monitored items that should be in the subscription partition
             /// </summary>
             public List<(
                 Registration Registration,
-                IOptionsMonitor<MonitoredItemOptions> Options
+                string Name,
+                OptionsMonitor<MonitoredItemOptions> Options
                 )> Items { get; } = [];
 
             /// <summary>
             /// Create
             /// </summary>
             /// <param name="registrations"></param>
-            /// <param name="maxMonitoredItemsInPartition"></param>
+            /// <param name="maxMonitoredItems"></param>
             /// <returns></returns>
-            public static List<Partition> Create(IEnumerable<Registration> registrations,
-                uint maxMonitoredItemsInPartition)
+            public static List<BagPackedPartition> Create(
+                IEnumerable<Registration> registrations, uint maxMonitoredItems)
             {
-                var partitions = new List<Partition>();
+                var partitions = new List<BagPackedPartition>();
                 foreach (var registeredItems in registrations
-                    .Select(r => r.Options.CurrentValue.MonitoredItems.ConvertAll(m => (r, m)))
+                    .Select(r => r.Options.CurrentValue.MonitoredItems
+                        .Select(m => (r, m.Key, OptionsFactory.Create(m.Value)))
+                        .ToList())
                     .OrderByDescending(tl => tl.Count))
                 {
                     var placed = false;
                     foreach (var partition in partitions)
                     {
                         if (partition.Items.Count +
-                            registeredItems.Count <= maxMonitoredItemsInPartition)
+                            registeredItems.Count <= maxMonitoredItems)
                         {
                             partition.Items.AddRange(registeredItems);
                             placed = true;
@@ -554,9 +607,9 @@ internal sealed class SubscriptionClient : IAsyncDisposable
                     {
                         // Break items into batches of max here and add partition each
                         foreach (var batch in registeredItems.Batch(
-                            maxMonitoredItemsInPartition))
+                            maxMonitoredItems))
                         {
-                            var newPartition = new Partition();
+                            var newPartition = new BagPackedPartition();
                             newPartition.Items.AddRange(batch);
                             partitions.Add(newPartition);
                         }
@@ -567,80 +620,10 @@ internal sealed class SubscriptionClient : IAsyncDisposable
         }
 
         private Dictionary<IMonitoredItem, Registration> _m2r = [];
+        private readonly SubscriptionClient _subscriptionClient;
         private readonly List<ISubscription> _subscriptions = [];
         private readonly SemaphoreSlim _lock = new(1, 1);
         private readonly ILogger _logger;
-        private readonly SubscriptionClient _client;
-    }
-
-    /// <summary>
-    /// Subscription registration which tracks the registered options and
-    /// provides the channel to communicate back with the api client.
-    /// </summary>
-    internal sealed record Registration : IAsyncDisposable
-    {
-        /// <summary>
-        /// Monitored items on the subscriber
-        /// </summary>
-        public IOptionsMonitor<SubscribeOptions> Options { get; }
-
-        /// <summary>
-        /// Queue to publish notifications to
-        /// </summary>
-        public INotificationQueue Queue { get; }
-
-        /// <summary>
-        /// Mark the registration as dirty
-        /// </summary>
-        internal bool Dirty { get; set; }
-
-        /// <summary>
-        /// Create subscription
-        /// </summary>
-        /// <param name="outer"></param>
-        /// <param name="queue"></param>
-        /// <param name="options"></param>
-        public Registration(SubscriptionClient outer, INotificationQueue queue,
-            IOptionsMonitor<SubscribeOptions> options)
-        {
-            Queue = queue;
-            Options = options;
-            options.OnChange((_, __) =>
-            {
-                Dirty = true;
-                outer._syncEvent.Set();
-            });
-            _outer = outer;
-        }
-
-        /// <inheritdoc/>
-        public async ValueTask DisposeAsync()
-        {
-            if (_outer._disposed)
-            {
-                //
-                // Possibly the client has shut down before the owners of
-                // the registration have disposed it. This is not an error.
-                // It might however be better to order the clients to get
-                // disposed before clients.
-                //
-                return;
-            }
-
-            // Remove registration
-            await _outer._subscriptionLock.WaitAsync().ConfigureAwait(false);
-            try
-            {
-                _outer._registrations.Remove(Queue);
-                _outer._syncEvent.Set();
-            }
-            finally
-            {
-                _outer._subscriptionLock.Release();
-            }
-        }
-
-        private readonly SubscriptionClient _outer;
     }
 
     private const int kMaxMonitoredItemPerSubscriptionDefault = 64 * 1024;

@@ -1,0 +1,43 @@
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation, The OPC Foundation, Inc.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
+
+namespace Opc.Ua.Client;
+
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+/// <summary>
+/// Create options
+/// </summary>
+internal static class OptionsFactory
+{
+    /// <summary>
+    /// Create monitor
+    /// </summary>
+    /// <param name="options"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    public static OptionsMonitor<T> Create<[DynamicallyAccessedMembers(
+        DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T>(
+        T options)
+    {
+        return new OptionsMonitor<T>(options);
+    }
+
+    /// <summary>
+    /// Create monitor
+    /// </summary>
+    /// <param name="configure"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    public static OptionsMonitor<T> Create<[DynamicallyAccessedMembers(
+        DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T>(
+        Action<T>? configure = null) where T : new()
+    {
+        var options = new OptionsMonitor<T>(new T());
+        configure?.Invoke(options.CurrentValue);
+        return options;
+    }
+}

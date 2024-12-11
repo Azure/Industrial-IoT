@@ -8,7 +8,7 @@ namespace Opc.Ua;
 using System.Collections.Generic;
 
 /// <summary>
-/// Extensions
+/// Internal Extensions
 /// </summary>
 internal static class Extensions
 {
@@ -16,16 +16,20 @@ internal static class Extensions
     /// Returns batches of a collection for processing.
     /// </summary>
     /// <remarks>
-    /// Returns the original collection if batchsize is 0 or the collection count
-    /// is smaller than the batch size.
+    /// Returns the original collection if batchsize is 0 or the
+    /// collection count is smaller than the batch size.
     /// </remarks>
-    /// <typeparam name="T">The type of the items in the collection.</typeparam>
-    /// <typeparam name="C">The type of the items in the collection.</typeparam>
-    /// <param name="collection">The collection from which items are batched.</param>
+    /// <typeparam name="TElement">The type of the items in the
+    /// collection. </typeparam>
+    /// <typeparam name="TCollection">The type of the items in the
+    /// collection.</typeparam>
+    /// <param name="collection">The collection from which items are
+    /// batched.</param>
     /// <param name="batchSize">The size of a batch.</param>
     /// <returns>The collection.</returns>
-    public static IEnumerable<C> Batch<T, C>(this C collection, uint batchSize)
-        where C : List<T>, new()
+    public static IEnumerable<TCollection> Batch<TElement, TCollection>(
+        this TCollection collection, uint batchSize)
+        where TCollection : List<TElement>, new()
     {
         if (collection.Count < batchSize || batchSize == 0)
         {
@@ -33,7 +37,7 @@ internal static class Extensions
         }
         else
         {
-            var nextbatch = new C
+            var nextbatch = new TCollection
             {
                 Capacity = (int)batchSize
             };
@@ -43,7 +47,7 @@ internal static class Extensions
                 if (nextbatch.Count == batchSize)
                 {
                     yield return nextbatch;
-                    nextbatch = new C
+                    nextbatch = new TCollection
                     {
                         Capacity = (int)batchSize
                     };
@@ -57,13 +61,14 @@ internal static class Extensions
     }
 
     /// <summary>
-    /// Helper to batch a list.
+    /// Helper to batch a list. Same as above but for List type
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="collection"></param>
     /// <param name="batchSize"></param>
     /// <returns></returns>
-    public static IEnumerable<List<T>> Batch<T>(this List<T> collection, uint batchSize)
+    public static IEnumerable<List<T>> Batch<T>(this List<T> collection,
+        uint batchSize)
     {
         return Batch<T, List<T>>(collection, batchSize);
     }

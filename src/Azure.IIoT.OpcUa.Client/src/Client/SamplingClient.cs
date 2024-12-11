@@ -56,7 +56,7 @@ internal sealed class SamplingClient : IAsyncDisposable
         {
             var key = (samplingRate, maxAge);
 #pragma warning disable CA2000 // Dispose objects before losing scope
-            var sampledNode = new SampledNodeId(this, key, name, item, registration);
+            var sampledNode = new Registration(this, key, name, item, registration);
 #pragma warning restore CA2000 // Dispose objects before losing scope
             if (!_samplers.TryGetValue(key, out var sampler))
             {
@@ -87,6 +87,50 @@ internal sealed class SamplingClient : IAsyncDisposable
     }
 
     /// <summary>
+    /// A sampled node registered with a sampler
+    /// </summary>
+    /// <param name="Key"> Sampler key </param>
+    /// <param name="InitialValue"> Item to monito </param>
+    /// <param name="Queue"> Registration </param>
+    /// <param name="Name"> Id of the sampled value in the resulting dataset </param>
+    /// <param name="Client"></param>
+    internal sealed record Registration((TimeSpan, TimeSpan) Key,
+        ReadValueId InitialValue, INotificationQueue Queue, string Name,
+        SamplingClient Client) : IAsyncDisposable
+    {
+        /// <summary>
+        /// Create node
+        /// </summary>
+        /// <param name="outer"></param>
+        /// <param name="key"></param>
+        /// <param name="name"></param>
+        /// <param name="item"></param>
+        /// <param name="queue"></param>
+        public Registration(SamplingClient outer, (TimeSpan, TimeSpan) key,
+            string name, ReadValueId item, INotificationQueue queue)
+            : this(key, item, queue, name, outer)
+        {
+            item.Handle = this;
+        }
+
+        /// <inheritdoc/>
+        public async ValueTask DisposeAsync()
+        {
+            Sampler? sampler;
+            lock (Client._samplers)
+            {
+                if (!Client._samplers.TryGetValue(Key, out sampler)
+                    || !sampler.Remove(this))
+                {
+                    return;
+                }
+                Client._samplers.Remove(Key);
+            }
+            await sampler.DisposeAsync().ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
     /// Instead of subscribing through subscription the sampler bundles
     /// values to read directly
     /// </summary>
@@ -100,10 +144,9 @@ internal sealed class SamplingClient : IAsyncDisposable
         /// <param name="maxAge"></param>
         /// <param name="value"></param>
         public Sampler(SamplingClient outer, TimeSpan samplingRate,
-            TimeSpan maxAge, SampledNodeId value)
+            TimeSpan maxAge, Registration value)
         {
-            _sampledNodes = ImmutableHashSet<SampledNodeId>.Empty.Add(value);
-
+            _sampledNodes = ImmutableHashSet<Registration>.Empty.Add(value);
             _outer = outer;
             _cts = new CancellationTokenSource();
             _samplingRate = samplingRate;
@@ -135,7 +178,7 @@ internal sealed class SamplingClient : IAsyncDisposable
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
-        internal Sampler Add(SampledNodeId node)
+        internal Sampler Add(Registration node)
         {
             _sampledNodes = _sampledNodes.Add(node);
             return this;
@@ -146,7 +189,7 @@ internal sealed class SamplingClient : IAsyncDisposable
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        internal bool Remove(SampledNodeId value)
+        internal bool Remove(Registration value)
         {
             _sampledNodes = _sampledNodes.Remove(value);
             return _sampledNodes.Count == 0;
@@ -222,7 +265,7 @@ internal sealed class SamplingClient : IAsyncDisposable
         /// <param name="nodesToRead"></param>
         /// <param name="values"></param>
         /// <param name="elapsed"></param>
-        private async ValueTask QueueAsync(uint seq, ImmutableHashSet<SampledNodeId> nodesToRead,
+        private async ValueTask QueueAsync(uint seq, ImmutableHashSet<Registration> nodesToRead,
             IReadOnlyList<DataValue> values, TimeSpan elapsed)
         {
             var missed = GetMissed(elapsed);
@@ -232,11 +275,11 @@ internal sealed class SamplingClient : IAsyncDisposable
                 .ConfigureAwait(false);
 
             async Task QueueAsyncCore(uint seq, uint statusCode, int missed,
-                INotificationQueue queue, List<(SampledNodeId, DataValue)> items)
+                INotificationQueue queue, List<(Registration, DataValue)> items)
             {
                 var values = items
                     .ConvertAll(v => CreateSample(v.Item1, statusCode, missed > 0, v.Item2));
-                var changes = new SampledData(seq,
+                var changes = new PeriodicData(seq,
                     _outer._observability.TimeProvider.GetUtcNow().UtcDateTime, values,
                     PublishState.None, Array.Empty<string>());
                 await queue.QueueAsync(changes).ConfigureAwait(false);
@@ -250,7 +293,7 @@ internal sealed class SamplingClient : IAsyncDisposable
         /// <param name="nodesToRead"></param>
         /// <param name="statusCode"></param>
         /// <param name="elapsed"></param>
-        private async ValueTask QueueAsync(uint seq, ImmutableHashSet<SampledNodeId> nodesToRead,
+        private async ValueTask QueueAsync(uint seq, ImmutableHashSet<Registration> nodesToRead,
             uint statusCode, TimeSpan elapsed)
         {
             var missed = GetMissed(elapsed);
@@ -260,11 +303,11 @@ internal sealed class SamplingClient : IAsyncDisposable
                 .ConfigureAwait(false);
 
             async Task QueueAsyncCore(uint seq, uint statusCode, int missed,
-                INotificationQueue queue, List<SampledNodeId> items)
+                INotificationQueue queue, List<Registration> items)
             {
                 var values = items
                     .ConvertAll(v => CreateSample(v, statusCode, missed > 0));
-                var changes = new SampledData(seq,
+                var changes = new PeriodicData(seq,
                     _outer._observability.TimeProvider.GetUtcNow().UtcDateTime, values,
                     PublishState.None, Array.Empty<string>());
                 await queue.QueueAsync(changes).ConfigureAwait(false);
@@ -280,13 +323,13 @@ internal sealed class SamplingClient : IAsyncDisposable
         /// <param name="dataValue"></param>
         /// <param name="diagnosticInfo"></param>
         /// <returns></returns>
-        private static Sample CreateSample(SampledNodeId node, uint statusCode,
+        private static PeriodicValue CreateSample(Registration node, uint statusCode,
             bool overflowBit, DataValue? dataValue = null, DiagnosticInfo? diagnosticInfo = null)
         {
             dataValue ??= new DataValue();
             dataValue.StatusCode = statusCode;
             dataValue.StatusCode.SetOverflow(overflowBit);
-            return new Sample(node.Name, node.InitialValue, dataValue, diagnosticInfo);
+            return new PeriodicValue(node.Name, node.InitialValue, dataValue, diagnosticInfo);
         }
 
         private int GetMissed(TimeSpan elapsed)
@@ -294,76 +337,13 @@ internal sealed class SamplingClient : IAsyncDisposable
             return (int)Math.Round(elapsed.TotalMilliseconds / _samplingRate.TotalMilliseconds);
         }
 
-        private ImmutableHashSet<SampledNodeId> _sampledNodes;
+        private ImmutableHashSet<Registration> _sampledNodes;
         private readonly CancellationTokenSource _cts;
         private readonly Task _sampler;
         private readonly SamplingClient _outer;
         private readonly TimeSpan _samplingRate;
         private readonly TimeSpan _maxAge;
         private readonly PeriodicTimer _timer;
-    }
-
-    /// <summary>
-    /// A sampled node registered with a sampler
-    /// </summary>
-    internal sealed class SampledNodeId : IAsyncDisposable
-    {
-        /// <summary>
-        /// Sampler key
-        /// </summary>
-        public (TimeSpan, TimeSpan) Key { get; }
-
-        /// <summary>
-        /// Item to monito
-        /// </summary>
-        public ReadValueId InitialValue { get; }
-
-        /// <summary>
-        /// Registration
-        /// </summary>
-        public INotificationQueue Queue { get; }
-
-        /// <summary>
-        /// Id of the sampled value in the resulting dataset
-        /// </summary>
-        public string Name { get; }
-
-        /// <summary>
-        /// Create node
-        /// </summary>
-        /// <param name="outer"></param>
-        /// <param name="key"></param>
-        /// <param name="name"></param>
-        /// <param name="item"></param>
-        /// <param name="queue"></param>
-        public SampledNodeId(SamplingClient outer, (TimeSpan, TimeSpan) key,
-            string name, ReadValueId item, INotificationQueue queue)
-        {
-            _outer = outer;
-            Name = name;
-            Key = key;
-            InitialValue = item;
-            Queue = queue;
-            item.Handle = this;
-        }
-
-        /// <inheritdoc/>
-        public async ValueTask DisposeAsync()
-        {
-            Sampler? sampler;
-            lock (_outer._samplers)
-            {
-                if (!_outer._samplers.TryGetValue(Key, out sampler)
-                    || !sampler.Remove(this))
-                {
-                    return;
-                }
-                _outer._samplers.Remove(Key);
-            }
-            await sampler.DisposeAsync().ConfigureAwait(false);
-        }
-
-        private readonly SamplingClient _outer;
     }
 
     private readonly ISession _session;

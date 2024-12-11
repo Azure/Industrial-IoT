@@ -17,7 +17,7 @@ using System.Threading.Tasks;
 /// </summary>
 /// <typeparam name="TChange"></typeparam>
 /// <typeparam name="TOptions"></typeparam>
-public sealed class OptionsReader<TChange, [DynamicallyAccessedMembers(
+internal sealed class OptionsReader<TChange, [DynamicallyAccessedMembers(
     DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TOptions>
     where TChange : struct
     where TOptions : class
@@ -72,7 +72,7 @@ public sealed class OptionsReader<TChange, [DynamicallyAccessedMembers(
 /// Convert option changes to queue of changels
 /// </summary>
 /// <typeparam name="TOptions"></typeparam>
-public sealed class OptionsReader<[DynamicallyAccessedMembers(
+internal sealed class OptionsReader<[DynamicallyAccessedMembers(
     DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TOptions>
     where TOptions : class
 {

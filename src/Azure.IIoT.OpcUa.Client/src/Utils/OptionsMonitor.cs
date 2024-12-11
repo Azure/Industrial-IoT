@@ -15,44 +15,10 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 
 /// <summary>
-/// Create options
-/// </summary>
-public static class OptionsFactory
-{
-    /// <summary>
-    /// Create monitor
-    /// </summary>
-    /// <param name="options"></param>
-    /// <typeparam name="T"></typeparam>
-    /// <returns></returns>
-    public static OptionsMonitor<T> Create<[DynamicallyAccessedMembers(
-        DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T>(
-        T options)
-    {
-        return new OptionsMonitor<T>(options);
-    }
-
-    /// <summary>
-    /// Create monitor
-    /// </summary>
-    /// <param name="configure"></param>
-    /// <typeparam name="T"></typeparam>
-    /// <returns></returns>
-    public static OptionsMonitor<T> Create<[DynamicallyAccessedMembers(
-        DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T>(
-        Action<T>? configure = null) where T : new()
-    {
-        var options = new OptionsMonitor<T>(new T());
-        configure?.Invoke(options.CurrentValue);
-        return options;
-    }
-}
-
-/// <summary>
 /// Options monitor adapter
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public class OptionsMonitor<
+internal class OptionsMonitor<
     [DynamicallyAccessedMembers(
         DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T> :
     IOptionsMonitor<T>

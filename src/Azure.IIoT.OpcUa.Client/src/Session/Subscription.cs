@@ -276,15 +276,6 @@ public abstract class Subscription : MessageProcessor, IManagedSubscription,
     }
 
     /// <inheritdoc/>
-    protected override ValueTask OnStatusChangeNotificationAsync(uint sequenceNumber,
-        DateTime publishTime, StatusChangeNotification notification,
-        PublishState publishStateMask, IReadOnlyList<string> stringTable)
-    {
-        return _handler.OnStatusChangeNotificationAsync(this, sequenceNumber,
-            publishTime, notification, publishStateMask, stringTable);
-    }
-
-    /// <inheritdoc/>
     protected override ValueTask OnDataChangeNotificationAsync(uint sequenceNumber,
         DateTime publishTime, DataChangeNotification notification,
         PublishState publishStateMask, IReadOnlyList<string> stringTable)
@@ -305,10 +296,12 @@ public abstract class Subscription : MessageProcessor, IManagedSubscription,
     }
 
     /// <inheritdoc/>
-    protected override void OnPublishStateChanged(PublishState stateMask)
+    protected override ValueTask OnStatusChangeNotificationAsync(uint sequenceNumber,
+        DateTime publishTime, StatusChangeNotification notification,
+        PublishState publishStateMask, IReadOnlyList<string> stringTable)
     {
-        _handler.OnPublishStateChanged(this, stateMask);
-        base.OnPublishStateChanged(stateMask);
+        // TODO - trigger recovery of subscription, etc.
+        return default;
     }
 
     /// <summary>
