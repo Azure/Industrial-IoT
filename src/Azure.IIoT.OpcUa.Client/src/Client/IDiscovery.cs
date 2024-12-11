@@ -5,22 +5,24 @@
 
 namespace Opc.Ua.Client;
 
-using Microsoft.Extensions.Options;
+using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
 /// <summary>
-/// Subscribe to notifications
+/// Endpoint discovery services
 /// </summary>
-public interface ISubscribe
+public interface IDiscovery
 {
+
     /// <summary>
-    /// Subscribe to notifications
+    /// Find endpoints using the specified discovery url and locales.
     /// </summary>
-    /// <param name="subscription"></param>
+    /// <param name="discoveryUrl"></param>
+    /// <param name="locales"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    ValueTask<IReader<Notification>> SubscribeAsync(
-        IOptionsMonitor<SubscriptionClientOptions> subscription,
-        CancellationToken ct = default);
+    ValueTask<IReadOnlySet<FoundEndpoint>> FindEndpointsAsync(Uri discoveryUrl,
+        IReadOnlyList<string>? locales = null, CancellationToken ct = default);
 }

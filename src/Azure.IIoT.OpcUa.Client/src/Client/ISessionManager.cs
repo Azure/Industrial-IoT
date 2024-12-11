@@ -7,8 +7,18 @@ namespace Opc.Ua.Client;
 
 using Opc.Ua;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+
+/// <summary>
+/// Found endpoints
+/// </summary>
+/// <param name="Description"></param>
+/// <param name="AccessibleEndpointUrl"></param>
+/// <param name="Capabilities"></param>
+public sealed record class FoundEndpoint(EndpointDescription Description,
+    string AccessibleEndpointUrl, HashSet<string> Capabilities);
 
 /// <summary>
 /// Manages connecting sessions

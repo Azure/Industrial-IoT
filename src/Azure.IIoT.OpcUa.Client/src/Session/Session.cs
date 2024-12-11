@@ -60,7 +60,7 @@ public abstract class Session : SessionBase
     }
 
     /// <inheritdoc/>
-    protected sealed override void TriggerReconnect(bool recreateSession)
+    protected void TriggerReconnect(bool recreateSession)
     {
         _state = recreateSession ?
             ConnectionManagementState.Reset : ConnectionManagementState.Disconnected;

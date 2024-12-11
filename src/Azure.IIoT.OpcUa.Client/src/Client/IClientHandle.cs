@@ -15,4 +15,9 @@ public interface IClientHandle
     /// management api
     /// </summary>
     ICertificates Certificates { get; }
+
+    /// <summary>
+    /// Discover endpoints through the discovery api
+    /// </summary>
+    IDiscovery Discovery { get; }
 }

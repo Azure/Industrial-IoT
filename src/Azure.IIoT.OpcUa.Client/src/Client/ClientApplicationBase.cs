@@ -11,20 +11,21 @@ using Opc.Ua.Configuration;
 using Opc.Ua.Security.Certificates;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 /// <summary>
-/// The basis of a client or server application providing services like
-/// managing the application's private key infrastructure and certificate
-/// stores.
+/// The basis of a client or server application providing services like managing
+/// the application's private key infrastructure and certificate stores.
 /// </summary>
-public abstract class ClientApplicationBase : ApplicationBase, IDisposable,
-    ICertificatePasswordProvider
+public abstract class ClientApplicationBase : ApplicationBase, IDiscovery,
+    ICertificatePasswordProvider, IDisposable
 {
     /// <summary>
     /// Create application
@@ -54,6 +55,55 @@ public abstract class ClientApplicationBase : ApplicationBase, IDisposable,
     }
 
     /// <inheritdoc/>
+    public async ValueTask<IReadOnlySet<FoundEndpoint>> FindEndpointsAsync(Uri discoveryUrl,
+        IReadOnlyList<string>? locales, CancellationToken ct)
+    {
+        var configuration = await GetConfigurationAsync().ConfigureAwait(false);
+        var results = new HashSet<FoundEndpoint>(EqualityComparer<FoundEndpoint>.Create(
+            (e1, e2) =>
+            {
+                return e1 != null &&
+                    e1.AccessibleEndpointUrl == e2?.AccessibleEndpointUrl &&
+                    e1.Capabilities.SetEquals(e2.Capabilities) &&
+                    Utils.IsEqual(e1.Description, e2.Description);
+            }));
+        var visitedUris = new HashSet<string>
+        {
+            CreateDiscoveryUri(discoveryUrl.ToString(), 4840)
+        };
+        var queue = new Queue<Tuple<Uri, List<string>>>();
+        var localeIds = locales != null ? new StringCollection(locales) : null;
+        queue.Enqueue(Tuple.Create(discoveryUrl, new List<string>()));
+        ct.ThrowIfCancellationRequested();
+        while (queue.Count > 0)
+        {
+            var nextServer = queue.Dequeue();
+            discoveryUrl = nextServer.Item1;
+            var sw = Stopwatch.StartNew();
+            _logger.LogDebug("Try finding endpoints at {DiscoveryUrl}...", discoveryUrl);
+            try
+            {
+                await DiscoverAsync(discoveryUrl, localeIds, nextServer.Item2, 20000,
+                    visitedUris, queue, results, configuration, ct).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex,
+                    "Exception occurred during FindEndpoints at {DiscoveryUrl}.",
+                    discoveryUrl);
+                _logger.LogError("Could not find endpoints at {DiscoveryUrl} " +
+                    "due to {Error} (after {Elapsed}).",
+                    discoveryUrl, ex.Message, sw.Elapsed);
+                return new HashSet<FoundEndpoint>();
+            }
+            ct.ThrowIfCancellationRequested();
+            _logger.LogDebug("Finding endpoints at {DiscoveryUrl} completed in {Elapsed}.",
+                discoveryUrl, sw.Elapsed);
+        }
+        return results;
+    }
+
+    /// <inheritdoc/>
     public abstract string GetPassword(CertificateIdentifier certificateIdentifier);
 
     /// <inheritdoc/>
@@ -73,6 +123,129 @@ public abstract class ClientApplicationBase : ApplicationBase, IDisposable,
     protected override Task<ApplicationConfiguration> GetConfigurationAsync()
     {
         return _application;
+    }
+
+    /// <summary>
+    /// Discover endpoints
+    /// </summary>
+    /// <param name="discoveryUrl"></param>
+    /// <param name="localeIds"></param>
+    /// <param name="caps"></param>
+    /// <param name="timeout"></param>
+    /// <param name="visitedUris"></param>
+    /// <param name="queue"></param>
+    /// <param name="result"></param>
+    /// <param name="configuration"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    internal ValueTask DiscoverAsync(Uri discoveryUrl, StringCollection? localeIds,
+        List<string> caps, int timeout, HashSet<string> visitedUris,
+        Queue<Tuple<Uri, List<string>>> queue, HashSet<FoundEndpoint> result,
+        ApplicationConfiguration configuration, CancellationToken ct)
+    {
+        if (_options.RetryStrategy != null)
+        {
+            return _options.RetryStrategy.ExecuteAsync((state, ct) =>
+                DiscoverAsyncCore(state.discoveryUrl, state.localeIds, state.caps,
+                    state.timeout, state.visitedUris, state.queue, state.result,
+                    state.configuration, ct),
+                (discoveryUrl, localeIds, caps, timeout, visitedUris, queue,
+                    result, configuration), ct);
+        }
+        return DiscoverAsyncCore(discoveryUrl, localeIds, caps, timeout, visitedUris,
+            queue, result, configuration, ct);
+
+        async ValueTask DiscoverAsyncCore(Uri discoveryUrl, StringCollection? localeIds,
+            List<string> caps, int timeout, HashSet<string> visitedUris,
+            Queue<Tuple<Uri, List<string>>> queue, HashSet<FoundEndpoint> result,
+            ApplicationConfiguration configuration, CancellationToken ct)
+        {
+            var endpointConfiguration = EndpointConfiguration.Create(configuration);
+            endpointConfiguration.OperationTimeout = timeout;
+            using var client = DiscoveryClient.Create(discoveryUrl, endpointConfiguration);
+            //
+            // Get endpoints from current discovery server
+            //
+            var endpoints = await client.GetEndpointsAsync(null,
+                client.Endpoint.EndpointUrl, localeIds, null, ct).ConfigureAwait(false);
+            if (!(endpoints?.Endpoints?.Any() ?? false))
+            {
+                _logger.LogDebug("No endpoints at {DiscoveryUrl}...", discoveryUrl);
+                return;
+            }
+            _logger.LogDebug("Found endpoints at {DiscoveryUrl}...", discoveryUrl);
+
+            foreach (var ep in endpoints.Endpoints.Where(ep =>
+                ep.Server.ApplicationType != Opc.Ua.ApplicationType.DiscoveryServer))
+            {
+                result.Add(new FoundEndpoint(ep, new UriBuilder(ep.EndpointUrl)
+                {
+                    Host = discoveryUrl.DnsSafeHost
+                }.ToString(), new HashSet<string>(caps)));
+            }
+
+            //
+            // Now Find servers on network.  This might fail for old lds
+            // as well as reference servers, then we call FindServers...
+            //
+            try
+            {
+                var response = await client.FindServersOnNetworkAsync(new RequestHeader(),
+                    0, 1000, [], ct).ConfigureAwait(false);
+                foreach (var server in response?.Servers ?? [])
+                {
+                    var url = CreateDiscoveryUri(server.DiscoveryUrl, discoveryUrl.Port);
+                    if (!visitedUris.Contains(url))
+                    {
+                        queue.Enqueue(Tuple.Create(discoveryUrl,
+                            server.ServerCapabilities.ToList()));
+                        visitedUris.Add(url);
+                    }
+                }
+            }
+            catch
+            {
+                // Old lds, just continue...
+                _logger.LogDebug("{DiscoveryUrl} does not support ME extension...",
+                    discoveryUrl);
+            }
+
+            //
+            // Call FindServers first to push more unique discovery urls
+            // into the discovery queue
+            //
+            var found = await client.FindServersAsync(null,
+                client.Endpoint.EndpointUrl, localeIds, null, ct).ConfigureAwait(false);
+            if (found?.Servers != null)
+            {
+                foreach (var server in found.Servers.SelectMany(s => s.DiscoveryUrls))
+                {
+                    var url = CreateDiscoveryUri(server, discoveryUrl.Port);
+                    if (!visitedUris.Contains(url))
+                    {
+                        queue.Enqueue(Tuple.Create(discoveryUrl, new List<string>()));
+                        visitedUris.Add(url);
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Create discovery url from string
+    /// </summary>
+    /// <param name="uri"></param>
+    /// <param name="defaultPort"></param>
+    private static string CreateDiscoveryUri(string uri, int defaultPort)
+    {
+        var url = new UriBuilder(uri);
+        if (url.Port is 0 or (-1))
+        {
+            url.Port = defaultPort;
+        }
+        url.Host = url.Host.Trim('.');
+        url.Path = url.Path.Trim('/');
+        return url.Uri.ToString();
     }
 
     /// <summary>

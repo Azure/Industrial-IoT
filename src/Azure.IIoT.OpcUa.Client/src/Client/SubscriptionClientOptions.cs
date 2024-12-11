@@ -6,21 +6,23 @@
 namespace Opc.Ua.Client;
 
 using Microsoft.Extensions.Options;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Collections.Generic;
 
 /// <summary>
-/// Subscribe to notifications
+/// Subscription client options
 /// </summary>
-public interface ISubscribe
+public record class SubscriptionClientOptions
 {
     /// <summary>
-    /// Subscribe to notifications
+    /// The monitored items to subscribe to
     /// </summary>
-    /// <param name="subscription"></param>
-    /// <param name="ct"></param>
-    /// <returns></returns>
-    ValueTask<IReader<Notification>> SubscribeAsync(
-        IOptionsMonitor<SubscriptionClientOptions> subscription,
-        CancellationToken ct = default);
+    public Dictionary<
+        string,
+        IOptionsMonitor<MonitoredItemOptions>
+        > MonitoredItems { get; init; } = [];
+
+    /// <summary>
+    /// Subscription options
+    /// </summary>
+    public SubscriptionOptions? Options { get; init; }
 }

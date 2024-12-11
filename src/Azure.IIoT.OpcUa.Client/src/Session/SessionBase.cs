@@ -27,7 +27,7 @@ using System.Threading.Tasks;
 /// </summary>
 public abstract class SessionBase : SessionServices, ISubscriptionContext,
     IComplexTypeContext, INodeCacheContext, ISubscriptionManagerContext,
-    ISession, IConnection, IAsyncDisposable
+    ISession, IAsyncDisposable
 {
     /// <inheritdoc/>
     public IUserIdentity Identity { get; private set; }
@@ -723,6 +723,18 @@ public abstract class SessionBase : SessionServices, ISubscriptionContext,
     }
 
     /// <inheritdoc/>
+    public IManagedSubscription CreateSubscription(INotificationDataHandler handler,
+        IOptionsMonitor<SubscriptionOptions> options, IMessageAckQueue queue)
+    {
+        return CreateSubscription(handler, options, queue, Observability);
+    }
+
+    /// <inheritdoc/>
+    public abstract IManagedSubscription CreateSubscription(
+        INotificationDataHandler handler, IOptionsMonitor<SubscriptionOptions> options,
+        IMessageAckQueue queue, IObservability observability);
+
+    /// <inheritdoc/>
     public virtual async ValueTask OpenAsync(CancellationToken ct = default)
     {
         var securityPolicyUri = ConfiguredEndpoint.Description.SecurityPolicyUri;
@@ -1197,24 +1209,6 @@ public abstract class SessionBase : SessionServices, ISubscriptionContext,
         _connection = null;
         base.DetachChannel();
     }
-
-    /// <inheritdoc/>
-    public IManagedSubscription CreateSubscription(INotificationDataHandler handler,
-        IOptionsMonitor<SubscriptionOptions> options, IMessageAckQueue queue)
-    {
-        return CreateSubscription(handler, options, queue, Observability);
-    }
-
-    /// <inheritdoc/>
-    public abstract IManagedSubscription CreateSubscription(
-        INotificationDataHandler handler, IOptionsMonitor<SubscriptionOptions> options,
-        IMessageAckQueue queue, IObservability observability);
-
-    /// <summary>
-    /// Trigger reconnect because of changes to the configuration
-    /// </summary>
-    /// <param name="recreateSession"></param>
-    protected abstract void TriggerReconnect(bool recreateSession);
 
     /// <summary>
     /// Dispose the session

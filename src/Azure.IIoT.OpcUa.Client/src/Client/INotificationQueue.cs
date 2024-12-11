@@ -4,22 +4,20 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.Client;
-
-using Microsoft.Extensions.Options;
-using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 /// <summary>
-/// Subscriber options
+/// Queue notifications
 /// </summary>
-public record class SubscribeOptions
+internal interface INotificationQueue
 {
     /// <summary>
-    /// The monitored items to subscribe to
+    /// Queues notifications to consumers
     /// </summary>
-    public Dictionary<string, MonitoredItemOptions> MonitoredItems { get; init; } = [];
-
-    /// <summary>
-    /// Options
-    /// </summary>
-    public SubscriptionOptions? Options { get; init; }
+    /// <param name="notification"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    ValueTask QueueAsync(Notification notification,
+        CancellationToken ct = default);
 }

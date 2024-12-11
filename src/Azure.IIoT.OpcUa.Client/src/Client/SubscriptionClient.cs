@@ -48,7 +48,7 @@ internal sealed class SubscriptionClient : IAsyncDisposable
         _resyncTimer = _observability.TimeProvider.CreateTimer(
             _ => _syncEvent.Set(),
             null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-        _syncTask = VirtualSubscriptionManagementAsync(_cts.Token);
+        _syncTask = ManageSubscriptionsAsync(_cts.Token);
     }
 
     /// <inheritdoc/>
@@ -78,7 +78,7 @@ internal sealed class SubscriptionClient : IAsyncDisposable
     /// <param name="ct"></param>
     /// <exception cref="ServiceResultException"></exception>
     internal async ValueTask<IAsyncDisposable> RegisterAsync(
-        IOptionsMonitor<SubscribeOptions> options, INotificationQueue queue,
+        IOptionsMonitor<SubscriptionClientOptions> options, INotificationQueue queue,
         CancellationToken ct = default)
     {
         var subOptions = options.CurrentValue.Options;
@@ -116,7 +116,7 @@ internal sealed class SubscriptionClient : IAsyncDisposable
     /// </summary>
     /// <param name="ct"></param>
     /// <returns></returns>
-    internal async Task VirtualSubscriptionManagementAsync(CancellationToken ct)
+    internal async Task ManageSubscriptionsAsync(CancellationToken ct)
     {
         while (!ct.IsCancellationRequested)
         {
@@ -144,7 +144,7 @@ internal sealed class SubscriptionClient : IAsyncDisposable
         /// <summary>
         /// Monitored items on the subscriber
         /// </summary>
-        public IOptionsMonitor<SubscribeOptions> Options { get; }
+        public IOptionsMonitor<SubscriptionClientOptions> Options { get; }
 
         /// <summary>
         /// Queue to publish notifications to
@@ -163,7 +163,7 @@ internal sealed class SubscriptionClient : IAsyncDisposable
         /// <param name="queue"></param>
         /// <param name="options"></param>
         public Registration(SubscriptionClient outer, INotificationQueue queue,
-            IOptionsMonitor<SubscribeOptions> options)
+            IOptionsMonitor<SubscriptionClientOptions> options)
         {
             Queue = queue;
             Options = options;
@@ -446,8 +446,8 @@ internal sealed class SubscriptionClient : IAsyncDisposable
         {
             foreach (var registration in Registrations)
             {
-                await registration.Queue.QueueAsync(new KeepAlive(sequenceNumber, publishTime,
-                    publishStateMask)).ConfigureAwait(false);
+                await registration.Queue.QueueAsync(new KeepAlive(sequenceNumber,
+                    publishTime, publishStateMask)).ConfigureAwait(false);
             }
         }
 
@@ -478,8 +478,8 @@ internal sealed class SubscriptionClient : IAsyncDisposable
             }
             foreach (var (registration, changes) in split)
             {
-                await registration.Queue.QueueAsync(new DataChanges(sequenceNumber, publishTime,
-                    changes, publishStateMask, stringTable)).ConfigureAwait(false);
+                await registration.Queue.QueueAsync(new DataChanges(sequenceNumber,
+                    publishTime, changes, publishStateMask, stringTable)).ConfigureAwait(false);
             }
         }
 
@@ -575,7 +575,7 @@ internal sealed class SubscriptionClient : IAsyncDisposable
             public List<(
                 Registration Registration,
                 string Name,
-                OptionsMonitor<MonitoredItemOptions> Options
+                IOptionsMonitor<MonitoredItemOptions> Options
                 )> Items { get; } = [];
 
             /// <summary>
@@ -590,7 +590,7 @@ internal sealed class SubscriptionClient : IAsyncDisposable
                 var partitions = new List<BagPackedPartition>();
                 foreach (var registeredItems in registrations
                     .Select(r => r.Options.CurrentValue.MonitoredItems
-                        .Select(m => (r, m.Key, OptionsFactory.Create(m.Value)))
+                        .Select(m => (r, m.Key, m.Value))
                         .ToList())
                     .OrderByDescending(tl => tl.Count))
                 {

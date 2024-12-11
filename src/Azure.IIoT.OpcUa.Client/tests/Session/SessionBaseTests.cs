@@ -2434,11 +2434,6 @@ public sealed class SessionBaseTests
             }
         }
 
-        protected override void TriggerReconnect(bool recreateSession)
-        {
-            // No implementation needed for tests
-        }
-
         public void SetConnected()
         {
             base.SessionCreated(NodeId.Parse("s=connected"), NodeId.Parse("s=cookie"));

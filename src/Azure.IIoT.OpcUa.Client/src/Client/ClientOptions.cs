@@ -34,7 +34,7 @@ public record class ClientOptions
     /// is determined lost. Use rate limiting to limit the
     /// number of reconnects across the entire client.
     /// </summary>
-    public ResiliencePipeline? ConnectStrategy { get; init; }
+    public ResiliencePipeline? RetryStrategy { get; init; }
 
     /// <summary>
     /// Transport quotas

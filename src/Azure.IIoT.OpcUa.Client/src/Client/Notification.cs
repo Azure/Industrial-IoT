@@ -7,8 +7,6 @@ namespace Opc.Ua.Client;
 
 using System.Collections.Generic;
 using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 /// <summary>
 /// Notification
@@ -90,18 +88,3 @@ public sealed record PeriodicData(uint SequenceNumber,
     DateTime PublishTime, IReadOnlyList<PeriodicValue> Values,
     PublishState PublishStateMask, IReadOnlyList<string> StringTable) :
     Notification(SequenceNumber, PublishTime, PublishStateMask);
-
-/// <summary>
-/// Queue notifications
-/// </summary>
-internal interface INotificationQueue
-{
-    /// <summary>
-    /// Queues notifications to consumers
-    /// </summary>
-    /// <param name="notification"></param>
-    /// <param name="ct"></param>
-    /// <returns></returns>
-    ValueTask QueueAsync(Notification notification,
-        CancellationToken ct = default);
-}

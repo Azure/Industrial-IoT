@@ -38,6 +38,10 @@ public class SessionBuilderBase<TPooledSessionOptions, TSessionOptions,
         => application;
 
     /// <inheritdoc/>
+    public IDiscovery Discovery
+        => application;
+
+    /// <inheritdoc/>
     public EndpointDescription Options
         => ((IOptionsBuilder<TPooledSessionOptions>)FromPool).Options.Endpoint;
 

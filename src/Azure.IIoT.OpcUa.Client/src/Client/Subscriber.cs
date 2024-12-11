@@ -32,7 +32,7 @@ public sealed class Subscriber : ISubscribe, IDisposable
 
     /// <inheritdoc/>
     public async ValueTask<IReader<Notification>> SubscribeAsync(
-        IOptionsMonitor<SubscribeOptions> subscription, CancellationToken ct)
+        IOptionsMonitor<SubscriptionClientOptions> subscription, CancellationToken ct)
     {
         await _subscriptionLock.WaitAsync(ct).ConfigureAwait(false);
         try
@@ -62,7 +62,7 @@ public sealed class Subscriber : ISubscribe, IDisposable
         /// <summary>
         /// Monitored items on the subscriber
         /// </summary>
-        public IOptionsMonitor<SubscribeOptions> Options { get; }
+        public IOptionsMonitor<SubscriptionClientOptions> Options { get; }
 
         /// <summary>
         /// Mark the registration as dirty
@@ -75,7 +75,7 @@ public sealed class Subscriber : ISubscribe, IDisposable
         /// <param name="outer"></param>
         /// <param name="options"></param>
         public Reader(Subscriber outer,
-            IOptionsMonitor<SubscribeOptions> options)
+            IOptionsMonitor<SubscriptionClientOptions> options)
         {
             Options = options;
             options.OnChange((_, __) => Dirty = true);

@@ -8,19 +8,23 @@ namespace Opc.Ua.Client;
 using BitFaster.Caching;
 using BitFaster.Caching.Lfu;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Opc.Ua;
 using Opc.Ua.Configuration;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
 /// <summary>
 /// Session manager
 /// </summary>
-public abstract class SessionManagerBase : ClientApplicationBase, ISessionManager
+public abstract class SessionManagerBase : ClientApplicationBase,
+    ISessionManager
 {
     /// <summary>
     /// Reverse connect manager
@@ -46,7 +50,7 @@ public abstract class SessionManagerBase : ClientApplicationBase, ISessionManage
         // Connection pooling of managed sessions
         _pool = new ConcurrentLfuBuilder<PooledSessionOptions, Session>()
             .WithAtomicGetOrAdd()
-            .WithKeyComparer(new ClientOptionsComparer())
+            .WithKeyComparer(new PooledSessionOptionsComparer())
             .WithCapacity(options.MaxPooledSessions)
             .WithExpireAfterAccess(options.LingerTimeout)
             .AsAsyncCache()
@@ -129,7 +133,7 @@ public abstract class SessionManagerBase : ClientApplicationBase, ISessionManage
                         SessionTimeout =
                             key.SessionOptions?.SessionTimeout,
                         ReconnectStrategy =
-                            context.client._options.ConnectStrategy
+                            context.client._options.RetryStrategy
                     }, key.UseReverseConnect, context.ct).ConfigureAwait(false);
                 return new Scoped<Session>(session);
             }
@@ -195,9 +199,9 @@ public abstract class SessionManagerBase : ClientApplicationBase, ISessionManage
     internal async ValueTask<Session> ConnectWithResiliencyAsync(EndpointDescription endpoint,
         SessionCreateOptions? options, bool useReverseConnect, CancellationToken ct)
     {
-        if (_options.ConnectStrategy != null)
+        if (_options.RetryStrategy != null)
         {
-            return await _options.ConnectStrategy.ExecuteAsync(
+            return await _options.RetryStrategy.ExecuteAsync(
                 (state, ct) => ConnectCoreAsync(
                     state.endpoint, state.options, state.useReverseConnect, ct),
                 (endpoint, options, useReverseConnect), ct).ConfigureAwait(false);
@@ -435,7 +439,7 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
     /// <summary>
     /// Compare connectivity options
     /// </summary>
-    private class ClientOptionsComparer : IEqualityComparer<PooledSessionOptions>
+    private class PooledSessionOptionsComparer : IEqualityComparer<PooledSessionOptions>
     {
         /// <inheritdoc/>
         public bool Equals(PooledSessionOptions? x, PooledSessionOptions? y)

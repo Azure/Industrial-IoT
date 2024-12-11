@@ -136,7 +136,7 @@ public abstract class ClientBuilderBase<TPooledSessionOptions,
         TSessionOptions, TSessionCreateOptions, TClientOptions>
         WithConnectStrategy(ResiliencePipeline connectStrategy)
     {
-        Options = Options with { ConnectStrategy = connectStrategy };
+        Options = Options with { RetryStrategy = connectStrategy };
         return this;
     }
 
@@ -147,7 +147,7 @@ public abstract class ClientBuilderBase<TPooledSessionOptions,
     {
         var builder = new ResiliencePipelineBuilder();
         connectStrategy(builder);
-        Options = Options with { ConnectStrategy = builder.Build() };
+        Options = Options with { RetryStrategy = builder.Build() };
         return this;
     }
 

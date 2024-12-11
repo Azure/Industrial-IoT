@@ -1243,11 +1243,6 @@ public sealed class CacheContextTests
             }
         }
 
-        protected override void TriggerReconnect(bool recreateSession)
-        {
-            // No implementation needed for tests
-        }
-
         public override IManagedSubscription CreateSubscription(INotificationDataHandler handler,
             IOptionsMonitor<SubscriptionOptions> _options, IMessageAckQueue queue,
             IObservability observability)
