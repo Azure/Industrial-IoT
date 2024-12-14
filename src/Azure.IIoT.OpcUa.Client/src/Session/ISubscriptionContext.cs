@@ -10,7 +10,7 @@ using System;
 /// <summary>
 /// Subscription context
 /// </summary>
-public interface ISubscriptionContext : ISubscriptionServiceSet, IMethodServiceSet
+internal interface ISubscriptionContext : ISubscriptionServiceSet, IMethodServiceSet
 {
     /// <summary>
     /// Current session timeout

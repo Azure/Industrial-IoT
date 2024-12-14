@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Opc.Ua.Client.ComplexTypes;
+namespace Opc.Ua.Client;
 
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +13,7 @@ using System.Xml;
 /// Extensions to convert binary schema type definitions to
 /// DataTypeDefinitions.
 /// </summary>
-internal static class DataTypeDefinitionExtension
+internal static class Extensions
 {
     /// <summary>
     /// Convert a binary schema type definition to a
@@ -38,7 +38,7 @@ internal static class DataTypeDefinitionExtension
     /// - The selector bits of optional fields are not stored in a 32 bit variable
     ///   and do not add up to 32 bits.
     /// </remarks>
-    /// <exception cref="DataTypeNotSupportedException"></exception>
+    /// <exception cref="ServiceResultException"></exception>
     public static StructureDefinition ToStructureDefinition(
         this Schema.Binary.StructuredType structuredType, ExpandedNodeId defaultEncodingId,
         Dictionary<XmlQualifiedName, NodeId> typeDictionary, NamespaceTable namespaceTable,
@@ -86,14 +86,14 @@ internal static class DataTypeDefinitionExtension
         // test forbidden combinations
         if (!isSupportedType)
         {
-            throw new DataTypeNotSupportedException(
+            throw ServiceResultException.Create(StatusCodes.BadTypeDefinitionInvalid,
                 "The structure definition uses a Terminator or " +
                 "LengthInBytes, which are not supported.");
         }
 
         if (isUnionType && hasBitField)
         {
-            throw new DataTypeNotSupportedException(
+            throw ServiceResultException.Create(StatusCodes.BadTypeDefinitionInvalid,
                 "The structure definition combines a Union and a bit filed," +
                 " both of which are not supported in a single structure.");
         }
@@ -128,7 +128,7 @@ internal static class DataTypeDefinitionExtension
                 }
                 else
                 {
-                    throw new DataTypeNotSupportedException(
+                    throw ServiceResultException.Create(StatusCodes.BadTypeDefinitionInvalid,
                         "Options for bit selectors must be 32 bit in size, use " +
                         "the Int32 datatype and must be the first element in the structure.");
                 }
@@ -138,7 +138,7 @@ internal static class DataTypeDefinitionExtension
             if (switchFieldBitPosition is not 0 and
                 not 32)
             {
-                throw new DataTypeNotSupportedException(
+                throw ServiceResultException.Create(StatusCodes.BadTypeDefinitionInvalid,
                     "Bitwise option selectors must have 32 bits.");
             }
             NodeId fieldDataTypeNodeId;
@@ -168,7 +168,7 @@ internal static class DataTypeDefinitionExtension
                 var lastField = structureDefinition.Fields[^1];
                 if (lastField.Name != field.LengthField)
                 {
-                    throw new DataTypeNotSupportedException(
+                    throw ServiceResultException.Create(StatusCodes.BadTypeDefinitionInvalid,
                         "The length field must precede the type field of an array.");
                 }
                 lastField.Name = field.Name;
@@ -184,7 +184,7 @@ internal static class DataTypeDefinitionExtension
                     {
                         if (structureDefinition.Fields.Count != 0)
                         {
-                            throw new DataTypeNotSupportedException(
+                            throw ServiceResultException.Create(StatusCodes.BadTypeDefinitionInvalid,
                                 "The switch field of a union must be the first" +
                                 " field in the complex type.");
                         }
@@ -192,7 +192,7 @@ internal static class DataTypeDefinitionExtension
                     }
                     if (structureDefinition.Fields.Count != dataTypeFieldPosition)
                     {
-                        throw new DataTypeNotSupportedException(
+                        throw ServiceResultException.Create(StatusCodes.BadTypeDefinitionInvalid,
                             "The count of the switch field of the union member " +
                             "is not matching the field position.");
                     }
@@ -203,7 +203,7 @@ internal static class DataTypeDefinitionExtension
                     dataTypeField.IsOptional = true;
                     if (!switchFieldBits.TryGetValue(field.SwitchField, out var value))
                     {
-                        throw new DataTypeNotSupportedException(
+                        throw ServiceResultException.Create(StatusCodes.BadTypeDefinitionInvalid,
                             $"The switch field for {field.SwitchField} does not exist.");
                     }
                 }

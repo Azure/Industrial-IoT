@@ -17,9 +17,9 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
-public sealed class CacheContextTests
+public sealed class NodeCacheContextTests
 {
-    public CacheContextTests()
+    public NodeCacheContextTests()
     {
         _mockChannel = new Mock<ITransportChannel>();
         _mockObservability = new Mock<IObservability>();
@@ -1243,7 +1243,7 @@ public sealed class CacheContextTests
             }
         }
 
-        public override IManagedSubscription CreateSubscription(INotificationDataHandler handler,
+        protected override IManagedSubscription CreateSubscription(ISubscriptionNotificiationHandler handler,
             IOptionsMonitor<SubscriptionOptions> _options, IMessageAckQueue queue,
             IObservability observability)
         {

@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 /// A monitored item that can be extended to add extra
 /// information as context in the subscription.
 /// </summary>
-public abstract class MonitoredItem : IMonitoredItem, IAsyncDisposable
+internal abstract class MonitoredItem : IMonitoredItem, IAsyncDisposable
 {
     /// <inheritdoc/>
     public string Name { get; }

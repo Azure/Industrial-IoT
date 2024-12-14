@@ -5,7 +5,7 @@
 
 namespace Opc.Ua.Client;
 
-using Opc.Ua.Client.ComplexTypes;
+using Opc.Ua.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -25,8 +25,8 @@ using System.Threading.Tasks;
 /// as layers. It provides the connection services that are used by
 /// the Session class that automatically manages the session state.
 /// </summary>
-public abstract class SessionBase : SessionServices, ISubscriptionContext,
-    IComplexTypeContext, INodeCacheContext, ISubscriptionManagerContext,
+internal abstract class SessionBase : SessionClient, IServiceSetExtensions,
+    ISubscriptionContext, INodeCacheContext, ISubscriptionManagerContext,
     ISession, IAsyncDisposable
 {
     /// <inheritdoc/>
@@ -46,9 +46,6 @@ public abstract class SessionBase : SessionServices, ISubscriptionContext,
 
     /// <inheritdoc/>
     public IEncodeableFactory Factory => MessageContext.Factory;
-
-    /// <inheritdoc/>
-    public ILoggerFactory LoggerFactory => Observability.LoggerFactory;
 
     /// <inheritdoc/>
     public NamespaceTable NamespaceUris => MessageContext.NamespaceUris;
@@ -171,8 +168,6 @@ public abstract class SessionBase : SessionServices, ISubscriptionContext,
             ?? new ChannelFactory(configuration, observability);
 
         CreatedAt = Observability.TimeProvider.GetUtcNow();
-        MessageContext = Options.Channel?.MessageContext
-            ?? configuration.CreateMessageContext();
         ConfiguredEndpoint = endpoint;
 
         Identity = Options.Identity ?? new UserIdentity();
@@ -180,12 +175,17 @@ public abstract class SessionBase : SessionServices, ISubscriptionContext,
         _clientCertificate = Options.ClientCertificate;
 
         _nodeCache = new NodeCache(this);
-        _subscriptions = new SubscriptionManager(this,
-            observability.LoggerFactory, ReturnDiagnostics);
+        var messageContext =
+            Options.Channel?.MessageContext as ServiceMessageContext
+                ?? configuration.CreateMessageContext();
+        _typeSystem = new DataTypeSystem(_nodeCache, messageContext,
+            Observability.LoggerFactory);
+        messageContext.Factory = _typeSystem;
+        MessageContext = messageContext;
         _systemContext = new SystemContext
         {
             SystemHandle = this,
-            EncodeableFactory = Factory,
+            EncodeableFactory = _typeSystem,
             NamespaceUris = NamespaceUris,
             ServerUris = ServerUris,
             TypeTable = new Obsolete.TypeTree(_nodeCache),
@@ -193,6 +193,8 @@ public abstract class SessionBase : SessionServices, ISubscriptionContext,
             SessionId = null,
             UserIdentity = null
         };
+        _subscriptions = new SubscriptionManager(this,
+            observability.LoggerFactory, ReturnDiagnostics);
         _sessionWorker = SessionWorkerAsync(_cts.Token);
     }
 
@@ -207,131 +209,6 @@ public abstract class SessionBase : SessionServices, ISubscriptionContext,
     public override string ToString()
     {
         return $"{SessionId}({Options.SessionName})";
-    }
-
-    /// <inheritdoc/>
-    public async ValueTask<ComplexTypeSystem?> GetComplexTypeSystemAsync(
-        CancellationToken ct)
-    {
-        if (Options.DisableComplexTypeLoading)
-        {
-            return null;
-        }
-        for (var attempt = 0; attempt < 2; attempt++)
-        {
-            try
-            {
-                _complexTypeSystem ??= LoadComplexTypeSystemAsync();
-                return await _complexTypeSystem.WaitAsync(ct).ConfigureAwait(false);
-            }
-            catch (OperationCanceledException) when (ct.IsCancellationRequested)
-            {
-                // Throw any cancellation token exception
-                throw;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex,
-                    "{Session}: Attempt #{Attempt}. Failed to get complex type system.",
-                    this, attempt);
-                _complexTypeSystem = LoadComplexTypeSystemAsync();
-            }
-        }
-        return null;
-    }
-
-    /// <inheritdoc/>
-    public async Task FetchNamespaceTablesAsync(CancellationToken ct)
-    {
-        var (values, errors) = await FetchValuesAsync(null, new[]
-        {
-            VariableIds.Server_NamespaceArray,
-            VariableIds.Server_ServerArray
-        }, ct).ConfigureAwait(false);
-
-        // validate namespace array.
-        if (errors.Count > 0 && ServiceResult.IsBad(errors[0]))
-        {
-            _logger.LogDebug(
-                "{Session}: Failed to read NamespaceArray: {Status}",
-                this, errors[0]);
-            throw new ServiceResultException(errors[0]);
-        }
-        // validate namespace is a string array.
-        if (values[0].Value is not string[] namespaces)
-        {
-            throw ServiceResultException.Create(StatusCodes.BadTypeMismatch,
-                $"{this}: Returned namespace array in wrong type!");
-        }
-        var oldNsTable = NamespaceUris.ToArray();
-        NamespaceUris.Update(namespaces);
-        LogNamespaceTableChanges(false, oldNsTable, namespaces);
-
-        if (errors.Count > 1 && ServiceResult.IsBad(errors[1]))
-        {
-            // We tolerate this
-            _logger.LogWarning(
-                "{Session}: Failed to read ServerArray node: {Status} ",
-                this, errors[1]);
-            return;
-        }
-        if (values[1].Value is not string[] serverUris)
-        {
-            throw ServiceResultException.Create(StatusCodes.BadTypeMismatch,
-                $"{this}: Returned server array with wrong type!");
-        }
-        var oldSrvTables = ServerUris.ToArray();
-        ServerUris.Update(serverUris);
-        LogNamespaceTableChanges(true, oldSrvTables, serverUris);
-
-        void LogNamespaceTableChanges(bool serverUris, string[] oldTable, string[] newTable)
-        {
-            if (oldTable.Length <= 1)
-            {
-                return; // First time or root namespace only only
-            }
-            var tableChanged = false;
-            for (var i = 0; i < Math.Max(oldTable.Length, newTable.Length); i++)
-            {
-                var tableName = serverUris ? "Server" : "Namespace";
-                if (i < oldTable.Length && i < newTable.Length)
-                {
-                    if (oldTable[i] == newTable[i])
-                    {
-                        continue;
-                    }
-                    tableChanged = true;
-                    _logger.LogWarning(
-                        "{Session}: {Table} index #{Index} changed from {Old} to {New}",
-                        this, tableName, i, oldTable[i], newTable[i]);
-                }
-                else if (i < oldTable.Length)
-                {
-                    tableChanged = true;
-                    _logger.LogWarning(
-                        "{Session}: {Table} index #{Index} removed {Old}",
-                        this, tableName, i, oldTable[i]);
-                }
-                else
-                {
-                    tableChanged = true;
-                    _logger.LogWarning(
-                        "{Session}: {Table} index #{Index} added {New}",
-                        this, tableName, i, newTable[i]);
-                }
-            }
-            if (tableChanged)
-            {
-                if (serverUris)
-                {
-                    Interlocked.Increment(ref _serverTableChanges);
-                }
-                else
-                {
-                    Interlocked.Increment(ref _namespaceTableChanges);
-                }
-            }
-        }
     }
 
     /// <inheritdoc/>
@@ -606,23 +483,8 @@ public abstract class SessionBase : SessionServices, ISubscriptionContext,
         return new ResultSet<DataValue>(values, errors);
     }
 
-    /// <summary>
-    /// Helper struct return
-    /// </summary>
-    /// <param name="Description"></param>
-    /// <param name="Result"></param>
-    internal record struct BrowseDescriptionResult(BrowseDescription Description,
-        BrowseResult Result);
-
-    /// <summary>
-    /// Enumerates browse results inline
-    /// </summary>
-    /// <param name="requestHeader"></param>
-    /// <param name="view"></param>
-    /// <param name="nodesToBrowse"></param>
-    /// <param name="ct"></param>
-    /// <returns></returns>
-    internal async IAsyncEnumerable<BrowseDescriptionResult> BrowseAsync(
+    /// <inheritdoc/>
+    public async IAsyncEnumerable<BrowseDescriptionResult> BrowseAsync(
         RequestHeader? requestHeader, ViewDescription? view,
         BrowseDescriptionCollection nodesToBrowse,
         [EnumeratorCancellation] CancellationToken ct = default)
@@ -723,16 +585,11 @@ public abstract class SessionBase : SessionServices, ISubscriptionContext,
     }
 
     /// <inheritdoc/>
-    public IManagedSubscription CreateSubscription(INotificationDataHandler handler,
+    public IManagedSubscription CreateSubscription(ISubscriptionNotificiationHandler handler,
         IOptionsMonitor<SubscriptionOptions> options, IMessageAckQueue queue)
     {
         return CreateSubscription(handler, options, queue, Observability);
     }
-
-    /// <inheritdoc/>
-    public abstract IManagedSubscription CreateSubscription(
-        INotificationDataHandler handler, IOptionsMonitor<SubscriptionOptions> options,
-        IMessageAckQueue queue, IObservability observability);
 
     /// <inheritdoc/>
     public virtual async ValueTask OpenAsync(CancellationToken ct = default)
@@ -886,7 +743,6 @@ public abstract class SessionBase : SessionServices, ISubscriptionContext,
             var serverCertificateData = response.ServerCertificate;
             var serverSignature = response.ServerSignature;
             var serverEndpoints = response.ServerEndpoints;
-            var serverSoftwareCertificates = response.ServerSoftwareCertificates;
 
             SessionTimeout = TimeSpan.FromMilliseconds(response.RevisedSessionTimeout);
             _maxRequestMessageSize = response.MaxRequestMessageSize;
@@ -913,8 +769,6 @@ public abstract class SessionBase : SessionServices, ISubscriptionContext,
                 ValidateServerSignature(serverCertificate, serverSignature,
                     clientCertificateData, clientCertificateChainData, clientNonce);
 
-                HandleSignedSoftwareCertificates(serverSoftwareCertificates);
-
                 // create the client signature.
                 var dataToSign = Utils.Append(serverCertificate?.RawData, serverNonce);
                 var clientSignature = SecurityPolicies.Sign(_clientCertificate,
@@ -939,13 +793,12 @@ public abstract class SessionBase : SessionServices, ISubscriptionContext,
                 // encrypt token.
                 identityToken.Encrypt(serverCertificate, serverNonce, securityPolicyUri);
                 // send the software certificates assigned to the client.
-                var clientSoftwareCertificates = GetSoftwareCertificates();
 
                 // activate session.
                 var preferredLocales = Options.PreferredLocales ??
                     new List<string> { CultureInfo.CurrentCulture.Name };
                 var activateResponse = await ActivateSessionAsync(null, clientSignature,
-                    clientSoftwareCertificates, new StringCollection(preferredLocales),
+                    [], new StringCollection(preferredLocales),
                     new ExtensionObject(identityToken), userTokenSignature,
                     ct).ConfigureAwait(false);
 
@@ -963,14 +816,6 @@ public abstract class SessionBase : SessionServices, ISubscriptionContext,
                     }
                 }
 
-                if (clientSoftwareCertificates?.Count > 0 &&
-                    (certificateResults == null || certificateResults.Count == 0))
-                {
-                    _logger.LogInformation(
-                        "{Session}: Empty results were received for the ActivateSession call.",
-                        this);
-                }
-
                 // save nonces and update system context.
                 _previousServerNonce = previousServerNonce;
                 _serverNonce = serverNonce;
@@ -986,12 +831,10 @@ public abstract class SessionBase : SessionServices, ISubscriptionContext,
                 // fetch operation limits
                 await FetchOperationLimitsAsync(ct).ConfigureAwait(false);
 
+                await _typeSystem.LoadAllDataTypesAsync(ct: ct).ConfigureAwait(false);
                 await _subscriptions.RecreateSubscriptionsAsync(previousSessionId,
                     ct).ConfigureAwait(false);
                 _subscriptions.Resume();
-
-                // Preload complex type system
-                PrefetchComplexTypeSystem();
 
                 // call session created callback, which was already set in base class only.
                 SessionCreated(sessionId, authenticationToken);
@@ -1064,9 +907,6 @@ public abstract class SessionBase : SessionServices, ISubscriptionContext,
             // encrypt token.
             identityToken.Encrypt(_serverCertificate, _serverNonce, securityPolicyUri);
 
-            // send the software certificates assigned to the client.
-            var clientSoftwareCertificates = GetSoftwareCertificates();
-
             _logger.LogInformation("{Session}: REPLACING channel.", this);
             var channel = NullableTransportChannel;
 
@@ -1094,7 +934,7 @@ public abstract class SessionBase : SessionServices, ISubscriptionContext,
                 var preferredLocales = Options.PreferredLocales ??
                     new List<string> { CultureInfo.CurrentCulture.Name };
                 var activation = await base.ActivateSessionAsync(header, clientSignature,
-                    clientSoftwareCertificates, new StringCollection(preferredLocales),
+                    [], new StringCollection(preferredLocales),
                     new ExtensionObject(identityToken), userTokenSignature,
                     cts.Token).ConfigureAwait(false);
 
@@ -1211,6 +1051,18 @@ public abstract class SessionBase : SessionServices, ISubscriptionContext,
     }
 
     /// <summary>
+    /// Create a managed subscription inside the session
+    /// </summary>
+    /// <param name="handler"></param>
+    /// <param name="options"></param>
+    /// <param name="queue"></param>
+    /// <param name="observability"></param>
+    /// <returns></returns>
+    protected abstract IManagedSubscription CreateSubscription(
+        ISubscriptionNotificiationHandler handler, IOptionsMonitor<SubscriptionOptions> options,
+        IMessageAckQueue queue, IObservability observability);
+
+    /// <summary>
     /// Dispose the session
     /// </summary>
     /// <param name="disposing"></param>
@@ -1291,36 +1143,6 @@ public abstract class SessionBase : SessionServices, ISubscriptionContext,
         }
     }
 
-    /// <summary>
-    /// Returns the software certificates assigned to the application.
-    /// </summary>
-    protected virtual SignedSoftwareCertificateCollection GetSoftwareCertificates()
-    {
-        return [];
-    }
-
-    /// <summary>
-    /// Handles an error when validating software certificates provided by the server.
-    /// </summary>
-    /// <param name="signedCertificate"></param>
-    /// <param name="result"></param>
-    /// <exception cref="ServiceResultException"></exception>
-    protected virtual void OnSoftwareCertificateError(
-        SignedSoftwareCertificate signedCertificate, ServiceResult result)
-    {
-        throw new ServiceResultException(result);
-    }
-
-    /// <summary>
-    /// Inspects the software certificates provided by the server.
-    /// </summary>
-    /// <param name="softwareCertificates"></param>
-    protected virtual void ValidateSoftwareCertificates(
-        IReadOnlyList<SoftwareCertificate> softwareCertificates)
-    {
-        // always accept valid certificates.
-    }
-
     /// <inheritdoc/>
     protected sealed override void RequestCompleted(IServiceRequest? request,
         IServiceResponse? response, string serviceName)
@@ -1331,6 +1153,115 @@ public abstract class SessionBase : SessionServices, ISubscriptionContext,
             ResetKeepAliveTimer();
         }
         base.RequestCompleted(request, response, serviceName);
+    }
+
+    /// <summary>
+    /// Worker wait
+    /// </summary>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    protected async ValueTask WorkerWaitAsync(CancellationToken ct)
+    {
+        await _trigger.WaitAsync(ct).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Fetch namespace tables and log any changes to the tables.
+    /// </summary>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    /// <exception cref="ServiceResultException"></exception>
+    internal async Task FetchNamespaceTablesAsync(CancellationToken ct)
+    {
+        var (values, errors) = await FetchValuesAsync(null, new[]
+        {
+            VariableIds.Server_NamespaceArray,
+            VariableIds.Server_ServerArray
+        }, ct).ConfigureAwait(false);
+
+        // validate namespace array.
+        if (errors.Count > 0 && ServiceResult.IsBad(errors[0]))
+        {
+            _logger.LogDebug(
+                "{Session}: Failed to read NamespaceArray: {Status}",
+                this, errors[0]);
+            throw new ServiceResultException(errors[0]);
+        }
+        // validate namespace is a string array.
+        if (values[0].Value is not string[] namespaces)
+        {
+            throw ServiceResultException.Create(StatusCodes.BadTypeMismatch,
+                $"{this}: Returned namespace array in wrong type!");
+        }
+        var oldNsTable = NamespaceUris.ToArray();
+        NamespaceUris.Update(namespaces);
+        LogNamespaceTableChanges(false, oldNsTable, namespaces);
+
+        if (errors.Count > 1 && ServiceResult.IsBad(errors[1]))
+        {
+            // We tolerate this
+            _logger.LogWarning(
+                "{Session}: Failed to read ServerArray node: {Status} ",
+                this, errors[1]);
+            return;
+        }
+        if (values[1].Value is not string[] serverUris)
+        {
+            throw ServiceResultException.Create(StatusCodes.BadTypeMismatch,
+                $"{this}: Returned server array with wrong type!");
+        }
+        var oldSrvTables = ServerUris.ToArray();
+        ServerUris.Update(serverUris);
+        LogNamespaceTableChanges(true, oldSrvTables, serverUris);
+
+        void LogNamespaceTableChanges(bool serverUris, string[] oldTable, string[] newTable)
+        {
+            if (oldTable.Length <= 1)
+            {
+                return; // First time or root namespace only only
+            }
+            var tableChanged = false;
+            for (var i = 0; i < Math.Max(oldTable.Length, newTable.Length); i++)
+            {
+                var tableName = serverUris ? "Server" : "Namespace";
+                if (i < oldTable.Length && i < newTable.Length)
+                {
+                    if (oldTable[i] == newTable[i])
+                    {
+                        continue;
+                    }
+                    tableChanged = true;
+                    _logger.LogWarning(
+                        "{Session}: {Table} index #{Index} changed from {Old} to {New}",
+                        this, tableName, i, oldTable[i], newTable[i]);
+                }
+                else if (i < oldTable.Length)
+                {
+                    tableChanged = true;
+                    _logger.LogWarning(
+                        "{Session}: {Table} index #{Index} removed {Old}",
+                        this, tableName, i, oldTable[i]);
+                }
+                else
+                {
+                    tableChanged = true;
+                    _logger.LogWarning(
+                        "{Session}: {Table} index #{Index} added {New}",
+                        this, tableName, i, newTable[i]);
+                }
+            }
+            if (tableChanged)
+            {
+                if (serverUris)
+                {
+                    Interlocked.Increment(ref _serverTableChanges);
+                }
+                else
+                {
+                    Interlocked.Increment(ref _namespaceTableChanges);
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -1426,23 +1357,6 @@ public abstract class SessionBase : SessionServices, ISubscriptionContext,
     }
 
     /// <summary>
-    /// Get desired session timeout
-    /// </summary>
-    /// <param name="options"></param>
-    /// <returns></returns>
-    internal TimeSpan GetSessionTimeout(SessionCreateOptions options)
-    {
-        var sessionTimeout = options.SessionTimeout;
-        if (sessionTimeout.HasValue &&
-            sessionTimeout != TimeSpan.Zero)
-        {
-            return sessionTimeout.Value;
-        }
-        return TimeSpan.FromMilliseconds(
-            _configuration.ClientConfiguration.DefaultSessionTimeout);
-    }
-
-    /// <summary>
     /// Manages the session with the server. Sends keep alives as needed
     /// and if the connection is lost, tries to reconnect.
     /// </summary>
@@ -1533,13 +1447,20 @@ public abstract class SessionBase : SessionServices, ISubscriptionContext,
     }
 
     /// <summary>
-    /// Worker wait
+    /// Get desired session timeout
     /// </summary>
-    /// <param name="ct"></param>
+    /// <param name="options"></param>
     /// <returns></returns>
-    internal async ValueTask WorkerWaitAsync(CancellationToken ct)
+    private TimeSpan GetSessionTimeout(SessionCreateOptions options)
     {
-        await _trigger.WaitAsync(ct).ConfigureAwait(false);
+        var sessionTimeout = options.SessionTimeout;
+        if (sessionTimeout.HasValue &&
+            sessionTimeout != TimeSpan.Zero)
+        {
+            return sessionTimeout.Value;
+        }
+        return TimeSpan.FromMilliseconds(
+            _configuration.ClientConfiguration.DefaultSessionTimeout);
     }
 
     /// <summary>
@@ -2172,46 +2093,6 @@ public abstract class SessionBase : SessionServices, ISubscriptionContext,
     }
 
     /// <summary>
-    /// Preload type system
-    /// </summary>
-    private void PrefetchComplexTypeSystem()
-    {
-        Debug.Assert(Connected);
-        var options = Options;
-        if (_complexTypeSystem == null &&
-            !options.DisableComplexTypeLoading &&
-            !options.DisableComplexTypePreloading)
-        {
-            _complexTypeSystem = LoadComplexTypeSystemAsync();
-        }
-    }
-
-    /// <summary>
-    /// Load complex type system
-    /// </summary>
-    /// <returns></returns>
-    private Task<ComplexTypeSystem> LoadComplexTypeSystemAsync()
-    {
-        return Task.Run(async () =>
-        {
-            if (Connected)
-            {
-                var complexTypeSystem = new ComplexTypeSystem(this);
-                await complexTypeSystem.LoadAsync().ConfigureAwait(false);
-
-                if (Connected)
-                {
-                    _logger.LogInformation(
-                        "{Session}: Complex type system loaded into client.", this);
-
-                    return complexTypeSystem;
-                }
-            }
-            throw new ServiceResultException(StatusCodes.BadNotConnected);
-        }, _cts.Token);
-    }
-
-    /// <summary>
     /// Validates the server certificate returned.
     /// </summary>
     /// <param name="serverCertificateData"></param>
@@ -2465,35 +2346,6 @@ public abstract class SessionBase : SessionServices, ISubscriptionContext,
     }
 
     /// <summary>
-    /// Handles the validation of server software certificates and application callback.
-    /// </summary>
-    /// <param name="serverSoftwareCertificates"></param>
-    private void HandleSignedSoftwareCertificates(
-        SignedSoftwareCertificateCollection serverSoftwareCertificates)
-    {
-        // get a validator to check certificates provided by server.
-        var validator = _configuration.CertificateValidator;
-
-        // validate software certificates.
-        var softwareCertificates = new List<SoftwareCertificate>();
-
-        foreach (var signedCertificate in serverSoftwareCertificates)
-        {
-            var result = SoftwareCertificate.Validate(validator,
-                signedCertificate.CertificateData, out var softwareCertificate);
-            if (ServiceResult.IsBad(result))
-            {
-                OnSoftwareCertificateError(signedCertificate, result);
-            }
-
-            softwareCertificates.Add(softwareCertificate);
-        }
-
-        // check if software certificates meet application requirements.
-        ValidateSoftwareCertificates(softwareCertificates);
-    }
-
-    /// <summary>
     /// Validates the server nonce and security parameters of user identity.
     /// </summary>
     /// <param name="identity"></param>
@@ -2634,7 +2486,7 @@ public abstract class SessionBase : SessionServices, ISubscriptionContext,
     private uint _maxRequestMessageSize;
     private long _keepAliveCounter;
     private ITransportWaitingConnection? _connection;
-    private Task<ComplexTypeSystem>? _complexTypeSystem;
+    private Task<DataTypeSystem>? _complexTypeSystem;
     private int _namespaceTableChanges;
     private int _serverTableChanges;
     private bool _disposeAsyncCalled;
@@ -2661,4 +2513,5 @@ public abstract class SessionBase : SessionServices, ISubscriptionContext,
     private static readonly TimeSpan kDefaultKeepAliveInterval = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan kKeepAliveGuardBand = TimeSpan.FromSeconds(1);
     private static readonly TimeSpan kReconnectTimeout = TimeSpan.FromSeconds(15);
+    private readonly DataTypeSystem _typeSystem;
 }

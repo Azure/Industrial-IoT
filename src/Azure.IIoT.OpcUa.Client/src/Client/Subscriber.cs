@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 /// subscribers from subscription on the server overcoming limitations of the
 /// server) but also data sampling.
 /// </summary>
-public sealed class Subscriber : ISubscribe, IDisposable
+internal sealed class Subscriber : ISubscribe, IDisposable
 {
     /// <summary>
     /// Create subscriber

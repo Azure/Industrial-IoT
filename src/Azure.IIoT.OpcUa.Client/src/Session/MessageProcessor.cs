@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 /// Processes messages inside a subscription, it is the base class for all
 /// subscription objects but basis to support better testing in isolation.
 /// </summary>
-public abstract class MessageProcessor : IMessageProcessor, IAsyncDisposable
+internal abstract class MessageProcessor : IMessageProcessor, IAsyncDisposable
 {
     /// <inheritdoc/>
     public uint Id { get; internal set; }

@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 /// <summary>
 /// Manages a session with a server internally.
 /// </summary>
-public abstract class Session : SessionBase
+internal abstract class Session : SessionBase
 {
     /// <summary>
     /// Constructs a new instance of the <see cref="Session"/> class.

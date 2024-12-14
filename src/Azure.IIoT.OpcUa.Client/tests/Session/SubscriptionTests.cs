@@ -40,7 +40,7 @@ public sealed class SubscriptionTests
         _mockObservability
             .Setup(o => o.LoggerFactory.CreateLogger(It.IsAny<string>()))
             .Returns(_mockLogger.Object);
-        _mockNotificationDataHandler = new Mock<INotificationDataHandler>();
+        _mockNotificationDataHandler = new Mock<ISubscriptionNotificiationHandler>();
     }
 
     [Fact]
@@ -1311,7 +1311,7 @@ public sealed class SubscriptionTests
             MaxNotificationsPerPublish = 10
         };
 
-        public TestSubscription(ISubscriptionContext session, INotificationDataHandler handler,
+        public TestSubscription(ISubscriptionContext session, ISubscriptionNotificiationHandler handler,
             IMessageAckQueue completion, OptionsMonitor<SubscriptionOptions> options,
             IObservability observability, uint? subscriptionIdForAlreadyCreatedState = null)
             : base(session, handler, completion, !subscriptionIdForAlreadyCreatedState.HasValue ?
@@ -1365,7 +1365,7 @@ public sealed class SubscriptionTests
     private readonly Mock<IObservability> _mockObservability;
     private readonly Mock<TimeProvider> _mockTimeProvider;
     private readonly Mock<ISubscriptionContext> _mockSession;
-    private readonly Mock<INotificationDataHandler> _mockNotificationDataHandler;
+    private readonly Mock<ISubscriptionNotificiationHandler> _mockNotificationDataHandler;
     private readonly Mock<ITimer> _mockTimer;
     private readonly Mock<ILogger<Subscription>> _mockLogger;
 }

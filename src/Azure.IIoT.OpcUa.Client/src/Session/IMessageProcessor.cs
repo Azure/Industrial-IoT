@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 /// A subscription component that processes received messages
 /// and dispatches to the subscribers.
 /// </summary>
-public interface IMessageProcessor
+internal interface IMessageProcessor
 {
     /// <summary>
     /// Subscription id on the server. Used to look up and

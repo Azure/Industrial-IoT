@@ -24,7 +24,7 @@ using System.Threading.Tasks;
 /// The basis of a client or server application providing services like managing
 /// the application's private key infrastructure and certificate stores.
 /// </summary>
-public abstract class ClientApplicationBase : ApplicationBase, IDiscovery,
+internal abstract class ClientApplicationBase : ApplicationBase, IDiscovery,
     ICertificatePasswordProvider, IDisposable
 {
     /// <summary>

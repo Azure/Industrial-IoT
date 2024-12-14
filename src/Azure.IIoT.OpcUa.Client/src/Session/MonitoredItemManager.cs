@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 /// <summary>
 /// A managed set of monitored items inside a subscription.
 /// </summary>
-internal sealed class MonitoredItemManager : IMonitoredItemManager,
+internal sealed class MonitoredItemManager : IMonitoredItemCollection,
     IMonitoredItemContext, IAsyncDisposable
 {
     /// <inheritdoc/>

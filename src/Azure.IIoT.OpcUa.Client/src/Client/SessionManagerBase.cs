@@ -23,7 +23,7 @@ using System.Threading.Tasks;
 /// <summary>
 /// Session manager
 /// </summary>
-public abstract class SessionManagerBase : ClientApplicationBase,
+internal abstract class SessionManagerBase : ClientApplicationBase,
     ISessionManager
 {
     /// <summary>

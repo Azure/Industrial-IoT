@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 /// <summary>
 /// Message acknoledgement queue
 /// </summary>
-public interface IMessageAckQueue
+internal interface IMessageAckQueue
 {
     /// <summary>
     /// Subscriptions queue acknoledgements for completed

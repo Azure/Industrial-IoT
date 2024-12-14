@@ -152,7 +152,7 @@ public class ClientBuilder(IServiceCollection? services = null) : ClientBuilderB
         }
 
         /// <inheritdoc/>
-        public override IManagedSubscription CreateSubscription(INotificationDataHandler handler,
+        protected override IManagedSubscription CreateSubscription(ISubscriptionNotificiationHandler handler,
             IOptionsMonitor<SubscriptionOptions> options, IMessageAckQueue queue,
             IObservability observability)
         {
@@ -164,7 +164,7 @@ public class ClientBuilder(IServiceCollection? services = null) : ClientBuilderB
     internal sealed class ClientSubscription : Subscription
     {
         /// <inheritdoc/>
-        internal ClientSubscription(ClientSession session, INotificationDataHandler handler,
+        internal ClientSubscription(ClientSession session, ISubscriptionNotificiationHandler handler,
             IMessageAckQueue completion, IOptionsMonitor<SubscriptionOptions> options,
             IObservability observability) :
             base(session, handler, completion, options, observability)

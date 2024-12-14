@@ -2,29 +2,38 @@
 
 ## Requirements
 
-- The SDK will for now use the OPC UA .NET Standard stack from OPC Foundation. The
-SDK will replace the SDK from the OPC Foundation. It sits on top of the model
-compiled types and the provided channels and networking protocols. In the future 
-we will replace the stack as well as code generation tooling to use source generator.
-
 - The SDK shall support trimming but will also provide complex type handling. It will
 replace the complex type support that is reflection based.
-
 - SDK shall be used in 2 ways: Fluent and configuration driven. The SDK surface is
 small and usage is self-evident. The SDK abstracts all network and protocol
 complexity from the user.
-
-- The SDK shall leverage the latest advances in .net 9 and is highly scalable and 
+- The SDK shall leverage the latest advances in .net and shall be highly scalable and 
 performant. This also includes leveraging defacto standards like Polly for resiliency
 Rate limiting, and latest diagnostics (tracing, logging and metrics), ValueTask etc.
 The SDK can be used with or without DI.
-
+- The SDK will allow building highly available clients by supporting automatic
+state synchronization between two or more clients and their contents (sessions, 
+subscriptions, monitored items) using event sourcing between the underlying state 
+machines and transferring communication channels to the elected leader.
 - The SDK will try to adapt to the server, so that the user application does not have 
-to. This means e.g. support for pooling of sessions and decoupling subscribing from
-subscriptions. 
-
+to. This means e.g. support for pooling of sessions and decoupling subscribing to data
+from server side subscriptions (and thus server limitations). 
 - The SDK will incorporate the features implemented in OPC Publisher where it makes
-sense, this includes subscribing to objects and objects of type. 
+sense, this includes subscribing to objects and objects of type.
+- Full code coverage at unit test level rather than requiring integration tests.
+
+### Future
+
+- The SDK API should support writing tests without requiring a server similar to 
+https://flurl.dev/ experience.
+- The SDK will for now use the OPC UA .NET Standard stack from OPC Foundation. The 
+SDK will replace the SDK from the OPC Foundation. It sits on top of the model
+compiled types and the provided channels and networking protocols. In the future 
+we will replace the stack as well as code generation tooling to use source generator.
+- The SDK will be used by all Microsoft products requiring OPC UA client functionality.
+- The SDK will support the OPC UA PubSub and used by all Microsoft products that 
+require OPC UA PubSub functionality.
+- Esoteric APIs such as SetTriggering, Query.
 
 ## Fluent api 
 
@@ -183,7 +192,7 @@ the server with the state on the client. E.g. the client creates a session using
 which then is created on the server. The client then updates parameters and thus the session
 with the handle is updated with the parameters on the server. This is the case for all three
 entities on the server. For efficiency reasons, monitored items can be updated in a bulk
-call. The same applies to setting the subscription publishing mode.
+OPC UA service call. The same applies to setting the subscription publishing mode.
 
 The goal of the sdk is to provide a simple API where the implementation manages the state
 of all entities (channels, sessions, subscriptions, monitored items). The user can change the

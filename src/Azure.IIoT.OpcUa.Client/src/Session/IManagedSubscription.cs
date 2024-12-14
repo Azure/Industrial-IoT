@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 /// subcriptions. Must be implemted by subscriptions to be
 /// manageable by the <see cref="SubscriptionManager"/>.
 /// </summary>
-public interface IManagedSubscription : ISubscription, IMessageProcessor
+internal interface IManagedSubscription : ISubscription, IMessageProcessor
 {
     /// <summary>
     /// Called after the subscription was transferred.

@@ -205,9 +205,6 @@ internal sealed class SamplingClient : IAsyncDisposable
             // Grab the current session
             var session = _outer._session;
 
-            // Ensure type system is loaded
-            await session.GetComplexTypeSystemAsync(ct).ConfigureAwait(false);
-
             var sw = Stopwatch.StartNew();
             for (var sequenceNumber = 1u; !ct.IsCancellationRequested; sequenceNumber++)
             {

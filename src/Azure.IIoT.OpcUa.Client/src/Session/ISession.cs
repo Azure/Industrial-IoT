@@ -5,7 +5,7 @@
 
 namespace Opc.Ua.Client;
 
-using Opc.Ua.Client.ComplexTypes;
+using Opc.Ua.Client;
 using Opc.Ua;
 using System;
 using System.Threading;
@@ -52,14 +52,6 @@ public interface ISession : ISessionServiceSets
     /// Operation limits for this session
     /// </summary>
     Limits OperationLimits { get; }
-
-    /// <summary>
-    /// Get complex type system
-    /// </summary>
-    /// <param name="ct"></param>
-    /// <returns></returns>
-    ValueTask<ComplexTypeSystem?> GetComplexTypeSystemAsync(
-        CancellationToken ct = default);
 
     /// <summary>
     /// System context (legacy)

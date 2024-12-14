@@ -12,7 +12,7 @@ using Microsoft.Extensions.Options;
 /// manager manages the state of the monitored items in the
 /// subscription.
 /// </summary>
-public interface IMonitoredItemManagerContext
+internal interface IMonitoredItemManagerContext
 {
     /// <summary>
     /// Subscription id the monitored items are managed for

@@ -9,7 +9,7 @@ namespace Opc.Ua.Client;
 /// Non sdk interface that allows monitored items to signal
 /// state changes to the monitored item manager.
 /// </summary>
-public interface IMonitoredItemContext
+internal interface IMonitoredItemContext
 {
     /// <summary>
     /// Notify item change results. This includes intermittent

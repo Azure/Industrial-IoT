@@ -19,7 +19,7 @@ using System.Threading.Tasks;
 /// <typeparam name="TOptionsBuilder"></typeparam>
 /// <param name="application"></param>
 /// <param name="pooledSessionBuilder"></param>
-public class SessionBuilderBase<TPooledSessionOptions, TSessionOptions,
+internal class SessionBuilderBase<TPooledSessionOptions, TSessionOptions,
     TSessionCreateOptions, TOptionsBuilder>(SessionManagerBase application,
     IPooledSessionBuilder<TPooledSessionOptions, TSessionOptions> pooledSessionBuilder) :
     ISessionBuilder<TPooledSessionOptions, TSessionOptions, TSessionCreateOptions>,
@@ -149,7 +149,7 @@ public class SessionBuilderBase<TPooledSessionOptions, TSessionOptions,
 /// <typeparam name="TSessionOptions"></typeparam>
 /// <typeparam name="TBuilder"></typeparam>
 /// <param name="application"></param>
-public class PooledSessionBuilderBase<TPooledSessionOptions,
+internal class PooledSessionBuilderBase<TPooledSessionOptions,
     TSessionOptions, TBuilder>(ISessionManager application) :
     IPooledSessionBuilder<TPooledSessionOptions, TSessionOptions>,
     IOptionsBuilder<TPooledSessionOptions>

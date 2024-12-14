@@ -11,9 +11,9 @@ using System.Collections;
 using System.Collections.Generic;
 
 /// <summary>
-/// Manages monitored items
+/// Collection of managed monitored items
 /// </summary>
-public interface IMonitoredItemManager
+public interface IMonitoredItemCollection
 {
     /// <summary>
     /// Monitored item count

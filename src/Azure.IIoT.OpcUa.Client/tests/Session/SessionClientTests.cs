@@ -26,13 +26,13 @@ public class RequestHeaderData : TheoryData<RequestHeader>
     }
 }
 
-public sealed class SessionServicesTests : IDisposable
+public sealed class SessionClientTests : IDisposable
 {
-    public SessionServicesTests()
+    public SessionClientTests()
     {
         _mockObservability = new Mock<IObservability>();
         _mockChannel = new Mock<ITransportChannel>();
-        _mockLogger = new Mock<ILogger<SessionServices>>();
+        _mockLogger = new Mock<ILogger<SessionClient>>();
 
         _mockObservability.Setup(o => o.LoggerFactory.CreateLogger(It.IsAny<string>()))
             .Returns(_mockLogger.Object);
@@ -5199,7 +5199,7 @@ public sealed class SessionServicesTests : IDisposable
         response.DiagnosticInfos.Should().HaveCount(1);
     }
 
-    private sealed class TestSessionServices : SessionServices
+    private sealed class TestSessionServices : SessionClient
     {
         public TestSessionServices(IObservability observability, ITransportChannel channel)
             : base(observability, channel)
@@ -5209,7 +5209,7 @@ public sealed class SessionServicesTests : IDisposable
     }
 
     private readonly Mock<ITransportChannel> _mockChannel;
-    private readonly Mock<ILogger<SessionServices>> _mockLogger;
+    private readonly Mock<ILogger<SessionClient>> _mockLogger;
     private readonly Mock<IObservability> _mockObservability;
     private readonly TestSessionServices _sessionServices;
 }

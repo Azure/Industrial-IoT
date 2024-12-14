@@ -54,7 +54,7 @@ public interface ISubscription : IAsyncDisposable
     /// <summary>
     /// Monitored items
     /// </summary>
-    IMonitoredItemManager MonitoredItems { get; }
+    IMonitoredItemCollection MonitoredItems { get; }
 
     /// <summary>
     /// Tells the server to refresh all conditions being

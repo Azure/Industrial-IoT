@@ -14,7 +14,7 @@ using System.Collections.Generic;
 /// <typeparam name="T"></typeparam>
 /// <param name="Results"></param>
 /// <param name="Errors"></param>
-public record struct ResultSet<T>(IReadOnlyList<T> Results,
+internal record struct ResultSet<T>(IReadOnlyList<T> Results,
     IReadOnlyList<ServiceResult> Errors);
 
 /// <summary>

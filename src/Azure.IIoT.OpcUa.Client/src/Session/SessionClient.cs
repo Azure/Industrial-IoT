@@ -17,9 +17,9 @@ using System.Threading.Tasks;
 /// The client side interface with support for batching according
 /// to operation limits.
 /// </summary>
-public abstract class SessionServices : SessionClient,
-    ISessionServiceSets, ISubscriptionServiceSet, IMonitoredItemServiceSet,
-    IMethodServiceSet
+internal abstract class SessionClient : Obsolete.SessionClient,
+    ISessionServiceSets, ISubscriptionServiceSet,
+    IMonitoredItemServiceSet, IMethodServiceSet
 {
     /// <summary>
     /// The operation limits are used to batch the service requests.
@@ -41,11 +41,11 @@ public abstract class SessionServices : SessionClient,
     /// </summary>
     /// <param name="observability"></param>
     /// <param name="channel"></param>
-    protected SessionServices(IObservability observability,
+    protected SessionClient(IObservability observability,
         ITransportChannel? channel = null) : base(channel)
     {
         Observability = observability;
-        _logger = observability.LoggerFactory.CreateLogger<SessionServices>();
+        _logger = observability.LoggerFactory.CreateLogger<SessionClient>();
     }
 
     /// <inheritdoc/>

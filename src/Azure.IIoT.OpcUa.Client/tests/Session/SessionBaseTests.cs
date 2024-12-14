@@ -1915,7 +1915,7 @@ public sealed class SessionBaseTests
             .Verifiable(Times.Once);
 
         // Act
-        var results = new List<SessionBase.BrowseDescriptionResult>();
+        var results = new List<BrowseDescriptionResult>();
         await foreach (var result in sut.BrowseAsync(null, null,
             [
                 new ()
@@ -2012,7 +2012,7 @@ public sealed class SessionBaseTests
             });
 
         // Act
-        var results = new List<SessionBase.BrowseDescriptionResult>();
+        var results = new List<BrowseDescriptionResult>();
         await foreach (var result in sut.BrowseAsync(null, null,
             [
                 new ()
@@ -2096,7 +2096,7 @@ public sealed class SessionBaseTests
             .Verifiable(Times.Once);
 
         // Act
-        var results = new List<SessionBase.BrowseDescriptionResult>();
+        var results = new List<BrowseDescriptionResult>();
         await foreach (var result in sut.BrowseAsync(null, null,
             [
                 new ()
@@ -2157,7 +2157,7 @@ public sealed class SessionBaseTests
             .Verifiable(Times.Once);
 
         // Act
-        var results = new List<SessionBase.BrowseDescriptionResult>();
+        var results = new List<BrowseDescriptionResult>();
         await foreach (var result in sut.BrowseAsync(null, null,
             [
                 new ()
@@ -2231,7 +2231,7 @@ public sealed class SessionBaseTests
             .Verifiable(Times.Once);
 
         // Act
-        var results = new List<SessionBase.BrowseDescriptionResult>();
+        var results = new List<BrowseDescriptionResult>();
         Func<Task> act = async () =>
         {
             await foreach (var result in sut.BrowseAsync(null, null,
@@ -2314,7 +2314,7 @@ public sealed class SessionBaseTests
             .Verifiable(Times.Once);
 
         // Act
-        var results = new List<SessionBase.BrowseDescriptionResult>();
+        var results = new List<BrowseDescriptionResult>();
         Func<Task> act = async () =>
         {
             await foreach (var result in sut.BrowseAsync(null, null,
@@ -2397,7 +2397,7 @@ public sealed class SessionBaseTests
             .Verifiable(Times.Once);
 
         // Act
-        var results = new List<SessionBase.BrowseDescriptionResult>();
+        var results = new List<BrowseDescriptionResult>();
         await foreach (var result in sut.BrowseAsync(null, null,
             [
                 new ()
@@ -2439,7 +2439,7 @@ public sealed class SessionBaseTests
             base.SessionCreated(NodeId.Parse("s=connected"), NodeId.Parse("s=cookie"));
         }
 
-        public override IManagedSubscription CreateSubscription(INotificationDataHandler handler,
+        protected override IManagedSubscription CreateSubscription(ISubscriptionNotificiationHandler handler,
             IOptionsMonitor<SubscriptionOptions> _options, IMessageAckQueue queue,
             IObservability observability)
         {

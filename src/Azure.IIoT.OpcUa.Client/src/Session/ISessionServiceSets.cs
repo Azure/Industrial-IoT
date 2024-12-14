@@ -6,13 +6,14 @@
 namespace Opc.Ua.Client;
 
 using Opc.Ua;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
 /// <summary>
 /// Services supported by a session
 /// </summary>
-public interface ISessionServiceSets
+public interface ISessionServiceSets : IMethodServiceSet
 {
     /// <summary>
     /// Browse service
@@ -49,26 +50,6 @@ public interface ISessionServiceSets
     Task<TranslateBrowsePathsToNodeIdsResponse> TranslateBrowsePathsToNodeIdsAsync(
         RequestHeader? requestHeader, BrowsePathCollection browsePaths,
         CancellationToken ct = default);
-
-    /// <summary>
-    /// Call service
-    /// </summary>
-    /// <param name="requestHeader"></param>
-    /// <param name="methodsToCall"></param>
-    /// <param name="ct"></param>
-    /// <returns></returns>
-    Task<CallResponse> CallAsync(RequestHeader? requestHeader,
-        CallMethodRequestCollection methodsToCall, CancellationToken ct = default);
-
-    /// <summary>
-    /// Cancel service call
-    /// </summary>
-    /// <param name="requestHeader"></param>
-    /// <param name="requestHandle"></param>
-    /// <param name="ct"></param>
-    /// <returns></returns>
-    Task<CancelResponse> CancelAsync(RequestHeader? requestHeader,
-        uint requestHandle, CancellationToken ct = default);
 
     /// <summary>
     /// Read service
@@ -178,6 +159,7 @@ public interface ISessionServiceSets
     Task<DeleteReferencesResponse> DeleteReferencesAsync(RequestHeader? requestHeader,
         DeleteReferencesItemCollection referencesToDelete, CancellationToken ct = default);
 
+#if OBSOLETE
     /// <summary>
     /// Set triggering --- TODO: Add to subscription interface
     /// </summary>
@@ -191,4 +173,15 @@ public interface ISessionServiceSets
     Task<SetTriggeringResponse> SetTriggeringAsync(RequestHeader? requestHeader,
         uint subscriptionId, uint triggeringItemId, UInt32Collection linksToAdd,
         UInt32Collection linksToRemove, CancellationToken ct = default);
+
+    /// <summary>
+    /// Cancel service call -- TODO: Needed?
+    /// </summary>
+    /// <param name="requestHeader"></param>
+    /// <param name="requestHandle"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    Task<CancelResponse> CancelAsync(RequestHeader? requestHeader,
+        uint requestHandle, CancellationToken ct = default);
+#endif
 }

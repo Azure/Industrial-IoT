@@ -23,7 +23,7 @@ using System.Threading.Tasks;
 /// iii) filter for the Url.
 /// Second, any filter can be combined with the Once or Always flag.
 /// </remarks>
-public sealed class ReverseConnectManager : IDisposable
+internal sealed class ReverseConnectManager : IDisposable
 {
     /// <summary>
     /// Specify the strategy for the reverse connect registration.

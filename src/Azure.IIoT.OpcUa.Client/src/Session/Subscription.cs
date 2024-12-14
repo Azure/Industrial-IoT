@@ -21,7 +21,7 @@ using System.Threading.Tasks;
 /// state management of the subscription on the server using the
 /// subscription and monitored item service set provided as context.
 /// </summary>
-public abstract class Subscription : MessageProcessor, IManagedSubscription,
+internal abstract class Subscription : MessageProcessor, IManagedSubscription,
     IMonitoredItemManagerContext
 {
     /// <inheritdoc/>
@@ -43,7 +43,7 @@ public abstract class Subscription : MessageProcessor, IManagedSubscription,
     public uint CurrentMaxNotificationsPerPublish { get; private set; }
 
     /// <inheritdoc/>
-    public IMonitoredItemManager MonitoredItems => _monitoredItems;
+    public IMonitoredItemCollection MonitoredItems => _monitoredItems;
 
     /// <inheritdoc/>
     public bool Created => Id != 0;
@@ -86,7 +86,7 @@ public abstract class Subscription : MessageProcessor, IManagedSubscription,
     /// <param name="completion"></param>
     /// <param name="options"></param>
     /// <param name="observability"></param>
-    protected Subscription(ISubscriptionContext session, INotificationDataHandler handler,
+    protected Subscription(ISubscriptionContext session, ISubscriptionNotificiationHandler handler,
         IMessageAckQueue completion, IOptionsMonitor<SubscriptionOptions> options,
         IObservability observability) : base(session, completion, observability)
     {
@@ -738,6 +738,6 @@ public abstract class Subscription : MessageProcessor, IManagedSubscription,
     private readonly List<uint> _deletedItems = [];
     private readonly ITimer _publishTimer;
     private readonly IDisposable? _changeTracking;
-    private readonly INotificationDataHandler _handler;
+    private readonly ISubscriptionNotificiationHandler _handler;
     private readonly MonitoredItemManager _monitoredItems;
 }
