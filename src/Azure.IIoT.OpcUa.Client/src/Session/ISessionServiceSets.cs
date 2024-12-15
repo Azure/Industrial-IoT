@@ -6,7 +6,6 @@
 namespace Opc.Ua.Client;
 
 using Opc.Ua;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 

@@ -1372,7 +1372,7 @@ public sealed class SessionBaseTests
                 new UserTokenPolicy()
             ]
         };
-        _options = _options with { DisableComplexTypeLoading = true };
+        _options = _options with { EnableComplexTypePreloading = false };
         using var sut = new TestSessionBase(_configuration,
             new ConfiguredEndpoint(null, ep),
             _options, _mockObservability.Object, null);
@@ -1472,7 +1472,7 @@ public sealed class SessionBaseTests
                 new UserTokenPolicy()
             ]
         };
-        _options = _options with { DisableComplexTypeLoading = true };
+        _options = _options with { EnableComplexTypePreloading = false };
         using var sut = new TestSessionBase(_configuration,
             new ConfiguredEndpoint(null, ep),
             _options, _mockObservability.Object, null);
@@ -1544,7 +1544,7 @@ public sealed class SessionBaseTests
                 new UserTokenPolicy()
             ]
         };
-        _options = _options with { DisableComplexTypeLoading = true };
+        _options = _options with { EnableComplexTypePreloading = false };
         using var sut = new TestSessionBase(_configuration,
             new ConfiguredEndpoint(null, ep),
             _options, _mockObservability.Object, null);
@@ -1774,7 +1774,7 @@ public sealed class SessionBaseTests
                 new UserTokenPolicy()
             ]
         };
-        _options = _options with { DisableComplexTypeLoading = true };
+        _options = _options with { EnableComplexTypePreloading = false };
         using var sut = new TestSessionBase(_configuration,
             new ConfiguredEndpoint(null, ep),
             _options, _mockObservability.Object, null);
@@ -2425,7 +2425,7 @@ public sealed class SessionBaseTests
     {
         public TestSessionBase(ApplicationConfiguration configuration,
             ConfiguredEndpoint endpoint, SessionCreateOptions options,
-            IObservability observability, ReverseConnectManager reverseConnect)
+            IObservability observability, ReverseConnectManager? reverseConnect)
             : base(configuration, endpoint, options, observability, reverseConnect)
         {
             if (options.Channel != null)

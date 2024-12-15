@@ -125,7 +125,7 @@ internal class SessionBuilderBase<TPooledSessionOptions, TSessionOptions,
     public ValueTask<ServiceResult> TestAsync(CancellationToken ct = default)
     {
         return application.TestAsync(Options,
-         // ((IOptionsBuilder<TSessionCreateOptions>)_sessionCreateOptionsBuilder).Options,
+            // ((IOptionsBuilder<TSessionCreateOptions>)_sessionCreateOptionsBuilder).Options,
             _useReverseConnect, ct);
     }
 
@@ -155,7 +155,7 @@ internal class PooledSessionBuilderBase<TPooledSessionOptions,
     IOptionsBuilder<TPooledSessionOptions>
     where TPooledSessionOptions : PooledSessionOptions, new()
     where TSessionOptions : SessionOptions, new()
-    where TBuilder: ISessionOptionsBuilder<TSessionOptions>, new()
+    where TBuilder : ISessionOptionsBuilder<TSessionOptions>, new()
 {
     /// <inheritdoc/>
     public TPooledSessionOptions Options { get; set; } = new();

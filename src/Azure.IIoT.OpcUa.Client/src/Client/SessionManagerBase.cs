@@ -8,15 +8,12 @@ namespace Opc.Ua.Client;
 using BitFaster.Caching;
 using BitFaster.Caching.Lfu;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Opc.Ua;
 using Opc.Ua.Configuration;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -124,10 +121,12 @@ internal abstract class SessionManagerBase : ClientApplicationBase,
                             key.SessionOptions?.KeepAliveInterval,
                         CheckDomain =
                             key.SessionOptions?.CheckDomain ?? false,
-                        DisableComplexTypeLoading =
-                            key.SessionOptions?.DisableComplexTypeLoading ?? false,
-                        DisableComplexTypePreloading =
-                            key.SessionOptions?.DisableComplexTypePreloading ?? false,
+                        DisableDataTypeDefinition =
+                            key.SessionOptions?.DisableDataTypeDefinition ?? false,
+                        DisableDataTypeDictionary =
+                            key.SessionOptions?.DisableDataTypeDictionary ?? false,
+                        EnableComplexTypePreloading =
+                            key.SessionOptions?.EnableComplexTypePreloading ?? false,
                         PreferredLocales =
                             key.SessionOptions?.PreferredLocales,
                         SessionTimeout =

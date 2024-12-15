@@ -660,7 +660,7 @@ public sealed class NodeCacheContextTests
                         if (r.NodeId == nodeIds[0])
                         {
                             var value = new DataValue();
-                                nodes[0].Read(null!, r.AttributeId, value);
+                            nodes[0].Read(null!, r.AttributeId, value);
                             return value;
                         }
                         return new DataValue(StatusCodes.BadUnexpectedError);
@@ -886,7 +886,7 @@ public sealed class NodeCacheContextTests
             NodeId.Parse("ns=2;s=TestNode1"),
             NodeId.Parse("ns=2;s=TestNode2")
         };
-        var nodes = new []
+        var nodes = new[]
         {
             new VariableNode
             {
@@ -1234,7 +1234,7 @@ public sealed class NodeCacheContextTests
     {
         public TestCacheContext(ApplicationConfiguration configuration,
             ConfiguredEndpoint endpoint, SessionCreateOptions _options,
-            IObservability observability, ReverseConnectManager reverseConnect)
+            IObservability observability, ReverseConnectManager? reverseConnect)
             : base(configuration, endpoint, _options, observability, reverseConnect)
         {
             if (_options.Channel != null)

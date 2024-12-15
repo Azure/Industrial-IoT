@@ -34,7 +34,8 @@ public sealed class MonitoredItemTests
         const uint serverId = 123u;
 
         // Act
-        sut.TryGetPendingChange(out var change);
+        sut.TryGetPendingChange(out var change).Should().BeTrue();
+        Assert.NotNull(change);
         change.SetCreateResult(new MonitoredItemCreateRequest
         {
             MonitoringMode = MonitoringMode.Sampling,
@@ -87,7 +88,8 @@ public sealed class MonitoredItemTests
             _options, _mockLogger.Object);
 
         // Act
-        sut.TryGetPendingChange(out var change);
+        sut.TryGetPendingChange(out var change).Should().BeTrue();
+        Assert.NotNull(change);
         change.SetMonitoringModeResult(MonitoringMode.Sampling, StatusCodes.Bad,
             0, [], new ResponseHeader());
 
@@ -111,7 +113,8 @@ public sealed class MonitoredItemTests
            _options, _mockLogger.Object);
 
         // Act
-        sut.TryGetPendingChange(out var change);
+        sut.TryGetPendingChange(out var change).Should().BeTrue();
+        Assert.NotNull(change);
         change.SetCreateResult(new MonitoredItemCreateRequest
         {
             MonitoringMode = MonitoringMode.Sampling,
@@ -148,7 +151,8 @@ public sealed class MonitoredItemTests
         var filterResult = new EventFilterResult();
 
         // Act
-        sut.TryGetPendingChange(out var change);
+        sut.TryGetPendingChange(out var change).Should().BeTrue();
+        Assert.NotNull(change);
         change.SetCreateResult(new MonitoredItemCreateRequest
         {
             MonitoringMode = MonitoringMode.Sampling,
@@ -187,7 +191,8 @@ public sealed class MonitoredItemTests
         sut.CurrentMonitoringMode.Should().NotBe(MonitoringMode.Sampling);
 
         // Act
-        sut.TryGetPendingChange(out var change);
+        sut.TryGetPendingChange(out var change).Should().BeTrue();
+        Assert.NotNull(change);
         change.SetCreateResult(new MonitoredItemCreateRequest
         {
             MonitoringMode = MonitoringMode.Sampling,
@@ -222,7 +227,8 @@ public sealed class MonitoredItemTests
         sut.CurrentMonitoringMode.Should().NotBe(MonitoringMode.Sampling);
 
         // Act
-        sut.TryGetPendingChange(out var change);
+        sut.TryGetPendingChange(out var change).Should().BeTrue();
+        Assert.NotNull(change);
         change.SetMonitoringModeResult(MonitoringMode.Sampling, StatusCodes.Good,
             0, [], new ResponseHeader());
 
@@ -243,7 +249,8 @@ public sealed class MonitoredItemTests
         var currentSamplingInterval = TimeSpan.FromMilliseconds(500);
 
         // Act
-        sut.TryGetPendingChange(out var change);
+        sut.TryGetPendingChange(out var change).Should().BeTrue();
+        Assert.NotNull(change);
         change.SetCreateResult(new MonitoredItemCreateRequest
         {
             MonitoringMode = MonitoringMode.Sampling,
@@ -277,7 +284,8 @@ public sealed class MonitoredItemTests
         const uint currentQueueSize = 5u;
 
         // Act
-        sut.TryGetPendingChange(out var change);
+        sut.TryGetPendingChange(out var change).Should().BeTrue();
+        Assert.NotNull(change);
         change.SetCreateResult(new MonitoredItemCreateRequest
         {
             MonitoringMode = MonitoringMode.Sampling,
@@ -370,6 +378,7 @@ public sealed class MonitoredItemTests
 
         // Assert
         monitoredItem.TryGetPendingChange(out var change).Should().BeTrue();
+        Assert.NotNull(change?.Create);
         change.Create.RequestedParameters.QueueSize.Should().Be(6); // (500 / 100) + 1 = 6
     }
 

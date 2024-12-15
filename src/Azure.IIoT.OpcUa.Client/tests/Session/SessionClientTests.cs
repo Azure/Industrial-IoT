@@ -16,7 +16,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
-public class RequestHeaderData : TheoryData<RequestHeader>
+public class RequestHeaderData : TheoryData<RequestHeader?>
 {
     public RequestHeaderData()
     {
@@ -602,6 +602,7 @@ public sealed class SessionClientTests : IDisposable
         requestHeader.AdditionalHeader.Should().NotBeNull();
         var additionalParameters = requestHeader.AdditionalHeader.Body as AdditionalParametersType;
         additionalParameters.Should().NotBeNull();
+        Assert.NotNull(additionalParameters);
         additionalParameters.Parameters.Should().Contain(p => p.Key == "traceparent");
         _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(),
             It.IsAny<CancellationToken>()), Times.Once);
@@ -658,6 +659,7 @@ public sealed class SessionClientTests : IDisposable
             requestHeader.AdditionalHeader.Should().NotBeNull();
             var additionalParameters = requestHeader.AdditionalHeader.Body as AdditionalParametersType;
             additionalParameters.Should().NotBeNull();
+            Assert.NotNull(additionalParameters);
             additionalParameters.Parameters.Should().Contain(p => p.Key == "traceparent");
         }
         _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(),
@@ -1174,7 +1176,8 @@ public sealed class SessionClientTests : IDisposable
         _mockChannel.Verify(c => c.SendRequestAsync(It.IsAny<IServiceRequest>(),
             It.IsAny<CancellationToken>()), Times.Exactly(2));
     }
-    [Theory] [ClassData(typeof(RequestHeaderData))]
+    [Theory]
+    [ClassData(typeof(RequestHeaderData))]
     public async Task BrowseAsyncShouldSimplyCallBaseMethodWhenNoLimitsSetAsync(RequestHeader requestHeader)
     {
         // Arrange

@@ -7,15 +7,13 @@ namespace Opc.Ua.Client;
 
 using Opc.Ua;
 using System;
-using System.Globalization;
 using System.Text;
 using System.Xml;
 
 /// <summary>
 /// Structure field description
 /// </summary>
-internal sealed class StructureFieldDescription :
-    IComparable<StructureFieldDescription>
+internal sealed class StructureFieldDescription
 {
     /// <summary>
     /// Field index inside the structure.
@@ -40,31 +38,20 @@ internal sealed class StructureFieldDescription :
     public uint OptionalFieldMask { get; set; }
 
     /// <summary>
-    /// Built in
-    /// </summary>
-    public BuiltInType BuiltInType => GetBuiltInType(Field.DataType);
-
-    /// <summary>
     /// Create field info
     /// </summary>
     /// <param name="cache"></param>
-    /// <param name="fieldIndex"></param>
     /// <param name="field"></param>
     /// <param name="isAllowSubTypes"></param>
-    public StructureFieldDescription(DataTypeSystem cache,
+    /// <param name="fieldIndex"></param>
+    public StructureFieldDescription(IDataTypeSystem cache,
         StructureField field, bool isAllowSubTypes, int fieldIndex)
     {
+        _typeSystem = cache;
         Field = field;
         IsAllowSubTypes = isAllowSubTypes;
         FieldIndex = fieldIndex;
         OptionalFieldMask = 0;
-        _cache = cache;
-    }
-
-    /// <inheritdoc/>
-    public int CompareTo(StructureFieldDescription? other)
-    {
-        return FieldIndex.CompareTo(other?.FieldIndex);
     }
 
     /// <summary>
@@ -81,7 +68,7 @@ internal sealed class StructureFieldDescription :
         {
             return DecodeScalar(decoder, fieldNameOverride);
         }
-        if (valueRank >= ValueRanks.OneDimension)
+        if (valueRank >= ValueRanks.OneOrMoreDimensions)
         {
             return DecodeArray(decoder, fieldNameOverride);
         }
@@ -105,7 +92,7 @@ internal sealed class StructureFieldDescription :
         {
             EncodeScalar(encoder, fieldNameOverride, o);
         }
-        else if (valueRank >= ValueRanks.OneDimension)
+        else if (valueRank >= ValueRanks.OneOrMoreDimensions)
         {
             EncodeArray(encoder, fieldNameOverride, o);
         }
@@ -126,8 +113,7 @@ internal sealed class StructureFieldDescription :
     /// <exception cref="ServiceResultException"></exception>
     private void EncodeScalar(IEncoder encoder, string fieldName, object? o)
     {
-        var builtInType = BuiltInType;
-        var type = GetType(ref builtInType);
+        var builtInType = GetType(out var type);
         switch (builtInType)
         {
             case BuiltInType.Boolean:
@@ -170,7 +156,12 @@ internal sealed class StructureFieldDescription :
                 encoder.WriteDateTime(fieldName, (DateTime?)o ?? DateTime.MinValue);
                 break;
             case BuiltInType.Guid:
-                encoder.WriteGuid(fieldName, (Uuid?)o ?? Guid.Empty);
+                if (o is Uuid uuid)
+                {
+                    encoder.WriteGuid(fieldName, uuid);
+                    break;
+                }
+                encoder.WriteGuid(fieldName, (Guid?)o ?? Guid.Empty);
                 break;
             case BuiltInType.ByteString:
                 encoder.WriteByteString(fieldName, (byte[]?)o);
@@ -185,6 +176,11 @@ internal sealed class StructureFieldDescription :
                 encoder.WriteExpandedNodeId(fieldName, (ExpandedNodeId?)o);
                 break;
             case BuiltInType.StatusCode:
+                if (o is uint statusCode)
+                {
+                    encoder.WriteStatusCode(fieldName, statusCode);
+                    break;
+                }
                 encoder.WriteStatusCode(fieldName, (StatusCode?)o ?? StatusCodes.Good);
                 break;
             case BuiltInType.DiagnosticInfo:
@@ -206,15 +202,15 @@ internal sealed class StructureFieldDescription :
                 encoder.WriteExtensionObject(fieldName, (ExtensionObject?)o);
                 break;
             case BuiltInType.Enumeration:
-                if (type.IsEnum)
-                {
-                    encoder.WriteEnumerated(fieldName, (Enum?)o);
-                    break;
-                }
-                var e = _cache.GetEnumDescription(Field.DataType);
+                var e = _typeSystem.GetEnumDescription(Field.DataType);
                 if (e != null && o is EnumValue ev)
                 {
                     e.Encode(encoder, fieldName, ev);
+                    break;
+                }
+                if (type != null && type.IsEnum)
+                {
+                    encoder.WriteEnumerated(fieldName, (Enum?)o);
                     break;
                 }
                 encoder.WriteInt32(fieldName, (int?)o ?? 0);
@@ -223,7 +219,7 @@ internal sealed class StructureFieldDescription :
                 if (!typeof(IEncodeable).IsAssignableFrom(type))
                 {
                     throw ServiceResultException.Create(StatusCodes.BadEncodingError,
-                        "Cannot encode unknown type {0}.", type.Name);
+                        "Cannot encode unknown type {0}.", type?.Name);
                 }
                 encoder.WriteEncodeable(fieldName, (IEncodeable?)o, (Type?)type);
                 break;
@@ -238,8 +234,7 @@ internal sealed class StructureFieldDescription :
     /// <param name="o"></param>
     private void EncodeArray(IEncoder encoder, string fieldName, object? o)
     {
-        var builtInType = BuiltInType;
-        var elementType = GetType(ref builtInType);
+        var builtInType = GetType(out _);
         encoder.WriteArray(fieldName, o, Field.ValueRank, builtInType);
     }
 
@@ -251,8 +246,7 @@ internal sealed class StructureFieldDescription :
     /// <exception cref="ServiceResultException"></exception>
     private object? DecodeScalar(IDecoder decoder, string fieldName)
     {
-        var builtInType = BuiltInType;
-        var type = GetType(ref builtInType);
+        var builtInType = GetType(out var type);
         switch (builtInType)
         {
             case BuiltInType.Boolean:
@@ -310,7 +304,12 @@ internal sealed class StructureFieldDescription :
                 }
                 return decoder.ReadExtensionObject(fieldName);
             case BuiltInType.Enumeration:
-                if (type.IsEnum)
+                var e = _typeSystem.GetEnumDescription(Field.DataType);
+                if (e != null)
+                {
+                    return e.Decode(decoder, fieldName);
+                }
+                if (type != null && type.IsEnum)
                 {
                     return decoder.ReadEnumerated(fieldName, type);
                 }
@@ -323,7 +322,7 @@ internal sealed class StructureFieldDescription :
                 break;
         }
         throw ServiceResultException.Create(StatusCodes.BadDecodingError,
-           "Cannot decode unknown type {0}.", type.Name);
+           "Cannot decode unknown type {0}.", type?.Name);
     }
 
     /// <summary>
@@ -333,11 +332,7 @@ internal sealed class StructureFieldDescription :
     /// <param name="fieldName"></param>
     private Array? DecodeArray(IDecoder decoder, string fieldName)
     {
-        var builtInType = BuiltInType;
-        var elementType = GetType(ref builtInType);
-
-        // Check for enum
-
+        var builtInType = GetType(out var elementType);
         return decoder.ReadArray(fieldName, Field.ValueRank,
             builtInType, elementType);
     }
@@ -345,32 +340,25 @@ internal sealed class StructureFieldDescription :
     /// <summary>
     /// Get type
     /// </summary>
-    /// <param name="builtInType"></param>
+    /// <param name="type"></param>
     /// <returns></returns>
-    private Type GetType(ref BuiltInType builtInType)
+    private BuiltInType GetType(out Type? type)
     {
-        var type = _cache.GetSystemType(Field.DataType) ?? typeof(object);
-        if (type.IsEnum || type == typeof(EnumValue))
-        {
-            builtInType = BuiltInType.Enumeration;
-        }
-        return type;
-    }
+        var datatypeId = Field.DataType;
 
-    /// <summary>
-    /// Convert a DataTypeId to a BuiltInType that can be used
-    /// for the switch table.
-    /// </summary>
-    /// <remarks>
-    /// As a prerequisite the complex type resolver found a
-    /// valid .NET supertype that can be mapped to a BuiltInType.
-    /// IEncodeable types are mapped to BuiltInType.Null.
-    /// </remarks>
-    /// <param name="datatypeId">The data type identifier.</param>
-    /// <returns>An <see cref="BuiltInType"/> for
-    /// <paramref name="datatypeId"/></returns>
-    private static BuiltInType GetBuiltInType(NodeId datatypeId)
-    {
+        type = _typeSystem.GetSystemType(datatypeId);
+        if (type != null)
+        {
+            if (type.IsEnum || type == typeof(EnumValue))
+            {
+                return BuiltInType.Enumeration;
+            }
+            else
+            {
+                return BuiltInType.ExtensionObject;
+            }
+        }
+
         if (datatypeId.IsNullNodeId || datatypeId.NamespaceIndex != 0 ||
             datatypeId.IdType != IdType.Numeric)
         {
@@ -380,8 +368,7 @@ internal sealed class StructureFieldDescription :
         var builtInType = (BuiltInType)Enum.ToObject(typeof(BuiltInType),
             datatypeId.Identifier);
 
-        if (builtInType is <= BuiltInType.DiagnosticInfo or
-            BuiltInType.Enumeration)
+        if (builtInType is <= BuiltInType.DiagnosticInfo or BuiltInType.Enumeration)
         {
             return builtInType;
         }
@@ -406,5 +393,5 @@ internal sealed class StructureFieldDescription :
         }
     }
 
-    private readonly DataTypeSystem _cache;
+    private readonly IDataTypeSystem _typeSystem;
 }

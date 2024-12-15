@@ -7,6 +7,7 @@ namespace Opc.Ua.Client;
 
 using Opc.Ua;
 using System;
+using System.Diagnostics;
 using System.Xml;
 
 /// <summary>
@@ -30,10 +31,11 @@ public sealed class EnumDescription : DataTypeDescription
     /// <param name="typeId"></param>
     /// <param name="enumDefinition"></param>
     /// <param name="xmlName"></param>
+    /// <param name="isAbstract"></param>
     internal EnumDescription(ExpandedNodeId typeId,
-        EnumDefinition enumDefinition, XmlQualifiedName xmlName)
-        : base(typeId, xmlName, ExpandedNodeId.Null,
-            ExpandedNodeId.Null, ExpandedNodeId.Null)
+        EnumDefinition enumDefinition, XmlQualifiedName xmlName,
+        bool isAbstract = false)
+        : base(typeId, xmlName, isAbstract)
     {
         EnumDefinition = enumDefinition;
     }
@@ -54,8 +56,8 @@ public sealed class EnumDescription : DataTypeDescription
     /// <returns></returns>
     public object? Decode(IDecoder decoder, string fieldName)
     {
-        if (EnumDefinition.Fields == null ||
-            EnumDefinition.Fields.Count == 0)
+        Debug.Assert(EnumDefinition.Fields != null);
+        if (EnumDefinition.Fields.Count == 0)
         {
             return null;
         }
@@ -112,8 +114,8 @@ public sealed class EnumDescription : DataTypeDescription
         // Initialize a null value to the first field in the description
         if (o is not EnumValue e)
         {
-            e = EnumDefinition.Fields == null ||
-                EnumDefinition.Fields.Count == 0
+            Debug.Assert(EnumDefinition.Fields != null);
+            e = EnumDefinition.Fields.Count == 0
                 ? new EnumValue("0", 0)
                 : new EnumValue(
                     EnumDefinition.Fields[0].Name,

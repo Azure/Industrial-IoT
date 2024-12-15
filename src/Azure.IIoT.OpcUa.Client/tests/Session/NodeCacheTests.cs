@@ -775,7 +775,7 @@ public sealed class NodeCacheTests
     public async Task GetValuesAsyncShouldHandleErrorsAsync()
     {
         // Arrange
-        var ids = new List<NodeId> { new ("test1", 0), new ("test2", 0) };
+        var ids = new List<NodeId> { new("test1", 0), new("test2", 0) };
         var context = new Mock<INodeCacheContext>();
 
         context
@@ -785,7 +785,7 @@ public sealed class NodeCacheTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ResultSet<DataValue>
             {
-                Results = new List<DataValue> { new (), new () },
+                Results = new List<DataValue> { new(), new() },
                 Errors = new[] { new ServiceResult(StatusCodes.BadUnexpectedError), ServiceResult.Good }
             })
             .Verifiable(Times.Once);
@@ -810,7 +810,7 @@ public sealed class NodeCacheTests
             new (new Variant(123), StatusCodes.Good, DateTime.UtcNow),
             new (new Variant(456), StatusCodes.Good, DateTime.UtcNow)
         };
-        var ids = new List<NodeId> { new ("test1", 0), new ("test2", 0) };
+        var ids = new List<NodeId> { new("test1", 0), new("test2", 0) };
         var context = new Mock<INodeCacheContext>();
 
         context

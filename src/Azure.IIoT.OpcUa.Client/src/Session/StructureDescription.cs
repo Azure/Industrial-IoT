@@ -6,10 +6,7 @@
 namespace Opc.Ua.Client;
 
 using Opc.Ua;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Xml;
 
 /// <summary>
@@ -26,6 +23,21 @@ public abstract class StructureDescription : DataTypeDescription
     /// Structure definition
     /// </summary>
     public StructureDefinition StructureDefinition { get; }
+
+    /// <summary>
+    /// Binary encoding id
+    /// </summary>
+    public ExpandedNodeId BinaryEncodingId { get; }
+
+    /// <summary>
+    /// Xml encoding id
+    /// </summary>
+    public ExpandedNodeId XmlEncodingId { get; }
+
+    /// <summary>
+    /// Json encoding id
+    /// </summary>
+    public ExpandedNodeId JsonEncodingId { get; }
 
     /// <summary>
     /// Allows subtypes in the fields
@@ -56,26 +68,28 @@ public abstract class StructureDescription : DataTypeDescription
     /// <param name="binaryEncodingId"></param>
     /// <param name="xmlEncodingId"></param>
     /// <param name="jsonEncodingId"></param>
+    /// <param name="isAbstract"></param>
     /// <returns></returns>
-    internal static StructureDescription Create(DataTypeSystem cache,
+    internal static StructureDescription Create(IDataTypeSystem cache,
         ExpandedNodeId typeId, StructureDefinition structureDefinition,
         XmlQualifiedName xmlName, ExpandedNodeId binaryEncodingId,
-        ExpandedNodeId xmlEncodingId, ExpandedNodeId jsonEncodingId)
+        ExpandedNodeId xmlEncodingId, ExpandedNodeId jsonEncodingId,
+        bool isAbstract = false)
     {
         switch (structureDefinition.StructureType)
         {
             case StructureType.Structure:
             case StructureType.StructureWithSubtypedValues:
                 return new Structure(cache, typeId, structureDefinition, xmlName,
-                    binaryEncodingId, xmlEncodingId, jsonEncodingId);
+                    binaryEncodingId, xmlEncodingId, jsonEncodingId, isAbstract);
             case StructureType.StructureWithOptionalFields:
                 return new StructureWithOptionalFields(cache, typeId,
                     structureDefinition, xmlName, binaryEncodingId,
-                    xmlEncodingId, jsonEncodingId);
+                    xmlEncodingId, jsonEncodingId, isAbstract);
             case StructureType.Union:
             case StructureType.UnionWithSubtypedValues:
                 return new Union(cache, typeId, structureDefinition, xmlName,
-                    binaryEncodingId, xmlEncodingId, jsonEncodingId);
+                    binaryEncodingId, xmlEncodingId, jsonEncodingId, isAbstract);
             default:
                 return Null;
         }
@@ -91,12 +105,16 @@ public abstract class StructureDescription : DataTypeDescription
     /// <param name="binaryEncodingId"></param>
     /// <param name="xmlEncodingId"></param>
     /// <param name="jsonEncodingId"></param>
-    private StructureDescription(DataTypeSystem cache, ExpandedNodeId typeId,
+    /// <param name="isAbstract"></param>
+    private StructureDescription(IDataTypeSystem cache, ExpandedNodeId typeId,
         StructureDefinition structureDefinition, XmlQualifiedName xmlName,
         ExpandedNodeId binaryEncodingId, ExpandedNodeId xmlEncodingId,
-        ExpandedNodeId jsonEncodingId) : base(typeId, xmlName,
-            binaryEncodingId, xmlEncodingId, jsonEncodingId)
+        ExpandedNodeId jsonEncodingId, bool isAbstract) :
+        base(typeId, xmlName, isAbstract)
     {
+        BinaryEncodingId = binaryEncodingId;
+        XmlEncodingId = xmlEncodingId;
+        JsonEncodingId = jsonEncodingId;
         StructureDefinition = structureDefinition;
         _fields = structureDefinition.Fields
             .Select((f, order) => new StructureFieldDescription(
@@ -110,6 +128,9 @@ public abstract class StructureDescription : DataTypeDescription
     private StructureDescription()
     {
         StructureDefinition = new StructureDefinition();
+        BinaryEncodingId = ExpandedNodeId.Null;
+        XmlEncodingId = ExpandedNodeId.Null;
+        JsonEncodingId = ExpandedNodeId.Null;
         _fields = [];
     }
 
@@ -149,12 +170,12 @@ public abstract class StructureDescription : DataTypeDescription
     internal sealed class Structure : StructureDescription
     {
         /// <inheritdoc/>
-        public Structure(DataTypeSystem cache, ExpandedNodeId typeId,
+        public Structure(IDataTypeSystem cache, ExpandedNodeId typeId,
             StructureDefinition structureDefinition, XmlQualifiedName xmlName,
             ExpandedNodeId binaryEncodingId, ExpandedNodeId xmlEncodingId,
-            ExpandedNodeId jsonEncodingId) : base(cache, typeId,
-                structureDefinition, xmlName, binaryEncodingId,
-                xmlEncodingId, jsonEncodingId)
+            ExpandedNodeId jsonEncodingId, bool isAbstract) :
+            base(cache, typeId, structureDefinition, xmlName,
+                binaryEncodingId, xmlEncodingId, jsonEncodingId, isAbstract)
         {
         }
 
@@ -172,10 +193,14 @@ public abstract class StructureDescription : DataTypeDescription
         /// <inheritdoc/>
         public override void Encode(IEncoder encoder, object?[]? values)
         {
+            if (values == null || values.Length != _fields.Length)
+            {
+                throw ServiceResultException.Create(StatusCodes.BadDataEncodingInvalid,
+                    "Not enough values for all fields.");
+            }
             for (int i = 0; i < _fields.Length; i++)
             {
-                _fields[i].Encode(encoder, values == null ||
-                    i >= _fields.Length ? null : values[i]);
+                _fields[i].Encode(encoder, values[i]);
             }
         }
     }
@@ -186,12 +211,12 @@ public abstract class StructureDescription : DataTypeDescription
     internal sealed class Union : StructureDescription
     {
         /// <inheritdoc/>
-        public Union(DataTypeSystem cache, ExpandedNodeId typeId,
+        public Union(IDataTypeSystem cache, ExpandedNodeId typeId,
             StructureDefinition structureDefinition, XmlQualifiedName xmlName,
             ExpandedNodeId binaryEncodingId, ExpandedNodeId xmlEncodingId,
-            ExpandedNodeId jsonEncodingId) : base(cache, typeId,
-                structureDefinition, xmlName, binaryEncodingId,
-                xmlEncodingId, jsonEncodingId)
+            ExpandedNodeId jsonEncodingId, bool isAbstract) :
+            base(cache, typeId, structureDefinition, xmlName,
+                binaryEncodingId, xmlEncodingId, jsonEncodingId, isAbstract)
         {
         }
 
@@ -204,11 +229,11 @@ public abstract class StructureDescription : DataTypeDescription
                 throw ServiceResultException.Create(StatusCodes.BadDataEncodingInvalid,
                     "Union selector out of range");
             }
-            return new object?[]
-            {
+            return
+            [
                 switchField,
-                switchField == 0 ? null : _fields[switchField - 1].Decode(decoder)
-            };
+                switchField == 0 ? null : _fields[switchField - 1].Decode(decoder, "Value")
+            ];
         }
 
         /// <inheritdoc/>
@@ -237,7 +262,7 @@ public abstract class StructureDescription : DataTypeDescription
             }
             else if (!encoder.UseReversibleEncoding)
             {
-                encoder.WriteString(null, "null"); // TODO: Check if correct!
+                encoder.WriteString(fieldName, null);
             }
         }
     }
@@ -248,12 +273,12 @@ public abstract class StructureDescription : DataTypeDescription
     internal sealed class StructureWithOptionalFields : StructureDescription
     {
         /// <inheritdoc/>
-        public StructureWithOptionalFields(DataTypeSystem cache, ExpandedNodeId typeId,
+        public StructureWithOptionalFields(IDataTypeSystem cache, ExpandedNodeId typeId,
             StructureDefinition structureDefinition, XmlQualifiedName xmlName,
             ExpandedNodeId binaryEncodingId, ExpandedNodeId xmlEncodingId,
-            ExpandedNodeId jsonEncodingId) : base(cache, typeId,
-                structureDefinition, xmlName, binaryEncodingId,
-                xmlEncodingId, jsonEncodingId)
+            ExpandedNodeId jsonEncodingId, bool isAbstract) :
+            base(cache, typeId, structureDefinition, xmlName,
+                binaryEncodingId, xmlEncodingId, jsonEncodingId, isAbstract)
         {
         }
 

@@ -77,7 +77,8 @@ public interface ISessionBuilder<TPooledSessionOptions,
     /// </summary>
     IPooledSessionBuilder<TPooledSessionOptions,
         TSessionOptions>
-        FromPool { get; }
+        FromPool
+    { get; }
 }
 
 /// <summary>
@@ -286,18 +287,26 @@ public interface ISessionOptionsBuilder<T>
         bool checkDomain = true);
 
     /// <summary>
-    /// Set disable complex type loading
+    /// Enable complex type preloading
     /// </summary>
-    /// <param name="disableComplexTypeLoading"></param>
+    /// <param name="enableComplexTypePreloading"></param>
     /// <returns></returns>
-    ISessionOptionsBuilder<T> DisableComplexTypeLoading(
-        bool disableComplexTypeLoading = true);
+    ISessionOptionsBuilder<T> EnableComplexTypePreloading(
+        bool enableComplexTypePreloading = true);
 
     /// <summary>
-    /// Set disable complex type preloading
+    /// Disable loading types from data type dictionaries
     /// </summary>
-    /// <param name="disableComplexTypePreloading"></param>
+    /// <param name="disableDataTypeDictionary"></param>
     /// <returns></returns>
-    ISessionOptionsBuilder<T> DisableComplexTypePreloading(
-        bool disableComplexTypePreloading = true);
+    ISessionOptionsBuilder<T> DisableDataTypeDictionary(
+        bool disableDataTypeDictionary = true);
+
+    /// <summary>
+    /// Disable loading type system using data type definitions
+    /// </summary>
+    /// <param name="disableDataTypeDefinition"></param>
+    /// <returns></returns>
+    ISessionOptionsBuilder<T> DisableDataTypeDefinition(
+        bool disableDataTypeDefinition = true);
 }

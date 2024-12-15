@@ -5,7 +5,6 @@
 
 namespace Opc.Ua.Client;
 
-using global::Opc.Ua.Bindings;
 using Polly;
 using System;
 using System.Collections.Generic;
@@ -20,7 +19,7 @@ public class SessionOptionsBuilderBase<T> : ISessionOptionsBuilder<T>,
     where T : SessionOptions, new()
 {
     /// <inheritdoc/>
-    public T Options { get; set; } = new ();
+    public T Options { get; set; } = new();
 
     /// <inheritdoc/>
     public ISessionOptionsBuilder<T> WithName(
@@ -63,18 +62,26 @@ public class SessionOptionsBuilderBase<T> : ISessionOptionsBuilder<T>,
     }
 
     /// <inheritdoc/>
-    public ISessionOptionsBuilder<T> DisableComplexTypeLoading(
-        bool disableComplexTypeLoading)
+    public ISessionOptionsBuilder<T> EnableComplexTypePreloading(
+        bool enableComplexTypePreloading)
     {
-        Options = Options with { DisableComplexTypeLoading = disableComplexTypeLoading };
+        Options = Options with { EnableComplexTypePreloading = enableComplexTypePreloading };
         return this;
     }
 
     /// <inheritdoc/>
-    public ISessionOptionsBuilder<T> DisableComplexTypePreloading(
-        bool disableComplexTypePreloading)
+    public ISessionOptionsBuilder<T> DisableDataTypeDefinition(
+        bool disableDataTypeDefinition = true)
     {
-        Options = Options with { DisableComplexTypePreloading = disableComplexTypePreloading };
+        Options = Options with { DisableDataTypeDefinition = disableDataTypeDefinition };
+        return this;
+    }
+
+    /// <inheritdoc/>
+    public ISessionOptionsBuilder<T> DisableDataTypeDictionary(
+        bool disableDataTypeDictionary = true)
+    {
+        Options = Options with { DisableDataTypeDictionary = disableDataTypeDictionary };
         return this;
     }
 }

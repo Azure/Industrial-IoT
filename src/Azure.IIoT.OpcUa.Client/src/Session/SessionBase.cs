@@ -5,7 +5,6 @@
 
 namespace Opc.Ua.Client;
 
-using Opc.Ua.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -130,12 +129,6 @@ internal abstract class SessionBase : SessionClient, IServiceSetExtensions,
     protected internal SessionCreateOptions Options { get; protected set; }
 
     /// <summary>
-    /// Type system has loaded
-    /// </summary>
-    public bool IsTypeSystemLoaded
-        => _complexTypeSystem?.IsCompletedSuccessfully ?? false;
-
-    /// <summary>
     /// Constructs a new instance of the <see cref="SessionBase"/> class.
     /// The application configuration is used to look up the certificate
     /// if none is provided.
@@ -179,7 +172,11 @@ internal abstract class SessionBase : SessionClient, IServiceSetExtensions,
             Options.Channel?.MessageContext as ServiceMessageContext
                 ?? configuration.CreateMessageContext();
         _typeSystem = new DataTypeSystem(_nodeCache, messageContext,
-            Observability.LoggerFactory);
+            Observability.LoggerFactory)
+        {
+            DisableDataTypeDefinition = Options.DisableDataTypeDefinition,
+            DisableDataTypeDictionary = Options.DisableDataTypeDictionary
+        };
         messageContext.Factory = _typeSystem;
         MessageContext = messageContext;
         _systemContext = new SystemContext
@@ -623,7 +620,6 @@ internal abstract class SessionBase : SessionClient, IServiceSetExtensions,
         {
             _subscriptions.Pause();
             StopKeepAliveTimer();
-            _complexTypeSystem = null;
             var previousSessionId = SessionId;
             var previousAuthenticationToken = AuthenticationToken;
 
@@ -831,7 +827,12 @@ internal abstract class SessionBase : SessionClient, IServiceSetExtensions,
                 // fetch operation limits
                 await FetchOperationLimitsAsync(ct).ConfigureAwait(false);
 
-                await _typeSystem.LoadAllDataTypesAsync(ct: ct).ConfigureAwait(false);
+                // Fetch all data types from the server
+                if (Options.EnableComplexTypePreloading)
+                {
+                    await _typeSystem.TryLoadAllDataTypesAsync(ct: ct).ConfigureAwait(false);
+                }
+
                 await _subscriptions.RecreateSubscriptionsAsync(previousSessionId,
                     ct).ConfigureAwait(false);
                 _subscriptions.Resume();
@@ -2426,14 +2427,9 @@ internal abstract class SessionBase : SessionClient, IServiceSetExtensions,
                 _clientCertificate.NotAfter < DateTime.UtcNow)
             {
                 // load the application instance certificate.
-                var cert = _configuration.SecurityConfiguration.ApplicationCertificate;
-                if (cert == null)
-                {
-                    throw new ServiceResultException(StatusCodes.BadConfigurationError,
+                var cert = _configuration.SecurityConfiguration.ApplicationCertificate ?? throw new ServiceResultException(StatusCodes.BadConfigurationError,
                         "The client configuration does not specify an application " +
                         "instance certificate.");
-                }
-
                 ct.ThrowIfCancellationRequested();
                 _clientCertificate = await cert.Find(true).ConfigureAwait(false);
                 ct.ThrowIfCancellationRequested();
@@ -2486,7 +2482,6 @@ internal abstract class SessionBase : SessionClient, IServiceSetExtensions,
     private uint _maxRequestMessageSize;
     private long _keepAliveCounter;
     private ITransportWaitingConnection? _connection;
-    private Task<DataTypeSystem>? _complexTypeSystem;
     private int _namespaceTableChanges;
     private int _serverTableChanges;
     private bool _disposeAsyncCalled;

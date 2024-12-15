@@ -19,7 +19,8 @@ public record class SubscriptionClientOptions
     public Dictionary<
         string,
         IOptionsMonitor<MonitoredItemOptions>
-        > MonitoredItems { get; init; } = [];
+        > MonitoredItems
+    { get; init; } = [];
 
     /// <summary>
     /// Subscription options

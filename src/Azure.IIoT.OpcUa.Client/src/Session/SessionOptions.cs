@@ -54,15 +54,20 @@ public record class SessionOptions
     public bool CheckDomain { get; init; }
 
     /// <summary>
-    /// No complex type loading ever. This will effectively
-    /// disable any use of the GetComplexTypeSystemAsync() API.
+    /// Enable complex type preloading when session is created.
+    /// The complex type system will otherwise be lazily loaded.
     /// </summary>
-    public bool DisableComplexTypeLoading { get; init; }
+    public bool EnableComplexTypePreloading { get; init; }
 
     /// <summary>
-    /// Disable complex type preloading when session is created.
-    /// The complex type can then be lazily loaded using the
-    /// GetComplexTypeSystemAsync() API.
+    /// Disable the use of DataTypeDefinition to create the
+    /// complex type definition.
     /// </summary>
-    public bool DisableComplexTypePreloading { get; init; }
+    public bool DisableDataTypeDefinition { get; init; }
+
+    /// <summary>
+    /// Disable the use of DataType Dictionaries to create the
+    /// complex type definition.
+    /// </summary>
+    public bool DisableDataTypeDictionary { get; init; }
 }

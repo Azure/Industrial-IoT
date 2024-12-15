@@ -9,7 +9,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Nito.AsyncEx;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -81,12 +80,9 @@ internal sealed class SubscriptionClient : IAsyncDisposable
         IOptionsMonitor<SubscriptionClientOptions> options, INotificationQueue queue,
         CancellationToken ct = default)
     {
-        var subOptions = options.CurrentValue.Options;
-        if (subOptions == null)
-        {
-            throw ServiceResultException.Create(StatusCodes.BadInvalidArgument,
+        var subOptions = options.CurrentValue.Options
+            ?? throw ServiceResultException.Create(StatusCodes.BadInvalidArgument,
                 "Subscription options are missing and must be specified.");
-        }
         await _subscriptionLock.WaitAsync(ct).ConfigureAwait(false);
         try
         {
@@ -576,7 +572,8 @@ internal sealed class SubscriptionClient : IAsyncDisposable
                 Registration Registration,
                 string Name,
                 IOptionsMonitor<MonitoredItemOptions> Options
-                )> Items { get; } = [];
+                )> Items
+            { get; } = [];
 
             /// <summary>
             /// Create
