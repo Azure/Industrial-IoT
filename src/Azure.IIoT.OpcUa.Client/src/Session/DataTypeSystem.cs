@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -68,20 +69,22 @@ internal class DataTypeSystem : IEncodeableFactory, IDataTypeSystem
         _logger = loggerFactory.CreateLogger<DataTypeSystem>();
         _context = context;
         _factory = context.Factory;
-        _typeResolver = new DataTypeLoader(nodeCache, context,
-            loggerFactory.CreateLogger<DataTypeLoader>());
+        _nodeCache = nodeCache;
+        _dictionaries = new DataTypeDictionaries(nodeCache, context,
+            loggerFactory.CreateLogger<DataTypeDictionaries>());
     }
 
     /// <summary>
     /// Clone constructor
     /// </summary>
-    /// <param name="complexTypeSystem"></param>
-    private DataTypeSystem(DataTypeSystem complexTypeSystem)
+    /// <param name="dataTypeSystem"></param>
+    private DataTypeSystem(DataTypeSystem dataTypeSystem)
     {
-        _logger = complexTypeSystem._logger;
-        _context = complexTypeSystem._context;
-        _factory = complexTypeSystem._factory;
-        _typeResolver = complexTypeSystem._typeResolver;
+        _logger = dataTypeSystem._logger;
+        _context = dataTypeSystem._context;
+        _factory = dataTypeSystem._factory;
+        _nodeCache = dataTypeSystem._nodeCache;
+        _dictionaries = dataTypeSystem._dictionaries;
     }
 
     /// <inheritdoc/>
@@ -220,11 +223,11 @@ internal class DataTypeSystem : IEncodeableFactory, IDataTypeSystem
         try
         {
             // load server types into cache
-            await _typeResolver.LoadDataTypesAsync(
+            await LoadDataTypesAsync(
                 DataTypeIds.BaseDataType, true, ct: ct).ConfigureAwait(false);
-            var serverEnumTypes = await _typeResolver.LoadDataTypesAsync(
+            var serverEnumTypes = await LoadDataTypesAsync(
                 DataTypeIds.Enumeration, ct: ct).ConfigureAwait(false);
-            var serverStructTypes = await _typeResolver.LoadDataTypesAsync(
+            var serverStructTypes = await LoadDataTypesAsync(
                 DataTypeIds.Structure, true, ct: ct).ConfigureAwait(false);
 
             var allTypesLoaded = false;
@@ -248,9 +251,26 @@ internal class DataTypeSystem : IEncodeableFactory, IDataTypeSystem
             // 2. Load the rest from the dictionaries (<= 1.03)
             if (!DisableDataTypeDictionary)
             {
+                // strip known types from list
+                serverEnumTypes = RemoveKnownTypes(serverEnumTypes);
+
                 // Load the rest from the dictionaries (<= 1.03)
-                return await LoadDictionaryDataTypesAsync(true,
-                    serverEnumTypes, ct).ConfigureAwait(false);
+                await foreach (var type in _dictionaries.GetDictionaryDataTypesAsync(
+                    serverEnumTypes, ct).ConfigureAwait(false))
+                {
+                    switch (type.Definition)
+                    {
+                        case StructureDefinition s:
+                            Add(type.Node.NodeId, s, type.BinaryEncodingId,
+                                type.XmlEncodingId, type.XmlName, type.Node.IsAbstract);
+                            break;
+                        case EnumDefinition e:
+                            Add(type.Node.NodeId, e, type.XmlName, type.Node.IsAbstract);
+                            break;
+                        default:
+                            break;
+                    }
+                }
             }
             return false;
         }
@@ -268,15 +288,14 @@ internal class DataTypeSystem : IEncodeableFactory, IDataTypeSystem
     /// <param name="definition"></param>
     /// <param name="binaryEncodingId"></param>
     /// <param name="xmlEncodingId"></param>
-    /// <param name="jsonEncodingId"></param>
     /// <param name="xmlName"></param>
     /// <param name="isAbstract"></param>
-    internal void Add(ExpandedNodeId typeId, StructureDefinition definition,
+    private void Add(ExpandedNodeId typeId, StructureDefinition definition,
         ExpandedNodeId binaryEncodingId, ExpandedNodeId xmlEncodingId,
-        ExpandedNodeId jsonEncodingId, XmlQualifiedName xmlName, bool isAbstract)
+        XmlQualifiedName xmlName, bool isAbstract)
     {
         _structures[typeId] = StructureDescription.Create(this, typeId, definition,
-            xmlName, binaryEncodingId, xmlEncodingId, jsonEncodingId, isAbstract);
+            xmlName, binaryEncodingId, xmlEncodingId, ExpandedNodeId.Null, isAbstract);
     }
 
     /// <summary>
@@ -287,196 +306,11 @@ internal class DataTypeSystem : IEncodeableFactory, IDataTypeSystem
     /// <param name="xmlName"></param>
     /// <param name="isAbstract"></param>
     /// <returns></returns>
-    internal void Add(ExpandedNodeId typeId, EnumDefinition enumDefinition,
+    private void Add(ExpandedNodeId typeId, EnumDefinition enumDefinition,
         XmlQualifiedName xmlName, bool isAbstract)
     {
         _enums[typeId] = new EnumDescription(typeId, enumDefinition,
             xmlName, isAbstract);
-    }
-
-    /// <summary>
-    /// Load listed custom types from dictionaries into cache. Loads all at once
-    /// to avoid complexity when resolving type dependencies and given we have
-    /// the dictionaries already open.
-    /// </summary>
-    /// <param name="fullTypeList"></param>
-    /// <param name="serverEnumTypes"></param>
-    /// <param name="ct"></param>
-    /// <exception cref="ServiceResultException"></exception>
-    private async ValueTask<bool> LoadDictionaryDataTypesAsync(bool fullTypeList,
-        IReadOnlyList<INode> serverEnumTypes, CancellationToken ct)
-    {
-        // build a type dictionary with all known new types
-        var allEnumTypes = fullTypeList ? serverEnumTypes :
-            await _typeResolver.LoadDataTypesAsync(DataTypeIds.Enumeration,
-                ct: ct).ConfigureAwait(false);
-        var typeDictionary = new Dictionary<XmlQualifiedName, NodeId>();
-        // strip known types from list
-        serverEnumTypes = RemoveKnownTypes(allEnumTypes);
-
-        // load the binary schema dictionaries from the server
-        var typeSystem = await _typeResolver.LoadDataTypeSystemAsync(
-            ct: ct).ConfigureAwait(false);
-
-        // sort dictionaries with import dependencies to the end of the list
-        var sortedTypeSystem = typeSystem
-            .OrderBy(t => t.Value.TypeDictionary?.Import?.Length)
-            .ToList();
-
-        var allTypesLoaded = true;
-        // create custom types for all dictionaries
-        foreach (var dictionaryId in sortedTypeSystem)
-        {
-            try
-            {
-                var dictionary = dictionaryId.Value;
-                if (dictionary.TypeDictionary?.Items == null)
-                {
-                    continue;
-                }
-
-                // Add all unknown enumeration and structure types in dictionary
-                var targetNamespace = dictionary.TypeDictionary.TargetNamespace;
-                AddEnumTypesFromDictionary(typeDictionary, targetNamespace,
-                    dictionary.GetEnumTypes(), allEnumTypes);
-                await AddStructureTypesFromDictionaryAsync(typeDictionary, dictionary,
-                    targetNamespace, dictionary.GetStructureTypes(),
-                    ct).ConfigureAwait(false);
-            }
-            catch (ServiceResultException sre)
-            {
-                _logger.LogError(sre, "Unexpected error processing {Entry}.",
-                    dictionaryId.Value.Name);
-                allTypesLoaded = false;
-            }
-        }
-        return allTypesLoaded;
-    }
-
-    /// <summary>
-    /// Add all enum types defined in a binary schema dictionary.
-    /// </summary>
-    /// <param name="typeDictionary"></param>
-    /// <param name="targetNamespace"></param>
-    /// <param name="enumTypes"></param>
-    /// <param name="allEnumNodes"></param>
-    private void AddEnumTypesFromDictionary(
-        Dictionary<XmlQualifiedName, NodeId> typeDictionary, string targetNamespace,
-        IReadOnlyList<Schema.Binary.EnumeratedType> enumTypes, IReadOnlyList<INode> allEnumNodes)
-    {
-        var targetNamespaceIndex = _typeResolver.NamespaceUris.GetIndex(targetNamespace);
-        foreach (var item in enumTypes)
-        {
-            // Find the type already exists
-            var enumDataTypeNode = allEnumNodes
-                .FirstOrDefault(node => node.BrowseName.Name == item.Name &&
-                    node.BrowseName.NamespaceIndex == targetNamespaceIndex)
-                as DataTypeNode;
-
-            var enumDefinition = item.ToEnumDefinition();
-            if (enumDataTypeNode != null)
-            {
-                Add(enumDataTypeNode.NodeId, enumDefinition, item.QName,
-                    enumDataTypeNode.IsAbstract);
-                var qName = new XmlQualifiedName(item.Name, targetNamespace);
-                typeDictionary[qName] = enumDataTypeNode.NodeId;
-            }
-        }
-    }
-
-    /// <summary>
-    /// Add structure types from data dictionary
-    /// </summary>
-    /// <param name="typeDictionary"></param>
-    /// <param name="dictionary"></param>
-    /// <param name="targetNamespace"></param>
-    /// <param name="structureList"></param>
-    /// <param name="ct"></param>
-    /// <returns></returns>
-    private async ValueTask AddStructureTypesFromDictionaryAsync(
-        Dictionary<XmlQualifiedName, NodeId> typeDictionary, DataTypeDictionary dictionary,
-        string targetNamespace, IReadOnlyList<Schema.Binary.StructuredType> structureList,
-        CancellationToken ct)
-    {
-        // build structured types
-        foreach (var item in structureList)
-        {
-            if (item is not Schema.Binary.StructuredType structuredObject)
-            {
-                continue;
-            }
-            var nodeId = dictionary.DataTypes
-                .FirstOrDefault(d => d.Value.Name == item.Name).Key;
-            if (NodeId.IsNull(nodeId))
-            {
-                _logger.LogError("Skip the type definition of {Type} because " +
-                    "the data type node was not found.", item.Name);
-                continue;
-            }
-
-            // find the data type node and the binary encoding id
-            (var typeId, var binaryEncodingId, var dataTypeNode) =
-                await _typeResolver.BrowseTypeIdsForDictionaryComponentAsync(
-                    nodeId, ct).ConfigureAwait(false);
-
-            if (dataTypeNode == null)
-            {
-                _logger.LogError("Skip the type definition of {Type} because" +
-                    " the data type node was not found.", item.Name);
-                continue;
-            }
-
-            if (IsKnownType(typeId))
-            {
-                var qName = structuredObject.QName ?? new XmlQualifiedName(
-                    structuredObject.Name, targetNamespace);
-                typeDictionary[qName] =
-                    ExpandedNodeId.ToNodeId(typeId, _typeResolver.NamespaceUris)
-                        ?? NodeId.Null;
-                _logger.LogInformation("Skip the type definition of " +
-                    "{Type} because the type already exists.", item.Name);
-                continue;
-            }
-
-            // Use DataTypeDefinition attribute, if available (>=V1.04)
-            StructureDefinition? structureDefinition = null;
-            if (!DisableDataTypeDefinition)
-            {
-                structureDefinition = GetStructureDefinition(dataTypeNode);
-            }
-            if (structureDefinition == null)
-            {
-                try
-                {
-                    // convert the binary schema to a StructureDefinition
-                    structureDefinition = structuredObject.ToStructureDefinition(
-                        binaryEncodingId, typeDictionary,
-                        _typeResolver.NamespaceUris, dataTypeNode.NodeId);
-                }
-                catch (ServiceResultException sre)
-                {
-                    _logger.LogError(sre, "Skip the type definition of {Type}.",
-                        item.Name);
-                    continue;
-                }
-            }
-            if (structureDefinition != null)
-            {
-                // Add structure definition
-                (var encodingIds, binaryEncodingId, var xmlEncodingId) =
-                    await _typeResolver.BrowseForEncodingsAsync(typeId, kSupportedEncodings,
-                    ct).ConfigureAwait(false);
-                Add(typeId, structureDefinition, binaryEncodingId, xmlEncodingId,
-                    ExpandedNodeId.Null, GetXmlNameFromBrowseName(dataTypeNode.BrowseName),
-                    dataTypeNode.IsAbstract);
-
-                var qName = structuredObject.QName ?? new XmlQualifiedName(
-                    structuredObject.Name, targetNamespace);
-                typeDictionary[qName] =
-                    ExpandedNodeId.ToNodeId(typeId, _typeResolver.NamespaceUris)
-                        ?? NodeId.Null;
-            }
-        }
     }
 
     /// <summary>
@@ -517,7 +351,7 @@ internal class DataTypeSystem : IEncodeableFactory, IDataTypeSystem
         // strip known types
         dataTypeNodes = RemoveKnownTypes(dataTypeNodes);
         // cache the encodings
-        await _typeResolver.BrowseForEncodingsAsync(dataTypeNodes
+        await BrowseForEncodingsAsync(dataTypeNodes
             .Select(n => n.NodeId)
             .ToList(), kSupportedEncodings, ct).ConfigureAwait(false);
 
@@ -549,12 +383,11 @@ internal class DataTypeSystem : IEncodeableFactory, IDataTypeSystem
             return false;
         }
         var (encodingIds, binaryEncodingId, xmlEncodingId)
-            = await _typeResolver.BrowseForEncodingsAsync(dataTypeNode.NodeId,
+            = await BrowseForEncodingsAsync(dataTypeNode.NodeId,
                 kSupportedEncodings, ct).ConfigureAwait(false);
         var typeId = NormalizeExpandedNodeId(dataTypeNode.NodeId);
         Add(typeId, structureDefinition, binaryEncodingId, xmlEncodingId,
-            ExpandedNodeId.Null, GetXmlNameFromBrowseName(dataTypeNode.BrowseName),
-            dataTypeNode.IsAbstract);
+            GetXmlNameFromBrowseName(dataTypeNode.BrowseName), dataTypeNode.IsAbstract);
         return true;
     }
 
@@ -573,8 +406,8 @@ internal class DataTypeSystem : IEncodeableFactory, IDataTypeSystem
         if (DisableDataTypeDefinition || enumDefinition == null)
         {
             // browse for EnumFields or EnumStrings property
-            var enumTypeArray = await _typeResolver.GetEnumTypeArrayAsync(
-                dataTypeNode.NodeId, ct).ConfigureAwait(false);
+            var enumTypeArray = await GetEnumTypeArrayAsync(dataTypeNode.NodeId,
+                ct).ConfigureAwait(false);
             switch (enumTypeArray)
             {
                 case ExtensionObject[] extensionObject:
@@ -598,6 +431,167 @@ internal class DataTypeSystem : IEncodeableFactory, IDataTypeSystem
     }
 
     /// <summary>
+    /// Get the encodings
+    /// </summary>
+    /// <param name="nodeIds"></param>
+    /// <param name="supportedEncodings"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    private async ValueTask<IReadOnlyList<NodeId>> BrowseForEncodingsAsync(
+        IReadOnlyList<ExpandedNodeId> nodeIds, string[] supportedEncodings,
+        CancellationToken ct)
+    {
+        // cache type encodings
+        var source = nodeIds
+            .Select(nodeId => ExpandedNodeId.ToNodeId(nodeId, _context.NamespaceUris))
+            .ToList();
+        var encodings = await _nodeCache.GetReferencesAsync(
+            source, new[] { ReferenceTypeIds.HasEncoding },
+            false, false, ct).ConfigureAwait(false);
+
+        // cache dictionary descriptions
+        source = encodings
+            .Select(r => ExpandedNodeId.ToNodeId(r.NodeId, _context.NamespaceUris))
+            .ToList();
+        var descriptions = await _nodeCache.GetReferencesAsync(
+            source, new[] { ReferenceTypeIds.HasDescription },
+            false, false, ct).ConfigureAwait(false);
+        return encodings
+            .Where(r => supportedEncodings.Contains(r.BrowseName.Name))
+            .Select(r => ExpandedNodeId.ToNodeId(r.NodeId, _context.NamespaceUris)!)
+            .Where(n => !NodeId.IsNull(n))
+            .ToList();
+    }
+
+    /// <summary>
+    /// Get the encodings
+    /// </summary>
+    /// <param name="nodeId"></param>
+    /// <param name="supportedEncodings"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    private async ValueTask<(
+        IReadOnlyList<NodeId> encodings,
+        ExpandedNodeId binaryEncodingId,
+        ExpandedNodeId xmlEncodingId
+        )> BrowseForEncodingsAsync(ExpandedNodeId nodeId,
+            string[] supportedEncodings, CancellationToken ct = default)
+    {
+        var source = ExpandedNodeId.ToNodeId(nodeId, _context.NamespaceUris);
+        var references = await _nodeCache.GetReferencesAsync(source,
+            ReferenceTypeIds.HasEncoding, false, false, ct).ConfigureAwait(false);
+
+        var binaryEncodingId = references
+            .FirstOrDefault(r => r.BrowseName.Name == BrowseNames.DefaultBinary)?
+            .NodeId ?? ExpandedNodeId.Null;
+        binaryEncodingId = NormalizeExpandedNodeId(binaryEncodingId);
+        var xmlEncodingId = references
+            .FirstOrDefault(r => r.BrowseName.Name == BrowseNames.DefaultXml)?
+            .NodeId ?? ExpandedNodeId.Null;
+        xmlEncodingId = NormalizeExpandedNodeId(xmlEncodingId);
+        return (references
+            .Where(r => supportedEncodings.Contains(r.BrowseName.Name))
+            .Select(r => ExpandedNodeId.ToNodeId(r.NodeId, _context.NamespaceUris))
+            .ToList(),
+            binaryEncodingId, xmlEncodingId);
+    }
+
+    /// <summary>
+    /// Load the data nodes for a base data type (structure or enumeration).
+    /// </summary>
+    /// <param name="dataType"></param>
+    /// <param name="nestedSubTypes"></param>
+    /// <param name="addRootNode"></param>
+    /// <param name="filterUATypes"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    /// <exception cref="ServiceResultException"></exception>
+    private async ValueTask<IReadOnlyList<INode>> LoadDataTypesAsync(
+        ExpandedNodeId dataType, bool nestedSubTypes = false,
+        bool addRootNode = false, bool filterUATypes = true,
+        CancellationToken ct = default)
+    {
+        var result = new List<INode>();
+        var nodesToBrowse = new NodeIdCollection
+            {
+                ExpandedNodeId.ToNodeId(dataType, _context.NamespaceUris)
+            };
+#if DEBUG
+        var stopwatch = Stopwatch.StartNew();
+#endif
+        if (addRootNode)
+        {
+            var rootNode = await _nodeCache.GetNodeAsync(nodesToBrowse[0],
+                ct).ConfigureAwait(false);
+            if (rootNode is not DataTypeNode)
+            {
+                throw new ServiceResultException(
+                    "Root Node is not a DataType node.");
+            }
+            result.Add(rootNode);
+        }
+
+        while (nodesToBrowse.Count > 0)
+        {
+            var response = await _nodeCache.GetReferencesAsync(nodesToBrowse,
+                new[]
+                {
+                        ReferenceTypeIds.HasSubtype
+                },
+                false, false, ct).ConfigureAwait(false);
+
+            var nextNodesToBrowse = new NodeIdCollection();
+            if (nestedSubTypes)
+            {
+                nextNodesToBrowse.AddRange(response
+                    .Select(r => ExpandedNodeId.ToNodeId(r.NodeId,
+                        _context.NamespaceUris)));
+            }
+            if (filterUATypes)
+            {
+                // filter out default namespace
+                result.AddRange(response
+                    .Where(rd => rd.NodeId.NamespaceIndex != 0));
+            }
+            else
+            {
+                result.AddRange(response);
+            }
+            nodesToBrowse = nextNodesToBrowse;
+        }
+#if DEBUG
+        stopwatch.Stop();
+        _logger.LogInformation("LoadDataTypes returns {Count} nodes in {Duration}ms",
+            result.Count, stopwatch.ElapsedMilliseconds);
+#endif
+        return result;
+    }
+
+    /// <summary>
+    /// Get enum strings
+    /// </summary>
+    /// <param name="nodeId"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    private async ValueTask<object?> GetEnumTypeArrayAsync(ExpandedNodeId nodeId,
+        CancellationToken ct = default)
+    {
+        // find the property reference for the enum type
+        var references = await _nodeCache.GetReferencesAsync(
+            ExpandedNodeId.ToNodeId(nodeId, _context.NamespaceUris),
+            ReferenceTypeIds.HasProperty, false, false, ct).ConfigureAwait(false);
+        if (references.Count > 0)
+        {
+            // read the enum type array
+            var value = await _nodeCache.GetValueAsync(
+                ExpandedNodeId.ToNodeId(references[0].NodeId, _context.NamespaceUris),
+                ct).ConfigureAwait(false);
+            return value?.Value;
+        }
+        return null;
+    }
+
+    /// <summary>
     /// Helper to ensure the expanded nodeId contains a valid namespaceUri.
     /// </summary>
     /// <param name="expandedNodeId">The expanded nodeId.</param>
@@ -605,8 +599,8 @@ internal class DataTypeSystem : IEncodeableFactory, IDataTypeSystem
     private ExpandedNodeId NormalizeExpandedNodeId(ExpandedNodeId expandedNodeId)
     {
         var nodeId = ExpandedNodeId.ToNodeId(
-            expandedNodeId, _typeResolver.NamespaceUris);
-        return NodeId.ToExpandedNodeId(nodeId, _typeResolver.NamespaceUris)
+            expandedNodeId, _context.NamespaceUris);
+        return NodeId.ToExpandedNodeId(nodeId, _context.NamespaceUris)
             ?? ExpandedNodeId.Null;
     }
 
@@ -642,7 +636,7 @@ internal class DataTypeSystem : IEncodeableFactory, IDataTypeSystem
     private XmlQualifiedName GetXmlNameFromBrowseName(QualifiedName name)
     {
         return new XmlQualifiedName(name.Name,
-        _typeResolver.NamespaceUris.GetString(name.NamespaceIndex));
+        _context.NamespaceUris.GetString(name.NamespaceIndex));
     }
 
     /// <summary>
@@ -694,9 +688,10 @@ internal class DataTypeSystem : IEncodeableFactory, IDataTypeSystem
     ];
 
     private readonly ILogger _logger;
+    private readonly INodeCache _nodeCache;
     private readonly IServiceMessageContext _context;
     private readonly IEncodeableFactory _factory;
-    private readonly DataTypeLoader _typeResolver;
+    private readonly DataTypeDictionaries _dictionaries;
     private readonly ConcurrentDictionary<ExpandedNodeId, StructureDescription> _structures = [];
     private readonly ConcurrentDictionary<ExpandedNodeId, EnumDescription> _enums = [];
 }

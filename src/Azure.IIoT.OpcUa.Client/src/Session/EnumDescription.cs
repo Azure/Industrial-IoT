@@ -64,6 +64,8 @@ public sealed class EnumDescription : DataTypeDescription
         EnumField? field = null;
         switch (decoder)
         {
+            case IEnumValueDecoder enumDecoder:
+                return enumDecoder.ReadEnumerated(fieldName, EnumDefinition);
             case JsonDecoder json:
                 if (!json.ReadField(fieldName, out var token))
                 {
@@ -98,9 +100,7 @@ public sealed class EnumDescription : DataTypeDescription
                     .Find(f => f.Value == v);
                 break;
         }
-
-        field ??= EnumDefinition.Fields[0];
-        return new EnumValue(field.Name, field.Value);
+        return new EnumValue(field ?? EnumDefinition.Fields[0]);
     }
 
     /// <summary>
@@ -116,18 +116,23 @@ public sealed class EnumDescription : DataTypeDescription
         {
             Debug.Assert(EnumDefinition.Fields != null);
             e = EnumDefinition.Fields.Count == 0
-                ? new EnumValue("0", 0)
-                : new EnumValue(
-                    EnumDefinition.Fields[0].Name,
-                    EnumDefinition.Fields[0].Value);
+                ? EnumValue.Null
+                : new EnumValue(EnumDefinition.Fields[0]);
         }
-        if (encoder is JsonEncoder json &&
-            json.EncodingToUse != JsonEncodingType.Reversible &&
-            json.EncodingToUse != JsonEncodingType.Compact)
+        switch (encoder)
         {
-            json.WriteString(fieldName, e.Symbol);
-            return;
+            case IEnumValueEncoder enumEncoder:
+                enumEncoder.WriteEnumerated(fieldName, e, EnumDefinition);
+                break;
+            case JsonEncoder json when
+                json.EncodingToUse != JsonEncodingType.Reversible &&
+                json.EncodingToUse != JsonEncodingType.Compact:
+
+                json.WriteString(fieldName, e.Symbol);
+                break;
+            default:
+                encoder.WriteInt32(fieldName, (int)e.Value);
+                break;
         }
-        encoder.WriteInt32(fieldName, (int)e.Value);
     }
 }

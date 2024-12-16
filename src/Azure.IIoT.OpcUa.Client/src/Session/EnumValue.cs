@@ -9,8 +9,12 @@ namespace Opc.Ua.Client;
 /// <para>
 /// This is an object that works around the limits of the encoder
 /// decoder api today which uses the .net Enum type to represent
-/// enumerations. EnumObject is a enum value with both symbol and
-/// value which can be decoded and encoded using the enum description.
+/// enumerations.
+/// </para>
+/// <para>
+/// EnumValue is a enum value of type <see cref="EnumValueType"/>
+/// with both symbol and value which can be decoded and encoded
+/// using the enum description.
 /// </para>
 /// <para>
 /// There are only 2 cases where a custom enum can occur:
@@ -26,6 +30,41 @@ namespace Opc.Ua.Client;
 /// and thus will not even hit us here. This needs to be validated!!
 /// </para>
 /// </summary>
-/// <param name="Symbol"></param>
-/// <param name="Value"></param>
-internal sealed record class EnumValue(string Symbol, long Value);
+public sealed record class EnumValue
+{
+    /// <summary>
+    /// Symbol
+    /// </summary>
+    public string Symbol { get; }
+
+    /// <summary>
+    /// Value
+    /// </summary>
+    public long Value { get; }
+
+    /// <summary>
+    /// Empty enum value
+    /// </summary>
+    public static EnumValue Null { get; } = new EnumValue("0", 0);
+
+    /// <summary>
+    /// Create enum value
+    /// </summary>
+    /// <param name="displayName"></param>
+    /// <param name="value"></param>
+    public EnumValue(string displayName, long value)
+    {
+        Symbol = displayName;
+        Value = value;
+    }
+
+    /// <summary>
+    /// Create enum value from field
+    /// </summary>
+    /// <param name="field"></param>
+    public EnumValue(EnumField field)
+    {
+        Symbol = field.Name;
+        Value = field.Value;
+    }
+}
