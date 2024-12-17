@@ -44,7 +44,7 @@ internal sealed class StructureFieldDescription
     /// <param name="field"></param>
     /// <param name="isAllowSubTypes"></param>
     /// <param name="fieldIndex"></param>
-    public StructureFieldDescription(IDataTypeSystem cache,
+    public StructureFieldDescription(IDataTypeDescriptionResolver cache,
         StructureField field, bool isAllowSubTypes, int fieldIndex)
     {
         _typeSystem = cache;
@@ -113,8 +113,7 @@ internal sealed class StructureFieldDescription
     /// <exception cref="ServiceResultException"></exception>
     private void EncodeScalar(IEncoder encoder, string fieldName, object? o)
     {
-        var builtInType = GetType(out var type);
-        switch (builtInType)
+        switch (GetType(out var type))
         {
             case BuiltInType.Boolean:
                 encoder.WriteBoolean(fieldName, (bool?)o ?? false);
@@ -246,8 +245,7 @@ internal sealed class StructureFieldDescription
     /// <exception cref="ServiceResultException"></exception>
     private object? DecodeScalar(IDecoder decoder, string fieldName)
     {
-        var builtInType = GetType(out var type);
-        switch (builtInType)
+        switch (GetType(out var type))
         {
             case BuiltInType.Boolean:
                 return decoder.ReadBoolean(fieldName);
@@ -383,15 +381,15 @@ internal sealed class StructureFieldDescription
         switch ((uint)builtInType)
         {
             // supertypes of numbers
-            case DataTypes.Integer:
-            case DataTypes.UInteger:
-            case DataTypes.Number:
-            case DataTypes.Decimal:
+            case Ua.DataTypes.Integer:
+            case Ua.DataTypes.UInteger:
+            case Ua.DataTypes.Number:
+            case Ua.DataTypes.Decimal:
                 return BuiltInType.Variant;
             default:
                 return Ua.TypeInfo.GetBuiltInType(datatypeId);
         }
     }
 
-    private readonly IDataTypeSystem _typeSystem;
+    private readonly IDataTypeDescriptionResolver _typeSystem;
 }

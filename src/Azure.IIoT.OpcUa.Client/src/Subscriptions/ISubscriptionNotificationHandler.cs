@@ -29,7 +29,7 @@ public record struct EventNotification(IMonitoredItem? MonitoredItem,
 /// <summary>
 /// Notification handler
 /// </summary>
-public interface ISubscriptionNotificiationHandler
+public interface ISubscriptionNotificationHandler
 {
     /// <summary>
     /// Process data change notification

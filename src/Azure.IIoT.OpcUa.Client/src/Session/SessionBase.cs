@@ -171,11 +171,10 @@ internal abstract class SessionBase : SessionClient, IServiceSetExtensions,
         var messageContext =
             Options.Channel?.MessageContext as ServiceMessageContext
                 ?? configuration.CreateMessageContext();
-        _typeSystem = new DataTypeSystem(_nodeCache, messageContext,
+        _typeSystem = new DataTypeDescriptionCache(_nodeCache, messageContext,
             Observability.LoggerFactory)
         {
-            DisableDataTypeDefinition = Options.DisableDataTypeDefinition,
-            DisableDataTypeDictionary = Options.DisableDataTypeDictionary
+            DisableLegacyDataTypeSystem = Options.DisableDataTypeDictionary
         };
         messageContext.Factory = _typeSystem;
         MessageContext = messageContext;
@@ -582,7 +581,7 @@ internal abstract class SessionBase : SessionClient, IServiceSetExtensions,
     }
 
     /// <inheritdoc/>
-    public IManagedSubscription CreateSubscription(ISubscriptionNotificiationHandler handler,
+    public IManagedSubscription CreateSubscription(ISubscriptionNotificationHandler handler,
         IOptionsMonitor<SubscriptionOptions> options, IMessageAckQueue queue)
     {
         return CreateSubscription(handler, options, queue, Observability);
@@ -830,7 +829,7 @@ internal abstract class SessionBase : SessionClient, IServiceSetExtensions,
                 // Fetch all data types from the server
                 if (Options.EnableComplexTypePreloading)
                 {
-                    await _typeSystem.TryLoadAllDataTypesAsync(ct: ct).ConfigureAwait(false);
+                    await _typeSystem.PreloadAllDataTypeAsync(ct: ct).ConfigureAwait(false);
                 }
 
                 await _subscriptions.RecreateSubscriptionsAsync(previousSessionId,
@@ -1060,7 +1059,7 @@ internal abstract class SessionBase : SessionClient, IServiceSetExtensions,
     /// <param name="observability"></param>
     /// <returns></returns>
     protected abstract IManagedSubscription CreateSubscription(
-        ISubscriptionNotificiationHandler handler, IOptionsMonitor<SubscriptionOptions> options,
+        ISubscriptionNotificationHandler handler, IOptionsMonitor<SubscriptionOptions> options,
         IMessageAckQueue queue, IObservability observability);
 
     /// <summary>
@@ -2508,5 +2507,5 @@ internal abstract class SessionBase : SessionClient, IServiceSetExtensions,
     private static readonly TimeSpan kDefaultKeepAliveInterval = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan kKeepAliveGuardBand = TimeSpan.FromSeconds(1);
     private static readonly TimeSpan kReconnectTimeout = TimeSpan.FromSeconds(15);
-    private readonly DataTypeSystem _typeSystem;
+    private readonly DataTypeDescriptionCache _typeSystem;
 }

@@ -70,7 +70,7 @@ public abstract class StructureDescription : DataTypeDescription
     /// <param name="jsonEncodingId"></param>
     /// <param name="isAbstract"></param>
     /// <returns></returns>
-    internal static StructureDescription Create(IDataTypeSystem cache,
+    internal static StructureDescription Create(IDataTypeDescriptionResolver cache,
         ExpandedNodeId typeId, StructureDefinition structureDefinition,
         XmlQualifiedName xmlName, ExpandedNodeId binaryEncodingId,
         ExpandedNodeId xmlEncodingId, ExpandedNodeId jsonEncodingId,
@@ -106,7 +106,7 @@ public abstract class StructureDescription : DataTypeDescription
     /// <param name="xmlEncodingId"></param>
     /// <param name="jsonEncodingId"></param>
     /// <param name="isAbstract"></param>
-    private StructureDescription(IDataTypeSystem cache, ExpandedNodeId typeId,
+    private StructureDescription(IDataTypeDescriptionResolver cache, ExpandedNodeId typeId,
         StructureDefinition structureDefinition, XmlQualifiedName xmlName,
         ExpandedNodeId binaryEncodingId, ExpandedNodeId xmlEncodingId,
         ExpandedNodeId jsonEncodingId, bool isAbstract) :
@@ -170,7 +170,7 @@ public abstract class StructureDescription : DataTypeDescription
     internal sealed class Structure : StructureDescription
     {
         /// <inheritdoc/>
-        public Structure(IDataTypeSystem cache, ExpandedNodeId typeId,
+        public Structure(IDataTypeDescriptionResolver cache, ExpandedNodeId typeId,
             StructureDefinition structureDefinition, XmlQualifiedName xmlName,
             ExpandedNodeId binaryEncodingId, ExpandedNodeId xmlEncodingId,
             ExpandedNodeId jsonEncodingId, bool isAbstract) :
@@ -211,7 +211,7 @@ public abstract class StructureDescription : DataTypeDescription
     internal sealed class Union : StructureDescription
     {
         /// <inheritdoc/>
-        public Union(IDataTypeSystem cache, ExpandedNodeId typeId,
+        public Union(IDataTypeDescriptionResolver cache, ExpandedNodeId typeId,
             StructureDefinition structureDefinition, XmlQualifiedName xmlName,
             ExpandedNodeId binaryEncodingId, ExpandedNodeId xmlEncodingId,
             ExpandedNodeId jsonEncodingId, bool isAbstract) :
@@ -273,7 +273,7 @@ public abstract class StructureDescription : DataTypeDescription
     internal sealed class StructureWithOptionalFields : StructureDescription
     {
         /// <inheritdoc/>
-        public StructureWithOptionalFields(IDataTypeSystem cache, ExpandedNodeId typeId,
+        public StructureWithOptionalFields(IDataTypeDescriptionResolver cache, ExpandedNodeId typeId,
             StructureDefinition structureDefinition, XmlQualifiedName xmlName,
             ExpandedNodeId binaryEncodingId, ExpandedNodeId xmlEncodingId,
             ExpandedNodeId jsonEncodingId, bool isAbstract) :

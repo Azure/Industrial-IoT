@@ -1243,7 +1243,7 @@ public sealed class NodeCacheContextTests
             }
         }
 
-        protected override IManagedSubscription CreateSubscription(ISubscriptionNotificiationHandler handler,
+        protected override IManagedSubscription CreateSubscription(ISubscriptionNotificationHandler handler,
             IOptionsMonitor<SubscriptionOptions> _options, IMessageAckQueue queue,
             IObservability observability)
         {

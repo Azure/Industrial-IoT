@@ -60,12 +60,6 @@ public record class SessionOptions
     public bool EnableComplexTypePreloading { get; init; }
 
     /// <summary>
-    /// Disable the use of DataTypeDefinition to create the
-    /// complex type definition.
-    /// </summary>
-    public bool DisableDataTypeDefinition { get; init; }
-
-    /// <summary>
     /// Disable the use of DataType Dictionaries to create the
     /// complex type definition.
     /// </summary>

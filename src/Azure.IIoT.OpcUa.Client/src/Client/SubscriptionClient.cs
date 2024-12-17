@@ -392,7 +392,7 @@ internal sealed class SubscriptionClient : IAsyncDisposable
     /// underlying session.
     /// </summary>
     internal sealed class VirtualSubscription : OptionsMonitor<SubscriptionOptions>,
-        ISubscriptionNotificiationHandler, IAsyncDisposable
+        ISubscriptionNotificationHandler, IAsyncDisposable
     {
         /// <summary>
         /// Registrations associated with this subscription (once applied)

@@ -8,15 +8,17 @@ namespace Opc.Ua.Client;
 using Opc.Ua;
 
 /// <summary>
-/// Extens decoders to decode enumerated values
+/// Extends encoders to encode enumerated values
 /// </summary>
-public interface IEnumValueDecoder
+public interface IEnumValueTypeEncoder
 {
     /// <summary>
     /// Read enum value
     /// </summary>
     /// <param name="fieldName"></param>
+    /// <param name="enumValue"></param>
     /// <param name="enumDefinition"></param>
     /// <returns></returns>
-    EnumValue ReadEnumerated(string fieldName, EnumDefinition enumDefinition);
+    void WriteEnumerated(string fieldName, EnumValue enumValue,
+        EnumDefinition enumDefinition);
 }

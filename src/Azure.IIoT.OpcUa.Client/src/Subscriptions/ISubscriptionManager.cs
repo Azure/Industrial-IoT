@@ -68,6 +68,6 @@ public interface ISubscriptionManager
     /// <param name="handler"></param>
     /// <param name="options"></param>
     /// <returns></returns>
-    ISubscription Add(ISubscriptionNotificiationHandler handler,
+    ISubscription Add(ISubscriptionNotificationHandler handler,
         IOptionsMonitor<SubscriptionOptions> options);
 }

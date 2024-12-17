@@ -301,12 +301,4 @@ public interface ISessionOptionsBuilder<T>
     /// <returns></returns>
     ISessionOptionsBuilder<T> DisableDataTypeDictionary(
         bool disableDataTypeDictionary = true);
-
-    /// <summary>
-    /// Disable loading type system using data type definitions
-    /// </summary>
-    /// <param name="disableDataTypeDefinition"></param>
-    /// <returns></returns>
-    ISessionOptionsBuilder<T> DisableDataTypeDefinition(
-        bool disableDataTypeDefinition = true);
 }

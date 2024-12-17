@@ -26,7 +26,7 @@ public sealed class SubscriptionManagerTests : IDisposable
         _mockSession = new Mock<ISubscriptionManagerContext>();
         _mockLoggerFactory = new Mock<ILoggerFactory>();
         _mockLogger = new Mock<ILogger<SubscriptionManager>>();
-        _mockNotificationDataHandler = new Mock<ISubscriptionNotificiationHandler>();
+        _mockNotificationDataHandler = new Mock<ISubscriptionNotificationHandler>();
         _mockLoggerFactory
             .Setup(f => f.CreateLogger(It.IsAny<string>())).Returns(_mockLogger.Object);
         _subscriptionManager = new SubscriptionManager(
@@ -56,14 +56,14 @@ public sealed class SubscriptionManagerTests : IDisposable
 
         session
             .Setup(s => s.CreateSubscription(
-                It.IsAny<ISubscriptionNotificiationHandler>(),
+                It.IsAny<ISubscriptionNotificationHandler>(),
                 It.Is<IOptionsMonitor<SubscriptionOptions>>(o => o == so1),
                 It.Is<IMessageAckQueue>(q => q == sut)))
             .Returns(() => ms1.Object)
             .Verifiable(Times.Once);
         session
             .Setup(s => s.CreateSubscription(
-                It.IsAny<ISubscriptionNotificiationHandler>(),
+                It.IsAny<ISubscriptionNotificationHandler>(),
                 It.Is<IOptionsMonitor<SubscriptionOptions>>(o => o == so2),
                 It.Is<IMessageAckQueue>(q => q == sut)))
             .Returns(() => ms2.Object);
@@ -108,13 +108,13 @@ public sealed class SubscriptionManagerTests : IDisposable
 
         session
             .Setup(s => s.CreateSubscription(
-                It.IsAny<ISubscriptionNotificiationHandler>(),
+                It.IsAny<ISubscriptionNotificationHandler>(),
                 It.Is<IOptionsMonitor<SubscriptionOptions>>(o => o == so1),
                 It.Is<IMessageAckQueue>(q => q == sut)))
             .Returns(() => ms1.Object);
         session
             .Setup(s => s.CreateSubscription(
-                It.IsAny<ISubscriptionNotificiationHandler>(),
+                It.IsAny<ISubscriptionNotificationHandler>(),
                 It.Is<IOptionsMonitor<SubscriptionOptions>>(o => o == so2),
                 It.Is<IMessageAckQueue>(q => q == sut)))
             .Returns(() => ms2.Object);
@@ -170,14 +170,14 @@ public sealed class SubscriptionManagerTests : IDisposable
 
         session
             .Setup(s => s.CreateSubscription(
-                It.IsAny<ISubscriptionNotificiationHandler>(),
+                It.IsAny<ISubscriptionNotificationHandler>(),
                 It.Is<IOptionsMonitor<SubscriptionOptions>>(o => o == so1),
                 It.Is<IMessageAckQueue>(q => q == sut)))
             .Returns(() => ms1.Object)
             .Verifiable(Times.Once);
         session
             .Setup(s => s.CreateSubscription(
-                It.IsAny<ISubscriptionNotificiationHandler>(),
+                It.IsAny<ISubscriptionNotificationHandler>(),
                 It.Is<IOptionsMonitor<SubscriptionOptions>>(o => o == so2),
                 It.Is<IMessageAckQueue>(q => q == sut)))
             .Returns(() => ms2.Object)
@@ -238,7 +238,7 @@ public sealed class SubscriptionManagerTests : IDisposable
             loggerFactory, DiagnosticsMasks.None);
         session
             .Setup(s => s.CreateSubscription(
-                It.IsAny<ISubscriptionNotificiationHandler>(),
+                It.IsAny<ISubscriptionNotificationHandler>(),
                 It.Is<IOptionsMonitor<SubscriptionOptions>>(o => o == so1),
                 It.Is<IMessageAckQueue>(q => q == sut)))
             .Returns(() => ms1.Object)
@@ -327,7 +327,7 @@ public sealed class SubscriptionManagerTests : IDisposable
     {
         var mockSubscription = new Mock<IManagedSubscription>();
         _mockSession.Setup(s => s.CreateSubscription(
-            It.IsAny<ISubscriptionNotificiationHandler>(),
+            It.IsAny<ISubscriptionNotificationHandler>(),
             It.IsAny<IOptionsMonitor<SubscriptionOptions>>(),
             It.IsAny<IMessageAckQueue>()))
             .Returns(mockSubscription.Object);
@@ -342,7 +342,7 @@ public sealed class SubscriptionManagerTests : IDisposable
         var mockSubscription = new Mock<IManagedSubscription>();
         _mockSession
             .Setup(s => s.CreateSubscription(
-                It.IsAny<ISubscriptionNotificiationHandler>(),
+                It.IsAny<ISubscriptionNotificationHandler>(),
                 It.IsAny<IOptionsMonitor<SubscriptionOptions>>(),
                 It.IsAny<IMessageAckQueue>()))
             .Returns(mockSubscription.Object);
@@ -376,7 +376,7 @@ public sealed class SubscriptionManagerTests : IDisposable
         var mockSubscription = new Mock<IManagedSubscription>();
         _mockSession
             .Setup(s => s.CreateSubscription(
-                It.IsAny<ISubscriptionNotificiationHandler>(),
+                It.IsAny<ISubscriptionNotificationHandler>(),
                 It.IsAny<IOptionsMonitor<SubscriptionOptions>>(),
                 It.IsAny<IMessageAckQueue>()))
             .Returns(mockSubscription.Object);
@@ -409,7 +409,7 @@ public sealed class SubscriptionManagerTests : IDisposable
         mockSubscription.SetupGet(s => s.Id).Returns(1);
         _mockSession
             .Setup(s => s.CreateSubscription(
-                It.IsAny<ISubscriptionNotificiationHandler>(),
+                It.IsAny<ISubscriptionNotificationHandler>(),
                 It.IsAny<IOptionsMonitor<SubscriptionOptions>>(),
                 It.IsAny<IMessageAckQueue>()))
             .Returns(mockSubscription.Object);
@@ -426,7 +426,7 @@ public sealed class SubscriptionManagerTests : IDisposable
         var mockSubscription = new Mock<IManagedSubscription>();
         _mockSession
             .Setup(s => s.CreateSubscription(
-                It.IsAny<ISubscriptionNotificiationHandler>(),
+                It.IsAny<ISubscriptionNotificationHandler>(),
                 It.IsAny<IOptionsMonitor<SubscriptionOptions>>(),
                 It.IsAny<IMessageAckQueue>()))
             .Returns(mockSubscription.Object);
@@ -458,7 +458,7 @@ public sealed class SubscriptionManagerTests : IDisposable
         var mockSubscription = new Mock<IManagedSubscription>();
         _mockSession
             .Setup(s => s.CreateSubscription(
-                It.IsAny<ISubscriptionNotificiationHandler>(),
+                It.IsAny<ISubscriptionNotificationHandler>(),
                 It.IsAny<IOptionsMonitor<SubscriptionOptions>>(),
                 It.IsAny<IMessageAckQueue>()))
             .Returns(mockSubscription.Object);
@@ -472,6 +472,6 @@ public sealed class SubscriptionManagerTests : IDisposable
     private readonly Mock<ISubscriptionManagerContext> _mockSession;
     private readonly Mock<ILoggerFactory> _mockLoggerFactory;
     private readonly Mock<ILogger<SubscriptionManager>> _mockLogger;
-    private readonly Mock<ISubscriptionNotificiationHandler> _mockNotificationDataHandler;
+    private readonly Mock<ISubscriptionNotificationHandler> _mockNotificationDataHandler;
     private readonly SubscriptionManager _subscriptionManager;
 }

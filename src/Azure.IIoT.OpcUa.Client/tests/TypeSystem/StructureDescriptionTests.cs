@@ -14,11 +14,11 @@ using Xunit;
 
 public class StructureDescriptionTests
 {
-    private readonly Mock<IDataTypeSystem> _mockedTypeSystem;
+    private readonly Mock<IDataTypeDescriptionResolver> _mockedTypeSystem;
 
     public StructureDescriptionTests()
     {
-        _mockedTypeSystem = new Mock<IDataTypeSystem>();
+        _mockedTypeSystem = new Mock<IDataTypeDescriptionResolver>();
     }
 
     [Fact]

@@ -70,14 +70,6 @@ public class SessionOptionsBuilderBase<T> : ISessionOptionsBuilder<T>,
     }
 
     /// <inheritdoc/>
-    public ISessionOptionsBuilder<T> DisableDataTypeDefinition(
-        bool disableDataTypeDefinition = true)
-    {
-        Options = Options with { DisableDataTypeDefinition = disableDataTypeDefinition };
-        return this;
-    }
-
-    /// <inheritdoc/>
     public ISessionOptionsBuilder<T> DisableDataTypeDictionary(
         bool disableDataTypeDictionary = true)
     {

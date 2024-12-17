@@ -67,7 +67,7 @@ public class StructureValue : IEncodeable, IJsonEncodeable,
     /// <inheritdoc/>
     public void Encode(IEncoder encoder)
     {
-        if (encoder.Context?.Factory is IDataTypeSystem f)
+        if (encoder.Context?.Factory is IDataTypeDescriptionResolver f)
         {
             _typeCache = f;
         }
@@ -80,7 +80,7 @@ public class StructureValue : IEncodeable, IJsonEncodeable,
     /// <inheritdoc/>
     public void Decode(IDecoder decoder)
     {
-        if (decoder.Context?.Factory is IDataTypeSystem f)
+        if (decoder.Context?.Factory is IDataTypeDescriptionResolver f)
         {
             _typeCache = f;
         }
@@ -118,7 +118,7 @@ public class StructureValue : IEncodeable, IJsonEncodeable,
     /// <inheritdoc/>
     public XmlQualifiedName GetXmlName(IServiceMessageContext context)
     {
-        if (context.Factory is IDataTypeSystem f)
+        if (context.Factory is IDataTypeDescriptionResolver f)
         {
             _typeCache = f;
         }
@@ -136,5 +136,5 @@ public class StructureValue : IEncodeable, IJsonEncodeable,
     }
 
     private object?[]? _values;
-    private IDataTypeSystem? _typeCache;
+    private IDataTypeDescriptionResolver? _typeCache;
 }

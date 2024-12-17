@@ -755,7 +755,7 @@ public sealed class SessionBaseTests
     public async Task PingServerAsyncShouldHandleNoCommunicationButInGuardBandAsync()
     {
         // Arrange
-        using var sut = new TestSessionBase(_configuration,
+        await using var sut = new TestSessionBase(_configuration,
             new ConfiguredEndpoint(null, new EndpointDescription()),
             _options, _mockObservability.Object, null);
         var ct = CancellationToken.None;
@@ -785,7 +785,7 @@ public sealed class SessionBaseTests
     public async Task PingServerAsyncShouldHandleNoCommunicationOutsideGuardBandAsync()
     {
         // Arrange
-        using var sut = new TestSessionBase(_configuration,
+        await using var sut = new TestSessionBase(_configuration,
             new ConfiguredEndpoint(null, new EndpointDescription()),
             _options, _mockObservability.Object, null);
         var ct = CancellationToken.None;
@@ -1048,7 +1048,7 @@ public sealed class SessionBaseTests
     public async Task ReconnectAsyncShouldReconnectSuccessfullyAsync()
     {
         // Arrange
-        using var sut = new TestSessionBase(_configuration,
+        await using var sut = new TestSessionBase(_configuration,
             new ConfiguredEndpoint(null, new EndpointDescription
             {
                 SecurityMode = MessageSecurityMode.None,
@@ -1096,7 +1096,7 @@ public sealed class SessionBaseTests
     public async Task ReconnectAsyncShouldHandleReconnectFailureAsync()
     {
         // Arrange
-        using var sut = new TestSessionBase(_configuration,
+        await using var sut = new TestSessionBase(_configuration,
             new ConfiguredEndpoint(null, new EndpointDescription
             {
                 SecurityMode = MessageSecurityMode.None,
@@ -1132,7 +1132,7 @@ public sealed class SessionBaseTests
     public async Task ReconnectAsyncShouldHandleNoSupportedFeaturesAsync()
     {
         // Arrange
-        using var sut = new TestSessionBase(_configuration,
+        await using var sut = new TestSessionBase(_configuration,
             new ConfiguredEndpoint(null, new EndpointDescription
             {
                 SecurityMode = MessageSecurityMode.None,
@@ -1165,7 +1165,7 @@ public sealed class SessionBaseTests
     public async Task ReconnectAsyncShouldHandleCancellationAsync()
     {
         // Arrange
-        using var sut = new TestSessionBase(_configuration,
+        await using var sut = new TestSessionBase(_configuration,
             new ConfiguredEndpoint(null, new EndpointDescription
             {
                 SecurityMode = MessageSecurityMode.None,
@@ -1199,7 +1199,7 @@ public sealed class SessionBaseTests
     public async Task ReconnectAsyncShouldHandleServerResponseWithNullNonceAsync()
     {
         // Arrange
-        using var sut = new TestSessionBase(_configuration,
+        await using var sut = new TestSessionBase(_configuration,
             new ConfiguredEndpoint(null, new EndpointDescription
             {
                 SecurityMode = MessageSecurityMode.None,
@@ -1243,7 +1243,7 @@ public sealed class SessionBaseTests
     public async Task ReconnectAsyncShouldThrowWithIncompatibleIdentityAsync()
     {
         // Arrange
-        using var sut = new TestSessionBase(_configuration,
+        await using var sut = new TestSessionBase(_configuration,
             new ConfiguredEndpoint(null, new EndpointDescription
             {
                 SecurityMode = MessageSecurityMode.None,
@@ -1275,7 +1275,7 @@ public sealed class SessionBaseTests
     public async Task ReconnectAsyncShouldThrowWithBadActivationResponseAsync()
     {
         // Arrange
-        using var sut = new TestSessionBase(_configuration,
+        await using var sut = new TestSessionBase(_configuration,
             new ConfiguredEndpoint(null, new EndpointDescription
             {
                 SecurityMode = MessageSecurityMode.None,
@@ -1321,7 +1321,7 @@ public sealed class SessionBaseTests
     public async Task ReconnectAsyncShouldThrowWhenTimingOutAsync()
     {
         // Arrange
-        using var sut = new TestSessionBase(_configuration,
+        await using var sut = new TestSessionBase(_configuration,
             new ConfiguredEndpoint(null, new EndpointDescription
             {
                 SecurityMode = MessageSecurityMode.None,
@@ -1373,7 +1373,7 @@ public sealed class SessionBaseTests
             ]
         };
         _options = _options with { EnableComplexTypePreloading = false };
-        using var sut = new TestSessionBase(_configuration,
+        await using var sut = new TestSessionBase(_configuration,
             new ConfiguredEndpoint(null, ep),
             _options, _mockObservability.Object, null);
         var ct = CancellationToken.None;
@@ -1473,7 +1473,7 @@ public sealed class SessionBaseTests
             ]
         };
         _options = _options with { EnableComplexTypePreloading = false };
-        using var sut = new TestSessionBase(_configuration,
+        await using var sut = new TestSessionBase(_configuration,
             new ConfiguredEndpoint(null, ep),
             _options, _mockObservability.Object, null);
         var ct = CancellationToken.None;
@@ -1545,7 +1545,7 @@ public sealed class SessionBaseTests
             ]
         };
         _options = _options with { EnableComplexTypePreloading = false };
-        using var sut = new TestSessionBase(_configuration,
+        await using var sut = new TestSessionBase(_configuration,
             new ConfiguredEndpoint(null, ep),
             _options, _mockObservability.Object, null);
         var ct = CancellationToken.None;
@@ -1606,7 +1606,7 @@ public sealed class SessionBaseTests
     public async Task OpenAsyncShouldHandleSessionOpeningFailureAsync()
     {
         // Arrange
-        using var sut = new TestSessionBase(_configuration,
+        await using var sut = new TestSessionBase(_configuration,
             new ConfiguredEndpoint(null, new EndpointDescription
             {
                 SecurityMode = MessageSecurityMode.None,
@@ -1639,7 +1639,7 @@ public sealed class SessionBaseTests
     public async Task OpenAsyncShouldHandleBadSecurityPolicyAsync()
     {
         // Arrange
-        using var sut = new TestSessionBase(_configuration,
+        await using var sut = new TestSessionBase(_configuration,
             new ConfiguredEndpoint(null, new EndpointDescription
             {
                 SecurityMode = MessageSecurityMode.None,
@@ -1665,7 +1665,7 @@ public sealed class SessionBaseTests
     public async Task OpenAsyncShouldHandleBadIdentityTokenPolicyAsync()
     {
         // Arrange
-        using var sut = new TestSessionBase(_configuration,
+        await using var sut = new TestSessionBase(_configuration,
             new ConfiguredEndpoint(null, new EndpointDescription
             {
                 SecurityMode = MessageSecurityMode.None,
@@ -1695,7 +1695,7 @@ public sealed class SessionBaseTests
     public async Task OpenAsyncShouldHandleCancellationAsync()
     {
         // Arrange
-        using var sut = new TestSessionBase(_configuration,
+        await using var sut = new TestSessionBase(_configuration,
             new ConfiguredEndpoint(null, new EndpointDescription
             {
                 SecurityMode = MessageSecurityMode.None,
@@ -1727,7 +1727,7 @@ public sealed class SessionBaseTests
     public async Task OpenAsyncShouldHandleInvalidServerResponseAsync()
     {
         // Arrange
-        using var sut = new TestSessionBase(_configuration,
+        await using var sut = new TestSessionBase(_configuration,
             new ConfiguredEndpoint(null, new EndpointDescription
             {
                 SecurityMode = MessageSecurityMode.None,
@@ -1775,7 +1775,7 @@ public sealed class SessionBaseTests
             ]
         };
         _options = _options with { EnableComplexTypePreloading = false };
-        using var sut = new TestSessionBase(_configuration,
+        await using var sut = new TestSessionBase(_configuration,
             new ConfiguredEndpoint(null, ep),
             _options, _mockObservability.Object, null);
         var ct = CancellationToken.None;
@@ -1864,7 +1864,7 @@ public sealed class SessionBaseTests
     public async Task BrowseAsyncShouldHandleWhenBrowseNextResultCollectionIsEmptyAsync()
     {
         // Arrange
-        using var sut = new TestSessionBase(_configuration,
+        await using var sut = new TestSessionBase(_configuration,
             new ConfiguredEndpoint(null, new EndpointDescription()),
             _options, _mockObservability.Object, null);
         var ct = CancellationToken.None;
@@ -1944,7 +1944,7 @@ public sealed class SessionBaseTests
     public async Task BrowseAsyncShouldHandleContinuationPointsSuccessfullyAsync()
     {
         // Arrange
-        using var sut = new TestSessionBase(_configuration,
+        await using var sut = new TestSessionBase(_configuration,
             new ConfiguredEndpoint(null, new EndpointDescription()),
             _options, _mockObservability.Object, null);
         var ct = CancellationToken.None;
@@ -2041,7 +2041,7 @@ public sealed class SessionBaseTests
     public async Task BrowseAsyncShouldHandleNullContinuationPointsSuccessfullyAsync()
     {
         // Arrange
-        using var sut = new TestSessionBase(_configuration,
+        await using var sut = new TestSessionBase(_configuration,
             new ConfiguredEndpoint(null, new EndpointDescription()),
             _options, _mockObservability.Object, null);
         var ct = CancellationToken.None;
@@ -2126,7 +2126,7 @@ public sealed class SessionBaseTests
     public async Task BrowseAsyncShouldHandleWhenBrowseResultCollectionIsEmptyAsync()
     {
         // Arrange
-        using var sut = new TestSessionBase(_configuration,
+        await using var sut = new TestSessionBase(_configuration,
             new ConfiguredEndpoint(null, new EndpointDescription()),
             _options, _mockObservability.Object, null);
         var ct = CancellationToken.None;
@@ -2185,7 +2185,7 @@ public sealed class SessionBaseTests
     public async Task BrowseAsyncShouldHandleBrowseNextCancelledAsync()
     {
         // Arrange
-        using var sut = new TestSessionBase(_configuration,
+        await using var sut = new TestSessionBase(_configuration,
             new ConfiguredEndpoint(null, new EndpointDescription()),
             _options, _mockObservability.Object, null);
         var ct = CancellationToken.None;
@@ -2262,7 +2262,7 @@ public sealed class SessionBaseTests
     public async Task BrowseAsyncShouldHandleBrowseNextWithBadResponseAsync()
     {
         // Arrange
-        using var sut = new TestSessionBase(_configuration,
+        await using var sut = new TestSessionBase(_configuration,
             new ConfiguredEndpoint(null, new EndpointDescription()),
             _options, _mockObservability.Object, null);
         var ct = CancellationToken.None;
@@ -2346,7 +2346,7 @@ public sealed class SessionBaseTests
     public async Task BrowseAsyncShouldHandleContinuationPointsWithErrorsAsync()
     {
         // Arrange
-        using var sut = new TestSessionBase(_configuration,
+        await using var sut = new TestSessionBase(_configuration,
             new ConfiguredEndpoint(null, new EndpointDescription()),
             _options, _mockObservability.Object, null);
 
@@ -2439,7 +2439,7 @@ public sealed class SessionBaseTests
             base.SessionCreated(NodeId.Parse("s=connected"), NodeId.Parse("s=cookie"));
         }
 
-        protected override IManagedSubscription CreateSubscription(ISubscriptionNotificiationHandler handler,
+        protected override IManagedSubscription CreateSubscription(ISubscriptionNotificationHandler handler,
             IOptionsMonitor<SubscriptionOptions> _options, IMessageAckQueue queue,
             IObservability observability)
         {

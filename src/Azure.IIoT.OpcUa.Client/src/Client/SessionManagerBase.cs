@@ -121,8 +121,6 @@ internal abstract class SessionManagerBase : ClientApplicationBase,
                             key.SessionOptions?.KeepAliveInterval,
                         CheckDomain =
                             key.SessionOptions?.CheckDomain ?? false,
-                        DisableDataTypeDefinition =
-                            key.SessionOptions?.DisableDataTypeDefinition ?? false,
                         DisableDataTypeDictionary =
                             key.SessionOptions?.DisableDataTypeDictionary ?? false,
                         EnableComplexTypePreloading =

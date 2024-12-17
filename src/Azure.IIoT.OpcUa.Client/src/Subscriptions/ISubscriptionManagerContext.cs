@@ -21,7 +21,7 @@ internal interface ISubscriptionManagerContext
     /// <param name="options">The subscription options to pass</param>
     /// <param name="queue">The completion queue</param>
     /// <returns></returns>
-    IManagedSubscription CreateSubscription(ISubscriptionNotificiationHandler handler,
+    IManagedSubscription CreateSubscription(ISubscriptionNotificationHandler handler,
         IOptionsMonitor<SubscriptionOptions> options, IMessageAckQueue queue);
 
     /// <summary>

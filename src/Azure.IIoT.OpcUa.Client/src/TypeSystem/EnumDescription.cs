@@ -64,7 +64,7 @@ public sealed class EnumDescription : DataTypeDescription
         EnumField? field = null;
         switch (decoder)
         {
-            case IEnumValueDecoder enumDecoder:
+            case IEnumValueTypeDecoder enumDecoder:
                 return enumDecoder.ReadEnumerated(fieldName, EnumDefinition);
             case JsonDecoder json:
                 if (!json.ReadField(fieldName, out var token))
@@ -121,7 +121,7 @@ public sealed class EnumDescription : DataTypeDescription
         }
         switch (encoder)
         {
-            case IEnumValueEncoder enumEncoder:
+            case IEnumValueTypeEncoder enumEncoder:
                 enumEncoder.WriteEnumerated(fieldName, e, EnumDefinition);
                 break;
             case JsonEncoder json when

@@ -20,7 +20,7 @@ public class StructureFieldDescriptionTests
     {
         _mockEncoder = new Mock<IEncoder>();
         _mockDecoder = new Mock<IDecoder>();
-        _mockDataTypeSystem = new Mock<IDataTypeSystem>();
+        _mockDataTypeSystem = new Mock<IDataTypeDescriptionResolver>();
     }
 
     [Fact]
@@ -958,7 +958,7 @@ public class StructureFieldDescriptionTests
         // Arrange
         var field = new StructureField { Name = "Field1", DataType = new NodeId((uint)BuiltInType.StatusCode), ValueRank = ValueRanks.Scalar };
         var description = new StructureFieldDescription(_mockDataTypeSystem.Object, field, false, 0);
-        var expectedValue = StatusCodes.Good;
+        const uint expectedValue = StatusCodes.Good;
         _mockDecoder.Setup(d => d.ReadStatusCode("Field1")).Returns(expectedValue);
 
         // Act
@@ -1077,7 +1077,7 @@ public class StructureFieldDescriptionTests
         // Arrange
         var field = new StructureField { Name = "Field1", DataType = new NodeId((uint)BuiltInType.Enumeration), ValueRank = ValueRanks.Scalar };
         var description = new StructureFieldDescription(_mockDataTypeSystem.Object, field, false, 0);
-        var expectedValue = 1;
+        const int expectedValue = 1;
         _mockDecoder.Setup(d => d.ReadInt32("Field1")).Returns(expectedValue);
 
         // Act
@@ -1160,7 +1160,7 @@ public class StructureFieldDescriptionTests
         result.Should().BeEquivalentTo(expectedValue);
     }
 
-    private readonly Mock<IDataTypeSystem> _mockDataTypeSystem;
+    private readonly Mock<IDataTypeDescriptionResolver> _mockDataTypeSystem;
     private readonly Mock<IEncoder> _mockEncoder;
     private readonly Mock<IDecoder> _mockDecoder;
 }

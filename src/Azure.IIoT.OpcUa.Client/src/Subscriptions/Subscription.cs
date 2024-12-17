@@ -86,7 +86,7 @@ internal abstract class Subscription : MessageProcessor, IManagedSubscription,
     /// <param name="completion"></param>
     /// <param name="options"></param>
     /// <param name="observability"></param>
-    protected Subscription(ISubscriptionContext session, ISubscriptionNotificiationHandler handler,
+    protected Subscription(ISubscriptionContext session, ISubscriptionNotificationHandler handler,
         IMessageAckQueue completion, IOptionsMonitor<SubscriptionOptions> options,
         IObservability observability) : base(session, completion, observability)
     {
@@ -738,6 +738,6 @@ internal abstract class Subscription : MessageProcessor, IManagedSubscription,
     private readonly List<uint> _deletedItems = [];
     private readonly ITimer _publishTimer;
     private readonly IDisposable? _changeTracking;
-    private readonly ISubscriptionNotificiationHandler _handler;
+    private readonly ISubscriptionNotificationHandler _handler;
     private readonly MonitoredItemManager _monitoredItems;
 }

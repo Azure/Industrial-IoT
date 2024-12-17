@@ -210,7 +210,7 @@ internal sealed class SubscriptionManager : ISubscriptionManager,
     }
 
     /// <inheritdoc/>
-    public ISubscription Add(ISubscriptionNotificiationHandler handler,
+    public ISubscription Add(ISubscriptionNotificationHandler handler,
         IOptionsMonitor<SubscriptionOptions> options)
     {
         var subscription = _session.CreateSubscription(handler, options, this);
