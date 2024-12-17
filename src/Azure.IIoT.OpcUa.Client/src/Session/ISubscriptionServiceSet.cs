@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 /// <summary>
 /// Subscription context
 /// </summary>
-public interface ISubscriptionServiceSet : IMonitoredItemServiceSet
+public interface ISubscriptionServiceSet
 {
     /// <summary>
     /// Create subscription
@@ -69,4 +69,30 @@ public interface ISubscriptionServiceSet : IMonitoredItemServiceSet
     /// <returns></returns>
     Task<RepublishResponse> RepublishAsync(RequestHeader? requestHeader,
         uint subscriptionId, uint retransmitSequenceNumber, CancellationToken ct = default);
+
+    /// <summary>
+    /// Delete subscription service
+    /// </summary>
+    /// <param name="requestHeader"></param>
+    /// <param name="subscriptionIds"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    Task<DeleteSubscriptionsResponse> DeleteSubscriptionsAsync(RequestHeader? requestHeader,
+        UInt32Collection subscriptionIds, CancellationToken ct = default);
+
+#if OBSOLETE
+    /// <summary>
+    /// Set triggering
+    /// </summary>
+    /// <param name="requestHeader"></param>
+    /// <param name="subscriptionId"></param>
+    /// <param name="triggeringItemId"></param>
+    /// <param name="linksToAdd"></param>
+    /// <param name="linksToRemove"></param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    Task<SetTriggeringResponse> SetTriggeringAsync(RequestHeader? requestHeader,
+        uint subscriptionId, uint triggeringItemId, UInt32Collection linksToAdd,
+        UInt32Collection linksToRemove, CancellationToken ct = default);
+#endif
 }

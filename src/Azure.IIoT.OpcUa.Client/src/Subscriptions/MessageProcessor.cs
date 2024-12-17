@@ -31,16 +31,16 @@ internal abstract class MessageProcessor : IMessageProcessor, IAsyncDisposable
     /// <summary>
     /// Create subscription
     /// </summary>
-    /// <param name="session"></param>
+    /// <param name="services"></param>
     /// <param name="completion"></param>
     /// <param name="observability"></param>
-    protected MessageProcessor(ISubscriptionContext session,
+    protected MessageProcessor(ISubscriptionServiceSet services,
         IMessageAckQueue completion, IObservability observability)
     {
         Observability = observability;
         _availableInRetransmissionQueue = Array.Empty<uint>();
         _logger = Observability.LoggerFactory.CreateLogger<Subscription>();
-        _session = session;
+        _services = services;
         _completion = completion;
         _messages = Channel.CreateUnboundedPrioritized<IncomingMessage>(
             new UnboundedPrioritizedChannelOptions<IncomingMessage>
@@ -270,7 +270,7 @@ internal abstract class MessageProcessor : IMessageProcessor, IAsyncDisposable
             _logger.LogInformation("{Subscription}: Republishing missing message " +
                 "with sequence number #{Missing} to catch up to message " +
                 "with sequence number #{SeqNumber}...", this, missing, curSeqNum);
-            var republish = await _session.RepublishAsync(null, Id, missing,
+            var republish = await _services.RepublishAsync(null, Id, missing,
                 ct).ConfigureAwait(false);
 
             if (ServiceResult.IsGood(republish.ResponseHeader.ServiceResult))
@@ -402,8 +402,8 @@ internal abstract class MessageProcessor : IMessageProcessor, IAsyncDisposable
     internal IReadOnlyList<uint> _availableInRetransmissionQueue;
 #pragma warning disable IDE1006 // Naming Styles
     internal readonly ILogger _logger;
-    internal readonly ISubscriptionContext _session;
 #pragma warning restore IDE1006 // Naming Styles
+    private readonly ISubscriptionServiceSet _services;
     private readonly CancellationTokenSource _cts = new();
     private readonly IMessageAckQueue _completion;
     private readonly Task _messageWorkerTask;

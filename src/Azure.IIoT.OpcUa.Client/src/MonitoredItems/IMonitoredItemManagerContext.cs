@@ -22,12 +22,12 @@ internal interface IMonitoredItemManagerContext
     /// <summary>
     /// Monitored item services
     /// </summary>
-    IMonitoredItemServiceSet Session { get; }
+    IMonitoredItemServiceSet MonitoredItemServiceSet { get; }
 
     /// <summary>
     /// Method call services
     /// </summary>
-    IMethodServiceSet Methods { get; }
+    IMethodServiceSet MethodServiceSet { get; }
 
     /// <summary>
     /// Create monitored item

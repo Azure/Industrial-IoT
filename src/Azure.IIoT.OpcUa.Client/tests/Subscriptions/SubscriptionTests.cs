@@ -19,7 +19,20 @@ public sealed class SubscriptionTests
 {
     public SubscriptionTests()
     {
+        _mockSubscriptionServices = new Mock<ISubscriptionServiceSet>();
+        _mockMonitoredItemServices = new Mock<IMonitoredItemServiceSet>();
+        _mockMethodServices = new Mock<IMethodServiceSet>();
+        _mockSubscriptionServices = new Mock<ISubscriptionServiceSet>();
         _mockSession = new Mock<ISubscriptionContext>();
+        _mockSession
+            .Setup(_mockSession => _mockSession.SubscriptionServiceSet)
+            .Returns(_mockSubscriptionServices.Object);
+        _mockSession
+            .Setup(_mockSession => _mockSession.MethodServiceSet)
+            .Returns(_mockMethodServices.Object);
+        _mockSession
+            .Setup(_mockSession => _mockSession.MonitoredItemServiceSet)
+            .Returns(_mockMonitoredItemServices.Object);
         _mockCompletion = new Mock<IMessageAckQueue>();
         _options = OptionsFactory.Create<SubscriptionOptions>();
 
@@ -66,7 +79,7 @@ public sealed class SubscriptionTests
     {
         // Arrange
         var publishingInterval = TimeSpan.FromSeconds(100);
-        _mockSession
+        _mockSubscriptionServices
             .Setup(s => s.CreateSubscriptionAsync(It.IsAny<RequestHeader>(),
                 publishingInterval.TotalMilliseconds, 21, 7, 10, true,
                 3, It.IsAny<CancellationToken>()))
@@ -121,7 +134,7 @@ public sealed class SubscriptionTests
 
         var publishingInterval = TimeSpan.FromSeconds(100);
 
-        _mockSession
+        _mockSubscriptionServices
             .Setup(s => s.ModifySubscriptionAsync(It.IsAny<RequestHeader>(),
                 22, publishingInterval.TotalMilliseconds, 30, 10, 0,
                 4, It.IsAny<CancellationToken>()))
@@ -132,7 +145,7 @@ public sealed class SubscriptionTests
                 RevisedPublishingInterval = 10000
             })
             .Verifiable(Times.Once);
-        _mockSession
+        _mockSubscriptionServices
             .Setup(s => s.SetPublishingModeAsync(It.IsAny<RequestHeader>(),
                 true, new UInt32Collection { 22 }, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new SetPublishingModeResponse
@@ -181,7 +194,7 @@ public sealed class SubscriptionTests
 
         var publishingInterval = TimeSpan.FromSeconds(100);
 
-        _mockSession
+        _mockSubscriptionServices
             .Setup(s => s.SetPublishingModeAsync(It.IsAny<RequestHeader>(),
                 true, new UInt32Collection { 22 }, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new SetPublishingModeResponse
@@ -219,7 +232,7 @@ public sealed class SubscriptionTests
     public async Task ChangeMonitoredItemOptionsShouldAddCreatedItemsAsync()
     {
         // Arrange
-        _mockSession
+        _mockMonitoredItemServices
             .Setup(s => s.CreateMonitoredItemsAsync(It.IsAny<RequestHeader>(), 2,
                 TimestampsToReturn.Both,
                 It.IsAny<MonitoredItemCreateRequestCollection>(), It.IsAny<CancellationToken>()))
@@ -274,7 +287,7 @@ public sealed class SubscriptionTests
         monitoredItem.ServerId.Should().Be(monitoredItem.ClientHandle);
         monitoredItem.CurrentMonitoringMode.Should().Be(MonitoringMode.Sampling);
 
-        _mockSession
+        _mockMonitoredItemServices
             .Setup(s => s.ModifyMonitoredItemsAsync(It.IsAny<RequestHeader>(), 2,
                 TimestampsToReturn.Both,
                 It.IsAny<MonitoredItemModifyRequestCollection>(),
@@ -326,7 +339,7 @@ public sealed class SubscriptionTests
         monitoredItem.ServerId.Should().Be(monitoredItem.ClientHandle);
         monitoredItem.CurrentMonitoringMode.Should().Be(MonitoringMode.Sampling);
 
-        _mockSession
+        _mockMonitoredItemServices
             .Setup(s => s.DeleteMonitoredItemsAsync(It.IsAny<RequestHeader>(), 2,
                 new UInt32Collection { monitoredItem.ServerId }, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DeleteMonitoredItemsResponse
@@ -334,7 +347,7 @@ public sealed class SubscriptionTests
                 Results = [StatusCodes.Good]
             })
             .Verifiable(Times.Once);
-        _mockSession
+        _mockMonitoredItemServices
             .Setup(s => s.CreateMonitoredItemsAsync(It.IsAny<RequestHeader>(), 2,
                 TimestampsToReturn.Both,
                 It.Is<MonitoredItemCreateRequestCollection>(r => r.Count == 1
@@ -390,7 +403,7 @@ public sealed class SubscriptionTests
         // Now we have a monitored item in sampling mode
 
         // Only set monitoring mode should be called for the item
-        _mockSession
+        _mockMonitoredItemServices
             .Setup(s => s.SetMonitoringModeAsync(It.IsAny<RequestHeader>(),
                 sut.Id, MonitoringMode.Reporting,
                 new UInt32Collection { monitoredItem.ServerId },
@@ -428,7 +441,7 @@ public sealed class SubscriptionTests
         // Now we got an item that is created
 
         // Only delete monitored item should be called
-        _mockSession
+        _mockMonitoredItemServices
             .Setup(s => s.DeleteMonitoredItemsAsync(It.IsAny<RequestHeader>(), 2,
                 new UInt32Collection { monitoredItem.ServerId },
                 It.IsAny<CancellationToken>()))
@@ -464,7 +477,7 @@ public sealed class SubscriptionTests
         // Now we got an item that is created
 
         // Only delete monitored item should be called
-        _mockSession
+        _mockMonitoredItemServices
             .SetupSequence(s => s.DeleteMonitoredItemsAsync(It.IsAny<RequestHeader>(),
                 2, new UInt32Collection { monitoredItem.ServerId },
                 It.IsAny<CancellationToken>()))
@@ -505,7 +518,7 @@ public sealed class SubscriptionTests
             _mockCompletion.Object, _options, _mockObservability.Object, 2);
 
         // Assert
-        _mockSession
+        _mockMethodServices
             .Setup(s => s.CallAsync(
                 It.IsAny<RequestHeader>(),
                 It.IsAny<CallMethodRequestCollection>(), It.IsAny<CancellationToken>()))
@@ -552,7 +565,7 @@ public sealed class SubscriptionTests
         var sut = new TestSubscription(_mockSession.Object, _mockNotificationDataHandler.Object,
             _mockCompletion.Object, _options, _mockObservability.Object, 22);
 
-        _mockSession
+        _mockSubscriptionServices
             .Setup(s => s.DeleteSubscriptionsAsync(
                 It.IsAny<RequestHeader>(), new UInt32Collection { 22 }, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DeleteSubscriptionsResponse
@@ -576,7 +589,7 @@ public sealed class SubscriptionTests
         var sut = new TestSubscription(_mockSession.Object, _mockNotificationDataHandler.Object,
             _mockCompletion.Object, _options, _mockObservability.Object, 22);
 
-        _mockSession
+        _mockSubscriptionServices
             .Setup(s => s.DeleteSubscriptionsAsync(
                 It.IsAny<RequestHeader>(), new UInt32Collection { 22 }, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DeleteSubscriptionsResponse
@@ -603,7 +616,7 @@ public sealed class SubscriptionTests
         var success = sut.MonitoredItems.TryAdd("Test", options, out var monitoredItem);
         success.Should().BeTrue();
 
-        _mockSession
+        _mockSubscriptionServices
             .Setup(s => s.DeleteSubscriptionsAsync(
                 It.IsAny<RequestHeader>(), new UInt32Collection { 22 },
                 It.IsAny<CancellationToken>()))
@@ -630,7 +643,7 @@ public sealed class SubscriptionTests
         var sut = new TestSubscription(_mockSession.Object, _mockNotificationDataHandler.Object,
             _mockCompletion.Object, _options, _mockObservability.Object, 22);
 
-        _mockSession
+        _mockSubscriptionServices
             .Setup(s => s.DeleteSubscriptionsAsync(
                 It.IsAny<RequestHeader>(), new UInt32Collection { 22 },
                 It.IsAny<CancellationToken>()))
@@ -727,7 +740,7 @@ public sealed class SubscriptionTests
 
         // We have a running subscription with one monitored item.
 
-        _mockSession
+        _mockSubscriptionServices
             .Setup(s => s.CreateSubscriptionAsync(It.IsAny<RequestHeader>(),
                 TimeSpan.FromSeconds(100).TotalMilliseconds, 21, 7, 10, false,
                 3, It.IsAny<CancellationToken>()))
@@ -739,7 +752,7 @@ public sealed class SubscriptionTests
                 RevisedPublishingInterval = 10000
             })
             .Verifiable(Times.Once);
-        _mockSession
+        _mockMonitoredItemServices
             .Setup(s => s.CreateMonitoredItemsAsync(It.IsAny<RequestHeader>(), 22,
                 TimestampsToReturn.Both,
                 It.IsAny<MonitoredItemCreateRequestCollection>(), It.IsAny<CancellationToken>()))
@@ -788,7 +801,7 @@ public sealed class SubscriptionTests
         Assert.NotNull(monitoredItem);
         success.Should().BeTrue();
 
-        _mockSession
+        _mockSubscriptionServices
             .Setup(s => s.CreateSubscriptionAsync(It.IsAny<RequestHeader>(),
                 TimeSpan.FromSeconds(100).TotalMilliseconds, 21, 7, 10, false,
                 3, It.IsAny<CancellationToken>()))
@@ -801,7 +814,7 @@ public sealed class SubscriptionTests
             })
             .Verifiable(Times.Once);
 
-        _mockSession
+        _mockMonitoredItemServices
             .Setup(s => s.CreateMonitoredItemsAsync(It.IsAny<RequestHeader>(), 22,
                 TimestampsToReturn.Both,
                 It.IsAny<MonitoredItemCreateRequestCollection>(), It.IsAny<CancellationToken>()))
@@ -867,7 +880,7 @@ public sealed class SubscriptionTests
         var success = sut.MonitoredItems.TryAdd("Test", options, out var monitoredItem);
         success.Should().BeTrue();
 
-        _mockSession
+        _mockMethodServices
             .Setup(s => s.CallAsync(
                 It.IsAny<RequestHeader>(),
                 It.Is<CallMethodRequestCollection>(r =>
@@ -912,7 +925,7 @@ public sealed class SubscriptionTests
         var success = sut.MonitoredItems.TryAdd("Test", options, out var monitoredItem);
         success.Should().BeTrue();
 
-        _mockSession
+        _mockMethodServices
             .Setup(s => s.CallAsync(
                 It.IsAny<RequestHeader>(),
                 It.Is<CallMethodRequestCollection>(r =>
@@ -958,7 +971,7 @@ public sealed class SubscriptionTests
         Assert.NotNull(monitoredItem);
         success.Should().BeTrue();
 
-        _mockSession
+        _mockMethodServices
             .Setup(s => s.CallAsync(
                 It.IsAny<RequestHeader>(),
                 It.Is<CallMethodRequestCollection>(r =>
@@ -1007,7 +1020,7 @@ public sealed class SubscriptionTests
         success.Should().BeTrue();
         var serverId = monitoredItem.ServerId;
 
-        _mockSession
+        _mockMethodServices
             .Setup(s => s.CallAsync(
                 It.IsAny<RequestHeader>(),
                 It.Is<CallMethodRequestCollection>(r =>
@@ -1050,7 +1063,7 @@ public sealed class SubscriptionTests
         var sut = new TestSubscription(_mockSession.Object, _mockNotificationDataHandler.Object,
             _mockCompletion.Object, _options, _mockObservability.Object, 2);
 
-        _mockSession
+        _mockMethodServices
             .Setup(s => s.CallAsync(
                 It.IsAny<RequestHeader>(),
                 It.Is<CallMethodRequestCollection>(r =>
@@ -1076,7 +1089,7 @@ public sealed class SubscriptionTests
             })
             .Verifiable(Times.Once);
 
-        _mockSession
+        _mockMonitoredItemServices
             .Setup(s => s.DeleteMonitoredItemsAsync(It.IsAny<RequestHeader>(), 2,
                 new UInt32Collection { 199 }, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DeleteMonitoredItemsResponse
@@ -1105,7 +1118,7 @@ public sealed class SubscriptionTests
         success.Should().BeTrue();
         monitoredItem.Created.Should().BeTrue();
 
-        _mockSession
+        _mockMethodServices
             .Setup(s => s.CallAsync(
                 It.IsAny<RequestHeader>(),
                 It.Is<CallMethodRequestCollection>(r =>
@@ -1150,7 +1163,7 @@ public sealed class SubscriptionTests
         var clientId = monitoredItem.ClientHandle;
         var serverId = monitoredItem.ServerId;
 
-        _mockSession
+        _mockMethodServices
             .Setup(s => s.CallAsync(
                 It.IsAny<RequestHeader>(),
                 It.Is<CallMethodRequestCollection>(r =>
@@ -1200,7 +1213,7 @@ public sealed class SubscriptionTests
         var clientId = monitoredItem.ClientHandle;
         var serverId = monitoredItem.ServerId;
 
-        _mockSession
+        _mockMethodServices
             .Setup(s => s.CallAsync(
                 It.IsAny<RequestHeader>(),
                 It.Is<CallMethodRequestCollection>(r =>
@@ -1227,7 +1240,7 @@ public sealed class SubscriptionTests
             .Verifiable(Times.Once);
 
         // Delete monitored item should be called
-        _mockSession
+        _mockMonitoredItemServices
             .Setup(s => s.DeleteMonitoredItemsAsync(It.IsAny<RequestHeader>(), 2,
                 new UInt32Collection { 33 }, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DeleteMonitoredItemsResponse
@@ -1235,7 +1248,7 @@ public sealed class SubscriptionTests
                 Results = [StatusCodes.Good]
             })
             .Verifiable(Times.Once);
-        _mockSession
+        _mockMonitoredItemServices
             .Setup(s => s.CreateMonitoredItemsAsync(It.IsAny<RequestHeader>(), 2,
                 TimestampsToReturn.Both,
                 It.IsAny<MonitoredItemCreateRequestCollection>(), It.IsAny<CancellationToken>()))
@@ -1380,6 +1393,9 @@ public sealed class SubscriptionTests
     private readonly OptionsMonitor<SubscriptionOptions> _options;
     private readonly Mock<IObservability> _mockObservability;
     private readonly Mock<TimeProvider> _mockTimeProvider;
+    private readonly Mock<ISubscriptionServiceSet> _mockSubscriptionServices;
+    private readonly Mock<IMonitoredItemServiceSet> _mockMonitoredItemServices;
+    private readonly Mock<IMethodServiceSet> _mockMethodServices;
     private readonly Mock<ISubscriptionContext> _mockSession;
     private readonly Mock<ISubscriptionNotificationHandler> _mockNotificationDataHandler;
     private readonly Mock<ITimer> _mockTimer;

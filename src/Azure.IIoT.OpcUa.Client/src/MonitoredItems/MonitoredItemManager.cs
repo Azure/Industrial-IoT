@@ -350,7 +350,7 @@ internal sealed class MonitoredItemManager : IMonitoredItemCollection,
             {
                 var monitoredItemIds = new UInt32Collection(itemsToDelete
                     .Select(m => m.ServerId));
-                var response = await _context.Session.DeleteMonitoredItemsAsync(null, _context.Id,
+                var response = await _context.MonitoredItemServiceSet.DeleteMonitoredItemsAsync(null, _context.Id,
                     monitoredItemIds, ct).ConfigureAwait(false);
                 Ua.ClientBase.ValidateResponse(response.Results, monitoredItemIds);
                 Ua.ClientBase.ValidateDiagnosticInfos(response.DiagnosticInfos,
@@ -383,7 +383,7 @@ internal sealed class MonitoredItemManager : IMonitoredItemCollection,
         if (deletes.Count > 0)
         {
             var monitoredItemIds = new UInt32Collection(deletes.Select(c => c.Item.ServerId));
-            var response = await _context.Session.DeleteMonitoredItemsAsync(null, _context.Id,
+            var response = await _context.MonitoredItemServiceSet.DeleteMonitoredItemsAsync(null, _context.Id,
                 monitoredItemIds, ct).ConfigureAwait(false);
             Ua.ClientBase.ValidateResponse(response.Results, deletes);
             Ua.ClientBase.ValidateDiagnosticInfos(response.DiagnosticInfos, deletes);
@@ -407,7 +407,7 @@ internal sealed class MonitoredItemManager : IMonitoredItemCollection,
             var requests = new MonitoredItemModifyRequestCollection(group.Select(c => c.Modify));
             if (requests.Count > 0)
             {
-                var response = await _context.Session.ModifyMonitoredItemsAsync(null, _context.Id,
+                var response = await _context.MonitoredItemServiceSet.ModifyMonitoredItemsAsync(null, _context.Id,
                     group.Key, requests, ct).ConfigureAwait(false);
                 Ua.ClientBase.ValidateResponse(response.Results, monitoredItems);
                 Ua.ClientBase.ValidateDiagnosticInfos(response.DiagnosticInfos, monitoredItems);
@@ -432,7 +432,7 @@ internal sealed class MonitoredItemManager : IMonitoredItemCollection,
             var requests = new UInt32Collection(monitoredItems.Select(c => c.Item.ServerId));
             if (requests.Count > 0)
             {
-                var response = await _context.Session.SetMonitoringModeAsync(null, _context.Id,
+                var response = await _context.MonitoredItemServiceSet.SetMonitoringModeAsync(null, _context.Id,
                     mode.Key, requests, ct).ConfigureAwait(false);
                 Ua.ClientBase.ValidateResponse(response.Results, monitoredItems);
                 Ua.ClientBase.ValidateDiagnosticInfos(response.DiagnosticInfos, monitoredItems);
@@ -458,7 +458,7 @@ internal sealed class MonitoredItemManager : IMonitoredItemCollection,
             var requests = new MonitoredItemCreateRequestCollection(group.Select(c => c.Create));
             if (requests.Count > 0)
             {
-                var response = await _context.Session.CreateMonitoredItemsAsync(null, _context.Id,
+                var response = await _context.MonitoredItemServiceSet.CreateMonitoredItemsAsync(null, _context.Id,
                     group.Key, requests, ct).ConfigureAwait(false);
                 Ua.ClientBase.ValidateResponse(response.Results, monitoredItems);
                 Ua.ClientBase.ValidateDiagnosticInfos(response.DiagnosticInfos, monitoredItems);
@@ -618,7 +618,7 @@ internal sealed class MonitoredItemManager : IMonitoredItemCollection,
         // Ensure all items on the server that are not in the subscription are deleted
         try
         {
-            await _context.Session.DeleteMonitoredItemsAsync(null, _context.Id, itemsToDelete,
+            await _context.MonitoredItemServiceSet.DeleteMonitoredItemsAsync(null, _context.Id, itemsToDelete,
                 ct).ConfigureAwait(false);
             return true;
         }
@@ -651,7 +651,7 @@ internal sealed class MonitoredItemManager : IMonitoredItemCollection,
                 }
             };
 
-            var response = await _context.Methods.CallAsync(null, requests,
+            var response = await _context.MethodServiceSet.CallAsync(null, requests,
                 ct).ConfigureAwait(false);
             var results = response.Results;
             var diagnosticInfos = response.DiagnosticInfos;

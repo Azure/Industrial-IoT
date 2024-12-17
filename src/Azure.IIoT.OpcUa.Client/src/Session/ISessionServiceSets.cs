@@ -160,20 +160,6 @@ public interface ISessionServiceSets : IMethodServiceSet
 
 #if OBSOLETE
     /// <summary>
-    /// Set triggering --- TODO: Add to subscription interface
-    /// </summary>
-    /// <param name="requestHeader"></param>
-    /// <param name="subscriptionId"></param>
-    /// <param name="triggeringItemId"></param>
-    /// <param name="linksToAdd"></param>
-    /// <param name="linksToRemove"></param>
-    /// <param name="ct"></param>
-    /// <returns></returns>
-    Task<SetTriggeringResponse> SetTriggeringAsync(RequestHeader? requestHeader,
-        uint subscriptionId, uint triggeringItemId, UInt32Collection linksToAdd,
-        UInt32Collection linksToRemove, CancellationToken ct = default);
-
-    /// <summary>
     /// Cancel service call -- TODO: Needed?
     /// </summary>
     /// <param name="requestHeader"></param>

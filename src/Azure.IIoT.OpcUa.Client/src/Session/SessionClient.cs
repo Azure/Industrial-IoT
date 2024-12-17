@@ -18,8 +18,8 @@ using System.Threading.Tasks;
 /// to operation limits.
 /// </summary>
 internal abstract class SessionClient : Obsolete.SessionClient,
-    ISessionServiceSets, ISubscriptionServiceSet,
-    IMonitoredItemServiceSet, IMethodServiceSet
+    ISessionServiceSets, ISubscriptionServiceSet, IMethodServiceSet,
+    IMonitoredItemServiceSet
 {
     /// <summary>
     /// The operation limits are used to batch the service requests.

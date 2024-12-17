@@ -50,6 +50,15 @@ internal abstract class SessionBase : SessionClient, IServiceSetExtensions,
     public NamespaceTable NamespaceUris => MessageContext.NamespaceUris;
 
     /// <inheritdoc/>
+    public ISubscriptionServiceSet SubscriptionServiceSet => this;
+
+    /// <inheritdoc/>
+    public IMonitoredItemServiceSet MonitoredItemServiceSet => this;
+
+    /// <inheritdoc/>
+    public IMethodServiceSet MethodServiceSet => this;
+
+    /// <inheritdoc/>
     public TimeSpan SessionTimeout { get; private set; }
 
     /// <summary>

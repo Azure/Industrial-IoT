@@ -20,12 +20,11 @@ public sealed class MessageProcessorTests
 {
     public MessageProcessorTests()
     {
-        _mockSession = new Mock<ISubscriptionContext>();
         _mockCompletion = new Mock<IMessageAckQueue>();
         _mockObservability = new Mock<IObservability>();
         _mockLogger = new Mock<ILogger<Subscription>>();
         _mockTimeProvider = new Mock<TimeProvider>();
-
+        _mockServices = new Mock<ISubscriptionServiceSet>();
         _mockObservability.Setup(o => o.LoggerFactory.CreateLogger(It.IsAny<string>()))
             .Returns(_mockLogger.Object);
         _mockObservability.Setup(o => o.TimeProvider).Returns(_mockTimeProvider.Object);
@@ -35,7 +34,7 @@ public sealed class MessageProcessorTests
     public async Task DisposeAsyncShouldCompleteMessageWriterAndCancelTokenAsync()
     {
         // Arrange
-        var sut = new TestMessageProcessor(_mockSession.Object,
+        var sut = new TestMessageProcessor(_mockServices.Object,
             _mockCompletion.Object, _mockObservability.Object)
         {
             Id = 3
@@ -65,7 +64,7 @@ public sealed class MessageProcessorTests
         };
         var availableSequenceNumbers = new List<uint> { 1, 2, 3 };
         var stringTable = new List<string> { "test" };
-        await using var sut = new TestMessageProcessor(_mockSession.Object,
+        await using var sut = new TestMessageProcessor(_mockServices.Object,
             _mockCompletion.Object, _mockObservability.Object)
         {
             Id = 3
@@ -117,7 +116,7 @@ public sealed class MessageProcessorTests
         var availableSequenceNumbers = new List<uint> { 1, 2, 3 };
         var stringTable = new List<string> { "test" };
 
-        await using var sut = new TestMessageProcessor(_mockSession.Object,
+        await using var sut = new TestMessageProcessor(_mockServices.Object,
             _mockCompletion.Object, _mockObservability.Object)
         {
             Id = 2
@@ -128,7 +127,7 @@ public sealed class MessageProcessorTests
             SequenceNumber = 1
         }, availableSequenceNumbers, stringTable);
 
-        _mockSession
+        _mockServices
             .Setup(c => c.RepublishAsync(
                 It.IsAny<RequestHeader>(),
                 It.Is<uint>(id => id == sut.Id),
@@ -175,7 +174,7 @@ public sealed class MessageProcessorTests
         sut.KeepAliveNotificationReceived.IsSet.Should().BeTrue();
         sut.DataChangeNotificationReceived.IsSet.Should().BeTrue();
 
-        _mockSession.Verify();
+        _mockServices.Verify();
     }
 
     [Fact]
@@ -194,7 +193,7 @@ public sealed class MessageProcessorTests
         Random.Shared.Shuffle(messages);
 #pragma warning restore CA5394 // Do not use insecure randomness
 
-        await using var sut = new TestMessageProcessor(_mockSession.Object,
+        await using var sut = new TestMessageProcessor(_mockServices.Object,
             _mockCompletion.Object, _mockObservability.Object)
         {
             Id = 3
@@ -227,7 +226,7 @@ public sealed class MessageProcessorTests
         // Arrange
         var availableSequenceNumbers = new List<uint> { 1, 2, 3 };
         var stringTable = new List<string> { "test" };
-        await using var sut = new TestMessageProcessor(_mockSession.Object,
+        await using var sut = new TestMessageProcessor(_mockServices.Object,
             _mockCompletion.Object, _mockObservability.Object)
         {
             Id = 3
@@ -278,7 +277,7 @@ public sealed class MessageProcessorTests
 
     private sealed class TestMessageProcessor : MessageProcessor
     {
-        public TestMessageProcessor(ISubscriptionContext session,
+        public TestMessageProcessor(ISubscriptionServiceSet session,
             IMessageAckQueue completion, IObservability observability)
             : base(session, completion, observability)
         {
@@ -369,6 +368,6 @@ public sealed class MessageProcessorTests
     private readonly Mock<IMessageAckQueue> _mockCompletion;
     private readonly Mock<ILogger<Subscription>> _mockLogger;
     private readonly Mock<IObservability> _mockObservability;
-    private readonly Mock<ISubscriptionContext> _mockSession;
+    private readonly Mock<ISubscriptionServiceSet> _mockServices;
     private readonly Mock<TimeProvider> _mockTimeProvider;
 }

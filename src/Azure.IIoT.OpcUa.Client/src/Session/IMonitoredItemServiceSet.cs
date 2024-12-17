@@ -63,14 +63,4 @@ public interface IMonitoredItemServiceSet
     /// <returns></returns>
     Task<DeleteMonitoredItemsResponse> DeleteMonitoredItemsAsync(RequestHeader? requestHeader,
         uint subscriptionId, UInt32Collection monitoredItemIds, CancellationToken ct = default);
-
-    /// <summary>
-    /// Delete subscription service
-    /// </summary>
-    /// <param name="requestHeader"></param>
-    /// <param name="subscriptionIds"></param>
-    /// <param name="ct"></param>
-    /// <returns></returns>
-    Task<DeleteSubscriptionsResponse> DeleteSubscriptionsAsync(RequestHeader? requestHeader,
-        UInt32Collection subscriptionIds, CancellationToken ct = default);
 }

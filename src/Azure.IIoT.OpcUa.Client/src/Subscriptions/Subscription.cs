@@ -49,10 +49,12 @@ internal abstract class Subscription : MessageProcessor, IManagedSubscription,
     public bool Created => Id != 0;
 
     /// <inheritdoc/>
-    public IMonitoredItemServiceSet Session => _session;
+    public IMonitoredItemServiceSet MonitoredItemServiceSet
+        => _context.MonitoredItemServiceSet;
 
     /// <inheritdoc/>
-    public IMethodServiceSet Methods => _session;
+    public IMethodServiceSet MethodServiceSet
+        => _context.MethodServiceSet;
 
     /// <summary>
     /// Returns true if the subscription is not receiving publishes.
@@ -81,16 +83,17 @@ internal abstract class Subscription : MessageProcessor, IManagedSubscription,
     /// <summary>
     /// Create subscription
     /// </summary>
-    /// <param name="session"></param>
+    /// <param name="context"></param>
     /// <param name="handler"></param>
     /// <param name="completion"></param>
     /// <param name="options"></param>
     /// <param name="observability"></param>
-    protected Subscription(ISubscriptionContext session, ISubscriptionNotificationHandler handler,
+    protected Subscription(ISubscriptionContext context, ISubscriptionNotificationHandler handler,
         IMessageAckQueue completion, IOptionsMonitor<SubscriptionOptions> options,
-        IObservability observability) : base(session, completion, observability)
+        IObservability observability) : base(context.SubscriptionServiceSet, completion, observability)
     {
         _handler = handler;
+        _context = context;
         _monitoredItems = new MonitoredItemManager(this, observability);
         _publishTimer = Observability.TimeProvider.CreateTimer(OnKeepAlive,
             null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
@@ -102,7 +105,7 @@ internal abstract class Subscription : MessageProcessor, IManagedSubscription,
     /// <inheritdoc/>
     public override string ToString()
     {
-        return $"{_session}:{Id}";
+        return $"{_context}:{Id}";
     }
 
     /// <inheritdoc/>
@@ -121,7 +124,8 @@ internal abstract class Subscription : MessageProcessor, IManagedSubscription,
                 InputArguments = [new Variant(Id)]
             }
         };
-        await _session.CallAsync(null, methodsToCall, ct).ConfigureAwait(false);
+        await _context.MethodServiceSet.CallAsync(null, methodsToCall,
+            ct).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
@@ -391,7 +395,7 @@ internal abstract class Subscription : MessageProcessor, IManagedSubscription,
         {
             // delete the subscription.
             var subscriptionIds = new UInt32Collection { Id };
-            var response = await _session.DeleteSubscriptionsAsync(null,
+            var response = await _context.SubscriptionServiceSet.DeleteSubscriptionsAsync(null,
                 subscriptionIds, ct).ConfigureAwait(false);
             // validate response.
             Ua.ClientBase.ValidateResponse(response.Results, subscriptionIds);
@@ -422,7 +426,7 @@ internal abstract class Subscription : MessageProcessor, IManagedSubscription,
         // create the subscription.
         AdjustCounts(options, out var revisedMaxKeepAliveCount, out var revisedLifetimeCount);
 
-        var response = await _session.CreateSubscriptionAsync(null,
+        var response = await _context.SubscriptionServiceSet.CreateSubscriptionAsync(null,
             options.PublishingInterval.TotalMilliseconds, revisedLifetimeCount,
             revisedMaxKeepAliveCount, options.MaxNotificationsPerPublish,
             options.PublishingEnabled, options.Priority, ct).ConfigureAwait(false);
@@ -451,7 +455,7 @@ internal abstract class Subscription : MessageProcessor, IManagedSubscription,
             options.MaxNotificationsPerPublish != CurrentMaxNotificationsPerPublish ||
             options.PublishingInterval != CurrentPublishingInterval)
         {
-            var response = await _session.ModifySubscriptionAsync(null, Id,
+            var response = await _context.SubscriptionServiceSet.ModifySubscriptionAsync(null, Id,
                 options.PublishingInterval.TotalMilliseconds, revisedLifetimeCount,
                 revisedMaxKeepAliveCount, options.MaxNotificationsPerPublish, options.Priority,
                 ct).ConfigureAwait(false);
@@ -480,7 +484,7 @@ internal abstract class Subscription : MessageProcessor, IManagedSubscription,
         {
             // modify the subscription.
             var subscriptionIds = new UInt32Collection { Id };
-            var response = await _session.SetPublishingModeAsync(
+            var response = await _context.SubscriptionServiceSet.SetPublishingModeAsync(
                 null, options.PublishingEnabled, subscriptionIds, ct).ConfigureAwait(false);
 
             // validate response.
@@ -674,12 +678,12 @@ internal abstract class Subscription : MessageProcessor, IManagedSubscription,
         if (options.PublishingInterval > TimeSpan.Zero)
         {
             if (options.MinLifetimeInterval > TimeSpan.Zero &&
-                options.MinLifetimeInterval < _session.SessionTimeout)
+                options.MinLifetimeInterval < _context.SessionTimeout)
             {
                 _logger.LogWarning(
                     "{Subscription}: A smaller minimum LifetimeInterval " +
                     "{Counter}ms than session timeout {Timeout}ms configured.",
-                    this, options.MinLifetimeInterval, _session.SessionTimeout);
+                    this, options.MinLifetimeInterval, _context.SessionTimeout);
             }
 
             var minLifetimeInterval = (uint)options.MinLifetimeInterval.TotalMilliseconds;
@@ -698,12 +702,12 @@ internal abstract class Subscription : MessageProcessor, IManagedSubscription,
                     this, lifetimeCount);
             }
 
-            if (lifetimeCount * options.PublishingInterval < _session.SessionTimeout)
+            if (lifetimeCount * options.PublishingInterval < _context.SessionTimeout)
             {
                 _logger.LogWarning(
                     "{Subscription}: Lifetime {LifeTime}ms configured is less " +
                     "than session timeout {Timeout}ms.", this,
-                    lifetimeCount * options.PublishingInterval, _session.SessionTimeout);
+                    lifetimeCount * options.PublishingInterval, _context.SessionTimeout);
             }
         }
         else if (lifetimeCount == 0)
@@ -739,5 +743,6 @@ internal abstract class Subscription : MessageProcessor, IManagedSubscription,
     private readonly ITimer _publishTimer;
     private readonly IDisposable? _changeTracking;
     private readonly ISubscriptionNotificationHandler _handler;
+    private readonly ISubscriptionContext _context;
     private readonly MonitoredItemManager _monitoredItems;
 }
