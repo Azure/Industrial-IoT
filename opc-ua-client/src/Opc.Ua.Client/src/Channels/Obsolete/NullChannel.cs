@@ -173,7 +173,9 @@ internal sealed class NullChannel : ITransportChannel
     /// <returns></returns>
     private static ServiceResultException NotSupported(string name)
     {
-        Debug.Fail(name + " not supported");
+#if DEBUG_OBSOLETE
+        System.Diagnostics.Debug.Fail(name + " not supported");
+#endif
         return ServiceResultException.Create(StatusCodes.BadNotSupported,
             name + " deprecated");
     }

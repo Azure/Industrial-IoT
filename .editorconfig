@@ -332,7 +332,7 @@ dotnet_naming_style.begins_with_k.required_suffix =
 dotnet_naming_style.begins_with_k.word_separator =
 dotnet_naming_style.begins_with_k.capitalization = pascal_case
 
-csharp_style_namespace_declarations= file_scoped:warning
+csharp_style_namespace_declarations= block_scoped:warning
 
 # IDE0046: Convert to conditional expression
 dotnet_diagnostic.IDE0046.severity = silent

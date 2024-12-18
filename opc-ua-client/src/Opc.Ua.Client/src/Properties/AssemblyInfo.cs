@@ -5,4 +5,6 @@
 
 using System.Runtime.CompilerServices;
 
+// Both needed for unit test
 [assembly: InternalsVisibleTo("Opc.Ua.Client.Tests")]
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]

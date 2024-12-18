@@ -8,7 +8,6 @@ namespace Opc.Ua.Client.Sessions.Obsolete;
 using Opc.Ua;
 using Opc.Ua.Client.Channels.Obsolete;
 using System;
-using System.Diagnostics;
 
 /// <summary>
 /// This base effectively disables all synchronous and old style async
@@ -810,7 +809,9 @@ public class SessionClient : Opc.Ua.SessionClient
     /// <returns></returns>
     private static ServiceResultException NotSupported(string name)
     {
-        Debug.Fail(name + " not supported");
+#if DEBUG_OBSOLETE
+        System.Diagnostics.Debug.Fail(name + " not supported");
+#endif
         return ServiceResultException.Create(StatusCodes.BadNotSupported,
             name + " deprecated");
     }

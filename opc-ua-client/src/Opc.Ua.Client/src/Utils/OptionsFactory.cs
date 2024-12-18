@@ -34,10 +34,13 @@ internal static class OptionsFactory
     /// <returns></returns>
     public static OptionsMonitor<T> Create<[DynamicallyAccessedMembers(
         DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] T>(
-        Action<T>? configure = null) where T : new()
+        Func<T, T>? configure = null) where T : new()
     {
         var options = new OptionsMonitor<T>(new T());
-        configure?.Invoke(options.CurrentValue);
+        if (configure != null)
+        {
+            options.CurrentValue = configure(options.CurrentValue);
+        }
         return options;
     }
 }

@@ -195,32 +195,6 @@ internal sealed class MonitoredItemManager : IMonitoredItemCollection,
     }
 
     /// <summary>
-    /// Fill a bunch monitored items into the encodeable.
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="items"></param>
-    /// <param name="clientHandle"></param>
-    /// <param name="monitoredItem"></param>
-    internal void FillMonitoredItems<T>(List<T> items,
-        Func<T, uint> clientHandle, Action<T, MonitoredItem?> monitoredItem)
-    {
-        lock (_monitoredItemsLock)
-        {
-            foreach (var item in items)
-            {
-                if (_monitoredItems.TryGetValue(clientHandle(item), out var monitored))
-                {
-                    monitoredItem(item, monitored);
-                }
-                else
-                {
-                    monitoredItem(item, null);
-                }
-            }
-        }
-    }
-
-    /// <summary>
     /// Create notifications for monitored items
     /// </summary>
     /// <param name="notification"></param>

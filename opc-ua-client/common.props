@@ -40,9 +40,6 @@
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisMode>All</AnalysisMode>
     <AnalysisLevel>preview</AnalysisLevel>
-    <AnalysisModeStyle>default</AnalysisModeStyle>
-    <CodeAnalysisTreatWarningsAsErrors>false</CodeAnalysisTreatWarningsAsErrors>
-    <!--<TreatWarningsAsErrors>true</TreatWarningsAsErrors>-->
   </PropertyGroup>
   <ItemGroup Condition="$(NO_RCS) == ''">
     <PackageReference Include="Roslynator.Analyzers" Version="4.12.9" PrivateAssets="All"/>

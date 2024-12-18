@@ -14,8 +14,6 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Nito.AsyncEx;
 using Opc.Ua.Client.Services;
-using Opc.Ua.Client.Sessions;
-using Opc.Ua.Client.Subscriptions;
 using Opc.Ua.Client.Subscriptions.MonitoredItems;
 using Xunit;
 
@@ -703,7 +701,7 @@ public sealed class SubscriptionTests
         var options = OptionsFactory.Create<MonitoredItemOptions>();
         var sut = new TestSubscription(_mockSession.Object, _mockNotificationDataHandler.Object,
             _mockCompletion.Object, _options, _mockObservability.Object);
-        var success = sut.MonitoredItems.TryAdd("Test", options, out var monitoredItem);
+        var success = sut.MonitoredItems.TryAdd("Test", options, out _);
         success.Should().BeTrue();
 
         // Act
@@ -902,8 +900,8 @@ public sealed class SubscriptionTests
                         StatusCode = StatusCodes.Good,
                         OutputArguments =
                         [
-                            new Variant([199u, 22u, 33u]), // serverHandles
-                            new Variant([22])  // clientHandles
+                            new Variant([1990u, 2200u, 3300u]), // serverHandles
+                            new Variant([22222u])  // clientHandles
                         ]
                     }
                 ]
@@ -948,7 +946,7 @@ public sealed class SubscriptionTests
                         OutputArguments =
                         [
                             new Variant(["string"]), // serverHandles
-                            new Variant([22])  // clientHandles
+                            new Variant([22u])  // clientHandles
                         ]
                     }
                 ]
@@ -993,7 +991,7 @@ public sealed class SubscriptionTests
                         StatusCode = StatusCodes.Good,
                         OutputArguments =
                         [
-                            new Variant([199u]), // serverHandles
+                            new Variant([19900u]), // serverHandles
                             new Variant([monitoredItem.ClientHandle])  // clientHandles
                         ]
                     }
@@ -1007,7 +1005,7 @@ public sealed class SubscriptionTests
         // Assert
         _mockSession.Verify();
         success.Should().BeTrue();
-        monitoredItem.ServerId.Should().Be(199);
+        monitoredItem.ServerId.Should().Be(19900);
     }
 
     [Fact]
@@ -1085,8 +1083,8 @@ public sealed class SubscriptionTests
                         StatusCode = StatusCodes.Good,
                         OutputArguments =
                         [
-                            new Variant([199u]), // serverHandles
-                            new Variant([3u])  // clientHandles
+                            new Variant([19900u]), // serverHandles
+                            new Variant([300u])  // clientHandles
                         ]
                     }
                 ]
@@ -1095,7 +1093,7 @@ public sealed class SubscriptionTests
 
         _mockMonitoredItemServices
             .Setup(s => s.DeleteMonitoredItemsAsync(It.IsAny<RequestHeader>(), 2,
-                new UInt32Collection { 199 }, It.IsAny<CancellationToken>()))
+                new UInt32Collection { 19900 }, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DeleteMonitoredItemsResponse
             {
                 Results = [StatusCodes.Good]
@@ -1186,7 +1184,7 @@ public sealed class SubscriptionTests
                         OutputArguments =
                         [
                             new Variant([serverId]), // serverHandles
-                            new Variant([199])  // clientHandles
+                            new Variant([19900u])  // clientHandles
                         ]
                     }
                 ]
@@ -1199,7 +1197,7 @@ public sealed class SubscriptionTests
         // Assert
         _mockSession.Verify();
         success.Should().BeTrue();
-        monitoredItem.ClientHandle.Should().Be(199);
+        monitoredItem.ClientHandle.Should().Be(19900);
         monitoredItem.ServerId.Should().Be(serverId);
     }
 
@@ -1235,8 +1233,8 @@ public sealed class SubscriptionTests
                         StatusCode = StatusCodes.Good,
                         OutputArguments =
                         [
-                            new Variant([33]), // serverHandles
-                            new Variant([199])  // clientHandles
+                            new Variant([30000u]), // serverHandles
+                            new Variant([19900u])  // clientHandles
                         ]
                     }
                 ]
@@ -1246,7 +1244,7 @@ public sealed class SubscriptionTests
         // Delete monitored item should be called
         _mockMonitoredItemServices
             .Setup(s => s.DeleteMonitoredItemsAsync(It.IsAny<RequestHeader>(), 2,
-                new UInt32Collection { 33 }, It.IsAny<CancellationToken>()))
+                new UInt32Collection { 30000u }, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DeleteMonitoredItemsResponse
             {
                 Results = [StatusCodes.Good]
@@ -1263,7 +1261,7 @@ public sealed class SubscriptionTests
                     new ()
                     {
                         StatusCode = StatusCodes.Good,
-                        MonitoredItemId = 4444,
+                        MonitoredItemId = 44444,
                         RevisedSamplingInterval = 10000,
                         RevisedQueueSize = 10
                     }
@@ -1275,10 +1273,13 @@ public sealed class SubscriptionTests
         success = await sut.TryCompleteTransferAsync(Array.Empty<uint>(), default);
 
         // Assert
-        _mockSession.Verify();
         success.Should().BeTrue();
         monitoredItem.Created.Should().BeTrue();
-        monitoredItem.ServerId.Should().Be(4444);
+        monitoredItem.ClientHandle.Should().Be(clientId);
+        monitoredItem.ServerId.Should().Be(44444);
+
+        _mockSession.Verify();
+        _mockMonitoredItemServices.Verify();
     }
 
     private sealed class TestMonitoredItem : MonitoredItem
