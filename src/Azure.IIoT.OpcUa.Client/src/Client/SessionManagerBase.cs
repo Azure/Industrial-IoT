@@ -9,6 +9,7 @@ using BitFaster.Caching;
 using BitFaster.Caching.Lfu;
 using Microsoft.Extensions.Logging;
 using Opc.Ua;
+using Opc.Ua.Client.Sessions;
 using Opc.Ua.Configuration;
 using System;
 using System.Collections.Generic;
@@ -45,7 +46,7 @@ internal abstract class SessionManagerBase : ClientApplicationBase,
         _logger = observability.LoggerFactory.CreateLogger<SessionManagerBase>();
 
         // Connection pooling of managed sessions
-        _pool = new ConcurrentLfuBuilder<PooledSessionOptions, Session>()
+        _pool = new ConcurrentLfuBuilder<PooledSessionOptions, Opc.Ua.Client.Sessions.Session>()
             .WithAtomicGetOrAdd()
             .WithKeyComparer(new PooledSessionOptionsComparer())
             .WithCapacity(options.MaxPooledSessions)
@@ -107,7 +108,7 @@ internal abstract class SessionManagerBase : ClientApplicationBase,
         {
             return new Pooled(await _pool.ScopedGetOrAddAsync(connection,
                 ConnectAsync, (this, ct)).ConfigureAwait(false));
-            static async Task<Scoped<Session>> ConnectAsync(PooledSessionOptions key,
+            static async Task<Scoped<Opc.Ua.Client.Sessions.Session>> ConnectAsync(PooledSessionOptions key,
                 (SessionManagerBase client, CancellationToken ct) context)
             {
                 var session = await context.client.ConnectWithResiliencyAsync(key.Endpoint,
@@ -132,7 +133,7 @@ internal abstract class SessionManagerBase : ClientApplicationBase,
                         ReconnectStrategy =
                             context.client._options.RetryStrategy
                     }, key.UseReverseConnect, context.ct).ConfigureAwait(false);
-                return new Scoped<Session>(session);
+                return new Scoped<Opc.Ua.Client.Sessions.Session>(session);
             }
         }
     }
@@ -182,7 +183,7 @@ internal abstract class SessionManagerBase : ClientApplicationBase,
     /// <param name="options"></param>
     /// <param name="observability"></param>
     /// <returns></returns>
-    protected abstract Session CreateSession(ApplicationConfiguration configuration,
+    protected abstract Opc.Ua.Client.Sessions.Session CreateSession(ApplicationConfiguration configuration,
         ConfiguredEndpoint endpoint, SessionCreateOptions options, IObservability observability);
 
     /// <summary>
@@ -193,7 +194,7 @@ internal abstract class SessionManagerBase : ClientApplicationBase,
     /// <param name="useReverseConnect"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    internal async ValueTask<Session> ConnectWithResiliencyAsync(EndpointDescription endpoint,
+    internal async ValueTask<Opc.Ua.Client.Sessions.Session> ConnectWithResiliencyAsync(EndpointDescription endpoint,
         SessionCreateOptions? options, bool useReverseConnect, CancellationToken ct)
     {
         if (_options.RetryStrategy != null)
@@ -215,7 +216,7 @@ internal abstract class SessionManagerBase : ClientApplicationBase,
     /// <param name="useReverseConnect"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    internal async ValueTask<Session> ConnectCoreAsync(EndpointDescription endpoint,
+    internal async ValueTask<Opc.Ua.Client.Sessions.Session> ConnectCoreAsync(EndpointDescription endpoint,
         SessionCreateOptions? options, bool useReverseConnect, CancellationToken ct)
     {
         ITransportWaitingConnection? connection = null;
@@ -470,7 +471,7 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
     }
 
     /// <inheritdoc/>
-    private sealed class Unpooled(Session session) : ISessionHandle
+    private sealed class Unpooled(Opc.Ua.Client.Sessions.Session session) : ISessionHandle
     {
         /// <inheritdoc/>
         public ISession Session { get; } = session;
@@ -487,7 +488,7 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
     /// Disposing the client returns the session to the pool.
     /// </summary>
     /// <param name="lifetime"></param>
-    private sealed class Pooled(Lifetime<Session> lifetime) : ISessionHandle
+    private sealed class Pooled(Lifetime<Opc.Ua.Client.Sessions.Session> lifetime) : ISessionHandle
     {
         /// <summary>
         /// Session reference valid until disposed.
@@ -506,6 +507,6 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
     private readonly IObservability _observability;
     private readonly ClientOptions _options;
     private readonly Lazy<Exception?> _reverseConnectStartException;
-    private readonly IScopedAsyncCache<PooledSessionOptions, Session> _pool;
+    private readonly IScopedAsyncCache<PooledSessionOptions, Opc.Ua.Client.Sessions.Session> _pool;
     private bool _disposed;
 }

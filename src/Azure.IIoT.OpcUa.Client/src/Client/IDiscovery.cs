@@ -15,7 +15,6 @@ using System.Threading.Tasks;
 /// </summary>
 public interface IDiscovery
 {
-
     /// <summary>
     /// Find endpoints using the specified discovery url and locales.
     /// </summary>

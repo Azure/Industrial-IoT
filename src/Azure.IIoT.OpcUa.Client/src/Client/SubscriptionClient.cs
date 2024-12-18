@@ -5,9 +5,12 @@
 
 namespace Opc.Ua.Client;
 
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 using Nito.AsyncEx;
+using Opc.Ua.Client.Sessions;
+using Opc.Ua.Client.Subscriptions;
+using Opc.Ua.Client.Subscriptions.MonitoredItems;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -391,7 +394,7 @@ internal sealed class SubscriptionClient : IAsyncDisposable
     /// several partitions that are made up of actual subscriptions in the
     /// underlying session.
     /// </summary>
-    internal sealed class VirtualSubscription : OptionsMonitor<SubscriptionOptions>,
+    internal sealed class VirtualSubscription : Opc.Ua.OptionsMonitor<SubscriptionOptions>,
         ISubscriptionNotificationHandler, IAsyncDisposable
     {
         /// <summary>
@@ -605,8 +608,7 @@ internal sealed class SubscriptionClient : IAsyncDisposable
                     if (!placed)
                     {
                         // Break items into batches of max here and add partition each
-                        foreach (var batch in registeredItems.Batch(
-                            maxMonitoredItems))
+                        foreach (var batch in registeredItems.Batch(maxMonitoredItems))
                         {
                             var newPartition = new BagPackedPartition();
                             newPartition.Items.AddRange(batch);

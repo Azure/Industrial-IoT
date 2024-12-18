@@ -6,6 +6,7 @@
 namespace Opc.Ua.Client;
 
 using Opc.Ua;
+using Opc.Ua.Client.Sessions;
 
 /// <summary>
 /// Pooled session options

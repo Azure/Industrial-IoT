@@ -5,6 +5,7 @@
 
 namespace Opc.Ua.Client;
 
+using Opc.Ua.Client.Sessions;
 using Microsoft.Extensions.Logging;
 using Polly;
 using System;

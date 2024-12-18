@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Opc.Ua.Client;
+namespace Opc.Ua;
 
 using System;
 using System.Diagnostics.CodeAnalysis;

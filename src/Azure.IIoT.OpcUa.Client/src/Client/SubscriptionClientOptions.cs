@@ -6,6 +6,8 @@
 namespace Opc.Ua.Client;
 
 using Microsoft.Extensions.Options;
+using Opc.Ua.Client.Subscriptions;
+using Opc.Ua.Client.Subscriptions.MonitoredItems;
 using System.Collections.Generic;
 
 /// <summary>

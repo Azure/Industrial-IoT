@@ -7,6 +7,7 @@ namespace Opc.Ua.Client;
 
 using System.Collections.Generic;
 using System;
+using Opc.Ua.Client.Subscriptions;
 
 /// <summary>
 /// Notification

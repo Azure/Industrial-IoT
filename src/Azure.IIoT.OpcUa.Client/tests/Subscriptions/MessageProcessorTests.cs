@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Opc.Ua.Client;
+namespace Opc.Ua.Client.Subscriptions;
 
 using System;
 using System.Collections.Generic;
@@ -14,6 +14,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Nito.AsyncEx;
+using Opc.Ua.Client.Sessions;
 using Xunit;
 
 public sealed class MessageProcessorTests

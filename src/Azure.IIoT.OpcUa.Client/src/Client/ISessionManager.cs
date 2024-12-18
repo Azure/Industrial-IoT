@@ -6,6 +6,7 @@
 namespace Opc.Ua.Client;
 
 using Opc.Ua;
+using Opc.Ua.Client.Sessions;
 using System;
 using System.Collections.Generic;
 using System.Threading;

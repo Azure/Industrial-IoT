@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Opc.Ua.Client.Obsolete;
+namespace Opc.Ua.Client.Channels.Obsolete;
 
 using Opc.Ua.Bindings;
 using System;

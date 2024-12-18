@@ -8,6 +8,9 @@ namespace Opc.Ua.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Opc.Ua.Client.Subscriptions;
+using Opc.Ua.Client.Subscriptions.MonitoredItems;
+using Opc.Ua.Client.Sessions;
 using Opc.Ua.Configuration;
 using System;
 using System.Collections.Generic;
@@ -124,7 +127,7 @@ public class ClientBuilder(IServiceCollection? services = null) : ClientBuilderB
         public KeepAliveNotificationHandler? KeepAliveCallback { get; set; }
 
         /// <inheritdoc/>
-        protected override Session CreateSession(ApplicationConfiguration configuration,
+        protected override Opc.Ua.Client.Sessions.Session CreateSession(ApplicationConfiguration configuration,
             ConfiguredEndpoint endpoint, SessionCreateOptions options, IObservability observability)
         {
             return new ClientSession(this, configuration, endpoint, options, observability);
@@ -138,7 +141,7 @@ public class ClientBuilder(IServiceCollection? services = null) : ClientBuilderB
     }
 
     /// <inheritdoc/>
-    internal sealed class ClientSession : Session
+    internal sealed class ClientSession : Opc.Ua.Client.Sessions.Session
     {
         /// <inheritdoc/>
         public ClientApplication Application { get; }
@@ -215,7 +218,7 @@ public class ClientBuilder(IServiceCollection? services = null) : ClientBuilderB
                 observability.LoggerFactory.CreateLogger<ClientItem>());
         }
 
-        private new readonly ClientSession _session;
+        private readonly ClientSession _session;
     }
 
     /// <inheritdoc/>

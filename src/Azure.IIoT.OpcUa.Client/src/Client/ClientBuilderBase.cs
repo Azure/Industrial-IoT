@@ -8,6 +8,7 @@ namespace Opc.Ua.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Opc.Ua.Client.Sessions;
 using Opc.Ua.Configuration;
 using Polly;
 using System;

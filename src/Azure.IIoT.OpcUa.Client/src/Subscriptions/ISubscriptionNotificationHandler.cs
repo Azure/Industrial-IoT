@@ -3,8 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Opc.Ua.Client;
+namespace Opc.Ua.Client.Subscriptions;
 
+using Opc.Ua.Client.Subscriptions.MonitoredItems;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;

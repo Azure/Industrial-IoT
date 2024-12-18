@@ -7,11 +7,6 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="Session\Encoder\Reflection\**" />
-    <EmbeddedResource Remove="Session\Encoder\Reflection\**" />
-    <None Remove="Session\Encoder\Reflection\**" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="BitFaster.Caching" Version="2.5.2" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.0" />

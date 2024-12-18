@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Opc.Ua.Client;
+namespace Opc.Ua.Client.Subscriptions;
 
 using System;
 using System.Threading;
@@ -13,6 +13,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using Nito.AsyncEx;
+using Opc.Ua.Client.Sessions;
+using Opc.Ua.Client.Subscriptions;
+using Opc.Ua.Client.Subscriptions.MonitoredItems;
 using Xunit;
 
 public sealed class SubscriptionTests
@@ -1291,7 +1294,7 @@ public sealed class SubscriptionTests
         };
 
         public TestMonitoredItem(IMonitoredItemContext subscription, string name,
-            OptionsMonitor<MonitoredItemOptions> options, ILogger logger)
+            Opc.Ua.OptionsMonitor<MonitoredItemOptions> options, ILogger logger)
             : base(subscription, name, options, logger)
         {
             if (NodeId.IsNull(options.CurrentValue.StartNodeId))
@@ -1341,7 +1344,7 @@ public sealed class SubscriptionTests
         };
 
         public TestSubscription(ISubscriptionContext session, ISubscriptionNotificationHandler handler,
-            IMessageAckQueue completion, OptionsMonitor<SubscriptionOptions> options,
+            IMessageAckQueue completion, Opc.Ua.OptionsMonitor<SubscriptionOptions> options,
             IObservability observability, uint? subscriptionIdForAlreadyCreatedState = null)
             : base(session, handler, completion, !subscriptionIdForAlreadyCreatedState.HasValue ?
                   options : options.Configure(o => o with { Disabled = true }), observability)
@@ -1379,7 +1382,7 @@ public sealed class SubscriptionTests
             IObservability observability)
         {
             return new TestMonitoredItem(context, name,
-                (OptionsMonitor<MonitoredItemOptions>)options, new Mock<ILogger>().Object);
+                (Opc.Ua.OptionsMonitor<MonitoredItemOptions>)options, new Mock<ILogger>().Object);
         }
 
         protected override ValueTask OnKeepAliveNotificationAsync(uint sequenceNumber,
@@ -1390,7 +1393,7 @@ public sealed class SubscriptionTests
     }
 
     private readonly Mock<IMessageAckQueue> _mockCompletion;
-    private readonly OptionsMonitor<SubscriptionOptions> _options;
+    private readonly Opc.Ua.OptionsMonitor<SubscriptionOptions> _options;
     private readonly Mock<IObservability> _mockObservability;
     private readonly Mock<TimeProvider> _mockTimeProvider;
     private readonly Mock<ISubscriptionServiceSet> _mockSubscriptionServices;
