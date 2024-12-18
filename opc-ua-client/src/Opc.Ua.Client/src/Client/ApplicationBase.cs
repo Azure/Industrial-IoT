@@ -21,7 +21,7 @@ using System.Threading.Tasks;
 /// managing the application's private key infrastructure and certificate
 /// stores.
 /// </summary>
-internal abstract class ApplicationBase : ICertificates, IDisposable
+internal abstract class ApplicationBase : IPkiManagement, IDisposable
 {
     /// <summary>
     /// Create application

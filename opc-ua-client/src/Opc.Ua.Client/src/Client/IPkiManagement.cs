@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 /// Certificate management capabilities. The certificate management
 /// capabilities are exposed by the application.
 /// </summary>
-public interface ICertificates
+public interface IPkiManagement
 {
     /// <summary>
     /// Enumerate certificates

@@ -14,7 +14,7 @@ public interface IClientHandle
     /// Manage certificates throuhg the certificates
     /// management api
     /// </summary>
-    ICertificates Certificates { get; }
+    IPkiManagement PkiManagement { get; }
 
     /// <summary>
     /// Discover endpoints through the discovery api

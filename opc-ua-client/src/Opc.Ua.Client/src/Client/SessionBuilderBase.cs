@@ -35,7 +35,7 @@ internal class SessionBuilderBase<TPooledSessionOptions, TSessionOptions,
         = pooledSessionBuilder;
 
     /// <inheritdoc/>
-    public ICertificates Certificates
+    public IPkiManagement PkiManagement
         => application;
 
     /// <inheritdoc/>

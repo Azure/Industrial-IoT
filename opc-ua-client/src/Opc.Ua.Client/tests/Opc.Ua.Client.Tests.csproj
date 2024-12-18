@@ -21,6 +21,6 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Client.csproj" />
+    <ProjectReference Include="..\src\Opc.Ua.Client.csproj" />
   </ItemGroup>
 </Project>

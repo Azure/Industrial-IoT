@@ -12,9 +12,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.IIoT.OpcUa.Client", "src\Azure.IIoT.OpcUa.Client\src\Azure.IIoT.OpcUa.Client.csproj", "{1B941FA3-BDB4-4812-85E3-E645E485E5CB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Opc.Ua.Client", "src\Opc.Ua.Client\src\Opc.Ua.Client.csproj", "{1B941FA3-BDB4-4812-85E3-E645E485E5CB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.IIoT.OpcUa.Client.Tests", "src\Azure.IIoT.OpcUa.Client\tests\Azure.IIoT.OpcUa.Client.Tests.csproj", "{0DDC2EFB-374E-461F-BE0A-D5D19373BEE9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Opc.Ua.Client.Tests", "src\Opc.Ua.Client\tests\Opc.Ua.Client.Tests.csproj", "{0DDC2EFB-374E-461F-BE0A-D5D19373BEE9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

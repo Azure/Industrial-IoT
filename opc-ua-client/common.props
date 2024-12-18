@@ -1,0 +1,55 @@
+<Project>
+  <PropertyGroup>
+    <Product>OPC UA Client SDK</Product>
+    <RepositoryUrl>https://github.com/Azure/Industrial-IoT</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <NoWarn>NU5125;RS1022;AD0001</NoWarn>
+    <Authors>Microsoft</Authors>
+    <Company>Microsoft</Company>
+    <copyright>© Microsoft Corporation. All rights reserved.</copyright>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageReadmeFile>readme.md</PackageReadmeFile>
+    <PackageReleaseNotes>$(RepositoryUrl)/releases</PackageReleaseNotes>
+    <PackageProjectUrl>$(RepositoryUrl)</PackageProjectUrl>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageTags>Manufacturing;Azure;IoT;.NET</PackageTags>
+    <HighEntropyVA>true</HighEntropyVA>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <LangVersion>13.0</LangVersion>
+    <IsPackable>false</IsPackable>
+    <Nullable>disable</Nullable>
+    <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
+    <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(IsPackable)' != 'false'">
+    <None Include="$(MSBuildThisFileDirectory)/icon.png" Pack="true" PackagePath="\"/>
+    <None Include="$(MSBuildThisFileDirectory)/readme.md" Pack="true" PackagePath="\"/>
+  </ItemGroup>
+  <PropertyGroup>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+  </PropertyGroup>
+  <ItemGroup Condition="$(NO_GIT) == ''">
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All"/>
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.6.146" PrivateAssets="All"/>
+  </ItemGroup>
+  <PropertyGroup>
+    <IncludeOpenAPIAnalyzers>true</IncludeOpenAPIAnalyzers>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisMode>All</AnalysisMode>
+    <AnalysisLevel>preview</AnalysisLevel>
+    <AnalysisModeStyle>default</AnalysisModeStyle>
+    <CodeAnalysisTreatWarningsAsErrors>false</CodeAnalysisTreatWarningsAsErrors>
+    <!--<TreatWarningsAsErrors>true</TreatWarningsAsErrors>-->
+  </PropertyGroup>
+  <ItemGroup Condition="$(NO_RCS) == ''">
+    <PackageReference Include="Roslynator.Analyzers" Version="4.12.9" PrivateAssets="All"/>
+    <PackageReference Include="Roslynator.Formatting.Analyzers" Version="4.12.9" PrivateAssets="All"/>
+  </ItemGroup>
+  <!-- only create the SARIF files for the SDL build step in cloud builds -->
+  <PropertyGroup Condition="'$(NBGV_NugetPackageVersion)' != ''">
+    <ErrorLog>$(MSBuildProjectFullPath).$([System.Guid]::NewGuid().ToString().Substring(0,8)).sarif</ErrorLog>
+  </PropertyGroup>
+</Project>
