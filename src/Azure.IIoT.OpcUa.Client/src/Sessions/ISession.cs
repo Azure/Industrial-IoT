@@ -7,13 +7,15 @@ namespace Opc.Ua.Client.Sessions;
 
 using Opc.Ua;
 using Opc.Ua.Client.Nodes;
+using Opc.Ua.Client.Services;
 using Opc.Ua.Client.Subscriptions;
 using System;
 
 /// <summary>
 /// Session interface
 /// </summary>
-public interface ISession : ISessionServiceSets
+public interface ISession : IMethodServiceSet, INodeManagementServiceSet,
+    IViewServiceSet, IAttributeServiceSet
 {
     /// <summary>
     /// Returns the current connection state of

@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Opc.Ua.Client.Sessions;
+namespace Opc.Ua.Client.Services;
 
 using System.Threading;
 using System.Threading.Tasks;

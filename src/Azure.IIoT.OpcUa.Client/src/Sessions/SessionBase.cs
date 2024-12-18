@@ -21,6 +21,7 @@ using System.Runtime.CompilerServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
+using Opc.Ua.Client.Services;
 
 /// <summary>
 /// The session base class combines the session services and adds
@@ -30,7 +31,7 @@ using System.Threading.Tasks;
 /// </summary>
 internal abstract class SessionBase : SessionClient, IServiceSetExtensions,
     ISubscriptionContext, INodeCacheContext, ISubscriptionManagerContext,
-    ISession, IAsyncDisposable
+    ISession, IMonitoredItemServiceSet, ISubscriptionServiceSet, IAsyncDisposable
 {
     /// <inheritdoc/>
     public IUserIdentity Identity { get; private set; }
