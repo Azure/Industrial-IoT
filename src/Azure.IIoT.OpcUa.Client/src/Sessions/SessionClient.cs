@@ -6,6 +6,7 @@
 namespace Opc.Ua.Client.Sessions;
 
 using Microsoft.Extensions.Logging;
+using Opc.Ua.Client.Services;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -18,8 +19,8 @@ using System.Threading.Tasks;
 /// to operation limits.
 /// </summary>
 internal abstract class SessionClient : Obsolete.SessionClient,
-    ISessionServiceSets, ISubscriptionServiceSet, IMethodServiceSet,
-    IMonitoredItemServiceSet
+    IViewServiceSet, IAttributeServiceSet, ISubscriptionServiceSet,
+    IMethodServiceSet, IMonitoredItemServiceSet, INodeManagementServiceSet
 {
     /// <summary>
     /// The operation limits are used to batch the service requests.

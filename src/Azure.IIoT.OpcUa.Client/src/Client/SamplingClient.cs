@@ -230,7 +230,7 @@ internal sealed class SamplingClient : IAsyncDisposable
 
                     // Perform the read.
                     var timeout = _samplingRate.TotalMilliseconds / 2;
-                    var response = await session.ReadAsync(new RequestHeader
+                    var response = await session.AttributeServiceSet.ReadAsync(new RequestHeader
                     {
                         Timestamp = _outer._observability.TimeProvider.GetUtcNow().UtcDateTime,
                         TimeoutHint = (uint)timeout,

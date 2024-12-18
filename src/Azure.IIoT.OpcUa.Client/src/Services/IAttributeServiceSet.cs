@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 
 /// <summary>
 /// Attribute service set
+/// <see href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.11"/>
 /// </summary>
 public interface IAttributeServiceSet
 {

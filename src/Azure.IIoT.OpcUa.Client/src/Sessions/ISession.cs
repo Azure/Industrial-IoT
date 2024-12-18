@@ -14,8 +14,7 @@ using System;
 /// <summary>
 /// Session interface
 /// </summary>
-public interface ISession : IMethodServiceSet, INodeManagementServiceSet,
-    IViewServiceSet, IAttributeServiceSet
+public interface ISession
 {
     /// <summary>
     /// Returns the current connection state of
@@ -37,6 +36,26 @@ public interface ISession : IMethodServiceSet, INodeManagementServiceSet,
     /// Cache of the server address space.
     /// </summary>
     INodeCache NodeCache { get; }
+
+    /// <summary>
+    /// Call methods
+    /// </summary>
+    IMethodServiceSet MethodServiceSet { get; }
+
+    /// <summary>
+    /// View services
+    /// </summary>
+    IViewServiceSet ViewServiceSet { get; }
+
+    /// <summary>
+    /// Attribute services
+    /// </summary>
+    IAttributeServiceSet AttributeServiceSet { get; }
+
+    /// <summary>
+    /// Node management services
+    /// </summary>
+    INodeManagementServiceSet NodeManagementServiceSet { get; }
 
     /// <summary>
     /// Subscriptions in the session

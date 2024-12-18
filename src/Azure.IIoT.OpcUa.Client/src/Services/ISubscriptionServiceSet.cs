@@ -10,9 +10,10 @@ using System.Threading;
 using System.Threading.Tasks;
 
 /// <summary>
-/// Subscription context
+/// Subscription service set
+/// <see href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.14"/>
 /// </summary>
-public interface ISubscriptionServiceSet
+internal interface ISubscriptionServiceSet
 {
     /// <summary>
     /// Create subscription

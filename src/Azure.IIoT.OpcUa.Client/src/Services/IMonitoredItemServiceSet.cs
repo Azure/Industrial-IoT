@@ -11,8 +11,9 @@ using System.Threading.Tasks;
 
 /// <summary>
 /// Monitored item service set
+/// <see href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.13"/>
 /// </summary>
-public interface IMonitoredItemServiceSet
+internal interface IMonitoredItemServiceSet
 {
     /// <summary>
     /// Set monitoring

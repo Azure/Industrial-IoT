@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 
 /// <summary>
 /// Node management service set
+/// <see href="https://reference.opcfoundation.org/Core/Part4/v105/docs/5.8"/>
 /// </summary>
 public interface INodeManagementServiceSet
 {

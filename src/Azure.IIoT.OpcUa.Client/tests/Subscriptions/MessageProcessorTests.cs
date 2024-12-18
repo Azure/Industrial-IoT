@@ -14,6 +14,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Nito.AsyncEx;
+using Opc.Ua.Client.Services;
 using Opc.Ua.Client.Sessions;
 using Xunit;
 

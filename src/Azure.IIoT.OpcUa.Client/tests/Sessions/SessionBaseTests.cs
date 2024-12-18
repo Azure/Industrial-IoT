@@ -15,6 +15,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
+using Opc.Ua.Client.Services;
 using Opc.Ua.Client.Sessions;
 using Opc.Ua.Client.Subscriptions;
 using Xunit;

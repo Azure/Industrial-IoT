@@ -29,9 +29,10 @@ using Opc.Ua.Client.Services;
 /// as layers. It provides the connection services that are used by
 /// the Session class that automatically manages the session state.
 /// </summary>
-internal abstract class SessionBase : SessionClient, IServiceSetExtensions,
-    ISubscriptionContext, INodeCacheContext, ISubscriptionManagerContext,
-    ISession, IMonitoredItemServiceSet, ISubscriptionServiceSet, IAsyncDisposable
+internal abstract class SessionBase : SessionClient, ISession,
+    IServiceSetExtensions, ISubscriptionContext, INodeCacheContext,
+    ISubscriptionManagerContext, IMonitoredItemServiceSet,
+    ISubscriptionServiceSet, IAsyncDisposable
 {
     /// <inheritdoc/>
     public IUserIdentity Identity { get; private set; }
@@ -62,6 +63,15 @@ internal abstract class SessionBase : SessionClient, IServiceSetExtensions,
 
     /// <inheritdoc/>
     public IMethodServiceSet MethodServiceSet => this;
+
+    /// <inheritdoc/>
+    public IViewServiceSet ViewServiceSet => this;
+
+    /// <inheritdoc/>
+    public IAttributeServiceSet AttributeServiceSet => this;
+
+    /// <inheritdoc/>
+    public INodeManagementServiceSet NodeManagementServiceSet => this;
 
     /// <inheritdoc/>
     public TimeSpan SessionTimeout { get; private set; }
