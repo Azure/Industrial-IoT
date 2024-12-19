@@ -183,7 +183,7 @@ public abstract class StructureDescription : DataTypeDescription
         public override object?[]? Decode(IDecoder decoder)
         {
             var values = new object?[_fields.Length];
-            for (int i = 0; i < _fields.Length; i++)
+            for (var i = 0; i < _fields.Length; i++)
             {
                 values[i] = _fields[i].Decode(decoder);
             }
@@ -198,7 +198,7 @@ public abstract class StructureDescription : DataTypeDescription
                 throw ServiceResultException.Create(StatusCodes.BadDataEncodingInvalid,
                     "Not enough values for all fields.");
             }
-            for (int i = 0; i < _fields.Length; i++)
+            for (var i = 0; i < _fields.Length; i++)
             {
                 _fields[i].Encode(encoder, values[i]);
             }
@@ -288,7 +288,7 @@ public abstract class StructureDescription : DataTypeDescription
             var values = new object?[_fields.Length + 1];
             var encodingMask = decoder.ReadUInt32("EncodingMask");
             values[0] = encodingMask;
-            for (int i = 0; i < _fields.Length; i++)
+            for (var i = 0; i < _fields.Length; i++)
             {
                 var field = _fields[i];
                 if (!field.Field.IsOptional ||
@@ -313,7 +313,7 @@ public abstract class StructureDescription : DataTypeDescription
             {
                 encoder.WriteUInt32("EncodingMask", encodingMask);
             }
-            for (int i = 0; i < _fields.Length; i++)
+            for (var i = 0; i < _fields.Length; i++)
             {
                 var field = _fields[i];
                 if (!field.Field.IsOptional ||

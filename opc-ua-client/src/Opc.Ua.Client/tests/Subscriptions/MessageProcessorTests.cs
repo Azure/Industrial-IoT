@@ -15,7 +15,6 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Nito.AsyncEx;
 using Opc.Ua.Client.Services;
-using Opc.Ua.Client.Sessions;
 using Xunit;
 
 public sealed class MessageProcessorTests
@@ -24,9 +23,9 @@ public sealed class MessageProcessorTests
     {
         _mockCompletion = new Mock<IMessageAckQueue>();
         _mockObservability = new Mock<IObservability>();
-        _mockLogger = new Mock<ILogger<Subscription>>();
         _mockTimeProvider = new Mock<TimeProvider>();
         _mockServices = new Mock<ISubscriptionServiceSet>();
+        _mockLogger = new Mock<ILogger<Subscription>>();
         _mockObservability.Setup(o => o.LoggerFactory.CreateLogger(It.IsAny<string>()))
             .Returns(_mockLogger.Object);
         _mockObservability.Setup(o => o.TimeProvider).Returns(_mockTimeProvider.Object);

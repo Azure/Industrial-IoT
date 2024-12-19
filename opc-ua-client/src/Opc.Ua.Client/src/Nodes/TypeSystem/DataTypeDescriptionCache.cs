@@ -14,7 +14,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -34,10 +33,10 @@ internal class DataTypeDescriptionCache : IEncodeableFactory, IDataTypeDescripti
 {
     /// <inheritdoc/>
     public IReadOnlyDictionary<ExpandedNodeId, Type> EncodeableTypes
-        => _factory.EncodeableTypes;
+        => _context.Factory.EncodeableTypes;
 
     /// <inheritdoc/>
-    public int InstanceId => _factory.InstanceId;
+    public int InstanceId => _context.Factory.InstanceId;
 
     /// <summary>
     /// Disable the use of the data type system cache to use the legacy data
@@ -60,7 +59,6 @@ internal class DataTypeDescriptionCache : IEncodeableFactory, IDataTypeDescripti
         _dataTypeSystems = new DataTypeSystemCache(nodeCache, context,
             loggerFactory);
         _context = context;
-        _factory = context.Factory;
         _nodeCache = nodeCache;
     }
 
@@ -72,7 +70,6 @@ internal class DataTypeDescriptionCache : IEncodeableFactory, IDataTypeDescripti
     {
         _logger = dataTypeSystem._logger;
         _context = dataTypeSystem._context;
-        _factory = dataTypeSystem._factory;
         _nodeCache = dataTypeSystem._nodeCache;
         _dataTypeSystems = dataTypeSystem._dataTypeSystems;
     }
@@ -88,7 +85,7 @@ internal class DataTypeDescriptionCache : IEncodeableFactory, IDataTypeDescripti
         {
             return typeof(EnumValue);
         }
-        return _factory.GetSystemType(typeOrEncodingId);
+        return _context.Factory.GetSystemType(typeOrEncodingId);
     }
 
     /// <inheritdoc/>
@@ -100,25 +97,25 @@ internal class DataTypeDescriptionCache : IEncodeableFactory, IDataTypeDescripti
     /// <inheritdoc/>
     public void AddEncodeableType(Type systemType)
     {
-        _factory.AddEncodeableType(systemType);
+        _context.Factory.AddEncodeableType(systemType);
     }
 
     /// <inheritdoc/>
     public void AddEncodeableType(ExpandedNodeId encodingId, Type systemType)
     {
-        _factory.AddEncodeableType(encodingId, systemType);
+        _context.Factory.AddEncodeableType(encodingId, systemType);
     }
 
     /// <inheritdoc/>
     public void AddEncodeableTypes(Assembly assembly)
     {
-        _factory.AddEncodeableTypes(assembly);
+        _context.Factory.AddEncodeableTypes(assembly);
     }
 
     /// <inheritdoc/>
     public void AddEncodeableTypes(IEnumerable<Type> systemTypes)
     {
-        _factory.AddEncodeableTypes(systemTypes);
+        _context.Factory.AddEncodeableTypes(systemTypes);
     }
 
     /// <inheritdoc/>
@@ -168,8 +165,7 @@ internal class DataTypeDescriptionCache : IEncodeableFactory, IDataTypeDescripti
 
                 foreach (var field in structureDefinition.Fields)
                 {
-                    if (!IsRecursiveDataType(nodeId, field.DataType) &&
-                        !collect.ContainsKey(nodeId))
+                    if (!collect.ContainsKey(field.DataType))
                     {
                         CollectAllDataTypeDefinitions(field.DataType, collect);
                     }
@@ -178,11 +174,6 @@ internal class DataTypeDescriptionCache : IEncodeableFactory, IDataTypeDescripti
             else if (_enums.TryGetValue(nodeId, out var enumDescription))
             {
                 collect[nodeId] = enumDescription.EnumDefinition;
-            }
-            static bool IsRecursiveDataType(ExpandedNodeId structureDataType,
-                ExpandedNodeId fieldDataType)
-            {
-                return fieldDataType.Equals(structureDataType);
             }
         }
     }
@@ -339,12 +330,12 @@ internal class DataTypeDescriptionCache : IEncodeableFactory, IDataTypeDescripti
     /// <param name="typeId"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    private async ValueTask<DataTypeNode?> GetDataTypeAsync(ExpandedNodeId typeId,
+    internal async ValueTask<DataTypeNode?> GetDataTypeAsync(ExpandedNodeId typeId,
         CancellationToken ct)
     {
         var nodeId = ExpandedNodeId.ToNodeId(typeId, _context.NamespaceUris);
         var node = await _nodeCache.GetNodeAsync(nodeId, ct).ConfigureAwait(false);
-        if (node is not DataTypeNode dataTypeNode)
+        if (node is not DataTypeNode)
         {
             // Load the type definition for the variable or variable type
             switch (node)
@@ -385,7 +376,7 @@ internal class DataTypeDescriptionCache : IEncodeableFactory, IDataTypeDescripti
     /// <param name="xmlName"></param>
     /// <param name="isAbstract"></param>
     /// <param name="xmlDefinition"></param>
-    private void Add(ExpandedNodeId typeId, DataTypeDefinition definition,
+    internal void Add(ExpandedNodeId typeId, DataTypeDefinition definition,
         ExpandedNodeId binaryEncodingId, ExpandedNodeId xmlEncodingId,
         XmlQualifiedName xmlName, bool isAbstract,
         DataTypeDefinition? xmlDefinition = null)
@@ -438,7 +429,7 @@ internal class DataTypeDescriptionCache : IEncodeableFactory, IDataTypeDescripti
     /// </summary>
     /// <param name="dataTypeNode"></param>
     /// <param name="ct"></param>
-    private async ValueTask<bool> AddDataTypeAsync(DataTypeNode dataTypeNode,
+    internal async ValueTask<bool> AddDataTypeAsync(DataTypeNode dataTypeNode,
         CancellationToken ct)
     {
         // Get encodings
@@ -488,7 +479,12 @@ internal class DataTypeDescriptionCache : IEncodeableFactory, IDataTypeDescripti
             // 3. Give up
             return false;
         }
-        name ??= GetXmlNameFromBrowseName(dataTypeNode.BrowseName);
+        if (name == null)
+        {
+            var typeName = dataTypeNode.BrowseName;
+            name = new XmlQualifiedName(typeName.Name,
+                _context.NamespaceUris.GetString(typeName.NamespaceIndex));
+        }
         Add(dataTypeId, dataTypeDefinition,
             binaryEncodingId, xmlEncodingId, name, dataTypeNode.IsAbstract);
         return true;
@@ -501,7 +497,7 @@ internal class DataTypeDescriptionCache : IEncodeableFactory, IDataTypeDescripti
     /// <param name="ct"></param>
     /// <returns></returns>
     /// <exception cref="ServiceResultException"></exception>
-    private async IAsyncEnumerable<DataTypeNode> GetUnknownSubTypesAsync(
+    internal async IAsyncEnumerable<DataTypeNode> GetUnknownSubTypesAsync(
         ExpandedNodeId dataType, [EnumeratorCancellation] CancellationToken ct)
     {
         var nodesToBrowse = new NodeIdCollection
@@ -513,7 +509,7 @@ internal class DataTypeDescriptionCache : IEncodeableFactory, IDataTypeDescripti
             var response = await _nodeCache.GetReferencesAsync(nodesToBrowse,
                 [ReferenceTypeIds.HasSubtype], false, false, ct).ConfigureAwait(false);
             foreach (var node in response.OfType<DataTypeNode>()
-                .Where(n => n.NodeId.NamespaceIndex != 0 && !IsKnownType(n.NodeId)))
+                .Where(n => !IsKnownType(n.NodeId)))
             {
                 yield return node;
             }
@@ -568,17 +564,6 @@ internal class DataTypeDescriptionCache : IEncodeableFactory, IDataTypeDescripti
     }
 
     /// <summary>
-    /// Get an xml name from the browse name
-    /// </summary>
-    /// <param name="name"></param>
-    /// <returns></returns>
-    private XmlQualifiedName GetXmlNameFromBrowseName(QualifiedName name)
-    {
-        return new XmlQualifiedName(name.Name,
-        _context.NamespaceUris.GetString(name.NamespaceIndex));
-    }
-
-    /// <summary>
     /// Get the data type definition from the data type node
     /// </summary>
     /// <param name="dataTypeNode"></param>
@@ -593,8 +578,7 @@ internal class DataTypeDescriptionCache : IEncodeableFactory, IDataTypeDescripti
                 // Validate the DataTypeDefinition structure,
                 // but not if the type is supported
                 if (structureDefinition.Fields == null ||
-                    structureDefinition.BaseDataType.IsNullNodeId ||
-                    structureDefinition.BinaryEncodingId.IsNull)
+                    NodeId.IsNull(structureDefinition.BaseDataType))
                 {
                     return null;
                 }
@@ -603,10 +587,8 @@ internal class DataTypeDescriptionCache : IEncodeableFactory, IDataTypeDescripti
                 {
                     // validate if the DataTypeDefinition is correctly
                     // filled out, some servers don't do it yet...
-                    if (field.BinaryEncodingId.IsNull ||
-                        field.DataType.IsNullNodeId ||
-                        field.TypeId.IsNull ||
-                        field.Name == null)
+                    if (NodeId.IsNull(field.DataType) ||
+                        string.IsNullOrWhiteSpace(field.Name))
                     {
                         return null;
                     }
@@ -622,17 +604,9 @@ internal class DataTypeDescriptionCache : IEncodeableFactory, IDataTypeDescripti
         }
     }
 
-    private static readonly string[] kSupportedEncodings =
-    [
-        BrowseNames.DefaultBinary,
-        BrowseNames.DefaultXml,
-        BrowseNames.DefaultJson
-    ];
-
     private readonly ILogger _logger;
     private readonly INodeCache _nodeCache;
     private readonly IServiceMessageContext _context;
-    private readonly IEncodeableFactory _factory;
     private readonly IDataTypeSystemCache _dataTypeSystems;
     private readonly ConcurrentDictionary<ExpandedNodeId, StructureDescription> _structures = [];
     private readonly ConcurrentDictionary<ExpandedNodeId, EnumDescription> _enums = [];

@@ -8,9 +8,7 @@ namespace Opc.Ua.Client.Nodes.TypeSystem;
 using FluentAssertions;
 using Moq;
 using Opc.Ua;
-using Opc.Ua.Client;
 using System;
-using System.Collections.Generic;
 using System.Xml;
 using Xunit;
 

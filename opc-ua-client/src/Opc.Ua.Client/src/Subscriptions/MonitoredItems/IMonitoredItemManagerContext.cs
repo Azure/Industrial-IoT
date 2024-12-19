@@ -7,7 +7,6 @@ namespace Opc.Ua.Client.Subscriptions.MonitoredItems;
 
 using Microsoft.Extensions.Options;
 using Opc.Ua.Client.Services;
-using Opc.Ua.Client.Sessions;
 
 /// <summary>
 /// Context for monitored item manager. The monitored item

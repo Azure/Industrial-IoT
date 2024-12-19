@@ -91,7 +91,7 @@ internal sealed class ChannelFactory : IChannelFactory
         var localIpAddress = GetIPAddress(socket?.LocalEndpoint);
         var localPort = GetPort(socket?.LocalEndpoint);
 
-        OnDiagnostics?.Invoke(channel, new ChannelDiagnostic
+        OnDiagnostics.Invoke(channel, new ChannelDiagnostic
         {
             Endpoint = channel.EndpointDescription,
             TimeStamp = _observability.TimeProvider.GetUtcNow(),
@@ -99,15 +99,14 @@ internal sealed class ChannelFactory : IChannelFactory
             RemotePort = remotePort == -1 ? null : remotePort,
             LocalIpAddress = localIpAddress,
             LocalPort = localPort == -1 ? null : localPort,
-            ChannelId = token?.ChannelId,
-            TokenId = token?.TokenId,
-            CreatedAt = token?.CreatedAt,
-            Lifetime = token == null ? null :
-                TimeSpan.FromMilliseconds(token.Lifetime),
-            Client = ToChannelKey(token?.ClientInitializationVector,
-                token?.ClientEncryptingKey, token?.ClientSigningKey),
-            Server = ToChannelKey(token?.ServerInitializationVector,
-                token?.ServerEncryptingKey, token?.ServerSigningKey)
+            ChannelId = token.ChannelId,
+            TokenId = token.TokenId,
+            CreatedAt = token.CreatedAt,
+            Lifetime = TimeSpan.FromMilliseconds(token.Lifetime),
+            Client = ToChannelKey(token.ClientInitializationVector,
+                token.ClientEncryptingKey, token.ClientSigningKey),
+            Server = ToChannelKey(token.ServerInitializationVector,
+                token.ServerEncryptingKey, token.ServerSigningKey)
         });
 
         static ChannelKey? ToChannelKey(byte[]? iv, byte[]? key, byte[]? sk)
@@ -129,7 +128,7 @@ internal sealed class ChannelFactory : IChannelFactory
     /// <param name="preferv4"></param>
     /// <returns></returns>
     /// <exception cref="ArgumentException"></exception>
-    private static IPAddress? GetIPAddress(EndPoint? endpoint, bool preferv4 = false)
+    internal static IPAddress? GetIPAddress(EndPoint? endpoint, bool preferv4 = false)
     {
         if (endpoint is not IPEndPoint ipe)
         {
@@ -151,7 +150,7 @@ internal sealed class ChannelFactory : IChannelFactory
     /// </summary>
     /// <param name="endpoint"></param>
     /// <returns></returns>
-    private static int GetPort(EndPoint? endpoint)
+    internal static int GetPort(EndPoint? endpoint)
     {
         if (endpoint is IPEndPoint ipe)
         {

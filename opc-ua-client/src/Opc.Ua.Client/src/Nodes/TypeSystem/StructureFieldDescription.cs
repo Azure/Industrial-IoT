@@ -7,7 +7,6 @@ namespace Opc.Ua.Client.Nodes.TypeSystem;
 
 using Opc.Ua;
 using System;
-using System.Text;
 using System.Xml;
 
 /// <summary>

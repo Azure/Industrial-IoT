@@ -83,7 +83,7 @@ internal sealed class SubscriptionClient : IAsyncDisposable
         IOptionsMonitor<SubscriptionClientOptions> options, INotificationQueue queue,
         CancellationToken ct = default)
     {
-        var subOptions = options.CurrentValue.Options
+        _ = options.CurrentValue.Options
             ?? throw ServiceResultException.Create(StatusCodes.BadInvalidArgument,
                 "Subscription options are missing and must be specified.");
         await _subscriptionLock.WaitAsync(ct).ConfigureAwait(false);

@@ -15,9 +15,22 @@ using Xunit;
 public sealed class NullChannelTests
 {
     [Fact]
+    public void SetOperationTimeoutDoesNotThrow()
+    {
+        using var sut = new NullChannel();
+
+        // Act
+        sut.OperationTimeout.Should().Be(0);
+        sut.OperationTimeout = 1;
+
+        // Assert
+        sut.OperationTimeout.Should().Be(1);
+    }
+
+    [Fact]
     public void SupportedFeaturesShouldThrowNotSupported()
     {
-        var sut = new NullChannel();
+        using var sut = new NullChannel();
 
         // Act
         Action act = () => { var _ = sut.SupportedFeatures; };
@@ -30,7 +43,7 @@ public sealed class NullChannelTests
     [Fact]
     public void EndpointDescriptionShouldThrowNotSupported()
     {
-        var sut = new NullChannel();
+        using var sut = new NullChannel();
 
         // Act
         Action act = () => { var _ = sut.EndpointDescription; };
@@ -43,7 +56,7 @@ public sealed class NullChannelTests
     [Fact]
     public void EndpointConfigurationShouldThrowNotSupported()
     {
-        var sut = new NullChannel();
+        using var sut = new NullChannel();
 
         // Act
         Action act = () => { var _ = sut.EndpointConfiguration; };
@@ -56,7 +69,7 @@ public sealed class NullChannelTests
     [Fact]
     public void MessageContextShouldThrowNotSupported()
     {
-        var sut = new NullChannel();
+        using var sut = new NullChannel();
 
         // Act
         Action act = () => { var _ = sut.MessageContext; };
@@ -69,7 +82,7 @@ public sealed class NullChannelTests
     [Fact]
     public void CurrentTokenShouldThrowNotSupported()
     {
-        var sut = new NullChannel();
+        using var sut = new NullChannel();
 
         // Act
         Action act = () => { var _ = sut.CurrentToken; };
@@ -82,7 +95,7 @@ public sealed class NullChannelTests
     [Fact]
     public void OnTokenActivatedAddShouldThrowNotSupported()
     {
-        var sut = new NullChannel();
+        using var sut = new NullChannel();
 
         // Act
         Action act = () => sut.OnTokenActivated += (a, b, e) => { };
@@ -95,7 +108,7 @@ public sealed class NullChannelTests
     [Fact]
     public void OnTokenActivatedRemoveShouldThrowNotSupported()
     {
-        var sut = new NullChannel();
+        using var sut = new NullChannel();
 
         // Act
         Action act = () => sut.OnTokenActivated -= (a, b, e) => { };
@@ -108,7 +121,7 @@ public sealed class NullChannelTests
     [Fact]
     public void BeginCloseShouldThrowNotSupported()
     {
-        var sut = new NullChannel();
+        using var sut = new NullChannel();
 
         // Act
         Action act = () => sut.BeginClose(null!, null!);
@@ -121,7 +134,7 @@ public sealed class NullChannelTests
     [Fact]
     public void BeginOpenShouldThrowNotSupported()
     {
-        var sut = new NullChannel();
+        using var sut = new NullChannel();
 
         // Act
         Action act = () => sut.BeginOpen(null!, null!);
@@ -134,7 +147,7 @@ public sealed class NullChannelTests
     [Fact]
     public void BeginReconnectShouldThrowNotSupported()
     {
-        var sut = new NullChannel();
+        using var sut = new NullChannel();
 
         // Act
         Action act = () => sut.BeginReconnect(null!, null!);
@@ -147,7 +160,7 @@ public sealed class NullChannelTests
     [Fact]
     public void BeginSendRequestShouldThrowNotSupported()
     {
-        var sut = new NullChannel();
+        using var sut = new NullChannel();
 
         // Act
         Action act = () => sut.BeginSendRequest(null!, null!, null!);
@@ -160,7 +173,7 @@ public sealed class NullChannelTests
     [Fact]
     public void CloseShouldThrowNotSupported()
     {
-        var sut = new NullChannel();
+        using var sut = new NullChannel();
 
         // Act
         Action act = sut.Close;
@@ -173,7 +186,7 @@ public sealed class NullChannelTests
     [Fact]
     public async Task CloseAsyncShouldThrowNotSupportedAsync()
     {
-        var sut = new NullChannel();
+        using var sut = new NullChannel();
 
         // Act
         Func<Task> act = async () => await sut.CloseAsync(CancellationToken.None);
@@ -186,7 +199,7 @@ public sealed class NullChannelTests
     [Fact]
     public void EndCloseShouldThrowNotSupported()
     {
-        var sut = new NullChannel();
+        using var sut = new NullChannel();
 
         // Act
         Action act = () => sut.EndClose(null!);
@@ -199,7 +212,7 @@ public sealed class NullChannelTests
     [Fact]
     public void EndOpenShouldThrowNotSupported()
     {
-        var sut = new NullChannel();
+        using var sut = new NullChannel();
 
         // Act
         Action act = () => sut.EndOpen(null!);
@@ -212,7 +225,7 @@ public sealed class NullChannelTests
     [Fact]
     public void EndReconnectShouldThrowNotSupported()
     {
-        var sut = new NullChannel();
+        using var sut = new NullChannel();
 
         // Act
         Action act = () => sut.EndReconnect(null!);
@@ -225,7 +238,7 @@ public sealed class NullChannelTests
     [Fact]
     public void EndSendRequestShouldThrowNotSupported()
     {
-        var sut = new NullChannel();
+        using var sut = new NullChannel();
 
         // Act
         Action act = () => sut.EndSendRequest(null!);
@@ -238,7 +251,7 @@ public sealed class NullChannelTests
     [Fact]
     public async Task EndSendRequestAsyncShouldThrowNotSupportedAsync()
     {
-        var sut = new NullChannel();
+        using var sut = new NullChannel();
 
         // Act
         Func<Task> act = async () => await sut.EndSendRequestAsync(null!, CancellationToken.None);
@@ -251,7 +264,7 @@ public sealed class NullChannelTests
     [Fact]
     public void InitializeWithUriShouldThrowNotSupported()
     {
-        var sut = new NullChannel();
+        using var sut = new NullChannel();
 
         // Act
         Action act = () => sut.Initialize(new Uri("http://localhost"), null!);
@@ -264,7 +277,7 @@ public sealed class NullChannelTests
     [Fact]
     public void InitializeWithConnectionShouldThrowNotSupported()
     {
-        var sut = new NullChannel();
+        using var sut = new NullChannel();
         // Act
         Action act = () => sut.Initialize((ITransportWaitingConnection?)null!, null!);
 
@@ -276,7 +289,7 @@ public sealed class NullChannelTests
     [Fact]
     public void OpenShouldThrowNotSupported()
     {
-        var sut = new NullChannel();
+        using var sut = new NullChannel();
 
         // Act
         Action act = sut.Open;
@@ -289,7 +302,7 @@ public sealed class NullChannelTests
     [Fact]
     public void ReconnectShouldThrowNotSupported()
     {
-        var sut = new NullChannel();
+        using var sut = new NullChannel();
 
         // Act
         Action act = sut.Reconnect;
@@ -302,7 +315,7 @@ public sealed class NullChannelTests
     [Fact]
     public void ReconnectWithConnectionShouldThrowNotSupported()
     {
-        var sut = new NullChannel();
+        using var sut = new NullChannel();
 
         // Act
         Action act = () => sut.Reconnect(null!);
@@ -315,7 +328,7 @@ public sealed class NullChannelTests
     [Fact]
     public void SendRequestShouldThrowNotSupported()
     {
-        var sut = new NullChannel();
+        using var sut = new NullChannel();
 
         // Act
         Action act = () => sut.SendRequest(null!);
@@ -328,7 +341,7 @@ public sealed class NullChannelTests
     [Fact]
     public async Task SendRequestAsyncShouldThrowNotSupportedAsync()
     {
-        var sut = new NullChannel();
+        using var sut = new NullChannel();
 
         // Act
         Func<Task> act = async () => await sut.SendRequestAsync(null!, CancellationToken.None);

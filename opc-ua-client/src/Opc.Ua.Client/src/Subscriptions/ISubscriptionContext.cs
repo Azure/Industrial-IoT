@@ -6,7 +6,6 @@
 namespace Opc.Ua.Client.Subscriptions;
 
 using Opc.Ua.Client.Services;
-using Opc.Ua.Client.Sessions;
 using System;
 
 /// <summary>

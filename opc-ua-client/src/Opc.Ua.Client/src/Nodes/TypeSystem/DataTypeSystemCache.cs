@@ -11,7 +11,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -429,7 +428,7 @@ internal sealed class DataTypeSystemCache : IDataTypeSystemCache
                         switch (item)
                         {
                             case XmlSchemaComplexType complexType:
-                                var structureDefinition = ToStructureDefinition(
+                                _ = ToStructureDefinition(
                                     complexType, entry.EncodingId, typeDictionary,
                                     namespaceUris, entry.TypeId);
                                 var structure = new DictionaryDataTypeDefinition(
