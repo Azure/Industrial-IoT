@@ -9,6 +9,7 @@ using FluentAssertions;
 using Moq;
 using Opc.Ua;
 using System;
+using System.Globalization;
 using System.Xml;
 using Xunit;
 
@@ -59,7 +60,7 @@ public class StructureFieldDescriptionTests
         // Arrange
         var field = new StructureField { Name = "Field1", DataType = new NodeId((uint)BuiltInType.SByte), ValueRank = ValueRanks.Scalar };
         var description = new StructureFieldDescription(_mockDataTypeSystem.Object, field, false, 0);
-        const sbyte value = (sbyte)1;
+        const sbyte value = 1;
 
         // Act
         Action act = () => description.Encode(_mockEncoder.Object, value);
@@ -75,7 +76,7 @@ public class StructureFieldDescriptionTests
         // Arrange
         var field = new StructureField { Name = "Field1", DataType = new NodeId((uint)BuiltInType.Byte), ValueRank = ValueRanks.Scalar };
         var description = new StructureFieldDescription(_mockDataTypeSystem.Object, field, false, 0);
-        const byte value = (byte)1;
+        const byte value = 1;
 
         // Act
         Action act = () => description.Encode(_mockEncoder.Object, value);
@@ -91,7 +92,7 @@ public class StructureFieldDescriptionTests
         // Arrange
         var field = new StructureField { Name = "Field1", DataType = new NodeId((uint)BuiltInType.Int16), ValueRank = ValueRanks.Scalar };
         var description = new StructureFieldDescription(_mockDataTypeSystem.Object, field, false, 0);
-        const short value = (short)1;
+        const short value = 1;
 
         // Act
         Action act = () => description.Encode(_mockEncoder.Object, value);
@@ -107,7 +108,7 @@ public class StructureFieldDescriptionTests
         // Arrange
         var field = new StructureField { Name = "Field1", DataType = new NodeId((uint)BuiltInType.UInt16), ValueRank = ValueRanks.Scalar };
         var description = new StructureFieldDescription(_mockDataTypeSystem.Object, field, false, 0);
-        const ushort value = (ushort)1;
+        const ushort value = 1;
 
         // Act
         Action act = () => description.Encode(_mockEncoder.Object, value);
@@ -139,7 +140,7 @@ public class StructureFieldDescriptionTests
         // Arrange
         var field = new StructureField { Name = "Field1", DataType = new NodeId((uint)BuiltInType.UInt32), ValueRank = ValueRanks.Scalar };
         var description = new StructureFieldDescription(_mockDataTypeSystem.Object, field, false, 0);
-        const uint value = (uint)1;
+        const uint value = 1;
 
         // Act
         Action act = () => description.Encode(_mockEncoder.Object, value);
@@ -155,7 +156,7 @@ public class StructureFieldDescriptionTests
         // Arrange
         var field = new StructureField { Name = "Field1", DataType = new NodeId((uint)BuiltInType.Int64), ValueRank = ValueRanks.Scalar };
         var description = new StructureFieldDescription(_mockDataTypeSystem.Object, field, false, 0);
-        const long value = (long)1;
+        const long value = 1;
 
         // Act
         Action act = () => description.Encode(_mockEncoder.Object, value);
@@ -171,7 +172,7 @@ public class StructureFieldDescriptionTests
         // Arrange
         var field = new StructureField { Name = "Field1", DataType = new NodeId((uint)BuiltInType.UInt64), ValueRank = ValueRanks.Scalar };
         var description = new StructureFieldDescription(_mockDataTypeSystem.Object, field, false, 0);
-        const ulong value = (ulong)1;
+        const ulong value = 1;
 
         // Act
         Action act = () => description.Encode(_mockEncoder.Object, value);
@@ -235,7 +236,7 @@ public class StructureFieldDescriptionTests
         // Arrange
         var field = new StructureField { Name = "Field1", DataType = new NodeId((uint)BuiltInType.DateTime), ValueRank = ValueRanks.Scalar };
         var description = new StructureFieldDescription(_mockDataTypeSystem.Object, field, false, 0);
-        var value = DateTime.Parse("2023-10-10T00:00:00Z");
+        var value = DateTime.Parse("2023-10-10T00:00:00Z", CultureInfo.InvariantCulture);
 
         // Act
         Action act = () => description.Encode(_mockEncoder.Object, value);
@@ -557,11 +558,11 @@ public class StructureFieldDescriptionTests
         _mockDataTypeSystem.Setup(d => d.GetEnumDescription(It.IsAny<ExpandedNodeId>()))
             .Returns(new EnumDescription(new ExpandedNodeId(333), new EnumDefinition
             {
-                Fields = new EnumFieldCollection
-                {
+                Fields =
+                [
                     new EnumField { Name = "test", Value = 1 }
-                }
-            }, new XmlQualifiedName()));
+                ]
+            }, new XmlQualifiedName(), ExpandedNodeId.Null, ExpandedNodeId.Null, ExpandedNodeId.Null));
 
         // Act
         Action act = () => description.Encode(_mockEncoder.Object, value);
@@ -678,7 +679,7 @@ public class StructureFieldDescriptionTests
         // Arrange
         var field = new StructureField { Name = "Field1", DataType = new NodeId((uint)BuiltInType.SByte), ValueRank = ValueRanks.Scalar };
         var description = new StructureFieldDescription(_mockDataTypeSystem.Object, field, false, 0);
-        _mockDecoder.Setup(d => d.ReadSByte("Field1")).Returns((sbyte)1);
+        _mockDecoder.Setup(d => d.ReadSByte("Field1")).Returns(1);
 
         // Act
         var result = description.Decode(_mockDecoder.Object);
@@ -694,7 +695,7 @@ public class StructureFieldDescriptionTests
         // Arrange
         var field = new StructureField { Name = "Field1", DataType = new NodeId((uint)BuiltInType.Byte), ValueRank = ValueRanks.Scalar };
         var description = new StructureFieldDescription(_mockDataTypeSystem.Object, field, false, 0);
-        _mockDecoder.Setup(d => d.ReadByte("Field1")).Returns((byte)1);
+        _mockDecoder.Setup(d => d.ReadByte("Field1")).Returns(1);
 
         // Act
         var result = description.Decode(_mockDecoder.Object);
@@ -710,7 +711,7 @@ public class StructureFieldDescriptionTests
         // Arrange
         var field = new StructureField { Name = "Field1", DataType = new NodeId((uint)BuiltInType.Int16), ValueRank = ValueRanks.Scalar };
         var description = new StructureFieldDescription(_mockDataTypeSystem.Object, field, false, 0);
-        _mockDecoder.Setup(d => d.ReadInt16("Field1")).Returns((short)1);
+        _mockDecoder.Setup(d => d.ReadInt16("Field1")).Returns(1);
 
         // Act
         var result = description.Decode(_mockDecoder.Object);
@@ -726,7 +727,7 @@ public class StructureFieldDescriptionTests
         // Arrange
         var field = new StructureField { Name = "Field1", DataType = new NodeId((uint)BuiltInType.UInt16), ValueRank = ValueRanks.Scalar };
         var description = new StructureFieldDescription(_mockDataTypeSystem.Object, field, false, 0);
-        _mockDecoder.Setup(d => d.ReadUInt16("Field1")).Returns((ushort)1);
+        _mockDecoder.Setup(d => d.ReadUInt16("Field1")).Returns(1);
 
         // Act
         var result = description.Decode(_mockDecoder.Object);
@@ -758,7 +759,7 @@ public class StructureFieldDescriptionTests
         // Arrange
         var field = new StructureField { Name = "Field1", DataType = new NodeId((uint)BuiltInType.UInt32), ValueRank = ValueRanks.Scalar };
         var description = new StructureFieldDescription(_mockDataTypeSystem.Object, field, false, 0);
-        _mockDecoder.Setup(d => d.ReadUInt32("Field1")).Returns((uint)1);
+        _mockDecoder.Setup(d => d.ReadUInt32("Field1")).Returns(1);
 
         // Act
         var result = description.Decode(_mockDecoder.Object);
@@ -774,7 +775,7 @@ public class StructureFieldDescriptionTests
         // Arrange
         var field = new StructureField { Name = "Field1", DataType = new NodeId((uint)BuiltInType.Int64), ValueRank = ValueRanks.Scalar };
         var description = new StructureFieldDescription(_mockDataTypeSystem.Object, field, false, 0);
-        _mockDecoder.Setup(d => d.ReadInt64("Field1")).Returns((long)1);
+        _mockDecoder.Setup(d => d.ReadInt64("Field1")).Returns(1);
 
         // Act
         var result = description.Decode(_mockDecoder.Object);
@@ -790,7 +791,7 @@ public class StructureFieldDescriptionTests
         // Arrange
         var field = new StructureField { Name = "Field1", DataType = new NodeId((uint)BuiltInType.UInt64), ValueRank = ValueRanks.Scalar };
         var description = new StructureFieldDescription(_mockDataTypeSystem.Object, field, false, 0);
-        _mockDecoder.Setup(d => d.ReadUInt64("Field1")).Returns((ulong)1);
+        _mockDecoder.Setup(d => d.ReadUInt64("Field1")).Returns(1);
 
         // Act
         var result = description.Decode(_mockDecoder.Object);
@@ -854,7 +855,7 @@ public class StructureFieldDescriptionTests
         // Arrange
         var field = new StructureField { Name = "Field1", DataType = new NodeId((uint)BuiltInType.DateTime), ValueRank = ValueRanks.Scalar };
         var description = new StructureFieldDescription(_mockDataTypeSystem.Object, field, false, 0);
-        var expectedValue = DateTime.Parse("2023-10-10T00:00:00Z");
+        var expectedValue = DateTime.Parse("2023-10-10T00:00:00Z", CultureInfo.InvariantCulture);
         _mockDecoder.Setup(d => d.ReadDateTime("Field1")).Returns(expectedValue);
 
         // Act

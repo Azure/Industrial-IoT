@@ -31,11 +31,16 @@ public sealed class EnumDescription : DataTypeDescription
     /// <param name="typeId"></param>
     /// <param name="enumDefinition"></param>
     /// <param name="xmlName"></param>
+    /// <param name="binaryEncodingId"></param>
+    /// <param name="xmlEncodingId"></param>
+    /// <param name="jsonEncodingId"></param>
     /// <param name="isAbstract"></param>
     internal EnumDescription(ExpandedNodeId typeId,
         EnumDefinition enumDefinition, XmlQualifiedName xmlName,
-        bool isAbstract = false)
-        : base(typeId, xmlName, isAbstract)
+        ExpandedNodeId binaryEncodingId, ExpandedNodeId xmlEncodingId,
+        ExpandedNodeId jsonEncodingId, bool isAbstract = false)
+        : base(typeId, xmlName, binaryEncodingId, xmlEncodingId,
+            jsonEncodingId, isAbstract)
     {
         EnumDefinition = enumDefinition;
     }
@@ -86,11 +91,8 @@ public sealed class EnumDescription : DataTypeDescription
                             field = EnumDefinition.Fields
                                 .Find(f => f.Value == value);
                         }
-                        if (field == null)
-                        {
-                            field = EnumDefinition.Fields
-                                .Find(f => f.Name == text);
-                        }
+                        field ??= EnumDefinition.Fields
+                            .Find(f => f.Name == text);
                         break;
                 }
                 break;

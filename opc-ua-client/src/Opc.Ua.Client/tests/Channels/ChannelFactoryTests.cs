@@ -147,7 +147,7 @@ public sealed class ChannelFactoryTests
             ServerEncryptingKey = [13, 14, 15],
             ServerSigningKey = [16, 17, 18]
         };
-        var transportChannel = CreateTestChannel(out var remoteEndPoint, out var localEndPoint);
+        var transportChannel = CreateUaSCUaBinaryTransportChannel(out var remoteEndPoint, out var localEndPoint);
         _timeProviderMock.Setup(tp => tp.GetUtcNow()).Returns(DateTimeOffset.UtcNow);
         ChannelDiagnostic? diagnostic = null;
         sut.OnDiagnostics += (ch, diag) => diagnostic = diag;
@@ -187,7 +187,7 @@ public sealed class ChannelFactoryTests
             ServerEncryptingKey = [13, 14, 15],
             ServerSigningKey = [16, 17, 18]
         };
-        var transportChannel = CreateTestChannel(out var remoteEndPoint, out var localEndPoint);
+        var transportChannel = CreateUaSCUaBinaryTransportChannel(out var remoteEndPoint, out var localEndPoint);
         _timeProviderMock.Setup(tp => tp.GetUtcNow()).Returns(DateTimeOffset.UtcNow);
         ChannelDiagnostic? diagnostic = null;
         sut.OnDiagnostics += (ch, diag) => diagnostic = diag;
@@ -223,7 +223,7 @@ public sealed class ChannelFactoryTests
             ServerEncryptingKey = [13, 14, 15],
             ServerSigningKey = null
         };
-        var transportChannel = CreateTestChannel(out var remoteEndPoint, out var localEndPoint);
+        var transportChannel = CreateUaSCUaBinaryTransportChannel(out var remoteEndPoint, out var localEndPoint);
         _timeProviderMock.Setup(tp => tp.GetUtcNow()).Returns(DateTimeOffset.UtcNow);
         ChannelDiagnostic? diagnostic = null;
         sut.OnDiagnostics += (ch, diag) => diagnostic = diag;
@@ -259,7 +259,7 @@ public sealed class ChannelFactoryTests
             ServerEncryptingKey = [13, 14, 15],
             ServerSigningKey = []
         };
-        var transportChannel = CreateTestChannel(out var remoteEndPoint, out var localEndPoint);
+        var transportChannel = CreateUaSCUaBinaryTransportChannel(out var remoteEndPoint, out var localEndPoint);
         _timeProviderMock.Setup(tp => tp.GetUtcNow()).Returns(DateTimeOffset.UtcNow);
         ChannelDiagnostic? diagnostic = null;
         sut.OnDiagnostics += (ch, diag) => diagnostic = diag;
@@ -295,7 +295,7 @@ public sealed class ChannelFactoryTests
             ServerEncryptingKey = [13, 14, 15],
             ServerSigningKey = [16, 17, 18]
         };
-        var transportChannel = CreateTestChannel();
+        var transportChannel = CreateUaSCUaBinaryTransportChannel();
         _timeProviderMock.Setup(tp => tp.GetUtcNow()).Returns(DateTimeOffset.UtcNow);
         ChannelDiagnostic? diagnostic = null;
         sut.OnDiagnostics += (ch, diag) => diagnostic = diag;
@@ -390,7 +390,7 @@ public sealed class ChannelFactoryTests
     public void GetIPAddressShouldReturnIPv6AddressWhenIPv4IsNotRequired()
     {
         // Arrange
-        var ipv6AddressString = "0123:4567:89ab:cdef:0123:4567:89ab:cdef";
+        const string ipv6AddressString = "0123:4567:89ab:cdef:0123:4567:89ab:cdef";
         var endpoint = new IPEndPoint(IPAddress.Parse(ipv6AddressString), 4840);
 
         // Act
@@ -440,7 +440,8 @@ public sealed class ChannelFactoryTests
         port.Should().Be(-1);
     }
 
-    private ITransportChannel CreateTestChannel(out IPEndPoint remoteEndPoint, out IPEndPoint localEndPoint)
+    private UaSCUaBinaryTransportChannel CreateUaSCUaBinaryTransportChannel(
+        out IPEndPoint remoteEndPoint, out IPEndPoint localEndPoint)
     {
         remoteEndPoint = new IPEndPoint(IPAddress.Parse("192.168.1.1"), 4840);
         localEndPoint = new IPEndPoint(IPAddress.Parse("192.168.1.2"), 4841);
@@ -464,7 +465,7 @@ public sealed class ChannelFactoryTests
         return transportChannel;
     }
 
-    private ITransportChannel CreateTestChannel()
+    private UaSCUaBinaryTransportChannel CreateUaSCUaBinaryTransportChannel()
     {
         var transportChannel = new UaSCUaBinaryTransportChannel(_socketFactoryMock.Object);
         var serverCert = new X500DistinguishedName("CN=server").CreateSelfSignedCertificate();

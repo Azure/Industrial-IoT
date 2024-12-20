@@ -11,9 +11,10 @@ using System.Threading;
 using System.Threading.Tasks;
 
 /// <summary>
-/// The data types cache is used to store information about data types.
+/// The data types description manager is caches information about data types which
+/// it makes accessible to schema generation and type discovery functionality.
 /// </summary>
-internal interface IDataTypeDescriptionCache
+internal interface IDataTypeDescriptionManager
 {
     /// <summary>
     /// Get the data type definition and dependent definitions for a data type
@@ -27,8 +28,8 @@ internal interface IDataTypeDescriptionCache
 
     /// <summary>
     /// Load the data type definitions for the data type referenced by the provided
-    /// node id. If the node is is not a data type, try to resolve the data type
-    /// the user intended to use.
+    /// node id. If the node is not a data type, try to resolve the data type the
+    /// user intended to use.
     /// </summary>
     /// <param name="dataTypeId"></param>
     /// <param name="includeSubTypes"></param>

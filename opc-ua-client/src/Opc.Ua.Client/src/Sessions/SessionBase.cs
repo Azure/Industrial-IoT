@@ -195,11 +195,13 @@ internal abstract class SessionBase : SessionClient, ISession,
         var messageContext =
             Options.Channel?.MessageContext as ServiceMessageContext
                 ?? configuration.CreateMessageContext();
-        _typeSystem = new DataTypeDescriptionCache(_nodeCache, messageContext,
-            Observability.LoggerFactory)
-        {
-            DisableLegacyDataTypeSystem = Options.DisableDataTypeDictionary
-        };
+
+        var dataTypeSystems = Options.DisableDataTypeDictionary ? null :
+            new DataTypeSystemManager(_nodeCache, messageContext,
+                Observability.LoggerFactory);
+        _typeSystem = new DataTypeDescriptionResolver(_nodeCache, messageContext,
+            dataTypeSystems, Observability.LoggerFactory
+                .CreateLogger<DataTypeDescriptionResolver>());
         messageContext.Factory = _typeSystem;
         MessageContext = messageContext;
         _systemContext = new SystemContext
@@ -2531,5 +2533,5 @@ internal abstract class SessionBase : SessionClient, ISession,
     private static readonly TimeSpan kDefaultKeepAliveInterval = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan kKeepAliveGuardBand = TimeSpan.FromSeconds(1);
     private static readonly TimeSpan kReconnectTimeout = TimeSpan.FromSeconds(15);
-    private readonly DataTypeDescriptionCache _typeSystem;
+    private readonly DataTypeDescriptionResolver _typeSystem;
 }

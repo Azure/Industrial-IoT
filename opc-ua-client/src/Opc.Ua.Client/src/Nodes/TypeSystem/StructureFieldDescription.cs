@@ -206,7 +206,7 @@ internal sealed class StructureFieldDescription
                     e.Encode(encoder, fieldName, ev);
                     break;
                 }
-                if (type != null && type.IsEnum)
+                if (type?.IsEnum == true)
                 {
                     encoder.WriteEnumerated(fieldName, (Enum?)o);
                     break;
@@ -306,7 +306,7 @@ internal sealed class StructureFieldDescription
                 {
                     return e.Decode(decoder, fieldName);
                 }
-                if (type != null && type.IsEnum)
+                if (type?.IsEnum == true)
                 {
                     return decoder.ReadEnumerated(fieldName, type);
                 }
@@ -350,10 +350,8 @@ internal sealed class StructureFieldDescription
             {
                 return BuiltInType.Enumeration;
             }
-            else
-            {
-                return BuiltInType.ExtensionObject;
-            }
+
+            return BuiltInType.ExtensionObject;
         }
 
         if (datatypeId.IsNullNodeId || datatypeId.NamespaceIndex != 0 ||

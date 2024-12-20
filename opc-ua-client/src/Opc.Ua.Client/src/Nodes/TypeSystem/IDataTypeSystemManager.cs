@@ -26,7 +26,7 @@ internal sealed record class DictionaryDataTypeDefinition(
 /// in the market use it to describe complex and enumeration types not defined
 /// in namespace 0.
 /// </summary>
-internal interface IDataTypeSystemCache
+internal interface IDataTypeSystemManager
 {
     /// <summary>
     /// Get data type definition for an encoding of the provided data

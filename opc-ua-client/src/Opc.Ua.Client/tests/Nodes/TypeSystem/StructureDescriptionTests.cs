@@ -27,8 +27,8 @@ public class StructureDescriptionTests
         // Arrange
         var structureFields = new List<StructureField>
         {
-            new StructureField { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
-            new StructureField { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
+            new() { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
+            new() { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
         };
         var structureDefinition = new StructureDefinition
         {
@@ -60,8 +60,8 @@ public class StructureDescriptionTests
         // Arrange
         var structureFields = new List<StructureField>
         {
-            new StructureField { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
-            new StructureField { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
+            new() { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
+            new() { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
         };
         var structureDefinition = new StructureDefinition
         {
@@ -74,7 +74,7 @@ public class StructureDescriptionTests
             structureDefinition, new XmlQualifiedName(), ExpandedNodeId.Null,
             ExpandedNodeId.Null, ExpandedNodeId.Null);
 
-        var binaryDecoder = new BinaryDecoder(new byte[] { 1, 0, 0, 0, 2, 0, 0, 0 }, new ServiceMessageContext());
+        var binaryDecoder = new BinaryDecoder([1, 0, 0, 0, 2, 0, 0, 0], new ServiceMessageContext());
 
         // Act
         var result = structureDescription.Decode(binaryDecoder);
@@ -93,8 +93,8 @@ public class StructureDescriptionTests
         // Arrange
         var structureFields = new List<StructureField>
         {
-            new StructureField { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
-            new StructureField { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
+            new() { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
+            new() { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
         };
         var structureDefinition = new StructureDefinition
         {
@@ -124,8 +124,8 @@ public class StructureDescriptionTests
         // Arrange
         var structureFields = new List<StructureField>
         {
-            new StructureField { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
-            new StructureField { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
+            new() { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
+            new() { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
         };
         var structureDefinition = new StructureDefinition
         {
@@ -145,7 +145,7 @@ public class StructureDescriptionTests
 
         // Assert
         var encodedBytes = binaryEncoder.CloseAndReturnBuffer();
-        encodedBytes.Should().Equal(new byte[] { 1, 0, 0, 0, 2, 0, 0, 0 });
+        encodedBytes.Should().Equal([1, 0, 0, 0, 2, 0, 0, 0]);
     }
 
     [Fact]
@@ -154,8 +154,8 @@ public class StructureDescriptionTests
         // Arrange
         var structureFields = new List<StructureField>
         {
-            new StructureField { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
-            new StructureField { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
+            new() { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
+            new() { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
         };
         var structureDefinition = new StructureDefinition
         {
@@ -212,8 +212,8 @@ public class StructureDescriptionTests
         // Arrange
         var structureFields = new List<StructureField>
         {
-            new StructureField { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar, IsOptional = true },
-            new StructureField { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
+            new() { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar, IsOptional = true },
+            new() { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
         };
         var structureDefinition = new StructureDefinition
         {
@@ -245,8 +245,8 @@ public class StructureDescriptionTests
         // Arrange
         var structureFields = new List<StructureField>
         {
-            new StructureField { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar, IsOptional = true },
-            new StructureField { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
+            new() { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar, IsOptional = true },
+            new() { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
         };
         var structureDefinition = new StructureDefinition
         {
@@ -258,7 +258,7 @@ public class StructureDescriptionTests
             structureDefinition, new XmlQualifiedName(), ExpandedNodeId.Null,
             ExpandedNodeId.Null, ExpandedNodeId.Null);
 
-        var binaryDecoder = new BinaryDecoder(new byte[] { 1, 0, 0, 0, 2, 0, 0, 0 }, new ServiceMessageContext());
+        var binaryDecoder = new BinaryDecoder([1, 0, 0, 0, 2, 0, 0, 0], new ServiceMessageContext());
 
         // Act
         var result = structureWithOptionalFieldsDescription.Decode(binaryDecoder);
@@ -278,8 +278,8 @@ public class StructureDescriptionTests
         // Arrange
         var structureFields = new List<StructureField>
         {
-            new StructureField { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar, IsOptional = true },
-            new StructureField { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
+            new() { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar, IsOptional = true },
+            new() { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
         };
         var structureDefinition = new StructureDefinition
         {
@@ -291,7 +291,7 @@ public class StructureDescriptionTests
             structureDefinition, new XmlQualifiedName(), ExpandedNodeId.Null,
             ExpandedNodeId.Null, ExpandedNodeId.Null);
 
-        var binaryDecoder = new BinaryDecoder(new byte[] { 2, 0, 0, 0 }, new ServiceMessageContext());
+        var binaryDecoder = new BinaryDecoder([2, 0, 0, 0], new ServiceMessageContext());
 
         // Act
         Action act = () => structureWithOptionalFieldsDescription.Decode(binaryDecoder);
@@ -307,8 +307,8 @@ public class StructureDescriptionTests
         // Arrange
         var structureFields = new List<StructureField>
         {
-            new StructureField { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar, IsOptional = true },
-            new StructureField { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
+            new() { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar, IsOptional = true },
+            new() { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
         };
         var structureDefinition = new StructureDefinition
         {
@@ -338,8 +338,8 @@ public class StructureDescriptionTests
         // Arrange
         var structureFields = new List<StructureField>
         {
-            new StructureField { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar, IsOptional = true },
-            new StructureField { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
+            new() { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar, IsOptional = true },
+            new() { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
         };
         var structureDefinition = new StructureDefinition
         {
@@ -369,8 +369,8 @@ public class StructureDescriptionTests
         // Arrange
         var structureFields = new List<StructureField>
         {
-            new StructureField { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar, IsOptional = true },
-            new StructureField { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
+            new() { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar, IsOptional = true },
+            new() { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
         };
         var structureDefinition = new StructureDefinition
         {
@@ -399,8 +399,8 @@ public class StructureDescriptionTests
         // Arrange
         var structureFields = new List<StructureField>
         {
-            new StructureField { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar, IsOptional = true },
-            new StructureField { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
+            new() { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar, IsOptional = true },
+            new() { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
         };
         var structureDefinition = new StructureDefinition
         {
@@ -420,7 +420,7 @@ public class StructureDescriptionTests
 
         // Assert
         var encodedBytes = binaryEncoder.CloseAndReturnBuffer();
-        encodedBytes.Should().Equal(new byte[] { 1, 0, 0, 0, 2, 0, 0, 0 });
+        encodedBytes.Should().Equal([1, 0, 0, 0, 2, 0, 0, 0]);
     }
 
     [Fact]
@@ -429,8 +429,8 @@ public class StructureDescriptionTests
         // Arrange
         var structureFields = new List<StructureField>
         {
-            new StructureField { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar, IsOptional = true },
-            new StructureField { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
+            new() { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar, IsOptional = true },
+            new() { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
         };
         var structureDefinition = new StructureDefinition
         {
@@ -459,10 +459,10 @@ public class StructureDescriptionTests
         // Arrange
         var structureFields = new List<StructureField>
         {
-            new StructureField { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
-            new StructureField { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
-            new StructureField { Name = "Field3", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
-            new StructureField { Name = "Field4", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
+            new() { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
+            new() { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
+            new() { Name = "Field3", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
+            new() { Name = "Field4", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
         };
         var structureDefinition = new StructureDefinition
         {
@@ -502,8 +502,8 @@ public class StructureDescriptionTests
         // Arrange
         var structureFields = new List<StructureField>
         {
-            new StructureField { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
-            new StructureField { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
+            new() { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
+            new() { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
         };
         var structureDefinition = new StructureDefinition
         {
@@ -534,10 +534,10 @@ public class StructureDescriptionTests
         // Arrange
         var structureFields = new List<StructureField>
         {
-            new StructureField { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
-            new StructureField { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
-            new StructureField { Name = "Field3", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
-            new StructureField { Name = "Field4", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
+            new() { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
+            new() { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
+            new() { Name = "Field3", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
+            new() { Name = "Field4", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
         };
         var structureDefinition = new StructureDefinition
         {
@@ -558,7 +558,7 @@ public class StructureDescriptionTests
         unionDescription.IsAbstract.Should().BeFalse();
         unionDescription.FieldsCanHaveSubtypedValues.Should().BeTrue();
 
-        var binaryDecoder = new BinaryDecoder(new byte[] { 1, 0, 0, 0, 3, 0, 0, 0 }, new ServiceMessageContext());
+        var binaryDecoder = new BinaryDecoder([1, 0, 0, 0, 3, 0, 0, 0], new ServiceMessageContext());
 
         // Act
         var result = unionDescription.Decode(binaryDecoder);
@@ -577,8 +577,8 @@ public class StructureDescriptionTests
         // Arrange
         var structureFields = new List<StructureField>
     {
-        new StructureField { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
-        new StructureField { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
+        new() { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
+        new() { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
     };
         var structureDefinition = new StructureDefinition
         {
@@ -590,7 +590,7 @@ public class StructureDescriptionTests
             structureDefinition, new XmlQualifiedName(), ExpandedNodeId.Null,
             ExpandedNodeId.Null, ExpandedNodeId.Null);
 
-        var binaryDecoder = new BinaryDecoder(new byte[] { 3, 0, 0, 0 }, new ServiceMessageContext());
+        var binaryDecoder = new BinaryDecoder([3, 0, 0, 0], new ServiceMessageContext());
 
         // Act
         Action act = () => unionDescription.Decode(binaryDecoder);
@@ -606,8 +606,8 @@ public class StructureDescriptionTests
         // Arrange
         var structureFields = new List<StructureField>
         {
-            new StructureField { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
-            new StructureField { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
+            new() { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
+            new() { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
         };
         var structureDefinition = new StructureDefinition
         {
@@ -619,7 +619,7 @@ public class StructureDescriptionTests
             structureDefinition, new XmlQualifiedName(), ExpandedNodeId.Null,
             ExpandedNodeId.Null, ExpandedNodeId.Null);
 
-        var binaryDecoder = new BinaryDecoder(new byte[] { 0, 0, 0, 0 }, new ServiceMessageContext());
+        var binaryDecoder = new BinaryDecoder([0, 0, 0, 0], new ServiceMessageContext());
 
         // Act
         var result = unionDescription.Decode(binaryDecoder);
@@ -638,10 +638,10 @@ public class StructureDescriptionTests
         // Arrange
         var structureFields = new List<StructureField>
         {
-            new StructureField { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
-            new StructureField { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
-            new StructureField { Name = "Field3", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
-            new StructureField { Name = "Field4", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
+            new() { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
+            new() { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
+            new() { Name = "Field3", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
+            new() { Name = "Field4", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
         };
         var structureDefinition = new StructureDefinition
         {
@@ -671,10 +671,10 @@ public class StructureDescriptionTests
         // Arrange
         var structureFields = new List<StructureField>
         {
-            new StructureField { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
-            new StructureField { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
-            new StructureField { Name = "Field3", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
-            new StructureField { Name = "Field4", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
+            new() { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
+            new() { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
+            new() { Name = "Field3", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
+            new() { Name = "Field4", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
         };
         var structureDefinition = new StructureDefinition
         {
@@ -704,8 +704,8 @@ public class StructureDescriptionTests
         // Arrange
         var structureFields = new List<StructureField>
         {
-            new StructureField { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
-            new StructureField { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
+            new() { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
+            new() { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
         };
         var structureDefinition = new StructureDefinition
         {
@@ -734,8 +734,8 @@ public class StructureDescriptionTests
         // Arrange
         var structureFields = new List<StructureField>
         {
-            new StructureField { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
-            new StructureField { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
+            new() { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
+            new() { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
         };
         var structureDefinition = new StructureDefinition
         {
@@ -764,8 +764,8 @@ public class StructureDescriptionTests
         // Arrange
         var structureFields = new List<StructureField>
         {
-            new StructureField { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
-            new StructureField { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
+            new() { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
+            new() { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
         };
         var structureDefinition = new StructureDefinition
         {
@@ -794,10 +794,10 @@ public class StructureDescriptionTests
         // Arrange
         var structureFields = new List<StructureField>
         {
-            new StructureField { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
-            new StructureField { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
-            new StructureField { Name = "Field3", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
-            new StructureField { Name = "Field4", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
+            new() { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
+            new() { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
+            new() { Name = "Field3", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
+            new() { Name = "Field4", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
         };
         var structureDefinition = new StructureDefinition
         {
@@ -817,7 +817,7 @@ public class StructureDescriptionTests
 
         // Assert
         var encodedBytes = binaryEncoder.CloseAndReturnBuffer();
-        encodedBytes.Should().Equal(new byte[] { 1, 0, 0, 0, 3, 0, 0, 0 });
+        encodedBytes.Should().Equal([1, 0, 0, 0, 3, 0, 0, 0]);
     }
 
     [Fact]
@@ -826,8 +826,8 @@ public class StructureDescriptionTests
         // Arrange
         var structureFields = new List<StructureField>
     {
-        new StructureField { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
-        new StructureField { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
+        new() { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
+        new() { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
     };
         var structureDefinition = new StructureDefinition
         {
@@ -855,8 +855,8 @@ public class StructureDescriptionTests
         // Arrange
         var structureFields = new List<StructureField>
         {
-            new StructureField { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
-            new StructureField { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
+            new() { Name = "Field1", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar },
+            new() { Name = "Field2", DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
         };
         var structureDefinition = new StructureDefinition
         {
@@ -876,6 +876,6 @@ public class StructureDescriptionTests
 
         // Assert
         var encodedBytes = binaryEncoder.CloseAndReturnBuffer();
-        encodedBytes.Should().Equal(new byte[] { 0, 0, 0, 0 });
+        encodedBytes.Should().Equal([0, 0, 0, 0]);
     }
 }

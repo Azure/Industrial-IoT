@@ -484,7 +484,6 @@ public sealed class MonitoredItemManagerTests
             });
         }
 
-
         protected internal override void NotifySubscriptionManagerPaused(bool paused)
         {
             Paused = paused;

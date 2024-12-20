@@ -28,8 +28,8 @@ using System.Xml;
 /// the user can choose to load all types when the session is created or
 /// recreated with the server.
 /// </summary>
-internal class DataTypeDescriptionCache : IEncodeableFactory, IDataTypeDescriptionCache,
-    IDataTypeDescriptionResolver
+internal class DataTypeDescriptionResolver : IEncodeableFactory,
+    IDataTypeDescriptionManager, IDataTypeDescriptionResolver
 {
     /// <inheritdoc/>
     public IReadOnlyDictionary<ExpandedNodeId, Type> EncodeableTypes
@@ -39,34 +39,28 @@ internal class DataTypeDescriptionCache : IEncodeableFactory, IDataTypeDescripti
     public int InstanceId => _context.Factory.InstanceId;
 
     /// <summary>
-    /// Disable the use of the data type system cache to use the legacy data
-    /// type dictionaries instead of the new data type definitions which are
-    /// always used first.
-    /// </summary>
-    public bool DisableLegacyDataTypeSystem { get; set; }
-
-    /// <summary>
     /// Initializes the type system with a session and optionally type
     /// factory to load the custom types.
     /// </summary>
     /// <param name="nodeCache"></param>
     /// <param name="context"></param>
-    /// <param name="loggerFactory"></param>
-    public DataTypeDescriptionCache(INodeCache nodeCache,
-        IServiceMessageContext context, ILoggerFactory loggerFactory)
+    /// <param name="dataTypeSystems"></param>
+    /// <param name="logger"></param>
+    public DataTypeDescriptionResolver(INodeCache nodeCache,
+        IServiceMessageContext context, IDataTypeSystemManager? dataTypeSystems,
+        ILogger<DataTypeDescriptionResolver> logger)
     {
-        _logger = loggerFactory.CreateLogger<DataTypeDescriptionCache>();
-        _dataTypeSystems = new DataTypeSystemCache(nodeCache, context,
-            loggerFactory);
+        _logger = logger;
         _context = context;
         _nodeCache = nodeCache;
+        _dataTypeSystems = dataTypeSystems;
     }
 
     /// <summary>
     /// Clone constructor
     /// </summary>
     /// <param name="dataTypeSystem"></param>
-    private DataTypeDescriptionCache(DataTypeDescriptionCache dataTypeSystem)
+    private DataTypeDescriptionResolver(DataTypeDescriptionResolver dataTypeSystem)
     {
         _logger = dataTypeSystem._logger;
         _context = dataTypeSystem._context;
@@ -91,7 +85,7 @@ internal class DataTypeDescriptionCache : IEncodeableFactory, IDataTypeDescripti
     /// <inheritdoc/>
     public object Clone()
     {
-        return new DataTypeDescriptionCache(this);
+        return new DataTypeDescriptionResolver(this);
     }
 
     /// <inheritdoc/>
@@ -151,17 +145,14 @@ internal class DataTypeDescriptionCache : IEncodeableFactory, IDataTypeDescripti
         CollectAllDataTypeDefinitions(dataTypeId, dataTypeDefinitions);
         return dataTypeDefinitions;
 
-        void CollectAllDataTypeDefinitions(ExpandedNodeId nodeId,
+        void CollectAllDataTypeDefinitions(ExpandedNodeId typeId,
             Dictionary<ExpandedNodeId, DataTypeDefinition> collect)
         {
-            if (NodeId.IsNull(nodeId))
-            {
-                return;
-            }
-            if (_structures.TryGetValue(nodeId, out var dataTypeDefinition))
+            Debug.Assert(!NodeId.IsNull(typeId), "Unexpected null data type id");
+            if (_structures.TryGetValue(typeId, out var dataTypeDefinition))
             {
                 var structureDefinition = dataTypeDefinition.StructureDefinition;
-                collect[nodeId] = structureDefinition;
+                collect[typeId] = structureDefinition;
 
                 foreach (var field in structureDefinition.Fields)
                 {
@@ -171,9 +162,9 @@ internal class DataTypeDescriptionCache : IEncodeableFactory, IDataTypeDescripti
                     }
                 }
             }
-            else if (_enums.TryGetValue(nodeId, out var enumDescription))
+            else if (_enums.TryGetValue(typeId, out var enumDescription))
             {
-                collect[nodeId] = enumDescription.EnumDefinition;
+                collect[typeId] = enumDescription.EnumDefinition;
             }
         }
     }
@@ -210,8 +201,8 @@ internal class DataTypeDescriptionCache : IEncodeableFactory, IDataTypeDescripti
 
     /// <summary>
     /// Load the data type definitions for the data type referenced by the provided
-    /// node id. If the node is is not a data type, try to resolve the data type
-    /// the user intended to use.
+    /// node id. If the node is not a data type, try to resolve the data type the
+    /// user intended to use.
     /// </summary>
     /// <param name="dataTypeId"></param>
     /// <param name="includeSubTypes"></param>
@@ -278,29 +269,21 @@ internal class DataTypeDescriptionCache : IEncodeableFactory, IDataTypeDescripti
     public async ValueTask<bool> PreloadAllDataTypeAsync(CancellationToken ct)
     {
         var sw = Stopwatch.StartNew();
-        try
+        // Get all unknown types in the type hierarchy of the base data type
+        var allTypesLoaded = true;
+        await foreach (var type in GetUnknownSubTypesAsync(
+            DataTypeIds.BaseDataType, ct).ConfigureAwait(false))
         {
-            // Get all unknown types in the type hierarchy of the base data type
-            var allTypesLoaded = true;
-            await foreach (var type in GetUnknownSubTypesAsync(
-                DataTypeIds.BaseDataType, ct).ConfigureAwait(false))
+            if (!await AddDataTypeAsync(type, ct).ConfigureAwait(false))
             {
-                if (!await AddDataTypeAsync(type, ct).ConfigureAwait(false))
-                {
-                    _logger.LogDebug("Preloading type {DataTypeId} failed.",
-                        type.NodeId);
-                    allTypesLoaded = false;
-                }
+                _logger.LogDebug("Preloading type {DataTypeId} failed.",
+                    type.NodeId);
+                allTypesLoaded = false;
             }
-            _logger.LogInformation("Preloading all types took {Duration}ms.",
-                sw.ElapsedMilliseconds);
-            return allTypesLoaded;
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to load the custom types.");
-            return false;
-        }
+        _logger.LogInformation("Preloading all types took {Duration}ms.",
+            sw.ElapsedMilliseconds);
+        return allTypesLoaded;
     }
 
     /// <summary>
@@ -367,18 +350,123 @@ internal class DataTypeDescriptionCache : IEncodeableFactory, IDataTypeDescripti
     }
 
     /// <summary>
+    /// Get the data type definition from the data type node. Validates the type
+    /// information is correct and returns null if it is not.
+    /// </summary>
+    /// <param name="dataTypeNode"></param>
+    /// <exception cref="ServiceResultException">In case the presented data is
+    /// completely incorrect</exception>
+    internal DataTypeDefinition? GetDataTypeDefinition(DataTypeNode dataTypeNode)
+    {
+        switch (dataTypeNode.DataTypeDefinition?.Body)
+        {
+            case EnumDefinition enumDefinition:
+                Debug.Assert(enumDefinition.Fields != null); // always set in class
+                if (enumDefinition.Fields.Count == 0)
+                {
+                    return enumDefinition;
+                }
+                if (enumDefinition.Fields
+                        .Select(f => f.Name)
+                        .Distinct()
+                        .Count() !=
+                    enumDefinition.Fields.Count)
+                {
+                    _logger.LogWarning("Using Enum definition of data type {Type} " +
+                        "which contains duplicate field names.", dataTypeNode.NodeId);
+                    // We accept this because it makes no difference to us
+                }
+                return enumDefinition;
+            case StructureDefinition structureDefinition:
+                Debug.Assert(structureDefinition.Fields != null); // always set in class
+                switch (structureDefinition.StructureType)
+                {
+                    case StructureType.Union:
+                    case StructureType.UnionWithSubtypedValues:
+                        if (NodeId.IsNull(structureDefinition.BaseDataType))
+                        {
+                            structureDefinition.BaseDataType = DataTypeIds.Union;
+                        }
+                        break;
+                    case StructureType.StructureWithOptionalFields:
+                    case StructureType.StructureWithSubtypedValues:
+                    case StructureType.Structure:
+                        if (NodeId.IsNull(structureDefinition.BaseDataType))
+                        {
+                            structureDefinition.BaseDataType = DataTypeIds.Structure;
+                        }
+                        break;
+                    default:
+                        _logger.LogError("Structure definition of data type {Type} " +
+                            "has unknown structure type {Type}.",
+                            dataTypeNode.NodeId, structureDefinition.StructureType);
+                        return null;
+                }
+                if (structureDefinition.Fields.Count == 0)
+                {
+                    return structureDefinition;
+                }
+                for (var i = 0; i < structureDefinition.Fields.Count; i++)
+                {
+                    var field = structureDefinition.Fields[i];
+                    // https://reference.opcfoundation.org/Core/Part3/v105/docs/8.51
+                    if (string.IsNullOrWhiteSpace(field.Name))
+                    {
+                        _logger.LogError("Field at index {Index} in structure " +
+                            "definition of data type {Type} is missing a name.",
+                            i, dataTypeNode.NodeId);
+                        return null;
+                    }
+                    if (NodeId.IsNull(field.DataType))
+                    {
+                        _logger.LogError("Field {Name} in structure definition of " +
+                            "data type {Type} is missing a data type.",
+                            field.Name, dataTypeNode.NodeId);
+                        return null;
+                    }
+                    if (field.ValueRank is not
+                        (ValueRanks.Scalar or >= ValueRanks.OneDimension))
+                    {
+                        _logger.LogError("Field {Name} in structure definition of " +
+                            "data type {Type} has an invalid value rank {ValueRank}.",
+                            field.Name, dataTypeNode.NodeId, field.ValueRank);
+                        return null;
+                    }
+                }
+                if (structureDefinition.Fields
+                        .Select(f => f.Name)
+                        .Distinct()
+                        .Count() !=
+                    structureDefinition.Fields.Count)
+                {
+                    _logger.LogWarning("Using structure definition of data type {Type} " +
+                        "which contains duplicate field names.", dataTypeNode.NodeId);
+                    // We accept this because it makes no difference to us
+                }
+                return structureDefinition;
+            case null:
+                return null;
+            default:
+                break;
+        }
+        throw ServiceResultException.Create(StatusCodes.BadDataEncodingInvalid,
+            "Data type definition information provided by server is not valid");
+    }
+
+    /// <summary>
     /// Add type information
     /// </summary>
     /// <param name="typeId"></param>
     /// <param name="definition"></param>
     /// <param name="binaryEncodingId"></param>
     /// <param name="xmlEncodingId"></param>
+    /// <param name="jsonEncodingId"></param>
     /// <param name="xmlName"></param>
     /// <param name="isAbstract"></param>
     /// <param name="xmlDefinition"></param>
     internal void Add(ExpandedNodeId typeId, DataTypeDefinition definition,
         ExpandedNodeId binaryEncodingId, ExpandedNodeId xmlEncodingId,
-        XmlQualifiedName xmlName, bool isAbstract,
+        ExpandedNodeId jsonEncodingId, XmlQualifiedName xmlName, bool isAbstract,
         DataTypeDefinition? xmlDefinition = null)
     {
         switch (definition)
@@ -386,7 +474,7 @@ internal class DataTypeDescriptionCache : IEncodeableFactory, IDataTypeDescripti
             case StructureDefinition structureDefinition:
                 var structureDescription = StructureDescription.Create(this, typeId,
                     structureDefinition, xmlName, binaryEncodingId, xmlEncodingId,
-                    ExpandedNodeId.Null, isAbstract);
+                    jsonEncodingId, isAbstract);
                 _structures[typeId] = structureDescription;
                 if (binaryEncodingId != ExpandedNodeId.Null)
                 {
@@ -405,7 +493,8 @@ internal class DataTypeDescriptionCache : IEncodeableFactory, IDataTypeDescripti
                 break;
             case EnumDefinition enumDefinition:
                 var enumDescription = new EnumDescription(typeId, enumDefinition,
-                xmlName, isAbstract);
+                    xmlName, binaryEncodingId, xmlEncodingId, jsonEncodingId,
+                    isAbstract);
                 _enums[typeId] = enumDescription;
                 if (binaryEncodingId != ExpandedNodeId.Null)
                 {
@@ -416,7 +505,7 @@ internal class DataTypeDescriptionCache : IEncodeableFactory, IDataTypeDescripti
                     if (xmlDefinition is EnumDefinition xml)
                     {
                         enumDescription = new EnumDescription(typeId, xml, xmlName,
-                            isAbstract);
+                            binaryEncodingId, xmlEncodingId, jsonEncodingId, isAbstract);
                     }
                     _enums[xmlEncodingId] = enumDescription;
                 }
@@ -429,29 +518,36 @@ internal class DataTypeDescriptionCache : IEncodeableFactory, IDataTypeDescripti
     /// </summary>
     /// <param name="dataTypeNode"></param>
     /// <param name="ct"></param>
-    internal async ValueTask<bool> AddDataTypeAsync(DataTypeNode dataTypeNode,
+    private async ValueTask<bool> AddDataTypeAsync(DataTypeNode dataTypeNode,
         CancellationToken ct)
     {
         // Get encodings
-        var lookup = await GetEncodingsAsync(dataTypeNode, ct).ConfigureAwait(false);
+        var source = ExpandedNodeId.ToNodeId(dataTypeNode.NodeId,
+            _context.NamespaceUris);
+        var references = await _nodeCache.GetReferencesAsync(source,
+            ReferenceTypeIds.HasEncoding, false, false, ct).ConfigureAwait(false);
+        var lookup = references.ToDictionary(r => r.BrowseName, r =>
+            NormalizeExpandedNodeId(r.NodeId));
         var binaryEncodingId = lookup.TryGetValue(BrowseNames.DefaultBinary,
             out var b) ? b : ExpandedNodeId.Null;
         var xmlEncodingId = lookup.TryGetValue(BrowseNames.DefaultXml,
             out var x) ? x : ExpandedNodeId.Null;
+        var jsonEncodingId = lookup.TryGetValue(BrowseNames.DefaultJson,
+            out var j) ? j : ExpandedNodeId.Null;
 
         XmlQualifiedName? name = null;
         var dataTypeId = NormalizeExpandedNodeId(dataTypeNode.NodeId);
 
         // 1. Use data type definition for all encodings
         var dataTypeDefinition = GetDataTypeDefinition(dataTypeNode);
-        if (dataTypeDefinition == null && !DisableLegacyDataTypeSystem)
+        if (dataTypeDefinition == null && _dataTypeSystems != null)
         {
             // 2. Use legacy type system
             var def = await _dataTypeSystems.GetDataTypeDefinitionAsync(
                 BrowseNames.DefaultBinary, dataTypeNode.NodeId,
                 ct).ConfigureAwait(false);
 
-            dataTypeDefinition = def?.Definition as StructureDefinition;
+            dataTypeDefinition = def?.Definition;
             name = def?.XmlName;
 
             // The xml encoding might be different than the binary encoding
@@ -464,12 +560,12 @@ internal class DataTypeDescriptionCache : IEncodeableFactory, IDataTypeDescripti
                 var xml = await _dataTypeSystems.GetDataTypeDefinitionAsync(
                     BrowseNames.DefaultXml, dataTypeNode.NodeId,
                     ct).ConfigureAwait(false);
-                if (xml?.Definition is StructureDefinition xmlStructureDefinition)
+                if (xml?.Definition != null)
                 {
-                    dataTypeDefinition ??= xmlStructureDefinition;
+                    dataTypeDefinition ??= xml.Definition;
                     Add(dataTypeId, dataTypeDefinition, binaryEncodingId,
-                        xmlEncodingId, xml.XmlName, dataTypeNode.IsAbstract,
-                        xmlStructureDefinition);
+                        xmlEncodingId, jsonEncodingId, xml.XmlName,
+                        dataTypeNode.IsAbstract, xml.Definition);
                     return true;
                 }
             }
@@ -486,7 +582,7 @@ internal class DataTypeDescriptionCache : IEncodeableFactory, IDataTypeDescripti
                 _context.NamespaceUris.GetString(typeName.NamespaceIndex));
         }
         Add(dataTypeId, dataTypeDefinition,
-            binaryEncodingId, xmlEncodingId, name, dataTypeNode.IsAbstract);
+            binaryEncodingId, xmlEncodingId, jsonEncodingId, name, dataTypeNode.IsAbstract);
         return true;
     }
 
@@ -497,7 +593,7 @@ internal class DataTypeDescriptionCache : IEncodeableFactory, IDataTypeDescripti
     /// <param name="ct"></param>
     /// <returns></returns>
     /// <exception cref="ServiceResultException"></exception>
-    internal async IAsyncEnumerable<DataTypeNode> GetUnknownSubTypesAsync(
+    private async IAsyncEnumerable<DataTypeNode> GetUnknownSubTypesAsync(
         ExpandedNodeId dataType, [EnumeratorCancellation] CancellationToken ct)
     {
         var nodesToBrowse = new NodeIdCollection
@@ -527,27 +623,9 @@ internal class DataTypeDescriptionCache : IEncodeableFactory, IDataTypeDescripti
     /// <returns>The normalized expanded nodeId.</returns>
     private ExpandedNodeId NormalizeExpandedNodeId(ExpandedNodeId expandedNodeId)
     {
-        var nodeId = ExpandedNodeId.ToNodeId(
-            expandedNodeId, _context.NamespaceUris);
+        var nodeId = ExpandedNodeId.ToNodeId(expandedNodeId, _context.NamespaceUris);
         return NodeId.ToExpandedNodeId(nodeId, _context.NamespaceUris)
             ?? ExpandedNodeId.Null;
-    }
-
-    /// <summary>
-    /// Get encodings of the data type
-    /// </summary>
-    /// <param name="dataTypeNode"></param>
-    /// <param name="ct"></param>
-    /// <returns></returns>
-    private async Task<Dictionary<QualifiedName, ExpandedNodeId>> GetEncodingsAsync(
-        DataTypeNode dataTypeNode, CancellationToken ct)
-    {
-        var source = ExpandedNodeId.ToNodeId(dataTypeNode.NodeId,
-            _context.NamespaceUris);
-        var references = await _nodeCache.GetReferencesAsync(source,
-            ReferenceTypeIds.HasEncoding, false, false, ct).ConfigureAwait(false);
-        return references.ToDictionary(r => r.BrowseName, r =>
-            NormalizeExpandedNodeId(r.NodeId));
     }
 
     /// <summary>
@@ -563,51 +641,10 @@ internal class DataTypeDescriptionCache : IEncodeableFactory, IDataTypeDescripti
         return GetSystemType(nodeId) != null;
     }
 
-    /// <summary>
-    /// Get the data type definition from the data type node
-    /// </summary>
-    /// <param name="dataTypeNode"></param>
-    private static DataTypeDefinition? GetDataTypeDefinition(
-        DataTypeNode dataTypeNode)
-    {
-        switch (dataTypeNode.DataTypeDefinition?.Body)
-        {
-            case EnumDefinition enumDefinition:
-                return enumDefinition;
-            case StructureDefinition structureDefinition:
-                // Validate the DataTypeDefinition structure,
-                // but not if the type is supported
-                if (structureDefinition.Fields == null ||
-                    NodeId.IsNull(structureDefinition.BaseDataType))
-                {
-                    return null;
-                }
-                // Validate the structure according to Part3, Table 36
-                foreach (var field in structureDefinition.Fields)
-                {
-                    // validate if the DataTypeDefinition is correctly
-                    // filled out, some servers don't do it yet...
-                    if (NodeId.IsNull(field.DataType) ||
-                        string.IsNullOrWhiteSpace(field.Name))
-                    {
-                        return null;
-                    }
-                    if (field.ValueRank is not (ValueRanks.Scalar or
-                        >= ValueRanks.OneDimension))
-                    {
-                        return null;
-                    }
-                }
-                return structureDefinition;
-            default:
-                return null;
-        }
-    }
-
     private readonly ILogger _logger;
     private readonly INodeCache _nodeCache;
     private readonly IServiceMessageContext _context;
-    private readonly IDataTypeSystemCache _dataTypeSystems;
+    private readonly IDataTypeSystemManager? _dataTypeSystems;
     private readonly ConcurrentDictionary<ExpandedNodeId, StructureDescription> _structures = [];
     private readonly ConcurrentDictionary<ExpandedNodeId, EnumDescription> _enums = [];
 }

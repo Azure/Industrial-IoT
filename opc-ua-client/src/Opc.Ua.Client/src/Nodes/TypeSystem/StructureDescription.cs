@@ -25,21 +25,6 @@ public abstract class StructureDescription : DataTypeDescription
     public StructureDefinition StructureDefinition { get; }
 
     /// <summary>
-    /// Binary encoding id
-    /// </summary>
-    public ExpandedNodeId BinaryEncodingId { get; }
-
-    /// <summary>
-    /// Xml encoding id
-    /// </summary>
-    public ExpandedNodeId XmlEncodingId { get; }
-
-    /// <summary>
-    /// Json encoding id
-    /// </summary>
-    public ExpandedNodeId JsonEncodingId { get; }
-
-    /// <summary>
     /// Allows subtypes in the fields
     /// </summary>
     internal bool FieldsCanHaveSubtypedValues
@@ -110,11 +95,8 @@ public abstract class StructureDescription : DataTypeDescription
         StructureDefinition structureDefinition, XmlQualifiedName xmlName,
         ExpandedNodeId binaryEncodingId, ExpandedNodeId xmlEncodingId,
         ExpandedNodeId jsonEncodingId, bool isAbstract) :
-        base(typeId, xmlName, isAbstract)
+        base(typeId, xmlName, binaryEncodingId, xmlEncodingId, jsonEncodingId, isAbstract)
     {
-        BinaryEncodingId = binaryEncodingId;
-        XmlEncodingId = xmlEncodingId;
-        JsonEncodingId = jsonEncodingId;
         StructureDefinition = structureDefinition;
         _fields = structureDefinition.Fields
             .Select((f, order) => new StructureFieldDescription(
@@ -128,9 +110,6 @@ public abstract class StructureDescription : DataTypeDescription
     private StructureDescription()
     {
         StructureDefinition = new StructureDefinition();
-        BinaryEncodingId = ExpandedNodeId.Null;
-        XmlEncodingId = ExpandedNodeId.Null;
-        JsonEncodingId = ExpandedNodeId.Null;
         _fields = [];
     }
 

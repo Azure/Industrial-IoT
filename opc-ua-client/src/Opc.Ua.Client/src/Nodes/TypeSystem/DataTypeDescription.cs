@@ -19,6 +19,21 @@ public abstract class DataTypeDescription
     public ExpandedNodeId TypeId { get; }
 
     /// <summary>
+    /// Binary encoding id
+    /// </summary>
+    public ExpandedNodeId BinaryEncodingId { get; }
+
+    /// <summary>
+    /// Xml encoding id
+    /// </summary>
+    public ExpandedNodeId XmlEncodingId { get; }
+
+    /// <summary>
+    /// Json encoding id
+    /// </summary>
+    public ExpandedNodeId JsonEncodingId { get; }
+
+    /// <summary>
     /// Xml name
     /// </summary>
     public XmlQualifiedName XmlName { get; }
@@ -33,11 +48,19 @@ public abstract class DataTypeDescription
     /// </summary>
     /// <param name="typeId"></param>
     /// <param name="xmlName"></param>
+    /// <param name="binaryEncodingId"></param>
+    /// <param name="xmlEncodingId"></param>
+    /// <param name="jsonEncodingId"></param>
     /// <param name="isAbstract"></param>
     protected DataTypeDescription(ExpandedNodeId typeId,
-        XmlQualifiedName xmlName, bool isAbstract = false)
+        XmlQualifiedName xmlName, ExpandedNodeId binaryEncodingId,
+        ExpandedNodeId xmlEncodingId, ExpandedNodeId jsonEncodingId,
+        bool isAbstract = false)
     {
         TypeId = typeId;
+        BinaryEncodingId = binaryEncodingId;
+        XmlEncodingId = xmlEncodingId;
+        JsonEncodingId = jsonEncodingId;
         XmlName = xmlName;
         IsAbstract = isAbstract;
     }
@@ -48,6 +71,9 @@ public abstract class DataTypeDescription
     protected DataTypeDescription()
     {
         TypeId = ExpandedNodeId.Null;
+        BinaryEncodingId = ExpandedNodeId.Null;
+        XmlEncodingId = ExpandedNodeId.Null;
+        JsonEncodingId = ExpandedNodeId.Null;
         XmlName = new XmlQualifiedName();
     }
 }

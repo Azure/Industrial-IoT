@@ -6,6 +6,7 @@
 namespace Opc.Ua.Client.Nodes.TypeSystem;
 
 using FluentAssertions;
+using Moq;
 using Opc.Ua;
 using System.Collections.Generic;
 using System.Xml;
@@ -17,8 +18,9 @@ public class EnumDescriptionTests
     public void DecodeWithEmptyEnumDefinitionShouldReturnNull()
     {
         // Arrange
-        var enumDefinition = new EnumDefinition { Fields = new EnumFieldCollection() };
-        var enumDescription = new EnumDescription(new ExpandedNodeId(333), enumDefinition, new XmlQualifiedName());
+        var enumDefinition = new EnumDefinition { Fields = [] };
+        var enumDescription = new EnumDescription(new ExpandedNodeId(333), enumDefinition, new XmlQualifiedName(),
+            ExpandedNodeId.Null, ExpandedNodeId.Null, ExpandedNodeId.Null);
 
         var jsonDecoder = new JsonDecoder("""{"TestField": 1}""", new ServiceMessageContext());
 
@@ -35,12 +37,13 @@ public class EnumDescriptionTests
         // Arrange
         var enumFields = new List<EnumField>
         {
-            new EnumField { Name = "TestField1", Value = 1 },
-            new EnumField { Name = "TestField2", Value = 2 },
-            new EnumField { Name = "TestField4", Value = 4 }
+            new() { Name = "TestField1", Value = 1 },
+            new() { Name = "TestField2", Value = 2 },
+            new() { Name = "TestField4", Value = 4 }
         };
         var enumDefinition = new EnumDefinition { Fields = new EnumFieldCollection(enumFields) };
-        var enumDescription = new EnumDescription(new ExpandedNodeId(333), enumDefinition, new XmlQualifiedName());
+        var enumDescription = new EnumDescription(new ExpandedNodeId(333), enumDefinition, new XmlQualifiedName(),
+            ExpandedNodeId.Null, ExpandedNodeId.Null, ExpandedNodeId.Null);
 
         var jsonDecoder = new JsonDecoder("""{"TestField":4}""", new ServiceMessageContext());
 
@@ -56,17 +59,48 @@ public class EnumDescriptionTests
     }
 
     [Fact]
+    public void DecodeWithWithDecoderExtensionShouldReturnEnumValueWithSymbolAndIntegerCode()
+    {
+        // Arrange
+        var enumFields = new List<EnumField>
+        {
+            new() { Name = "TestField1", Value = 1 },
+            new() { Name = "TestField2", Value = 2 },
+            new() { Name = "TestField4", Value = 4 }
+        };
+        var enumDefinition = new EnumDefinition { Fields = new EnumFieldCollection(enumFields) };
+        var enumDescription = new EnumDescription(new ExpandedNodeId(333), enumDefinition, new XmlQualifiedName("ssss"),
+            ExpandedNodeId.Null, ExpandedNodeId.Null, ExpandedNodeId.Null);
+
+        var decoder = new Mock<IExtendedCodec>();
+        decoder.Setup(x => x.ReadEnumerated("TestField", enumDefinition))
+            .Returns(new EnumValue("TestField4", 4));
+
+        // Act
+        var result = enumDescription.Decode(decoder.Object, "TestField");
+
+        // Assert
+        enumDescription.XmlName.Name.Should().Be("ssss");
+        result.Should().NotBeNull().And.BeOfType<EnumValue>();
+        Assert.NotNull(result);
+        var enumValue = (EnumValue)result;
+        enumValue.Symbol.Should().Be("TestField4");
+        enumValue.Value.Should().Be(4);
+    }
+
+    [Fact]
     public void DecodeWithIntegerShouldReturnEnumValueWithSymbolAndIntegerCode()
     {
         // Arrange
         var enumFields = new List<EnumField>
         {
-            new EnumField { Name = "TestField1", Value = 1 },
-            new EnumField { Name = "TestField2", Value = 2 },
-            new EnumField { Name = "TestField4", Value = 4 }
+            new() { Name = "TestField1", Value = 1 },
+            new() { Name = "TestField2", Value = 2 },
+            new() { Name = "TestField4", Value = 4 }
         };
         var enumDefinition = new EnumDefinition { Fields = new EnumFieldCollection(enumFields) };
-        var enumDescription = new EnumDescription(new ExpandedNodeId(333), enumDefinition, new XmlQualifiedName("ssss"));
+        var enumDescription = new EnumDescription(new ExpandedNodeId(333), enumDefinition, new XmlQualifiedName("ssss"),
+            ExpandedNodeId.Null, ExpandedNodeId.Null, ExpandedNodeId.Null);
 
         var jsonDecoder = new JsonDecoder("""{"TestField":"TestField_4"}""", new ServiceMessageContext());
 
@@ -88,11 +122,12 @@ public class EnumDescriptionTests
         // Arrange
         var enumFields = new List<EnumField>
         {
-            new EnumField { Name = "TestField1", Value = 1 },
-            new EnumField { Name = "TestField2", Value = 2 }
+            new() { Name = "TestField1", Value = 1 },
+            new() { Name = "TestField2", Value = 2 }
         };
         var enumDefinition = new EnumDefinition { Fields = new EnumFieldCollection(enumFields) };
-        var enumDescription = new EnumDescription(new ExpandedNodeId(333), enumDefinition, new XmlQualifiedName());
+        var enumDescription = new EnumDescription(new ExpandedNodeId(333), enumDefinition, new XmlQualifiedName(),
+            ExpandedNodeId.Null, ExpandedNodeId.Null, ExpandedNodeId.Null);
 
         var jsonDecoder = new JsonDecoder("""{"TestField": "InvalidToken"}""", new ServiceMessageContext());
 
@@ -113,11 +148,12 @@ public class EnumDescriptionTests
         // Arrange
         var enumFields = new List<EnumField>
         {
-            new EnumField { Name = "TestField1", Value = 1 },
-            new EnumField { Name = "TestField2", Value = 2 }
+            new() { Name = "TestField1", Value = 1 },
+            new() { Name = "TestField2", Value = 2 }
         };
         var enumDefinition = new EnumDefinition { Fields = new EnumFieldCollection(enumFields) };
-        var enumDescription = new EnumDescription(new ExpandedNodeId(333), enumDefinition, new XmlQualifiedName());
+        var enumDescription = new EnumDescription(new ExpandedNodeId(333), enumDefinition, new XmlQualifiedName(),
+            ExpandedNodeId.Null, ExpandedNodeId.Null, ExpandedNodeId.Null);
 
         var jsonDecoder = new JsonDecoder("""{"TestField": [1, 2, 3]}""", new ServiceMessageContext());
 
@@ -131,17 +167,19 @@ public class EnumDescriptionTests
         enumValue.Symbol.Should().Be("TestField1");
         enumValue.Value.Should().Be(1);
     }
+
     [Fact]
     public void DecodeWithInvalidJsonTokenShouldReturnFirstEnumField3()
     {
         // Arrange
         var enumFields = new List<EnumField>
         {
-            new EnumField { Name = "TestField1", Value = 1 },
-            new EnumField { Name = "TestField2", Value = 2 }
+            new() { Name = "TestField1", Value = 1 },
+            new() { Name = "TestField2", Value = 2 }
         };
         var enumDefinition = new EnumDefinition { Fields = new EnumFieldCollection(enumFields) };
-        var enumDescription = new EnumDescription(new ExpandedNodeId(333), enumDefinition, new XmlQualifiedName());
+        var enumDescription = new EnumDescription(new ExpandedNodeId(333), enumDefinition, new XmlQualifiedName(),
+            ExpandedNodeId.Null, ExpandedNodeId.Null, ExpandedNodeId.Null);
 
         var jsonDecoder = new JsonDecoder("{}", new ServiceMessageContext());
 
@@ -162,11 +200,12 @@ public class EnumDescriptionTests
         // Arrange
         var enumFields = new List<EnumField>
         {
-            new EnumField { Name = "TestField1", Value = 1 },
-            new EnumField { Name = "TestField2", Value = 2 }
+            new() { Name = "TestField1", Value = 1 },
+            new() { Name = "TestField2", Value = 2 }
         };
         var enumDefinition = new EnumDefinition { Fields = new EnumFieldCollection(enumFields) };
-        var enumDescription = new EnumDescription(new ExpandedNodeId(333), enumDefinition, new XmlQualifiedName());
+        var enumDescription = new EnumDescription(new ExpandedNodeId(333), enumDefinition, new XmlQualifiedName(),
+            ExpandedNodeId.Null, ExpandedNodeId.Null, ExpandedNodeId.Null);
 
         var jsonDecoder = new JsonDecoder("""{"UnknownField": 1}""", new ServiceMessageContext());
 
@@ -185,8 +224,9 @@ public class EnumDescriptionTests
     public void EncodeWithNoFieldsAndNullEnumValueShouldContainZeroWithNonReversibleEncoding()
     {
         // Arrange
-        var enumDefinition = new EnumDefinition { Fields = new EnumFieldCollection() };
-        var enumDescription = new EnumDescription(new ExpandedNodeId(333), enumDefinition, new XmlQualifiedName());
+        var enumDefinition = new EnumDefinition { Fields = [] };
+        var enumDescription = new EnumDescription(new ExpandedNodeId(333), enumDefinition, new XmlQualifiedName(),
+            ExpandedNodeId.Null, ExpandedNodeId.Null, ExpandedNodeId.Null);
 
         var jsonEncoder = new JsonEncoder(new ServiceMessageContext(), true);
 
@@ -204,8 +244,9 @@ public class EnumDescriptionTests
     public void EncodeWithNoFieldsAndNullEnumValueShouldContainZeroWithReversibleEncoding()
     {
         // Arrange
-        var enumDefinition = new EnumDefinition { Fields = new EnumFieldCollection() };
-        var enumDescription = new EnumDescription(new ExpandedNodeId(333), enumDefinition, new XmlQualifiedName());
+        var enumDefinition = new EnumDefinition { Fields = [] };
+        var enumDescription = new EnumDescription(new ExpandedNodeId(333), enumDefinition, new XmlQualifiedName(),
+            ExpandedNodeId.Null, ExpandedNodeId.Null, ExpandedNodeId.Null);
 
         var jsonEncoder = new JsonEncoder(new ServiceMessageContext(), false);
 
@@ -220,16 +261,42 @@ public class EnumDescriptionTests
     }
 
     [Fact]
+    public void EncodeWithWithDecoderExtensionShouldReturnEnumValueWithSymbolAndIntegerCode()
+    {
+        // Arrange
+        var enumFields = new List<EnumField>
+        {
+            new() { Name = "TestField1", Value = 1 },
+            new() { Name = "TestField2", Value = 2 },
+            new() { Name = "TestField4", Value = 4 }
+        };
+        var enumDefinition = new EnumDefinition { Fields = new EnumFieldCollection(enumFields) };
+        var enumDescription = new EnumDescription(new ExpandedNodeId(333), enumDefinition, new XmlQualifiedName("ssss"),
+            ExpandedNodeId.Null, ExpandedNodeId.Null, ExpandedNodeId.Null);
+        var enumValue = new EnumValue("TestField4", 4);
+
+        var encoder = new Mock<IExtendedCodec>();
+        encoder.Setup(x => x.WriteEnumerated("TestField", enumValue, enumDefinition)).Verifiable(Times.Once);
+
+        // Act
+        enumDescription.Encode(encoder.Object, "TestField", enumValue);
+
+        // Assert
+        encoder.Verify();
+    }
+
+    [Fact]
     public void EncodeWithNullEnumValueShouldEncodeDefaultWithNonReversibleEncoding()
     {
         // Arrange
         var enumFields = new List<EnumField>
         {
-            new EnumField { Name = "TestField1", Value = 1 },
-            new EnumField { Name = "TestField2", Value = 2 }
+            new() { Name = "TestField1", Value = 1 },
+            new() { Name = "TestField2", Value = 2 }
         };
         var enumDefinition = new EnumDefinition { Fields = new EnumFieldCollection(enumFields) };
-        var enumDescription = new EnumDescription(new ExpandedNodeId(333), enumDefinition, new XmlQualifiedName());
+        var enumDescription = new EnumDescription(new ExpandedNodeId(333), enumDefinition, new XmlQualifiedName(),
+            ExpandedNodeId.Null, ExpandedNodeId.Null, ExpandedNodeId.Null);
 
         var jsonEncoder = new JsonEncoder(new ServiceMessageContext(), true);
 
@@ -249,11 +316,12 @@ public class EnumDescriptionTests
         // Arrange
         var enumFields = new List<EnumField>
         {
-            new EnumField { Name = "TestField1", Value = 1 },
-            new EnumField { Name = "TestField2", Value = 2 }
+            new() { Name = "TestField1", Value = 1 },
+            new() { Name = "TestField2", Value = 2 }
         };
         var enumDefinition = new EnumDefinition { Fields = new EnumFieldCollection(enumFields) };
-        var enumDescription = new EnumDescription(new ExpandedNodeId(333), enumDefinition, new XmlQualifiedName());
+        var enumDescription = new EnumDescription(new ExpandedNodeId(333), enumDefinition, new XmlQualifiedName(),
+            ExpandedNodeId.Null, ExpandedNodeId.Null, ExpandedNodeId.Null);
 
         var jsonEncoder = new JsonEncoder(new ServiceMessageContext(), false);
 
@@ -272,13 +340,14 @@ public class EnumDescriptionTests
         // Arrange
         var enumFields = new List<EnumField>
         {
-            new EnumField { Name = "TestField1", Value = 1 },
-            new EnumField { Name = "TestField2", Value = 2 }
+            new() { Name = "TestField1", Value = 1 },
+            new() { Name = "TestField2", Value = 2 }
         };
         var enumDefinition = new EnumDefinition { Fields = new EnumFieldCollection(enumFields) };
-        var enumDescription = new EnumDescription(new ExpandedNodeId(333), enumDefinition, new XmlQualifiedName());
+        var enumDescription = new EnumDescription(new ExpandedNodeId(333), enumDefinition, new XmlQualifiedName(),
+            ExpandedNodeId.Null, ExpandedNodeId.Null, ExpandedNodeId.Null);
 
-        var binaryDecoder = new BinaryDecoder(new byte[] { 1, 0, 0, 0 }, new ServiceMessageContext());
+        var binaryDecoder = new BinaryDecoder([1, 0, 0, 0], new ServiceMessageContext());
 
         // Act
         var result = enumDescription.Decode(binaryDecoder, "TestField");
@@ -297,11 +366,12 @@ public class EnumDescriptionTests
         // Arrange
         var enumFields = new List<EnumField>
         {
-            new EnumField { Name = "TestField1", Value = 1 },
-            new EnumField { Name = "TestField2", Value = 2 }
+            new() { Name = "TestField1", Value = 1 },
+            new() { Name = "TestField2", Value = 2 }
         };
         var enumDefinition = new EnumDefinition { Fields = new EnumFieldCollection(enumFields) };
-        var enumDescription = new EnumDescription(new ExpandedNodeId(333), enumDefinition, new XmlQualifiedName());
+        var enumDescription = new EnumDescription(new ExpandedNodeId(333), enumDefinition, new XmlQualifiedName(),
+            ExpandedNodeId.Null, ExpandedNodeId.Null, ExpandedNodeId.Null);
 
         var jsonDecoder = new JsonDecoder("""{"TestField": 1}""", new ServiceMessageContext());
 
@@ -322,11 +392,12 @@ public class EnumDescriptionTests
         // Arrange
         var enumFields = new List<EnumField>
         {
-            new EnumField { Name = "TestField1", Value = 1 },
-            new EnumField { Name = "TestField2", Value = 2 }
+            new() { Name = "TestField1", Value = 1 },
+            new() { Name = "TestField2", Value = 2 }
         };
         var enumDefinition = new EnumDefinition { Fields = new EnumFieldCollection(enumFields) };
-        var enumDescription = new EnumDescription(new ExpandedNodeId(333), enumDefinition, new XmlQualifiedName());
+        var enumDescription = new EnumDescription(new ExpandedNodeId(333), enumDefinition, new XmlQualifiedName(),
+            ExpandedNodeId.Null, ExpandedNodeId.Null, ExpandedNodeId.Null);
 
         var binaryEncoder = new BinaryEncoder(new ServiceMessageContext());
 
@@ -335,7 +406,7 @@ public class EnumDescriptionTests
 
         // Assert
         var encodedBytes = binaryEncoder.CloseAndReturnBuffer();
-        encodedBytes.Should().Equal(new byte[] { 1, 0, 0, 0 });
+        encodedBytes.Should().Equal([1, 0, 0, 0]);
     }
 
     [Fact]
@@ -344,11 +415,12 @@ public class EnumDescriptionTests
         // Arrange
         var enumFields = new List<EnumField>
         {
-            new EnumField { Name = "TestField1", Value = 1 },
-            new EnumField { Name = "TestField2", Value = 2 }
+            new() { Name = "TestField1", Value = 1 },
+            new() { Name = "TestField2", Value = 2 }
         };
         var enumDefinition = new EnumDefinition { Fields = new EnumFieldCollection(enumFields) };
-        var enumDescription = new EnumDescription(new ExpandedNodeId(333), enumDefinition, new XmlQualifiedName());
+        var enumDescription = new EnumDescription(new ExpandedNodeId(333), enumDefinition, new XmlQualifiedName(),
+            ExpandedNodeId.Null, ExpandedNodeId.Null, ExpandedNodeId.Null);
 
         var jsonEncoder = new JsonEncoder(new ServiceMessageContext(), true);
 
@@ -368,11 +440,12 @@ public class EnumDescriptionTests
         // Arrange
         var enumFields = new List<EnumField>
         {
-            new EnumField { Name = "TestField1", Value = 1 },
-            new EnumField { Name = "TestField2", Value = 2 }
+            new() { Name = "TestField1", Value = 1 },
+            new() { Name = "TestField2", Value = 2 }
         };
         var enumDefinition = new EnumDefinition { Fields = new EnumFieldCollection(enumFields) };
-        var enumDescription = new EnumDescription(new ExpandedNodeId(333), enumDefinition, new XmlQualifiedName());
+        var enumDescription = new EnumDescription(new ExpandedNodeId(333), enumDefinition, new XmlQualifiedName(),
+            ExpandedNodeId.Null, ExpandedNodeId.Null, ExpandedNodeId.Null);
 
         var jsonEncoder = new JsonEncoder(new ServiceMessageContext(), false);
 
@@ -430,4 +503,7 @@ public class EnumDescriptionTests
         enumValue.Symbol.Should().Be("TestField1");
         enumValue.Value.Should().Be(1);
     }
+
+    public interface IExtendedCodec : IEncoder, IDecoder,
+        IEnumValueTypeDecoder, IEnumValueTypeEncoder;
 }
