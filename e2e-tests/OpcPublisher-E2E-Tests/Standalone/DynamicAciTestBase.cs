@@ -54,7 +54,7 @@ namespace OpcPublisherAEE2ETests.Standalone
             // Initialize DeviceServiceClient from IoT Hub connection string.
             _iotHubClient = TestHelper.DeviceServiceClient(
                 _context.IoTHubConfig.IoTHubConnectionString,
-                TransportType.Amqp_WebSocket_Only
+                Microsoft.Azure.Devices.TransportType.Amqp_WebSocket_Only
             );
         }
 
