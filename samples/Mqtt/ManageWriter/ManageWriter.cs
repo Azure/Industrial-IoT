@@ -3,7 +3,6 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-using MQTTnet.Client;
 using MQTTnet.Protocol;
 using MQTTnet.Formatter;
 using MQTTnet;
@@ -12,7 +11,7 @@ using System.Text.Json;
 using System.Text;
 
 // Connect to mqtt broker
-var mqttFactory = new MqttFactory();
+var mqttFactory = new MqttClientFactory();
 using var mqttClient = mqttFactory.CreateMqttClient();
 var mqttClientOptions = new MqttClientOptionsBuilder()
     .WithProtocolVersion(MqttProtocolVersion.V500) // Important!!

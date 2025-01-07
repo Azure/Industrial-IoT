@@ -3,13 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-using MQTTnet.Client;
 using MQTTnet.Formatter;
 using MQTTnet;
 using System.Text.Json;
+using System.Buffers;
 
 // Connect to mqtt broker
-var mqttFactory = new MqttFactory();
+var mqttFactory = new MqttClientFactory();
 using var mqttClient = mqttFactory.CreateMqttClient();
 var mqttClientOptions = new MqttClientOptionsBuilder()
     .WithProtocolVersion(MqttProtocolVersion.V500) // Important!!
@@ -19,8 +19,8 @@ await mqttClient.ConnectAsync(mqttClientOptions).ConfigureAwait(false);
 var indented = new JsonSerializerOptions() { WriteIndented = true };
 mqttClient.ApplicationMessageReceivedAsync += args =>
 {
-    var json = JsonSerializer.Serialize(JsonSerializer.Deserialize<JsonElement>(
-        args.ApplicationMessage.PayloadSegment), indented);
+    var reader = new Utf8JsonReader(args.ApplicationMessage.Payload);
+    var json = JsonSerializer.Serialize(JsonSerializer.Deserialize<JsonElement>(ref reader), indented);
     Console.WriteLine($"{args.ApplicationMessage.Topic}:{json}");
     return Task.CompletedTask;
 };
