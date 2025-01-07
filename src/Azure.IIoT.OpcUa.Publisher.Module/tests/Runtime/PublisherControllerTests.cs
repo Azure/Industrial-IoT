@@ -22,10 +22,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
         }
 
         [Fact]
-        public async Task GetApiKeyAndCertificateTest()
+        public async Task GetApiKeyAndCertificateTestAsync()
         {
-            const string name = nameof(GetApiKeyAndCertificateTest);
-            StartPublisher(name, "./Resources/empty_pn.json", arguments: new string[] { "--mm=PubSub" });
+            const string name = nameof(GetApiKeyAndCertificateTestAsync);
+            StartPublisher(name, "./Resources/empty_pn.json", arguments: ["--mm=PubSub"]);
             try
             {
                 var apiKey = await PublisherApi.GetApiKeyAsync();
@@ -44,9 +44,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
         }
 
         [Fact]
-        public async Task ShutdownTest()
+        public async Task ShutdownTestAsync()
         {
-            const string name = nameof(ShutdownTest);
+            const string name = nameof(ShutdownTestAsync);
             StartPublisher(name, "./Resources/empty_pn.json");
             try
             {

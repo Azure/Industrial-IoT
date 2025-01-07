@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Furly.Extensions.Serializers;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -36,8 +35,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                        null : subscriptionSettings?.PublishingInterval,
                 UseDeferredAcknoledgements = subscriptionSettings?.UseDeferredAcknoledgements,
                 EnableImmediatePublishing = subscriptionSettings?.EnableImmediatePublishing,
-                EnableSequentialPublishing = subscriptionSettings?.EnableSequentialPublishing,
-                RepublishAfterTransfer = subscriptionSettings?.RepublishAfterTransfer,
                 MonitoredItemWatchdogTimeout = subscriptionSettings?.MonitoredItemWatchdogTimeout,
                 WatchdogCondition = subscriptionSettings?.MonitoredItemWatchdogCondition,
                 WatchdogBehavior = subscriptionSettings?.WatchdogBehavior,

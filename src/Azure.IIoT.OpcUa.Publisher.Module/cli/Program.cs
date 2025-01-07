@@ -223,7 +223,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 moduleId = "publisher";
                 logger.LogInformation("Using <moduleId> '{ModuleId}'", moduleId);
 
-                args = unknownArgs.ToArray();
+                args = [.. unknownArgs];
             }
             catch (Exception e)
             {
@@ -300,12 +300,12 @@ Options:
                         case 'P':
                         case 'p':
                             Console.WriteLine("Restarting publisher...");
-                            _restartPublisher.Set();
+                            kRestartPublisher.Set();
                             break;
                         case 'S':
                         case 's':
                             Console.WriteLine("Restarting server...");
-                            _restartServer.Set();
+                            kRestartServer.Set();
                             break;
                     }
                 }
@@ -319,8 +319,8 @@ Options:
             }
         }
 
-        private static readonly AsyncAutoResetEvent _restartServer = new(false);
-        private static readonly AsyncAutoResetEvent _restartPublisher = new(false);
+        private static readonly AsyncAutoResetEvent kRestartServer = new(false);
+        private static readonly AsyncAutoResetEvent kRestartPublisher = new(false);
 
         /// <summary>
         /// Host the module with connection string loaded from iot hub
@@ -374,7 +374,7 @@ Options:
                     reverseConnectPort, publishedNodesFilePath, publishInitFile, cts.Token);
 
                 Console.WriteLine("Publisher running (Press P to restart)...");
-                await _restartPublisher.WaitAsync(ct).ConfigureAwait(false);
+                await kRestartPublisher.WaitAsync(ct).ConfigureAwait(false);
                 try
                 {
                     await cts.CancelAsync().ConfigureAwait(false);
@@ -423,7 +423,7 @@ Options:
                     // default the profile to use reverse connect
                     arguments.Add("--urc");
                 }
-                await Publisher.Module.Program.RunAsync(arguments.ToArray(), ct).ConfigureAwait(false);
+                await Publisher.Module.Program.RunAsync([.. arguments], ct).ConfigureAwait(false);
                 logger.LogInformation("Publisher module {DeviceId} {ModuleId} exited.",
                     deviceId, moduleId);
             }
@@ -450,26 +450,24 @@ Options:
             try
             {
                 // Start test server
-                using (var server = new ServerWrapper(scaleunits, loggerFactory, reverseConnectPort))
+                using var server = new ServerWrapper(scaleunits, loggerFactory, reverseConnectPort);
+                var endpointUrl = $"opc.tcp://localhost:{server.Port}/UA/SampleServer";
+
+                var publishInitFile = await LoadInitFileAsync(publishInitProfile, endpointUrl,
+                    ct).ConfigureAwait(false);
+
+                if (publishInitFile != null && publishProfile == null)
                 {
-                    var endpointUrl = $"opc.tcp://localhost:{server.Port}/UA/SampleServer";
-
-                    var publishInitFile = await LoadInitFile(server, publishInitProfile,
-                        endpointUrl, ct).ConfigureAwait(false);
-
-                    if (publishInitFile != null && publishProfile == null)
-                    {
-                        publishProfile = "Empty";
-                    }
-
-                    var publishedNodesFilePath = await LoadPnJson(server, publishProfile,
-                        endpointUrl, ct).ConfigureAwait(false);
-
-                    // Start publisher module
-                    await HostAsync(connectionString, loggerFactory, deviceId, moduleId,
-                        args, reverseConnectPort, acceptAll, publishInitFile, publishedNodesFilePath,
-                        ct).ConfigureAwait(false);
+                    publishProfile = "Empty";
                 }
+
+                var publishedNodesFilePath = await LoadPnJsonAsync(server, publishProfile,
+                    endpointUrl, ct).ConfigureAwait(false);
+
+                // Start publisher module
+                await HostAsync(connectionString, loggerFactory, deviceId, moduleId,
+                    args, reverseConnectPort, acceptAll, publishInitFile, publishedNodesFilePath,
+                    ct).ConfigureAwait(false);
             }
             catch (OperationCanceledException) { }
         }
@@ -587,35 +585,33 @@ Options:
                 string? publishInitProfile, CancellationToken ct)
             {
                 // Start test server
-                using (var server = new ServerWrapper(scaleunits, loggerFactory, null))
+                using var server = new ServerWrapper(scaleunits, loggerFactory, null);
+                var name = Path.GetFileNameWithoutExtension(publishProfile);
+                var endpointUrl = $"opc.tcp://localhost:{server.Port}/UA/SampleServer";
+
+                var publishedNodesFilePath = await LoadPnJsonAsync(server, name, endpointUrl,
+                    ct).ConfigureAwait(false);
+                if (publishedNodesFilePath == null)
                 {
-                    var name = Path.GetFileNameWithoutExtension(publishProfile);
-                    var endpointUrl = $"opc.tcp://localhost:{server.Port}/UA/SampleServer";
+                    return;
+                }
 
-                    var publishedNodesFilePath = await LoadPnJson(server, name, endpointUrl,
-                        ct).ConfigureAwait(false);
-                    if (publishedNodesFilePath == null)
-                    {
-                        return;
-                    }
+                var publishInitFile = await LoadInitFileAsync(name, endpointUrl, ct).ConfigureAwait(false);
 
-                    var publishInitFile = await LoadInitFile(server, name, endpointUrl,
-                        ct).ConfigureAwait(false);
+                //
+                // Check whether the profile overrides the messaging mode, then set it to the desired
+                // one regardless of whether it will work or not
+                //
+                var check = await File.ReadAllTextAsync(publishedNodesFilePath, ct).ConfigureAwait(false);
+                if (check.Contains("\"MessagingMode\":", StringComparison.InvariantCulture) &&
+                    !check.Contains($"\"MessagingMode\": \"{messageProfile.MessagingMode}\"",
+                    StringComparison.InvariantCulture))
+                {
+                    check = ReplacePropertyValue(check, "MessagingMode", messageProfile.MessagingMode.ToString());
+                    await File.WriteAllTextAsync(publishedNodesFilePath, check, ct).ConfigureAwait(false);
+                }
 
-                    //
-                    // Check whether the profile overrides the messaging mode, then set it to the desired
-                    // one regardless of whether it will work or not
-                    //
-                    var check = await File.ReadAllTextAsync(publishedNodesFilePath, ct).ConfigureAwait(false);
-                    if (check.Contains("\"MessagingMode\":", StringComparison.InvariantCulture) &&
-                        !check.Contains($"\"MessagingMode\": \"{messageProfile.MessagingMode}\"",
-                        StringComparison.InvariantCulture))
-                    {
-                        check = ReplacePropertyValue(check, "MessagingMode", messageProfile.MessagingMode.ToString());
-                        await File.WriteAllTextAsync(publishedNodesFilePath, check, ct).ConfigureAwait(false);
-                    }
-
-                    var arguments = new HashSet<string>
+                var arguments = new HashSet<string>
                     {
                         "-c",
                         "--ps",
@@ -628,17 +624,16 @@ Options:
                         $"-o={outputFolder}",
                         "--aa"
                     };
-                    if (publishInitFile != null)
-                    {
-                        arguments.Add($"--pi={publishInitFile}");
-                    }
-                    args.ForEach(a => arguments.Add(a));
-                    await Publisher.Module.Program.RunAsync(arguments.ToArray(), ct).ConfigureAwait(false);
+                if (publishInitFile != null)
+                {
+                    arguments.Add($"--pi={publishInitFile}");
                 }
+                args.ForEach(a => arguments.Add(a));
+                await Publisher.Module.Program.RunAsync([.. arguments], ct).ConfigureAwait(false);
             }
         }
 
-        private static async Task<string?> LoadPnJson(ServerWrapper server, string? publishProfile,
+        private static async Task<string?> LoadPnJsonAsync(ServerWrapper server, string? publishProfile,
             string endpointUrl, CancellationToken ct)
         {
             const string publishedNodesFilePath = "profile.json";
@@ -671,8 +666,8 @@ Options:
             return null;
         }
 
-        private static async Task<string?> LoadInitFile(ServerWrapper server, string? initProfile,
-            string endpointUrl, CancellationToken ct)
+        private static async Task<string?> LoadInitFileAsync(string? initProfile, string endpointUrl,
+            CancellationToken ct)
         {
             const string initFile = "profile.init";
             if (!string.IsNullOrEmpty(initProfile))
@@ -818,14 +813,14 @@ Options:
                                     new Uri($"opc.tcp://localhost:{reverseConnectPort}"),
                                     1).ConfigureAwait(false);
                             }
-                            await _restartServer.WaitAsync(ct).ConfigureAwait(false);
+                            await kRestartServer.WaitAsync(ct).ConfigureAwait(false);
                             logger.LogInformation("Stopping server...");
                             Server = new TaskCompletionSource<ITestServer?>();
                         }
 
                         logger.LogInformation("Server stopped.");
                         logger.LogInformation("Waiting to restarting server (Press S to restart)...");
-                        await _restartServer.WaitAsync(ct).ConfigureAwait(false);
+                        await kRestartServer.WaitAsync(ct).ConfigureAwait(false);
                     }
                     catch (OperationCanceledException) { }
                     catch (Exception ex)

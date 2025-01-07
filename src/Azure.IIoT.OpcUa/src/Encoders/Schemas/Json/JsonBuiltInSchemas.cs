@@ -371,7 +371,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
         public JsonBuiltInSchemas(bool reversibleEncoding,
             bool useUriEncoding, Dictionary<string, JsonSchema>? definitions)
         {
-            Schemas = definitions ?? new();
+            Schemas = definitions ?? [];
             _reversibleEncoding = reversibleEncoding;
             _encodeNamespacedValuesAsUri = useUriEncoding;
         }
@@ -384,7 +384,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
         public JsonBuiltInSchemas(DataSetFieldContentFlags fieldContentMask,
             Dictionary<string, JsonSchema>? definitions = null)
         {
-            Schemas = definitions ?? new();
+            Schemas = definitions ?? [];
             _encodeNamespacedValuesAsUri = true;
 
             if ((fieldContentMask & DataSetFieldContentFlags.RawData) != 0)

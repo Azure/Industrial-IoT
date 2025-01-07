@@ -54,7 +54,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     if (!set.IsProperSupersetOf(settings.Converters))
                     {
                         options.PayloadSerializerSettings.Converters =
-                            set.MergeWith(settings.Converters).ToList();
+                            [.. set.MergeWith(settings.Converters)];
                     }
                 }));
             return builder;

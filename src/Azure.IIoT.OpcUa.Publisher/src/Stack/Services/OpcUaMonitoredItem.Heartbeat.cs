@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Diagnostics;
     using System.Linq;
     using System.Runtime.Serialization;
+    using System.Threading;
 
     internal abstract partial class OpcUaMonitoredItem
     {
@@ -407,7 +408,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private TimeSpan _heartbeatInterval;
             private StatusCode? _lastStatusCode;
             private uint _lastSequenceNumber;
-            private readonly object _timerLock = new();
+            private readonly Lock _timerLock = new();
             private bool _disposed;
         }
     }

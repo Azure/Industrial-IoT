@@ -414,7 +414,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     return Create(client, Template.TriggeredItems.Select(i => (Owner, i)),
                         factory, TimeProvider);
                 }
-                return Enumerable.Empty<OpcUaMonitoredItem>();
+                return [];
             }
 
             /// <inheritdoc/>

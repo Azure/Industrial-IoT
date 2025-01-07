@@ -9,7 +9,6 @@ using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 
 /// <summary>
@@ -20,12 +19,12 @@ internal sealed class Publisher : IDisposable
     /// <summary>
     /// Endpoint urls
     /// </summary>
-    public HashSet<string> Endpoints { get; } = new();
+    public HashSet<string> Endpoints { get; } = [];
 
     /// <summary>
     /// Addresses of the publisher on the network
     /// </summary>
-    public HashSet<IPAddress> Addresses { get; } = new();
+    public HashSet<IPAddress> Addresses { get; } = [];
 
     /// <summary>
     /// Create publisher
@@ -191,7 +190,7 @@ internal sealed class Publisher : IDisposable
 
         if (diagnostic.TryGetProperty("connection", out var conn) &&
             conn.TryGetProperty("endpoint", out var ep) &&
-            ep.TryGetProperty("url", out var url) &&
+            ep.TryGetProperty("url", out _) &&
             diagnostic.TryGetProperty("sessionCreated", out var sessionCreatedToken) &&
             sessionCreatedToken.TryGetDateTimeOffset(out var sessionCreated) &&
             diagnostic.TryGetProperty("sessionId", out var sessionId) &&
@@ -243,23 +242,21 @@ internal sealed class Publisher : IDisposable
                      CancellationToken ct = default)
                 {
                     var keysets = File.AppendText(fileName);
-                    await using (var _ = keysets.ConfigureAwait(false))
-                    {
-                        await keysets.WriteLineAsync(
-    $"client_iv_{channelId}_{tokenId}: {Convert.ToHexString(clientIv)}").ConfigureAwait(false);
-                        await keysets.WriteLineAsync(
-    $"client_key_{channelId}_{tokenId}: {Convert.ToHexString(clientKey)}").ConfigureAwait(false);
-                        await keysets.WriteLineAsync(
-    $"client_siglen_{channelId}_{tokenId}: {clientSigLen}").ConfigureAwait(false);
-                        await keysets.WriteLineAsync(
-    $"server_iv_{channelId}_{tokenId}: {Convert.ToHexString(serverIv)}").ConfigureAwait(false);
-                        await keysets.WriteLineAsync(
-    $"server_key_{channelId}_{tokenId}: {Convert.ToHexString(serverKey)}").ConfigureAwait(false);
-                        await keysets.WriteLineAsync(
-    $"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
+                    await using var _ = keysets.ConfigureAwait(false);
+                    await keysets.WriteLineAsync(
+$"client_iv_{channelId}_{tokenId}: {Convert.ToHexString(clientIv)}").ConfigureAwait(false);
+                    await keysets.WriteLineAsync(
+$"client_key_{channelId}_{tokenId}: {Convert.ToHexString(clientKey)}").ConfigureAwait(false);
+                    await keysets.WriteLineAsync(
+$"client_siglen_{channelId}_{tokenId}: {clientSigLen}").ConfigureAwait(false);
+                    await keysets.WriteLineAsync(
+$"server_iv_{channelId}_{tokenId}: {Convert.ToHexString(serverIv)}").ConfigureAwait(false);
+                    await keysets.WriteLineAsync(
+$"server_key_{channelId}_{tokenId}: {Convert.ToHexString(serverKey)}").ConfigureAwait(false);
+                    await keysets.WriteLineAsync(
+$"server_siglen_{channelId}_{tokenId}: {serverSigLen}").ConfigureAwait(false);
 
-                        await keysets.FlushAsync(ct).ConfigureAwait(false);
-                    }
+                    await keysets.FlushAsync(ct).ConfigureAwait(false);
                 }
             }
             else

@@ -47,7 +47,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             IWriterGroupDiagnostics
         {
             /// <inheritdoc/>
-            public IWriterGroup WriterGroup => _scope.Resolve<IWriterGroup>();
+            public IWriterGroupControl WriterGroup => _scope.Resolve<IWriterGroupControl>();
 
             /// <inheritdoc/>
             public TagList TagList { get; }
@@ -64,8 +64,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _outer = outer;
                 _writerGroupId = writerGroup.Id;
 
-                TagList = new TagList(new[]
-                {
+                TagList = new TagList(
+                [
                     new KeyValuePair<string, object?>(Constants.SiteIdTag,
                         _outer._options?.Value.SiteId),
                     new KeyValuePair<string, object?>(Constants.PublisherIdTag,
@@ -74,7 +74,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         _writerGroupId),
                     new KeyValuePair<string, object?>(Constants.WriterGroupNameTag,
                         writerGroup.Name)
-                });
+                ]);
 
                 _scope = _outer._lifetimeScope.BeginLifetimeScope(builder =>
                 {

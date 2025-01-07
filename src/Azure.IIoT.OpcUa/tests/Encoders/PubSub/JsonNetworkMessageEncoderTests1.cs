@@ -450,7 +450,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 NetworkMessageContentMask = PubSubMessageContentFlagHelper.StackToNetworkMessageContentFlags(messageMask),
                 MessageId = () => "9279C0B3-DA88-45A4-AF74-451CEBF82DB0",
                 PublisherId = "MyPublisher",
-                Messages = new List<BaseDataSetMessage> {
+                Messages = [
                     new JsonDataSetMessage {
                         DataSetMessageContentMask = PubSubMessageContentFlagHelper.StackToDataSetMessageContentFlags(datasetMask),
                         DataSetWriterId = 100,
@@ -476,7 +476,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         DateTime.Parse("2021-09-27T18:45:19.555Z", CultureInfo.InvariantCulture))
                         }, PubSubMessageContentFlagHelper.StackToDataSetFieldContentFlags(fieldMask))
                     }
-                }
+                ]
             };
         }
     }

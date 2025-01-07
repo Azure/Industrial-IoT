@@ -319,28 +319,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             var sw = Stopwatch.StartNew();
             _logger = _logFactory.CreateLogger(test);
 
-            arguments ??= Array.Empty<string>();
+            arguments ??= [];
             _publishedNodesFilePath = Path.GetTempFileName();
             WritePublishedNodes(test, publishedNodesFile, reverseConnectPort != null, securityMode);
 
-            arguments = arguments.Concat(
-                new[]
+            arguments =
+            [
+                .. arguments,
+                .. new[]
                 {
                     $"--pf={_publishedNodesFilePath}"
-                }).ToArray();
+                },
+            ];
 
             if (OperatingSystem.IsLinux())
             {
-                arguments = arguments.Append("--pol").ToArray();
+                arguments = [.. arguments, "--pol"];
             }
 
             if (reverseConnectPort != null)
             {
-                arguments = arguments.Concat(
-                    new[]
+                arguments =
+                [
+                    .. arguments,
+                    .. new[]
                     {
                         $"--rcp={reverseConnectPort.Value}"
-                    }).ToArray();
+                    },
+                ];
             }
 
             _publisher = new PublisherModule(null, null, null, null,
@@ -360,11 +366,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         {
             if (!string.IsNullOrEmpty(publishedNodesFile))
             {
-                File.WriteAllText(_publishedNodesFilePath, File.ReadAllText(publishedNodesFile)
+                var pnJson = File.ReadAllText(publishedNodesFile)
                     .Replace("\"{{UseReverseConnect}}\"", useReverseConnect ? "true" : "false", StringComparison.Ordinal)
                     .Replace("{{EndpointUrl}}", EndpointUrl, StringComparison.Ordinal)
                     .Replace("{{SecurityMode}}", (securityMode ?? SecurityMode.None).ToString(), StringComparison.Ordinal)
-                    .Replace("{{DataSetWriterGroup}}", test, StringComparison.Ordinal));
+                    .Replace("{{DataSetWriterGroup}}", test, StringComparison.Ordinal);
+                File.WriteAllText(_publishedNodesFilePath, pnJson);
             }
         }
 
@@ -417,7 +424,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         private static readonly TimeSpan kTotalTestTimeout = TimeSpan.FromMinutes(5);
         private readonly CancellationTokenSource _cts;
         private readonly ITestOutputHelper _testOutputHelper;
-        private readonly HashSet<string> _messageIds = new();
+        private readonly HashSet<string> _messageIds = [];
         private readonly ILoggerFactory _logFactory;
         private ILogger _logger;
         private PublisherModule _publisher;

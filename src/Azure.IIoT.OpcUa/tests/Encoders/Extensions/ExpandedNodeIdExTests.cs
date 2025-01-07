@@ -292,7 +292,7 @@ namespace Opc.Ua.Extensions
         {
             var context = new ServiceMessageContext();
             const string uri = "http://contoso.com/UA";
-            var idx = context.NamespaceUris.GetIndexOrAppend(uri);
+            context.NamespaceUris.GetIndexOrAppend(uri);
             var expected = new ExpandedNodeId("   space    tests /(%)§;#;;#;()§$\"))\"\")(§", 0, uri, 0);
 
             var s1 = expected.AsString(context, NamespaceFormat.Uri);
@@ -355,7 +355,7 @@ namespace Opc.Ua.Extensions
         {
             var context = new ServiceMessageContext();
             const string uri = "http://contoso.com/UA";
-            var idx = context.NamespaceUris.GetIndexOrAppend(uri);
+            context.NamespaceUris.GetIndexOrAppend(uri);
             var expected = new ExpandedNodeId(1u, 0, uri, 0);
 
             var s1 = expected.AsString(context, NamespaceFormat.Uri);
@@ -388,7 +388,7 @@ namespace Opc.Ua.Extensions
             var context = new ServiceMessageContext();
 
             const string uri = "http://contoso.com/UA";
-            var idx = context.NamespaceUris.GetIndexOrAppend(uri);
+            context.NamespaceUris.GetIndexOrAppend(uri);
             var expected = new ExpandedNodeId(Guid.NewGuid().ToByteArray(), 0, uri, 0);
 
             var s1 = expected.AsString(context, NamespaceFormat.Uri);
@@ -420,7 +420,7 @@ namespace Opc.Ua.Extensions
         {
             var context = new ServiceMessageContext();
             const string uri = "http://contoso.com/UA";
-            var idx = context.NamespaceUris.GetIndexOrAppend(uri);
+            context.NamespaceUris.GetIndexOrAppend(uri);
             var expected = new ExpandedNodeId("", 0, uri, 0);
 
             var s1 = expected.AsString(context, NamespaceFormat.Uri);
@@ -452,7 +452,7 @@ namespace Opc.Ua.Extensions
         {
             var context = new ServiceMessageContext();
             const string uri = "http://contoso.com/UA";
-            var idx = context.NamespaceUris.GetIndexOrAppend(uri);
+            context.NamespaceUris.GetIndexOrAppend(uri);
             var expected = new ExpandedNodeId(null, 0, uri, 0);
 
             var s1 = expected.AsString(context, NamespaceFormat.Uri);

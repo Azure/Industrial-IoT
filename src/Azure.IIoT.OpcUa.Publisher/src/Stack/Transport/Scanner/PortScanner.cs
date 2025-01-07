@@ -314,6 +314,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
         private readonly IPortProbe _portProbe;
         private readonly ILogger _logger;
         private int _active;
+#pragma warning disable IDE0032 // Use auto property
         private int _scanCount;
+#pragma warning restore IDE0032 // Use auto property
     }
 }

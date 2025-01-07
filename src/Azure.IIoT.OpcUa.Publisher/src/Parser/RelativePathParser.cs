@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser
     using System;
     using System.Buffers;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Text;
 
     /// <summary>
@@ -31,14 +30,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser
             if (path.Length == 0)
             {
                 prefix = string.Empty;
-                return Enumerable.Empty<RelativePathElementModel>();
+                return [];
             }
 
             var index = 0;
             prefix = ExtractTargetName(path, ref index);
             if (index == path.Length)
             {
-                return Enumerable.Empty<RelativePathElementModel>();
+                return [];
             }
             return Parse(path[index..]);
         }

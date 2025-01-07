@@ -802,7 +802,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     if (dtNode is DataTypeNode v &&
                                         v.DataTypeDefinition.Body is DataTypeDefinition t)
                                     {
-                                        types ??= new NodeIdDictionary<DataTypeDefinition>();
+                                        types ??= [];
                                         types.Add(dataTypeId, t);
                                     }
                                     else
@@ -993,7 +993,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// </summary>
             public Dictionary<ISubscriber,
                 List<MonitoredItemNotificationModel>> Notifications
-            { get; } = new();
+            { get; } = [];
 
             /// <summary>
             /// Add notification
@@ -1005,7 +1005,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 if (!Notifications.TryGetValue(callback, out var list))
                 {
-                    list = new List<MonitoredItemNotificationModel>();
+                    list = [];
                     Notifications.Add(callback, list);
                 }
                 list.Add(notification);

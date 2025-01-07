@@ -27,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
     public class DiscoveryProcessorTests
     {
         [Fact]
-        public async Task ProcessDiscoveryWithNoResultsAndNoExistingApplications()
+        public async Task ProcessDiscoveryWithNoResultsAndNoExistingApplicationsAsync()
         {
             var found = new List<DiscoveryEventModel>();
             var fix = new Fixture();
@@ -61,7 +61,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 .Append(Supervisor)
                 .Append(Publisher), _serializer);
 
-            using (var mock = AutoMock.GetLoose(builder =>
+            using var mock = AutoMock.GetLoose(builder =>
             {
                 // Setup
                 builder.RegisterInstance(registry).As<IIoTHubTwinServices>();
@@ -70,21 +70,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 builder.RegisterType<PublisherRegistry>().As<IPublisherRegistry>();
                 builder.RegisterType<GatewayRegistry>().As<IGatewayRegistry>();
                 builder.RegisterType<ApplicationRegistry>().As<IApplicationBulkProcessor>();
-            }))
-            {
-                var service = mock.Create<DiscoveryProcessor>();
+            });
+            var service = mock.Create<DiscoveryProcessor>();
 
-                // Run
-                await service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found);
+            // Run
+            await service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found);
 
-                // Assert
-                Assert.Single(registry.Devices);
-                Assert.Equal(gateway, registry.Devices.First().Id);
-            }
+            // Assert
+            Assert.Single(registry.Devices);
+            Assert.Equal(gateway, registry.Devices.First().Id);
         }
 
         [Fact]
-        public async Task ProcessDiscoveryWithAlreadyExistingApplications()
+        public async Task ProcessDiscoveryWithAlreadyExistingApplicationsAsync()
         {
             CreateFixtures(out var site, out var discoverer, out var supervisor,
                 out var publisher, out var gateway, out var existing,
@@ -113,7 +111,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public async Task ProcessDiscoveryWithNoExistingApplications()
+        public async Task ProcessDiscoveryWithNoExistingApplicationsAsync()
         {
             CreateFixtures(out var site, out var discoverer, out var supervisor,
                 out var publisher, out var gateway, out var created,
@@ -131,7 +129,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public async Task ProcessDiscoveryThrowsWithMultipleSites()
+        public async Task ProcessDiscoveryThrowsWithMultipleSitesAsync()
         {
             CreateFixtures(out var site, out var discoverer, out var supervisor,
                 out var publisher, out var gateway, out var existing,
@@ -148,7 +146,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public async Task ProcessDiscoveryWithOneExistingApplication()
+        public async Task ProcessDiscoveryWithOneExistingApplicationAsync()
         {
             CreateFixtures(out var site, out var discoverer, out var supervisor,
                 out var publisher, out var gateway, out var created,
@@ -166,7 +164,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public async Task ProcessDiscoveryWithDifferentDiscoverersSameSiteApplications()
+        public async Task ProcessDiscoveryWithDifferentDiscoverersSameSiteApplicationsAsync()
         {
             var fix = new Fixture();
             var discoverer2 = HubResource.Format(null, fix.Create<string>(), fix.Create<string>());
@@ -195,7 +193,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public async Task ProcessOneDiscoveryWithDifferentDiscoverersFromExisting()
+        public async Task ProcessOneDiscoveryWithDifferentDiscoverersFromExistingAsync()
         {
             var fix = new Fixture();
             var discoverer2 = HubResource.Format(null, fix.Create<string>(), fix.Create<string>());
@@ -211,7 +209,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 });
 
             // Found one item
-            found = new List<DiscoveryEventModel> { found[0] };
+            found = [found[0]];
             // Assert there is still the same content as originally
 
             using (registry)
@@ -226,7 +224,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public async Task ProcessDiscoveryWithDifferentDiscoverersFromExistingWhenExistingDisabled()
+        public async Task ProcessDiscoveryWithDifferentDiscoverersFromExistingWhenExistingDisabledAsync()
         {
             var fix = new Fixture();
             var discoverer2 = HubResource.Format(null, fix.Create<string>(), fix.Create<string>());
@@ -261,7 +259,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public async Task ProcessOneDiscoveryWithDifferentDiscoverersFromExistingWhenExistingDisabled()
+        public async Task ProcessOneDiscoveryWithDifferentDiscoverersFromExistingWhenExistingDisabledAsync()
         {
             var fix = new Fixture();
             var discoverer2 = HubResource.Format(null, fix.Create<string>(), fix.Create<string>());
@@ -277,7 +275,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 }, true);
 
             // Found one app and endpoint
-            found = new List<DiscoveryEventModel> { found[0] };
+            found = [found[0]];
             var count = registry.Devices.Count();
             // Assert disabled items are now enabled
 
@@ -298,7 +296,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public async Task ProcessDiscoveryWithNoResultsWithDifferentDiscoverersFromExisting()
+        public async Task ProcessDiscoveryWithNoResultsWithDifferentDiscoverersFromExistingAsync()
         {
             var fix = new Fixture();
             var discoverer2 = HubResource.Format(null, fix.Create<string>(), fix.Create<string>());
@@ -314,7 +312,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
                 });
 
             // Found nothing
-            found = new List<DiscoveryEventModel>();
+            found = [];
             // Assert there is still the same content as originally
 
             using (registry)
@@ -330,14 +328,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public async Task ProcessDiscoveryWithNoResultsAndExisting()
+        public async Task ProcessDiscoveryWithNoResultsAndExistingAsync()
         {
             CreateFixtures(out var site, out var discoverer, out var supervisor,
                 out var publisher, out var gateway, out var existing,
                 out var found, out var registry);
 
             // Found nothing
-            found = new List<DiscoveryEventModel>();
+            found = [];
             var count = registry.Devices.Count();
             // Assert there is still the same content as originally but now disabled
 
@@ -356,7 +354,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
         }
 
         [Fact]
-        public async Task ProcessDiscoveryWithOneEndpointResultsAndExisting()
+        public async Task ProcessDiscoveryWithOneEndpointResultsAndExistingAsync()
         {
             CreateFixtures(out var site, out var discoverer, out var supervisor,
                 out var publisher, out var gateway, out var existing,

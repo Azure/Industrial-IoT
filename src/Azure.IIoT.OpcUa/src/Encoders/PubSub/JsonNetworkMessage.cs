@@ -86,10 +86,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 }
                 return _hasSamplesPayload.Value;
             }
-            set
-            {
-                _hasSamplesPayload = value;
-            }
+            set => _hasSamplesPayload = value;
         }
 
         /// <summary>
@@ -97,10 +94,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// </summary>
         internal string? MessageSchemaToUse
         {
-            get
-            {
-                return MessageSchema;
-            }
+            get => MessageSchema;
             set
             {
                 HasSamplesPayload = value?.Equals(
@@ -221,29 +215,27 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             // Decodes a single buffer
             if (reader.TryPeek(out var buffer))
             {
-                using (var memoryStream = buffer.IsSingleSegment ?
+                using var memoryStream = buffer.IsSingleSegment ?
                     Memory.GetStream(buffer.FirstSpan) :
-                    Memory.GetStream(buffer.ToArray()))
+                    Memory.GetStream(buffer.ToArray());
+                var compression = UseGzipCompression ?
+                    new GZipStream(memoryStream, CompressionMode.Decompress, leaveOpen: true) : null;
+                try
                 {
-                    var compression = UseGzipCompression ?
-                        new GZipStream(memoryStream, CompressionMode.Decompress, leaveOpen: true) : null;
-                    try
+                    using var decoder = new JsonDecoderEx((Stream?)compression ?? memoryStream,
+                        context, useJsonLoader: false);
+                    var readArray = decoder.ReadArray(null, () => TryReadNetworkMessage(decoder));
+                    if (readArray?.All(s => s) != true)
                     {
-                        using var decoder = new JsonDecoderEx((Stream?)compression ?? memoryStream,
-                            context, useJsonLoader: false);
-                        var readArray = decoder.ReadArray(null, () => TryReadNetworkMessage(decoder));
-                        if (readArray?.All(s => s) != true)
-                        {
-                            return false;
-                        }
-                        // Complete the buffer
-                        reader.Dequeue();
-                        return true;
+                        return false;
                     }
-                    finally
-                    {
-                        compression?.Dispose();
-                    }
+                    // Complete the buffer
+                    reader.Dequeue();
+                    return true;
+                }
+                finally
+                {
+                    compression?.Dispose();
                 }
             }
             return false;

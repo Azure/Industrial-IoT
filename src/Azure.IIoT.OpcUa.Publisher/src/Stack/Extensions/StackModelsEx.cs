@@ -175,7 +175,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                 TypeDefinitionId = model.TypeDefinitionId.ToNodeId(context),
                 AttributeId = (uint)(model.AttributeId ?? NodeAttribute.Value),
                 BrowsePath = new QualifiedNameCollection(model.BrowsePath == null ?
-                    Enumerable.Empty<QualifiedName>() :
+                    [] :
                     model.BrowsePath.Select(n => n.ToQualifiedName(context))),
                 IndexRange = model.IndexRange
             };

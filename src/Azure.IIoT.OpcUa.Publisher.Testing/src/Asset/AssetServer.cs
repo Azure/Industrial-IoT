@@ -41,11 +41,11 @@ namespace Asset
         {
             get
             {
-                return new StringCollection
-                {
+                return
+                [
                     Namespaces.AssetServer,
                     Namespaces.WoT_Con
-                };
+                ];
             }
         }
 

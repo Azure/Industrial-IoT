@@ -524,17 +524,17 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 case 0:
                     Debug.Assert(Payload.DataSetFields.Count <= ushort.MaxValue);
                     binaryEncoder.WriteUInt16(null, (ushort)Payload.DataSetFields.Count);
-                    foreach (var field in Payload.DataSetFields)
+                    foreach (var (_, Value) in Payload.DataSetFields)
                     {
-                        binaryEncoder.WriteVariant(null, field.Value?.WrappedValue ?? default);
+                        binaryEncoder.WriteVariant(null, Value?.WrappedValue ?? default);
                     }
                     break;
                 case DataSetFlags1EncodingMask.FieldTypeDataValue:
                     Debug.Assert(Payload.DataSetFields.Count <= ushort.MaxValue);
                     binaryEncoder.WriteUInt16(null, (ushort)Payload.DataSetFields.Count);
-                    foreach (var field in Payload.DataSetFields)
+                    foreach (var (_, Value) in Payload.DataSetFields)
                     {
-                        binaryEncoder.WriteDataValue(null, field.Value);
+                        binaryEncoder.WriteDataValue(null, Value);
                     }
                     break;
                 case DataSetFlags1EncodingMask.FieldTypeRawData:
@@ -612,26 +612,26 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var values = Payload.DataSetFields.ToList();
             for (var i = 0; i < values.Count; i++)
             {
-                var value = values[i];
-                if (value.Value?.Value == null)
+                var (Name, Value) = values[i];
+                if (Value?.Value == null)
                 {
                     continue;
                 }
 
                 // write field index corresponding to metadata
-                var fieldIndex = GetFieldIndex(metadata, value.Name, i);
+                var fieldIndex = GetFieldIndex(metadata, Name, i);
                 binaryEncoder.WriteUInt16(null, fieldIndex);
                 switch (fieldType)
                 {
                     case 0:
-                        binaryEncoder.WriteVariant(null, value.Value.WrappedValue);
+                        binaryEncoder.WriteVariant(null, Value.WrappedValue);
                         break;
                     case DataSetFlags1EncodingMask.FieldTypeDataValue:
-                        binaryEncoder.WriteDataValue(null, value.Value);
+                        binaryEncoder.WriteDataValue(null, Value);
                         break;
                     case DataSetFlags1EncodingMask.FieldTypeRawData:
                         var fieldMetadata = GetFieldMetadata(metadata, fieldIndex);
-                        WriteFieldAsRawData(binaryEncoder, value.Value.WrappedValue, fieldMetadata);
+                        WriteFieldAsRawData(binaryEncoder, Value.WrappedValue, fieldMetadata);
                         break;
                     default:
                         throw new EncodingException($"Reserved field type {fieldType} not allowed.");

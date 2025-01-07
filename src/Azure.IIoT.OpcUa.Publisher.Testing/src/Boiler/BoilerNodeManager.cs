@@ -62,7 +62,7 @@ namespace Boiler
             //  AddEncodeableNodeManagerTypes(typeof(BoilerNodeManager).Assembly, typeof(BoilerNodeManager).Namespace);
 
             _lastUsedId = 0;
-            _boilers = new List<BoilerState>();
+            _boilers = [];
         }
 
         protected override void Dispose(bool disposing)
@@ -148,8 +148,8 @@ namespace Boiler
 
             // Autostart boiler simulation state machine
             var start = boiler.Simulation.Start;
-            IList<Variant> inputArguments = new List<Variant>();
-            IList<Variant> outputArguments = new List<Variant>();
+            IList<Variant> inputArguments = [];
+            IList<Variant> outputArguments = [];
             var errors = new List<ServiceResult>();
             start.Call(context, boiler.NodeId, inputArguments, errors, outputArguments);
         }
@@ -229,8 +229,8 @@ namespace Boiler
 
                         // Autostart boiler simulation state machine
                         var start = activeNode.Simulation.Start;
-                        IList<Variant> inputArguments = new List<Variant>();
-                        IList<Variant> outputArguments = new List<Variant>();
+                        IList<Variant> inputArguments = [];
+                        IList<Variant> outputArguments = [];
                         var errors = new List<ServiceResult>();
                         start.Call(context, activeNode.NodeId, inputArguments, errors, outputArguments);
 

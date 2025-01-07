@@ -1,21 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
-    <PackageReference Include="coverlet.msbuild" Version="6.0.2">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="coverlet.msbuild" Version="6.0.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Neovolve.Logging.Xunit" Version="6.2.0" />
+    <PackageReference Include="Neovolve.Logging.Xunit" Version="6.3.0" />
     <PackageReference Include="xunit" Version="2.9.2" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-	  <PackageReference Include="Furly.Extensions.Newtonsoft" Version="1.0.90" />
-    <PackageReference Include="JsonSchema.Net" Version="7.2.3" />
+    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="1.1.1" />
+    <PackageReference Include="JsonSchema.Net" Version="7.3.1" />
     <PackageReference Include="Microsoft.Json.Schema" Version="2.3.0" />
   </ItemGroup>
   <ItemGroup>

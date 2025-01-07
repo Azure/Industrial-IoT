@@ -128,7 +128,5 @@ namespace MemoryBuffer
     /// A collection of MemoryBufferInstances.
     /// </summary>
     [CollectionDataContract(Name = "ListOfMemoryBufferInstance", Namespace = Namespaces.MemoryBuffer, ItemName = "MemoryBufferInstance")]
-    public class MemoryBufferInstanceCollection : List<MemoryBufferInstance>
-    {
-    }
+    public class MemoryBufferInstanceCollection : List<MemoryBufferInstance>;
 }

@@ -137,7 +137,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
 
                 if (!_discovererQueues.TryGetValue(discovererId, out var backlog))
                 {
-                    backlog = new Dictionary<DateTimeOffset, DiscovererDiscoveryResult>();
+                    backlog = [];
                     _discovererQueues.Add(discovererId, backlog);
                 }
                 if (!backlog.TryGetValue(model.TimeStamp, out var queue))
@@ -226,7 +226,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
             public DiscovererDiscoveryResult(long created)
             {
                 Created = created;
-                _endpoints = new List<DiscoveryEventModel>();
+                _endpoints = [];
                 _maxIndex = 0;
             }
 
@@ -254,7 +254,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
 
         private static readonly TimeSpan kExpired = TimeSpan.FromHours(1);
         private readonly Dictionary<string,
-            Dictionary<DateTimeOffset, DiscovererDiscoveryResult>> _discovererQueues = new();
+            Dictionary<DateTimeOffset, DiscovererDiscoveryResult>> _discovererQueues = [];
         private readonly SemaphoreSlim _queueLock = new(1, 1);
         private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;

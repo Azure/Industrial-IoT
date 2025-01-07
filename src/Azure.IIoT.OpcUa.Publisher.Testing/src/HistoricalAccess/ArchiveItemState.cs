@@ -159,7 +159,7 @@ namespace HistoricalAccess
                 if (ArchiveItem.Archiving)
                 {
                     // save the pattern used to produce new data.
-                    _pattern = new List<DataValue>();
+                    _pattern = [];
 
                     foreach (DataRowView row in ArchiveItem.DataSet.Tables[0].DefaultView)
                     {

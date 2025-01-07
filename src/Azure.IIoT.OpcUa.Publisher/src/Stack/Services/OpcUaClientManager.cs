@@ -431,8 +431,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             try
             {
                 var response = await client.FindServersOnNetworkAsync(new RequestHeader(),
-                    0, 1000, new StringCollection()).ConfigureAwait(false);
-                foreach (var server in response?.Servers ?? new ServerOnNetworkCollection())
+                    0, 1000, []).ConfigureAwait(false);
+                foreach (var server in response?.Servers ?? [])
                 {
                     var url = CreateDiscoveryUri(server.DiscoveryUrl, discoveryUrl.Port);
                     if (!visitedUris.Contains(url))
@@ -632,13 +632,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     HoldTime = 120000,
                     WaitTimeout = 120000,
-                    ClientEndpoints = new ReverseConnectClientEndpointCollection
-                    {
+                    ClientEndpoints =
+                    [
                         new ReverseConnectClientEndpoint
                         {
                             EndpointUrl = $"opc.tcp://localhost:{port}"
                         }
-                    }
+                    ]
                 });
                 return null;
             }

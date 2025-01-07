@@ -205,13 +205,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     var eventFilter = new EventFilter();
                     eventFilter.SelectClauses.Add(new SimpleAttributeOperand()
                     {
-                        BrowsePath = new QualifiedNameCollection { BrowseNames.EventType },
+                        BrowsePath = [BrowseNames.EventType],
                         TypeDefinitionId = ObjectTypeIds.BaseModelChangeEventType,
                         AttributeId = Attributes.NodeId
                     });
                     eventFilter.SelectClauses.Add(new SimpleAttributeOperand()
                     {
-                        BrowsePath = new QualifiedNameCollection { BrowseNames.Changes },
+                        BrowsePath = [BrowseNames.Changes],
                         TypeDefinitionId = ObjectTypeIds.GeneralModelChangeEventType,
                         AttributeId = Attributes.Value
                     });
@@ -278,7 +278,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     return Create(client, Template.TriggeredItems.Select(i => (Owner, i)),
                         factory, TimeProvider);
                 }
-                return Enumerable.Empty<OpcUaMonitoredItem>();
+                return [];
             }
 
             /// <inheritdoc/>
@@ -449,7 +449,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 = new("NodeChange", "http://www.microsoft.com/opc-publisher");
             private readonly PublishedFieldMetaDataModel[] _fields;
             private readonly OpcUaClient _client;
-            private readonly object _lock = new();
+            private readonly Lock _lock = new();
             private IOpcUaBrowser? _browser;
             private bool _disposed;
         }

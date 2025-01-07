@@ -56,44 +56,44 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Filters
                 .GetService<IExceptionSummarizer>();
             switch (context.Exception)
             {
-                case ResourceNotFoundException re:
+                case ResourceNotFoundException:
                     context.Result = GetResponse(HttpStatusCode.NotFound,
                         context.Exception, summarizer);
                     break;
-                case ResourceInvalidStateException ri:
+                case ResourceInvalidStateException:
                     context.Result = GetResponse(HttpStatusCode.Forbidden,
                         context.Exception, summarizer);
                     break;
-                case ResourceConflictException ce:
+                case ResourceConflictException:
                     context.Result = GetResponse(HttpStatusCode.Conflict,
                         context.Exception, summarizer);
                     break;
-                case UnauthorizedAccessException ue:
-                case SecurityException se:
+                case UnauthorizedAccessException:
+                case SecurityException:
                     context.Result = GetResponse(HttpStatusCode.Unauthorized,
                         context.Exception, summarizer);
                     break;
                 case MethodCallStatusException mcs:
                     context.Result = new ObjectResult(mcs.Details.ToProblemDetails());
                     break;
-                case SerializerException sre:
-                case MethodCallException mce:
-                case BadRequestException br:
-                case ArgumentException are:
+                case SerializerException:
+                case MethodCallException:
+                case BadRequestException:
+                case ArgumentException:
                     context.Result = GetResponse(HttpStatusCode.BadRequest,
                         context.Exception, summarizer);
                     break;
-                case NotImplementedException ne:
-                case NotSupportedException ns:
+                case NotImplementedException:
+                case NotSupportedException:
                     context.Result = GetResponse(HttpStatusCode.NotImplemented,
                         context.Exception, summarizer);
                     break;
-                case TimeoutException te:
+                case TimeoutException:
                     context.Result = GetResponse(HttpStatusCode.RequestTimeout,
                         context.Exception, summarizer);
                     break;
-                case SocketException sex:
-                case IOException ce:
+                case SocketException:
+                case IOException:
                     context.Result = GetResponse(HttpStatusCode.BadGateway,
                         context.Exception, summarizer);
                     break;
@@ -116,15 +116,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Filters
                 // one of the above.
                 //
 
-                case ServerBusyException se:
+                case ServerBusyException:
                     context.Result = GetResponse(HttpStatusCode.TooManyRequests,
                         context.Exception, summarizer);
                     break;
-                case ResourceOutOfDateException re:
+                case ResourceOutOfDateException:
                     context.Result = GetResponse(HttpStatusCode.PreconditionFailed,
                         context.Exception, summarizer);
                     break;
-                case ExternalDependencyException ex:
+                case ExternalDependencyException:
                     context.Result = GetResponse(HttpStatusCode.ServiceUnavailable,
                         context.Exception, summarizer);
                     break;

@@ -40,9 +40,9 @@ namespace Reference
         {
             get
             {
-                return new StringCollection {
+                return [
                     Namespaces.ReferenceApplications
-                };
+                ];
             }
         }
 

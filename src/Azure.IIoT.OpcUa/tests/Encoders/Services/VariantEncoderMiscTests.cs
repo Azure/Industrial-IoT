@@ -19,7 +19,6 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "123";
-            var context = new ServiceMessageContext();
             var variant = codec.Decode(str, BuiltInType.UInt32);
             var expected = new Variant(123u);
             var encoded = codec.Encode(variant);
@@ -105,8 +104,9 @@ namespace Azure.IIoT.OpcUa.Encoders
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "1,2,3,4,5,6";
             var variant = codec.Decode(str, BuiltInType.Int32);
-            var expected = new Variant(new int[] { 1, 2, 3, 4, 5, 6 });
+            var expected = new Variant([1, 2, 3, 4, 5, 6]);
             var encoded = codec.Encode(variant);
+            Assert.NotNull(encoded);
             Assert.Equal(expected, variant);
         }
 
@@ -116,8 +116,9 @@ namespace Azure.IIoT.OpcUa.Encoders
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "[1,2,3,4,5,6]";
             var variant = codec.Decode(str, BuiltInType.Int32);
-            var expected = new Variant(new int[] { 1, 2, 3, 4, 5, 6 });
+            var expected = new Variant([1, 2, 3, 4, 5, 6]);
             var encoded = codec.Encode(variant);
+            Assert.NotNull(encoded);
             Assert.Equal(expected, variant);
         }
 
@@ -127,8 +128,9 @@ namespace Azure.IIoT.OpcUa.Encoders
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "\"test1\", \"test2\"";
             var variant = codec.Decode(str, BuiltInType.String);
-            var expected = new Variant(new string[] { "test1", "test2" });
+            var expected = new Variant(["test1", "test2"]);
             var encoded = codec.Encode(variant);
+            Assert.NotNull(encoded);
             Assert.Equal(expected, variant);
         }
 
@@ -199,6 +201,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant(new LocalizedText("en-US", "text"));
             var variant = codec.Decode(str, BuiltInType.LocalizedText);
             var encoded = codec.Encode(expected);
+            Assert.NotNull(encoded);
             Assert.Equal(expected, variant);
         }
 
@@ -210,6 +213,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant(new LocalizedText("text"));
             var variant = codec.Decode(str, BuiltInType.LocalizedText);
             var encoded = codec.Encode(expected);
+            Assert.NotNull(encoded);
             Assert.Equal(expected, variant);
         }
 

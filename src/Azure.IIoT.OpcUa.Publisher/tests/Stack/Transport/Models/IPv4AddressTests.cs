@@ -15,7 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack.Transport.Models
         [Fact]
         public void TestEmptyAddress()
         {
-            var address = new IPv4Address(new byte[] { 0, 0, 0, 0 });
+            var address = new IPv4Address([0, 0, 0, 0]);
             uint val = address;
             long val2 = address;
             Assert.Equal(0u, val);
@@ -26,8 +26,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack.Transport.Models
         [Fact]
         public void TestIncrementAddress()
         {
-            var address = new IPv4Address(new byte[] { 255, 255, 255, 255 });
-            var any = new IPv4Address(new byte[] { 0, 0, 0, 0 });
+            var address = new IPv4Address([255, 255, 255, 255]);
+            var any = new IPv4Address([0, 0, 0, 0]);
             var incremented = address + 1;
             address++;
             Assert.Equal(0u, (uint)incremented);
@@ -41,8 +41,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack.Transport.Models
         [Fact]
         public void TestDecrementAddress()
         {
-            var address = new IPv4Address(new byte[] { 0, 0, 0, 0 });
-            var bcast = new IPv4Address(new byte[] { 255, 255, 255, 255 });
+            var address = new IPv4Address([0, 0, 0, 0]);
+            var bcast = new IPv4Address([255, 255, 255, 255]);
             var decremented = address - 1;
             address--;
             Assert.Equal((uint)bcast, (uint)decremented);
@@ -58,8 +58,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack.Transport.Models
         [Fact]
         public void TestSubtractAddress()
         {
-            var bcast = new IPv4Address(new byte[] { 255, 255, 255, 255 });
-            var any = new IPv4Address(new byte[] { 0, 0, 0, 0 });
+            var bcast = new IPv4Address([255, 255, 255, 255]);
+            var any = new IPv4Address([0, 0, 0, 0]);
             var subtracted = bcast - bcast;
             Assert.Equal(0u, subtracted);
             Assert.Equal(IPAddress.Any, (IPv4Address)subtracted);
@@ -69,10 +69,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack.Transport.Models
         [Fact]
         public void ThrowForSize()
         {
-            Assert.Throws<ArgumentException>(() => new IPv4Address(Array.Empty<byte>()));
-            Assert.Throws<ArgumentException>(() => new IPv4Address(new byte[] { 0 }));
-            Assert.Throws<ArgumentException>(() => new IPv4Address(new byte[] { 0, 1, 1, 2, 1 }));
-            Assert.Throws<ArgumentException>(() => new IPv4Address(new byte[] { 0, 2, 4 }));
+            Assert.Throws<ArgumentException>(() => new IPv4Address([]));
+            Assert.Throws<ArgumentException>(() => new IPv4Address([0]));
+            Assert.Throws<ArgumentException>(() => new IPv4Address([0, 1, 1, 2, 1]));
+            Assert.Throws<ArgumentException>(() => new IPv4Address([0, 2, 4]));
         }
     }
 }

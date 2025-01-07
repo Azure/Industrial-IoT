@@ -260,7 +260,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             private int _pos;
         }
 
-        private readonly Dictionary<string, RecordSchema> _types = new();
+        private readonly Dictionary<string, RecordSchema> _types = [];
         private readonly Stack<Traverser> _schemas = new();
     }
 }

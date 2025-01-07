@@ -56,7 +56,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
                 }
                 if (pubSubMessage is JsonNetworkMessage message)
                 {
-                    foreach (JsonDataSetMessage dataSetMessage in message.Messages)
+                    foreach (var dataSetMessage in message.Messages.Cast<JsonDataSetMessage>())
                     {
                         var dataset = new DataSetMessageModel
                         {
@@ -69,14 +69,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
                             MetaDataVersion = $"{dataSetMessage.MetaDataVersion?.MajorVersion ?? 1}" +
                                 $".{dataSetMessage.MetaDataVersion?.MinorVersion ?? 0}",
                             Timestamp = dataSetMessage.Timestamp,
-                            Payload = new Dictionary<string, DataValueModel?>()
+                            Payload = []
                         };
-                        foreach (var datapoint in dataSetMessage.Payload.DataSetFields)
+                        foreach (var (Name, Value) in dataSetMessage.Payload.DataSetFields)
                         {
                             var codec = _encoder.Create(context);
                             var type = BuiltInType.Null;
-                            var dataValue = datapoint.Value;
-                            dataset.Payload[datapoint.Name] = dataValue == null ? null : new DataValueModel
+                            var dataValue = Value;
+                            dataset.Payload[Name] = dataValue == null ? null : new DataValueModel
                             {
                                 Value = codec.Encode(dataValue.WrappedValue, out type),
                                 DataType = type == BuiltInType.Null

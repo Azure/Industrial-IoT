@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <Description>Contains several test servers to run tests against</Description>
     <IsPackable>true</IsPackable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -58,10 +58,10 @@
     <EmbeddedResource Include="Generated\Boiler\Design\Boiler.PredefinedNodes.uanodes" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Extensions" Version="1.0.90" />
-    <PackageReference Include="System.IO.Pipelines" Version="8.0.0" />
+    <PackageReference Include="Furly.Extensions" Version="1.1.1" />
+    <PackageReference Include="System.IO.Pipelines" Version="9.0.0" />
     <PackageReference Include="System.Linq.Async" Version="6.0.1" />
-    <PackageReference Include="System.Text.Json" Version="8.0.5" />
-    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Server" Version="1.5.374.126" />
+    <PackageReference Include="System.Text.Json" Version="9.0.0" />
+    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Server" Version="1.5.374.158" />
   </ItemGroup>
 </Project>

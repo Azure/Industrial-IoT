@@ -57,7 +57,7 @@ namespace DataAccess
                 new DataAccessServerConfiguration();
 
             // create the table to store the cached blocks.
-            _blocks = new Dictionary<NodeId, BlockState>();
+            _blocks = [];
         }
 
         /// <summary>
@@ -115,7 +115,7 @@ namespace DataAccess
 
                     if (!externalReferences.TryGetValue(ObjectIds.ObjectsFolder, out var references))
                     {
-                        externalReferences[ObjectIds.ObjectsFolder] = references = new List<IReference>();
+                        externalReferences[ObjectIds.ObjectsFolder] = references = [];
                     }
 
                     // construct the NodeId of a segment.

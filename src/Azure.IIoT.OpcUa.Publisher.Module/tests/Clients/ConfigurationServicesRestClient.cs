@@ -16,7 +16,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
-    using static Grpc.Core.Metadata;
 
     /// <summary>
     /// Implementation of file system services over http
@@ -92,7 +91,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
                 Entry = request.Entry,
                 Header = request.Header,
                 WaitTime = request.WaitTime,
-                Configuration = buffer.ToArray()
+                Configuration = [.. buffer]
             };
             return await _httpClient.PostAsync<ServiceResponse<PublishedNodesEntryModel>>(uri,
                 requestWithBuffer, _serializer, ct: ct).ConfigureAwait(false);

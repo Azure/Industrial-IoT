@@ -136,21 +136,19 @@ namespace Vehicles
         public byte[] LoadSchemaFromResource(string resourcePath, Assembly assembly)
         {
             ArgumentNullException.ThrowIfNull(resourcePath);
-
             if (assembly == null)
             {
                 assembly = Assembly.GetCallingAssembly();
             }
 
             var istrm = assembly.GetManifestResourceStream(resourcePath);
-
             if (istrm == null)
             {
                 throw ServiceResultException.Create(StatusCodes.BadDecodingError, "Could not load nodes from resource: {0}", resourcePath);
             }
 
             var buffer = new byte[istrm.Length];
-            istrm.Read(buffer, 0, (int)istrm.Length);
+            istrm.ReadExactly(buffer, 0, (int)istrm.Length);
             return buffer;
         }
 

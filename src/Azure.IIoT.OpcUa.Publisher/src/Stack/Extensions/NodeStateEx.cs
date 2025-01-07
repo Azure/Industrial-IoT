@@ -22,10 +22,10 @@ namespace Opc.Ua.Extensions
         /// <param name="convert"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        public static TResult? GetValueOrDefault<T, TResult>(this PropertyState<T> state,
+        public static TResult? GetValueOrDefaultEx<T, TResult>(this PropertyState<T> state,
             Func<T?, TResult?> convert, T? defaultValue = default) where T : struct
         {
-            var result = GetValueOrDefault(state, defaultValue);
+            var result = GetValueOrDefaultEx(state, defaultValue);
             return convert(result);
         }
 
@@ -38,10 +38,10 @@ namespace Opc.Ua.Extensions
         /// <param name="convert"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        public static TResult? GetValueOrDefault<TValue, TResult>(this PropertyState<TValue> state,
+        public static TResult? GetValueOrDefaultEx<TValue, TResult>(this PropertyState<TValue> state,
             Func<TValue?, TResult?> convert, TValue? defaultValue = null) where TValue : class
         {
-            var result = GetValueOrDefault(state, defaultValue);
+            var result = GetValueOrDefaultEx(state, defaultValue);
             return convert(result);
         }
 
@@ -52,7 +52,7 @@ namespace Opc.Ua.Extensions
         /// <param name="state"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        public static T? GetValueOrDefault<T>(this PropertyState<T> state,
+        public static T? GetValueOrDefaultEx<T>(this PropertyState<T> state,
             T? defaultValue = default) where T : struct
         {
             if (!StatusCode.IsGood(state.StatusCode))
@@ -69,7 +69,7 @@ namespace Opc.Ua.Extensions
         /// <param name="state"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        public static T? GetValueOrDefault<T>(this PropertyState<T> state,
+        public static T? GetValueOrDefaultEx<T>(this PropertyState<T> state,
             T? defaultValue = null) where T : class
         {
             if (!StatusCode.IsGood(state.StatusCode))

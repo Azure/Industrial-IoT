@@ -44,7 +44,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.SignalR
             try
             {
                 await _hub.Clients.All.SendCoreAsync(method,
-                    arguments ?? Array.Empty<object>(), ct).ConfigureAwait(false);
+                    arguments ?? [], ct).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -67,7 +67,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.SignalR
             try
             {
                 await _hub.Clients.Group(group).SendCoreAsync(method,
-                    arguments ?? Array.Empty<object>(), ct).ConfigureAwait(false);
+                    arguments ?? [], ct).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

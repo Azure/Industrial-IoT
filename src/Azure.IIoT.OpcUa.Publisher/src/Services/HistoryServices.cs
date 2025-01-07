@@ -589,7 +589,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .ToList()
                 }).ToArray();
             }
-            return Array.Empty<HistoricEventModel>();
+            return [];
         }
 
         /// <summary>
@@ -669,7 +669,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     .Select(d => EncodeDataValue(session.Codec, d, null))
                     .ToArray();
             }
-            return Array.Empty<HistoricValueModel>();
+            return [];
 
             static HistoricValueModel EncodeDataValue(IVariantEncoder codec,
                 DataValue dataValue, ModificationInfo? modification)

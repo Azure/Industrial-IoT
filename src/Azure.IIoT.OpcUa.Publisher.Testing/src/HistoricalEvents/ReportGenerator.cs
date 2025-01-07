@@ -80,41 +80,41 @@ namespace HistoricalEvents
             };
         }
 
-        private static readonly string[] kWellNames = {
+        private static readonly string[] kWellNames = [
             "Area51/Jupiter",
             "Area51/Titan",
             "Area99/Saturn",
             "Area99/Mars"
-        };
-        private static readonly string[] kWellUIDs = {
+        ];
+        private static readonly string[] kWellUIDs = [
             "Well_24412",
             "Well_48306",
             "Well_86234",
             "Well_91423"
-        };
-        private static readonly string[] kTestReasons = {
+        ];
+        private static readonly string[] kTestReasons = [
             "initial",
             "periodic",
             "revision",
             "unknown",
             "other"
-        };
-        private static readonly string[] kTesters = {
+        ];
+        private static readonly string[] kTesters = [
             "Anne",
             "Bob",
             "Charley",
             "Dawn"
-        };
-        private static readonly string[] kUnitLengths = {
+        ];
+        private static readonly string[] kUnitLengths = [
             "m",
             "yd"
-        };
-        private static readonly string[] kUnitTimes = {
+        ];
+        private static readonly string[] kUnitTimes = [
             "s",
             "min",
             "h"
-        };
-        private static readonly string[] kInjectionFluids = {
+        ];
+        private static readonly string[] kInjectionFluids = [
             "oil",
             "gas",
             "non HC gas",
@@ -131,7 +131,7 @@ namespace HistoricalEvents
             "dry",
             "unknown",
             "other"
-        };
+        ];
 
         private int GetRandom(int min, int max)
         {
@@ -162,7 +162,7 @@ namespace HistoricalEvents
                 }
             }
 
-            return area.ToArray();
+            return [.. area];
         }
 
         public WellInfo[] GetWells(string areaName)
@@ -189,7 +189,7 @@ namespace HistoricalEvents
                 }
             }
 
-            return wells.ToArray();
+            return [.. wells];
         }
 
         public class WellInfo

@@ -45,14 +45,12 @@ namespace Opc.Ua.Extensions
         public static byte[] AsBinary(this IEncodeable encodeable,
             IServiceMessageContext context)
         {
-            using (var stream = new MemoryStream())
+            using var stream = new MemoryStream();
+            using (var encoder = new BinaryEncoder(stream, context, true))
             {
-                using (var encoder = new BinaryEncoder(stream, context, true))
-                {
-                    encodeable.Encode(encoder);
-                }
-                return stream.ToArray();
+                encodeable.Encode(encoder);
             }
+            return stream.ToArray();
         }
 
         /// <summary>
@@ -64,14 +62,12 @@ namespace Opc.Ua.Extensions
         public static string AsJson(this IEncodeable encodeable,
             IServiceMessageContext context)
         {
-            using (var stream = new MemoryStream())
+            using var stream = new MemoryStream();
+            using (var encoder = new JsonEncoderEx(stream, context, leaveOpen: true))
             {
-                using (var encoder = new JsonEncoderEx(stream, context, leaveOpen: true))
-                {
-                    encodeable.Encode(encoder);
-                }
-                return Encoding.UTF8.GetString(stream.ToArray());
+                encodeable.Encode(encoder);
             }
+            return Encoding.UTF8.GetString(stream.ToArray());
         }
     }
 }

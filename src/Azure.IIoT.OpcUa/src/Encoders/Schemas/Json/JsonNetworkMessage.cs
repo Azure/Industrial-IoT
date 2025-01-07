@@ -64,7 +64,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
             ArgumentNullException.ThrowIfNull(networkMessage);
 
             UseCompatibilityMode = useCompatibilityMode;
-            Definitions = definitions ?? new();
+            Definitions = definitions ?? [];
             _options = options ?? new SchemaOptions();
 
             Name = GetName(networkMessage.TypeName);
@@ -173,7 +173,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
             if (networkMessageContentFlags
                 .HasFlag(NetworkMessageContentFlags.UseArrayEnvelope))
             {
-                return messageSchema.AsArray(BaseNetworkMessage.kMessageTypeName + "s");
+                return messageSchema.AsArray(BaseNetworkMessage.MessageTypeName + "s");
             }
             return messageSchema;
         }
@@ -234,7 +234,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
         {
             // Type name of the message record
             typeName ??= string.Empty;
-            typeName += BaseNetworkMessage.kMessageTypeName;
+            typeName += BaseNetworkMessage.MessageTypeName;
             return MakeUnique(typeName);
         }
 
@@ -255,6 +255,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
         }
 
         private readonly SchemaOptions _options;
-        private readonly HashSet<string> _uniqueNames = new();
+        private readonly HashSet<string> _uniqueNames = [];
     }
 }

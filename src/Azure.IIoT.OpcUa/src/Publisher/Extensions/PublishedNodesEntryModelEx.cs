@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
-    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Text;
@@ -205,7 +204,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                     model.Options.HasFlag(ConnectionOptions.NoSubscriptionTransfer) ? true : null,
                 MessageEncoding = MessageEncoding.Json,
                 MessagingMode = MessagingMode.FullSamples,
-                OpcNodes = new List<OpcNodeModel>()
+                OpcNodes = []
             };
         }
 
@@ -408,10 +407,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 id.Append(model.DataSetRouting.ToString());
             }
-            if (model.RepublishAfterTransfer != null)
-            {
-                id.Append(model.RepublishAfterTransfer.Value);
-            }
             if (model.OpcNodeWatchdogTimespan != null)
             {
                 id.Append(model.OpcNodeWatchdogTimespan.Value);
@@ -577,10 +572,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
 
             if ((model.DataSetRouting ?? DataSetRoutingMode.None) !=
                 (that.DataSetRouting ?? DataSetRoutingMode.None))
-            {
-                return false;
-            }
-            if (model.RepublishAfterTransfer != that.RepublishAfterTransfer)
             {
                 return false;
             }

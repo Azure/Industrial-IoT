@@ -19,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
     public class GetSimpleEventFilterTests : OpcUaMonitoredItemTestsBase
     {
         [Fact]
-        public async Task SetupSimpleFilterForBaseEventType()
+        public async Task SetupSimpleFilterForBaseEventTypeAsync()
         {
             // Arrange
             var template = new EventMonitoredItemModel
@@ -32,7 +32,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             };
 
             // Act
-            var monitoredItem = await GetMonitoredItem(template);
+            var monitoredItem = await GetMonitoredItemAsync(template);
 
             // Assert
             Assert.NotNull(monitoredItem.Filter);
@@ -60,7 +60,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         }
 
         [Fact]
-        public async Task SetupSimpleFilterForConditionType()
+        public async Task SetupSimpleFilterForConditionTypeAsync()
         {
             // Arrange
             var template = new EventMonitoredItemModel
@@ -73,7 +73,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             };
 
             // Act
-            var monitoredItem = await GetMonitoredItem(template);
+            var monitoredItem = await GetMonitoredItemAsync(template);
 
             // Assert
             Assert.NotNull(monitoredItem.Filter);
@@ -113,7 +113,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         }
 
         [Fact]
-        public async Task SetupSimpleFilterForConditionTypeWithConditionHandlingEnabled()
+        public async Task SetupSimpleFilterForConditionTypeWithConditionHandlingEnabledAsync()
         {
             // Arrange
             var template = new EventMonitoredItemModel
@@ -130,7 +130,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             };
 
             // Act
-            var monitoredItem = await GetMonitoredItem(template);
+            var monitoredItem = await GetMonitoredItemAsync(template);
 
             // Assert
             Assert.NotNull(monitoredItem.Filter);
@@ -299,6 +299,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             NodeId = VariableIds.ConditionType_EnabledState_Id
         };
 
-        private readonly Dictionary<uint, Node> _nodes = new();
+        private readonly Dictionary<uint, Node> _nodes = [];
     }
 }

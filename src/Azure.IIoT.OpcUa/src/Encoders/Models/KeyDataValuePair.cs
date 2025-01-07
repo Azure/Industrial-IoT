@@ -140,7 +140,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
             {
                 return new KeyDataValuePairCollection(values);
             }
-            return new KeyDataValuePairCollection();
+            return [];
         }
 
         /// <summary>
@@ -151,7 +151,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         {
             if (values != null)
             {
-                return values.ToArray();
+                return [.. values];
             }
             return null;
         }

@@ -87,7 +87,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
                         AdditionalInfo = "Response was good, but results were missing."
                     };
                 }
-                _results = Array.Empty<TResult>();
+                _results = [];
             }
             else
             {
@@ -96,7 +96,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
             if (requested == null)
             {
                 _requests = _results.Length == 0 ?
-                    Array.Empty<TRequest>() :
+                    [] :
                     new TRequest[_results.Length];
             }
             else
@@ -121,18 +121,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
                 }
                 else
                 {
-                    _results = Array.Empty<TResult>();
+                    _results = [];
                 }
             }
             if (diagnostics == null || diagnostics.Count == 0)
             {
                 _diagnostics = _results.Length == 0 ?
-                    Array.Empty<DiagnosticInfo>() :
+                    [] :
                     new DiagnosticInfo[_results.Length];
             }
             else
             {
-                _diagnostics = diagnostics.ToArray();
+                _diagnostics = [.. diagnostics];
             }
             if (_diagnostics.Length != _results.Length)
             {
@@ -156,7 +156,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
             }
             else
             {
-                _operations = Array.Empty<Operation>();
+                _operations = [];
             }
         }
 

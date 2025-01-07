@@ -30,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = _serializer.FromArray(-123.123, 124.124, 0.0);
             var variant = codec.Decode(str, BuiltInType.Double);
-            var expected = new Variant(new double[] { -123.123, 124.124, 0.0 });
+            var expected = new Variant([-123.123, 124.124, 0.0]);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
             Assert.Equal(str, encoded);
@@ -54,7 +54,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var str = _serializer.FromArray(-123.123, 124.124, 0.0);
             var variant = codec.Decode(str, BuiltInType.Null);
-            var expected = new Variant(new double[] { -123.123, 124.124, 0.0 });
+            var expected = new Variant([-123.123, 124.124, 0.0]);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
             Assert.Equal(str, encoded);
@@ -81,8 +81,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant(-123.0);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromObject(-123.0),
-                encoded);
+            Assert.Equal(_serializer.FromObject(-123.0), encoded);
         }
 
         [Fact]
@@ -91,11 +90,10 @@ namespace Azure.IIoT.OpcUa.Encoders
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "-123.123, 124.124, 0.0";
             var variant = codec.Decode(str, BuiltInType.Double);
-            var expected = new Variant(new double[] { -123.123, 124.124, 0.0 });
+            var expected = new Variant([-123.123, 124.124, 0.0]);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromArray(-123.123, 124.124, 0.0),
-                encoded);
+            Assert.Equal(_serializer.FromArray(-123.123, 124.124, 0.0), encoded);
         }
 
         [Fact]
@@ -104,11 +102,10 @@ namespace Azure.IIoT.OpcUa.Encoders
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "[-123.123, 124.124, 0.0]";
             var variant = codec.Decode(str, BuiltInType.Double);
-            var expected = new Variant(new double[] { -123.123, 124.124, 0.0 });
+            var expected = new Variant([-123.123, 124.124, 0.0]);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromArray(-123.123, 124.124, 0.0),
-                encoded);
+            Assert.Equal(_serializer.FromArray(-123.123, 124.124, 0.0), encoded);
         }
 
         [Fact]
@@ -132,8 +129,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant(-123.123);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromObject(-123.123),
-                encoded);
+            Assert.Equal(_serializer.FromObject(-123.123), encoded);
         }
 
         [Fact]
@@ -147,8 +143,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             });
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromArray(-123.123, 124.124, 0.0),
-                encoded);
+            Assert.Equal(_serializer.FromArray(-123.123, 124.124, 0.0), encoded);
         }
 
         [Fact]
@@ -181,11 +176,10 @@ namespace Azure.IIoT.OpcUa.Encoders
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "-123.123, 124.124, 0.0";
             var variant = codec.Decode(str, BuiltInType.Null);
-            var expected = new Variant(new double[] { -123.123, 124.124, 0.0 });
+            var expected = new Variant([-123.123, 124.124, 0.0]);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromArray(-123.123, 124.124, 0.0),
-                encoded);
+            Assert.Equal(_serializer.FromArray(-123.123, 124.124, 0.0), encoded);
         }
 
         [Fact]
@@ -194,11 +188,10 @@ namespace Azure.IIoT.OpcUa.Encoders
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "[-123.123, 124.124, 0.0]";
             var variant = codec.Decode(str, BuiltInType.Null);
-            var expected = new Variant(new double[] { -123.123, 124.124, 0.0 });
+            var expected = new Variant([-123.123, 124.124, 0.0]);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromArray(-123.123, 124.124, 0.0),
-                encoded);
+            Assert.Equal(_serializer.FromArray(-123.123, 124.124, 0.0), encoded);
         }
 
         [Fact]
@@ -209,6 +202,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var variant = codec.Decode(str, BuiltInType.Null);
             var expected = Variant.Null;
             var encoded = codec.Encode(variant);
+            Assert.NotNull(encoded);
             Assert.Equal(expected, variant);
         }
 
@@ -244,7 +238,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = "\"-123.123\",'124.124',\"0.0\"";
             var variant = codec.Decode(str, BuiltInType.Double);
-            var expected = new Variant(new double[] { -123.123, 124.124, 0.0 });
+            var expected = new Variant([-123.123, 124.124, 0.0]);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
             Assert.Equal(_serializer.FromArray(-123.123, 124.124, 0.0),
@@ -257,7 +251,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             const string str = " [\"-123.123\",'124.124',\"0.0\"] ";
             var variant = codec.Decode(str, BuiltInType.Double);
-            var expected = new Variant(new double[] { -123.123, 124.124, 0.0 });
+            var expected = new Variant([-123.123, 124.124, 0.0]);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
             Assert.Equal(_serializer.FromArray(-123.123, 124.124, 0.0),
@@ -291,7 +285,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 Body = new double[] { -123.123, 124.124, 0.0 }
             });
             var variant = codec.Decode(str, BuiltInType.Variant);
-            var expected = new Variant(new double[] { -123.123, 124.124, 0.0 });
+            var expected = new Variant([-123.123, 124.124, 0.0]);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
             Assert.Equal(_serializer.FromArray(-123.123, 124.124, 0.0),
@@ -341,7 +335,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 Body = new double[] { -123.123, 124.124, 0.0 }
             });
             var variant = codec.Decode(str, BuiltInType.Variant);
-            var expected = new Variant(new double[] { -123.123, 124.124, 0.0 });
+            var expected = new Variant([-123.123, 124.124, 0.0]);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
             Assert.Equal(_serializer.FromArray(-123.123, 124.124, 0.0),
@@ -375,7 +369,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 BODY = new double[] { -123.123, 124.124, 0.0 }
             });
             var variant = codec.Decode(str, BuiltInType.Null);
-            var expected = new Variant(new double[] { -123.123, 124.124, 0.0 });
+            var expected = new Variant([-123.123, 124.124, 0.0]);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
             Assert.Equal(_serializer.FromArray(-123.123, 124.124, 0.0),
@@ -425,7 +419,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 body = new double[] { -123.123, 124.124, 0.0 }
             });
             var variant = codec.Decode(str, BuiltInType.Null);
-            var expected = new Variant(new double[] { -123.123, 124.124, 0.0 });
+            var expected = new Variant([-123.123, 124.124, 0.0]);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
             Assert.Equal(_serializer.FromArray(-123.123, 124.124, 0.0),
@@ -476,7 +470,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 value = new double[] { -123.123, 124.124, 0.0 }
             });
             var variant = codec.Decode(str, BuiltInType.Variant);
-            var expected = new Variant(new double[] { -123.123, 124.124, 0.0 });
+            var expected = new Variant([-123.123, 124.124, 0.0]);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
             Assert.Equal(_serializer.FromArray(-123.123, 124.124, 0.0),
@@ -502,6 +496,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     { { 123.456, 124.567, 125.0 }, { 123.456, 124.567, 125.0 }, { 123.456, 124.567, 125.0 } }
                 });
             var encoded = codec.Encode(variant);
+            Assert.NotNull(encoded);
             Assert.True(expected.Value is Matrix);
             Assert.True(variant.Value is Matrix);
             Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
@@ -526,6 +521,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     { { 123.456, 124.567, 125.0 }, { 123.456, 124.567, 125.0 }, { 123.456, 124.567, 125.0 } }
                 });
             var encoded = codec.Encode(variant);
+            Assert.NotNull(encoded);
             Assert.True(expected.Value is Matrix);
             Assert.True(variant.Value is Matrix);
             Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
@@ -554,6 +550,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     { { 123.456, 124.567, 125.0 }, { 123.456, 124.567, 125.0 }, { 123.456, 124.567, 125.0 } }
                 });
             var encoded = codec.Encode(variant);
+            Assert.NotNull(encoded);
             Assert.True(expected.Value is Matrix);
             Assert.True(variant.Value is Matrix);
             Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
@@ -582,6 +579,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     { { 123.456, 124.567, 125.0 }, { 123.456, 124.567, 125.0 }, { 123.456, 124.567, 125.0 } }
                 });
             var encoded = codec.Encode(variant);
+            Assert.NotNull(encoded);
             Assert.True(expected.Value is Matrix);
             Assert.True(variant.Value is Matrix);
             Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
@@ -610,6 +608,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     { { 123.456, 124.567, 125.0 }, { 123.456, 124.567, 125.0 }, { 123.456, 124.567, 125.0 } }
                 });
             var encoded = codec.Encode(variant);
+            Assert.NotNull(encoded);
             Assert.True(expected.Value is Matrix);
             Assert.True(variant.Value is Matrix);
             Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
@@ -638,6 +637,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     { { 123.456, 124.567, 125.0 }, { 123.456, 124.567, 125.0 }, { 123.456, 124.567, 125.0 } }
                 });
             var encoded = codec.Encode(variant);
+            Assert.NotNull(encoded);
             Assert.True(expected.Value is Matrix);
             Assert.True(variant.Value is Matrix);
             Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);

@@ -21,7 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
         /// <summary>
         /// Warnings reported by StandaloneCliOptions.
         /// </summary>
-        public IList<string> Warnings = new List<string>();
+        public IList<string> Warnings { get; } = [];
 
         public CommandLine CommandLine { get; }
 

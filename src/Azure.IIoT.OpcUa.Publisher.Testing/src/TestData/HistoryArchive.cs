@@ -62,7 +62,7 @@ namespace TestData
             {
                 var record = new HistoryRecord
                 {
-                    RawData = new List<HistoryEntry>(),
+                    RawData = [],
                     Historizing = true,
                     DataType = dataType
                 };
@@ -93,7 +93,7 @@ namespace TestData
                     record.RawData.Add(entry);
                 }
 
-                _records ??= new Dictionary<NodeId, HistoryRecord>();
+                _records ??= [];
 
                 _records[nodeId] = record;
 
@@ -150,7 +150,7 @@ namespace TestData
             }
         }
 
-        private readonly object _lock = new();
+        private readonly Lock _lock = new();
         private Timer _updateTimer;
         private Dictionary<NodeId, HistoryRecord> _records;
     }

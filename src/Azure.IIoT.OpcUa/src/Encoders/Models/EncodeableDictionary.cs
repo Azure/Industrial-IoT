@@ -84,12 +84,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
             var dataSet = jsonDecoder.ReadDataSet(null);
             if (dataSet != null)
             {
-                foreach (var field in dataSet.DataSetFields)
+                foreach (var (Name, Value) in dataSet.DataSetFields)
                 {
                     Add(new KeyDataValuePair
                     {
-                        Key = field.Name,
-                        Value = field.Value
+                        Key = Name,
+                        Value = Value
                     });
                 }
             }

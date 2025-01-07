@@ -60,7 +60,7 @@ namespace MemoryBuffer
             _configuration = configuration.ParseExtension<MemoryBufferConfiguration>()
                 ?? new MemoryBufferConfiguration();
 
-            _buffers = new Dictionary<string, MemoryBufferState>();
+            _buffers = [];
         }
 
         /// <summary>
@@ -460,10 +460,7 @@ namespace MemoryBuffer
             IMonitoredItem monitoredItem,
             out bool processed)
         {
-            processed = false;
-
             // check for valid handle.
-
             if (monitoredItem.ManagerHandle is not MemoryBufferState buffer)
             {
                 return base.DeleteMonitoredItem(
@@ -501,8 +498,6 @@ namespace MemoryBuffer
             MonitoringMode monitoringMode,
             out bool processed)
         {
-            processed = false;
-
             // check for valid handle.
 
             if (monitoredItem.ManagerHandle is not MemoryBufferState buffer)

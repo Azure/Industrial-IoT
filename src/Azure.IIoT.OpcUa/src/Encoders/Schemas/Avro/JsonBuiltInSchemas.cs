@@ -40,8 +40,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
             get
             {
                 return RecordSchema.Create(nameof(BuiltInType.DiagnosticInfo),
-                    new List<Field>
-                    {
+                    [
                         new (GetSchemaForBuiltInType(BuiltInType.Int32), "SymbolicId", 0),
                         new (GetSchemaForBuiltInType(BuiltInType.Int32), "NamespaceUri", 1),
                         new (GetSchemaForBuiltInType(BuiltInType.Int32), "Locale", 2),
@@ -50,7 +49,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
                         new (GetSchemaForBuiltInType(BuiltInType.StatusCode), "InnerStatusCode", 5),
                         new (GetSchemaForBuiltInType(BuiltInType.DiagnosticInfo).AsNullable(),
                             "InnerDiagnosticInfo", 6)
-                    }, SchemaUtils.NamespaceZeroName,
+                    ], SchemaUtils.NamespaceZeroName,
                     new[] { GetDataTypeId(BuiltInType.DiagnosticInfo) });
             }
         }
@@ -75,10 +74,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
                     .Concat(GetPossibleTypes(SchemaRank.Collection))
                     .Concat(GetPossibleTypes(SchemaRank.Matrix))
                     .ToList();
-                return RecordSchema.Create(nameof(BuiltInType.Variant), new List<Field>
-                {
+                return RecordSchema.Create(nameof(BuiltInType.Variant),
+                [
                     new (types.AsUnion(), "Value", 0)
-                }, SchemaUtils.NamespaceZeroName,
+                ], SchemaUtils.NamespaceZeroName,
                     new[] { GetDataTypeId(BuiltInType.Variant) });
 
                 IEnumerable<Schema> GetPossibleTypes(SchemaRank valueRank)
@@ -125,12 +124,11 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
                     "XmlElement"
                 });
                 return RecordSchema.Create(nameof(BuiltInType.ExtensionObject),
-                    new List<Field>
-                    {
+                    [
                         new (GetSchemaForBuiltInType(BuiltInType.NodeId), "TypeId", 0),
                         new (encodingType, "Encoding", 1),
                         new (bodyType, "Body", 2)
-                    }, SchemaUtils.NamespaceZeroName,
+                    ], SchemaUtils.NamespaceZeroName,
                     new[] { GetDataTypeId(BuiltInType.ExtensionObject) });
             }
         }
@@ -160,11 +158,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
                 // shall be encoded as a JSON object with the fields
                 // defined here.
                 return RecordSchema.Create(nameof(BuiltInType.StatusCode),
-                    new List<Field>
-                    {
+                    [
                         new (GetSchemaForBuiltInType(BuiltInType.UInt32), "Code", 0),
                         new (GetSchemaForBuiltInType(BuiltInType.String), "Symbol", 1)
-                    }, SchemaUtils.NamespaceZeroName);
+                    ], SchemaUtils.NamespaceZeroName);
             }
         }
 
@@ -189,11 +186,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
                     field = new(GetSchemaForBuiltInType(BuiltInType.String), "Uri", 1);
                 }
                 return RecordSchema.Create(nameof(BuiltInType.QualifiedName),
-                    new List<Field>
-                    {
+                    [
                         new (GetSchemaForBuiltInType(BuiltInType.String), "Name", 0),
                         field
-                    }, SchemaUtils.NamespaceZeroName,
+                    ], SchemaUtils.NamespaceZeroName,
                     new[] { GetDataTypeId(BuiltInType.QualifiedName) });
             }
         }
@@ -205,11 +201,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
                 if (_reversibleEncoding)
                 {
                     return RecordSchema.Create(nameof(BuiltInType.LocalizedText),
-                        new List<Field>
-                        {
+                        [
                             new (GetSchemaForBuiltInType(BuiltInType.String), "Locale", 0),
                             new (GetSchemaForBuiltInType(BuiltInType.String), "Text", 1)
-                        }, SchemaUtils.NamespaceZeroName,
+                        ], SchemaUtils.NamespaceZeroName,
                         new[] { GetDataTypeId(BuiltInType.LocalizedText) });
                 }
 
@@ -260,12 +255,11 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
                     field = new(GetSchemaForBuiltInType(BuiltInType.String), "Namespace", 2);
                 }
                 return RecordSchema.Create(nameof(BuiltInType.NodeId),
-                    new List<Field>
-                    {
+                    [
                         new (idTypeType, "IdType", 0),
                         new (idType, "Id", 1),
                         field
-                    }, SchemaUtils.NamespaceZeroName,
+                    ], SchemaUtils.NamespaceZeroName,
                     new[] { GetDataTypeId(BuiltInType.NodeId) });
             }
         }
@@ -304,8 +298,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
                     field = new(GetSchemaForBuiltInType(BuiltInType.String), "ServerUri", 3);
                 }
                 return RecordSchema.Create(nameof(BuiltInType.ExpandedNodeId),
-                    new List<Field>
-                    {
+                    [
                         new (idTypeType, "IdType", 0),
                         new (idType, "Id", 1),
                         // For reversible encoding this field is a JSON string
@@ -321,7 +314,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
                             GetSchemaForBuiltInType(BuiltInType.String)),
                             "Namespace", 2),
                         field
-                    }, SchemaUtils.NamespaceZeroName,
+                    ], SchemaUtils.NamespaceZeroName,
                     new[] { GetDataTypeId(BuiltInType.ExpandedNodeId) });
             }
         }
@@ -331,15 +324,14 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
             get
             {
                 return RecordSchema.Create(nameof(BuiltInType.DataValue),
-                    new List<Field>
-                    {
+                    [
                         new (GetSchemaForBuiltInType(BuiltInType.Variant), "Value", 0),
                         new (GetSchemaForBuiltInType(BuiltInType.StatusCode), "Status", 1),
                         new (GetSchemaForBuiltInType(BuiltInType.DateTime), "SourceTimestamp", 2),
                         new (GetSchemaForBuiltInType(BuiltInType.UInt16), "SourcePicoSeconds", 3),
                         new (GetSchemaForBuiltInType(BuiltInType.DateTime), "ServerTimestamp", 4),
                         new (GetSchemaForBuiltInType(BuiltInType.UInt16), "ServerPicoSeconds", 5)
-                    }, SchemaUtils.NamespaceZeroName,
+                    ], SchemaUtils.NamespaceZeroName,
                     new[] { GetDataTypeId(BuiltInType.DataValue) });
             }
         }
@@ -485,12 +477,11 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
                 "XmlElement"
             });
             return RecordSchema.Create(name + nameof(BuiltInType.ExtensionObject),
-                new List<Field>
-                {
+                [
                     new (GetSchemaForBuiltInType(BuiltInType.NodeId), "TypeId", 0),
                     new (encodingType, "Encoding", 1),
                     new (bodyType, "Body", 2)
-                }, ns, new[] { dataTypeId });
+                ], ns, new[] { dataTypeId });
         }
 
         /// <inheritdoc/>
@@ -500,15 +491,14 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
             if (asDataValue)
             {
                 return RecordSchema.Create(valueSchema.Name + nameof(BuiltInType.DataValue),
-                    new List<Field>
-                    {
+                    [
                         new (valueSchema, "Value", 0),
                         new (GetSchemaForBuiltInType(BuiltInType.StatusCode), "Status", 1),
                         new (GetSchemaForBuiltInType(BuiltInType.DateTime), "SourceTimestamp", 2),
                         new (GetSchemaForBuiltInType(BuiltInType.UInt16), "SourcePicoseconds", 3),
                         new (GetSchemaForBuiltInType(BuiltInType.DateTime), "ServerTimestamp", 4),
                         new (GetSchemaForBuiltInType(BuiltInType.UInt16), "ServerPicoseconds", 5)
-                    }, ns).AsNullable();
+                    ], ns).AsNullable();
             }
             return valueSchema;
         }
@@ -571,7 +561,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
                 SchemaUtils.NamespaceZeroName);
         }
 
-        private readonly Dictionary<BuiltInType, Schema> _builtIn = new();
+        private readonly Dictionary<BuiltInType, Schema> _builtIn = [];
         private readonly bool _reversibleEncoding;
 #pragma warning disable IDE0052 // Remove unread private members
         private readonly bool _useUriEncoding;

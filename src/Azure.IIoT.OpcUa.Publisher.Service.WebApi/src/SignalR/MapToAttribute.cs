@@ -10,21 +10,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.SignalR
     /// <summary>
     /// Metadata for hub
     /// </summary>
+    /// <remarks>
+    /// Create attribute
+    /// </remarks>
+    /// <param name="route"></param>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-    public sealed class MapToAttribute : Attribute
+    public sealed class MapToAttribute(string route) : Attribute
     {
-        /// <summary>
-        /// Create attribute
-        /// </summary>
-        /// <param name="route"></param>
-        public MapToAttribute(string route)
-        {
-            Route = route;
-        }
-
         /// <summary>
         /// Mapping
         /// </summary>
-        public string Route { get; }
+        public string Route { get; } = route;
     }
 }

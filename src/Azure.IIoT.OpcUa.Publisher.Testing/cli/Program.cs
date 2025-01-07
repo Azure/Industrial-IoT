@@ -122,24 +122,22 @@ Operations (Mutually exclusive):
             var logger = Log.Console<ServerConsoleHost>();
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             AssemblyLoadContext.Default.Unloading += _ => tcs.TrySetResult(true);
-            using (var server = new ServerConsoleHost(new TestServerFactory(Log.Console<TestServerFactory>()), logger)
+            using var server = new ServerConsoleHost(new TestServerFactory(Log.Console<TestServerFactory>()), logger)
             {
                 AutoAccept = true
-            })
-            {
-                await server.StartAsync(ports).ConfigureAwait(false);
+            };
+            await server.StartAsync(ports).ConfigureAwait(false);
 #if DEBUG
-                if (!Console.IsInputRedirected)
-                {
-                    Console.WriteLine("Press any key to exit...");
-                    Console.TreatControlCAsInput = true;
-                    await Task.WhenAny(tcs.Task, Task.Run(Console.ReadKey)).ConfigureAwait(false);
-                    return;
-                }
-#endif
-                await tcs.Task.ConfigureAwait(false);
-                logger.LogInformation("Exiting.");
+            if (!Console.IsInputRedirected)
+            {
+                Console.WriteLine("Press any key to exit...");
+                Console.TreatControlCAsInput = true;
+                await Task.WhenAny(tcs.Task, Task.Run(Console.ReadKey)).ConfigureAwait(false);
+                return;
             }
+#endif
+            await tcs.Task.ConfigureAwait(false);
+            logger.LogInformation("Exiting.");
         }
     }
 }

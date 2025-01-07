@@ -91,7 +91,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             _stderr?.Dispose();
         }
 
-        private readonly static JsonSerializerOptions kIndented = new()
+        private static readonly JsonSerializerOptions kIndented = new()
         {
             WriteIndented = true
         };

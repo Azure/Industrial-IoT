@@ -253,7 +253,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var root = _tempPath;
             var p1 = Path.GetRandomFileName();
             var p2 = Path.GetRandomFileName();
-            var f = Path.GetRandomFileName();
 
             var path = Path.Combine(root, p1, p2);
             Directory.CreateDirectory(path);
@@ -277,7 +276,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var root = _tempPath;
             var p1 = Path.GetRandomFileName();
             var p2 = Path.GetRandomFileName();
-            var f = Path.GetRandomFileName();
 
             var path = Path.Combine(root, p1, p2);
             Directory.CreateDirectory(path);

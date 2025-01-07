@@ -78,7 +78,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         {
             if (connection.Endpoint?.Url == null)
             {
-                return Enumerable.Empty<Uri>();
+                return [];
             }
             var endpoints = new Uri(connection.Endpoint.Url).YieldReturn();
             if (connection.Endpoint.AlternativeUrls != null)

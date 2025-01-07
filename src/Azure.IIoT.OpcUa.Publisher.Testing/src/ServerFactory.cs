@@ -121,8 +121,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                 {
                     new MemoryBuffer.MemoryBufferConfiguration
                     {
-                        Buffers = new MemoryBuffer.MemoryBufferInstanceCollection
-                        {
+                        Buffers =
+                        [
                             new MemoryBuffer.MemoryBufferInstance
                             {
                                 Name = "UInt32",
@@ -135,7 +135,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                                 TagCount = 100,
                                 DataType = "Double"
                             }
-                        }
+                        ]
                     },
 
                     // ...
@@ -187,7 +187,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                         AddAppCertToTrustedStore = true,
                         RejectUnknownRevocationStatus = true
                     },
-                    TransportConfigurations = new TransportConfigurationCollection(),
+                    TransportConfigurations = [],
                     TransportQuotas = new TransportQuotas
                     {
                         SecurityTokenLifetime = 60 * 60 * 1000,
@@ -202,17 +202,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                     ServerConfiguration = new ServerConfiguration
                     {
                         // Sample server specific
-                        ServerProfileArray = new StringCollection {
+                        ServerProfileArray = [
                              "Standard UA Server Profile",
                              "Data Access Server Facet",
                              "Method Server Facet"
-                        },
-                        ServerCapabilities = new StringCollection {
+                        ],
+                        ServerCapabilities = [
                             "DA"
-                        },
-                        SupportedPrivateKeyFormats = new StringCollection {
+                        ],
+                        SupportedPrivateKeyFormats = [
                             "PFX", "PEM"
-                        },
+                        ],
 
                         ReverseConnect = new ReverseConnectServerConfiguration
                         {
@@ -230,7 +230,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                             .Distinct()
                             .Select(p => $"opc.tcp://localhost:{p}/UA/SampleServer")),
 
-                        SecurityPolicies = new ServerSecurityPolicyCollection {
+                        SecurityPolicies = [
                             new ServerSecurityPolicy {
                                 SecurityMode = MessageSecurityMode.Sign,
                                 SecurityPolicyUri = SecurityPolicies.Basic256Sha256
@@ -243,8 +243,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                                 SecurityMode = MessageSecurityMode.None,
                                 SecurityPolicyUri = SecurityPolicies.None
                             }
-                        },
-                        UserTokenPolicies = new UserTokenPolicyCollection {
+                        ],
+                        UserTokenPolicies = [
                             new UserTokenPolicy {
                                 TokenType = UserTokenType.Anonymous,
                                 SecurityPolicyUri = SecurityPolicies.None
@@ -255,7 +255,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                             new UserTokenPolicy {
                                 TokenType = UserTokenType.Certificate
                             }
-                        },
+                        ],
 
                         MinRequestThreadCount = 200,
                         MaxRequestThreadCount = 2000,

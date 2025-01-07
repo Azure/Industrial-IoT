@@ -39,7 +39,7 @@ namespace PerfTest
     {
         public void Initialize()
         {
-            _registers = new List<MemoryRegister>();
+            _registers = [];
             var register1 = new MemoryRegister();
             register1.Initialize(1, "R1", 50000);
             _registers.Add(register1);
@@ -197,7 +197,7 @@ namespace PerfTest
             }
         }
 
-        private readonly object _lock = new();
+        private readonly Lock _lock = new();
         private int[] _values;
         private int _start;
         private Timer _timer;

@@ -233,7 +233,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
             get => Types?.Count > 0 ?
                 Types[0] : SchemaType.None;
             set => Types = value == SchemaType.None ?
-                Array.Empty<SchemaType>() : new[] { value };
+                Array.Empty<SchemaType>() : [value];
         }
     }
 

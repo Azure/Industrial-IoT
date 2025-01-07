@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly;
     using Furly.Extensions.Messaging;
-    using Furly.Extensions.Serializers;
     using Microsoft.IO;
     using System;
     using System.Buffers;

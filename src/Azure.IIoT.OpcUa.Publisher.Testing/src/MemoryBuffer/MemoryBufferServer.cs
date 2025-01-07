@@ -40,10 +40,10 @@ namespace MemoryBuffer
         {
             get
             {
-                return new StringCollection {
+                return [
                     Namespaces.MemoryBuffer,
                     Namespaces.MemoryBuffer + "/Instance"
-                };
+                ];
             }
         }
 

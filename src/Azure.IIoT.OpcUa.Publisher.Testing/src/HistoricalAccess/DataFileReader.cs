@@ -104,126 +104,122 @@ namespace HistoricalAccess
 #pragma warning restore IDE0060 // Remove unused parameter
 #pragma warning restore IDE0079 // Remove unnecessary suppression
         {
-            using (var reader = item.OpenArchive())
+            using var reader = item.OpenArchive();
+            while (!reader.EndOfStream)
             {
-                while (!reader.EndOfStream)
+                var line = reader.ReadLine();
+
+                // check for end or error.
+                if (line == null)
                 {
-                    var line = reader.ReadLine();
-
-                    // check for end or error.
-                    if (line == null)
-                    {
-                        break;
-                    }
-
-                    // ignore blank lines.
-                    line = line.Trim();
-
-                    if (string.IsNullOrEmpty(line))
-                    {
-                        continue;
-                    }
-
-                    // ignore commented out lines.
-                    if (line.StartsWith("//", StringComparison.CurrentCulture))
-                    {
-                        continue;
-                    }
-
-                    var dataType = BuiltInType.String;
-                    var valueRank = ValueRanks.Scalar;
-
-                    // get data type.
-                    if (!ExtractField(1, ref line, out dataType))
-                    {
-                        return false;
-                    }
-
-                    // get value rank.
-                    if (!ExtractField(1, ref line, out valueRank))
-                    {
-                        return false;
-                    }
-
-                    // get sampling interval.
-                    if (!ExtractField(1, ref line, out int samplingInterval))
-                    {
-                        return false;
-                    }
-
-                    // get simulation type.
-                    if (!ExtractField(1, ref line, out int simulationType))
-                    {
-                        return false;
-                    }
-
-                    // get simulation amplitude.
-                    if (!ExtractField(1, ref line, out int amplitude))
-                    {
-                        return false;
-                    }
-
-                    // get simulation period.
-                    if (!ExtractField(1, ref line, out int period))
-                    {
-                        return false;
-                    }
-
-                    // get flag indicating whether new data is generated.
-                    if (!ExtractField(1, ref line, out int archiving))
-                    {
-                        return false;
-                    }
-
-                    // get flag indicating whether stepped interpolation is used.
-                    if (!ExtractField(1, ref line, out int stepped))
-                    {
-                        return false;
-                    }
-
-                    // get flag indicating whether sloped interpolation should be used.
-                    if (!ExtractField(1, ref line, out int useSlopedExtrapolation))
-                    {
-                        return false;
-                    }
-
-                    // get flag indicating whether sloped interpolation should be used.
-                    if (!ExtractField(1, ref line, out int treatUncertainAsBad))
-                    {
-                        return false;
-                    }
-
-                    // get the maximum permitted of bad data in an interval.
-                    if (!ExtractField(1, ref line, out int percentDataBad))
-                    {
-                        return false;
-                    }
-
-                    // get the minimum amount of good data in an interval.
-                    if (!ExtractField(1, ref line, out int percentDataGood))
-                    {
-                        return false;
-                    }
-
-                    // update the item.
-                    item.DataType = dataType;
-                    item.ValueRank = valueRank;
-                    item.SimulationType = simulationType;
-                    item.Amplitude = amplitude;
-                    item.Period = period;
-                    item.SamplingInterval = samplingInterval;
-                    item.Archiving = archiving != 0;
-                    item.Stepped = stepped != 0;
-                    item.AggregateConfiguration = new AggregateConfiguration
-                    {
-                        UseServerCapabilitiesDefaults = false,
-                        UseSlopedExtrapolation = useSlopedExtrapolation != 0,
-                        TreatUncertainAsBad = treatUncertainAsBad != 0,
-                        PercentDataBad = (byte)percentDataBad,
-                        PercentDataGood = (byte)percentDataGood
-                    };
                     break;
                 }
+
+                // ignore blank lines.
+                line = line.Trim();
+
+                if (string.IsNullOrEmpty(line))
+                {
+                    continue;
+                }
+
+                // ignore commented out lines.
+                if (line.StartsWith("//", StringComparison.CurrentCulture))
+                {
+                    continue;
+                }
+
+                // get data type.
+                if (!ExtractField(1, ref line, out BuiltInType dataType))
+                {
+                    return false;
+                }
+
+                // get value rank.
+                if (!ExtractField(1, ref line, out
+                int valueRank))
+                {
+                    return false;
+                }
+
+                // get sampling interval.
+                if (!ExtractField(1, ref line, out int samplingInterval))
+                {
+                    return false;
+                }
+
+                // get simulation type.
+                if (!ExtractField(1, ref line, out int simulationType))
+                {
+                    return false;
+                }
+
+                // get simulation amplitude.
+                if (!ExtractField(1, ref line, out int amplitude))
+                {
+                    return false;
+                }
+
+                // get simulation period.
+                if (!ExtractField(1, ref line, out int period))
+                {
+                    return false;
+                }
+
+                // get flag indicating whether new data is generated.
+                if (!ExtractField(1, ref line, out int archiving))
+                {
+                    return false;
+                }
+
+                // get flag indicating whether stepped interpolation is used.
+                if (!ExtractField(1, ref line, out int stepped))
+                {
+                    return false;
+                }
+
+                // get flag indicating whether sloped interpolation should be used.
+                if (!ExtractField(1, ref line, out int useSlopedExtrapolation))
+                {
+                    return false;
+                }
+
+                // get flag indicating whether sloped interpolation should be used.
+                if (!ExtractField(1, ref line, out int treatUncertainAsBad))
+                {
+                    return false;
+                }
+
+                // get the maximum permitted of bad data in an interval.
+                if (!ExtractField(1, ref line, out int percentDataBad))
+                {
+                    return false;
+                }
+
+                // get the minimum amount of good data in an interval.
+                if (!ExtractField(1, ref line, out int percentDataGood))
+                {
+                    return false;
+                }
+
+                // update the item.
+                item.DataType = dataType;
+                item.ValueRank = valueRank;
+                item.SimulationType = simulationType;
+                item.Amplitude = amplitude;
+                item.Period = period;
+                item.SamplingInterval = samplingInterval;
+                item.Archiving = archiving != 0;
+                item.Stepped = stepped != 0;
+                item.AggregateConfiguration = new AggregateConfiguration
+                {
+                    UseServerCapabilitiesDefaults = false,
+                    UseSlopedExtrapolation = useSlopedExtrapolation != 0,
+                    TreatUncertainAsBad = treatUncertainAsBad != 0,
+                    PercentDataBad = (byte)percentDataBad,
+                    PercentDataGood = (byte)percentDataGood
+                };
+                break;
             }
 
             return true;
@@ -345,11 +341,6 @@ namespace HistoricalAccess
                 messageContext.Factory = ServiceMessageContext.GlobalContext.Factory;
             }
 
-            var sourceTimeOffset = 0;
-            var serverTimeOffset = 0;
-            var recordType = 0;
-            var modificationTimeOffet = 0;
-            var modificationUser = string.Empty;
             var valueType = BuiltInType.String;
             var value = Variant.Null;
             var annotationTimeOffet = 0;
@@ -383,13 +374,13 @@ namespace HistoricalAccess
                 }
 
                 // get source time.
-                if (!ExtractField(lineCount, ref line, out sourceTimeOffset))
+                if (!ExtractField(lineCount, ref line, out int sourceTimeOffset))
                 {
                     continue;
                 }
 
                 // get server time.
-                if (!ExtractField(lineCount, ref line, out serverTimeOffset))
+                if (!ExtractField(lineCount, ref line, out int serverTimeOffset))
                 {
                     continue;
                 }
@@ -401,19 +392,21 @@ namespace HistoricalAccess
                 }
 
                 // get modification type.
-                if (!ExtractField(lineCount, ref line, out recordType))
+                if (!ExtractField(lineCount, ref line, out
+                int recordType))
                 {
                     continue;
                 }
 
                 // get modification time.
-                if (!ExtractField(lineCount, ref line, out modificationTimeOffet))
+                if (!ExtractField(lineCount, ref line, out
+                int modificationTimeOffet))
                 {
                     continue;
                 }
 
                 // get modification user.
-                if (!ExtractField(ref line, out modificationUser))
+                if (!ExtractField(ref line, out var modificationUser))
                 {
                     continue;
                 }
@@ -462,8 +455,7 @@ namespace HistoricalAccess
                     StatusCode = status
                 };
 
-                DataRow row = null;
-
+                DataRow row;
                 if (recordType == 0)
                 {
                     row = dataset.Tables[0].NewRow();
@@ -650,7 +642,7 @@ namespace HistoricalAccess
 
             try
             {
-                value = (BuiltInType)Enum.Parse(typeof(BuiltInType), field);
+                value = Enum.Parse<BuiltInType>(field);
             }
             catch (Exception e)
             {

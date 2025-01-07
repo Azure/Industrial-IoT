@@ -6,10 +6,8 @@
 namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
     using Azure.IIoT.OpcUa.Encoders;
-    using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Encoders.Utils;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly.Extensions.Serializers;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;

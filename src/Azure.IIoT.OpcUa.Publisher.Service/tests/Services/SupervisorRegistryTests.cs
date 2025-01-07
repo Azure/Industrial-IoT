@@ -28,165 +28,151 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services
     public class SupervisorRegistryTests
     {
         [Fact]
-        public async Task GetSupervisorWithmalformedId()
+        public async Task GetSupervisorWithmalformedIdAsync()
         {
             CreateSupervisorFixtures(out var site, out var supervisors, out var modules);
 
-            using (var mock = AutoMock.GetLoose(builder =>
+            using var mock = AutoMock.GetLoose(builder =>
             {
                 var hub = IoTHubMock.Create(modules, _serializer);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-            }))
-            {
-                var service = mock.Create<SupervisorRegistry>();
+            });
+            var service = mock.Create<SupervisorRegistry>();
 
-                // Run
-                await Assert.ThrowsAsync<ArgumentException>(
-                    async () => await service.GetSupervisorAsync("test", false, default));
-            }
+            // Run
+            await Assert.ThrowsAsync<ArgumentException>(
+                async () => await service.GetSupervisorAsync("test", false, default));
         }
         [Fact]
-        public async Task GetSupervisorThatDoesNotExist()
+        public async Task GetSupervisorThatDoesNotExistAsync()
         {
             CreateSupervisorFixtures(out var site, out var supervisors, out var modules);
 
-            using (var mock = AutoMock.GetLoose(builder =>
+            using var mock = AutoMock.GetLoose(builder =>
             {
                 var hub = IoTHubMock.Create(modules, _serializer);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-            }))
-            {
-                var service = mock.Create<SupervisorRegistry>();
+            });
+            var service = mock.Create<SupervisorRegistry>();
 
-                // Run
-                await Assert.ThrowsAsync<ResourceNotFoundException>(
-                    async () => await service.GetSupervisorAsync(HubResource.Format(null, "test", "test"), false, default));
-            }
+            // Run
+            await Assert.ThrowsAsync<ResourceNotFoundException>(
+                async () => await service.GetSupervisorAsync(HubResource.Format(null, "test", "test"), false, default));
         }
 
         [Fact]
-        public async Task GetSupervisorThatExists()
+        public async Task GetSupervisorThatExistsAsync()
         {
             CreateSupervisorFixtures(out var site, out var supervisors, out var modules);
 
-            using (var mock = AutoMock.GetLoose(builder =>
+            using var mock = AutoMock.GetLoose(builder =>
             {
                 var hub = IoTHubMock.Create(modules, _serializer);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-            }))
-            {
-                var service = mock.Create<SupervisorRegistry>();
+            });
+            var service = mock.Create<SupervisorRegistry>();
 
-                // Run
-                var result = await service.GetSupervisorAsync(supervisors[0].Id, false, default);
+            // Run
+            var result = await service.GetSupervisorAsync(supervisors[0].Id, false, default);
 
-                // Assert
-                Assert.True(result.IsSameAs(supervisors[0]));
-            }
+            // Assert
+            Assert.True(result.IsSameAs(supervisors[0]));
         }
 
         [Fact]
-        public async Task ListAllSupervisors()
+        public async Task ListAllSupervisorsAsync()
         {
             CreateSupervisorFixtures(out var site, out var supervisors, out var modules);
 
-            using (var mock = AutoMock.GetLoose(builder =>
+            using var mock = AutoMock.GetLoose(builder =>
             {
                 var hub = IoTHubMock.Create(modules, _serializer);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-            }))
-            {
-                var service = mock.Create<SupervisorRegistry>();
+            });
+            var service = mock.Create<SupervisorRegistry>();
 
-                // Run
-                var records = await service.ListSupervisorsAsync(null, false, null, default);
+            // Run
+            var records = await service.ListSupervisorsAsync(null, false, null, default);
 
-                // Assert
-                Assert.True(supervisors.IsSameAs(records.Items));
-            }
+            // Assert
+            Assert.True(supervisors.IsSameAs(records.Items));
         }
 
         [Fact]
-        public async Task ListAllSupervisorsUsingQuery()
+        public async Task ListAllSupervisorsUsingQueryAsync()
         {
             CreateSupervisorFixtures(out var site, out var supervisors, out var modules);
 
-            using (var mock = AutoMock.GetLoose(builder =>
+            using var mock = AutoMock.GetLoose(builder =>
             {
                 var hub = IoTHubMock.Create(modules, _serializer);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-            }))
-            {
-                var service = mock.Create<SupervisorRegistry>();
+            });
+            var service = mock.Create<SupervisorRegistry>();
 
-                // Run
-                var records = await service.QuerySupervisorsAsync(null, false, null, default);
+            // Run
+            var records = await service.QuerySupervisorsAsync(null, false, null, default);
 
-                // Assert
-                Assert.True(supervisors.IsSameAs(records.Items));
-            }
+            // Assert
+            Assert.True(supervisors.IsSameAs(records.Items));
         }
 
         [Fact]
-        public async Task QuerySupervisorsBySiteId()
+        public async Task QuerySupervisorsBySiteIdAsync()
         {
             CreateSupervisorFixtures(out var site, out var supervisors, out var modules);
 
-            using (var mock = AutoMock.GetLoose(builder =>
+            using var mock = AutoMock.GetLoose(builder =>
             {
                 var hub = IoTHubMock.Create(modules, _serializer);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-            }))
+            });
+            var service = mock.Create<SupervisorRegistry>();
+
+            // Run
+            var records = await service.QuerySupervisorsAsync(new SupervisorQueryModel
             {
-                var service = mock.Create<SupervisorRegistry>();
+                SiteId = site
+            }, false, null, default);
 
-                // Run
-                var records = await service.QuerySupervisorsAsync(new SupervisorQueryModel
-                {
-                    SiteId = site
-                }, false, null, default);
-
-                // Assert
-                Assert.True(supervisors.IsSameAs(records.Items));
-            }
+            // Assert
+            Assert.True(supervisors.IsSameAs(records.Items));
         }
 
         [Fact]
-        public async Task QuerySupervisorsByNoneExistantSiteId()
+        public async Task QuerySupervisorsByNoneExistantSiteIdAsync()
         {
             CreateSupervisorFixtures(out var site, out var supervisors, out var modules, true);
 
-            using (var mock = AutoMock.GetLoose(builder =>
+            using var mock = AutoMock.GetLoose(builder =>
             {
                 var hub = IoTHubMock.Create(modules, _serializer);
                 // builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
                 builder.RegisterType<NewtonsoftJsonSerializer>().As<IJsonSerializer>();
                 builder.RegisterInstance(hub).As<IIoTHubTwinServices>();
-            }))
+            });
+            var service = mock.Create<SupervisorRegistry>();
+
+            // Run
+            var records = await service.QuerySupervisorsAsync(new SupervisorQueryModel
             {
-                var service = mock.Create<SupervisorRegistry>();
+                SiteId = "test"
+            }, false, null, default);
 
-                // Run
-                var records = await service.QuerySupervisorsAsync(new SupervisorQueryModel
-                {
-                    SiteId = "test"
-                }, false, null, default);
-
-                // Assert
-                Assert.Empty(records.Items);
-            }
+            // Assert
+            Assert.Empty(records.Items);
         }
 
         /// <summary>

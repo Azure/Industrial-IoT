@@ -62,7 +62,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
                 var clientId = context.GetService<IOptions<MicrosoftIdentityOptions>>()?.Value.ClientId;
                 return new ConfigureNamedOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme,
                     options => options.TokenValidationParameters.ValidAudiences =
-                        clientId == null ? Enumerable.Empty<string>() : clientId.YieldReturn());
+                        clientId == null ? [] : clientId.YieldReturn());
             });
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddMicrosoftIdentityWebApi(_ => { }, _ => { },

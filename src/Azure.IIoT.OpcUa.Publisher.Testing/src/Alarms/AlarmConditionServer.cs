@@ -41,9 +41,9 @@ namespace Alarms
         {
             get
             {
-                return new StringCollection {
+                return [
                     Namespaces.AlarmCondition
-                };
+                ];
             }
         }
 

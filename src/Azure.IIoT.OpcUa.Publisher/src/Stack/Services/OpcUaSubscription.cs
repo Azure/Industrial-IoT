@@ -116,16 +116,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ?? _options.Value.EnableImmediatePublishing
             ?? false;
 
-        public bool EnableSequentialPublishing
-            => Template.EnableSequentialPublishing
-            ?? _options.Value.EnableSequentialPublishing
-            ?? true;
-
-        public bool DesiredRepublishAfterTransfer
-            => Template.RepublishAfterTransfer
-            ?? _options.Value.DefaultRepublishAfterTransfer
-            ?? false;
-
         public TimeSpan MonitoredItemWatchdogTimeout
             => Template.MonitoredItemWatchdogTimeout
             ?? _options.Value.DefaultMonitoredItemWatchdogTimeout
@@ -797,8 +787,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 // TODO: use a channel and reorder task before calling OnMessage
                 // to order or else republish is called too often
-                RepublishAfterTransfer = DesiredRepublishAfterTransfer;
-                SequentialPublishing = EnableSequentialPublishing;
+                RepublishAfterTransfer = true;
+                SequentialPublishing = true;
 
                 _logger.LogInformation(
                     "Creating new {State} subscription {Subscription} in session {Session}.",
@@ -1478,7 +1468,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private IEnumerable<OpcUaMonitoredItem> GetAllMonitoredItems(
             IEnumerable<OpcUaMonitoredItem>? parent = null)
         {
-            parent ??= Enumerable.Empty<OpcUaMonitoredItem>();
+            parent ??= [];
 
             parent = parent.Concat(CurrentlyMonitored);
 
@@ -2531,7 +2521,7 @@ Actual (revised) state/desired state:
             /// <summary>
             /// Monitored items that should be in the subscription partition
             /// </summary>
-            public List<(ISubscriber, BaseMonitoredItemModel)> Items { get; } = new();
+            public List<(ISubscriber, BaseMonitoredItemModel)> Items { get; } = [];
 
             /// <summary>
             /// Create
@@ -2734,6 +2724,6 @@ Actual (revised) state/desired state:
         private long _unassignedNotifications;
         private bool _publishingStopped;
         private bool _disposed;
-        private readonly object _timers = new();
+        private readonly Lock _timers = new();
     }
 }

@@ -346,6 +346,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         /// <summary> Schema options </summary>
         protected readonly SchemaOptions _options;
         private readonly DataSetFieldContentFlags _dataSetFieldContentMask;
-        private readonly Dictionary<string, TypedDescription> _types = new();
+        private readonly Dictionary<string, TypedDescription> _types = [];
     }
 }

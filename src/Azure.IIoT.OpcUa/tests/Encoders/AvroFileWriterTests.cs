@@ -45,7 +45,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         [Fact]
-        public async Task TestAvroFileWriter1()
+        public async Task TestAvroFileWriter1Async()
         {
             var file = Path.GetTempFileName();
             try
@@ -55,7 +55,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 {
                     await writer.WriteAsync(file, DateTime.UtcNow, new[]
                     {
-                        new ReadOnlySequence<byte>(new byte[] { 1, 2, 3 })
+                        new ReadOnlySequence<byte>([1, 2, 3])
                     }, null, new DummyEventSchema(), ContentType.Avro);
                 }
 
@@ -82,7 +82,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         [Fact]
-        public async Task TestAvroFileWriter2()
+        public async Task TestAvroFileWriter2Async()
         {
             var file = Path.GetTempFileName();
             try
@@ -92,9 +92,9 @@ namespace Azure.IIoT.OpcUa.Encoders
                 {
                     await writer.WriteAsync(file, DateTime.UtcNow, new[]
                     {
-                        new ReadOnlySequence<byte>(new byte[] { 1, 2, 3 }),
-                        new ReadOnlySequence<byte>(new byte[] { 1, 2, 3 }),
-                        new ReadOnlySequence<byte>(new byte[] { 1, 2, 3 })
+                        new ReadOnlySequence<byte>([1, 2, 3]),
+                        new ReadOnlySequence<byte>([1, 2, 3]),
+                        new ReadOnlySequence<byte>([1, 2, 3])
                     }, null, new DummyEventSchema(), ContentType.Avro);
                 }
 
@@ -121,7 +121,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         [Fact]
-        public async Task TestAvroFileWriter3()
+        public async Task TestAvroFileWriter3Async()
         {
             var file = Path.GetTempFileName();
             try
@@ -145,7 +145,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         [Fact]
-        public async Task TestAvroFileWriter4()
+        public async Task TestAvroFileWriter4Async()
         {
             var file = Path.GetTempFileName();
             try
@@ -183,7 +183,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         [Fact]
-        public async Task TestAvroFileWriter5()
+        public async Task TestAvroFileWriter5Async()
         {
             var file = Path.GetTempFileName();
             try
@@ -223,7 +223,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         [InlineData("")]
         [InlineData("ab")]
         [InlineData("badheader")]
-        public async Task TestBadHeader1(string data)
+        public async Task TestBadHeader1Async(string data)
         {
             var file = Path.GetTempFileName();
             try

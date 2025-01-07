@@ -11,7 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher
     /// <summary>
     /// Industrial iot diagnostics
     /// </summary>
-    public static class Diagnostics
+    public sealed class Diagnostics : IMeterFactory
     {
         /// <summary>
         /// Version
@@ -42,6 +42,17 @@ namespace Azure.IIoT.OpcUa.Publisher
         public static ActivitySource NewActivitySource()
         {
             return new(Namespace, Version);
+        }
+
+        /// <inheritdoc/>
+        public Meter Create(MeterOptions options)
+        {
+            return Diagnostics.NewMeter();
+        }
+
+        /// <inheritdoc/>
+        public void Dispose()
+        {
         }
     }
 }

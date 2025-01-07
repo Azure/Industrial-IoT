@@ -67,6 +67,7 @@ namespace Plc.PluginNodes
             // Convert to node that can be manipulated within the server.
             _node = new PlcState(null);
             _node.Create(_plcNodeManager.SystemContext, passiveNode);
+            _node.PlcStatus.Value = new PlcDataType();
 
             _plcNodeManager.AddPredefinedNode(_node);
 

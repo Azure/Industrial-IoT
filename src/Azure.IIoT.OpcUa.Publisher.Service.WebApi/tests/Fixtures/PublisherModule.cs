@@ -24,7 +24,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
 
     /// <summary>
     /// Opc Publisher module fixture
@@ -83,16 +82,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests
             // Start module
             var edgeHubCs = ConnectionString.CreateModuleConnectionString(
                 "test.test.org", device.Id, device.ModuleId, device.PrimaryKey);
-            arguments = arguments.Concat(
-                new[]
+            arguments =
+            [
+                .. arguments,
+                .. new[]
                 {
                     $"--ec={edgeHubCs}",
                     "--ki=90",
                     "--aa"
-                }).ToArray();
+                },
+            ];
             if (OperatingSystem.IsLinux())
             {
-                arguments = arguments.Append("--pol").ToArray();
+                arguments = [.. arguments, "--pol"];
             }
             var configBuilder = new ConfigurationBuilder()
                 .AddInMemoryCollection(new Dictionary<string, string>

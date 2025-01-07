@@ -38,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         [Fact]
-        public async Task TestZipFileWriter1()
+        public async Task TestZipFileWriter1Async()
         {
             var file = Path.GetTempFileName();
             try
@@ -47,7 +47,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 {
                     await writer.WriteAsync(file, DateTime.UtcNow, new[]
                     {
-                        new ReadOnlySequence<byte>(new byte[] { 1, 2, 3 })
+                        new ReadOnlySequence<byte>([1, 2, 3])
                     }, null, new DummyEventSchema(), ContentType.Uadp);
                 }
 
@@ -74,7 +74,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         [Fact]
-        public async Task TestZipFileWriter2()
+        public async Task TestZipFileWriter2Async()
         {
             var file = Path.GetTempFileName();
             try
@@ -83,15 +83,15 @@ namespace Azure.IIoT.OpcUa.Encoders
                 {
                     await writer.WriteAsync(file, DateTime.UtcNow, new[]
                     {
-                        new ReadOnlySequence<byte>(new byte[] { 1, 2, 3 })
+                        new ReadOnlySequence<byte>([1, 2, 3])
                     }, null, new DummyEventSchema(), ContentType.Uadp);
                     await writer.WriteAsync(file, DateTime.UtcNow, new[]
                     {
-                        new ReadOnlySequence<byte>(new byte[] { 1, 2, 3 })
+                        new ReadOnlySequence<byte>([1, 2, 3])
                     }, null, new DummyEventSchema(), ContentType.Uadp);
                     await writer.WriteAsync(file, DateTime.UtcNow, new[]
                      {
-                        new ReadOnlySequence<byte>(new byte[] { 1, 2, 3 })
+                        new ReadOnlySequence<byte>([1, 2, 3])
                     }, null, new DummyEventSchema(), ContentType.Uadp);
                 }
 
@@ -118,7 +118,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         [Fact]
-        public async Task TestZipFileWriter3()
+        public async Task TestZipFileWriter3Async()
         {
             var file = Path.GetTempFileName();
             try
@@ -143,7 +143,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         [Fact]
-        public async Task TestZipFileWriter4()
+        public async Task TestZipFileWriter4Async()
         {
             var file = Path.GetTempFileName();
             try
@@ -177,7 +177,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         [Fact]
-        public async Task TestZipFileWriter5()
+        public async Task TestZipFileWriter5Async()
         {
             var file = Path.GetTempFileName();
             try
@@ -219,7 +219,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         [Fact]
-        public async Task TestZipFileWriter6()
+        public async Task TestZipFileWriter6Async()
         {
             var file = Path.GetTempFileName();
             try
@@ -265,7 +265,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         [InlineData("")]
         [InlineData("ab")]
         [InlineData("badheader")]
-        public async Task TestBadHeader1(string data)
+        public async Task TestBadHeader1Async(string data)
         {
             var file = Path.GetTempFileName();
             try

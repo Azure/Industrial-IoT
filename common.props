@@ -15,7 +15,7 @@
     <PackageTags>Industrial;Industrial IoT;Manufacturing;Azure;IoT;.NET</PackageTags>
     <HighEntropyVA>true</HighEntropyVA>
     <NeutralLanguage>en-US</NeutralLanguage>
-    <LangVersion>11.0</LangVersion>
+    <LangVersion>13.0</LangVersion>
     <IsPackable>false</IsPackable>
     <Nullable>disable</Nullable>
     <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
@@ -34,18 +34,20 @@
   </PropertyGroup>
   <ItemGroup Condition="$(NO_GIT) == ''">
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All"/>
-    <PackageReference Include="Nerdbank.GitVersioning" Version="3.6.146" PrivateAssets="All"/>
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.7.112" PrivateAssets="All"/>
   </ItemGroup>
   <PropertyGroup>
     <IncludeOpenAPIAnalyzers>true</IncludeOpenAPIAnalyzers>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisMode>All</AnalysisMode>
     <AnalysisLevel>preview</AnalysisLevel>
+    <AnalysisModeStyle>default</AnalysisModeStyle>
+    <CodeAnalysisTreatWarningsAsErrors>false</CodeAnalysisTreatWarningsAsErrors>
     <!--<TreatWarningsAsErrors>true</TreatWarningsAsErrors>-->
   </PropertyGroup>
   <ItemGroup Condition="$(NO_RCS) == ''">
-    <PackageReference Include="Roslynator.Analyzers" Version="4.12.9" PrivateAssets="All"/>
-    <PackageReference Include="Roslynator.Formatting.Analyzers" Version="4.12.9" PrivateAssets="All"/>
+    <PackageReference Include="Roslynator.Analyzers" Version="4.12.10" PrivateAssets="All"/>
+    <PackageReference Include="Roslynator.Formatting.Analyzers" Version="4.12.10" PrivateAssets="All"/>
   </ItemGroup>
   <!-- only create the SARIF files for the SDL build step in cloud builds -->
   <PropertyGroup Condition="'$(NBGV_NugetPackageVersion)' != ''">

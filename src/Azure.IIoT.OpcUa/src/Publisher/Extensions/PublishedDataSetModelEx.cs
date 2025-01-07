@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using System.Diagnostics.CodeAnalysis;
-    using System.Linq;
 
     /// <summary>
     /// Published dataset extensions

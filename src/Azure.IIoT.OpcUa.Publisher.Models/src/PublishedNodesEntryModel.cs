@@ -342,14 +342,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public bool? DisableSubscriptionTransfer { get; set; }
 
         /// <summary>
-        /// Republish after transferring the subscription during
-        /// reconnect handling unless subscription transfer was disabled.
-        /// </summary>
-        [DataMember(Name = "RepublishAfterTransfer", Order = 41,
-            EmitDefaultValue = false)]
-        public bool? RepublishAfterTransfer { get; set; }
-
-        /// <summary>
         /// The timeout to use to monitor the monitored items in the
         /// subscription are continously reporting fresh data.
         /// </summary>

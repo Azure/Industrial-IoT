@@ -65,7 +65,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             }));
             if (itemsToRead.Count == 0)
             {
-                return Enumerable.Empty<(T?, ServiceResultModel?)>();
+                return [];
             }
             var response = await session.Services.ReadAsync(header,
                 0, Opc.Ua.TimestampsToReturn.Neither, itemsToRead, ct).ConfigureAwait(false);
@@ -383,7 +383,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 var readResults = response.Validate(response.Results,
                     s => s.StatusCode, response.DiagnosticInfos, nodeClassRead);
                 nodeClass = readResults.ErrorInfo != null ? Opc.Ua.NodeClass.Unspecified :
-                    readResults[0].Result.GetValueOrDefault<Opc.Ua.NodeClass>();
+                    readResults[0].Result.GetValueOrDefaultEx<Opc.Ua.NodeClass>();
             }
             if (nodeClass == Opc.Ua.NodeClass.VariableType)
             {
@@ -894,14 +894,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             metadata.AddRange(attributes.Select(node => new VariableMetadataModel
             {
                 ArrayDimensions = node.Value[Attributes.ArrayDimensions]
-                    .GetValueOrDefault<uint[]>()?.ToList(),
+                    .GetValueOrDefaultEx<uint[]>()?.ToList(),
                 DataType = new DataTypeMetadataModel
                 {
-                    DataType = node.Value[Attributes.DataType].GetValueOrDefault<NodeId>()?
+                    DataType = node.Value[Attributes.DataType].GetValueOrDefaultEx<NodeId>()?
                         .AsString(session.MessageContext, namespaceFormat)
                 },
                 ValueRank = (NodeValueRank?)node.Value[Attributes.ValueRank]
-                    .GetValueOrDefault<int?>(v => v == ValueRanks.Any ? null : v)
+                    .GetValueOrDefaultEx<int?>(v => v == ValueRanks.Any ? null : v)
             }));
             return null;
         }
@@ -1122,92 +1122,92 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     value.Item2,
                 BrowseName =
                     lookup[Attributes.BrowseName].Item1?
-                        .GetValueOrDefault<QualifiedName>()?
+                        .GetValueOrDefaultEx<QualifiedName>()?
                         .AsString(session.MessageContext, namespaceFormat),
                 DisplayName =
                     lookup[Attributes.DisplayName].Item1?
-                        .GetValueOrDefault<LocalizedText>()?
+                        .GetValueOrDefaultEx<LocalizedText>()?
                         .ToString(),
                 Description =
                     lookup[Attributes.Description].Item1?
-                        .GetValueOrDefault<LocalizedText>()?
+                        .GetValueOrDefaultEx<LocalizedText>()?
                         .ToString(),
                 NodeClass =
                     lookup[Attributes.NodeClass].Item1?
-                        .GetValueOrDefault<Opc.Ua.NodeClass>()
+                        .GetValueOrDefaultEx<Opc.Ua.NodeClass>()
                         .ToServiceType(),
                 AccessRestrictions = (NodeAccessRestrictions?)
                     lookup[Attributes.AccessRestrictions].Item1?
-                        .GetValueOrDefault<ushort?>(v => v == 0 ? null : v),
+                        .GetValueOrDefaultEx<ushort?>(v => v == 0 ? null : v),
                 UserWriteMask =
                     lookup[Attributes.UserWriteMask].Item1?
-                        .GetValueOrDefault<uint?>(),
+                        .GetValueOrDefaultEx<uint?>(),
                 WriteMask =
                     lookup[Attributes.WriteMask].Item1?
-                        .GetValueOrDefault<uint?>(),
+                        .GetValueOrDefaultEx<uint?>(),
                 DataType =
                     lookup[Attributes.DataType].Item1?
-                        .GetValueOrDefault<NodeId>()?
+                        .GetValueOrDefaultEx<NodeId>()?
                         .AsString(session.MessageContext, namespaceFormat),
                 ArrayDimensions =
                     lookup[Attributes.ArrayDimensions].Item1?
-                        .GetValueOrDefault<uint[]?>(),
+                        .GetValueOrDefaultEx<uint[]?>(),
                 ValueRank = (NodeValueRank?)
                     lookup[Attributes.ValueRank].Item1?
-                        .GetValueOrDefault<int?>(),
+                        .GetValueOrDefaultEx<int?>(),
                 AccessLevel = (NodeAccessLevel?)
                     lookup[Attributes.AccessLevelEx].Item1?
-                        .GetValueOrDefault<uint?>(l =>
+                        .GetValueOrDefaultEx<uint?>(l =>
                         {
                             // Or both if available
                             var v = (l ?? 0) |
                             lookup[Attributes.AccessLevel].Item1?
-                                .GetValueOrDefault<byte?>(b => b ?? 0);
+                                .GetValueOrDefaultEx<byte?>(b => b ?? 0);
                             return v == 0 ? null : v;
                         }),
                 UserAccessLevel = (NodeAccessLevel?)
                     lookup[Attributes.UserAccessLevel].Item1?
-                        .GetValueOrDefault<byte?>(),
+                        .GetValueOrDefaultEx<byte?>(),
                 Historizing =
                     lookup[Attributes.Historizing].Item1?
-                        .GetValueOrDefault<bool?>(),
+                        .GetValueOrDefaultEx<bool?>(),
                 MinimumSamplingInterval =
                     lookup[Attributes.MinimumSamplingInterval].Item1?
-                        .GetValueOrDefault<double?>(),
+                        .GetValueOrDefaultEx<double?>(),
                 IsAbstract =
                     lookup[Attributes.IsAbstract].Item1?
-                        .GetValueOrDefault<bool?>(),
+                        .GetValueOrDefaultEx<bool?>(),
                 EventNotifier = (NodeEventNotifier?)
                     lookup[Attributes.EventNotifier].Item1?
-                        .GetValueOrDefault<byte?>(v => v == 0 ? null : v),
+                        .GetValueOrDefaultEx<byte?>(v => v == 0 ? null : v),
                 DataTypeDefinition = session.Codec.Encode(
                     lookup[Attributes.DataTypeDefinition].Item1?
-                        .GetValueOrDefault<ExtensionObject>(), out _),
+                        .GetValueOrDefaultEx<ExtensionObject>(), out _),
                 InverseName =
                     lookup[Attributes.InverseName].Item1?
-                        .GetValueOrDefault<LocalizedText>()?
+                        .GetValueOrDefaultEx<LocalizedText>()?
                         .ToString(),
                 Symmetric =
                     lookup[Attributes.Symmetric].Item1?
-                        .GetValueOrDefault<bool?>(),
+                        .GetValueOrDefaultEx<bool?>(),
                 ContainsNoLoops =
                     lookup[Attributes.ContainsNoLoops].Item1?
-                        .GetValueOrDefault<bool?>(),
+                        .GetValueOrDefaultEx<bool?>(),
                 Executable =
                     lookup[Attributes.Executable].Item1?
-                        .GetValueOrDefault<bool?>(),
+                        .GetValueOrDefaultEx<bool?>(),
                 UserExecutable =
                     lookup[Attributes.UserExecutable].Item1?
-                        .GetValueOrDefault<bool?>(),
+                        .GetValueOrDefaultEx<bool?>(),
                 UserRolePermissions =
                     lookup[Attributes.UserRolePermissions].Item1?
-                        .GetValueOrDefault<ExtensionObject[]>()?
+                        .GetValueOrDefaultEx<ExtensionObject[]>()?
                         .Select(ex => ex.Body)
                         .OfType<RolePermissionType>()
                         .Select(p => p.ToServiceModel(session.MessageContext, namespaceFormat)).ToList(),
                 RolePermissions =
                     lookup[Attributes.RolePermissions].Item1?
-                        .GetValueOrDefault<ExtensionObject[]>()?
+                        .GetValueOrDefaultEx<ExtensionObject[]>()?
                         .Select(ex => ex.Body)
                         .OfType<RolePermissionType>()
                         .Select(p => p.ToServiceModel(session.MessageContext, namespaceFormat)).ToList()
@@ -1308,7 +1308,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                         return (targetIds, nextResults.ErrorInfo);
                     }
 
-                    continuationPoints = new ByteStringCollection();
+                    continuationPoints = [];
                     foreach (var result in nextResults)
                     {
                         // check for error.
@@ -1467,7 +1467,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             this IOpcUaSession session, NodeId rootId, NodeState parent,
             RelativePath? parentPath, List<BrowsePath>? browsePaths = null)
         {
-            browsePaths ??= new List<BrowsePath>();
+            browsePaths ??= [];
             var children = new List<BaseInstanceState>();
             parent.GetChildren(session.SystemContext, children);
             foreach (var child in children)

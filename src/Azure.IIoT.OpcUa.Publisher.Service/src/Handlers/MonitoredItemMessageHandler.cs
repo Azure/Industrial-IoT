@@ -56,7 +56,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
                     return;
                 }
 
-                foreach (MonitoredItemMessage message in networkMessage.Messages)
+                foreach (var message in networkMessage.Messages.Cast<MonitoredItemMessage>())
                 {
                     var type = BuiltInType.Null;
                     var codec = _encoder.Create(context);

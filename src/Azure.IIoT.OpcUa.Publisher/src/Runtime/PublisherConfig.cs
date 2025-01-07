@@ -451,7 +451,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <summary>
         /// Running in container
         /// </summary>
-        static bool IsContainer => StringComparer.OrdinalIgnoreCase.Equals(
+        private static bool IsContainer => StringComparer.OrdinalIgnoreCase.Equals(
             Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER")
                 ?? string.Empty, "true");
 
