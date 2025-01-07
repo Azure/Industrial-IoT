@@ -72,6 +72,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public bool? EnableImmediatePublishing { get; set; }
 
         /// <summary>
+        /// Enable sequential publishing feature in the stack.
+        /// </summary>
+        public bool? EnableSequentialPublishing { get; set; }
+
+        /// <summary>
         /// Flag wether to grab the display name of nodes form
         /// the OPC UA Server.
         /// </summary>

@@ -44,11 +44,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         public bool? UseDeferredAcknoledgements { get; init; }
 
         /// <summary>
+        /// Use the sequential publishing feature in the stack.
+        /// </summary>
+        public bool? EnableSequentialPublishing { get; init; }
+
+        /// <summary>
         /// Will set the subscription to have publishing
         /// enabled and every monitored item created to be
         /// in desired monitoring mode.
         /// </summary>
         public bool? EnableImmediatePublishing { get; init; }
+
+        /// <summary>
+        /// Republish after transfer
+        /// </summary>
+        public bool? RepublishAfterTransfer { get; init; }
 
         /// <summary>
         /// Subscription watchdog behavior

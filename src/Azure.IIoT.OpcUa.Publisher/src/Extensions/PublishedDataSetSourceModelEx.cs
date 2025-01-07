@@ -35,6 +35,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                        null : subscriptionSettings?.PublishingInterval,
                 UseDeferredAcknoledgements = subscriptionSettings?.UseDeferredAcknoledgements,
                 EnableImmediatePublishing = subscriptionSettings?.EnableImmediatePublishing,
+                EnableSequentialPublishing = subscriptionSettings?.EnableSequentialPublishing,
+                RepublishAfterTransfer = subscriptionSettings?.RepublishAfterTransfer,
                 MonitoredItemWatchdogTimeout = subscriptionSettings?.MonitoredItemWatchdogTimeout,
                 WatchdogCondition = subscriptionSettings?.MonitoredItemWatchdogCondition,
                 WatchdogBehavior = subscriptionSettings?.WatchdogBehavior,

@@ -116,6 +116,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ?? _options.Value.EnableImmediatePublishing
             ?? false;
 
+        public bool EnableSequentialPublishing
+            => Template.EnableSequentialPublishing
+            ?? _options.Value.EnableSequentialPublishing
+            ?? true;
+
+        public bool DesiredRepublishAfterTransfer
+            => Template.RepublishAfterTransfer
+            ?? _options.Value.DefaultRepublishAfterTransfer
+            ?? false;
+
         public TimeSpan MonitoredItemWatchdogTimeout
             => Template.MonitoredItemWatchdogTimeout
             ?? _options.Value.DefaultMonitoredItemWatchdogTimeout
@@ -787,8 +797,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 // TODO: use a channel and reorder task before calling OnMessage
                 // to order or else republish is called too often
-                RepublishAfterTransfer = true;
-                SequentialPublishing = true;
+                RepublishAfterTransfer = DesiredRepublishAfterTransfer;
+                SequentialPublishing = EnableSequentialPublishing;
 
                 _logger.LogInformation(
                     "Creating new {State} subscription {Subscription} in session {Session}.",
