@@ -26,6 +26,10 @@ jobs:
         - language: csharp
           build-mode: autobuild
     steps:
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 9.0.x
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
