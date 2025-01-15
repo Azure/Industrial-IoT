@@ -66,63 +66,63 @@ namespace Alarms
             // use suitable defaults if no configuration exists.
             _configuration ??= new AlarmConditionServerConfiguration
             {
-                Areas = new AreaConfigurationCollection {
+                Areas = [
                         new AreaConfiguration {
                             Name = "Green",
-                            SubAreas = new AreaConfigurationCollection {
+                            SubAreas = [
                                 new AreaConfiguration {
                                     Name = "East",
-                                    SubAreas = new AreaConfigurationCollection {
+                                    SubAreas = [
                                         new AreaConfiguration {
                                             Name = "Red",
-                                            SourcePaths = new StringCollection {
+                                            SourcePaths = [
                                                 "Colours/EastTank",
                                                 "Colours/NorthMotor"
-                                            }
+                                            ]
                                         },
                                         new AreaConfiguration {
                                             Name = "Blue",
-                                            SourcePaths = new StringCollection {
+                                            SourcePaths = [
                                                 "Metals/WestTank",
                                                 "Metals/SouthMotor"
-                                            }
+                                            ]
                                         }
-                                    }
+                                    ]
                                 }
-                            }
+                            ]
                         },
                         new AreaConfiguration {
                             Name = "Yellow",
-                            SubAreas = new AreaConfigurationCollection {
+                            SubAreas = [
                                 new AreaConfiguration {
                                     Name = "West",
-                                    SubAreas = new AreaConfigurationCollection {
+                                    SubAreas = [
                                         new AreaConfiguration {
                                             Name = "Red",
-                                            SourcePaths = new StringCollection {
+                                            SourcePaths = [
                                                 "Metals/SouthMotor",
                                                 "Colours/NorthMotor"
-                                            }
+                                            ]
                                         },
                                         new AreaConfiguration {
                                             Name = "Blue",
-                                            SourcePaths = new StringCollection {
+                                            SourcePaths = [
                                                 "Colours/EastTank",
                                                 "Metals/WestTank"
-                                            }
+                                            ]
                                         }
-                                    }
+                                    ]
                                 }
-                            }
+                            ]
                         }
-                    }
+                    ]
             };
 
             // create the table to store the available areas.
-            _areas = new Dictionary<string, AreaState>();
+            _areas = [];
 
             // create the table to store the available sources.
-            _sources = new Dictionary<string, SourceState>();
+            _sources = [];
             _timeservice = timeservice;
         }
 
@@ -188,7 +188,7 @@ namespace Alarms
 
                     if (!externalReferences.TryGetValue(ObjectIds.Server, out var references))
                     {
-                        externalReferences[ObjectIds.Server] = references = new List<IReference>();
+                        externalReferences[ObjectIds.Server] = references = [];
                     }
 
                     for (var ii = 0; ii < _configuration.Areas.Count; ii++)

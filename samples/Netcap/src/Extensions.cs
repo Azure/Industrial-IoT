@@ -9,7 +9,6 @@ using Microsoft.Azure.Devices.Shared;
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -100,7 +99,7 @@ internal static partial class Extensions
         name = AlphaNumOnly().Replace(name, "");
         if (name.Length > 24)
         {
-            name = name.Substring(0, 24);
+            name = name[..24];
         }
         return name;
     }
@@ -165,7 +164,7 @@ internal static partial class Extensions
         }
         else if (containerName.Length > 63)
         {
-            containerName = containerName.Substring(0, 63);
+            containerName = containerName[..63];
         }
 #pragma warning disable CA1308 // Normalize strings to uppercase
         return containerName.ToLowerInvariant();
@@ -183,7 +182,7 @@ internal static partial class Extensions
         CancellationToken ct = default)
     {
         var copied = 0;
-        byte[] buffer = ArrayPool<byte>.Shared.Rent(8 * 1024);
+        var buffer = ArrayPool<byte>.Shared.Rent(8 * 1024);
         try
         {
             while (!ct.IsCancellationRequested)

@@ -34,7 +34,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// DataSet Messages
         /// </summary>
 #pragma warning disable CA2227 // Collection properties should be read only
-        public IList<BaseDataSetMessage> Messages { get; set; } = new List<BaseDataSetMessage>();
+        public IList<BaseDataSetMessage> Messages { get; set; } = [];
 #pragma warning restore CA2227 // Collection properties should be read only
 
         /// <inheritdoc/>
@@ -73,6 +73,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             return hash.ToHashCode();
         }
 
-        internal const string kMessageTypeName = "NetworkMessage";
+        internal const string MessageTypeName = "NetworkMessage";
     }
 }

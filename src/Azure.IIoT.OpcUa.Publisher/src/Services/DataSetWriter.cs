@@ -5,12 +5,12 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
+    using Azure.IIoT.OpcUa.Encoders;
+    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Azure.IIoT.OpcUa.Encoders.PubSub;
-    using Azure.IIoT.OpcUa.Encoders;
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
@@ -626,7 +626,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             _group._dataChanges.Count = 0;
                             _group._valueChanges.Count = 0;
                             _group._heartbeats.Count = 0;
-                            _group.OnCounterReset?.Invoke(this, EventArgs.Empty);
+                            _group._sink.OnCounterReset();
                         }
 
                         _group._valueChanges.Count += valueChanges;
@@ -658,7 +658,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             _group._cyclicReads.Count, _group._sampledValues.Count);
                         _group._cyclicReads.Count = 0;
                         _group._sampledValues.Count = 0;
-                        _group.OnCounterReset?.Invoke(this, EventArgs.Empty);
+                        _group._sink.OnCounterReset();
                     }
 
                     _group._sampledValues.Count += valuesSampled;
@@ -696,7 +696,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             _group._eventNotification.Count = 0;
                             _group._modelChanges.Count = 0;
 
-                            _group.OnCounterReset?.Invoke(this, EventArgs.Empty);
+                            _group._sink.OnCounterReset();
                         }
 
                         _group._eventNotification.Count += events;
@@ -848,7 +848,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         single)
                                 };
 #pragma warning restore CA2000 // Dispose objects before losing scope
-                                _group.OnMessage?.Invoke(this, metadataFrame);
+                                _group._sink.OnMessage(metadataFrame);
                                 InitializeMetaDataTrigger();
                             }
                         }
@@ -862,7 +862,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 single);
                             _logger.LogTrace("Enqueuing notification: {Notification}",
                                 notification.ToString());
-                            _group.OnMessage?.Invoke(this, notification);
+                            _group._sink.OnMessage(notification);
                         }
                     }
                 }
@@ -1108,7 +1108,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         {
                             return _extensionFields;
                         }
-                        var extensionFields = _extensionFields?.ToList() ?? new List<ExtensionFieldModel>();
+                        var extensionFields = _extensionFields?.ToList() ?? [];
                         if ((_fieldMask & DataSetFieldContentFlags.EndpointUrl) != 0 &&
                             !extensionFields
                             .Any(f => f.DataSetFieldName == nameof(DataSetFieldContentFlags.EndpointUrl)))
@@ -1265,7 +1265,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             private readonly WriterGroupDataSource _group;
             private readonly ILogger _logger;
-            private readonly object _lock = new();
+            private readonly Lock _lock = new();
             private volatile uint _frameCount;
             private uint? _lastMajorVersion;
             private uint? _lastMinorVersion;

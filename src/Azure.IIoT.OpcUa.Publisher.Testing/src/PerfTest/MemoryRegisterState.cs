@@ -211,7 +211,7 @@ namespace PerfTest
         {
             _ = (UnderlyingSystem)SystemContext.SystemHandle;
 
-            NodeId targetId = null;
+            NodeId targetId;
 
             // check if a specific browse name is requested.
             if (!QualifiedName.IsNull(BrowseName))

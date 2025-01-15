@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
-    using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>

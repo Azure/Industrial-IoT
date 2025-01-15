@@ -40,10 +40,10 @@ namespace TestData
         {
             get
             {
-                return new StringCollection {
+                return [
                     Namespaces.TestData,
                     Namespaces.TestData + "/Instance"
-                };
+                ];
             }
         }
 

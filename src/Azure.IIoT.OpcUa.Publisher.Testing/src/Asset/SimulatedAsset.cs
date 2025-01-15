@@ -86,7 +86,9 @@ namespace Asset
                 _timer.Dispose();
             }
 
+#pragma warning disable IDE0060 // Remove unused parameter
             public void Observe(uint id, OnAssetTagChange callback)
+#pragma warning restore IDE0060 // Remove unused parameter
             {
                 if (Interlocked.Increment(ref _monitoringCount) == 1)
                 {
@@ -95,7 +97,9 @@ namespace Asset
                 }
             }
 
+#pragma warning disable IDE0060 // Remove unused parameter
             public void Unobserve(uint id)
+#pragma warning restore IDE0060 // Remove unused parameter
             {
                 if (Interlocked.Decrement(ref _monitoringCount) == 0)
                 {

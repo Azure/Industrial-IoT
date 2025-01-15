@@ -289,19 +289,19 @@ namespace Azure.IIoT.OpcUa.Encoders
         public virtual void WriteDataSet(string? fieldName, DataSet dataSet)
         {
             var fieldContentMask = dataSet.DataSetFieldContentMask;
-            if ((fieldContentMask.HasFlag(DataSetFieldContentFlags.RawData)) ||
+            if (fieldContentMask.HasFlag(DataSetFieldContentFlags.RawData) ||
                 fieldContentMask == 0)
             {
-                foreach (var field in dataSet.DataSetFields)
+                foreach (var (Name, Value) in dataSet.DataSetFields)
                 {
-                    WriteVariant(field.Name, field.Value?.WrappedValue ?? default);
+                    WriteVariant(Name, Value?.WrappedValue ?? default);
                 }
             }
             else
             {
-                foreach (var field in dataSet.DataSetFields)
+                foreach (var (Name, Value) in dataSet.DataSetFields)
                 {
-                    WriteNullable(field.Name, field.Value, WriteDataValue);
+                    WriteNullable(Name, Value, WriteDataValue);
                 }
             }
         }
@@ -1396,7 +1396,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// Lookup
         /// </summary>
         internal static readonly FrozenDictionary<(SchemaRank, BuiltInType), int> _variableUnionId =
-            BaseAvroDecoder._variantUnionFieldIds
+            BaseAvroDecoder.VariantUnionFieldIds
                 .ToArray()
                 .Select((f, i) => System.Collections.Generic.KeyValuePair.Create(f, i))
                 .ToFrozenDictionary();

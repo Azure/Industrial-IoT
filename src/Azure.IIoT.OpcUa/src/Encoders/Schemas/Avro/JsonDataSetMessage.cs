@@ -78,13 +78,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
             if (dataSetMessageContentFlags.HasFlag(DataSetMessageContentFlags.MetaDataVersion))
             {
                 var version = RecordSchema.Create(nameof(ConfigurationVersionDataType),
-                    new List<Field>
-                {
+                    [
                     new(encoding.GetSchemaForBuiltInType(BuiltInType.UInt32),
                         "MajorVersion", 0),
                     new(encoding.GetSchemaForBuiltInType(BuiltInType.UInt32),
                         "MinorVersion", 1)
-                }, SchemaUtils.NamespaceZeroName,
+                ], SchemaUtils.NamespaceZeroName,
                     new[] { "i_" + DataTypes.ConfigurationVersionDataType });
                 fields.Add(new(version, nameof(DataSetMessageContentFlags.MetaDataVersion), pos++));
             }

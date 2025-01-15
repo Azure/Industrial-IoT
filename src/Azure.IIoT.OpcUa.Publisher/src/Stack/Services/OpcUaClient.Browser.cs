@@ -542,8 +542,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return cleanup;
             }
 
-            const int kMaxSearchDepth = 128;
-            const int kMaxReferencesPerNode = 1000;
+            private const int kMaxSearchDepth = 128;
+            private const int kMaxReferencesPerNode = 1000;
 
             private bool _disposed;
             private uint _sequenceNumber;
@@ -554,7 +554,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private int _nodesChanged;
             private int _nodesRemoved;
             private int _errors;
-            private Dictionary<NodeId, (RelativePath, Node)> _knownNodes = new();
+            private Dictionary<NodeId, (RelativePath, Node)> _knownNodes = [];
             private Dictionary<ReferenceDescription, (NodeId, RelativePath)> _knownReferences =
                 new(Compare.Using<ReferenceDescription>(Utils.IsEqual));
             private readonly string _subscriptionId;

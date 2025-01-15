@@ -22,12 +22,12 @@ namespace Plc
         public PlcNodeManager(IServerInternal server,
             ApplicationConfiguration configuration,
             TimeService timeService, ILogger logger, uint scaleunits)
-            : base(server, configuration, new string[]
-            {
+            : base(server, configuration,
+            [
                 Namespaces.PlcApplications,
                 Namespaces.PlcSimulation,
                 Namespaces.PlcInstance
-            })
+            ])
         {
             _timeService = timeService;
             _logger = logger;
@@ -102,7 +102,7 @@ namespace Plc
             {
                 if (!externalReferences.TryGetValue(ObjectIds.ObjectsFolder, out var references))
                 {
-                    externalReferences[ObjectIds.ObjectsFolder] = references = new List<IReference>();
+                    externalReferences[ObjectIds.ObjectsFolder] = references = [];
                 }
 
                 _externalReferences = externalReferences;
@@ -303,11 +303,11 @@ namespace Plc
 
             if (valueRank == ValueRanks.OneDimension)
             {
-                baseDataVariableState.ArrayDimensions = new ReadOnlyList<uint>(new List<uint> { 0 });
+                baseDataVariableState.ArrayDimensions = new ReadOnlyList<uint>([0]);
             }
             else if (valueRank == ValueRanks.TwoDimensions)
             {
-                baseDataVariableState.ArrayDimensions = new ReadOnlyList<uint>(new List<uint> { 0, 0 });
+                baseDataVariableState.ArrayDimensions = new ReadOnlyList<uint>([0, 0]);
             }
 
             parent?.AddChild(baseDataVariableState);

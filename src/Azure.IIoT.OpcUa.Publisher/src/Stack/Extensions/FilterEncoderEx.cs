@@ -61,7 +61,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             return new EventFilter
             {
                 SelectClauses = new SimpleAttributeOperandCollection(
-                    model.SelectClauses == null ? Enumerable.Empty<SimpleAttributeOperand>() :
+                    model.SelectClauses == null ? [] :
                     model.SelectClauses.Select(c => c.ToStackModel(encoder.Context))),
                 //
                 // Per Part 4 only allow simple attribute operands in where clause
@@ -112,7 +112,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             return new ContentFilter
             {
                 Elements = new ContentFilterElementCollection(model.Elements == null ?
-                    Enumerable.Empty<ContentFilterElement>() : model.Elements
+                    [] : model.Elements
                         .Select(e => encoder.Decode(e, onlySimpleAttributeOperands)))
             };
         }
@@ -158,7 +158,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             return new ContentFilterElement
             {
                 FilterOperands = new ExtensionObjectCollection(model.FilterOperands == null ?
-                    Enumerable.Empty<ExtensionObject>() : model.FilterOperands
+                    [] : model.FilterOperands
                         .Select(e => new ExtensionObject(
                             encoder.Decode(e, onlySimpleAttributeOperands)))),
                 FilterOperator = model.FilterOperator.ToStackType()
@@ -246,7 +246,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                 TypeDefinitionId = model.NodeId.ToNodeId(encoder.Context),
                 AttributeId = (uint)(model.AttributeId ?? NodeAttribute.Value),
                 BrowsePath = new QualifiedNameCollection(model.BrowsePath == null ?
-                    Enumerable.Empty<QualifiedName>() :
+                    [] :
                     model.BrowsePath.Select(n => n.ToQualifiedName(encoder.Context))),
                 IndexRange = model.IndexRange
             };

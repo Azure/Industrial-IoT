@@ -379,9 +379,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             foreach (var dataSetMessage in networkMessage.Messages)
             {
                 var expectedPayload = new Dictionary<string, DataValue>();
-                foreach (var entry in dataSetMessage.Payload.DataSetFields)
+                foreach (var (Name, Value) in dataSetMessage.Payload.DataSetFields)
                 {
-                    expectedPayload[entry.Name] = new DataValue(entry.Value).ToOpcUaUniversalTime();
+                    expectedPayload[Name] = new DataValue(Value).ToOpcUaUniversalTime();
                 }
                 dataSetMessage.Payload = new DataSet(expectedPayload,
                     DataSetFieldContentFlags.StatusCode |

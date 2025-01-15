@@ -106,7 +106,7 @@ internal sealed record class Gateway
                 {
                     Console.WriteLine($"{index + 1}: {deployments[index]}");
                 }
-                var i = 0;
+                int i;
                 Console.WriteLine("Select publisher index: ");
                 while (true)
                 {
@@ -378,14 +378,14 @@ internal sealed record class Gateway
         [EnumeratorCancellation] CancellationToken ct = default)
     {
         _logger.LogInformation("Finding publishers...");
-        await foreach (var sub in _client.GetSubscriptions().GetAllAsync(ct))
+        await foreach (var sub in _client.GetSubscriptions().GetAllAsync(ct).ConfigureAwait(false))
         {
             if (subscriptionId != null && sub.Data.DisplayName != subscriptionId
                 && sub.Id.SubscriptionId != subscriptionId)
             {
                 continue;
             }
-            await foreach (var hub in sub.GetIotHubDescriptionsAsync(cancellationToken: ct))
+            await foreach (var hub in sub.GetIotHubDescriptionsAsync(cancellationToken: ct).ConfigureAwait(false))
             {
                 Response<SharedAccessSignatureAuthorizationRule> keys;
                 try

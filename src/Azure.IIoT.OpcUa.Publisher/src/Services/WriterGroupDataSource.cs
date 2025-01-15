@@ -26,15 +26,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// <summary>
     /// Triggers dataset writer messages on subscription changes
     /// </summary>
-    public sealed partial class WriterGroupDataSource : IMessageSource, IDisposable,
+    public sealed partial class WriterGroupDataSource : IWriterGroupControl, IDisposable,
         IAsyncDisposable
     {
-        /// <inheritdoc/>
-        public event EventHandler<OpcUaSubscriptionNotification>? OnMessage;
-
-        /// <inheritdoc/>
-        public event EventHandler<EventArgs>? OnCounterReset;
-
         /// <summary>
         /// Id of the group
         /// </summary>
@@ -45,13 +39,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         /// <param name="clients"></param>
         /// <param name="writerGroup"></param>
+        /// <param name="sink"></param>
         /// <param name="serializer"></param>
         /// <param name="options"></param>
         /// <param name="metrics"></param>
         /// <param name="loggerFactory"></param>
         /// <param name="timeProvider"></param>
         public WriterGroupDataSource(IOpcUaClientManager<ConnectionModel> clients,
-            WriterGroupModel writerGroup, IJsonSerializer serializer,
+            WriterGroupModel writerGroup, IMessageSink sink, IJsonSerializer serializer,
             IOptions<PublisherOptions> options, IMetricsContext? metrics,
             ILoggerFactory loggerFactory, TimeProvider? timeProvider = null)
         {
@@ -59,6 +54,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             _loggerFactory = loggerFactory;
             _serializer = serializer;
+            _sink = sink;
             _options = options;
             _logger = loggerFactory.CreateLogger<WriterGroupDataSource>();
             _timeProvider = timeProvider ?? TimeProvider.System;
@@ -588,6 +584,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly Meter _meter = Diagnostics.NewMeter();
         private readonly ILoggerFactory _loggerFactory;
         private readonly IJsonSerializer _serializer;
+        private readonly IMessageSink _sink;
         private readonly ILogger _logger;
         private readonly TimeProvider _timeProvider;
         private readonly long _startTime;

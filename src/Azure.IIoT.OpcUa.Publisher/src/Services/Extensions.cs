@@ -15,7 +15,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -43,7 +42,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             if (browsePath?.Count > 0)
             {
                 resolvedNodeId = await session.ResolveBrowsePathToNodeAsync(header,
-                    resolvedNodeId, browsePath.ToArray(), paramName,
+                    resolvedNodeId, [.. browsePath], paramName,
                     timeProvider, ct).ConfigureAwait(false);
             }
             return resolvedNodeId;

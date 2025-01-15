@@ -9,7 +9,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     using Avro;
     using System;
     using System.Linq;
-    using Azure.IIoT.OpcUa.Publisher.Models;
 
     /// <summary>
     /// Avro binary data set message
@@ -258,7 +257,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// </summary>
         /// <param name="decoder"></param>
         /// <returns></returns>
-        bool TryReadDataSetMessageHeader(AvroDecoder decoder)
+        private bool TryReadDataSetMessageHeader(AvroDecoder decoder)
         {
             var messageType = decoder.ReadString(nameof(MessageType));
             if (messageType != null)

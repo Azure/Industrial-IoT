@@ -17,7 +17,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     {
         [Theory]
         [MemberData(nameof(GetMessageMetaDataFiles))]
-        public async Task CreateJsonNetworkMessageSchemas(string messageMetaDataFile)
+        public async Task CreateJsonNetworkMessageSchemasAsync(string messageMetaDataFile)
         {
             var messageMetaData = await LoadAsync<PublishedNetworkMessageSchemaModel>(messageMetaDataFile);
             var schema = new JsonNetworkMessage(messageMetaData);
@@ -29,12 +29,13 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             await AssertAsync("NetworkMessageDefault", messageMetaDataFile, json);
 
             var schema2 = global::Avro.Schema.Parse(json);
+            Assert.NotNull(schema2);
             //Assert.Equal(schema.Schema, schema2);
         }
 
         [Theory]
         [MemberData(nameof(GetMessageMetaDataFiles))]
-        public async Task CreateJsonNetworkMessageWithNs(string messageMetaDataFile)
+        public async Task CreateJsonNetworkMessageWithNsAsync(string messageMetaDataFile)
         {
             var messageMetaData = await LoadAsync<PublishedNetworkMessageSchemaModel>(messageMetaDataFile);
             var schema = new JsonNetworkMessage(messageMetaData, new SchemaOptions
@@ -46,12 +47,13 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             await AssertAsync("NetworkMessage", messageMetaDataFile, json);
 
             var schema2 = global::Avro.Schema.Parse(json);
+            Assert.NotNull(schema2);
             //Assert.Equal(schema.Schema, schema2);
         }
 
         [Theory]
         [MemberData(nameof(GetMessageMetaDataFiles))]
-        public async Task CreateMessageSchemaWithoutNetworkHeader(string messageMetaDataFile)
+        public async Task CreateMessageSchemaWithoutNetworkHeaderAsync(string messageMetaDataFile)
         {
             var messageMetaData = await LoadAsync<PublishedNetworkMessageSchemaModel>(messageMetaDataFile);
             messageMetaData = messageMetaData with
@@ -65,12 +67,13 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             await AssertAsync("Multiple", messageMetaDataFile, json);
 
             var schema2 = global::Avro.Schema.Parse(json);
+            Assert.NotNull(schema2);
             //Assert.Equal(schema.Schema, schema2);
         }
 
         [Theory]
         [MemberData(nameof(GetMessageMetaDataFiles))]
-        public async Task CreateSingleMessageSchema(string messageMetaDataFile)
+        public async Task CreateSingleMessageSchemaAsync(string messageMetaDataFile)
         {
             var messageMetaData = await LoadAsync<PublishedNetworkMessageSchemaModel>(messageMetaDataFile);
             messageMetaData = messageMetaData with
@@ -86,12 +89,13 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             await AssertAsync("Single", messageMetaDataFile, json);
 
             var schema2 = global::Avro.Schema.Parse(json);
+            Assert.NotNull(schema2);
             //Assert.Equal(schema.Schema, schema2);
         }
 
         [Theory]
         [MemberData(nameof(GetMessageMetaDataFiles))]
-        public async Task CreateSingleMessageSchemaWithoutHeader(string messageMetaDataFile)
+        public async Task CreateSingleMessageSchemaWithoutHeaderAsync(string messageMetaDataFile)
         {
             var messageMetaData = await LoadAsync<PublishedNetworkMessageSchemaModel>(messageMetaDataFile);
             messageMetaData = messageMetaData with
@@ -105,12 +109,13 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             await AssertAsync("Default", messageMetaDataFile, json);
 
             var schema2 = global::Avro.Schema.Parse(json);
+            Assert.NotNull(schema2);
             //Assert.Equal(schema.Schema, schema2);
         }
 
         [Theory]
         [MemberData(nameof(GetMessageMetaDataFiles))]
-        public async Task CreateRawMessageSchema(string messageMetaDataFile)
+        public async Task CreateRawMessageSchemaAsync(string messageMetaDataFile)
         {
             var messageMetaData = await LoadAsync<PublishedNetworkMessageSchemaModel>(messageMetaDataFile);
             messageMetaData = messageMetaData with
@@ -129,12 +134,13 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             await AssertAsync("Raw", messageMetaDataFile, json);
 
             var schema2 = global::Avro.Schema.Parse(json);
+            Assert.NotNull(schema2);
             //Assert.Equal(schema.Schema, schema2);
         }
 
         [Theory]
         [MemberData(nameof(GetMessageMetaDataFiles))]
-        public async Task CreateRawMessageSchemaReversible(string messageMetaDataFile)
+        public async Task CreateRawMessageSchemaReversibleAsync(string messageMetaDataFile)
         {
             var messageMetaData = await LoadAsync<PublishedNetworkMessageSchemaModel>(messageMetaDataFile);
             messageMetaData = messageMetaData with
@@ -154,13 +160,14 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             await AssertAsync("RawReversible", messageMetaDataFile, json);
 
             var schema2 = global::Avro.Schema.Parse(json);
+            Assert.NotNull(schema2);
 
             //Assert.Equal(schema.Schema, schema2);
         }
 
         [Theory]
         [MemberData(nameof(GetMessageMetaDataFiles))]
-        public async Task CreateSamplesMessageSchema(string messageMetaDataFile)
+        public async Task CreateSamplesMessageSchemaAsync(string messageMetaDataFile)
         {
             var messageMetaData = await LoadAsync<PublishedNetworkMessageSchemaModel>(messageMetaDataFile);
             messageMetaData = messageMetaData with
@@ -192,12 +199,13 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             await AssertAsync("Samples", messageMetaDataFile, json);
 
             var schema2 = global::Avro.Schema.Parse(json);
+            Assert.NotNull(schema2);
             //Assert.Equal(schema.Schema, schema2);
         }
 
         [Theory]
         [MemberData(nameof(GetMessageMetaDataFiles))]
-        public async Task CreateSamplesMessageSchemaRaw(string messageMetaDataFile)
+        public async Task CreateSamplesMessageSchemaRawAsync(string messageMetaDataFile)
         {
             var messageMetaData = await LoadAsync<PublishedNetworkMessageSchemaModel>(messageMetaDataFile);
             messageMetaData = messageMetaData with
@@ -226,16 +234,15 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             await AssertAsync("SamplesRaw", messageMetaDataFile, json);
 
             var schema2 = global::Avro.Schema.Parse(json);
+            Assert.NotNull(schema2);
             //Assert.Equal(schema.Schema, schema2);
         }
 
         private static async ValueTask<T> LoadAsync<T>(string file)
         {
-            await using (var fs = new FileStream(file, FileMode.Open,
-                FileAccess.Read, FileShare.Read))
-            {
-                return await JsonSerializer.DeserializeAsync<T>(fs);
-            }
+            await using var fs = new FileStream(file, FileMode.Open,
+                FileAccess.Read, FileShare.Read);
+            return await JsonSerializer.DeserializeAsync<T>(fs);
         }
 
         private static readonly JsonSerializerOptions kIndented = new()

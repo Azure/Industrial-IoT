@@ -102,11 +102,11 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
                 }
                 return u;
             }
-            return UnionSchema.Create(new List<Schema>
-            {
+            return UnionSchema.Create(
+            [
                 Null,
                 schema
-            });
+            ]);
         }
 
         /// <summary>
@@ -243,10 +243,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
         /// <returns></returns>
         public static RecordSchema CreateRoot(this Schema schema, string? fieldName = null)
         {
-            return RecordSchema.Create(kRootSchemaName, new List<Field>
-            {
+            return RecordSchema.Create(kRootSchemaName,
+            [
                 new (schema, fieldName ?? kRootFieldName, 0)
-            }, kRootNamespace);
+            ], kRootNamespace);
         }
 
         /// <summary>

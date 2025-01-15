@@ -438,10 +438,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
 
         /// <summary> Registry of mocked timers. </summary>
         private readonly ConcurrentBag<(ITimer timer,
-            ElapsedEventHandler handler)> _timers = new();
+            ElapsedEventHandler handler)> _timers = [];
         /// <summary> Registry of mocked fast timers. </summary>
         private readonly ConcurrentBag<(ITimer timer,
-            EventHandler<FastTimerElapsedEventArgs> handler)> _fastTimers = new();
+            EventHandler<FastTimerElapsedEventArgs> handler)> _fastTimers = [];
         private static readonly ConcurrentDictionary<int, bool> kPorts = new();
         private bool _disposedValue;
         private readonly int _port;

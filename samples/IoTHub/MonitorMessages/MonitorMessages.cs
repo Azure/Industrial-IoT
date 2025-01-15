@@ -64,7 +64,7 @@ static async Task ReceiveMessagesFromDeviceAsync(Parameters parameters, Cancella
             //
             // More information on the "EventProcessorClient" and its benefits can be found here:
             //   https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/eventhub/Azure.Messaging.EventHubs.Processor/README.md
-            await foreach (PartitionEvent partitionEvent in consumer.ReadEventsAsync(ct))
+            await foreach (PartitionEvent partitionEvent in consumer.ReadEventsAsync(ct).ConfigureAwait(false))
             {
                 Console.WriteLine($"\nMessage received on partition {partitionEvent.Partition.PartitionId}:");
 

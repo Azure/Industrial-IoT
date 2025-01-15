@@ -77,12 +77,12 @@ namespace Opc.Ua
                     }
                     if (missing.Count > 0)
                     {
-                        return missing.ToArray();
+                        return [.. missing];
                     }
                 }
             }
             dropped = false;
-            return Array.Empty<uint>();
+            return [];
         }
 
         /// <summary>
@@ -128,10 +128,10 @@ namespace Opc.Ua
                 var ok = sequenceNumber == expected;
                 if (!ok)
                 {
-                    missing = Missing(lastSequenceNumber, sequenceNumber, out dropped).ToArray();
+                    missing = [.. Missing(lastSequenceNumber, sequenceNumber, out dropped)];
                     return false;
                 }
-                missing = Array.Empty<uint>();
+                missing = [];
                 dropped = false;
                 return true;
             }

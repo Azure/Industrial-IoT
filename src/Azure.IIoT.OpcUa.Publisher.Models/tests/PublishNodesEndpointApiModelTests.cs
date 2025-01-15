@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
     using System;
-    using System.Collections.Generic;
     using Xunit;
 
     public class PublishedNodesEntryModelTests
@@ -70,11 +69,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
             var model = new PublishedNodesEntryModel
             {
                 EndpointUrl = "opc.tcp://localhost:50000",
-                OpcNodes = new List<OpcNodeModel> {
+                OpcNodes = [
                     new() {
                         Id = "i=2258"
                     }
-                }
+                ]
             };
 
             var modeJson = newtonSoftJsonSerializer.SerializeToString(model);
@@ -84,11 +83,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
             {
                 EndpointUrl = "opc.tcp://localhost:50000",
                 UseSecurity = false,
-                OpcNodes = new List<OpcNodeModel> {
+                OpcNodes = [
                     new() {
                         Id = "i=2258"
                     }
-                }
+                ]
             };
 
             modeJson = newtonSoftJsonSerializer.SerializeToString(model);
@@ -98,11 +97,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
             {
                 EndpointUrl = "opc.tcp://localhost:50000",
                 UseSecurity = true,
-                OpcNodes = new List<OpcNodeModel> {
+                OpcNodes = [
                     new() {
                         Id = "i=2258"
                     }
-                }
+                ]
             };
 
             modeJson = newtonSoftJsonSerializer.SerializeToString(model);
@@ -167,11 +166,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
             var model = new PublishedNodesEntryModel
             {
                 EndpointUrl = "opc.tcp://localhost:50000",
-                OpcNodes = new List<OpcNodeModel> {
+                OpcNodes = [
                     new() {
                         Id = "i=2258"
                     }
-                }
+                ]
             };
 
             var modeJson = newtonSoftJsonSerializer.SerializeToString(model);
@@ -181,11 +180,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
             {
                 EndpointUrl = "opc.tcp://localhost:50000",
                 OpcAuthenticationMode = OpcAuthenticationMode.Anonymous,
-                OpcNodes = new List<OpcNodeModel> {
+                OpcNodes = [
                     new() {
                         Id = "i=2258"
                     }
-                }
+                ]
             };
 
             modeJson = newtonSoftJsonSerializer.SerializeToString(model);
@@ -195,11 +194,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
             {
                 EndpointUrl = "opc.tcp://localhost:50000",
                 OpcAuthenticationMode = OpcAuthenticationMode.UsernamePassword,
-                OpcNodes = new List<OpcNodeModel> {
+                OpcNodes = [
                     new() {
                         Id = "i=2258"
                     }
-                }
+                ]
             };
 
             modeJson = newtonSoftJsonSerializer.SerializeToString(model);

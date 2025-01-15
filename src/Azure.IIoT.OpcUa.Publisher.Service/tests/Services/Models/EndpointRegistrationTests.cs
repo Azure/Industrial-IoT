@@ -116,8 +116,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services.Models
         [Fact]
         public void TestEqualIsEqualWithDeviceModelWhenDisabled()
         {
-            var fix = new Fixture();
-
             var r1 = CreateRegistration();
             var r2 = r1.ToServiceModel().ToEndpointRegistration(true);
             var m1 = r1.Patch(r2, _serializer, TimeProvider.System);

@@ -18,11 +18,11 @@ namespace Plc
         {
             get
             {
-                return new StringCollection {
+                return [
                     Namespaces.PlcApplications,
                     Namespaces.PlcSimulation,
                     Namespaces.PlcInstance
-                };
+                ];
             }
         }
 

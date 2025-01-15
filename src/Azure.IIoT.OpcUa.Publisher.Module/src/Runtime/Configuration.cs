@@ -642,12 +642,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// <summary>
             /// Supported formats
             /// </summary>
-            public static readonly string[] LogFormatsSupported = new[]
-            {
+            public static readonly string[] LogFormatsSupported =
+            [
                 ConsoleFormatterNames.Simple,
                 Syslog.FormatterName,
                 ConsoleFormatterNames.Systemd
-            };
+            ];
 
             /// <summary>
             /// Configuration

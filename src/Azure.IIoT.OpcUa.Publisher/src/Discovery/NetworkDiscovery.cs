@@ -393,7 +393,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
             await AddLoopbackAddressesAsync(addresses).ConfigureAwait(false);
             if (addresses.Count == 0)
             {
-                return new List<ApplicationRegistrationModel>();
+                return [];
             }
 
             var ports = new List<IPEndPoint>();
@@ -431,7 +431,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
             request.Token.ThrowIfCancellationRequested();
             if (ports.Count == 0)
             {
-                return new List<ApplicationRegistrationModel>();
+                return [];
             }
 
             //
@@ -790,11 +790,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
 #if !NO_WATCHDOG
         private int _counter;
 #endif
-        private readonly static Counter<int> kDiscoverAsync = Diagnostics.Meter.CreateCounter<int>(
+        private static readonly Counter<int> kDiscoverAsync = Diagnostics.Meter.CreateCounter<int>(
             "iiot_edge_discovery_discover", "calls", "call to discover");
-        private readonly static Counter<int> kCancelAsync = Diagnostics.Meter.CreateCounter<int>(
+        private static readonly Counter<int> kCancelAsync = Diagnostics.Meter.CreateCounter<int>(
             "iiot_edge_discovery_cancel", "calls", "call to cancel");
-        private readonly static Counter<int> kDiscoverServersAsync = Diagnostics.Meter.CreateCounter<int>(
+        private static readonly Counter<int> kDiscoverServersAsync = Diagnostics.Meter.CreateCounter<int>(
             "iiot_edge_discovery_discover_servers", "calls", "call to discoverServersAsync");
 
         /// <summary> Progress reporting every 3 seconds </summary>
@@ -815,7 +815,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         private readonly TimeProvider _timeProvider;
         private readonly string _topic;
         private readonly SemaphoreSlim _lock = new(1, 1);
-        private readonly List<DiscoveryRequest> _pending = new();
+        private readonly List<DiscoveryRequest> _pending = [];
         private readonly CancellationTokenSource _cts = new();
         private readonly DiscoveryRequest _request;
     }

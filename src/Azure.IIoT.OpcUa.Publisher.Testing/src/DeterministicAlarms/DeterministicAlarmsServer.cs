@@ -42,9 +42,9 @@ namespace DeterministicAlarms
         {
             get
             {
-                return new StringCollection {
+                return [
                     Namespaces.DeterministicAlarmsInstance
-                };
+                ];
             }
         }
 

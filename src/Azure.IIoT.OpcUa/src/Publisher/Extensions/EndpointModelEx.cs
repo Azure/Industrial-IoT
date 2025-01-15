@@ -133,7 +133,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             }
 
             var alternativeUrls = model.AlternativeUrls.MergeWith(
-                endpoint.AlternativeUrls)?.ToHashSet() ?? new HashSet<string>();
+                endpoint.AlternativeUrls)?.ToHashSet() ?? [];
             if (model.Url != null)
             {
                 if (endpoint.Url != null)

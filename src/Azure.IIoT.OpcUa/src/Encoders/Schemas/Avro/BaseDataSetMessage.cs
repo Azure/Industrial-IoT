@@ -102,7 +102,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
         {
             // Type name of the message record
             typeName ??= string.Empty;
-            typeName = SchemaUtils.Escape(typeName) + (defaultName ?? PubSub.BaseDataSetMessage.kMessageTypeName);
+            typeName = SchemaUtils.Escape(typeName) + (defaultName ?? PubSub.BaseDataSetMessage.MessageTypeName);
 
             if (uniqueNames != null)
             {

@@ -80,7 +80,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         public IEnumerable<Uri> DiscoveryUrls =>
             Configuration.DiscoveryUrls?.Select(s => new Uri(s)) ??
-                Enumerable.Empty<Uri>();
+                [];
 
         /// <summary>
         /// Create request wrapper
@@ -197,7 +197,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                             .Distinct());
                         break;
                     default:
-                        AddressRanges = Enumerable.Empty<AddressRange>();
+                        AddressRanges = [];
                         break;
                 }
             }
@@ -219,7 +219,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                         PortRanges = PortRange.OpcUa;
                         break;
                     default:
-                        PortRanges = Enumerable.Empty<PortRange>();
+                        PortRanges = [];
                         break;
                 }
             }

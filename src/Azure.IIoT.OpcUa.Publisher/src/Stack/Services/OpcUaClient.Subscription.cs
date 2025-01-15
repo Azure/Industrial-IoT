@@ -56,7 +56,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         //
                         // We check if there are any other subscribers registered with the
                         // same subscription configuration that we want to apply. If there
-                        // arenot - we update the subscription (safely) with the new
+                        // are not - we update the subscription (safely) with the new
                         // desired template configuration. Essentially original behavior
                         // before 2.9.12.
                         //
@@ -99,7 +99,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return registrations.Select(r => r.Owner);
             }
 
-            return Enumerable.Empty<ISubscriber>();
+            return [];
         }
 
         /// <summary>
@@ -588,7 +588,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 _outer._registrations.Add(Owner, this);
                 _outer._s2r.AddOrUpdate(Subscription, _
-                    => new List<Registration> { this },
+                    => [this],
                 (_, c) =>
                 {
                     c.Add(this);
@@ -601,7 +601,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _outer._s2r.AddOrUpdate(Subscription, _ =>
                 {
                     Debug.Fail("Unexpected");
-                    return new List<Registration>();
+                    return [];
                 }, (_, c) =>
                 {
                     c.Remove(this);
@@ -618,9 +618,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly SemaphoreSlim _subscriptionLock = new(1, 1);
         private readonly ITimer _resyncTimer;
 #pragma warning restore CA2213 // Disposable fields should be disposed
-        private readonly Dictionary<ISubscriber, Registration> _registrations = new();
+        private readonly Dictionary<ISubscriber, Registration> _registrations = [];
         private readonly ConcurrentDictionary<SubscriptionModel, List<Registration>> _s2r = new();
-        private readonly Dictionary<SubscriptionModel, OpcUaSubscription> _cache = new();
+        private readonly Dictionary<SubscriptionModel, OpcUaSubscription> _cache = [];
         private readonly IOptions<OpcUaSubscriptionOptions> _subscriptionOptions;
     }
 }

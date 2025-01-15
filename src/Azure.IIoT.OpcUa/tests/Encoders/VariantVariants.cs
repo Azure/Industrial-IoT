@@ -102,13 +102,13 @@ namespace Azure.IIoT.OpcUa.Encoders
             yield return new Variant(new byte[1000]);
             yield return new Variant(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 });
             yield return new Variant(Encoding.UTF8.GetBytes("utf-8-string"));
-            yield return new Variant(new NodeId(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }, 0));
+            yield return new Variant(new NodeId([1, 2, 3, 4, 5, 6, 7, 8], 0));
             yield return new Variant(new NodeId("test", 0));
             yield return new Variant(new NodeId(1u, 0));
             yield return new Variant(new NodeId(Guid.NewGuid(), 0));
             yield return new Variant(NodeId.Null);
             yield return new Variant((NodeId)null);
-            yield return new Variant(new ExpandedNodeId(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }, 0));
+            yield return new Variant(new ExpandedNodeId([1, 2, 3, 4, 5, 6, 7, 8], 0));
             yield return new Variant(new ExpandedNodeId("test", 0));
             yield return new Variant(new ExpandedNodeId(1u, 0));
             yield return new Variant(new ExpandedNodeId(Guid.NewGuid(), 0));
@@ -155,7 +155,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             InvocationCreationTime = DateTime.UtcNow,
             LastMethodCall = "swappido",
             LastMethodCallTime = DateTime.UtcNow,
-            LastMethodInputArguments = new ArgumentCollection {
+            LastMethodInputArguments = [
                     new Argument("something1",
                         new NodeId(2354), -1, "somedesciroeioi") { ArrayDimensions = Array.Empty<uint>() },
                     new Argument("something2",
@@ -164,14 +164,14 @@ namespace Azure.IIoT.OpcUa.Encoders
                         new NodeId(44), 1, "fsadf  sadfsdfsadfsd") { ArrayDimensions = Array.Empty<uint>() },
                     new Argument("something4",
                         new NodeId(23), 1, "dfad  sdafdfdf  fasdf") { ArrayDimensions = Array.Empty<uint>() }
-                },
-            LastMethodInputValues = new VariantCollection {
+                ],
+            LastMethodInputValues = [
                     new Variant(4L),
                     new Variant("test"),
                     new Variant(new long[] {1, 2, 3, 4, 5 }),
-                    new Variant(new string[] {"1", "2", "3", "4", "5" })
-                },
-            LastMethodOutputArguments = new ArgumentCollection {
+                    new Variant(["1", "2", "3", "4", "5"])
+                ],
+            LastMethodOutputArguments = [
                     new Argument("foo1",
                         new NodeId(2354), -1, "somedesciroeioi") { ArrayDimensions = Array.Empty<uint>() },
                     new Argument("foo2",
@@ -180,13 +180,13 @@ namespace Azure.IIoT.OpcUa.Encoders
                         new NodeId("absc", 0), 1, "fsadf  sadfsdfsadfsd") { ArrayDimensions = Array.Empty<uint>() },
                     new Argument("ddddd",
                         new NodeId(25), 1, "dfad  sdafdfdf  fasdf") { ArrayDimensions = Array.Empty<uint>() }
-                },
-            LastMethodOutputValues = new VariantCollection {
+                ],
+            LastMethodOutputValues = [
                     new Variant(4L),
                     new Variant("test"),
                     new Variant(new long[] {1, 2, 3, 4, 5 }),
-                    new Variant(new string[] {"1", "2", "3", "4", "5" })
-                },
+                    new Variant(["1", "2", "3", "4", "5"])
+                ],
             LastMethodReturnStatus =
                     StatusCodes.BadAggregateConfigurationRejected,
             LastMethodSessionId = new NodeId(

@@ -298,13 +298,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
                 Assert.Null(stream.ErrorInfo);
                 Assert.NotNull(stream.Result);
-                await using (var _ = stream.Result.ConfigureAwait(false))
-                {
-                    // Now write file
-                    var buffer = new byte[130000];
-                    Array.Fill(buffer, (byte)i);
-                    await stream.Result.WriteAsync(buffer, ct).ConfigureAwait(false);
-                }
+                await using var _ = stream.Result.ConfigureAwait(false);
+                // Now write file
+                var buffer = new byte[130000];
+                Array.Fill(buffer, (byte)i);
+                await stream.Result.WriteAsync(buffer, ct).ConfigureAwait(false);
             }
             {
                 // Now check it is closed

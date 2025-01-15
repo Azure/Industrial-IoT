@@ -22,7 +22,7 @@ namespace Asset
     /// <summary>
     /// See https://w3c.github.io/wot-binding-templates/bindings/protocols/modbus/
     /// </summary>
-    sealed class ModbusTcpAsset : IAsset, IAssetFactory
+    internal sealed class ModbusTcpAsset : IAsset, IAssetFactory
     {
         private ModbusTcpAsset(Uri address, ILogger logger)
         {
@@ -84,7 +84,7 @@ namespace Asset
                 _ => form.Function ?? ModbusFunction.ReadHoldingRegisters
             };
             // Read the amount of registers/coils referenced in this URL
-            var queryParts = modbusTag.Address.Query.Split(new char[] { '?', '&', '=' },
+            var queryParts = modbusTag.Address.Query.Split(['?', '&', '='],
                 StringSplitOptions.RemoveEmptyEntries);
             ushort quantity = kDefaultQuantity;
             if (queryParts.Length > 0)
@@ -126,7 +126,7 @@ namespace Asset
 
             var form = modbusTag.Form;
             // Read the amount of registers/coils referenced in this URL
-            var queryParts = modbusTag.Address.Query.Split(new char[] { '?', '&', '=' },
+            var queryParts = modbusTag.Address.Query.Split(['?', '&', '='],
                 StringSplitOptions.RemoveEmptyEntries);
             ushort quantity = kDefaultQuantity;
             if (queryParts.Length > 0)
@@ -173,7 +173,7 @@ namespace Asset
 
         public void Observe(AssetTag tag, uint id, OnAssetTagChange callback)
         {
-            if (tag is not AssetTag<ModbusForm> modbusTag)
+            if (tag is not AssetTag<ModbusForm>)
             {
                 throw ServiceResultException.Create(StatusCodes.BadInvalidArgument,
                     "Not a modbus tag");
@@ -184,7 +184,7 @@ namespace Asset
 
         public void Unobserve(AssetTag tag, uint id)
         {
-            if (tag is not AssetTag<ModbusForm> modbusTag)
+            if (tag is not AssetTag<ModbusForm>)
             {
                 throw ServiceResultException.Create(StatusCodes.BadInvalidArgument,
                     "Not a modbus tag");

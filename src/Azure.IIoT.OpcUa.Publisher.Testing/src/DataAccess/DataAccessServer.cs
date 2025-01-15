@@ -40,9 +40,9 @@ namespace DataAccess
         {
             get
             {
-                return new StringCollection {
+                return [
                     Namespaces.DataAccess
-                };
+                ];
             }
         }
 

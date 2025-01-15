@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
 {
     using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Newtonsoft.Json.Linq;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
@@ -84,8 +83,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
                 return false;
             }
             if (!DataSetFields.SequenceEqualsSafe(set.DataSetFields,
-                (x, y) => x.Item1 == y.Item1 &&
-                    Utils.IsEqual(x.Item2?.Value, y.Item2?.Value)))
+                (x, y) => x.Name == y.Name &&
+                    Utils.IsEqual(x.Value?.Value, y.Value?.Value)))
             {
                 return false;
             }
@@ -95,7 +94,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         /// <inheritdoc/>
         public override int GetHashCode()
         {
-            return HashCode.Combine(DataSetFields.Select(s => s.Item1));
+            return HashCode.Combine(DataSetFields.Select(s => s.Name));
         }
 
         /// <summary>

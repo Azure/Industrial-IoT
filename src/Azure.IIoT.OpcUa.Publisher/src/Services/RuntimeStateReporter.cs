@@ -181,7 +181,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     ModuleId = _identity?.ModuleId
                 };
 
-                await SendRuntimeStateEvent(body, ct).ConfigureAwait(false);
+                await SendRuntimeStateEventAsync(body, ct).ConfigureAwait(false);
                 _logger.LogInformation("Restart announcement sent successfully.");
             }
 
@@ -254,7 +254,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     // Load certificate
                     Certificate?.Dispose();
-                    Certificate = new X509Certificate2((byte[])cert!, ApiKey);
+                    Certificate = X509CertificateLoader.LoadPkcs12((byte[])cert!, ApiKey);
                     var now = _timeProvider.GetUtcNow().AddDays(1);
                     if (now < Certificate.NotAfter && Certificate.HasPrivateKey &&
                         Certificate.SubjectName.EnumerateRelativeDistinguishedNames()
@@ -294,16 +294,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     Debug.Assert(certificates.Count > 0);
                     if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     {
-                        using (var certificate = certificates[0])
-                        {
-                            //
-                            // https://github.com/dotnet/runtime/issues/45680)
-                            // On Windows the certificate in 'result' gives an error
-                            // when used with kestrel: "No credentials are available"
-                            //
-                            Certificate = new X509Certificate2(
-                                certificate.Export(X509ContentType.Pkcs12));
-                        }
+                        using var certificate = certificates[0];
+                        //
+                        // https://github.com/dotnet/runtime/issues/45680)
+                        // On Windows the certificate in 'result' gives an error
+                        // when used with kestrel: "No credentials are available"
+                        //
+                        Certificate = X509CertificateLoader.LoadCertificate(
+                            certificate.Export(X509ContentType.Pkcs12));
                     }
                     else
                     {
@@ -391,7 +389,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="runtimeStateEvent"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async Task SendRuntimeStateEvent(RuntimeStateEventModel runtimeStateEvent,
+        private async Task SendRuntimeStateEventAsync(RuntimeStateEventModel runtimeStateEvent,
             CancellationToken ct)
         {
             await Task.WhenAll(_events.Select(SendEventAsync)).ConfigureAwait(false);

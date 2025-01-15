@@ -16,9 +16,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services.Models
         [Fact]
         public void TestEqualIsEqual()
         {
-            var fix = new Fixture();
-
-            var cert = fix.CreateMany<byte>(1000).ToArray();
             var r1 = CreateRegistration();
             var r2 = r1;
 
@@ -31,9 +28,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services.Models
         [Fact]
         public void TestEqualIsNotEqual()
         {
-            var fix = new Fixture();
-
-            var cert = fix.CreateMany<byte>(1000).ToArray();
             var r1 = CreateRegistration();
             var r2 = CreateRegistration();
 
@@ -60,8 +54,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services.Models
         [Fact]
         public void TestEqualIsNotEqualWithServiceModelConversionWhenDisabled()
         {
-            var fix = new Fixture();
-
             var r1 = CreateRegistration();
             var m = r1;
             var r2 = m.ToSupervisorModel().ToPublisherRegistration(true);
@@ -88,8 +80,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Tests.Services.Models
         [Fact]
         public void TestEqualIsEqualWithDeviceModelWhenDisabled()
         {
-            var fix = new Fixture();
-
             var r1 = CreateRegistration();
             var r2 = r1.ToSupervisorModel().ToPublisherRegistration(true);
             var m1 = r1.Patch(r2, TimeProvider.System);

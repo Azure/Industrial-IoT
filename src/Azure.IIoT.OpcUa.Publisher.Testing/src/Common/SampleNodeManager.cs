@@ -56,9 +56,9 @@ namespace Opc.Ua.Sample
             SystemContext.NodeIdFactory = this;
 
             // create the table of nodes.
-            PredefinedNodes = new NodeIdDictionary<NodeState>();
-            RootNotifiers = new List<NodeState>();
-            _sampledItems = new List<DataChangeMonitoredItem>();
+            PredefinedNodes = [];
+            RootNotifiers = [];
+            _sampledItems = [];
             _minimumSamplingInterval = 100;
         }
 
@@ -212,7 +212,7 @@ namespace Opc.Ua.Sample
                 }
                 else
                 {
-                    _namespaceUris = new List<string>();
+                    _namespaceUris = [];
                 }
 
                 _namespaceIndexes = new ushort[_namespaceUris.Count];
@@ -248,7 +248,7 @@ namespace Opc.Ua.Sample
         /// <param name="context"></param>
         protected virtual NodeStateCollection LoadPredefinedNodes(ISystemContext context)
         {
-            return new NodeStateCollection();
+            return [];
         }
 
         /// <summary>
@@ -280,11 +280,10 @@ namespace Opc.Ua.Sample
         /// <param name="predefinedNode"></param>
         protected virtual NodeState AddBehaviourToPredefinedNode(ISystemContext context, NodeState predefinedNode)
         {
-            if (predefinedNode is not BaseObjectState passiveNode)
+            if (predefinedNode is not BaseObjectState)
             {
                 return predefinedNode;
             }
-
             return predefinedNode;
         }
 
@@ -456,7 +455,7 @@ namespace Opc.Ua.Sample
                 }
                 */
 
-                IList<IReference> references = new List<IReference>();
+                var references = new List<IReference>();
                 source.GetReferences(SystemContext, references);
 
                 for (var ii = 0; ii < references.Count; ii++)
@@ -524,7 +523,7 @@ namespace Opc.Ua.Sample
 
             if (!externalReferences.TryGetValue(sourceId, out var referencesToAdd))
             {
-                externalReferences[sourceId] = referencesToAdd = new List<IReference>();
+                externalReferences[sourceId] = referencesToAdd = [];
             }
 
             // add reserve reference from external node.
@@ -2309,7 +2308,6 @@ namespace Opc.Ua.Sample
             out DataChangeFilter filter,
             out Range range)
         {
-            filter = null;
             range = null;
 
             // check for valid filter type.
@@ -2401,7 +2399,6 @@ namespace Opc.Ua.Sample
         {
             filterError = null;
             monitoredItem = null;
-            ServiceResult error = null;
 
             // read initial value.
             var initialValue = new DataValue
@@ -2412,12 +2409,12 @@ namespace Opc.Ua.Sample
                 StatusCode = StatusCodes.BadWaitingForInitialData
             };
 
-            error = source.ReadAttribute(
-                context,
-                itemToCreate.ItemToMonitor.AttributeId,
-                itemToCreate.ItemToMonitor.ParsedIndexRange,
-                itemToCreate.ItemToMonitor.DataEncoding,
-                initialValue);
+            var error = source.ReadAttribute(
+    context,
+    itemToCreate.ItemToMonitor.AttributeId,
+    itemToCreate.ItemToMonitor.ParsedIndexRange,
+    itemToCreate.ItemToMonitor.DataEncoding,
+    initialValue);
 
             if (ServiceResult.IsBad(error))
             {
@@ -2429,7 +2426,6 @@ namespace Opc.Ua.Sample
                 }
 
                 initialValue.StatusCode = error.StatusCode;
-                error = ServiceResult.Good;
             }
 
             // validate parameters.
@@ -2684,7 +2680,6 @@ namespace Opc.Ua.Sample
             out MonitoringFilterResult filterError)
         {
             filterError = null;
-            ServiceResult error = null;
 
             // check for valid handle.
 
@@ -2711,6 +2706,7 @@ namespace Opc.Ua.Sample
             DataChangeFilter filter = null;
             Range range = null;
 
+            ServiceResult error;
             if (!ExtensionObject.IsNull(parameters.Filter))
             {
                 error = ValidateDataChangeFilter(
@@ -2743,7 +2739,7 @@ namespace Opc.Ua.Sample
             }
 
             // modify the monitored item parameters.
-            error = datachangeItem.Modify(
+            datachangeItem.Modify(
                 diagnosticsMasks,
                 timestampsToReturn,
                 itemToModify.RequestedParameters.ClientHandle,
@@ -2846,9 +2842,6 @@ namespace Opc.Ua.Sample
 
             // owned by this node manager.
             processed = true;
-
-            // get the  source.
-            var source = monitoredNode.Node;
 
             // check for valid monitored item.
             var datachangeItem = monitoredItem as DataChangeMonitoredItem;
@@ -3046,7 +3039,7 @@ namespace Opc.Ua.Sample
             // does nothing.
         }
 
-        private IList<string> _namespaceUris;
+        private List<string> _namespaceUris;
         private ushort[] _namespaceIndexes;
         private Timer _samplingTimer;
         private readonly List<DataChangeMonitoredItem> _sampledItems;

@@ -340,7 +340,7 @@ namespace TestData
         /// </summary>
         /// <param name="monitoredNode"></param>
         /// <param name="monitoredItem"></param>
-        private static bool SystemScanRequired(MonitoredNode2 monitoredNode, IDataChangeMonitoredItem2 monitoredItem)
+        private static bool SystemScanRequired(MonitoredNode2 monitoredNode, MonitoredItem monitoredItem)
         {
             // ingore other types of monitored items.
             if (monitoredItem == null)

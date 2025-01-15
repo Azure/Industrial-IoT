@@ -38,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var asset1 = _connection.ToPublishedNodesEntry();
             asset1.DataSetWriterGroup = "WriterGroup1";
             asset1.DataSetName = "ConfigureDuplicateAssetFailsAsync";
-            var stream1 = new MemoryStream(Encoding.UTF8.GetBytes(TestAsset));
+            var stream1 = new MemoryStream(Encoding.UTF8.GetBytes(kTestAsset));
             await using (var s1 = stream1.ConfigureAwait(false))
             {
                 var request1 = new PublishedNodeCreateAssetRequestModel<Stream>
@@ -63,7 +63,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var asset2 = _connection.ToPublishedNodesEntry();
             asset2.DataSetWriterGroup = "WriterGroup2";
             asset2.DataSetName = asset1.DataSetName;
-            var stream2 = new MemoryStream(Encoding.UTF8.GetBytes(TestAsset));
+            var stream2 = new MemoryStream(Encoding.UTF8.GetBytes(kTestAsset));
             await using (var s2 = stream2.ConfigureAwait(false))
             {
                 var request2 = new PublishedNodeCreateAssetRequestModel<Stream>
@@ -86,7 +86,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             asset.DataSetWriterGroup = "WriterGroup1";
             asset.DataSetName = "ConfigureWithBadStreamFails1Async";
 
-            var stream = new MemoryStream(Encoding.UTF8.GetBytes(TestAsset));
+            var stream = new MemoryStream(Encoding.UTF8.GetBytes(kTestAsset));
             await stream.DisposeAsync().ConfigureAwait(false);
             var request = new PublishedNodeCreateAssetRequestModel<Stream>
             {
@@ -156,7 +156,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             asset.DataSetWriterGroup = "WriterGroup1";
             asset.DataSetName = "ConfigureAssetFails1Async";
 
-            var stream = new MemoryStream(Encoding.UTF8.GetBytes(TestAsset));
+            var stream = new MemoryStream(Encoding.UTF8.GetBytes(kTestAsset));
             var request = new PublishedNodeCreateAssetRequestModel<Stream>
             {
                 Configuration = stream,
@@ -188,7 +188,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         private readonly Mock<IPublishedNodesServices> _publishedNodesServices;
         private readonly Func<IPublishedNodesServices, IAssetConfiguration<Stream>> _service;
         private readonly bool _verify;
-        private const string TestAsset = """
+        private const string kTestAsset = """
 {
     "@context": [
         "https://www.w3.org/2022/wot/td/v1.1"

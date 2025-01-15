@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Encoders
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
@@ -1622,7 +1621,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         {
             if (value == null)
             {
-                return new List<T?>();
+                return [];
             }
             if (value is T[] t)
             {
@@ -1634,7 +1633,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
             if (arr.Length == 0)
             {
-                return new List<T?>();
+                return [];
             }
             var result = new T?[arr.Length];
             for (var index = 0; index < arr.Length; index++)
@@ -1702,7 +1701,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="defaultValue"></param>
         /// <returns></returns>
         /// <exception cref="EncodingException"></exception>
-        [return: NotNullIfNotNull("defaultValue")]
+        [return: NotNullIfNotNull(nameof(defaultValue))]
         private static T? ToTypedScalar<T>(object? value, T? defaultValue)
         {
             try
@@ -2037,9 +2036,9 @@ namespace Azure.IIoT.OpcUa.Encoders
             else
             {
                 PushObject(property);
-                foreach (var value in values)
+                foreach (var (Key, Value) in values)
                 {
-                    writer(value.Key, value.Value);
+                    writer(Key, Value);
                 }
                 PopObject();
             }

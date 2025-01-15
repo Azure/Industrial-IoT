@@ -21,7 +21,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <returns></returns>
         public static VariantValue Encode(this IVariantEncoder encoder, Variant value)
         {
-            return encoder.Encode(value, out var tmp);
+            return encoder.Encode(value, out _);
         }
     }
 }

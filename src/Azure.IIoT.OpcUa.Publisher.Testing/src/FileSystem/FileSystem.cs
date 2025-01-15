@@ -9,6 +9,7 @@ namespace FileSystem
     using Opc.Ua.Server;
     using System;
     using System.Collections.Generic;
+    using System.Threading;
 
     /// <summary>
     /// File system and handle management
@@ -46,7 +47,7 @@ namespace FileSystem
             }
         }
 
-        private readonly object _syncRoot = new();
-        private readonly Dictionary<NodeId, FileHandle> _handles = new();
+        private readonly Lock _syncRoot = new();
+        private readonly Dictionary<NodeId, FileHandle> _handles = [];
     }
 }

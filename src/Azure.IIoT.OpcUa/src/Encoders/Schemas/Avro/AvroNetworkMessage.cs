@@ -49,8 +49,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
 
             var encoding = new AvroBuiltInSchemas();
             return HasNetworkMessageHeader ?
-                new List<Field>
-                {
+                [
                     new(encoding.GetSchemaForBuiltInType(BuiltInType.String),
                         nameof(PubSub.AvroNetworkMessage.MessageId), 0),
                     new(encoding.GetSchemaForBuiltInType(BuiltInType.String),
@@ -63,11 +62,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
                         nameof(PubSub.AvroNetworkMessage.DataSetWriterGroup), 4),
 
                     new(payloadType, nameof(PubSub.AvroNetworkMessage.Messages), 5)
-                } :
-                new List<Field>
-                {
+                ] :
+                [
                     new(payloadType, nameof(PubSub.AvroNetworkMessage.Messages), 0)
-                };
+                ];
         }
     }
 }

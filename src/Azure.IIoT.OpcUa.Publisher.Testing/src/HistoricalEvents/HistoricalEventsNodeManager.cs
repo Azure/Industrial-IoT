@@ -292,7 +292,7 @@ namespace HistoricalEvents
                 var nodeToRead = nodesToRead[handle.Index];
                 var result = results[handle.Index];
 
-                HistoryReadRequest request = null;
+                HistoryReadRequest request;
 
                 // load an exising request.
                 if (nodeToRead.ContinuationPoint != null)
@@ -326,8 +326,7 @@ namespace HistoricalEvents
                         break;
                     }
 
-                    BaseEventState e = null;
-
+                    BaseEventState e;
                     if (request.TimeFlowsBackward)
                     {
                         e = request.Events.Last.Value;
@@ -540,8 +539,7 @@ namespace HistoricalEvents
 
             for (var ii = ReportType.FluidLevelTest; ii <= ReportType.InjectionTest; ii++)
             {
-                DataView view = null;
-
+                DataView view;
                 if (handle.Node is WellState)
                 {
                     view = _generator.ReadHistoryForWellId(

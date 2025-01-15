@@ -40,8 +40,8 @@ namespace DeterministicAlarms.Model
     {
         private readonly DeterministicAlarmsNodeManager _nodeManager;
         private readonly SimSourceNodeBackend _simSourceNodeBackend;
-        private readonly Dictionary<string, ConditionState> _alarmNodes = new();
-        private readonly Dictionary<string, ConditionState> _events = new();
+        private readonly Dictionary<string, ConditionState> _alarmNodes = [];
+        private readonly Dictionary<string, ConditionState> _events = [];
 
         public SimSourceNodeState(DeterministicAlarmsNodeManager nodeManager, NodeId nodeId, string name, IList<Alarm> alarms) : base(null)
         {

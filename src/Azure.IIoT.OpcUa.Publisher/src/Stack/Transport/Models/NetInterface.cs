@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models
 {
     using System.Collections.Generic;
-    using System.Linq;
     using System.Net;
     using System.Net.NetworkInformation;
 
@@ -62,7 +61,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models
             Name = name;
             UnicastAddress = unicastAddress;
             SubnetMask = subnetMask;
-            DnsServers = Enumerable.Empty<IPAddress>();
+            DnsServers = [];
         }
 
         /// <summary>

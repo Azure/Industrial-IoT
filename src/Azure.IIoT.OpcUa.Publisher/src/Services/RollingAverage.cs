@@ -18,9 +18,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public long LastMinute
         {
             get => CalculateSumForRingBuffer(_buffer,
-                ref _lastPointer, _bucketWidth, _lastWriteTime);
+                ref _lastPointer, kBucketWidth, _lastWriteTime);
             set => IncreaseRingBuffer(_buffer,
-                ref _lastPointer, _bucketWidth, value, ref _lastWriteTime);
+                ref _lastPointer, kBucketWidth, value, ref _lastWriteTime);
         }
 
         /// <summary>
@@ -118,7 +118,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private long _count;
         private DateTimeOffset _lastWriteTime = DateTimeOffset.MinValue;
         private readonly TimeProvider _timeProvider;
-        private readonly long[] _buffer = new long[_bucketWidth];
-        private const int _bucketWidth = 60;
+        private readonly long[] _buffer = new long[kBucketWidth];
+        private const int kBucketWidth = 60;
     }
 }

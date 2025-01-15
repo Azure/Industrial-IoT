@@ -233,7 +233,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             InitializeMetrics();
 
             _logger = _loggerFactory.CreateLogger<OpcUaClient>();
-            _tokens = new Dictionary<string, CancellationTokenSource>();
+            _tokens = [];
             _lastState = EndpointConnectivityState.Disconnected;
             _sessionName = sessionName ?? connection.ToString();
 
@@ -1294,7 +1294,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         "{Client}: #{Attempt} - Creating session {Name} with endpoint {EndpointUrl}...",
                         ++attempt, this, _sessionName, endpointUrl);
 
-                    var preferredLocales = _connection.Locales?.ToList() ?? new List<string>();
+                    var preferredLocales = _connection.Locales?.ToList() ?? [];
                     if (preferredLocales.Count == 0)
                     {
                         // Create the session with english as default
@@ -1392,7 +1392,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             e.AcknowledgementsToSend.Clear();
             e.DeferredAcknowledgementsToSend.Clear();
 
-            foreach (var subscription in ((OpcUaSession)session).SubscriptionHandles.Values)
+            foreach (var subscription in session.SubscriptionHandles.Values)
             {
                 if (!subscription.TryGetCurrentPosition(out var sid, out var seq))
                 {
@@ -1813,111 +1813,109 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
 
-            using (var client = connection != null ?
+            using var client = connection != null ?
                 DiscoveryClient.Create(configuration, connection, endpointConfiguration) :
-                DiscoveryClient.Create(configuration, discoveryUrl, endpointConfiguration))
+                DiscoveryClient.Create(configuration, discoveryUrl, endpointConfiguration);
+            var uri = new Uri(endpointUrl ?? client.Endpoint.EndpointUrl);
+            var endpoints = await client.GetEndpointsAsync(null, ct).ConfigureAwait(false);
+            discoveryUrl ??= uri;
+
+            logger.LogInformation("{Client}: Discovery endpoint {DiscoveryUrl} returned endpoints. " +
+                "Selecting endpoint {EndpointUri} with SecurityMode " +
+                "{SecurityMode} and {SecurityPolicy} SecurityPolicyUri from:\n{Endpoints}",
+                context, discoveryUrl, uri, securityMode, securityPolicy ?? "any", endpoints.Select(
+                    ep => "      " + ToString(ep)).Aggregate((a, b) => $"{a}\n{b}"));
+
+            var filtered = endpoints
+                .Where(ep =>
+                    SecurityPolicies.GetDisplayName(ep.SecurityPolicyUri) != null &&
+                    ep.SecurityMode.IsSame(securityMode) &&
+                    (securityPolicy == null ||
+                     string.Equals(ep.SecurityPolicyUri,
+                        securityPolicy,
+                        StringComparison.OrdinalIgnoreCase) ||
+                     string.Equals(ep.SecurityPolicyUri,
+                        "http://opcfoundation.org/UA/SecurityPolicy#" + securityPolicy,
+                        StringComparison.OrdinalIgnoreCase)))
+                //
+                // The security level is a relative measure assigned by the server
+                // to the endpoints that it returns. Clients should always pick the
+                // highest level unless they have a reason not too. Some servers
+                // however, mess this up a bit. So group SecurityLevel also by
+                // security mode and then pick the highest in that group.
+                //
+                .OrderByDescending(ep => ((int)ep.SecurityMode << 8) | ep.SecurityLevel)
+                .ToList();
+
+            //
+            // Try to find endpoint that matches scheme and endpoint url path
+            // but fall back to match just the scheme. We need to match only
+            // scheme to support the reverse connect (indicated by connection
+            // being not null here).
+            //
+            var selected = filtered.Find(ep => Match(ep, uri, true, true))
+                        ?? filtered.Find(ep => Match(ep, uri, true, false));
+            if (connection != null)
             {
-                var uri = new Uri(endpointUrl ?? client.Endpoint.EndpointUrl);
-                var endpoints = await client.GetEndpointsAsync(null, ct).ConfigureAwait(false);
-                discoveryUrl ??= uri;
-
-                logger.LogInformation("{Client}: Discovery endpoint {DiscoveryUrl} returned endpoints. " +
-                    "Selecting endpoint {EndpointUri} with SecurityMode " +
-                    "{SecurityMode} and {SecurityPolicy} SecurityPolicyUri from:\n{Endpoints}",
-                    context, discoveryUrl, uri, securityMode, securityPolicy ?? "any", endpoints.Select(
-                        ep => "      " + ToString(ep)).Aggregate((a, b) => $"{a}\n{b}"));
-
-                var filtered = endpoints
-                    .Where(ep =>
-                        SecurityPolicies.GetDisplayName(ep.SecurityPolicyUri) != null &&
-                        ep.SecurityMode.IsSame(securityMode) &&
-                        (securityPolicy == null ||
-                         string.Equals(ep.SecurityPolicyUri,
-                            securityPolicy,
-                            StringComparison.OrdinalIgnoreCase) ||
-                         string.Equals(ep.SecurityPolicyUri,
-                            "http://opcfoundation.org/UA/SecurityPolicy#" + securityPolicy,
-                            StringComparison.OrdinalIgnoreCase)))
-                    //
-                    // The security level is a relative measure assigned by the server
-                    // to the endpoints that it returns. Clients should always pick the
-                    // highest level unless they have a reason not too. Some servers
-                    // however, mess this up a bit. So group SecurityLevel also by
-                    // security mode and then pick the highest in that group.
-                    //
-                    .OrderByDescending(ep => ((int)ep.SecurityMode << 8) | ep.SecurityLevel)
-                    .ToList();
-
                 //
-                // Try to find endpoint that matches scheme and endpoint url path
-                // but fall back to match just the scheme. We need to match only
-                // scheme to support the reverse connect (indicated by connection
-                // being not null here).
+                // Only allow same uri scheme (which must also be opc.tcp)
+                // for when reverse connection is used.
                 //
-                var selected = filtered.Find(ep => Match(ep, uri, true, true))
-                            ?? filtered.Find(ep => Match(ep, uri, true, false));
-                if (connection != null)
+                if (selected != null)
                 {
-                    //
-                    // Only allow same uri scheme (which must also be opc.tcp)
-                    // for when reverse connection is used.
-                    //
-                    if (selected != null)
-                    {
-                        logger.LogInformation(
-                            "{Client}: Endpoint {Endpoint} selected via reverse connect!",
-                            context, ToString(selected));
-                    }
-                    return selected;
+                    logger.LogInformation(
+                        "{Client}: Endpoint {Endpoint} selected via reverse connect!",
+                        context, ToString(selected));
                 }
+                return selected;
+            }
+
+            if (selected == null)
+            {
+                //
+                // Fall back to first supported endpoint matching absolute path
+                // then fall back to first endpoint (backwards compatibilty)
+                //
+                selected = filtered.Find(ep => Match(ep, uri, false, true))
+                        ?? filtered.Find(ep => Match(ep, uri, false, false));
 
                 if (selected == null)
                 {
-                    //
-                    // Fall back to first supported endpoint matching absolute path
-                    // then fall back to first endpoint (backwards compatibilty)
-                    //
-                    selected = filtered.Find(ep => Match(ep, uri, false, true))
-                            ?? filtered.Find(ep => Match(ep, uri, false, false));
-
-                    if (selected == null)
-                    {
-                        return null;
-                    }
+                    return null;
                 }
+            }
 
-                //
-                // Adjust the host name and port to the host name and port
-                // that was use to successfully connect the discovery client
-                //
-                var selectedUrl = Utils.ParseUri(selected.EndpointUrl);
-                if (selectedUrl != null && discoveryUrl != null &&
-                    selectedUrl.Scheme == discoveryUrl.Scheme)
+            //
+            // Adjust the host name and port to the host name and port
+            // that was use to successfully connect the discovery client
+            //
+            var selectedUrl = Utils.ParseUri(selected.EndpointUrl);
+            if (selectedUrl != null && discoveryUrl != null &&
+                selectedUrl.Scheme == discoveryUrl.Scheme)
+            {
+                selected.EndpointUrl = new UriBuilder(selectedUrl)
                 {
-                    selected.EndpointUrl = new UriBuilder(selectedUrl)
-                    {
-                        Host = discoveryUrl.DnsSafeHost,
-                        Port = discoveryUrl.Port
-                    }.ToString();
-                }
+                    Host = discoveryUrl.DnsSafeHost,
+                    Port = discoveryUrl.Port
+                }.ToString();
+            }
 
-                logger.LogInformation("{Client}: Endpoint {Endpoint} selected!", context,
-                    ToString(selected));
-                return selected;
+            logger.LogInformation("{Client}: Endpoint {Endpoint} selected!", context,
+                ToString(selected));
+            return selected;
 
-                static string ToString(EndpointDescription ep) =>
-    $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolicyUri}]";
-                // Match endpoint returned against desired endpoint url
-                static bool Match(EndpointDescription endpointDescription,
-                    Uri endpointUrl, bool includeScheme, bool includePath)
-                {
-                    var url = Utils.ParseUri(endpointDescription.EndpointUrl);
-                    return url != null &&
-                        (!includeScheme || string.Equals(url.Scheme,
-                            endpointUrl.Scheme, StringComparison.OrdinalIgnoreCase)) &&
-                        (!includePath || string.Equals(url.AbsolutePath,
-                            endpointUrl.AbsolutePath, StringComparison.OrdinalIgnoreCase));
-                }
+            static string ToString(EndpointDescription ep) =>
+$"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolicyUri}]";
+            // Match endpoint returned against desired endpoint url
+            static bool Match(EndpointDescription endpointDescription,
+                Uri endpointUrl, bool includeScheme, bool includePath)
+            {
+                var url = Utils.ParseUri(endpointDescription.EndpointUrl);
+                return url != null &&
+                    (!includeScheme || string.Equals(url.Scheme,
+                        endpointUrl.Scheme, StringComparison.OrdinalIgnoreCase)) &&
+                    (!includePath || string.Equals(url.AbsolutePath,
+                        endpointUrl.AbsolutePath, StringComparison.OrdinalIgnoreCase));
             }
         }
 
@@ -2056,7 +2054,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (OperationCanceledException) { }
         }
-        private readonly static JsonSerializerOptions kIndented = new()
+        private static readonly JsonSerializerOptions kIndented = new()
         {
             WriteIndented = true
         };
@@ -2191,7 +2189,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly IMetricsContext _metrics;
         private readonly ILogger _logger;
         private readonly TimeProvider _timeProvider;
-        private readonly object _channelLock = new();
+        private readonly Lock _channelLock = new();
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private readonly ITimer _channelMonitor;
         private readonly Task? _diagnosticsDumper;
@@ -2203,8 +2201,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly Channel<(ConnectionEvent, object?)> _channel;
         private readonly Action<ChannelDiagnosticModel> _diagnosticsCb;
         private readonly EventHandler<EndpointConnectivityStateEventArgs>? _notifier;
-        private readonly Dictionary<(string, TimeSpan, TimeSpan), Sampler> _samplers = new();
-        private readonly Dictionary<(string, TimeSpan), Browser> _browsers = new();
+        private readonly Dictionary<(string, TimeSpan, TimeSpan), Sampler> _samplers = [];
+        private readonly Dictionary<(string, TimeSpan), Browser> _browsers = [];
         private readonly Dictionary<string, CancellationTokenSource> _tokens;
         private static readonly TimeSpan kDefaultServiceCallTimeout = TimeSpan.FromMinutes(5);
         private static readonly TimeSpan kDefaultConnectTimeout = TimeSpan.FromMinutes(1);

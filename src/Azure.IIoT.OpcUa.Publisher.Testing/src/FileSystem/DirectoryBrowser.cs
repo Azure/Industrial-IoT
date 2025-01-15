@@ -8,7 +8,6 @@ namespace FileSystem
     using Opc.Ua;
     using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
 
     /// <summary>
     /// Browses the file system folder and files
@@ -68,7 +67,7 @@ namespace FileSystem
 
                 if (_stage == Stage.Begin)
                 {
-                    _directories = System.IO.Directory.GetDirectories(_source.FullPath).ToList();
+                    _directories = [.. System.IO.Directory.GetDirectories(_source.FullPath)];
                     _stage = Stage.Directories;
                 }
 
@@ -82,7 +81,7 @@ namespace FileSystem
                         return reference;
                     }
 
-                    _files = System.IO.Directory.GetFiles(_source.FullPath).ToList();
+                    _files = [.. System.IO.Directory.GetFiles(_source.FullPath)];
                     _stage = Stage.Files;
                 }
 

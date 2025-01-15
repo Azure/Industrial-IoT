@@ -124,7 +124,7 @@ namespace Opc.Ua.Sample
 
             if (_monitoredItems == null)
             {
-                _monitoredItems = new List<DataChangeMonitoredItem>();
+                _monitoredItems = [];
                 Node.OnStateChanged = OnNodeChange;
             }
 
@@ -198,7 +198,7 @@ namespace Opc.Ua.Sample
         /// <param name="eventSubscription"></param>
         public void SubscribeToEvents(ISystemContext context, IEventMonitoredItem eventSubscription)
         {
-            _eventSubscriptions ??= new List<IEventMonitoredItem>();
+            _eventSubscriptions ??= [];
 
             if (_eventSubscriptions.Count == 0)
             {

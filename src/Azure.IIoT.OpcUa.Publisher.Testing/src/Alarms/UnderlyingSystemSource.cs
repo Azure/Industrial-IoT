@@ -45,8 +45,8 @@ namespace Alarms
         /// <param name="timeService"></param>
         public UnderlyingSystemSource(TimeService timeService)
         {
-            _alarms = new List<UnderlyingSystemAlarm>();
-            _archive = new Dictionary<uint, UnderlyingSystemAlarm>();
+            _alarms = [];
+            _archive = [];
             _timeService = timeService;
         }
 
@@ -100,14 +100,14 @@ namespace Alarms
             {
                 case "HighAlarm":
                     {
-                        alarm.Limits = new double[] { 80 };
+                        alarm.Limits = [80];
                         alarm.State |= UnderlyingSystemAlarmStates.High;
                         break;
                     }
 
                 case "HighLowAlarm":
                     {
-                        alarm.Limits = new double[] { 90, 70, 30, 10 };
+                        alarm.Limits = [90, 70, 30, 10];
                         alarm.State |= UnderlyingSystemAlarmStates.High;
                         break;
                     }
@@ -501,7 +501,7 @@ namespace Alarms
                     {
                         reason = "The alarm severity has increased.";
 
-                        var values = Enum.GetValues(typeof(EventSeverity));
+                        var values = Enum.GetValues<EventSeverity>();
 
                         for (var ii = 0; ii < values.Length; ii++)
                         {

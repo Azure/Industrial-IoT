@@ -15,6 +15,6 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <summary>
         /// Resolve writer group
         /// </summary>
-        IWriterGroup WriterGroup { get; }
+        IWriterGroupControl WriterGroup { get; }
     }
 }

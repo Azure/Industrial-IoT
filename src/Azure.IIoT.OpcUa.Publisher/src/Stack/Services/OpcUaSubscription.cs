@@ -1478,7 +1478,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private IEnumerable<OpcUaMonitoredItem> GetAllMonitoredItems(
             IEnumerable<OpcUaMonitoredItem>? parent = null)
         {
-            parent ??= Enumerable.Empty<OpcUaMonitoredItem>();
+            parent ??= [];
 
             parent = parent.Concat(CurrentlyMonitored);
 
@@ -2531,7 +2531,7 @@ Actual (revised) state/desired state:
             /// <summary>
             /// Monitored items that should be in the subscription partition
             /// </summary>
-            public List<(ISubscriber, BaseMonitoredItemModel)> Items { get; } = new();
+            public List<(ISubscriber, BaseMonitoredItemModel)> Items { get; } = [];
 
             /// <summary>
             /// Create
@@ -2734,6 +2734,6 @@ Actual (revised) state/desired state:
         private long _unassignedNotifications;
         private bool _publishingStopped;
         private bool _disposed;
-        private readonly object _timers = new();
+        private readonly Lock _timers = new();
     }
 }

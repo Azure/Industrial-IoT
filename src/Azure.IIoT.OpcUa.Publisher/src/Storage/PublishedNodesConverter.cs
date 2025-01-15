@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
     using Furly.Exceptions;
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Logging.Abstractions;
     using Microsoft.Extensions.Options;
     using System;
     using System.Collections.Generic;
@@ -91,7 +90,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         {
             if (items == null)
             {
-                return Enumerable.Empty<PublishedNodesEntryModel>();
+                return [];
             }
             var sw = Stopwatch.StartNew();
             try
@@ -166,7 +165,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             OpcNodes = ToOpcNodes(item.Writer.DataSet?.DataSetSource?.SubscriptionSettings,
                                     item.Writer.DataSet?.DataSetSource?.PublishedVariables,
                                     item.Writer.DataSet?.DataSetSource?.PublishedEvents, preferTimeSpan, false)?
-                                .ToList() ?? new List<OpcNodeModel>(),
+                                .ToList() ?? [],
                             // ...
 
                             // Added by Add connection information
@@ -201,7 +200,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             catch (Exception ex)
             {
                 _logger.LogError(ex, "failed to convert the published nodes.");
-                return Enumerable.Empty<PublishedNodesEntryModel>();
+                return [];
             }
             finally
             {
@@ -322,7 +321,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         {
             if (entries == null)
             {
-                return Enumerable.Empty<WriterGroupModel>();
+                return [];
             }
             var sw = Stopwatch.StartNew();
             try
@@ -497,7 +496,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             catch (Exception ex)
             {
                 _logger.LogError(ex, "failed to convert the published nodes.");
-                return Enumerable.Empty<WriterGroupModel>();
+                return [];
             }
             finally
             {

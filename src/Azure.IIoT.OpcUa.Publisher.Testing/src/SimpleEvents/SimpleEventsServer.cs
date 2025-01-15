@@ -40,9 +40,9 @@ namespace SimpleEvents
         {
             get
             {
-                return new StringCollection {
+                return [
                     Namespaces.SimpleEvents
-                };
+                ];
             }
         }
 

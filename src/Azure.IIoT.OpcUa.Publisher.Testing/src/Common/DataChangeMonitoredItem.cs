@@ -29,6 +29,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Opc.Ua.Server;
 
 namespace Opc.Ua.Sample
@@ -644,6 +645,7 @@ namespace Opc.Ua.Sample
         /// No filters supported.
         /// </summary>
         public DataChangeFilter DataChangeFilter { get; private set; }
+        public IUserIdentity EffectiveIdentity { get; }
 
         /// <summary>
         /// Increments the sample time to the next interval.
@@ -702,12 +704,9 @@ namespace Opc.Ua.Sample
                 // check if queuing is enabled.
                 if (_queue != null && (!_resendData || _queue.ItemsInQueue != 0))
                 {
-                    DataValue value = null;
-                    ServiceResult error = null;
-
-                    while (_queue.Publish(out value, out error))
+                    while (_queue.Publish(out var value, out var error))
                     {
-                        Publish(context, value, error, notifications, diagnostics);
+                        Publish(context, null, notifications, diagnostics);
 
                         if (_resendData)
                         {
@@ -718,7 +717,7 @@ namespace Opc.Ua.Sample
                 }
                 else
                 {
-                    Publish(context, _lastValue, _lastError, notifications, diagnostics);
+                    Publish(context, _lastValue, notifications, diagnostics);
                 }
 
                 // update flags
@@ -733,13 +732,11 @@ namespace Opc.Ua.Sample
         /// </summary>
         /// <param name="context"></param>
         /// <param name="value"></param>
-        /// <param name="error"></param>
         /// <param name="notifications"></param>
         /// <param name="diagnostics"></param>
         private void Publish(
             OperationContext context,
             DataValue value,
-            ServiceResult error,
             Queue<MonitoredItemNotification> notifications,
             Queue<DiagnosticInfo> diagnostics)
         {
@@ -751,17 +748,6 @@ namespace Opc.Ua.Sample
                     value.StatusCode = value.StatusCode.SetSemanticsChanged(true);
                 }
 
-                if (error != null)
-                {
-                    error = new ServiceResult(
-                        error.StatusCode.SetSemanticsChanged(true),
-                        error.SymbolicId,
-                        error.NamespaceUri,
-                        error.LocalizedText,
-                        error.AdditionalInfo,
-                        error.InnerResult);
-                }
-
                 _semanticsChanged = false;
             }
 
@@ -771,17 +757,6 @@ namespace Opc.Ua.Sample
                 if (value != null)
                 {
                     value.StatusCode = value.StatusCode.SetStructureChanged(true);
-                }
-
-                if (error != null)
-                {
-                    error = new ServiceResult(
-                        error.StatusCode.SetStructureChanged(true),
-                        error.SymbolicId,
-                        error.NamespaceUri,
-                        error.LocalizedText,
-                        error.AdditionalInfo,
-                        error.InnerResult);
                 }
 
                 _structureChanged = false;
@@ -818,7 +793,7 @@ namespace Opc.Ua.Sample
             diagnostics.Enqueue(diagnosticInfo);
         }
 
-        private readonly object _lock = new();
+        private readonly Lock _lock = new();
         private readonly MonitoredNode _source;
         private DataValue _lastValue;
         private ServiceResult _lastError;

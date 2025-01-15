@@ -1,14 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <Nullable>enable</Nullable>
     <TieredPGO>true</TieredPGO>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Azure.IoT" Version="1.0.90" />
-    <PackageReference Include="Furly.Azure.KeyVault" Version="1.0.90" />
+    <PackageReference Include="Furly.Azure.IoT" Version="1.1.2" />
+    <PackageReference Include="Furly.Azure.KeyVault" Version="1.1.2" />
     <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
     <PackageReference Include="System.Net.Primitives" Version="4.3.1" />
   </ItemGroup>

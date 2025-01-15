@@ -12,7 +12,6 @@ namespace Opc.Ua.Extensions
         [Fact]
         public void DecodeLocalizedTextWithLocale()
         {
-            var context = new ServiceMessageContext();
             var expected = new LocalizedText("en-US", "text");
             var result = "text@en-US".ToLocalizedText();
             Assert.Equal(expected, result);
@@ -21,7 +20,6 @@ namespace Opc.Ua.Extensions
         [Fact]
         public void DecodeLocalizedTextWithLocale2()
         {
-            var context = new ServiceMessageContext();
             var expected = new LocalizedText("en-US", "text@");
             var result = "text@@en-US".ToLocalizedText();
             Assert.Equal(expected, result);
@@ -30,7 +28,6 @@ namespace Opc.Ua.Extensions
         [Fact]
         public void DecodeLocalizedTextWithoutLocale()
         {
-            var context = new ServiceMessageContext();
             var expected = new LocalizedText("text");
             var result = "text".ToLocalizedText();
             Assert.Equal(expected, result);
@@ -39,7 +36,6 @@ namespace Opc.Ua.Extensions
         [Fact]
         public void DecodeLocalizedTextWithoutLocale1()
         {
-            var context = new ServiceMessageContext();
             var expected = new LocalizedText("text");
             var result = "text@".ToLocalizedText();
             Assert.Equal(expected, result);
@@ -48,7 +44,6 @@ namespace Opc.Ua.Extensions
         [Fact]
         public void DecodeLocalizedTextWithTwoAtAndLocale()
         {
-            var context = new ServiceMessageContext();
             var expected = new LocalizedText("en-US", "text@contoso.org");
             var result = "text@contoso.org@en-US".ToLocalizedText();
             Assert.Equal(expected, result);
@@ -57,7 +52,6 @@ namespace Opc.Ua.Extensions
         [Fact]
         public void DecodeLocalizedTextWithTwoAtAndWithoutLocale()
         {
-            var context = new ServiceMessageContext();
             var expected = new LocalizedText("text@contoso.org");
             var result = "text@contoso.org@".ToLocalizedText();
             Assert.Equal(expected, result);

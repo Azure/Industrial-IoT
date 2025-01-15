@@ -27,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 while (true)
                 {
-                    var cur = new X509Certificate2(rawCertificates);
+                    var cur = X509CertificateLoader.LoadCertificate(rawCertificates);
                     certificates.Add(cur);
                     if (cur.RawData.Length >= rawCertificates.Length)
                     {

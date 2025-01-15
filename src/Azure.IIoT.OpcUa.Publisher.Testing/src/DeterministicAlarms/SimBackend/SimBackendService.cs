@@ -32,11 +32,12 @@ namespace DeterministicAlarms.SimBackend
     using DeterministicAlarms.Configuration;
     using System;
     using System.Collections.Generic;
+    using System.Threading;
 
     public class SimBackendService
     {
-        private readonly object _lock = new();
-        public Dictionary<string, SimSourceNodeBackend> SourceNodes { get; } = new();
+        private readonly Lock _lock = new();
+        public Dictionary<string, SimSourceNodeBackend> SourceNodes { get; } = [];
 
         public SimSourceNodeBackend CreateSourceNodeBackend(string name,
             IList<Alarm> alarms, EventHandler<SimAlarmStateBackendEventArgs> alarmChangeCallback)

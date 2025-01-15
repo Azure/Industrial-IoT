@@ -263,7 +263,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     results[0].Result.OutputArguments.Count == 0 ||
                     results[0].Result.OutputArguments[0].Value is not byte[] byteString)
                 {
-                    byteString = Array.Empty<byte>();
+                    byteString = [];
                 }
                 return (byteString, null);
             }

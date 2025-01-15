@@ -62,7 +62,7 @@ namespace Alarms
         /// </summary>
         private void Initialize()
         {
-            Areas = new AreaConfigurationCollection();
+            Areas = [];
         }
 
         /// <summary>
@@ -129,7 +129,5 @@ namespace Alarms
     /// A collection of AreaConfiguration objects.
     /// </summary>
     [CollectionDataContract(Name = "ListOfAreaConfiguration", Namespace = Namespaces.AlarmCondition, ItemName = "AreaConfiguration")]
-    public class AreaConfigurationCollection : List<AreaConfiguration>
-    {
-    }
+    public class AreaConfigurationCollection : List<AreaConfiguration>;
 }

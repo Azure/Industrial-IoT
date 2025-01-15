@@ -99,11 +99,11 @@ namespace Opc.Ua.Test
             NamespaceUris = new NamespaceTable();
             ServerUris = new StringTable();
             _random = random ?? new RandomSource();
-            _boundaryValues = new SortedDictionary<string, object[]>();
+            _boundaryValues = [];
             for (var i = 0; i < kAvailableBoundaryValues.Length; i++)
             {
                 _boundaryValues[kAvailableBoundaryValues[i].SystemType.Name] =
-                    kAvailableBoundaryValues[i].Values.ToArray();
+                    [.. kAvailableBoundaryValues[i].Values];
             }
             _tokenValues = LoadStringData("Opc.Ua.Types.Utils.LocalizedData.txt");
             if (_tokenValues.Count == 0)
@@ -130,7 +130,7 @@ namespace Opc.Ua.Test
             ITypeTable typeTree)
         {
             var builtInType = Ua.TypeInfo.GetBuiltInType(dataType, typeTree);
-            var num = 0;
+            int num;
             switch (valueRank)
             {
                 case -2:
@@ -410,7 +410,7 @@ namespace Opc.Ua.Test
                     {
                         obj = GetBoundaryValue(typeof(T));
                     }
-                    obj ??= GetRandom(typeof(T));
+                    obj ??= GetRandom<T>();
                 }
                 while (obj == null);
                 array[i] = (T)obj;
@@ -813,10 +813,10 @@ namespace Opc.Ua.Test
                             {
                                 if (text != null)
                                 {
-                                    sortedDictionary.Add(text, list.ToArray());
+                                    sortedDictionary.Add(text, [.. list]);
                                 }
                                 text = text3[1..];
-                                list = new List<string>();
+                                list = [];
                             }
                             else
                             {
@@ -931,12 +931,12 @@ namespace Opc.Ua.Test
                 }
                 else
                 {
-                    Values = new List<object>();
+                    Values = [];
                 }
             }
         }
 
-        private static readonly BoundaryValues[] kAvailableBoundaryValues = new[] {
+        private static readonly BoundaryValues[] kAvailableBoundaryValues = [
             new BoundaryValues(typeof(sbyte), sbyte.MinValue, (sbyte)0, sbyte.MaxValue),
             new BoundaryValues(typeof(byte), (byte)0, byte.MaxValue),
             new BoundaryValues(typeof(short), short.MinValue, (short)0, short.MaxValue),
@@ -957,7 +957,7 @@ namespace Opc.Ua.Test
          //       new DateTime(2001, 9, 11, 9, 15, 0, DateTimeKind.Local)),
             new BoundaryValues(typeof(byte[]), Array.Empty<byte>()),
             new BoundaryValues(typeof(StatusCode), 0u, 1073741824u, 2147483648u)
-        };
+        ];
 
         private readonly IRandomSource _random;
         private readonly SortedDictionary<string, object[]> _boundaryValues;

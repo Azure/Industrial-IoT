@@ -44,9 +44,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Sdk.SignalR
                     (T0?)args[0]
                 );
             }, this, method,
-            new Type[] {
+            [
                 typeof(T0)
-            });
+            ]);
         }
     }
 }

@@ -486,17 +486,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
                 throw new NotSupportedException("Upload not supported");
             }
 
-            await using (var _ = HttpContext.Request.Body.ConfigureAwait(false))
-            {
-                var result = await _files.CopyFromAsync(connection,
-                    fileObject, HttpContext.Request.Body, options, ct).ConfigureAwait(false);
+            await using var _ = HttpContext.Request.Body.ConfigureAwait(false);
+            var result = await _files.CopyFromAsync(connection,
+                fileObject, HttpContext.Request.Body, options, ct).ConfigureAwait(false);
 
-                if (result?.StatusCode != 0)
-                {
-                    HttpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
-                    HttpContext.Response.Headers.Append("errorInfo",
-                        new StringValues(_serializer.SerializeObjectToString(result)));
-                }
+            if (result?.StatusCode != 0)
+            {
+                HttpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                HttpContext.Response.Headers.Append("errorInfo",
+                    new StringValues(_serializer.SerializeObjectToString(result)));
             }
         }
         private readonly IFileSystemServices<ConnectionModel> _files;

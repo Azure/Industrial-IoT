@@ -131,7 +131,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Services.Models
         /// </summary>
         /// <param name="registration"></param>
         /// <returns></returns>
-        [return: NotNullIfNotNull("registration")]
+        [return: NotNullIfNotNull(nameof(registration))]
         public static GatewayModel? ToServiceModel(this GatewayRegistration? registration)
         {
             if (registration is null)

@@ -39,10 +39,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
                 .AddCommandLine(args)
                 .Build();
 
-            using (var scope = new Program(config))
-            {
-                scope.RunAsync(args).Wait();
-            }
+            using var scope = new Program(config);
+            scope.RunAsync(args).Wait();
         }
 
         /// <summary>
@@ -1292,7 +1290,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
         /// <param name="options"></param>
         private async Task UpdateSupervisorAsync(CliOptions options)
         {
-            var config = BuildDiscoveryConfig(options);
             await _client.Registry.UpdateSupervisorAsync(GetSupervisorId(options),
                 new SupervisorUpdateModel
                 {
@@ -1456,7 +1453,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Cli
         /// <param name="options"></param>
         private async Task UpdateDiscovererAsync(CliOptions options)
         {
-            var config = BuildDiscoveryConfig(options);
             await _client.Registry.UpdateDiscovererAsync(GetDiscovererId(options),
                 new DiscovererUpdateModel
                 {

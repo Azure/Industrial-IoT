@@ -245,7 +245,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     await AddTargetsToBrowseResultAsync(context.Session,
                         request.Header, request.ReadVariableValues ?? false, request.NodeIdsOnly ?? false,
                         targets, operation.Result.Targets,
-                        operation.Request.ToArray(), context.Ct).ConfigureAwait(false);
+                        [.. operation.Request], context.Ct).ConfigureAwait(false);
                 }
                 return new BrowsePathResponseModel
                 {
@@ -642,7 +642,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 nameof(request));
                     }
                     methodId = await context.Session.ResolveBrowsePathToNodeAsync(request.Header,
-                        methodId, request.MethodBrowsePath.ToArray(), nameof(request.MethodBrowsePath),
+                        methodId, [.. request.MethodBrowsePath], nameof(request.MethodBrowsePath),
                         _timeProvider, context.Ct).ConfigureAwait(false);
                 }
                 else if (NodeId.IsNull(methodId))
@@ -676,11 +676,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         List<(TypeInfo, object)>? temp = null;
                         if (nodeReference.BrowseName == BrowseNames.InputArguments)
                         {
-                            temp = inputs = new List<(TypeInfo, object)>();
+                            temp = inputs = [];
                         }
                         else if (nodeReference.BrowseName == BrowseNames.OutputArguments)
                         {
-                            temp = outputs = new List<(TypeInfo, object)>();
+                            temp = outputs = [];
                         }
                         else
                         {
@@ -726,7 +726,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     new CallMethodRequest {
                         ObjectId = objectId,
                         MethodId = methodId,
-                        InputArguments = inputs == null ? new VariantCollection() :
+                        InputArguments = inputs == null ? [] :
                             new VariantCollection(inputs
                                 .Select(arg => arg.Item1.CreateVariant(arg.Item2)))
                     }
@@ -1125,8 +1125,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         ErrorInfo = errorInfo
                     };
                 }
-                var startTime = config.StartOfOnlineArchive.GetValueOrDefault()
-                    ?? config.StartOfArchive.GetValueOrDefault();
+                var startTime = config.StartOfOnlineArchive.GetValueOrDefaultEx()
+                    ?? config.StartOfArchive.GetValueOrDefaultEx();
                 if (startTime == null)
                 {
                     startTime = await HistoryReadTimestampAsync(
@@ -1150,42 +1150,42 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     Configuration = errorInfo != null ? null : new HistoryConfigurationModel
                     {
                         MinTimeInterval =
-                            config.MinTimeInterval.GetValueOrDefault(
+                            config.MinTimeInterval.GetValueOrDefaultEx(
                                 v => v.HasValue && v.Value != 0 ?
                                 TimeSpan.FromMilliseconds(v.Value) : (TimeSpan?)null),
                         MaxTimeInterval =
-                            config.MaxTimeInterval.GetValueOrDefault(
+                            config.MaxTimeInterval.GetValueOrDefaultEx(
                                 v => v.HasValue && v.Value != 0 ?
                                 TimeSpan.FromMilliseconds(v.Value) : (TimeSpan?)null),
                         ExceptionDeviation =
-                            config.ExceptionDeviation.GetValueOrDefault(),
+                            config.ExceptionDeviation.GetValueOrDefaultEx(),
                         ExceptionDeviationType =
-                            config.ExceptionDeviationFormat.GetValueOrDefault(
+                            config.ExceptionDeviationFormat.GetValueOrDefaultEx(
                                 v => v.ToExceptionDeviationType()),
                         ServerTimestampSupported =
-                            config.ServerTimestampSupported.GetValueOrDefault(),
+                            config.ServerTimestampSupported.GetValueOrDefaultEx(),
                         Stepped =
-                            config.Stepped.GetValueOrDefault(),
+                            config.Stepped.GetValueOrDefaultEx(),
                         Definition =
-                            config.Definition.GetValueOrDefault(),
+                            config.Definition.GetValueOrDefaultEx(),
                         AggregateFunctions =
                             aggregateFunctions.Count == 0 ? null : aggregateFunctions,
                         AggregateConfiguration = new AggregateConfigurationModel
                         {
                             PercentDataBad =
-                                aggregate.PercentDataBad.GetValueOrDefault(),
+                                aggregate.PercentDataBad.GetValueOrDefaultEx(),
                             PercentDataGood =
-                                aggregate.PercentDataGood.GetValueOrDefault(),
+                                aggregate.PercentDataGood.GetValueOrDefaultEx(),
                             TreatUncertainAsBad =
-                                aggregate.TreatUncertainAsBad.GetValueOrDefault(),
+                                aggregate.TreatUncertainAsBad.GetValueOrDefaultEx(),
                             UseSlopedExtrapolation =
-                                aggregate.UseSlopedExtrapolation.GetValueOrDefault()
+                                aggregate.UseSlopedExtrapolation.GetValueOrDefaultEx()
                         },
                         StartOfOnlineArchive = startTime ??
-                            config.StartOfOnlineArchive.GetValueOrDefault(
+                            config.StartOfOnlineArchive.GetValueOrDefaultEx(
                                 v => v == DateTime.MinValue ? startTime : v),
                         StartOfArchive =
-                            config.StartOfArchive.GetValueOrDefault(
+                            config.StartOfArchive.GetValueOrDefaultEx(
                                 v => v == DateTime.MinValue ? startTime : v) ?? startTime,
                         EndOfArchive = endTime
                     }
@@ -1473,10 +1473,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 if (results[0].Result.ContinuationPoint != null)
                                 {
                                     await session.Services.BrowseNextAsync(header.ToRequestHeader(_timeProvider),
-                                        true, new ByteStringCollection
-                                        {
+                                        true,
+                                        [
                                             response.Results[0].ContinuationPoint
-                                        }, ct: ct).ConfigureAwait(false);
+                                        ], ct: ct).ConfigureAwait(false);
                                 }
                             }
                         }
@@ -1623,12 +1623,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 // Abort read if needed
                 if (results[0].Result.ContinuationPoint?.Length > 0)
                 {
-                    nodesToRead = new HistoryReadValueIdCollection {
+                    nodesToRead = [
                         new HistoryReadValueId {
                             NodeId = nodeId,
                             ContinuationPoint = results[0].Result.ContinuationPoint
                         }
-                    };
+                    ];
                     await session.Services.HistoryReadAsync(header.ToRequestHeader(timeProvider),
                         details, Opc.Ua.TimestampsToReturn.Source, true,
                         nodesToRead, ct).ConfigureAwait(false);
@@ -1684,7 +1684,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 if (_nodeIds == null)
                 {
                     // Initialize
-                    _nodeIds = _request.NodeIds == null ? Array.Empty<NodeId>() : _request.NodeIds
+                    _nodeIds = _request.NodeIds == null ? [] : _request.NodeIds
                         .Select(n => n.ToNodeId(context.Session.MessageContext))
                         .Where(n => !NodeId.IsNull(n))
                         .ToArray();
@@ -1708,7 +1708,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     // Done - no more nodes on the browse stack to browse
                     _logger.LogDebug("Browsed {Nodes} nodes and {References} references " +
                         "in address space in {Elapsed}...", _nodes, _references, _sw.Elapsed);
-                    return Enumerable.Empty<BrowseStreamChunkModel>();
+                    return [];
                 }
 
                 var (node, errorInfo) = await context.Session.ReadNodeAsync(
@@ -1721,7 +1721,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var id = _request.Header.AsString(nodeId, context.Session.MessageContext, _options);
                 if (id == null)
                 {
-                    return Enumerable.Empty<BrowseStreamChunkModel>();
+                    return [];
                 }
 
                 chunk = new BrowseStreamChunkModel
@@ -1795,7 +1795,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var refs = CollectReferences(context.Session, sourceId,
                     results[0].Result.References, results[0].ErrorInfo,
                     _request.NoRecurse ?? false);
-                var continuation = results[0].Result.ContinuationPoint ?? Array.Empty<byte>();
+                var continuation = results[0].Result.ContinuationPoint ?? [];
                 if (continuation.Length > 0)
                 {
                     Push(context => BrowseNextAsync(context, sourceId, continuation));
@@ -1841,7 +1841,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     results[0].Result.References, results[0].ErrorInfo,
                     _request.NoRecurse ?? false);
 
-                var continuation = results[0].Result.ContinuationPoint ?? Array.Empty<byte>();
+                var continuation = results[0].Result.ContinuationPoint ?? [];
                 if (continuation.Length > 0)
                 {
                     Push(session => BrowseNextAsync(session, sourceId, continuation));
@@ -1942,7 +1942,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             private readonly Stack<NodeId> _browseStack = new();
-            private readonly HashSet<NodeId> _visited = new();
+            private readonly HashSet<NodeId> _visited = [];
             private int _nodes;
             private int _references;
             private NodeId? _typeId;

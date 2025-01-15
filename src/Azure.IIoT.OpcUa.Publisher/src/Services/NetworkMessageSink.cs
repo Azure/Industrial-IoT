@@ -31,17 +31,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// encoding and other egress concerns.  The queues can be partitioned
     /// to handle multiple topics.
     /// </summary>
-    public sealed class NetworkMessageSink : IWriterGroup, IAsyncDisposable
+    public sealed class NetworkMessageSink : IMessageSink, IDisposable,
+        IAsyncDisposable
     {
-        /// <inheritdoc/>
-        public IMessageSource Source { get; }
-
         /// <summary>
         /// Create writer group network message sink
         /// </summary>
         /// <param name="writerGroup"></param>
         /// <param name="eventClients"></param>
-        /// <param name="source"></param>
         /// <param name="encoder"></param>
         /// <param name="options"></param>
         /// <param name="logger"></param>
@@ -49,13 +46,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="diagnostics"></param>
         /// <param name="timeProvider"></param>
         public NetworkMessageSink(WriterGroupModel writerGroup,
-            IEnumerable<IEventClient> eventClients, IMessageSource source,
-            IMessageEncoder encoder, IOptions<PublisherOptions> options,
-            ILogger<NetworkMessageSink> logger, IMetricsContext metrics,
-            IWriterGroupDiagnostics? diagnostics = null, TimeProvider? timeProvider = null)
+            IEnumerable<IEventClient> eventClients, IMessageEncoder encoder,
+            IOptions<PublisherOptions> options, ILogger<NetworkMessageSink> logger,
+            IMetricsContext metrics, IWriterGroupDiagnostics? diagnostics = null,
+            TimeProvider? timeProvider = null)
         {
-            Source = source;
-
             _metrics = metrics ?? throw new ArgumentNullException(nameof(metrics));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _messageEncoder = encoder ?? throw new ArgumentNullException(nameof(encoder));
@@ -88,14 +83,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             InitializeMetrics();
 
-            Source.OnMessage += OnMessageReceived;
-            Source.OnCounterReset += OnReset;
             _startTime = _timeProvider.GetTimestamp();
             _transport.Log(writerGroup, _logger);
         }
 
         /// <inheritdoc/>
-        private void OnMessageReceived(object? sender, OpcUaSubscriptionNotification args)
+        public void OnMessage(OpcUaSubscriptionNotification notification)
         {
             if (_dataFlowStartTime == 0)
             {
@@ -103,14 +96,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _dataFlowStartTime = _timeProvider.GetTimestamp();
             }
 
-            if (!_queue.TryPublish(args))
+            if (!_queue.TryPublish(notification))
             {
-                args.Dispose();
+                notification.Dispose();
             }
         }
 
         /// <inheritdoc/>
-        private void OnReset(object? sender, EventArgs e)
+        public void OnCounterReset()
         {
             _dataFlowStartTime = 0;
             _queue.Reset();
@@ -142,9 +135,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async ValueTask DisposeAsync()
         {
             await _cts.CancelAsync().ConfigureAwait(false);
-            Source.OnCounterReset -= OnReset;
-            Source.OnMessage -= OnMessageReceived;
-
             await _queue.DisposeAsync().ConfigureAwait(false);
 
             _queue = new NullPublishQueue();
@@ -536,7 +526,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     _logger.LogError(e, "Encoding failure on partition #{Partition}.", _índex);
                     input.ForEach(a => a.Dispose());
-                    return Enumerable.Empty<(IEvent, Action)>();
+                    return [];
                 }
             }
 
@@ -844,7 +834,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 description: "Number of failures sending a network message.");
         }
 
-        static readonly Histogram<double> kSendingDuration = Diagnostics.Meter.CreateHistogram<double>(
+        private static readonly Histogram<double> kSendingDuration = Diagnostics.Meter.CreateHistogram<double>(
             "iiot_edge_publisher_messages_duration", description: "Histogram of message sending durations.");
 
         private double UpTime => _timeProvider.GetElapsedTime(_startTime).TotalSeconds;

@@ -16,9 +16,9 @@ namespace FileSystem
         {
             get
             {
-                return new StringCollection {
+                return [
                     Namespaces.FileSystem
-                };
+                ];
             }
         }
 

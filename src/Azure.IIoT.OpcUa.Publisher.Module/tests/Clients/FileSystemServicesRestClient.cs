@@ -332,7 +332,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             /// <inheritdoc/>
             public override bool CanWrite => true;
             /// <inheritdoc/>
-            public override long Length { get => _length; }
+            public override long Length => _length;
             /// <inheritdoc/>
             public override long Position { get; set; }
 

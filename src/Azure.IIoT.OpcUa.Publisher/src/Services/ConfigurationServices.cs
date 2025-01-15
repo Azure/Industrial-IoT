@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
-    using Azure.Core;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
@@ -16,7 +15,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Opc.Ua;
-    using Opc.Ua.Client;
     using Opc.Ua.Extensions;
     using System;
     using System.Buffers;
@@ -25,7 +23,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.IO;
     using System.Linq;
     using System.Runtime.CompilerServices;
-    using System.Runtime.InteropServices;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
@@ -91,18 +88,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             PublishedNodeCreateAssetRequestModel<byte[]> request, CancellationToken ct)
         {
             var stream = new MemoryStream(request.Configuration);
-            await using (var _ = stream.ConfigureAwait(false))
+            await using var _ = stream.ConfigureAwait(false);
+            var requestWithStream = new PublishedNodeCreateAssetRequestModel<Stream>
             {
-                var requestWithStream = new PublishedNodeCreateAssetRequestModel<Stream>
-                {
-                    Configuration = stream,
-                    Entry = request.Entry,
-                    Header = request.Header,
-                    WaitTime = request.WaitTime
-                };
-                return await CreateOrUpdateAssetAsync(requestWithStream,
-                    ct).ConfigureAwait(false);
-            }
+                Configuration = stream,
+                Entry = request.Entry,
+                Header = request.Header,
+                WaitTime = request.WaitTime
+            };
+            return await CreateOrUpdateAssetAsync(requestWithStream,
+                ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -125,7 +120,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var browser = new ConfigBrowser(entry with
                 {
                     // Named object in the address space of the server.
-                    OpcNodes = new List<OpcNodeModel> { new () { Id = AssetsEx.Root } }
+                    OpcNodes = [new() { Id = AssetsEx.Root }]
                 }, expansion, _options, null, _logger, _timeProvider, true);
 
                 // Browse and swap the data set writer id and data set name to make an asset entry.
@@ -155,7 +150,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             ArgumentNullException.ThrowIfNull(request.Entry.DataSetWriterGroup);
             ArgumentNullException.ThrowIfNull(request.Entry.DataSetName); // Asset name
 
-            using var trace = _activitySource.StartActivity("CreateAsset");
+            using var trace = _activitySource.StartActivity("CreateOrUpdateAsset");
 
             var entry = request.Entry;
             var connection = entry.ToConnectionModel();
@@ -183,14 +178,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 entry = entry with
                 {
                     DataSetWriterId = assetId,
-                    OpcNodes = new List<OpcNodeModel>
-                    {
+                    OpcNodes =
+                    [
                         new ()
                         {
                             Id = assetId,
                             DataSetFieldId = entry.DataSetName
                         }
-                    }
+                    ]
                 };
 
                 // Find the created asset file
@@ -454,7 +449,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _nodeIndex = -1;
                 _expanded.Clear();
 
-                Push(context => BeginAsync(context));
+                Push(BeginAsync);
             }
 
             /// <inheritdoc/>
@@ -470,7 +465,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var node = _currentObject != null ? _currentObject.OriginalNode : CurrentNode;
                 node.AddErrorInfo(errorInfo);
                 _logger.LogError("Error expanding node {Node}: {Error}", node, errorInfo);
-                return Enumerable.Empty<ServiceResponse<PublishedNodesEntryModel>>();
+                return [];
             }
 
             /// <inheritdoc/>
@@ -490,15 +485,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     // collect matching object instances
                     CurrentNode.AddObjectsOrVariables(matching);
                 }
-                return Enumerable.Empty<ServiceResponse<PublishedNodesEntryModel>>();
+                return [];
             }
 
             /// <inheritdoc/>
             protected override IEnumerable<ServiceResponse<PublishedNodesEntryModel>> HandleCompletion(
                 ServiceCallContext context)
             {
-                Push(context => CompleteAsync(context));
-                return Enumerable.Empty<ServiceResponse<PublishedNodesEntryModel>>();
+                Push(CompleteAsync);
+                return [];
             }
 
             /// <summary>
@@ -626,13 +621,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         var errorInfo = readResults.ErrorInfo ??
                             readResults[0].ErrorInfo;
                         var nodeClass = errorInfo != null ? Opc.Ua.NodeClass.Unspecified :
-                            readResults[0].Result.GetValueOrDefault<Opc.Ua.NodeClass>();
+                            readResults[0].Result.GetValueOrDefaultEx<Opc.Ua.NodeClass>();
                         var browseName = errorInfo != null ? null :
-                            readResults[1].Result.GetValueOrDefault<QualifiedName>();
+                            readResults[1].Result.GetValueOrDefaultEx<QualifiedName>();
                         var displayName = errorInfo != null ? null :
-                            readResults[2].Result.GetValueOrDefault<LocalizedText>();
+                            readResults[2].Result.GetValueOrDefaultEx<LocalizedText>();
                         var eventNotifier = errorInfo != null ? (byte)0 :
-                            readResults[3].Result.GetValueOrDefault<byte>();
+                            readResults[3].Result.GetValueOrDefaultEx<byte>();
 
                         ExpandedNodeId? typeDefinitionId = null;
                         if (errorInfo == null)
@@ -669,7 +664,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         return await EndAsync(context).ConfigureAwait(false);
                     }
                 }
-                return Enumerable.Empty<ServiceResponse<PublishedNodesEntryModel>>();
+                return [];
             }
 
             /// <summary>
@@ -977,7 +972,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             }
                             return objects.Prepend(NodeFromConfiguration);
                     }
-                    return error ? new[] { NodeFromConfiguration } : Array.Empty<OpcNodeModel>();
+                    return error ? [NodeFromConfiguration] : Array.Empty<OpcNodeModel>();
                 }
 
                 /// <summary>
@@ -986,17 +981,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 /// <param name="frames"></param>
                 public void AddObjectsOrVariables(IEnumerable<BrowseFrame> frames)
                 {
-                    if (NodeClass == (uint)Opc.Ua.NodeClass.VariableType ||
-                        NodeClass == (uint)Opc.Ua.NodeClass.Variable)
+                    switch (NodeClass)
                     {
-                        Variables.AddVariables(frames
-                            .Where(f => !NodeId.IsNull(f.NodeId) && _knownIds.Add(f.NodeId)));
-                    }
-                    else
-                    {
-                        _objects.AddRange(frames
-                            .Where(f => !NodeId.IsNull(f.NodeId) && _knownIds.Add(f.NodeId))
-                            .Select(f => new ObjectToExpand(f, this)));
+                        case (uint)Opc.Ua.NodeClass.VariableType:
+                        case (uint)Opc.Ua.NodeClass.Variable:
+                            Variables.AddVariables(frames
+                                .Where(f => !NodeId.IsNull(f.NodeId) && _knownIds.Add(f.NodeId)));
+                            break;
+                        default:
+                            _objects.AddRange(frames
+                                .Where(f => !NodeId.IsNull(f.NodeId) && _knownIds.Add(f.NodeId))
+                                .Select(f => new ObjectToExpand(f, this)));
+                            break;
                     }
                 }
 
@@ -1043,9 +1039,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     return false;
                 }
 
-                private readonly List<ServiceResultModel> _errorInfos = new();
-                private readonly List<ObjectToExpand> _objects = new();
-                private readonly HashSet<NodeId> _knownIds = new();
+                private readonly List<ServiceResultModel> _errorInfos = [];
+                private readonly List<ObjectToExpand> _objects = [];
+                private readonly HashSet<NodeId> _knownIds = [];
                 private int _objectIndex;
             }
 
@@ -1115,10 +1111,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     IServiceMessageContext context, HashSet<string?>? ids = null,
                     bool createLongIds = false)
                 {
-                    ids ??= new HashSet<string?>();
+                    ids ??= [];
                     if (EntriesAlreadyReturned)
                     {
-                        return Enumerable.Empty<OpcNodeModel>();
+                        return [];
                     }
                     return _variables.Select(frame => template with
                     {
@@ -1169,13 +1165,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     return result;
                 }
 
-                private readonly HashSet<BrowseFrame> _variables = new();
-                private readonly HashSet<BrowseFrame> _events = new();
+                private readonly HashSet<BrowseFrame> _variables = [];
+                private readonly HashSet<BrowseFrame> _events = [];
             }
 
             private int _nodeIndex = -1;
             private ObjectToExpand? _currentObject;
-            private readonly List<NodeToExpand> _expanded = new();
+            private readonly List<NodeToExpand> _expanded = [];
             private readonly PublishedNodesEntryModel _entry;
             private readonly PublishedNodeExpansionModel _request;
             private readonly IPublishedNodesServices? _configuration;

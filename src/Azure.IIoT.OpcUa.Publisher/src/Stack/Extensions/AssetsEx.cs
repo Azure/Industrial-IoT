@@ -30,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         public static async Task<(NodeId?, ServiceResultModel?)> CreateAssetAsync(
             this IOpcUaSession session, RequestHeader header, string assetName, CancellationToken ct)
         {
-            var nsIndex = session.MessageContext.NamespaceUris.GetIndex(Namespace);
+            var nsIndex = session.MessageContext.NamespaceUris.GetIndex(kNamespace);
             if (nsIndex < 0)
             {
                 return (null, new ServiceResultModel
@@ -46,8 +46,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 {
                     new CallMethodRequest
                     {
-                        ObjectId = new NodeId(Asset_Root, (ushort)nsIndex),
-                        MethodId = new NodeId(Asset_CreateAsset, (ushort)nsIndex),
+                        ObjectId = new NodeId(kAsset_Root, (ushort)nsIndex),
+                        MethodId = new NodeId(kAsset_CreateAsset, (ushort)nsIndex),
                         InputArguments = new [] { new Variant(assetName) }
                     }
                 };
@@ -88,7 +88,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         public static async Task<(NodeId?, ServiceResultModel?)> GetAssetFileAsync(
             this IOpcUaSession session, RequestHeader header, NodeId assetId, CancellationToken ct)
         {
-            var nsIndex = session.MessageContext.NamespaceUris.GetIndex(Namespace);
+            var nsIndex = session.MessageContext.NamespaceUris.GetIndex(kNamespace);
             if (nsIndex < 0)
             {
                 return (null, new ServiceResultModel
@@ -110,7 +110,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 .FirstOrDefault(f =>
                     f.ErrorInfo == null &&
                     f.TypeDefinition.NamespaceIndex == nsIndex &&
-                    f.TypeDefinition.Identifier.Equals(AssetFileType));
+                    f.TypeDefinition.Identifier.Equals(kAssetFileType));
             if (!NodeId.IsNull(fileNodeId.Node))
             {
                 return (fileNodeId.Node, null);
@@ -135,7 +135,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         public static async Task<ServiceResultModel?> DeleteAssetAsync(this IOpcUaSession session,
             RequestHeader header, NodeId assetId, CancellationToken ct)
         {
-            var nsIndex = session.MessageContext.NamespaceUris.GetIndex(Namespace);
+            var nsIndex = session.MessageContext.NamespaceUris.GetIndex(kNamespace);
             if (nsIndex < 0)
             {
                 return new ServiceResultModel
@@ -151,8 +151,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 {
                     new CallMethodRequest
                     {
-                        ObjectId = new NodeId(Asset_Root, (ushort)nsIndex),
-                        MethodId = new NodeId(Asset_DeleteAsset, (ushort)nsIndex),
+                        ObjectId = new NodeId(kAsset_Root, (ushort)nsIndex),
+                        MethodId = new NodeId(kAsset_DeleteAsset, (ushort)nsIndex),
                         InputArguments = new [] { new Variant(assetId) }
                     }
                 };
@@ -180,7 +180,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         public static async Task<ServiceResultModel?> CloseAndUpdateAsync(this IOpcUaSession session,
             RequestHeader header, NodeId fileNodeId, uint fileHandle, CancellationToken ct)
         {
-            var nsIndex = session.MessageContext.NamespaceUris.GetIndex(Namespace);
+            var nsIndex = session.MessageContext.NamespaceUris.GetIndex(kNamespace);
             if (nsIndex < 0)
             {
                 return new ServiceResultModel
@@ -190,18 +190,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 };
             }
             return await session.CloseAsync(header, fileNodeId, new NodeId(
-                AssetFileType_CloseAndUpdate, (ushort)nsIndex), fileHandle, ct).ConfigureAwait(false);
+                kAssetFileType_CloseAndUpdate, (ushort)nsIndex), fileHandle, ct).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Get root asset node id
         /// </summary>
-        public static string Root => $"nsu={Namespace};i={Asset_Root}";
-        private const string Namespace = "http://opcfoundation.org/UA/WoT-Con/";
-        private const uint Asset_Root = 31;
-        private const uint Asset_CreateAsset = 32;
-        private const uint Asset_DeleteAsset = 35;
-        private const uint AssetFileType = 110;
-        private const uint AssetFileType_CloseAndUpdate = 111;
+        public static string Root => $"nsu={kNamespace};i={kAsset_Root}";
+        private const string kNamespace = "http://opcfoundation.org/UA/WoT-Con/";
+        private const uint kAsset_Root = 31;
+        private const uint kAsset_CreateAsset = 32;
+        private const uint kAsset_DeleteAsset = 35;
+        private const uint kAssetFileType = 110;
+        private const uint kAssetFileType_CloseAndUpdate = 111;
     }
 }

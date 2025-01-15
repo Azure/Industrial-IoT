@@ -40,11 +40,11 @@ namespace Views
         {
             get
             {
-                return new StringCollection {
+                return [
                     Model.Namespaces.Views,
                     Model.Namespaces.Engineering,
                     Model.Namespaces.Operations
-                };
+                ];
             }
         }
 

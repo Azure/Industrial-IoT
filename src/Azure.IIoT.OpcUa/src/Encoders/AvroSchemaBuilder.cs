@@ -554,7 +554,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <inheritdoc/>
         public override void WriteDataSet(string? fieldName, DataSet dataSet)
         {
-            using var _ = Record(fieldName, fieldName + typeof(DataSet).Name);
+            using var _ = Record(fieldName, fieldName + nameof(DataSet));
             base.WriteDataSet(fieldName, dataSet);
         }
 
@@ -686,7 +686,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 return Nothing.ToDo;
             }
-            var schema = RecordSchema.Create(typeName, new List<Field>(),
+            var schema = RecordSchema.Create(typeName, [],
                 customProperties: AvroSchema.Properties(
                     typeId?.AsString(Context, NamespaceFormat.Uri)));
             return PushSchema(fieldName, schema);
@@ -719,7 +719,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 return Nothing.ToDo;
             }
-            var schema = UnionSchema.Create(new List<Schema>());
+            var schema = UnionSchema.Create([]);
             if (nullable)
             {
                 schema.Schemas.Add(AvroSchema.Null);
@@ -762,19 +762,19 @@ namespace Azure.IIoT.OpcUa.Encoders
             return new Pop(this);
         }
 
-        private sealed record Pop(AvroSchemaBuilder outer) : IDisposable
+        private sealed record Pop(AvroSchemaBuilder Outer) : IDisposable
         {
             public void Dispose()
             {
-                outer._schemas.Pop();
+                Outer._schemas.Pop();
             }
         }
 
-        private sealed record Skip(AvroSchemaBuilder outer) : IDisposable
+        private sealed record Skip(AvroSchemaBuilder Outer) : IDisposable
         {
             public void Dispose()
             {
-                outer._skipInnerSchemas = false;
+                Outer._skipInnerSchemas = false;
             }
         }
 

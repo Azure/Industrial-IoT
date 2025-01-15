@@ -242,12 +242,10 @@ namespace Azure.IIoT.OpcUa.Encoders
             var document = new XmlDocument();
             try
             {
-                using (var stream = new StringReader(xmlString))
-                using (var reader = XmlReader.Create(stream,
-                    Opc.Ua.Utils.DefaultXmlReaderSettings()))
-                {
-                    document.Load(reader);
-                }
+                using var stream = new StringReader(xmlString);
+                using var reader = XmlReader.Create(stream,
+                    Opc.Ua.Utils.DefaultXmlReaderSettings());
+                document.Load(reader);
             }
             catch (XmlException ex)
             {
@@ -275,7 +273,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 namespaceIndex = _namespaceMappings[namespaceIndex];
             }
-            return ReadNodeId((ushort)namespaceIndex);
+            return ReadNodeId(namespaceIndex);
         }
 
         /// <inheritdoc/>
@@ -363,12 +361,12 @@ namespace Azure.IIoT.OpcUa.Encoders
                 // Read Union discriminator for the variant
                 return ReadUnion(fieldName, fieldId =>
                 {
-                    if (fieldId < 0 || fieldId >= _variantUnionFieldIds.Length)
+                    if (fieldId < 0 || fieldId >= VariantUnionFieldIds.Length)
                     {
                         throw new DecodingException(
                             $"Cannot decode unknown variant union field {fieldId}.");
                     }
-                    var (valueRank, builtInType) = _variantUnionFieldIds[fieldId];
+                    var (valueRank, builtInType) = VariantUnionFieldIds[fieldId];
                     return ReadVariantValue(builtInType, valueRank);
                 });
             }
@@ -713,7 +711,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             if (dimensions?.Count > 0)
             {
                 Matrix.ValidateDimensions(false, dimensions, Context.MaxArrayLength);
-                return new Matrix(array, builtInType, dimensions.ToArray()).ToArray();
+                return new Matrix(array, builtInType, [.. dimensions]).ToArray();
             }
             throw new DecodingException(
                 "Unexpected null or empty Dimensions for multidimensional matrix.");
@@ -797,7 +795,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <returns></returns>
         public virtual T[] ReadArray<T>(string? fieldName, Func<T> reader)
         {
-            return ReadArray(reader).ToArray();
+            return [.. ReadArray(reader)];
         }
 
         /// <summary>
@@ -1207,7 +1205,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         // TODO: Decide whether the opc ua types are records with single field
-        internal static ReadOnlySpan<(SchemaRank, BuiltInType)> _variantUnionFieldIds
+        internal static ReadOnlySpan<(SchemaRank, BuiltInType)> VariantUnionFieldIds
             => new (SchemaRank, BuiltInType)[]
         {
             (SchemaRank.Scalar, BuiltInType.Null),

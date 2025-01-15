@@ -6,35 +6,23 @@
 namespace Azure.IIoT.OpcUa.Publisher
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using System;
     using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Writer group
+    /// Writer group controller
     /// </summary>
-    public interface IMessageSource
+    public interface IWriterGroupControl
     {
         /// <summary>
-        /// Subscribe to writer messages
-        /// </summary>
-        event EventHandler<OpcUaSubscriptionNotification>? OnMessage;
-
-        /// <summary>
-        /// Called when ValueChangesCount or DataChangesCount are resetted
-        /// </summary>
-        event EventHandler<EventArgs>? OnCounterReset;
-
-        /// <summary>
-        /// Start trigger
+        /// Start group
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
         ValueTask StartAsync(CancellationToken ct);
 
         /// <summary>
-        /// Update
+        /// Update group
         /// </summary>
         /// <param name="writerGroup"></param>
         /// <param name="ct"></param>

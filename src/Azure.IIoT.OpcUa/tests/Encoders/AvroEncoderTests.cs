@@ -415,7 +415,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public void TestExpandedNodeIdOpaque()
         {
             var context = new ServiceMessageContext();
-            var ns = context.NamespaceUris.GetIndexOrAppend("test.org");
+            context.NamespaceUris.GetIndexOrAppend("test.org");
             var srv = context.ServerUris.GetIndexOrAppend("Super");
             using var stream = new MemoryStream();
             using var builder = new AvroSchemaBuilder(stream, context, true);
@@ -655,7 +655,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         public void TestExpandedNodeIdArray()
         {
             var context = new ServiceMessageContext();
-            var ns = context.NamespaceUris.GetIndexOrAppend("test.org");
+            context.NamespaceUris.GetIndexOrAppend("test.org");
             var srv = context.ServerUris.GetIndexOrAppend("Super");
             var expected = new ExpandedNodeId[] { new(123u, 0, "test.org", srv), new(456u, 0, "test.org", srv) };
             using var stream = new MemoryStream();
@@ -1136,7 +1136,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             encoder.WriteGuidArray(null, expected);
             stream.Position = 0;
             using var decoder = new AvroDecoder(stream, builder.Schema, context);
-            Assert.Equal(expected, decoder.ReadGuidArray(null).ToArray());
+            Assert.Equal(expected, decoder.ReadGuidArray(null));
         }
 
         [Theory]
@@ -1384,7 +1384,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 new Variant(4L),
                 new Variant("test"),
                 new Variant(new long[] {1, 2, 3, 4, 5 }),
-                new Variant(new string[] {"1", "2", "3", "4", "5" })
+                new Variant(["1", "2", "3", "4", "5"])
             };
             using var stream = new MemoryStream();
             using var builder = new AvroSchemaBuilder(stream, context, true, concise);
@@ -1416,7 +1416,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                     new Variant(4L),
                     new Variant("test"),
                     new Variant(new long[] {1, 2, 3, 4, 5 }),
-                    new Variant(new string[] {"1", "2", "3", "4", "5" })
+                    new Variant(["1", "2", "3", "4", "5"])
                 })
             };
             using var stream = new MemoryStream();
@@ -1591,15 +1591,13 @@ namespace Azure.IIoT.OpcUa.Encoders
                 SchemaRank.Collection);
             var schema = valueSchema.CreateRoot();
 
-            using (var stream = new MemoryStream())
-            using (var encoder = new AvroEncoder(stream, schema, context, true))
-            {
-                encoder.WriteVariant(null, expected);
-                stream.Position = 0;
-                using var decoder = new AvroDecoder(stream, schema, context);
-                var variant = decoder.ReadVariant(null);
-                Assert.Equal(expected, variant);
-            }
+            using var stream = new MemoryStream();
+            using var encoder = new AvroEncoder(stream, schema, context, true);
+            encoder.WriteVariant(null, expected);
+            stream.Position = 0;
+            using var decoder = new AvroDecoder(stream, schema, context);
+            var variant = decoder.ReadVariant(null);
+            Assert.Equal(expected, variant);
         }
 
         [Theory]

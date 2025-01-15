@@ -14,7 +14,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi
     /// </summary>
     [MapTo("events/v2/publishers/events")]
     [Authorize(Policy = Policies.CanRead)]
-    public class PublishersHub : Hub
-    {
-    }
+    public class PublishersHub : Hub;
 }

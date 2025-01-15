@@ -181,10 +181,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
         /// </summary>
         /// <param name="param"></param>
         [Theory]
-        [InlineData(new object[] { new string[] { "-h" } })]
-        [InlineData(new object[] { new string[] { "--h" } })]
-        [InlineData(new object[] { new string[] { "-help" } })]
-        [InlineData(new object[] { new string[] { "--help" } })]
+        [InlineData([new string[] { "-h" }])]
+        [InlineData([new string[] { "--h" }])]
+        [InlineData([new string[] { "-help" }])]
+        [InlineData([new string[] { "--help" }])]
         public void HelpOptionParameterTest(string[] param)
         {
             var result = new CommandLineTest(param);

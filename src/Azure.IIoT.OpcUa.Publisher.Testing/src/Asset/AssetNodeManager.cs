@@ -42,6 +42,7 @@ namespace Asset
     using System.IO;
     using System.Linq;
     using System.Reflection;
+    using System.Diagnostics;
 
     public class AssetNodeManager : CustomNodeManager2
     {
@@ -135,13 +136,11 @@ namespace Asset
             lock (Lock)
             {
                 // in the create address space call, we add all our nodes
-
-                IList<IReference>? objectsFolderReferences = null;
                 if (!externalReferences.TryGetValue(Opc.Ua.ObjectIds.ObjectsFolder,
-                    out objectsFolderReferences))
+                    out var objectsFolderReferences))
                 {
                     externalReferences[Opc.Ua.ObjectIds.ObjectsFolder]
-                        = objectsFolderReferences = new List<IReference>();
+                        = objectsFolderReferences = [];
                 }
 
                 AddNodesFromEmbeddedNodesetXml();
@@ -270,6 +269,8 @@ namespace Asset
         {
             lock (Lock)
             {
+                _logger.LogDebug("Data change for {AssetTag}", assetTag);
+
                 variable.Value = value;
                 variable.StatusCode = statusCode;
                 variable.Timestamp = timestamp;
@@ -326,7 +327,7 @@ namespace Asset
             NodeHandle handle, MonitoredItem monitoredItem)
         {
             if (TryGetBinding(handle.Node, out var assetInterface, out var assetTag)
-                && handle.Node is BaseVariableState source)
+                && handle.Node is BaseVariableState)
             {
                 assetInterface.Unobserve(assetTag, monitoredItem.Id);
             }
@@ -551,7 +552,7 @@ namespace Asset
                              !opcuaCompanionSpecUrl.AbsoluteUri.Contains("https://",
                                 StringComparison.InvariantCulture)))
                     {
-                        var nodesetFile = string.Empty;
+                        string? nodesetFile;
                         if (Path.IsPathFullyQualified(opcuaCompanionSpecUrl.OriginalString))
                         {
                             // absolute file path
@@ -598,7 +599,7 @@ namespace Asset
                             !opcuaCompanionSpecUrl.AbsoluteUri.Contains("https://",
                                 StringComparison.InvariantCulture)))
                     {
-                        var nodesetFile = string.Empty;
+                        string? nodesetFile;
                         if (Path.IsPathFullyQualified(opcuaCompanionSpecUrl.OriginalString))
                         {
                             // absolute file path
@@ -621,18 +622,16 @@ namespace Asset
         private static void LoadNamespaceUrisFromNodesetXml(List<string> namespaceUris,
             string nodesetFile)
         {
-            using (FileStream stream = new(nodesetFile, FileMode.Open, FileAccess.Read))
-            {
-                var nodeSet = UANodeSet.Read(stream);
+            using var stream = new FileStream(nodesetFile, FileMode.Open, FileAccess.Read);
+            var nodeSet = UANodeSet.Read(stream);
 
-                if (nodeSet.NamespaceUris?.Length > 0)
+            if (nodeSet.NamespaceUris?.Length > 0)
+            {
+                foreach (var ns in nodeSet.NamespaceUris)
                 {
-                    foreach (var ns in nodeSet.NamespaceUris)
+                    if (!namespaceUris.Contains(ns))
                     {
-                        if (!namespaceUris.Contains(ns))
-                        {
-                            namespaceUris.Add(ns);
-                        }
+                        namespaceUris.Add(ns);
                     }
                 }
             }
@@ -670,24 +669,22 @@ $"{type.Assembly.GetName().Name}.Generated.{type.Namespace}.Design.{type.Namespa
 
         private void AddNodesFromNodesetXml(string nodesetFile)
         {
-            using (Stream stream = new FileStream(nodesetFile, FileMode.Open))
+            using var stream = new FileStream(nodesetFile, FileMode.Open);
+            var nodeSet = UANodeSet.Read(stream);
+
+            var predefinedNodes = new NodeStateCollection();
+
+            nodeSet.Import(SystemContext, predefinedNodes);
+
+            for (var i = 0; i < predefinedNodes.Count; i++)
             {
-                var nodeSet = UANodeSet.Read(stream);
-
-                var predefinedNodes = new NodeStateCollection();
-
-                nodeSet.Import(SystemContext, predefinedNodes);
-
-                for (var i = 0; i < predefinedNodes.Count; i++)
+                try
                 {
-                    try
-                    {
-                        AddPredefinedNode(SystemContext, predefinedNodes[i]);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Error");
-                    }
+                    AddPredefinedNode(SystemContext, predefinedNodes[i]);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error");
                 }
             }
         }
@@ -742,10 +739,12 @@ $"{type.Assembly.GetName().Name}.Generated.{type.Namespace}.Design.{type.Namespa
         private AssetTag AddAssetTagForTdProperty(ThingDescription td, string propertyName,
             Property property, string form, string assetId)
         {
+            _logger.LogDebug("Add asset for Property {Property}", property);
+
             // check if we need to create a new asset first
             if (!_tags.TryGetValue(assetId, out var tagList))
             {
-                tagList = new Dictionary<string, AssetTag>();
+                tagList = [];
                 _tags.Add(assetId, tagList);
             }
             if (!Uri.TryCreate(td.Base, UriKind.Absolute, out var baseUri))
@@ -815,6 +814,7 @@ $"{type.Assembly.GetName().Name}.Generated.{type.Namespace}.Design.{type.Namespa
                 _assets.Add(td.Name, assetInterface);
             }
 
+            Debug.Assert(assetInterface != null);
             return td.Name;
         }
 
@@ -882,8 +882,7 @@ $"{type.Assembly.GetName().Name}.Generated.{type.Namespace}.Design.{type.Namespa
         private bool TryGetBinding(NodeState node, [NotNullWhen(true)] out IAsset? assetInterface,
             [NotNullWhen(true)] out AssetTag? assetTag)
         {
-            var assetId = node.Handle as string;
-            if (assetId == null ||
+            if (node.Handle is not string assetId ||
                 !_assets.TryGetValue(assetId, out assetInterface) ||
                 !_tags.TryGetValue(assetId, out var tag) ||
                 !tag.TryGetValue(node.SymbolicName, out assetTag))
@@ -896,10 +895,10 @@ $"{type.Assembly.GetName().Name}.Generated.{type.Namespace}.Design.{type.Namespa
         }
 
         private readonly WoTAssetConnectionManagementTypeState _assetManagement = new(null);
-        private readonly Dictionary<string, BaseDataVariableState> _uaVariables = new();
-        private readonly Dictionary<string, IAsset> _assets = new();
-        private readonly Dictionary<string, Dictionary<string, AssetTag>> _tags = new();
-        private readonly Dictionary<NodeId, FileManager> _fileManagers = new();
+        private readonly Dictionary<string, BaseDataVariableState> _uaVariables = [];
+        private readonly Dictionary<string, IAsset> _assets = [];
+        private readonly Dictionary<string, Dictionary<string, AssetTag>> _tags = [];
+        private readonly Dictionary<NodeId, FileManager> _fileManagers = [];
         private readonly ILogger _logger;
         private readonly string _folder;
         private long _lastUsedId;

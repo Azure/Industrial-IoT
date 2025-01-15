@@ -128,7 +128,7 @@ namespace HistoricalAccess
             {
                 if (!externalReferences.TryGetValue(ObjectIds.ObjectsFolder, out var references))
                 {
-                    externalReferences[ObjectIds.ObjectsFolder] = references = new List<IReference>();
+                    externalReferences[ObjectIds.ObjectsFolder] = references = [];
                 }
 
                 var root = _system.GetFolderState(string.Empty);
@@ -455,7 +455,7 @@ namespace HistoricalAccess
 
                 if (root != null && root is ArchiveItemState item)
                 {
-                    _monitoredItems ??= new Dictionary<string, ArchiveItemState>();
+                    _monitoredItems ??= [];
 
                     _monitoredItems.TryAdd(item.ArchiveItem.UniquePath, item);
                     item.SubscribeCount++;
@@ -622,9 +622,6 @@ namespace HistoricalAccess
                 var handle = nodesToProcess[ii];
                 var nodeToRead = nodesToRead[handle.Index];
                 var result = results[handle.Index];
-
-                HistoryReadRequest request = null;
-
                 try
                 {
                     // validate node.
@@ -635,6 +632,7 @@ namespace HistoricalAccess
                         continue;
                     }
 
+                    HistoryReadRequest request;
                     // load an exising request.
                     if (nodeToRead.ContinuationPoint != null)
                     {
@@ -739,9 +737,6 @@ namespace HistoricalAccess
                 var handle = nodesToProcess[ii];
                 var nodeToRead = nodesToRead[handle.Index];
                 var result = results[handle.Index];
-
-                HistoryReadRequest request = null;
-
                 try
                 {
                     // validate node.
@@ -752,6 +747,7 @@ namespace HistoricalAccess
                         continue;
                     }
 
+                    HistoryReadRequest request;
                     // load an exising request.
                     if (nodeToRead.ContinuationPoint != null)
                     {
@@ -847,9 +843,6 @@ namespace HistoricalAccess
                 var handle = nodesToProcess[ii];
                 var nodeToRead = nodesToRead[handle.Index];
                 var result = results[handle.Index];
-
-                HistoryReadRequest request = null;
-
                 try
                 {
                     // validate node.
@@ -860,6 +853,7 @@ namespace HistoricalAccess
                         continue;
                     }
 
+                    HistoryReadRequest request;
                     // load an exising request.
                     if (nodeToRead.ContinuationPoint != null)
                     {

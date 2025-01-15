@@ -19,27 +19,17 @@ using Azure.Storage;
 /// <summary>
 /// Upload and download files
 /// </summary>
-internal sealed class Storage
+/// <remarks>
+/// Create capture sync
+/// </remarks>
+/// <param name="deviceId"></param>
+/// <param name="moduleId"></param>
+/// <param name="connectionString"></param>
+/// <param name="logger"></param>
+/// <param name="runName"></param>
+internal sealed class Storage(string deviceId, string moduleId, string connectionString,
+    ILogger logger, string? runName = null)
 {
-    /// <summary>
-    /// Create capture sync
-    /// </summary>
-    /// <param name="deviceId"></param>
-    /// <param name="moduleId"></param>
-    /// <param name="connectionString"></param>
-    /// <param name="logger"></param>
-    /// <param name="runName"></param>
-    public Storage(string deviceId, string moduleId, string connectionString,
-        ILogger logger, string? runName = null)
-    {
-        _logger = logger;
-        _connectionString = connectionString;
-        _deviceId = deviceId;
-        _moduleId = moduleId;
-        _runName = runName ?? DateTime.UtcNow.ToBinary()
-            .ToString(CultureInfo.InvariantCulture);
-    }
-
     /// <summary>
     /// Download files
     /// </summary>
@@ -267,9 +257,10 @@ internal sealed class Storage
     internal sealed record class Notification(Uri ContainerUri, Uri BlobUri,
         string ContainerName, string BlobName);
 
-    private readonly string _deviceId;
-    private readonly string _moduleId;
-    private readonly string _runName;
-    private readonly string _connectionString;
-    private readonly ILogger _logger;
+    private readonly string _deviceId = deviceId;
+    private readonly string _moduleId = moduleId;
+    private readonly string _runName = runName ?? DateTime.UtcNow.ToBinary()
+            .ToString(CultureInfo.InvariantCulture);
+    private readonly string _connectionString = connectionString;
+    private readonly ILogger _logger = logger;
 }

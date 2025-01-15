@@ -163,7 +163,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models
         /// <returns></returns>
         public static IEnumerable<PortRange> Parse(string value)
         {
-            var parsed = value.Split(new char[] { ';', ',' },
+            var parsed = value.Split([';', ','],
                 StringSplitOptions.RemoveEmptyEntries).Select(s =>
                 {
                     var x = s.Split('-');

@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
-    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Text;
@@ -205,7 +204,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                     model.Options.HasFlag(ConnectionOptions.NoSubscriptionTransfer) ? true : null,
                 MessageEncoding = MessageEncoding.Json,
                 MessagingMode = MessagingMode.FullSamples,
-                OpcNodes = new List<OpcNodeModel>()
+                OpcNodes = []
             };
         }
 

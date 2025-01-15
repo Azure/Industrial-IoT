@@ -28,7 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     public class RuntimeStateReporterTests
     {
         [Fact]
-        public async Task ReportingDisabledTest()
+        public async Task ReportingDisabledTestAsync()
         {
             var client = new Mock<IEventClient>();
             var collector = new Mock<IDiagnosticCollector>();
@@ -57,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         }
 
         [Fact]
-        public async Task ClientNotInitializedTest()
+        public async Task ClientNotInitializedTestAsync()
         {
             var client = new Mock<IEventClient>();
             var collector = new Mock<IDiagnosticCollector>();
@@ -85,7 +85,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         }
 
         [Fact]
-        public async Task ReportingTest()
+        public async Task ReportingTestAsync()
         {
             var _client = new Mock<IEventClient>();
             var collector = new Mock<IDiagnosticCollector>();
@@ -104,7 +104,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var contentType = string.Empty;
             var contentEncoding = string.Empty;
             var routingInfo = string.Empty;
-            IReadOnlyList<ReadOnlySequence<byte>> buffers = null;
+            List<ReadOnlySequence<byte>> buffers = null;
             _message.Setup(c => c.SetRetain(It.Is<bool>(v => v)))
                 .Returns(_message.Object);
             _message.Setup(c => c.AddProperty(It.IsAny<string>(), It.IsAny<string>()))

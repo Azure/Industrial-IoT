@@ -44,7 +44,7 @@ namespace System
             {
                 return Guid.Empty;
             }
-            return new Guid(SHA256.HashData(Encoding.UTF8.GetBytes(str)).AsSpan().Slice(0, 16));
+            return new Guid(SHA256.HashData(Encoding.UTF8.GetBytes(str)).AsSpan()[..16]);
         }
 
         /// <summary>

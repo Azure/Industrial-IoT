@@ -930,7 +930,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             CancellationToken ct)
         {
             // Fetch limits into the session using the new api
-            var maxNodesPerRead = Validate32(OperationLimits.MaxNodesPerRead);
+            var maxNodesPerRead = OperationLimits.MaxNodesPerRead;
 
             // Read once more to ensure we have all we need and also correctly show what is not provided.
             var nodes = new[] {
@@ -956,7 +956,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             };
 
             var values = Enumerable.Empty<DataValue>();
-            foreach (var chunk in nodes.Batch(Math.Max(1, (int)maxNodesPerRead!)))
+            foreach (var chunk in nodes.Batch(Math.Max(1, (int)maxNodesPerRead)))
             {
                 // Group the reads
                 var requests = new ReadValueIdCollection(chunk
@@ -977,49 +977,51 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             return new OperationLimitsModel
             {
                 MaxArrayLength =
-                    Validate32(value[0].GetValueOrDefault<uint?>()),
+                    Validate32(value[0].GetValueOrDefaultEx<uint?>()),
                 MaxBrowseContinuationPoints =
-                    Validate16(value[1].GetValueOrDefault<ushort?>()),
+                    Validate16(value[1].GetValueOrDefaultEx<ushort?>()),
                 MaxByteStringLength =
-                    Validate32(value[2].GetValueOrDefault<uint?>()),
+                    Validate32(value[2].GetValueOrDefaultEx<uint?>()),
                 MaxHistoryContinuationPoints =
-                    Validate16(value[3].GetValueOrDefault<ushort?>()),
+                    Validate16(value[3].GetValueOrDefaultEx<ushort?>()),
                 MaxQueryContinuationPoints =
-                    Validate16(value[4].GetValueOrDefault<ushort?>()),
+                    Validate16(value[4].GetValueOrDefaultEx<ushort?>()),
                 MaxStringLength =
-                    Validate32(value[5].GetValueOrDefault<uint?>()),
+                    Validate32(value[5].GetValueOrDefaultEx<uint?>()),
                 MinSupportedSampleRate =
-                    value[6].GetValueOrDefault<double?>(),
+                    Validate64(value[6].GetValueOrDefaultEx<double?>()),
                 MaxNodesPerHistoryReadData =
-                    Validate32(value[7].GetValueOrDefault<uint?>()),
+                    Validate32(value[7].GetValueOrDefaultEx<uint?>()),
                 MaxNodesPerHistoryReadEvents =
-                    Validate32(value[8].GetValueOrDefault<uint?>()),
+                    Validate32(value[8].GetValueOrDefaultEx<uint?>()),
                 MaxNodesPerWrite =
-                    Validate32(value[9].GetValueOrDefault<uint?>()),
+                    Validate32(value[9].GetValueOrDefaultEx<uint?>()),
                 MaxNodesPerRead =
-                    Validate32(value[9].GetValueOrDefault<uint?>(), OperationLimits.MaxNodesPerRead),
+                    Validate32(value[9].GetValueOrDefaultEx<uint?>(), OperationLimits.MaxNodesPerRead),
                 MaxNodesPerHistoryUpdateData =
-                    Validate32(value[10].GetValueOrDefault<uint?>()),
+                    Validate32(value[10].GetValueOrDefaultEx<uint?>()),
                 MaxNodesPerHistoryUpdateEvents =
-                    Validate32(value[11].GetValueOrDefault<uint?>()),
+                    Validate32(value[11].GetValueOrDefaultEx<uint?>()),
                 MaxNodesPerMethodCall =
-                    Validate32(value[12].GetValueOrDefault<uint?>()),
+                    Validate32(value[12].GetValueOrDefaultEx<uint?>()),
                 MaxNodesPerBrowse =
-                    Validate32(value[13].GetValueOrDefault<uint?>(), OperationLimits.MaxNodesPerBrowse),
+                    Validate32(value[13].GetValueOrDefaultEx<uint?>(), OperationLimits.MaxNodesPerBrowse),
                 MaxNodesPerRegisterNodes =
-                    Validate32(value[14].GetValueOrDefault<uint?>()),
+                    Validate32(value[14].GetValueOrDefaultEx<uint?>()),
                 MaxNodesPerTranslatePathsToNodeIds =
-                    Validate32(value[15].GetValueOrDefault<uint?>()),
+                    Validate32(value[15].GetValueOrDefaultEx<uint?>()),
                 MaxNodesPerNodeManagement =
-                    Validate32(value[16].GetValueOrDefault<uint?>()),
+                    Validate32(value[16].GetValueOrDefaultEx<uint?>()),
                 MaxMonitoredItemsPerCall =
-                    Validate32(value[17].GetValueOrDefault<uint?>())
+                    Validate32(value[17].GetValueOrDefaultEx<uint?>())
             };
 
-            static uint? Validate32(uint? v, uint max = 0) => v == null ? null :
+            static uint? Validate32(uint? v, uint max = 0) => v == null || v == 0 ? null :
                 Math.Min(max == 0 ? int.MaxValue : max, v is > 0 and < int.MaxValue ? v.Value : int.MaxValue);
-            static ushort? Validate16(ushort? v, ushort max = 0) => v == null ? null :
+            static ushort? Validate16(ushort? v, ushort max = 0) => v == null || v == 0 ? null :
                 Math.Min(max == 0 ? ushort.MaxValue : max, v > 0 ? v.Value : ushort.MaxValue);
+            static double? Validate64(double? v, double max = 0) => v == null || v == 0 ? null :
+                Math.Min(max == 0 ? double.MaxValue : max, v > 0 ? v.Value : double.MaxValue);
         }
 
         /// <summary>
@@ -1076,7 +1078,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var modellingRules = rules.OfType<BaseObjectState>().ToDictionary(
                 c => c.BrowseName.AsString(MessageContext, namespaceFormat),
                 c => c.NodeId.AsString(MessageContext, namespaceFormat) ?? string.Empty);
-            var conformanceUnits = config.ConformanceUnits.GetValueOrDefault(
+            var conformanceUnits = config.ConformanceUnits.GetValueOrDefaultEx(
                 v => v == null || v.Length == 0 ? null :
                 v.Select(q => q.AsString(MessageContext, namespaceFormat)).ToList());
             return new ServerCapabilitiesModel
@@ -1085,29 +1087,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 ModellingRules =
                     modellingRules.Count == 0 ? null : modellingRules,
                 SupportedLocales =
-                    config.LocaleIdArray.GetValueOrDefault(
+                    config.LocaleIdArray.GetValueOrDefaultEx(
                         v => v == null || v.Length == 0 ? null : v),
                 ServerProfiles =
-                    config.ServerProfileArray.GetValueOrDefault(
+                    config.ServerProfileArray.GetValueOrDefaultEx(
                         v => v == null || v.Length == 0 ? null : v),
                 AggregateFunctions =
                     aggregateFunctions.Count == 0 ? null : aggregateFunctions,
                 MaxSessions =
-                    config.MaxSessions.GetValueOrDefault(),
+                    config.MaxSessions.GetValueOrDefaultEx(),
                 MaxSubscriptions =
-                    config.MaxSubscriptions.GetValueOrDefault(),
+                    config.MaxSubscriptions.GetValueOrDefaultEx(),
                 MaxMonitoredItems =
-                    config.MaxMonitoredItems.GetValueOrDefault(),
+                    config.MaxMonitoredItems.GetValueOrDefaultEx(),
                 MaxMonitoredItemsPerSubscription =
-                    config.MaxMonitoredItemsPerSubscription.GetValueOrDefault(),
+                    config.MaxMonitoredItemsPerSubscription.GetValueOrDefaultEx(),
                 MaxMonitoredItemsQueueSize =
-                    config.MaxMonitoredItemsQueueSize.GetValueOrDefault(),
+                    config.MaxMonitoredItemsQueueSize.GetValueOrDefaultEx(),
                 MaxSubscriptionsPerSession =
-                    config.MaxSubscriptionsPerSession.GetValueOrDefault(),
+                    config.MaxSubscriptionsPerSession.GetValueOrDefaultEx(),
                 MaxWhereClauseParameters =
-                    config.MaxWhereClauseParameters.GetValueOrDefault(),
+                    config.MaxWhereClauseParameters.GetValueOrDefaultEx(),
                 MaxSelectClauseParameters =
-                    config.MaxSelectClauseParameters.GetValueOrDefault(),
+                    config.MaxSelectClauseParameters.GetValueOrDefaultEx(),
                 ConformanceUnits = conformanceUnits
             };
         }
@@ -1178,9 +1180,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return null;
             }
             var supportsValues =
-              config.AccessHistoryDataCapability.GetValueOrDefault() ?? false;
+              config.AccessHistoryDataCapability.GetValueOrDefaultEx() ?? false;
             var supportsEvents =
-                config.AccessHistoryEventsCapability.GetValueOrDefault() ?? false;
+                config.AccessHistoryEventsCapability.GetValueOrDefaultEx() ?? false;
             Dictionary<string, string>? aggregateFunctions = null;
             if (supportsEvents || supportsValues)
             {
@@ -1197,33 +1199,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 AccessHistoryEventsCapability =
                     supportsEvents,
                 MaxReturnDataValues =
-                    config.MaxReturnDataValues.GetValueOrDefault(
+                    config.MaxReturnDataValues.GetValueOrDefaultEx(
                         v => !supportsValues ? null : v == 0 ? uint.MaxValue : v),
                 MaxReturnEventValues =
-                    config.MaxReturnEventValues.GetValueOrDefault(
+                    config.MaxReturnEventValues.GetValueOrDefaultEx(
                         v => !supportsEvents ? null : v == 0 ? uint.MaxValue : v),
                 InsertDataCapability =
-                    config.InsertDataCapability.GetValueOrDefault(),
+                    config.InsertDataCapability.GetValueOrDefaultEx(),
                 ReplaceDataCapability =
-                    config.ReplaceDataCapability.GetValueOrDefault(),
+                    config.ReplaceDataCapability.GetValueOrDefaultEx(),
                 UpdateDataCapability =
-                    config.UpdateDataCapability.GetValueOrDefault(),
+                    config.UpdateDataCapability.GetValueOrDefaultEx(),
                 DeleteRawCapability =
-                    config.DeleteRawCapability.GetValueOrDefault(),
+                    config.DeleteRawCapability.GetValueOrDefaultEx(),
                 DeleteAtTimeCapability =
-                    config.DeleteAtTimeCapability.GetValueOrDefault(),
+                    config.DeleteAtTimeCapability.GetValueOrDefaultEx(),
                 InsertEventCapability =
-                    config.InsertEventCapability.GetValueOrDefault(),
+                    config.InsertEventCapability.GetValueOrDefaultEx(),
                 ReplaceEventCapability =
-                    config.ReplaceEventCapability.GetValueOrDefault(),
+                    config.ReplaceEventCapability.GetValueOrDefaultEx(),
                 UpdateEventCapability =
-                    config.UpdateEventCapability.GetValueOrDefault(),
+                    config.UpdateEventCapability.GetValueOrDefaultEx(),
                 DeleteEventCapability =
-                    config.DeleteEventCapability.GetValueOrDefault(),
+                    config.DeleteEventCapability.GetValueOrDefaultEx(),
                 InsertAnnotationCapability =
-                    config.InsertAnnotationCapability.GetValueOrDefault(),
+                    config.InsertAnnotationCapability.GetValueOrDefaultEx(),
                 ServerTimestampSupported =
-                    config.ServerTimestampSupported.GetValueOrDefault(),
+                    config.ServerTimestampSupported.GetValueOrDefaultEx(),
                 AggregateFunctions = aggregateFunctions == null ||
                     aggregateFunctions.Count == 0 ? null : aggregateFunctions
             };

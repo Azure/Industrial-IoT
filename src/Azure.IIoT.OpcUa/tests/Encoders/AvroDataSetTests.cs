@@ -137,15 +137,13 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 var json = schema.ToJson();
                 Assert.NotNull(json);
-                using (var decoder = new AvroDecoder(stream, schema, context))
+                using var decoder = new AvroDecoder(stream, schema, context);
+                var results = decoder.ReadArray(null,
+                    () => decoder.ReadEncodeable(null, expected.GetType()));
+                Assert.Equal(count, results.Length);
+                for (var i = 0; i < count; i++)
                 {
-                    var results = decoder.ReadArray(null,
-                        () => decoder.ReadEncodeable(null, expected.GetType()));
-                    Assert.Equal(count, results.Length);
-                    for (var i = 0; i < count; i++)
-                    {
-                        Assert.True(results[i].IsEqual(expected));
-                    }
+                    Assert.True(results[i].IsEqual(expected));
                 }
             }
         }

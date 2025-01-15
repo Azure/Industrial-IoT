@@ -52,7 +52,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             return session;
         }
 
-        internal async Task<OpcUaMonitoredItem> GetMonitoredItem(BaseMonitoredItemModel template,
+        internal async Task<OpcUaMonitoredItem> GetMonitoredItemAsync(BaseMonitoredItemModel template,
             NamespaceTable namespaceUris = null)
         {
             var session = SetupMockedSession(namespaceUris).Object;

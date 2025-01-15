@@ -78,7 +78,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
             _timeout = timeout ?? kDefaultProbeTimeout;
             _completion = new TaskCompletionSource<bool>(
                 TaskCreationOptions.RunContinuationsAsynchronously);
-            _candidates = new List<uint>();
+            _candidates = [];
             if (addresses?.Any() != true)
             {
                 _addresses = NetworkInformationEx.GetAllNetInterfaces(netclass)

@@ -41,20 +41,18 @@ namespace Azure.IIoT.OpcUa.Encoders
                 builtinType = BuiltInType.Null;
                 return VariantValue.Null;
             }
-            using (var stream = new MemoryStream())
+            using var stream = new MemoryStream();
+            using (var encoder = new JsonEncoderEx(stream, Context)
             {
-                using (var encoder = new JsonEncoderEx(stream, Context)
-                {
-                    UseAdvancedEncoding = true
-                })
-                {
-                    encoder.WriteVariant(nameof(value), value.Value);
-                }
-                var token = _serializer.Parse(stream.ToArray());
-                Enum.TryParse((string?)token.GetByPath("value.Type"),
-                    true, out builtinType);
-                return token.GetByPath("value.Body");
+                UseAdvancedEncoding = true
+            })
+            {
+                encoder.WriteVariant(nameof(value), value.Value);
             }
+            var token = _serializer.Parse(stream.ToArray());
+            Enum.TryParse((string?)token.GetByPath("value.Type"),
+                true, out builtinType);
+            return token.GetByPath("value.Body");
         }
 
         /// <inheritdoc/>
@@ -98,12 +96,10 @@ namespace Azure.IIoT.OpcUa.Encoders
             //
             // Decode json to a real variant
             //
-            using (var text = new StringReader(json))
-            using (var reader = new Newtonsoft.Json.JsonTextReader(text))
-            using (var decoder = new JsonDecoderEx(reader, Context))
-            {
-                return decoder.ReadVariant(nameof(value));
-            }
+            using var text = new StringReader(json);
+            using var reader = new Newtonsoft.Json.JsonTextReader(text);
+            using var decoder = new JsonDecoderEx(reader, Context);
+            return decoder.ReadVariant(nameof(value));
         }
 
         /// <summary>
