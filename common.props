@@ -34,7 +34,7 @@
   </PropertyGroup>
   <ItemGroup Condition="$(NO_GIT) == ''">
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All"/>
-    <PackageReference Include="Nerdbank.GitVersioning" Version="3.7.112" PrivateAssets="All"/>
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.7.115" PrivateAssets="All"/>
   </ItemGroup>
   <PropertyGroup>
     <IncludeOpenAPIAnalyzers>true</IncludeOpenAPIAnalyzers>
