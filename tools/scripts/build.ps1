@@ -16,7 +16,7 @@
     Tag to publish under. Defaults "latest"
 
  .PARAMETER BranchName
-    The bvanch to use for the repo inside the registry.
+    The branch to use for the repo inside the registry.
  .PARAMETER NoBuild
     Whether to not build before publishing.
  .PARAMETER NoPublish
@@ -122,10 +122,10 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
 
         # see architecture tags e.g., here https://hub.docker.com/_/microsoft-dotnet-aspnet
         if ($script:Arch -eq "x64") {
-	        $baseImage = "$($baseImage)-cbl-mariner-distroless-amd64"
+	        $baseImage = "$($baseImage)-azurelinux3.0-amd64"
 	    }
 	    if ($script:Arch -eq "arm64") {
-	        $baseImage = "$($baseImage)-cbl-mariner-distroless-arm64v8"
+	        $baseImage = "$($baseImage)-azurelinux3.0-arm64v8"
 	    }
 	    if ($script:Arch -eq "arm") {
 	        $baseImage = "$($baseImage)-alpine-arm32v7"
