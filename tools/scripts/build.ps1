@@ -142,6 +142,7 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
 
         dotnet publish $projFile.FullName -c $configuration --self-contained false --no-build `
             -r $runtimeId /p:TargetLatestRuntimePatch=true `
+            /p:RuntimeIdentifiers= `
             /p:ContainerBaseImage=$baseImage `
             /p:ContainerRepository=$($fullName) `
             /p:ContainerImageTag=$($fullTag) `

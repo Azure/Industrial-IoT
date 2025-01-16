@@ -5,7 +5,6 @@
     <EnableSdkContainerSupport>true</EnableSdkContainerSupport>
   </PropertyGroup>
   <PropertyGroup>
-    <PublishProfile>DefaultContainer</PublishProfile>
     <ContainerRepository>iot/industrial-cli</ContainerRepository>
     <ContainerRuntimeIdentifier>linux-x64</ContainerRuntimeIdentifier>
     <ContainerBaseImage>mcr.microsoft.com/dotnet/runtime:9.0-azurelinux3.0-distroless</ContainerBaseImage>
