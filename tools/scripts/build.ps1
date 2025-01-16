@@ -63,7 +63,7 @@ if (![string]::IsNullOrWhiteSpace($script:ContainerRegistry)) {
             $namespace = $namespace.Replace("_", "/")
             $imageNamespace = $namespace.Substring(0, [Math]::Min($namespace.Length, 24))
         }
-    } 
+    }
 }
 
 $env:DOTNET_CONTAINER_REGISTRY_CHUNKED_UPLOAD = $true
@@ -133,7 +133,7 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
 
         if (![string]::IsNullOrWhiteSpace($script:TarFileOutput)) {
             Write-Host "Publish as tarball to $($script:TarFileOutput)/$($fullName).tar.gz..."
-            $extra += "/p:ContainerArchiveOutputPath=$($script:TarFileOutput)/$($fullName).tar.gz"
+            $extra += "/p:ContainerArchiveOutputPath=$($script:TarFileOutput)"
         }
         elseif ($script:ContainerRegistry) {
             Write-Host "Publish to container registry $($script:ContainerRegistry)..."
@@ -142,7 +142,7 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
 
         dotnet publish $projFile.FullName -c $configuration --self-contained false --no-build `
             -r $runtimeId /p:TargetLatestRuntimePatch=true `
-            /p:RuntimeIdentifiers= `
+            /p:RuntimeIdentifiers=$runtimeId `
             /p:ContainerBaseImage=$baseImage `
             /p:ContainerRepository=$($fullName) `
             /p:ContainerImageTag=$($fullTag) `
@@ -150,7 +150,10 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
         if ($LastExitCode -ne 0) {
             throw "Failed to publish container."
         }
-
         Write-Host "$($fullName):$($fullTag) published."
     }
 }
+
+# The tar.gz was published as $($fullName)-$runtimeId.tar.gz, let's rename them
+Get-ChildItem -Filter "*.tar.gz" -Path $script:TarFileOutput -Recurse `
+    | Rename-Item -NewName {$_.Name -replace "-$($runtimeId)", "" }
