@@ -41,15 +41,15 @@ function Get-ContainerRegistrySecret
 $KeyVaultName = $null
 if ($registry -eq "industrialiot")
 {
-    $KeyVaultName = "kv-release-pipeline"
+    $KeyVaultName = "kv-industrialiot"
 }
 if ($registry -eq "industrialiotdev")
 {
-    $KeyVaultName = "kv-developer-pipeline"
+    $KeyVaultName = "kv-industrialiotdev"
 }
 if ($registry -eq "industrialiotprod")
 {
-   # $KeyVaultName = "kv-release-pipeline" #todo
+   # $KeyVaultName = "kv-industrialiotprod" #todo
 }
 if ($KeyVaultName)
 {
