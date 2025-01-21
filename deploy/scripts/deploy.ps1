@@ -1084,9 +1084,12 @@ Write-Warning "Standard_D4s_v4 VM with Nested virtualization for IoT Edge Eflow 
     if (![string]::IsNullOrEmpty($script:aadConfig.UserPrincipalId)) {
         $templateParameters.Add("userPrincipalId", $script:aadConfig.UserPrincipalId)
     }
+    elseif ($script:noAadAppRegistration.IsPresent) {
+        $templateParameters.Add("userPrincipalId", $null)
+    }
     else {
-        Write-Host "Adding user principal if possible..."
         $userPrincipalId = (Get-AzADUser -UserPrincipalName (Get-AzContext).Account.Id).Id
+        Write-Host "Adding user principal $userPrincipalId..."
 
         if (![string]::IsNullOrEmpty($userPrincipalId)) {
             $templateParameters.Add("userPrincipalId", $userPrincipalId)
