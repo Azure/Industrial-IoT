@@ -932,6 +932,7 @@ Function New-Deployment() {
         if ([string]::IsNullOrEmpty($script:gatewayVmSku)) {
 
             # Get all vm skus available in the location and in the account
+            Write-Host "Determining VM sizes for Linux IoT Edge gateway simulations..."
             $availableVms = Get-AzComputeResourceSku | Where-Object {
                 ($_.ResourceType.Contains("virtualMachines")) -and `
                 ($_.Locations -icontains $script:resourceGroupLocation) -and `
@@ -984,6 +985,7 @@ Write-Warning "Standard_D4s_v4 VM with Nested virtualization for IoT Edge Eflow 
         if ([string]::IsNullOrEmpty($script:opcPlcVmSku)) {
 
             # We will use VM with at least 1 core and 2 GB of memory for hosting OPC PLC simulation containers.
+            Write-Host "Determining VM sizes for simulation containers..."
             $simulationVmSizes = Get-AzVMSize $script:resourceGroupLocation `
             | Where-Object { $availableVmNames -icontains $_.Name } `
             | Where-Object {
@@ -1043,6 +1045,9 @@ Write-Warning "Standard_D4s_v4 VM with Nested virtualization for IoT Edge Eflow 
                 Set-AzContext -Context $context
             }
         }
+        else {
+            Write-Host "Not registering AAD application!"
+        }
     }
     elseif (($script:aadConfig -is [string]) -and (Test-Path $script:aadConfig)) {
         # read configuration from file
@@ -1080,6 +1085,7 @@ Write-Warning "Standard_D4s_v4 VM with Nested virtualization for IoT Edge Eflow 
         $templateParameters.Add("userPrincipalId", $script:aadConfig.UserPrincipalId)
     }
     else {
+        Write-Host "Adding user principal if possible..."
         $userPrincipalId = (Get-AzADUser -UserPrincipalName (Get-AzContext).Account.Id).Id
 
         if (![string]::IsNullOrEmpty($userPrincipalId)) {
@@ -1096,6 +1102,7 @@ Write-Warning "Standard_D4s_v4 VM with Nested virtualization for IoT Edge Eflow 
     $deploymentName = $script:version
 
     # register providers
+    Write-Host "Registering providers..."
     $script:requiredProviders | ForEach-Object {
         Register-AzResourceProvider -ProviderNamespace $_
     } | Out-Null
