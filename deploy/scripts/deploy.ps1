@@ -1082,30 +1082,25 @@ Write-Warning "Standard_D4s_v4 VM with Nested virtualization for IoT Edge Eflow 
 
     # Register current aad user to access keyvault
     $userPrincipalId = $script:aadConfig.UserPrincipalId
-    if ([string]::IsNullOrEmpty($userPrincipalId)) {
-        $username = (Get-AzContext).Account.Id
-        if ($script:isServicePrincipal.IsPresent) {
-            $userPrincipalId = (Get-AzADServicePrincipal -DisplayName $username).Id
-        }
-        if (![string]::IsNullOrEmpty($userPrincipalId)) {
-            Write-Host "Found $username is service principal $userPrincipalId..."
+    if ([string]::IsNullOrWhiteSpace($userPrincipalId)) {
+        $ctx = Get-AzContext
+        if ($ctx.Account.Type -eq "User") {
+            $userPrincipalId = (Get-AzADUser -UserPrincipalName $ctx.Account.Id).Id
+            Write-Host "Adding user principal id $userPrincipalId..."
         }
         else {
-            try {
-                $userPrincipalId = (Get-AzADUser -UserPrincipalName $username).Id
-                Write-Host "Found $username is user principal $userPrincipalId..."
-            }
-            catch {
-                $userPrincipalId = (Get-AzADServicePrincipal -DisplayName $username).Id
-                Write-Host "Found $username is service principal $userPrincipalId (Fallback)..."
-            }
+            $userPrincipalId = (Get-AzADServicePrincipal -ApplicationId $ctx.Account.Id).Id
+            Write-Host "Adding service principal id $userPrincipalId..."
         }
     }
-    if ([string]::IsNullOrEmpty($userPrincipalId)) {
+    if ([string]::IsNullOrWhiteSpace($userPrincipalId)) {
         $userPrincipalId = $script:aadConfig.FallBackPrincipalId
-    }
-    if (![string]::IsNullOrEmpty($userPrincipalId)) {
-        Write-Host "Adding user principal $userPrincipalId ($username)."
+        if ([string]::IsNullOrWhiteSpace($userPrincipalId)) {
+            Write-Host "Not adding user principal id..."
+        }
+        else {
+            Write-Host "Using fallback principal id $userPrincipalId..."
+        }
     }
     $templateParameters.Add("userPrincipalId", $userPrincipalId)
 

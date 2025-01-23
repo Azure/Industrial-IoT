@@ -51,6 +51,18 @@
                 "description": "Specifies the object ID of a principal in your Azure Active Directory tenant to access the deployed services."
             }
         },
+        "userPrincipalType": {
+            "type": "string",
+            "defaultValue": "User",
+            "allowedValues": [
+                "User",
+                "ServicePrincipal",
+                "Group"
+            ],
+            "metadata": {
+                "description": "The user principal type."
+            }
+        }
         "authorityUri": {
             "type": "string",
             "defaultValue": "https://login.microsoftonline.com",
@@ -491,7 +503,8 @@
             "scope": "[variables('keyVaultResourceId')]",
             "properties": {
                 "roleDefinitionId": "[variables('keyVaultSecretOfficerRoleId')]",
-                "principalId": "[parameters('userPrincipalId')]"
+                "principalId": "[parameters('userPrincipalId')]",
+                "principalType": "[parameters('userPrincipalType')]"
             },
             "dependsOn": [
                 "[variables('keyVaultResourceId')]"
