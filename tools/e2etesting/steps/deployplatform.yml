@@ -90,7 +90,7 @@ steps:
     scriptPath: '$(BasePath)\tools\e2etesting\DetermineKeyVaultName.ps1'
     scriptArguments: >
       -ResourceGroupName '$(ResourceGroupName)'
-- task: AzureKeyVault@1
+- task: AzureKeyVault@2
   displayName: 'Retrieve App identifier'
   inputs:
     azureSubscription: '$(AzureSubscription)'
