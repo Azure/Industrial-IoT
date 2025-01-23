@@ -1081,26 +1081,33 @@ Write-Warning "Standard_D4s_v4 VM with Nested virtualization for IoT Edge Eflow 
     }
 
     # Register current aad user to access keyvault
-    if (![string]::IsNullOrEmpty($script:aadConfig.UserPrincipalId)) {
-        $templateParameters.Add("userPrincipalId", $script:aadConfig.UserPrincipalId)
-    }
-    else {
+    $userPrincipalId = $script:aadConfig.UserPrincipalId
+    if ([string]::IsNullOrEmpty($userPrincipalId)) {
         $username = (Get-AzContext).Account.Id
-        try {
-            $userPrincipalId = (Get-AzADUser -UserPrincipalName $username).Id
-        }
-        catch {
+        if ($script:isServicePrincipal.IsPresent) {
             $userPrincipalId = (Get-AzADServicePrincipal -DisplayName $username).Id
         }
-        Write-Host "Adding user principal $userPrincipalId ($username)..."
-
         if (![string]::IsNullOrEmpty($userPrincipalId)) {
-            $templateParameters.Add("userPrincipalId", $userPrincipalId)
+            Write-Host "Found $username is service principal $userPrincipalId..."
         }
         else {
-            $templateParameters.Add("userPrincipalId", $script:aadConfig.FallBackPrincipalId)
+            try {
+                $userPrincipalId = (Get-AzADUser -UserPrincipalName $username).Id
+                Write-Host "Found $username is user principal $userPrincipalId..."
+            }
+            catch {
+                $userPrincipalId = (Get-AzADServicePrincipal -DisplayName $username).Id
+                Write-Host "Found $username is service principal $userPrincipalId (Fallback)..."
+            }
         }
     }
+    if ([string]::IsNullOrEmpty($userPrincipalId)) {
+        $userPrincipalId = $script:aadConfig.FallBackPrincipalId
+    }
+    if (![string]::IsNullOrEmpty($userPrincipalId)) {
+        Write-Host "Adding user principal $userPrincipalId ($username)."
+    }
+    $templateParameters.Add("userPrincipalId", $userPrincipalId)
 
     # Add IoTSuiteType tag. This tag will be applied for all resources.
     $tags = @{"IoTSuiteType" = "AzureIndustrialIoT-$($script:type)-$($script:version)-PS1"}
