@@ -1082,24 +1082,28 @@ Write-Warning "Standard_D4s_v4 VM with Nested virtualization for IoT Edge Eflow 
 
     # Register current aad user to access keyvault
     $userPrincipalId = $script:aadConfig.UserPrincipalId
-    if ([string]::IsNullOrWhiteSpace($userPrincipalId)) {
+    if (![string]::IsNullOrWhiteSpace($userPrincipalId)) {
+        Write-Warning "Deployment will add access to keyvault for user $userPrincipalId..."
+    }
+    else {
         $ctx = Get-AzContext
         if ($ctx.Account.Type -eq "User") {
             $userPrincipalId = (Get-AzADUser -UserPrincipalName $ctx.Account.Id).Id
-            Write-Host "Adding user principal id $userPrincipalId..."
+            Write-Warning "Deployment will add access to keyvault for current user..."
         }
         else {
             $userPrincipalId = (Get-AzADServicePrincipal -ApplicationId $ctx.Account.Id).Id
-            Write-Host "Adding service principal id $userPrincipalId..."
+            Write-Warning "Deployment will add access to keyvault for service principal id $userPrincipalId..."
         }
     }
     if ([string]::IsNullOrWhiteSpace($userPrincipalId)) {
         $userPrincipalId = $script:aadConfig.FallBackPrincipalId
         if ([string]::IsNullOrWhiteSpace($userPrincipalId)) {
-            Write-Host "Not adding user principal id..."
+            Write-Host "User principal could not be determined."
+            Write-Host "Access to deployed key vault must be configured manually..."
         }
         else {
-            Write-Host "Using fallback principal id $userPrincipalId..."
+            Write-Warning "Deployment will add access to keyvault for user $userPrincipalId (Fallback)..."
         }
     }
     $templateParameters.Add("userPrincipalId", $userPrincipalId)
