@@ -1,9 +1,23 @@
 steps:
+- task: AzurePowerShell@5
+  displayName: 'Select Image to test'
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    workingDirectory: '$(BasePath)'
+    scriptType: filePath
+    scriptPath: '$(BasePath)\tools\e2etesting\SetVariables.ps1'
+    scriptArguments: >
+      -BranchName "$(BranchName)"
+      -Region "$(Region)"
+      -ImageTag "$(PlatformVersion)"
+      -ContainerRegistryServer "$(ContainerRegistryServer)"
+
 - task: UseDotNet@2
   displayName: 'Install .NET Core SDK for building'
   inputs:
     packageType: sdk
-    version: 8.0.x
+    version: 9.0.x
     includePreviewVersions: false
     installationPath: $(Agent.ToolsDirectory)/dotnet
 
@@ -23,20 +37,6 @@ steps:
       Write-Host "##vso[task.setvariable variable=ServicePrincipalIdToken]$($env:idToken)"
       Write-Host "##vso[task.setvariable variable=ServicePrincipalAccessToken]$($accessToken.accessToken)"
       Write-Host "##vso[task.setvariable variable=ServicePrincipalTenantId]$($env:tenantId)"
-
-- task: AzurePowerShell@5
-  displayName: 'Select Image to test'
-  inputs:
-    azureSubscription: '$(AzureSubscription)'
-    azurePowerShellVersion: 'latestVersion'
-    workingDirectory: '$(BasePath)'
-    scriptType: filePath
-    scriptPath: '$(BasePath)\tools\e2etesting\SetVariables.ps1'
-    scriptArguments: >
-      -BranchName "$(BranchName)"
-      -Region "$(Region)"
-      -ImageTag "$(PlatformVersion)"
-      -ContainerRegistryServer "$(ContainerRegistryServer)"
 
 - task: AzurePowerShell@5
   displayName: "Run deployment script"
@@ -90,9 +90,3 @@ steps:
     scriptPath: '$(BasePath)\tools\e2etesting\DetermineKeyVaultName.ps1'
     scriptArguments: >
       -ResourceGroupName '$(ResourceGroupName)'
-- task: AzureKeyVault@1
-  displayName: 'Retrieve App identifier'
-  inputs:
-    azureSubscription: '$(AzureSubscription)'
-    KeyVaultName: '$(KeyVaultName)'
-    SecretsFilter: 'PCS-AUTH-CLIENT-APPID,PCS-AUTH-TENANT'

@@ -42,13 +42,13 @@ steps:
       -ResourceGroupName "$(ResourceGroupName)"
       -ServicePrincipalName "$(ServicePrincipalId)"
 
-- task: AzureKeyVault@1
+- task: AzureKeyVault@2
   displayName: 'Retrieve KeyVault secrets'
   inputs:
     azureSubscription: '$(AzureSubscription)'
     KeyVaultName: '$(KeyVaultName)'
     SecretsFilter: 'PCS-IOTHUB-CONNSTRING,plc-simulation-urls,plc-simulation-ips,iot-edge-vm-username,iot-edge-vm-publickey,iot-edge-vm-privatekey,iot-edge-device-id,iot-edge-device-dnsname,iothub-eventhub-connectionstring,PCS-SUBSCRIPTION-ID'
-- task: AzureKeyVault@1
+- task: AzureKeyVault@2
   displayName: 'Retrieve KeyVault secrets for API tests'
   condition: notIn( '${{ parameters.ModeValue }}', 'standalone', 'AE')
   inputs:
