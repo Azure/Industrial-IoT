@@ -303,6 +303,54 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
+        public override async Task<ISession> RecreateAsync(ISession sessionTemplate,
+            ITransportWaitingConnection connection, CancellationToken ct)
+        {
+            //
+            // We do not support recreation of sessions create a new session from scratch.
+            // Then we add the desired subscriptions to the new session.
+            //
+            if(connection != null)
+            {
+                _logger.LogInformation(
+                    "{Client}: RECREATE: Creating new session with new waiting connection.", this);
+                return await CreateAsync(_configuration, connection, sessionTemplate.ConfiguredEndpoint,
+                    true, false, _sessionName, (uint)sessionTemplate.SessionTimeout, sessionTemplate.Identity,
+                    sessionTemplate.PreferredLocales, ct).ConfigureAwait(false);
+            }
+            _logger.LogInformation("{Client}: RECREATE: Creating new session without connection.", this);
+            return await CreateAsync(_configuration, _reverseConnectManager,
+                sessionTemplate.ConfiguredEndpoint, true, false, _sessionName,
+                (uint)sessionTemplate.SessionTimeout, sessionTemplate.Identity,
+                sessionTemplate.PreferredLocales, ct).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        public override async Task<ISession> RecreateAsync(ISession sessionTemplate,
+            ITransportChannel? transportChannel, CancellationToken ct)
+        {
+            //
+            // We do not support recreation of sessions therefore we close
+            // and reopen the transport channel as a regular creation operation.
+            // Then we add the desired subscriptions to the new session
+            //
+            if (transportChannel != null)
+            {
+                _logger.LogInformation(
+                    "{Client}: RECREATE: Closing channel and creating new session.", this);
+                transportChannel.Dispose();
+            }
+            else
+            {
+                _logger.LogInformation("{Client}: RECREATE: Creating new session.", this);
+
+            }
+            return await CreateAsync(_configuration, sessionTemplate.ConfiguredEndpoint,
+                true, false, _sessionName, (uint)sessionTemplate.SessionTimeout, sessionTemplate.Identity,
+                sessionTemplate.PreferredLocales, ct).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
         public override Session Create(ISessionChannel channel, ApplicationConfiguration configuration,
             ConfiguredEndpoint endpoint)
         {
@@ -1317,7 +1365,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     Debug.Assert(session != null);
                     session.RenewUserIdentity += (_, _) => userIdentity;
 
-                    // Assign the createdSubscriptions session
+                    // Assign the session
                     var isNew = await UpdateSessionAsync(session).ConfigureAwait(false);
                     Debug.Assert(isNew);
                     _logger.LogInformation(

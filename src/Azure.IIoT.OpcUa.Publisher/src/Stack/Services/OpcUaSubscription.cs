@@ -390,7 +390,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             //
             // Called by the management thread to "close" the subscription and dispose it.
             // Note that the session calls dispose again or when it is closed or
-            // reconnected. This her is called when the management thread determines
+            // reconnected. This here is called when the management thread determines
             // to gracefully close the subscription.
             //
             try

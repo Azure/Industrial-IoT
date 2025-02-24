@@ -53,7 +53,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 
                 message = Assert.Single(messages).Message;
                 AssertFixedValueMessage(message);
-                Assert.Null(metadata);
+
+                // When we recreated the session we did not handle new metadata but now that we create we do.
+                // Assert.Null(metadata);
+                Assert.NotNull(metadata);
             }
             finally
             {

@@ -325,8 +325,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                     {
                         using var users = configuration.SecurityConfiguration
                             .TrustedUserCertificates.OpenStore();
+#pragma warning disable CS0618 // Type or member is obsolete /* TODO add rsa/ecc*/
                         var userCertWithPrivateKey = await users.LoadPrivateKey(
-                            thumbprint, subjectName, configuration.ApplicationUri, null, passCode).ConfigureAwait(false); /* TODO rsa/ecc*/
+                            thumbprint, subjectName, passCode).ConfigureAwait(false);
+#pragma warning restore CS0618 // Type or member is obsolete
                         if (userCertWithPrivateKey == null)
                         {
                             throw new ServiceResultException(StatusCodes.BadCertificateInvalid,
