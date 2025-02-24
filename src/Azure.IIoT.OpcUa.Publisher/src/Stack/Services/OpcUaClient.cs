@@ -1403,6 +1403,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     case StatusCodes.BadSecureChannelClosed:
                     case StatusCodes.BadSessionClosed:
                     case StatusCodes.BadConnectionClosed:
+                    case StatusCodes.BadNotConnected:
                     case StatusCodes.BadNoCommunication:
                         TriggerReconnect(e.Status, "Publish");
                         return;
