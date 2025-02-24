@@ -40,18 +40,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
             // Assert
-            Assert.Collection(results,
+            Assert.Contains(results,
                 node =>
                 {
+                    if (node.Attributes?.DisplayName != "Root")
+                    {
+                        return false;
+                    }
+
                     Assert.NotNull(node.Attributes);
                     Assert.Null(node.Reference);
                     Assert.Equal("i=84", node.SourceId);
                     Assert.Equal("Root", node.Attributes.DisplayName);
                     Assert.Equal("The root of the server address space.", node.Attributes.Description);
                     Assert.Null(node.Attributes.AccessRestrictions);
-                },
+                    return true;
+                });
+            Assert.Contains(results,
                 reference =>
                 {
+                    if (reference.Reference?.Target.DisplayName != "Objects")
+                    {
+                        return false;
+                    }
+
                     Assert.Null(reference.Attributes);
                     Assert.NotNull(reference.Reference);
                     Assert.Equal("i=84", reference.SourceId);
@@ -61,9 +73,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("Objects", reference.Reference.Target.DisplayName);
                     Assert.Equal("i=85", reference.Reference.Target.NodeId);
                     Assert.True(reference.Reference.Target.Value.IsNull());
-                },
+                    return true;
+                });
+            Assert.Contains(results,
                 reference =>
                 {
+                    if (reference.Reference?.Target.DisplayName != "Types")
+                    {
+                        return false;
+                    }
+
                     Assert.Null(reference.Attributes);
                     Assert.NotNull(reference.Reference);
                     Assert.Equal("i=84", reference.SourceId);
@@ -73,9 +92,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("Types", reference.Reference.Target.DisplayName);
                     Assert.Equal("i=86", reference.Reference.Target.NodeId);
                     Assert.True(reference.Reference.Target.Value.IsNull());
-                },
+                    return true;
+                });
+            Assert.Contains(results,
                 reference =>
                 {
+                    if (reference.Reference?.Target.DisplayName != "Views")
+                    {
+                        return false;
+                    }
+
                     Assert.Null(reference.Attributes);
                     Assert.NotNull(reference.Reference);
                     Assert.Equal("i=84", reference.SourceId);
@@ -85,6 +111,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("Views", reference.Reference.Target.DisplayName);
                     Assert.Equal("i=87", reference.Reference.Target.NodeId);
                     Assert.True(reference.Reference.Target.Value.IsNull());
+                    return true;
                 });
         }
 
@@ -101,9 +128,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
             // Assert
-            Assert.Collection(results,
+            Assert.Contains(results,
                 node =>
                 {
+                    if (node.Attributes?.DisplayName != "Root")
+                    {
+                        return false;
+                    }
+
                     Assert.NotNull(node.Attributes);
                     Assert.Null(node.Reference);
                     Assert.Equal("i=84", node.SourceId);
@@ -111,9 +143,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("Root", node.Attributes.DisplayName);
                     Assert.Equal("The root of the server address space.", node.Attributes.Description);
                     Assert.Null(node.Attributes.AccessRestrictions);
-                },
+                    return true;
+                });
+            Assert.Contains(results,
                 reference =>
                 {
+                    if (reference.Reference?.Target.DisplayName != "Objects")
+                    {
+                        return false;
+                    }
+
                     Assert.Null(reference.Attributes);
                     Assert.NotNull(reference.Reference);
                     Assert.Equal("i=84", reference.SourceId);
@@ -123,9 +162,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("Objects", reference.Reference.Target.DisplayName);
                     Assert.Equal("i=85", reference.Reference.Target.NodeId);
                     Assert.True(reference.Reference.Target.Value.IsNull());
-                },
+                    return true;
+                });
+            Assert.Contains(results,
                 reference =>
                 {
+                    if (reference.Reference?.Target.DisplayName != "Types")
+                    {
+                        return false;
+                    }
+
                     Assert.Null(reference.Attributes);
                     Assert.NotNull(reference.Reference);
                     Assert.Equal("i=84", reference.SourceId);
@@ -135,9 +181,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("Types", reference.Reference.Target.DisplayName);
                     Assert.Equal("i=86", reference.Reference.Target.NodeId);
                     Assert.True(reference.Reference.Target.Value.IsNull());
-                },
+                    return true;
+                });
+            Assert.Contains(results,
                 reference =>
                 {
+                    if (reference.Reference?.Target.DisplayName != "Views")
+                    {
+                        return false;
+                    }
+
                     Assert.Null(reference.Attributes);
                     Assert.NotNull(reference.Reference);
                     Assert.Equal("i=84", reference.SourceId);
@@ -147,6 +200,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("Views", reference.Reference.Target.DisplayName);
                     Assert.Equal("i=87", reference.Reference.Target.NodeId);
                     Assert.True(reference.Reference.Target.Value.IsNull());
+                    return true;
                 });
         }
 
@@ -163,9 +217,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
             // Assert
-            Assert.Collection(results,
+            Assert.Contains(results,
                 node =>
                 {
+                    if (node.Reference != null)
+                    {
+                        return false;
+                    }
+
                     Assert.NotNull(node.Attributes);
                     Assert.Null(node.Reference);
                     Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1240", node.SourceId);
@@ -176,9 +235,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal(NodeEventNotifier.SubscribeToEvents, node.Attributes.EventNotifier);
                     Assert.Null(node.Attributes.Description);
                     Assert.Null(node.Attributes.AccessRestrictions);
-                },
+                    return true;
+                });
+            Assert.Contains(results,
                 reference =>
                 {
+                    if (reference.Reference?.ReferenceTypeId != "i=47")
+                    {
+                        return false;
+                    }
+
                     Assert.Null(reference.Attributes);
                     Assert.NotNull(reference.Reference);
                     Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1240", reference.SourceId);
@@ -189,9 +255,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Null(reference.Reference.Target.NodeClass);
                     Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1241",
                         reference.Reference.Target.NodeId);
-                },
+                    return true;
+                });
+            Assert.Contains(results,
                 reference =>
                 {
+                    if (reference.Reference?.ReferenceTypeId != "i=48")
+                    {
+                        return false;
+                    }
+
                     Assert.Null(reference.Attributes);
                     Assert.NotNull(reference.Reference);
                     Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1240", reference.SourceId);
@@ -202,9 +275,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Null(reference.Reference.Target.NodeClass);
                     Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1241",
                         reference.Reference.Target.NodeId);
-                },
+                    return true;
+                });
+            Assert.Contains(results,
                 reference =>
                 {
+                    if (reference.Reference?.ReferenceTypeId != "i=35")
+                    {
+                        return false;
+                    }
+
                     Assert.Null(reference.Attributes);
                     Assert.NotNull(reference.Reference);
                     Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1240", reference.SourceId);
@@ -215,6 +295,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Null(reference.Reference.Target.NodeClass);
                     Assert.Equal("http://opcfoundation.org/UA/Boiler//Instance#i=1",
                         reference.Reference.Target.NodeId);
+                    return true;
                 });
         }
 
@@ -906,7 +987,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 }
             }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
-            Assert.Equal(2409, results.Count);
+            Assert.Equal(2481, results.Count);
         }
 
         public async Task NodeBrowseStaticArrayVariablesTestAsync(CancellationToken ct = default)

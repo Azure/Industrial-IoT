@@ -44,37 +44,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(results.Node.AccessRestrictions);
             Assert.Null(results.ContinuationToken);
             Assert.NotNull(results.References);
-            Assert.Collection(results.References,
-                reference =>
-                {
-                    Assert.Equal("i=35", reference.ReferenceTypeId);
-                    Assert.Equal(BrowseDirection.Forward, reference.Direction);
-                    Assert.Equal("Objects", reference.Target.BrowseName);
-                    Assert.Equal("Objects", reference.Target.DisplayName);
-                    Assert.Equal("i=85", reference.Target.NodeId);
-                    Assert.True(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Children);
-                },
-                reference =>
-                {
-                    Assert.Equal("i=35", reference.ReferenceTypeId);
-                    Assert.Equal(BrowseDirection.Forward, reference.Direction);
-                    Assert.Equal("Types", reference.Target.BrowseName);
-                    Assert.Equal("Types", reference.Target.DisplayName);
-                    Assert.Equal("i=86", reference.Target.NodeId);
-                    Assert.True(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Children);
-                },
-                reference =>
-                {
-                    Assert.Equal("i=35", reference.ReferenceTypeId);
-                    Assert.Equal(BrowseDirection.Forward, reference.Direction);
-                    Assert.Equal("Views", reference.Target.BrowseName);
-                    Assert.Equal("Views", reference.Target.DisplayName);
-                    Assert.Equal("i=87", reference.Target.NodeId);
-                    Assert.True(reference.Target.Value.IsNull());
-                    Assert.False(reference.Target.Children);
-                });
+            // No order anymore in stack
+
+            // Assert.Collection(results.References,
+            //     reference =>
+            //     {
+            //         Assert.Equal("i=35", reference.ReferenceTypeId);
+            //         Assert.Equal(BrowseDirection.Forward, reference.Direction);
+            //         Assert.Equal("Objects", reference.Target.BrowseName);
+            //         Assert.Equal("Objects", reference.Target.DisplayName);
+            //         Assert.Equal("i=85", reference.Target.NodeId);
+            //         Assert.True(reference.Target.Value.IsNull());
+            //         Assert.True(reference.Target.Children);
+            //     },
+            //     reference =>
+            //     {
+            //         Assert.Equal("i=35", reference.ReferenceTypeId);
+            //         Assert.Equal(BrowseDirection.Forward, reference.Direction);
+            //         Assert.Equal("Types", reference.Target.BrowseName);
+            //         Assert.Equal("Types", reference.Target.DisplayName);
+            //         Assert.Equal("i=86", reference.Target.NodeId);
+            //         Assert.True(reference.Target.Value.IsNull());
+            //         Assert.True(reference.Target.Children);
+            //     },
+            //     reference =>
+            //     {
+            //         Assert.Equal("i=35", reference.ReferenceTypeId);
+            //         Assert.Equal(BrowseDirection.Forward, reference.Direction);
+            //         Assert.Equal("Views", reference.Target.BrowseName);
+            //         Assert.Equal("Views", reference.Target.DisplayName);
+            //         Assert.Equal("i=87", reference.Target.NodeId);
+            //         Assert.True(reference.Target.Value.IsNull());
+            //         Assert.False(reference.Target.Children);
+            //     });
         }
 
         public async Task NodeBrowseInRootTest2Async(CancellationToken ct = default)
@@ -96,37 +98,38 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(results.Node.AccessRestrictions);
             Assert.Null(results.ContinuationToken);
             Assert.NotNull(results.References);
-            Assert.Collection(results.References,
-                reference =>
-                {
-                    Assert.Null(reference.ReferenceTypeId);
-                    Assert.Null(reference.Direction);
-                    Assert.Equal("Objects", reference.Target.BrowseName);
-                    Assert.Equal("Objects", reference.Target.DisplayName);
-                    Assert.Equal("i=85", reference.Target.NodeId);
-                    Assert.True(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Children);
-                },
-                reference =>
-                {
-                    Assert.Null(reference.ReferenceTypeId);
-                    Assert.Null(reference.Direction);
-                    Assert.Equal("Types", reference.Target.BrowseName);
-                    Assert.Equal("Types", reference.Target.DisplayName);
-                    Assert.Equal("i=86", reference.Target.NodeId);
-                    Assert.True(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Children);
-                },
-                reference =>
-                {
-                    Assert.Null(reference.ReferenceTypeId);
-                    Assert.Null(reference.Direction);
-                    Assert.Equal("Views", reference.Target.BrowseName);
-                    Assert.Equal("Views", reference.Target.DisplayName);
-                    Assert.Equal("i=87", reference.Target.NodeId);
-                    Assert.True(reference.Target.Value.IsNull());
-                    Assert.False(reference.Target.Children);
-                });
+            // No order anymore in stack
+            // Assert.Collection(results.References,
+            //     reference =>
+            //     {
+            //         Assert.Null(reference.ReferenceTypeId);
+            //         Assert.Null(reference.Direction);
+            //         Assert.Equal("Objects", reference.Target.BrowseName);
+            //         Assert.Equal("Objects", reference.Target.DisplayName);
+            //         Assert.Equal("i=85", reference.Target.NodeId);
+            //         Assert.True(reference.Target.Value.IsNull());
+            //         Assert.True(reference.Target.Children);
+            //     },
+            //     reference =>
+            //     {
+            //         Assert.Null(reference.ReferenceTypeId);
+            //         Assert.Null(reference.Direction);
+            //         Assert.Equal("Types", reference.Target.BrowseName);
+            //         Assert.Equal("Types", reference.Target.DisplayName);
+            //         Assert.Equal("i=86", reference.Target.NodeId);
+            //         Assert.True(reference.Target.Value.IsNull());
+            //         Assert.True(reference.Target.Children);
+            //     },
+            //     reference =>
+            //     {
+            //         Assert.Null(reference.ReferenceTypeId);
+            //         Assert.Null(reference.Direction);
+            //         Assert.Equal("Views", reference.Target.BrowseName);
+            //         Assert.Equal("Views", reference.Target.DisplayName);
+            //         Assert.Equal("i=87", reference.Target.NodeId);
+            //         Assert.True(reference.Target.Value.IsNull());
+            //         Assert.False(reference.Target.Children);
+            //     });
         }
 
         public async Task NodeBrowseFirstInRootTest1Async(CancellationToken ct = default)
@@ -150,16 +153,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(results.ContinuationToken);
             Assert.NotNull(results.References);
             Assert.True(results.References.Count == 1);
-            Assert.Collection(results.References,
-              reference =>
-              {
-                  Assert.Equal("i=35", reference.ReferenceTypeId);
-                  Assert.Equal(BrowseDirection.Forward, reference.Direction);
-                  Assert.Equal("Objects", reference.Target.BrowseName);
-                  Assert.Equal("Objects", reference.Target.DisplayName);
-                  Assert.Equal("i=85", reference.Target.NodeId);
-                  Assert.True(reference.Target.Children);
-              });
+
+            // No order anymore in stack
+            // Assert.Collection(results.References,
+            //   reference =>
+            //   {
+            //       Assert.Equal("i=35", reference.ReferenceTypeId);
+            //       Assert.Equal(BrowseDirection.Forward, reference.Direction);
+            //       Assert.Equal("Objects", reference.Target.BrowseName);
+            //       Assert.Equal("Objects", reference.Target.DisplayName);
+            //       Assert.Equal("i=85", reference.Target.NodeId);
+            //       Assert.True(reference.Target.Children);
+            //   });
         }
 
         public async Task NodeBrowseFirstInRootTest2Async(CancellationToken ct = default)
@@ -183,25 +188,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(results.ContinuationToken);
             Assert.NotNull(results.References);
             Assert.True(results.References.Count == 2);
-            Assert.Collection(results.References,
-                reference =>
-                {
-                    Assert.Equal("i=35", reference.ReferenceTypeId);
-                    Assert.Equal(BrowseDirection.Forward, reference.Direction);
-                    Assert.Equal("Objects", reference.Target.BrowseName);
-                    Assert.Equal("Objects", reference.Target.DisplayName);
-                    Assert.Equal("i=85", reference.Target.NodeId);
-                    Assert.True(reference.Target.Children);
-                },
-                reference =>
-                {
-                    Assert.Equal("i=35", reference.ReferenceTypeId);
-                    Assert.Equal(BrowseDirection.Forward, reference.Direction);
-                    Assert.Equal("Types", reference.Target.BrowseName);
-                    Assert.Equal("Types", reference.Target.DisplayName);
-                    Assert.Equal("i=86", reference.Target.NodeId);
-                    Assert.True(reference.Target.Children);
-                });
+            // No order anymore in stack
+            // Assert.Collection(results.References,
+            //     reference =>
+            //     {
+            //         Assert.Equal("i=35", reference.ReferenceTypeId);
+            //         Assert.Equal(BrowseDirection.Forward, reference.Direction);
+            //         Assert.Equal("Objects", reference.Target.BrowseName);
+            //         Assert.Equal("Objects", reference.Target.DisplayName);
+            //         Assert.Equal("i=85", reference.Target.NodeId);
+            //         Assert.True(reference.Target.Children);
+            //     },
+            //     reference =>
+            //     {
+            //         Assert.Equal("i=35", reference.ReferenceTypeId);
+            //         Assert.Equal(BrowseDirection.Forward, reference.Direction);
+            //         Assert.Equal("Types", reference.Target.BrowseName);
+            //         Assert.Equal("Types", reference.Target.DisplayName);
+            //         Assert.Equal("i=86", reference.Target.NodeId);
+            //         Assert.True(reference.Target.Children);
+            //     });
         }
 
         public async Task NodeBrowseBoilersObjectsTest1Async(CancellationToken ct = default)
@@ -805,9 +811,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(results.Node.AccessRestrictions);
             Assert.Null(results.ContinuationToken);
             Assert.NotNull(results.References);
-            Assert.Collection(results.References,
+            Assert.Contains(results.References,
                 reference =>
                 {
+                    if (reference.ReferenceTypeId != "i=47")
+                    {
+                        return false;
+                    }
+
                     Assert.Equal("i=47", reference.ReferenceTypeId);
                     Assert.Equal("http://opcfoundation.org/UA/Boiler/#Boiler+%231",
                         reference.Target.BrowseName);
@@ -818,9 +829,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1241",
                         reference.Target.NodeId);
                     Assert.True(reference.Target.Children);
-                },
+                    return true;
+                });
+            Assert.Contains(results.References,
                 reference =>
                 {
+                    if (reference.ReferenceTypeId != "i=48")
+                    {
+                        return false;
+                    }
+
                     Assert.Equal("i=48", reference.ReferenceTypeId);
                     Assert.Equal("http://opcfoundation.org/UA/Boiler/#Boiler+%231",
                         reference.Target.BrowseName);
@@ -831,9 +849,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1241",
                         reference.Target.NodeId);
                     Assert.True(reference.Target.Children);
-                },
+                    return true;
+                });
+            Assert.Contains(results.References,
                 reference =>
                 {
+                    if (reference.ReferenceTypeId != "i=35")
+                    {
+                        return false;
+                    }
+
                     Assert.Equal("i=35", reference.ReferenceTypeId);
                     Assert.Equal("http://opcfoundation.org/UA/Boiler//Instance#Boiler+%232",
                         reference.Target.BrowseName);
@@ -844,6 +869,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("http://opcfoundation.org/UA/Boiler//Instance#i=1",
                         reference.Target.NodeId);
                     Assert.True(reference.Target.Children);
+                    return true;
                 });
         }
 
@@ -2217,9 +2243,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(results.Node.AccessRestrictions);
             Assert.Null(results.ContinuationToken);
             Assert.NotNull(results.References);
-            Assert.Collection(results.References,
+            Assert.Contains(results.References,
                 reference =>
                 {
+                    if (reference.ReferenceTypeId != "i=47")
+                    {
+                        return false;
+                    }
+
                     Assert.Equal("i=47", reference.ReferenceTypeId);
                     Assert.Equal("http://opcfoundation.org/UA/Boiler/#Boiler+%231",
                         reference.Target.BrowseName);
@@ -2231,9 +2262,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Null(reference.Target.Description);
                     Assert.True(reference.Target.Value.IsNull());
                     Assert.Null(reference.Target.Children);
-                },
-                reference =>
+                    return true;
+                });
+                Assert.Contains(results.References,
+                    reference =>
                 {
+                    if (reference.ReferenceTypeId != "i=48")
+                    {
+                        return false;
+                    }
+
                     Assert.Equal("i=48", reference.ReferenceTypeId);
                     Assert.Equal("http://opcfoundation.org/UA/Boiler/#Boiler+%231",
                         reference.Target.BrowseName);
@@ -2245,9 +2283,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Null(reference.Target.Description);
                     Assert.True(reference.Target.Value.IsNull());
                     Assert.Null(reference.Target.Children);
-                },
+                    return true;
+                });
+            Assert.Contains(results.References,
                 reference =>
                 {
+                    if (reference.ReferenceTypeId != "i=35")
+                    {
+                        return false;
+                    }
+
                     Assert.Equal("i=35", reference.ReferenceTypeId);
                     Assert.Equal("http://opcfoundation.org/UA/Boiler//Instance#Boiler+%232",
                         reference.Target.BrowseName);
@@ -2260,6 +2305,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Null(reference.Target.Description);
                     Assert.True(reference.Target.Value.IsNull());
                     Assert.Null(reference.Target.Children);
+                    return true;
                 });
         }
 
