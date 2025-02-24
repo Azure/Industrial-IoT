@@ -326,7 +326,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                         using var users = configuration.SecurityConfiguration
                             .TrustedUserCertificates.OpenStore();
                         var userCertWithPrivateKey = await users.LoadPrivateKey(
-                            thumbprint, subjectName, passCode).ConfigureAwait(false);
+                            thumbprint, subjectName, configuration.ApplicationUri, null, passCode).ConfigureAwait(false); /* TODO rsa/ecc*/
                         if (userCertWithPrivateKey == null)
                         {
                             throw new ServiceResultException(StatusCodes.BadCertificateInvalid,

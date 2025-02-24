@@ -1280,7 +1280,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         _configuration).ConfigureAwait(false);
 
                     var identityPolicy = endpoint.Description.FindUserTokenPolicy(
-                        userIdentity.TokenType, userIdentity.IssuedTokenType);
+                        userIdentity.TokenType, userIdentity.IssuedTokenType, endpointDescription.SecurityPolicyUri);
                     if (identityPolicy == null)
                     {
                         _logger.LogWarning(
