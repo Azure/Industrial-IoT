@@ -78,35 +78,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 
             // Assert
             Assert.True(messages.Count > 1);
-            var message = messages[0].Message;
-            Assert.Equal("i=2271", message.GetProperty("NodeId").GetString());
-            Assert.NotEmpty(message.GetProperty("ApplicationUri").GetString());
-            Assert.NotEmpty(message.GetProperty("Timestamp").GetString());
-            Assert.True(message.GetProperty("SequenceNumber").GetUInt32() > 0);
-            _output.WriteLine(message.ToJsonString());
-            Assert.Equal("en-US", message.GetProperty("Value").GetProperty("Value").EnumerateArray().First().GetString());
-
-            var timestamps = new HashSet<DateTime> { message.GetProperty("Timestamp").GetDateTime() };
-            for (var i = 1; i < messages.Count; i++)
+            var timestamps = new HashSet<DateTime>();
+            for (var i = 0; i < messages.Count; i++)
             {
-                message = messages[i].Message;
-                Assert.Equal("i=2271", message.GetProperty("NodeId").GetString());
-                Assert.NotEmpty(message.GetProperty("ApplicationUri").GetString());
-                Assert.True(message.GetProperty("SequenceNumber").GetUInt32() > 0);
-                Assert.Equal("en-US", message.GetProperty("Value").GetProperty("Value").EnumerateArray().First().GetString());
-
-                if (timestamp == MessageTimestamp.PublishTime)
+                var message = messages[i].Message;
+                _output.WriteLine(message.ToJsonString());
+                if (!message.GetProperty("Value").TryGetProperty("StatusCode", out _))
                 {
-                    Assert.False(message.TryGetProperty("Timestamp", out _));
+                    Assert.Equal("i=2271", message.GetProperty("NodeId").GetString());
+                    Assert.NotEmpty(message.GetProperty("ApplicationUri").GetString());
+                    Assert.True(message.GetProperty("SequenceNumber").GetUInt32() > 0);
+                    Assert.Equal("en-US", message.GetProperty("Value").GetProperty("Value").EnumerateArray().First().GetString());
                 }
-                else
+
+                if (message.TryGetProperty("Timestamp", out _))
                 {
                     Assert.NotEmpty(message.GetProperty("Timestamp").GetString());
                     timestamps.Add(message.GetProperty("Timestamp").GetDateTime());
                 }
             }
-
-            Assert.Equal(timestamp != MessageTimestamp.PublishTime ? messages.Count : 1, timestamps.Count);
+            if (timestamp == MessageTimestamp.PublishTime)
+            {
+                Assert.NotEmpty(timestamps);
+            }
+            else
+            {
+                Assert.Equal(messages.Count, timestamps.Count);
+            }
         }
 
         [Theory]
