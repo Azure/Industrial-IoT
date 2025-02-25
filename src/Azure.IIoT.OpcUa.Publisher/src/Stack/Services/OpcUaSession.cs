@@ -135,7 +135,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
+            // Disposes all contained subscriptions
             base.Dispose(disposing);
+
             if (disposing && !_disposed)
             {
                 var sessionName = SessionName;

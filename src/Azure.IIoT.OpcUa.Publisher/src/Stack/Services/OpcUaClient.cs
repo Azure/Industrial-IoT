@@ -303,6 +303,54 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
+        public override async Task<ISession> RecreateAsync(ISession sessionTemplate,
+            ITransportWaitingConnection connection, CancellationToken ct)
+        {
+            //
+            // We do not support recreation of sessions create a new session from scratch.
+            // Then we add the desired subscriptions to the new session.
+            //
+            if(connection != null)
+            {
+                _logger.LogInformation(
+                    "{Client}: RECREATE: Creating new session with new waiting connection.", this);
+                return await CreateAsync(_configuration, connection, sessionTemplate.ConfiguredEndpoint,
+                    true, false, _sessionName, (uint)sessionTemplate.SessionTimeout, sessionTemplate.Identity,
+                    sessionTemplate.PreferredLocales, ct).ConfigureAwait(false);
+            }
+            _logger.LogInformation("{Client}: RECREATE: Creating new session without connection.", this);
+            return await CreateAsync(_configuration, _reverseConnectManager,
+                sessionTemplate.ConfiguredEndpoint, true, false, _sessionName,
+                (uint)sessionTemplate.SessionTimeout, sessionTemplate.Identity,
+                sessionTemplate.PreferredLocales, ct).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        public override async Task<ISession> RecreateAsync(ISession sessionTemplate,
+            ITransportChannel? transportChannel, CancellationToken ct)
+        {
+            //
+            // We do not support recreation of sessions therefore we close
+            // and reopen the transport channel as a regular creation operation.
+            // Then we add the desired subscriptions to the new session
+            //
+            if (transportChannel != null)
+            {
+                _logger.LogInformation(
+                    "{Client}: RECREATE: Closing channel and creating new session.", this);
+                transportChannel.Dispose();
+            }
+            else
+            {
+                _logger.LogInformation("{Client}: RECREATE: Creating new session.", this);
+
+            }
+            return await CreateAsync(_configuration, sessionTemplate.ConfiguredEndpoint,
+                true, false, _sessionName, (uint)sessionTemplate.SessionTimeout, sessionTemplate.Identity,
+                sessionTemplate.PreferredLocales, ct).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
         public override Session Create(ISessionChannel channel, ApplicationConfiguration configuration,
             ConfiguredEndpoint endpoint)
         {
@@ -921,22 +969,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     {
                                         case SessionState.Connected: // only valid when connected.
                                             Debug.Assert(_reconnectHandler.State == SessionReconnectHandler.ReconnectState.Ready);
+                                            _logger.LogInformation("{Client}: Reconnecting session {Session} due to {Reason}...",
+                                                this, _sessionName, (context is ServiceResult sr) ? "error " + sr : "RESET");
 
                                             // Ensure no more access to the session through reader locks
                                             Debug.Assert(_disconnectLock == null);
                                             _disconnectLock = await _lock.WriterLockAsync(ct);
-
-                                            _logger.LogInformation("{Client}: Reconnecting session {Session} due to {Reason}...",
-                                                this, _sessionName, (context is ServiceResult sr) ? "error " + sr : "RESET");
+                                            _logger.LogInformation("{Client}: Begin reconnecting session {Session}...",
+                                                this, _sessionName);
                                             Debug.Assert(_session != null);
                                             var state = _reconnectHandler.BeginReconnect(_session,
                                                 _reverseConnectManager, GetMinReconnectPeriod(), (sender, evt) =>
                                                 {
-                                                    if (ReferenceEquals(sender, _reconnectHandler))
+                                                    if (!ReferenceEquals(sender, _reconnectHandler))
                                                     {
-                                                        TriggerConnectionEvent(ConnectionEvent.ReconnectComplete,
-                                                            _reconnectHandler.Session);
+                                                        _logger.LogError("{Client}: Reconnect handler mismatch.", this);
+                                                        return;
                                                     }
+                                                    TriggerConnectionEvent(ConnectionEvent.ReconnectComplete,
+                                                        _reconnectHandler.Session);
                                                 });
 
                                             // Save session while reconnecting.
@@ -962,6 +1013,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     switch (currentSessionState)
                                     {
                                         case SessionState.Reconnecting:
+                                            _logger.LogInformation("{Client}: Completed reconnecting session {Session}...",
+                                                this, _sessionName);
                                             //
                                             // Behavior of the reconnect handler is as follows:
                                             // 1) newSession == null
@@ -999,12 +1052,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                             Debug.Assert(_disconnectLock != null);
                                             _disconnectLock.Dispose();
                                             _disconnectLock = null;
-
-                                            await SyncAsync(ct).ConfigureAwait(false);
-
                                             _reconnectRequired = 0;
                                             reconnectPeriod = GetMinReconnectPeriod();
                                             currentSessionState = SessionState.Connected;
+
+                                            await SyncAsync(ct).ConfigureAwait(false);
                                             NotifySubscriptions(_session, false);
                                             break;
 
@@ -1280,7 +1332,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         _configuration).ConfigureAwait(false);
 
                     var identityPolicy = endpoint.Description.FindUserTokenPolicy(
-                        userIdentity.TokenType, userIdentity.IssuedTokenType);
+                        userIdentity.TokenType, userIdentity.IssuedTokenType, endpointDescription.SecurityPolicyUri);
                     if (identityPolicy == null)
                     {
                         _logger.LogWarning(
@@ -1317,7 +1369,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     Debug.Assert(session != null);
                     session.RenewUserIdentity += (_, _) => userIdentity;
 
-                    // Assign the createdSubscriptions session
+                    // Assign the session
                     var isNew = await UpdateSessionAsync(session).ConfigureAwait(false);
                     Debug.Assert(isNew);
                     _logger.LogInformation(
@@ -1347,22 +1399,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="e"></param>
         internal void Session_HandlePublishError(ISession session, PublishErrorEventArgs e)
         {
-            if (_disconnectLock == null && session == _session)
+            if (!ReferenceEquals(session, _session))
             {
-                switch (e.Status.Code)
+                if (_session != null)
                 {
-                    case StatusCodes.BadSessionIdInvalid:
-                    case StatusCodes.BadSecureChannelClosed:
-                    case StatusCodes.BadSessionClosed:
-                    case StatusCodes.BadConnectionClosed:
-                    case StatusCodes.BadNoCommunication:
-                        TriggerReconnect(e.Status, "Publish");
-                        return;
-                    default:
-                        _logger.LogInformation("{Client}: Publish error: {Error}...",
-                            this, e.Status);
-                        break;
+                    _logger.LogError(
+                        "{Client}: Received publish error for different session {Session}!",
+                        this, session);
                 }
+                return;
+            }
+            switch (e.Status.Code)
+            {
+                case StatusCodes.BadSessionIdInvalid:
+                case StatusCodes.BadSecureChannelClosed:
+                case StatusCodes.BadSessionClosed:
+                case StatusCodes.BadConnectionClosed:
+                case StatusCodes.BadServerHalted:
+                case StatusCodes.BadNotConnected:
+                case StatusCodes.BadNoCommunication:
+                    TriggerReconnect(e.Status, "Publish");
+                    return;
+                default:
+                    _logger.LogInformation("{Client}: Publish error: {Error}...",
+                        this, e.Status);
+                    break;
             }
         }
 
@@ -1441,6 +1502,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 // check for events from discarded sessions.
                 if (!ReferenceEquals(session, _session))
                 {
+                    if (_session != null)
+                    {
+                        _logger.LogError(
+                            "{Client}: Received keep alive for different session {Session}!",
+                            this, session);
+                    }
                     return;
                 }
                 // start reconnect sequence on communication error.

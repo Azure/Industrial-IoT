@@ -228,8 +228,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var application = new ApplicationInstance(config);
 
             // check the application certificate.
-            var hasAppCertificate = await application.CheckApplicationInstanceCertificate(
-                silent: true, CertificateFactory.DefaultKeySize).ConfigureAwait(false);
+            var hasAppCertificate = await application.CheckApplicationInstanceCertificates(
+                silent: true).ConfigureAwait(false);
             if (!hasAppCertificate)
             {
                 _logger.LogError("Server {Instance} - Failed validating own certificate!", this);
@@ -246,7 +246,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             };
 
-            await config.CertificateValidator.Update(config.SecurityConfiguration).ConfigureAwait(false);
+            await config.CertificateValidator.Update(config).ConfigureAwait(false);
 
             // Set Certificate
             try

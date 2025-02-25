@@ -527,9 +527,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             ownCertificate.Subject, ownCertificate.Thumbprint);
                     }
 
-                    var hasAppCertificate = await appInstance.CheckApplicationInstanceCertificate(true,
-                        CertificateFactory.DefaultKeySize,
-                        CertificateFactory.DefaultLifeTime).ConfigureAwait(false);
+                    var hasAppCertificate =
+                        await appInstance.CheckApplicationInstanceCertificates(true).ConfigureAwait(false);
                     if (!hasAppCertificate ||
                         appConfig.SecurityConfiguration.ApplicationCertificate.Certificate == null)
                     {

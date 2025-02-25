@@ -80,10 +80,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             Assert.True(Guid.TryParse(payload1.GetProperty("EventId").GetProperty("Value").GetString(), out _));
             Assert.Equal("http://www.microsoft.com/opc-publisher#s=ReferenceChange",
                 payload1.GetProperty("EventType").GetProperty("Value").GetString());
-            Assert.Equal("i=84", payload1.GetProperty("SourceNode").GetProperty("Value").GetString());
             Assert.True(DateTime.TryParse(payload1.GetProperty("Time").GetProperty("Value").GetString(), out _));
             Assert.True(payload1.GetProperty("Change").GetProperty("Value").GetProperty("IsForward").GetBoolean());
-            Assert.Equal("Objects", payload1.GetProperty("Change").GetProperty("Value").GetProperty("DisplayName").GetString());
+            // NO order anymore:
+            // Assert.Equal("i=84", payload1.GetProperty("SourceNode").GetProperty("Value").GetString());
+            // Assert.Equal("Objects", payload1.GetProperty("Change").GetProperty("Value").GetProperty("DisplayName").GetString());
 
             var payload2 = messages[1].Message.GetProperty("Messages")[0].GetProperty("Payload");
             _output.WriteLine(payload2.ToJsonString());
@@ -91,9 +92,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             Assert.True(Guid.TryParse(payload2.GetProperty("EventId").GetProperty("Value").GetString(), out _));
             Assert.Equal("http://www.microsoft.com/opc-publisher#s=NodeChange",
                 payload2.GetProperty("EventType").GetProperty("Value").GetString());
-            Assert.Equal("i=85", payload2.GetProperty("SourceNode").GetProperty("Value").GetString());
             Assert.True(DateTime.TryParse(payload2.GetProperty("Time").GetProperty("Value").GetString(), out _));
-            Assert.Equal("Objects", payload2.GetProperty("Change").GetProperty("Value").GetProperty("DisplayName").GetString());
+            // NO order anymore:
+            // Assert.Equal("i=85", payload2.GetProperty("SourceNode").GetProperty("Value").GetString());
+            // Assert.Equal("Objects", payload2.GetProperty("Change").GetProperty("Value").GetProperty("DisplayName").GetString());
 
             // TODO: currently metadata is sent later
             // Assert.NotNull(metadata);

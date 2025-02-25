@@ -390,7 +390,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             //
             // Called by the management thread to "close" the subscription and dispose it.
             // Note that the session calls dispose again or when it is closed or
-            // reconnected. This her is called when the management thread determines
+            // reconnected. This here is called when the management thread determines
             // to gracefully close the subscription.
             //
             try
@@ -2424,7 +2424,6 @@ Actual (revised) state/desired state:
         /// <param name="e"></param>
         private void OnPublishStatusChange(Subscription subscription, PublishStateChangedEventArgs e)
         {
-            ObjectDisposedException.ThrowIf(_disposed, this);
             if (_disposed)
             {
                 return;
@@ -2478,11 +2477,6 @@ Actual (revised) state/desired state:
         /// <param name="e"></param>
         private void OnStateChange(Subscription subscription, SubscriptionStateChangedEventArgs e)
         {
-            ObjectDisposedException.ThrowIf(_disposed, this);
-            if (_disposed)
-            {
-                return;
-            }
             if (e.Status.HasFlag(SubscriptionChangeMask.Created))
             {
                 _logger.LogDebug("Subscription {Subscription} created.", this);

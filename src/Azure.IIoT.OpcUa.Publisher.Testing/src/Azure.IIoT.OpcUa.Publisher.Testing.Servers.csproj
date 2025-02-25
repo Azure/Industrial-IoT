@@ -58,10 +58,10 @@
     <EmbeddedResource Include="Generated\Boiler\Design\Boiler.PredefinedNodes.uanodes" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Extensions" Version="1.1.2" />
-    <PackageReference Include="System.IO.Pipelines" Version="9.0.1" />
+    <PackageReference Include="Furly.Extensions" Version="1.1.3" />
+    <PackageReference Include="System.IO.Pipelines" Version="9.0.2" />
     <PackageReference Include="System.Linq.Async" Version="6.0.1" />
-    <PackageReference Include="System.Text.Json" Version="9.0.1" />
-    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Server" Version="1.5.374.158" />
+    <PackageReference Include="System.Text.Json" Version="9.0.2" />
+    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Server" Version="1.5.375.443" />
   </ItemGroup>
 </Project>
