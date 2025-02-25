@@ -1717,10 +1717,10 @@ Actual (revised) state/desired state:
             var curSession = Session;
             var messageContext = curSession?.MessageContext;
 
-            if (messageContext == null || curSession?.Endpoint == null)
+            if (messageContext == null)
             {
-                _logger.LogWarning("Not sending notification with disconnected session.");
-                return;
+                _logger.LogDebug("Sending notification while session is disconnected.");
+                messageContext = ServiceMessageContext.GlobalContext;
             }
 
 #pragma warning disable CA2000 // Dispose objects before losing scope

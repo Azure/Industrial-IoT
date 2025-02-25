@@ -389,8 +389,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             Timeout.InfiniteTimeSpan);
                     }
                     _logger.LogInformation(
-                        "Partition #{Partition}: Started data flow from server {Name} on {Endpoint}.",
-                        _índex, args.ApplicationUri, args.EndpointUrl);
+                        "Partition #{Partition}: Started data flow with notification from server {Name} and endpoint {Endpoint}.",
+                        _índex, args.ApplicationUri ?? "<disconnected>", args.EndpointUrl ?? "<disconnected>");
                 }
 
                 if (_sendBlock.InputCount >= _outer._transport.MaxPublishQueueSize)
