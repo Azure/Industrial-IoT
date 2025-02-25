@@ -481,5 +481,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "MonitoredOpcNodesCount", Order = 76,
             EmitDefaultValue = true)]
         public int MonitoredOpcNodesCount { get; set; }
+
+        /// <summary>
+        /// Container Cpu limit utilization
+        /// </summary>
+        [DataMember(Name = "CpuLimitUtilization", Order = 77,
+            EmitDefaultValue = true)]
+        public double CpuLimitUtilization { get; set; }
+
+        /// <summary>
+        /// Container Cpu request utilization
+        /// </summary>
+        [DataMember(Name = "CpuRequestUtilization", Order = 78,
+            EmitDefaultValue = true)]
+        public double CpuRequestUtilization { get; set; }
+
+        /// <summary>
+        /// Container memory limit utilization
+        /// </summary>
+        [DataMember(Name = "MemoryLimitUtilization", Order = 79,
+            EmitDefaultValue = true)]
+        public double MemoryLimitUtilization { get; set; }
     }
 }

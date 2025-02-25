@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Diagnostics.Metrics;
+    using System.Diagnostics;
 
     /// <summary>
     /// Collects metrics from the writer groups inside the publisher using the .net Meter listener
@@ -29,12 +30,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Create collector
         /// </summary>
         /// <param name="logger"></param>
-        /// <param name="resources"></param>
         /// <param name="timeProvider"></param>
         public PublisherDiagnosticCollector(ILogger<PublisherDiagnosticCollector> logger,
-            IResourceMonitor? resources = null, TimeProvider? timeProvider = null)
+            TimeProvider? timeProvider = null)
         {
-            _resources = resources;
             _logger = logger;
             _timeProvider = timeProvider ?? TimeProvider.System;
             _meterListener = new MeterListener
@@ -76,39 +75,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _meterListener.RecordObservableInstruments();
                 var duration = _timeProvider.GetUtcNow() - value.IngestionStart;
 
-                if (_resources != null)
+                diagnostic = value with
                 {
-                    var resources = _resources.GetUtilization(TimeSpan.FromSeconds(5));
-
-                    diagnostic = value with
-                    {
-                        IngestionDuration = duration,
-                        OpcEndpointConnected = value.NumberOfConnectedEndpoints != 0,
-
-                        MemoryUsedPercentage =
-                            resources.MemoryUsedPercentage,
-                        MemoryUsedInBytes =
-                            resources.MemoryUsedInBytes,
-                        CpuUsedPercentage =
-                            resources.CpuUsedPercentage,
-                        GuaranteedCpuUnits =
-                            resources.SystemResources.GuaranteedCpuUnits,
-                        MaximumCpuUnits =
-                            resources.SystemResources.MaximumCpuUnits,
-                        GuaranteedMemoryInBytes =
-                            resources.SystemResources.GuaranteedMemoryInBytes,
-                        MaximumMemoryInBytes =
-                            resources.SystemResources.MaximumMemoryInBytes
-                    };
-                }
-                else
-                {
-                    diagnostic = value with
-                    {
-                        IngestionDuration = duration,
-                        OpcEndpointConnected = value.NumberOfConnectedEndpoints != 0,
-                    };
-                }
+                    IngestionDuration = duration,
+                    OpcEndpointConnected = value.NumberOfConnectedEndpoints != 0,
+                    MemoryLimitUtilization = _process.MemoryLimitUtilization,
+                    CpuLimitUtilization = _process.CpuLimitUtilization,
+                    CpuRequestUtilization = _process.CpuRequestUtilization,
+                    CpuUsedPercentage = _process.CpuUsedPercentage,
+                    MemoryUsedPercentage = _process.MemoryUsedPercentage,
+                    MemoryUsedInBytes = _process.MemoryUsedInBytes
+                };
                 return true;
             }
             diagnostic = default;
@@ -124,41 +101,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             foreach (var (writerGroupId, info) in _diagnostics)
             {
                 var duration = now - info.IngestionStart;
-
-                if (_resources == null)
+                yield return (writerGroupId, info with
                 {
-                    yield return (writerGroupId, info with
-                    {
-                        Timestamp = now,
-                        IngestionDuration = duration,
-                        OpcEndpointConnected = info.NumberOfConnectedEndpoints != 0,
-                    });
-                }
-                else
-                {
-                    var resources = _resources.GetUtilization(TimeSpan.FromSeconds(5));
-                    yield return (writerGroupId, info with
-                    {
-                        Timestamp = now,
-                        IngestionDuration = duration,
-                        OpcEndpointConnected = info.NumberOfConnectedEndpoints != 0,
+                    Timestamp = now,
+                    IngestionDuration = duration,
+                    OpcEndpointConnected = info.NumberOfConnectedEndpoints != 0,
 
-                        MemoryUsedPercentage =
-                            resources.MemoryUsedPercentage,
-                        MemoryUsedInBytes =
-                            resources.MemoryUsedInBytes,
-                        CpuUsedPercentage =
-                            resources.CpuUsedPercentage,
-                        GuaranteedCpuUnits =
-                            resources.SystemResources.GuaranteedCpuUnits,
-                        MaximumCpuUnits =
-                            resources.SystemResources.MaximumCpuUnits,
-                        GuaranteedMemoryInBytes =
-                            resources.SystemResources.GuaranteedMemoryInBytes,
-                        MaximumMemoryInBytes =
-                            resources.SystemResources.MaximumMemoryInBytes
-                    });
-                }
+                    MemoryLimitUtilization = _process.MemoryLimitUtilization,
+                    CpuLimitUtilization = _process.CpuLimitUtilization,
+                    CpuRequestUtilization = _process.CpuRequestUtilization,
+                    CpuUsedPercentage = _process.CpuUsedPercentage,
+                    MemoryUsedPercentage = _process.MemoryUsedPercentage,
+                    MemoryUsedInBytes = _process.MemoryUsedInBytes
+                });
             }
         }
 
@@ -210,16 +165,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private void OnMeasurementRecorded<T>(Instrument instrument, T measurement,
             ReadOnlySpan<KeyValuePair<string, object?>> tags, object? state)
         {
-            if (_bindings.TryGetValue(instrument.Name, out var binding) &&
-                TryGetIds(tags, out var writerGroupId, out var writerGroupName) &&
-                _diagnostics.TryGetValue(writerGroupId, out var diag))
+            if (_bindings.TryGetValue(instrument.Name, out var binding))
             {
-                if (writerGroupName != null)
+                if (TryGetIds(tags, out var writerGroupId, out var writerGroupName) &&
+                    _diagnostics.TryGetValue(writerGroupId, out var diag))
                 {
-                    diag.WriterGroupName = writerGroupName;
+                    if (writerGroupName != null)
+                    {
+                        diag.WriterGroupName = writerGroupName;
+                    }
+                    binding(diag, measurement!);
                 }
-                binding(diag, measurement!);
+                else
+                {
+                    binding(_process, measurement!);
+                }
             }
+
             static bool TryGetIds(ReadOnlySpan<KeyValuePair<string, object?>> tags,
                 [NotNullWhen(true)] out string? writerGroupId, out string? writerGroupName)
             {
@@ -251,9 +213,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         private readonly MeterListener _meterListener;
-        private readonly IResourceMonitor? _resources;
         private readonly ILogger _logger;
         private readonly TimeProvider _timeProvider;
+        private readonly WriterGroupDiagnosticModel _process = new();
         private readonly ConcurrentDictionary<string, WriterGroupDiagnosticModel> _diagnostics = new();
 
         // TODO: Split this per measurement type to avoid boxing
@@ -372,9 +334,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 ["iiot_edge_publisher_messages"] =
                     (d, i) => d.OutgressIoTMessageCount = (long)i,
                 ["iiot_edge_publisher_message_send_failures"] =
-                    (d, i) => d.OutgressIoTMessageFailedCount = (long)i
+                    (d, i) => d.OutgressIoTMessageFailedCount = (long)i,
 
-                    // ... Add here more items if needed
+                ["container.cpu.limit.utilization"] =
+                    (d, i) => d.CpuLimitUtilization = (double)i,
+                ["container.cpu.request.utilization"] =
+                    (d, i) => d.CpuRequestUtilization = (double)i,
+                ["process.cpu.utilization"] =
+                    (d, i) => d.CpuUsedPercentage = (double)i,
+                ["container.memory.limit.utilization"] =
+                    (d, i) => d.MemoryLimitUtilization = (double)i,
+                ["dotnet.process.memory.virtual.utilization"] =
+                    (d, i) => d.MemoryUsedPercentage = (double)i,
+                ["dotnet.process.memory.working_set"] =
+                    (d, i) => d.MemoryUsedInBytes = (ulong)(long)i,
+
+                // ... Add here more items if needed
             };
     }
 }

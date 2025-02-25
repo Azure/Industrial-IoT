@@ -2424,7 +2424,6 @@ Actual (revised) state/desired state:
         /// <param name="e"></param>
         private void OnPublishStatusChange(Subscription subscription, PublishStateChangedEventArgs e)
         {
-            ObjectDisposedException.ThrowIf(_disposed, this);
             if (_disposed)
             {
                 return;
@@ -2478,11 +2477,6 @@ Actual (revised) state/desired state:
         /// <param name="e"></param>
         private void OnStateChange(Subscription subscription, SubscriptionStateChangedEventArgs e)
         {
-            ObjectDisposedException.ThrowIf(_disposed, this);
-            if (_disposed)
-            {
-                return;
-            }
             if (e.Status.HasFlag(SubscriptionChangeMask.Created))
             {
                 _logger.LogDebug("Subscription {Subscription} created.", this);

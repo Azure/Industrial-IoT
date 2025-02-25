@@ -592,23 +592,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 if (includeResourceInfo)
                 {
                     sb = sb
-                    .Append("  # Cpu/Memory max                     : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n2}", info.MaximumCpuUnits)
+                    .Append("  # Cpu (%limit/%req/%used)            : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:p2}", info.CpuLimitUtilization)
                         .Append(" | ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0:n0}", info.MaximumMemoryInBytes / 1000d)
-                        .AppendLine(" KB")
-                    .Append("  # Cpu/Memory available               : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:n2}", info.GuaranteedCpuUnits)
-                        .Append(" | ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0:n0}", info.GuaranteedMemoryInBytes / 1000d)
-                        .AppendLine(" KB")
-                    .Append("  # Cpu/Memory % used (window/total)   : ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:p2}", info.CpuUsedPercentage)
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0:p2}", info.CpuRequestUtilization)
+                        .Append(" (")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0:p2}", info.CpuUsedPercentage)
+                        .AppendLine(")")
+                    .Append("  # Memory (%limit/%used/total used)   : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:p2}", info.MemoryLimitUtilization)
                         .Append(" | ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0:p2}", info.MemoryUsedPercentage)
                         .Append(" (")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0:n0}", info.MemoryUsedInBytes / 1000d)
-                        .AppendLine(" kb)")
+                        .AppendLine(" KB)")
                         ;
                 }
                 return sb
