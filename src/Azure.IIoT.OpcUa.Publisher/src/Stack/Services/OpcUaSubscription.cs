@@ -1719,8 +1719,9 @@ Actual (revised) state/desired state:
 
             if (messageContext == null)
             {
-                _logger.LogDebug("Sending notification while session is disconnected.");
-                messageContext = ServiceMessageContext.GlobalContext;
+                _logger.LogDebug("A session was passed to send notification with but without " +
+                    "message context. Using thread context.");
+                messageContext = ServiceMessageContext.ThreadContext;
             }
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
