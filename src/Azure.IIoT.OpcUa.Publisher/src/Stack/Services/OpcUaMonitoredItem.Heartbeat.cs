@@ -311,7 +311,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var lastValue = lastNotification?.Value;
                 if (lastValue == null && ServiceResult.IsNotGood(Status.Error))
                 {
-                    lastValue = new DataValue(Status.Error.StatusCode);
+                    lastValue = new DataValue(Status.Error?.StatusCode ?? StatusCodes.BadNotConnected);
                 }
 
                 if (lastValue == null)
@@ -377,7 +377,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             AutoReset = true
                         };
                         _heartbeatTimer.Elapsed += SendHeartbeatNotifications;
-                        _logger.LogInformation("Re-enable heartbeat timer");
+                        _logger.LogDebug("Enabled heartbeat timer");
                     }
                     _heartbeatTimer.Interval = _heartbeatInterval;
                     _heartbeatTimer.Enabled = true;

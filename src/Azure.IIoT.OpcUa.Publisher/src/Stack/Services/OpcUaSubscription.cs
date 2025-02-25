@@ -1719,7 +1719,7 @@ Actual (revised) state/desired state:
 
             if (messageContext == null)
             {
-                _logger.LogWarning("A session was passed to send notification with but without " +
+                _logger.LogDebug("A session was passed to send notification with but without " +
                     "message context. Using thread context.");
                 messageContext = ServiceMessageContext.ThreadContext;
             }
