@@ -2,6 +2,9 @@
 
 ## Table Of Contents <!-- omit in toc -->
 
+- [Azure Industrial IoT OPC Publisher 2.9.12](#azure-industrial-iot-opc-publisher-2912)
+  - [Significant changes made in 2.9.12](#significant-changes-made-in-2912)
+  - [Other changes in 2.9.12](#other-changes-in-2912)
 - [Azure Industrial IoT OPC Publisher 2.9.11](#azure-industrial-iot-opc-publisher-2911)
   - [Changes in 2.9.11](#changes-in-2911)
 - [Azure Industrial IoT OPC Publisher 2.9.10](#azure-industrial-iot-opc-publisher-2910)
@@ -54,6 +57,36 @@
   - [Backwards Compatibility Notes for release 2.8.2](#backwards-compatibility-notes-for-release-282)
 - [Azure Industrial IoT Platform Release 2.8.1](#azure-industrial-iot-platform-release-281)
 - [Azure Industrial IoT Platform Release 2.8](#azure-industrial-iot-platform-release-28)
+
+## Azure Industrial IoT OPC Publisher 2.9.12
+
+We are pleased to announce the release of version 2.9.11 of OPC Publisher and the companion web api service. This monthly patch release comes with several bug and security fixes and is the latest supported release. Older releases below are no longer supported.
+
+### Significant changes made in 2.9.12
+
+This release makes significant changes under the hood of OPC Publisher. These changes include:
+
+- The 1:1 relationship between writers and session/subscription has been removed. Instead the concept of a virtual subscription that bundles multiple writers was added to remove load on some servers that only allow a small number of subscriptions. (#2295)
+- Instead of trying to reconnect to the old session in the server, the OPC UA client will now always reconnect a new session and recreate all subscriptions if the secure channel drops (#2368, #2373, #2361, #2344)
+- Update to .net 9 and update of all packages to latest version.  This includes update to MQTT.net v5.
+- New preview feature to initialize publisher from a init file that automates the OPC Publisher config api. This enables for example
+  - Publishing all nodes of a connected OPC server (#2354, #2341)
+  - Support subscribing to Nodes where NodeClass is Object (recursively to all HasComponent variables underneath) (#1320)
+
+### Other changes in 2.9.12
+
+- Fix a NullReferenceException when Cyclic read monitored items are recreated/connected or when heartbeat notifications are to be sent while disconnected (#2367)
+- And related - ConditionHandling stops working after some time (#2288)
+- Extension Fields are now part of all messages (#2360)
+- Fix changing entry from SignAndEncrypt to None fails to connect until restarted (#2351)
+- Fix Kepserver restart leads to ArgumentException: Timeout must be greater than zero. (#2346)
+- Configuring MaxPublishRequests via command line and environment variable now works correctly (#2289)
+- Enable Response Compression in Publisher Rest API (Accept-Encoding gzip) (#2350)
+- Allow setting security policy only using the anchor name (e.g. "None"), not the entire url (#2337)
+- Ability to specify cache age for cyclic reads (#2328)
+- Add Endpoint url and application uri to PubSub messages (#2329)
+- New Heartbeat behavior to send values periodically but not send freshly received values. (#2327)
+- Support close and commit instead of just close when closing a file using the file API (#2322)
 
 ## Azure Industrial IoT OPC Publisher 2.9.11
 
