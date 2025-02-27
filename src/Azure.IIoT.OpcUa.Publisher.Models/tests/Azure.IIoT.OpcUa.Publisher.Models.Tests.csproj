@@ -4,7 +4,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="AutoFixture" Version="4.18.1" />
-    <PackageReference Include="FluentAssertions" Version="[7.1.0]" />
+    <PackageReference Include="FluentAssertions" Version="[7.2.0]" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
     <PackageReference Include="coverlet.msbuild" Version="6.0.4">
       <PrivateAssets>all</PrivateAssets>
