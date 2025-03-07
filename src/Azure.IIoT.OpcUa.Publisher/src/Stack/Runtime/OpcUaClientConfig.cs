@@ -267,9 +267,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                     PkiRootPathDefault);
             }
 
-            if (options.Security.ApplicationCertificate == null)
+            if (options.Security.ApplicationCertificates == null)
             {
-                options.Security.ApplicationCertificate = new()
+                options.Security.ApplicationCertificates = new()
                 {
                     StorePath = GetStringOrDefault(ApplicationCertificateStorePathKey,
                         $"{options.Security.PkiRootPath}/own"),

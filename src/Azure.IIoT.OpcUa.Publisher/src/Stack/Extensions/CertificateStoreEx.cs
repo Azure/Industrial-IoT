@@ -86,25 +86,28 @@ namespace Opc.Ua
         /// <summary>
         /// Applies the configuration settings to the own app certificate.
         /// </summary>
-        /// <param name="certificateIdentifier"></param>
+        /// <param name="certificateIdentifiers"></param>
         /// <param name="certificateStore"></param>
-        /// <exception cref="ArgumentNullException"><paramref name="certificateIdentifier"/>
+        /// <exception cref="ArgumentNullException"><paramref name="certificateIdentifiers"/>
         /// is <c>null</c>.</exception>
         public static void ApplyLocalConfig(
-            this CertificateIdentifier certificateIdentifier,
+            this CertificateIdentifierCollection certificateIdentifiers,
             CertificateInfo? certificateStore)
         {
-            ArgumentNullException.ThrowIfNull(certificateIdentifier);
+            ArgumentNullException.ThrowIfNull(certificateIdentifiers);
 
             if (certificateStore == null)
             {
                 return;
             }
 
-            if (certificateIdentifier.StorePath != certificateStore.StorePath)
+            foreach (var certificateIdentifier in certificateIdentifiers)
             {
-                certificateIdentifier.StoreType = certificateStore.StoreType;
-                certificateIdentifier.StorePath = certificateStore.StorePath;
+                if (certificateIdentifier.StorePath != certificateStore.StorePath)
+                {
+                    certificateIdentifier.StoreType = certificateStore.StoreType;
+                    certificateIdentifier.StorePath = certificateStore.StorePath;
+                }
             }
         }
 
