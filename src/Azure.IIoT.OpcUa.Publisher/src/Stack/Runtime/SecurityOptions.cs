@@ -16,9 +16,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public string? PkiRootPath { get; set; }
 
         /// <summary>
-        /// Certificate
+        /// Application certificate store and subject
         /// </summary>
-        public CertificateInfo? ApplicationCertificate { get; set; }
+        public CertificateInfo? ApplicationCertificates { get; set; }
 
         /// <summary>
         /// Whether to auto accept untrusted certificates

@@ -64,7 +64,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     nameof(options));
             }
 
-            if (options.Value.Security.ApplicationCertificate?.SubjectName == null)
+            if (options.Value.Security.ApplicationCertificates?.SubjectName == null)
             {
                 throw new ArgumentException("Application certificate missing",
                     nameof(options));
@@ -148,8 +148,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         {
                             goto default;
                         }
-                        var withPrivateKey = await certStore.LoadPrivateKey(cert.Thumbprint,
-                            cert.Subject, Password).ConfigureAwait(false);
+                        var withPrivateKey = await certStore.LoadPrivateKey(
+                            cert.Thumbprint, cert.Subject, Value.ApplicationUri,
+                            ObjectTypeIds.RsaSha256ApplicationCertificateType,
+                            Password).ConfigureAwait(false);
                         if (withPrivateKey == null)
                         {
                             goto default;
@@ -569,18 +571,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 try
                 {
                     var now = _timeProvider.GetUtcNow();
-                    if (options.ApplicationCertificate?.StorePath != null &&
-                        options.ApplicationCertificate.StoreType != null)
+                    if (options.ApplicationCertificates?.StorePath != null &&
+                        options.ApplicationCertificates.StoreType != null)
                     {
                         using var certStore = CertificateStoreIdentifier.CreateStore(
-                            options.ApplicationCertificate.StoreType);
-                        certStore.Open(options.ApplicationCertificate.StorePath, false);
+                            options.ApplicationCertificates.StoreType);
+                        certStore.Open(options.ApplicationCertificates.StorePath, false);
                         var certs = await certStore.Enumerate().ConfigureAwait(false);
                         var subjects = new List<string>();
                         foreach (var cert in certs.Where(c => c != null).OrderBy(c => c.NotAfter))
                         {
                             // Select first certificate that has valid information
-                            options.ApplicationCertificate.SubjectName = cert.Subject;
+                            options.ApplicationCertificates.SubjectName = cert.Subject;
                             var name = cert.SubjectName.EnumerateRelativeDistinguishedNames()
                                 .Where(dn => dn.GetSingleElementType().FriendlyName == "CN")
                                 .Select(dn => dn.GetSingleElementValue())
@@ -770,14 +772,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             SecurityOptions securityOptions, ApplicationConfiguration applicationConfiguration,
             string? hostname = null)
         {
-            var subjectName = securityOptions.ApplicationCertificate?.SubjectName;
+            var subjectName = securityOptions.ApplicationCertificates?.SubjectName;
             if (hostname != null && subjectName != null)
             {
                 subjectName = subjectName.Replace("localhost", hostname,
                     StringComparison.InvariantCulture);
             }
+            var applicationCerts = ApplicationConfigurationBuilder
+                .CreateDefaultApplicationCertificates(subjectName,
+                    securityOptions.ApplicationCertificates?.StoreType,
+                    securityOptions.PkiRootPath);
             var options = applicationConfigurationBuilder
-                .AddSecurityConfiguration(subjectName,
+                .AddSecurityConfiguration(applicationCerts,
                     securityOptions.PkiRootPath)
                 .SetAutoAcceptUntrustedCertificates(
                     securityOptions.AutoAcceptUntrustedCertificates ?? false)
@@ -795,8 +801,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             applicationConfiguration.SecurityConfiguration.TrustedUserCertificates =
                 new TrustedUserCertificateStore();
 
-            applicationConfiguration.SecurityConfiguration.ApplicationCertificate
-                .ApplyLocalConfig(securityOptions.ApplicationCertificate);
+            applicationConfiguration.SecurityConfiguration.ApplicationCertificates
+                .ApplyLocalConfig(securityOptions.ApplicationCertificates);
             applicationConfiguration.SecurityConfiguration.TrustedPeerCertificates
                 .ApplyLocalConfig(securityOptions.TrustedPeerCertificates);
             applicationConfiguration.SecurityConfiguration.TrustedIssuerCertificates
