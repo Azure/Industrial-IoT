@@ -29,8 +29,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             await using var container = Build();
             var certs = container.Resolve<IOpcUaCertificates>();
             var certificates = await certs.ListCertificatesAsync(CertificateStoreName.Application, true);
-            var own = Assert.Single(certificates);
-            Assert.True(own.HasPrivateKey);
+            Assert.Equal(5, certificates.Count);
+            Assert.All(certificates, own => Assert.True(own.HasPrivateKey));
         }
 
         [Fact]

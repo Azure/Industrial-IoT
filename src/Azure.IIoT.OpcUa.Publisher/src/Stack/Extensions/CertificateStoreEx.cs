@@ -9,6 +9,8 @@ namespace Opc.Ua
     using Furly.Extensions.Utils;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Linq;
     using System.Security.Cryptography.X509Certificates;
 
     /// <summary>
@@ -109,6 +111,33 @@ namespace Opc.Ua
                     certificateIdentifier.StorePath = certificateStore.StorePath;
                 }
             }
+        }
+
+        /// <summary>
+        /// Applies the configuration settings to the own app certificate.
+        /// </summary>
+        /// <param name="certificateIdentifiers"></param>
+        /// <param name="options"></param>
+        /// <param name="noPrivateKey"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="certificateIdentifiers"/>
+        /// is <c>null</c>.</exception>
+        public static ICertificateStore OpenStore(
+            this CertificateIdentifierCollection certificateIdentifiers,
+            SecurityOptions options, bool noPrivateKey = false)
+        {
+            ArgumentNullException.ThrowIfNull(certificateIdentifiers);
+            if (certificateIdentifiers.Count > 0)
+            {
+                Debug.Assert(certificateIdentifiers
+                    .All(x => x.StorePath == certificateIdentifiers[0].StorePath));
+                Debug.Assert(certificateIdentifiers
+                    .All(x => x.StoreType == certificateIdentifiers[0].StoreType));
+                return certificateIdentifiers[0].OpenStore();
+            }
+
+            ArgumentNullException.ThrowIfNull(options.ApplicationCertificates);
+            return new CertificateStoreIdentifier(options.ApplicationCertificates.StorePath,
+                options.ApplicationCertificates.StoreType, noPrivateKey).OpenStore();
         }
 
         /// <summary>
