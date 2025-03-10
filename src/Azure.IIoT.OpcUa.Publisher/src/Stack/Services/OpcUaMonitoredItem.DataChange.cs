@@ -280,7 +280,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         _logger.LogError("Aggregate filter applied with result {Result} for {Item}",
                             afr.AsJson(msgContext), this);
                     }
-                    else
+                    else if (_logger.IsEnabled(LogLevel.Debug))
                     {
                         _logger.LogDebug("Aggregate filter applied with result {Result} for {Item}",
                             afr.AsJson(msgContext), this);

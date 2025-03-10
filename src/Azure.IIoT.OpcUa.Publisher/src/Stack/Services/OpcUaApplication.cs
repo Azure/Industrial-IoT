@@ -26,6 +26,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Runtime.ConstrainedExecution;
 
     /// <summary>
     /// Client configuration
@@ -64,7 +65,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     nameof(options));
             }
 
-            if (options.Value.Security.ApplicationCertificate?.SubjectName == null)
+            if (options.Value.Security.ApplicationCertificates?.SubjectName == null)
             {
                 throw new ArgumentException("Application certificate missing",
                     nameof(options));
@@ -148,8 +149,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         {
                             goto default;
                         }
+                        var certificateType = DetermineCertificateType(cert);
                         var withPrivateKey = await certStore.LoadPrivateKey(cert.Thumbprint,
-                            cert.Subject, Password).ConfigureAwait(false);
+                            cert.Subject, null, certificateType,
+                            Password).ConfigureAwait(false);
                         if (withPrivateKey == null)
                         {
                             goto default;
@@ -198,13 +201,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 await certStore.Add(cert, store == CertificateStoreName.Application ?
                     Password : password).ConfigureAwait(false);
 
-                if (store == CertificateStoreName.Application &&
-                    _options.Value.Security.AddAppCertToTrustedStore == true)
+                if (store == CertificateStoreName.Application)
                 {
-                    using var trustedCert = new X509Certificate2(cert);
-                    using var trustedStore =
-                        await OpenAsync(CertificateStoreName.Trusted).ConfigureAwait(false);
-                    await trustedStore.Add(trustedCert).ConfigureAwait(false);
+                    //
+                    // Work around the bad API in the opc ua stack as certs should be a store
+                    // not list of identifiers. Update the list of identifiers here.
+                    //
+                    var existing = Value.SecurityConfiguration.ApplicationCertificates;
+                    var certId = new CertificateIdentifier(cert);
+                    certId.CertificateType = DetermineCertificateType(cert);
+                    certId.StorePath = certStore.StorePath;
+                    certId.StoreType = certStore.StoreType;
+                    existing.Insert(0, certId);
+                    Value.SecurityConfiguration.ApplicationCertificates = existing;
+
+                    if (_options.Value.Security.AddAppCertToTrustedStore == true)
+                    {
+                        using var trustedCert = new X509Certificate2(cert);
+                        using var trustedStore = await OpenAsync(CertificateStoreName.Trusted).ConfigureAwait(false);
+                        await trustedStore.Add(trustedCert).ConfigureAwait(false);
+                    }
                 }
             }
             catch (Exception ex)
@@ -365,6 +381,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         }
                     }
                 }
+
+                if (store == CertificateStoreName.Application)
+                {
+                    var existing = Value.SecurityConfiguration.ApplicationCertificates;
+                    existing.RemoveAll(c => c.Thumbprint == thumbprint);
+                    Value.SecurityConfiguration.ApplicationCertificates = existing;
+                }
+
                 if (!await certStore.Delete(thumbprint).ConfigureAwait(false))
                 {
                     throw new ResourceNotFoundException("Certificate not found.");
@@ -569,18 +593,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 try
                 {
                     var now = _timeProvider.GetUtcNow();
-                    if (options.ApplicationCertificate?.StorePath != null &&
-                        options.ApplicationCertificate.StoreType != null)
+                    if (options.ApplicationCertificates?.StorePath != null &&
+                        options.ApplicationCertificates.StoreType != null)
                     {
                         using var certStore = CertificateStoreIdentifier.CreateStore(
-                            options.ApplicationCertificate.StoreType);
-                        certStore.Open(options.ApplicationCertificate.StorePath, false);
+                            options.ApplicationCertificates.StoreType);
+                        certStore.Open(options.ApplicationCertificates.StorePath, false);
                         var certs = await certStore.Enumerate().ConfigureAwait(false);
                         var subjects = new List<string>();
                         foreach (var cert in certs.Where(c => c != null).OrderBy(c => c.NotAfter))
                         {
                             // Select first certificate that has valid information
-                            options.ApplicationCertificate.SubjectName = cert.Subject;
+                            options.ApplicationCertificates.SubjectName = cert.Subject;
                             var name = cert.SubjectName.EnumerateRelativeDistinguishedNames()
                                 .Where(dn => dn.GetSingleElementType().FriendlyName == "CN")
                                 .Select(dn => dn.GetSingleElementValue())
@@ -770,14 +794,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             SecurityOptions securityOptions, ApplicationConfiguration applicationConfiguration,
             string? hostname = null)
         {
-            var subjectName = securityOptions.ApplicationCertificate?.SubjectName;
+            var subjectName = securityOptions.ApplicationCertificates?.SubjectName;
             if (hostname != null && subjectName != null)
             {
                 subjectName = subjectName.Replace("localhost", hostname,
                     StringComparison.InvariantCulture);
             }
+            var applicationCerts = ApplicationConfigurationBuilder
+                .CreateDefaultApplicationCertificates(subjectName,
+                    securityOptions.ApplicationCertificates?.StoreType,
+                    securityOptions.PkiRootPath);
             var options = applicationConfigurationBuilder
-                .AddSecurityConfiguration(subjectName,
+                .AddSecurityConfiguration(applicationCerts,
                     securityOptions.PkiRootPath)
                 .SetAutoAcceptUntrustedCertificates(
                     securityOptions.AutoAcceptUntrustedCertificates ?? false)
@@ -795,8 +823,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             applicationConfiguration.SecurityConfiguration.TrustedUserCertificates =
                 new TrustedUserCertificateStore();
 
-            applicationConfiguration.SecurityConfiguration.ApplicationCertificate
-                .ApplyLocalConfig(securityOptions.ApplicationCertificate);
+            applicationConfiguration.SecurityConfiguration.ApplicationCertificates
+                .ApplyLocalConfig(securityOptions.ApplicationCertificates);
             applicationConfiguration.SecurityConfiguration.TrustedPeerCertificates
                 .ApplyLocalConfig(securityOptions.TrustedPeerCertificates);
             applicationConfiguration.SecurityConfiguration.TrustedIssuerCertificates
@@ -828,8 +856,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             switch (store)
             {
                 case CertificateStoreName.Application:
-                    Debug.Assert(security.ApplicationCertificate != null);
-                    return security.ApplicationCertificate.OpenStore();
+                    return security.ApplicationCertificates.OpenStore(_options.Value.Security);
                 case CertificateStoreName.Trusted:
                     Debug.Assert(security.TrustedPeerCertificates != null);
                     return security.TrustedPeerCertificates.OpenStore();
@@ -858,6 +885,54 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
+        /// Try determining type of certificate
+        /// </summary>
+        /// <param name="cert"></param>
+        /// <returns></returns>
+        private NodeId? DetermineCertificateType(X509Certificate2 cert)
+        {
+            if (cert.GetRSAPublicKey() != null)
+            {
+                return ObjectTypeIds.RsaSha256ApplicationCertificateType;
+            }
+            var ecdsa = cert.GetECDsaPublicKey();
+            if (ecdsa != null)
+            {
+                var parameters = ecdsa.ExportParameters(false);
+                if (parameters.Curve.Oid.Value == ECCurve.NamedCurves.nistP256.Oid.Value)
+                {
+                    return ObjectTypeIds.EccNistP256ApplicationCertificateType;
+                }
+                else if (parameters.Curve.Oid.Value == ECCurve.NamedCurves.nistP384.Oid.Value)
+                {
+                    return ObjectTypeIds.EccNistP384ApplicationCertificateType;
+                }
+                else if (parameters.Curve.Oid.Value == ECCurve.NamedCurves.brainpoolP256r1.Oid.Value)
+                {
+                    return ObjectTypeIds.EccBrainpoolP256r1ApplicationCertificateType;
+                }
+                else if (parameters.Curve.Oid.Value == ECCurve.NamedCurves.brainpoolP384r1.Oid.Value)
+                {
+                    return ObjectTypeIds.EccBrainpoolP384r1ApplicationCertificateType;
+                }
+                else
+                {
+                    return ObjectTypeIds.EccApplicationCertificateType;
+                }
+            }
+            return null;
+        }
+
+        private static string SanitizeThumbprint(string thumbprint)
+        {
+            if (thumbprint.Length > kMaxThumbprintLength)
+            {
+                throw new ArgumentException("Bad thumbprint", nameof(thumbprint));
+            }
+            return thumbprint.ReplaceLineEndings(string.Empty);
+        }
+
+        /// <summary>
         /// Override to support private keys
         /// </summary>
         private class TrustedUserCertificateStore : CertificateTrustList
@@ -869,15 +944,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 store.Open(StorePath, false); // Allow private keys
                 return store;
             }
-        }
-
-        private static string SanitizeThumbprint(string thumbprint)
-        {
-            if (thumbprint.Length > kMaxThumbprintLength)
-            {
-                throw new ArgumentException("Bad thumbprint", nameof(thumbprint));
-            }
-            return thumbprint.ReplaceLineEndings(string.Empty);
         }
 
         private const int kMaxThumbprintLength = 64;

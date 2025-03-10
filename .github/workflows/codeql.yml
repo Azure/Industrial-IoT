@@ -34,14 +34,15 @@ jobs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
-
+    - name: Cleanup Nuget.Config
+      run: |
+        find . -name "Nuget.Config" -type f -delete
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
       with:
         languages: ${{ matrix.language }}
         build-mode: ${{ matrix.build-mode }}
       # queries: security-extended,security-and-quality
-
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
       with:

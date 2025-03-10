@@ -77,11 +77,6 @@ steps:
     includePreviewVersions: false
     installationPath: $(Agent.ToolsDirectory)/dotnet
 - task: DotNetCoreCLI@2
-  displayName: 'Restore xUnit tests'
-  inputs:
-    command: restore
-    projects: '$(BasePath)\e2e-tests\IIoTPlatform-E2E-Tests.sln'
-- task: DotNetCoreCLI@2
   displayName: 'Build xUnit tests'
   inputs:
     command: build

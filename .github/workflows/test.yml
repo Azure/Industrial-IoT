@@ -19,7 +19,7 @@ jobs:
       with:
         dotnet-version: 9.0.x
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore -s https://api.nuget.org/v3/index.json
     - name: Build
       run: dotnet build --no-restore
     - name: Test

@@ -301,7 +301,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         _logger.LogError("Event filter applied with result {Result} for {Item}",
                             evr.AsJson(msgContext), this);
                     }
-                    else
+                    else if (_logger.IsEnabled(LogLevel.Debug))
                     {
                         _logger.LogDebug("Event filter applied with result {Result} for {Item}",
                             evr.AsJson(msgContext), this);
@@ -522,6 +522,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         BrowseNames.EventType);
                     eventFilter.SelectClauses.Add(selectClause);
                     selectClauses.Add(selectClause);
+                }
+                if (_logger.IsEnabled(LogLevel.Debug))
+                {
+                    _logger.LogDebug("Generated event filter for {Item}: '{Filter}'",
+                        this, eventFilter.AsJson(session.MessageContext));
                 }
                 return (eventFilter, selectClauses);
             }

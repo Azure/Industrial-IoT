@@ -21,6 +21,6 @@ jobs:
       with:
         dotnet-version: 9.0.x
     - name: Restore dependencies
-      run: dotnet restore ${{ matrix.solution }}
+      run: dotnet restore ${{ matrix.solution }} -s https://api.nuget.org/v3/index.json
     - name: Build
       run: dotnet build ${{ matrix.solution }} --configuration Release --no-restore

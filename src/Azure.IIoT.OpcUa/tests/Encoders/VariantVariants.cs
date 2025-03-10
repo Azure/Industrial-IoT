@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
+    using System.Security.Cryptography;
     using System.Text;
     using System.Xml;
 
@@ -189,8 +190,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 ],
             LastMethodReturnStatus =
                     StatusCodes.BadAggregateConfigurationRejected,
-            LastMethodSessionId = new NodeId(
-                    Opc.Ua.Utils.Nonce.CreateNonce(32)),
+            LastMethodSessionId = new NodeId(RandomNumberGenerator.GetBytes(32)),
             LastTransitionTime = DateTime.UtcNow - TimeSpan.FromDays(23)
         };
     }
