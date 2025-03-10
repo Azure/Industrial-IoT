@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
     using System.Security.Cryptography.X509Certificates;
     using System.Threading.Tasks;
     using Xunit;
+    using System.Runtime.InteropServices;
 
     public class OpcUaApplicationTests
     {
@@ -29,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             await using var container = Build();
             var certs = container.Resolve<IOpcUaCertificates>();
             var certificates = await certs.ListCertificatesAsync(CertificateStoreName.Application, true);
-            Assert.Equal(5, certificates.Count);
+            Assert.Equal(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 5 : 3, certificates.Count);
             Assert.All(certificates, own => Assert.True(own.HasPrivateKey));
         }
 
