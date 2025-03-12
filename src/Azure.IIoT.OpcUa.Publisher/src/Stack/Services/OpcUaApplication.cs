@@ -824,8 +824,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     StorePath = storePath,
                     SubjectName = subjectName,
                     CertificateType = ObjectTypeIds.EccNistP384ApplicationCertificateType
+#if NOT_LINUX // Not supported
                 },
-#if NOT_SUPPORTED
                 new CertificateIdentifier
                 {
                     StoreType = storeType,
@@ -839,8 +839,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     StorePath = storePath,
                     SubjectName = subjectName,
                     CertificateType = ObjectTypeIds.EccBrainpoolP384r1ApplicationCertificateType
-                }
 #endif
+                }
             };
             var options = applicationConfigurationBuilder
                 .AddSecurityConfiguration(applicationCerts,
