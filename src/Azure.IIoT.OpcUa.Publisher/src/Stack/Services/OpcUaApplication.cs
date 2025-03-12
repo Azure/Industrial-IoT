@@ -800,10 +800,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 subjectName = subjectName.Replace("localhost", hostname,
                     StringComparison.InvariantCulture);
             }
-            var applicationCerts = ApplicationConfigurationBuilder
-                .CreateDefaultApplicationCertificates(subjectName,
-                    securityOptions.ApplicationCertificates?.StoreType,
-                    securityOptions.PkiRootPath);
+            var storeType = securityOptions.ApplicationCertificates?.StoreType;
+            var storePath = securityOptions.ApplicationCertificates?.StorePath;
+            var applicationCerts = new CertificateIdentifierCollection
+            {
+                new CertificateIdentifier
+                {
+                    StoreType = storeType,
+                    StorePath = storePath,
+                    SubjectName = subjectName,
+                    CertificateType = ObjectTypeIds.RsaSha256ApplicationCertificateType
+                },
+                new CertificateIdentifier
+                {
+                    StoreType = storeType,
+                    StorePath = storePath,
+                    SubjectName = subjectName,
+                    CertificateType = ObjectTypeIds.EccNistP256ApplicationCertificateType
+                },
+                new CertificateIdentifier
+                {
+                    StoreType = storeType,
+                    StorePath = storePath,
+                    SubjectName = subjectName,
+                    CertificateType = ObjectTypeIds.EccNistP384ApplicationCertificateType
+                }
+            };
             var options = applicationConfigurationBuilder
                 .AddSecurityConfiguration(applicationCerts,
                     securityOptions.PkiRootPath)
@@ -889,7 +911,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="cert"></param>
         /// <returns></returns>
-        private NodeId? DetermineCertificateType(X509Certificate2 cert)
+        private static NodeId? DetermineCertificateType(X509Certificate2 cert)
         {
             if (cert.GetRSAPublicKey() != null)
             {
