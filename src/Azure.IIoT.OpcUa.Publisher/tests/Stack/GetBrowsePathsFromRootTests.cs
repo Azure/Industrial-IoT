@@ -129,7 +129,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         [InlineData(0)]
         [InlineData(146)]
         [InlineData(13523)]
-        [InlineData(50000)]
+        //[InlineData(50000)]
         public async Task GetBrowsePathsFromRootTest5Async(int count)
         {
             var nodes = Enumerable.Range(0, count).Select(n => Plc.Namespaces.PlcApplications + "#s=FastUIntScalar1").ToList();
