@@ -13,6 +13,7 @@ steps:
     workingDirectory: '$(BasePath)'
     scriptType: filePath
     scriptPath: '$(BasePath)\tools\e2etesting\DetermineKeyVaultName.ps1'
+    pwsh: true
     scriptArguments: >
       -ResourceGroupName '$(ResourceGroupName)'
 
@@ -24,7 +25,7 @@ steps:
   inputs:
     azureSubscription: '$(AzureSubscription)'
     scriptLocation: 'InlineScript'
-    scriptType: 'ps'
+    scriptType: 'pscore'
     addSpnToEnvironment: true
     inlineScript: |
       Write-Host "##vso[task.setvariable variable=ServicePrincipalId]$($env:servicePrincipalId)"
@@ -37,6 +38,7 @@ steps:
     workingDirectory: '$(BasePath)'
     scriptType: filePath
     scriptPath: '$(BasePath)\tools\e2etesting\SetKeyVaultPermissions.ps1'
+    pwsh: true
     scriptArguments: >
       -KeyVaultName "$(KeyVaultName)"
       -ResourceGroupName "$(ResourceGroupName)"
@@ -64,6 +66,7 @@ steps:
     workingDirectory: '$(BasePath)'
     scriptType: filePath
     scriptPath: '$(BasePath)\tools\e2etesting\SetVariables.ps1'
+    pwsh: true
     scriptArguments: >
       -BranchName "$(BranchName)"
       -Region "$(Region)"
@@ -76,6 +79,13 @@ steps:
     version: 8.0.x
     includePreviewVersions: false
     installationPath: $(Agent.ToolsDirectory)/dotnet
+- task: DotNetCoreCLI@2
+  displayName: 'Restore xUnit tests'
+  inputs:
+    command: restore
+    feedsToUse: config
+    nugetConfigPath: '$(Build.SourcesDirectory)/nuget.config'
+    projects: '$(BasePath)\e2e-tests\IIoTPlatform-E2E-Tests.sln'
 - task: DotNetCoreCLI@2
   displayName: 'Build xUnit tests'
   inputs:

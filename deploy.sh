@@ -29,7 +29,7 @@ if ! [ -x "$(command -v pwsh)" ]; then
 fi
 
 test=$(pwsh -Command "Get-Module -ListAvailable -Name Az.* | ForEach-Object Name")
-if [ -z "$test" ]; then  
+if [ -z "$test" ]; then
   if [ -n $silent ]; then
     echo -e "\033[1;31mAz Powershell module is not installed but is required to deploy.\033[0m"
     while true; do

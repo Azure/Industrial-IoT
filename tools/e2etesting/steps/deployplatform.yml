@@ -4,6 +4,7 @@ steps:
   inputs:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'latestVersion'
+    pwsh: true
     workingDirectory: '$(BasePath)'
     scriptType: filePath
     scriptPath: '$(BasePath)\tools\e2etesting\SetVariables.ps1'
@@ -27,7 +28,7 @@ steps:
   inputs:
     azureSubscription: '$(AzureSubscription)'
     scriptLocation: 'InlineScript'
-    scriptType: 'ps'
+    scriptType: 'pscore'
     addSpnToEnvironment: true
     inlineScript: |
       $accessToken = az account get-access-token | ConvertFrom-Json
@@ -45,6 +46,7 @@ steps:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'latestVersion'
     workingDirectory: '$(BasePath)'
+    pwsh: true
     scriptType: 'InlineScript'
     inline: |
       $secureContainerRegistryPassword = "$(ContainerRegistryPassword)" `
@@ -77,6 +79,7 @@ steps:
     workingDirectory: '$(BasePath)'
     scriptType: filePath
     scriptPath: '$(BasePath)\tools\e2etesting\SetKeyVaultPermissions.ps1'
+    pwsh: true
     scriptArguments: >
       -ResourceGroupName "$(ResourceGroupName)"
       -ServicePrincipalName "$(ServicePrincipalId)"
@@ -88,5 +91,6 @@ steps:
     workingDirectory: '$(BasePath)'
     scriptType: filePath
     scriptPath: '$(BasePath)\tools\e2etesting\DetermineKeyVaultName.ps1'
+    pwsh: true
     scriptArguments: >
       -ResourceGroupName '$(ResourceGroupName)'

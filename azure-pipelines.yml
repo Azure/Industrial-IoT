@@ -28,6 +28,7 @@ jobs:
     displayName: 'Determine pipeline and parameters'
     inputs:
       targetType: 'inline'
+      pwsh: true
       script: |
         $message = '$(Build.SourceVersionMessage)'
         if ([string]::IsNullOrWhiteSpace($message)) {
@@ -83,6 +84,7 @@ jobs:
     displayName: 'Update build number and tags'
     inputs:
       targetType: 'inline'
+      pwsh: true
       script: |
         $buildId = $(TriggeredBuildIds)
         $buildUrl = "$(System.TeamFoundationCollectionUri)$(System.TeamProject)/_build/results?buildId=$buildId"

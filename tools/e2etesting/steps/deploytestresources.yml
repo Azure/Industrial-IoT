@@ -8,6 +8,7 @@ steps:
     workingDirectory: '$(BasePath)'
     scriptType: filePath
     scriptPath: '$(BasePath)\tools\e2etesting\DeployTestResources.ps1'
+    pwsh: true
     scriptArguments: >
       -ResourceGroupName "$(ResourceGroupName)"
 
@@ -18,7 +19,7 @@ steps:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'latestVersion'
     workingDirectory: '$(BasePath)'
-    scriptType: 'ps'
+    scriptType: 'pscore'
     scriptPath: '$(BasePath)\tools\e2etesting\DeployPLCs.ps1'
     arguments: >
       -ResourceGroupName "$(ResourceGroupName)"
@@ -33,6 +34,7 @@ steps:
     workingDirectory: '$(BasePath)'
     scriptType: filePath
     scriptPath: '$(BasePath)\tools\e2etesting\DeployEdge.ps1'
+    pwsh: true
     scriptArguments: >
       -ResourceGroupName "$(ResourceGroupName)"
       -KeysPath "$(Agent.TempDirectory)"
