@@ -7,6 +7,7 @@ steps:
     workingDirectory: '$(BasePath)'
     scriptType: filePath
     scriptPath: '$(BasePath)\tools\e2etesting\SetVariables.ps1'
+    pwsh: true
     scriptArguments: >
       -BranchName "$(BranchName)"
       -Region "$(Region)"
@@ -22,7 +23,7 @@ steps:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'latestVersion'
     scriptLocation: 'InlineScript'
-    scriptType: 'ps'
+    scriptType: 'pscore'
     addSpnToEnvironment: true
     inlineScript: |
       Write-Host "##vso[task.setvariable variable=ServicePrincipalId]$($env:servicePrincipalId)"
@@ -34,6 +35,7 @@ steps:
     workingDirectory: '$(BasePath)'
     scriptType: filePath
     scriptPath: '$(BasePath)\tools\e2etesting\DeployStandalone.ps1'
+    pwsh: true
     scriptArguments: >
       -ResourceGroupName "$(ResourceGroupName)"
       -Region "$(Region)"
@@ -46,6 +48,7 @@ steps:
     workingDirectory: '$(BasePath)'
     scriptType: filePath
     scriptPath: '$(BasePath)\tools\e2etesting\DetermineKeyVaultName.ps1'
+    pwsh: true
     scriptArguments: >
       -ResourceGroupName '$(ResourceGroupName)'
 - task: AzurePowerShell@5
@@ -56,6 +59,7 @@ steps:
     workingDirectory: '$(BasePath)'
     scriptType: filePath
     scriptPath: '$(BasePath)\tools\e2etesting\SetKeyVaultSecrets.ps1'
+    pwsh: true
     scriptArguments: >
       -KeyVaultName "$(KeyVaultName)"
       -ImageTag "$(ImageTag)"
