@@ -107,9 +107,9 @@ Update-AzIotHubDeviceTwin -ResourceGroupName $ResourceGroupName -IotHubName $iot
 ## Generate SSH keys
 $privateKeyFilePath = Join-Path $KeysPath "id_rsa_iotedge"
 $publicKeyFilePath = $privateKeyFilePath + ".pub"
-$keypassphrase = '""'
+$keypassphrase = '"$($testSuffix)"'
 Write-Output "y" | ssh-keygen -q -m PEM -b 4096 -t rsa -f $privateKeyFilePath -N $keypassphrase
-$sshPrivateKey = Get-Content $privateKeyFilePath -Raw 
+$sshPrivateKey = Get-Content $privateKeyFilePath -Raw
 $sshPublicKey = Get-Content $publicKeyFilePath -Raw
 
 ## Delete SSH keys from file system
