@@ -97,7 +97,7 @@ jobs:
     inputs:
       definitionIsInCurrentTeamProject: true
       ignoreSslCertificateErrors: false
-      waitForQueuedBuildsToFinishRefreshTime: '60'
+      waitForQueuedBuildsToFinishRefreshTime: '90'
       failTaskIfBuildsNotSuccessful: true
       cancelBuildsIfAnyFails: false
       treatPartiallySucceededBuildAsSuccessful: false
