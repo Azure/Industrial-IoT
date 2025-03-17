@@ -9,6 +9,7 @@ steps:
     azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'latestVersion'
     scriptType: 'InlineScript'
+    pwsh: true
     inline: |
       Write-Host "Deleting Resource group '$(ResourceGroupName)'..."
       $resourceGroup = Get-AzResourceGroup -Name "$(ResourceGroupName)" -ErrorAction SilentlyContinue
