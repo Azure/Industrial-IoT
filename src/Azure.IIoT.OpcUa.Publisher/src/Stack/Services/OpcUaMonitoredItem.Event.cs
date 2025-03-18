@@ -560,16 +560,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 while (superType != null);
 
-                var fieldNames = new List<QualifiedName>();
-
+                var fieldNames = new List<(QualifiedName FieldName, ExpandedNodeId TypeDefinitionId)>();
                 foreach (var node in nodes)
                 {
-                    await ParseFieldsAsync(session, fieldNames, node, string.Empty,
+                    await ParseFieldsAsync(session, fieldNames, node, node.NodeId, string.Empty,
                         ct).ConfigureAwait(false);
                 }
                 fieldNames = [.. fieldNames
                     .Distinct()
-                    .OrderBy(x => x.Name)];
+                    .OrderBy(x => x.FieldName.Name)];
 
                 var eventFilter = new EventFilter();
                 // Let's add ConditionId manually first if event is derived from ConditionType
@@ -587,11 +586,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     var selectClause = new SimpleAttributeOperand()
                     {
-                        TypeDefinitionId = ObjectTypeIds.BaseEventType,
+                        TypeDefinitionId = fieldName.TypeDefinitionId.ToNodeId(session.MessageContext.NamespaceUris),
                         AttributeId = Attributes.Value,
-                        BrowsePath = fieldName.Name
+                        BrowsePath = fieldName.FieldName.Name
                             .Split('|')
-                            .Select(x => new QualifiedName(x, fieldName.NamespaceIndex))
+                            .Select(x => new QualifiedName(x, fieldName.FieldName.NamespaceIndex))
                             .ToArray()
                     };
                     eventFilter.SelectClauses.Add(selectClause);
@@ -667,10 +666,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="session"></param>
             /// <param name="fieldNames"></param>
             /// <param name="node"></param>
+            /// <param name="typeDefinitionId"></param>
             /// <param name="browsePathPrefix"></param>
             /// <param name="ct"></param>
-            protected static async ValueTask ParseFieldsAsync(IOpcUaSession session, List<QualifiedName> fieldNames,
-                Node node, string browsePathPrefix, CancellationToken ct)
+            protected static async ValueTask ParseFieldsAsync(IOpcUaSession session, List<(QualifiedName, ExpandedNodeId)> fieldNames,
+                Node node, NodeId typeDefinitionId, string browsePathPrefix, CancellationToken ct)
             {
                 foreach (var reference in node.ReferenceTable)
                 {
@@ -682,9 +682,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         if (componentNode.NodeClass == Opc.Ua.NodeClass.Variable)
                         {
                             var fieldName = browsePathPrefix + componentNode.BrowseName.Name;
-                            fieldNames.Add(new QualifiedName(
-                                fieldName, componentNode.BrowseName.NamespaceIndex));
-                            await ParseFieldsAsync(session, fieldNames, componentNode,
+                            fieldNames.Add((new QualifiedName(
+                                fieldName, componentNode.BrowseName.NamespaceIndex), typeDefinitionId));
+                            await ParseFieldsAsync(session, fieldNames, componentNode, typeDefinitionId,
                                 $"{fieldName}|", ct).ConfigureAwait(false);
                         }
                     }
@@ -693,8 +693,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         var propertyNode = await session.NodeCache.FetchNodeAsync(reference.TargetId,
                             ct).ConfigureAwait(false);
                         var fieldName = browsePathPrefix + propertyNode.BrowseName.Name;
-                        fieldNames.Add(new QualifiedName(
-                            fieldName, propertyNode.BrowseName.NamespaceIndex));
+                        fieldNames.Add((new QualifiedName(
+                            fieldName, propertyNode.BrowseName.NamespaceIndex), typeDefinitionId));
                     }
                 }
             }
