@@ -98,17 +98,21 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
                 -r $runtimeId | Out-Null
             if (![string]::IsNullOrWhiteSpace($script:PackageSource)) {
                 if (-not (Test-Path $script:PackageSource)) {
+                    Write-Host "Restore from source $($script:PackageSource)..."
                     dotnet restore $projFile.FullName `
                         --source $script:PackageSource
                 }
                 else {
+                    Write-Host "Restore using $($script:PackageSource) file..."
                     dotnet restore $projFile.FullName `
                         --configfile $script:PackageSource
                 }
+                Write-Host "Building..."
                 dotnet build $projFile.FullName -c $configuration --no-restore `
                     -r $runtimeId /p:TargetLatestRuntimePatch=true
             }
             else {
+                Write-Host "Building with default package source..."
                 dotnet build $projFile.FullName -c $configuration `
                     -r $runtimeId /p:TargetLatestRuntimePatch=true
             }
