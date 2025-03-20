@@ -14,6 +14,8 @@
     Architecture to build. Defaults to x64
  .PARAMETER ImageTag
     Tag to publish under. Defaults "latest"
+ .PARAMETER PackageSource
+    Source to use for restore - either source or nuget.config
 
  .PARAMETER BranchName
     The branch to use for the repo inside the registry.
@@ -34,6 +36,7 @@ Param(
     [string] $Arch = "x64",
     [string] $ImageTag = "latest",
     [switch] $NoBuild,
+    [string] $PackageSource = $null,
     [switch] $NoPublish,
     [switch] $Debug,
     [string] $TarFileOutput
@@ -52,7 +55,7 @@ $imageNamespace = $null
 if (![string]::IsNullOrWhiteSpace($script:ContainerRegistry)) {
     $imageNamespace = "public"
 
-    if ($script:ContainerRegistry -eq "industrialiotdev") { 
+    if ($script:ContainerRegistry -eq "industrialiotdev") {
         if (![string]::IsNullOrWhiteSpace($script:BranchName)) {
             # Set namespace name based on branch name
             $namespace = $script:BranchName
@@ -93,8 +96,22 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
 
             dotnet clean $projFile.FullName -c $configuration `
                 -r $runtimeId | Out-Null
-            dotnet build $projFile.FullName -c $configuration `
-                -r $runtimeId /p:TargetLatestRuntimePatch=true
+            if (![string]::IsNullOrWhiteSpace($script:PackageSource)) {
+                if (-not (Test-Path $script:PackageSource)) {
+                    dotnet restore $projFile.FullName `
+                        --source $script:PackageSource
+                }
+                else {
+                    dotnet restore $projFile.FullName `
+                        --configfile $script:PackageSource
+                }
+                dotnet build $projFile.FullName -c $configuration --no-restore `
+                    -r $runtimeId /p:TargetLatestRuntimePatch=true
+            }
+            else {
+                dotnet build $projFile.FullName -c $configuration `
+                    -r $runtimeId /p:TargetLatestRuntimePatch=true
+            }
 
             if ($LastExitCode -ne 0) {
                 throw "Failed to build container."
