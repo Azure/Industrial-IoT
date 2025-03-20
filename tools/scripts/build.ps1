@@ -99,12 +99,12 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
             if (![string]::IsNullOrWhiteSpace($script:PackageSource)) {
                 if (-not (Test-Path $script:PackageSource)) {
                     Write-Host "Restore from source $($script:PackageSource)..."
-                    dotnet restore $projFile.FullName `
+                    dotnet restore $projFile.FullName -r $runtimeId `
                         --source $script:PackageSource
                 }
                 else {
                     Write-Host "Restore using $($script:PackageSource) file..."
-                    dotnet restore $projFile.FullName `
+                    dotnet restore $projFile.FullName -r $runtimeId `
                         --configfile $script:PackageSource
                 }
                 Write-Host "Building..."
