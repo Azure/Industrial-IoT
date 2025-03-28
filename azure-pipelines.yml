@@ -22,6 +22,7 @@ jobs:
 - job: OneBranchTrigger
   pool:
     vmImage: 'ubuntu-latest'
+  timeoutInMinutes: 120
   displayName: Trigger Governed Pipeline
   steps:
   - task: PowerShell@2
