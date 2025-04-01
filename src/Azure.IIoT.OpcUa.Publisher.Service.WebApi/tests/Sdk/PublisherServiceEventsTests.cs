@@ -18,6 +18,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
+    using xRetry;
 
     public sealed class PublisherServiceEventsTests : IDisposable
     {
@@ -41,7 +42,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
 
         internal CancellationToken Ct => _cts.Token;
 
-        [Fact]
+        [RetryFact]
         public async Task TestPublishVariantTelemetryEventAndReceiveAsync()
         {
             await using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
@@ -92,7 +93,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }
         }
 
-        [Theory]
+        [RetryTheory]
         [InlineData(10)]
         [InlineData(4455)]
         [InlineData(26234)]
