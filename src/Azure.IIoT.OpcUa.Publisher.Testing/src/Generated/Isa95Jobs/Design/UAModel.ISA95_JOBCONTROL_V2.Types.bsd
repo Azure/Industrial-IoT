@@ -1,0 +1,149 @@
+<opc:TypeDictionary
+  xmlns:opc="http://opcfoundation.org/BinarySchema/"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:ua="http://opcfoundation.org/UA/"
+  xmlns:tns="http://opcfoundation.org/UA/ISA95-JOBCONTROL_V2/"
+  DefaultByteOrder="LittleEndian"
+  TargetNamespace="http://opcfoundation.org/UA/ISA95-JOBCONTROL_V2/"
+>
+  <opc:Import Namespace="http://opcfoundation.org/UA/" Location="Opc.Ua.BinarySchema.bsd"/>
+
+  <opc:StructuredType Name="ISA95EquipmentDataType" BaseType="ua:ExtensionObject">
+    <opc:Documentation>Defines an equipment resource or a piece of equipment, a quantity, an optional description, and an optional collection of properties.</opc:Documentation>
+    <opc:Field Name="ID" TypeName="opc:String" />
+    <opc:Field Name="NoOfDescription" TypeName="opc:Int32" />
+    <opc:Field Name="Description" TypeName="ua:LocalizedText" LengthField="NoOfDescription" />
+    <opc:Field Name="EquipmentUse" TypeName="opc:String" />
+    <opc:Field Name="Quantity" TypeName="opc:String" />
+    <opc:Field Name="EngineeringUnits" TypeName="ua:EUInformation" />
+    <opc:Field Name="NoOfProperties" TypeName="opc:Int32" />
+    <opc:Field Name="Properties" TypeName="tns:ISA95PropertyDataType" LengthField="NoOfProperties" />
+  </opc:StructuredType>
+
+  <opc:StructuredType Name="ISA95JobOrderAndStateDataType" BaseType="ua:ExtensionObject">
+    <opc:Documentation>Defines the information needed to schedule and execute a job.</opc:Documentation>
+    <opc:Field Name="JobOrder" TypeName="tns:ISA95JobOrderDataType" />
+    <opc:Field Name="NoOfState" TypeName="opc:Int32" />
+    <opc:Field Name="State" TypeName="tns:ISA95StateDataType" LengthField="NoOfState" />
+  </opc:StructuredType>
+
+  <opc:StructuredType Name="ISA95JobOrderDataType" BaseType="ua:ExtensionObject">
+    <opc:Documentation>Defines the information needed to schedule and execute a job.</opc:Documentation>
+    <opc:Field Name="JobOrderID" TypeName="opc:String" />
+    <opc:Field Name="NoOfDescription" TypeName="opc:Int32" />
+    <opc:Field Name="Description" TypeName="ua:LocalizedText" LengthField="NoOfDescription" />
+    <opc:Field Name="NoOfWorkMasterID" TypeName="opc:Int32" />
+    <opc:Field Name="WorkMasterID" TypeName="tns:ISA95WorkMasterDataType" LengthField="NoOfWorkMasterID" />
+    <opc:Field Name="StartTime" TypeName="opc:DateTime" />
+    <opc:Field Name="EndTime" TypeName="opc:DateTime" />
+    <opc:Field Name="Priority" TypeName="opc:Int16" />
+    <opc:Field Name="NoOfJobOrderParameters" TypeName="opc:Int32" />
+    <opc:Field Name="JobOrderParameters" TypeName="tns:ISA95ParameterDataType" LengthField="NoOfJobOrderParameters" />
+    <opc:Field Name="NoOfPersonnelRequirements" TypeName="opc:Int32" />
+    <opc:Field Name="PersonnelRequirements" TypeName="tns:ISA95PersonnelDataType" LengthField="NoOfPersonnelRequirements" />
+    <opc:Field Name="NoOfEquipmentRequirements" TypeName="opc:Int32" />
+    <opc:Field Name="EquipmentRequirements" TypeName="tns:ISA95EquipmentDataType" LengthField="NoOfEquipmentRequirements" />
+    <opc:Field Name="NoOfPhysicalAssetRequirements" TypeName="opc:Int32" />
+    <opc:Field Name="PhysicalAssetRequirements" TypeName="tns:ISA95PhysicalAssetDataType" LengthField="NoOfPhysicalAssetRequirements" />
+    <opc:Field Name="NoOfMaterialRequirements" TypeName="opc:Int32" />
+    <opc:Field Name="MaterialRequirements" TypeName="tns:ISA95MaterialDataType" LengthField="NoOfMaterialRequirements" />
+  </opc:StructuredType>
+
+  <opc:StructuredType Name="ISA95JobResponseDataType" BaseType="ua:ExtensionObject">
+    <opc:Documentation>Defines the information needed to schedule and execute a job.</opc:Documentation>
+    <opc:Field Name="JobResponseID" TypeName="opc:String" />
+    <opc:Field Name="Description" TypeName="ua:LocalizedText" />
+    <opc:Field Name="JobOrderID" TypeName="opc:String" />
+    <opc:Field Name="StartTime" TypeName="opc:DateTime" />
+    <opc:Field Name="EndTime" TypeName="opc:DateTime" />
+    <opc:Field Name="NoOfJobState" TypeName="opc:Int32" />
+    <opc:Field Name="JobState" TypeName="tns:ISA95StateDataType" LengthField="NoOfJobState" />
+    <opc:Field Name="NoOfJobResponseData" TypeName="opc:Int32" />
+    <opc:Field Name="JobResponseData" TypeName="tns:ISA95ParameterDataType" LengthField="NoOfJobResponseData" />
+    <opc:Field Name="NoOfPersonnelActuals" TypeName="opc:Int32" />
+    <opc:Field Name="PersonnelActuals" TypeName="tns:ISA95PersonnelDataType" LengthField="NoOfPersonnelActuals" />
+    <opc:Field Name="NoOfEquipmentActuals" TypeName="opc:Int32" />
+    <opc:Field Name="EquipmentActuals" TypeName="tns:ISA95EquipmentDataType" LengthField="NoOfEquipmentActuals" />
+    <opc:Field Name="NoOfPhysicalAssetActuals" TypeName="opc:Int32" />
+    <opc:Field Name="PhysicalAssetActuals" TypeName="tns:ISA95PhysicalAssetDataType" LengthField="NoOfPhysicalAssetActuals" />
+    <opc:Field Name="NoOfMaterialActuals" TypeName="opc:Int32" />
+    <opc:Field Name="MaterialActuals" TypeName="tns:ISA95MaterialDataType" LengthField="NoOfMaterialActuals" />
+  </opc:StructuredType>
+
+  <opc:StructuredType Name="ISA95MaterialDataType" BaseType="ua:ExtensionObject">
+    <opc:Documentation>Defines a material resource, a quantity, an optional description, and an optional collection of properties.</opc:Documentation>
+    <opc:Field Name="MaterialClassID" TypeName="opc:String" />
+    <opc:Field Name="MaterialDefinitionID" TypeName="opc:String" />
+    <opc:Field Name="MaterialLotID" TypeName="opc:String" />
+    <opc:Field Name="MaterialSublotID" TypeName="opc:String" />
+    <opc:Field Name="NoOfDescription" TypeName="opc:Int32" />
+    <opc:Field Name="Description" TypeName="ua:LocalizedText" LengthField="NoOfDescription" />
+    <opc:Field Name="MaterialUse" TypeName="opc:String" />
+    <opc:Field Name="Quantity" TypeName="opc:String" />
+    <opc:Field Name="EngineeringUnits" TypeName="ua:EUInformation" />
+    <opc:Field Name="NoOfProperties" TypeName="opc:Int32" />
+    <opc:Field Name="Properties" TypeName="tns:ISA95PropertyDataType" LengthField="NoOfProperties" />
+  </opc:StructuredType>
+
+  <opc:StructuredType Name="ISA95ParameterDataType" BaseType="ua:ExtensionObject">
+    <opc:Documentation>A subtype of OPC UA Structure that defines three linked data items: the ID, which is a unique identifier for a property, the value, which is the data that is identified, and an optional description of the parameter.</opc:Documentation>
+    <opc:Field Name="ID" TypeName="opc:String" />
+    <opc:Field Name="Value" TypeName="ua:Variant" />
+    <opc:Field Name="NoOfDescription" TypeName="opc:Int32" />
+    <opc:Field Name="Description" TypeName="ua:LocalizedText" LengthField="NoOfDescription" />
+    <opc:Field Name="EngineeringUnits" TypeName="ua:EUInformation" />
+    <opc:Field Name="NoOfSubparameters" TypeName="opc:Int32" />
+    <opc:Field Name="Subparameters" TypeName="tns:ISA95ParameterDataType" LengthField="NoOfSubparameters" />
+  </opc:StructuredType>
+
+  <opc:StructuredType Name="ISA95PersonnelDataType" BaseType="ua:ExtensionObject">
+    <opc:Documentation>Defines a personnel resource or a person, a quantity, an optional description, and an optional collection of properties.</opc:Documentation>
+    <opc:Field Name="ID" TypeName="opc:String" />
+    <opc:Field Name="NoOfDescription" TypeName="opc:Int32" />
+    <opc:Field Name="Description" TypeName="ua:LocalizedText" LengthField="NoOfDescription" />
+    <opc:Field Name="PersonnelUse" TypeName="opc:String" />
+    <opc:Field Name="Quantity" TypeName="opc:String" />
+    <opc:Field Name="EngineeringUnits" TypeName="ua:EUInformation" />
+    <opc:Field Name="NoOfProperties" TypeName="opc:Int32" />
+    <opc:Field Name="Properties" TypeName="tns:ISA95PropertyDataType" LengthField="NoOfProperties" />
+  </opc:StructuredType>
+
+  <opc:StructuredType Name="ISA95PhysicalAssetDataType" BaseType="ua:ExtensionObject">
+    <opc:Documentation>Defines a physical asset, a quantity, an optional description, and an optional collection of properties.</opc:Documentation>
+    <opc:Field Name="ID" TypeName="opc:String" />
+    <opc:Field Name="NoOfDescription" TypeName="opc:Int32" />
+    <opc:Field Name="Description" TypeName="ua:LocalizedText" LengthField="NoOfDescription" />
+    <opc:Field Name="PhysicalAssetUse" TypeName="opc:String" />
+    <opc:Field Name="Quantity" TypeName="opc:String" />
+    <opc:Field Name="EngineeringUnits" TypeName="ua:EUInformation" />
+    <opc:Field Name="NoOfProperties" TypeName="opc:Int32" />
+    <opc:Field Name="Properties" TypeName="tns:ISA95PropertyDataType" LengthField="NoOfProperties" />
+  </opc:StructuredType>
+
+  <opc:StructuredType Name="ISA95PropertyDataType" BaseType="ua:ExtensionObject">
+    <opc:Documentation>A subtype of OPC UA Structure that defines two linked data items: an ID, which is a unique identifier for a property within the scope of the associated resource, and the value, which is the data for the property.</opc:Documentation>
+    <opc:Field Name="ID" TypeName="opc:String" />
+    <opc:Field Name="Value" TypeName="ua:Variant" />
+    <opc:Field Name="NoOfDescription" TypeName="opc:Int32" />
+    <opc:Field Name="Description" TypeName="ua:LocalizedText" LengthField="NoOfDescription" />
+    <opc:Field Name="EngineeringUnits" TypeName="ua:EUInformation" />
+    <opc:Field Name="NoOfSubproperties" TypeName="opc:Int32" />
+    <opc:Field Name="Subproperties" TypeName="tns:ISA95PropertyDataType" LengthField="NoOfSubproperties" />
+  </opc:StructuredType>
+
+  <opc:StructuredType Name="ISA95StateDataType" BaseType="ua:ExtensionObject">
+    <opc:Documentation>Defines the information needed to schedule and execute a job.</opc:Documentation>
+    <opc:Field Name="BrowsePath" TypeName="ua:RelativePath" />
+    <opc:Field Name="StateText" TypeName="ua:LocalizedText" />
+    <opc:Field Name="StateNumber" TypeName="opc:UInt32" />
+  </opc:StructuredType>
+
+  <opc:StructuredType Name="ISA95WorkMasterDataType" BaseType="ua:ExtensionObject">
+    <opc:Documentation>Defines a Work Master ID and the defined parameters for the Work Master.</opc:Documentation>
+    <opc:Field Name="ID" TypeName="opc:String" />
+    <opc:Field Name="Description" TypeName="ua:LocalizedText" />
+    <opc:Field Name="NoOfParameters" TypeName="opc:Int32" />
+    <opc:Field Name="Parameters" TypeName="tns:ISA95ParameterDataType" LengthField="NoOfParameters" />
+  </opc:StructuredType>
+
+</opc:TypeDictionary>

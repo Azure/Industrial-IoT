@@ -387,6 +387,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 {
                     return default;
                 }
+
+                var isAllCycleStarted = true;
                 foreach (var element in messages.EnumerateArray())
                 {
                     var dataSetWriterName = element.GetProperty("DataSetWriterName").GetString();
@@ -394,8 +396,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                     {
                         dataSetWriterNames.Add(dataSetWriterName);
                     }
+
+                    if (!dataSetWriterName.EndsWith("|CycleStarted", StringComparison.Ordinal))
+                    {
+                        isAllCycleStarted = false;
+                    }
                 }
-                return dataSetWriterNames.Count == 2 ? jsonElement : default;
+                return dataSetWriterNames.Count == 2 && isAllCycleStarted ? jsonElement : default;
             }
         }
 

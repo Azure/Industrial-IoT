@@ -56,7 +56,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
         /// <param name="scaleunits"></param>
         public ServerFactory(ILogger<ServerFactory> logger, string tempPath,
             uint scaleunits = 0) :
-            this(logger, tempPath, new List<INodeManagerFactory> {
+            this(logger, tempPath, new List<INodeManagerFactory>
+            {
                 new TestData.TestDataServer(),
                 new MemoryBuffer.MemoryBufferServer(),
                 new Boiler.BoilerServer(),
@@ -68,9 +69,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                 new DataAccess.DataAccessServer(),
                 new Alarms.AlarmConditionServer(new TimeService()),
                 new SimpleEvents.SimpleEventsServer(),
-                new Plc.PlcServer(new TimeService(), logger, scaleunits)
+                new Plc.PlcServer(new TimeService(), logger, scaleunits),
+                new Isa95Jobs.Isa95JobControlServer()
                 // new FileSystem.FileSystemServer(),
-                // new Asset.AssetServer(logger)
+                // new Asset.AssetServer(logger),
                 // new PerfTest.PerfTestServer(),
             })
         {

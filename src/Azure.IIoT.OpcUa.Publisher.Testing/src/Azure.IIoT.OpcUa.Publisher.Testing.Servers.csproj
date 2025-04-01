@@ -56,6 +56,9 @@
     <EmbeddedResource Include="Generated\TestData\Design\TestData.PredefinedNodes.uanodes" />
     <EmbeddedResource Include="Generated\MemoryBuffer\Design\MemoryBuffer.PredefinedNodes.uanodes" />
     <EmbeddedResource Include="Generated\Boiler\Design\Boiler.PredefinedNodes.uanodes" />
+    <EmbeddedResource Include="Generated\Isa95Jobs\Design\UAModel.ISA95_JOBCONTROL_V2.PredefinedNodes.uanodes" />
+    <EmbeddedResource Include="Generated\Isa95Jobs\Design\UAModel.ISA95_JOBCONTROL_V2.Types.bsd" />
+    <EmbeddedResource Include="Generated\Isa95Jobs\Design\UAModel.ISA95_JOBCONTROL_V2.Types.xsd" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Furly.Extensions" Version="1.1.4" />

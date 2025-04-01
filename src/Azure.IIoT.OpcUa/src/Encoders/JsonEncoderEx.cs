@@ -590,25 +590,30 @@ namespace Azure.IIoT.OpcUa.Encoders
                         WriteByteString("Id", (byte[])value.Identifier);
                         break;
                 }
-                switch (value.NamespaceIndex)
+                var namespaceIndex = value.NamespaceIndex;
+                if (namespaceIndex == 0 && !string.IsNullOrEmpty(value.NamespaceUri))
+                {
+                    namespaceIndex = (ushort)Context.NamespaceUris.GetIndexOrAppend(value.NamespaceUri);
+                }
+                switch (namespaceIndex)
                 {
                     case 0:
                         // default namespace - nothing to do
                         break;
                     case 1:
                         // namespace 1 always as integer
-                        WriteUInt16("Namespace", value.NamespaceIndex);
+                        WriteUInt16("Namespace", namespaceIndex);
                         break;
                     default:
                         var namespaceUri = UseReversibleEncoding ?
-                            null : Context.NamespaceUris.GetString(value.NamespaceIndex);
+                            null : Context.NamespaceUris.GetString(namespaceIndex);
                         if (namespaceUri != null)
                         {
                             WriteString("Namespace", namespaceUri);
                         }
                         else
                         {
-                            WriteUInt16("Namespace", value.NamespaceIndex);
+                            WriteUInt16("Namespace", namespaceIndex);
                         }
                         break;
                 }
@@ -1949,6 +1954,16 @@ namespace Azure.IIoT.OpcUa.Encoders
                         WriteEnumeratedArray(fieldName, enumArray, enumType);
                         return;
                     case BuiltInType.Variant:
+                    default:
+                        if (array is IEncodeable[] encodeables)
+                        {
+                            var elementType = array.GetType().GetElementType();
+                            if (elementType != null)
+                            {
+                                WriteEncodeableArray(fieldName, encodeables, elementType);
+                                return;
+                            }
+                        }
                         switch (array)
                         {
                             case Variant[] variants:
@@ -1960,10 +1975,9 @@ namespace Azure.IIoT.OpcUa.Encoders
                             case null:
                                 WriteObjectArray(fieldName, null);
                                 return;
-                            default:
-                                throw new EncodingException("Unexpected type encountered " +
-                                    $"while encoding an array of Variants: {array.GetType()}");
                         }
+                        throw new EncodingException("Unexpected type encountered " +
+                            $"while encoding an array of Variants: {array.GetType()}");
                 }
             }
             // write matrix.

@@ -27,7 +27,7 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-namespace SimpleEvents
+namespace Isa95Jobs
 {
     using Opc.Ua;
     using Opc.Ua.Server;
@@ -35,31 +35,32 @@ namespace SimpleEvents
     using System.Collections.Generic;
     using System.Reflection;
     using System.Threading;
+    using UAModel.ISA95_JOBCONTROL_V2;
 
     /// <summary>
     /// A node manager for a server that exposes several variables.
     /// </summary>
-    public class SimpleEventsNodeManager : CustomNodeManager2
+    public class Isa95JobControlNodeManager : CustomNodeManager2
     {
         /// <summary>
         /// Initializes the node manager.
         /// </summary>
         /// <param name="server"></param>
         /// <param name="configuration"></param>
-        public SimpleEventsNodeManager(IServerInternal server, ApplicationConfiguration configuration) :
+        public Isa95JobControlNodeManager(IServerInternal server, ApplicationConfiguration configuration) :
             base(server, configuration)
         {
             SystemContext.NodeIdFactory = this;
 
             // set one namespace for the type model and one names for dynamically created nodes.
             var namespaceUrls = new string[1];
-            namespaceUrls[0] = Namespaces.SimpleEvents;
+            namespaceUrls[0] = UAModel.ISA95_JOBCONTROL_V2.Namespaces.ISA95_JOBCONTROL_V2;
             SetNamespaces(namespaceUrls);
 
             // get the configuration for the node manager.
             // use suitable defaults if no configuration exists.
-            _configuration = configuration.ParseExtension<SimpleEventsServerConfiguration>()
-                ?? new SimpleEventsServerConfiguration();
+            _configuration = configuration.ParseExtension<Isa95JobControlServerConfiguration>()
+                ?? new Isa95JobControlServerConfiguration();
         }
 
         /// <summary>
@@ -95,7 +96,7 @@ namespace SimpleEvents
             var type = GetType().GetTypeInfo();
             var predefinedNodes = new NodeStateCollection();
             predefinedNodes.LoadFromBinaryResource(context,
-                $"{type.Assembly.GetName().Name}.Generated.{type.Namespace}.Design.{type.Namespace}.PredefinedNodes.uanodes",
+                $"{type.Assembly.GetName().Name}.Generated.{type.Namespace}.Design.UAModel.ISA95_JOBCONTROL_V2.PredefinedNodes.uanodes",
                 type.Assembly, true);
             return predefinedNodes;
         }
@@ -198,39 +199,114 @@ namespace SimpleEvents
         {
             try
             {
-                for (var ii = 1; ii < 3; ii++)
+                // construct translation object with default text.
+                var info = new TranslationInfo(
+                    "ISA95JobResponse",
+                    "en-US",
+                    "The job '{0}' has completed.",
+                    ++_jobId);
+
+                // construct the event.
+                var e = new ISA95JobOrderStatusEventTypeState(null);
+
+                e.Initialize(
+                    SystemContext,
+                    null,
+                    (EventSeverity)0,
+                    new LocalizedText(info));
+
+                e.SetChildValue(SystemContext, Opc.Ua.BrowseNames.SourceName, "GB05_ServerTEST", false);
+                e.SetChildValue(SystemContext, Opc.Ua.BrowseNames.SourceNode, Opc.Ua.ObjectIds.Server, false);
+
+                var startTime = DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(3));
+                var endTime = DateTime.UtcNow;
+                var response = new ISA95JobResponseDataType
                 {
-                    // construct translation object with default text.
-                    var info = new TranslationInfo(
-                        "SystemCycleStarted",
-                        "en-US",
-                        "The system cycle '{0}' has started.",
-                        ++_cycleId);
+                    EncodingMask = ISA95JobResponseDataTypeFields.None | ISA95JobResponseDataTypeFields.StartTime | ISA95JobResponseDataTypeFields.EndTime | ISA95JobResponseDataTypeFields.EquipmentActuals | ISA95JobResponseDataTypeFields.MaterialActuals,
+                    JobOrderID = _jobId.ToString(),
+                    JobResponseID = Guid.NewGuid().ToString(),
+                    StartTime = startTime,
+                    EndTime = endTime,
+                    EquipmentActuals = new ISA95EquipmentDataTypeCollection
+                        {
+                            new ISA95EquipmentDataType
+                            {
+                                EncodingMask = ISA95EquipmentDataTypeFields.EquipmentUse | ISA95EquipmentDataTypeFields.EngineeringUnits| ISA95EquipmentDataTypeFields.Quantity,
+                                EngineeringUnits = new EUInformation("rpm", "RPM"),
+                                EquipmentUse = "consumable",
+                                Quantity = "500"
+                            },
+                            new ISA95EquipmentDataType
+                            {
+                                EncodingMask = ISA95EquipmentDataTypeFields.EquipmentUse | ISA95EquipmentDataTypeFields.EngineeringUnits| ISA95EquipmentDataTypeFields.Quantity,
+                                EngineeringUnits = new EUInformation("C", "Celsius"),
+                                EquipmentUse = "consumable",
+                                Quantity = "3"
+                            }
+                        },
+                    MaterialActuals = new ISA95MaterialDataTypeCollection
+                        {
+                            new ISA95MaterialDataType
+                            {
+                                EncodingMask = ISA95MaterialDataTypeFields.MaterialClassID | ISA95MaterialDataTypeFields.MaterialUse | ISA95MaterialDataTypeFields.Quantity,
+                                MaterialClassID = Guid.NewGuid().ToString(),
+                                MaterialUse = "consumable",
+                                Quantity = "1"
+                            },
+                            new ISA95MaterialDataType
+                            {
+                                EncodingMask = ISA95MaterialDataTypeFields.MaterialClassID | ISA95MaterialDataTypeFields.MaterialUse | ISA95MaterialDataTypeFields.Quantity,
+                                MaterialClassID = Guid.NewGuid().ToString(),
+                                MaterialUse = "consumable",
+                                Quantity = "2"
+                            }
+                        }
+                };
+                e.SetChildValue(SystemContext, new QualifiedName(UAModel.ISA95_JOBCONTROL_V2.BrowseNames.JobResponse, NamespaceIndex), response, false);
 
-                    // construct the event.
-                    var e = new SystemCycleStartedEventState(null);
-
-                    e.Initialize(
-                        SystemContext,
-                        null,
-                        (EventSeverity)ii,
-                        new LocalizedText(info));
-
-                    e.SetChildValue(SystemContext, Opc.Ua.BrowseNames.SourceName, "System", false);
-                    e.SetChildValue(SystemContext, Opc.Ua.BrowseNames.SourceNode, Opc.Ua.ObjectIds.Server, false);
-                    e.SetChildValue(SystemContext, new QualifiedName(BrowseNames.CycleId, NamespaceIndex), _cycleId.ToString(), false);
-
-                    var step = new CycleStepDataType
+                var jobOrderState = new ISA95JobOrderAndStateDataType
+                {
+                    JobOrder = new ISA95JobOrderDataType
                     {
-                        Name = "Step 1",
-                        Duration = 1000
-                    };
+                        EncodingMask = ISA95JobOrderDataTypeFields.None,
+                        JobOrderID = _jobId.ToString(),
+                        EquipmentRequirements = new ISA95EquipmentDataTypeCollection
+                            {
+                                new ISA95EquipmentDataType
+                                {
+                                    EncodingMask = ISA95EquipmentDataTypeFields.EquipmentUse | ISA95EquipmentDataTypeFields.EngineeringUnits | ISA95EquipmentDataTypeFields.Quantity,
+                                    EngineeringUnits = new EUInformation("rpm", "RPM"),
+                                    EquipmentUse = "free",
+                                    Quantity = "1000"
+                                }
+                            }
+                    },
+                    State = new ISA95StateDataTypeCollection
+                    {
+                        new ISA95StateDataType
+                        {
+                            StateNumber = ++_state,
+                            BrowsePath = new RelativePath(new QualifiedName("State " + _state, NamespaceIndex)),
+                            StateText = new LocalizedText("en-US", "State " + _state),
+                        },
+                        new ISA95StateDataType
+                        {
+                            StateNumber = ++_state,
+                            BrowsePath = new RelativePath(new QualifiedName("State " + _state, NamespaceIndex)),
+                            StateText = new LocalizedText("en-US", "State " + _state),
+                        },
+                        new ISA95StateDataType
+                        {
+                            StateNumber = ++_state,
+                            BrowsePath = new RelativePath(new QualifiedName("State " + _state, NamespaceIndex)),
+                            StateText = new LocalizedText("en-US", "State " + _state),
+                        }
+                    }
+                };
+                e.SetChildValue(SystemContext, new QualifiedName(UAModel.ISA95_JOBCONTROL_V2.BrowseNames.JobState, NamespaceIndex), jobOrderState, false);
+                // e.SetChildValue(SystemContext, new QualifiedName(UAModel.ISA95_JOBCONTROL_V2.BrowseNames.JobOrder, NamespaceIndex), state, false);
 
-                    e.SetChildValue(SystemContext, new QualifiedName(BrowseNames.CurrentStep, NamespaceIndex), step, false);
-                    e.SetChildValue(SystemContext, new QualifiedName(BrowseNames.Steps, NamespaceIndex), new CycleStepDataType[] { step, step }, false);
-
-                    Server.ReportEvent(e);
-                }
+                Server.ReportEvent(e);
             }
             catch (NullReferenceException)
             {
@@ -244,11 +320,11 @@ namespace SimpleEvents
         }
 
 #pragma warning disable IDE0052 // Remove unread private members
-        private readonly SimpleEventsServerConfiguration _configuration;
+        private readonly Isa95JobControlServerConfiguration _configuration;
 #pragma warning restore IDE0052 // Remove unread private members
         private Timer _simulationTimer;
-        private int _cycleId;
-
+        private int _jobId;
+        private uint _state;
         private const int kEventInterval = 1000;
     }
 }
