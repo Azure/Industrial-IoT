@@ -1,0 +1,259 @@
+<xs:schema
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:ua="http://opcfoundation.org/UA/2008/02/Types.xsd"
+  xmlns:tns="http://opcfoundation.org/UA/ISA95-JOBCONTROL_V2/"
+  targetNamespace="http://opcfoundation.org/UA/ISA95-JOBCONTROL_V2/"
+  elementFormDefault="qualified"
+>
+  <xs:annotation>
+    <xs:appinfo>
+      <ua:Model ModelUri="http://opcfoundation.org/UA/ISA95-JOBCONTROL_V2/" Version="2.0.0" PublicationDate="2024-01-31T00:00:00Z" />
+    </xs:appinfo>
+  </xs:annotation>
+  
+  <xs:import namespace="http://opcfoundation.org/UA/" />
+
+  <xs:complexType name="ISA95EquipmentDataType">
+    <xs:annotation>
+      <xs:documentation>Defines an equipment resource or a piece of equipment, a quantity, an optional description, and an optional collection of properties.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="ID" type="xs:string" minOccurs="0" nillable="true" />
+      <xs:element name="Description" type="ua:ListOfLocalizedText" minOccurs="0" nillable="true" />
+      <xs:element name="EquipmentUse" type="xs:string" minOccurs="0" nillable="true" />
+      <xs:element name="Quantity" type="xs:string" minOccurs="0" nillable="true" />
+      <xs:element name="EngineeringUnits" type="ua:EUInformation" minOccurs="0" nillable="true" />
+      <xs:element name="Properties" type="tns:ListOfISA95PropertyDataType" minOccurs="0" nillable="true" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ISA95EquipmentDataType" type="tns:ISA95EquipmentDataType" />
+
+  <xs:complexType name="ListOfISA95EquipmentDataType">
+    <xs:sequence>
+      <xs:element name="ISA95EquipmentDataType" type="tns:ISA95EquipmentDataType" minOccurs="0" maxOccurs="unbounded" nillable="true" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ListOfISA95EquipmentDataType" type="tns:ListOfISA95EquipmentDataType" nillable="true"></xs:element>
+
+  <xs:complexType name="ISA95JobOrderAndStateDataType">
+    <xs:annotation>
+      <xs:documentation>Defines the information needed to schedule and execute a job.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="JobOrder" type="tns:ISA95JobOrderDataType" minOccurs="0" nillable="true" />
+      <xs:element name="State" type="tns:ListOfISA95StateDataType" minOccurs="0" nillable="true" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ISA95JobOrderAndStateDataType" type="tns:ISA95JobOrderAndStateDataType" />
+
+  <xs:complexType name="ListOfISA95JobOrderAndStateDataType">
+    <xs:sequence>
+      <xs:element name="ISA95JobOrderAndStateDataType" type="tns:ISA95JobOrderAndStateDataType" minOccurs="0" maxOccurs="unbounded" nillable="true" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ListOfISA95JobOrderAndStateDataType" type="tns:ListOfISA95JobOrderAndStateDataType" nillable="true"></xs:element>
+
+  <xs:complexType name="ISA95JobOrderDataType">
+    <xs:annotation>
+      <xs:documentation>Defines the information needed to schedule and execute a job.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="JobOrderID" type="xs:string" minOccurs="0" nillable="true" />
+      <xs:element name="Description" type="ua:ListOfLocalizedText" minOccurs="0" nillable="true" />
+      <xs:element name="WorkMasterID" type="tns:ListOfISA95WorkMasterDataType" minOccurs="0" nillable="true" />
+      <xs:element name="StartTime" type="xs:dateTime" minOccurs="0" />
+      <xs:element name="EndTime" type="xs:dateTime" minOccurs="0" />
+      <xs:element name="Priority" type="xs:short" minOccurs="0" />
+      <xs:element name="JobOrderParameters" type="tns:ListOfISA95ParameterDataType" minOccurs="0" nillable="true" />
+      <xs:element name="PersonnelRequirements" type="tns:ListOfISA95PersonnelDataType" minOccurs="0" nillable="true" />
+      <xs:element name="EquipmentRequirements" type="tns:ListOfISA95EquipmentDataType" minOccurs="0" nillable="true" />
+      <xs:element name="PhysicalAssetRequirements" type="tns:ListOfISA95PhysicalAssetDataType" minOccurs="0" nillable="true" />
+      <xs:element name="MaterialRequirements" type="tns:ListOfISA95MaterialDataType" minOccurs="0" nillable="true" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ISA95JobOrderDataType" type="tns:ISA95JobOrderDataType" />
+
+  <xs:complexType name="ListOfISA95JobOrderDataType">
+    <xs:sequence>
+      <xs:element name="ISA95JobOrderDataType" type="tns:ISA95JobOrderDataType" minOccurs="0" maxOccurs="unbounded" nillable="true" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ListOfISA95JobOrderDataType" type="tns:ListOfISA95JobOrderDataType" nillable="true"></xs:element>
+
+  <xs:complexType name="ISA95JobResponseDataType">
+    <xs:annotation>
+      <xs:documentation>Defines the information needed to schedule and execute a job.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="JobResponseID" type="xs:string" minOccurs="0" nillable="true" />
+      <xs:element name="Description" type="ua:LocalizedText" minOccurs="0" nillable="true" />
+      <xs:element name="JobOrderID" type="xs:string" minOccurs="0" nillable="true" />
+      <xs:element name="StartTime" type="xs:dateTime" minOccurs="0" />
+      <xs:element name="EndTime" type="xs:dateTime" minOccurs="0" />
+      <xs:element name="JobState" type="tns:ListOfISA95StateDataType" minOccurs="0" nillable="true" />
+      <xs:element name="JobResponseData" type="tns:ListOfISA95ParameterDataType" minOccurs="0" nillable="true" />
+      <xs:element name="PersonnelActuals" type="tns:ListOfISA95PersonnelDataType" minOccurs="0" nillable="true" />
+      <xs:element name="EquipmentActuals" type="tns:ListOfISA95EquipmentDataType" minOccurs="0" nillable="true" />
+      <xs:element name="PhysicalAssetActuals" type="tns:ListOfISA95PhysicalAssetDataType" minOccurs="0" nillable="true" />
+      <xs:element name="MaterialActuals" type="tns:ListOfISA95MaterialDataType" minOccurs="0" nillable="true" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ISA95JobResponseDataType" type="tns:ISA95JobResponseDataType" />
+
+  <xs:complexType name="ListOfISA95JobResponseDataType">
+    <xs:sequence>
+      <xs:element name="ISA95JobResponseDataType" type="tns:ISA95JobResponseDataType" minOccurs="0" maxOccurs="unbounded" nillable="true" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ListOfISA95JobResponseDataType" type="tns:ListOfISA95JobResponseDataType" nillable="true"></xs:element>
+
+  <xs:complexType name="ISA95MaterialDataType">
+    <xs:annotation>
+      <xs:documentation>Defines a material resource, a quantity, an optional description, and an optional collection of properties.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="MaterialClassID" type="xs:string" minOccurs="0" nillable="true" />
+      <xs:element name="MaterialDefinitionID" type="xs:string" minOccurs="0" nillable="true" />
+      <xs:element name="MaterialLotID" type="xs:string" minOccurs="0" nillable="true" />
+      <xs:element name="MaterialSublotID" type="xs:string" minOccurs="0" nillable="true" />
+      <xs:element name="Description" type="ua:ListOfLocalizedText" minOccurs="0" nillable="true" />
+      <xs:element name="MaterialUse" type="xs:string" minOccurs="0" nillable="true" />
+      <xs:element name="Quantity" type="xs:string" minOccurs="0" nillable="true" />
+      <xs:element name="EngineeringUnits" type="ua:EUInformation" minOccurs="0" nillable="true" />
+      <xs:element name="Properties" type="tns:ListOfISA95PropertyDataType" minOccurs="0" nillable="true" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ISA95MaterialDataType" type="tns:ISA95MaterialDataType" />
+
+  <xs:complexType name="ListOfISA95MaterialDataType">
+    <xs:sequence>
+      <xs:element name="ISA95MaterialDataType" type="tns:ISA95MaterialDataType" minOccurs="0" maxOccurs="unbounded" nillable="true" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ListOfISA95MaterialDataType" type="tns:ListOfISA95MaterialDataType" nillable="true"></xs:element>
+
+  <xs:complexType name="ISA95ParameterDataType">
+    <xs:annotation>
+      <xs:documentation>A subtype of OPC UA Structure that defines three linked data items: the ID, which is a unique identifier for a property, the value, which is the data that is identified, and an optional description of the parameter.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="ID" type="xs:string" minOccurs="0" nillable="true" />
+      <xs:element name="Value" type="ua:Variant" minOccurs="0" />
+      <xs:element name="Description" type="ua:ListOfLocalizedText" minOccurs="0" nillable="true" />
+      <xs:element name="EngineeringUnits" type="ua:EUInformation" minOccurs="0" nillable="true" />
+      <xs:element name="Subparameters" type="tns:ListOfISA95ParameterDataType" minOccurs="0" nillable="true" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ISA95ParameterDataType" type="tns:ISA95ParameterDataType" />
+
+  <xs:complexType name="ListOfISA95ParameterDataType">
+    <xs:sequence>
+      <xs:element name="ISA95ParameterDataType" type="tns:ISA95ParameterDataType" minOccurs="0" maxOccurs="unbounded" nillable="true" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ListOfISA95ParameterDataType" type="tns:ListOfISA95ParameterDataType" nillable="true"></xs:element>
+
+  <xs:complexType name="ISA95PersonnelDataType">
+    <xs:annotation>
+      <xs:documentation>Defines a personnel resource or a person, a quantity, an optional description, and an optional collection of properties.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="ID" type="xs:string" minOccurs="0" nillable="true" />
+      <xs:element name="Description" type="ua:ListOfLocalizedText" minOccurs="0" nillable="true" />
+      <xs:element name="PersonnelUse" type="xs:string" minOccurs="0" nillable="true" />
+      <xs:element name="Quantity" type="xs:string" minOccurs="0" nillable="true" />
+      <xs:element name="EngineeringUnits" type="ua:EUInformation" minOccurs="0" nillable="true" />
+      <xs:element name="Properties" type="tns:ListOfISA95PropertyDataType" minOccurs="0" nillable="true" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ISA95PersonnelDataType" type="tns:ISA95PersonnelDataType" />
+
+  <xs:complexType name="ListOfISA95PersonnelDataType">
+    <xs:sequence>
+      <xs:element name="ISA95PersonnelDataType" type="tns:ISA95PersonnelDataType" minOccurs="0" maxOccurs="unbounded" nillable="true" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ListOfISA95PersonnelDataType" type="tns:ListOfISA95PersonnelDataType" nillable="true"></xs:element>
+
+  <xs:complexType name="ISA95PhysicalAssetDataType">
+    <xs:annotation>
+      <xs:documentation>Defines a physical asset, a quantity, an optional description, and an optional collection of properties.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="ID" type="xs:string" minOccurs="0" nillable="true" />
+      <xs:element name="Description" type="ua:ListOfLocalizedText" minOccurs="0" nillable="true" />
+      <xs:element name="PhysicalAssetUse" type="xs:string" minOccurs="0" nillable="true" />
+      <xs:element name="Quantity" type="xs:string" minOccurs="0" nillable="true" />
+      <xs:element name="EngineeringUnits" type="ua:EUInformation" minOccurs="0" nillable="true" />
+      <xs:element name="Properties" type="tns:ListOfISA95PropertyDataType" minOccurs="0" nillable="true" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ISA95PhysicalAssetDataType" type="tns:ISA95PhysicalAssetDataType" />
+
+  <xs:complexType name="ListOfISA95PhysicalAssetDataType">
+    <xs:sequence>
+      <xs:element name="ISA95PhysicalAssetDataType" type="tns:ISA95PhysicalAssetDataType" minOccurs="0" maxOccurs="unbounded" nillable="true" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ListOfISA95PhysicalAssetDataType" type="tns:ListOfISA95PhysicalAssetDataType" nillable="true"></xs:element>
+
+  <xs:complexType name="ISA95PropertyDataType">
+    <xs:annotation>
+      <xs:documentation>A subtype of OPC UA Structure that defines two linked data items: an ID, which is a unique identifier for a property within the scope of the associated resource, and the value, which is the data for the property.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="ID" type="xs:string" minOccurs="0" nillable="true" />
+      <xs:element name="Value" type="ua:Variant" minOccurs="0" />
+      <xs:element name="Description" type="ua:ListOfLocalizedText" minOccurs="0" nillable="true" />
+      <xs:element name="EngineeringUnits" type="ua:EUInformation" minOccurs="0" nillable="true" />
+      <xs:element name="Subproperties" type="tns:ListOfISA95PropertyDataType" minOccurs="0" nillable="true" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ISA95PropertyDataType" type="tns:ISA95PropertyDataType" />
+
+  <xs:complexType name="ListOfISA95PropertyDataType">
+    <xs:sequence>
+      <xs:element name="ISA95PropertyDataType" type="tns:ISA95PropertyDataType" minOccurs="0" maxOccurs="unbounded" nillable="true" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ListOfISA95PropertyDataType" type="tns:ListOfISA95PropertyDataType" nillable="true"></xs:element>
+
+  <xs:complexType name="ISA95StateDataType">
+    <xs:annotation>
+      <xs:documentation>Defines the information needed to schedule and execute a job.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="BrowsePath" type="ua:RelativePath" minOccurs="0" nillable="true" />
+      <xs:element name="StateText" type="ua:LocalizedText" minOccurs="0" nillable="true" />
+      <xs:element name="StateNumber" type="xs:unsignedInt" minOccurs="0" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ISA95StateDataType" type="tns:ISA95StateDataType" />
+
+  <xs:complexType name="ListOfISA95StateDataType">
+    <xs:sequence>
+      <xs:element name="ISA95StateDataType" type="tns:ISA95StateDataType" minOccurs="0" maxOccurs="unbounded" nillable="true" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ListOfISA95StateDataType" type="tns:ListOfISA95StateDataType" nillable="true"></xs:element>
+
+  <xs:complexType name="ISA95WorkMasterDataType">
+    <xs:annotation>
+      <xs:documentation>Defines a Work Master ID and the defined parameters for the Work Master.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="ID" type="xs:string" minOccurs="0" nillable="true" />
+      <xs:element name="Description" type="ua:LocalizedText" minOccurs="0" nillable="true" />
+      <xs:element name="Parameters" type="tns:ListOfISA95ParameterDataType" minOccurs="0" nillable="true" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ISA95WorkMasterDataType" type="tns:ISA95WorkMasterDataType" />
+
+  <xs:complexType name="ListOfISA95WorkMasterDataType">
+    <xs:sequence>
+      <xs:element name="ISA95WorkMasterDataType" type="tns:ISA95WorkMasterDataType" minOccurs="0" maxOccurs="unbounded" nillable="true" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ListOfISA95WorkMasterDataType" type="tns:ListOfISA95WorkMasterDataType" nillable="true"></xs:element>
+
+</xs:schema>

@@ -66,6 +66,3 @@ set design=ModelDesign
 echo Building %design%
 Opc.Ua.ModelCompiler.exe compile -version v104 -d2 "%design%.xml" -cg "%design%.csv" -o2 "."
 popd
-
-
-

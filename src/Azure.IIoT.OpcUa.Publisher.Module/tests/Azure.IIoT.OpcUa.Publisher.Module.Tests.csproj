@@ -4,7 +4,7 @@
     <ParallelAlgorithm>aggressive</ParallelAlgorithm>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Json.More.Net" Version="2.1.1" />
+    <PackageReference Include="Json.More.Net" Version="2.1.2" />
     <PackageReference Include="FluentAssertions" Version="[7.2.0]" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.3" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />

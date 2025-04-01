@@ -1,0 +1,17 @@
+﻿[
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": false,
+        "DataSetWriterGroup": "{{DataSetWriterGroup}}",
+        "OpcNodes": [
+            {
+                "Id": "i=2253",
+                "DisplayName": "Isa95JobResponseData",
+                "QueueSize": 10,
+                "EventFilter": {
+                    "TypeDefinitionId": "nsu=http://opcfoundation.org/UA/ISA95-JOBCONTROL_V2/;i=1006"
+                }
+            }
+        ]
+    }
+]
