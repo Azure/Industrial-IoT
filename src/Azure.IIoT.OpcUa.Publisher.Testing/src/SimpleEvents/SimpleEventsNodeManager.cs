@@ -249,6 +249,6 @@ namespace SimpleEvents
         private Timer _simulationTimer;
         private int _cycleId;
 
-        private const int kEventInterval = 10000;
+        private const int kEventInterval = 1000;
     }
 }

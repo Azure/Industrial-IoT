@@ -102,7 +102,7 @@ jobs:
       failTaskIfBuildsNotSuccessful: true
       cancelBuildsIfAnyFails: false
       treatPartiallySucceededBuildAsSuccessful: false
-      downloadBuildArtifacts: true
+      downloadBuildArtifacts: false
       clearVariable: true
       authenticationMethod: 'OAuth Token'
       password: $(System.AccessToken)
