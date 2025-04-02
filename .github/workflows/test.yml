@@ -1,9 +1,9 @@
 name: Build and Test
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "latest", "main" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "latest", "main" ]
 jobs:
   build:
     runs-on: ${{ matrix.os }}
