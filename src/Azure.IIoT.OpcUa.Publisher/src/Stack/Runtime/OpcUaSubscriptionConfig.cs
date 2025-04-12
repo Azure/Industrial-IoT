@@ -52,10 +52,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         /// <summary>
         /// Default values
         /// </summary>
-        public const int DefaultKeepAliveCountDefault = 0;
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public const bool ResolveDisplayNameDefault = false;
-        public const int DefaultLifetimeCountDefault = 0;
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public const int DefaultSamplingIntervalDefaultMillis = 1000;
         public const int DefaultPublishingIntervalDefaultMillis = 1000;
         public const bool DefaultSkipFirstDefault = false;
@@ -172,10 +170,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                 }
             }
 
-            options.DefaultKeepAliveCount ??= (uint)GetIntOrDefault(DefaultKeepAliveCountKey,
-                    DefaultKeepAliveCountDefault);
-            options.DefaultLifeTimeCount ??= (uint)GetIntOrDefault(DefaultLifetimeCountKey,
-                    DefaultLifetimeCountDefault);
+            options.DefaultKeepAliveCount ??= (uint?)GetIntOrNull(DefaultKeepAliveCountKey);
+            options.DefaultLifeTimeCount ??= (uint?)GetIntOrNull(DefaultLifetimeCountKey);
 
             options.EnableImmediatePublishing ??= GetBoolOrNull(EnableImmediatePublishingKey);
             options.EnableSequentialPublishing ??= GetBoolOrDefault(EnableSequentialPublishingKey,

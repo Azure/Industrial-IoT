@@ -310,7 +310,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // We do not support recreation of sessions create a new session from scratch.
             // Then we add the desired subscriptions to the new session.
             //
-            if(connection != null)
+            if (connection != null)
             {
                 _logger.LogInformation(
                     "{Client}: RECREATE: Creating new session with new waiting connection.", this);
@@ -1418,6 +1418,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 case StatusCodes.BadServerHalted:
                 case StatusCodes.BadNotConnected:
                 case StatusCodes.BadNoCommunication:
+                case StatusCodes.BadNoSubscription: // Never sent in current stack version
                     TriggerReconnect(e.Status, "Publish");
                     return;
                 default:

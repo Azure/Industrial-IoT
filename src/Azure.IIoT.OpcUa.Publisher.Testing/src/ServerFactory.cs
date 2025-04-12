@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Reflection;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
@@ -292,6 +293,56 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                         TraceMasks = 1
                     }
                 };
+            }
+
+            /// <inheritdoc/>
+            public void CloseSessions(bool deleteSubscriptions = false)
+            {
+                foreach (var session in CurrentInstance.SessionManager.GetSessions().Select(s => s.Id).ToArray())
+                {
+                    CurrentInstance.CloseSession(null, session, deleteSubscriptions);
+                }
+            }
+
+            /// <inheritdoc/>
+            public void CloseSubscriptions()
+            {
+                foreach (var subscription in CurrentInstance.SubscriptionManager.GetSubscriptions().Select(s => s.Id).ToArray())
+                {
+                    CurrentInstance.DeleteSubscription(subscription);
+                }
+            }
+
+            /// <inheritdoc/>
+            public void CloseSubscription(uint subscriptionId, bool notifyExpiration)
+            {
+                if (notifyExpiration)
+                {
+                    NotifySubscriptionExpiration(subscriptionId);
+                }
+                CurrentInstance.DeleteSubscription(subscriptionId);
+            }
+
+            /// <inheritdoc/>
+            public void NotifySubscriptionExpiration(uint subscriptionId)
+            {
+                try
+                {
+                    var subscription = CurrentInstance.SubscriptionManager.GetSubscriptions().FirstOrDefault(s => s.Id == subscriptionId);
+                    if (subscription != null)
+                    {
+                        var expireMethod = typeof(SubscriptionManager).GetMethod("SubscriptionExpired",
+                            BindingFlags.NonPublic | BindingFlags.Instance);
+                        if (expireMethod != null)
+                        {
+                            expireMethod.Invoke(CurrentInstance.SubscriptionManager, new object[] { subscription });
+                        }
+                    }
+                }
+                catch
+                {
+                    // Nothing to do
+                }
             }
 
             /// <inheritdoc/>

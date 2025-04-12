@@ -15,5 +15,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// </summary>
         /// <returns></returns>
         public string PublishedNodesJson { get; }
+
+        /// <summary>
+        /// Close sessions
+        /// </summary>
+        /// <param name="deleteSubscriptions"></param>
+        void CloseSessions(bool deleteSubscriptions = false);
+        void CloseSubscription(uint subscriptionId, bool notifyExpiration);
+
+        /// <summary>
+        /// Close subscriptions
+        /// </summary>
+        void CloseSubscriptions();
+        void NotifySubscriptionExpiration(uint subscriptionId);
     }
 }

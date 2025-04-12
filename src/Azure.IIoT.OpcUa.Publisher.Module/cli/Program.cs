@@ -307,6 +307,19 @@ Options:
                             Console.WriteLine("Restarting server...");
                             kRestartServer.Set();
                             break;
+                        case 'C':
+                            Console.WriteLine("Closing sessions and subscriptions in server");
+                            ServerControl?.CloseSessions(true);
+                            break;
+                        case 'c':
+                            Console.WriteLine("Closing sessions in server");
+                            ServerControl?.CloseSessions(false);
+                            break;
+                        case 'D':
+                        case 'd':
+                            Console.WriteLine("Closing subscriptions in server");
+                            ServerControl?.CloseSubscriptions();
+                            break;
                     }
                 }
 
@@ -321,6 +334,8 @@ Options:
 
         private static readonly AsyncAutoResetEvent kRestartServer = new(false);
         private static readonly AsyncAutoResetEvent kRestartPublisher = new(false);
+
+        private static ITestServer? ServerControl { get; set; }
 
         /// <summary>
         /// Host the module with connection string loaded from iot hub
@@ -449,8 +464,8 @@ Options:
         {
             try
             {
-                // Start test server
                 using var server = new ServerWrapper(scaleunits, loggerFactory, reverseConnectPort);
+                // Start test server
                 var endpointUrl = $"opc.tcp://localhost:{server.Port}/UA/SampleServer";
 
                 var publishInitFile = await LoadInitFileAsync(publishInitProfile, endpointUrl,
@@ -805,6 +820,7 @@ Options:
                             logger.LogInformation("(Re-)Starting server...");
                             await server.StartAsync(new List<int> { port }).ConfigureAwait(false);
                             Server.SetResult(server.TestServer);
+                            ServerControl = server.TestServer;
                             logger.LogInformation("Server (re-)started (Press S to kill).");
                             if (reverseConnectPort != null)
                             {
@@ -814,6 +830,7 @@ Options:
                                     1).ConfigureAwait(false);
                             }
                             await kRestartServer.WaitAsync(ct).ConfigureAwait(false);
+                            ServerControl = null;
                             logger.LogInformation("Stopping server...");
                             Server = new TaskCompletionSource<ITestServer?>();
                         }
@@ -828,6 +845,7 @@ Options:
                         logger.LogError(ex, "Server ran into exception.");
                     }
                 }
+                ServerControl = null;
                 logger.LogInformation("Server exited.");
             }
 
