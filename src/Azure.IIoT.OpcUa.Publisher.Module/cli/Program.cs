@@ -320,6 +320,14 @@ Options:
                             Console.WriteLine("Closing subscriptions in server");
                             ServerControl?.CloseSubscriptions();
                             break;
+                        case '!':
+                            var control = ServerControl;
+                            if (control != null)
+                            {
+                                Console.WriteLine("Chaos !!!!!!!!!!!!!...");
+                                control.Chaos = !control.Chaos;
+                            }
+                            break;
                     }
                 }
 

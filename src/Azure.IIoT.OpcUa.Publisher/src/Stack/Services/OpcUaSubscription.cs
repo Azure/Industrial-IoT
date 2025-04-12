@@ -2499,7 +2499,7 @@ Actual (revised) state/desired state:
             if (e.Status.HasFlag(PublishStateChangedMask.Stopped) && !_publishingStopped)
             {
                 _logger.LogInformation("Subscription {Subscription} STOPPED!", this);
-                // _keepAliveWatcher.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+                // ResetKeepAliveTimer(); // This will just prolong our suffering
                 ResetMonitoredItemWatchdogTimer(false);
                 _publishingStopped = true;
             }

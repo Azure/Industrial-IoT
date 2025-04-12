@@ -95,6 +95,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             /// <inheritdoc/>
             public string PublishedNodesJson => _plc.GetPnJson();
 
+            /// <inheritdoc/>
+            public bool Chaos
+            {
+                get
+                {
+                    return _chaosMode != null;
+                }
+                set
+                {
+                    if (value)
+                    {
+                        if (_chaosMode == null)
+                        {
+                            _chaosCts = new CancellationTokenSource();
+                            _chaosMode = ChaosAsync(_chaosCts.Token);
+                        }
+                    }
+                    else if (_chaosMode != null)
+                    {
+                        _chaosCts.Cancel();
+                        _chaosMode.GetAwaiter().GetResult();
+                        _chaosCts.Dispose();
+                        _chaosMode = null;
+                        _chaosCts = null;
+                    }
+                }
+            }
+
             /// <summary>
             /// Create server
             /// </summary>
@@ -295,21 +323,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                 };
             }
 
+            private NodeId[] Sessions => CurrentInstance.SessionManager.GetSessions().Select(s => s.Id).ToArray();
+
             /// <inheritdoc/>
             public void CloseSessions(bool deleteSubscriptions = false)
             {
-                foreach (var session in CurrentInstance.SessionManager.GetSessions().Select(s => s.Id).ToArray())
+                foreach (var session in Sessions)
                 {
                     CurrentInstance.CloseSession(null, session, deleteSubscriptions);
                 }
             }
 
+            private uint[] Subscriptions => CurrentInstance.SubscriptionManager.GetSubscriptions().Select(s => s.Id).ToArray();
+
             /// <inheritdoc/>
-            public void CloseSubscriptions()
+            public void CloseSubscriptions(bool notifyExpiration = false)
             {
-                foreach (var subscription in CurrentInstance.SubscriptionManager.GetSubscriptions().Select(s => s.Id).ToArray())
+                foreach (var subscription in Subscriptions)
                 {
-                    CurrentInstance.DeleteSubscription(subscription);
+                    CloseSubscription(subscription, notifyExpiration);
                 }
             }
 
@@ -714,6 +746,53 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                 }
             }
 
+            private async Task ChaosAsync(CancellationToken ct)
+            {
+                while (!ct.IsCancellationRequested)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(Random.Shared.Next(10, 60)), ct).ConfigureAwait(false);
+                    Console.WriteLine("===================\nCHAOS MONKEY TIME\n===================");
+                    Console.WriteLine($"{Subscriptions.Length} subscriptions in {Sessions.Length} sessions!");
+                    switch (Random.Shared.Next(0, 12))
+                    {
+                        case 0:
+                            Console.WriteLine("!!!!! Closing all sessions and associated subscriptions. !!!!!!");
+                            CloseSessions(true);
+                            break;
+                        case 1:
+                            Console.WriteLine("!!!!! Closing all sessions. !!!!! ");
+                            CloseSessions(false);
+                            break;
+                        case 2:
+                            Console.WriteLine("!!!!! Notifying expiration and closing all subscriptions. !!!!! ");
+                            CloseSubscriptions(true);
+                            break;
+                        case 3:
+                            Console.WriteLine("!!!!! Closing all subscriptions. !!!!!");
+                            CloseSubscriptions(false);
+                            break;
+                        case > 3 and < 8:
+                            var sessions = Sessions;
+                            if (sessions.Length == 0)
+                                break;
+                            var session = sessions[Random.Shared.Next(0, sessions.Length)];
+                            var delete = Random.Shared.Next() % 2 == 0;
+                            Console.WriteLine($"!!!!! Closing session {session} (delete subscriptions:{delete}). !!!!!");
+                            CurrentInstance.CloseSession(null, session, delete);
+                            break;
+                        default:
+                            var subscriptions = Subscriptions;
+                            if (subscriptions.Length == 0)
+                                break;
+                            var subscription = subscriptions[Random.Shared.Next(0, subscriptions.Length)];
+                            var notify = Random.Shared.Next() % 2 == 0;
+                            Console.WriteLine($"!!!!! Closing subscription {subscription} (notify:{notify}). !!!!!");
+                            CloseSubscription(subscription, notify);
+                            break;
+                    }
+                }
+            }
+
             private readonly ILogger _logger;
             private readonly bool _logStatus;
             private readonly IEnumerable<INodeManagerFactory> _nodes;
@@ -721,6 +800,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             private DateTime _lastEventTime;
             private CancellationTokenSource _cts;
             private ICertificateValidator _certificateValidator;
+            private CancellationTokenSource _chaosCts;
+            private Task _chaosMode;
 #pragma warning disable CA2213 // Disposable fields should be disposed
             private Plc.PlcNodeManager _plc;
 #pragma warning restore CA2213 // Disposable fields should be disposed
