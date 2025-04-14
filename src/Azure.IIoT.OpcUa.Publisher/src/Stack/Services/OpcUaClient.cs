@@ -343,7 +343,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             else
             {
                 _logger.LogInformation("{Client}: RECREATE: Creating new session.", this);
-
             }
             return await CreateAsync(_configuration, sessionTemplate.ConfiguredEndpoint,
                 true, false, _sessionName, (uint)sessionTemplate.SessionTimeout, sessionTemplate.Identity,

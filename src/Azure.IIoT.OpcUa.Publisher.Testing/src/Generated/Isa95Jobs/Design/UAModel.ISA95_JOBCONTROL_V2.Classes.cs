@@ -180,7 +180,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
 
             base.GetChildren(context, children);
         }
-            
+
         /// <remarks />
         protected override BaseInstanceState FindChild(
             ISystemContext context,
@@ -448,7 +448,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
 
             base.GetChildren(context, children);
         }
-            
+
         /// <remarks />
         protected override BaseInstanceState FindChild(
             ISystemContext context,
@@ -639,7 +639,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
 
             base.GetChildren(context, children);
         }
-            
+
         /// <remarks />
         protected override BaseInstanceState FindChild(
             ISystemContext context,
@@ -1572,7 +1572,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         }
 
         /// <remarks />
-        public UpdateMethodState Update
+        public new UpdateMethodState Update
         {
             get
             {
@@ -1713,7 +1713,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
 
             base.GetChildren(context, children);
         }
-            
+
         /// <remarks />
         protected override BaseInstanceState FindChild(
             ISystemContext context,
@@ -2404,7 +2404,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
 
             base.GetChildren(context, children);
         }
-            
+
         /// <remarks />
         protected override BaseInstanceState FindChild(
             ISystemContext context,

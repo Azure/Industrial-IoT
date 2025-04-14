@@ -345,7 +345,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                 .Select(s => s.Id)
                 .ToArray();
 
-
             /// <inheritdoc/>
             public void CloseSubscriptions(bool notifyExpiration = false)
             {
@@ -377,11 +376,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                     {
                         var expireMethod = typeof(SubscriptionManager).GetMethod("SubscriptionExpired",
                             BindingFlags.NonPublic | BindingFlags.Instance);
-                        if (expireMethod != null)
-                        {
-                            expireMethod.Invoke(CurrentInstance.SubscriptionManager,
-                                new object[] { subscription });
-                        }
+                        expireMethod?.Invoke(
+                            CurrentInstance.SubscriptionManager, new object[] { subscription });
                     }
                 }
                 catch
@@ -764,6 +760,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             /// </summary>
             /// <param name="ct"></param>
             /// <returns></returns>
+#pragma warning disable CA5394 // Do not use insecure randomness
             private async Task ChaosAsync(CancellationToken ct)
             {
                 while (!ct.IsCancellationRequested)
@@ -872,6 +869,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                 }
                 return base.ValidateRequest(requestHeader, requestType);
             }
+#pragma warning restore CA5394 // Do not use insecure randomness
 
             private readonly ILogger _logger;
             private readonly bool _logStatus;
