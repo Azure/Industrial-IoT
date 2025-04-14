@@ -763,73 +763,80 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
 #pragma warning disable CA5394 // Do not use insecure randomness
             private async Task ChaosAsync(CancellationToken ct)
             {
-                while (!ct.IsCancellationRequested)
+                try
                 {
-                    await Task.Delay(TimeSpan.FromSeconds(Random.Shared.Next(10, 60)), ct).ConfigureAwait(false);
-                    Console.WriteLine("===================\nCHAOS MONKEY TIME\n===================");
-                    Console.WriteLine($"{Subscriptions.Length} subscriptions in {Sessions.Length} sessions!");
-                    switch (Random.Shared.Next(0, 16))
+                    while (!ct.IsCancellationRequested)
                     {
-                        case 0:
-                            Console.WriteLine("!!!!! Closing all sessions and associated subscriptions. !!!!!!");
-                            CloseSessions(true);
-                            break;
-                        case 1:
-                            Console.WriteLine("!!!!! Closing all sessions. !!!!! ");
-                            CloseSessions(false);
-                            break;
-                        case 2:
-                            Console.WriteLine("!!!!! Notifying expiration and closing all subscriptions. !!!!! ");
-                            CloseSubscriptions(true);
-                            break;
-                        case 3:
-                            Console.WriteLine("!!!!! Closing all subscriptions. !!!!!");
-                            CloseSubscriptions(false);
-                            break;
-                        case > 3 and < 8:
-                            var sessions = Sessions;
-                            if (sessions.Length == 0)
-                            {
+                        await Task.Delay(TimeSpan.FromSeconds(Random.Shared.Next(10, 60)), ct).ConfigureAwait(false);
+                        Console.WriteLine("===================\nCHAOS MONKEY TIME\n===================");
+                        Console.WriteLine($"{Subscriptions.Length} subscriptions in {Sessions.Length} sessions!");
+                        switch (Random.Shared.Next(0, 16))
+                        {
+                            case 0:
+                                Console.WriteLine("!!!!! Closing all sessions and associated subscriptions. !!!!!!");
+                                CloseSessions(true);
                                 break;
-                            }
-
-                            var session = sessions[Random.Shared.Next(0, sessions.Length)];
-                            var delete = Random.Shared.Next() % 2 == 0;
-                            Console.WriteLine($"!!!!! Closing session {session} (delete subscriptions:{delete}). !!!!!");
-                            CurrentInstance.CloseSession(null, session, delete);
-                            break;
-                        case > 10 and < 13:
-                            if (InjectErrorResponseRate != 0)
-                            {
+                            case 1:
+                                Console.WriteLine("!!!!! Closing all sessions. !!!!! ");
+                                CloseSessions(false);
                                 break;
-                            }
-                            InjectErrorResponseRate = Random.Shared.Next(1, 20);
-                            var duration = TimeSpan.FromSeconds(Random.Shared.Next(10, 150));
-                            Console.WriteLine($"!!!!! Injecting random errors every {InjectErrorResponseRate} " +
-                                $"responses for {duration.TotalMicroseconds} ms. !!!!!");
-                            _ = Task.Run(async () =>
-                            {
-                                try
+                            case 2:
+                                Console.WriteLine("!!!!! Notifying expiration and closing all subscriptions. !!!!! ");
+                                CloseSubscriptions(true);
+                                break;
+                            case 3:
+                                Console.WriteLine("!!!!! Closing all subscriptions. !!!!!");
+                                CloseSubscriptions(false);
+                                break;
+                            case > 3 and < 8:
+                                var sessions = Sessions;
+                                if (sessions.Length == 0)
                                 {
-                                    await Task.Delay(duration, ct).ConfigureAwait(false);
+                                    break;
                                 }
-                                catch (OperationCanceledException) { }
-                                InjectErrorResponseRate = 0;
-                            }, ct);
-                            break;
-                        default:
-                            var subscriptions = Subscriptions;
-                            if (subscriptions.Length == 0)
-                            {
-                                break;
-                            }
 
-                            var subscription = subscriptions[Random.Shared.Next(0, subscriptions.Length)];
-                            var notify = Random.Shared.Next() % 2 == 0;
-                            Console.WriteLine($"!!!!! Closing subscription {subscription} (notify:{notify}). !!!!!");
-                            CloseSubscription(subscription, notify);
-                            break;
+                                var session = sessions[Random.Shared.Next(0, sessions.Length)];
+                                var delete = Random.Shared.Next() % 2 == 0;
+                                Console.WriteLine($"!!!!! Closing session {session} (delete subscriptions:{delete}). !!!!!");
+                                CurrentInstance.CloseSession(null, session, delete);
+                                break;
+                            case > 10 and < 13:
+                                if (InjectErrorResponseRate != 0)
+                                {
+                                    break;
+                                }
+                                InjectErrorResponseRate = Random.Shared.Next(1, 20);
+                                var duration = TimeSpan.FromSeconds(Random.Shared.Next(10, 150));
+                                Console.WriteLine($"!!!!! Injecting random errors every {InjectErrorResponseRate} " +
+                                    $"responses for {duration.TotalMicroseconds} ms. !!!!!");
+                                _ = Task.Run(async () =>
+                                {
+                                    try
+                                    {
+                                        await Task.Delay(duration, ct).ConfigureAwait(false);
+                                    }
+                                    catch (OperationCanceledException) { }
+                                    InjectErrorResponseRate = 0;
+                                }, ct);
+                                break;
+                            default:
+                                var subscriptions = Subscriptions;
+                                if (subscriptions.Length == 0)
+                                {
+                                    break;
+                                }
+
+                                var subscription = subscriptions[Random.Shared.Next(0, subscriptions.Length)];
+                                var notify = Random.Shared.Next() % 2 == 0;
+                                Console.WriteLine($"!!!!! Closing subscription {subscription} (notify:{notify}). !!!!!");
+                                CloseSubscription(subscription, notify);
+                                break;
+                        }
                     }
+                }
+                catch (OperationCanceledException)
+                {
+                    // Nothing to do
                 }
             }
 
