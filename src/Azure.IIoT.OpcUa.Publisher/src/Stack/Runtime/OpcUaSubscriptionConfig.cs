@@ -27,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string DefaultDiscardNewKey = "DiscardNew";
         public const string DefaultSamplingIntervalKey = "DefaultSamplingInterval";
         public const string DefaultPublishingIntervalKey = "DefaultPublishingInterval";
-        public const string DefaultDataChangeTriggerKey = "DefaulDataChangeTrigger";
+        public const string DefaultDataChangeTriggerKey = "DefaultDataChangeTrigger";
         public const string FetchOpcNodeDisplayNameKey = "FetchOpcNodeDisplayName";
         public const string FetchOpcBrowsePathFromRootKey = "FetchOpcBrowsePathFromRoot";
         public const string DefaultQueueSizeKey = "DefaultQueueSize";
