@@ -60,7 +60,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             string? dumpMessages = null;
             string? dumpMessagesOutput = null;
             var scaleunits = 0u;
-            var errorResponseRate = 8;
+            var errorResponseRate = 0;
             var unknownArgs = new List<string>();
             try
             {
