@@ -137,7 +137,7 @@ foreach ($Repository in $BuildRepositories) {
     }
 
     if ($Repository -like "*/opc-plc") {
-        # do not break the opc plc releases
+        # do not touch/break the opc plc releases
         continue
     }
 

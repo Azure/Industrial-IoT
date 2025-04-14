@@ -69,7 +69,7 @@ foreach ($repository in $repositories) {
     }
     else {
         # use acr cli to purge dangling manifests per repo
-        $argumentList = @("run", "-it", "mcr.microsoft.com/acr/acr-cli:0.4", "purge"
+        $argumentList = @("run", "-it", "mcr.microsoft.com/acr/acr-cli:latest", "purge"
             "--password", $dockerPassword,
             "--username", $dockerUser,
             "--registry", $script:Registry,

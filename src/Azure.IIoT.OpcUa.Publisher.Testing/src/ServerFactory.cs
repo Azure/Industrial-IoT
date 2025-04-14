@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Reflection;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
@@ -93,6 +94,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
         {
             /// <inheritdoc/>
             public string PublishedNodesJson => _plc.GetPnJson();
+
+            /// <inheritdoc/>
+            public bool Chaos
+            {
+                get
+                {
+                    return _chaosMode != null;
+                }
+                set
+                {
+                    if (value)
+                    {
+                        if (_chaosMode == null)
+                        {
+                            _chaosCts = new CancellationTokenSource();
+                            _chaosMode = ChaosAsync(_chaosCts.Token);
+                        }
+                    }
+                    else if (_chaosMode != null)
+                    {
+                        _chaosCts.Cancel();
+                        _chaosMode.GetAwaiter().GetResult();
+                        _chaosCts.Dispose();
+                        _chaosMode = null;
+                        _chaosCts = null;
+                    }
+                }
+            }
+
+            /// <inheritdoc/>
+            public int InjectErrorResponseRate { get; set; }
 
             /// <summary>
             /// Create server
@@ -292,6 +324,66 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                         TraceMasks = 1
                     }
                 };
+            }
+
+            private NodeId[] Sessions => CurrentInstance.SessionManager
+                .GetSessions()
+                .Select(s => s.Id)
+                .ToArray();
+
+            /// <inheritdoc/>
+            public void CloseSessions(bool deleteSubscriptions = false)
+            {
+                foreach (var session in Sessions)
+                {
+                    CurrentInstance.CloseSession(null, session, deleteSubscriptions);
+                }
+            }
+
+            private uint[] Subscriptions => CurrentInstance.SubscriptionManager
+                .GetSubscriptions()
+                .Select(s => s.Id)
+                .ToArray();
+
+            /// <inheritdoc/>
+            public void CloseSubscriptions(bool notifyExpiration = false)
+            {
+                foreach (var subscription in Subscriptions)
+                {
+                    CloseSubscription(subscription, notifyExpiration);
+                }
+            }
+
+            /// <inheritdoc/>
+            public void CloseSubscription(uint subscriptionId, bool notifyExpiration)
+            {
+                if (notifyExpiration)
+                {
+                    NotifySubscriptionExpiration(subscriptionId);
+                }
+                CurrentInstance.DeleteSubscription(subscriptionId);
+            }
+
+            /// <inheritdoc/>
+            public void NotifySubscriptionExpiration(uint subscriptionId)
+            {
+                try
+                {
+                    var subscription = CurrentInstance.SubscriptionManager
+                        .GetSubscriptions()
+                        .FirstOrDefault(s => s.Id == subscriptionId);
+                    if (subscription != null)
+                    {
+                        var expireMethod = typeof(SubscriptionManager).GetMethod("SubscriptionExpired",
+                            BindingFlags.NonPublic | BindingFlags.Instance);
+                        expireMethod?.Invoke(
+                            CurrentInstance.SubscriptionManager, new object[] { subscription });
+                    }
+                }
+                catch
+                {
+                    // Nothing to do
+                }
             }
 
             /// <inheritdoc/>
@@ -663,6 +755,129 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                 }
             }
 
+            /// <summary>
+            /// Chaos monkey mode
+            /// </summary>
+            /// <param name="ct"></param>
+            /// <returns></returns>
+#pragma warning disable CA5394 // Do not use insecure randomness
+            private async Task ChaosAsync(CancellationToken ct)
+            {
+                try
+                {
+                    while (!ct.IsCancellationRequested)
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(Random.Shared.Next(10, 60)), ct).ConfigureAwait(false);
+                        Console.WriteLine("===================\nCHAOS MONKEY TIME\n===================");
+                        Console.WriteLine($"{Subscriptions.Length} subscriptions in {Sessions.Length} sessions!");
+                        switch (Random.Shared.Next(0, 16))
+                        {
+                            case 0:
+                                Console.WriteLine("!!!!! Closing all sessions and associated subscriptions. !!!!!!");
+                                CloseSessions(true);
+                                break;
+                            case 1:
+                                Console.WriteLine("!!!!! Closing all sessions. !!!!! ");
+                                CloseSessions(false);
+                                break;
+                            case 2:
+                                Console.WriteLine("!!!!! Notifying expiration and closing all subscriptions. !!!!! ");
+                                CloseSubscriptions(true);
+                                break;
+                            case 3:
+                                Console.WriteLine("!!!!! Closing all subscriptions. !!!!!");
+                                CloseSubscriptions(false);
+                                break;
+                            case > 3 and < 8:
+                                var sessions = Sessions;
+                                if (sessions.Length == 0)
+                                {
+                                    break;
+                                }
+
+                                var session = sessions[Random.Shared.Next(0, sessions.Length)];
+                                var delete = Random.Shared.Next() % 2 == 0;
+                                Console.WriteLine($"!!!!! Closing session {session} (delete subscriptions:{delete}). !!!!!");
+                                CurrentInstance.CloseSession(null, session, delete);
+                                break;
+                            case > 10 and < 13:
+                                if (InjectErrorResponseRate != 0)
+                                {
+                                    break;
+                                }
+                                InjectErrorResponseRate = Random.Shared.Next(1, 20);
+                                var duration = TimeSpan.FromSeconds(Random.Shared.Next(10, 150));
+                                Console.WriteLine($"!!!!! Injecting random errors every {InjectErrorResponseRate} " +
+                                    $"responses for {duration.TotalMicroseconds} ms. !!!!!");
+                                _ = Task.Run(async () =>
+                                {
+                                    try
+                                    {
+                                        await Task.Delay(duration, ct).ConfigureAwait(false);
+                                    }
+                                    catch (OperationCanceledException) { }
+                                    InjectErrorResponseRate = 0;
+                                }, ct);
+                                break;
+                            default:
+                                var subscriptions = Subscriptions;
+                                if (subscriptions.Length == 0)
+                                {
+                                    break;
+                                }
+
+                                var subscription = subscriptions[Random.Shared.Next(0, subscriptions.Length)];
+                                var notify = Random.Shared.Next() % 2 == 0;
+                                Console.WriteLine($"!!!!! Closing subscription {subscription} (notify:{notify}). !!!!!");
+                                CloseSubscription(subscription, notify);
+                                break;
+                        }
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    // Nothing to do
+                }
+            }
+
+            private static readonly StatusCode[] kStatusCodes =
+            {
+                StatusCodes.BadCertificateInvalid,
+                StatusCodes.BadAlreadyExists,
+                StatusCodes.BadNoSubscription,
+                StatusCodes.BadSecureChannelClosed,
+                StatusCodes.BadSessionClosed,
+                StatusCodes.BadSessionIdInvalid,
+                StatusCodes.BadSessionIdInvalid,
+                StatusCodes.BadSessionIdInvalid,
+                StatusCodes.BadSessionIdInvalid,
+                StatusCodes.BadSessionIdInvalid,
+                StatusCodes.BadSessionIdInvalid,
+                StatusCodes.BadSessionIdInvalid,
+                StatusCodes.BadSessionIdInvalid,
+                StatusCodes.BadConnectionClosed,
+                StatusCodes.BadServerHalted,
+                StatusCodes.BadNotConnected,
+                StatusCodes.BadNoCommunication,
+                StatusCodes.BadRequestInterrupted,
+                StatusCodes.BadRequestInterrupted,
+                StatusCodes.BadRequestInterrupted
+            };
+            protected override OperationContext ValidateRequest(RequestHeader requestHeader, RequestType requestType)
+            {
+                if (InjectErrorResponseRate != 0)
+                {
+                    var dice = Random.Shared.Next(0, kStatusCodes.Length * InjectErrorResponseRate);
+                    if (dice < kStatusCodes.Length)
+                    {
+                        Console.WriteLine("--------> Injecting error: {0}", kStatusCodes[dice]);
+                        throw new ServiceResultException(kStatusCodes[dice]);
+                    }
+                }
+                return base.ValidateRequest(requestHeader, requestType);
+            }
+#pragma warning restore CA5394 // Do not use insecure randomness
+
             private readonly ILogger _logger;
             private readonly bool _logStatus;
             private readonly IEnumerable<INodeManagerFactory> _nodes;
@@ -670,6 +885,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             private DateTime _lastEventTime;
             private CancellationTokenSource _cts;
             private ICertificateValidator _certificateValidator;
+            private CancellationTokenSource _chaosCts;
+            private Task _chaosMode;
 #pragma warning disable CA2213 // Disposable fields should be disposed
             private Plc.PlcNodeManager _plc;
 #pragma warning restore CA2213 // Disposable fields should be disposed

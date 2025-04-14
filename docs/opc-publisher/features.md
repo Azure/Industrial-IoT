@@ -7,7 +7,7 @@ The following table shows the supported features of OPC Publisher and planned fe
 | Feature | Sub Feature | 2.8 | 2.9 | Feature state |
 | ------- | ----------- |---- | --- | ------------- |
 | Uses latest .net reference stack ||X|X||
-| .net Version || .net 6 | .net 8 ||
+| .net Version || .net 6 | .net 9 ||
 | Secure channel transport and configuration ||X|X||
 | OPC UA HTTP transport and configuration ||-|-|#1997|
 | Secure channel over web socket transport and configuration ||-|-|#1997|
@@ -167,12 +167,14 @@ The following table shows the supported features of OPC Publisher and planned fe
 | | Configurable per writer group |-|X||
 | OPC UA Pub Sub message [encoding](./messageformats.md) |||||
 | | JSON Encoding |X|X||
-| | JSON Encoding per [Part 6](https://reference.opcfoundation.org/Core/Part6/v105/docs/) |-|X||
+| | [Non-Reversible](https://reference.opcfoundation.org/Core/Part6/v105/docs/) |-|X||
+| | [Reversible](https://reference.opcfoundation.org/Core/Part6/v105/docs/) |-|X||
+| | [Compact](https://reference.opcfoundation.org/Core/Part6/v105/docs/) |-|-||
+| | [Verbose](https://reference.opcfoundation.org/Core/Part6/v105/docs/) |-|-||
 | | GZIP JSON Encoding |-|X||
 | | JSON Schema publishing for JSON encoding |-|X|Experimental|
 | | UADP Binary encoding per [Part 14](https://reference.opcfoundation.org/Core/Part14/v105/docs/)|-|X|Preview|
 | | Avro and Avro+Gzip encoding with Schema publishing |-|X|Experimental|
-| | [Reversible Encoding](./messageformats.md#reversible-encoding) |-|X|Preview|
 | | [Samples JSON encoding](./messageformats.md#samples-mode-encoding-legacy) – Legacy |X|X|Deprecated|
 | | Samples Binary encoding – Legacy |X|-||
 | | Configurable per writer group |-|X||

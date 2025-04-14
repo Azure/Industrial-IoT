@@ -33,13 +33,12 @@ param(
     [string] $TenantId,
     [string] $SubscriptionId,
     [string] $Location,
-    [string] [ValidateSet("kind", "minikube", "k3d")] $ClusterType = "k3d",
+    [string] [ValidateSet("kind", "minikube", "k3d")] $ClusterType = "kind",
     [switch] $Force
 )
 
 $forceReinstall = $Force.IsPresent
 $forceReinstall = $true
-$TenantId = "6e54c408-5edd-4f87-b3bb-360788b7ca18"
 
 #Requires -RunAsAdministrator
 
@@ -160,8 +159,12 @@ if (-not $session) {
     Write-Host "Error: Login failed." -ForegroundColor Red
     exit -1
 }
-$SubscriptionId = $session.id
-$TenantId = $session.tenantId
+if ([string]::IsNullOrWhiteSpace($SubscriptionId)) {
+    $SubscriptionId = $session[0].id
+}
+if ([string]::IsNullOrWhiteSpace($TenantId)) {
+    $TenantId = $session[0].tenantId
+}
 
 #
 # Create the cluster
@@ -278,7 +281,7 @@ elseif ($ClusterType -eq "minikube") {
                 Restart-Computer -Force
             }
         }
-
+        Start-Sleep -Seconds 5
         & {minikube start -p $Name --cpus=4 --memory=4096 --nodes=4 --driver=hyperv}
         if ($LASTEXITCODE -ne 0) {
             Write-Host "Error creating minikube cluster - $errOut" -ForegroundColor Red
@@ -369,12 +372,12 @@ foreach ($rp in $resourceProviders) {
         continue
     }
     $errOut = $($retVal = & {az provider register -n `
-        $rp --subscription $SubscriptionId}) 2>&1
+        $rp --subscription $SubscriptionId --wait}) 2>&1
     if ($LASTEXITCODE -ne 0) {
         $retVal | Out-Host
         throw "Error registering provider $rp : $errOut"
     }
-    Write-Host "Resource provider $p registered." -ForegroundColor Green
+    Write-Host "Resource provider $rp registered." -ForegroundColor Green
 }
 
 $errOut = $($rg = & {az group show `
@@ -610,9 +613,22 @@ if (!$iotops) {
         --add-insecure-listener true `
         --only-show-errors
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "Error creating Azure IoT Operations instance - $errOut." `
-            -ForegroundColor Red
-        exit -1
+        az iot ops create `
+            --cluster $Name `
+            --resource-group $ResourceGroup `
+            --subscription $SubscriptionId `
+            --name $Name `
+            --location $Location `
+            --sr-resource-id $sr.id `
+            --kubernetes-distro $distro `
+            --enable-rsync true `
+            --add-insecure-listener true `
+            --only-show-errors
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "Error creating Azure IoT Operations instance - $errOut." `
+                -ForegroundColor Red
+            exit -1
+        }
     }
     Write-Host "Azure IoT Operations instance $Name created." `
         -ForegroundColor Green

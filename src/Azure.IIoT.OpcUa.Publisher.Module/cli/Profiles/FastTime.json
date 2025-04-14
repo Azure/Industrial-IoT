@@ -5,7 +5,7 @@
         "UseSecurity": true,
         "OpcNodes": [
             {
-                "Id": "ns=23;i=1259",
+                "Id": "ns=24;i=1259",
                 "OpcSamplingInterval": 10,
                 "QueueSize": 10
             },

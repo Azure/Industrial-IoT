@@ -92,14 +92,77 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public uint DesiredLifetimeCount
             => Template.LifetimeCount
             ?? _options.Value.DefaultLifeTimeCount
-            ?? Session?.DefaultSubscription?.LifetimeCount
-            ?? 0;
+            ?? DefaultLifetimeCount;
+
+        public uint DefaultLifetimeCount
+        {
+            get
+            {
+                var desiredPublishingInterval = DesiredPublishingInterval;
+                if (desiredPublishingInterval >= TimeSpan.FromSeconds(60))
+                {
+                    // If greater than a minute we request a lifetime count
+                    // of 2 (min 2 mins). That means we allow the subscription
+                    // to recover in another cycle. This could be faster than
+                    // when the publishing interval was set to 55 seconds.
+                    return 2;
+                }
+                else if (desiredPublishingInterval >= TimeSpan.FromSeconds(30))
+                {
+                    // If between 30 and 60 seconds, allow 3 times keep alive
+                    // interval (min 90 seconds, up to 3 minutes) until
+                    // we declare the subscription dead. This means the
+                    // subscription will take min 7.5 minutes, max 15 minutes
+                    // to get reset if it is defunct.
+                    return 3;
+                }
+                else if (desiredPublishingInterval >= TimeSpan.FromSeconds(5))
+                {
+                    // If between 5 and 60 seconds, allow 5 times keep alive
+                    // interval (min 10 seconds, up to 2 minutes) until
+                    // we declare the subscription dead. This means the
+                    // subscription will take min 50 seconds, max 10 minutes
+                    // to get reset if it is defunct.
+                    return 5;
+                }
+                else
+                {
+                    // Otherwise let the server decide the lifetime count
+                    return 0;
+                }
+            }
+        }
 
         public uint DesiredKeepAliveCount
             => Template.KeepAliveCount
             ?? _options.Value.DefaultKeepAliveCount
-            ?? Session?.DefaultSubscription?.KeepAliveCount
-            ?? 0;
+            ?? DefaultKeepAliveCount;
+
+        public uint DefaultKeepAliveCount
+        {
+            get
+            {
+                var desiredPublishingInterval = DesiredPublishingInterval;
+                if (desiredPublishingInterval >= TimeSpan.FromSeconds(60))
+                {
+                    // If greater than a minute we force a keep alive count of 1
+                    // We see this setting is used by users to get messages every
+                    // publishing interval duration, but then nothing recovers.
+                    return 1;
+                }
+                else if (desiredPublishingInterval >= TimeSpan.FromSeconds(5))
+                {
+                    // Limit the keep alive timeout to twice the publishing
+                    // interval (min 10 seconds, up to 2 minutes).
+                    return 2;
+                }
+                else
+                {
+                    // Otherwise let the server decide the keep alive count
+                    return 0;
+                }
+            }
+        }
 
         public TimeSpan DesiredPublishingInterval
             => Template.PublishingInterval
@@ -144,6 +207,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             => Template.ResolveBrowsePathFromRoot
             ?? _options.Value.FetchOpcBrowsePathFromRoot
             ?? false;
+
+        /// <summary>
+        /// Keep alive timeout
+        /// </summary>
+        internal TimeSpan KeepAliveTimeout => TimeSpan.FromMilliseconds(
+            (CurrentPublishingInterval * CurrentKeepAliveCount) + 1000);
 
         /// <summary>
         /// Subscription
@@ -2224,11 +2293,9 @@ Actual (revised) state/desired state:
                 _keepAliveWatcher.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
                 return;
             }
-
-            var keepAliveTimeout = TimeSpan.FromMilliseconds(
-                (CurrentPublishingInterval * (CurrentKeepAliveCount + 1)) + 1000);
             try
             {
+                var keepAliveTimeout = KeepAliveTimeout;
                 _keepAliveWatcher.Change(keepAliveTimeout, keepAliveTimeout);
             }
             catch (ArgumentOutOfRangeException)
@@ -2363,6 +2430,7 @@ Actual (revised) state/desired state:
                 case SubscriptionWatchdogBehavior.Reset:
                     ResetMonitoredItemWatchdogTimer(false);
                     _forceRecreate = true;
+                    _client.TriggerSubscriptionSynchronization(this);
                     break;
                 case SubscriptionWatchdogBehavior.FailFast:
                     Publisher.Runtime.FailFast(msg, null);
@@ -2431,7 +2499,7 @@ Actual (revised) state/desired state:
             if (e.Status.HasFlag(PublishStateChangedMask.Stopped) && !_publishingStopped)
             {
                 _logger.LogInformation("Subscription {Subscription} STOPPED!", this);
-                _keepAliveWatcher.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+                // ResetKeepAliveTimer(); // This will just prolong our suffering
                 ResetMonitoredItemWatchdogTimer(false);
                 _publishingStopped = true;
             }

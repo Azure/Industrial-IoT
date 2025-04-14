@@ -310,7 +310,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // We do not support recreation of sessions create a new session from scratch.
             // Then we add the desired subscriptions to the new session.
             //
-            if(connection != null)
+            if (connection != null)
             {
                 _logger.LogInformation(
                     "{Client}: RECREATE: Creating new session with new waiting connection.", this);
@@ -343,7 +343,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             else
             {
                 _logger.LogInformation("{Client}: RECREATE: Creating new session.", this);
-
             }
             return await CreateAsync(_configuration, sessionTemplate.ConfiguredEndpoint,
                 true, false, _sessionName, (uint)sessionTemplate.SessionTimeout, sessionTemplate.Identity,
@@ -921,9 +920,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                             Debug.Assert(_disconnectLock != null);
                                             Debug.Assert(_session == null);
 
-                                            if (!await TryConnectAsync(ct).ConfigureAwait(false))
+                                            if (!await TryConnectAsync(ct).ConfigureAwait(false) ||
+                                                !await TrySyncAsync(ct).ConfigureAwait(false))
                                             {
                                                 // Reschedule connecting
+                                                await CloseSessionAsync(false).ConfigureAwait(false);
                                                 Debug.Assert(reconnectPeriod != 0, "Reconnect period should not be 0.");
                                                 var retryDelay = TimeSpan.FromMilliseconds(
                                                     _reconnectHandler.CheckedReconnectPeriod(reconnectPeriod));
@@ -935,9 +936,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                             }
 
                                             Debug.Assert(_session != null);
-
-                                            // Sync subscriptions
-                                            await SyncAsync(ct).ConfigureAwait(false);
 
                                             // Allow access to session now
                                             Debug.Assert(_disconnectLock != null);
@@ -962,7 +960,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     await SyncAsync(subscriptionToSync, ct).ConfigureAwait(false);
                                     break;
                                 case ConnectionEvent.SubscriptionSyncAll:
-                                    await SyncAsync(ct).ConfigureAwait(false);
+                                    await TrySyncAsync(ct).ConfigureAwait(false);
                                     break;
                                 case ConnectionEvent.StartReconnect: // sent by the keep alive timeout path
                                     switch (currentSessionState)
@@ -1056,7 +1054,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                             reconnectPeriod = GetMinReconnectPeriod();
                                             currentSessionState = SessionState.Connected;
 
-                                            await SyncAsync(ct).ConfigureAwait(false);
+                                            if (!await TrySyncAsync(ct).ConfigureAwait(false))
+                                            {
+                                                TriggerReconnect(StatusCodes.BadNotConnected,
+                                                    "Failed to synchronize subscriptions after reconnect.");
+                                                break;
+                                            }
                                             NotifySubscriptions(_session, false);
                                             break;
 
@@ -1418,6 +1421,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 case StatusCodes.BadServerHalted:
                 case StatusCodes.BadNotConnected:
                 case StatusCodes.BadNoCommunication:
+                case StatusCodes.BadNoSubscription: // Never sent in current stack version
                     TriggerReconnect(e.Status, "Publish");
                     return;
                 default:

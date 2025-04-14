@@ -62,7 +62,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                 new Plc.PlcServer(new TimeService(), logger, 1),
                 new FileSystem.FileSystemServer(),
                 new Asset.AssetServer(logger),
-                new Isa95Jobs.Isa95JobControlServer(),
+                new Isa95Jobs.Isa95JobControlServer()
             })
         {
         }

@@ -4,7 +4,7 @@
         "UseSecurity": true,
         "OpcNodes": [
             {
-                "Id": "ns=23;i=1259",
+                "Id": "ns=24;i=1259",
                 "OpcSamplingInterval": 500,
                 "FetchDisplayName": true,
                 "RegisterNode": true,
