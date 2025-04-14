@@ -60,6 +60,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             string? dumpMessages = null;
             string? dumpMessagesOutput = null;
             var scaleunits = 0u;
+            var errorResponseRate = 8;
             var unknownArgs = new List<string>();
             try
             {
@@ -67,6 +68,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 {
                     switch (args[i])
                     {
+                        case "--error-rate":
+                            i++;
+                            if (i < args.Length && int.TryParse(args[i], out var rate))
+                            {
+                                errorResponseRate = rate;
+                                break;
+                            }
+                            throw new ArgumentException("Missing argument for --error-rate");
                         case "--dump-profiles":
                             Console.WriteLine();
                             Console.WriteLine();
@@ -256,8 +265,8 @@ Options:
                 if (dumpMessages != null)
                 {
                     hostingTask = DumpMessagesAsync(dumpMessages, publishProfile, publishInitProfile,
-                        loggerFactory, TimeSpan.FromMinutes(2), scaleunits, dumpMessagesOutput, args,
-                        cts.Token);
+                        loggerFactory, TimeSpan.FromMinutes(2), scaleunits, errorResponseRate,
+                        dumpMessagesOutput, args, cts.Token);
                 }
                 else if (!withServer)
                 {
@@ -284,7 +293,7 @@ Options:
                 {
                     hostingTask = WithServerAsync(connectionString, loggerFactory, deviceId,
                         moduleId, args, publishProfile, publishInitProfile, scaleunits,
-                        !checkTrust, reverseConnectPort, cts.Token);
+                        errorResponseRate, !checkTrust, reverseConnectPort, cts.Token);
                 }
 
                 while (!cts.Token.IsCancellationRequested)
@@ -463,16 +472,17 @@ Options:
         /// <param name="publishProfile"></param>
         /// <param name="publishInitProfile"></param>
         /// <param name="scaleunits"></param>
+        /// <param name="errorRate"></param>
         /// <param name="acceptAll"></param>
         /// <param name="reverseConnectPort"></param>
         /// <param name="ct"></param>
         private static async Task WithServerAsync(string? connectionString, ILoggerFactory loggerFactory,
             string deviceId, string moduleId, string[] args, string? publishProfile, string? publishInitProfile,
-            uint scaleunits, bool acceptAll, int? reverseConnectPort, CancellationToken ct)
+            uint scaleunits, int errorRate, bool acceptAll, int? reverseConnectPort, CancellationToken ct)
         {
             try
             {
-                using var server = new ServerWrapper(scaleunits, loggerFactory, reverseConnectPort);
+                using var server = new ServerWrapper(scaleunits, errorRate, loggerFactory, reverseConnectPort);
                 // Start test server
                 var endpointUrl = $"opc.tcp://localhost:{server.Port}/UA/SampleServer";
 
@@ -504,13 +514,14 @@ Options:
         /// <param name="loggerFactory"></param>
         /// <param name="duration"></param>
         /// <param name="scaleunits"></param>
+        /// <param name="errorRate"></param>
         /// <param name="dumpMessagesOutput"></param>
         /// <param name="args"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         private static async Task DumpMessagesAsync(string messageMode, string? publishProfile,
             string? publishInitProfile, ILoggerFactory loggerFactory, TimeSpan duration,
-            uint scaleunits, string? dumpMessagesOutput, string[] args, CancellationToken ct)
+            uint scaleunits, int errorRate, string? dumpMessagesOutput, string[] args, CancellationToken ct)
         {
             try
             {
@@ -598,17 +609,17 @@ Options:
                     var name = Path.GetFileNameWithoutExtension(publishProfile);
                     Console.Title = $"Dumping {messageProfile} for {name}...";
                     await RunAsync(loggerFactory, publishProfile, messageProfile,
-                        outputFolder, scaleunits, args, publishInitProfile, linkedToken.Token).ConfigureAwait(false);
+                        outputFolder, scaleunits, errorRate, args, publishInitProfile, linkedToken.Token).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException) when (runtime.IsCancellationRequested) { }
             }
 
             static async Task RunAsync(ILoggerFactory loggerFactory, string publishProfile,
-                MessagingProfile messageProfile, string outputFolder, uint scaleunits, string[] args,
+                MessagingProfile messageProfile, string outputFolder, uint scaleunits, int errorRate, string[] args,
                 string? publishInitProfile, CancellationToken ct)
             {
                 // Start test server
-                using var server = new ServerWrapper(scaleunits, loggerFactory, null);
+                using var server = new ServerWrapper(scaleunits, errorRate, loggerFactory, null);
                 var name = Path.GetFileNameWithoutExtension(publishProfile);
                 var endpointUrl = $"opc.tcp://localhost:{server.Port}/UA/SampleServer";
 
@@ -781,12 +792,13 @@ Options:
             /// Create wrapper
             /// </summary>
             /// <param name="scaleunits"></param>
+            /// <param name="errorRate"></param>
             /// <param name="logger"></param>
             /// <param name="reverseConnectPort"></param>
-            public ServerWrapper(uint scaleunits, ILoggerFactory logger, int? reverseConnectPort)
+            public ServerWrapper(uint scaleunits, int errorRate, ILoggerFactory logger, int? reverseConnectPort)
             {
                 _cts = new CancellationTokenSource();
-                _server = RunSampleServerAsync(scaleunits, logger, Port, reverseConnectPort, _cts.Token);
+                _server = RunSampleServerAsync(scaleunits, errorRate, logger, Port, reverseConnectPort, _cts.Token);
             }
 
             /// <inheritdoc/>
@@ -801,11 +813,12 @@ Options:
             /// Run server until cancelled
             /// </summary>
             /// <param name="scaleunits"></param>
+            /// <param name="errorRate"></param>
             /// <param name="loggerFactory"></param>
             /// <param name="port"></param>
             /// <param name="reverseConnectPort"></param>
             /// <param name="ct"></param>
-            private async Task RunSampleServerAsync(uint scaleunits,
+            private async Task RunSampleServerAsync(uint scaleunits, int errorRate,
                 ILoggerFactory loggerFactory, int port, int? reverseConnectPort, CancellationToken ct)
             {
                 var logger = loggerFactory.CreateLogger<ServerWrapper>();
@@ -827,6 +840,7 @@ Options:
                         {
                             logger.LogInformation("(Re-)Starting server...");
                             await server.StartAsync(new List<int> { port }).ConfigureAwait(false);
+                            server.TestServer.InjectErrorResponseRate = errorRate;
                             Server.SetResult(server.TestServer);
                             ServerControl = server.TestServer;
                             logger.LogInformation("Server (re-)started (Press S to kill).");

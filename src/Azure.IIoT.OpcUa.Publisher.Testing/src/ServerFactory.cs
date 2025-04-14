@@ -123,6 +123,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                 }
             }
 
+            /// <inheritdoc/>
+            public int InjectErrorResponseRate { get; set; }
+
             /// <summary>
             /// Create server
             /// </summary>
@@ -323,7 +326,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                 };
             }
 
-            private NodeId[] Sessions => CurrentInstance.SessionManager.GetSessions().Select(s => s.Id).ToArray();
+            private NodeId[] Sessions => CurrentInstance.SessionManager
+                .GetSessions()
+                .Select(s => s.Id)
+                .ToArray();
 
             /// <inheritdoc/>
             public void CloseSessions(bool deleteSubscriptions = false)
@@ -334,7 +340,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                 }
             }
 
-            private uint[] Subscriptions => CurrentInstance.SubscriptionManager.GetSubscriptions().Select(s => s.Id).ToArray();
+            private uint[] Subscriptions => CurrentInstance.SubscriptionManager
+                .GetSubscriptions()
+                .Select(s => s.Id)
+                .ToArray();
+
 
             /// <inheritdoc/>
             public void CloseSubscriptions(bool notifyExpiration = false)
@@ -360,14 +370,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             {
                 try
                 {
-                    var subscription = CurrentInstance.SubscriptionManager.GetSubscriptions().FirstOrDefault(s => s.Id == subscriptionId);
+                    var subscription = CurrentInstance.SubscriptionManager
+                        .GetSubscriptions()
+                        .FirstOrDefault(s => s.Id == subscriptionId);
                     if (subscription != null)
                     {
                         var expireMethod = typeof(SubscriptionManager).GetMethod("SubscriptionExpired",
                             BindingFlags.NonPublic | BindingFlags.Instance);
                         if (expireMethod != null)
                         {
-                            expireMethod.Invoke(CurrentInstance.SubscriptionManager, new object[] { subscription });
+                            expireMethod.Invoke(CurrentInstance.SubscriptionManager,
+                                new object[] { subscription });
                         }
                     }
                 }
@@ -746,6 +759,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                 }
             }
 
+            /// <summary>
+            /// Chaos monkey mode
+            /// </summary>
+            /// <param name="ct"></param>
+            /// <returns></returns>
             private async Task ChaosAsync(CancellationToken ct)
             {
                 while (!ct.IsCancellationRequested)
@@ -774,16 +792,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                         case > 3 and < 8:
                             var sessions = Sessions;
                             if (sessions.Length == 0)
+                            {
                                 break;
+                            }
+
                             var session = sessions[Random.Shared.Next(0, sessions.Length)];
                             var delete = Random.Shared.Next() % 2 == 0;
                             Console.WriteLine($"!!!!! Closing session {session} (delete subscriptions:{delete}). !!!!!");
                             CurrentInstance.CloseSession(null, session, delete);
                             break;
+                        case 8:
+                            // Inject random errors for several minutes
+                            if (InjectErrorResponseRate != 0)
+                            {
+                                break;
+                            }
+                            Console.WriteLine("!!!!! Injecting random errors. !!!!!");
+                            try
+                            {
+                                InjectErrorResponseRate = Random.Shared.Next(1, 180);
+                                await Task.Delay(TimeSpan.FromSeconds(Random.Shared.Next(10, 180)),
+                                    ct).ConfigureAwait(false);
+                            }
+                            finally
+                            {
+                                InjectErrorResponseRate = 0;
+                            }
+                            break;
                         default:
                             var subscriptions = Subscriptions;
                             if (subscriptions.Length == 0)
+                            {
                                 break;
+                            }
+
                             var subscription = subscriptions[Random.Shared.Next(0, subscriptions.Length)];
                             var notify = Random.Shared.Next() % 2 == 0;
                             Console.WriteLine($"!!!!! Closing subscription {subscription} (notify:{notify}). !!!!!");
@@ -791,6 +833,43 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                             break;
                     }
                 }
+            }
+
+            private static readonly StatusCode[] kStatusCodes =
+            {
+                StatusCodes.BadCertificateInvalid,
+                StatusCodes.BadAlreadyExists,
+                StatusCodes.BadNoSubscription,
+                StatusCodes.BadSecureChannelClosed,
+                StatusCodes.BadSessionClosed,
+                StatusCodes.BadSessionIdInvalid,
+                StatusCodes.BadSessionIdInvalid,
+                StatusCodes.BadSessionIdInvalid,
+                StatusCodes.BadSessionIdInvalid,
+                StatusCodes.BadSessionIdInvalid,
+                StatusCodes.BadSessionIdInvalid,
+                StatusCodes.BadSessionIdInvalid,
+                StatusCodes.BadSessionIdInvalid,
+                StatusCodes.BadConnectionClosed,
+                StatusCodes.BadServerHalted,
+                StatusCodes.BadNotConnected,
+                StatusCodes.BadNoCommunication,
+                StatusCodes.BadRequestInterrupted,
+                StatusCodes.BadRequestInterrupted,
+                StatusCodes.BadRequestInterrupted
+            };
+            protected override OperationContext ValidateRequest(RequestHeader requestHeader, RequestType requestType)
+            {
+                if (InjectErrorResponseRate != 0)
+                {
+                    var dice = Random.Shared.Next(0, kStatusCodes.Length * InjectErrorResponseRate);
+                    if (dice < kStatusCodes.Length)
+                    {
+                        Console.WriteLine("--------> Injecting error: {0}", kStatusCodes[dice]);
+                        throw new ServiceResultException(kStatusCodes[dice]);
+                    }
+                }
+                return base.ValidateRequest(requestHeader, requestType);
             }
 
             private readonly ILogger _logger;
