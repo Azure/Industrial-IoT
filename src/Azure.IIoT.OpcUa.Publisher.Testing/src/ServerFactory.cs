@@ -771,7 +771,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                     await Task.Delay(TimeSpan.FromSeconds(Random.Shared.Next(10, 60)), ct).ConfigureAwait(false);
                     Console.WriteLine("===================\nCHAOS MONKEY TIME\n===================");
                     Console.WriteLine($"{Subscriptions.Length} subscriptions in {Sessions.Length} sessions!");
-                    switch (Random.Shared.Next(0, 12))
+                    switch (Random.Shared.Next(0, 16))
                     {
                         case 0:
                             Console.WriteLine("!!!!! Closing all sessions and associated subscriptions. !!!!!!");
@@ -801,7 +801,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                             Console.WriteLine($"!!!!! Closing session {session} (delete subscriptions:{delete}). !!!!!");
                             CurrentInstance.CloseSession(null, session, delete);
                             break;
-                        case 8:
+                        case > 10 and < 13:
                             // Inject random errors for several minutes
                             if (InjectErrorResponseRate != 0)
                             {
