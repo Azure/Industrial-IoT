@@ -27,9 +27,9 @@
     <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.11.2" />
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.11.1" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.11.1" />
-    <PackageReference Include="Furly.Extensions.AspNetCore" Version="1.1.4" />
-    <PackageReference Include="Furly.Extensions.MessagePack" Version="1.1.4" />
-    <PackageReference Include="Furly.Azure.KeyVault" Version="1.1.4" />
+    <PackageReference Include="Furly.Extensions.AspNetCore" Version="1.1.5" />
+    <PackageReference Include="Furly.Extensions.MessagePack" Version="1.1.5" />
+    <PackageReference Include="Furly.Azure.KeyVault" Version="1.1.5" />
     <PackageReference Include="Azure.Identity" Version="1.13.2" />
     <PackageReference Include="Azure.Core" Version="1.45.0" />
     <PackageReference Include="Nito.AsyncEx" Version="5.1.2" />

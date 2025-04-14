@@ -802,22 +802,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                             CurrentInstance.CloseSession(null, session, delete);
                             break;
                         case > 10 and < 13:
-                            // Inject random errors for several minutes
                             if (InjectErrorResponseRate != 0)
                             {
                                 break;
                             }
-                            Console.WriteLine("!!!!! Injecting random errors. !!!!!");
-                            try
+                            InjectErrorResponseRate = Random.Shared.Next(1, 20);
+                            var duration = TimeSpan.FromSeconds(Random.Shared.Next(10, 150));
+                            Console.WriteLine($"!!!!! Injecting random errors every {InjectErrorResponseRate} " +
+                                $"responses for {duration.TotalMicroseconds} ms. !!!!!");
+                            _ = Task.Run(async () =>
                             {
-                                InjectErrorResponseRate = Random.Shared.Next(1, 180);
-                                await Task.Delay(TimeSpan.FromSeconds(Random.Shared.Next(10, 180)),
-                                    ct).ConfigureAwait(false);
-                            }
-                            finally
-                            {
+                                try
+                                {
+                                    await Task.Delay(duration, ct).ConfigureAwait(false);
+                                }
+                                catch (OperationCanceledException) { }
                                 InjectErrorResponseRate = 0;
-                            }
+                            }, ct);
                             break;
                         default:
                             var subscriptions = Subscriptions;
