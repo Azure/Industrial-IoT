@@ -2,6 +2,8 @@
 
 ## Table Of Contents <!-- omit in toc -->
 
+- [Azure Industrial IoT OPC Publisher 2.9.13](#azure-industrial-iot-opc-publisher-2913)
+  - [Changes in 2.9.13](#changes-in-2913)
 - [Azure Industrial IoT OPC Publisher 2.9.12](#azure-industrial-iot-opc-publisher-2912)
   - [Significant changes made in 2.9.12](#significant-changes-made-in-2912)
   - [Other changes in 2.9.12](#other-changes-in-2912)
@@ -58,9 +60,22 @@
 - [Azure Industrial IoT Platform Release 2.8.1](#azure-industrial-iot-platform-release-281)
 - [Azure Industrial IoT Platform Release 2.8](#azure-industrial-iot-platform-release-28)
 
+## Azure Industrial IoT OPC Publisher 2.9.13
+
+We are pleased to announce the release of version 2.9.13 of OPC Publisher and the companion web api service. This monthly patch release comes with several bug and security fixes and is the latest supported release. Older releases below are no longer supported.
+
+### Changes in 2.9.13
+
+- Resiliency fixes based on new manual chaos testing.
+  - Recover a dead subscription that is missing keep alive results for the configured keep alive and life time count.
+  - Recover sessions that fail to be established due to various errors including session closed unexpectedly in server.
+- Fix typo in DefaultDataChangeTrigger environment variable name (breaking change) (#2393)
+- Events with arrays of complex data types are not encoded at all (#2381)
+- Updates to all dependencies (.net 9.0.4 and OPC UA stack)
+
 ## Azure Industrial IoT OPC Publisher 2.9.12
 
-We are pleased to announce the release of version 2.9.11 of OPC Publisher and the companion web api service. This monthly patch release comes with several bug and security fixes and is the latest supported release. Older releases below are no longer supported.
+We are pleased to announce the release of version 2.9.12 of OPC Publisher and the companion web api service. This monthly patch release comes with several bug and security fixes and is the latest supported release. Older releases below are no longer supported.
 
 ### Significant changes made in 2.9.12
 
