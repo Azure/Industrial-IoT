@@ -19,7 +19,7 @@ Secrets such as `EdgeHubConnectionString`, other connection strings, or the `Api
 ██║   ██║██╔═══╝ ██║         ██╔═══╝ ██║   ██║██╔══██╗██║     ██║╚════██║██╔══██║██╔══╝  ██╔══██╗
 ╚██████╔╝██║     ╚██████╗    ██║     ╚██████╔╝██████╔╝███████╗██║███████║██║  ██║███████╗██║  ██║
  ╚═════╝ ╚═╝      ╚═════╝    ╚═╝      ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-                                                 2.9.12 (.NET 8.0.8/win-x64/OPC Stack 1.5.374.78)
+                                2.9.13-rc.6+653ce4c709 (.NET 9.0.4/win-x64/OPC Stack 1.5.375.457)
 General
 -------
 
@@ -593,13 +593,15 @@ Subscription settings
                              Specifies the default number of publishing
                                intervals before a keep alive is returned with
                                the next queued publishing response.
-                               Default: `0`.
+                               Default: `auto set based on publishing interval`.
+
       --slt, --lifetimecount, --DefaultLifetimeCount=VALUE
                              Default subscription lifetime count which is a
                                multiple of the keep alive counter and when
                                reached instructs the server to declare the
                                subscription invalid.
-                               Default: `0`.
+                               Default: `auto set based on publishing interval`.
+
       --fd, --fetchdisplayname, --FetchOpcNodeDisplayName[=VALUE]
                              Fetches the displayname for the monitored items
                                subscribed if a display name was not specified
@@ -633,7 +635,7 @@ Subscription settings
                                new values are dropped before older ones are
                                drained.
                                Default: `false` (which is the OPC UA default).
-      --mc, --monitoreditemdatachangetrigger, --DefaulDataChangeTrigger=VALUE
+      --mc, --monitoreditemdatachangetrigger, --DefaultDataChangeTrigger=VALUE
                              Default data change trigger for all monitored
                                items configured in the published nodes
                                configuration unless explicitly overridden.
