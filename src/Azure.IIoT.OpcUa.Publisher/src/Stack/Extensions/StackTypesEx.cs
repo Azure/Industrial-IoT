@@ -644,7 +644,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             }
             if ((mask & DataSetMessageContentFlags.ReversibleFieldEncoding) != 0)
             {
-                result |= JsonDataSetMessageContentMask.ReversibleFieldEncoding;
+                result |= JsonDataSetMessageContentMask.FieldEncoding1;
             }
 
             if (fieldMask != null)

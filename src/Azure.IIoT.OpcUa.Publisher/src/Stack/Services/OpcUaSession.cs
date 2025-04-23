@@ -812,7 +812,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         DisabledMonitoredItemCount = diag.DisabledMonitoredItemCount,
                         MonitoringQueueOverflowCount = diag.MonitoringQueueOverflowCount,
                         NextSequenceNumber = diag.NextSequenceNumber,
-                        EventQueueOverFlowCount = diag.EventQueueOverFlowCount
+                        EventQueueOverFlowCount = diag.EventQueueOverflowCount
                     })
                     .ToList();
             }

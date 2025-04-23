@@ -253,6 +253,7 @@ namespace MemoryBuffer
         /// <param name="diagnosticsMasks"></param>
         /// <param name="timestampsToReturn"></param>
         /// <param name="itemToCreate"></param>
+        /// <param name="createDurable"></param>
         /// <param name="globalIdCounter"></param>
         /// <param name="filterError"></param>
         /// <param name="monitoredItem"></param>
@@ -267,6 +268,7 @@ namespace MemoryBuffer
             DiagnosticsMasks diagnosticsMasks,
             TimestampsToReturn timestampsToReturn,
             MonitoredItemCreateRequest itemToCreate,
+            bool createDurable,
             ref long globalIdCounter,
             out MonitoringFilterResult filterError,
             out IMonitoredItem monitoredItem)
@@ -285,6 +287,7 @@ namespace MemoryBuffer
                     diagnosticsMasks,
                     timestampsToReturn,
                     itemToCreate,
+                    createDurable,
                     ref globalIdCounter,
                     out filterError,
                     out monitoredItem);

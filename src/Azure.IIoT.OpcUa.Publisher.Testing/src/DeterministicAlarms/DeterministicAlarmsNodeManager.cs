@@ -278,6 +278,7 @@ namespace DeterministicAlarms
             IList<ServiceResult> errors,
             IList<MonitoringFilterResult> filterErrors,
             IList<IMonitoredItem> monitoredItems,
+            bool createDurable,
             ref long globalIdCounter)
         {
             var systemContext = _defaultSystemContext.Copy(context);
@@ -353,6 +354,7 @@ namespace DeterministicAlarms
                         context.DiagnosticsMask,
                         timestampsToReturn,
                         itemToCreate,
+                        false,
                         ref globalIdCounter,
                         out filterResult,
                         out monitoredItem);
