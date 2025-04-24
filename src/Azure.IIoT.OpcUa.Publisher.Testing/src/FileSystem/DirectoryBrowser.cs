@@ -67,7 +67,7 @@ namespace FileSystem
 
                 if (_stage == Stage.Begin)
                 {
-                    _directories = [.. System.IO.Directory.GetDirectories(_source.FullPath)];
+                    _directories = [.. Directory.GetDirectories(_source.FullPath)];
                     _stage = Stage.Directories;
                 }
 
@@ -81,7 +81,7 @@ namespace FileSystem
                         return reference;
                     }
 
-                    _files = [.. System.IO.Directory.GetFiles(_source.FullPath)];
+                    _files = [.. Directory.GetFiles(_source.FullPath)];
                     _stage = Stage.Files;
                 }
 

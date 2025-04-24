@@ -379,7 +379,7 @@ namespace Asset
             td.Name = parent.BrowseName.Name;
 
             var newNamespace = "http://opcfoundation.org/UA/" + td.Name + "/";
-            List<string> namespaceUris = new(NamespaceUris);
+            List<string> namespaceUris = [.. NamespaceUris];
             if (!namespaceUris.Contains(newNamespace))
             {
                 namespaceUris.Add(newNamespace);

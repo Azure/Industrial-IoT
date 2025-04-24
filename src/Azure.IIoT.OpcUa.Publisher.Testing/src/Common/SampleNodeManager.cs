@@ -57,9 +57,9 @@ namespace Opc.Ua.Sample
             SystemContext.NodeIdFactory = this;
 
             // create the table of nodes.
-            PredefinedNodes = new NodeIdDictionary<NodeState>();
-            RootNotifiers = new List<NodeState>();
-            _sampledItems = new List<DataChangeMonitoredItem>();
+            PredefinedNodes = [];
+            RootNotifiers = [];
+            _sampledItems = [];
             _minimumSamplingInterval = 100;
         }
 
@@ -301,11 +301,11 @@ namespace Opc.Ua.Sample
             {
                 if (value != null)
                 {
-                    _namespaceUris = new List<string>(value);
+                    _namespaceUris = [.. value];
                 }
                 else
                 {
-                    _namespaceUris = new List<string>();
+                    _namespaceUris = [];
                 }
 
                 _namespaceIndexes = new ushort[_namespaceUris.Count];
@@ -368,7 +368,7 @@ namespace Opc.Ua.Sample
         /// <param name="context"></param>
         protected virtual NodeStateCollection LoadPredefinedNodes(ISystemContext context)
         {
-            return new NodeStateCollection();
+            return [];
         }
 
         /// <summary>
@@ -400,7 +400,7 @@ namespace Opc.Ua.Sample
         /// <param name="predefinedNode"></param>
         protected virtual NodeState AddBehaviourToPredefinedNode(ISystemContext context, NodeState predefinedNode)
         {
-            if (predefinedNode is not BaseObjectState passiveNode)
+            if (predefinedNode is not BaseObjectState)
             {
                 return predefinedNode;
             }
@@ -516,7 +516,7 @@ namespace Opc.Ua.Sample
         {
             for (var ii = 0; ii < RootNotifiers.Count; ii++)
             {
-                if (Object.ReferenceEquals(notifier, RootNotifiers[ii]))
+                if (ReferenceEquals(notifier, RootNotifiers[ii]))
                 {
                     return;
                 }
@@ -551,7 +551,7 @@ namespace Opc.Ua.Sample
         {
             for (var ii = 0; ii < RootNotifiers.Count; ii++)
             {
-                if (Object.ReferenceEquals(notifier, RootNotifiers[ii]))
+                if (ReferenceEquals(notifier, RootNotifiers[ii]))
                 {
                     RootNotifiers.RemoveAt(ii);
                     break;
@@ -663,7 +663,7 @@ namespace Opc.Ua.Sample
 
             if (!externalReferences.TryGetValue(sourceId, out referencesToAdd))
             {
-                externalReferences[sourceId] = referencesToAdd = new List<IReference>();
+                externalReferences[sourceId] = referencesToAdd = [];
             }
 
             // add reserve reference from external node.
@@ -2742,7 +2742,7 @@ namespace Opc.Ua.Sample
                 }
 
                 initialValue.StatusCode = error.StatusCode;
-                error = ServiceResult.Good;
+                _ = ServiceResult.Good;
             }
 
             // validate parameters.
@@ -2866,10 +2866,7 @@ namespace Opc.Ua.Sample
         {
             _sampledItems.Add(monitoredItem);
 
-            if (_samplingTimer == null)
-            {
-                _samplingTimer = new Timer(DoSample, null, (int)_minimumSamplingInterval, (int)_minimumSamplingInterval);
-            }
+            _samplingTimer ??= new Timer(DoSample, null, (int)_minimumSamplingInterval, (int)_minimumSamplingInterval);
         }
 
         /// <summary>
@@ -2880,7 +2877,7 @@ namespace Opc.Ua.Sample
         {
             for (var ii = 0; ii < _sampledItems.Count; ii++)
             {
-                if (Object.ReferenceEquals(monitoredItem, _sampledItems[ii]))
+                if (ReferenceEquals(monitoredItem, _sampledItems[ii]))
                 {
                     _sampledItems.RemoveAt(ii);
                     break;
@@ -3062,7 +3059,7 @@ namespace Opc.Ua.Sample
             }
 
             // modify the monitored item parameters.
-            error = datachangeItem.Modify(
+            _ = datachangeItem.Modify(
                 diagnosticsMasks,
                 timestampsToReturn,
                 itemToModify.RequestedParameters.ClientHandle,
@@ -3169,7 +3166,7 @@ namespace Opc.Ua.Sample
             processed = true;
 
             // get the  source.
-            var source = monitoredNode.Node;
+            _ = monitoredNode.Node;
 
             // check for valid monitored item.
             var datachangeItem = monitoredItem as DataChangeMonitoredItem;

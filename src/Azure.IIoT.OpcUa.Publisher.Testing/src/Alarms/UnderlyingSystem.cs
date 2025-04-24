@@ -202,7 +202,7 @@ namespace Alarms
                 lock (_lock)
                 {
                     _simulationCounter++;
-                    sources = new List<UnderlyingSystemSource>(_sources.Values);
+                    sources = [.. _sources.Values];
                 }
 
                 // run simulation for each source.

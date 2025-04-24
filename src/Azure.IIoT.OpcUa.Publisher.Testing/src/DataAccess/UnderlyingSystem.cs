@@ -277,7 +277,7 @@ namespace DataAccess
                 }
 
                 // return list.
-                return new List<UnderlyingSystemSegment>(segments.Values);
+                return [.. segments.Values];
             }
         }
 
@@ -605,7 +605,7 @@ namespace DataAccess
                 lock (_lock)
                 {
                     _simulationCounter++;
-                    blocks = new List<UnderlyingSystemBlock>(_blocks.Values);
+                    blocks = [.. _blocks.Values];
                 }
 
                 // run simulation for each block.

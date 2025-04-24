@@ -30,6 +30,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using Opc.Ua.Server;
 
 namespace Opc.Ua.Sample
@@ -350,10 +351,7 @@ namespace Opc.Ua.Sample
                 // update the queue size.
                 if (queueSize > 1)
                 {
-                    if (_queue == null)
-                    {
-                        _queue = new DataChangeQueueHandler(Id, false, _monitoredItemQueueFactory);
-                    }
+                    _queue ??= new DataChangeQueueHandler(Id, false, _monitoredItemQueueFactory);
 
                     _queue.SetQueueSize(queueSize, discardOldest, diagnosticsMasks);
                     _queue.SetSamplingInterval(samplingInterval);
@@ -642,7 +640,7 @@ namespace Opc.Ua.Sample
             {
                 // check if value has changed.
                 if (!AlwaysReportUpdates && !ignoreFilters &&
-                    !Opc.Ua.Server.MonitoredItem.ValueChanged(value, error, _lastValue, _lastError, DataChangeFilter, _range))
+                    !MonitoredItem.ValueChanged(value, error, _lastValue, _lastError, DataChangeFilter, _range))
                 {
                     return;
                 }
@@ -650,7 +648,7 @@ namespace Opc.Ua.Sample
                 // make a shallow copy of the value.
                 if (value != null)
                 {
-                    var copy = new DataValue
+                    value = new DataValue
                     {
                         WrappedValue = value.WrappedValue,
                         StatusCode = value.StatusCode,
@@ -659,8 +657,6 @@ namespace Opc.Ua.Sample
                         ServerTimestamp = value.ServerTimestamp,
                         ServerPicoseconds = value.ServerPicoseconds
                     };
-
-                    value = copy;
 
                     // ensure the data value matches the error status code.
                     if (error != null && error.StatusCode.Code != 0)
@@ -882,7 +878,7 @@ namespace Opc.Ua.Sample
 
                 if (error != null)
                 {
-                    error = new ServiceResult(
+                    _ = new ServiceResult(
                         error.StatusCode.SetStructureChanged(true),
                         error.SymbolicId,
                         error.NamespaceUri,
@@ -930,7 +926,7 @@ namespace Opc.Ua.Sample
             //only durable queues need to be disposed
         }
 
-        private readonly object _lock = new object();
+        private readonly Lock _lock = new();
         private readonly IMonitoredItemQueueFactory _monitoredItemQueueFactory;
         private readonly MonitoredNode _source;
         private DataValue _lastValue;

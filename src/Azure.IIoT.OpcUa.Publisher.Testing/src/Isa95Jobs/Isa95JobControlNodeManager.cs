@@ -227,8 +227,8 @@ namespace Isa95Jobs
                     JobResponseID = Guid.NewGuid().ToString(),
                     StartTime = startTime,
                     EndTime = endTime,
-                    EquipmentActuals = new ISA95EquipmentDataTypeCollection
-                        {
+                    EquipmentActuals =
+                        [
                             new ISA95EquipmentDataType
                             {
                                 EncodingMask = ISA95EquipmentDataTypeFields.EquipmentUse | ISA95EquipmentDataTypeFields.EngineeringUnits| ISA95EquipmentDataTypeFields.Quantity,
@@ -243,9 +243,9 @@ namespace Isa95Jobs
                                 EquipmentUse = "consumable",
                                 Quantity = "3"
                             }
-                        },
-                    MaterialActuals = new ISA95MaterialDataTypeCollection
-                        {
+                        ],
+                    MaterialActuals =
+                        [
                             new ISA95MaterialDataType
                             {
                                 EncodingMask = ISA95MaterialDataTypeFields.MaterialClassID | ISA95MaterialDataTypeFields.MaterialUse | ISA95MaterialDataTypeFields.Quantity,
@@ -260,7 +260,7 @@ namespace Isa95Jobs
                                 MaterialUse = "consumable",
                                 Quantity = "2"
                             }
-                        }
+                        ]
                 };
                 e.SetChildValue(SystemContext, new QualifiedName(UAModel.ISA95_JOBCONTROL_V2.BrowseNames.JobResponse, NamespaceIndex), response, false);
 
@@ -270,8 +270,8 @@ namespace Isa95Jobs
                     {
                         EncodingMask = ISA95JobOrderDataTypeFields.None,
                         JobOrderID = _jobId.ToString(),
-                        EquipmentRequirements = new ISA95EquipmentDataTypeCollection
-                            {
+                        EquipmentRequirements =
+                            [
                                 new ISA95EquipmentDataType
                                 {
                                     EncodingMask = ISA95EquipmentDataTypeFields.EquipmentUse | ISA95EquipmentDataTypeFields.EngineeringUnits | ISA95EquipmentDataTypeFields.Quantity,
@@ -279,10 +279,10 @@ namespace Isa95Jobs
                                     EquipmentUse = "free",
                                     Quantity = "1000"
                                 }
-                            }
+                            ]
                     },
-                    State = new ISA95StateDataTypeCollection
-                    {
+                    State =
+                    [
                         new ISA95StateDataType
                         {
                             StateNumber = ++_state,
@@ -301,7 +301,7 @@ namespace Isa95Jobs
                             BrowsePath = new RelativePath(new QualifiedName("State " + _state, NamespaceIndex)),
                             StateText = new LocalizedText("en-US", "State " + _state),
                         }
-                    }
+                    ]
                 };
                 e.SetChildValue(SystemContext, new QualifiedName(UAModel.ISA95_JOBCONTROL_V2.BrowseNames.JobState, NamespaceIndex), jobOrderState, false);
                 // e.SetChildValue(SystemContext, new QualifiedName(UAModel.ISA95_JOBCONTROL_V2.BrowseNames.JobOrder, NamespaceIndex), state, false);

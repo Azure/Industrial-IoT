@@ -188,8 +188,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                     ApplicationName = "UA Core Sample Server",
                     ApplicationType = ApplicationType.Server,
                     ApplicationUri = $"urn:{Utils.GetHostName()}:OPCFoundation:CoreSampleServer",
-                    Extensions = new XmlElementCollection(
-                        extensions.Select(XmlElementEx.SerializeObject)),
+                    Extensions = [.. extensions.Select(XmlElementEx.SerializeObject)],
 
                     ProductUri = "http://opcfoundation.org/UA/SampleServer",
                     SecurityConfiguration = new SecurityConfiguration
@@ -260,9 +259,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                         ShutdownDelay = 0,
 
                         // Runtime configuration
-                        BaseAddresses = new StringCollection(ports
+                        BaseAddresses = [.. ports
                             .Distinct()
-                            .Select(p => $"opc.tcp://localhost:{p}/UA/SampleServer")),
+                            .Select(p => $"opc.tcp://localhost:{p}/UA/SampleServer")],
 
                         SecurityPolicies = [
                             new ServerSecurityPolicy {
