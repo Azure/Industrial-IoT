@@ -111,6 +111,19 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
+        public uint ReadSwitchField(IList<string> switches, out string fieldName)
+        {
+            fieldName = switches[0];
+            return 0; // TODO
+        }
+
+        /// <inheritdoc/>
+        public uint ReadEncodingMask(IList<string> masks)
+        {
+            return 0; // TODO
+        }
+
+        /// <inheritdoc/>
         public virtual bool ReadBoolean(string? fieldName)
         {
             return _reader.ReadBoolean();

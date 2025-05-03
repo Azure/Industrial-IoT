@@ -117,6 +117,18 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
+        public void WriteSwitchField(uint switchField, out string fieldName)
+        {
+            fieldName = string.Empty;
+            // TODO
+        }
+
+        /// <inheritdoc/>
+        public void WriteEncodingMask(uint encodingMask)
+        {
+        }
+
+        /// <inheritdoc/>
         public virtual void WriteBoolean(string? fieldName, bool value)
         {
             _writer.WriteBoolean(value);

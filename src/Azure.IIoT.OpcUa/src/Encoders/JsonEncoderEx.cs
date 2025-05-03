@@ -210,6 +210,19 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
+        public void WriteSwitchField(uint switchField, out string? fieldName)
+        {
+            fieldName = null;
+            WriteUInt32("SwitchField", switchField);
+        }
+
+        /// <inheritdoc/>
+        public void WriteEncodingMask(uint encodingMask)
+        {
+            WriteUInt32("EncodingMask", encodingMask);
+        }
+
+        /// <inheritdoc/>
         public void WriteSByte(string? fieldName, sbyte value)
         {
             if (PreWriteValue(fieldName, value))

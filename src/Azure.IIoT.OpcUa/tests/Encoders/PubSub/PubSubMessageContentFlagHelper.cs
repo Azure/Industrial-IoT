@@ -94,7 +94,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             {
                 result |= DataSetMessageContentFlags.DataSetWriterName;
             }
-            if ((mask & (uint)JsonDataSetMessageContentMask.ReversibleFieldEncoding) != 0)
+            if ((mask & (uint)JsonDataSetMessageContentMask.FieldEncoding1) != 0)
             {
                 result |= DataSetMessageContentFlags.ReversibleFieldEncoding;
             }

@@ -29,6 +29,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using Opc.Ua.Server;
 
@@ -37,7 +38,7 @@ namespace Opc.Ua.Sample
     /// <summary>
     /// Provides a basic monitored item implementation which does not support queuing.
     /// </summary>
-    public class DataChangeMonitoredItem : IDataChangeMonitoredItem2
+    public sealed class DataChangeMonitoredItem : IDataChangeMonitoredItem2
     {
         /// <summary>
         /// Constructs a new instance.
@@ -86,6 +87,7 @@ namespace Opc.Ua.Sample
         /// <summary>
         /// Constructs a new instance.
         /// </summary>
+        /// <param name="monitoredItemQueueFactory"></param>
         /// <param name="source"></param>
         /// <param name="id"></param>
         /// <param name="attributeId"></param>
@@ -102,6 +104,7 @@ namespace Opc.Ua.Sample
         /// <param name="range"></param>
         /// <param name="alwaysReportUpdates"></param>
         public DataChangeMonitoredItem(
+            IMonitoredItemQueueFactory monitoredItemQueueFactory,
             MonitoredNode source,
             uint id,
             uint attributeId,
@@ -119,6 +122,7 @@ namespace Opc.Ua.Sample
             bool alwaysReportUpdates)
         {
             _source = source;
+            _monitoredItemQueueFactory = monitoredItemQueueFactory;
             Id = id;
             AttributeId = attributeId;
             _indexRange = indexRange;
@@ -133,6 +137,7 @@ namespace Opc.Ua.Sample
             _readyToTrigger = false;
             _resendData = false;
             _queue = null;
+            _queueSize = queueSize;
             DataChangeFilter = filter;
             _range = 0;
             AlwaysReportUpdates = alwaysReportUpdates;
@@ -144,9 +149,62 @@ namespace Opc.Ua.Sample
 
             if (queueSize > 1)
             {
-                _queue = new MonitoredItemQueue(id);
+                _queue = new DataChangeQueueHandler(id, false, _monitoredItemQueueFactory);
                 _queue.SetQueueSize(queueSize, discardOldest, diagnosticsMasks);
                 _queue.SetSamplingInterval(samplingInterval);
+            }
+        }
+
+        /// <summary>
+        /// Constructs a new instance from a template.
+        /// </summary>
+        /// <param name="subscriptionStore"></param>
+        /// <param name="monitoredItemQueueFactory"></param>
+        /// <param name="source"></param>
+        /// <param name="storedMonitoredItem"></param>
+        public DataChangeMonitoredItem(
+            ISubscriptionStore subscriptionStore,
+            IMonitoredItemQueueFactory monitoredItemQueueFactory,
+            MonitoredNode source,
+            IStoredMonitoredItem storedMonitoredItem)
+        {
+            _source = source;
+            _monitoredItemQueueFactory = monitoredItemQueueFactory;
+            Id = storedMonitoredItem.Id;
+            AttributeId = storedMonitoredItem.AttributeId;
+            _indexRange = storedMonitoredItem.ParsedIndexRange;
+            DataEncoding = storedMonitoredItem.Encoding;
+            _timestampsToReturn = storedMonitoredItem.TimestampsToReturn;
+            _diagnosticsMasks = storedMonitoredItem.DiagnosticsMasks;
+            MonitoringMode = storedMonitoredItem.MonitoringMode;
+            ClientHandle = storedMonitoredItem.ClientHandle;
+            _samplingInterval = storedMonitoredItem.SamplingInterval;
+            _nextSampleTime = DateTime.UtcNow.Ticks;
+            _readyToPublish = false;
+            _readyToTrigger = false;
+            _resendData = false;
+            _queue = null;
+            _queueSize = storedMonitoredItem.QueueSize;
+            DataChangeFilter = storedMonitoredItem.FilterToUse as DataChangeFilter;
+            _range = storedMonitoredItem.Range;
+            AlwaysReportUpdates = storedMonitoredItem.AlwaysReportUpdates;
+            _lastValue = storedMonitoredItem.LastValue;
+            _lastError = storedMonitoredItem.LastError;
+
+            if (storedMonitoredItem.QueueSize > 1)
+            {
+                var queue = subscriptionStore.RestoreDataChangeMonitoredItemQueue(storedMonitoredItem.Id);
+
+                if (queue != null)
+                {
+                    _queue = new DataChangeQueueHandler(queue, storedMonitoredItem.DiscardOldest, storedMonitoredItem.SamplingInterval);
+                }
+                else
+                {
+                    _queue = new DataChangeQueueHandler(storedMonitoredItem.Id, false, _monitoredItemQueueFactory);
+                    _queue.SetQueueSize(storedMonitoredItem.QueueSize, storedMonitoredItem.DiscardOldest, storedMonitoredItem.DiagnosticsMasks);
+                    _queue.SetSamplingInterval(storedMonitoredItem.SamplingInterval);
+                }
             }
         }
 
@@ -257,6 +315,7 @@ namespace Opc.Ua.Sample
                 _diagnosticsMasks = diagnosticsMasks;
                 _timestampsToReturn = timestampsToReturn;
                 ClientHandle = clientHandle;
+                _queueSize = queueSize;
 
                 // subtract the previous sampling interval.
                 var oldSamplingInterval = (long)(_samplingInterval * TimeSpan.TicksPerMillisecond);
@@ -292,7 +351,7 @@ namespace Opc.Ua.Sample
                 // update the queue size.
                 if (queueSize > 1)
                 {
-                    _queue ??= new MonitoredItemQueue(Id);
+                    _queue ??= new DataChangeQueueHandler(Id, false, _monitoredItemQueueFactory);
 
                     _queue.SetQueueSize(queueSize, discardOldest, diagnosticsMasks);
                     _queue.SetSamplingInterval(samplingInterval);
@@ -346,6 +405,18 @@ namespace Opc.Ua.Sample
                 }
 
                 return null;
+            }
+        }
+
+        /// <summary>
+        /// The monitored items owner identity.
+        /// </summary>
+        public IUserIdentity EffectiveIdentity
+        {
+            get
+            {
+                var subscription = SubscriptionCallback;
+                return subscription?.EffectiveIdentity;
             }
         }
 
@@ -485,7 +556,7 @@ namespace Opc.Ua.Sample
 
                 if (_queue != null)
                 {
-                    result.RevisedQueueSize = _queue.QueueSize;
+                    result.RevisedQueueSize = _queueSize;
                 }
 
                 return ServiceResult.Good;
@@ -510,7 +581,7 @@ namespace Opc.Ua.Sample
 
                 if (_queue != null)
                 {
-                    result.RevisedQueueSize = _queue.QueueSize;
+                    result.RevisedQueueSize = _queueSize;
                 }
 
                 return ServiceResult.Good;
@@ -527,6 +598,33 @@ namespace Opc.Ua.Sample
                     _resendData = true;
                 }
             }
+        }
+
+        /// <inheritdoc/>
+        public IStoredMonitoredItem ToStorableMonitoredItem()
+        {
+            return new StoredMonitoredItem
+            {
+                SamplingInterval = _samplingInterval,
+                SubscriptionId = SubscriptionCallback.Id,
+                QueueSize = _queueSize,
+                AlwaysReportUpdates = AlwaysReportUpdates,
+                AttributeId = AttributeId,
+                ClientHandle = ClientHandle,
+                DiagnosticsMasks = _diagnosticsMasks,
+                IsDurable = false,
+                Encoding = DataEncoding,
+                FilterToUse = DataChangeFilter,
+                Id = Id,
+                LastError = _lastError,
+                LastValue = _lastValue,
+                MonitoringMode = MonitoringMode,
+                NodeId = _source.Node.NodeId,
+                OriginalFilter = DataChangeFilter,
+                Range = _range,
+                TimestampsToReturn = _timestampsToReturn,
+                ParsedIndexRange = _indexRange
+            };
         }
 
         /// <inheritdoc/>
@@ -645,7 +743,8 @@ namespace Opc.Ua.Sample
         /// No filters supported.
         /// </summary>
         public DataChangeFilter DataChangeFilter { get; private set; }
-        public IUserIdentity EffectiveIdentity { get; }
+
+        public bool IsDurable => false;
 
         /// <summary>
         /// Increments the sample time to the next interval.
@@ -679,7 +778,8 @@ namespace Opc.Ua.Sample
         /// <param name="context"></param>
         /// <param name="notifications"></param>
         /// <param name="diagnostics"></param>
-        public bool Publish(OperationContext context, Queue<MonitoredItemNotification> notifications, Queue<DiagnosticInfo> diagnostics)
+        /// <param name="maxNotificationsPerPublish"></param>
+        public bool Publish(OperationContext context, Queue<MonitoredItemNotification> notifications, Queue<DiagnosticInfo> diagnostics, uint maxNotificationsPerPublish)
         {
             lock (_lock)
             {
@@ -697,33 +797,37 @@ namespace Opc.Ua.Sample
                     IncrementSampleTime();
                 }
 
-                // update publish flag.
-                _readyToPublish = false;
-                _readyToTrigger = false;
-
                 // check if queuing is enabled.
                 if (_queue != null && (!_resendData || _queue.ItemsInQueue != 0))
                 {
-                    while (_queue.Publish(out var value, out var error))
+                    DataValue value = null;
+                    ServiceResult error = null;
+
+                    uint notificationCount = 0;
+                    while (notificationCount < maxNotificationsPerPublish && _queue.PublishSingleValue(out value, out error))
                     {
-                        Publish(context, null, notifications, diagnostics);
+                        Publish(context, value, error, notifications, diagnostics);
+                        notificationCount++;
 
                         if (_resendData)
                         {
-                            _readyToPublish = _queue.ItemsInQueue > 0;
                             break;
                         }
                     }
                 }
                 else
                 {
-                    Publish(context, _lastValue, notifications, diagnostics);
+                    Publish(context, _lastValue, _lastError, notifications, diagnostics);
                 }
 
+                var moreValuesToPublish = _queue?.ItemsInQueue > 0;
+
                 // update flags
+                _readyToPublish = moreValuesToPublish;
+                _readyToTrigger = moreValuesToPublish;
                 _resendData = false;
 
-                return true;
+                return moreValuesToPublish;
             }
         }
 
@@ -732,11 +836,13 @@ namespace Opc.Ua.Sample
         /// </summary>
         /// <param name="context"></param>
         /// <param name="value"></param>
+        /// <param name="error"></param>
         /// <param name="notifications"></param>
         /// <param name="diagnostics"></param>
         private void Publish(
             OperationContext context,
             DataValue value,
+            ServiceResult error,
             Queue<MonitoredItemNotification> notifications,
             Queue<DiagnosticInfo> diagnostics)
         {
@@ -748,6 +854,17 @@ namespace Opc.Ua.Sample
                     value.StatusCode = value.StatusCode.SetSemanticsChanged(true);
                 }
 
+                if (error != null)
+                {
+                    error = new ServiceResult(
+                        error.StatusCode.SetSemanticsChanged(true),
+                        error.SymbolicId,
+                        error.NamespaceUri,
+                        error.LocalizedText,
+                        error.AdditionalInfo,
+                        error.InnerResult);
+                }
+
                 _semanticsChanged = false;
             }
 
@@ -757,6 +874,17 @@ namespace Opc.Ua.Sample
                 if (value != null)
                 {
                     value.StatusCode = value.StatusCode.SetStructureChanged(true);
+                }
+
+                if (error != null)
+                {
+                    _ = new ServiceResult(
+                        error.StatusCode.SetStructureChanged(true),
+                        error.SymbolicId,
+                        error.NamespaceUri,
+                        error.LocalizedText,
+                        error.AdditionalInfo,
+                        error.InnerResult);
                 }
 
                 _structureChanged = false;
@@ -793,7 +921,13 @@ namespace Opc.Ua.Sample
             diagnostics.Enqueue(diagnosticInfo);
         }
 
+        public void Dispose()
+        {
+            //only durable queues need to be disposed
+        }
+
         private readonly Lock _lock = new();
+        private readonly IMonitoredItemQueueFactory _monitoredItemQueueFactory;
         private readonly MonitoredNode _source;
         private DataValue _lastValue;
         private ServiceResult _lastError;
@@ -801,7 +935,8 @@ namespace Opc.Ua.Sample
         private TimestampsToReturn _timestampsToReturn;
         private DiagnosticsMasks _diagnosticsMasks;
         private double _samplingInterval;
-        private MonitoredItemQueue _queue;
+        private DataChangeQueueHandler _queue;
+        private uint _queueSize;
         private double _range;
         private long _nextSampleTime;
         private bool _readyToPublish;

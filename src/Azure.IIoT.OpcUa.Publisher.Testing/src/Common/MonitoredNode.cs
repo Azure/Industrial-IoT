@@ -27,6 +27,7 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
+using System;
 using System.Collections.Generic;
 using Opc.Ua.Server;
 
@@ -37,7 +38,6 @@ namespace Opc.Ua.Sample
     /// </summary>
     public class MonitoredNode
     {
-        // Constructors
         /// <summary>
         /// Initializes the instance with the context for the node being monitored.
         /// </summary>
@@ -54,7 +54,6 @@ namespace Opc.Ua.Sample
             Node = node;
         }
 
-        // Public Properties
         /// <summary>
         /// The server that the node belongs to.
         /// </summary>
@@ -70,10 +69,32 @@ namespace Opc.Ua.Sample
         /// </summary>
         public NodeState Node { get; }
 
-        // Public Methods
+        /// <summary>
+        /// Whether the node has any active monitored items for the specified attribute.
+        /// </summary>
+        /// <param name="attributeId"></param>
+        public bool IsMonitoringRequired(uint attributeId)
+        {
+            if (_monitoredItems != null)
+            {
+                for (var ii = 0; ii < _monitoredItems.Count; ii++)
+                {
+                    var monitoredItem = _monitoredItems[ii];
+
+                    if (monitoredItem.AttributeId == attributeId && monitoredItem.MonitoringMode != MonitoringMode.Disabled)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// Creates a new data change monitored item.
         /// </summary>
+        /// <param name="context">The system context.</param>
         /// <param name="monitoredItemId">The unique identifier for the monitiored item.</param>
         /// <param name="attributeId">The attribute to monitor.</param>
         /// <param name="indexRange">The index range to use for array values.</param>
@@ -90,6 +111,7 @@ namespace Opc.Ua.Sample
         /// <param name="alwaysReportUpdates">Whether the monitored item should skip the check for a change in value.</param>
         /// <returns>The new monitored item.</returns>
         public DataChangeMonitoredItem CreateDataChangeItem(
+            ISystemContext context,
             uint monitoredItemId,
             uint attributeId,
             NumericRange indexRange,
@@ -106,6 +128,7 @@ namespace Opc.Ua.Sample
             bool alwaysReportUpdates)
         {
             var monitoredItem = new DataChangeMonitoredItem(
+                Server.MonitoredItemQueueFactory,
                 this,
                 monitoredItemId,
                 attributeId,
@@ -121,6 +144,77 @@ namespace Opc.Ua.Sample
                 filter,
                 range,
                 alwaysReportUpdates);
+
+            if (_monitoredItems == null)
+            {
+                _monitoredItems = [];
+                Node.OnStateChanged = OnNodeChange;
+            }
+
+            _monitoredItems.Add(monitoredItem);
+
+            return monitoredItem;
+        }
+
+        /// <summary>
+        /// Creates a new data change monitored item.
+        /// </summary>
+        /// <param name="context">The system context.</param>
+        /// <param name="monitoredItemId">The unique identifier for the monitiored item.</param>
+        /// <param name="attributeId">The attribute to monitor.</param>
+        /// <param name="indexRange">The index range to use for array values.</param>
+        /// <param name="dataEncoding">The data encoding to return for structured values.</param>
+        /// <param name="diagnosticsMasks">The diagnostics masks to use.</param>
+        /// <param name="timestampsToReturn">The timestamps to return.</param>
+        /// <param name="monitoringMode">The initial monitoring mode.</param>
+        /// <param name="clientHandle">The handle assigned by the client.</param>
+        /// <param name="samplingInterval">The sampling interval.</param>
+        /// <param name="alwaysReportUpdates">Whether the monitored item should skip the check for a change in value.</param>
+        /// <returns>The new monitored item.</returns>
+        public DataChangeMonitoredItem CreateDataChangeItem(
+            ISystemContext context,
+            uint monitoredItemId,
+            uint attributeId,
+            NumericRange indexRange,
+            QualifiedName dataEncoding,
+            DiagnosticsMasks diagnosticsMasks,
+            TimestampsToReturn timestampsToReturn,
+            MonitoringMode monitoringMode,
+            uint clientHandle,
+            double samplingInterval,
+            bool alwaysReportUpdates)
+        {
+            return CreateDataChangeItem(
+                context,
+                monitoredItemId,
+                attributeId,
+                indexRange,
+                dataEncoding,
+                diagnosticsMasks,
+                timestampsToReturn,
+                monitoringMode,
+                clientHandle,
+                samplingInterval,
+                0,
+                false,
+                null,
+                null,
+                alwaysReportUpdates);
+        }
+
+        /// <summary>
+        /// Restore a data change item after a server restart
+        /// </summary>
+        /// <param name="storedMonitoredItem"></param>
+        /// <returns>The new monitored item.</returns>
+        public DataChangeMonitoredItem RestoreDataChangeItem(
+            IStoredMonitoredItem storedMonitoredItem)
+        {
+            var monitoredItem = new DataChangeMonitoredItem(
+                Server.SubscriptionStore,
+                Server.MonitoredItemQueueFactory,
+                this,
+                storedMonitoredItem);
 
             if (_monitoredItems == null)
             {

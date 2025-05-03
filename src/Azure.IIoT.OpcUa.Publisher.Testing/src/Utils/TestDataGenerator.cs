@@ -927,7 +927,7 @@ namespace Opc.Ua.Test
                 SystemType = systemType;
                 if (values != null)
                 {
-                    Values = new List<object>(values);
+                    Values = [.. values];
                 }
                 else
                 {

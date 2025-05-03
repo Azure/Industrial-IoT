@@ -17,6 +17,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Handlers
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using JsonNetworkMessage = Encoders.PubSub.JsonNetworkMessage;
+    using JsonDataSetMessage = Encoders.PubSub.JsonDataSetMessage;
 
     /// <summary>
     /// Publisher message handling
