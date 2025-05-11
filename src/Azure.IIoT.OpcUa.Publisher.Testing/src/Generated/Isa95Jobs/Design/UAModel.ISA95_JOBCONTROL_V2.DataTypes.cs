@@ -40,7 +40,6 @@ namespace UAModel.ISA95_JOBCONTROL_V2
     #if (!OPCUA_EXCLUDE_ISA95EquipmentDataType)
     /// <remarks />
     /// <exclude />
-
     public enum ISA95EquipmentDataTypeFields : uint
     {
         None = 0,
@@ -572,7 +571,6 @@ namespace UAModel.ISA95_JOBCONTROL_V2
     #if (!OPCUA_EXCLUDE_ISA95JobOrderDataType)
     /// <remarks />
     /// <exclude />
-
     public enum ISA95JobOrderDataTypeFields : uint
     {
         None = 0,
@@ -1015,7 +1013,6 @@ namespace UAModel.ISA95_JOBCONTROL_V2
     #if (!OPCUA_EXCLUDE_ISA95JobResponseDataType)
     /// <remarks />
     /// <exclude />
-
     public enum ISA95JobResponseDataTypeFields : uint
     {
         None = 0,
@@ -1442,7 +1439,6 @@ namespace UAModel.ISA95_JOBCONTROL_V2
     #if (!OPCUA_EXCLUDE_ISA95MaterialDataType)
     /// <remarks />
     /// <exclude />
-
     public enum ISA95MaterialDataTypeFields : uint
     {
         None = 0,
@@ -1807,7 +1803,6 @@ namespace UAModel.ISA95_JOBCONTROL_V2
     #if (!OPCUA_EXCLUDE_ISA95ParameterDataType)
     /// <remarks />
     /// <exclude />
-
     public enum ISA95ParameterDataTypeFields : uint
     {
         None = 0,
@@ -2104,7 +2099,6 @@ namespace UAModel.ISA95_JOBCONTROL_V2
     #if (!OPCUA_EXCLUDE_ISA95PersonnelDataType)
     /// <remarks />
     /// <exclude />
-
     public enum ISA95PersonnelDataTypeFields : uint
     {
         None = 0,
@@ -2419,7 +2413,6 @@ namespace UAModel.ISA95_JOBCONTROL_V2
     #if (!OPCUA_EXCLUDE_ISA95PhysicalAssetDataType)
     /// <remarks />
     /// <exclude />
-
     public enum ISA95PhysicalAssetDataTypeFields : uint
     {
         None = 0,
@@ -2734,7 +2727,6 @@ namespace UAModel.ISA95_JOBCONTROL_V2
     #if (!OPCUA_EXCLUDE_ISA95PropertyDataType)
     /// <remarks />
     /// <exclude />
-
     public enum ISA95PropertyDataTypeFields : uint
     {
         None = 0,
@@ -3250,7 +3242,6 @@ namespace UAModel.ISA95_JOBCONTROL_V2
     #if (!OPCUA_EXCLUDE_ISA95WorkMasterDataType)
     /// <remarks />
     /// <exclude />
-
     public enum ISA95WorkMasterDataTypeFields : uint
     {
         None = 0,

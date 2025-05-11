@@ -391,6 +391,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             .SelectMany(s => s.MonitoredItems).Count();
         private int ReconnectCount => UsedClients
             .Sum(s => s.ReconnectCount);
+        private int ReconnectTriggered => UsedClients
+            .Count(s => s.ReconnectTriggered);
+        private int KeepAliveTotal => UsedClients
+            .Sum(s => s.KeepAliveTotal);
+        private int KeepAliveCounter => UsedClients
+            .Sum(s => s.KeepAliveCounter);
         private int ConnectCount => UsedClients
             .Sum(s => s.ConnectCount);
         private int OutstandingRequestCount => UsedClients
@@ -533,6 +539,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_connection_retries",
                 () => new Measurement<long>(ReconnectCount, _metrics.TagList),
                 description: "OPC UA total connect retries.");
+            _meter.CreateObservableGauge("iiot_edge_publisher_connection_reconnecting",
+                () => new Measurement<int>(ReconnectTriggered, _metrics.TagList),
+                description: "OPC UA total connections reconnecting right now.");
+            _meter.CreateObservableGauge("iiot_edge_publisher_connection_successful_keepalives",
+                () => new Measurement<long>(KeepAliveCounter, _metrics.TagList),
+                description: "OPC UA keepalives on all connections since last reconnect.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_connection_total_keepalives",
+                () => new Measurement<long>(KeepAliveTotal, _metrics.TagList),
+                description: "OPC UA total successful keep alives on all connections.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_connections",
                 () => new Measurement<long>(ConnectCount, _metrics.TagList),
                 description: "OPC UA total connection success count.");
