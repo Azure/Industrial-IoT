@@ -166,6 +166,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public int ConnectCount => _numberofSuccessfulConnections;
 
+        /// <inheritdoc/>
+        public int KeepAliveCounter => _keepAliveCounter;
+
+        /// <inheritdoc/>
+        public int KeepAliveTotal => _keepAliveTotal;
+
+        /// <inheritdoc/>
+        public bool ReconnectTriggered => _reconnectRequired != 0;
+
         /// <summary>
         /// Disconnected state
         /// </summary>
@@ -942,6 +951,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                             _disconnectLock.Dispose();
                                             _disconnectLock = null;
 
+                                            _reconnectRequired = 0;
                                             currentSessionState = SessionState.Connected;
                                             NotifySubscriptions(_session, false);
                                             break;
@@ -1525,6 +1535,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     UpdatePublishRequestCounts();
                 }
+                Interlocked.Increment(ref _keepAliveTotal);
             }
             catch (Exception ex)
             {
@@ -2179,6 +2190,15 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
             /// <inheritdoc/>
             public int MinPublishRequestCount
                 => 0;
+            /// <inheritdoc/>
+            public bool ReconnectTriggered
+                => false;
+            /// <inheritdoc/>
+            public int KeepAliveCounter
+                => 0;
+            /// <inheritdoc/>
+            public int KeepAliveTotal
+                => 0;
         }
 
         /// <summary>
@@ -2192,6 +2212,12 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
             _meter.CreateObservableGauge("iiot_edge_publisher_client_keep_alive_counter",
                 () => new Measurement<int>(_keepAliveCounter, _metrics.TagList),
                 description: "Number of successful keep alives since last keep alive error.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_keep_alive_counter_count",
+                () => new Measurement<int>(_keepAliveTotal, _metrics.TagList),
+                description: "Number of total successful keep alives of the client.");
+            _meter.CreateObservableGauge("iiot_edge_publisher_client_reconnect_trigger",
+                () => new Measurement<int>(_reconnectRequired, _metrics.TagList),
+                description: "Number of reconnect trigger actions.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_client_namespace_change_count",
                 () => new Measurement<int>(_namespaceTableChanges, _metrics.TagList),
                 description: "Number of namespace table changes detected by the client.");
@@ -2246,6 +2272,7 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
         private int _refCount;
         private int _publishTimeoutCounter;
         private int _keepAliveCounter;
+        private int _keepAliveTotal;
         private int _namespaceTableChanges;
         private ChannelDiagnosticModel _lastDiagnostics;
         private readonly ReverseConnectManager? _reverseConnectManager;

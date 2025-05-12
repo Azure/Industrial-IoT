@@ -579,6 +579,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         : string.Empty;
                 var connectivityState = info.NumberOfConnectedEndpoints > 0 ? (info.NumberOfDisconnectedEndpoints > 0 ?
                     "(Partially Connected)" : "(Connected)") : "(Disconnected)";
+                var reconnectivityState = info.ConnectionsReconnecting > 0 ?
+                    $"({info.ConnectionsReconnecting} reconnecting)" : string.Empty;
 
                 var sb = builder.AppendLine()
                     .Append("  DIAGNOSTICS INFORMATION for          : ")
@@ -635,7 +637,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .AppendLine(connectivityState)
                     .Append("  # Connections created/retries        : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0}", info.ConnectionCount).Append(" | ")
-                        .AppendFormat(CultureInfo.CurrentCulture, "{0:0}", info.ConnectionRetries)
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0:0}", info.ConnectionRetries).Append(' ')
+                        .AppendLine(reconnectivityState)
+                    .Append("  # Connection keep alives / total     : ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0.##}", info.ConnectionKeepAlives).Append(" | ")
+                        .AppendFormat(CultureInfo.CurrentCulture, "{0:0.##}", info.ConnectionKeepAlivesTotal)
                         .AppendLine()
                     .Append("  # Queued/Minimum request totals      : ")
                         .AppendFormat(CultureInfo.CurrentCulture, "{0,14:0.##}", info.TotalPublishRequests).Append(" | ")

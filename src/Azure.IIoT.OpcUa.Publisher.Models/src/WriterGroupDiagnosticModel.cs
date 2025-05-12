@@ -502,5 +502,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "MemoryLimitUtilization", Order = 79,
             EmitDefaultValue = true)]
         public double MemoryLimitUtilization { get; set; }
+
+        /// <summary>
+        /// Connections currently reconnecting
+        /// </summary>
+        [DataMember(Name = "ConnectionsReconnecting", Order = 80,
+            EmitDefaultValue = true)]
+        public int ConnectionsReconnecting { get; set; }
+
+        /// <summary>
+        /// Successful connection keep alives since last reconnect
+        /// </summary>
+        [DataMember(Name = "ConnectionKeepAlives", Order = 81,
+            EmitDefaultValue = true)]
+        public long ConnectionKeepAlives { get; set; }
+
+        /// <summary>
+        /// Total keep alives over all connections
+        /// </summary>
+        [DataMember(Name = "ConnectionKeepAlivesTotal", Order = 82,
+            EmitDefaultValue = true)]
+        public long ConnectionKeepAlivesTotal { get; set; }
     }
 }

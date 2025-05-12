@@ -43,6 +43,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         int ReconnectCount { get; }
 
         /// <summary>
+        /// Reconnect triggered
+        /// </summary>
+        bool ReconnectTriggered { get; }
+
+        /// <summary>
         /// Total successful connections
         /// </summary>
         int ConnectCount { get; }
@@ -51,5 +56,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// Current min publish request count
         /// </summary>
         int MinPublishRequestCount { get; }
+
+        /// <summary>
+        /// Successful keep alives since last reconnect
+        /// </summary>
+        int KeepAliveCounter { get; }
+
+        /// <summary>
+        /// Total keep alive requests since last reconnect
+        /// </summary>
+        int KeepAliveTotal { get; }
     }
 }

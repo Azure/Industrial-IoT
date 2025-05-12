@@ -390,6 +390,7 @@ The configuration consists a JSON array of [entries](./definitions.md#publishedn
   "DataSetWriterGroup": "string",
   "DataSetWriterId": "string",
   "WriterGroupTransport": "string",
+  "WriterGroupQueueName":_ "string",
   "WriterGroupQualityOfService": "string",
   "WriterGroupMessageRetention": "boolean",
   "WriterGroupMessageTtlTimespan": "string",
@@ -415,6 +416,7 @@ The configuration consists a JSON array of [entries](./definitions.md#publishedn
   "UseReverseConnect": "boolean",
   "DisableSubscriptionTransfer": "boolean",
   "RepublishAfterTransfer": "boolean",
+  "QueueName": "string",
   "MetaDataQueueName": "string",
   "MetaDataUpdateTime": "integer",
   "MetaDataUpdateTimeTimespan": "string",
@@ -427,6 +429,8 @@ The configuration consists a JSON array of [entries](./definitions.md#publishedn
   "BatchSize": "integer",
   "BatchTriggerInterval": "integer",
   "BatchTriggerIntervalTimespan": "string",
+  "MaxKeepAliveCount": "integer",
+  "Priority": "integer",
   "OpcNodes":
   [
     {
@@ -506,14 +510,17 @@ Each [published nodes entry model](./definitions.md#publishednodesentrymodel) ha
 | `MessagingMode` | No | String | `null` | The messaging mode to use when publishing the data sets. <br>For the list of supported messaging mode names see [here](./messageformats.md#messaging-profiles-supported-by-opc-publisher) |
 | `WriterGroupTransport` | No | String | `null` | The transport technology to use when publishing messages. <br>For the list of supported transport names see [here](./transports.md) |
 | `WriterGroupPartitions` | No | Integer | `1` | Number of partitions to split the writer group into when publishing to target topics. |
+| `WriterGroupQueueName` | No | String | `null` | Writer group queue overrides the default writer group topic template to use. |
 | `WriterGroupMessageRetention` | No | Boolean | `null` | Message retention flag value for all messages sent through the writer group if the transport supports it. |
 | `WriterGroupMessageTtlTimespan` | No | String | `null` | Message time to live expressed as duration string for messages sent through the writer group if the transport supports it. |
 | `WriterGroupQualityOfService` | No | String | `null` | The quality of service for telemetry messages (if supported by transport). <br>One of `AtMostOnce`, `AtLeastOnce`, or `ExactlyOnce`.<br>Defaults to the value configured via `--qos` command line option or if not provided `AtLeastOnce` (QOS 1). |
+| `Priority` | No | Integer | `null` | Priority of the writer subscription. |
 | `BatchSize` | No | Integer | `null` | The optional number of notifications that are queued before a network message is generated. <br>For historic reasons the default value is 50 unless otherwise configured via `--bs` command line option. |
 | `BatchTriggerInterval` | No | Integer | `null` | The network message publishing interval. Network and meta data messages are published cyclically from the notification queue when the specified duration has passed (or when the batch size configuration triggered a network message).<br>For historic reasons the default value is 10 seconds unless otherwise configured via  the `--bi` command line option. |
 | `BatchTriggerIntervalTimespan` | No | String | `null` | Same as `BatchTriggerInterval` but expressed as duration string.<br>Takes precedence over the Integer value. |
 | `DisableSubscriptionTransfer` | No | Boolean | `false` | Disable subscription transfer on reconnect to override the default behavior per endpoint. |
 | `RepublishAfterTransfer` | No | Boolean | `true` | Republishes any missing values after a subscription is transferred on reconnect. |
+| `MaxKeepAliveCount` | No | Integer | `null` | When the publishing timer has expired this number of times without requiring any Notification to be sent, to the writer a keep-alive message is sent. |
 | `QueueName` | No | String | `null` |  Writer queue overrides the writer group queue name.<br>Network messages are split by different Qos settings. |
 | `MessageRetention` | No | Boolean | `null` | Message retention setting for messages sent by the writer if the transport supports it<br>Network messages are split by differing retention flag values. |
 | `MessageTtlTimespan` | No | String | `null` | Message time to live expressed as duration string for messages sent by the writer.<br>Network messages are split across different Ttl settings. |

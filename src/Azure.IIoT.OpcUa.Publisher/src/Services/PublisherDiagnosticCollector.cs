@@ -252,6 +252,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     (d, i) => d.NumberOfDisconnectedEndpoints = (int)i,
                 ["iiot_edge_publisher_connection_retries"] =
                     (d, i) => d.ConnectionRetries = (long)i,
+                ["iiot_edge_publisher_connection_reconnecting"] =
+                    (d, i) => d.ConnectionsReconnecting = (int)i,
+                ["iiot_edge_publisher_connection_successful_keepalives"] =
+                    (d, i) => d.ConnectionKeepAlives = (long)i,
+                ["iiot_edge_publisher_connection_total_keepalives"] =
+                    (d, i) => d.ConnectionKeepAlivesTotal = (long)i,
                 ["iiot_edge_publisher_connections"] =
                     (d, i) => d.ConnectionCount = (long)i,
 
