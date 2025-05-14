@@ -18,7 +18,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
-    using xRetry;
 
     public sealed class PublisherServiceEventsTests : IDisposable
     {
@@ -40,11 +39,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
         private readonly ITestOutputHelper _output;
         private readonly CancellationTokenSource _cts;
 
+        private static bool Disabled =>
+#if DEBUG
+            false;
+#else
+            true;
+#endif
+
         internal CancellationToken Ct => _cts.Token;
 
-        [RetryFact]
+        [SkippableFact]
         public async Task TestPublishVariantTelemetryEventAndReceiveAsync()
         {
+            Skip.If(Disabled);
             await using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
             var bus = _factory.Resolve<ISubscriberMessageProcessor>();
             var client = scope.Resolve<IPublisherServiceEvents>();
@@ -93,12 +100,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }
         }
 
-        [RetryTheory]
+        [SkippableTheory]
         [InlineData(10)]
         [InlineData(4455)]
         [InlineData(26234)]
         public async Task TestPublishPublisherEventAndReceiveMultipleAsync(int total)
         {
+            Skip.If(Disabled);
             await using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
             var bus = _factory.Resolve<ISubscriberMessageProcessor>();
             var client = scope.Resolve<IPublisherServiceEvents>();

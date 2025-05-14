@@ -10,7 +10,6 @@
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="9.0.5" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
     <PackageReference Include="Neovolve.Logging.Xunit" Version="6.3.0" />
-    <PackageReference Include="xRetry" Version="1.9.0" />
     <PackageReference Include="xunit" Version="2.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.0">
       <PrivateAssets>all</PrivateAssets>

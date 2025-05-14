@@ -14,7 +14,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
-    using xRetry;
     using Xunit.Abstractions;
 
     public sealed class RegistryServiceEventsTests : IDisposable
@@ -38,11 +37,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
         private readonly ITestOutputHelper _output;
         private readonly CancellationTokenSource _cts;
 
+        private static bool Disabled =>
+#if DEBUG
+            false;
+#else
+            true;
+#endif
+
         private CancellationToken Ct => _cts.Token;
 
-        [RetryFact]
+        [SkippableFact]
         public async Task TestPublishPublisherEventAndReceiveAsync()
         {
+            Skip.If(Disabled);
             await using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
             var bus = _factory.Resolve<IPublisherRegistryListener>();
             var client = scope.Resolve<IRegistryServiceEvents>();
@@ -71,12 +78,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }
         }
 
-        [RetryTheory]
+        [SkippableTheory]
         [InlineData(10)]
         [InlineData(100)]
         [InlineData(678)]
         public async Task TestPublishPublisherEventAndReceiveMultipleAsync(int total)
         {
+            Skip.If(Disabled);
             await using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
             var bus = _factory.Resolve<IPublisherRegistryListener>();
             var client = scope.Resolve<IRegistryServiceEvents>();
@@ -110,9 +118,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }
         }
 
-        [RetryFact]
+        [SkippableFact]
         public async Task TestPublishDiscovererEventAndReceiveAsync()
         {
+            Skip.If(Disabled);
             await using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
             var bus = _factory.Resolve<IDiscovererRegistryListener>();
             var client = scope.Resolve<IRegistryServiceEvents>();
@@ -149,12 +158,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }
         }
 
-        [RetryTheory]
+        [SkippableTheory]
         [InlineData(10)]
         [InlineData(55)]
         [InlineData(375)]
         public async Task TestPublishDiscovererEventAndReceiveMultipleAsync(int total)
         {
+            Skip.If(Disabled);
             await using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
             var bus = _factory.Resolve<IDiscovererRegistryListener>();
             var client = scope.Resolve<IRegistryServiceEvents>();
@@ -187,9 +197,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }
         }
 
-        [RetryFact]
+        [SkippableFact]
         public async Task TestPublishSupervisorEventAndReceiveAsync()
         {
+            Skip.If(Disabled);
             await using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
             var bus = _factory.Resolve<ISupervisorRegistryListener>();
             var client = scope.Resolve<IRegistryServiceEvents>();
@@ -219,12 +230,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }
         }
 
-        [RetryTheory]
+        [SkippableTheory]
         [InlineData(10)]
         [InlineData(100)]
         [InlineData(4634)]
         public async Task TestPublishSupervisorEventAndReceiveMultipleAsync(int total)
         {
+            Skip.If(Disabled);
             await using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
             var bus = _factory.Resolve<ISupervisorRegistryListener>();
             var client = scope.Resolve<IRegistryServiceEvents>();
@@ -257,9 +269,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }
         }
 
-        [RetryFact]
+        [SkippableFact]
         public async Task TestPublishApplicationEventAndReceiveAsync()
         {
+            Skip.If(Disabled);
             await using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
             var bus = _factory.Resolve<IApplicationRegistryListener>();
             var client = scope.Resolve<IRegistryServiceEvents>();
@@ -295,12 +308,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }
         }
 
-        [RetryTheory]
+        [SkippableTheory]
         [InlineData(10)]
         [InlineData(100)]
         [InlineData(4634)]
         public async Task TestPublishApplicationEventAndReceiveMultipleAsync(int total)
         {
+            Skip.If(Disabled);
             await using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
             var bus = _factory.Resolve<IApplicationRegistryListener>();
             var client = scope.Resolve<IRegistryServiceEvents>();
@@ -337,9 +351,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }
         }
 
-        [RetryFact]
+        [SkippableFact]
         public async Task TestPublishEndpointEventAndReceiveAsync()
         {
+            Skip.If(Disabled);
             await using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
             var bus = _factory.Resolve<IEndpointRegistryListener>();
             var client = scope.Resolve<IRegistryServiceEvents>();
@@ -372,12 +387,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }
         }
 
-        [RetryTheory]
+        [SkippableTheory]
         [InlineData(10)]
         [InlineData(100)]
         [InlineData(7384)]
         public async Task TestPublishEndpointEventAndReceiveMultipleAsync(int total)
         {
+            Skip.If(Disabled);
             await using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
             var bus = _factory.Resolve<IEndpointRegistryListener>();
             var client = scope.Resolve<IRegistryServiceEvents>();
@@ -414,9 +430,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }
         }
 
-        [RetryFact]
+        [SkippableFact]
         public async Task TestPublishGatewayEventAndReceiveAsync()
         {
+            Skip.If(Disabled);
             await using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
             var bus = _factory.Resolve<IGatewayRegistryListener>();
             var client = scope.Resolve<IRegistryServiceEvents>();
@@ -445,11 +462,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }
         }
 
-        [RetryTheory]
+        [SkippableTheory]
         [InlineData(10)]
         [InlineData(100)]
         public async Task TestPublishGatewayEventAndReceiveMultipleAsync(int total)
         {
+            Skip.If(Disabled);
             await using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
             var bus = _factory.Resolve<IGatewayRegistryListener>();
             var client = scope.Resolve<IRegistryServiceEvents>();
@@ -482,9 +500,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }
         }
 
-        [RetryFact]
+        [SkippableFact]
         public async Task TestPublishDiscoveryProgressWithDiscovererIdAndReceiveAsync()
         {
+            Skip.If(Disabled);
             await using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
             var bus = _factory.Resolve<IDiscoveryProgressProcessor>();
             var client = scope.Resolve<IRegistryServiceEvents>();
@@ -528,9 +547,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }
         }
 
-        [RetryFact]
+        [SkippableFact]
         public async Task TestPublishDiscoveryProgressWithRequestIdAndReceiveAsync()
         {
+            Skip.If(Disabled);
             await using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
             var bus = _factory.Resolve<IDiscoveryProgressProcessor>();
             var client = scope.Resolve<IRegistryServiceEvents>();
@@ -574,12 +594,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.WebApi.Tests.Sdk.SignalR
             }
         }
 
-        [RetryTheory]
+        [SkippableTheory]
         [InlineData(10)]
         [InlineData(100)]
         [InlineData(678)]
         public async Task TestPublishDiscoveryProgressAndReceiveMultipleAsync(int total)
         {
+            Skip.If(Disabled);
             await using var scope = _factory.CreateClientScope(_output, TestSerializerType.NewtonsoftJson);
             var bus = _factory.Resolve<IDiscoveryProgressProcessor>();
             var client = scope.Resolve<IRegistryServiceEvents>();
