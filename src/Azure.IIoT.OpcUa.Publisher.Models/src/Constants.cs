@@ -79,15 +79,5 @@ namespace Azure.IIoT.OpcUa
         /// Publisher module identity
         /// </summary>
         public const string EntityTypePublisher = "OpcPublisher";
-
-        /// <summary>
-        /// Endpoint identity
-        /// </summary>
-        public const string EntityTypeEndpoint = "Endpoint";
-
-        /// <summary>
-        /// Application identity
-        /// </summary>
-        public const string EntityTypeApplication = "Application";
     }
 }
