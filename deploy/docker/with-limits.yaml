@@ -5,7 +5,7 @@ services:
   opcplc:
     command: [
       "--sph",
-      "--spf=/shared/pn.json",
+      "--spf=/shared/opcplc.json",
       "--pn=50000",
       "--fn=1",
       "--sn=0",
