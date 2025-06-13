@@ -16,26 +16,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     public static class ApplicationInfoModelEx
     {
         /// <summary>
-        /// Get logical equality comparer
-        /// </summary>
-        public static IEqualityComparer<ApplicationInfoModel> LogicalEquality { get; } =
-            new LogicalComparer();
-
-        /// <summary>
-        /// Create unique application id
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentNullException"><paramref name="model"/> is <c>null</c>.</exception>
-        public static string CreateApplicationId(ApplicationInfoModel model)
-        {
-            ArgumentNullException.ThrowIfNull(model);
-            var siteOrGatewayId = model.SiteId;
-            return CreateApplicationId(siteOrGatewayId, model.ApplicationUri,
-                model.ApplicationType);
-        }
-
-        /// <summary>
         /// Create unique application id
         /// </summary>
         /// <param name="siteOrGatewayId"></param>
@@ -57,37 +37,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             var id = $"{siteOrGatewayId ?? ""}-{type}-{applicationUri}";
             var prefix = applicationType == ApplicationType.Client ? "uac" : "uas";
             return prefix + id.ToSha1Hash();
-        }
-
-        /// <summary>
-        /// Equality comparison
-        /// </summary>
-        /// <param name="model"></param>
-        /// <param name="that"></param>
-        /// <returns></returns>
-        public static bool IsSameAs(this IReadOnlyList<ApplicationInfoModel>? model,
-            IReadOnlyList<ApplicationInfoModel>? that)
-        {
-            if (ReferenceEquals(model, that))
-            {
-                return true;
-            }
-            if (model is null || that is null)
-            {
-                return false;
-            }
-            if (model.Count != that.Count)
-            {
-                return false;
-            }
-            foreach (var a in model)
-            {
-                if (!that.Any(b => b.IsSameAs(a)))
-                {
-                    return false;
-                }
-            }
-            return true;
         }
 
         /// <summary>

@@ -57,11 +57,5 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// </summary>
         public const string WriterGroupDiagnosticsMessage =
             "application/x-writergroup-diagnostics-message-v2-json";
-
-        /// <summary>
-        /// Content is a device lifecycle event
-        /// </summary>
-        public const string DeviceLifecycleNotification =
-            "deviceLifecycleNotification";
     }
 }

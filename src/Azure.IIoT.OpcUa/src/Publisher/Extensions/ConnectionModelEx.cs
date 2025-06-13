@@ -93,23 +93,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         }
 
         /// <summary>
-        /// Throw if invalid
-        /// </summary>
-        /// <param name="model"></param>
-        /// <param name="paramName"></param>
-        /// <exception cref="ArgumentException"></exception>
-        /// <exception cref="ArgumentNullException"></exception>
-        public static void ThrowIfInvalid(this ConnectionModel? model, string paramName)
-        {
-            ArgumentNullException.ThrowIfNull(model, paramName);
-            // TODO: add more
-            if (!model.GetEndpointUrls().Any())
-            {
-                throw new ArgumentException("Missing endpoints in connection", paramName);
-            }
-        }
-
-        /// <summary>
         /// Create unique hash
         /// </summary>
         /// <param name="model"></param>

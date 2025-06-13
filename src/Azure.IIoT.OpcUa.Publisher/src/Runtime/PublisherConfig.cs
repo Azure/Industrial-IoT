@@ -140,7 +140,6 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const int BatchTriggerIntervalLLegacyDefaultMillis = 10 * 1000;
         public const int AsyncMetaDataLoadTimeoutDefaultMillis = 5 * 1000;
         public const int DiagnosticsIntervalDefaultMillis = 60 * 1000;
-        public const int AsyncMetaDataLoadThresholdDefault = 30;
         public const int ScaleTestCountDefault = 1;
         public const bool IgnoreConfiguredPublishingIntervalsDefault = false;
         public const bool DisableSessionPerWriterGroupDefault = false;

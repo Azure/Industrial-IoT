@@ -374,11 +374,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
-        /// Finalize remove from
-        /// </summary>
-        public virtual Func<CancellationToken, Task>? FinalizeRemoveFrom { get; }
-
-        /// <summary>
         /// Complete changes previously made and provide callback
         /// </summary>
         /// <param name="subscription"></param>
