@@ -21,12 +21,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Linq;
     using System.Net;
     using System.Net.NetworkInformation;
+    using System.Runtime.ConstrainedExecution;
     using System.Security.Cryptography;
     using System.Security.Cryptography.X509Certificates;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Runtime.ConstrainedExecution;
 
     /// <summary>
     /// Client configuration

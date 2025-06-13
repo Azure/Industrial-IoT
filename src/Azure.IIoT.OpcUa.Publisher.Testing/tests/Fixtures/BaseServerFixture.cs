@@ -31,8 +31,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
     using System.Net;
     using System.Net.Sockets;
     using System.Security.Cryptography.X509Certificates;
-    using System.Timers;
     using System.Threading.Tasks;
+    using System.Timers;
 
     /// <summary>
     /// Adds sample server as fixture to unit tests

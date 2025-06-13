@@ -15,8 +15,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Furly.Extensions.Dapr;
     using Furly.Extensions.Logging;
     using Furly.Extensions.Messaging.Runtime;
-    using Furly.Extensions.Rpc.Runtime;
     using Furly.Extensions.Mqtt;
+    using Furly.Extensions.Rpc.Runtime;
     using Furly.Tunnel.Router.Services;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
@@ -34,10 +34,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using System;
     using System.Collections.Generic;
     using System.Globalization;
+    using System.IO;
     using System.Linq;
     using System.Net;
     using System.Text.RegularExpressions;
-    using System.IO;
 
     /// <summary>
     /// Configuration extensions

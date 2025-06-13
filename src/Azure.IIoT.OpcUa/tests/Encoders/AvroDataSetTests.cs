@@ -12,10 +12,10 @@ namespace Azure.IIoT.OpcUa.Encoders
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using Xunit;
-    using System.Collections.Generic;
 
     public class AvroDataSetTests
     {

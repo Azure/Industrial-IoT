@@ -12,10 +12,10 @@ namespace Azure.IIoT.OpcUa.Encoders
     using Avro;
     using Opc.Ua;
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using System.Xml;
-    using System.Collections.Generic;
 
     /// <summary>
     /// Decodes objects from underlying decoder using a provided

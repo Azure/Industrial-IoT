@@ -12,11 +12,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
     using Opc.Ua;
     using System;
     using System.Linq;
+    using System.Runtime.InteropServices;
     using System.Security.Cryptography;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading.Tasks;
     using Xunit;
-    using System.Runtime.InteropServices;
 
     public class OpcUaApplicationTests
     {

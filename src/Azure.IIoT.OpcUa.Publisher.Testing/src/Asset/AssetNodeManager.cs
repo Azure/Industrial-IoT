@@ -38,11 +38,11 @@ namespace Asset
     using Opc.Ua.Server;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.Linq;
     using System.Reflection;
-    using System.Diagnostics;
 
     public class AssetNodeManager : CustomNodeManager2
     {

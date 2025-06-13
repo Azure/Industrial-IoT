@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Opc.Ua;
+    using Opc.Ua.Client;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -18,7 +19,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Opc.Ua.Client;
 
     internal sealed partial class OpcUaClient
     {
