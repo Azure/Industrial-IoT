@@ -88,8 +88,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
             _probePool = Repeat(i => new ConnectProbe(this, i), _maxProbeCount)
                 .ToList();
 
-            _cts = new CancellationTokenSource();
-            ct.Register(_cts.Cancel);
+            _cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
             _completion = new TaskCompletionSource<bool>(
                 TaskCreationOptions.RunContinuationsAsynchronously);
             _active = _maxProbeCount;
