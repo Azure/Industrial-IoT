@@ -34,16 +34,15 @@ The following table shows the supported features of the Azure IoT Edge and IoT H
 | Configuration API        | Yes        | |
 | Twin and Discovery       | Yes        | |
 | Streaming (Browse/HDA)   | No         | |
-| Payload size limits      | 256 kb (*) | Chunked transfer is supported using the companion web-api service. |
+| Payload size limits      | 256 kb (*) | |
 | Telemetry publishing     | Yes        | |
 | Discovery Events         | Yes        | |
 | Operational Events       | Yes        | |
 | Message size limits      | 256 kb     | |
-| Integrated with Web-Api  | Yes        | |
 
 IoT Edge is used as the default transport unless the Azure IoT related configuration cannot be found at startup time. By default all discovery and runtime events are sent through IoT Edge. Using the `-t` command line argument a different transport can be chosen to publish network messages with. The writer group (network message) transport can also be individually overridden for a writer group using the OPC Publisher [configuration schema's](./readme.md#configuration-schema) `WriterGroupTransport` attribute.
 
-Direct methods can be used to interact with the OPC Publisher configuration, discovery, and general (fka. OPC Twin) [API](./api.md). Direct method calls have a payload limit of 256 KB. The [Web API companion service](../web-api/readme.md) uses chunking to overcome this limitation. Still, high frequency interaction such as browsing through direct methods is naturally slow.
+Direct methods can be used to interact with the OPC Publisher configuration, discovery, and general (fka. OPC Twin) [API](./api.md). Direct method calls have a payload limit of 256 KB. High frequency interaction such as browsing through direct methods is naturally slow.
 
 ## MQTT
 
@@ -72,7 +71,6 @@ The following table shows the supported features of the MQTT transport implement
 | Discovery Events         | Yes        | Only if IoT Hub transport was not configured |
 | Operational Events       | Yes        | Only if IoT Hub transport was not configured |
 | Message size limits      | 512 MB     | Actual limits depend on MQTT broker and can be configured using the connection string. |
-| Integrated with Web-Api  | No         | |
 
 To configure MQTT as the default transport for telemetry publishing specify the `-t=Mqtt` command line argument. This default choice can be individually overridden for a writer group in the OPC Publisher [configuration](./readme.md#configuration-schema) using the `WriterGroupTransport` attribute.
 
@@ -97,7 +95,6 @@ The following table shows the supported features of the Azure EventHub transport
 | Discovery Events         | Yes        | |
 | Operational Events       | Yes        | |
 | Message size limits      | Yes        | |
-| Integrated with Web-Api  | No         | |
 
 In addition, OPC Publisher can publish message schemas to the Azure schema registry (Experimental). The schema group can be selected using the `--sg, --schemagroup` [command line options](./commandline.md). Publishing to the schema registry requires OPC Publisher to authenticate using an Azure identity e.g., a managed service identity, user or service principal.
 
@@ -120,7 +117,6 @@ The following table shows the supported features of the Dapr transport implement
 | Discovery Events         | Yes        | Only if IoT Hub and MQTT transport were not configured |
 | Operational Events       | Yes        | Only if IoT Hub and MQTT transport were not configured |
 | Message size limits      | No (*)     | Actual limits depend on the chosen Pub Sub component. Limits can be configured using the connection string |
-| Integrated with Web-Api  | No         | |
 
 Whether the Dapr transport is enabled is determined by whether the Dapr Pub Sub component and Api Token are configured. The Pub sub component name and Api token can be provided through the `-d` connection string using the [command line](./commandline.md). The Api Token is automatically provided by the Dapr runtime through the `DAPR_API_TOKEN` environment variable. Whether the component was configured in your Dapr environment is not validated.
 
@@ -143,7 +139,6 @@ The HTTP transports is split into two parts: The [built in HTTP server](#built-i
 | Discovery Events         | Yes        | Only if IoT Hub, MQTT, and Dapr transports were not configured |
 | Operational Events       | Yes        | Only if IoT Hub, MQTT, and Dapr transports were not configured |
 | Message size limits      | No         | |
-| Integrated with Web-Api  | No         | |
 
 ### Built-in HTTP API server
 

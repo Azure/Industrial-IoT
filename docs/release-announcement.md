@@ -475,7 +475,7 @@ We are pleased to announce the release of version 2.8.4 of our Industrial IoT Pl
 
   > IoT Edge 1.4 LTS EFLOW is supported as a Preview Feature in this release.
 
-  - You must update your Windows based IoT Edge environment to EFLOW **ahead of deploying the platform**.  
+  - You must update your Windows based IoT Edge environment to EFLOW **ahead of deploying the platform**.
   - Simulation deployed as part of the ./deploy.ps1 script now deploys EFLOW on a Windows VM Host (Preview Feature).  This requires nested virtualization.  The Azure subscription and chosen region must support Standard_D4_v4 VM which supports nested virtualization or deployment of simulated Windows gateway will be skipped.
   - Network scanning on IoT Edge 1.4 LTS EFLOW using OPC Discovery is not supported yet. This applies to the deployed [simulation environment](./web-api/readme.md#getting-started) and engineering tool. You can register servers using a discovery url using the [registry service's registration REST API](./web-api/api.md).
 

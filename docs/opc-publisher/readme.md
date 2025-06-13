@@ -1387,7 +1387,7 @@ To simplify the getting started experience, the OPC Publisher Edge module has a 
 
 ## OPC UA stack
 
-The OPC UA .NET Standard reference stack of the OPC Foundation (contributed by Microsoft) is used for OPC UA secure communications by the Industrial IoT platform. Modules and services consume the re-distributable NuGet package licensed by the OPC Foundation. The open source for the reference implementation is provided by the OPC Foundation on GitHub in [this public repository](https://github.com/OPCFoundation/UA-.NETStandard).
+The OPC UA .NET Standard reference stack of the OPC Foundation (contributed by Microsoft) is used for OPC UA secure communications by OPC Publisher. Modules and services consume the re-distributable NuGet package licensed by the OPC Foundation. The open source for the reference implementation is provided by the OPC Foundation on GitHub in [this public repository](https://github.com/OPCFoundation/UA-.NETStandard).
 
 ## Performance and Memory Tuning OPC Publisher
 
