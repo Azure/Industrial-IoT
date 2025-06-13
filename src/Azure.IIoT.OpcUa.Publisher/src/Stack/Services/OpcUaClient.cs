@@ -452,13 +452,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
-        internal Task ResetAsync(CancellationToken ct)
+        internal async Task ResetAsync(CancellationToken ct)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
             var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
             try
             {
-                ct.Register(() => tcs.TrySetCanceled());
+                using var registration = ct.Register(() => tcs.TrySetCanceled());
                 _logger.LogDebug("{Client}: Resetting...", this);
                 TriggerConnectionEvent(ConnectionEvent.Reset, tcs);
             }
@@ -467,7 +467,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _logger.LogError(ex, "{Client}: Failed to reset.", this);
                 tcs.TrySetException(ex);
             }
-            return tcs.Task;
+            await tcs.Task;
         }
 
         /// <summary>

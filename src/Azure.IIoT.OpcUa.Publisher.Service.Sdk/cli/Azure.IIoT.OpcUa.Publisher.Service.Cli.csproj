@@ -10,13 +10,13 @@
     <ContainerBaseImage>mcr.microsoft.com/dotnet/runtime:9.0-azurelinux3.0-distroless</ContainerBaseImage>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="9.0.5" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.5" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="9.0.5" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="9.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="9.0.6" />
     <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
-    <PackageReference Include="Furly.Azure.KeyVault" Version="1.1.8" />
+    <PackageReference Include="Furly.Azure.KeyVault" Version="1.1.10" />
     <PackageReference Include="Azure.Identity" Version="1.14.0" />
-    <PackageReference Include="Azure.Core" Version="1.46.1" />
+    <PackageReference Include="Azure.Core" Version="1.46.2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Publisher.Service.Sdk.csproj" />

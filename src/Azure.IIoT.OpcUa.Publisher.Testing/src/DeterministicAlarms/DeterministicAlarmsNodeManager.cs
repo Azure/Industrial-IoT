@@ -354,7 +354,7 @@ namespace DeterministicAlarms
                         context.DiagnosticsMask,
                         timestampsToReturn,
                         itemToCreate,
-                        false,
+                        createDurable,
                         ref globalIdCounter,
                         out filterResult,
                         out monitoredItem);
