@@ -17,8 +17,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpcPublisher-AE-E2E-Tests",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.IIoT.OpcUa.Publisher.Sdk", "..\src\Azure.IIoT.OpcUa.Publisher.Sdk\src\Azure.IIoT.OpcUa.Publisher.Sdk.csproj", "{203FFA8C-99E4-4A76-97A1-75CCE5B674BC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.IIoT.OpcUa.Publisher.Service.Sdk", "..\src\Azure.IIoT.OpcUa.Publisher.Service.Sdk\src\Azure.IIoT.OpcUa.Publisher.Service.Sdk.csproj", "{06DA0667-5DC3-453D-89C1-C47BDE73A23B}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Azure.IIoT.OpcUa.Publisher.Models", "..\src\Azure.IIoT.OpcUa.Publisher.Models\src\Azure.IIoT.OpcUa.Publisher.Models.csproj", "{832A5F9C-65F4-42F5-97D8-D2B69472DC05}"
 EndProject
 Global
@@ -45,14 +43,6 @@ Global
 		{203FFA8C-99E4-4A76-97A1-75CCE5B674BC}.Release|Any CPU.Build.0 = Release|Any CPU
 		{203FFA8C-99E4-4A76-97A1-75CCE5B674BC}.Release|x64.ActiveCfg = Release|Any CPU
 		{203FFA8C-99E4-4A76-97A1-75CCE5B674BC}.Release|x64.Build.0 = Release|Any CPU
-		{06DA0667-5DC3-453D-89C1-C47BDE73A23B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{06DA0667-5DC3-453D-89C1-C47BDE73A23B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{06DA0667-5DC3-453D-89C1-C47BDE73A23B}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{06DA0667-5DC3-453D-89C1-C47BDE73A23B}.Debug|x64.Build.0 = Debug|Any CPU
-		{06DA0667-5DC3-453D-89C1-C47BDE73A23B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{06DA0667-5DC3-453D-89C1-C47BDE73A23B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{06DA0667-5DC3-453D-89C1-C47BDE73A23B}.Release|x64.ActiveCfg = Release|Any CPU
-		{06DA0667-5DC3-453D-89C1-C47BDE73A23B}.Release|x64.Build.0 = Release|Any CPU
 		{832A5F9C-65F4-42F5-97D8-D2B69472DC05}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{832A5F9C-65F4-42F5-97D8-D2B69472DC05}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{832A5F9C-65F4-42F5-97D8-D2B69472DC05}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -68,7 +58,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{AFBD4A17-2EB1-421C-BB0C-407C875F3F50} = {30938473-53C1-4981-BFAB-B6309147FF24}
 		{203FFA8C-99E4-4A76-97A1-75CCE5B674BC} = {AFBD4A17-2EB1-421C-BB0C-407C875F3F50}
-		{06DA0667-5DC3-453D-89C1-C47BDE73A23B} = {AFBD4A17-2EB1-421C-BB0C-407C875F3F50}
 		{832A5F9C-65F4-42F5-97D8-D2B69472DC05} = {AFBD4A17-2EB1-421C-BB0C-407C875F3F50}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
