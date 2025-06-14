@@ -43,30 +43,6 @@ namespace Opc.Ua.Extensions
         }
 
         /// <summary>
-        /// Creates an expanded node id from node id.
-        /// </summary>
-        /// <param name="nodeId"></param>
-        /// <param name="serverIndex"></param>
-        /// <param name="namespaces"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentNullException"></exception>
-        public static ExpandedNodeId ToExpandedNodeId(this NodeId nodeId,
-            uint serverIndex, NamespaceTable namespaces)
-        {
-            if (NodeId.IsNull(nodeId))
-            {
-                return ExpandedNodeId.Null;
-            }
-            if (nodeId.NamespaceIndex > 0 && namespaces == null)
-            {
-                throw new ArgumentNullException(nameof(namespaces));
-            }
-            return new ExpandedNodeId(nodeId.Identifier, nodeId.NamespaceIndex,
-                nodeId.NamespaceIndex > 0 ? namespaces.GetString(nodeId.NamespaceIndex) :
-                    null, serverIndex);
-        }
-
-        /// <summary>
         /// Convert an expanded node id to a node id.
         /// </summary>
         /// <param name="nodeId"></param>

@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using Furly;
     using Furly.Extensions.AspNetCore.OpenApi;
     using Furly.Extensions.Http;
+    using Furly.Extensions.Serializers;
     using Furly.Tunnel.Router;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
@@ -22,7 +23,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Furly.Extensions.Serializers;
 
     /// <summary>
     /// <para>

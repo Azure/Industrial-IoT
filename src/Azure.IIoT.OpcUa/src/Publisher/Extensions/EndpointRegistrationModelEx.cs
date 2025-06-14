@@ -20,37 +20,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="model"></param>
         /// <param name="that"></param>
         /// <returns></returns>
-        public static bool IsSameAs(this IReadOnlyList<EndpointRegistrationModel>? model,
-            IReadOnlyList<EndpointRegistrationModel>? that)
-        {
-            if (ReferenceEquals(model, that))
-            {
-                return true;
-            }
-            if (model is null || that is null)
-            {
-                return false;
-            }
-            if (model.Count != that.Count)
-            {
-                return false;
-            }
-            foreach (var a in model)
-            {
-                if (!that.Any(b => b.IsSameAs(a)))
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        /// <summary>
-        /// Equality comparison
-        /// </summary>
-        /// <param name="model"></param>
-        /// <param name="that"></param>
-        /// <returns></returns>
         public static bool IsSameAs(this EndpointRegistrationModel? model,
             EndpointRegistrationModel? that)
         {
@@ -75,23 +44,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 model.SiteId == that.SiteId &&
                 model.DiscovererId == that.DiscovererId &&
                 model.SecurityLevel == that.SecurityLevel;
-        }
-
-        /// <summary>
-        /// Deep clone
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        [return: NotNullIfNotNull(nameof(model))]
-        public static EndpointRegistrationModel? Clone(this EndpointRegistrationModel? model)
-        {
-            return model == null ? null : (model with
-            {
-                Endpoint = model.Endpoint.Clone(),
-                AuthenticationMethods = model.AuthenticationMethods?
-                    .Select(c => c.Clone())
-                    .ToList()
-            });
         }
     }
 }

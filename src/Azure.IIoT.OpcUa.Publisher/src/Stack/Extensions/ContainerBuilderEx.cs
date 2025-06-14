@@ -38,8 +38,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                 .AsImplementedInterfaces();
             builder.RegisterType<OpcUaSubscriptionConfig>()
                 .AsImplementedInterfaces();
-            builder.RegisterType<VariantEncoderFactory>()
-                .AsImplementedInterfaces();
             builder.RegisterType<ConsoleWriter>()
                 .AsImplementedInterfaces();
             builder.RegisterType<AvroFileWriter>()

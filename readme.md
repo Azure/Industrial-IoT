@@ -1,14 +1,12 @@
-# Microsoft OPC Publisher and Azure Industrial IoT Platform
+# Microsoft OPC Publisher Edge Module
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Build Status](https://msazure.visualstudio.com/One/_apis/build/status%2FOneBranch%2FIndustrial-IoT%2FIndustrial-IoT-Buddy?repoName=Industrial-IoT&branchName=main)](https://msazure.visualstudio.com/One/_build/latest?definitionId=364946&repoName=Industrial-IoT&branchName=main)
 
 ## Discover, register and manage your OPC UA enabled Assets with Azure
 
-Microsoft [OPC Publisher](docs/opc-publisher/readme.md) and the optional Azure Industrial IoT Platform companion web service allow you to discover and operate OPC UA enabled industrial assets.
+Microsoft [OPC Publisher](docs/opc-publisher/readme.md) allows you to discover and operate OPC UA enabled industrial assets.
 
 With OPC Publisher you can  harness the power of OPC UA and Azure IoT. OPC Publisher is a fully compliant OPC UA PubSub telemetry publisher (supporting JSON, JSON+Gzip, and UADP binary encoding) and provides a large subset of the OPC UA services through its control plane. OPC Publisher is an Azure IoT Edge module that runs on on-premises. OPC Publisher API can be accessed via HTTP(s) (Preview), an MQTT Broker (Preview) or through Azure IoT Hub device methods.
-
-The [companion cloud service](docs/web-api/readme.md) provided in this repository (Preview) with REST interface runs inside Azure App Service and provides a cloud side REST API to command the OPC Publisher at the edge. An easy-to-use deployment script guides you step-by-step through deploying the web service and its dependencies, as well as an optional simulation environment in Azure.
 
 Microsoft provides pre-built Docker containers in the Microsoft Container Registry (MCR) for OPC Publisher and the other tools included in this repository.
 

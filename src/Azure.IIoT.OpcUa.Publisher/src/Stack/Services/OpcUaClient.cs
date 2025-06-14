@@ -467,7 +467,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _logger.LogError(ex, "{Client}: Failed to reset.", this);
                 tcs.TrySetException(ex);
             }
-            await tcs.Task;
+            await tcs.Task.ConfigureAwait(false);
         }
 
         /// <summary>

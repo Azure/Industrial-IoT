@@ -13,9 +13,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Diagnostics.Metrics;
-    using System.Diagnostics;
 
     /// <summary>
     /// Collects metrics from the writer groups inside the publisher using the .net Meter listener

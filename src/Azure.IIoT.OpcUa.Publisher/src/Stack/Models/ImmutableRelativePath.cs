@@ -20,12 +20,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         public IReadOnlyList<string> Path { get; }
 
         /// <summary>
-        /// Empty
-        /// </summary>
-        public static readonly ImmutableRelativePath Empty =
-            new(Array.Empty<string>());
-
-        /// <summary>
         /// Create browse path
         /// </summary>
         /// <param name="path"></param>

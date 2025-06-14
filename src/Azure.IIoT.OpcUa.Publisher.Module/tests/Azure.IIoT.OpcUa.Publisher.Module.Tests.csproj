@@ -27,7 +27,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Publisher.Sdk\src\Azure.IIoT.OpcUa.Publisher.Sdk.csproj" />
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Publisher.Testing\tests\Azure.IIoT.OpcUa.Publisher.Testing.csproj" />
-    <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Publisher.Service\src\Azure.IIoT.OpcUa.Publisher.Service.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\*.json">

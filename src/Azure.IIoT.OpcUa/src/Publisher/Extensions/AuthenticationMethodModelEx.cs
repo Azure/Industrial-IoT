@@ -73,19 +73,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 model.SecurityPolicy == that.SecurityPolicy &&
                 model.CredentialType == that.CredentialType;
         }
-
-        /// <summary>
-        /// Deep clone
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        [return: NotNullIfNotNull(nameof(model))]
-        public static AuthenticationMethodModel? Clone(this AuthenticationMethodModel? model)
-        {
-            return model == null ? null : (model with
-            {
-                Configuration = model.Configuration?.Copy()
-            });
-        }
     }
 }

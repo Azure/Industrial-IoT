@@ -38,7 +38,6 @@ rem
 pushd %build_root%\docs
 
 call :generate_doc_for_service opc-publisher
-call :generate_doc_for_service web-api
 
 set service=
 set convert=

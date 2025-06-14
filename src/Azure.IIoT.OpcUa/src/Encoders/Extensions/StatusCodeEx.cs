@@ -25,15 +25,5 @@ namespace Opc.Ua
             }
             return name;
         }
-
-        /// <summary>
-        /// Get symbolic name - fast
-        /// </summary>
-        /// <param name="code"></param>
-        /// <returns></returns>
-        public static string? AsString(this StatusCode? code)
-        {
-            return code?.AsString();
-        }
     }
 }
