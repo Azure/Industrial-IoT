@@ -157,8 +157,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 try
                 {
                     _cts.Cancel();
-                    _logger.LogDebug("{Session}: Session disposed.",
-                        sessionName);
+                    _logger.SessionDisposed(sessionName);
                 }
                 finally
                 {
@@ -193,7 +192,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (ServiceResultException sre)
             {
-                _logger.LogDebug(sre, "Failed to fetch server diagnostics.");
+                _logger.ServerDiagnosticsFetchFailed(sre);
             }
             return _lastDiagnostics ?? new SessionDiagnosticsModel();
         }
@@ -274,9 +273,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex,
-                        "{Session}: Attempt #{Attempt}. Failed to get complex type system.",
-                        this, attempt);
+                    _logger.ComplexTypeSystemFailed(this, attempt, ex);
 
                     // Try again. TODO: Throttle using a timer or so...
                     _complexTypeSystem = LoadComplexTypeSystemAsync();
@@ -734,8 +731,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }, ct).ConfigureAwait(false);
                     if (ServiceResult.IsBad(enableResponse.Results[0]))
                     {
-                        _logger.LogError("Session diagnostics disabled and failed to enable ({Error}).",
-                            enableResponse.Results[0]);
+                        _logger.DiagnosticsEnableFailed(enableResponse.Results[0].ToString());
                         return null;
                     }
                     _diagnosticsEnabled = true;
@@ -757,8 +753,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }, ct).ConfigureAwait(false);
             if (ServiceResult.IsBad(response.Results[0].StatusCode))
             {
-                _logger.LogInformation("Session diagnostics not retrievable ({Error1}/{Error2}).",
-                    response.Results[0].StatusCode, response.Results[1].StatusCode);
+                _logger.DiagnosticsNotRetrievable(response.Results[0].StatusCode.ToString(),
+                    response.Results[1].StatusCode.ToString());
                 return null;
             }
             var sessionDiagnosticsArray = response.Results[0].Value as ExtensionObject[];
@@ -768,8 +764,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 .FirstOrDefault(d => d.SessionId == SessionId);
             if (sessionDiagnostics == null)
             {
-                _logger.LogError("Failed to find diagnostics for this session ({Error}).",
-                    response.Results[0].StatusCode);
+                _logger.DiagnosticsNotFound(response.Results[0].StatusCode.ToString());
                 return null;
             }
 
@@ -818,8 +813,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             else
             {
-                _logger.LogInformation("Subscription diagnostics not retrievable ({Error}).",
-                    response.Results[1].StatusCode);
+                _logger.SubscriptionDiagnosticsNotRetrievable(response.Results[1].StatusCode.ToString());
             }
 
             return new SessionDiagnosticsModel
@@ -1263,8 +1257,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             if (OperationTimeout != timeout)
             {
                 OperationTimeout = (int)timeout;
-                _logger.LogInformation("Operation timeout updated to {Timeout}.",
-                    TimeSpan.FromMilliseconds(timeout));
+                _logger.OperationTimeoutUpdated(TimeSpan.FromMilliseconds(timeout));
             }
         }
 
@@ -1285,8 +1278,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                     if (Connected)
                     {
-                        _logger.LogInformation(
-                            "{Session}: Complex type system loaded into client.", this);
+                        _logger.ComplexTypeSystemLoaded(this);
 
                         // Clear cache to release memory.
                         // TODO: we should have a real node cache here
@@ -1436,5 +1428,47 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private static readonly TimeSpan kDefaultOperationTimeout = TimeSpan.FromMinutes(1);
         private static readonly TimeSpan kDefaultKeepAliveInterval = TimeSpan.FromSeconds(30);
         private static readonly TimeSpan kMaxOperationTimeout = TimeSpan.FromMinutes(30);
+    }
+
+    /// <summary>
+    /// Source-generated logging definitions for OpcUaSession
+    /// </summary>
+    internal static partial class OpcUaSessionLogging
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Debug,
+            Message = "{Session}: Session disposed.")]
+        public static partial void SessionDisposed(this ILogger logger, string session);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Debug,
+            Message = "Failed to fetch server diagnostics.")]
+        public static partial void ServerDiagnosticsFetchFailed(this ILogger logger, ServiceResultException sre);
+
+        [LoggerMessage(EventId = 3, Level = LogLevel.Error,
+            Message = "{Session}: Attempt #{Attempt}. Failed to get complex type system.")]
+        public static partial void ComplexTypeSystemFailed(this ILogger logger, OpcUaSession session, int attempt, Exception ex);
+
+        [LoggerMessage(EventId = 4, Level = LogLevel.Error,
+            Message = "Session diagnostics disabled and failed to enable ({Error}).")]
+        public static partial void DiagnosticsEnableFailed(this ILogger logger, string error);
+
+        [LoggerMessage(EventId = 5, Level = LogLevel.Information,
+            Message = "Session diagnostics not retrievable ({Error1}/{Error2}).")]
+        public static partial void DiagnosticsNotRetrievable(this ILogger logger, string error1, string error2);
+
+        [LoggerMessage(EventId = 6, Level = LogLevel.Error,
+            Message = "Failed to find diagnostics for this session ({Error}).")]
+        public static partial void DiagnosticsNotFound(this ILogger logger, string error);
+
+        [LoggerMessage(EventId = 7, Level = LogLevel.Information,
+            Message = "Subscription diagnostics not retrievable ({Error}).")]
+        public static partial void SubscriptionDiagnosticsNotRetrievable(this ILogger logger, string error);
+
+        [LoggerMessage(EventId = 8, Level = LogLevel.Information,
+            Message = "Operation timeout updated to {Timeout}.")]
+        public static partial void OperationTimeoutUpdated(this ILogger logger, TimeSpan timeout);
+
+        [LoggerMessage(EventId = 9, Level = LogLevel.Information,
+            Message = "{Session}: Complex type system loaded into client.")]
+        public static partial void ComplexTypeSystemLoaded(this ILogger logger, OpcUaSession session);
     }
 }

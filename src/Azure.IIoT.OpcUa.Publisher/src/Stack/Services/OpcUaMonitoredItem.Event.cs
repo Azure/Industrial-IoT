@@ -226,7 +226,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 catch (Exception e)
                 {
-                    _logger.LogDebug(e, "{Item}: Failed to get metadata for event.", this);
+                    _logger.GetMetadataFailed(e, this);
                     throw;
                 }
             }
@@ -283,7 +283,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     {
                         EventFilter = model.Template.EventFilter
                     };
-                    _logger.LogDebug("{Item}: Changing event filter.", this);
+                    _logger.ChangingEventFilter(this);
                     metadataChanged = true;
                     itemChange = true;
                 }
@@ -298,13 +298,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     if (Status.Error != null && ServiceResult.IsNotGood(Status.Error))
                     {
-                        _logger.LogError("Event filter applied with result {Result} for {Item}",
-                            evr.AsJson(msgContext), this);
+                        _logger.EventFilterAppliedWithError(evr.AsJson(msgContext), this);
                     }
                     else if (_logger.IsEnabled(LogLevel.Debug))
                     {
-                        _logger.LogDebug("Event filter applied with result {Result} for {Item}",
-                            evr.AsJson(msgContext), this);
+                        _logger.EventFilterApplied(evr.AsJson(msgContext), this);
                     }
                 }
                 return base.TryCompleteChanges(subscription, ref applyChanges);
@@ -525,8 +523,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 if (_logger.IsEnabled(LogLevel.Debug))
                 {
-                    _logger.LogDebug("Generated event filter for {Item}: '{Filter}'",
-                        this, eventFilter.AsJson(session.MessageContext));
+                    _logger.GeneratedEventFilter(this, eventFilter.AsJson(session.MessageContext));
                 }
                 return (eventFilter, selectClauses);
             }
@@ -699,5 +696,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Source-generated logging definitions for OpcUaMonitoredItem Event handling
+    /// </summary>
+    internal static partial class OpcUaMonitoredItemEventLogging
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Debug,
+            Message = "{Item}: Failed to get metadata for event.")]
+        public static partial void GetMetadataFailed(this ILogger logger, Exception ex, OpcUaMonitoredItem item);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Debug,
+            Message = "{Item}: Changing event filter.")]
+        public static partial void ChangingEventFilter(this ILogger logger, OpcUaMonitoredItem item);
+
+        [LoggerMessage(EventId = 3, Level = LogLevel.Error,
+            Message = "Event filter applied with result {Result} for {Item}")]
+        public static partial void EventFilterAppliedWithError(this ILogger logger, string result, OpcUaMonitoredItem item);
+
+        [LoggerMessage(EventId = 4, Level = LogLevel.Debug,
+            Message = "Event filter applied with result {Result} for {Item}")]
+        public static partial void EventFilterApplied(this ILogger logger, string result, OpcUaMonitoredItem item);
+
+        [LoggerMessage(EventId = 5, Level = LogLevel.Debug,
+            Message = "Generated event filter for {Item}: '{Filter}'")]
+        public static partial void GeneratedEventFilter(this ILogger logger, OpcUaMonitoredItem item, string filter);
     }
 }

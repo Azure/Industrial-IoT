@@ -64,13 +64,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     var runtimeStateReporter = _scope.Resolve<IRuntimeStateReporter>();
 
                     var version = GetType().Assembly.GetReleaseVersion().ToString();
-                    _logger.LogInformation("Starting OpcPublisher module version {Version}...",
-                        version);
+                    _logger.Starting(version);
 
                     // Start rpc servers
                     foreach (var server in _scope.Resolve<IEnumerable<IRpcServer>>())
                     {
-                        _logger.LogInformation("... Starting Rpc {Server} server ...", server.Name);
+                        _logger.StartingServer(server.Name);
                         server.Start();
                     }
 
@@ -78,21 +77,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     await runtimeStateReporter.SendRestartAnnouncementAsync(
                         cancellationToken).ConfigureAwait(false);
 
-                    _logger.LogInformation("OpcPublisher module version {Version} started.",
-                        version);
+                    _logger.Started(version);
                     OnRunning?.Invoke(this, true);
                     return;
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error trying to start OpcPublisher module!");
+                    _logger.StartError(ex);
                     if (IsContainer)
                     {
-                        _logger.LogCritical(ex, "Waiting for container restart - exiting...");
+                        _logger.ContainerRestart(ex);
                         Process.GetCurrentProcess().Kill();
                         return;
                     }
-                    _logger.LogInformation("Retrying in 30 seconds...");
+                    _logger.RetryIn30Seconds();
                     await Task.Delay(TimeSpan.FromSeconds(30), cancellationToken).ConfigureAwait(false);
                 }
             }
@@ -101,36 +99,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <inheritdoc/>
         public void OnClosed(int counter, string deviceId, string? moduleId, string reason)
         {
-            _logger.LogInformation("{Counter}: Module {ModuleId} closed due to {Reason}.",
-                counter, moduleId ?? deviceId, reason);
+            _logger.ModuleClosed(counter, moduleId ?? deviceId, reason);
         }
 
         /// <inheritdoc/>
         public void OnConnected(int counter, string deviceId, string? moduleId, string reason)
         {
-            _logger.LogInformation("{Counter}: Module {ModuleId} reconnected due to {Reason}.",
-                counter, moduleId ?? deviceId, reason);
+            _logger.ModuleReconnected(counter, moduleId ?? deviceId, reason);
         }
 
         /// <inheritdoc/>
         public void OnDisconnected(int counter, string deviceId, string? moduleId, string reason)
         {
-            _logger.LogInformation("{Counter}: Module {ModuleId} disconnected due to {Reason}...",
-                counter, moduleId ?? deviceId, reason);
+            _logger.ModuleDisconnected(counter, moduleId ?? deviceId, reason);
         }
 
         /// <inheritdoc/>
         public void OnOpened(int counter, string deviceId, string? moduleId)
         {
-            _logger.LogInformation("{Counter}: Module {ModuleId} opened.",
-                counter, moduleId ?? deviceId);
+            _logger.ModuleOpened(counter, moduleId ?? deviceId);
         }
 
         /// <inheritdoc/>
         public void OnError(int counter, string deviceId, string? moduleId, string reason)
         {
-            _logger.LogError("{Counter}: Module {ModuleId} error {Reason}...",
-                counter, moduleId ?? deviceId, reason);
+            _logger.ModuleError(counter, moduleId ?? deviceId, reason);
         }
 
         /// <inheritdoc/>
@@ -149,14 +142,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             OnRunning?.Invoke(this, false);
-            _logger.LogInformation("Stopped module OpcPublisher.");
+            _logger.Stopped();
             return Task.CompletedTask;
         }
 
         /// <inheritdoc/>
         public bool Shutdown(bool failFast)
         {
-            _logger.LogInformation("Received request to shutdown publisher process.");
+            _logger.ShutdownRequested();
             if (failFast)
             {
                 Environment.FailFast("User shutdown of OPC Publisher due to error.");
@@ -172,5 +165,63 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly ILifetimeScope _scope;
         private readonly ILogger<PublisherModule> _logger;
         private readonly TimeProvider _timeProvider;
+    }
+
+    /// <summary>
+    /// Source-generated logging definitions for PublisherModule
+    /// </summary>
+    internal static partial class PublisherModuleLogging
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Information,
+            Message = "Starting OpcPublisher module version {Version}...")]
+        public static partial void Starting(this ILogger logger, string version);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Information,
+            Message = "... Starting Rpc {Server} server ...")]
+        public static partial void StartingServer(this ILogger logger, string server);
+
+        [LoggerMessage(EventId = 3, Level = LogLevel.Information,
+            Message = "OpcPublisher module version {Version} started.")]
+        public static partial void Started(this ILogger logger, string version);
+
+        [LoggerMessage(EventId = 4, Level = LogLevel.Error,
+            Message = "Error trying to start OpcPublisher module!")]
+        public static partial void StartError(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = 5, Level = LogLevel.Critical,
+            Message = "Waiting for container restart - exiting...")]
+        public static partial void ContainerRestart(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = 6, Level = LogLevel.Information,
+            Message = "Retrying in 30 seconds...")]
+        public static partial void RetryIn30Seconds(this ILogger logger);
+
+        [LoggerMessage(EventId = 7, Level = LogLevel.Information,
+            Message = "{Counter}: Module {ModuleId} closed due to {Reason}.")]
+        public static partial void ModuleClosed(this ILogger logger, int counter, string moduleId, string reason);
+
+        [LoggerMessage(EventId = 8, Level = LogLevel.Information,
+            Message = "{Counter}: Module {ModuleId} reconnected due to {Reason}.")]
+        public static partial void ModuleReconnected(this ILogger logger, int counter, string moduleId, string reason);
+
+        [LoggerMessage(EventId = 9, Level = LogLevel.Information,
+            Message = "{Counter}: Module {ModuleId} disconnected due to {Reason}...")]
+        public static partial void ModuleDisconnected(this ILogger logger, int counter, string moduleId, string reason);
+
+        [LoggerMessage(EventId = 10, Level = LogLevel.Information,
+            Message = "{Counter}: Module {ModuleId} opened.")]
+        public static partial void ModuleOpened(this ILogger logger, int counter, string moduleId);
+
+        [LoggerMessage(EventId = 11, Level = LogLevel.Error,
+            Message = "{Counter}: Module {ModuleId} error {Reason}...")]
+        public static partial void ModuleError(this ILogger logger, int counter, string moduleId, string reason);
+
+        [LoggerMessage(EventId = 12, Level = LogLevel.Information,
+            Message = "Stopped module OpcPublisher.")]
+        public static partial void Stopped(this ILogger logger);
+
+        [LoggerMessage(EventId = 13, Level = LogLevel.Information,
+            Message = "Received request to shutdown publisher process.")]
+        public static partial void ShutdownRequested(this ILogger logger);
     }
 }

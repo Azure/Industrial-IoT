@@ -7,10 +7,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Options;
     using Opc.Ua;
     using Opc.Ua.Client;
-    using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -194,8 +192,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                 NodeId = ResolvedNodeId
                             },
                             _subscriptionName, ClientHandle);
-                        _logger.LogDebug("Item {Item} successfully registered with sampler.",
-                            this);
+                        _logger.ItemRegistered(this);
                     }
                 }
             }
@@ -215,7 +212,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (sampler != null)
                 {
                     await sampler.DisposeAsync().ConfigureAwait(false);
-                    _logger.LogDebug("Item {Item} unregistered from sampler.", this);
+                    _logger.ItemUnregistered(this);
                 }
             }
 
@@ -241,5 +238,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private readonly object _lock = new();
             private bool _disposed;
         }
+    }
+
+    /// <summary>
+    /// Source-generated logging definitions for OpcUaMonitoredItem CyclicRead handling
+    /// </summary>
+    internal static partial class OpcUaMonitoredItemCyclicReadLogging
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Debug,
+            Message = "Item {Item} successfully registered with sampler.")]
+        public static partial void ItemRegistered(this ILogger logger, OpcUaMonitoredItem.CyclicRead item);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Debug,
+            Message = "Item {Item} unregistered from sampler.")]
+        public static partial void ItemUnregistered(this ILogger logger, OpcUaMonitoredItem.CyclicRead item);
     }
 }

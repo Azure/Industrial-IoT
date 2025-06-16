@@ -121,8 +121,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             if (_diagnostics.TryRemove(writerGroupId, out _))
             {
-                _logger.LogInformation("Stop tracking diagnostics for {WriterGroup}.",
-                    writerGroupId);
+                PublisherDiagnosticCollectorLogging.TrackingDiagnosticsStopped(_logger, writerGroupId);
                 return true;
             }
             return false;
@@ -361,9 +360,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// <summary>
     /// Source-generated logging extensions for PublisherDiagnosticCollector
     /// </summary>
-    internal static partial class PublisherDiagnosticCollectorLogging
+    public static partial class PublisherDiagnosticCollectorLogging
     {
         [LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "Tracking diagnostics for {WriterGroup} was (re-)started.")]
-        internal static partial void TrackingDiagnosticsRestarted(this ILogger logger, string writerGroup);
+        public static partial void TrackingDiagnosticsRestarted(this ILogger logger, string writerGroup);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Information, Message = "Stop tracking diagnostics for {WriterGroup}.")]
+        public static partial void TrackingDiagnosticsStopped(this ILogger logger, string writerGroup);
     }
 }

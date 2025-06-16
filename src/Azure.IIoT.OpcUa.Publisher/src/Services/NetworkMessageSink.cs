@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
+    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
@@ -388,9 +389,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         _batchTriggerIntervalTimer.Change(_outer._transport.BatchTriggerInterval,
                             Timeout.InfiniteTimeSpan);
                     }
-                    _logger.LogInformation(
-                        "Partition #{Partition}: Started data flow with notification from server {Name} and endpoint {Endpoint}.",
-                        _índex, args.ApplicationUri ?? "<disconnected>", args.EndpointUrl ?? "<disconnected>");
+                    _logger.PartitionStarted(_índex,
+                        args.ApplicationUri ?? "<disconnected>",
+                        args.EndpointUrl ?? "<disconnected>");
                 }
 
                 if (_sendBlock.InputCount >= _outer._transport.MaxPublishQueueSize)
@@ -430,7 +431,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     message.Complete();
                     message.Event.Dispose();
-                    _outer._logger.LogDebug("Closed. Network message dropped.");
+                    _outer._logger.MessageDropped();
                     return;
                 }
                 try
@@ -443,7 +444,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         {
                             // Throws if cancelled
                             await message.Event.SendAsync(_cts.Token).ConfigureAwait(false);
-                            _outer._logger.LogDebug("#{Attempt}: Network message sent.", attempt);
+                            _outer._logger.MessageSent(attempt);
                             break;
                         }
                         catch (OperationCanceledException) { }
@@ -463,27 +464,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             if (aux?.Message.Equals("TLS authentication error.",
                                 StringComparison.Ordinal) == true)
                             {
-                                _logger.LogCritical(aux,
-                                    "#{Attempt}: Wrong TLS certificate trust list " +
-                                    "provisioned - trying to reset and reload configuration...",
-                                    attempt);
+                                _logger.WrongCertificate(aux, attempt);
                                 Runtime.FailFast(aux.Message, aux);
                             }
 
                             var delay = TimeSpan.FromMilliseconds(attempt * 100);
-                            const string error = "#{Attempt}: Error '{Error}' during " +
-                                "sending network message. Retrying in {Delay}...";
                             if (_logger.IsEnabled(LogLevel.Debug))
                             {
-                                _logger.LogDebug(e, error, attempt, e.Message, delay);
+                                _logger.SendErrorWithStack(e, attempt, e.Message, delay);
                             }
                             else if (attempt % 10 == 0)
                             {
-                                _logger.LogError(e, error, attempt, e.Message, delay);
+                                _logger.SendErrorWithStackPeriodic(e, attempt, e.Message, delay);
                             }
                             else
                             {
-                                _logger.LogError(error, attempt, e.Message, delay);
+                                _logger.SendError(attempt, e.Message, delay);
                             }
 
                             // Throws if cancelled
@@ -502,7 +498,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 catch (OperationCanceledException) { }
                 catch (Exception e)
                 {
-                    _logger.LogError(e, "Unexpected error sending network message.");
+                    _logger.UnexpectedSendError(e);
                 }
             }
 
@@ -524,7 +520,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError(e, "Encoding failure on partition #{Partition}.", _índex);
+                    _logger.EncodingFailure(e, _índex);
                     input.ForEach(a => a.Dispose());
                     return [];
                 }
@@ -541,8 +537,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     _batchTriggerIntervalTimer.Change(_outer._transport.BatchTriggerInterval,
                         Timeout.InfiniteTimeSpan);
                 }
-                _logger.LogTrace("Trigger notification batch (Interval:{Interval})...",
-                    _outer._transport.BatchTriggerInterval);
+                _logger.BatchTrigger(_outer._transport.BatchTriggerInterval);
                 _notificationBufferBlock.TriggerBatch();
             }
 
@@ -607,11 +602,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var notifications = Stringify(_filterNotifications(args.Notifications));
             if (!string.IsNullOrEmpty(notifications))
             {
-                _logger.LogInformation(
-                    "{Action}|{PublishTime:hh:mm:ss:ffffff}|#{Seq}:{PublishSeq}|{MessageType}|{Endpoint}|{Items}",
-                    dropped ? "!!!! Dropped !!!! " : string.Empty, args.PublishTimestamp, args.SequenceNumber,
-                    args.PublishSequenceNumber?.ToString(CultureInfo.CurrentCulture) ?? "-", args.MessageType,
-                    args.EndpointUrl, notifications);
+                _logger.NotificationLog(
+                    dropped ? "!!!! Dropped !!!! " : string.Empty,
+                    args.PublishTimestamp,
+                    args.SequenceNumber,
+                    args.PublishSequenceNumber?.ToString(CultureInfo.CurrentCulture) ?? "-",
+                    args.MessageType,
+                    args.EndpointUrl ?? string.Empty,
+                    notifications);
             }
 
             static string Stringify(IEnumerable<MonitoredItemNotificationModel> notifications)
@@ -756,19 +754,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <param name="logger"></param>
             public void Log(WriterGroupModel writerGroup, ILogger logger)
             {
-                logger.LogInformation("Writer group {WriterGroup} set up to publish notifications " +
-                    "{Interval} {Batching} with {MaxSize} to {Transport} with {HeaderLayout} layout and " +
-                    "{MessageType} encoding (queuing at most {MaxQueueSize} subscription notifications)...",
+                var interval = BatchTriggerInterval == TimeSpan.Zero ?
+                    "as soon as they arrive" : $"every {BatchTriggerInterval} (hh:mm:ss)";
+                var batching = MaxNotificationsPerMessage == 1 ?
+                    "and individually" :
+                    $"or when a batch of {MaxNotificationsPerMessage} notifications is ready";
+                var maxSize = MaxNetworkMessageSize == int.MaxValue ?
+                    "unlimited size" : $"at most {MaxNetworkMessageSize / 1024} kb";
+
+                logger.WriterGroupSetup(
                     writerGroup.Name ?? Constants.DefaultWriterGroupName,
-                    BatchTriggerInterval == TimeSpan.Zero ?
-                        "as soon as they arrive" : $"every {BatchTriggerInterval} (hh:mm:ss)",
-                    MaxNotificationsPerMessage == 1 ?
-                        "and individually" :
-                $"or when a batch of {MaxNotificationsPerMessage} notifications is ready",
-                    MaxNetworkMessageSize == int.MaxValue ?
-                        "unlimited size" : $"at most {MaxNetworkMessageSize / 1024} kb",
-                    EventClient.Name, writerGroup.HeaderLayoutUri ?? "unknown",
-                    writerGroup.MessageType ?? MessageEncoding.Json, MaxPublishQueueSize);
+                    interval,
+                    batching,
+                    maxSize,
+                    EventClient.Name,
+                    writerGroup.HeaderLayoutUri ?? "unknown",
+                    writerGroup.MessageType ?? MessageEncoding.Json,
+                    MaxPublishQueueSize);
             }
 
             /// <summary>
@@ -860,5 +862,62 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly CancellationTokenSource _cts = new();
         private readonly IMetricsContext _metrics;
         private readonly Meter _meter = Diagnostics.NewMeter();
+    }
+
+    /// <summary>
+    /// Source-generated logging definitions for NetworkMessageSink
+    /// </summary>
+    internal static partial class NetworkMessageSinkLogging
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Information,
+            Message = "Partition #{Partition}: Started data flow with notification from server {Name} and endpoint {Endpoint}.")]
+        public static partial void PartitionStarted(this ILogger logger, int partition, string name, string endpoint);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Debug,
+            Message = "Closed. Network message dropped.")]
+        public static partial void MessageDropped(this ILogger logger);
+
+        [LoggerMessage(EventId = 3, Level = LogLevel.Debug,
+            Message = "#{Attempt}: Network message sent.")]
+        public static partial void MessageSent(this ILogger logger, int attempt);
+
+        [LoggerMessage(EventId = 4, Level = LogLevel.Critical,
+            Message = "#{Attempt}: Wrong TLS certificate trust list provisioned - trying to reset and reload configuration...")]
+        public static partial void WrongCertificate(this ILogger logger, Exception ex, int attempt);
+
+        [LoggerMessage(EventId = 5, Level = LogLevel.Debug,
+            Message = "#{Attempt}: Error '{Error}' during sending network message. Retrying in {Delay}...")]
+        public static partial void SendErrorWithStack(this ILogger logger, Exception ex, int attempt, string error, TimeSpan delay);
+
+        [LoggerMessage(EventId = 6, Level = LogLevel.Error,
+            Message = "#{Attempt}: Error '{Error}' during sending network message. Retrying in {Delay}...")]
+        public static partial void SendErrorWithStackPeriodic(this ILogger logger, Exception ex, int attempt, string error, TimeSpan delay);
+
+        [LoggerMessage(EventId = 7, Level = LogLevel.Error,
+            Message = "#{Attempt}: Error '{Error}' during sending network message. Retrying in {Delay}...")]
+        public static partial void SendError(this ILogger logger, int attempt, string error, TimeSpan delay);
+
+        [LoggerMessage(EventId = 8, Level = LogLevel.Error,
+            Message = "Encoding failure on partition #{Partition}.")]
+        public static partial void EncodingFailure(this ILogger logger, Exception ex, int partition);
+
+        [LoggerMessage(EventId = 9, Level = LogLevel.Error,
+            Message = "Unexpected error sending network message.")]
+        public static partial void UnexpectedSendError(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = 10, Level = LogLevel.Trace,
+            Message = "Trigger notification batch (Interval:{Interval})...")]
+        public static partial void BatchTrigger(this ILogger logger, TimeSpan interval);
+
+        [LoggerMessage(EventId = 11, Level = LogLevel.Information,
+            Message = "{Action}|{PublishTime:hh:mm:ss:ffffff}|#{Seq}:{PublishSeq}|{MessageType}|{Endpoint}|{Items}")]
+        public static partial void NotificationLog(this ILogger logger, string action, DateTimeOffset? publishTime,
+            uint seq, string publishSeq, MessageType messageType, string endpoint, string items);
+
+        [LoggerMessage(EventId = 12, Level = LogLevel.Information,
+            Message = "Writer group {WriterGroup} set up to publish notifications {Interval} {Batching} with {MaxSize} to {Transport} with {HeaderLayout} layout and {MessageType} encoding (queuing at most {MaxQueueSize} subscription notifications)...")]
+        public static partial void WriterGroupSetup(this ILogger logger, string writerGroup, string interval,
+            string batching, string maxSize, string transport, string headerLayout,
+            MessageEncoding messageType, int maxQueueSize);
     }
 }
