@@ -352,7 +352,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     return ex.ToServiceResultModel();
                 }
-                _logger.LogInformation(ex, "Discard error because force was set.");
+                _logger.DiscardErrorBecauseForceWasSet(ex);
             }
             var errorInfo = await DeleteAssetAsync(request.Header, request.Entry,
                 ct).ConfigureAwait(false);
@@ -1197,5 +1197,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         [LoggerMessage(EventId = 2, Level = LogLevel.Debug, Message = "Dropped duplicate variables found.")]
         public static partial void DroppedDuplicateVariables(this ILogger logger);
+
+        [LoggerMessage(EventId = 3, Level = LogLevel.Information, Message = "Discard error because force was set.")]
+        public static partial void DiscardErrorBecauseForceWasSet(this ILogger logger, Exception ex);
     }
 }

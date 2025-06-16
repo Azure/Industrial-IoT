@@ -36,7 +36,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// and works in a similar way to manage a table of unique writers in
         /// the writer group.
         /// </summary>
-        private sealed class DataSetWriter
+        internal sealed class DataSetWriter
         {
             /// <summary>
             /// Publishing interval which is used to split subscriptions for
@@ -425,8 +425,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 Name = CreateUniqueWriterName(writer.Writer.DataSetWriterName, writerNames);
 
-                _logger.LogDebug("Creating new writer {Id} ({Writer}) in writer group {WriterGroup}...",
-                    Id, Name, _group.Id);
+                DataSetWriterSubscriptionLogging.CreatingNewWriter(logger, Id, Name, _group.Id);
 
                 // Create monitored items
                 var namespaceFormat =
@@ -464,8 +463,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 writer.InitializeMetaDataTrigger();
                 writer.InitializeKeepAlive();
 
-                group._logger.LogInformation("Created writer {Id} in writer group {WriterGroup}.",
-                    writer.Id, group.Id);
+                DataSetWriterSubscriptionLogging.CreatedWriter(group._logger, writer.Id, group.Id);
 
                 return writer;
             }
@@ -480,8 +478,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             public async ValueTask UpdateAsync(DataSetWriter dataSetWriter, HashSet<string> writerNames,
                 CancellationToken ct)
             {
-                _logger.LogDebug("Updating writer {Id} in writer group {WriterGroup}...",
-                    Id, _group.Id);
+                DataSetWriterSubscriptionLogging.UpdatingWriter(_logger, Id, _group.Id);
 
                 var previous = _writer;
                 _writer = dataSetWriter;
@@ -516,18 +513,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     Subscription = await _group._clients.CreateSubscriptionAsync(
                         _connection.Connection, _template, this, ct).ConfigureAwait(false);
 
-                    _logger.LogInformation(
-                        "Recreated subscription for writer {Id} in writer group {WriterGroup}...",
-                       Id, _group.Id);
+                    DataSetWriterSubscriptionLogging.RecreatedSubscription(_logger, Id, _group.Id);
                 }
                 else
                 {
                     // Trigger reevaluation
                     Subscription.NotifyMonitoredItemsChanged();
 
-                    _logger.LogDebug(
-                        "Updated monitored items for writer {Id} in writer group {WriterGroup}.",
-                        Id, _group.Id);
+                    DataSetWriterSubscriptionLogging.UpdatedMonitoredItems(_logger, Id, _group.Id);
                 }
 
                 _frameCount = 0;
@@ -554,8 +547,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         Subscription = null;
                     }
 
-                    _logger.LogInformation("Closed writer {Id} in writer group {WriterGroup}.",
-                        Id, _group.Id);
+                    DataSetWriterSubscriptionLogging.ClosedWriter(_logger, Id, _group.Id);
                 }
                 finally
                 {
@@ -606,23 +598,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <inheritdoc/>
-            public void OnSubscriptionDataDiagnosticsChange(bool liveData, int valueChanges, int overflows,
+            public void OnSubscriptionCyclicReadCompleted(OpcUaSubscriptionNotification notification)
+            {
+                CallMessageReceiverDelegates(notification);
+            }
+
+            /// <inheritdoc/>
+            public void OnSubscriptionEventReceived(OpcUaSubscriptionNotification notification)
+            {
+                CallMessageReceiverDelegates(notification);
+            }
+
+            /// <inheritdoc/>
+            public void OnSubscriptionDataDiagnosticsChange(bool liveData, int valueChanges, int overflow,
                 int heartbeats)
             {
                 lock (_lock)
                 {
                     _group._heartbeats.Count += heartbeats;
-                    _group._overflows.Count += overflows;
+                    _group._overflows.Count += overflow;
                     if (liveData)
                     {
                         if (_group._dataChanges.Count >= kNumberOfInvokedMessagesResetThreshold ||
                             _group._valueChanges.Count >= kNumberOfInvokedMessagesResetThreshold)
                         {
-                            _logger.LogDebug(
-                                "Notifications counter has been reset to prevent" +
-                                " overflow. So far, {DataChangesCount} data changes and {ValueChangesCount} " +
-                                "value changes were invoked by message source.",
-                                _group._dataChanges.Count, _group._valueChanges.Count);
+                            DataSetWriterSubscriptionLogging.NotificationsCounterReset(_logger, (int)_group._dataChanges.Count, (int)_group._valueChanges.Count);
                             _group._dataChanges.Count = 0;
                             _group._valueChanges.Count = 0;
                             _group._heartbeats.Count = 0;
@@ -636,26 +636,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <inheritdoc/>
-            public void OnSubscriptionCyclicReadCompleted(OpcUaSubscriptionNotification notification)
-            {
-                CallMessageReceiverDelegates(notification);
-            }
-
-            /// <inheritdoc/>
-            public void OnSubscriptionCyclicReadDiagnosticsChange(int valuesSampled, int overflows)
+            public void OnSubscriptionCyclicReadDiagnosticsChange(int valuesSampled, int overflow)
             {
                 lock (_lock)
                 {
-                    _group._overflows.Count += overflows;
+                    _group._overflows.Count += overflow;
 
                     if (_group._dataChanges.Count >= kNumberOfInvokedMessagesResetThreshold ||
                         _group._sampledValues.Count >= kNumberOfInvokedMessagesResetThreshold)
                     {
-                        _logger.LogDebug(
-                            "Notifications counter has been reset to prevent" +
-                            " overflow. So far, {ReadCount} data changes and {ValuesCount} " +
-                            "value changes were invoked by message source.",
-                            _group._cyclicReads.Count, _group._sampledValues.Count);
+                        DataSetWriterSubscriptionLogging.NotificationsCounterResetRead(_logger, (int)_group._cyclicReads.Count, (int)_group._sampledValues.Count);
                         _group._cyclicReads.Count = 0;
                         _group._sampledValues.Count = 0;
                         _group._sink.OnCounterReset();
@@ -667,31 +657,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <inheritdoc/>
-            public void OnSubscriptionEventReceived(OpcUaSubscriptionNotification notification)
-            {
-                CallMessageReceiverDelegates(notification);
-            }
-
-            /// <inheritdoc/>
-            public void OnSubscriptionEventDiagnosticsChange(bool liveData, int events, int overflows,
+            public void OnSubscriptionEventDiagnosticsChange(bool liveData, int events, int overflow,
                 int modelChanges)
             {
                 lock (_lock)
                 {
                     _group._modelChanges.Count += modelChanges;
-                    _group._overflows.Count += overflows;
+                    _group._overflows.Count += overflow;
 
                     if (liveData)
                     {
                         if (_group._events.Count >= kNumberOfInvokedMessagesResetThreshold ||
                             _group._eventNotification.Count >= kNumberOfInvokedMessagesResetThreshold)
                         {
-                            // reset both
-                            _logger.LogDebug(
-                                "Notifications counter has been reset to prevent" +
-                                " overflow. So far, {EventChangesCount} event changes and {EventValueChangesCount} " +
-                                "event value changes were invoked by message source.",
-                                _group._events.Count, _group._eventNotification.Count);
+                            DataSetWriterSubscriptionLogging.NotificationsCounterResetEvent(_logger, (int)_group._events.Count, (int)_group._eventNotification.Count);
                             _group._events.Count = 0;
                             _group._eventNotification.Count = 0;
                             _group._modelChanges.Count = 0;
@@ -805,16 +784,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 // Block until we have metadata or just continue
                                 _metaDataLoader.Value.BlockUntilLoaded(
                                     _group._options.Value.AsyncMetaDataLoadTimeout ?? TimeSpan.FromSeconds(5));
-                                _logger.LogInformation(
-                                    "Blocked message for {Duration} until metadata was loaded for {Writer}.",
-                                    sw.Elapsed, this);
+                                DataSetWriterSubscriptionLogging.BlockedMessageForMetadata(_logger, sw.Elapsed, _writer);
                             }
 
                             metadata = MetaData;
                             if (metadata == null)
                             {
-                                _logger.LogWarning("No metadata available for {Writer} - dropping notification.",
-                                    this);
+                                DataSetWriterSubscriptionLogging.NoMetadataAvailable(_logger, _writer);
                                 Interlocked.Increment(ref _group._messagesWithoutMetadata);
                                 return;
                             }
@@ -860,15 +836,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 _writer.Qos, _writer.Retain, _writer.Ttl,
                                 () => Interlocked.Increment(ref _dataSetSequenceNumber), metadata,
                                 single);
-                            _logger.LogTrace("Enqueuing notification: {Notification}",
-                                notification.ToString());
+                            DataSetWriterSubscriptionLogging.EnqueuingNotification(_logger, notification.ToString());
                             _group._sink.OnMessage(notification);
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Failed to produce message.");
+                    DataSetWriterSubscriptionLogging.FailedToProduceMessage(_logger, ex);
                 }
 
                 DataSetWriterContext CreateMessageContext(string topic, QoS? qos, bool? retain,
@@ -1021,10 +996,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         }
                         catch (Exception ex)
                         {
-                            _writer._logger.LogError(
-                                "Failed to get metadata for {Subscription} with error {Error}",
-                                this, ex.Message);
-
+                            DataSetWriterSubscriptionLogging.FailedToGetMetadata(_writer._logger, _writer._writer, ex.Message);
                             _tcs.TrySetException(ex);
                             Interlocked.Increment(ref _writer._group._metadataLoadFailures);
                         }
@@ -1058,17 +1030,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .UtcDateTime.ToBinary();
 
                     var sw = Stopwatch.StartNew();
-                    _writer._logger.LogDebug("Loading Metadata {Major}.{Minor} for {Writer}...",
-                        dataSetMetaData.MajorVersion ?? 1, minor, _writer.Id);
+                    DataSetWriterSubscriptionLogging.LoadingMetadata(_writer._logger, dataSetMetaData.MajorVersion ?? 1, minor, _writer.Id);
 
                     var fieldMask = _writer._writer.Writer.DataSetFieldContentMask;
                     var metaData = await subscription.CollectMetaDataAsync(_writer, fieldMask,
                         dataSetMetaData, minor, ct).ConfigureAwait(false);
 
-                    _writer._logger.LogInformation(
-                        "Loading Metadata {Major}.{Minor} for {Writer} took {Duration}.",
-                        dataSetMetaData.MajorVersion ?? 1, minor, _writer.Id,
-                        sw.Elapsed);
+                    DataSetWriterSubscriptionLogging.LoadingMetadataTook(_writer._logger, dataSetMetaData.MajorVersion ?? 1, minor, _writer.Id, sw.Elapsed);
 
                     var msgMask = _writer._writer.Writer.MessageSettings?.DataSetMessageContentMask;
                     MetaData = new PublishedDataSetMessageSchemaModel
@@ -1280,5 +1248,56 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private bool _sendKeepAlives;
             private bool _disposed;
         }
+    }
+
+    internal static partial class DataSetWriterSubscriptionLogging
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Debug, Message = "Creating new writer {Id} ({Writer}) in writer group {WriterGroup}...")]
+        internal static partial void CreatingNewWriter(this ILogger logger, string id, string writer, string writerGroup);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Information, Message = "Created writer {Id} in writer group {WriterGroup}.")]
+        internal static partial void CreatedWriter(this ILogger logger, string id, string writerGroup);
+
+        [LoggerMessage(EventId = 3, Level = LogLevel.Debug, Message = "Updating writer {Id} in writer group {WriterGroup}...")]
+        internal static partial void UpdatingWriter(this ILogger logger, string id, string writerGroup);
+
+        [LoggerMessage(EventId = 4, Level = LogLevel.Information, Message = "Recreated subscription for writer {Id} in writer group {WriterGroup}...")]
+        internal static partial void RecreatedSubscription(this ILogger logger, string id, string writerGroup);
+
+        [LoggerMessage(EventId = 5, Level = LogLevel.Debug, Message = "Updated monitored items for writer {Id} in writer group {WriterGroup}.")]
+        internal static partial void UpdatedMonitoredItems(this ILogger logger, string id, string writerGroup);
+
+        [LoggerMessage(EventId = 6, Level = LogLevel.Information, Message = "Closed writer {Id} in writer group {WriterGroup}.")]
+        internal static partial void ClosedWriter(this ILogger logger, string id, string writerGroup);
+
+        [LoggerMessage(EventId = 7, Level = LogLevel.Debug, Message = "Notifications counter has been reset to prevent overflow. So far, {DataChangesCount} data changes and {ValueChangesCount} value changes were invoked by message source.")]
+        internal static partial void NotificationsCounterReset(this ILogger logger, int dataChangesCount, int valueChangesCount);
+
+        [LoggerMessage(EventId = 8, Level = LogLevel.Debug, Message = "Notifications counter has been reset to prevent overflow. So far, {ReadCount} data changes and {ValuesCount} value changes were invoked by message source.")]
+        internal static partial void NotificationsCounterResetRead(this ILogger logger, int readCount, int valuesCount);
+
+        [LoggerMessage(EventId = 9, Level = LogLevel.Debug, Message = "Notifications counter has been reset to prevent overflow. So far, {EventChangesCount} event changes and {EventValueChangesCount} event value changes were invoked by message source.")]
+        internal static partial void NotificationsCounterResetEvent(this ILogger logger, int eventChangesCount, int eventValueChangesCount);
+
+        [LoggerMessage(EventId = 10, Level = LogLevel.Information, Message = "Blocked message for {Duration} until metadata was loaded for {Writer}.")]
+        internal static partial void BlockedMessageForMetadata(this ILogger logger, TimeSpan duration, WriterGroupDataSource.DataSetWriter writer);
+
+        [LoggerMessage(EventId = 11, Level = LogLevel.Warning, Message = "No metadata available for {Writer} - dropping notification.")]
+        internal static partial void NoMetadataAvailable(this ILogger logger, WriterGroupDataSource.DataSetWriter writer);
+
+        [LoggerMessage(EventId = 12, Level = LogLevel.Trace, Message = "Enqueuing notification: {Notification}")]
+        internal static partial void EnqueuingNotification(this ILogger logger, string notification);
+
+        [LoggerMessage(EventId = 13, Level = LogLevel.Error, Message = "Failed to get metadata for {Writer} with error {Error}")]
+        internal static partial void FailedToGetMetadata(this ILogger logger, WriterGroupDataSource.DataSetWriter writer, string error);
+
+        [LoggerMessage(EventId = 14, Level = LogLevel.Debug, Message = "Loading Metadata {Major}.{Minor} for {Writer}...")]
+        internal static partial void LoadingMetadata(this ILogger logger, uint major, uint minor, string writer);
+
+        [LoggerMessage(EventId = 15, Level = LogLevel.Information, Message = "Loading Metadata {Major}.{Minor} for {Writer} took {Duration}.")]
+        internal static partial void LoadingMetadataTook(this ILogger logger, uint major, uint minor, string writer, TimeSpan duration);
+
+        [LoggerMessage(EventId = 16, Level = LogLevel.Warning, Message = "Failed to produce message.")]
+        internal static partial void FailedToProduceMessage(this ILogger logger, Exception ex);
     }
 }

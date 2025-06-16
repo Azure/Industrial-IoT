@@ -293,95 +293,128 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         protected virtual void Send(DiscoveryProgressModel progress)
         {
             progress.TimeStamp = _timeProvider.GetUtcNow();
+            var requestId = progress.Request?.Id;
             switch (progress.EventType)
             {
                 case DiscoveryProgressType.Pending:
-                    _logger.LogTrace("{Request}: Discovery operations pending.",
-                        progress.Request.Id);
+                    ProgressLoggerLogging.DiscoveryPending(_logger, requestId);
                     break;
                 case DiscoveryProgressType.Started:
-                    _logger.LogInformation("{Request}: Discovery operation started.",
-                        progress.Request.Id);
+                    ProgressLoggerLogging.DiscoveryStarted(_logger, requestId);
                     break;
                 case DiscoveryProgressType.Cancelled:
-                    _logger.LogInformation("{Request}: Discovery operation cancelled.",
-                        progress.Request.Id);
+                    ProgressLoggerLogging.DiscoveryCancelled(_logger, requestId);
                     break;
                 case DiscoveryProgressType.Error:
-                    _logger.LogError("{Request}: Error {Error} during discovery run.",
-                        progress.Request.Id, progress.Result);
+                    ProgressLoggerLogging.DiscoveryError(_logger, requestId, progress.Result);
                     break;
                 case DiscoveryProgressType.Finished:
-                    _logger.LogInformation("{Request}: Discovery operation completed.",
-                        progress.Request.Id);
+                    ProgressLoggerLogging.DiscoveryFinished(_logger, requestId);
                     break;
                 case DiscoveryProgressType.NetworkScanStarted:
-                    _logger.LogInformation(
-                        "{Request}: Starting network scan ({Active} probes active)...",
-                        progress.Request.Id, progress.Workers);
+                    ProgressLoggerLogging.NetworkScanStarted(_logger, requestId, progress.Workers);
                     break;
                 case DiscoveryProgressType.NetworkScanResult:
-                    _logger.LogInformation("{Request}: Found address {Address} ({Scanned} scanned)...",
-                        progress.Request.Id, progress.Result, progress.Progress);
+                    ProgressLoggerLogging.NetworkScanResult(_logger, requestId, progress.Result, progress.Progress);
                     break;
                 case DiscoveryProgressType.NetworkScanProgress:
-                    _logger.LogInformation("{Request}: {Scanned} addresses scanned - {Discovered} " +
-                        "ev.Discovered ({Active} probes active)...", progress.Request.Id,
-                        progress.Progress, progress.Discovered, progress.Workers);
+                    ProgressLoggerLogging.NetworkScanProgress(_logger, requestId, progress.Progress, progress.Discovered, progress.Workers);
                     break;
                 case DiscoveryProgressType.NetworkScanFinished:
-                    _logger.LogInformation("{Request}: Found {Count} addresses. " +
-                        "({Scanned} scanned)...", progress.Request.Id,
-                        progress.Discovered, progress.Progress);
+                    ProgressLoggerLogging.NetworkScanFinished(_logger, requestId, progress.Discovered, progress.Progress);
                     break;
                 case DiscoveryProgressType.PortScanStarted:
-                    _logger.LogInformation(
-                        "{Request}: Starting port scanning ({Active} probes active)...",
-                        progress.Request.Id, progress.Workers);
+                    ProgressLoggerLogging.PortScanStarted(_logger, requestId, progress.Workers);
                     break;
                 case DiscoveryProgressType.PortScanResult:
-                    _logger.LogInformation("{Request}: Found server {Endpoint} ({Scanned} scanned)...",
-                        progress.Request.Id, progress.Result, progress.Progress);
+                    ProgressLoggerLogging.PortScanResult(_logger, requestId, progress.Result, progress.Progress);
                     break;
                 case DiscoveryProgressType.PortScanProgress:
-                    _logger.LogInformation("{Request}: {Scanned} ports scanned - {Discovered} discovered" +
-                        " ({Active} probes active)...", progress.Request.Id,
-                        progress.Progress, progress.Discovered, progress.Workers);
+                    ProgressLoggerLogging.PortScanProgress(_logger, requestId, progress.Progress, progress.Discovered, progress.Workers);
                     break;
                 case DiscoveryProgressType.PortScanFinished:
-                    _logger.LogInformation("{Request}: Found {Count} ports on servers " +
-                        "({Scanned} scanned)...",
-                        progress.Request.Id, progress.Discovered, progress.Progress);
+                    ProgressLoggerLogging.PortScanFinished(_logger, requestId, progress.Discovered, progress.Progress);
                     break;
                 case DiscoveryProgressType.ServerDiscoveryStarted:
-                    _logger.LogInformation(
-                        "{Request}: Searching {Count} discovery urls for endpoints...",
-                        progress.Request.Id, progress.Total);
+                    ProgressLoggerLogging.ServerDiscoveryStarted(_logger, requestId, progress.Total);
                     break;
                 case DiscoveryProgressType.EndpointsDiscoveryStarted:
-                    _logger.LogInformation(
-                        "{Request}: Trying to find endpoints on {Details}...",
-                        progress.Request.Id, progress.RequestDetails?["url"]);
+                    ProgressLoggerLogging.EndpointsDiscoveryStarted(_logger, requestId, progress.RequestDetails?["url"]);
                     break;
                 case DiscoveryProgressType.EndpointsDiscoveryFinished:
                     if (!progress.Discovered.HasValue || progress.Discovered == 0)
                     {
-                        _logger.LogInformation(
-                            "{Request}: No endpoints ev.Discovered on {Details}.",
-                            progress.Request.Id, progress.RequestDetails?["url"]);
+                        ProgressLoggerLogging.NoEndpointsDiscovered(_logger, requestId, progress.RequestDetails?["url"]);
                     }
-                    _logger.LogInformation(
-                        "{Request}: Found {Count} endpoints on {Details}.",
-                        progress.Request.Id, progress.Discovered, progress.RequestDetails?["url"]);
+                    ProgressLoggerLogging.EndpointsDiscoveryFinished(_logger, requestId, progress.Discovered ?? 0, progress.RequestDetails?["url"]);
                     break;
                 case DiscoveryProgressType.ServerDiscoveryFinished:
-                    _logger.LogInformation("{Request}: Found total of {Count} servers ...",
-                        progress.Request.Id, progress.Discovered);
+                    ProgressLoggerLogging.ServerDiscoveryFinished(_logger, requestId, progress.Discovered);
                     break;
             }
         }
 
         private readonly ILogger _logger;
         private readonly TimeProvider _timeProvider;
+    }
+
+    /// <summary>
+    /// Source-generated logging extensions for ProgressLogger
+    /// </summary>
+    internal static partial class ProgressLoggerLogging
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Trace, Message = "{RequestId}: Discovery operations pending.")]
+        internal static partial void DiscoveryPending(this ILogger logger, string? requestId);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Information, Message = "{RequestId}: Discovery operation started.")]
+        internal static partial void DiscoveryStarted(this ILogger logger, string? requestId);
+
+        [LoggerMessage(EventId = 3, Level = LogLevel.Information, Message = "{RequestId}: Discovery operation cancelled.")]
+        internal static partial void DiscoveryCancelled(this ILogger logger, string? requestId);
+
+        [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "{RequestId}: Error {Error} during discovery run.")]
+        internal static partial void DiscoveryError(this ILogger logger, string? requestId, string? error);
+
+        [LoggerMessage(EventId = 5, Level = LogLevel.Information, Message = "{RequestId}: Discovery operation completed.")]
+        internal static partial void DiscoveryFinished(this ILogger logger, string? requestId);
+
+        [LoggerMessage(EventId = 6, Level = LogLevel.Information, Message = "{RequestId}: Starting network scan ({Active} probes active)...")]
+        internal static partial void NetworkScanStarted(this ILogger logger, string? requestId, int? active);
+
+        [LoggerMessage(EventId = 7, Level = LogLevel.Information, Message = "{RequestId}: Found address {Address} ({Scanned} scanned)...")]
+        internal static partial void NetworkScanResult(this ILogger logger, string? requestId, string? address, int? scanned);
+
+        [LoggerMessage(EventId = 8, Level = LogLevel.Information, Message = "{RequestId}: {Scanned} addresses scanned - {Discovered} discovered ({Active} probes active)...")]
+        internal static partial void NetworkScanProgress(this ILogger logger, string? requestId, int? scanned, int? discovered, int? active);
+
+        [LoggerMessage(EventId = 9, Level = LogLevel.Information, Message = "{RequestId}: Found {Count} addresses. ({Scanned} scanned)...")]
+        internal static partial void NetworkScanFinished(this ILogger logger, string? requestId, int? count, int? scanned);
+
+        [LoggerMessage(EventId = 10, Level = LogLevel.Information, Message = "{RequestId}: Starting port scanning ({Active} probes active)...")]
+        internal static partial void PortScanStarted(this ILogger logger, string? requestId, int? active);
+
+        [LoggerMessage(EventId = 11, Level = LogLevel.Information, Message = "{RequestId}: Found server {Endpoint} ({Scanned} scanned)...")]
+        internal static partial void PortScanResult(this ILogger logger, string? requestId, string? endpoint, int? scanned);
+
+        [LoggerMessage(EventId = 12, Level = LogLevel.Information, Message = "{RequestId}: {Scanned} ports scanned - {Discovered} discovered ({Active} probes active)...")]
+        internal static partial void PortScanProgress(this ILogger logger, string? requestId, int? scanned, int? discovered, int? active);
+
+        [LoggerMessage(EventId = 13, Level = LogLevel.Information, Message = "{RequestId}: Found {Count} ports on servers ({Scanned} scanned)...")]
+        internal static partial void PortScanFinished(this ILogger logger, string? requestId, int? count, int? scanned);
+
+        [LoggerMessage(EventId = 14, Level = LogLevel.Information, Message = "{RequestId}: Searching {Count} discovery urls for endpoints...")]
+        internal static partial void ServerDiscoveryStarted(this ILogger logger, string? requestId, int? count);
+
+        [LoggerMessage(EventId = 15, Level = LogLevel.Information, Message = "{RequestId}: Trying to find endpoints on {Details}...")]
+        internal static partial void EndpointsDiscoveryStarted(this ILogger logger, string? requestId, string? details);
+
+        [LoggerMessage(EventId = 16, Level = LogLevel.Information, Message = "{RequestId}: No endpoints discovered on {Details}.")]
+        internal static partial void NoEndpointsDiscovered(this ILogger logger, string? requestId, string? details);
+
+        [LoggerMessage(EventId = 17, Level = LogLevel.Information, Message = "{RequestId}: Found {Count} endpoints on {Details}.")]
+        internal static partial void EndpointsDiscoveryFinished(this ILogger logger, string? requestId, int count, string? details);
+
+        [LoggerMessage(EventId = 18, Level = LogLevel.Information, Message = "{RequestId}: Found total of {Count} servers ...")]
+        internal static partial void ServerDiscoveryFinished(this ILogger logger, string? requestId, int? count);
     }
 }

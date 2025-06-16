@@ -107,7 +107,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
             if (!scheduled)
             {
                 task.Dispose();
-                _logger.LogError("Discovey request not scheduled, internal server error!");
+                _logger.DiscoveryRequestNotScheduled();
                 var ex = new ResourceExhaustionException("Failed to schedule task");
                 _progress.OnDiscoveryError(request, ex);
                 throw ex;
@@ -205,7 +205,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
             }
             catch (ObjectDisposedException ex)
             {
-                _logger.LogError(ex, "Object disposed but still timer is firing");
+                _logger.ObjectDisposedTimerFiring(ex);
             }
         }
 
@@ -240,7 +240,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
             catch (OperationCanceledException) { }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected exception stopping processor thread.");
+                _logger.UnexpectedExceptionStoppingProcessor(ex);
             }
         }
 
@@ -251,7 +251,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// <returns></returns>
         private async Task ProcessDiscoveryRequestsAsync(CancellationToken ct)
         {
-            _logger.LogInformation("Starting discovery processor...");
+            _logger.StartingDiscoveryProcessor();
             // Process all discovery requests
             await foreach (var request in _channel.Reader.ReadAllAsync(ct).ConfigureAwait(false))
             {
@@ -279,12 +279,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                 catch (OperationCanceledException) { }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Discovery processor error occurred - continue...");
+                    _logger.DiscoveryProcessorErrorOccurred(ex);
                 }
             }
             // Send cancellation for all pending items
             await CancelPendingRequestsAsync().ConfigureAwait(false);
-            _logger.LogInformation("Stopped discovery processor.");
+            _logger.StoppedDiscoveryProcessor();
         }
 
         /// <summary>
@@ -293,7 +293,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// <param name="request"></param>
         private async Task ProcessDiscoveryRequestAsync(DiscoveryRequest request)
         {
-            _logger.LogDebug("Processing discovery request...");
+            _logger.ProcessingDiscoveryRequest();
             _progress.OnDiscoveryStarted(request.Request);
             object? diagnostics = null;
 
@@ -354,7 +354,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                     request.Configuration.Locales).ConfigureAwait(false);
             }
 
-            _logger.LogInformation("Start {Mode} discovery run...", request.Mode);
+            _logger.StartDiscoveryRun(request.Mode);
             var watch = Stopwatch.StartNew();
 
             //
@@ -452,8 +452,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
             var discovered = await DiscoverServersAsync(request, discoveryUrls,
                 request.Configuration.Locales).ConfigureAwait(false);
 
-            _logger.LogInformation("Discovery took {Elapsed} and found {Count} servers.",
-                watch.Elapsed, discovered.Count);
+            _logger.DiscoveryTookAndFoundServers(watch.Elapsed, discovered.Count);
             return discovered;
         }
 
@@ -629,16 +628,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                     // Resolve docker host since we are running in a container
                     if (string.IsNullOrEmpty(hostName))
                     {
-                        _logger.LogInformation("Gateway host name not set");
+                        _logger.GatewayHostNameNotSet();
                         return;
                     }
-                    _logger.LogDebug("Resolve IP for gateway host name: {Address}", hostName);
+                    _logger.ResolveIpForGatewayHostName(hostName);
                     var entry = await Dns.GetHostEntryAsync(hostName).ConfigureAwait(false);
                     foreach (var address in entry.AddressList
                                 .Where(a => a.AddressFamily == AddressFamily.InterNetwork)
                                 .Where(a => !addresses.Any(b => a.Equals(b))))
                     {
-                        _logger.LogInformation("Including gateway host address {Address}", address);
+                        _logger.IncludingGatewayHostAddress(address);
                         addresses.Add(address);
                     }
                 }
@@ -650,12 +649,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
             }
             catch (SocketException se)
             {
-                _logger.LogWarning("Failed to add address for gateway host {HostName} due to {Error}.",
-                    hostName, se.Message);
+                _logger.FailedToAddAddressForGatewayHost(hostName, se.Message);
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Failed to add address for gateway host {HostName}.", hostName);
+                _logger.FailedToAddAddressForGatewayHostException(e, hostName);
             }
         }
 
@@ -672,7 +670,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
             List<ApplicationRegistrationModel> discovered, DateTimeOffset timestamp,
             object? diagnostics, CancellationToken ct)
         {
-            _logger.LogInformation("Uploading {Count} results...", discovered.Count);
+            _logger.UploadingResults(discovered.Count);
             var buffers = discovered
                 .SelectMany(server => (server.Endpoints ?? Array.Empty<EndpointRegistrationModel>())
                     .Select(registration => new DiscoveryEventModel
@@ -705,7 +703,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
             await _events.SendEventAsync(_topic, buffers, _serializer.MimeType,
                 Encoding.UTF8.WebName, e => e.AddProperty(OpcUa.Constants.MessagePropertySchemaKey,
                     MessageSchemaTypes.DiscoveryEvents), ct: ct).ConfigureAwait(false);
-            _logger.LogInformation("{Count} results uploaded.", discovered.Count);
+            _logger.ResultsUploaded(discovered.Count);
         }
 
         /// <summary>
@@ -714,7 +712,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// <returns></returns>
         private async Task CancelPendingRequestsAsync()
         {
-            _logger.LogInformation("Cancelling all pending requests...");
+            _logger.CancellingAllPendingRequests();
             await _lock.WaitAsync().ConfigureAwait(false);
             try
             {
@@ -729,7 +727,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
             {
                 _lock.Release();
             }
-            _logger.LogInformation("Pending requests cancelled...");
+            _logger.PendingRequestsCancelled();
         }
 
         /// <summary>
@@ -753,7 +751,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to send pending event");
+                _logger.FailedToSendPendingEvent(ex);
             }
             finally
             {
@@ -770,8 +768,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         {
             if ((_counter % 3) == 0)
             {
-                _logger.LogInformation("GC Mem: {Gcmem} kb, Working set / Private Mem: " +
-                    "{Privmem} kb / {Privmemsize} kb, Handles: {Handles}",
+                _logger.GcMemWorkingSetPrivateMemHandles(
                     GC.GetTotalMemory(false) / 1024,
                     Process.GetCurrentProcess().WorkingSet64 / 1024,
                     Process.GetCurrentProcess().PrivateMemorySize64 / 1024,
@@ -818,5 +815,71 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         private readonly List<DiscoveryRequest> _pending = [];
         private readonly CancellationTokenSource _cts = new();
         private readonly DiscoveryRequest _request;
+    }
+
+    /// <summary>
+    /// Source-generated logging extensions for NetworkDiscovery
+    /// </summary>
+    internal static partial class NetworkDiscoveryLogging
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Error, Message = "Discovery request not scheduled, internal server error!")]
+        internal static partial void DiscoveryRequestNotScheduled(this ILogger logger);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Error, Message = "Object disposed but still timer is firing")]
+        internal static partial void ObjectDisposedTimerFiring(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = 3, Level = LogLevel.Error, Message = "Unexpected exception stopping processor thread.")]
+        internal static partial void UnexpectedExceptionStoppingProcessor(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = 4, Level = LogLevel.Information, Message = "Starting discovery processor...")]
+        internal static partial void StartingDiscoveryProcessor(this ILogger logger);
+
+        [LoggerMessage(EventId = 5, Level = LogLevel.Error, Message = "Discovery processor error occurred - continue...")]
+        internal static partial void DiscoveryProcessorErrorOccurred(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = 6, Level = LogLevel.Information, Message = "Stopped discovery processor.")]
+        internal static partial void StoppedDiscoveryProcessor(this ILogger logger);
+
+        [LoggerMessage(EventId = 7, Level = LogLevel.Debug, Message = "Processing discovery request...")]
+        internal static partial void ProcessingDiscoveryRequest(this ILogger logger);
+
+        [LoggerMessage(EventId = 8, Level = LogLevel.Information, Message = "Start {Mode} discovery run...")]
+        internal static partial void StartDiscoveryRun(this ILogger logger, DiscoveryMode mode);
+
+        [LoggerMessage(EventId = 9, Level = LogLevel.Information, Message = "Discovery took {Elapsed} and found {Count} servers.")]
+        internal static partial void DiscoveryTookAndFoundServers(this ILogger logger, TimeSpan elapsed, int count);
+
+        [LoggerMessage(EventId = 10, Level = LogLevel.Information, Message = "Uploading {Count} results...")]
+        internal static partial void UploadingResults(this ILogger logger, int count);
+
+        [LoggerMessage(EventId = 11, Level = LogLevel.Information, Message = "{Count} results uploaded.")]
+        internal static partial void ResultsUploaded(this ILogger logger, int count);
+
+        [LoggerMessage(EventId = 12, Level = LogLevel.Information, Message = "Cancelling all pending requests...")]
+        internal static partial void CancellingAllPendingRequests(this ILogger logger);
+
+        [LoggerMessage(EventId = 13, Level = LogLevel.Information, Message = "Pending requests cancelled...")]
+        internal static partial void PendingRequestsCancelled(this ILogger logger);
+
+        [LoggerMessage(EventId = 14, Level = LogLevel.Information, Message = "Gateway host name not set")]
+        internal static partial void GatewayHostNameNotSet(this ILogger logger);
+
+        [LoggerMessage(EventId = 15, Level = LogLevel.Debug, Message = "Resolve IP for gateway host name: {Address}")]
+        internal static partial void ResolveIpForGatewayHostName(this ILogger logger, string address);
+
+        [LoggerMessage(EventId = 16, Level = LogLevel.Information, Message = "Including gateway host address {Address}")]
+        internal static partial void IncludingGatewayHostAddress(this ILogger logger, IPAddress address);
+
+        [LoggerMessage(EventId = 17, Level = LogLevel.Warning, Message = "Failed to add address for gateway host {HostName} due to {Error}.")]
+        internal static partial void FailedToAddAddressForGatewayHost(this ILogger logger, string? hostName, string error);
+
+        [LoggerMessage(EventId = 18, Level = LogLevel.Error, Message = "Failed to add address for gateway host {HostName}.")]
+        internal static partial void FailedToAddAddressForGatewayHostException(this ILogger logger, Exception ex, string? hostName);
+
+        [LoggerMessage(EventId = 19, Level = LogLevel.Warning, Message = "Failed to send pending event")]
+        internal static partial void FailedToSendPendingEvent(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = 20, Level = LogLevel.Information, Message = "GC Mem: {Gcmem} kb, Working set / Private Mem: {Privmem} kb / {Privmemsize} kb, Handles: {Handles}")]
+        internal static partial void GcMemWorkingSetPrivateMemHandles(this ILogger logger, long gcmem, long privmem, long privmemsize, int handles);
     }
 }

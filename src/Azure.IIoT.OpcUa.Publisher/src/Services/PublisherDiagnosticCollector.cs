@@ -58,8 +58,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 IngestionStart = _timeProvider.GetUtcNow()
             };
             _diagnostics.AddOrUpdate(writerGroupId, _ => diag, (_, _) => diag);
-            _logger.LogInformation("Tracking diagnostics for {WriterGroup} was (re-)started.",
-                writerGroupId);
+            PublisherDiagnosticCollectorLogging.TrackingDiagnosticsRestarted(_logger, writerGroupId);
         }
 
         /// <inheritdoc/>
@@ -357,5 +356,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 // ... Add here more items if needed
             };
+    }
+
+    /// <summary>
+    /// Source-generated logging extensions for PublisherDiagnosticCollector
+    /// </summary>
+    internal static partial class PublisherDiagnosticCollectorLogging
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "Tracking diagnostics for {WriterGroup} was (re-)started.")]
+        internal static partial void TrackingDiagnosticsRestarted(this ILogger logger, string writerGroup);
     }
 }
