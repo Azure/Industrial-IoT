@@ -91,7 +91,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to write changes to debug log file.");
+                    _logger.FailedToWriteDebugLogFile(ex);
                 }
             }
         }
@@ -192,5 +192,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly CancellationTokenSource _cts;
         private readonly IClientDiagnostics _diagnostics;
         private readonly ILogger<OpcUaStackKeySetLogger> _logger;
+    }
+
+    /// <summary>
+    /// Source-generated logging extensions for OpcUaStackKeySetLogger
+    /// </summary>
+    internal static partial class OpcUaStackKeySetLoggerLogging
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Error, Message = "Failed to write changes to debug log file.")]
+        public static partial void FailedToWriteDebugLogFile(this ILogger logger, Exception ex);
     }
 }

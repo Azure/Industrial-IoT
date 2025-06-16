@@ -61,14 +61,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         public IEnumerable<PublishedNodesEntryModel> Read(string publishedNodesContent)
         {
             var sw = Stopwatch.StartNew();
-            _logger.LogDebug("Reading and validating published nodes file...");
+            _logger.ReadingPublishedNodesFile();
             try
             {
                 var items = _serializer.Deserialize<List<PublishedNodesEntryModel>>(publishedNodesContent)
                     ?? throw new SerializerException("Published nodes files, malformed.");
 
-                _logger.LogInformation("Read {Count} entry models from published nodes file in {Elapsed}",
-                    items.Count, sw.Elapsed);
+                _logger.ReadPublishedNodesFile(items.Count, sw.Elapsed);
                 return items;
             }
             finally
@@ -199,13 +198,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "failed to convert the published nodes.");
+                _logger.FailedToConvertPublishedNodes(ex);
                 return [];
             }
             finally
             {
-                _logger.LogInformation("Converted published nodes entry models to jobs in {Elapsed}",
-                    sw.Elapsed);
+                _logger.ConvertedPublishedNodes(sw.Elapsed);
                 sw.Stop();
             }
 
@@ -495,13 +493,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "failed to convert the published nodes.");
+                _logger.FailedToConvertPublishedNodes(ex);
                 return [];
             }
             finally
             {
-                _logger.LogInformation("Converted published nodes entry models to jobs in {Elapsed}",
-                    sw.Elapsed);
+                _logger.ConvertedPublishedNodes(sw.Elapsed);
                 sw.Stop();
             }
 
@@ -899,5 +896,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         private readonly IIoTEdgeWorkloadApi? _cryptoProvider;
         private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;
+    }
+
+    /// <summary>
+    /// Source-generated logging extensions for PublishedNodesConverter
+    /// </summary>
+    internal static partial class PublishedNodesConverterLogging
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Debug, Message = "Reading and validating published nodes file...")]
+        public static partial void ReadingPublishedNodesFile(this ILogger logger);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Information, Message = "Read {Count} entry models from published nodes file in {Elapsed}")]
+        public static partial void ReadPublishedNodesFile(this ILogger logger, int count, TimeSpan elapsed);
+
+        [LoggerMessage(EventId = 3, Level = LogLevel.Error, Message = "failed to convert the published nodes.")]
+        public static partial void FailedToConvertPublishedNodes(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = 4, Level = LogLevel.Information, Message = "Converted published nodes entry models to jobs in {Elapsed}")]
+        public static partial void ConvertedPublishedNodes(this ILogger logger, TimeSpan elapsed);
     }
 }

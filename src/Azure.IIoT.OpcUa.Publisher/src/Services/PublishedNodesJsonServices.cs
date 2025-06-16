@@ -965,8 +965,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="e"></param>
         private void OnChanged(object? sender, FileSystemEventArgs e)
         {
-            _logger.LogDebug("File {File} {Action}. Triggering file refresh ...",
-                e.ChangeType, e.Name);
+            _logger.FileChanged(e.ChangeType, e.Name);
             _fileChanges.Writer.TryWrite(e.ChangeType == WatcherChangeTypes.Deleted);
         }
 
@@ -1053,17 +1052,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             if (++retryCount <= 3)
                             {
                                 Debug.Assert(!clear);
-                                _logger.LogDebug(ex,
-                                    "Error while loading job from file. Attempt #{Count}...",
-                                    retryCount);
+                                _logger.ErrorLoadingJobFromFileAttempt(ex, retryCount);
 
                                 // Queue another one and wait a bit
                                 _fileChanges.Writer.TryWrite(false);
                                 await Task.Delay(500).ConfigureAwait(false);
                                 continue;
                             }
-                            _logger.LogError(ex,
-                                "Error while loading job from file. Retry expired, giving up.");
+                            _logger.ErrorLoadingJobFromFileRetryExpired(ex);
                         }
                         catch (SerializerException sx)
                         {
@@ -1071,20 +1067,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             const string error = "SerializerException while loading job from file.";
                             if (_logger.IsEnabled(LogLevel.Debug))
                             {
-                                _logger.LogError(sx, error);
+                                _logger.ErrorLoadingJobFromFileSerializer(sx, error);
                             }
                             else
                             {
-                                _logger.LogError(error);
+                                _logger.ErrorLoadingJobFromFileSerializer(error);
                             }
                             retryCount = 0;
                             _started?.TrySetResult();
                         }
                         catch (Exception ex) when (ex is not ObjectDisposedException)
                         {
-                            _logger.LogError(ex,
-                                "Error during publisher {Action}. Retrying...",
-                                clear ? "Reset" : "Update");
+                            _logger.ErrorDuringPublisherAction(ex, clear ? "Reset" : "Update");
                             _fileChanges.Writer.TryWrite(clear);
                             retryCount = 0;
                             _started?.TrySetResult();
@@ -1296,5 +1290,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly Channel<bool> _fileChanges;
         private readonly SemaphoreSlim _api = new(1, 1);
         private readonly SemaphoreSlim _file = new(1, 1);
+    }
+
+    /// <summary>
+    /// Source-generated logging extensions for PublishedNodesJsonServices
+    /// </summary>
+    internal static partial class PublishedNodesJsonServicesLogging
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Debug, Message = "File {File} {Action}. Triggering file refresh ...")]
+        public static partial void FileChanged(this ILogger logger, WatcherChangeTypes action, string? file);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Debug, Message = "Error while loading job from file. Attempt #{Count}...")]
+        public static partial void ErrorLoadingJobFromFileAttempt(this ILogger logger, Exception ex, int count);
+
+        [LoggerMessage(EventId = 3, Level = LogLevel.Error, Message = "Error while loading job from file. Retry expired, giving up.")]
+        public static partial void ErrorLoadingJobFromFileRetryExpired(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "{Error}")]
+        public static partial void ErrorLoadingJobFromFileSerializer(this ILogger logger, Exception ex, string error);
+
+        [LoggerMessage(EventId = 5, Level = LogLevel.Error, Message = "{Error}")]
+        public static partial void ErrorLoadingJobFromFileSerializer(this ILogger logger, string error);
+
+        [LoggerMessage(EventId = 6, Level = LogLevel.Error, Message = "Error during publisher {Action}. Retrying...")]
+        public static partial void ErrorDuringPublisherAction(this ILogger logger, Exception ex, string action);
     }
 }
