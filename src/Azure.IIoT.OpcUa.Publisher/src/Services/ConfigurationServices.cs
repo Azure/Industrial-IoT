@@ -464,7 +464,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 var node = _currentObject != null ? _currentObject.OriginalNode : CurrentNode;
                 node.AddErrorInfo(errorInfo);
-                _logger.LogError("Error expanding node {Node}: {Error}", node, errorInfo);
+                _logger.HandleError(node, errorInfo);
                 return [];
             }
 
@@ -477,7 +477,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     // collect matching variables under the current object instance
                     if (_currentObject.AddVariables(matching))
                     {
-                        _logger.LogDebug("Dropped duplicate variables found.");
+                        _logger.DroppedDuplicateVariables();
                     }
                 }
                 else
@@ -872,7 +872,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// Node that should be expanded
             /// </summary>
-            private class NodeToExpand
+            internal record class NodeToExpand
             {
                 public IEnumerable<ServiceResultModel> ErrorInfos => _errorInfos;
 
@@ -1048,7 +1048,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// The object to expand
             /// </summary>
-            private class ObjectToExpand
+            internal class ObjectToExpand
             {
                 public BrowseFrame ObjectFromBrowse { get; }
                 public NodeToExpand OriginalNode { get; }
@@ -1185,5 +1185,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly ILogger<ConfigurationServices> _logger;
         private readonly TimeProvider _timeProvider;
         private readonly ActivitySource _activitySource = Diagnostics.NewActivitySource();
+    }
+
+    /// <summary>
+    /// Source-generated logging extensions for ConfigurationServices
+    /// </summary>
+    internal static partial class ConfigurationServicesLogging
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Error, Message = "Error expanding node {Node}: {Error}")]
+        public static partial void HandleError(this ILogger logger, ConfigurationServices.ConfigBrowser.NodeToExpand node, ServiceResultModel error);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Debug, Message = "Dropped duplicate variables found.")]
+        public static partial void DroppedDuplicateVariables(this ILogger logger);
     }
 }

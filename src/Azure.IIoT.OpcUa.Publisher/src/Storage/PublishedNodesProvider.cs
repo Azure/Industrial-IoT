@@ -91,9 +91,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             }
             catch (Exception e)
             {
-                _logger.LogDebug(e,
-                    "Failed to read content of published nodes file from \"{Path}\"",
-                    _fileName);
+                _logger.ReadContentFailed(e, _fileName);
                 throw;
             }
             finally
@@ -125,11 +123,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                 }
                 catch (IOException e)
                 {
-                    _logger.LogWarning(
-                        "Failed to update published nodes file at \"{Path}\" with restricted share policies. " +
-                        "Please close any other application that uses this file. " +
-                        "Falling back to opening it with more relaxed share policies.",
-                        _fileName);
+                    _logger.UpdateFileRestrictedShare(_fileName);
 
                     // We will fall back to writing with ReadWrite access.
                     try
@@ -145,9 +139,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                     }
                     catch (Exception)
                     {
-                        // Report and raise original exception if fallback also failed.
-                        _logger.LogError(e, "Failed to update published nodes file at \"{Path}\"",
-                            _fileName);
+                        _logger.UpdateFileFailed(e, _fileName);
                     }
                     throw;
                 }
@@ -181,8 +173,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             _watch.RegisterChangeCallback(ChangeCallback, this);
             if (!currentChangeToken.HasChanged || _disableRaisingEvents)
             {
-                _logger.LogTrace("No raising event while writing ({Changed}).",
-                    currentChangeToken.HasChanged);
+                _logger.NoRaisingEvent(currentChangeToken.HasChanged);
                 return;
             }
             var exists = File.Exists(_fileName);
@@ -199,5 +190,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         private readonly IFileProvider _provider;
         private bool _disableRaisingEvents;
         private IChangeToken _watch;
+    }
+
+    /// <summary>
+    /// Source-generated logging extensions for PublishedNodesProvider
+    /// </summary>
+    internal static partial class PublishedNodesProviderLogging
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Debug, Message = "Failed to read content of published nodes file from \"{Path}\"")]
+        public static partial void ReadContentFailed(this ILogger logger, Exception exception, string path);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Warning, Message = "Failed to update published nodes file at \"{Path}\" with restricted share policies. Please close any other application that uses this file. Falling back to opening it with more relaxed share policies.")]
+        public static partial void UpdateFileRestrictedShare(this ILogger logger, string path);
+
+        [LoggerMessage(EventId = 3, Level = LogLevel.Error, Message = "Failed to update published nodes file at \"{Path}\"")]
+        public static partial void UpdateFileFailed(this ILogger logger, Exception exception, string path);
+
+        [LoggerMessage(EventId = 4, Level = LogLevel.Trace, Message = "No raising event while writing ({Changed}).")]
+        public static partial void NoRaisingEvent(this ILogger logger, bool changed);
     }
 }

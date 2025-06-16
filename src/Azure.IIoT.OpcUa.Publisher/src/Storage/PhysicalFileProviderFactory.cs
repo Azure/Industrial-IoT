@@ -49,8 +49,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                     provider.UsePollingFileWatcher = true;
                 }
 
-                _logger.LogInformation("Mapping directory {Directory} " +
-                    "via physical file provider.", directory);
+                _logger.MappingDirectory(directory);
                 return provider;
             });
         }
@@ -64,5 +63,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         private readonly IOptions<PublisherOptions> _options;
         private readonly ILogger<PhysicalFileProviderFactory> _logger;
         private readonly ConcurrentDictionary<string, PhysicalFileProvider> _providers;
+    }
+
+    /// <summary>
+    /// Source-generated logging extensions for PhysicalFileProviderFactory
+    /// </summary>
+    internal static partial class PhysicalFileProviderFactoryLogging
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "Mapping directory {Directory} via physical file provider.")]
+        public static partial void MappingDirectory(this ILogger logger, string directory);
     }
 }

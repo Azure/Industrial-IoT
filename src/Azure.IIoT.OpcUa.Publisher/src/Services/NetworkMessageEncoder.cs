@@ -82,8 +82,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     if (m.EncodingContext == null)
                     {
-                        _logger.LogError(
-                            "Missing service message context for network message - dropping notification.");
+                        _logger.MissingServiceMessageContext();
                         NotificationsDroppedCount++;
                         m.OnSentCallback();
                         continue;
@@ -96,13 +95,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         if (body.Length == 0)
                         {
-                            //
-                            // Failed to press a notification into message size limit
-                            // This is somewhat correct as the smallest dropped chunk is
-                            // a message containing only a single data set message which
-                            // contains (parts) of a notification.
-                            //
-                            _logger.LogDebug("Resulting chunk is too large, dropped a notification.");
+                            _logger.ChunkTooLarge();
                             continue;
                         }
                         validChunks++;
@@ -150,9 +143,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 m.NetworkMessage.DataSetWriterGroup);
                         }
 
-                        _logger.LogDebug(
-                            "{Count} Notifications encoded into a network message (chunks:{Chunks})...",
-                            m.NotificationsPerMessage, validChunks);
+                        _logger.NotificationsEncoded(m.NotificationsPerMessage, validChunks);
 
                         chunkedMessages.Add((chunkedMessage, m.OnSentCallback));
                     }
@@ -402,10 +393,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                             },
                                                             DataSetFieldName = notificationsInGroup[0].DataSetName
                                                         };
-                                                        notificationsInGroup =
-                                                        [
+                                                        notificationsInGroup = new List<MonitoredItemNotificationModel>
+                                                        {
                                                             eventNotification
-                                                        ];
+                                                        };
                                                     }
                                                     else if (_options.Value.RemoveDuplicatesFromBatch ?? false)
                                                     {
@@ -417,8 +408,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                         {
                                                             if (_logNotifications)
                                                             {
-                                                                _logger.LogInformation("Removed {Count} duplicates from batch.",
-                                                                    notificationsInGroup.Count - pruned.Count);
+                                                                _logger.RemovedDuplicates(notificationsInGroup.Count - pruned.Count);
                                                             }
                                                             notificationsInGroup = pruned;
                                                         }
@@ -481,7 +471,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                             currentNotifications.ForEach(n => n.MarkProcessed());
 #endif
                                             currentMessage = null;
-                                            currentNotifications = [];
+                                            currentNotifications = new List<OpcUaSubscriptionNotification>();
                                         }
                                     }
                                 }
@@ -497,7 +487,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         currentNotifications.ForEach(n => n.MarkProcessed());
 #endif
                                         currentMessage = null;
-                                        currentNotifications = [];
+                                        currentNotifications = new List<OpcUaSubscriptionNotification>();
                                     }
 
                                     if (PubSubMessage.TryCreateMetaDataMessage(encoding, publisherId,
@@ -580,8 +570,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             if (totalNotifications > 0)
             {
-                _logger.LogWarning("Dropped {TotalNotifications} values",
-                    totalNotifications);
+                _logger.DroppedValues(totalNotifications);
                 NotificationsDroppedCount += totalNotifications;
             }
         }
@@ -601,8 +590,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var notifications = Stringify(args.Notifications);
             if (!string.IsNullOrEmpty(notifications))
             {
-                _logger.LogInformation(
-                    "{Action}|{PublishTime:hh:mm:ss:ffffff}|#{Seq}:{PublishSeq}|{MessageType}|{Endpoint}|{Items}",
+                _logger.NotificationInfo(
                     dropped ? "!!!! Dropped !!!! " : "Encoded", args.PublishTimestamp, args.SequenceNumber,
                     args.PublishSequenceNumber?.ToString(CultureInfo.CurrentCulture) ?? "-", args.MessageType,
                     args.EndpointUrl, notifications);
@@ -624,7 +612,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var notifications = Stringify(args.YieldReturn());
             if (!string.IsNullOrEmpty(notifications))
             {
-                _logger.LogInformation("{Action}|Sample|{Items}",
+                _logger.NotificationSample(
                     dropped ? "!!!! Dropped !!!! " : "Encoded", notifications);
             }
         }
@@ -697,5 +685,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly TimeProvider _timeProvider;
         private readonly Meter _meter = Diagnostics.NewMeter();
         private readonly bool _logNotifications;
+    }
+
+    /// <summary>
+    /// Source-generated logging extensions for NetworkMessageEncoder
+    /// </summary>
+    internal static partial class NetworkMessageEncoderLogging
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Error, Message = "Missing service message context for network message - dropping notification.")]
+        public static partial void MissingServiceMessageContext(this ILogger logger);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Debug, Message = "Resulting chunk is too large, dropped a notification.")]
+        public static partial void ChunkTooLarge(this ILogger logger);
+
+        [LoggerMessage(EventId = 3, Level = LogLevel.Debug, Message = "{Count} Notifications encoded into a network message (chunks:{Chunks})...")]
+        public static partial void NotificationsEncoded(this ILogger logger, int count, int chunks);
+
+        [LoggerMessage(EventId = 4, Level = LogLevel.Warning, Message = "Dropped {TotalNotifications} values")]
+        public static partial void DroppedValues(this ILogger logger, int totalNotifications);
+
+        [LoggerMessage(EventId = 5, Level = LogLevel.Information, Message = "{Action}|{PublishTime:hh:mm:ss:ffffff}|#{Seq}:{PublishSeq}|{MessageType}|{Endpoint}|{Items}")]
+        public static partial void NotificationInfo(this ILogger logger, string action, DateTimeOffset? publishTime, uint seq, string publishSeq, MessageType messageType, string? endpoint, string items);
+
+        [LoggerMessage(EventId = 6, Level = LogLevel.Information, Message = "{Action}|Sample|{Items}")]
+        public static partial void NotificationSample(this ILogger logger, string action, string items);
+
+        [LoggerMessage(EventId = 7, Level = LogLevel.Information, Message = "Removed {Count} duplicates from batch.")]
+        public static partial void RemovedDuplicates(this ILogger logger, int count);
     }
 }
