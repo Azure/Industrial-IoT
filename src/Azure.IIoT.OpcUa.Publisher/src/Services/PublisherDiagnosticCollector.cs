@@ -360,7 +360,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// <summary>
     /// Source-generated logging extensions for PublisherDiagnosticCollector
     /// </summary>
-    public static partial class PublisherDiagnosticCollectorLogging
+    internal static partial class PublisherDiagnosticCollectorLogging
     {
         [LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "Tracking diagnostics for {WriterGroup} was (re-)started.")]
         public static partial void TrackingDiagnosticsRestarted(this ILogger logger, string writerGroup);

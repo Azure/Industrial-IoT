@@ -1287,7 +1287,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// <summary>
     /// Source-generated logging extensions for PublishedNodesJsonServices
     /// </summary>
-    public static partial class PublishedNodesJsonServicesLogging
+    internal static partial class PublishedNodesJsonServicesLogging
     {
         [LoggerMessage(EventId = 1, Level = LogLevel.Debug, Message = "File {File} {Action}. Triggering file refresh ...")]
         public static partial void FileChanged(this ILogger logger, WatcherChangeTypes action, string? file);

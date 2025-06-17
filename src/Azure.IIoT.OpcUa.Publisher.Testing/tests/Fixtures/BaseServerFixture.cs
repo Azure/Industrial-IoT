@@ -167,8 +167,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                         PkiRootPath = options.Value.Security.PkiRootPath,
                         AutoAccept = true
                     };
-                    logger.LogInformation("Starting server host {Host} on {Port}...",
-                        serverHost, _port);
+                    logger.StartingServerHost(serverHost, _port);
                     serverHost.StartAsync(new int[] { _port }).Wait();
 
                     //
@@ -192,8 +191,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                             result.ErrorInfo.ErrorMessage ?? "Failed testing connection.");
                     }
 
-                    logger.LogInformation("Server host {Host} listening on {EndpointUrl}!",
-                        serverHost, EndpointUrl);
+                    logger.ServerHostListening(serverHost, EndpointUrl);
                     _serverHost = serverHost;
                     if (!useReverseConnect)
                     {
@@ -207,8 +205,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                         clientPort = NextPort();
                         try
                         {
-                            logger.LogInformation(
-                                "Try adding reverse connect client on {Port}...", clientPort);
+                            logger.TryAddingReverseConnect(clientPort);
                             using var listener = TcpListener.Create(clientPort);
                             listener.Start(); // Throws if used and cleans up.
                             listener.Stop();  // Cleanup
@@ -216,7 +213,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                         }
                         catch (Exception ex)
                         {
-                            logger.LogError(ex, "Port {Port} is not accessible...", clientPort);
+                            logger.PortNotAccessible(ex, clientPort);
                             kPorts.AddOrUpdate(clientPort, false, (_, _) => false);
                         }
                     }
@@ -225,20 +222,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                     var clientUrl = $"opc.tcp://{HostName}:{clientPort}";
                     _serverHost.AddReverseConnectionAsync(new Uri(clientUrl), 4)
                         .WaitAsync(TimeSpan.FromMinutes(1)).GetAwaiter().GetResult();
-                    logger.LogInformation("Start reverse connect to client at {Url}...", clientUrl);
+                    logger.StartReverseConnect(clientUrl);
                     break;
                 }
                 catch (Exception ex)
                 {
                     kPorts.AddOrUpdate(_port, false, (_, _) => false);
                     _port = NextPort();
-                    logger.LogError(ex, "Failed to start host {Host}, retrying with port {Port}...",
-                        serverHost, _port);
+                    logger.FailedToStartHost(ex, serverHost?.ToString(), _port);
                     serverHost?.Dispose();
                     serverHost = null;
                 }
             }
-            logger.LogInformation("Server host {Host} started in {Elapsed}...", serverHost, sw.Elapsed);
+            logger.ServerHostStarted(serverHost, sw.Elapsed);
         }
 
         /// <inheritdoc/>
@@ -270,8 +266,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                 {
                     var sw = Stopwatch.StartNew();
                     var logger = _container.Resolve<ILogger<BaseServerFixture>>();
-                    logger.LogInformation("Disposing server host {Host} and client fixture...",
-                        _serverHost);
+                    logger.DisposingServerHost(_serverHost);
 
                     string? pkiPath = null;
                     if (_container.TryResolve<IOptions<OpcUaClientOptions>>(out var options) &&
@@ -284,16 +279,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                     _serverHost.Dispose();
                     kPorts.TryRemove(_port, out _);
 
-                    logger.LogInformation("Client fixture and server host {Host} disposed - " +
-                        "cleaning up server certificates at '{PkiRoot}' ({Elapsed})...",
-                        _serverHost, pkiPath, sw.Elapsed);
+                    logger.ServerHostDisposed(_serverHost, pkiPath, sw.Elapsed);
 
                     // Clean up all created certificates
                     if (!string.IsNullOrEmpty(pkiPath) && Directory.Exists(pkiPath))
                     {
                         Try.Op(() => Directory.Delete(pkiPath, true));
                     }
-                    logger.LogInformation("Disposing Server took {Elapsed}...", sw.Elapsed);
+                    logger.ServerDisposingElapsed(sw.Elapsed);
 
                     if (Directory.Exists(TempPath))
                     {
@@ -449,5 +442,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         private readonly ServerConsoleHost _serverHost;
         private readonly Mock<TimeService> _timeService;
         private const string kSampleServerPath = "UA/SampleServer";
+    }
+
+    /// <summary>
+    /// Generated logging methods for BaseServerFixture
+    /// </summary>
+    internal static partial class BaseServerFixtureLogging
+    {
+        [LoggerMessage(1, LogLevel.Information, "Starting server host {Host} on {Port}...")]
+        public static partial void StartingServerHost(this ILogger logger, object host, int port);
+
+        [LoggerMessage(2, LogLevel.Information, "Server host {Host} listening on {EndpointUrl}!")]
+        public static partial void ServerHostListening(this ILogger logger, object host, string endpointUrl);
+
+        [LoggerMessage(3, LogLevel.Information, "Try adding reverse connect client on {Port}...")]
+        public static partial void TryAddingReverseConnect(this ILogger logger, int port);
+
+        [LoggerMessage(4, LogLevel.Error, "Port {Port} is not accessible...")]
+        public static partial void PortNotAccessible(this ILogger logger, Exception ex, int port);
+
+        [LoggerMessage(5, LogLevel.Information, "Start reverse connect to client at {Url}...")]
+        public static partial void StartReverseConnect(this ILogger logger, string url);
+
+        [LoggerMessage(6, LogLevel.Error, "Failed to start host {Host}, retrying with port {Port}...")]
+        public static partial void FailedToStartHost(this ILogger logger, Exception ex, string? host, int port);
+
+        [LoggerMessage(7, LogLevel.Information, "Server host {Host} started in {Elapsed}...")]
+        public static partial void ServerHostStarted(this ILogger logger, object host, TimeSpan elapsed);
+
+        [LoggerMessage(8, LogLevel.Information, "Disposing server host {Host} and client fixture...")]
+        public static partial void DisposingServerHost(this ILogger logger, object host);
+
+        [LoggerMessage(9, LogLevel.Information, "Client fixture and server host {Host} disposed - cleaning up server certificates at '{PkiRoot}' ({Elapsed})...")]
+        public static partial void ServerHostDisposed(this ILogger logger, object host, string? pkiRoot, TimeSpan elapsed);
+
+        [LoggerMessage(10, LogLevel.Information, "Disposing Server took {Elapsed}...")]
+        public static partial void ServerDisposingElapsed(this ILogger logger, TimeSpan elapsed);
     }
 }
