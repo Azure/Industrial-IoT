@@ -403,7 +403,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             protected override MasterNodeManager CreateMasterNodeManager(
                 IServerInternal server, ApplicationConfiguration configuration)
             {
-                _logger.LogCreatingNodeManagers();
+                _logger.CreatingNodeManagers();
                 var nodeManagers = _nodes
                     .Select(n => n.Create(server, configuration))
                     .ToArray();
@@ -415,7 +415,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             /// <inheritdoc/>
             protected override void OnServerStopping()
             {
-                _logger.LogServerStopping();
+                _logger.ServerStopping();
                 base.OnServerStopping();
                 _cts.Cancel();
                 _statusLogger?.Wait();
@@ -443,7 +443,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             /// <inheritdoc/>
             protected override void OnServerStarting(ApplicationConfiguration configuration)
             {
-                _logger.LogServerStarting();
+                _logger.ServerStarting();
                 CreateUserIdentityValidators(configuration);
                 base.OnServerStarting(configuration);
             }
@@ -451,7 +451,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             /// <inheritdoc/>
             protected override void OnNodeManagerStarted(IServerInternal server)
             {
-                _logger.LogNodeManagersStarted();
+                _logger.NodeManagersStarted();
                 base.OnNodeManagerStarted(server);
             }
 
@@ -506,11 +506,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                 {
                     if (lastContact.HasValue)
                     {
-                        _logger.LogSessionLastContact(reason, session.SessionDiagnostics.SessionName, lastContact.Value);
+                        _logger.SessionLastContact(reason, session.SessionDiagnostics.SessionName, lastContact.Value);
                     }
                     else
                     {
-                        _logger.LogSessionStatus(reason, session.SessionDiagnostics.SessionName,
+                        _logger.SessionStatus(reason, session.SessionDiagnostics.SessionName,
                             session.Identity.DisplayName ?? "session",
                             session.Id);
                     }
@@ -902,28 +902,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
     {
         [LoggerMessage(EventId = 1, Level = LogLevel.Information,
             Message = "Creating the Node Managers.")]
-        public static partial void LogCreatingNodeManagers(this ILogger logger);
+        public static partial void CreatingNodeManagers(this ILogger logger);
 
         [LoggerMessage(EventId = 2, Level = LogLevel.Debug,
             Message = "The server is stopping.")]
-        public static partial void LogServerStopping(this ILogger logger);
+        public static partial void ServerStopping(this ILogger logger);
 
         [LoggerMessage(EventId = 3, Level = LogLevel.Debug,
             Message = "The server is starting.")]
-        public static partial void LogServerStarting(this ILogger logger);
+        public static partial void ServerStarting(this ILogger logger);
 
         [LoggerMessage(EventId = 4, Level = LogLevel.Information,
             Message = "The NodeManagers have started.")]
-        public static partial void LogNodeManagersStarted(this ILogger logger);
+        public static partial void NodeManagersStarted(this ILogger logger);
 
         [LoggerMessage(EventId = 5, Level = LogLevel.Information,
             Message = "{Reason,9}:{SessionName,20}:Last Event:{LastEvent:HH:mm:ss}")]
-        public static partial void LogSessionLastContact(this ILogger logger,
+        public static partial void SessionLastContact(this ILogger logger,
             string reason, string sessionName, DateTime lastEvent);
 
         [LoggerMessage(EventId = 6, Level = LogLevel.Information,
             Message = "{Reason,9}:{SessionName,20}:{DisplayName,20}:{SessionId}")]
-        public static partial void LogSessionStatus(this ILogger logger,
+        public static partial void SessionStatus(this ILogger logger,
             string reason, string sessionName, string displayName, NodeId sessionId);
     }
 }
