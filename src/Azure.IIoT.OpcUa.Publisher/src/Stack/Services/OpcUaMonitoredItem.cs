@@ -1014,101 +1014,103 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// </summary>
     internal static partial class OpcUaMonitoredItemLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Debug,
+        private const int EventClass = 1030;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Debug,
             Message = "Added monitored item {Item} to subscription #{SubscriptionId}.")]
         public static partial void ItemAdded(this ILogger logger, OpcUaMonitoredItem item, uint subscriptionId);
 
-        [LoggerMessage(EventId = 2, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Debug,
             Message = "Removed monitored item {Item} from subscription #{SubscriptionId}.")]
         public static partial void ItemRemoved(this ILogger logger, OpcUaMonitoredItem item, uint subscriptionId);
 
-        [LoggerMessage(EventId = 3, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Error,
             Message = "{Item}: Item was disposed or moved to another subscription")]
         public static partial void ItemDisposed(this ILogger logger, OpcUaMonitoredItem item);
 
-        [LoggerMessage(EventId = 4, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Debug,
             Message = "Item {Item} removed from subscription #{SubscriptionId} with {Status}.")]
         public static partial void ItemRemovedWithStatus(this ILogger logger, OpcUaMonitoredItem item, uint subscriptionId, ServiceResult status);
 
-        [LoggerMessage(EventId = 5, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Debug,
             Message = "{Item}: Item is disabled while trying to complete.")]
         public static partial void ItemDisabled(this ILogger logger, OpcUaMonitoredItem item);
 
-        [LoggerMessage(EventId = 6, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Information,
             Message = "Server revised SamplingInterval from {SamplingInterval} to {CurrentSamplingInterval} and " +
             "QueueSize from {QueueSize} to {CurrentQueueSize} for #{SubscriptionId}|{Item}('{Name}').")]
         public static partial void RevisionComplete(this ILogger logger, double samplingInterval, double currentSamplingInterval,
             uint queueSize, uint currentQueueSize, uint subscriptionId, NodeId item, string name);
 
-        [LoggerMessage(EventId = 7, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Information,
             Message = "Server revised SamplingInterval from {SamplingInterval} to {CurrentSamplingInterval} " +
             "for #{SubscriptionId}|{Item}('{Name}').")]
         public static partial void SamplingIntervalRevised(this ILogger logger, double samplingInterval,
             double currentSamplingInterval, uint subscriptionId, NodeId item, string name);
 
-        [LoggerMessage(EventId = 8, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Information,
             Message = "Server revised QueueSize from {QueueSize} to {CurrentQueueSize} " +
             "for #{SubscriptionId}|{Item}('{Name}').")]
         public static partial void QueueSizeRevised(this ILogger logger, uint queueSize, uint currentQueueSize,
             uint subscriptionId, NodeId item, string name);
 
-        [LoggerMessage(EventId = 9, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 9, Level = LogLevel.Debug,
             Message = "Server accepted configuration unchanged for #{SubscriptionId}|{Item}('{Name}').")]
         public static partial void ConfigurationAccepted(this ILogger logger, uint subscriptionId, NodeId item, string name);
 
-        [LoggerMessage(EventId = 10, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 10, Level = LogLevel.Debug,
             Message = "SamplingInterval set to {SamplingInterval} and QueueSize to {QueueSize} " +
             "for #{SubscriptionId}|{Item}('{Name}').")]
         public static partial void ConfigurationSet(this ILogger logger, double samplingInterval, uint queueSize,
             uint subscriptionId, NodeId item, string name);
 
-        [LoggerMessage(EventId = 11, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 11, Level = LogLevel.Debug,
             Message = "{Item}: Could not clone last value.")]
         public static partial void CloneValueFailed(this ILogger logger, Exception ex, OpcUaMonitoredItem item);
 
-        [LoggerMessage(EventId = 12, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 12, Level = LogLevel.Debug,
             Message = "{Item}: Changing discard new mode from {Old} to {New}")]
         public static partial void DiscardNewModeChanged(this ILogger logger, OpcUaMonitoredItem item, bool old, bool @new);
 
-        [LoggerMessage(EventId = 13, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 13, Level = LogLevel.Debug,
             Message = "{Item}: Changing queue size from {Old} ({OldAuto}) to {New} ({NewAuto})")]
         public static partial void QueueSizeChanged(this ILogger logger, OpcUaMonitoredItem item, uint? old, bool? oldAuto, uint? @new, bool? newAuto);
 
-        [LoggerMessage(EventId = 14, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 14, Level = LogLevel.Debug,
             Message = "{Item}: Changing monitoring mode from {Old} to {New}")]
         public static partial void MonitoringModeChanged(this ILogger logger, OpcUaMonitoredItem item, Publisher.Models.MonitoringMode old, Publisher.Models.MonitoringMode @new);
 
-        [LoggerMessage(EventId = 15, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 15, Level = LogLevel.Information,
             Message = "{Item}: Failed to get built in type for type {DataType} with message: {Message}")]
         public static partial void BuiltInTypeFailed(this ILogger logger, OpcUaMonitoredItem item, string dataType, string message);
 
-        [LoggerMessage(EventId = 16, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 16, Level = LogLevel.Error,
             Message = "{Item}: Failed to find node for data type {BaseType}!")]
         public static partial void DataTypeNodeNotFound(this ILogger logger, OpcUaMonitoredItem item, string baseType);
 
-        [LoggerMessage(EventId = 17, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 17, Level = LogLevel.Information,
             Message = "{Item}: Failed to get meta data for type {DataType} (base: {BaseType}) with message: {Message}")]
         public static partial void MetaDataFailed(this ILogger logger, OpcUaMonitoredItem item, NodeId dataType,
             NodeId? baseType, string message);
 
-        [LoggerMessage(EventId = 18, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 18, Level = LogLevel.Error,
             Message = "{Item}: Could not find a valid type definition for {Type} ({BuiltInType}). " +
             "Adding a default placeholder with no fields instead.")]
         public static partial void TypeDefinitionNotFound(this ILogger logger, OpcUaMonitoredItem item, Node type, BuiltInType builtInType);
 
-        [LoggerMessage(EventId = 19, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 19, Level = LogLevel.Debug,
             Message = "Auto-set queue size for {Item} to '{QueueSize}'.")]
         public static partial void QueueSizeAutoSet(this ILogger logger, OpcUaMonitoredItem item, uint queueSize);
 
-        [LoggerMessage(EventId = 20, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 20, Level = LogLevel.Debug,
             Message = "No sampling interval set - cannot calculate queue size for {Item}.")]
         public static partial void NoSamplingInterval(this ILogger logger, OpcUaMonitoredItem item);
 
-        [LoggerMessage(EventId = 21, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 21, Level = LogLevel.Debug,
             Message = "Cannot publish notification. Missing subscription for {Item}.")]
         public static partial void MissingSubscription(this ILogger logger, OpcUaMonitoredItem item);
 
-        [LoggerMessage(EventId = 22, Level = LogLevel.Warning,
+        [LoggerMessage(EventId = EventClass + 22, Level = LogLevel.Warning,
             Message = "Error adding monitored item {Item} to subscription #{SubscriptionId} due to {Status}.")]
         internal static partial void AddMonitoredItemError(this ILogger logger, OpcUaMonitoredItem item, uint subscriptionId, ServiceResult status);
     }

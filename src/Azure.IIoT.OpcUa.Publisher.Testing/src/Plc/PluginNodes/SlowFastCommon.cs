@@ -354,19 +354,21 @@ namespace Plc.PluginNodes
     /// </summary>
     internal static partial class SlowFastCommonLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Information,
+        private const int EventClass = 80;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
             Message = "Creating {Count} {Name} nodes of type: {Type}")]
         public static partial void CreatingNodes(this ILogger logger, uint count, string name, NodeType type);
 
-        [LoggerMessage(EventId = 2, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Information,
             Message = "Node values will change every {Rate} ms")]
         public static partial void NodeChangeRate(this ILogger logger, uint rate);
 
-        [LoggerMessage(EventId = 3, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Information,
             Message = "Node values sampling rate is {NodeSamplingInterval} ms")]
         public static partial void SamplingRate(this ILogger logger, uint nodeSamplingInterval);
 
-        [LoggerMessage(EventId = 4, Level = LogLevel.Warning,
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Warning,
             Message = "Invalid argument {Argument} provided.")]
         public static partial void InvalidArgument(this ILogger logger, object argument);
     }

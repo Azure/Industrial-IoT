@@ -676,71 +676,84 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// </summary>
     internal static partial class OpcUaClientManagerLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Error,
-            Message = "Failed to get diagnostics for client {Client}.")]
-        public static partial void GetDiagnosticsFailed(this ILogger logger, Exception ex, OpcUaClient client);
+        private const int EventClass = 600;
 
-        [LoggerMessage(EventId = 2, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Error,
+            Message = "Failed to get diagnostics for client {Client}.")]
+        public static partial void GetDiagnosticsFailed(this ILogger logger, Exception ex,
+            OpcUaClient client);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Debug,
             Message = "Try finding endpoints at {DiscoveryUrl}...")]
         public static partial void FindingEndpoints(this ILogger logger, Uri discoveryUrl);
 
-        [LoggerMessage(EventId = 3, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Debug,
             Message = "Exception occurred during FindEndpoints at {DiscoveryUrl}.")]
-        public static partial void FindEndpointsException(this ILogger logger, Exception ex, Uri discoveryUrl);
+        public static partial void FindEndpointsException(this ILogger logger, Exception ex,
+            Uri discoveryUrl);
 
-        [LoggerMessage(EventId = 4, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Error,
             Message = "Could not find endpoints at {DiscoveryUrl} due to {Error} (after {Elapsed}).")]
-        public static partial void FindEndpointsFailed(this ILogger logger, Uri discoveryUrl, string error, TimeSpan elapsed);
+        public static partial void FindEndpointsFailed(this ILogger logger, Uri discoveryUrl,
+            string error, TimeSpan elapsed);
 
-        [LoggerMessage(EventId = 5, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Debug,
             Message = "Finding endpoints at {DiscoveryUrl} completed in {Elapsed}.")]
-        public static partial void FindingEndpointsCompleted(this ILogger logger, Uri discoveryUrl, TimeSpan elapsed);
+        public static partial void FindingEndpointsCompleted(this ILogger logger,
+            Uri discoveryUrl, TimeSpan elapsed);
 
-        [LoggerMessage(EventId = 6, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Debug,
             Message = "No endpoints at {DiscoveryUrl}...")]
         public static partial void NoEndpoints(this ILogger logger, Uri discoveryUrl);
 
-        [LoggerMessage(EventId = 7, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Debug,
             Message = "Found endpoint at {DiscoveryUrl}...")]
         public static partial void FoundEndpoint(this ILogger logger, Uri discoveryUrl);
 
-        [LoggerMessage(EventId = 8, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Debug,
             Message = "Found endpoints at {DiscoveryUrl}...")]
         public static partial void FoundEndpoints(this ILogger logger, Uri discoveryUrl);
 
-        [LoggerMessage(EventId = 9, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 9, Level = LogLevel.Debug,
             Message = "{DiscoveryUrl} does not support ME extension...")]
         public static partial void ExtensionNotSupported(this ILogger logger, Uri discoveryUrl);
 
-        [LoggerMessage(EventId = 10, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 10, Level = LogLevel.Information,
             Message = "Stopping all {Count} clients...")]
         public static partial void StoppingAllClients(this ILogger logger, int count);
 
-        [LoggerMessage(EventId = 11, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 11, Level = LogLevel.Error,
             Message = "Unexpected exception disposing client {Client}")]
-        public static partial void DisposeClientFailed(this ILogger logger, Exception ex, ConnectionIdentifier client);
+        public static partial void DisposeClientFailed(this ILogger logger, Exception ex,
+            ConnectionIdentifier client);
 
-        [LoggerMessage(EventId = 12, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 12, Level = LogLevel.Information,
             Message = "Stopped all clients, current number of clients is 0")]
         public static partial void StoppedAllClients(this ILogger logger);
 
-        [LoggerMessage(EventId = 13, Level = LogLevel.Warning,
-            Message = "Accepting untrusted peer certificate {Thumbprint}, '{Subject}' due to AutoAccept(UntrustedCertificates) set!")]
-        public static partial void AcceptingUntrustedCert(this ILogger logger, string thumbprint, string subject);
+        [LoggerMessage(EventId = EventClass + 13, Level = LogLevel.Warning,
+            Message = "Accepting untrusted peer certificate {Thumbprint}, '{Subject}' " +
+            "due to AutoAccept(UntrustedCertificates) set!")]
+        public static partial void AcceptingUntrustedCert(this ILogger logger,
+            string thumbprint, string subject);
 
-        [LoggerMessage(EventId = 14, Level = LogLevel.Information,
-            Message = "Accepting untrusted peer certificate {Thumbprint}, '{Subject}' since the same thumbprint was specified in the connection!")]
-        public static partial void AcceptingUntrustedCertByThumbprint(this ILogger logger, string thumbprint, string subject);
+        [LoggerMessage(EventId = EventClass + 14, Level = LogLevel.Information,
+            Message = "Accepting untrusted peer certificate {Thumbprint}, '{Subject}' " +
+            "since the same thumbprint was specified in the connection!")]
+        public static partial void AcceptingUntrustedCertByThumbprint(this ILogger logger,
+            string thumbprint, string subject);
 
-        [LoggerMessage(EventId = 15, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 15, Level = LogLevel.Error,
             Message = "Failed to add peer certificate {Thumbprint}, '{Subject}' to trusted store")]
-        public static partial void AddPeerCertToTrustedStoreFailed(this ILogger logger, Exception ex, string thumbprint, string subject);
+        public static partial void AddPeerCertToTrustedStoreFailed(this ILogger logger,
+            Exception ex, string thumbprint, string subject);
 
-        [LoggerMessage(EventId = 16, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 16, Level = LogLevel.Information,
             Message = "Rejecting peer certificate {Thumbprint}, '{Subject}' because of {Status}.")]
-        public static partial void RejectingPeerCert(this ILogger logger, string thumbprint, string subject, StatusCode status);
+        public static partial void RejectingPeerCert(this ILogger logger, string thumbprint,
+            string subject, StatusCode status);
 
-        [LoggerMessage(EventId = 17, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 17, Level = LogLevel.Information,
             Message = "{Client}: Created new client.")]
         public static partial void CreatedNewClient(this ILogger logger, OpcUaClient client);
     }

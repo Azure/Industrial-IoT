@@ -692,25 +692,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// </summary>
     internal static partial class NetworkMessageEncoderLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Error, Message = "Missing service message context for network message - dropping notification.")]
+        private const int EventClass = 170;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Error,
+            Message = "Missing service message context for network message - dropping notification.")]
         public static partial void MissingServiceMessageContext(this ILogger logger);
 
-        [LoggerMessage(EventId = 2, Level = LogLevel.Debug, Message = "Resulting chunk is too large, dropped a notification.")]
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Debug,
+            Message = "Resulting chunk is too large, dropped a notification.")]
         public static partial void ChunkTooLarge(this ILogger logger);
 
-        [LoggerMessage(EventId = 3, Level = LogLevel.Debug, Message = "{Count} Notifications encoded into a network message (chunks:{Chunks})...")]
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Debug,
+            Message = "{Count} Notifications encoded into a network message (chunks:{Chunks})...")]
         public static partial void NotificationsEncoded(this ILogger logger, int count, int chunks);
 
-        [LoggerMessage(EventId = 4, Level = LogLevel.Warning, Message = "Dropped {TotalNotifications} values")]
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Warning,
+            Message = "Dropped {TotalNotifications} values")]
         public static partial void DroppedValues(this ILogger logger, int totalNotifications);
 
-        [LoggerMessage(EventId = 5, Level = LogLevel.Information, Message = "{Action}|{PublishTime:hh:mm:ss:ffffff}|#{Seq}:{PublishSeq}|{MessageType}|{Endpoint}|{Items}")]
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Information,
+            Message = "{Action}|{PublishTime:hh:mm:ss:ffffff}|#{Seq}:{PublishSeq}|{MessageType}|{Endpoint}|{Items}")]
         public static partial void NotificationInfo(this ILogger logger, string action, DateTimeOffset? publishTime, uint seq, string publishSeq, MessageType messageType, string? endpoint, string items);
 
-        [LoggerMessage(EventId = 6, Level = LogLevel.Information, Message = "{Action}|Sample|{Items}")]
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Information,
+            Message = "{Action}|Sample|{Items}")]
         public static partial void NotificationSample(this ILogger logger, string action, string items);
 
-        [LoggerMessage(EventId = 7, Level = LogLevel.Information, Message = "Removed {Count} duplicates from batch.")]
+        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Information,
+            Message = "Removed {Count} duplicates from batch.")]
         public static partial void RemovedDuplicates(this ILogger logger, int count);
     }
 }

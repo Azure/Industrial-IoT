@@ -650,23 +650,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
     /// </summary>
     internal static partial class TestServerLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Information,
+        private const int EventClass = 0;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
             Message = "Creating the Node Managers.")]
         public static partial void CreatingNodeManagers(this ILogger logger);
 
-        [LoggerMessage(EventId = 2, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Debug,
             Message = "The server is stopping.")]
         public static partial void ServerStopping(this ILogger logger);
 
-        [LoggerMessage(EventId = 3, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Debug,
             Message = "The server is starting.")]
         public static partial void ServerStarting(this ILogger logger);
 
-        [LoggerMessage(EventId = 4, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Information,
             Message = "The NodeManagers have started.")]
         public static partial void NodeManagersStarted(this ILogger logger);
 
-        [LoggerMessage(EventId = 5, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Information,
             Message = "{Log}")]
         public static partial void ItemStatus(this ILogger logger, string log);
     }

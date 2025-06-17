@@ -460,11 +460,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// </summary>
     internal static partial class OpcUaMonitoredItemModelChangeLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Information,
+        private const int EventClass = 1130;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
             Message = "Item {Item} registered with browser.")]
         public static partial void ItemRegistered(this ILogger logger, OpcUaMonitoredItem.ModelChangeEventItem item);
 
-        [LoggerMessage(EventId = 2, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Information,
             Message = "Item {Item} unregistered from browser.")]
         public static partial void ItemUnregistered(this ILogger logger, OpcUaMonitoredItem.ModelChangeEventItem item);
     }

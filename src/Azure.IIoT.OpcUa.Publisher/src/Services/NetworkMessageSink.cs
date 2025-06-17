@@ -869,52 +869,54 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// </summary>
     internal static partial class NetworkMessageSinkLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Information,
+        private const int EventClass = 200;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
             Message = "Partition #{Partition}: Started data flow with notification from server {Name} and endpoint {Endpoint}.")]
         public static partial void PartitionStarted(this ILogger logger, int partition, string name, string endpoint);
 
-        [LoggerMessage(EventId = 2, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Debug,
             Message = "Closed. Network message dropped.")]
         public static partial void MessageDropped(this ILogger logger);
 
-        [LoggerMessage(EventId = 3, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Debug,
             Message = "#{Attempt}: Network message sent.")]
         public static partial void MessageSent(this ILogger logger, int attempt);
 
-        [LoggerMessage(EventId = 4, Level = LogLevel.Critical,
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Critical,
             Message = "#{Attempt}: Wrong TLS certificate trust list provisioned - trying to reset and reload configuration...")]
         public static partial void WrongCertificate(this ILogger logger, Exception ex, int attempt);
 
-        [LoggerMessage(EventId = 5, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Debug,
             Message = "#{Attempt}: Error '{Error}' during sending network message. Retrying in {Delay}...")]
         public static partial void SendErrorWithStack(this ILogger logger, Exception ex, int attempt, string error, TimeSpan delay);
 
-        [LoggerMessage(EventId = 6, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Error,
             Message = "#{Attempt}: Error '{Error}' during sending network message. Retrying in {Delay}...")]
         public static partial void SendErrorWithStackPeriodic(this ILogger logger, Exception ex, int attempt, string error, TimeSpan delay);
 
-        [LoggerMessage(EventId = 7, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Error,
             Message = "#{Attempt}: Error '{Error}' during sending network message. Retrying in {Delay}...")]
         public static partial void SendError(this ILogger logger, int attempt, string error, TimeSpan delay);
 
-        [LoggerMessage(EventId = 8, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Error,
             Message = "Encoding failure on partition #{Partition}.")]
         public static partial void EncodingFailure(this ILogger logger, Exception ex, int partition);
 
-        [LoggerMessage(EventId = 9, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 9, Level = LogLevel.Error,
             Message = "Unexpected error sending network message.")]
         public static partial void UnexpectedSendError(this ILogger logger, Exception ex);
 
-        [LoggerMessage(EventId = 10, Level = LogLevel.Trace,
+        [LoggerMessage(EventId = EventClass + 10, Level = LogLevel.Trace,
             Message = "Trigger notification batch (Interval:{Interval})...")]
         public static partial void BatchTrigger(this ILogger logger, TimeSpan interval);
 
-        [LoggerMessage(EventId = 11, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 11, Level = LogLevel.Information,
             Message = "{Action}|{PublishTime:hh:mm:ss:ffffff}|#{Seq}:{PublishSeq}|{MessageType}|{Endpoint}|{Items}")]
         public static partial void NotificationLog(this ILogger logger, string action, DateTimeOffset? publishTime,
             uint seq, string publishSeq, MessageType messageType, string endpoint, string items);
 
-        [LoggerMessage(EventId = 12, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 12, Level = LogLevel.Information,
             Message = "Writer group {WriterGroup} set up to publish notifications {Interval} {Batching} with {MaxSize} to {Transport} with {HeaderLayout} layout and {MessageType} encoding (queuing at most {MaxQueueSize} subscription notifications)...")]
         public static partial void WriterGroupSetup(this ILogger logger, string writerGroup, string interval,
             string batching, string maxSize, string transport, string headerLayout,

@@ -821,73 +821,98 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     /// </summary>
     internal static partial class NetworkDiscoveryLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Error, Message = "Discovery request not scheduled, internal server error!")]
+        private const int EventClass = 0;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Error,
+            Message = "Discovery request not scheduled, internal server error!")]
         public static partial void DiscoveryRequestNotScheduled(this ILogger logger);
 
-        [LoggerMessage(EventId = 2, Level = LogLevel.Error, Message = "Object disposed but still timer is firing")]
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Error,
+            Message = "Object disposed but still timer is firing")]
         public static partial void ObjectDisposedTimerFiring(this ILogger logger, Exception ex);
 
-        [LoggerMessage(EventId = 3, Level = LogLevel.Error, Message = "Unexpected exception stopping processor thread.")]
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Error,
+            Message = "Unexpected exception stopping processor thread.")]
         public static partial void UnexpectedExceptionStoppingProcessor(this ILogger logger, Exception ex);
 
-        [LoggerMessage(EventId = 4, Level = LogLevel.Information, Message = "Starting discovery processor...")]
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Information,
+            Message = "Starting discovery processor...")]
         public static partial void StartingDiscoveryProcessor(this ILogger logger);
 
-        [LoggerMessage(EventId = 5, Level = LogLevel.Error, Message = "Discovery processor error occurred - continue...")]
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Error,
+            Message = "Discovery processor error occurred - continue...")]
         public static partial void DiscoveryProcessorErrorOccurred(this ILogger logger, Exception ex);
 
-        [LoggerMessage(EventId = 6, Level = LogLevel.Information, Message = "Stopped discovery processor.")]
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Information,
+            Message = "Stopped discovery processor.")]
         public static partial void StoppedDiscoveryProcessor(this ILogger logger);
 
-        [LoggerMessage(EventId = 7, Level = LogLevel.Debug, Message = "Processing discovery request...")]
+        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Debug,
+            Message = "Processing discovery request...")]
         public static partial void ProcessingDiscoveryRequest(this ILogger logger);
 
-        [LoggerMessage(EventId = 8, Level = LogLevel.Information, Message = "Start {Mode} discovery run...")]
+        [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Information,
+            Message = "Start {Mode} discovery run...")]
         public static partial void StartDiscoveryRun(this ILogger logger, DiscoveryMode mode);
 
-        [LoggerMessage(EventId = 9, Level = LogLevel.Information, Message = "Discovery took {Elapsed} and found {Count} servers.")]
+        [LoggerMessage(EventId = EventClass + 9, Level = LogLevel.Information,
+            Message = "Discovery took {Elapsed} and found {Count} servers.")]
         public static partial void DiscoveryTookAndFoundServers(this ILogger logger, TimeSpan elapsed, int count);
 
-        [LoggerMessage(EventId = 10, Level = LogLevel.Information, Message = "Uploading {Count} results...")]
+        [LoggerMessage(EventId = EventClass + 10, Level = LogLevel.Information,
+            Message = "Uploading {Count} results...")]
         public static partial void UploadingResults(this ILogger logger, int count);
 
-        [LoggerMessage(EventId = 11, Level = LogLevel.Information, Message = "{Count} results uploaded.")]
+        [LoggerMessage(EventId = EventClass + 11, Level = LogLevel.Information,
+            Message = "{Count} results uploaded.")]
         public static partial void ResultsUploaded(this ILogger logger, int count);
 
-        [LoggerMessage(EventId = 12, Level = LogLevel.Information, Message = "Cancelling all pending requests...")]
+        [LoggerMessage(EventId = EventClass + 12, Level = LogLevel.Information,
+            Message = "Cancelling all pending requests...")]
         public static partial void CancellingAllPendingRequests(this ILogger logger);
 
-        [LoggerMessage(EventId = 13, Level = LogLevel.Information, Message = "Pending requests cancelled...")]
+        [LoggerMessage(EventId = EventClass + 13, Level = LogLevel.Information,
+            Message = "Pending requests cancelled...")]
         public static partial void PendingRequestsCancelled(this ILogger logger);
 
-        [LoggerMessage(EventId = 14, Level = LogLevel.Information, Message = "Gateway host name not set")]
+        [LoggerMessage(EventId = EventClass + 14, Level = LogLevel.Information,
+            Message = "Gateway host name not set")]
         public static partial void GatewayHostNameNotSet(this ILogger logger);
 
-        [LoggerMessage(EventId = 15, Level = LogLevel.Debug, Message = "Resolve IP for gateway host name: {Address}")]
+        [LoggerMessage(EventId = EventClass + 15, Level = LogLevel.Debug,
+            Message = "Resolve IP for gateway host name: {Address}")]
         public static partial void ResolveIpForGatewayHostName(this ILogger logger, string address);
 
-        [LoggerMessage(EventId = 16, Level = LogLevel.Information, Message = "Including gateway host address {Address}")]
+        [LoggerMessage(EventId = EventClass + 16, Level = LogLevel.Information,
+            Message = "Including gateway host address {Address}")]
         public static partial void IncludingGatewayHostAddress(this ILogger logger, IPAddress address);
 
-        [LoggerMessage(EventId = 17, Level = LogLevel.Warning, Message = "Failed to add address for gateway host {HostName} due to {Error}.")]
+        [LoggerMessage(EventId = EventClass + 17, Level = LogLevel.Warning,
+            Message = "Failed to add address for gateway host {HostName} due to {Error}.")]
         public static partial void FailedToAddAddressForGatewayHost(this ILogger logger, string? hostName, string error);
 
-        [LoggerMessage(EventId = 18, Level = LogLevel.Error, Message = "Failed to add address for gateway host {HostName}.")]
+        [LoggerMessage(EventId = EventClass + 18, Level = LogLevel.Error,
+            Message = "Failed to add address for gateway host {HostName}.")]
         public static partial void FailedToAddAddressForGatewayHostException(this ILogger logger, Exception ex, string? hostName);
 
-        [LoggerMessage(EventId = 19, Level = LogLevel.Warning, Message = "Failed to send pending event")]
+        [LoggerMessage(EventId = EventClass + 19, Level = LogLevel.Warning,
+            Message = "Failed to send pending event")]
         public static partial void FailedToSendPendingEvent(this ILogger logger, Exception ex);
 
-        [LoggerMessage(EventId = 20, Level = LogLevel.Information, Message = "GC Mem: {Gcmem} kb, Working set / Private Mem: {Privmem} kb / {Privmemsize} kb, Handles: {Handles}")]
+        [LoggerMessage(EventId = EventClass + 20, Level = LogLevel.Information,
+            Message = "GC Mem: {Gcmem} kb, Working set / Private Mem: {Privmem} kb / {Privmemsize} kb, Handles: {Handles}")]
         public static partial void GcMemWorkingSetPrivateMemHandles(this ILogger logger, long gcmem, long privmem, long privmemsize, int handles);
 
-        [LoggerMessage(EventId = 21, Level = LogLevel.Warning, Message = "Failed to resolve the host for {DiscoveryUrl} due to {Message}")]
+        [LoggerMessage(EventId = EventClass + 21, Level = LogLevel.Warning,
+            Message = "Failed to resolve the host for {DiscoveryUrl} due to {Message}")]
         public static partial void FailedToResolveHostForDiscoveryUrl(this ILogger logger, Uri discoveryUrl, string message);
 
-        [LoggerMessage(EventId = 22, Level = LogLevel.Error, Message = "Failed to resolve the host for {DiscoveryUrl}")]
+        [LoggerMessage(EventId = EventClass + 22, Level = LogLevel.Error,
+            Message = "Failed to resolve the host for {DiscoveryUrl}")]
         public static partial void FailedToResolveHostForDiscoveryUrlException(this ILogger logger, Exception ex, Uri discoveryUrl);
 
-        [LoggerMessage(EventId = 23, Level = LogLevel.Debug, Message = "Failed to get host entry.")]
+        [LoggerMessage(EventId = EventClass + 23, Level = LogLevel.Debug,
+            Message = "Failed to get host entry.")]
         public static partial void FailedToGetHostEntry(this ILogger logger, Exception ex);
     }
 }

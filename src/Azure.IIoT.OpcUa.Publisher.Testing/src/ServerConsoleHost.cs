@@ -297,67 +297,69 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// </summary>
     internal static partial class ServerConsoleHostLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Information,
+        private const int EventClass = 100;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
             Message = "Stopping server {Instance}.")]
         public static partial void StoppingServer(this ILogger logger, object instance);
 
-        [LoggerMessage(EventId = 2, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Error,
             Message = "Server {Instance} not cleanly stopped.")]
         public static partial void ServerStopError(this ILogger logger, Exception ex, object instance);
 
-        [LoggerMessage(EventId = 3, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Information,
             Message = "Server {Instance} stopped.")]
         public static partial void ServerStopped(this ILogger logger, object instance);
 
-        [LoggerMessage(EventId = 4, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Error,
             Message = "Stopping server {Instance} caused exception.")]
         public static partial void StoppingError(this ILogger logger, Exception ex, object instance);
 
-        [LoggerMessage(EventId = 5, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Error,
             Message = "Adding reverse connection in server {Instance} failed.")]
         public static partial void AddReverseConnectionError(this ILogger logger, Exception ex, object instance);
 
-        [LoggerMessage(EventId = 6, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Error,
             Message = "Remove reverse connection in server {Instance} failed.")]
         public static partial void RemoveReverseConnectionError(this ILogger logger, Exception ex, object instance);
 
-        [LoggerMessage(EventId = 7, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Error,
             Message = "Starting server {Instance} caused exception.")]
         public static partial void StartingError(this ILogger logger, Exception ex, object instance);
 
-        [LoggerMessage(EventId = 8, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Information,
             Message = "Restarting server {Instance}...")]
         public static partial void Restarting(this ILogger logger, object instance);
 
-        [LoggerMessage(EventId = 9, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 9, Level = LogLevel.Information,
             Message = "Server {Instance} created...")]
         public static partial void ServerCreated(this ILogger logger, object instance);
 
-        [LoggerMessage(EventId = 10, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 10, Level = LogLevel.Information,
             Message = "Server {Instance} - Validate configuration...")]
         public static partial void ValidatingConfig(this ILogger logger, object instance);
 
-        [LoggerMessage(EventId = 11, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 11, Level = LogLevel.Information,
             Message = "Server {Instance} - Initialize certificate validation...")]
         public static partial void InitializingCertValidation(this ILogger logger, object instance);
 
-        [LoggerMessage(EventId = 12, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 12, Level = LogLevel.Error,
             Message = "Server {Instance} - Failed validating own certificate!")]
         public static partial void CertValidationError(this ILogger logger, object instance);
 
-        [LoggerMessage(EventId = 13, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 13, Level = LogLevel.Information,
             Message = "Server {Instance} - {Action} Certificate {Subject}")]
         public static partial void CertificateAction(this ILogger logger, object instance, string action, string subject);
 
-        [LoggerMessage(EventId = 14, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 14, Level = LogLevel.Information,
             Message = "Starting server ...")]
         public static partial void StartingServer(this ILogger logger);
 
-        [LoggerMessage(EventId = 15, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 15, Level = LogLevel.Information,
             Message = "Server {Instance} - Listening on {Endpoint}")]
         public static partial void ServerEndpoint(this ILogger logger, object instance, string endpoint);
 
-        [LoggerMessage(EventId = 16, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 16, Level = LogLevel.Information,
             Message = "Server {Instance} started.")]
         public static partial void ServerStarted(this ILogger logger, object instance);
     }

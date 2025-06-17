@@ -58,7 +58,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 IngestionStart = _timeProvider.GetUtcNow()
             };
             _diagnostics.AddOrUpdate(writerGroupId, _ => diag, (_, _) => diag);
-            PublisherDiagnosticCollectorLogging.TrackingDiagnosticsRestarted(_logger, writerGroupId);
+            _logger.TrackingDiagnosticsRestarted(writerGroupId);
         }
 
         /// <inheritdoc/>
@@ -121,7 +121,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             if (_diagnostics.TryRemove(writerGroupId, out _))
             {
-                PublisherDiagnosticCollectorLogging.TrackingDiagnosticsStopped(_logger, writerGroupId);
+                _logger.TrackingDiagnosticsStopped(writerGroupId);
                 return true;
             }
             return false;
@@ -362,10 +362,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// </summary>
     internal static partial class PublisherDiagnosticCollectorLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "Tracking diagnostics for {WriterGroup} was (re-)started.")]
+        private const int EventClass = 260;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
+            Message = "Tracking diagnostics for {WriterGroup} was (re-)started.")]
         public static partial void TrackingDiagnosticsRestarted(this ILogger logger, string writerGroup);
 
-        [LoggerMessage(EventId = 2, Level = LogLevel.Information, Message = "Stop tracking diagnostics for {WriterGroup}.")]
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Information,
+            Message = "Stop tracking diagnostics for {WriterGroup}.")]
         public static partial void TrackingDiagnosticsStopped(this ILogger logger, string writerGroup);
     }
 }

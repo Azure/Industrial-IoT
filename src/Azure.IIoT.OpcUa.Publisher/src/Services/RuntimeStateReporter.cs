@@ -307,16 +307,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         Certificate.Dispose();
                         Certificate = null;
-                        RuntimeStateReporterLogging.FailedToGetCertificateWithPrivateKey(_logger);
+                        _logger.FailedToGetCertificateWithPrivateKey();
                     }
                     else
                     {
-                        RuntimeStateReporterLogging.UsingWorkloadApiCertificate(_logger);
+                        _logger.UsingWorkloadApiCertificate();
                     }
                 }
                 catch (NotSupportedException nse)
                 {
-                    RuntimeStateReporterLogging.WorkloadApiNotSupported(_logger, nse.Message);
+                    _logger.WorkloadApiNotSupported(nse.Message);
                 }
                 catch (Exception ex)
                 {
@@ -756,79 +756,81 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// </summary>
     internal static partial class RuntimeStateReporterLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Information,
+        private const int EventClass = 330;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
             Message = "Restart announcement sent successfully.")]
         public static partial void RestartAnnouncementSent(this ILogger logger);
 
-        [LoggerMessage(EventId = 2, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Error,
             Message = "Failed to resolve hostname.")]
         public static partial void HostnameResolveFailed(this ILogger logger, Exception ex);
 
-        [LoggerMessage(EventId = 3, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Information,
             Message = "Api Key exists in {Store} store...")]
         public static partial void ApiKeyExists(this ILogger logger, string store);
 
-        [LoggerMessage(EventId = 4, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Information,
             Message = "Using Api Key provided in configuration...")]
         public static partial void UsingConfigApiKey(this ILogger logger);
 
-        [LoggerMessage(EventId = 5, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Information,
             Message = "Generating new Api Key in {Store} store...")]
         public static partial void GeneratingApiKey(this ILogger logger, string store);
 
-        [LoggerMessage(EventId = 6, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Information,
             Message = "Using valid Certificate found in {Store} store (renewal in {Duration})...")]
         public static partial void UsingValidCertificate(this ILogger logger, string store, TimeSpan duration);
 
-        [LoggerMessage(EventId = 7, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Information,
             Message = "Certificate found in {Store} store has expired. Generate new...")]
         public static partial void CertificateExpired(this ILogger logger, string store);
 
-        [LoggerMessage(EventId = 8, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Error,
             Message = "Provided Certificate invalid.")]
         public static partial void CertificateInvalid(this ILogger logger, Exception ex);
 
-        [LoggerMessage(EventId = 9, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 9, Level = LogLevel.Information,
             Message = "Using server certificate with private key from workload API...")]
         public static partial void UsingWorkloadApiCertificate(this ILogger logger);
 
-        [LoggerMessage(EventId = 10, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 10, Level = LogLevel.Error,
             Message = "Failed to create certificate using workload API.")]
         public static partial void WorkloadApiCertificateFailed(this ILogger logger, Exception ex);
 
-        [LoggerMessage(EventId = 11, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 11, Level = LogLevel.Information,
             Message = "Created self-signed ECC server certificate...")]
         public static partial void CreatedSelfSignedCertificate(this ILogger logger);
 
-        [LoggerMessage(EventId = 12, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 12, Level = LogLevel.Information,
             Message = "Stored new Certificate in {Store} store (and scheduled renewal after {Duration}).")]
         public static partial void StoredNewCertificate(this ILogger logger, string store, TimeSpan duration);
 
-        [LoggerMessage(EventId = 13, Level = LogLevel.Critical,
+        [LoggerMessage(EventId = EventClass + 13, Level = LogLevel.Critical,
             Message = "Failed to renew certificate - retrying in 1 hour...")]
         public static partial void CertificateRenewalFailed(this ILogger logger, Exception ex);
 
-        [LoggerMessage(EventId = 14, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 14, Level = LogLevel.Information,
             Message = "{Event} sent via {Transport}.")]
         public static partial void EventSent(this ILogger logger, string? @event, string transport);
 
-        [LoggerMessage(EventId = 15, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 15, Level = LogLevel.Error,
             Message = "Failed sending {MessageType} runtime state event through {Transport}.")]
         public static partial void SendEventFailed(this ILogger logger, Exception ex, string messageType, string transport);
 
-        [LoggerMessage(EventId = 16, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 16, Level = LogLevel.Error,
             Message = "Error during diagnostics processing.")]
         public static partial void DiagnosticsError(this ILogger logger, Exception ex);
 
-        [LoggerMessage(EventId = 17, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 17, Level = LogLevel.Error,
             Message = "Failed sending Diagnostics event through {Transport}.")]
         public static partial void DiagnosticsSendFailed(this ILogger logger, Exception ex, string transport);
 
-        [LoggerMessage(EventId = 18, Level = LogLevel.Warning,
+        [LoggerMessage(EventId = EventClass + 18, Level = LogLevel.Warning,
             Message = "Failed to get certificate with private key using workload API.")]
         public static partial void FailedToGetCertificateWithPrivateKey(this ILogger logger);
 
-        [LoggerMessage(EventId = 19, Level = LogLevel.Warning,
+        [LoggerMessage(EventId = EventClass + 19, Level = LogLevel.Warning,
             Message = "Not supported: {Message}. Unable to use workload API to obtain the certificate!")]
         public static partial void WorkloadApiNotSupported(this ILogger logger, string message);
     }

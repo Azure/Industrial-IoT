@@ -356,7 +356,9 @@ namespace Asset
     /// </summary>
     internal static partial class ModbusTcpAssetLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Error,
+        private const int EventClass = 20;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Error,
             Message = "Error")]
         public static partial void ModbusTcpAssetError(this ILogger logger, Exception ex);
     }

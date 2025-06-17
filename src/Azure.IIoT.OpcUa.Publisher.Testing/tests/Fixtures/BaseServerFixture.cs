@@ -229,7 +229,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                 {
                     kPorts.AddOrUpdate(_port, false, (_, _) => false);
                     _port = NextPort();
-                    logger.FailedToStartHost(ex, serverHost?.ToString(), _port);
+                    logger.FailedToStartHost(ex, serverHost, _port);
                     serverHost?.Dispose();
                     serverHost = null;
                 }
@@ -449,34 +449,46 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
     /// </summary>
     internal static partial class BaseServerFixtureLogging
     {
-        [LoggerMessage(1, LogLevel.Information, "Starting server host {Host} on {Port}...")]
-        public static partial void StartingServerHost(this ILogger logger, object host, int port);
+        private const int EventClass = 0;
 
-        [LoggerMessage(2, LogLevel.Information, "Server host {Host} listening on {EndpointUrl}!")]
-        public static partial void ServerHostListening(this ILogger logger, object host, string endpointUrl);
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
+            Message = "Starting server host {Host} on {Port}...")]
+        public static partial void StartingServerHost(this ILogger logger, ServerConsoleHost host, int port);
 
-        [LoggerMessage(3, LogLevel.Information, "Try adding reverse connect client on {Port}...")]
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Information,
+            Message = "Server host {Host} listening on {EndpointUrl}!")]
+        public static partial void ServerHostListening(this ILogger logger, ServerConsoleHost host, string endpointUrl);
+
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Information,
+            Message = "Try adding reverse connect client on {Port}...")]
         public static partial void TryAddingReverseConnect(this ILogger logger, int port);
 
-        [LoggerMessage(4, LogLevel.Error, "Port {Port} is not accessible...")]
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Error,
+            Message = "Port {Port} is not accessible...")]
         public static partial void PortNotAccessible(this ILogger logger, Exception ex, int port);
 
-        [LoggerMessage(5, LogLevel.Information, "Start reverse connect to client at {Url}...")]
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Information,
+            Message = "Start reverse connect to client at {Url}...")]
         public static partial void StartReverseConnect(this ILogger logger, string url);
 
-        [LoggerMessage(6, LogLevel.Error, "Failed to start host {Host}, retrying with port {Port}...")]
-        public static partial void FailedToStartHost(this ILogger logger, Exception ex, string? host, int port);
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Error,
+            Message = "Failed to start host {Host}, retrying with port {Port}...")]
+        public static partial void FailedToStartHost(this ILogger logger, Exception ex, ServerConsoleHost? host, int port);
 
-        [LoggerMessage(7, LogLevel.Information, "Server host {Host} started in {Elapsed}...")]
-        public static partial void ServerHostStarted(this ILogger logger, object host, TimeSpan elapsed);
+        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Information,
+            Message = "Server host {Host} started in {Elapsed}...")]
+        public static partial void ServerHostStarted(this ILogger logger, ServerConsoleHost host, TimeSpan elapsed);
 
-        [LoggerMessage(8, LogLevel.Information, "Disposing server host {Host} and client fixture...")]
-        public static partial void DisposingServerHost(this ILogger logger, object host);
+        [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Information,
+            Message = "Disposing server host {Host} and client fixture...")]
+        public static partial void DisposingServerHost(this ILogger logger, ServerConsoleHost host);
 
-        [LoggerMessage(9, LogLevel.Information, "Client fixture and server host {Host} disposed - cleaning up server certificates at '{PkiRoot}' ({Elapsed})...")]
-        public static partial void ServerHostDisposed(this ILogger logger, object host, string? pkiRoot, TimeSpan elapsed);
+        [LoggerMessage(EventId = EventClass + 9, Level = LogLevel.Information,
+            Message = "Client fixture and server host {Host} disposed - cleaning up server certificates at '{PkiRoot}' ({Elapsed})...")]
+        public static partial void ServerHostDisposed(this ILogger logger, ServerConsoleHost host, string? pkiRoot, TimeSpan elapsed);
 
-        [LoggerMessage(10, LogLevel.Information, "Disposing Server took {Elapsed}...")]
+        [LoggerMessage(EventId = EventClass + 10, Level = LogLevel.Information,
+            Message = "Disposing Server took {Elapsed}...")]
         public static partial void ServerDisposingElapsed(this ILogger logger, TimeSpan elapsed);
     }
 }

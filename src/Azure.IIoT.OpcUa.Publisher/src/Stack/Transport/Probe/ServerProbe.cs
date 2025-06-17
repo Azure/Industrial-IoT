@@ -275,28 +275,45 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Probe
     /// </summary>
     internal static partial class ServerProbeLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Debug, Message = "Probe {Index} : {RemoteEp} found no opc server. {Error}")]
-        internal static partial void ProbeNoOpcServer(this ILogger logger, int index, string? remoteEp, SocketError error);
+        private const int EventClass = 1600;
 
-        [LoggerMessage(EventId = 2, Level = LogLevel.Error, Message = "Probe {Index} : Called without connected socket!")]
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Debug,
+            Message = "Probe {Index} : {RemoteEp} found no opc server. {Error}")]
+        internal static partial void ProbeNoOpcServer(this ILogger logger, int index,
+            string? remoteEp, SocketError error);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Error,
+            Message = "Probe {Index} : Called without connected socket!")]
         internal static partial void ProbeNoConnectedSocket(this ILogger logger, int index);
 
-        [LoggerMessage(EventId = 3, Level = LogLevel.Debug, Message = "Probe {Index} : {Endpoint} ({RemoteEp})...")]
-        internal static partial void ProbeStart(this ILogger logger, int index, string endpoint, string? remoteEp);
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Debug,
+            Message = "Probe {Index} : {Endpoint} ({RemoteEp})...")]
+        internal static partial void ProbeStart(this ILogger logger, int index,
+            string endpoint, string? remoteEp);
 
-        [LoggerMessage(EventId = 4, Level = LogLevel.Debug, Message = "Probe {Index} : {RemoteEp} returned message type {Type} != Ack.")]
-        internal static partial void ProbeReturnedWrongType(this ILogger logger, int index, string? remoteEp, uint type);
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Debug,
+            Message = "Probe {Index} : {RemoteEp} returned message type {Type} != Ack.")]
+        internal static partial void ProbeReturnedWrongType(this ILogger logger, int index,
+            string? remoteEp, uint type);
 
-        [LoggerMessage(EventId = 5, Level = LogLevel.Trace, Message = "Probe {Index} : {RemoteEp} returned invalid message type {Type}.")]
-        internal static partial void ProbeReturnedInvalidType(this ILogger logger, int index, string? remoteEp, uint type);
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Trace,
+            Message = "Probe {Index} : {RemoteEp} returned invalid message type {Type}.")]
+        internal static partial void ProbeReturnedInvalidType(this ILogger logger, int index,
+            string? remoteEp, uint type);
 
-        [LoggerMessage(EventId = 6, Level = LogLevel.Debug, Message = "Probe {Index} : {RemoteEp} returned invalid message length {Size}.")]
-        internal static partial void ProbeReturnedInvalidLength(this ILogger logger, int index, string? remoteEp, int size);
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Debug,
+            Message = "Probe {Index} : {RemoteEp} returned invalid message length {Size}.")]
+        internal static partial void ProbeReturnedInvalidLength(this ILogger logger, int index,
+            string? remoteEp, int size);
 
-        [LoggerMessage(EventId = 7, Level = LogLevel.Information, Message = "Probe {Index} : found OPC UA server at {RemoteEp} (protocol:{ProtocolVersion}) ...")]
-        internal static partial void ProbeFoundOpcUaServer(this ILogger logger, int index, string? remoteEp, uint protocolVersion);
+        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Information,
+            Message = "Probe {Index} : found OPC UA server at {RemoteEp} (protocol:{ProtocolVersion}) ...")]
+        internal static partial void ProbeFoundOpcUaServer(this ILogger logger, int index,
+            string? remoteEp, uint protocolVersion);
 
-        [LoggerMessage(EventId = 8, Level = LogLevel.Warning, Message = "Probe {Index} : Bad size value read {SendBufferSize} or {ReceiveBufferSize} from opc server at {RemoteEp}.")]
-        internal static partial void ProbeBadSizeValue(this ILogger logger, int index, int sendBufferSize, int receiveBufferSize, string? remoteEp);
+        [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Warning,
+            Message = "Probe {Index} : Bad size value read {SendBufferSize} or {ReceiveBufferSize} from opc server at {RemoteEp}.")]
+        internal static partial void ProbeBadSizeValue(this ILogger logger, int index,
+            int sendBufferSize, int receiveBufferSize, string? remoteEp);
     }
 }

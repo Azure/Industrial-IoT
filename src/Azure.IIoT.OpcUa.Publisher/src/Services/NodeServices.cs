@@ -1966,10 +1966,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
     internal static partial class NodeServicesLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Debug, Message = "Browsed {Nodes} nodes and {References} references in address space in {Elapsed}...")]
+        private const int EventClass = 220;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Debug,
+            Message = "Browsed {Nodes} nodes and {References} references in address space in {Elapsed}...")]
         public static partial void BrowseStreamSummary(this ILogger logger, int Nodes, int References, TimeSpan Elapsed);
 
-        [LoggerMessage(EventId = 2, Level = LogLevel.Information, Message = "Failed to obtain child information")]
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Information,
+            Message = "Failed to obtain child information")]
         public static partial void BrowseStreamChildInfoFailed(this ILogger logger, Exception exception);
     }
 }

@@ -1435,39 +1435,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// </summary>
     internal static partial class OpcUaSessionLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Debug,
+        private const int EventClass = 1200;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Debug,
             Message = "{Session}: Session disposed.")]
         public static partial void SessionDisposed(this ILogger logger, string session);
 
-        [LoggerMessage(EventId = 2, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Debug,
             Message = "Failed to fetch server diagnostics.")]
         public static partial void ServerDiagnosticsFetchFailed(this ILogger logger, ServiceResultException sre);
 
-        [LoggerMessage(EventId = 3, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Error,
             Message = "{Session}: Attempt #{Attempt}. Failed to get complex type system.")]
         public static partial void ComplexTypeSystemFailed(this ILogger logger, OpcUaSession session, int attempt, Exception ex);
 
-        [LoggerMessage(EventId = 4, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Error,
             Message = "Session diagnostics disabled and failed to enable ({Error}).")]
         public static partial void DiagnosticsEnableFailed(this ILogger logger, string error);
 
-        [LoggerMessage(EventId = 5, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Information,
             Message = "Session diagnostics not retrievable ({Error1}/{Error2}).")]
         public static partial void DiagnosticsNotRetrievable(this ILogger logger, string error1, string error2);
 
-        [LoggerMessage(EventId = 6, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Error,
             Message = "Failed to find diagnostics for this session ({Error}).")]
         public static partial void DiagnosticsNotFound(this ILogger logger, string error);
 
-        [LoggerMessage(EventId = 7, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Information,
             Message = "Subscription diagnostics not retrievable ({Error}).")]
         public static partial void SubscriptionDiagnosticsNotRetrievable(this ILogger logger, string error);
 
-        [LoggerMessage(EventId = 8, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Information,
             Message = "Operation timeout updated to {Timeout}.")]
         public static partial void OperationTimeoutUpdated(this ILogger logger, TimeSpan timeout);
 
-        [LoggerMessage(EventId = 9, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 9, Level = LogLevel.Information,
             Message = "{Session}: Complex type system loaded into client.")]
         public static partial void ComplexTypeSystemLoaded(this ILogger logger, OpcUaSession session);
     }

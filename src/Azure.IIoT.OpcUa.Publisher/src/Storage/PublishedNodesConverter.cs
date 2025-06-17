@@ -19,7 +19,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
-    using static Azure.IIoT.OpcUa.Publisher.Storage.PublishedNodesConverterLogging;
 
     /// <summary>
     /// Published nodes
@@ -62,13 +61,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         public IEnumerable<PublishedNodesEntryModel> Read(string publishedNodesContent)
         {
             var sw = Stopwatch.StartNew();
-            ReadingPublishedNodesFile(_logger);
+            _logger.ReadingPublishedNodesFile();
             try
             {
                 var items = _serializer.Deserialize<List<PublishedNodesEntryModel>>(publishedNodesContent)
                     ?? throw new SerializerException("Published nodes files, malformed.");
 
-                ReadPublishedNodesFile(_logger, items.Count, sw.Elapsed);
+                _logger.ReadPublishedNodesFile(items.Count, sw.Elapsed);
                 return items;
             }
             finally
@@ -199,12 +198,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             }
             catch (Exception ex)
             {
-                FailedToConvertPublishedNodes(_logger, ex);
+                _logger.FailedToConvertPublishedNodes(ex);
                 return [];
             }
             finally
             {
-                ConvertedPublishedNodes(_logger, sw.Elapsed);
+                _logger.ConvertedPublishedNodes(sw.Elapsed);
                 sw.Stop();
             }
 
@@ -494,12 +493,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             }
             catch (Exception ex)
             {
-                FailedToConvertPublishedNodes(_logger, ex);
+                _logger.FailedToConvertPublishedNodes(ex);
                 return [];
             }
             finally
             {
-                ConvertedPublishedNodes(_logger, sw.Elapsed);
+                _logger.ConvertedPublishedNodes(sw.Elapsed);
                 sw.Stop();
             }
 
@@ -511,7 +510,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                     {
                         if (!node.TryGetId(out var id))
                         {
-                            MissingNodeId(_logger);
+                            _logger.MissingNodeId();
                             continue;
                         }
                         if (scaleTestCount <= 1)
@@ -836,7 +835,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 {
                                     Runtime.FailFast("Credential encryption is enforced! " + error, null);
                                 }
-                                CredentialDecryptionError(_logger, error);
+                                _logger.CredentialDecryptionError(error);
                                 break;
                             }
                         }
@@ -857,7 +856,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 {
                                     Runtime.FailFast("Credential encryption is enforced! " + error, null);
                                 }
-                                CredentialDecryptionError(_logger, error);
+                                _logger.CredentialDecryptionError(error);
                                 break;
                             }
                         }
@@ -872,7 +871,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         }
                         // There is no reason we should use the encrypted credential here as plain
                         // text so just use none and move on.
-                        CredentialDecryptionException(_logger, ex, error);
+                        _logger.CredentialDecryptionException(ex, error);
                         break;
                     }
                     return new CredentialModel
@@ -904,25 +903,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
     /// </summary>
     internal static partial class PublishedNodesConverterLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Debug, Message = "Reading and validating published nodes file...")]
-        internal static partial void ReadingPublishedNodesFile(ILogger logger);
+        private const int EventClass = 1720;
 
-        [LoggerMessage(EventId = 2, Level = LogLevel.Information, Message = "Read {Count} entry models from published nodes file in {Elapsed}")]
-        internal static partial void ReadPublishedNodesFile(ILogger logger, int count, TimeSpan elapsed);
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Debug,
+            Message = "Reading and validating published nodes file...")]
+        internal static partial void ReadingPublishedNodesFile(this ILogger logger);
 
-        [LoggerMessage(EventId = 3, Level = LogLevel.Error, Message = "failed to convert the published nodes.")]
-        internal static partial void FailedToConvertPublishedNodes(ILogger logger, Exception ex);
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Information,
+            Message = "Read {Count} entry models from published nodes file in {Elapsed}")]
+        internal static partial void ReadPublishedNodesFile(this ILogger logger, int count, TimeSpan elapsed);
 
-        [LoggerMessage(EventId = 4, Level = LogLevel.Information, Message = "Converted published nodes entry models to jobs in {Elapsed}")]
-        internal static partial void ConvertedPublishedNodes(ILogger logger, TimeSpan elapsed);
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Error,
+            Message = "failed to convert the published nodes.")]
+        internal static partial void FailedToConvertPublishedNodes(this ILogger logger, Exception ex);
 
-        [LoggerMessage(EventId = 5, Level = LogLevel.Error, Message = "No node id was configured in the opc node entry - skipping...")]
-        internal static partial void MissingNodeId(ILogger logger);
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Information,
+            Message = "Converted published nodes entry models to jobs in {Elapsed}")]
+        internal static partial void ConvertedPublishedNodes(this ILogger logger, TimeSpan elapsed);
 
-        [LoggerMessage(EventId = 6, Level = LogLevel.Error, Message = "{Error} - not using credential!")]
-        internal static partial void CredentialDecryptionError(ILogger logger, string error);
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Error,
+            Message = "No node id was configured in the opc node entry - skipping...")]
+        internal static partial void MissingNodeId(this ILogger logger);
 
-        [LoggerMessage(EventId = 7, Level = LogLevel.Error, Message = "{Error} - not using credential!")]
-        internal static partial void CredentialDecryptionException(ILogger logger, Exception ex, string error);
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Error,
+            Message = "{Error} - not using credential!")]
+        internal static partial void CredentialDecryptionError(this ILogger logger, string error);
+
+        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Error,
+            Message = "{Error} - not using credential!")]
+        internal static partial void CredentialDecryptionException(this ILogger logger, Exception ex, string error);
     }
 }

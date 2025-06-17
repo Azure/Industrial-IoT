@@ -908,35 +908,37 @@ $"{type.Assembly.GetName().Name}.Generated.{type.Namespace}.Design.{type.Namespa
     /// </summary>
     internal static partial class AssetNodeManagerLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Error,
+        private const int EventClass = 0;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Error,
             Message = "Error")]
         public static partial void AssetNodeManagerError(this ILogger logger, Exception ex);
 
-        [LoggerMessage(EventId = 2, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Error,
             Message = "Error parsing asset configuration file.")]
         public static partial void AssetConfigError(this ILogger logger, Exception ex);
 
-        [LoggerMessage(EventId = 3, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Debug,
             Message = "Data change for {AssetTag}")]
         public static partial void DataChange(this ILogger logger, AssetTag assetTag);
 
-        [LoggerMessage(EventId = 4, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Information,
             Message = "Successfully parsed WoT file for asset: {AssetId}")]
         public static partial void WoTParsed(this ILogger logger, string assetId);
 
-        [LoggerMessage(EventId = 5, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Information,
             Message = "Loading nodeset from local file {File}")]
         public static partial void LoadingNodeset(this ILogger logger, string file);
 
-        [LoggerMessage(EventId = 6, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Information,
             Message = "Adding node set from local nodeset file")]
         public static partial void AddingNodeset(this ILogger logger);
 
-        [LoggerMessage(EventId = 7, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Information,
             Message = "Created modbus asset {AssetId}")]
         public static partial void CreatedModbusAsset(this ILogger logger, string assetId);
 
-        [LoggerMessage(EventId = 8, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Debug,
             Message = "Add asset for Property {Property}")]
         public static partial void AddAssetForProperty(this ILogger logger, Property property);
     }

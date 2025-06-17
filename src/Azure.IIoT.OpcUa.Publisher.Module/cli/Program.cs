@@ -882,64 +882,86 @@ Options:
     /// </summary>
     internal static partial class ProgramLogging
     {
-        [LoggerMessage(1, LogLevel.Information, "Publisher module command line interface.")]
+        private const int EventClass = 0;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
+            Message = "Publisher module command line interface.")]
         public static partial void PublisherModuleInit(this ILogger logger);
 
-        [LoggerMessage(2, LogLevel.Information, "Error {Error}: Missing connection string - continue...")]
+        [LoggerMessage(EventId = EventClass +  2, Level = LogLevel.Information,
+            Message = "Error {Error}: Missing connection string - continue...")]
         public static partial void MissingConnectionString(this ILogger logger, string error);
 
-        [LoggerMessage(3, LogLevel.Information, "Using <deviceId> '{DeviceId}'")]
+        [LoggerMessage(EventId = EventClass +  3, Level = LogLevel.Information,
+            Message = "Using <deviceId> '{DeviceId}'")]
         public static partial void UsingDeviceId(this ILogger logger, string deviceId);
 
-        [LoggerMessage(4, LogLevel.Information, "Using <moduleId> '{ModuleId}'")]
+        [LoggerMessage(EventId = EventClass +  4, Level = LogLevel.Information,
+            Message = "Using <moduleId> '{ModuleId}'")]
         public static partial void UsingModuleId(this ILogger logger, string moduleId);
 
-        [LoggerMessage(5, LogLevel.Error, "Exception")]
+        [LoggerMessage(EventId = EventClass +  5, Level = LogLevel.Error,
+            Message = "Exception")]
         public static partial void UnhandledException(this ILogger logger, Exception? exception);
 
-        [LoggerMessage(6, LogLevel.Information, "Create or retrieve connection string for {DeviceId} {ModuleId}...")]
+        [LoggerMessage(EventId = EventClass +  6, Level = LogLevel.Information,
+            Message = "Create or retrieve connection string for {DeviceId} {ModuleId}...")]
         public static partial void ConnectionStringStart(this ILogger logger, string deviceId, string moduleId);
 
-        [LoggerMessage(7, LogLevel.Information, "Retrieved connection string for {DeviceId} {ModuleId}.")]
+        [LoggerMessage(EventId = EventClass +  7, Level = LogLevel.Information,
+            Message = "Retrieved connection string for {DeviceId} {ModuleId}.")]
         public static partial void ConnectionStringRetrieved(this ILogger logger, string deviceId, string moduleId);
 
-        [LoggerMessage(8, LogLevel.Error, "Failed to get connection string for {DeviceId} {ModuleId}...")]
+        [LoggerMessage(EventId = EventClass +  8, Level = LogLevel.Error,
+            Message = "Failed to get connection string for {DeviceId} {ModuleId}...")]
         public static partial void ConnectionStringFailed(this ILogger logger, Exception exception, string deviceId, string moduleId);
 
-        [LoggerMessage(9, LogLevel.Information, "Starting publisher module {DeviceId} {ModuleId}...")]
+        [LoggerMessage(EventId = EventClass +  9, Level = LogLevel.Information,
+            Message = "Starting publisher module {DeviceId} {ModuleId}...")]
         public static partial void PublisherModuleStarting(this ILogger logger, string deviceId, string moduleId);
 
-        [LoggerMessage(10, LogLevel.Information, "Publisher module {DeviceId} {ModuleId} exited.")]
+        [LoggerMessage(EventId = EventClass +  10, Level = LogLevel.Information,
+            Message = "Publisher module {DeviceId} {ModuleId} exited.")]
         public static partial void PublisherModuleExited(this ILogger logger, string deviceId, string moduleId);
 
-        [LoggerMessage(11, LogLevel.Information, "IoT Edge device {DeviceId} already exists.")]
+        [LoggerMessage(EventId = EventClass +  11, Level = LogLevel.Information,
+            Message = "IoT Edge device {DeviceId} already exists.")]
         public static partial void IotEdgeDeviceExists(this ILogger logger, string deviceId);
 
-        [LoggerMessage(12, LogLevel.Information, "Publisher {ModuleId} already exists...")]
+        [LoggerMessage(EventId = EventClass +  12, Level = LogLevel.Information,
+            Message = "Publisher {ModuleId} already exists...")]
         public static partial void PublisherExists(this ILogger logger, string moduleId);
 
-        [LoggerMessage(13, LogLevel.Information, "(Re-)Starting server...")]
+        [LoggerMessage(EventId = EventClass +  13, Level = LogLevel.Information,
+            Message = "(Re-)Starting server...")]
         public static partial void ServerRestarting(this ILogger logger);
 
-        [LoggerMessage(14, LogLevel.Information, "Server (re-)started (Press S to kill).")]
+        [LoggerMessage(EventId = EventClass +  14, Level = LogLevel.Information,
+            Message = "Server (re-)started (Press S to kill).")]
         public static partial void ServerRestarted(this ILogger logger);
 
-        [LoggerMessage(15, LogLevel.Information, "Reverse connect to client...")]
+        [LoggerMessage(EventId = EventClass +  15, Level = LogLevel.Information,
+            Message = "Reverse connect to client...")]
         public static partial void ReverseConnectToClient(this ILogger logger);
 
-        [LoggerMessage(16, LogLevel.Information, "Stopping server...")]
+        [LoggerMessage(EventId = EventClass +  16, Level = LogLevel.Information,
+            Message = "Stopping server...")]
         public static partial void StoppingServer(this ILogger logger);
 
-        [LoggerMessage(17, LogLevel.Information, "Server stopped.")]
+        [LoggerMessage(EventId = EventClass +  17, Level = LogLevel.Information,
+            Message = "Server stopped.")]
         public static partial void ServerStopped(this ILogger logger);
 
-        [LoggerMessage(18, LogLevel.Information, "Waiting to restarting server (Press S to restart)...")]
+        [LoggerMessage(EventId = EventClass +  18, Level = LogLevel.Information,
+            Message = "Waiting to restarting server (Press S to restart)...")]
         public static partial void WaitingToRestartServer(this ILogger logger);
 
-        [LoggerMessage(19, LogLevel.Error, "Server ran into exception.")]
+        [LoggerMessage(EventId = EventClass +  19, Level = LogLevel.Error,
+            Message = "Server ran into exception.")]
         public static partial void ServerException(this ILogger logger, Exception exception);
 
-        [LoggerMessage(20, LogLevel.Information, "Server exited.")]
+        [LoggerMessage(EventId = EventClass +  20, Level = LogLevel.Information,
+            Message = "Server exited.")]
         public static partial void ServerExited(this ILogger logger);
     }
 }

@@ -900,28 +900,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
     /// </summary>
     internal static partial class ServerLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Information,
+        private const int EventClass = 150;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
             Message = "Creating the Node Managers.")]
         public static partial void CreatingNodeManagers(this ILogger logger);
 
-        [LoggerMessage(EventId = 2, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Debug,
             Message = "The server is stopping.")]
         public static partial void ServerStopping(this ILogger logger);
 
-        [LoggerMessage(EventId = 3, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Debug,
             Message = "The server is starting.")]
         public static partial void ServerStarting(this ILogger logger);
 
-        [LoggerMessage(EventId = 4, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Information,
             Message = "The NodeManagers have started.")]
         public static partial void NodeManagersStarted(this ILogger logger);
 
-        [LoggerMessage(EventId = 5, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Information,
             Message = "{Reason,9}:{SessionName,20}:Last Event:{LastEvent:HH:mm:ss}")]
         public static partial void SessionLastContact(this ILogger logger,
             string reason, string sessionName, DateTime lastEvent);
 
-        [LoggerMessage(EventId = 6, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Information,
             Message = "{Reason,9}:{SessionName,20}:{DisplayName,20}:{SessionId}")]
         public static partial void SessionStatus(this ILogger logger,
             string reason, string sessionName, string displayName, NodeId sessionId);

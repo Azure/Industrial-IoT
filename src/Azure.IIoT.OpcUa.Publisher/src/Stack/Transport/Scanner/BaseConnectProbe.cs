@@ -563,35 +563,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
     /// </summary>
     internal static partial class BaseConnectProbeLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Error,
+        private const int EventClass = 1630;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Error,
             Message = "Error getting endpoint for probe {Index}")]
         public static partial void EndpointError(this ILogger logger, Exception ex, int index);
 
-        [LoggerMessage(EventId = 2, Level = LogLevel.Trace,
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Trace,
             Message = "Disposing args in running state.")]
         public static partial void DisposingArgs(this ILogger logger);
 
-        [LoggerMessage(EventId = 3, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Error,
             Message = "{Code} in connect of probe {Index}...")]
         public static partial void ConnectError(this ILogger logger, Exception ex, SocketError code, int index);
 
-        [LoggerMessage(EventId = 4, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Error,
             Message = "Probe {Index} has unexpected exception during connect.")]
         public static partial void UnexpectedError(this ILogger logger, Exception ex, int index);
 
-        [LoggerMessage(EventId = 5, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Debug,
             Message = "Error during completion of probe {Index}")]
         public static partial void CompletionError(this ILogger logger, Exception ex, int index);
 
-        [LoggerMessage(EventId = 6, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Debug,
             Message = "Probe {Index} {RemoteEp} timed out...")]
         public static partial void ProbeTimeout(this ILogger logger, int index, string? remoteEp);
 
-        [LoggerMessage(EventId = 7, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Information,
             Message = "Probe {Index} not cancelled - try restart...")]
         public static partial void ProbeRestart(this ILogger logger, int index);
 
-        [LoggerMessage(EventId = 8, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Debug,
             Message = "Error during timeout of probe {Index}")]
         public static partial void TimeoutError(this ILogger logger, Exception ex, int index);
     }

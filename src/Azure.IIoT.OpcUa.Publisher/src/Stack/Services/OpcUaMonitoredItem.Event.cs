@@ -703,23 +703,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// </summary>
     internal static partial class OpcUaMonitoredItemEventLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Debug,
+        private const int EventClass = 1080;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Debug,
             Message = "{Item}: Failed to get metadata for event.")]
         public static partial void GetMetadataFailed(this ILogger logger, Exception ex, OpcUaMonitoredItem item);
 
-        [LoggerMessage(EventId = 2, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Debug,
             Message = "{Item}: Changing event filter.")]
         public static partial void ChangingEventFilter(this ILogger logger, OpcUaMonitoredItem item);
 
-        [LoggerMessage(EventId = 3, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Error,
             Message = "Event filter applied with result {Result} for {Item}")]
         public static partial void EventFilterAppliedWithError(this ILogger logger, string result, OpcUaMonitoredItem item);
 
-        [LoggerMessage(EventId = 4, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Debug,
             Message = "Event filter applied with result {Result} for {Item}")]
         public static partial void EventFilterApplied(this ILogger logger, string result, OpcUaMonitoredItem item);
 
-        [LoggerMessage(EventId = 5, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Debug,
             Message = "Generated event filter for {Item}: '{Filter}'")]
         public static partial void GeneratedEventFilter(this ILogger logger, OpcUaMonitoredItem item, string filter);
     }

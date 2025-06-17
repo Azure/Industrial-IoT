@@ -134,7 +134,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         await subscription.DisposeAsync().ConfigureAwait(false);
                     }
-                    WriterGroupDataSourceLogging.RemovedAllSubscriptions(_logger, writerGroup.Id);
+                    _logger.RemovedAllSubscriptions(writerGroup.Id);
                     _writers.Clear();
                     _writerGroup = writerGroup;
                     return;
@@ -204,7 +204,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     writer.Index = index++;
                 }
 
-                WriterGroupDataSourceLogging.UpdatedAllWriters(_logger, writerGroup.Id);
+                _logger.UpdatedAllWriters(writerGroup.Id);
 
                 _writerGroup = writerGroup;
             }
@@ -347,7 +347,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             if (!PubSubMessage.TryCreateNetworkMessageSchema(encoding, input,
                                 out schema, _options.Value.SchemaOptions))
                             {
-                                WriterGroupDataSourceLogging.FailedToCreateSchema(_logger, encoding, writerGroup.Id);
+                                _logger.FailedToCreateSchema(encoding, writerGroup.Id);
                             }
                         }
                         _schema = schema;
@@ -625,13 +625,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// </summary>
     internal static partial class WriterGroupDataSourceLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "Removed all subscriptions from writer group {WriterGroup}.")]
-        public static partial void RemovedAllSubscriptions(ILogger logger, string writerGroup);
+        private const int EventClass = 360;
 
-        [LoggerMessage(EventId = 2, Level = LogLevel.Information, Message = "Successfully updated all writers inside the writer group {WriterGroup}.")]
-        public static partial void UpdatedAllWriters(ILogger logger, string writerGroup);
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
+            Message = "Removed all subscriptions from writer group {WriterGroup}.")]
+        public static partial void RemovedAllSubscriptions(this ILogger logger, string writerGroup);
 
-        [LoggerMessage(EventId = 3, Level = LogLevel.Warning, Message = "Failed to create schema for {Encoding} encoded messages for writer group {WriterGroup}.")]
-        public static partial void FailedToCreateSchema(ILogger logger, MessageEncoding encoding, string writerGroup);
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Information,
+            Message = "Successfully updated all writers inside the writer group {WriterGroup}.")]
+        public static partial void UpdatedAllWriters(this ILogger logger, string writerGroup);
+
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Warning,
+            Message = "Failed to create schema for {Encoding} encoded messages for writer group {WriterGroup}.")]
+        public static partial void FailedToCreateSchema(this ILogger logger, MessageEncoding encoding, string writerGroup);
     }
 }

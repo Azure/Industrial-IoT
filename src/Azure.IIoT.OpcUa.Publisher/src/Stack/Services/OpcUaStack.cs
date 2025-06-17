@@ -84,7 +84,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// </summary>
     internal static partial class OpcUaStackLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Error, Message = "{message}")]
+        private const int EventClass = 1200;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Error, Message = "{message}")]
         public static partial void StackMessage(this ILogger logger, EventId eventId, Exception? exception, string message);
     }
 }

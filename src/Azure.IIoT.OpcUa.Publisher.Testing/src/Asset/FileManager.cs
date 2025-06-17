@@ -367,7 +367,9 @@ namespace Asset
     /// </summary>
     internal static partial class FileManagerLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Error,
+        private const int EventClass = 10;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Error,
             Message = "Error")]
         public static partial void FileManagerError(this ILogger logger, Exception ex);
     }

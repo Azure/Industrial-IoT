@@ -172,55 +172,57 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// </summary>
     internal static partial class PublisherModuleLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Information,
+        private const int EventClass = 270;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
             Message = "Starting OpcPublisher module version {Version}...")]
         public static partial void Starting(this ILogger logger, string version);
 
-        [LoggerMessage(EventId = 2, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Information,
             Message = "... Starting Rpc {Server} server ...")]
         public static partial void StartingServer(this ILogger logger, string server);
 
-        [LoggerMessage(EventId = 3, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Information,
             Message = "OpcPublisher module version {Version} started.")]
         public static partial void Started(this ILogger logger, string version);
 
-        [LoggerMessage(EventId = 4, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Error,
             Message = "Error trying to start OpcPublisher module!")]
         public static partial void StartError(this ILogger logger, Exception ex);
 
-        [LoggerMessage(EventId = 5, Level = LogLevel.Critical,
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Critical,
             Message = "Waiting for container restart - exiting...")]
         public static partial void ContainerRestart(this ILogger logger, Exception ex);
 
-        [LoggerMessage(EventId = 6, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Information,
             Message = "Retrying in 30 seconds...")]
         public static partial void RetryIn30Seconds(this ILogger logger);
 
-        [LoggerMessage(EventId = 7, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Information,
             Message = "{Counter}: Module {ModuleId} closed due to {Reason}.")]
         public static partial void ModuleClosed(this ILogger logger, int counter, string moduleId, string reason);
 
-        [LoggerMessage(EventId = 8, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Information,
             Message = "{Counter}: Module {ModuleId} reconnected due to {Reason}.")]
         public static partial void ModuleReconnected(this ILogger logger, int counter, string moduleId, string reason);
 
-        [LoggerMessage(EventId = 9, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 9, Level = LogLevel.Information,
             Message = "{Counter}: Module {ModuleId} disconnected due to {Reason}...")]
         public static partial void ModuleDisconnected(this ILogger logger, int counter, string moduleId, string reason);
 
-        [LoggerMessage(EventId = 10, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 10, Level = LogLevel.Information,
             Message = "{Counter}: Module {ModuleId} opened.")]
         public static partial void ModuleOpened(this ILogger logger, int counter, string moduleId);
 
-        [LoggerMessage(EventId = 11, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 11, Level = LogLevel.Error,
             Message = "{Counter}: Module {ModuleId} error {Reason}...")]
         public static partial void ModuleError(this ILogger logger, int counter, string moduleId, string reason);
 
-        [LoggerMessage(EventId = 12, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 12, Level = LogLevel.Information,
             Message = "Stopped module OpcPublisher.")]
         public static partial void Stopped(this ILogger logger);
 
-        [LoggerMessage(EventId = 13, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 13, Level = LogLevel.Information,
             Message = "Received request to shutdown publisher process.")]
         public static partial void ShutdownRequested(this ILogger logger);
     }

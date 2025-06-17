@@ -199,7 +199,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// </summary>
     internal static partial class OpcUaStackKeySetLoggerLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Error, Message = "Failed to write changes to debug log file.")]
+        private const int EventClass = 1300;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Error,
+            Message = "Failed to write changes to debug log file.")]
         public static partial void FailedToWriteDebugLogFile(this ILogger logger, Exception ex);
     }
 }

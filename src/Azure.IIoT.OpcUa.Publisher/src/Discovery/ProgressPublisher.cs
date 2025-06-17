@@ -103,10 +103,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
 
     internal static partial class ProgressPublisherLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Error, Message = "Cannot send if progress publisher is already disposed.")]
+        private const int EventClass = 60;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Error,
+            Message = "Cannot send if progress publisher is already disposed.")]
         public static partial void CannotSendIfProgressPublisherDisposed(this ILogger logger);
 
-        [LoggerMessage(EventId = 2, Level = LogLevel.Error, Message = "Failed to send discovery progress.")]
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Error,
+            Message = "Failed to send discovery progress.")]
         public static partial void FailedToSendDiscoveryProgress(this ILogger logger, Exception ex);
     }
 }

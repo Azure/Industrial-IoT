@@ -197,16 +197,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
     /// </summary>
     internal static partial class PublishedNodesProviderLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Debug, Message = "Failed to read content of published nodes file from \"{Path}\"")]
+        private const int EventClass = 1740;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Debug,
+            Message = "Failed to read content of published nodes file from \"{Path}\"")]
         public static partial void ReadContentFailed(this ILogger logger, Exception exception, string path);
 
-        [LoggerMessage(EventId = 2, Level = LogLevel.Warning, Message = "Failed to update published nodes file at \"{Path}\" with restricted share policies. Please close any other application that uses this file. Falling back to opening it with more relaxed share policies.")]
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Warning,
+            Message = "Failed to update published nodes file at \"{Path}\" with restricted share policies. " +
+            "Please close any other application that uses this file. Falling back to opening it with more relaxed share policies.")]
         public static partial void UpdateFileRestrictedShare(this ILogger logger, string path);
 
-        [LoggerMessage(EventId = 3, Level = LogLevel.Error, Message = "Failed to update published nodes file at \"{Path}\"")]
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Error,
+            Message = "Failed to update published nodes file at \"{Path}\"")]
         public static partial void UpdateFileFailed(this ILogger logger, Exception exception, string path);
 
-        [LoggerMessage(EventId = 4, Level = LogLevel.Trace, Message = "No raising event while writing ({Changed}).")]
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Trace,
+            Message = "No raising event while writing ({Changed}).")]
         public static partial void NoRaisingEvent(this ILogger logger, bool changed);
     }
 }

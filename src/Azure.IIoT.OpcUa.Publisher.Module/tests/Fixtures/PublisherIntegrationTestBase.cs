@@ -435,19 +435,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     /// </summary>
     internal static partial class PublisherIntegrationTestLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Error,
+        private const int EventClass = 0;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Error,
             Message = "OperationCanceledException thrown due to test time out.")]
         public static partial void TestTimeout(this ILogger logger);
 
-        [LoggerMessage(EventId = 2, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Information,
             Message = "Received {MessageCount} messages in {Elapsed}.")]
         public static partial void MessagesReceived(this ILogger logger, int messageCount, TimeSpan elapsed);
 
-        [LoggerMessage(EventId = 3, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Information,
             Message = "Publisher started in {Elapsed}.")]
         public static partial void PublisherStarted(this ILogger logger, TimeSpan elapsed);
 
-        [LoggerMessage(EventId = 4, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Information,
             Message = "Publisher stopped in {Elapsed}.")]
         public static partial void PublisherStopped(this ILogger logger, TimeSpan elapsed);
     }

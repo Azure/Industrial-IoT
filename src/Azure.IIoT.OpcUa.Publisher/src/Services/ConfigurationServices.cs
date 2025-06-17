@@ -1192,13 +1192,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// </summary>
     internal static partial class ConfigurationServicesLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Error, Message = "Error expanding node {Node}: {Error}")]
-        public static partial void HandleError(this ILogger logger, ConfigurationServices.ConfigBrowser.NodeToExpand node, ServiceResultModel error);
+        private const int EventClass = 100;
 
-        [LoggerMessage(EventId = 2, Level = LogLevel.Debug, Message = "Dropped duplicate variables found.")]
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Error,
+            Message = "Error expanding node {Node}: {Error}")]
+        public static partial void HandleError(this ILogger logger,
+            ConfigurationServices.ConfigBrowser.NodeToExpand node, ServiceResultModel error);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Debug,
+            Message = "Dropped duplicate variables found.")]
         public static partial void DroppedDuplicateVariables(this ILogger logger);
 
-        [LoggerMessage(EventId = 3, Level = LogLevel.Information, Message = "Discard error because force was set.")]
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Information,
+            Message = "Discard error because force was set.")]
         public static partial void DiscardErrorBecauseForceWasSet(this ILogger logger, Exception ex);
     }
 }

@@ -213,7 +213,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
     // Source-generated logging for NetworkScanner
     internal static partial class NetworkScannerLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "Start scanning {Addresses}...")]
+        private const int EventClass = 1660;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
+            Message = "Start scanning {Addresses}...")]
         internal static partial void StartScanning(this ILogger logger, IEnumerable<string> addresses);
     }
 }

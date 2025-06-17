@@ -286,10 +286,11 @@ namespace Azure.IIoT.OpcUa.Encoders
     /// </summary>
     internal static partial class AvroFileWriterLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Information,
+        private const int EventClass = 0;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
             Message = "{BlockCount} blocks ({Size} bytes) written to {FileName}...")]
         public static partial void BlocksWritten(this ILogger logger, int blockCount,
             long size, string fileName);
     }
-
 }

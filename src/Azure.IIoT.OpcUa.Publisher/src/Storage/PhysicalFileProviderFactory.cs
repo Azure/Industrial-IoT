@@ -70,7 +70,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
     /// </summary>
     internal static partial class PhysicalFileProviderFactoryLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "Mapping directory {Directory} via physical file provider.")]
+        private const int EventClass = 1700;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
+            Message = "Mapping directory {Directory} via physical file provider.")]
         public static partial void MappingDirectory(this ILogger logger, string directory);
     }
 }

@@ -627,34 +627,55 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// </summary>
     internal static partial class OpcUaClientSubscriptionLogging
     {
-        [LoggerMessage(EventId = 1001, Level = LogLevel.Error, Message = "{Client}: Error trying to sync subscription {Subscription}")]
-        public static partial void SyncSubscriptionError(this ILogger logger, Exception ex, OpcUaClient client, OpcUaSubscription subscription);
+        private const int EventClass = 580;
 
-        [LoggerMessage(EventId = 1002, Level = LogLevel.Debug, Message = "{Client}: Perform synchronization of subscriptions (total: {Total})")]
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Error,
+            Message = "{Client}: Error trying to sync subscription {Subscription}")]
+        public static partial void SyncSubscriptionError(this ILogger logger, Exception ex,
+            OpcUaClient client, OpcUaSubscription subscription);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Debug,
+            Message = "{Client}: Perform synchronization of subscriptions (total: {Total})")]
         public static partial void PerformSync(this ILogger logger, OpcUaClient client, int total);
 
-        [LoggerMessage(EventId = 1003, Level = LogLevel.Error, Message = "{Client}: Failed to close subscription {Subscription} in session.")]
-        public static partial void CloseSubscriptionFailed(this ILogger logger, Exception ex, OpcUaClient client, OpcUaSubscription subscription);
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Error,
+            Message = "{Client}: Failed to close subscription {Subscription} in session.")]
+        public static partial void CloseSubscriptionFailed(this ILogger logger, Exception ex,
+            OpcUaClient client, OpcUaSubscription subscription);
 
-        [LoggerMessage(EventId = 1004, Level = LogLevel.Error, Message = "{Client}: Failed to add subscription {Subscription} in session.")]
-        public static partial void AddSubscriptionFailed(this ILogger logger, Exception ex, OpcUaClient client, SubscriptionModel subscription);
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Error,
+            Message = "{Client}: Failed to add subscription {Subscription} in session.")]
+        public static partial void AddSubscriptionFailed(this ILogger logger, Exception ex,
+            OpcUaClient client, SubscriptionModel subscription);
 
-        [LoggerMessage(EventId = 1005, Level = LogLevel.Error, Message = "{Client}: Failed to update subscription {Subscription} in session.")]
-        public static partial void UpdateSubscriptionFailed(this ILogger logger, Exception ex, OpcUaClient client, SubscriptionModel subscription);
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Error,
+            Message = "{Client}: Failed to update subscription {Subscription} in session.")]
+        public static partial void UpdateSubscriptionFailed(this ILogger logger, Exception ex,
+            OpcUaClient client, SubscriptionModel subscription);
 
-        [LoggerMessage(EventId = 1006, Level = LogLevel.Error, Message = "{Client}: Error trying to sync subscriptions.")]
-        public static partial void SyncSubscriptionsError(this ILogger logger, Exception ex, OpcUaClient client);
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Error,
+            Message = "{Client}: Error trying to sync subscriptions.")]
+        public static partial void SyncSubscriptionsError(this ILogger logger, Exception ex,
+            OpcUaClient client);
 
-        [LoggerMessage(EventId = 1007, Level = LogLevel.Information, Message = "{Client}: Removed {Removals}, added {Additions}, and updated {Updates} subscriptions (total: {Total}) took {Duration} ms.")]
-        public static partial void SyncSummary(this ILogger logger, OpcUaClient client, int removals, int additions, int updates, int total, long duration);
+        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Information,
+            Message = "{Client}: Removed {Removals}, added {Additions}, and updated {Updates} " +
+            "subscriptions (total: {Total}) took {Duration} ms.")]
+        public static partial void SyncSummary(this ILogger logger, OpcUaClient client,
+            int removals, int additions, int updates, int total, long duration);
 
-        [LoggerMessage(EventId = 1008, Level = LogLevel.Error, Message = "{Client}: Error trying to sync subscriptions: {Error}")]
-        public static partial void SyncSubscriptionsErrorMessage(this ILogger logger, OpcUaClient client, string error);
+        [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Error,
+            Message = "{Client}: Error trying to sync subscriptions: {Error}")]
+        public static partial void SyncSubscriptionsErrorMessage(this ILogger logger,
+            OpcUaClient client, string error);
 
-        [LoggerMessage(EventId = 1009, Level = LogLevel.Warning, Message = "{Client}: Failed to fetch namespace table...")]
-        public static partial void FetchNamespaceTableFailed(this ILogger logger, Exception ex, OpcUaClient client);
+        [LoggerMessage(EventId = EventClass + 9, Level = LogLevel.Warning,
+            Message = "{Client}: Failed to fetch namespace table...")]
+        public static partial void FetchNamespaceTableFailed(this ILogger logger, Exception ex,
+            OpcUaClient client);
 
-        [LoggerMessage(EventId = 1010, Level = LogLevel.Information, Message = "Reschedule synchronization to {Time} in {Delay} ms")]
+        [LoggerMessage(EventId = EventClass + 10, Level = LogLevel.Information,
+            Message = "Reschedule synchronization to {Time} in {Delay} ms")]
         public static partial void RescheduleSync(this ILogger logger, DateTimeOffset time, double delay);
     }
 }

@@ -245,11 +245,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// </summary>
     internal static partial class OpcUaMonitoredItemCyclicReadLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Debug,
+        private const int EventClass = 1050;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Debug,
             Message = "Item {Item} successfully registered with sampler.")]
         public static partial void ItemRegistered(this ILogger logger, OpcUaMonitoredItem.CyclicRead item);
 
-        [LoggerMessage(EventId = 2, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Debug,
             Message = "Item {Item} unregistered from sampler.")]
         public static partial void ItemUnregistered(this ILogger logger, OpcUaMonitoredItem.CyclicRead item);
     }

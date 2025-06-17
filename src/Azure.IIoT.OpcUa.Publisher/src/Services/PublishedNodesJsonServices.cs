@@ -1289,40 +1289,54 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// </summary>
     internal static partial class PublishedNodesJsonServicesLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Debug, Message = "File {File} {Action}. Triggering file refresh ...")]
+        private const int EventClass = 230;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Debug,
+            Message = "File {File} {Action}. Triggering file refresh ...")]
         public static partial void FileChanged(this ILogger logger, WatcherChangeTypes action, string? file);
 
-        [LoggerMessage(EventId = 2, Level = LogLevel.Debug, Message = "Error while loading job from file. Attempt #{Count}...")]
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Debug,
+            Message = "Error while loading job from file. Attempt #{Count}...")]
         public static partial void ErrorLoadingJobFromFileAttempt(this ILogger logger, Exception ex, int count);
 
-        [LoggerMessage(EventId = 3, Level = LogLevel.Error, Message = "Error while loading job from file. Retry expired, giving up.")]
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Error,
+            Message = "Error while loading job from file. Retry expired, giving up.")]
         public static partial void ErrorLoadingJobFromFileRetryExpired(this ILogger logger, Exception ex);
 
-        [LoggerMessage(EventId = 4, Level = LogLevel.Error, Message = "{Error}")]
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Error,
+            Message = "{Error}")]
         public static partial void ErrorLoadingJobFromFileSerializer(this ILogger logger, Exception ex, string error);
 
-        [LoggerMessage(EventId = 5, Level = LogLevel.Error, Message = "{Error}")]
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Error,
+            Message = "{Error}")]
         public static partial void ErrorLoadingJobFromFileSerializer(this ILogger logger, string error);
 
-        [LoggerMessage(EventId = 6, Level = LogLevel.Error, Message = "Error during publisher {Action}. Retrying...")]
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Error,
+            Message = "Error during publisher {Action}. Retrying...")]
         public static partial void ErrorDuringPublisherAction(this ILogger logger, Exception ex, string action);
 
-        [LoggerMessage(EventId = 7, Level = LogLevel.Debug, Message = "Node \"{Node}\" is already present for entry with \"{Endpoint}\" endpoint.")]
+        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Debug,
+            Message = "Node \"{Node}\" is already present for entry with \"{Endpoint}\" endpoint.")]
         public static partial void NodeAlreadyPresent(this ILogger logger, string? node, string? endpoint);
 
-        [LoggerMessage(EventId = 8, Level = LogLevel.Information, Message = "Found published Nodes File with hash {NewHash}, loading...")]
+        [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Information,
+            Message = "Found published Nodes File with hash {NewHash}, loading...")]
         public static partial void FoundPublishedNodesFile(this ILogger logger, string? newHash);
 
-        [LoggerMessage(EventId = 9, Level = LogLevel.Information, Message = "Published Nodes File changed, last known hash {LastHash}, new hash {NewHash}, reloading...")]
+        [LoggerMessage(EventId = EventClass + 9, Level = LogLevel.Information,
+            Message = "Published Nodes File changed, last known hash {LastHash}, new hash {NewHash}, reloading...")]
         public static partial void PublishedNodesFileChanged(this ILogger logger, string? lastHash, string? newHash);
 
-        [LoggerMessage(EventId = 10, Level = LogLevel.Information, Message = "{Action} publisher configuration completed.")]
+        [LoggerMessage(EventId = EventClass + 10, Level = LogLevel.Information,
+            Message = "{Action} publisher configuration completed.")]
         public static partial void PublisherConfigurationCompleted(this ILogger logger, string action);
 
-        [LoggerMessage(EventId = 11, Level = LogLevel.Debug, Message = "Not initializing, update without waiting.")]
+        [LoggerMessage(EventId = EventClass + 11, Level = LogLevel.Debug,
+            Message = "Not initializing, update without waiting.")]
         public static partial void NotInitializingUpdateWithoutWaiting(this ILogger logger, Exception ex);
 
-        [LoggerMessage(EventId = 12, Level = LogLevel.Debug, Message = "Published Nodes File changed but content-hash is equal to last one, nothing to do...")]
+        [LoggerMessage(EventId = EventClass + 12, Level = LogLevel.Debug,
+            Message = "Published Nodes File changed but content-hash is equal to last one, nothing to do...")]
         public static partial void PublishedNodesFileChangedContentHashEqual(this ILogger logger);
     }
 }

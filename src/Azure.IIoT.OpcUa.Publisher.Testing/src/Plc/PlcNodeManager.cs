@@ -352,11 +352,13 @@ namespace Plc
     /// </summary>
     internal static partial class PlcNodeManagerLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Error,
+        private const int EventClass = 50;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Error,
             Message = "Error creating address space.")]
         public static partial void AddressSpaceError(this ILogger logger, Exception e);
 
-        [LoggerMessage(EventId = 2, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Debug,
             Message = "NodeId type is {NodeIdType}")]
         public static partial void NodeIdType(this ILogger logger, string nodeIdType);
     }

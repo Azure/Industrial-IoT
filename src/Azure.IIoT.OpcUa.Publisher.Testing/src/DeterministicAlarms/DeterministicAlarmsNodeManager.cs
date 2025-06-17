@@ -701,35 +701,37 @@ namespace DeterministicAlarms
     /// </summary>
     internal static partial class DeterministicAlarmsNodeManagerLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Error,
+        private const int EventClass = 30;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Error,
             Message = "Can't read or decode configuration.")]
         public static partial void ConfigurationError(this ILogger logger, Exception ex);
 
-        [LoggerMessage(EventId = 2, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Error,
             Message = "{Configuration}")]
         public static partial void PrintConfiguration(this ILogger logger, string configuration);
 
-        [LoggerMessage(EventId = 3, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Information,
             Message = "Script starts executing")]
         public static partial void ScriptStarting(this ILogger logger);
 
-        [LoggerMessage(EventId = 4, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Error,
             Message = "Script Engine Exception\nSCRIPT WILL NOT START")]
         public static partial void ScriptEngineError(this ILogger logger, Exception ex);
 
-        [LoggerMessage(EventId = 5, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Information,
             Message = "SCRIPT ENDED")]
         public static partial void ScriptEnded(this ILogger logger);
 
-        [LoggerMessage(EventId = 6, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Information,
             Message = "({LoopNumber}) -\t{AlarmId}\t{Reason}")]
         public static partial void AlarmEvent(this ILogger logger, long loopNumber, string alarmId, string reason);
 
-        [LoggerMessage(EventId = 7, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Information,
             Message = "\t\t{StateType} - {State}")]
         public static partial void StateChange(this ILogger logger, ConditionStates stateType, bool state);
 
-        [LoggerMessage(EventId = 8, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Information,
             Message = "({LoopNumber}) -\tSleep: {SleepInSeconds}")]
         public static partial void SleepEvent(this ILogger logger, long loopNumber, double sleepInSeconds);
     }

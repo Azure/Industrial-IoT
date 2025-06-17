@@ -518,43 +518,45 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// </summary>
     internal static partial class OpcUaMonitoredItemDataChangeLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Debug,
+        private const int EventClass = 1060;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Debug,
             Message = "{Item}: Failed to get meta data for field {Field} with node {NodeId} with message {Message}.")]
         public static partial void GetMetadataFailed(this ILogger logger, OpcUaMonitoredItem.DataChange item, string field, ExpandedNodeId nodeId, string message);
 
-        [LoggerMessage(EventId = 2, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Error,
             Message = "Aggregate filter applied with result {Result} for {Item}")]
         public static partial void AggregateFilterError(this ILogger logger, string result, OpcUaMonitoredItem.DataChange item);
 
-        [LoggerMessage(EventId = 3, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Debug,
             Message = "Aggregate filter applied with result {Result} for {Item}")]
         public static partial void AggregateFilterApplied(this ILogger logger, string result, OpcUaMonitoredItem.DataChange item);
 
-        [LoggerMessage(EventId = 4, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Debug,
             Message = "{Item}: Unexpected event type {Type} received.")]
         public static partial void UnexpectedEventType(this ILogger logger, OpcUaMonitoredItem.DataChange item, string type);
 
-        [LoggerMessage(EventId = 5, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Debug,
             Message = "{Item}: Changing sampling interval from {Old} to {New}")]
         public static partial void SamplingIntervalChanged(this ILogger logger, OpcUaMonitoredItem.DataChange item, double old, double @new);
 
-        [LoggerMessage(EventId = 6, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Debug,
             Message = "{Item}: Changing dataset class field id from {Old} to {New}")]
         public static partial void DatasetClassFieldIdChanged(this ILogger logger, OpcUaMonitoredItem.DataChange item, Guid old, Guid @new);
 
-        [LoggerMessage(EventId = 7, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Debug,
             Message = "{Item}: Changing data change filter.")]
         public static partial void DataChangeFilterChanged(this ILogger logger, OpcUaMonitoredItem.DataChange item);
 
-        [LoggerMessage(EventId = 8, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Debug,
             Message = "{Item}: Changing aggregate change filter.")]
         public static partial void AggregateChangeFilterChanged(this ILogger logger, OpcUaMonitoredItem.DataChange item);
 
-        [LoggerMessage(EventId = 9, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 9, Level = LogLevel.Debug,
             Message = "{Item}: Setting skip first setting to {New}")]
         public static partial void SkipFirstChanged(this ILogger logger, OpcUaMonitoredItem.DataChange item, bool? @new);
 
-        [LoggerMessage(EventId = 10, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 10, Level = LogLevel.Information,
             Message = "{Item}: Tried to set SkipFirst but it was set previously or first value was already processed.")]
         public static partial void SkipFirstAlreadySet(this ILogger logger, OpcUaMonitoredItem.DataChange item);
     }
