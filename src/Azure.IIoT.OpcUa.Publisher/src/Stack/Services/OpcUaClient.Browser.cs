@@ -120,7 +120,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <returns></returns>
             private async Task RunAsync(CancellationToken ct)
             {
-                _logger.LogDebug("Starting continous browsing process...");
+                OpcUaClientBrowserLogging.BrowserStartingContinuousBrowsing(_logger);
                 var sw = Stopwatch.StartNew();
                 try
                 {
@@ -142,30 +142,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                 continue;
                             }
 
-                            _logger.LogInformation("Browsing started after {Elapsed}...", sw.Elapsed);
+                            OpcUaClientBrowserLogging.BrowserBrowsingStarted(_logger, sw.Elapsed);
                             sw.Restart();
 
                             await BrowseAddressSpaceAsync(session, ct).ConfigureAwait(false);
 
-                            _logger.LogInformation("Browsing completed and took {Elapsed}. " +
-                                "Added {AddedR}, removed {RemovedR} References and added {AddedN}, " +
-                                "changed {ChangedN}, removed {RemovedN} Nodes with {Errors} errors.",
-                                sw.Elapsed, _referencesAdded, _referencesRemoved, _nodesAdded,
-                                _nodesChanged, _nodesRemoved, _errors);
+                            OpcUaClientBrowserLogging.BrowserBrowsingCompleted(_logger, sw.Elapsed, _referencesAdded, _referencesRemoved, _nodesAdded, _nodesChanged, _nodesRemoved, _errors);
                         }
                         catch (ServiceResultException sre)
                         {
-                            _logger.LogInformation("Browsing completed due to error {Error} took {Elapsed}." +
-                                "Added {AddedR}, removed {RemovedR} References and added {AddedN}, " +
-                                "changed {ChangedN}, removed {RemovedN} Nodes with {Errors} errors.",
-                                sre.Message, sw.Elapsed, _referencesAdded, _referencesRemoved,
-                                _nodesAdded, _nodesChanged, _nodesRemoved, _errors);
+                            OpcUaClientBrowserLogging.BrowserBrowsingCompletedWithError(_logger, sre.Message, sw.Elapsed, _referencesAdded, _referencesRemoved, _nodesAdded, _nodesChanged, _nodesRemoved, _errors);
                             if (!_client.IsConnected)
                             {
-                                _logger.LogDebug("Not connected - waiting to reconnect.");
+                                OpcUaClientBrowserLogging.BrowserNotConnectedWaiting(_logger);
                                 continue;
                             }
-                            _logger.LogError(sre, "Error occurred during browsing");
+                            OpcUaClientBrowserLogging.BrowserErrorOccurred(_logger, sre);
                         }
                         catch (OperationCanceledException)
                         {
@@ -174,8 +166,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         catch (Exception ex)
                         {
                             // Continue
-                            _logger.LogError(ex, "Browsing completed due to an exception and took {Elapsed}.",
-                                sw.Elapsed);
+                            OpcUaClientBrowserLogging.BrowserBrowsingException(_logger, ex, sw.Elapsed);
                         }
                         finally
                         {
@@ -186,11 +177,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             _rebrowseTimer.Change(_browseDelay, Timeout.InfiniteTimeSpan);
                         }
                     }
-                    _logger.LogInformation("Browser process exited.");
+                    OpcUaClientBrowserLogging.BrowserProcessExited(_logger);
                 }
                 catch (Exception e)
                 {
-                    _logger.LogCritical(e, "Browser process exited due to unexpected exception.");
+                    OpcUaClientBrowserLogging.BrowserProcessExitedUnexpected(_logger, e);
                 }
             }
 
@@ -409,7 +400,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 void HandleException(Dictionary<ReferenceDescription, (NodeId, RelativePath)> foundReferences,
                     Dictionary<NodeId, (RelativePath, Node)> foundNodes, Exception ex)
                 {
-                    _logger.LogDebug(ex, "Stopping browse due to error.");
+                    OpcUaClientBrowserLogging.BrowserStoppingDueToError(_logger, ex);
 
                     // Reset stream by resetting the sequence number to 0
                     _sequenceNumber = 0u;
@@ -566,5 +557,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private readonly CancellationTokenSource _cts = new();
             private readonly TimeSpan _browseDelay;
         }
+    }
+
+    /// <summary>
+    /// Source-generated logging definitions for OpcUaClient.Browser
+    /// </summary>
+    internal static partial class OpcUaClientBrowserLogging
+    {
+        [LoggerMessage(EventId = 1001, Level = LogLevel.Debug, Message = "Starting continous browsing process...")]
+        public static partial void BrowserStartingContinuousBrowsing(this ILogger logger);
+
+        [LoggerMessage(EventId = 1002, Level = LogLevel.Information, Message = "Browsing started after {Elapsed}...")]
+        public static partial void BrowserBrowsingStarted(this ILogger logger, TimeSpan elapsed);
+
+        [LoggerMessage(EventId = 1003, Level = LogLevel.Information, Message = "Browsing completed and took {Elapsed}. Added {AddedR}, removed {RemovedR} References and added {AddedN}, changed {ChangedN}, removed {RemovedN} Nodes with {Errors} errors.")]
+        public static partial void BrowserBrowsingCompleted(this ILogger logger, TimeSpan elapsed, int addedR, int removedR, int addedN, int changedN, int removedN, int errors);
+
+        [LoggerMessage(EventId = 1004, Level = LogLevel.Information, Message = "Browsing completed due to error {Error} took {Elapsed}. Added {AddedR}, removed {RemovedR} References and added {AddedN}, changed {ChangedN}, removed {RemovedN} Nodes with {Errors} errors.")]
+        public static partial void BrowserBrowsingCompletedWithError(this ILogger logger, string error, TimeSpan elapsed, int addedR, int removedR, int addedN, int changedN, int removedN, int errors);
+
+        [LoggerMessage(EventId = 1005, Level = LogLevel.Debug, Message = "Not connected - waiting to reconnect.")]
+        public static partial void BrowserNotConnectedWaiting(this ILogger logger);
+
+        [LoggerMessage(EventId = 1006, Level = LogLevel.Error, Message = "Error occurred during browsing")]
+        public static partial void BrowserErrorOccurred(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = 1007, Level = LogLevel.Error, Message = "Browsing completed due to an exception and took {Elapsed}.")]
+        public static partial void BrowserBrowsingException(this ILogger logger, Exception ex, TimeSpan elapsed);
+
+        [LoggerMessage(EventId = 1008, Level = LogLevel.Information, Message = "Browser process exited.")]
+        public static partial void BrowserProcessExited(this ILogger logger);
+
+        [LoggerMessage(EventId = 1009, Level = LogLevel.Critical, Message = "Browser process exited due to unexpected exception.")]
+        public static partial void BrowserProcessExitedUnexpected(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = 1010, Level = LogLevel.Debug, Message = "Stopping browse due to error.")]
+        public static partial void BrowserStoppingDueToError(this ILogger logger, Exception ex);
     }
 }

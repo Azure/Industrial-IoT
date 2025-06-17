@@ -163,18 +163,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 if (_heartbeatInterval != model._heartbeatInterval)
                 {
-                    _logger.LogDebug("{Item}: Changing heartbeat from {Old} to {New}",
-                        this, _heartbeatInterval, model._heartbeatInterval);
-
+                    _logger.HeartbeatIntervalChanged(this, _heartbeatInterval, model._heartbeatInterval);
                     _heartbeatInterval = model._heartbeatInterval;
                     itemChange = true;
                 }
 
                 if (_heartbeatBehavior != model._heartbeatBehavior)
                 {
-                    _logger.LogDebug("{Item}: Changing heartbeat behavior from {Old} to {New}",
-                        this, _heartbeatBehavior, model._heartbeatBehavior);
-
+                    _logger.HeartbeatBehaviorChanged(this, _heartbeatBehavior, model._heartbeatBehavior);
                     _heartbeatBehavior = model._heartbeatBehavior;
                     itemChange = true;
                 }
@@ -189,8 +185,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 if (_disposed)
                 {
-                    _logger.LogError("{Item}: Item was moved to another subscription " +
-                        "and the timer is handled by the new subscription now.", this);
+                    _logger.ItemMovedToAnotherSubscription(this);
                     return false;
                 }
                 var result = base.TryCompleteChanges(subscription, ref applyChanges);
@@ -293,7 +288,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 if (!AttachedToSubscription)
                 {
-                    _logger.LogInformation("{Item}: Missing subscription.", this);
+                    _logger.MissingSubscription(this);
                     return;
                 }
 
@@ -304,7 +299,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         !IsGoodDataValue(lastNotification?.Value))
                 {
                     // Currently no last known good value (LKG) to send
-                    _logger.LogInformation("{Item}: No last known good value to send.", this);
+                    _logger.NoLastKnownGoodValue(this);
                     return;
                 }
 
@@ -317,7 +312,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (lastValue == null)
                 {
                     // Currently no last known value (LKV) to send
-                    _logger.LogInformation("{Item}: No last known value to send.", this);
+                    _logger.NoLastKnownValue(this);
                     return;
                 }
                 if ((_heartbeatBehavior & HeartbeatBehavior.WatchdogLKVWithUpdatedTimestamps)
@@ -377,7 +372,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             AutoReset = true
                         };
                         _heartbeatTimer.Elapsed += SendHeartbeatNotifications;
-                        _logger.LogDebug("Enabled heartbeat timer");
+                        _logger.HeartbeatTimerEnabled();
                     }
                     _heartbeatTimer.Interval = _heartbeatInterval;
                     _heartbeatTimer.Enabled = true;
@@ -397,7 +392,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         _heartbeatTimer.Elapsed -= SendHeartbeatNotifications;
                         _heartbeatTimer.Dispose();
                         _heartbeatTimer = null;
-                        _logger.LogDebug("Disabled heartbeat timer");
+                        _logger.HeartbeatTimerDisabled();
                     }
                     TimerEnabled = false;
                 }
@@ -411,5 +406,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private readonly Lock _timerLock = new();
             private bool _disposed;
         }
+    }
+
+    /// <summary>
+    /// Source-generated logging definitions for OpcUaMonitoredItem Heartbeat handling
+    /// </summary>
+    internal static partial class OpcUaMonitoredItemHeartbeatLogging
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Debug,
+            Message = "{Item}: Changing heartbeat from {Old} to {New}")]
+        public static partial void HeartbeatIntervalChanged(this ILogger logger, OpcUaMonitoredItem item, TimeSpan old, TimeSpan @new);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Debug,
+            Message = "{Item}: Changing heartbeat behavior from {Old} to {New}")]
+        public static partial void HeartbeatBehaviorChanged(this ILogger logger, OpcUaMonitoredItem item, HeartbeatBehavior old, HeartbeatBehavior @new);
+
+        [LoggerMessage(EventId = 3, Level = LogLevel.Error,
+            Message = "{Item}: Item was moved to another subscription and the timer is handled by the new subscription now.")]
+        public static partial void ItemMovedToAnotherSubscription(this ILogger logger, OpcUaMonitoredItem item);
+
+        [LoggerMessage(EventId = 4, Level = LogLevel.Debug,
+            Message = "Disabled heartbeat timer")]
+        public static partial void HeartbeatTimerDisabled(this ILogger logger);
+
+        [LoggerMessage(EventId = 5, Level = LogLevel.Information,
+            Message = "{Item}: No last known good value to send.")]
+        public static partial void NoLastKnownGoodValue(this ILogger logger, OpcUaMonitoredItem item);
+
+        [LoggerMessage(EventId = 6, Level = LogLevel.Information,
+            Message = "{Item}: No last known value to send.")]
+        public static partial void NoLastKnownValue(this ILogger logger, OpcUaMonitoredItem item);
+
+        [LoggerMessage(EventId = 7, Level = LogLevel.Debug,
+            Message = "Enabled heartbeat timer")]
+        public static partial void HeartbeatTimerEnabled(this ILogger logger);
     }
 }

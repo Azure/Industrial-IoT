@@ -198,9 +198,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex,
-                    "{Client}: Error trying to sync subscription {Subscription}",
-                    this, subscription);
+                _logger.SyncSubscriptionError(ex, this, subscription);
                 RescheduleSynchronization(TimeSpan.FromMinutes(1));
             }
             finally
@@ -232,8 +230,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 .Where(s => s.Value.IsRoot)
                 .ToDictionary(k => k.Value.Template, k => k.Value);
 
-            _logger.LogDebug("{Client}: Perform synchronization of subscriptions (total: {Total})",
-                this, session.SubscriptionHandles.Count);
+            _logger.PerformSync(this, session.SubscriptionHandles.Count);
             if (!await EnsureSessionIsReadyForSubscriptionsAsync(session, ct).ConfigureAwait(false))
             {
                 return false;
@@ -289,9 +286,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             catch (OperationCanceledException) { }
                             catch (Exception ex)
                             {
-                                _logger.LogError(ex, "{Client}: Failed to close " +
-                                    "subscription {Subscription} in session.",
-                                    this, close);
+                                _logger.CloseSubscriptionFailed(ex, this, close);
                             }
                         })).ConfigureAwait(false);
 
@@ -332,9 +327,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             }
                             catch (Exception ex)
                             {
-                                _logger.LogError(ex, "{Client}: Failed to add " +
-                                    "subscription {Subscription} in session.",
-                                    this, add);
+                                _logger.AddSubscriptionFailed(ex, this, add);
                                 return TimeSpan.FromMinutes(1);
                             }
                         })).ConfigureAwait(false);
@@ -361,9 +354,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             }
                             catch (Exception ex)
                             {
-                                _logger.LogError(ex, "{Client}: Failed to update " +
-                                    "subscription {Subscription} in session.",
-                                    this, update);
+                                _logger.UpdateSubscriptionFailed(ex, this, update);
                                 return TimeSpan.FromMinutes(1);
                             }
                         })).ConfigureAwait(false);
@@ -373,7 +364,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "{Client}: Error trying to sync subscriptions.", this);
+                    _logger.SyncSubscriptionsError(ex, this);
                     var delay2 = TimeSpan.FromMinutes(1);
                     RescheduleSynchronization(delay < delay2 ? delay : delay2);
                 }
@@ -388,17 +379,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 if (updates + removals + additions != 0)
                 {
-                    _logger.LogInformation("{Client}: Removed {Removals}, added {Additions}, " +
-                        "and updated {Updates} subscriptions (total: {Total}) took {Duration} ms.",
-                        this, removals, additions, updates, session.SubscriptionHandles.Count,
-                        sw.ElapsedMilliseconds);
+                    _logger.SyncSummary(this, removals, additions, updates, session.SubscriptionHandles.Count, sw.ElapsedMilliseconds);
                 }
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError("{Client}: Error trying to sync subscriptions: {Error}",
-                    this, ex.Message);
+                _logger.SyncSubscriptionsErrorMessage(this, ex.Message);
                 return false;
             }
         }
@@ -423,7 +410,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (ServiceResultException sre) // anything else is not expected
             {
-                _logger.LogWarning(sre, "{Client}: Failed to fetch namespace table...", this);
+                _logger.FetchNamespaceTableFailed(sre, this);
                 return false;
             }
 
@@ -453,8 +440,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var nextSync = _timeProvider.GetUtcNow() + delay;
             if (nextSync <= _nextSync)
             {
-                _logger.LogInformation("Reschedule synchronization to {Time} in {Delay} ms",
-                    nextSync, delay.TotalMilliseconds);
+                _logger.RescheduleSync(nextSync, delay.TotalMilliseconds);
                 _nextSync = nextSync;
                 _resyncTimer.Change(delay, Timeout.InfiniteTimeSpan);
             }
@@ -634,5 +620,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly ConcurrentDictionary<SubscriptionModel, List<Registration>> _s2r = new();
         private readonly Dictionary<SubscriptionModel, OpcUaSubscription> _cache = [];
         private readonly IOptions<OpcUaSubscriptionOptions> _subscriptionOptions;
+    }
+
+    /// <summary>
+    /// Source-generated logging definitions for OpcUaClient.Subscription
+    /// </summary>
+    internal static partial class OpcUaClientSubscriptionLogging
+    {
+        [LoggerMessage(EventId = 1001, Level = LogLevel.Error, Message = "{Client}: Error trying to sync subscription {Subscription}")]
+        public static partial void SyncSubscriptionError(this ILogger logger, Exception ex, OpcUaClient client, OpcUaSubscription subscription);
+
+        [LoggerMessage(EventId = 1002, Level = LogLevel.Debug, Message = "{Client}: Perform synchronization of subscriptions (total: {Total})")]
+        public static partial void PerformSync(this ILogger logger, OpcUaClient client, int total);
+
+        [LoggerMessage(EventId = 1003, Level = LogLevel.Error, Message = "{Client}: Failed to close subscription {Subscription} in session.")]
+        public static partial void CloseSubscriptionFailed(this ILogger logger, Exception ex, OpcUaClient client, OpcUaSubscription subscription);
+
+        [LoggerMessage(EventId = 1004, Level = LogLevel.Error, Message = "{Client}: Failed to add subscription {Subscription} in session.")]
+        public static partial void AddSubscriptionFailed(this ILogger logger, Exception ex, OpcUaClient client, SubscriptionModel subscription);
+
+        [LoggerMessage(EventId = 1005, Level = LogLevel.Error, Message = "{Client}: Failed to update subscription {Subscription} in session.")]
+        public static partial void UpdateSubscriptionFailed(this ILogger logger, Exception ex, OpcUaClient client, SubscriptionModel subscription);
+
+        [LoggerMessage(EventId = 1006, Level = LogLevel.Error, Message = "{Client}: Error trying to sync subscriptions.")]
+        public static partial void SyncSubscriptionsError(this ILogger logger, Exception ex, OpcUaClient client);
+
+        [LoggerMessage(EventId = 1007, Level = LogLevel.Information, Message = "{Client}: Removed {Removals}, added {Additions}, and updated {Updates} subscriptions (total: {Total}) took {Duration} ms.")]
+        public static partial void SyncSummary(this ILogger logger, OpcUaClient client, int removals, int additions, int updates, int total, long duration);
+
+        [LoggerMessage(EventId = 1008, Level = LogLevel.Error, Message = "{Client}: Error trying to sync subscriptions: {Error}")]
+        public static partial void SyncSubscriptionsErrorMessage(this ILogger logger, OpcUaClient client, string error);
+
+        [LoggerMessage(EventId = 1009, Level = LogLevel.Warning, Message = "{Client}: Failed to fetch namespace table...")]
+        public static partial void FetchNamespaceTableFailed(this ILogger logger, Exception ex, OpcUaClient client);
+
+        [LoggerMessage(EventId = 1010, Level = LogLevel.Information, Message = "Reschedule synchronization to {Time} in {Delay} ms")]
+        public static partial void RescheduleSync(this ILogger logger, DateTimeOffset time, double delay);
     }
 }

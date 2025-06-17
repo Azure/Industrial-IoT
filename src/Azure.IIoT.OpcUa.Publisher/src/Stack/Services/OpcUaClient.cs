@@ -322,12 +322,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             //
             if (connection != null)
             {
-                _logger.CreatingNewSessionWithConnection(this);
+                OpcUaClientLogging.CreatingNewSessionWithConnection(_logger, this);
                 return await CreateAsync(_configuration, connection, sessionTemplate.ConfiguredEndpoint,
                     true, false, _sessionName, (uint)sessionTemplate.SessionTimeout, sessionTemplate.Identity,
                     sessionTemplate.PreferredLocales, ct).ConfigureAwait(false);
             }
-            _logger.CreatingNewSessionWithoutConnection(this);
+            OpcUaClientLogging.CreatingNewSessionWithoutConnection(_logger, this);
             return await CreateAsync(_configuration, _reverseConnectManager,
                 sessionTemplate.ConfiguredEndpoint, true, false, _sessionName,
                 (uint)sessionTemplate.SessionTimeout, sessionTemplate.Identity,
@@ -345,12 +345,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             //
             if (transportChannel != null)
             {
-                _logger.CreatingNewSessionClosingChannel(this);
+                OpcUaClientLogging.CreatingNewSessionClosingChannel(_logger, this);
                 transportChannel.Dispose();
             }
             else
             {
-                _logger.CreatingNewSession(this);
+                OpcUaClientLogging.CreatingNewSession(_logger, this);
             }
             return await CreateAsync(_configuration, sessionTemplate.ConfiguredEndpoint,
                 true, false, _sessionName, (uint)sessionTemplate.SessionTimeout, sessionTemplate.Identity,
@@ -458,12 +458,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             try
             {
                 using var registration = ct.Register(() => tcs.TrySetCanceled());
-                _logger.Resetting(this);
+                OpcUaClientLogging.Resetting(_logger, this);
                 TriggerConnectionEvent(ConnectionEvent.Reset, tcs);
             }
             catch (Exception ex)
             {
-                _logger.ResetFailed(ex, this);
+                OpcUaClientLogging.ResetFailed(_logger, ex, this);
                 tcs.TrySetException(ex);
             }
             await tcs.Task.ConfigureAwait(false);
@@ -496,7 +496,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 _disposed = true;
 
-                _logger.Closing(this);
+                OpcUaClientLogging.Closing(_logger, this);
                 await _cts.CancelAsync().ConfigureAwait(false);
 
                 await _sessionManager.ConfigureAwait(false);
@@ -525,11 +525,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     await _diagnosticsDumper.ConfigureAwait(false);
                 }
 
-                _logger.ClosedSuccessfully(this);
+                OpcUaClientLogging.ClosedSuccessfully(_logger, this);
             }
             catch (Exception ex)
             {
-                _logger.CloseFailed(ex, this);
+                OpcUaClientLogging.CloseFailed(_logger, ex, this);
             }
             finally
             {
@@ -673,8 +673,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 catch (Exception ex) when (!IsConnected && !cancellationToken.IsCancellationRequested)
                 {
-                    _logger.LogInformation("{Client}: Session disconnected during service call " +
-                        "with message {Message}, retrying.", this, ex.Message);
+                    OpcUaClientLogging.SessionDisconnected(_logger, this, ex.Message);
 
                     cts.CancelAfter(timeout); // Reset timeout again to wait again for session
                 }
@@ -745,7 +744,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 catch (Exception ex) when (!IsConnected && !cancellationToken.IsCancellationRequested)
                 {
-                    _logger.SessionDisconnected(this, ex.Message);
+                    OpcUaClientLogging.SessionDisconnected(_logger, this, ex.Message);
 
                     cts.CancelAfter(timeout); // Reset timeout again to wait again for session
                     continue;
@@ -890,7 +889,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         await foreach (var (trigger, context) in
                             _channel.Reader.ReadAllAsync(ct).ConfigureAwait(false))
                         {
-                            _logger.ProcessingEvent(this, trigger.ToString(), currentSessionState.ToString());
+                            OpcUaClientLogging.ProcessingEvent(_logger, this, trigger.ToString(), currentSessionState.ToString());
 
                             switch (trigger)
                             {
@@ -934,7 +933,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                                 Debug.Assert(reconnectPeriod != 0, "Reconnect period should not be 0.");
                                                 var retryDelay = TimeSpan.FromMilliseconds(
                                                     _reconnectHandler.CheckedReconnectPeriod(reconnectPeriod));
-                                                _logger.RetryingConnection(this, retryDelay);
+                                                OpcUaClientLogging.RetryingConnection(_logger, this, retryDelay);
                                                 reconnectTimer.Change(retryDelay, Timeout.InfiniteTimeSpan);
                                                 reconnectPeriod = _reconnectHandler.JitteredReconnectPeriod(reconnectPeriod);
                                                 break;
@@ -973,20 +972,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     {
                                         case SessionState.Connected: // only valid when connected.
                                             Debug.Assert(_reconnectHandler.State == SessionReconnectHandler.ReconnectState.Ready);
-                                            _logger.ReconnectingSession(this, _sessionName,
+                                            OpcUaClientLogging.ReconnectingSession(_logger, this, _sessionName,
                                                 (context is ServiceResult sr) ? "error " + sr.ToString() : "RESET");
 
                                             // Ensure no more access to the session through reader locks
                                             Debug.Assert(_disconnectLock == null);
                                             _disconnectLock = await _lock.WriterLockAsync(ct);
-                                            _logger.BeginReconnectingSession(this, _sessionName);
+                                            OpcUaClientLogging.BeginReconnectingSession(_logger, this, _sessionName);
                                             Debug.Assert(_session != null);
                                             var state = _reconnectHandler.BeginReconnect(_session,
                                                 _reverseConnectManager, GetMinReconnectPeriod(), (sender, evt) =>
                                                 {
                                                     if (!ReferenceEquals(sender, _reconnectHandler))
                                                     {
-                                                        _logger.ReconnectHandlerMismatch(this);
+                                                        OpcUaClientLogging.ReconnectHandlerMismatch(_logger, this);
                                                         return;
                                                     }
                                                     TriggerConnectionEvent(ConnectionEvent.ReconnectComplete,
@@ -1016,7 +1015,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     switch (currentSessionState)
                                     {
                                         case SessionState.Reconnecting:
-                                            _logger.CompletedReconnectingSession(this, _sessionName);
+                                            OpcUaClientLogging.CompletedReconnectingSession(_logger, this, _sessionName);
                                             //
                                             // Behavior of the reconnect handler is as follows:
                                             // 1) newSession == null
@@ -1039,12 +1038,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                             if (!isNew)
                                             {
                                                 // Case 1) and 2)
-                                                _logger.ClientRecovered(this);
+                                                OpcUaClientLogging.ClientRecovered(_logger, this);
                                             }
                                             else
                                             {
                                                 // Case 3)
-                                                _logger.ClientReconnected(this);
+                                                OpcUaClientLogging.ClientReconnected(_logger, this);
                                                 _numberOfConnectionRetries++;
                                             }
 
@@ -1086,13 +1085,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     break;
                             }
 
-                            _logger.EventProcessed(this, trigger.ToString(), currentSessionState.ToString());
+                            OpcUaClientLogging.EventProcessed(_logger, this, trigger.ToString(), currentSessionState.ToString());
                         }
                     }
                     catch (OperationCanceledException) { }
                     catch (Exception ex)
                     {
-                        _logger.ConnectionManagerExited(ex, this);
+                        OpcUaClientLogging.ConnectionManagerExited(_logger, ex, this);
                     }
                     finally
                     {
@@ -1103,18 +1102,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             catch (OperationCanceledException) { }
             catch (Exception ex)
             {
-                _logger.ManagementLoopException(ex, this);
+                OpcUaClientLogging.ManagementLoopException(_logger, ex, this);
                 throw;
             }
             finally
             {
                 if (currentSessionState != SessionState.Disconnected)
                 {
-                    _logger.DisconnectingDisposed(this);
+                    OpcUaClientLogging.DisconnectingDisposed(_logger, this);
                     await HandleDisconnectEvent(default).ConfigureAwait(false);
                     currentSessionState = SessionState.Disconnected;
                 }
-                _logger.ExitingManagementLoop(this);
+                OpcUaClientLogging.ExitingManagementLoop(_logger, this);
             }
 
             async ValueTask HandleDisconnectEvent(CancellationToken cancellationToken)
@@ -1178,23 +1177,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         continue;
                     }
                     tableChanged = true;
-                    _logger.LogWarning(
-                        "{Client}: Namespace index #{Index} changed from {Old} to {New}",
-                        this, i, oldTable[i], newTable[i]);
+                    OpcUaClientLogging.NamespaceIndexChanged(_logger, this, i, oldTable[i], newTable[i]);
                 }
                 else if (i < oldTable.Length)
                 {
                     tableChanged = true;
-                    _logger.LogWarning(
-                        "{Client}: Namespace index #{Index} removed {Old}",
-                        this, i, oldTable[i]);
+                    OpcUaClientLogging.NamespaceIndexRemoved(_logger, this, i, oldTable[i]);
                 }
                 else
                 {
                     tableChanged = true;
-                    _logger.LogWarning(
-                        "{Client}: Namespace index #{Index} added {New}",
-                        this, i, newTable[i]);
+                    OpcUaClientLogging.NamespaceIndexAdded(_logger, this, i, newTable[i]);
                 }
             }
             if (tableChanged)
@@ -1276,7 +1269,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             NotifyConnectivityStateChange(EndpointConnectivityState.Connecting);
             Debug.Assert(_connection.Endpoint != null);
 
-            _logger.ConnectingToEndpoint(this, _connection.Endpoint.Url);
+            OpcUaClientLogging.ConnectingToEndpoint(_logger, this, _connection.Endpoint.Url);
             var attempt = 0;
             foreach (var nextUrl in _connection.GetEndpointUrls())
             {
@@ -1305,7 +1298,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         this, ct: ct).ConfigureAwait(false);
                     if (endpointDescription == null)
                     {
-                        _logger.NoMatchingEndpoint(this, _sessionName);
+                        OpcUaClientLogging.NoMatchingEndpoint(_logger, this, _sessionName);
                         continue;
                     }
 
@@ -1321,7 +1314,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     if (securityMode == SecurityMode.Best &&
                         endpointDescription.SecurityMode == MessageSecurityMode.None)
                     {
-                        _logger.NoSecurityEnabled(this, endpointUrl, _sessionName);
+                        OpcUaClientLogging.NoSecurityEnabled(_logger, this, endpointUrl, _sessionName);
 
                         credential = null;
                     }
@@ -1333,13 +1326,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         userIdentity.TokenType, userIdentity.IssuedTokenType, endpointDescription.SecurityPolicyUri);
                     if (identityPolicy == null)
                     {
-                        _logger.NoUserTokenPolicy(this, userIdentity.TokenType,
+                        OpcUaClientLogging.NoUserTokenPolicy(_logger, this, userIdentity.TokenType,
                             userIdentity.IssuedTokenType, endpointUrl, _sessionName);
                         continue;
                     }
-                    _logger.LogInformation(
-                        "{Client}: #{Attempt} - Creating session {Name} with endpoint {EndpointUrl}...",
-                        ++attempt, this, _sessionName, endpointUrl);
+                    OpcUaClientLogging.CreatingSession(_logger, ++attempt, this, _sessionName, endpointUrl);
 
                     var preferredLocales = _connection.Locales?.ToList() ?? [];
                     if (preferredLocales.Count == 0)
@@ -1367,21 +1358,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     // Assign the session
                     var isNew = await UpdateSessionAsync(session).ConfigureAwait(false);
                     Debug.Assert(isNew);
-                    _logger.LogInformation(
-                        "{Client}: New Session {Name} created with endpoint {EndpointUrl} ({Original}).",
-                        this, _sessionName, endpointUrl, _connection.Endpoint.Url);
+                    OpcUaClientLogging.NewSessionCreated(_logger, this, _sessionName, endpointUrl, _connection.Endpoint.Url);
 
-                    _logger.LogInformation("{Client} Client CONNECTED to {EndpointUrl}!",
-                        this, endpointUrl);
+                    OpcUaClientLogging.ClientConnected(_logger, this, endpointUrl);
                     return true;
                 }
                 catch (Exception ex)
                 {
                     NotifyConnectivityStateChange(ToConnectivityState(ex));
                     _numberOfConnectionRetries++;
-                    _logger.LogInformation(
-                        "#{Attempt} - {Client}: Failed to connect to {EndpointUrl}: {Message}...",
-                        ++attempt, this, endpointUrl, ex.Message);
+                    OpcUaClientLogging.ConnectionFailed(_logger, ++attempt, this, endpointUrl, ex.Message);
                 }
             }
             return false;
@@ -1398,7 +1384,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 if (_session != null)
                 {
-                    _logger.PublishErrorDifferentSession(this, session.ToString());
+                    OpcUaClientLogging.PublishErrorDifferentSession(_logger, this, session.ToString());
                 }
                 return;
             }
@@ -1415,7 +1401,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     TriggerReconnect(e.Status, "Publish");
                     return;
                 default:
-                    _logger.PublishError(this, e.Status.ToString());
+                    OpcUaClientLogging.PublishError(_logger, this, e.Status.ToString());
                     break;
             }
         }
@@ -1464,7 +1450,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.SendingAcks(this, Environment.CurrentManagedThreadId,
+                OpcUaClientLogging.SendingAcks(_logger, this, Environment.CurrentManagedThreadId,
                     ToString(e.AcknowledgementsToSend),
                     ToString(e.DeferredAcknowledgementsToSend),
                     session.GoodPublishRequestCount);
@@ -1497,7 +1483,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     if (_session != null)
                     {
-                        _logger.KeepAliveErrorDifferentSession(this, session.ToString());
+                        OpcUaClientLogging.KeepAliveErrorDifferentSession(_logger, this, session.ToString());
                     }
                     return;
                 }
@@ -1516,7 +1502,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (Exception ex)
             {
-                _logger.KeepAliveError(ex, this);
+                OpcUaClientLogging.KeepAliveError(_logger, ex, this);
             }
         }
 
@@ -1529,7 +1515,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             if (Interlocked.Increment(ref _reconnectRequired) == 1)
             {
-                _logger.TriggerReconnect(this, sr.ToString(), action);
+                OpcUaClientLogging.TriggerReconnect(_logger, this, sr.ToString(), action);
 
                 // Ensure we reconnect
                 TriggerConnectionEvent(ConnectionEvent.StartReconnect, sr);
@@ -1645,9 +1631,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (channelChanged)
                 {
                     _channelMonitor.Change(lifetime, Timeout.InfiniteTimeSpan);
-                    _logger.LogInformation(
-                        "Channel {Channel} got new token {TokenId} ({Created}).",
-                        token.ChannelId, token.TokenId, token.CreatedAt);
+                    OpcUaClientLogging.ChannelGotNewToken(_logger, token.ChannelId.ToString(), token.TokenId.ToString(), token.CreatedAt);
                 }
                 else
                 {
@@ -1711,8 +1695,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             };
             _diagnosticsCb(_lastDiagnostics);
 
-            _logger.LogInformation("Channel diagnostics for session {SessionId} updated.",
-                sessionId);
+            OpcUaClientLogging.ChannelDiagnosticsUpdated(_logger, sessionId);
 
             static ChannelKeyModel? ToChannelKey(byte[]? iv, byte[]? key, byte[]? sk)
             {
@@ -1763,13 +1746,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     session.UpdateOperationTimeout(true);
                     await session.CloseAsync(CancellationToken.None).ConfigureAwait(false);
 
-                    _logger.LogDebug("{Client}: Successfully closed session {Session}.",
-                        this, session);
+                    OpcUaClientLogging.SessionClosed(_logger, this, session);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "{Client}: Failed to close session {Session}.",
-                        this, session);
+                    OpcUaClientLogging.SessionCloseFailed(_logger, ex, this, session);
                 }
                 finally
                 {
@@ -1798,9 +1779,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 // Do not change state to generic error once we have
                 // a specific error state already set...
-                _logger.LogDebug(
-                    "{Client}: Error, connection to {Endpoint} - leaving state at {Previous}.",
-                    this, _connection.Endpoint!.Url, previous);
+                OpcUaClientLogging.ErrorLeavingState(_logger, this, _connection.Endpoint!.Url, previous);
                 return;
             }
             _lastState = state;
@@ -1816,16 +1795,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
 
-            _logger.LogInformation(
-                "{Client}: Session {Name} with {Endpoint} changed from {Previous} to {State}",
-                this, _sessionName, _connection.Endpoint!.Url, previous, state);
+            OpcUaClientLogging.SessionStateChanged(_logger, this, _sessionName, _connection.Endpoint!.Url, previous, state);
             try
             {
                 _notifier?.Invoke(this, new EndpointConnectivityStateEventArgs(state));
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "{Client}: Exception during state callback", this);
+                OpcUaClientLogging.ExceptionDuringStateCallback(_logger, ex, this);
             }
         }
 
@@ -1848,6 +1825,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             string? securityPolicy, ILogger logger, object? context,
             string? endpointUrl = null, CancellationToken ct = default)
         {
+            var ctx = context?.ToString() ?? "null";
             var endpointConfiguration = EndpointConfiguration.Create();
             endpointConfiguration.OperationTimeout =
                 (int)TimeSpan.FromSeconds(15).TotalMilliseconds;
@@ -1877,10 +1855,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var endpoints = await client.GetEndpointsAsync(null, ct).ConfigureAwait(false);
             discoveryUrl ??= uri;
 
-            logger.LogInformation("{Client}: Discovery endpoint {DiscoveryUrl} returned endpoints. " +
-                "Selecting endpoint {EndpointUri} with SecurityMode " +
-                "{SecurityMode} and {SecurityPolicy} SecurityPolicyUri from:\n{Endpoints}",
-                context, discoveryUrl, uri, securityMode, securityPolicy ?? "any", endpoints.Select(
+            logger.DiscoveryEndpointReturnedEndpoints(ctx,
+                discoveryUrl, uri, securityMode, securityPolicy ?? "any", endpoints.Select(
                     ep => "      " + ToString(ep)).Aggregate((a, b) => $"{a}\n{b}"));
 
             var filtered = endpoints
@@ -1920,9 +1896,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 //
                 if (selected != null)
                 {
-                    logger.LogInformation(
-                        "{Client}: Endpoint {Endpoint} selected via reverse connect!",
-                        context, ToString(selected));
+                    logger.EndpointSelectedViaReverseConnect(ctx, ToString(selected));
                 }
                 return selected;
             }
@@ -1957,8 +1931,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }.ToString();
             }
 
-            logger.LogInformation("{Client}: Endpoint {Endpoint} selected!", context,
-                ToString(selected));
+            logger.EndpointSelected(ctx, ToString(selected));
             return selected;
 
             static string ToString(EndpointDescription ep) =>
@@ -2032,11 +2005,11 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
                             state = EndpointConnectivityState.Error;
                             break;
                     }
-                    _logger.LogDebug("{Client}: {Result} => {State}", this, sre.Result, state);
+                    OpcUaClientLogging.ServiceResultToState(_logger, sre.Result, state);
                     break;
                 default:
                     state = EndpointConnectivityState.Error;
-                    _logger.LogDebug("{Client}: {Message} => {State}", this, ex.Message, state);
+                    OpcUaClientLogging.ExceptionToState(_logger, ex.Message, state);
                     break;
             }
             return state;
@@ -2394,28 +2367,104 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
             Message = "{Client}: No UserTokenPolicy for {TokenType}/{IssuedTokenType} found on endpoint {EndpointUrl} (session: {Name}).")]
         public static partial void NoUserTokenPolicy(this ILogger logger, OpcUaClient client, UserTokenType tokenType, XmlQualifiedName issuedTokenType, Uri endpointUrl, string name);
 
-        [LoggerMessage(EventId = 28, Level = LogLevel.Error,
+        [LoggerMessage(EventId = 28, Level = LogLevel.Information,
+            Message = "{Client}: #{Attempt} - Creating session {Name} with endpoint {EndpointUrl}...")]
+        public static partial void CreatingSession(this ILogger logger, int attempt, OpcUaClient client, string name, Uri endpointUrl);
+
+        [LoggerMessage(EventId = 29, Level = LogLevel.Information,
+            Message = "{Client}: New Session {Name} created with endpoint {EndpointUrl} ({Original}).")]
+        public static partial void NewSessionCreated(this ILogger logger, OpcUaClient client, string name, Uri endpointUrl, string original);
+
+        [LoggerMessage(EventId = 30, Level = LogLevel.Information,
+            Message = "{Client} Client CONNECTED to {EndpointUrl}!")]
+        public static partial void ClientConnected(this ILogger logger, OpcUaClient client, Uri endpointUrl);
+
+        [LoggerMessage(EventId = 31, Level = LogLevel.Information,
+            Message = "#{Attempt} - {Client}: Failed to connect to {EndpointUrl}: {Message}...")]
+        public static partial void ConnectionFailed(this ILogger logger, int attempt, OpcUaClient client, Uri endpointUrl, string message);
+
+        [LoggerMessage(EventId = 32, Level = LogLevel.Error,
             Message = "{Client}: Received publish error for different session {Session}!")]
         public static partial void PublishErrorDifferentSession(this ILogger logger, OpcUaClient client, string? session);
 
-        [LoggerMessage(EventId = 29, Level = LogLevel.Information,
+        [LoggerMessage(EventId = 33, Level = LogLevel.Information,
             Message = "{Client}: Publish error: {Error}...")]
         public static partial void PublishError(this ILogger logger, OpcUaClient client, string error);
 
-        [LoggerMessage(EventId = 30, Level = LogLevel.Error,
+        [LoggerMessage(EventId = 34, Level = LogLevel.Trace,
+            Message = "{Client}: #{ThreadId} - Sending {Acks} acks and deferring {Deferrals} acks. ({Requests})")]
+        public static partial void SendingAcks(this ILogger logger, OpcUaClient client, int threadId, string acks, string deferrals, int requests);
+
+        [LoggerMessage(EventId = 35, Level = LogLevel.Error,
             Message = "{Client}: Received keep alive for different session {Session}!")]
         public static partial void KeepAliveErrorDifferentSession(this ILogger logger, OpcUaClient client, string? session);
 
-        [LoggerMessage(EventId = 31, Level = LogLevel.Error,
+        [LoggerMessage(EventId = 36, Level = LogLevel.Error,
             Message = "{Client}: Error in OnKeepAlive.")]
         public static partial void KeepAliveError(this ILogger logger, Exception ex, OpcUaClient client);
 
-        [LoggerMessage(EventId = 32, Level = LogLevel.Error,
+        [LoggerMessage(EventId = 37, Level = LogLevel.Error,
             Message = "{Client}: Error {Error} during {Action} - triggering reconnect...")]
         public static partial void TriggerReconnect(this ILogger logger, OpcUaClient client, string error, string action);
 
-        [LoggerMessage(EventId = 33, Level = LogLevel.Trace,
-            Message = "{Client}: #{ThreadId} - Sending {Acks} acks and deferring {Deferrals} acks. ({Requests})")]
-        public static partial void SendingAcks(this ILogger logger, OpcUaClient client, int threadId, string acks, string deferrals, int requests);
+        [LoggerMessage(EventId = 38, Level = LogLevel.Warning,
+            Message = "{Client}: Namespace index #{Index} changed from {OldValue} to {NewValue}")]
+        public static partial void NamespaceIndexChanged(this ILogger logger, OpcUaClient client, int index, string oldValue, string newValue);
+
+        [LoggerMessage(EventId = 39, Level = LogLevel.Warning,
+            Message = "{Client}: Namespace index #{Index} removed {OldValue}")]
+        public static partial void NamespaceIndexRemoved(this ILogger logger, OpcUaClient client, int index, string oldValue);
+
+        [LoggerMessage(EventId = 40, Level = LogLevel.Warning,
+            Message = "{Client}: Namespace index #{Index} added {NewValue}")]
+        public static partial void NamespaceIndexAdded(this ILogger logger, OpcUaClient client, int index, string newValue);
+
+        [LoggerMessage(EventId = 41, Level = LogLevel.Information,
+            Message = "Channel {Channel} got new token {TokenId} ({Created}).")]
+        public static partial void ChannelGotNewToken(this ILogger logger, string channel, string tokenId, DateTime created);
+
+        [LoggerMessage(EventId = 42, Level = LogLevel.Information,
+            Message = "Channel diagnostics for session {SessionId} updated.")]
+        public static partial void ChannelDiagnosticsUpdated(this ILogger logger, string? sessionId);
+
+        [LoggerMessage(EventId = 43, Level = LogLevel.Information,
+            Message = "{Client}: Session {Name} with {Endpoint} changed from {Previous} to {State}")]
+        public static partial void SessionStateChanged(this ILogger logger, OpcUaClient client, string name, string endpoint, EndpointConnectivityState previous, EndpointConnectivityState state);
+
+        [LoggerMessage(EventId = 44, Level = LogLevel.Error,
+            Message = "{Client}: Exception during state callback")]
+        public static partial void ExceptionDuringStateCallback(this ILogger logger, Exception ex, OpcUaClient client);
+
+        [LoggerMessage(EventId = 1782, Level = LogLevel.Debug,
+            Message = "{Client}: Error, connection to {Endpoint} - leaving state at {Previous}.")]
+        public static partial void ErrorLeavingState(this ILogger logger, OpcUaClient client, string endpoint, EndpointConnectivityState previous);
+
+        [LoggerMessage(EventId = 48, Level = LogLevel.Debug,
+            Message = "{Result} => {State}")]
+        public static partial void ServiceResultToState(this ILogger logger, ServiceResult result, EndpointConnectivityState state);
+
+        [LoggerMessage(EventId = 49, Level = LogLevel.Debug,
+            Message = "{Message} => {State}")]
+        public static partial void ExceptionToState(this ILogger logger, string message, EndpointConnectivityState state);
+
+        [LoggerMessage(EventId = 50, Level = LogLevel.Debug,
+            Message = "{Client}: Successfully closed session {Session}.")]
+        public static partial void SessionClosed(this ILogger logger, OpcUaClient client, OpcUaSession session);
+
+        [LoggerMessage(EventId = 51, Level = LogLevel.Error,
+            Message = "{Client}: Failed to close session {Session}.")]
+        public static partial void SessionCloseFailed(this ILogger logger, Exception ex, OpcUaClient client, OpcUaSession session);
+
+        [LoggerMessage(EventId = 60, Level = LogLevel.Information,
+            Message = "Discovery endpoint {DiscoveryUrl} returned endpoints. Selecting endpoint {EndpointUri} with SecurityMode {SecurityMode} and {SecurityPolicy} SecurityPolicyUri from:\n{Endpoints}")]
+        public static partial void DiscoveryEndpointReturnedEndpoints(this ILogger logger, string? context, Uri discoveryUrl, Uri endpointUri, SecurityMode securityMode, string securityPolicy, string endpoints);
+
+        [LoggerMessage(EventId = 61, Level = LogLevel.Information,
+            Message = "Endpoint {Endpoint} selected via reverse connect!")]
+        public static partial void EndpointSelectedViaReverseConnect(this ILogger logger, string? context, string endpoint);
+
+        [LoggerMessage(EventId = 62, Level = LogLevel.Information,
+            Message = "Endpoint {Endpoint} selected!")]
+        public static partial void EndpointSelected(this ILogger logger, string? context, string endpoint);
     }
 }

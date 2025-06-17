@@ -407,10 +407,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             if (Status.Error != null && StatusCode.IsNotGood(Status.Error.StatusCode))
             {
-                _logger.LogWarning("Error adding monitored item {Item} " +
-                    "to subscription #{SubscriptionId} due to {Status}.",
-                    this, subscription.Id, Status.Error);
-
+                _logger.AddMonitoredItemError(this, subscription.Id, Status.Error);
                 // Not needed, mode changes applied after
                 // applyChanges = true;
                 return false;
@@ -1110,5 +1107,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         [LoggerMessage(EventId = 21, Level = LogLevel.Debug,
             Message = "Cannot publish notification. Missing subscription for {Item}.")]
         public static partial void MissingSubscription(this ILogger logger, OpcUaMonitoredItem item);
+
+        [LoggerMessage(EventId = 22, Level = LogLevel.Warning,
+            Message = "Error adding monitored item {Item} to subscription #{SubscriptionId} due to {Status}.")]
+        internal static partial void AddMonitoredItemError(this ILogger logger, OpcUaMonitoredItem item, uint subscriptionId, ServiceResult status);
     }
 }

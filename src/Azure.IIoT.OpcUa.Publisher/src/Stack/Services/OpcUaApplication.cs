@@ -241,7 +241,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             try
             {
-                _logger.LogInformation("Add Certificate revocation list to {Store}...", store);
+                _logger.AddCrl(store.ToString());
                 await certStore.AddCRL(new X509CRL(crl)).ConfigureAwait(false);
             }
             catch (Exception ex)
@@ -361,7 +361,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 // delete all CRLs signed by cert
                 var crlsToDelete = new X509CRLCollection();
-                foreach (var crl in await certStore.EnumerateCRLs().ConfigureAwait(false))
+                foreach (var crl in await certStore.EnumerateCRLs().ConfigureAwait(false)
+                )
                 {
                     foreach (var cert in certCollection)
                     {
@@ -390,7 +391,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     if (!await certStore.DeleteCRL(crl).ConfigureAwait(false))
                     {
                         // intentionally ignore errors, try best effort
-                        _logger.LogError("Failed to delete {Crl}.", crl.ToString());
+                        _logger.DeleteCrlFailed(crl.ToString());
                     }
                 }
             }
@@ -414,7 +415,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     if (!await certStore.Delete(certs.Thumbprint).ConfigureAwait(false))
                     {
                         // intentionally ignore errors, try best effort
-                        _logger.LogError("Failed to delete {Certificate}.", certs.Thumbprint);
+                        _logger.DeleteCertificateFailed(certs.Thumbprint);
                     }
                 }
                 foreach (var crl in await certStore.EnumerateCRLs().ConfigureAwait(false))
@@ -531,9 +532,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                     else
                     {
-                        _logger.LogInformation(
-                            "Own certificate Subject '{Subject}' (Thumbprint: {Tthumbprint}) loaded.",
-                            ownCertificate.Subject, ownCertificate.Thumbprint);
+                        _logger.OwnCertificateLoaded(ownCertificate.Subject, ownCertificate.Thumbprint);
                     }
 
                     var hasAppCertificate =
@@ -651,9 +650,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _logger.TrustedIssuerCount(certs.Count);
                 foreach (var cert in certs)
                 {
-                    _logger.LogInformation(
-                        "{CertNum:D2}: Subject '{Subject}' (Thumbprint: {Thumbprint})",
-                        certNum++, cert.Subject, cert.Thumbprint);
+                    _logger.CertificateInfo(certNum++, cert.Subject, cert.Thumbprint);
                 }
                 if (certStore.SupportsCRLs)
                 {
@@ -681,9 +678,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _logger.TrustedPeerCount(certs.Count);
                 foreach (var cert in certs)
                 {
-                    _logger.LogInformation(
-                        "{CertNum:D2}: Subject '{Subject}' (Thumbprint: {Thumbprint})",
-                        certNum++, cert.Subject, cert.Thumbprint);
+                    _logger.CertificateInfo(certNum++, cert.Subject, cert.Thumbprint);
                 }
                 if (certStore.SupportsCRLs)
                 {
@@ -711,9 +706,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _logger.RejectedStoreCount(certs.Count);
                 foreach (var cert in certs)
                 {
-                    _logger.LogInformation(
-                        "{CertNum:D2}: Subject '{Subject}' (Thumbprint: {Thumbprint})",
-                        certNum++, cert.Subject, cert.Thumbprint);
+                    _logger.CertificateInfo(certNum++, cert.Subject, cert.Thumbprint);
                 }
             }
             catch (Exception e)
@@ -1118,5 +1111,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         [LoggerMessage(EventId = 38, Level = LogLevel.Warning,
             Message = "Network not available...")]
         public static partial void NetworkNotAvailable(this ILogger logger);
+
+        [LoggerMessage(EventId = 39, Level = LogLevel.Error,
+            Message = "Failed to delete {Certificate}.")]
+        public static partial void DeleteCertificateFailed(this ILogger logger, string? certificate);
     }
 }

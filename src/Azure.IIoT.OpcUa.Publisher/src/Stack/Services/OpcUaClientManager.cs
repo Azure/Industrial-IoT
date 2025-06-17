@@ -161,8 +161,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to get diagnostics for client {Name}.",
-                        kv.Value);
+                    _logger.GetDiagnosticsFailed(ex, kv.Value);
                 }
                 yield return new ConnectionDiagnosticsModel
                 {
@@ -224,7 +223,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var nextServer = queue.Dequeue();
                 discoveryUrl = nextServer.Item1;
                 var sw = Stopwatch.StartNew();
-                _logger.LogDebug("Try finding endpoints at {DiscoveryUrl}...", discoveryUrl);
+                _logger.FindingEndpoints(discoveryUrl);
                 try
                 {
                     await Retry.Do(_logger, ct, () => DiscoverAsync(discoveryUrl,
@@ -235,16 +234,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogDebug(ex, "Exception occurred during FindEndpoints at {DiscoveryUrl}.",
-                        discoveryUrl);
-                    _logger.LogError("Could not find endpoints at {DiscoveryUrl} " +
-                        "due to {Error} (after {Elapsed}).",
-                        discoveryUrl, ex.Message, sw.Elapsed);
+                    _logger.FindEndpointsException(ex, discoveryUrl);
+                    _logger.FindEndpointsFailed(discoveryUrl, ex.Message, sw.Elapsed);
                     return new HashSet<DiscoveredEndpointModel>();
                 }
                 ct.ThrowIfCancellationRequested();
-                _logger.LogDebug("Finding endpoints at {DiscoveryUrl} completed in {Elapsed}.",
-                    discoveryUrl, sw.Elapsed);
+                _logger.FindingEndpointsCompleted(discoveryUrl, sw.Elapsed);
             }
             return results;
         }
@@ -270,10 +265,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var ep = endpoints.Endpoints?.FirstOrDefault(e => e.IsSameAs(endpoint));
             if (ep == null)
             {
-                _logger.LogDebug("No endpoints at {DiscoveryUrl}...", discoveryUrl);
+                _logger.NoEndpoints(discoveryUrl);
                 throw new ResourceNotFoundException("Endpoint not found");
             }
-            _logger.LogDebug("Found endpoint at {DiscoveryUrl}...", discoveryUrl);
+            _logger.FoundEndpoint(discoveryUrl);
             return ep.ServerCertificate.ToCertificateChain();
         }
 
@@ -363,7 +358,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             _disposed = true;
 
-            _logger.LogInformation("Stopping all {Count} clients...", _clients.Count);
+            _logger.StoppingAllClients(_clients.Count);
             foreach (var client in _clients)
             {
                 try
@@ -373,12 +368,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 catch (OperationCanceledException) { }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Unexpected exception disposing client {Name}",
-                        client.Key);
+                    _logger.DisposeClientFailed(ex, client.Key);
                 }
             }
             _clients.Clear();
-            _logger.LogInformation("Stopped all clients, current number of clients is 0");
+            _logger.StoppedAllClients();
         }
 
         /// <summary>
@@ -405,10 +399,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 client.Endpoint.EndpointUrl, localeIds, null).ConfigureAwait(false);
             if (!(endpoints?.Endpoints?.Any() ?? false))
             {
-                _logger.LogDebug("No endpoints at {DiscoveryUrl}...", discoveryUrl);
+                _logger.NoEndpoints(discoveryUrl);
                 return;
             }
-            _logger.LogDebug("Found endpoints at {DiscoveryUrl}...", discoveryUrl);
+            _logger.FoundEndpoints(discoveryUrl);
 
             foreach (var ep in endpoints.Endpoints.Where(ep =>
                 ep.Server.ApplicationType != Opc.Ua.ApplicationType.DiscoveryServer))
@@ -446,8 +440,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             catch
             {
                 // Old lds, just continue...
-                _logger.LogDebug("{DiscoveryUrl} does not support ME extension...",
-                    discoveryUrl);
+                _logger.ExtensionNotSupported(discoveryUrl);
             }
 
             //
@@ -533,10 +526,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 if (_configuration.Value.SecurityConfiguration.AutoAcceptUntrustedCertificates)
                 {
-                    _logger.LogWarning(
-                        "Accepting untrusted peer certificate {Thumbprint}, '{Subject}' " +
-                        "due to AutoAccept(UntrustedCertificates) set!",
-                        e.Certificate.Thumbprint, e.Certificate.Subject);
+                    _logger.AcceptingUntrustedCert(e.Certificate.Thumbprint, e.Certificate.Subject);
                     e.AcceptAll = true;
                     e.Accept = true;
                 }
@@ -549,10 +539,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     e.Accept = true;
 
-                    _logger.LogInformation(
-                        "Accepting untrusted peer certificate {Thumbprint}, '{Subject}' " +
-                        "since the same thumbprint was specified in the connection!",
-                        e.Certificate.Thumbprint, e.Certificate.Subject);
+                    _logger.AcceptingUntrustedCertByThumbprint(e.Certificate.Thumbprint, e.Certificate.Subject);
 
                     // add the certificate to trusted store
                     _configuration.Value.SecurityConfiguration
@@ -574,17 +561,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogWarning(ex,
-                            "Failed to add peer certificate {Thumbprint}, '{Subject}' " +
-                            "to trusted store", e.Certificate.Thumbprint, e.Certificate.Subject);
+                        _logger.AddPeerCertToTrustedStoreFailed(ex, e.Certificate.Thumbprint, e.Certificate.Subject);
                     }
                 }
             }
             if (!e.Accept)
             {
-                _logger.LogInformation("Rejecting peer certificate {Thumbprint}, '{Subject}' " +
-                    "because of {Status}.", e.Certificate.Thumbprint, e.Certificate.Subject,
-                    e.Error.StatusCode);
+                _logger.RejectingPeerCert(e.Certificate.Thumbprint, e.Certificate.Subject, e.Error.StatusCode);
             }
         }
 
@@ -611,7 +594,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _loggerFactory, _timeProvider, _meter, _metrics, OnConnectionStateChange,
                     reverseConnect ? _reverseConnectManager : null,
                     OnClientConnectionDiagnosticChange, _clientOptions, _subscriptionOptions);
-                _logger.LogInformation("{Client}: Created new client.", client);
+                _logger.CreatedNewClient(client);
                 return client;
             });
 
@@ -686,5 +669,79 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly ConcurrentDictionary<ConnectionIdentifier, OpcUaClient> _clients = new();
         private readonly IMetricsContext _metrics;
         private readonly Meter _meter = Diagnostics.NewMeter();
+    }
+
+    /// <summary>
+    /// Source-generated logging definitions for OpcUaClientManager
+    /// </summary>
+    internal static partial class OpcUaClientManagerLogging
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Error,
+            Message = "Failed to get diagnostics for client {Client}.")]
+        public static partial void GetDiagnosticsFailed(this ILogger logger, Exception ex, OpcUaClient client);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Debug,
+            Message = "Try finding endpoints at {DiscoveryUrl}...")]
+        public static partial void FindingEndpoints(this ILogger logger, Uri discoveryUrl);
+
+        [LoggerMessage(EventId = 3, Level = LogLevel.Debug,
+            Message = "Exception occurred during FindEndpoints at {DiscoveryUrl}.")]
+        public static partial void FindEndpointsException(this ILogger logger, Exception ex, Uri discoveryUrl);
+
+        [LoggerMessage(EventId = 4, Level = LogLevel.Error,
+            Message = "Could not find endpoints at {DiscoveryUrl} due to {Error} (after {Elapsed}).")]
+        public static partial void FindEndpointsFailed(this ILogger logger, Uri discoveryUrl, string error, TimeSpan elapsed);
+
+        [LoggerMessage(EventId = 5, Level = LogLevel.Debug,
+            Message = "Finding endpoints at {DiscoveryUrl} completed in {Elapsed}.")]
+        public static partial void FindingEndpointsCompleted(this ILogger logger, Uri discoveryUrl, TimeSpan elapsed);
+
+        [LoggerMessage(EventId = 6, Level = LogLevel.Debug,
+            Message = "No endpoints at {DiscoveryUrl}...")]
+        public static partial void NoEndpoints(this ILogger logger, Uri discoveryUrl);
+
+        [LoggerMessage(EventId = 7, Level = LogLevel.Debug,
+            Message = "Found endpoint at {DiscoveryUrl}...")]
+        public static partial void FoundEndpoint(this ILogger logger, Uri discoveryUrl);
+
+        [LoggerMessage(EventId = 8, Level = LogLevel.Debug,
+            Message = "Found endpoints at {DiscoveryUrl}...")]
+        public static partial void FoundEndpoints(this ILogger logger, Uri discoveryUrl);
+
+        [LoggerMessage(EventId = 9, Level = LogLevel.Debug,
+            Message = "{DiscoveryUrl} does not support ME extension...")]
+        public static partial void ExtensionNotSupported(this ILogger logger, Uri discoveryUrl);
+
+        [LoggerMessage(EventId = 10, Level = LogLevel.Information,
+            Message = "Stopping all {Count} clients...")]
+        public static partial void StoppingAllClients(this ILogger logger, int count);
+
+        [LoggerMessage(EventId = 11, Level = LogLevel.Error,
+            Message = "Unexpected exception disposing client {Client}")]
+        public static partial void DisposeClientFailed(this ILogger logger, Exception ex, ConnectionIdentifier client);
+
+        [LoggerMessage(EventId = 12, Level = LogLevel.Information,
+            Message = "Stopped all clients, current number of clients is 0")]
+        public static partial void StoppedAllClients(this ILogger logger);
+
+        [LoggerMessage(EventId = 13, Level = LogLevel.Warning,
+            Message = "Accepting untrusted peer certificate {Thumbprint}, '{Subject}' due to AutoAccept(UntrustedCertificates) set!")]
+        public static partial void AcceptingUntrustedCert(this ILogger logger, string thumbprint, string subject);
+
+        [LoggerMessage(EventId = 14, Level = LogLevel.Information,
+            Message = "Accepting untrusted peer certificate {Thumbprint}, '{Subject}' since the same thumbprint was specified in the connection!")]
+        public static partial void AcceptingUntrustedCertByThumbprint(this ILogger logger, string thumbprint, string subject);
+
+        [LoggerMessage(EventId = 15, Level = LogLevel.Error,
+            Message = "Failed to add peer certificate {Thumbprint}, '{Subject}' to trusted store")]
+        public static partial void AddPeerCertToTrustedStoreFailed(this ILogger logger, Exception ex, string thumbprint, string subject);
+
+        [LoggerMessage(EventId = 16, Level = LogLevel.Information,
+            Message = "Rejecting peer certificate {Thumbprint}, '{Subject}' because of {Status}.")]
+        public static partial void RejectingPeerCert(this ILogger logger, string thumbprint, string subject, StatusCode status);
+
+        [LoggerMessage(EventId = 17, Level = LogLevel.Information,
+            Message = "{Client}: Created new client.")]
+        public static partial void CreatedNewClient(this ILogger logger, OpcUaClient client);
     }
 }

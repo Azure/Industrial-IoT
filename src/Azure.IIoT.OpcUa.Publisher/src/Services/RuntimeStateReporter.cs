@@ -307,18 +307,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         Certificate.Dispose();
                         Certificate = null;
-                        _logger.LogWarning(
-                            "Failed to get certificate with private key using workload API.");
+                        RuntimeStateReporterLogging.FailedToGetCertificateWithPrivateKey(_logger);
                     }
                     else
                     {
-                        _logger.UsingWorkloadApiCertificate();
+                        RuntimeStateReporterLogging.UsingWorkloadApiCertificate(_logger);
                     }
                 }
                 catch (NotSupportedException nse)
                 {
-                    _logger.LogWarning("Not supported: {Message}. " +
-                        "Unable to use workload API to obtain the certificate!", nse.Message);
+                    RuntimeStateReporterLogging.WorkloadApiNotSupported(_logger, nse.Message);
                 }
                 catch (Exception ex)
                 {
@@ -825,5 +823,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         [LoggerMessage(EventId = 17, Level = LogLevel.Error,
             Message = "Failed sending Diagnostics event through {Transport}.")]
         public static partial void DiagnosticsSendFailed(this ILogger logger, Exception ex, string transport);
+
+        [LoggerMessage(EventId = 18, Level = LogLevel.Warning,
+            Message = "Failed to get certificate with private key using workload API.")]
+        public static partial void FailedToGetCertificateWithPrivateKey(this ILogger logger);
+
+        [LoggerMessage(EventId = 19, Level = LogLevel.Warning,
+            Message = "Not supported: {Message}. Unable to use workload API to obtain the certificate!")]
+        public static partial void WorkloadApiNotSupported(this ILogger logger, string message);
     }
 }
