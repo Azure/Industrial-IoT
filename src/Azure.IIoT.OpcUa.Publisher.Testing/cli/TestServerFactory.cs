@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
     using Opc.Ua.Test;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
@@ -276,7 +277,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
             protected override MasterNodeManager CreateMasterNodeManager(
                 IServerInternal server, ApplicationConfiguration configuration)
             {
-                _logger.LogInformation("Creating the Node Managers.");
+                _logger.CreatingNodeManagers();
                 var nodeManagers = _nodes
                     .Select(n => n.Create(server, configuration));
                 return new MasterNodeManager(server, configuration, null,
@@ -286,7 +287,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
             /// <inheritdoc/>
             protected override void OnServerStopping()
             {
-                _logger.LogDebug("The server is stopping.");
+                _logger.ServerStopping();
                 base.OnServerStopping();
                 _cts.Cancel();
                 _statusLogger?.Wait();
@@ -314,7 +315,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
             /// <inheritdoc/>
             protected override void OnServerStarting(ApplicationConfiguration configuration)
             {
-                _logger.LogDebug("The server is starting.");
+                _logger.ServerStarting();
                 CreateUserIdentityValidators(configuration);
                 base.OnServerStarting(configuration);
             }
@@ -322,7 +323,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
             /// <inheritdoc/>
             protected override void OnNodeManagerStarted(IServerInternal server)
             {
-                _logger.LogInformation("The NodeManagers have started.");
+                _logger.NodeManagersStarted();
                 base.OnNodeManagerStarted(server);
             }
 
@@ -388,7 +389,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                         }
                         item += $":{session.Id}";
                     }
-                    _logger.LogInformation("{Log}", item);
+                    _logger.ItemStatus(item);
                 }
             }
 
@@ -642,5 +643,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
 
         private readonly ILogger _logger;
         private readonly IEnumerable<INodeManagerFactory> _nodes;
+    }
+
+    /// <summary>
+    /// Source-generated logging definitions for TestServer
+    /// </summary>
+    internal static partial class TestServerLogging
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Information,
+            Message = "Creating the Node Managers.")]
+        public static partial void CreatingNodeManagers(this ILogger logger);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Debug,
+            Message = "The server is stopping.")]
+        public static partial void ServerStopping(this ILogger logger);
+
+        [LoggerMessage(EventId = 3, Level = LogLevel.Debug,
+            Message = "The server is starting.")]
+        public static partial void ServerStarting(this ILogger logger);
+
+        [LoggerMessage(EventId = 4, Level = LogLevel.Information,
+            Message = "The NodeManagers have started.")]
+        public static partial void NodeManagersStarted(this ILogger logger);
+
+        [LoggerMessage(EventId = 5, Level = LogLevel.Information,
+            Message = "{Log}")]
+        public static partial void ItemStatus(this ILogger logger, string log);
     }
 }
