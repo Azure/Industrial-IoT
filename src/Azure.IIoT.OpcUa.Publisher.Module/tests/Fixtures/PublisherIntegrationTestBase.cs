@@ -71,8 +71,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 
                 if (_cts.IsCancellationRequested)
                 {
-                    _logger.LogError(
-                        "OperationCanceledException thrown due to test time out.");
+                    _logger.TestTimeout();
                 }
 
                 if (_publisher != null)
@@ -258,8 +257,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 }
             }
             catch (OperationCanceledException) { }
-            _logger.LogInformation("Received {MessageCount} messages in {Elapsed}.",
-                messages.Count, stopWatch.Elapsed);
+            _logger.MessagesReceived(messages.Count, stopWatch.Elapsed);
             return (metadata, messages.Take(messageCount).ToList());
 
             static void Add(List<JsonMessage> messages, JsonElement item, ref JsonMessage? metadata,
@@ -351,7 +349,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 
             _publisher = new PublisherModule(null, null, null, null,
                 _testOutputHelper, arguments, version, keepAliveInterval);
-            _logger.LogInformation("Publisher started in {Elapsed}.", sw.Elapsed);
+            _logger.PublisherStarted(sw.Elapsed);
         }
 
         /// <summary>
@@ -396,7 +394,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 {
                     File.Delete(_publishedNodesFilePath);
                 }
-                _logger.LogInformation("Publisher stopped in {Elapsed}.", sw.Elapsed);
+                _logger.PublisherStopped(sw.Elapsed);
             }
         }
 
@@ -430,5 +428,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         private PublisherModule _publisher;
         private string _publishedNodesFilePath;
         private bool _disposedValue;
+    }
+
+    /// <summary>
+    /// Source-generated logging definitions for PublisherIntegrationTestBase
+    /// </summary>
+    internal static partial class PublisherIntegrationTestLogging
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Error,
+            Message = "OperationCanceledException thrown due to test time out.")]
+        public static partial void TestTimeout(this ILogger logger);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Information,
+            Message = "Received {MessageCount} messages in {Elapsed}.")]
+        public static partial void MessagesReceived(this ILogger logger, int messageCount, TimeSpan elapsed);
+
+        [LoggerMessage(EventId = 3, Level = LogLevel.Information,
+            Message = "Publisher started in {Elapsed}.")]
+        public static partial void PublisherStarted(this ILogger logger, TimeSpan elapsed);
+
+        [LoggerMessage(EventId = 4, Level = LogLevel.Information,
+            Message = "Publisher stopped in {Elapsed}.")]
+        public static partial void PublisherStopped(this ILogger logger, TimeSpan elapsed);
     }
 }

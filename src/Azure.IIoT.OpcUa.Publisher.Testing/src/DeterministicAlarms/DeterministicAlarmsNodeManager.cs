@@ -87,8 +87,8 @@ namespace DeterministicAlarms
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Can't read or decode configuration.");
-                _logger.LogError("{Configuration}", _configurationJson);
+                _logger.ConfigurationError(ex);
+                _logger.PrintConfiguration(_configurationJson);
             }
         }
 
@@ -153,12 +153,12 @@ namespace DeterministicAlarms
             try
             {
                 VerifyScriptConfiguration(scriptConfiguration);
-                _logger.LogInformation("Script starts executing");
+                _logger.ScriptStarting();
                 var scriptEngine = new ScriptEngine(scriptConfiguration.Script, OnScriptStepAvailable, _timeService);
             }
             catch (ScriptException ex)
             {
-                _logger.LogError(ex, "Script Engine Exception\nSCRIPT WILL NOT START");
+                _logger.ScriptEngineError(ex);
                 throw;
             }
         }
@@ -172,7 +172,7 @@ namespace DeterministicAlarms
         {
             if (step == null)
             {
-                _logger.LogInformation("SCRIPT ENDED");
+                _logger.ScriptEnded();
             }
             else
             {
@@ -237,18 +237,16 @@ namespace DeterministicAlarms
         {
             if (step.Event != null)
             {
-                _logger.LogInformation("({LoopNumber}) -\t{AlarmId}\t{Reason}",
-                    loopNumber, step.Event.AlarmId, step.Event.Reason);
+                _logger.AlarmEvent(loopNumber, step.Event.AlarmId, step.Event.Reason);
                 foreach (var sc in step.Event.StateChanges)
                 {
-                    _logger.LogInformation("\t\t{StateType} - {State}", sc.StateType, sc.State);
+                    _logger.StateChange(sc.StateType, sc.State);
                 }
             }
 
             if (step.SleepInSeconds > 0)
             {
-                _logger.LogInformation("({LoopNumber}) -\tSleep: {SleepInSeconds}",
-                    loopNumber, step.SleepInSeconds);
+                _logger.SleepEvent(loopNumber, step.SleepInSeconds);
             }
         }
 
@@ -696,5 +694,43 @@ namespace DeterministicAlarms
         {
             return [];
         }
+    }
+
+    /// <summary>
+    /// Source-generated logging definitions for DeterministicAlarmsNodeManager
+    /// </summary>
+    internal static partial class DeterministicAlarmsNodeManagerLogging
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Error,
+            Message = "Can't read or decode configuration.")]
+        public static partial void ConfigurationError(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Error,
+            Message = "{Configuration}")]
+        public static partial void PrintConfiguration(this ILogger logger, string configuration);
+
+        [LoggerMessage(EventId = 3, Level = LogLevel.Information,
+            Message = "Script starts executing")]
+        public static partial void ScriptStarting(this ILogger logger);
+
+        [LoggerMessage(EventId = 4, Level = LogLevel.Error,
+            Message = "Script Engine Exception\nSCRIPT WILL NOT START")]
+        public static partial void ScriptEngineError(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = 5, Level = LogLevel.Information,
+            Message = "SCRIPT ENDED")]
+        public static partial void ScriptEnded(this ILogger logger);
+
+        [LoggerMessage(EventId = 6, Level = LogLevel.Information,
+            Message = "({LoopNumber}) -\t{AlarmId}\t{Reason}")]
+        public static partial void AlarmEvent(this ILogger logger, long loopNumber, string alarmId, string reason);
+
+        [LoggerMessage(EventId = 7, Level = LogLevel.Information,
+            Message = "\t\t{StateType} - {State}")]
+        public static partial void StateChange(this ILogger logger, ConditionStates stateType, bool state);
+
+        [LoggerMessage(EventId = 8, Level = LogLevel.Information,
+            Message = "({LoopNumber}) -\tSleep: {SleepInSeconds}")]
+        public static partial void SleepEvent(this ILogger logger, long loopNumber, double sleepInSeconds);
     }
 }

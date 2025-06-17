@@ -155,8 +155,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Error getting endpoint for probe {Index}",
-                            _index);
+                        _logger.EndpointError(ex, _index);
                         exit = true;
                         break;
                     }
@@ -164,7 +163,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
                     if (_arg?.IsRunning == true)
                     {
                         // Reset args since it is in running state and cannot be used...
-                        _logger.LogTrace("Disposing args in running state.");
+                        _logger.DisposingArgs();
                         DisposeArgsNoLock();
                     }
 
@@ -203,16 +202,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
                             }
                             else
                             {
-                                _logger.LogError(sex, "{Code} in connect of probe {Index}...",
-                                    sex.SocketErrorCode, _index);
+                                _logger.ConnectError(sex, sex.SocketErrorCode, _index);
                             }
                         }
                         catch (Exception ex)
                         {
                             // Unexpected - shut probe down
-                            _logger.LogError(ex,
-                                "Probe {Index} has unexpected exception during connect.",
-                                _index);
+                            _logger.UnexpectedError(ex, _index);
                             exit = true;
                             break;
                         }
@@ -389,8 +385,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
                 }
                 catch (Exception ex)
                 {
-                    _outer._logger.LogDebug(ex, "Error during completion of probe {Index}",
-                        _outer._index);
+                    _outer._logger.CompletionError(ex, _outer._index);
                 }
                 finally
                 {
@@ -516,8 +511,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
                             _arg.SocketError = SocketError.TimedOut;
                             return;
                         case State.Probe:
-                            _outer._logger.LogDebug("Probe {Index} {RemoteEp} timed out...",
-                                _outer._index, _arg.RemoteEndPoint);
+                            _outer._logger.ProbeTimeout(_outer._index, _arg.RemoteEndPoint?.ToString());
                             _arg.SocketError = SocketError.TimedOut;
                             _state = State.Timeout;
                             if (_outer._probe.Reset())
@@ -530,9 +524,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
                             // Since connect socket is connected, go to begin state
                             // This will close the socket and reconnect a new one.
                             //
-                            _outer._logger.LogInformation(
-                                "Probe {Index} not cancelled - try restart...",
-                                _outer._index);
+                            _outer._logger.ProbeRestart(_outer._index);
                             _state = State.Begin;
                             _outer.OnBegin();
                             return;
@@ -540,8 +532,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
                 }
                 catch (Exception ex)
                 {
-                    _outer._logger.LogDebug(ex,
-                        "Error during timeout of probe {Index}", _outer._index);
+                    _outer._logger.TimeoutError(ex, _outer._index);
                 }
                 finally
                 {
@@ -565,5 +556,43 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
         private readonly TimeProvider _timeProvider;
         private AsyncConnect? _arg;
         private bool _disposedValue;
+    }
+
+    /// <summary>
+    /// Source-generated logging definitions for BaseConnectProbe
+    /// </summary>
+    internal static partial class BaseConnectProbeLogging
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Error,
+            Message = "Error getting endpoint for probe {Index}")]
+        public static partial void EndpointError(this ILogger logger, Exception ex, int index);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Trace,
+            Message = "Disposing args in running state.")]
+        public static partial void DisposingArgs(this ILogger logger);
+
+        [LoggerMessage(EventId = 3, Level = LogLevel.Error,
+            Message = "{Code} in connect of probe {Index}...")]
+        public static partial void ConnectError(this ILogger logger, Exception ex, SocketError code, int index);
+
+        [LoggerMessage(EventId = 4, Level = LogLevel.Error,
+            Message = "Probe {Index} has unexpected exception during connect.")]
+        public static partial void UnexpectedError(this ILogger logger, Exception ex, int index);
+
+        [LoggerMessage(EventId = 5, Level = LogLevel.Debug,
+            Message = "Error during completion of probe {Index}")]
+        public static partial void CompletionError(this ILogger logger, Exception ex, int index);
+
+        [LoggerMessage(EventId = 6, Level = LogLevel.Debug,
+            Message = "Probe {Index} {RemoteEp} timed out...")]
+        public static partial void ProbeTimeout(this ILogger logger, int index, string? remoteEp);
+
+        [LoggerMessage(EventId = 7, Level = LogLevel.Information,
+            Message = "Probe {Index} not cancelled - try restart...")]
+        public static partial void ProbeRestart(this ILogger logger, int index);
+
+        [LoggerMessage(EventId = 8, Level = LogLevel.Debug,
+            Message = "Error during timeout of probe {Index}")]
+        public static partial void TimeoutError(this ILogger logger, Exception ex, int index);
     }
 }

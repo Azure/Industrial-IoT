@@ -221,9 +221,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 _encoder.WriteFixed(_syncMarker);
                 _encoder.Flush();
 
-                _logger.LogInformation(
-                    "{BlockCount} blocks ({Size} bytes) written to {FileName}...",
-                    _blockCount, _compressedBlockStream.Length, _fileName);
+                _logger.BlocksWritten(_blockCount, _compressedBlockStream.Length, _fileName);
 
                 // reset / re-init block
                 _blockCount = 0;
@@ -282,4 +280,16 @@ namespace Azure.IIoT.OpcUa.Encoders
         private readonly IOptions<AvroFileWriterOptions> _options;
         private readonly ILogger _logger;
     }
+
+    /// <summary>
+    /// Source-generated logging definitions for AvroFileWriter
+    /// </summary>
+    internal static partial class AvroFileWriterLogging
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Information,
+            Message = "{BlockCount} blocks ({Size} bytes) written to {FileName}...")]
+        public static partial void BlocksWritten(this ILogger logger, int blockCount,
+            long size, string fileName);
+    }
+
 }

@@ -324,7 +324,7 @@ namespace Asset
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error");
+                _logger.FileManagerError(ex);
             }
         }
 
@@ -360,5 +360,15 @@ namespace Asset
         private readonly Dictionary<uint, Handle> _handles = [];
         private bool _writing;
         private uint _nextHandle = 1u;
+    }
+
+    /// <summary>
+    /// Source-generated logging definitions for FileManager
+    /// </summary>
+    internal static partial class FileManagerLogging
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Error,
+            Message = "Error")]
+        public static partial void FileManagerError(this ILogger logger, Exception ex);
     }
 }

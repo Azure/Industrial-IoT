@@ -42,9 +42,9 @@ namespace Plc.PluginNodes
 
             if (count > 0)
             {
-                _logger.LogInformation("Creating {Count} {Name} nodes of type: {Type}", count, name, type);
-                _logger.LogInformation("Node values will change every {Rate} ms", nodeRate);
-                _logger.LogInformation("Node values sampling rate is {NodeSamplingInterval} ms", nodeSamplingInterval);
+                _logger.CreatingNodes(count, name, type);
+                _logger.NodeChangeRate(nodeRate);
+                _logger.SamplingRate(nodeSamplingInterval);
             }
 
             for (var i = 0; i < count; i++)
@@ -146,7 +146,7 @@ namespace Plc.PluginNodes
         {
             if (nodes == null || nodes.Length == 0)
             {
-                _logger.LogWarning("Invalid argument {Argument} provided.", nodes);
+                _logger.InvalidArgument(nodes);
                 return;
             }
 
@@ -347,5 +347,27 @@ namespace Plc.PluginNodes
         private BaseDataVariableState _numberOfUpdates;
         private uint _badNodesCycle;
         private const string kNumberOfUpdates = "NumberOfUpdates";
+    }
+
+    /// <summary>
+    /// Source-generated logging definitions for SlowFastCommon
+    /// </summary>
+    internal static partial class SlowFastCommonLogging
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Information,
+            Message = "Creating {Count} {Name} nodes of type: {Type}")]
+        public static partial void CreatingNodes(this ILogger logger, uint count, string name, NodeType type);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Information,
+            Message = "Node values will change every {Rate} ms")]
+        public static partial void NodeChangeRate(this ILogger logger, uint rate);
+
+        [LoggerMessage(EventId = 3, Level = LogLevel.Information,
+            Message = "Node values sampling rate is {NodeSamplingInterval} ms")]
+        public static partial void SamplingRate(this ILogger logger, uint nodeSamplingInterval);
+
+        [LoggerMessage(EventId = 4, Level = LogLevel.Warning,
+            Message = "Invalid argument {Argument} provided.")]
+        public static partial void InvalidArgument(this ILogger logger, object argument);
     }
 }

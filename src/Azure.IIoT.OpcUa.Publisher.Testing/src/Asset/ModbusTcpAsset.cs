@@ -247,7 +247,7 @@ namespace Asset
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error");
+                _logger.ModbusTcpAssetError(ex);
                 Reconnect();
                 throw;
             }
@@ -311,7 +311,7 @@ namespace Asset
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error");
+                _logger.ModbusTcpAssetError(ex);
                 Reconnect();
                 throw;
             }
@@ -349,5 +349,15 @@ namespace Asset
         private TcpClient? _tcpClient;
         private PipeReader? _reader;
         private PipeWriter? _writer;
+    }
+
+    /// <summary>
+    /// Source-generated logging definitions for ModbusTcpAsset
+    /// </summary>
+    internal static partial class ModbusTcpAssetLogging
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Error,
+            Message = "Error")]
+        public static partial void ModbusTcpAssetError(this ILogger logger, Exception ex);
     }
 }
