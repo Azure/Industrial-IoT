@@ -5,10 +5,10 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
+    using Azure.IIoT.OpcUa.Encoders.PubSub;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Azure.IIoT.OpcUa.Publisher.Models;
-    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Furly.Extensions.Utils;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
@@ -26,6 +26,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using static Azure.IIoT.OpcUa.Publisher.Stack.Services.OpcUaMonitoredItem;
 
     /// <summary>
     /// Subscription implementation
@@ -1008,9 +1009,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (results.ErrorInfo != null)
                 {
                     // Could not do anything...
-                    _logger.LogWarning(
-                        "Failed to resolve browse path in {Subscription} due to {ErrorInfo}...",
-                        this, results.ErrorInfo);
+                    _logger.BrowsePathResolveFailed(this, results.ErrorInfo);
                     throw ServiceResultException.Create(results.ErrorInfo.StatusCode,
                         results.ErrorInfo.ErrorMessage ?? "Failed to resolve browse paths");
                 }
@@ -1026,9 +1025,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                     else
                     {
-                        _logger.LogWarning("Failed to resolve browse path for {NodeId} " +
-                            "in {Subscription} due to '{ServiceResult}'",
-                            result.Request!.Value.NodeId, this, result.ErrorInfo);
+                        _logger.BrowsePathForNodeResolveFailed(result.Request!.Value.NodeId, this, result.ErrorInfo);
                         errorsDuringSync++;
                     }
                 }
@@ -1055,9 +1052,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         getPath[index]!.Value.Update(paths[index].Path, session.MessageContext);
                         if (paths[index].ErrorInfo != null)
                         {
-                            _logger.LogWarning("Failed to get root path for {NodeId} " +
-                                "in {Subscription} due to '{ServiceResult}'",
-                                getPath[index]!.Value.NodeId, this, paths[index].ErrorInfo);
+                            _logger.RootPathResolveFailed(getPath[index]!.Value.NodeId, this, paths[index].ErrorInfo);
                         }
                         else
                         {
@@ -1128,9 +1123,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex,
-                        "Failed to update monitored item '{Item}' in {Subscription}...",
-                        toUpdate, this);
+                    _logger.MonitoredItemUpdateFailed(ex, toUpdate, this);
                     errorsDuringSync++;
                 }
                 finally
@@ -1158,9 +1151,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex,
-                        "Failed to remove monitored item '{Item}' from {Subscription}...",
-                        toRemove, this);
+                    _logger.MonitoredItemRemoveFailed(ex, toRemove, this);
                     errorsDuringSync++;
                 }
             }
@@ -1190,9 +1181,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex,
-                        "Failed to add monitored item '{Item}' to {Subscription}...",
-                        toAdd, this);
+                    _logger.MonitoredItemAddFailed(ex, toAdd, this);
                     errorsDuringSync++;
                 }
             }
@@ -1254,9 +1243,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                     if (results.ErrorInfo != null)
                     {
-                        _logger.LogWarning(
-                            "Failed to resolve display name in {Subscription} due to {ErrorInfo}...",
-                            this, results.ErrorInfo);
+                        _logger.DisplayNameResolveFailed(this, results.ErrorInfo);
 
                         // We will retry later.
                         errorsDuringSync++;
@@ -1274,10 +1261,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             }
                             else
                             {
-                                _logger.LogWarning("Failed to read display name for {NodeId} " +
-                                    "in {Subscription} due to '{ServiceResult}'",
-                                    result.Request.GetDisplayName!.Value.NodeId, this,
-                                    result.ErrorInfo);
+                                _logger.DisplayNameReadFailed(result.Request.GetDisplayName!.Value.NodeId, this, result.ErrorInfo);
                             }
                             result.Request.GetDisplayName!.Value.Update(
                                 displayName ?? string.Empty);
@@ -1351,16 +1335,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         // Check the number of erroneous results and log.
                         if (erroneousResultsCount > 0)
                         {
-                            _logger.LogWarning(
-                                "Failed to set monitoring for {Count} items in subscription {Subscription}.",
-                                erroneousResultsCount, this);
+                            _logger.MonitoringSetFailed(erroneousResultsCount, this);
                             for (var i = 0; i < results.Count && i < itemsToChange.Count; ++i)
                             {
                                 if (StatusCode.IsNotGood(results[i].StatusCode))
                                 {
-                                    _logger.LogWarning("Set monitoring for item '{Item}' in "
-                                        + "subscription {Subscription} failed with '{Status}'.",
-                                        itemsToChange[i].StartNodeId, this, results[i].StatusCode);
+                                    _logger.MonitoringSetFailedForItem(itemsToChange[i].StartNodeId, this, results[i].StatusCode);
                                 }
                             }
                             // Retry later
@@ -1775,24 +1755,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             if (notification?.Events == null)
             {
-                _logger.LogWarning(
-                    "EventChange for subscription {Subscription} has empty notification.", this);
+                _logger.EmptyEventNotification(this);
                 return;
             }
 
             if (notification.Events.Count == 0)
             {
-                _logger.LogWarning(
-                    "EventChange for subscription {Subscription} has no events.", this);
+                _logger.NoEventsInNotification(this);
                 return;
             }
 
             var session = Session;
             if (session is not IOpcUaSession sessionContext)
             {
-                _logger.LogWarning(
-                    "EventChange for subscription {Subscription} received without a session {Session}.",
-                    this, session);
+                _logger.EventChangeWithoutSession(this, session?.ToString());
                 return;
             }
 
@@ -1814,12 +1790,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 else if (!Opc.Ua.SequenceNumber.Validate(sequenceNumber, ref _previousSequenceNumber,
                     out var missingSequenceNumbers, out var dropped))
                 {
-                    _logger.LogWarning("Event subscription notification for subscription " +
-                        "{Subscription} has unexpected sequenceNumber {SequenceNumber} missing " +
-                        "{ExpectedSequenceNumber} which were {Dropped}, publishTime {PublishTime}",
-                        this, sequenceNumber,
-                        Opc.Ua.SequenceNumber.ToString(missingSequenceNumbers), dropped ?
-                            "dropped" : "already received", publishTime);
+                    _logger.UnexpectedEventSequenceNumber(this, sequenceNumber,
+                        Opc.Ua.SequenceNumber.ToString(missingSequenceNumbers),
+                        dropped ? "dropped" : "already received", publishTime);
                 }
 
                 var overflows = 0;
@@ -1874,14 +1847,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (Exception e)
             {
-                _logger.LogWarning(e, "Exception processing subscription notification");
+                _logger.EventProcessingError(e);
             }
             finally
             {
                 _logger.EventCallbackDuration(sw.Elapsed);
                 if (sw.ElapsedMilliseconds > 1000)
                 {
-                    _logger.LogWarning("Spent more than 1 second in fast event callback.");
+                    _logger.SlowEventCallback();
                 }
             }
         }
@@ -1909,9 +1882,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var session = Session;
             if (session is not IOpcUaSession)
             {
-                _logger.LogWarning(
-                    "Keep alive event for subscription {Subscription} received without session {Session}.",
-                    this, session);
+                _logger.KeepAliveWithoutSession(this, session?.ToString());
                 return;
             }
 
@@ -1946,14 +1917,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (Exception e)
             {
-                _logger.LogWarning(e, "Exception processing keep alive notification");
+                _logger.KeepAliveProcessingError(e);
             }
             finally
             {
                 _logger.KeepAliveDuration(sw.Elapsed);
                 if (sw.ElapsedMilliseconds > 1000)
                 {
-                    _logger.LogWarning("Spent more than 1 second in fast keep alive callback.");
+                    _logger.SlowKeepAliveCallback();
                 }
             }
         }
@@ -1973,9 +1944,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var session = Session;
             if (session is not IOpcUaSession sessionContext)
             {
-                _logger.LogWarning(
-                    "DataChange for subscription {Subscription} received without session {Session}.",
-                    this, session);
+                _logger.DataChangeWithoutSession(this, session?.ToString());
                 return;
             }
 
@@ -2017,14 +1986,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (Exception e)
             {
-                _logger.LogWarning(e, "Exception processing cyclic read notification");
+                _logger.CyclicReadProcessingError(e);
             }
             finally
             {
                 _logger.CyclicReadDuration(sw.Elapsed);
                 if (sw.ElapsedMilliseconds > 1000)
                 {
-                    _logger.LogWarning("Spent more than 1 second in cyclic read callback.");
+                    _logger.SlowCyclicReadCallback();
                 }
             }
         }
@@ -2047,9 +2016,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var session = Session;
             if (session is not IOpcUaSession sessionContext)
             {
-                _logger.LogWarning(
-                    "DataChange for subscription {Subscription} received without session {Session}.",
-                    this, session);
+                _logger.DataChangeWithoutSession(this, session.ToString());
                 return;
             }
 
@@ -2070,10 +2037,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 else if (!Opc.Ua.SequenceNumber.Validate(sequenceNumber, ref _previousSequenceNumber,
                     out var missingSequenceNumbers, out var dropped))
                 {
-                    _logger.LogWarning("DataChange notification for subscription " +
-                        "{Subscription} has unexpected sequenceNumber {SequenceNumber} " +
-                        "missing {ExpectedSequenceNumber} which were {Dropped}, publishTime {PublishTime}",
-                        this, sequenceNumber,
+                    _logger.UnexpectedDataChangeSequenceNumber(this, sequenceNumber,
                         Opc.Ua.SequenceNumber.ToString(missingSequenceNumbers),
                         dropped ? "dropped" : "already received", publishTime);
                 }
@@ -2121,14 +2085,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (Exception e)
             {
-                _logger.LogWarning(e, "Exception processing subscription notification");
+                _logger.DataChangeNotificationError(e);
             }
             finally
             {
                 _logger.DataChangeDuration(sw.Elapsed);
                 if (sw.ElapsedMilliseconds > 1000)
                 {
-                    _logger.LogWarning("Spent more than 1 second in fast data change callback.");
+                    _logger.SlowDataChangeCallback();
                 }
             }
         }
@@ -2704,7 +2668,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     {
         [LoggerMessage(EventId = 1, Level = LogLevel.Information,
             Message = "Disposed Subscription {Subscription} with {Count} items.")]
-        public static partial void SubscriptionDisposedWithItems(this ILogger logger, OpcUaSubscription subscription, int count);
+        public static partial void SubscriptionDisposedWithItems(this ILogger logger,
+            OpcUaSubscription subscription, int count);
 
         [LoggerMessage(EventId = 2, Level = LogLevel.Information,
             Message = "Disposed Subscription {Subscription}.")]
@@ -2724,31 +2689,38 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         [LoggerMessage(EventId = 6, Level = LogLevel.Error,
             Message = "Failed to create keep alive for subscription {Subscription}.")]
-        public static partial void KeepAliveCreateFailed(this ILogger logger, Exception ex, OpcUaSubscription subscription);
+        public static partial void KeepAliveCreateFailed(this ILogger logger, Exception ex,
+            OpcUaSubscription subscription);
 
         [LoggerMessage(EventId = 7, Level = LogLevel.Information,
             Message = "========  Closing subscription {Subscription} and re-creating =========")]
-        public static partial void ClosingAndRecreatingSubscription(this ILogger logger, OpcUaSubscription subscription);
+        public static partial void ClosingAndRecreatingSubscription(this ILogger logger,
+            OpcUaSubscription subscription);
 
         [LoggerMessage(EventId = 8, Level = LogLevel.Information,
             Message = "{State} Subscription {Subscription} in session {Session}.")]
-        public static partial void StateSubscriptionSession(this ILogger logger, string state, OpcUaSubscription subscription, OpcUaSession session);
+        public static partial void StateSubscriptionSession(this ILogger logger, string state,
+            OpcUaSubscription subscription, OpcUaSession session);
 
         [LoggerMessage(EventId = 9, Level = LogLevel.Information,
             Message = "Creating new {State} subscription {Subscription} in session {Session}.")]
-        public static partial void CreatingSubscription(this ILogger logger, string state, OpcUaSubscription subscription, OpcUaSession session);
+        public static partial void CreatingSubscription(this ILogger logger, string state,
+            OpcUaSubscription subscription, OpcUaSession session);
 
         [LoggerMessage(EventId = 10, Level = LogLevel.Information,
             Message = "Change KeepAliveCount to {New} in Subscription {Subscription}...")]
-        public static partial void KeepAliveCountChanged(this ILogger logger, uint @new, OpcUaSubscription subscription);
+        public static partial void KeepAliveCountChanged(this ILogger logger, uint @new,
+            OpcUaSubscription subscription);
 
         [LoggerMessage(EventId = 11, Level = LogLevel.Information,
             Message = "Change publishing interval to {New} in Subscription {Subscription}...")]
-        public static partial void PublishingIntervalChanged(this ILogger logger, TimeSpan @new, OpcUaSubscription subscription);
+        public static partial void PublishingIntervalChanged(this ILogger logger, TimeSpan @new,
+            OpcUaSubscription subscription);
 
         [LoggerMessage(EventId = 12, Level = LogLevel.Information,
             Message = "Change MaxNotificationsPerPublish to {New} in Subscription {Subscription}")]
-        public static partial void MaxNotificationsPerPublishChanged(this ILogger logger, uint @new, OpcUaSubscription subscription);
+        public static partial void MaxNotificationsPerPublishChanged(this ILogger logger, uint @new,
+            OpcUaSubscription subscription);
 
         [LoggerMessage(EventId = 13, Level = LogLevel.Information,
             Message = "Change LifetimeCount to {New} in Subscription {Subscription}...")]
@@ -2760,7 +2732,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         [LoggerMessage(EventId = 15, Level = LogLevel.Information,
             Message = "Subscription {Subscription} in session {Session} successfully modified.")]
-        public static partial void SubscriptionModified(this ILogger logger, OpcUaSubscription subscription, OpcUaSession session);
+        public static partial void SubscriptionModified(this ILogger logger,
+            OpcUaSubscription subscription, OpcUaSession session);
 
         [LoggerMessage(EventId = 16, Level = LogLevel.Information,
             Message = "Retrieved {Count} paths for items in subscription {Subscription}.")]
@@ -2768,35 +2741,43 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         [LoggerMessage(EventId = 17, Level = LogLevel.Debug,
             Message = "Trying to update monitored item '{Item}' in {Subscription}...")]
-        public static partial void UpdatingMonitoredItem(this ILogger logger, OpcUaMonitoredItem item, OpcUaSubscription subscription);
+        public static partial void UpdatingMonitoredItem(this ILogger logger, OpcUaMonitoredItem item,
+            OpcUaSubscription subscription);
 
         [LoggerMessage(EventId = 18, Level = LogLevel.Debug,
             Message = "Trying to remove monitored item '{Item}' from {Subscription}...")]
-        public static partial void RemovingMonitoredItem(this ILogger logger, OpcUaMonitoredItem item, OpcUaSubscription subscription);
+        public static partial void RemovingMonitoredItem(this ILogger logger, OpcUaMonitoredItem item,
+            OpcUaSubscription subscription);
 
         [LoggerMessage(EventId = 19, Level = LogLevel.Debug,
             Message = "Adding monitored item '{Item}' to {Subscription}...")]
-        public static partial void AddingMonitoredItem(this ILogger logger, OpcUaMonitoredItem item, OpcUaSubscription subscription);
+        public static partial void AddingMonitoredItem(this ILogger logger, OpcUaMonitoredItem item,
+            OpcUaSubscription subscription);
 
         [LoggerMessage(EventId = 20, Level = LogLevel.Information,
             Message = "Disabled empty Subscription {Subscription} in session {Session}.")]
-        public static partial void DisabledEmptySubscription(this ILogger logger, OpcUaSubscription subscription, OpcUaSession session);
+        public static partial void DisabledEmptySubscription(this ILogger logger, OpcUaSubscription subscription,
+            OpcUaSession session);
 
         [LoggerMessage(EventId = 21, Level = LogLevel.Debug,
             Message = "Completing {Count} same/added and {Removed} removed items in subscription {Subscription}...")]
-        public static partial void CompletingItems(this ILogger logger, int count, int removed, OpcUaSubscription subscription);
+        public static partial void CompletingItems(this ILogger logger, int count, int removed,
+            OpcUaSubscription subscription);
 
         [LoggerMessage(EventId = 22, Level = LogLevel.Debug,
             Message = "Completed {Count} valid and {Invalid} invalid items in subscription {Subscription}...")]
-        public static partial void ItemCompletionStats(this ILogger logger, int count, int invalid, OpcUaSubscription subscription);
+        public static partial void ItemCompletionStats(this ILogger logger, int count, int invalid,
+            OpcUaSubscription subscription);
 
         [LoggerMessage(EventId = 23, Level = LogLevel.Debug,
             Message = "Setting monitoring mode on {Count} items in subscription {Subscription}...")]
-        public static partial void SettingMonitoringMode(this ILogger logger, int count, OpcUaSubscription subscription);
+        public static partial void SettingMonitoringMode(this ILogger logger, int count,
+            OpcUaSubscription subscription);
 
         [LoggerMessage(EventId = 24, Level = LogLevel.Information,
             Message = "Set monitoring to {Value} for {Count} items in subscription {Subscription}.")]
-        public static partial void MonitoringModeSet(this ILogger logger, Opc.Ua.MonitoringMode value, int count, OpcUaSubscription subscription);
+        public static partial void MonitoringModeSet(this ILogger logger, Opc.Ua.MonitoringMode value,
+            int count, OpcUaSubscription subscription);
 
         [LoggerMessage(EventId = 25, Level = LogLevel.Information,
             Message = "Issuing ConditionRefresh on subscription {Subscription}")]
@@ -2808,7 +2789,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         [LoggerMessage(EventId = 27, Level = LogLevel.Information,
             Message = "ConditionRefresh on subscription {Subscription} failed with an exception '{Message}'")]
-        public static partial void ConditionRefreshFailed(this ILogger logger, OpcUaSubscription subscription, string message);
+        public static partial void ConditionRefreshFailed(this ILogger logger, OpcUaSubscription subscription,
+            string message);
 
         [LoggerMessage(EventId = 28, Level = LogLevel.Error,
             Message = "Child subscription {ChildId} not found in session {Session}.")]
@@ -2820,7 +2802,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         [LoggerMessage(EventId = 30, Level = LogLevel.Debug,
             Message = "Deleted {Count} monitored items for '{Subscription}'.")]
-        public static partial void DeletedMonitoredItems(this ILogger logger, int count, OpcUaSubscription subscription);
+        public static partial void DeletedMonitoredItems(this ILogger logger, int count,
+            OpcUaSubscription subscription);
 
         [LoggerMessage(EventId = 31, Level = LogLevel.Information,
             Message = "Subscription '{Subscription}' closed.")]
@@ -2856,8 +2839,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public static partial void KeepAliveWhileNotPublishing(this ILogger logger);
 
         [LoggerMessage(EventId = 39, Level = LogLevel.Debug,
-            Message = "Keep alive for subscription {Subscription} with sequenceNumber {SequenceNumber}, publishTime {PublishTime}.")]
-        public static partial void KeepAliveReceived(this ILogger logger, OpcUaSubscription subscription, uint sequenceNumber, DateTime publishTime);
+            Message = "Keep alive for subscription {Subscription} with sequenceNumber {SequenceNumber}, " +
+            "publishTime {PublishTime}.")]
+        public static partial void KeepAliveReceived(this ILogger logger, OpcUaSubscription subscription,
+            uint sequenceNumber, DateTime publishTime);
 
         [LoggerMessage(EventId = 40, Level = LogLevel.Debug,
             Message = "Keep alive callback took {Elapsed}")]
@@ -2872,8 +2857,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public static partial void CyclicReadDuration(this ILogger logger, TimeSpan elapsed);
 
         [LoggerMessage(EventId = 43, Level = LogLevel.Debug,
-            Message = "Skipping the monitored item notification for DataChange received for subscription {Subscription}")]
-        public static partial void SkippingDataChangeNotification(this ILogger logger, OpcUaSubscription subscription);
+            Message = "Skipping the monitored item notification for DataChange received for " +
+            "subscription {Subscription}")]
+        public static partial void SkippingDataChangeNotification(this ILogger logger,
+            OpcUaSubscription subscription);
 
         [LoggerMessage(EventId = 44, Level = LogLevel.Debug,
             Message = "Data change callback took {Elapsed}")]
@@ -2881,23 +2868,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         [LoggerMessage(EventId = 45, Level = LogLevel.Debug,
             Message = "Monitored item not found with client handle {ClientHandle} in subscription {Subscription}.")]
-        public static partial void MonitoredItemNotFound(this ILogger logger, uint clientHandle, OpcUaSubscription subscription);
+        public static partial void MonitoredItemNotFound(this ILogger logger, uint clientHandle,
+            OpcUaSubscription subscription);
 
         [LoggerMessage(EventId = 46, Level = LogLevel.Error,
             Message = "Failed to get a notifications from monitored items in subscription {Subscription}.")]
-        public static partial void GetNotificationsFailed(this ILogger logger, Exception ex, OpcUaSubscription subscription);
+        public static partial void GetNotificationsFailed(this ILogger logger, Exception ex,
+            OpcUaSubscription subscription);
 
         [LoggerMessage(EventId = 47, Level = LogLevel.Information,
             Message = "{Subscription}: Stopping monitored item watchdog ({Timeout}).")]
-        public static partial void StoppingWatchdog(this ILogger logger, OpcUaSubscription subscription, TimeSpan timeout);
+        public static partial void StoppingWatchdog(this ILogger logger, OpcUaSubscription subscription,
+            TimeSpan timeout);
 
         [LoggerMessage(EventId = 48, Level = LogLevel.Information,
             Message = "{Subscription}: Restarting monitored item watchdog ({Timeout}).")]
-        public static partial void RestartingWatchdog(this ILogger logger, OpcUaSubscription subscription, TimeSpan timeout);
+        public static partial void RestartingWatchdog(this ILogger logger, OpcUaSubscription subscription,
+            TimeSpan timeout);
 
         [LoggerMessage(EventId = 49, Level = LogLevel.Debug,
             Message = "Monitored item {Item} in subscription {Subscription} is late.")]
-        public static partial void MonitoredItemLate(this ILogger logger, OpcUaMonitoredItem item, OpcUaSubscription subscription);
+        public static partial void MonitoredItemLate(this ILogger logger, OpcUaMonitoredItem item,
+            OpcUaSubscription subscription);
 
         [LoggerMessage(EventId = 50, Level = LogLevel.Debug,
             Message = "All monitored items in {Subscription} are reporting.")]
@@ -2908,8 +2900,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public static partial void SomeItemsLate(this ILogger logger, OpcUaSubscription subscription);
 
         [LoggerMessage(EventId = 52, Level = LogLevel.Information,
-            Message = "{Count} of the {Total} monitored items in {Subscription} are now late - running {Action} behavior action.")]
-        public static partial void LateItemsSummary(this ILogger logger, int count, int total, OpcUaSubscription subscription, SubscriptionWatchdogBehavior action);
+            Message = "{Count} of the {Total} monitored items in {Subscription} are now late " +
+            "- running {Action} behavior action.")]
+        public static partial void LateItemsSummary(this ILogger logger, int count, int total,
+            OpcUaSubscription subscription, SubscriptionWatchdogBehavior action);
 
         [LoggerMessage(EventId = 53, Level = LogLevel.Critical,
             Message = "{Message}")]
@@ -2917,11 +2911,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         [LoggerMessage(EventId = 54, Level = LogLevel.Critical,
             Message = "#{Count}/{Lifetimecount}: Keep alive count exceeded. Perform {Action} for {Subscription}...")]
-        public static partial void KeepAliveExceeded(this ILogger logger, int count, uint lifetimeCount, SubscriptionWatchdogBehavior action, OpcUaSubscription subscription);
+        public static partial void KeepAliveExceeded(this ILogger logger, int count, uint lifetimeCount,
+            SubscriptionWatchdogBehavior action, OpcUaSubscription subscription);
 
         [LoggerMessage(EventId = 55, Level = LogLevel.Information,
             Message = "#{Count}/{Lifetimecount}: Subscription {Subscription} is missing keep alive.")]
-        public static partial void MissingKeepAlive(this ILogger logger, int count, uint lifetimeCount, OpcUaSubscription subscription);
+        public static partial void MissingKeepAlive(this ILogger logger, int count, uint lifetimeCount,
+            OpcUaSubscription subscription);
 
         [LoggerMessage(EventId = 56, Level = LogLevel.Information,
             Message = "Subscription {Subscription} STOPPED!")]
@@ -2944,8 +2940,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public static partial void SubscriptionKeepAlive(this ILogger logger, OpcUaSubscription subscription);
 
         [LoggerMessage(EventId = 61, Level = LogLevel.Information,
-            Message = "Subscription {Subscription} TIMEOUT! ---- Server closed subscription - performing recovery action {Action}...")]
-        public static partial void SubscriptionTimeout(this ILogger logger, OpcUaSubscription subscription, string action);
+            Message = "Subscription {Subscription} TIMEOUT! " +
+            "---- Server closed subscription - performing recovery action {Action}...")]
+        public static partial void SubscriptionTimeout(this ILogger logger, OpcUaSubscription subscription,
+            string action);
 
         [LoggerMessage(EventId = 62, Level = LogLevel.Debug,
             Message = "Subscription {Subscription} created.")]
@@ -2980,29 +2978,167 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public static partial void SubscriptionItemsModified(this ILogger logger, OpcUaSubscription subscription);
 
         [LoggerMessage(EventId = 70, Level = LogLevel.Information,
-            Message = "{Subscription} - Removed {Removed} - now monitoring {Count} nodes:\n# Good/Bad/Reporting:   {Good}/{Bad}/{Reporting}")]
-        public static partial void SubscriptionRemovedNodes(this ILogger logger, OpcUaSubscription subscription, int removed, int count, int good, int bad, int reporting);
+            Message = "{Subscription} - Removed {Removed} - now monitoring {Count} nodes:" +
+            "\n# Good/Bad/Reporting:   {Good}/{Bad}/{Reporting}")]
+        public static partial void SubscriptionRemovedNodes(this ILogger logger, OpcUaSubscription subscription,
+            int removed, int count, int good, int bad, int reporting);
 
         [LoggerMessage(EventId = 71, Level = LogLevel.Warning,
-            Message = "{Subscription} - Removed {Removed} - now monitoring {Count} nodes:\n# Good/Bad/Reporting:   {Good}/{Bad}/{Reporting}\n# Disabled/Errors:      {Disabled}/{Errors}")]
-        public static partial void SubscriptionRemovedNodesWithErrors(this ILogger logger, OpcUaSubscription subscription, int removed, int count, int good, int bad, int reporting, int disabled, int errors);
+            Message = "{Subscription} - Removed {Removed} - now monitoring {Count} nodes:" +
+            "\n# Good/Bad/Reporting:   {Good}/{Bad}/{Reporting}" +
+            "\n# Disabled/Errors:      {Disabled}/{Errors}")]
+        public static partial void SubscriptionRemovedNodesWithErrors(this ILogger logger, OpcUaSubscription subscription,
+            int removed, int count, int good, int bad, int reporting, int disabled, int errors);
 
         [LoggerMessage(EventId = 72, Level = LogLevel.Information,
-            Message = "{Subscription} - Removed {Removed} - now monitoring {Count} nodes:\n# Good/Bad/Reporting:   {Good}/{Bad}/{Reporting}\n# Disabled/Errors:      {Disabled}/{Errors} (Not applied: {NotApplied})\n# Sampling:             {Sampling}\n# Heartbeat/ing:        {Heartbeat}/{EnabledHeartbeats}\n# Condition/ing:        {Conditions}/{EnabledConditions}")]
-        public static partial void SubscriptionRemovedNodesFull(this ILogger logger, OpcUaSubscription subscription, int removed, int count, int good, int bad, int reporting, int disabled, int errors, int notApplied, int sampling, int heartbeat, int enabledHeartbeats, int conditions, int enabledConditions);
+            Message = "{Subscription} - Removed {Removed} - now monitoring {Count} nodes:" +
+            "\n# Good/Bad/Reporting:   {Good}/{Bad}/{Reporting}" +
+            "\n# Disabled/Errors:      {Disabled}/{Errors} (Not applied: {NotApplied})" +
+            "\n# Sampling:             {Sampling}" +
+            "\n# Heartbeat/ing:        {Heartbeat}/{EnabledHeartbeats}" +
+            "\n# Condition/ing:        {Conditions}/{EnabledConditions}")]
+        public static partial void SubscriptionRemovedNodesFull(this ILogger logger, OpcUaSubscription subscription,
+            int removed, int count, int good, int bad, int reporting, int disabled, int errors, int notApplied, int sampling,
+            int heartbeat, int enabledHeartbeats, int conditions, int enabledConditions);
 
         [LoggerMessage(EventId = 73, Level = LogLevel.Debug,
             Message = "{Subscription} Applied changes to monitored items, but nothing changed.")]
         public static partial void SubscriptionNoMonitoredItemChange(this ILogger logger, OpcUaSubscription subscription);
 
         [LoggerMessage(EventId = 74, Level = LogLevel.Information,
-            Message = "Successfully created subscription {Subscription}'.\nActual (revised) state/desired state:\n# PublishingEnabled {CurrentPublishingEnabled}/{PublishingEnabled}\n# PublishingInterval {CurrentPublishingInterval}/{PublishingInterval}\n# KeepAliveCount {CurrentKeepAliveCount}/{KeepAliveCount}\n# LifetimeCount {CurrentLifetimeCount}/{LifetimeCount}")]
+            Message = "Successfully created subscription {Subscription}'.\nActual (revised) state/desired state:" +
+            "\n# PublishingEnabled {CurrentPublishingEnabled}/{PublishingEnabled}" +
+            "\n# PublishingInterval {CurrentPublishingInterval}/{PublishingInterval}" +
+            "\n# KeepAliveCount {CurrentKeepAliveCount}/{KeepAliveCount}" +
+            "\n# LifetimeCount {CurrentLifetimeCount}/{LifetimeCount}")]
         public static partial void RevisedValuesDuringCreate(this ILogger logger, OpcUaSubscription subscription,
-            bool currentPublishingEnabled, bool publishingEnabled, int currentPublishingInterval, int publishingInterval, uint currentKeepAliveCount, uint keepAliveCount, uint currentLifetimeCount, uint lifetimeCount);
+            bool currentPublishingEnabled, bool publishingEnabled, int currentPublishingInterval, int publishingInterval,
+            uint currentKeepAliveCount, uint keepAliveCount, uint currentLifetimeCount, uint lifetimeCount);
 
         [LoggerMessage(EventId = 75, Level = LogLevel.Information,
-            Message = "Successfully modified subscription {Subscription}'.\nActual (revised) state/desired state:\n# PublishingEnabled {CurrentPublishingEnabled}/{PublishingEnabled}\n# PublishingInterval {CurrentPublishingInterval}/{PublishingInterval}\n# KeepAliveCount {CurrentKeepAliveCount}/{KeepAliveCount}\n# LifetimeCount {CurrentLifetimeCount}/{LifetimeCount}")]
+            Message = "Successfully modified subscription {Subscription}'.\nActual (revised) state/desired state:" +
+            "\n# PublishingEnabled {CurrentPublishingEnabled}/{PublishingEnabled}" +
+            "\n# PublishingInterval {CurrentPublishingInterval}/{PublishingInterval}" +
+            "\n# KeepAliveCount {CurrentKeepAliveCount}/{KeepAliveCount}" +
+            "\n# LifetimeCount {CurrentLifetimeCount}/{LifetimeCount}")]
         public static partial void RevisedValuesDuringModify(this ILogger logger, OpcUaSubscription subscription,
-            bool currentPublishingEnabled, bool publishingEnabled, int currentPublishingInterval, int publishingInterval, uint currentKeepAliveCount, uint keepAliveCount, uint currentLifetimeCount, uint lifetimeCount);
+            bool currentPublishingEnabled, bool publishingEnabled, int currentPublishingInterval, int publishingInterval,
+            uint currentKeepAliveCount, uint keepAliveCount, uint currentLifetimeCount, uint lifetimeCount);
+
+        [LoggerMessage(EventId = 76, Level = LogLevel.Warning,
+            Message = "Failed to resolve browse path in {Subscription} due to {ErrorInfo}...")]
+        public static partial void BrowsePathResolveFailed(this ILogger logger,
+            OpcUaSubscription subscription, ServiceResultModel errorInfo);
+
+        [LoggerMessage(EventId = 77, Level = LogLevel.Warning,
+            Message = "Failed to resolve browse path for {NodeId} in {Subscription} due to '{ServiceResult}'")]
+        public static partial void BrowsePathForNodeResolveFailed(this ILogger logger,
+            string nodeId, OpcUaSubscription subscription, ServiceResultModel? serviceResult);
+
+        [LoggerMessage(EventId = 78, Level = LogLevel.Warning,
+            Message = "Failed to get root path for {NodeId} in {Subscription} due to '{ServiceResult}'")]
+        public static partial void RootPathResolveFailed(this ILogger logger,
+            string nodeId, OpcUaSubscription subscription, ServiceResultModel? serviceResult);
+
+        [LoggerMessage(EventId = 79, Level = LogLevel.Warning,
+            Message = "Failed to update monitored item '{Item}' in {Subscription}...")]
+        public static partial void MonitoredItemUpdateFailed(this ILogger logger,
+            Exception ex, OpcUaMonitoredItem item, OpcUaSubscription subscription);
+
+        [LoggerMessage(EventId = 80, Level = LogLevel.Warning,
+            Message = "Failed to remove monitored item '{Item}' from {Subscription}...")]
+        public static partial void MonitoredItemRemoveFailed(this ILogger logger,
+            Exception ex, OpcUaMonitoredItem item, OpcUaSubscription subscription);
+
+        [LoggerMessage(EventId = 81, Level = LogLevel.Warning,
+            Message = "Failed to add monitored item '{Item}' to {Subscription}...")]
+        public static partial void MonitoredItemAddFailed(this ILogger logger,
+            Exception ex, OpcUaMonitoredItem item, OpcUaSubscription subscription);
+
+        [LoggerMessage(EventId = 82, Level = LogLevel.Warning,
+            Message = "Failed to resolve display name in {Subscription} due to {ErrorInfo}...")]
+        public static partial void DisplayNameResolveFailed(this ILogger logger,
+            OpcUaSubscription subscription, ServiceResultModel errorInfo);
+
+        [LoggerMessage(EventId = 83, Level = LogLevel.Warning,
+            Message = "Failed to read display name for {NodeId} in {Subscription} due to '{ServiceResult}'")]
+        public static partial void DisplayNameReadFailed(this ILogger logger,
+            string nodeId, OpcUaSubscription subscription, ServiceResultModel? serviceResult);
+
+        [LoggerMessage(EventId = 84, Level = LogLevel.Warning,
+            Message = "Failed to set monitoring for {Count} items in subscription {Subscription}.")]
+        public static partial void MonitoringSetFailed(this ILogger logger,
+            int count, OpcUaSubscription subscription);
+
+        [LoggerMessage(EventId = 85, Level = LogLevel.Warning,
+            Message = "Set monitoring for item '{Item}' in subscription {Subscription} failed with '{Status}'.")]
+        public static partial void MonitoringSetFailedForItem(this ILogger logger, NodeId item,
+            OpcUaSubscription subscription, StatusCode status);
+
+        [LoggerMessage(EventId = 86, Level = LogLevel.Warning,
+            Message = "EventChange for subscription {Subscription} has empty notification.")]
+        public static partial void EmptyEventNotification(this ILogger logger, OpcUaSubscription subscription);
+
+        [LoggerMessage(EventId = 87, Level = LogLevel.Warning,
+            Message = "EventChange for subscription {Subscription} has no events.")]
+        public static partial void NoEventsInNotification(this ILogger logger, OpcUaSubscription subscription);
+
+        [LoggerMessage(EventId = 88, Level = LogLevel.Warning,
+            Message = "EventChange for subscription {Subscription} received without a session {Session}.")]
+        public static partial void EventChangeWithoutSession(this ILogger logger, OpcUaSubscription subscription, string? session);
+
+        [LoggerMessage(EventId = 89, Level = LogLevel.Warning,
+            Message = "Event subscription notification for subscription {Subscription} has unexpected " +
+            "sequenceNumber {SequenceNumber} missing {ExpectedSequenceNumber} which were {State}, publishTime {PublishTime}")]
+        public static partial void UnexpectedEventSequenceNumber(this ILogger logger, OpcUaSubscription subscription,
+            uint sequenceNumber, string expectedSequenceNumber, string state, DateTime publishTime);
+
+        [LoggerMessage(EventId = 90, Level = LogLevel.Warning,
+            Message = "Exception processing subscription notification")]
+        public static partial void EventProcessingError(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = 91, Level = LogLevel.Warning,
+            Message = "Spent more than 1 second in fast event callback.")]
+        public static partial void SlowEventCallback(this ILogger logger);
+
+        [LoggerMessage(EventId = 92, Level = LogLevel.Warning,
+            Message = "Keep alive event for subscription {Subscription} received without session {Session}.")]
+        public static partial void KeepAliveWithoutSession(this ILogger logger, OpcUaSubscription subscription,
+            string? session);
+
+        [LoggerMessage(EventId = 93, Level = LogLevel.Warning,
+            Message = "Exception processing keep alive notification")]
+        public static partial void KeepAliveProcessingError(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = 94, Level = LogLevel.Warning,
+            Message = "Spent more than 1 second in fast keep alive callback.")]
+        public static partial void SlowKeepAliveCallback(this ILogger logger);
+
+        [LoggerMessage(EventId = 95, Level = LogLevel.Warning,
+            Message = "DataChange for subscription {Subscription} received without session {Session}.")]
+        public static partial void DataChangeWithoutSession(this ILogger logger, OpcUaSubscription subscription,
+            string? session);
+
+        [LoggerMessage(EventId = 96, Level = LogLevel.Warning,
+            Message = "Exception processing cyclic read notification")]
+        public static partial void CyclicReadProcessingError(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = 97, Level = LogLevel.Warning,
+            Message = "Exception processing subscription notification")]
+        public static partial void DataChangeNotificationError(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = 98, Level = LogLevel.Warning,
+            Message = "Spent more than 1 second in fast data change callback.")]
+        public static partial void SlowDataChangeCallback(this ILogger logger);
+
+        [LoggerMessage(EventId = 99, Level = LogLevel.Warning,
+            Message = "Spent more than 1 second in fast cyclic read callback.")]
+        public static partial void SlowCyclicReadCallback(this ILogger logger);
+
+        [LoggerMessage(EventId = 100, Level = LogLevel.Warning,
+            Message = "DataChange notification for subscription {Subscription} has unexpected sequenceNumber " +
+            "{SequenceNumber} missing {ExpectedSequenceNumber} which were {Dropped}, publishTime {PublishTime}")]
+        public static partial void UnexpectedDataChangeSequenceNumber(this ILogger logger, OpcUaSubscription subscription,
+            uint sequenceNumber, string expectedSequenceNumber, string dropped, DateTime publishTime);
     }
 }
