@@ -351,6 +351,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public TimeSpan? CyclicReadMaxAgeTimespan { get; set; }
 
         /// <summary>
+        /// A type definition id that references a well known opc ua
+        /// type definition node for the variable represented by this
+        /// node entry.
+        /// </summary>
+        [DataMember(Name = "VariableTypeDefinitionId", Order = 33,
+            EmitDefaultValue = false)]
+        public string? VariableTypeDefinitionId { get; set; }
+
+        /// <summary>
         /// Alternative node identifier with full namespace URI. Same
         /// as Id but uses complete namespace URI instead of index.
         /// Format: "nsu={uri};{type}={value}" Example:

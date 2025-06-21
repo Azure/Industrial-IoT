@@ -670,6 +670,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public HeartbeatBehavior? DefaultHeartbeatBehavior { get; set; }
 
         /// <summary>
+        /// Contains a globally unique asset identifier related to
+        /// the entry concept that allows correlation into an asset
+        /// management system.
+        /// </summary>
+        [DataMember(Name = "AssetId", Order = 57,
+            EmitDefaultValue = false)]
+        public Guid AssetId { get; set; }
+
+        /// <summary>
+        /// The name of the asset associated with this entry.
+        /// </summary>
+        [DataMember(Name = "AssetName", Order = 58,
+            EmitDefaultValue = false)]
+        public string? AssetName { get; set; }
+
+        /// <summary>
+        /// Additional properties of the asset that should be retained
+        /// with the configuration.
+        /// </summary>
+        [DataMember(Name = "AssetProperties", Order = 59,
+            EmitDefaultValue = false)]
+        public Dictionary<string, VariantValue>? AssetProperties { get; set; }
+
+        /// <summary>
+        /// A type definition id that references a well known opc ua
+        /// type definition node for the dataset represented by this
+        /// entry.
+        /// </summary>
+        [DataMember(Name = "DataSetTypeDefinitionId", Order = 60,
+            EmitDefaultValue = false)]
+        public string? DataSetTypeDefinitionId { get; set; }
+
+        /// <summary>
         /// Enables detailed server diagnostics logging for the
         /// connection. When enabled, provides additional diagnostic
         /// information useful for troubleshooting connectivity,

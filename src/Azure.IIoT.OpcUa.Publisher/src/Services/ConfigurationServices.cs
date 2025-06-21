@@ -133,7 +133,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         {
                             DataSetWriterGroup = entry.DataSetWriterGroup,
                             DataSetWriterId = result.Result.DataSetName,
-                            DataSetName = result.Result.DataSetWriterId?.TrimStart('/')
+                            DataSetName = result.Result.DataSetWriterId?.TrimStart('/') // Asset name
                         }
                     };
                 }
@@ -160,7 +160,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 // 1) Create asset and get asset file object
                 var (nodeId, errorInfo) = await context.Session.CreateAssetAsync(
                     request.Header.ToRequestHeader(_timeProvider),
-                    request.Entry.DataSetName, context.Ct).ConfigureAwait(false);
+                    request.Entry.DataSetName, context.Ct).ConfigureAwait(false); // Asset name
                 if (errorInfo != null || nodeId is null || NodeId.IsNull(nodeId))
                 {
                     // TOOD errorInfo?.StatusCode ==
@@ -183,7 +183,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         new ()
                         {
                             Id = assetId,
-                            DataSetFieldId = entry.DataSetName
+                            DataSetFieldId = entry.DataSetName // Asset name
                         }
                     ]
                 };
