@@ -270,8 +270,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     $"Configures whether messages should automatically be routed using the browse path of the monitored item inside the address space starting from the RootFolder.\nThe browse path is appended as topic structure to the telemetry topic root which can be configured using `--ttt`. Reserved characters in browse names are escaped with their hex ASCII code.\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames<DataSetRoutingMode>())}`\nDefault: `{nameof(DataSetRoutingMode.None)}` (Topics must be configured).\n",
                     (DataSetRoutingMode m) => this[PublisherConfig.DefaultDataSetRoutingKey] = m.ToString() },
                 { $"ri|enableroutinginfo:|{PublisherConfig.EnableDataSetRoutingInfoKey}:",
-                    $"Add routing information to messages. The name of the property is `{Constants.MessagePropertyRoutingKey}` and the value is the `DataSetWriterGroup` from which the particular message is emitted.\nDefault: `{PublisherConfig.EnableDataSetRoutingInfoDefault}`.\n",
+                    $"Add routing information to messages. The name of the property is `{Constants.MessagePropertyRoutingKey}` and the value is the `DataSetWriterGroup` from which the particular message is emitted. Disabled if `{PublisherConfig.EnableCloudEventsKey}` is enabled.\nDefault: `{PublisherConfig.EnableDataSetRoutingInfoDefault}`.\n",
                     (bool? b) => this[PublisherConfig.EnableDataSetRoutingInfoKey] = b?.ToString() ?? "True" },
+                { $"ce|cloudevents:|{PublisherConfig.EnableCloudEventsKey}:",
+                    $"Add cloud event headers to messages. The cloud events comply to the opc ua cloud events extension.\nDefault: `{PublisherConfig.EnableCloudEventsDefault}`.\n",
+                    (bool? b) => this[PublisherConfig.EnableCloudEventsKey] = b?.ToString() ?? "True" },
 
                 "",
                 "Subscription settings",

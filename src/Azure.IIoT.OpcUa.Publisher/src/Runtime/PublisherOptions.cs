@@ -209,7 +209,13 @@ namespace Azure.IIoT.OpcUa.Publisher
         public TimeSpan? AsyncMetaDataLoadTimeout { get; set; }
 
         /// <summary>
-        /// Enable adding data set routing info to messages
+        /// Flag to send messages with cloud events header
+        /// </summary>
+        public bool? EnableCloudEvents { get; set; }
+
+        /// <summary>
+        /// Enable adding data set routing info to message headers
+        /// Only applies if EnableCloudEvents is not true.
         /// </summary>
         public bool? EnableDataSetRoutingInfo { get; set; }
 

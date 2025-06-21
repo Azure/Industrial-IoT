@@ -109,8 +109,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     if (validChunks > 0)
                     {
                         var chunkedMessage = factory()
-                            .AddProperty(OpcUa.Constants.MessagePropertySchemaKey,
-                                m.NetworkMessage.MessageSchema)
                             .SetTimestamp(_timeProvider.GetUtcNow())
                             .SetContentEncoding(m.NetworkMessage.ContentEncoding)
                             .SetContentType(m.NetworkMessage.ContentType)
@@ -137,10 +135,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 .AddProperty("$$ContentType", m.NetworkMessage.ContentType)
                                 .AddProperty("$$ContentEncoding", m.NetworkMessage.ContentEncoding);
                         }
-                        if (_options.Value.EnableDataSetRoutingInfo ?? false)
+                        if (_options.Value.EnableCloudEvents ?? false)
                         {
-                            chunkedMessage.AddProperty(OpcUa.Constants.MessagePropertyRoutingKey,
-                                m.NetworkMessage.DataSetWriterGroup);
+                            // chunkedMessage = chunkedMessage
+                            //     .AsCloudEventMessage(
+                            //         type: "typeref",
+                            //         source: m.ApplicationUri,
+                            //         subject: m.Subject);
+                        }
+                        else
+                        {
+                            chunkedMessage = chunkedMessage
+                                .AddProperty(OpcUa.Constants.MessagePropertySchemaKey,
+                                    m.NetworkMessage.MessageSchema);
+                            if (_options.Value.EnableDataSetRoutingInfo ?? false)
+                            {
+                                chunkedMessage.AddProperty(OpcUa.Constants.MessagePropertyRoutingKey,
+                                    m.NetworkMessage.DataSetWriterGroup);
+                            }
                         }
 
                         _logger.NotificationsEncoded(m.NotificationsPerMessage, validChunks);
@@ -196,7 +208,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="EncodingContext"></param>
         private record struct EncodedMessage(int NotificationsPerMessage,
             PubSubMessage NetworkMessage, PublishingQueueSettingsModel Queue,
-            Action OnSentCallback, IEventSchema? Schema,
+            Action OnSentCallback, IEventSchema? Schema, CloudEventModel
             IServiceMessageContext? EncodingContext = null);
 
         /// <summary>

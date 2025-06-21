@@ -75,6 +75,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string EnableRuntimeStateReportingKey = "RuntimeStateReporting";
         public const string RuntimeStateRoutingInfoKey = "RuntimeStateRoutingInfo";
         public const string EnableDataSetRoutingInfoKey = "EnableRoutingInfo";
+        public const string EnableCloudEventsKey = "EnableCloudEvents";
         public const string ForceCredentialEncryptionKey = "ForceCredentialEncryption";
         public const string RenewTlsCertificateOnStartupKey = "RenewTlsCertificateOnStartup";
         public const string DefaultTransportKey = "DefaultTransport";
@@ -133,6 +134,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const bool EnableRuntimeStateReportingDefault = false;
         public const bool UseStandardsCompliantEncodingDefault = false;
         public const bool EnableDataSetRoutingInfoDefault = false;
+        public const bool EnableCloudEventsDefault = false;
         public const MessageEncoding MessageEncodingDefault = MessageEncoding.Json;
         public const int MaxNodesPerDataSetDefault = 1000;
         public const int BatchSizeLegacyDefault = 50;
@@ -339,6 +341,8 @@ namespace Azure.IIoT.OpcUa.Publisher
                 options.DiagnosticsTarget = target;
             }
 
+            options.EnableCloudEvents??= GetBoolOrDefault(
+                    EnableCloudEventsKey, EnableCloudEventsDefault);
             options.EnableDataSetRoutingInfo ??= GetBoolOrDefault(
                     EnableDataSetRoutingInfoKey, EnableDataSetRoutingInfoDefault);
 
