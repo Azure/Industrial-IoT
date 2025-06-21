@@ -989,11 +989,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     await client.UpdateAssetStatusAsync(
                         status.Asset.DeviceRef.DeviceName,
                         status.Asset.DeviceRef.EndpointName,
-                        new UpdateAssetStatusRequest
-                        {
-                            AssetName = assetName,
-                            AssetStatus = status.Status
-                        }, ct: ct).ConfigureAwait(false);
+                        assetName, status.Status, ct: ct).ConfigureAwait(false);
                 }
             }
 

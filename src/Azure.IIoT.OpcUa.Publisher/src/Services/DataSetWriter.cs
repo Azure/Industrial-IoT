@@ -862,6 +862,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         NextWriterSequenceNumber = sequenceNumber,
                         WriterGroup = writerGroup,
                         Schema = networkMessageSchema,
+                        CloudEvent = null, // TODO
                         Topic = GetTopic(_writer.Routing, topic, single?.PathFromRoot),
                         Retain = retain,
                         Ttl = ttl,

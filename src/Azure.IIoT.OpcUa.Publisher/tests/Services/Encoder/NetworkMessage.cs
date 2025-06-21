@@ -18,9 +18,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
+    using YamlDotNet.Core.Tokens;
 
     public sealed class NetworkMessage : IEvent
     {
+        public CloudEventHeader CloudEvent { get; private set; }
+
+        public IEvent AsCloudEvent(CloudEventHeader header)
+        {
+            CloudEvent = header;
+            return this;
+        }
+
         public DateTimeOffset Timestamp { get; private set; }
 
         public IEvent SetTimestamp(DateTimeOffset value)
@@ -252,7 +261,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                         Ttl = randomTopic ? TimeSpan.FromSeconds(Random.Shared.Next(60)) : null,
                         PublisherId = publisherId,
                         ExtensionFields = Array.Empty<(string, DataValue)>(),
-                        Schema = null,
+                        Schema = null, // TODO
+                        CloudEvent = null, // TODO
                         Writer = writer,
                         WriterName = writer.DataSetWriterName ?? Constants.DefaultDataSetWriterName,
                         MetaData = null,

@@ -123,25 +123,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             chunkedMessage = chunkedMessage
                                 .SetTtl(m.Queue.Ttl.Value);
                         }
-
-                        if (m.Schema != null)
+                        if (m.CloudEvent != null)
                         {
-                            chunkedMessage = chunkedMessage.SetSchema(m.Schema);
-                        }
-
-                        if (_options.Value.UseStandardsCompliantEncoding != true)
-                        {
-                            chunkedMessage = chunkedMessage
-                                .AddProperty("$$ContentType", m.NetworkMessage.ContentType)
-                                .AddProperty("$$ContentEncoding", m.NetworkMessage.ContentEncoding);
-                        }
-                        if (_options.Value.EnableCloudEvents ?? false)
-                        {
-                            // chunkedMessage = chunkedMessage
-                            //     .AsCloudEventMessage(
-                            //         type: "typeref",
-                            //         source: m.ApplicationUri,
-                            //         subject: m.Subject);
+                            // Send as cloud event
+                            chunkedMessage = chunkedMessage.AsCloudEvent(m.CloudEvent);
                         }
                         else
                         {
@@ -153,6 +138,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 chunkedMessage.AddProperty(OpcUa.Constants.MessagePropertyRoutingKey,
                                     m.NetworkMessage.DataSetWriterGroup);
                             }
+
+                            if (_options.Value.UseStandardsCompliantEncoding != true)
+                            {
+                                chunkedMessage = chunkedMessage
+                                    .AddProperty("$$ContentType", m.NetworkMessage.ContentType)
+                                    .AddProperty("$$ContentEncoding", m.NetworkMessage.ContentEncoding);
+                            }
+                        }
+                        if (m.Schema != null)
+                        {
+                            chunkedMessage = chunkedMessage.SetSchema(m.Schema);
                         }
 
                         _logger.NotificationsEncoded(m.NotificationsPerMessage, validChunks);
@@ -206,9 +202,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="OnSentCallback"></param>
         /// <param name="Schema"></param>
         /// <param name="EncodingContext"></param>
+        /// <param name="CloudEvent"></param>
         private record struct EncodedMessage(int NotificationsPerMessage,
             PubSubMessage NetworkMessage, PublishingQueueSettingsModel Queue,
-            Action OnSentCallback, IEventSchema? Schema, CloudEventModel
+            Action OnSentCallback, IEventSchema? Schema, CloudEventHeader? CloudEvent,
             IServiceMessageContext? EncodingContext = null);
 
         /// <summary>
@@ -245,10 +242,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     var publisherId = publishers.Key;
                     foreach (var groups in publishers
-                        .GroupBy(m => (m.Context.WriterGroup, m.Context.Schema)))
+                        .GroupBy(m => (m.Context.WriterGroup, m.Context.Schema, m.Context.CloudEvent)))
                     {
                         var writerGroup = groups.Key.WriterGroup;
                         var schema = groups.Key.Schema;
+                        var cloudEvent = groups.Key.CloudEvent;
 
                         if (writerGroup?.MessageSettings == null)
                         {
@@ -478,7 +476,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         {
                                             result.Add(new EncodedMessage(currentNotifications.Count, currentMessage,
                                                 queue, () => currentNotifications.ForEach(n => n.Dispose()),
-                                                schema, Notification.ServiceMessageContext));
+                                                schema,cloudEvent, Notification.ServiceMessageContext));
 #if DEBUG
                                             currentNotifications.ForEach(n => n.MarkProcessed());
 #endif
@@ -494,7 +492,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         // Start a new message but first emit current
                                         result.Add(new EncodedMessage(currentNotifications.Count, currentMessage,
                                             queue, () => currentNotifications.ForEach(n => n.Dispose()),
-                                            schema, Notification.ServiceMessageContext));
+                                            schema, cloudEvent, Notification.ServiceMessageContext));
 #if DEBUG
                                         currentNotifications.ForEach(n => n.MarkProcessed());
 #endif
@@ -509,7 +507,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         out var metadataMessage))
                                     {
                                         result.Add(new EncodedMessage(0, metadataMessage, queue, Notification.Dispose,
-                                                schema, Notification.ServiceMessageContext));
+                                                schema, cloudEvent, Notification.ServiceMessageContext));
                                     }
 #if DEBUG
                                     Notification.MarkProcessed();
@@ -521,7 +519,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             {
                                 result.Add(new EncodedMessage(currentNotifications.Count, currentMessage, queue,
                                     () => currentNotifications.ForEach(n => n.Dispose()),
-                                    schema, currentNotifications.LastOrDefault()?.ServiceMessageContext));
+                                    schema, cloudEvent, currentNotifications.LastOrDefault()?.ServiceMessageContext));
 #if DEBUG
                                 currentNotifications.ForEach(n => n.MarkProcessed());
 #endif
