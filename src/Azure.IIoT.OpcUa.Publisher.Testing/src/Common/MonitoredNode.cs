@@ -27,9 +27,8 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
-using System;
-using System.Collections.Generic;
 using Opc.Ua.Server;
+using System.Collections.Generic;
 
 namespace Opc.Ua.Sample
 {

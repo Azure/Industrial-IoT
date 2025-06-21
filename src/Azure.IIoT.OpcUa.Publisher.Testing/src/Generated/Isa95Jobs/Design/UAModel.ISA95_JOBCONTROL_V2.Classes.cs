@@ -27,17 +27,14 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
+using Opc.Ua;
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Xml;
-using System.Runtime.Serialization;
-using Opc.Ua;
 
 namespace UAModel.ISA95_JOBCONTROL_V2
 {
     #region ISA95JobOrderStatusEventTypeState Class
-    #if (!OPCUA_EXCLUDE_ISA95JobOrderStatusEventTypeState)
+#if (!OPCUA_EXCLUDE_ISA95JobOrderStatusEventTypeState)
     /// <remarks />
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
@@ -55,7 +52,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
             return Opc.Ua.NodeId.Create(UAModel.ISA95_JOBCONTROL_V2.ObjectTypes.ISA95JobOrderStatusEventType, UAModel.ISA95_JOBCONTROL_V2.Namespaces.ISA95_JOBCONTROL_V2, namespaceUris);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <remarks />
         protected override void Initialize(ISystemContext context)
         {
@@ -95,7 +92,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
            "AAABAcUL/////wMD/////wAAAAAXYIkKAgAAAAEACAAAAEpvYlN0YXRlAQGgFwAuAESgFwAAAQG+CwEA" +
            "AAABAAAAAAAAAAMD/////wAAAAA=";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Public Properties
@@ -198,67 +195,67 @@ namespace UAModel.ISA95_JOBCONTROL_V2
             switch (browseName.Name)
             {
                 case UAModel.ISA95_JOBCONTROL_V2.BrowseNames.JobOrder:
-                {
-                    if (createOrReplace)
                     {
-                        if (JobOrder == null)
+                        if (createOrReplace)
                         {
-                            if (replacement == null)
+                            if (JobOrder == null)
                             {
-                                JobOrder = new PropertyState<ISA95JobOrderDataType>(this);
-                            }
-                            else
-                            {
-                                JobOrder = (PropertyState<ISA95JobOrderDataType>)replacement;
+                                if (replacement == null)
+                                {
+                                    JobOrder = new PropertyState<ISA95JobOrderDataType>(this);
+                                }
+                                else
+                                {
+                                    JobOrder = (PropertyState<ISA95JobOrderDataType>)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = JobOrder;
-                    break;
-                }
+                        instance = JobOrder;
+                        break;
+                    }
 
                 case UAModel.ISA95_JOBCONTROL_V2.BrowseNames.JobResponse:
-                {
-                    if (createOrReplace)
                     {
-                        if (JobResponse == null)
+                        if (createOrReplace)
                         {
-                            if (replacement == null)
+                            if (JobResponse == null)
                             {
-                                JobResponse = new PropertyState<ISA95JobResponseDataType>(this);
-                            }
-                            else
-                            {
-                                JobResponse = (PropertyState<ISA95JobResponseDataType>)replacement;
+                                if (replacement == null)
+                                {
+                                    JobResponse = new PropertyState<ISA95JobResponseDataType>(this);
+                                }
+                                else
+                                {
+                                    JobResponse = (PropertyState<ISA95JobResponseDataType>)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = JobResponse;
-                    break;
-                }
+                        instance = JobResponse;
+                        break;
+                    }
 
                 case UAModel.ISA95_JOBCONTROL_V2.BrowseNames.JobState:
-                {
-                    if (createOrReplace)
                     {
-                        if (JobState == null)
+                        if (createOrReplace)
                         {
-                            if (replacement == null)
+                            if (JobState == null)
                             {
-                                JobState = new PropertyState<ISA95StateDataType[]>(this);
-                            }
-                            else
-                            {
-                                JobState = (PropertyState<ISA95StateDataType[]>)replacement;
+                                if (replacement == null)
+                                {
+                                    JobState = new PropertyState<ISA95StateDataType[]>(this);
+                                }
+                                else
+                                {
+                                    JobState = (PropertyState<ISA95StateDataType[]>)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = JobState;
-                    break;
-                }
+                        instance = JobState;
+                        break;
+                    }
             }
 
             if (instance != null)
@@ -276,11 +273,11 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         private PropertyState<ISA95StateDataType[]> m_jobState;
         #endregion
     }
-    #endif
+#endif
     #endregion
 
     #region ISA95JobResponseProviderObjectTypeState Class
-    #if (!OPCUA_EXCLUDE_ISA95JobResponseProviderObjectTypeState)
+#if (!OPCUA_EXCLUDE_ISA95JobResponseProviderObjectTypeState)
     /// <remarks />
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
@@ -298,7 +295,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
             return Opc.Ua.NodeId.Create(UAModel.ISA95_JOBCONTROL_V2.ObjectTypes.ISA95JobResponseProviderObjectType, UAModel.ISA95_JOBCONTROL_V2.Namespaces.ISA95_JOBCONTROL_V2, namespaceUris);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <remarks />
         protected override void Initialize(ISystemContext context)
         {
@@ -363,7 +360,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
            "AAACKwAAAFJldHVybnMgdGhlIHN0YXR1cyBvZiB0aGUgbWV0aG9kIGV4ZWN1dGlvbi4BACgBAQAAAAEA" +
            "AAACAAAAAQH/////AAAAAA==";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Public Properties
@@ -466,67 +463,67 @@ namespace UAModel.ISA95_JOBCONTROL_V2
             switch (browseName.Name)
             {
                 case UAModel.ISA95_JOBCONTROL_V2.BrowseNames.JobOrderResponseList:
-                {
-                    if (createOrReplace)
                     {
-                        if (JobOrderResponseList == null)
+                        if (createOrReplace)
                         {
-                            if (replacement == null)
+                            if (JobOrderResponseList == null)
                             {
-                                JobOrderResponseList = new BaseDataVariableState<ISA95JobResponseDataType[]>(this);
-                            }
-                            else
-                            {
-                                JobOrderResponseList = (BaseDataVariableState<ISA95JobResponseDataType[]>)replacement;
+                                if (replacement == null)
+                                {
+                                    JobOrderResponseList = new BaseDataVariableState<ISA95JobResponseDataType[]>(this);
+                                }
+                                else
+                                {
+                                    JobOrderResponseList = (BaseDataVariableState<ISA95JobResponseDataType[]>)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = JobOrderResponseList;
-                    break;
-                }
+                        instance = JobOrderResponseList;
+                        break;
+                    }
 
                 case UAModel.ISA95_JOBCONTROL_V2.BrowseNames.RequestJobResponseByJobOrderID:
-                {
-                    if (createOrReplace)
                     {
-                        if (RequestJobResponseByJobOrderID == null)
+                        if (createOrReplace)
                         {
-                            if (replacement == null)
+                            if (RequestJobResponseByJobOrderID == null)
                             {
-                                RequestJobResponseByJobOrderID = new RequestJobResponseByJobOrderIDMethodState(this);
-                            }
-                            else
-                            {
-                                RequestJobResponseByJobOrderID = (RequestJobResponseByJobOrderIDMethodState)replacement;
+                                if (replacement == null)
+                                {
+                                    RequestJobResponseByJobOrderID = new RequestJobResponseByJobOrderIDMethodState(this);
+                                }
+                                else
+                                {
+                                    RequestJobResponseByJobOrderID = (RequestJobResponseByJobOrderIDMethodState)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = RequestJobResponseByJobOrderID;
-                    break;
-                }
+                        instance = RequestJobResponseByJobOrderID;
+                        break;
+                    }
 
                 case UAModel.ISA95_JOBCONTROL_V2.BrowseNames.RequestJobResponseByJobOrderState:
-                {
-                    if (createOrReplace)
                     {
-                        if (RequestJobResponseByJobOrderState == null)
+                        if (createOrReplace)
                         {
-                            if (replacement == null)
+                            if (RequestJobResponseByJobOrderState == null)
                             {
-                                RequestJobResponseByJobOrderState = new RequestJobResponseByJobOrderStateMethodState(this);
-                            }
-                            else
-                            {
-                                RequestJobResponseByJobOrderState = (RequestJobResponseByJobOrderStateMethodState)replacement;
+                                if (replacement == null)
+                                {
+                                    RequestJobResponseByJobOrderState = new RequestJobResponseByJobOrderStateMethodState(this);
+                                }
+                                else
+                                {
+                                    RequestJobResponseByJobOrderState = (RequestJobResponseByJobOrderStateMethodState)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = RequestJobResponseByJobOrderState;
-                    break;
-                }
+                        instance = RequestJobResponseByJobOrderState;
+                        break;
+                    }
             }
 
             if (instance != null)
@@ -544,11 +541,11 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         private RequestJobResponseByJobOrderStateMethodState m_requestJobResponseByJobOrderStateMethod;
         #endregion
     }
-    #endif
+#endif
     #endregion
 
     #region ISA95JobResponseReceiverObjectTypeState Class
-    #if (!OPCUA_EXCLUDE_ISA95JobResponseReceiverObjectTypeState)
+#if (!OPCUA_EXCLUDE_ISA95JobResponseReceiverObjectTypeState)
     /// <remarks />
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
@@ -566,7 +563,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
             return Opc.Ua.NodeId.Create(UAModel.ISA95_JOBCONTROL_V2.ObjectTypes.ISA95JobResponseReceiverObjectType, UAModel.ISA95_JOBCONTROL_V2.Namespaces.ISA95_JOBCONTROL_V2, namespaceUris);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <remarks />
         protected override void Initialize(ISystemContext context)
         {
@@ -602,7 +599,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
            "////AAAAAAIrAAAAUmV0dXJucyB0aGUgc3RhdHVzIG9mIHRoZSBtZXRob2QgZXhlY3V0aW9uLgEAKAEB" +
            "AAAAAQAAAAEAAAABAf////8AAAAA";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Public Properties
@@ -657,25 +654,25 @@ namespace UAModel.ISA95_JOBCONTROL_V2
             switch (browseName.Name)
             {
                 case UAModel.ISA95_JOBCONTROL_V2.BrowseNames.ReceiveJobResponse:
-                {
-                    if (createOrReplace)
                     {
-                        if (ReceiveJobResponse == null)
+                        if (createOrReplace)
                         {
-                            if (replacement == null)
+                            if (ReceiveJobResponse == null)
                             {
-                                ReceiveJobResponse = new ReceiveJobResponseMethodState(this);
-                            }
-                            else
-                            {
-                                ReceiveJobResponse = (ReceiveJobResponseMethodState)replacement;
+                                if (replacement == null)
+                                {
+                                    ReceiveJobResponse = new ReceiveJobResponseMethodState(this);
+                                }
+                                else
+                                {
+                                    ReceiveJobResponse = (ReceiveJobResponseMethodState)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = ReceiveJobResponse;
-                    break;
-                }
+                        instance = ReceiveJobResponse;
+                        break;
+                    }
             }
 
             if (instance != null)
@@ -691,11 +688,11 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         private ReceiveJobResponseMethodState m_receiveJobResponseMethod;
         #endregion
     }
-    #endif
+#endif
     #endregion
 
     #region ISA95EndedStateMachineTypeState Class
-    #if (!OPCUA_EXCLUDE_ISA95EndedStateMachineTypeState)
+#if (!OPCUA_EXCLUDE_ISA95EndedStateMachineTypeState)
     /// <remarks />
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
@@ -713,7 +710,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
             return Opc.Ua.NodeId.Create(UAModel.ISA95_JOBCONTROL_V2.ObjectTypes.ISA95EndedStateMachineType, UAModel.ISA95_JOBCONTROL_V2.Namespaces.ISA95_JOBCONTROL_V2, namespaceUris);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <remarks />
         protected override void Initialize(ISystemContext context)
         {
@@ -742,7 +739,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
            "/////wEAAAAVYIkIAgAAAAAADAAAAEN1cnJlbnRTdGF0ZQEBAAAALwEAyAoAFf////8BAf////8BAAAA" +
            "FWCJCAIAAAAAAAIAAABJZAEBAAAALgBEABH/////AQH/////AAAAAA==";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Public Properties
@@ -754,11 +751,11 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         #region Private Fields
         #endregion
     }
-    #endif
+#endif
     #endregion
 
     #region ISA95InterruptedStateMachineTypeState Class
-    #if (!OPCUA_EXCLUDE_ISA95InterruptedStateMachineTypeState)
+#if (!OPCUA_EXCLUDE_ISA95InterruptedStateMachineTypeState)
     /// <remarks />
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
@@ -776,7 +773,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
             return Opc.Ua.NodeId.Create(UAModel.ISA95_JOBCONTROL_V2.ObjectTypes.ISA95InterruptedStateMachineType, UAModel.ISA95_JOBCONTROL_V2.Namespaces.ISA95_JOBCONTROL_V2, namespaceUris);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <remarks />
         protected override void Initialize(ISystemContext context)
         {
@@ -805,7 +802,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
            "7wPvAwAA/////wEAAAAVYIkIAgAAAAAADAAAAEN1cnJlbnRTdGF0ZQEBAAAALwEAyAoAFf////8BAf//" +
            "//8BAAAAFWCJCAIAAAAAAAIAAABJZAEBAAAALgBEABH/////AQH/////AAAAAA==";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Public Properties
@@ -817,11 +814,11 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         #region Private Fields
         #endregion
     }
-    #endif
+#endif
     #endregion
 
     #region ISA95JobOrderReceiverObjectTypeState Class
-    #if (!OPCUA_EXCLUDE_ISA95JobOrderReceiverObjectTypeState)
+#if (!OPCUA_EXCLUDE_ISA95JobOrderReceiverObjectTypeState)
     /// <remarks />
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
@@ -839,7 +836,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
             return Opc.Ua.NodeId.Create(UAModel.ISA95_JOBCONTROL_V2.ObjectTypes.ISA95JobOrderReceiverObjectType, UAModel.ISA95_JOBCONTROL_V2.Namespaces.ISA95_JOBCONTROL_V2, namespaceUris);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <remarks />
         protected override void Initialize(ISystemContext context)
         {
@@ -1244,7 +1241,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
            "bmx5IHNldCBvZiBwYXJhbWV0ZXJzIHRoYXQgbWF5IGJlIHNwZWNpZmllZCBmb3IgYSBzcGVjaWZpYyB3" +
            "b3JrIG1hc3Rlci4ALwA/khcAAAEBvwsBAAAAAQAAAAAAAAABAf////8AAAAA";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Public Properties
@@ -1731,403 +1728,403 @@ namespace UAModel.ISA95_JOBCONTROL_V2
             switch (browseName.Name)
             {
                 case UAModel.ISA95_JOBCONTROL_V2.BrowseNames.Abort:
-                {
-                    if (createOrReplace)
                     {
-                        if (Abort == null)
+                        if (createOrReplace)
                         {
-                            if (replacement == null)
+                            if (Abort == null)
                             {
-                                Abort = new AbortMethodState(this);
-                            }
-                            else
-                            {
-                                Abort = (AbortMethodState)replacement;
+                                if (replacement == null)
+                                {
+                                    Abort = new AbortMethodState(this);
+                                }
+                                else
+                                {
+                                    Abort = (AbortMethodState)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = Abort;
-                    break;
-                }
+                        instance = Abort;
+                        break;
+                    }
 
                 case UAModel.ISA95_JOBCONTROL_V2.BrowseNames.Cancel:
-                {
-                    if (createOrReplace)
                     {
-                        if (Cancel == null)
+                        if (createOrReplace)
                         {
-                            if (replacement == null)
+                            if (Cancel == null)
                             {
-                                Cancel = new CancelMethodState(this);
-                            }
-                            else
-                            {
-                                Cancel = (CancelMethodState)replacement;
+                                if (replacement == null)
+                                {
+                                    Cancel = new CancelMethodState(this);
+                                }
+                                else
+                                {
+                                    Cancel = (CancelMethodState)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = Cancel;
-                    break;
-                }
+                        instance = Cancel;
+                        break;
+                    }
 
                 case UAModel.ISA95_JOBCONTROL_V2.BrowseNames.Clear:
-                {
-                    if (createOrReplace)
                     {
-                        if (Clear == null)
+                        if (createOrReplace)
                         {
-                            if (replacement == null)
+                            if (Clear == null)
                             {
-                                Clear = new ClearMethodState(this);
-                            }
-                            else
-                            {
-                                Clear = (ClearMethodState)replacement;
+                                if (replacement == null)
+                                {
+                                    Clear = new ClearMethodState(this);
+                                }
+                                else
+                                {
+                                    Clear = (ClearMethodState)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = Clear;
-                    break;
-                }
+                        instance = Clear;
+                        break;
+                    }
 
                 case UAModel.ISA95_JOBCONTROL_V2.BrowseNames.EquipmentID:
-                {
-                    if (createOrReplace)
                     {
-                        if (EquipmentID == null)
+                        if (createOrReplace)
                         {
-                            if (replacement == null)
+                            if (EquipmentID == null)
                             {
-                                EquipmentID = new BaseDataVariableState<string[]>(this);
-                            }
-                            else
-                            {
-                                EquipmentID = (BaseDataVariableState<string[]>)replacement;
+                                if (replacement == null)
+                                {
+                                    EquipmentID = new BaseDataVariableState<string[]>(this);
+                                }
+                                else
+                                {
+                                    EquipmentID = (BaseDataVariableState<string[]>)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = EquipmentID;
-                    break;
-                }
+                        instance = EquipmentID;
+                        break;
+                    }
 
                 case UAModel.ISA95_JOBCONTROL_V2.BrowseNames.JobOrderList:
-                {
-                    if (createOrReplace)
                     {
-                        if (JobOrderList == null)
+                        if (createOrReplace)
                         {
-                            if (replacement == null)
+                            if (JobOrderList == null)
                             {
-                                JobOrderList = new BaseDataVariableState<ISA95JobOrderAndStateDataType[]>(this);
-                            }
-                            else
-                            {
-                                JobOrderList = (BaseDataVariableState<ISA95JobOrderAndStateDataType[]>)replacement;
+                                if (replacement == null)
+                                {
+                                    JobOrderList = new BaseDataVariableState<ISA95JobOrderAndStateDataType[]>(this);
+                                }
+                                else
+                                {
+                                    JobOrderList = (BaseDataVariableState<ISA95JobOrderAndStateDataType[]>)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = JobOrderList;
-                    break;
-                }
+                        instance = JobOrderList;
+                        break;
+                    }
 
                 case UAModel.ISA95_JOBCONTROL_V2.BrowseNames.MaterialClassID:
-                {
-                    if (createOrReplace)
                     {
-                        if (MaterialClassID == null)
+                        if (createOrReplace)
                         {
-                            if (replacement == null)
+                            if (MaterialClassID == null)
                             {
-                                MaterialClassID = new BaseDataVariableState<string[]>(this);
-                            }
-                            else
-                            {
-                                MaterialClassID = (BaseDataVariableState<string[]>)replacement;
+                                if (replacement == null)
+                                {
+                                    MaterialClassID = new BaseDataVariableState<string[]>(this);
+                                }
+                                else
+                                {
+                                    MaterialClassID = (BaseDataVariableState<string[]>)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = MaterialClassID;
-                    break;
-                }
+                        instance = MaterialClassID;
+                        break;
+                    }
 
                 case UAModel.ISA95_JOBCONTROL_V2.BrowseNames.MaterialDefinitionID:
-                {
-                    if (createOrReplace)
                     {
-                        if (MaterialDefinitionID == null)
+                        if (createOrReplace)
                         {
-                            if (replacement == null)
+                            if (MaterialDefinitionID == null)
                             {
-                                MaterialDefinitionID = new BaseDataVariableState<string[]>(this);
-                            }
-                            else
-                            {
-                                MaterialDefinitionID = (BaseDataVariableState<string[]>)replacement;
+                                if (replacement == null)
+                                {
+                                    MaterialDefinitionID = new BaseDataVariableState<string[]>(this);
+                                }
+                                else
+                                {
+                                    MaterialDefinitionID = (BaseDataVariableState<string[]>)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = MaterialDefinitionID;
-                    break;
-                }
+                        instance = MaterialDefinitionID;
+                        break;
+                    }
 
                 case UAModel.ISA95_JOBCONTROL_V2.BrowseNames.MaxDownloadableJobOrders:
-                {
-                    if (createOrReplace)
                     {
-                        if (MaxDownloadableJobOrders == null)
+                        if (createOrReplace)
                         {
-                            if (replacement == null)
+                            if (MaxDownloadableJobOrders == null)
                             {
-                                MaxDownloadableJobOrders = new PropertyState<ushort>(this);
-                            }
-                            else
-                            {
-                                MaxDownloadableJobOrders = (PropertyState<ushort>)replacement;
+                                if (replacement == null)
+                                {
+                                    MaxDownloadableJobOrders = new PropertyState<ushort>(this);
+                                }
+                                else
+                                {
+                                    MaxDownloadableJobOrders = (PropertyState<ushort>)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = MaxDownloadableJobOrders;
-                    break;
-                }
+                        instance = MaxDownloadableJobOrders;
+                        break;
+                    }
 
                 case UAModel.ISA95_JOBCONTROL_V2.BrowseNames.Pause:
-                {
-                    if (createOrReplace)
                     {
-                        if (Pause == null)
+                        if (createOrReplace)
                         {
-                            if (replacement == null)
+                            if (Pause == null)
                             {
-                                Pause = new PauseMethodState(this);
-                            }
-                            else
-                            {
-                                Pause = (PauseMethodState)replacement;
+                                if (replacement == null)
+                                {
+                                    Pause = new PauseMethodState(this);
+                                }
+                                else
+                                {
+                                    Pause = (PauseMethodState)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = Pause;
-                    break;
-                }
+                        instance = Pause;
+                        break;
+                    }
 
                 case UAModel.ISA95_JOBCONTROL_V2.BrowseNames.PersonnelID:
-                {
-                    if (createOrReplace)
                     {
-                        if (PersonnelID == null)
+                        if (createOrReplace)
                         {
-                            if (replacement == null)
+                            if (PersonnelID == null)
                             {
-                                PersonnelID = new BaseDataVariableState<string[]>(this);
-                            }
-                            else
-                            {
-                                PersonnelID = (BaseDataVariableState<string[]>)replacement;
+                                if (replacement == null)
+                                {
+                                    PersonnelID = new BaseDataVariableState<string[]>(this);
+                                }
+                                else
+                                {
+                                    PersonnelID = (BaseDataVariableState<string[]>)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = PersonnelID;
-                    break;
-                }
+                        instance = PersonnelID;
+                        break;
+                    }
 
                 case UAModel.ISA95_JOBCONTROL_V2.BrowseNames.PhysicalAssetID:
-                {
-                    if (createOrReplace)
                     {
-                        if (PhysicalAssetID == null)
+                        if (createOrReplace)
                         {
-                            if (replacement == null)
+                            if (PhysicalAssetID == null)
                             {
-                                PhysicalAssetID = new BaseDataVariableState<string[]>(this);
-                            }
-                            else
-                            {
-                                PhysicalAssetID = (BaseDataVariableState<string[]>)replacement;
+                                if (replacement == null)
+                                {
+                                    PhysicalAssetID = new BaseDataVariableState<string[]>(this);
+                                }
+                                else
+                                {
+                                    PhysicalAssetID = (BaseDataVariableState<string[]>)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = PhysicalAssetID;
-                    break;
-                }
+                        instance = PhysicalAssetID;
+                        break;
+                    }
 
                 case UAModel.ISA95_JOBCONTROL_V2.BrowseNames.Resume:
-                {
-                    if (createOrReplace)
                     {
-                        if (Resume == null)
+                        if (createOrReplace)
                         {
-                            if (replacement == null)
+                            if (Resume == null)
                             {
-                                Resume = new ResumeMethodState(this);
-                            }
-                            else
-                            {
-                                Resume = (ResumeMethodState)replacement;
+                                if (replacement == null)
+                                {
+                                    Resume = new ResumeMethodState(this);
+                                }
+                                else
+                                {
+                                    Resume = (ResumeMethodState)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = Resume;
-                    break;
-                }
+                        instance = Resume;
+                        break;
+                    }
 
                 case UAModel.ISA95_JOBCONTROL_V2.BrowseNames.RevokeStart:
-                {
-                    if (createOrReplace)
                     {
-                        if (RevokeStart == null)
+                        if (createOrReplace)
                         {
-                            if (replacement == null)
+                            if (RevokeStart == null)
                             {
-                                RevokeStart = new RevokeStartMethodState(this);
-                            }
-                            else
-                            {
-                                RevokeStart = (RevokeStartMethodState)replacement;
+                                if (replacement == null)
+                                {
+                                    RevokeStart = new RevokeStartMethodState(this);
+                                }
+                                else
+                                {
+                                    RevokeStart = (RevokeStartMethodState)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = RevokeStart;
-                    break;
-                }
+                        instance = RevokeStart;
+                        break;
+                    }
 
                 case UAModel.ISA95_JOBCONTROL_V2.BrowseNames.Start:
-                {
-                    if (createOrReplace)
                     {
-                        if (Start == null)
+                        if (createOrReplace)
                         {
-                            if (replacement == null)
+                            if (Start == null)
                             {
-                                Start = new StartMethodState(this);
-                            }
-                            else
-                            {
-                                Start = (StartMethodState)replacement;
+                                if (replacement == null)
+                                {
+                                    Start = new StartMethodState(this);
+                                }
+                                else
+                                {
+                                    Start = (StartMethodState)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = Start;
-                    break;
-                }
+                        instance = Start;
+                        break;
+                    }
 
                 case UAModel.ISA95_JOBCONTROL_V2.BrowseNames.Stop:
-                {
-                    if (createOrReplace)
                     {
-                        if (Stop == null)
+                        if (createOrReplace)
                         {
-                            if (replacement == null)
+                            if (Stop == null)
                             {
-                                Stop = new StopMethodState(this);
-                            }
-                            else
-                            {
-                                Stop = (StopMethodState)replacement;
+                                if (replacement == null)
+                                {
+                                    Stop = new StopMethodState(this);
+                                }
+                                else
+                                {
+                                    Stop = (StopMethodState)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = Stop;
-                    break;
-                }
+                        instance = Stop;
+                        break;
+                    }
 
                 case UAModel.ISA95_JOBCONTROL_V2.BrowseNames.Store:
-                {
-                    if (createOrReplace)
                     {
-                        if (Store == null)
+                        if (createOrReplace)
                         {
-                            if (replacement == null)
+                            if (Store == null)
                             {
-                                Store = new StoreMethodState(this);
-                            }
-                            else
-                            {
-                                Store = (StoreMethodState)replacement;
+                                if (replacement == null)
+                                {
+                                    Store = new StoreMethodState(this);
+                                }
+                                else
+                                {
+                                    Store = (StoreMethodState)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = Store;
-                    break;
-                }
+                        instance = Store;
+                        break;
+                    }
 
                 case UAModel.ISA95_JOBCONTROL_V2.BrowseNames.StoreAndStart:
-                {
-                    if (createOrReplace)
                     {
-                        if (StoreAndStart == null)
+                        if (createOrReplace)
                         {
-                            if (replacement == null)
+                            if (StoreAndStart == null)
                             {
-                                StoreAndStart = new StoreAndStartMethodState(this);
-                            }
-                            else
-                            {
-                                StoreAndStart = (StoreAndStartMethodState)replacement;
+                                if (replacement == null)
+                                {
+                                    StoreAndStart = new StoreAndStartMethodState(this);
+                                }
+                                else
+                                {
+                                    StoreAndStart = (StoreAndStartMethodState)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = StoreAndStart;
-                    break;
-                }
+                        instance = StoreAndStart;
+                        break;
+                    }
 
                 case UAModel.ISA95_JOBCONTROL_V2.BrowseNames.Update:
-                {
-                    if (createOrReplace)
                     {
-                        if (Update == null)
+                        if (createOrReplace)
                         {
-                            if (replacement == null)
+                            if (Update == null)
                             {
-                                Update = new UpdateMethodState(this);
-                            }
-                            else
-                            {
-                                Update = (UpdateMethodState)replacement;
+                                if (replacement == null)
+                                {
+                                    Update = new UpdateMethodState(this);
+                                }
+                                else
+                                {
+                                    Update = (UpdateMethodState)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = Update;
-                    break;
-                }
+                        instance = Update;
+                        break;
+                    }
 
                 case UAModel.ISA95_JOBCONTROL_V2.BrowseNames.WorkMaster:
-                {
-                    if (createOrReplace)
                     {
-                        if (WorkMaster == null)
+                        if (createOrReplace)
                         {
-                            if (replacement == null)
+                            if (WorkMaster == null)
                             {
-                                WorkMaster = new BaseDataVariableState<ISA95WorkMasterDataType[]>(this);
-                            }
-                            else
-                            {
-                                WorkMaster = (BaseDataVariableState<ISA95WorkMasterDataType[]>)replacement;
+                                if (replacement == null)
+                                {
+                                    WorkMaster = new BaseDataVariableState<ISA95WorkMasterDataType[]>(this);
+                                }
+                                else
+                                {
+                                    WorkMaster = (BaseDataVariableState<ISA95WorkMasterDataType[]>)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = WorkMaster;
-                    break;
-                }
+                        instance = WorkMaster;
+                        break;
+                    }
             }
 
             if (instance != null)
@@ -2161,11 +2158,11 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         private BaseDataVariableState<ISA95WorkMasterDataType[]> m_workMaster;
         #endregion
     }
-    #endif
+#endif
     #endregion
 
     #region ISA95JobOrderReceiverSubStatesTypeState Class
-    #if (!OPCUA_EXCLUDE_ISA95JobOrderReceiverSubStatesTypeState)
+#if (!OPCUA_EXCLUDE_ISA95JobOrderReceiverSubStatesTypeState)
     /// <remarks />
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
@@ -2183,7 +2180,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
             return Opc.Ua.NodeId.Create(UAModel.ISA95_JOBCONTROL_V2.ObjectTypes.ISA95JobOrderReceiverSubStatesType, UAModel.ISA95_JOBCONTROL_V2.Namespaces.ISA95_JOBCONTROL_V2, namespaceUris);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <remarks />
         protected override void Initialize(ISystemContext context)
         {
@@ -2295,7 +2292,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
            "AAAAAAwAAABDdXJyZW50U3RhdGUBAXEXAC8BAMgKcRcAAAAV/////wEB/////wEAAAAVYIkKAgAAAAAA" +
            "AgAAAElkAQFyFwAuAERyFwAAABH/////AQH/////AAAAAA==";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Public Properties
@@ -2422,88 +2419,88 @@ namespace UAModel.ISA95_JOBCONTROL_V2
             switch (browseName.Name)
             {
                 case UAModel.ISA95_JOBCONTROL_V2.BrowseNames.AllowedToStartSubstates:
-                {
-                    if (createOrReplace)
                     {
-                        if (AllowedToStartSubstates == null)
+                        if (createOrReplace)
                         {
-                            if (replacement == null)
+                            if (AllowedToStartSubstates == null)
                             {
-                                AllowedToStartSubstates = new ISA95PrepareStateMachineTypeState(this);
-                            }
-                            else
-                            {
-                                AllowedToStartSubstates = (ISA95PrepareStateMachineTypeState)replacement;
+                                if (replacement == null)
+                                {
+                                    AllowedToStartSubstates = new ISA95PrepareStateMachineTypeState(this);
+                                }
+                                else
+                                {
+                                    AllowedToStartSubstates = (ISA95PrepareStateMachineTypeState)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = AllowedToStartSubstates;
-                    break;
-                }
+                        instance = AllowedToStartSubstates;
+                        break;
+                    }
 
                 case UAModel.ISA95_JOBCONTROL_V2.BrowseNames.EndedSubstates:
-                {
-                    if (createOrReplace)
                     {
-                        if (EndedSubstates == null)
+                        if (createOrReplace)
                         {
-                            if (replacement == null)
+                            if (EndedSubstates == null)
                             {
-                                EndedSubstates = new ISA95EndedStateMachineTypeState(this);
-                            }
-                            else
-                            {
-                                EndedSubstates = (ISA95EndedStateMachineTypeState)replacement;
+                                if (replacement == null)
+                                {
+                                    EndedSubstates = new ISA95EndedStateMachineTypeState(this);
+                                }
+                                else
+                                {
+                                    EndedSubstates = (ISA95EndedStateMachineTypeState)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = EndedSubstates;
-                    break;
-                }
+                        instance = EndedSubstates;
+                        break;
+                    }
 
                 case UAModel.ISA95_JOBCONTROL_V2.BrowseNames.InterruptedSubstates:
-                {
-                    if (createOrReplace)
                     {
-                        if (InterruptedSubstates == null)
+                        if (createOrReplace)
                         {
-                            if (replacement == null)
+                            if (InterruptedSubstates == null)
                             {
-                                InterruptedSubstates = new ISA95InterruptedStateMachineTypeState(this);
-                            }
-                            else
-                            {
-                                InterruptedSubstates = (ISA95InterruptedStateMachineTypeState)replacement;
+                                if (replacement == null)
+                                {
+                                    InterruptedSubstates = new ISA95InterruptedStateMachineTypeState(this);
+                                }
+                                else
+                                {
+                                    InterruptedSubstates = (ISA95InterruptedStateMachineTypeState)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = InterruptedSubstates;
-                    break;
-                }
+                        instance = InterruptedSubstates;
+                        break;
+                    }
 
                 case UAModel.ISA95_JOBCONTROL_V2.BrowseNames.NotAllowedToStartSubstates:
-                {
-                    if (createOrReplace)
                     {
-                        if (NotAllowedToStartSubstates == null)
+                        if (createOrReplace)
                         {
-                            if (replacement == null)
+                            if (NotAllowedToStartSubstates == null)
                             {
-                                NotAllowedToStartSubstates = new ISA95PrepareStateMachineTypeState(this);
-                            }
-                            else
-                            {
-                                NotAllowedToStartSubstates = (ISA95PrepareStateMachineTypeState)replacement;
+                                if (replacement == null)
+                                {
+                                    NotAllowedToStartSubstates = new ISA95PrepareStateMachineTypeState(this);
+                                }
+                                else
+                                {
+                                    NotAllowedToStartSubstates = (ISA95PrepareStateMachineTypeState)replacement;
+                                }
                             }
                         }
-                    }
 
-                    instance = NotAllowedToStartSubstates;
-                    break;
-                }
+                        instance = NotAllowedToStartSubstates;
+                        break;
+                    }
             }
 
             if (instance != null)
@@ -2522,11 +2519,11 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         private ISA95PrepareStateMachineTypeState m_notAllowedToStartSubstates;
         #endregion
     }
-    #endif
+#endif
     #endregion
 
     #region ISA95PrepareStateMachineTypeState Class
-    #if (!OPCUA_EXCLUDE_ISA95PrepareStateMachineTypeState)
+#if (!OPCUA_EXCLUDE_ISA95PrepareStateMachineTypeState)
     /// <remarks />
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
@@ -2544,7 +2541,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
             return Opc.Ua.NodeId.Create(UAModel.ISA95_JOBCONTROL_V2.ObjectTypes.ISA95PrepareStateMachineType, UAModel.ISA95_JOBCONTROL_V2.Namespaces.ISA95_JOBCONTROL_V2, namespaceUris);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <remarks />
         protected override void Initialize(ISystemContext context)
         {
@@ -2573,7 +2570,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
            "AAD/////AQAAABVgiQgCAAAAAAAMAAAAQ3VycmVudFN0YXRlAQEAAAAvAQDICgAV/////wEB/////wEA" +
            "AAAVYIkIAgAAAAAAAgAAAElkAQEAAAAuAEQAEf////8BAf////8AAAAA";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Public Properties
@@ -2585,11 +2582,11 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         #region Private Fields
         #endregion
     }
-    #endif
+#endif
     #endregion
 
     #region RequestJobResponseByJobOrderIDMethodState Class
-    #if (!OPCUA_EXCLUDE_RequestJobResponseByJobOrderIDMethodState)
+#if (!OPCUA_EXCLUDE_RequestJobResponseByJobOrderIDMethodState)
     /// <remarks />
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
@@ -2607,7 +2604,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
             return new RequestJobResponseByJobOrderIDMethodState(parent);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <remarks />
         protected override void Initialize(ISystemContext context)
         {
@@ -2628,7 +2625,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
            "BGGCAAQAAAABACgAAABSZXF1ZXN0Sm9iUmVzcG9uc2VCeUpvYk9yZGVySURNZXRob2RUeXBlAQEAAAEB" +
            "AAABAf////8AAAAA";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Event Callbacks
@@ -2690,11 +2687,11 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         string jobOrderID,
         ref ISA95JobResponseDataType jobResponse,
         ref ulong returnStatus);
-    #endif
+#endif
     #endregion
 
     #region RequestJobResponseByJobOrderStateMethodState Class
-    #if (!OPCUA_EXCLUDE_RequestJobResponseByJobOrderStateMethodState)
+#if (!OPCUA_EXCLUDE_RequestJobResponseByJobOrderStateMethodState)
     /// <remarks />
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
@@ -2712,7 +2709,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
             return new RequestJobResponseByJobOrderStateMethodState(parent);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <remarks />
         protected override void Initialize(ISystemContext context)
         {
@@ -2733,7 +2730,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
            "BGGCAAQAAAABACsAAABSZXF1ZXN0Sm9iUmVzcG9uc2VCeUpvYk9yZGVyU3RhdGVNZXRob2RUeXBlAQEA" +
            "AAEBAAABAf////8AAAAA";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Event Callbacks
@@ -2795,11 +2792,11 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         ISA95StateDataType[] jobOrderState,
         ref ISA95JobResponseDataType[] jobResponses,
         ref ulong returnStatus);
-    #endif
+#endif
     #endregion
 
     #region ReceiveJobResponseMethodState Class
-    #if (!OPCUA_EXCLUDE_ReceiveJobResponseMethodState)
+#if (!OPCUA_EXCLUDE_ReceiveJobResponseMethodState)
     /// <remarks />
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
@@ -2817,7 +2814,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
             return new ReceiveJobResponseMethodState(parent);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <remarks />
         protected override void Initialize(ISystemContext context)
         {
@@ -2837,7 +2834,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
            "AQAAADAAAABodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvVUEvSVNBOTUtSk9CQ09OVFJPTF9WMi//////" +
            "BGGCAAQAAAABABwAAABSZWNlaXZlSm9iUmVzcG9uc2VNZXRob2RUeXBlAQEAAAEBAAABAf////8AAAAA";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Event Callbacks
@@ -2895,11 +2892,11 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         NodeId _objectId,
         ISA95JobResponseDataType jobResponse,
         ref ulong returnStatus);
-    #endif
+#endif
     #endregion
 
     #region AbortMethodState Class
-    #if (!OPCUA_EXCLUDE_AbortMethodState)
+#if (!OPCUA_EXCLUDE_AbortMethodState)
     /// <remarks />
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
@@ -2917,7 +2914,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
             return new AbortMethodState(parent);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <remarks />
         protected override void Initialize(ISystemContext context)
         {
@@ -2937,7 +2934,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
            "AQAAADAAAABodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvVUEvSVNBOTUtSk9CQ09OVFJPTF9WMi//////" +
            "BGGCAAQAAAABAA8AAABBYm9ydE1ldGhvZFR5cGUBAQAAAQEAAAEB/////wAAAAA=";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Event Callbacks
@@ -2998,11 +2995,11 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         string jobOrderID,
         LocalizedText[] comment,
         ref ulong returnStatus);
-    #endif
+#endif
     #endregion
 
     #region CancelMethodState Class
-    #if (!OPCUA_EXCLUDE_CancelMethodState)
+#if (!OPCUA_EXCLUDE_CancelMethodState)
     /// <remarks />
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
@@ -3020,7 +3017,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
             return new CancelMethodState(parent);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <remarks />
         protected override void Initialize(ISystemContext context)
         {
@@ -3040,7 +3037,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
            "AQAAADAAAABodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvVUEvSVNBOTUtSk9CQ09OVFJPTF9WMi//////" +
            "BGGCAAQAAAABABAAAABDYW5jZWxNZXRob2RUeXBlAQEAAAEBAAABAf////8AAAAA";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Event Callbacks
@@ -3101,11 +3098,11 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         string jobOrderID,
         LocalizedText[] comment,
         ref ulong returnStatus);
-    #endif
+#endif
     #endregion
 
     #region ClearMethodState Class
-    #if (!OPCUA_EXCLUDE_ClearMethodState)
+#if (!OPCUA_EXCLUDE_ClearMethodState)
     /// <remarks />
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
@@ -3123,7 +3120,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
             return new ClearMethodState(parent);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <remarks />
         protected override void Initialize(ISystemContext context)
         {
@@ -3143,7 +3140,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
            "AQAAADAAAABodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvVUEvSVNBOTUtSk9CQ09OVFJPTF9WMi//////" +
            "BGGCAAQAAAABAA8AAABDbGVhck1ldGhvZFR5cGUBAQAAAQEAAAEB/////wAAAAA=";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Event Callbacks
@@ -3204,11 +3201,11 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         string jobOrderID,
         LocalizedText[] comment,
         ref ulong returnStatus);
-    #endif
+#endif
     #endregion
 
     #region PauseMethodState Class
-    #if (!OPCUA_EXCLUDE_PauseMethodState)
+#if (!OPCUA_EXCLUDE_PauseMethodState)
     /// <remarks />
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
@@ -3226,7 +3223,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
             return new PauseMethodState(parent);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <remarks />
         protected override void Initialize(ISystemContext context)
         {
@@ -3246,7 +3243,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
            "AQAAADAAAABodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvVUEvSVNBOTUtSk9CQ09OVFJPTF9WMi//////" +
            "BGGCAAQAAAABAA8AAABQYXVzZU1ldGhvZFR5cGUBAQAAAQEAAAEB/////wAAAAA=";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Event Callbacks
@@ -3307,11 +3304,11 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         string jobOrderID,
         LocalizedText[] comment,
         ref ulong returnStatus);
-    #endif
+#endif
     #endregion
 
     #region ResumeMethodState Class
-    #if (!OPCUA_EXCLUDE_ResumeMethodState)
+#if (!OPCUA_EXCLUDE_ResumeMethodState)
     /// <remarks />
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
@@ -3329,7 +3326,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
             return new ResumeMethodState(parent);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <remarks />
         protected override void Initialize(ISystemContext context)
         {
@@ -3349,7 +3346,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
            "AQAAADAAAABodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvVUEvSVNBOTUtSk9CQ09OVFJPTF9WMi//////" +
            "BGGCAAQAAAABABAAAABSZXN1bWVNZXRob2RUeXBlAQEAAAEBAAABAf////8AAAAA";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Event Callbacks
@@ -3410,11 +3407,11 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         string jobOrderID,
         LocalizedText[] comment,
         ref ulong returnStatus);
-    #endif
+#endif
     #endregion
 
     #region RevokeStartMethodState Class
-    #if (!OPCUA_EXCLUDE_RevokeStartMethodState)
+#if (!OPCUA_EXCLUDE_RevokeStartMethodState)
     /// <remarks />
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
@@ -3432,7 +3429,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
             return new RevokeStartMethodState(parent);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <remarks />
         protected override void Initialize(ISystemContext context)
         {
@@ -3452,7 +3449,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
            "AQAAADAAAABodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvVUEvSVNBOTUtSk9CQ09OVFJPTF9WMi//////" +
            "BGGCAAQAAAABABUAAABSZXZva2VTdGFydE1ldGhvZFR5cGUBAQAAAQEAAAEB/////wAAAAA=";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Event Callbacks
@@ -3513,11 +3510,11 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         string jobOrderID,
         LocalizedText[] comment,
         ref ulong returnStatus);
-    #endif
+#endif
     #endregion
 
     #region StartMethodState Class
-    #if (!OPCUA_EXCLUDE_StartMethodState)
+#if (!OPCUA_EXCLUDE_StartMethodState)
     /// <remarks />
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
@@ -3535,7 +3532,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
             return new StartMethodState(parent);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <remarks />
         protected override void Initialize(ISystemContext context)
         {
@@ -3555,7 +3552,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
            "AQAAADAAAABodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvVUEvSVNBOTUtSk9CQ09OVFJPTF9WMi//////" +
            "BGGCAAQAAAABAA8AAABTdGFydE1ldGhvZFR5cGUBAQAAAQEAAAEB/////wAAAAA=";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Event Callbacks
@@ -3616,11 +3613,11 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         string jobOrderID,
         LocalizedText[] comment,
         ref ulong returnStatus);
-    #endif
+#endif
     #endregion
 
     #region StopMethodState Class
-    #if (!OPCUA_EXCLUDE_StopMethodState)
+#if (!OPCUA_EXCLUDE_StopMethodState)
     /// <remarks />
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
@@ -3638,7 +3635,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
             return new StopMethodState(parent);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <remarks />
         protected override void Initialize(ISystemContext context)
         {
@@ -3658,7 +3655,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
            "AQAAADAAAABodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvVUEvSVNBOTUtSk9CQ09OVFJPTF9WMi//////" +
            "BGGCAAQAAAABAA4AAABTdG9wTWV0aG9kVHlwZQEBAAABAQAAAQH/////AAAAAA==";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Event Callbacks
@@ -3719,11 +3716,11 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         string jobOrderID,
         LocalizedText[] comment,
         ref ulong returnStatus);
-    #endif
+#endif
     #endregion
 
     #region StoreMethodState Class
-    #if (!OPCUA_EXCLUDE_StoreMethodState)
+#if (!OPCUA_EXCLUDE_StoreMethodState)
     /// <remarks />
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
@@ -3741,7 +3738,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
             return new StoreMethodState(parent);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <remarks />
         protected override void Initialize(ISystemContext context)
         {
@@ -3761,7 +3758,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
            "AQAAADAAAABodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvVUEvSVNBOTUtSk9CQ09OVFJPTF9WMi//////" +
            "BGGCAAQAAAABAA8AAABTdG9yZU1ldGhvZFR5cGUBAQAAAQEAAAEB/////wAAAAA=";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Event Callbacks
@@ -3822,11 +3819,11 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         ISA95JobOrderDataType jobOrder,
         LocalizedText[] comment,
         ref ulong returnStatus);
-    #endif
+#endif
     #endregion
 
     #region StoreAndStartMethodState Class
-    #if (!OPCUA_EXCLUDE_StoreAndStartMethodState)
+#if (!OPCUA_EXCLUDE_StoreAndStartMethodState)
     /// <remarks />
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
@@ -3844,7 +3841,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
             return new StoreAndStartMethodState(parent);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <remarks />
         protected override void Initialize(ISystemContext context)
         {
@@ -3864,7 +3861,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
            "AQAAADAAAABodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvVUEvSVNBOTUtSk9CQ09OVFJPTF9WMi//////" +
            "BGGCAAQAAAABABcAAABTdG9yZUFuZFN0YXJ0TWV0aG9kVHlwZQEBAAABAQAAAQH/////AAAAAA==";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Event Callbacks
@@ -3925,11 +3922,11 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         ISA95JobOrderDataType jobOrder,
         LocalizedText[] comment,
         ref ulong returnStatus);
-    #endif
+#endif
     #endregion
 
     #region UpdateMethodState Class
-    #if (!OPCUA_EXCLUDE_UpdateMethodState)
+#if (!OPCUA_EXCLUDE_UpdateMethodState)
     /// <remarks />
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
@@ -3947,7 +3944,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
             return new UpdateMethodState(parent);
         }
 
-        #if (!OPCUA_EXCLUDE_InitializationStrings)
+#if (!OPCUA_EXCLUDE_InitializationStrings)
         /// <remarks />
         protected override void Initialize(ISystemContext context)
         {
@@ -3967,7 +3964,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
            "AQAAADAAAABodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvVUEvSVNBOTUtSk9CQ09OVFJPTF9WMi//////" +
            "BGGCAAQAAAABABAAAABVcGRhdGVNZXRob2RUeXBlAQEAAAEBAAABAf////8AAAAA";
         #endregion
-        #endif
+#endif
         #endregion
 
         #region Event Callbacks
@@ -4028,6 +4025,6 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         ISA95JobOrderDataType jobOrder,
         LocalizedText[] comment,
         ref ulong returnStatus);
-    #endif
+#endif
     #endregion
 }

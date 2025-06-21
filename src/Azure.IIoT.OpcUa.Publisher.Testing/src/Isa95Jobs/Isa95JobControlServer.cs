@@ -31,7 +31,6 @@ namespace Isa95Jobs
 {
     using Opc.Ua;
     using Opc.Ua.Server;
-    using UAModel.ISA95_JOBCONTROL_V2;
 
     /// <inheritdoc/>
     public class Isa95JobControlServer : INodeManagerFactory

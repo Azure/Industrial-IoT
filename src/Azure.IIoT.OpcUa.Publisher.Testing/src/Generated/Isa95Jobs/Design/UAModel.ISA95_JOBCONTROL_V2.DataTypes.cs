@@ -27,17 +27,15 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
+using Opc.Ua;
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Xml;
 using System.Runtime.Serialization;
-using Opc.Ua;
 
 namespace UAModel.ISA95_JOBCONTROL_V2
 {
     #region ISA95EquipmentDataType Class
-    #if (!OPCUA_EXCLUDE_ISA95EquipmentDataType)
+#if (!OPCUA_EXCLUDE_ISA95EquipmentDataType)
     /// <remarks />
     /// <exclude />
     public enum ISA95EquipmentDataTypeFields : uint
@@ -95,7 +93,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         [DataMember(Name = "ID", IsRequired = false, Order = 1)]
         public string ID
         {
-            get { return m_iD;  }
+            get { return m_iD; }
             set { m_iD = value; }
         }
 
@@ -123,7 +121,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         [DataMember(Name = "EquipmentUse", IsRequired = false, Order = 3)]
         public string EquipmentUse
         {
-            get { return m_equipmentUse;  }
+            get { return m_equipmentUse; }
             set { m_equipmentUse = value; }
         }
 
@@ -131,7 +129,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         [DataMember(Name = "Quantity", IsRequired = false, Order = 4)]
         public string Quantity
         {
-            get { return m_quantity;  }
+            get { return m_quantity; }
             set { m_quantity = value; }
         }
 
@@ -292,13 +290,13 @@ namespace UAModel.ISA95_JOBCONTROL_V2
     {
         #region Constructors
         /// <remarks />
-        public ISA95EquipmentDataTypeCollection() {}
+        public ISA95EquipmentDataTypeCollection() { }
 
         /// <remarks />
-        public ISA95EquipmentDataTypeCollection(int capacity) : base(capacity) {}
+        public ISA95EquipmentDataTypeCollection(int capacity) : base(capacity) { }
 
         /// <remarks />
-        public ISA95EquipmentDataTypeCollection(IEnumerable<ISA95EquipmentDataType> collection) : base(collection) {}
+        public ISA95EquipmentDataTypeCollection(IEnumerable<ISA95EquipmentDataType> collection) : base(collection) { }
         #endregion
 
         #region Static Operators
@@ -347,11 +345,11 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         }
     }
     #endregion
-    #endif
+#endif
     #endregion
 
     #region ISA95JobOrderAndStateDataType Class
-    #if (!OPCUA_EXCLUDE_ISA95JobOrderAndStateDataType)
+#if (!OPCUA_EXCLUDE_ISA95JobOrderAndStateDataType)
     /// <remarks />
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
@@ -509,13 +507,13 @@ namespace UAModel.ISA95_JOBCONTROL_V2
     {
         #region Constructors
         /// <remarks />
-        public ISA95JobOrderAndStateDataTypeCollection() {}
+        public ISA95JobOrderAndStateDataTypeCollection() { }
 
         /// <remarks />
-        public ISA95JobOrderAndStateDataTypeCollection(int capacity) : base(capacity) {}
+        public ISA95JobOrderAndStateDataTypeCollection(int capacity) : base(capacity) { }
 
         /// <remarks />
-        public ISA95JobOrderAndStateDataTypeCollection(IEnumerable<ISA95JobOrderAndStateDataType> collection) : base(collection) {}
+        public ISA95JobOrderAndStateDataTypeCollection(IEnumerable<ISA95JobOrderAndStateDataType> collection) : base(collection) { }
         #endregion
 
         #region Static Operators
@@ -564,11 +562,11 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         }
     }
     #endregion
-    #endif
+#endif
     #endregion
 
     #region ISA95JobOrderDataType Class
-    #if (!OPCUA_EXCLUDE_ISA95JobOrderDataType)
+#if (!OPCUA_EXCLUDE_ISA95JobOrderDataType)
     /// <remarks />
     /// <exclude />
     public enum ISA95JobOrderDataTypeFields : uint
@@ -641,7 +639,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         [DataMember(Name = "JobOrderID", IsRequired = false, Order = 1)]
         public string JobOrderID
         {
-            get { return m_jobOrderID;  }
+            get { return m_jobOrderID; }
             set { m_jobOrderID = value; }
         }
 
@@ -689,7 +687,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         [DataMember(Name = "StartTime", IsRequired = false, Order = 4)]
         public DateTime StartTime
         {
-            get { return m_startTime;  }
+            get { return m_startTime; }
             set { m_startTime = value; }
         }
 
@@ -697,7 +695,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         [DataMember(Name = "EndTime", IsRequired = false, Order = 5)]
         public DateTime EndTime
         {
-            get { return m_endTime;  }
+            get { return m_endTime; }
             set { m_endTime = value; }
         }
 
@@ -705,7 +703,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         [DataMember(Name = "Priority", IsRequired = false, Order = 6)]
         public short Priority
         {
-            get { return m_priority;  }
+            get { return m_priority; }
             set { m_priority = value; }
         }
 
@@ -951,13 +949,13 @@ namespace UAModel.ISA95_JOBCONTROL_V2
     {
         #region Constructors
         /// <remarks />
-        public ISA95JobOrderDataTypeCollection() {}
+        public ISA95JobOrderDataTypeCollection() { }
 
         /// <remarks />
-        public ISA95JobOrderDataTypeCollection(int capacity) : base(capacity) {}
+        public ISA95JobOrderDataTypeCollection(int capacity) : base(capacity) { }
 
         /// <remarks />
-        public ISA95JobOrderDataTypeCollection(IEnumerable<ISA95JobOrderDataType> collection) : base(collection) {}
+        public ISA95JobOrderDataTypeCollection(IEnumerable<ISA95JobOrderDataType> collection) : base(collection) { }
         #endregion
 
         #region Static Operators
@@ -1006,11 +1004,11 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         }
     }
     #endregion
-    #endif
+#endif
     #endregion
 
     #region ISA95JobResponseDataType Class
-    #if (!OPCUA_EXCLUDE_ISA95JobResponseDataType)
+#if (!OPCUA_EXCLUDE_ISA95JobResponseDataType)
     /// <remarks />
     /// <exclude />
     public enum ISA95JobResponseDataTypeFields : uint
@@ -1079,7 +1077,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         [DataMember(Name = "JobResponseID", IsRequired = false, Order = 1)]
         public string JobResponseID
         {
-            get { return m_jobResponseID;  }
+            get { return m_jobResponseID; }
             set { m_jobResponseID = value; }
         }
 
@@ -1087,7 +1085,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         [DataMember(Name = "Description", IsRequired = false, Order = 2)]
         public LocalizedText Description
         {
-            get { return m_description;  }
+            get { return m_description; }
             set { m_description = value; }
         }
 
@@ -1095,7 +1093,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         [DataMember(Name = "JobOrderID", IsRequired = false, Order = 3)]
         public string JobOrderID
         {
-            get { return m_jobOrderID;  }
+            get { return m_jobOrderID; }
             set { m_jobOrderID = value; }
         }
 
@@ -1103,7 +1101,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         [DataMember(Name = "StartTime", IsRequired = false, Order = 4)]
         public DateTime StartTime
         {
-            get { return m_startTime;  }
+            get { return m_startTime; }
             set { m_startTime = value; }
         }
 
@@ -1111,7 +1109,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         [DataMember(Name = "EndTime", IsRequired = false, Order = 5)]
         public DateTime EndTime
         {
-            get { return m_endTime;  }
+            get { return m_endTime; }
             set { m_endTime = value; }
         }
 
@@ -1377,13 +1375,13 @@ namespace UAModel.ISA95_JOBCONTROL_V2
     {
         #region Constructors
         /// <remarks />
-        public ISA95JobResponseDataTypeCollection() {}
+        public ISA95JobResponseDataTypeCollection() { }
 
         /// <remarks />
-        public ISA95JobResponseDataTypeCollection(int capacity) : base(capacity) {}
+        public ISA95JobResponseDataTypeCollection(int capacity) : base(capacity) { }
 
         /// <remarks />
-        public ISA95JobResponseDataTypeCollection(IEnumerable<ISA95JobResponseDataType> collection) : base(collection) {}
+        public ISA95JobResponseDataTypeCollection(IEnumerable<ISA95JobResponseDataType> collection) : base(collection) { }
         #endregion
 
         #region Static Operators
@@ -1432,11 +1430,11 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         }
     }
     #endregion
-    #endif
+#endif
     #endregion
 
     #region ISA95MaterialDataType Class
-    #if (!OPCUA_EXCLUDE_ISA95MaterialDataType)
+#if (!OPCUA_EXCLUDE_ISA95MaterialDataType)
     /// <remarks />
     /// <exclude />
     public enum ISA95MaterialDataTypeFields : uint
@@ -1505,7 +1503,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         [DataMember(Name = "MaterialClassID", IsRequired = false, Order = 1)]
         public string MaterialClassID
         {
-            get { return m_materialClassID;  }
+            get { return m_materialClassID; }
             set { m_materialClassID = value; }
         }
 
@@ -1513,7 +1511,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         [DataMember(Name = "MaterialDefinitionID", IsRequired = false, Order = 2)]
         public string MaterialDefinitionID
         {
-            get { return m_materialDefinitionID;  }
+            get { return m_materialDefinitionID; }
             set { m_materialDefinitionID = value; }
         }
 
@@ -1521,7 +1519,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         [DataMember(Name = "MaterialLotID", IsRequired = false, Order = 3)]
         public string MaterialLotID
         {
-            get { return m_materialLotID;  }
+            get { return m_materialLotID; }
             set { m_materialLotID = value; }
         }
 
@@ -1529,7 +1527,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         [DataMember(Name = "MaterialSublotID", IsRequired = false, Order = 4)]
         public string MaterialSublotID
         {
-            get { return m_materialSublotID;  }
+            get { return m_materialSublotID; }
             set { m_materialSublotID = value; }
         }
 
@@ -1557,7 +1555,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         [DataMember(Name = "MaterialUse", IsRequired = false, Order = 6)]
         public string MaterialUse
         {
-            get { return m_materialUse;  }
+            get { return m_materialUse; }
             set { m_materialUse = value; }
         }
 
@@ -1565,7 +1563,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         [DataMember(Name = "Quantity", IsRequired = false, Order = 7)]
         public string Quantity
         {
-            get { return m_quantity;  }
+            get { return m_quantity; }
             set { m_quantity = value; }
         }
 
@@ -1741,13 +1739,13 @@ namespace UAModel.ISA95_JOBCONTROL_V2
     {
         #region Constructors
         /// <remarks />
-        public ISA95MaterialDataTypeCollection() {}
+        public ISA95MaterialDataTypeCollection() { }
 
         /// <remarks />
-        public ISA95MaterialDataTypeCollection(int capacity) : base(capacity) {}
+        public ISA95MaterialDataTypeCollection(int capacity) : base(capacity) { }
 
         /// <remarks />
-        public ISA95MaterialDataTypeCollection(IEnumerable<ISA95MaterialDataType> collection) : base(collection) {}
+        public ISA95MaterialDataTypeCollection(IEnumerable<ISA95MaterialDataType> collection) : base(collection) { }
         #endregion
 
         #region Static Operators
@@ -1796,11 +1794,11 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         }
     }
     #endregion
-    #endif
+#endif
     #endregion
 
     #region ISA95ParameterDataType Class
-    #if (!OPCUA_EXCLUDE_ISA95ParameterDataType)
+#if (!OPCUA_EXCLUDE_ISA95ParameterDataType)
     /// <remarks />
     /// <exclude />
     public enum ISA95ParameterDataTypeFields : uint
@@ -1853,7 +1851,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         [DataMember(Name = "ID", IsRequired = false, Order = 1)]
         public string ID
         {
-            get { return m_iD;  }
+            get { return m_iD; }
             set { m_iD = value; }
         }
 
@@ -1861,7 +1859,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         [DataMember(Name = "Value", IsRequired = false, Order = 2)]
         public Variant Value
         {
-            get { return m_value;  }
+            get { return m_value; }
             set { m_value = value; }
         }
 
@@ -2037,13 +2035,13 @@ namespace UAModel.ISA95_JOBCONTROL_V2
     {
         #region Constructors
         /// <remarks />
-        public ISA95ParameterDataTypeCollection() {}
+        public ISA95ParameterDataTypeCollection() { }
 
         /// <remarks />
-        public ISA95ParameterDataTypeCollection(int capacity) : base(capacity) {}
+        public ISA95ParameterDataTypeCollection(int capacity) : base(capacity) { }
 
         /// <remarks />
-        public ISA95ParameterDataTypeCollection(IEnumerable<ISA95ParameterDataType> collection) : base(collection) {}
+        public ISA95ParameterDataTypeCollection(IEnumerable<ISA95ParameterDataType> collection) : base(collection) { }
         #endregion
 
         #region Static Operators
@@ -2092,11 +2090,11 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         }
     }
     #endregion
-    #endif
+#endif
     #endregion
 
     #region ISA95PersonnelDataType Class
-    #if (!OPCUA_EXCLUDE_ISA95PersonnelDataType)
+#if (!OPCUA_EXCLUDE_ISA95PersonnelDataType)
     /// <remarks />
     /// <exclude />
     public enum ISA95PersonnelDataTypeFields : uint
@@ -2154,7 +2152,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         [DataMember(Name = "ID", IsRequired = false, Order = 1)]
         public string ID
         {
-            get { return m_iD;  }
+            get { return m_iD; }
             set { m_iD = value; }
         }
 
@@ -2182,7 +2180,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         [DataMember(Name = "PersonnelUse", IsRequired = false, Order = 3)]
         public string PersonnelUse
         {
-            get { return m_personnelUse;  }
+            get { return m_personnelUse; }
             set { m_personnelUse = value; }
         }
 
@@ -2190,7 +2188,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         [DataMember(Name = "Quantity", IsRequired = false, Order = 4)]
         public string Quantity
         {
-            get { return m_quantity;  }
+            get { return m_quantity; }
             set { m_quantity = value; }
         }
 
@@ -2351,13 +2349,13 @@ namespace UAModel.ISA95_JOBCONTROL_V2
     {
         #region Constructors
         /// <remarks />
-        public ISA95PersonnelDataTypeCollection() {}
+        public ISA95PersonnelDataTypeCollection() { }
 
         /// <remarks />
-        public ISA95PersonnelDataTypeCollection(int capacity) : base(capacity) {}
+        public ISA95PersonnelDataTypeCollection(int capacity) : base(capacity) { }
 
         /// <remarks />
-        public ISA95PersonnelDataTypeCollection(IEnumerable<ISA95PersonnelDataType> collection) : base(collection) {}
+        public ISA95PersonnelDataTypeCollection(IEnumerable<ISA95PersonnelDataType> collection) : base(collection) { }
         #endregion
 
         #region Static Operators
@@ -2406,11 +2404,11 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         }
     }
     #endregion
-    #endif
+#endif
     #endregion
 
     #region ISA95PhysicalAssetDataType Class
-    #if (!OPCUA_EXCLUDE_ISA95PhysicalAssetDataType)
+#if (!OPCUA_EXCLUDE_ISA95PhysicalAssetDataType)
     /// <remarks />
     /// <exclude />
     public enum ISA95PhysicalAssetDataTypeFields : uint
@@ -2468,7 +2466,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         [DataMember(Name = "ID", IsRequired = false, Order = 1)]
         public string ID
         {
-            get { return m_iD;  }
+            get { return m_iD; }
             set { m_iD = value; }
         }
 
@@ -2496,7 +2494,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         [DataMember(Name = "PhysicalAssetUse", IsRequired = false, Order = 3)]
         public string PhysicalAssetUse
         {
-            get { return m_physicalAssetUse;  }
+            get { return m_physicalAssetUse; }
             set { m_physicalAssetUse = value; }
         }
 
@@ -2504,7 +2502,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         [DataMember(Name = "Quantity", IsRequired = false, Order = 4)]
         public string Quantity
         {
-            get { return m_quantity;  }
+            get { return m_quantity; }
             set { m_quantity = value; }
         }
 
@@ -2665,13 +2663,13 @@ namespace UAModel.ISA95_JOBCONTROL_V2
     {
         #region Constructors
         /// <remarks />
-        public ISA95PhysicalAssetDataTypeCollection() {}
+        public ISA95PhysicalAssetDataTypeCollection() { }
 
         /// <remarks />
-        public ISA95PhysicalAssetDataTypeCollection(int capacity) : base(capacity) {}
+        public ISA95PhysicalAssetDataTypeCollection(int capacity) : base(capacity) { }
 
         /// <remarks />
-        public ISA95PhysicalAssetDataTypeCollection(IEnumerable<ISA95PhysicalAssetDataType> collection) : base(collection) {}
+        public ISA95PhysicalAssetDataTypeCollection(IEnumerable<ISA95PhysicalAssetDataType> collection) : base(collection) { }
         #endregion
 
         #region Static Operators
@@ -2720,11 +2718,11 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         }
     }
     #endregion
-    #endif
+#endif
     #endregion
 
     #region ISA95PropertyDataType Class
-    #if (!OPCUA_EXCLUDE_ISA95PropertyDataType)
+#if (!OPCUA_EXCLUDE_ISA95PropertyDataType)
     /// <remarks />
     /// <exclude />
     public enum ISA95PropertyDataTypeFields : uint
@@ -2777,7 +2775,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         [DataMember(Name = "ID", IsRequired = false, Order = 1)]
         public string ID
         {
-            get { return m_iD;  }
+            get { return m_iD; }
             set { m_iD = value; }
         }
 
@@ -2785,7 +2783,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         [DataMember(Name = "Value", IsRequired = false, Order = 2)]
         public Variant Value
         {
-            get { return m_value;  }
+            get { return m_value; }
             set { m_value = value; }
         }
 
@@ -2961,13 +2959,13 @@ namespace UAModel.ISA95_JOBCONTROL_V2
     {
         #region Constructors
         /// <remarks />
-        public ISA95PropertyDataTypeCollection() {}
+        public ISA95PropertyDataTypeCollection() { }
 
         /// <remarks />
-        public ISA95PropertyDataTypeCollection(int capacity) : base(capacity) {}
+        public ISA95PropertyDataTypeCollection(int capacity) : base(capacity) { }
 
         /// <remarks />
-        public ISA95PropertyDataTypeCollection(IEnumerable<ISA95PropertyDataType> collection) : base(collection) {}
+        public ISA95PropertyDataTypeCollection(IEnumerable<ISA95PropertyDataType> collection) : base(collection) { }
         #endregion
 
         #region Static Operators
@@ -3016,11 +3014,11 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         }
     }
     #endregion
-    #endif
+#endif
     #endregion
 
     #region ISA95StateDataType Class
-    #if (!OPCUA_EXCLUDE_ISA95StateDataType)
+#if (!OPCUA_EXCLUDE_ISA95StateDataType)
     /// <remarks />
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
@@ -3073,7 +3071,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         [DataMember(Name = "StateText", IsRequired = false, Order = 2)]
         public LocalizedText StateText
         {
-            get { return m_stateText;  }
+            get { return m_stateText; }
             set { m_stateText = value; }
         }
 
@@ -3081,7 +3079,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         [DataMember(Name = "StateNumber", IsRequired = false, Order = 3)]
         public uint StateNumber
         {
-            get { return m_stateNumber;  }
+            get { return m_stateNumber; }
             set { m_stateNumber = value; }
         }
         #endregion
@@ -3180,13 +3178,13 @@ namespace UAModel.ISA95_JOBCONTROL_V2
     {
         #region Constructors
         /// <remarks />
-        public ISA95StateDataTypeCollection() {}
+        public ISA95StateDataTypeCollection() { }
 
         /// <remarks />
-        public ISA95StateDataTypeCollection(int capacity) : base(capacity) {}
+        public ISA95StateDataTypeCollection(int capacity) : base(capacity) { }
 
         /// <remarks />
-        public ISA95StateDataTypeCollection(IEnumerable<ISA95StateDataType> collection) : base(collection) {}
+        public ISA95StateDataTypeCollection(IEnumerable<ISA95StateDataType> collection) : base(collection) { }
         #endregion
 
         #region Static Operators
@@ -3235,11 +3233,11 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         }
     }
     #endregion
-    #endif
+#endif
     #endregion
 
     #region ISA95WorkMasterDataType Class
-    #if (!OPCUA_EXCLUDE_ISA95WorkMasterDataType)
+#if (!OPCUA_EXCLUDE_ISA95WorkMasterDataType)
     /// <remarks />
     /// <exclude />
     public enum ISA95WorkMasterDataTypeFields : uint
@@ -3288,7 +3286,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         [DataMember(Name = "ID", IsRequired = false, Order = 1)]
         public string ID
         {
-            get { return m_iD;  }
+            get { return m_iD; }
             set { m_iD = value; }
         }
 
@@ -3296,7 +3294,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         [DataMember(Name = "Description", IsRequired = false, Order = 2)]
         public LocalizedText Description
         {
-            get { return m_description;  }
+            get { return m_description; }
             set { m_description = value; }
         }
 
@@ -3422,13 +3420,13 @@ namespace UAModel.ISA95_JOBCONTROL_V2
     {
         #region Constructors
         /// <remarks />
-        public ISA95WorkMasterDataTypeCollection() {}
+        public ISA95WorkMasterDataTypeCollection() { }
 
         /// <remarks />
-        public ISA95WorkMasterDataTypeCollection(int capacity) : base(capacity) {}
+        public ISA95WorkMasterDataTypeCollection(int capacity) : base(capacity) { }
 
         /// <remarks />
-        public ISA95WorkMasterDataTypeCollection(IEnumerable<ISA95WorkMasterDataType> collection) : base(collection) {}
+        public ISA95WorkMasterDataTypeCollection(IEnumerable<ISA95WorkMasterDataType> collection) : base(collection) { }
         #endregion
 
         #region Static Operators
@@ -3477,6 +3475,6 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         }
     }
     #endregion
-    #endif
+#endif
     #endregion
 }

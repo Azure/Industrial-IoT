@@ -2264,27 +2264,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Null(reference.Target.Children);
                     return true;
                 });
-                Assert.Contains(results.References,
-                    reference =>
+            Assert.Contains(results.References,
+                reference =>
+            {
+                if (reference.ReferenceTypeId != "i=48")
                 {
-                    if (reference.ReferenceTypeId != "i=48")
-                    {
-                        return false;
-                    }
+                    return false;
+                }
 
-                    Assert.Equal("i=48", reference.ReferenceTypeId);
-                    Assert.Equal("http://opcfoundation.org/UA/Boiler/#Boiler+%231",
-                        reference.Target.BrowseName);
-                    Assert.Equal(BrowseDirection.Forward, reference.Direction);
-                    Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1241",
-                        reference.Target.NodeId);
-                    Assert.NotNull(reference.Target.NodeClass);
-                    Assert.Null(reference.Target.DataType);
-                    Assert.Null(reference.Target.Description);
-                    Assert.True(reference.Target.Value.IsNull());
-                    Assert.Null(reference.Target.Children);
-                    return true;
-                });
+                Assert.Equal("i=48", reference.ReferenceTypeId);
+                Assert.Equal("http://opcfoundation.org/UA/Boiler/#Boiler+%231",
+                    reference.Target.BrowseName);
+                Assert.Equal(BrowseDirection.Forward, reference.Direction);
+                Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1241",
+                    reference.Target.NodeId);
+                Assert.NotNull(reference.Target.NodeClass);
+                Assert.Null(reference.Target.DataType);
+                Assert.Null(reference.Target.Description);
+                Assert.True(reference.Target.Value.IsNull());
+                Assert.Null(reference.Target.Children);
+                return true;
+            });
             Assert.Contains(results.References,
                 reference =>
                 {

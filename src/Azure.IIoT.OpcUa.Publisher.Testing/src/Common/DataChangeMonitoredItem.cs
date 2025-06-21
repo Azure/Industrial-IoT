@@ -27,11 +27,10 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
+using Opc.Ua.Server;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
-using Opc.Ua.Server;
 
 namespace Opc.Ua.Sample
 {

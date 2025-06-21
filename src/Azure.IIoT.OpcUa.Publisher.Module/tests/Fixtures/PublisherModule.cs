@@ -5,14 +5,14 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 {
-    using Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients;
+    using Autofac;
+    using Autofac.Extensions.DependencyInjection;
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
+    using Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients;
     using Azure.IIoT.OpcUa.Publisher.Sdk;
     using Azure.IIoT.OpcUa.Publisher.Sdk.Clients;
     using Azure.IIoT.OpcUa.Publisher.Service.Clients.Adapters;
     using Azure.IIoT.OpcUa.Publisher.Testing.Runtime;
-    using Autofac;
-    using Autofac.Extensions.DependencyInjection;
     using Furly.Azure;
     using Furly.Azure.IoT;
     using Furly.Azure.IoT.Edge;

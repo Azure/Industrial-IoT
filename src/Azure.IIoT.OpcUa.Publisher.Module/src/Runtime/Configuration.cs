@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
-    using Azure.IIoT.OpcUa.Publisher.Module.Controllers;
-    using Azure.IIoT.OpcUa.Encoders;
     using Autofac;
+    using Azure.IIoT.OpcUa.Encoders;
+    using Azure.IIoT.OpcUa.Publisher.Module.Controllers;
     using Furly.Azure.EventHubs;
     using Furly.Azure.IoT.Edge;
     using Furly.Extensions.AspNetCore.OpenApi;

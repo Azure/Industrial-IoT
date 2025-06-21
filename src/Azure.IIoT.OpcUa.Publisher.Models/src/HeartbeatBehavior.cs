@@ -9,38 +9,56 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     using System.Runtime.Serialization;
 
     /// <summary>
-    /// Heartbeat behavior
+    /// Controls how heartbeat messages are handled for monitored items.
+    /// Heartbeats help maintain awareness of node state and connection health
+    /// even when values don't change. Can be configured globally via the
+    /// --hbb command line option. Works with heartbeat interval settings.
     /// </summary>
     [DataContract]
     [Flags]
     public enum HeartbeatBehavior
     {
         /// <summary>
-        /// Watchdog with Last known value
+        /// Default behavior that sends last known value when heartbeat triggers.
+        /// Reports exact state regardless of value quality or status.
+        /// Most straightforward option for basic monitoring.
+        /// Value may be bad or uncertain quality.
         /// </summary>
         [EnumMember(Value = "WatchdogLKV")]
         WatchdogLKV = 0x0,
 
         /// <summary>
-        /// Watchdog with last good value
+        /// Sends only good quality values when heartbeat triggers.
+        /// Ensures reported values meet quality requirements.
+        /// May not reflect actual current state if last good value is old.
+        /// Use when data quality is more important than immediacy.
         /// </summary>
         [EnumMember(Value = "WatchdogLKG")]
         WatchdogLKG = 0x1,
 
         /// <summary>
-        /// Continuously sends last known value
+        /// Periodically publishes last known value at heartbeat interval.
+        /// Provides regular state updates regardless of value changes.
+        /// Useful for monitoring systems that expect periodic updates.
+        /// Higher bandwidth usage due to regular messages.
         /// </summary>
         [EnumMember(Value = "PeriodicLKV")]
         PeriodicLKV = 0x2,
 
         /// <summary>
-        /// Continuously sends last good value
+        /// Periodically publishes last good quality value at heartbeat interval.
+        /// Combines periodic updates with quality filtering.
+        /// Ensures regular, quality-checked status updates.
+        /// Best choice for reliable system state monitoring.
         /// </summary>
         [EnumMember(Value = "PeriodicLKG")]
         PeriodicLKG = WatchdogLKG | PeriodicLKV,
 
         /// <summary>
-        /// Update value timestamps to be different
+        /// Like WatchdogLKV but updates timestamps on each heartbeat.
+        /// Helps distinguish between multiple heartbeat messages.
+        /// Useful when downstream systems track value freshness.
+        /// Can be combined with other behaviors using flags.
         /// </summary>
         [EnumMember(Value = "WatchdogLKVWithUpdatedTimestamps")]
         WatchdogLKVWithUpdatedTimestamps = 0x4,
@@ -48,8 +66,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         // Others can be combining Cont, LKG with 0x4
 
         /// <summary>
-        /// Does not send heartbeat but counts it in
-        /// diagnostics
+        /// Records heartbeat events in diagnostics without sending messages.
+        /// Allows monitoring heartbeat behavior without generating traffic.
+        /// Useful for testing and troubleshooting configurations.
+        /// Can be combined with other behaviors using flags.
         /// </summary>
         [EnumMember(Value = "WatchdogLKVDiagnosticsOnly")]
         WatchdogLKVDiagnosticsOnly = 0x8,
@@ -64,15 +84,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
 #pragma warning restore CA1700 // Do not name enum values 'Reserved'
 
         /// <summary>
-        /// Continuously sends last known value but not
-        /// the received values.
+        /// Only sends periodic heartbeat messages with last known value.
+        /// Filters out regular value change notifications.
+        /// Reduces message volume in fast-changing nodes.
+        /// Use when only periodic snapshots are needed.
         /// </summary>
         [EnumMember(Value = "PeriodicLKVDropValue")]
         PeriodicLKVDropValue = PeriodicLKV | Reserved,
 
         /// <summary>
-        /// Continuously sends last good value but not
-        /// the received values.
+        /// Only sends periodic heartbeat messages with last good value.
+        /// Combines periodic-only updates with quality filtering.
+        /// Most restrictive option for message generation.
+        /// Best for reducing traffic while ensuring quality.
         /// </summary>
         [EnumMember(Value = "PeriodicLKGDropValue")]
         PeriodicLKGDropValue = PeriodicLKG | Reserved,

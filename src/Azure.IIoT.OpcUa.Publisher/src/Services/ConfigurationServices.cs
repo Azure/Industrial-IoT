@@ -133,7 +133,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         {
                             DataSetWriterGroup = entry.DataSetWriterGroup,
                             DataSetWriterId = result.Result.DataSetName,
-                            DataSetName = result.Result.DataSetWriterId?.TrimStart('/')
+                            DataSetName = result.Result.DataSetWriterId?.TrimStart('/') // Asset name
                         }
                     };
                 }
@@ -160,7 +160,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 // 1) Create asset and get asset file object
                 var (nodeId, errorInfo) = await context.Session.CreateAssetAsync(
                     request.Header.ToRequestHeader(_timeProvider),
-                    request.Entry.DataSetName, context.Ct).ConfigureAwait(false);
+                    request.Entry.DataSetName, context.Ct).ConfigureAwait(false); // Asset name
                 if (errorInfo != null || nodeId is null || NodeId.IsNull(nodeId))
                 {
                     // TOOD errorInfo?.StatusCode ==
@@ -183,7 +183,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         new ()
                         {
                             Id = assetId,
-                            DataSetFieldId = entry.DataSetName
+                            DataSetFieldId = entry.DataSetName // Asset name
                         }
                     ]
                 };
@@ -352,7 +352,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     return ex.ToServiceResultModel();
                 }
-                _logger.LogInformation(ex, "Discard error because force was set.");
+                _logger.DiscardErrorBecauseForceWasSet(ex);
             }
             var errorInfo = await DeleteAssetAsync(request.Header, request.Entry,
                 ct).ConfigureAwait(false);
@@ -464,7 +464,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 var node = _currentObject != null ? _currentObject.OriginalNode : CurrentNode;
                 node.AddErrorInfo(errorInfo);
-                _logger.LogError("Error expanding node {Node}: {Error}", node, errorInfo);
+                _logger.HandleError(node, errorInfo);
                 return [];
             }
 
@@ -477,7 +477,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     // collect matching variables under the current object instance
                     if (_currentObject.AddVariables(matching))
                     {
-                        _logger.LogDebug("Dropped duplicate variables found.");
+                        _logger.DroppedDuplicateVariables();
                     }
                 }
                 else
@@ -872,7 +872,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// Node that should be expanded
             /// </summary>
-            private class NodeToExpand
+            internal record class NodeToExpand
             {
                 public IEnumerable<ServiceResultModel> ErrorInfos => _errorInfos;
 
@@ -1048,7 +1048,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// The object to expand
             /// </summary>
-            private class ObjectToExpand
+            internal class ObjectToExpand
             {
                 public BrowseFrame ObjectFromBrowse { get; }
                 public NodeToExpand OriginalNode { get; }
@@ -1185,5 +1185,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly ILogger<ConfigurationServices> _logger;
         private readonly TimeProvider _timeProvider;
         private readonly ActivitySource _activitySource = Diagnostics.NewActivitySource();
+    }
+
+    /// <summary>
+    /// Source-generated logging extensions for ConfigurationServices
+    /// </summary>
+    internal static partial class ConfigurationServicesLogging
+    {
+        private const int EventClass = 100;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Error,
+            Message = "Error expanding node {Node}: {Error}")]
+        public static partial void HandleError(this ILogger logger,
+            ConfigurationServices.ConfigBrowser.NodeToExpand node, ServiceResultModel error);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Debug,
+            Message = "Dropped duplicate variables found.")]
+        public static partial void DroppedDuplicateVariables(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Information,
+            Message = "Discard error because force was set.")]
+        public static partial void DiscardErrorBecauseForceWasSet(this ILogger logger, Exception ex);
     }
 }

@@ -7,12 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Isa95Jobs
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
-    using FluentAssertions;
-    using Google.Protobuf.WellKnownTypes;
-    using Json.More;
     using System;
-    using System.Collections.Generic;
-    using System.Globalization;
     using System.Linq;
     using System.Text.Json;
     using System.Threading.Tasks;

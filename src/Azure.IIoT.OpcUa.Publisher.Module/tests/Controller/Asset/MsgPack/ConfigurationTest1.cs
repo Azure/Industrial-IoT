@@ -5,10 +5,10 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.Asset.MsgPack
 {
+    using Autofac;
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Testing.Tests;
-    using Autofac;
     using System;
     using System.IO;
     using System.Threading.Tasks;

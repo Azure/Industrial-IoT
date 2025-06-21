@@ -403,7 +403,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             protected override MasterNodeManager CreateMasterNodeManager(
                 IServerInternal server, ApplicationConfiguration configuration)
             {
-                _logger.LogInformation("Creating the Node Managers.");
+                _logger.CreatingNodeManagers();
                 var nodeManagers = _nodes
                     .Select(n => n.Create(server, configuration))
                     .ToArray();
@@ -415,7 +415,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             /// <inheritdoc/>
             protected override void OnServerStopping()
             {
-                _logger.LogDebug("The server is stopping.");
+                _logger.ServerStopping();
                 base.OnServerStopping();
                 _cts.Cancel();
                 _statusLogger?.Wait();
@@ -443,7 +443,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             /// <inheritdoc/>
             protected override void OnServerStarting(ApplicationConfiguration configuration)
             {
-                _logger.LogDebug("The server is starting.");
+                _logger.ServerStarting();
                 CreateUserIdentityValidators(configuration);
                 base.OnServerStarting(configuration);
             }
@@ -451,7 +451,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             /// <inheritdoc/>
             protected override void OnNodeManagerStarted(IServerInternal server)
             {
-                _logger.LogInformation("The NodeManagers have started.");
+                _logger.NodeManagersStarted();
                 base.OnNodeManagerStarted(server);
             }
 
@@ -484,11 +484,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                 {
                     if (DateTime.UtcNow - _lastEventTime > TimeSpan.FromMilliseconds(6000))
                     {
+                        _lastEventTime = DateTime.UtcNow;
                         foreach (var session in CurrentInstance.SessionManager.GetSessions())
                         {
-                            LogSessionStatus(session, "-Status-", true);
+                            LogSessionStatus(session, "-Status-", _lastEventTime);
                         }
-                        _lastEventTime = DateTime.UtcNow;
                     }
                     await Try.Async(() => Task.Delay(1000, ct)).ConfigureAwait(false);
                 }
@@ -500,19 +500,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             /// <param name="session"></param>
             /// <param name="reason"></param>
             /// <param name="lastContact"></param>
-            private void LogSessionStatus(Session session, string reason, bool lastContact = false)
+            private void LogSessionStatus(Session session, string reason, DateTime? lastContact = null)
             {
                 lock (session.DiagnosticsLock)
                 {
-                    if (lastContact)
+                    if (lastContact.HasValue)
                     {
-                        _logger.LogInformation("{Reason,9}:{SessionName,20}:Last Event:{LastEvent:HH:mm:ss}",
-                            reason, session.SessionDiagnostics.SessionName, lastContact);
+                        _logger.SessionLastContact(reason, session.SessionDiagnostics.SessionName, lastContact.Value);
                     }
                     else
                     {
-                        _logger.LogInformation("{Reason,9}:{SessionName,20}:{DisplayName,20}:{SessionId}",
-                            reason, session.SessionDiagnostics.SessionName,
+                        _logger.SessionStatus(reason, session.SessionDiagnostics.SessionName,
                             session.Identity.DisplayName ?? "session",
                             session.Id);
                     }
@@ -895,5 +893,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
         private readonly ILogger _logger;
         private readonly IEnumerable<INodeManagerFactory> _nodes;
         private readonly string _tempPath;
+    }
+
+    /// <summary>
+    /// Source-generated logging definitions for Server
+    /// </summary>
+    internal static partial class ServerLogging
+    {
+        private const int EventClass = 150;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
+            Message = "Creating the Node Managers.")]
+        public static partial void CreatingNodeManagers(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Debug,
+            Message = "The server is stopping.")]
+        public static partial void ServerStopping(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Debug,
+            Message = "The server is starting.")]
+        public static partial void ServerStarting(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Information,
+            Message = "The NodeManagers have started.")]
+        public static partial void NodeManagersStarted(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Information,
+            Message = "{Reason,9}:{SessionName,20}:Last Event:{LastEvent:HH:mm:ss}")]
+        public static partial void SessionLastContact(this ILogger logger,
+            string reason, string sessionName, DateTime lastEvent);
+
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Information,
+            Message = "{Reason,9}:{SessionName,20}:{DisplayName,20}:{SessionId}")]
+        public static partial void SessionStatus(this ILogger logger,
+            string reason, string sessionName, string displayName, NodeId sessionId);
     }
 }

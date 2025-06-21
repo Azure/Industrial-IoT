@@ -79,5 +79,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// The applicable network message schema
         /// </summary>
         public required IEventSchema? Schema { get; init; }
+
+        /// <summary>
+        /// The cloud event header
+        /// </summary>
+        public required CloudEventHeader? CloudEvent { get; init; }
     }
 }

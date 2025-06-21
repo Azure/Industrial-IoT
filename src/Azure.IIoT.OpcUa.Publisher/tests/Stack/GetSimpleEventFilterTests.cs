@@ -204,7 +204,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             typeTable.AddSubtype(ObjectTypeIds.BaseEventType, ObjectTypeIds.BaseObjectType);
             typeTable.AddSubtype(ObjectTypeIds.ConditionType, ObjectTypeIds.BaseEventType);
             nodeCache.Setup(x => x.FetchNodeAsync(It.IsAny<ExpandedNodeId>(), It.IsAny<CancellationToken>()))
-				.Returns((ExpandedNodeId x, CancellationToken _) =>
+                .Returns((ExpandedNodeId x, CancellationToken _) =>
                 {
                     if (x.IdType == IdType.Numeric && x.Identifier is uint id)
                     {

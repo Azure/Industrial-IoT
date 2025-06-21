@@ -5,10 +5,10 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
+    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
-    using Azure.IIoT.OpcUa.Encoders;
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Options;
     using Opc.Ua;

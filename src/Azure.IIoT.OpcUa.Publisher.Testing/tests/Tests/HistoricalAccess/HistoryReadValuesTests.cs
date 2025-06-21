@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
-    using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using System;
     using System.Linq;
     using System.Threading;

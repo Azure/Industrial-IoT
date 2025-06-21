@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
 {
-    using Azure.IIoT.OpcUa.Publisher.Sdk;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Publisher.Sdk;
     using Furly;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;

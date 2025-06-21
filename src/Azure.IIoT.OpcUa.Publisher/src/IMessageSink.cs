@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher
 {
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// Message sink for a writer group

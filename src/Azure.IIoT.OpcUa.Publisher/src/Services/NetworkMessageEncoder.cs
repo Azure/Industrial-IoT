@@ -5,11 +5,11 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
+    using Azure.IIoT.OpcUa.Encoders.Models;
+    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Azure.IIoT.OpcUa.Encoders.Models;
-    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Furly.Extensions.Messaging;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
@@ -82,8 +82,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     if (m.EncodingContext == null)
                     {
-                        _logger.LogError(
-                            "Missing service message context for network message - dropping notification.");
+                        _logger.MissingServiceMessageContext();
                         NotificationsDroppedCount++;
                         m.OnSentCallback();
                         continue;
@@ -96,13 +95,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         if (body.Length == 0)
                         {
-                            //
-                            // Failed to press a notification into message size limit
-                            // This is somewhat correct as the smallest dropped chunk is
-                            // a message containing only a single data set message which
-                            // contains (parts) of a notification.
-                            //
-                            _logger.LogDebug("Resulting chunk is too large, dropped a notification.");
+                            _logger.ChunkTooLarge();
                             continue;
                         }
                         validChunks++;
@@ -116,8 +109,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     if (validChunks > 0)
                     {
                         var chunkedMessage = factory()
-                            .AddProperty(OpcUa.Constants.MessagePropertySchemaKey,
-                                m.NetworkMessage.MessageSchema)
                             .SetTimestamp(_timeProvider.GetUtcNow())
                             .SetContentEncoding(m.NetworkMessage.ContentEncoding)
                             .SetContentType(m.NetworkMessage.ContentType)
@@ -132,27 +123,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             chunkedMessage = chunkedMessage
                                 .SetTtl(m.Queue.Ttl.Value);
                         }
+                        if (m.CloudEvent != null)
+                        {
+                            // Send as cloud event
+                            chunkedMessage = chunkedMessage.AsCloudEvent(m.CloudEvent);
+                        }
+                        else
+                        {
+                            chunkedMessage = chunkedMessage
+                                .AddProperty(OpcUa.Constants.MessagePropertySchemaKey,
+                                    m.NetworkMessage.MessageSchema);
+                            if (_options.Value.EnableDataSetRoutingInfo ?? false)
+                            {
+                                chunkedMessage.AddProperty(OpcUa.Constants.MessagePropertyRoutingKey,
+                                    m.NetworkMessage.DataSetWriterGroup);
+                            }
 
+                            if (_options.Value.UseStandardsCompliantEncoding != true)
+                            {
+                                chunkedMessage = chunkedMessage
+                                    .AddProperty("$$ContentType", m.NetworkMessage.ContentType)
+                                    .AddProperty("$$ContentEncoding", m.NetworkMessage.ContentEncoding);
+                            }
+                        }
                         if (m.Schema != null)
                         {
                             chunkedMessage = chunkedMessage.SetSchema(m.Schema);
                         }
 
-                        if (_options.Value.UseStandardsCompliantEncoding != true)
-                        {
-                            chunkedMessage = chunkedMessage
-                                .AddProperty("$$ContentType", m.NetworkMessage.ContentType)
-                                .AddProperty("$$ContentEncoding", m.NetworkMessage.ContentEncoding);
-                        }
-                        if (_options.Value.EnableDataSetRoutingInfo ?? false)
-                        {
-                            chunkedMessage.AddProperty(OpcUa.Constants.MessagePropertyRoutingKey,
-                                m.NetworkMessage.DataSetWriterGroup);
-                        }
-
-                        _logger.LogDebug(
-                            "{Count} Notifications encoded into a network message (chunks:{Chunks})...",
-                            m.NotificationsPerMessage, validChunks);
+                        _logger.NotificationsEncoded(m.NotificationsPerMessage, validChunks);
 
                         chunkedMessages.Add((chunkedMessage, m.OnSentCallback));
                     }
@@ -203,9 +202,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="OnSentCallback"></param>
         /// <param name="Schema"></param>
         /// <param name="EncodingContext"></param>
+        /// <param name="CloudEvent"></param>
         private record struct EncodedMessage(int NotificationsPerMessage,
             PubSubMessage NetworkMessage, PublishingQueueSettingsModel Queue,
-            Action OnSentCallback, IEventSchema? Schema,
+            Action OnSentCallback, IEventSchema? Schema, CloudEventHeader? CloudEvent,
             IServiceMessageContext? EncodingContext = null);
 
         /// <summary>
@@ -242,10 +242,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     var publisherId = publishers.Key;
                     foreach (var groups in publishers
-                        .GroupBy(m => (m.Context.WriterGroup, m.Context.Schema)))
+                        .GroupBy(m => (m.Context.WriterGroup, m.Context.Schema, m.Context.CloudEvent)))
                     {
                         var writerGroup = groups.Key.WriterGroup;
                         var schema = groups.Key.Schema;
+                        var cloudEvent = groups.Key.CloudEvent;
 
                         if (writerGroup?.MessageSettings == null)
                         {
@@ -402,10 +403,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                             },
                                                             DataSetFieldName = notificationsInGroup[0].DataSetName
                                                         };
-                                                        notificationsInGroup =
-                                                        [
+                                                        notificationsInGroup = new List<MonitoredItemNotificationModel>
+                                                        {
                                                             eventNotification
-                                                        ];
+                                                        };
                                                     }
                                                     else if (_options.Value.RemoveDuplicatesFromBatch ?? false)
                                                     {
@@ -417,8 +418,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                         {
                                                             if (_logNotifications)
                                                             {
-                                                                _logger.LogInformation("Removed {Count} duplicates from batch.",
-                                                                    notificationsInGroup.Count - pruned.Count);
+                                                                _logger.RemovedDuplicates(notificationsInGroup.Count - pruned.Count);
                                                             }
                                                             notificationsInGroup = pruned;
                                                         }
@@ -476,12 +476,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         {
                                             result.Add(new EncodedMessage(currentNotifications.Count, currentMessage,
                                                 queue, () => currentNotifications.ForEach(n => n.Dispose()),
-                                                schema, Notification.ServiceMessageContext));
+                                                schema, cloudEvent, Notification.ServiceMessageContext));
 #if DEBUG
                                             currentNotifications.ForEach(n => n.MarkProcessed());
 #endif
                                             currentMessage = null;
-                                            currentNotifications = [];
+                                            currentNotifications = new List<OpcUaSubscriptionNotification>();
                                         }
                                     }
                                 }
@@ -492,12 +492,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         // Start a new message but first emit current
                                         result.Add(new EncodedMessage(currentNotifications.Count, currentMessage,
                                             queue, () => currentNotifications.ForEach(n => n.Dispose()),
-                                            schema, Notification.ServiceMessageContext));
+                                            schema, cloudEvent, Notification.ServiceMessageContext));
 #if DEBUG
                                         currentNotifications.ForEach(n => n.MarkProcessed());
 #endif
                                         currentMessage = null;
-                                        currentNotifications = [];
+                                        currentNotifications = new List<OpcUaSubscriptionNotification>();
                                     }
 
                                     if (PubSubMessage.TryCreateMetaDataMessage(encoding, publisherId,
@@ -507,7 +507,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         out var metadataMessage))
                                     {
                                         result.Add(new EncodedMessage(0, metadataMessage, queue, Notification.Dispose,
-                                                schema, Notification.ServiceMessageContext));
+                                                schema, cloudEvent, Notification.ServiceMessageContext));
                                     }
 #if DEBUG
                                     Notification.MarkProcessed();
@@ -519,7 +519,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             {
                                 result.Add(new EncodedMessage(currentNotifications.Count, currentMessage, queue,
                                     () => currentNotifications.ForEach(n => n.Dispose()),
-                                    schema, currentNotifications.LastOrDefault()?.ServiceMessageContext));
+                                    schema, cloudEvent, currentNotifications.LastOrDefault()?.ServiceMessageContext));
 #if DEBUG
                                 currentNotifications.ForEach(n => n.MarkProcessed());
 #endif
@@ -580,8 +580,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             if (totalNotifications > 0)
             {
-                _logger.LogWarning("Dropped {TotalNotifications} values",
-                    totalNotifications);
+                _logger.DroppedValues(totalNotifications);
                 NotificationsDroppedCount += totalNotifications;
             }
         }
@@ -601,8 +600,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var notifications = Stringify(args.Notifications);
             if (!string.IsNullOrEmpty(notifications))
             {
-                _logger.LogInformation(
-                    "{Action}|{PublishTime:hh:mm:ss:ffffff}|#{Seq}:{PublishSeq}|{MessageType}|{Endpoint}|{Items}",
+                _logger.NotificationInfo(
                     dropped ? "!!!! Dropped !!!! " : "Encoded", args.PublishTimestamp, args.SequenceNumber,
                     args.PublishSequenceNumber?.ToString(CultureInfo.CurrentCulture) ?? "-", args.MessageType,
                     args.EndpointUrl, notifications);
@@ -624,7 +622,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var notifications = Stringify(args.YieldReturn());
             if (!string.IsNullOrEmpty(notifications))
             {
-                _logger.LogInformation("{Action}|Sample|{Items}",
+                _logger.NotificationSample(
                     dropped ? "!!!! Dropped !!!! " : "Encoded", notifications);
             }
         }
@@ -697,5 +695,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly TimeProvider _timeProvider;
         private readonly Meter _meter = Diagnostics.NewMeter();
         private readonly bool _logNotifications;
+    }
+
+    /// <summary>
+    /// Source-generated logging extensions for NetworkMessageEncoder
+    /// </summary>
+    internal static partial class NetworkMessageEncoderLogging
+    {
+        private const int EventClass = 170;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Error,
+            Message = "Missing service message context for network message - dropping notification.")]
+        public static partial void MissingServiceMessageContext(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Debug,
+            Message = "Resulting chunk is too large, dropped a notification.")]
+        public static partial void ChunkTooLarge(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Debug,
+            Message = "{Count} Notifications encoded into a network message (chunks:{Chunks})...")]
+        public static partial void NotificationsEncoded(this ILogger logger, int count, int chunks);
+
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Warning,
+            Message = "Dropped {TotalNotifications} values")]
+        public static partial void DroppedValues(this ILogger logger, int totalNotifications);
+
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Information,
+            Message = "{Action}|{PublishTime:hh:mm:ss:ffffff}|#{Seq}:{PublishSeq}|{MessageType}|{Endpoint}|{Items}")]
+        public static partial void NotificationInfo(this ILogger logger, string action, DateTimeOffset? publishTime, uint seq, string publishSeq, MessageType messageType, string? endpoint, string items);
+
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Information,
+            Message = "{Action}|Sample|{Items}")]
+        public static partial void NotificationSample(this ILogger logger, string action, string items);
+
+        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Information,
+            Message = "Removed {Count} duplicates from batch.")]
+        public static partial void RemovedDuplicates(this ILogger logger, int count);
     }
 }
