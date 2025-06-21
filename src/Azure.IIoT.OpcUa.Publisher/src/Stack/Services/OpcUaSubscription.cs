@@ -26,7 +26,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using static Azure.IIoT.OpcUa.Publisher.Stack.Services.OpcUaMonitoredItem;
 
     /// <summary>
     /// Subscription implementation

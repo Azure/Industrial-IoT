@@ -5,13 +5,13 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
 {
-    using Azure.IIoT.OpcUa.Publisher.Testing.Runtime;
+    using Autofac;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Parser;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Sample;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
-    using Autofac;
+    using Azure.IIoT.OpcUa.Publisher.Testing.Runtime;
     using Furly.Extensions.Logging;
     using Furly.Extensions.Utils;
     using Microsoft.Extensions.Configuration;

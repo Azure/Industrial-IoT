@@ -5,11 +5,11 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
+    using Azure.IIoT.OpcUa.Encoders.Models;
+    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Azure.IIoT.OpcUa.Encoders.Models;
-    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Furly.Extensions.Messaging;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
@@ -476,7 +476,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         {
                                             result.Add(new EncodedMessage(currentNotifications.Count, currentMessage,
                                                 queue, () => currentNotifications.ForEach(n => n.Dispose()),
-                                                schema,cloudEvent, Notification.ServiceMessageContext));
+                                                schema, cloudEvent, Notification.ServiceMessageContext));
 #if DEBUG
                                             currentNotifications.ForEach(n => n.MarkProcessed());
 #endif

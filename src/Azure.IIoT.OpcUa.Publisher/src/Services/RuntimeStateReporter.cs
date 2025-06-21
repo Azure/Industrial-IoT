@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
+    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Azure.IIoT.OpcUa.Encoders;
     using Furly.Azure.IoT.Edge;
     using Furly.Azure.IoT.Edge.Services;
     using Furly.Extensions.Messaging;

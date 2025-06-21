@@ -5,9 +5,9 @@
 
 namespace Opc.Ua.Extensions
 {
-    using Opc.Ua;
     using Azure.IIoT.OpcUa.Encoders.Utils;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Linq;

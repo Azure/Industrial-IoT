@@ -5,10 +5,10 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 {
+    using Autofac;
+    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Sdk;
-    using Azure.IIoT.OpcUa.Encoders;
-    using Autofac;
     using Furly.Extensions.Mqtt;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;

@@ -9,7 +9,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     using Azure.Iot.Operations.Services.AssetAndDeviceRegistry.Models;
     using Furly.Azure.IoT.Operations.Services;
     using Furly.Extensions.Serializers;
-    using k8s.KubeConfigModels;
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Concurrent;

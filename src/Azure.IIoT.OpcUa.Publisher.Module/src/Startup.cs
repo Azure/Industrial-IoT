@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module
 {
-    using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
+    using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;

@@ -7,10 +7,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
 {
     using global::Avro;
     using Opc.Ua;
-    using DataSetFieldContentFlags = Publisher.Models.DataSetFieldContentFlags;
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using DataSetFieldContentFlags = Publisher.Models.DataSetFieldContentFlags;
 
     /// <summary>
     /// Provides the json encodings of built in types and objects in Avro schema

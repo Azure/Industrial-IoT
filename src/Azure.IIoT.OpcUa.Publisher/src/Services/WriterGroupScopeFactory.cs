@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
+    using Autofac;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Autofac;
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Options;
     using System.Collections.Generic;

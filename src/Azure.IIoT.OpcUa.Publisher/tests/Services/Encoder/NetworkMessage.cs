@@ -18,7 +18,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
-    using YamlDotNet.Core.Tokens;
 
     public sealed class NetworkMessage : IEvent
     {

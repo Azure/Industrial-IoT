@@ -30,7 +30,6 @@
 namespace Boiler
 {
     using Opc.Ua;
-    using System;
     using System.Collections.Generic;
 
     public partial class BoilerStateMachineState

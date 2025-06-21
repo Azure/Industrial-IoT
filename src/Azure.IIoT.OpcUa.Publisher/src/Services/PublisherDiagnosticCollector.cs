@@ -5,15 +5,13 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
+    using Autofac;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Autofac;
-    using Microsoft.Extensions.Diagnostics.ResourceMonitoring;
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Diagnostics.Metrics;
 

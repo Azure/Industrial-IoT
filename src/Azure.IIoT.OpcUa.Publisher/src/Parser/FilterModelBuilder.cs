@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Parser
 {
+    using Azure.IIoT.OpcUa.Encoders.Utils;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Azure.IIoT.OpcUa.Encoders.Utils;
     using Furly.Extensions.Serializers;
     using Irony.Parsing;
     using System;

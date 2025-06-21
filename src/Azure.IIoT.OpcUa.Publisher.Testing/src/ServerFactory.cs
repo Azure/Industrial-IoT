@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
 {
-    using Microsoft.Extensions.Logging;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Furly.Extensions.Utils;
+    using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using Opc.Ua.Server;
     using Opc.Ua.Test;

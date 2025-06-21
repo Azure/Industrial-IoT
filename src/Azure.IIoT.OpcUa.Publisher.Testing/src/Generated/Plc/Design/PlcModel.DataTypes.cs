@@ -27,10 +27,10 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
+using Opc.Ua;
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
-using Opc.Ua;
 
 namespace PlcModel
 {

@@ -5,12 +5,12 @@
 
 namespace Azure.IIoT.OpcUa.Publisher
 {
+    using Autofac;
     using Azure.IIoT.OpcUa.Publisher.Discovery;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Storage;
-    using Autofac;
 
     /// <summary>
     /// Container builder extensions

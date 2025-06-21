@@ -5,12 +5,12 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 {
-    using Azure.IIoT.OpcUa.Publisher.Tests.Utils;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
     using Azure.IIoT.OpcUa.Publisher.Storage;
+    using Azure.IIoT.OpcUa.Publisher.Tests.Utils;
     using FluentAssertions;
     using Furly.Exceptions;
     using Furly.Extensions.Serializers;

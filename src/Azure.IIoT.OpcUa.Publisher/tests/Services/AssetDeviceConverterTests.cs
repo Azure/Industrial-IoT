@@ -5,25 +5,19 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 {
+    using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.Iot.Operations.Services.AssetAndDeviceRegistry.Models;
     using Furly.Azure.IoT.Operations.Services;
     using Furly.Extensions.Serializers;
-    using Azure.Iot.Operations.Services.AssetAndDeviceRegistry.Models;
-    using AssetModel = Azure.Iot.Operations.Services.AssetAndDeviceRegistry.Models.Asset;
-    using Azure.IIoT.OpcUa.Publisher.Models;
-    using System;
-    using System.Collections.Concurrent;
-    using System.Threading.Channels;
-    using System.Reflection;
-    using System.Threading;
-    using System.Linq;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Text.Json;
-    using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
     using Moq;
+    using System;
+    using System.Collections.Concurrent;
+    using System.Reflection;
+    using System.Threading.Channels;
+    using System.Threading.Tasks;
     using Xunit;
+    using AssetModel = Azure.Iot.Operations.Services.AssetAndDeviceRegistry.Models.Asset;
 
     public class AssetDeviceConverterTests
     {
