@@ -163,7 +163,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
             //
             builder.AddMemoryKeyValueStore();
             builder.AddDaprStateStoreClient(Configuration);
-
             builder.AddNullEventClient();
             builder.AddFileSystemEventClient(Configuration);
             builder.AddFileSystemRpcServer(Configuration);
@@ -172,6 +171,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
             builder.AddEventHubsClient(Configuration);
             builder.AddMqttClient(Configuration);
             builder.AddIoTEdgeServices(Configuration);
+            builder.AddIoTOperationsServices(Configuration);
 
             // Register configuration interfaces
             builder.RegisterInstance(Configuration)

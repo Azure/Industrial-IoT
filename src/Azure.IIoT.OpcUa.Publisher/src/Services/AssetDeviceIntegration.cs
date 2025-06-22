@@ -3,8 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Publisher.Models
+namespace Azure.IIoT.OpcUa.Publisher.Services
 {
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Parser;
     using Azure.Iot.Operations.Connector.Files;
     using Azure.Iot.Operations.Services.AssetAndDeviceRegistry.Models;
@@ -27,7 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// and device notifications into published nodes representation and signals configuration
     /// status errors back.
     /// </summary>
-    internal sealed class AssetDeviceIntegration : IAdrNotification, IAsyncDisposable, IDisposable
+    public sealed class AssetDeviceIntegration : IAdrNotification, IAsyncDisposable, IDisposable
     {
         /// <summary>
         /// Currently known assets

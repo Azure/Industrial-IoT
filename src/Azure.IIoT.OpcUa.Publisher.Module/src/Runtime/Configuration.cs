@@ -8,8 +8,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Autofac;
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Module.Controllers;
+    using Azure.IIoT.OpcUa.Publisher.Services;
     using Furly.Azure.EventHubs;
     using Furly.Azure.IoT.Edge;
+    using Furly.Azure.IoT.Operations.Services;
     using Furly.Extensions.AspNetCore.OpenApi;
     using Furly.Extensions.Configuration;
     using Furly.Extensions.Dapr;
@@ -18,6 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Furly.Extensions.Mqtt;
     using Furly.Extensions.Rpc.Runtime;
     using Furly.Tunnel.Router.Services;
+    using k8s;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Server.Kestrel.Core;
@@ -27,6 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Microsoft.Extensions.Logging.Console;
     using Microsoft.Extensions.Options;
     using Microsoft.OpenApi.Models;
+    using Opc.Ua;
     using OpenTelemetry.Exporter;
     using OpenTelemetry.Logs;
     using OpenTelemetry.Metrics;
@@ -149,6 +153,38 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 builder.AddIoTEdgeServices();
                 builder.RegisterType<IoTEdge>()
                     .AsImplementedInterfaces();
+            }
+        }
+
+        /// <summary>
+        /// Add IoT operations services
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="configuration"></param>
+        public static void AddIoTOperationsServices(this ContainerBuilder builder,
+            IConfiguration configuration)
+        {
+            // TODO: Use configuration
+            if (KubernetesClientConfiguration.IsInCluster())
+            {
+                if (Environment.GetEnvironmentVariable("CONNECTOR_ID") != null)
+                {
+                    // Add azure iot operations sdk integration
+                    builder.AddAzureIoTOperations();
+                    builder.RegisterType<AssetDeviceIntegration>()
+                        .AsImplementedInterfaces();
+                }
+                else if (Environment.GetEnvironmentVariable("AIO_BROKER_HOSTNAME") != null)
+                {
+                    builder.AddAzureIoTOperations();
+                    // No adr integration we might only have broker
+                }
+                else
+                {
+                    // TODO: Enable
+                    // Test running as workload and add Mqttclient too
+                    // builder.AddAzureIoTOperationsCore();
+                }
             }
         }
 
