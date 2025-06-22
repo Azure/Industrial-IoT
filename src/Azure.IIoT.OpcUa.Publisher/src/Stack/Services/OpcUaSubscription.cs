@@ -541,7 +541,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return new OpcUaSubscriptionNotification(this, session.MessageContext,
                     Array.Empty<MonitoredItemNotificationModel>(), _timeProvider)
                 {
-                    ApplicationUri = session.Endpoint.Server.ApplicationUri,
+                    ApplicationUri = session.Endpoint.Server.ApplicationUri
+                        ?? _client.ApplicationUri,
                     EndpointUrl = session.Endpoint.EndpointUrl,
                     SequenceNumber = Opc.Ua.SequenceNumber.Increment32(ref _sequenceNumber),
                     MessageType = MessageType.KeepAlive
@@ -1703,7 +1704,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var message = new OpcUaSubscriptionNotification(this, messageContext, notifications,
                 _timeProvider, createdTimestamp: timestamp)
             {
-                ApplicationUri = curSession?.Endpoint?.Server?.ApplicationUri,
+                ApplicationUri = curSession?.Endpoint?.Server?.ApplicationUri
+                    ?? _client.ApplicationUri,
                 EndpointUrl = curSession?.Endpoint?.EndpointUrl,
                 EventTypeName = eventTypeName,
                 SequenceNumber = Opc.Ua.SequenceNumber.Increment32(ref _sequenceNumber),
@@ -1822,7 +1824,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         var message = new OpcUaSubscriptionNotification(this, session.MessageContext,
                             notifications, _timeProvider, advance, sequenceNumber)
                         {
-                            ApplicationUri = session.Endpoint?.Server?.ApplicationUri,
+                            ApplicationUri = session.Endpoint?.Server?.ApplicationUri
+                                ?? _client.ApplicationUri,
                             EndpointUrl = session.Endpoint?.EndpointUrl,
                             EventTypeName = name,
                             SequenceNumber = Opc.Ua.SequenceNumber.Increment32(ref _sequenceNumber),
@@ -1898,7 +1901,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var message = new OpcUaSubscriptionNotification(this, session.MessageContext,
                     Array.Empty<MonitoredItemNotificationModel>(), _timeProvider)
                 {
-                    ApplicationUri = session.Endpoint?.Server?.ApplicationUri,
+                    ApplicationUri = session.Endpoint?.Server?.ApplicationUri
+                        ?? _client.ApplicationUri,
                     EndpointUrl = session.Endpoint?.EndpointUrl,
                     PublishTimestamp = publishTime,
                     SequenceNumber = Opc.Ua.SequenceNumber.Increment32(ref _sequenceNumber),
@@ -1966,7 +1970,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     var message = new OpcUaSubscriptionNotification(this, session.MessageContext, notifications,
                         _timeProvider, null, sequenceNumber)
                     {
-                        ApplicationUri = session.Endpoint?.Server?.ApplicationUri,
+                        ApplicationUri = session.Endpoint?.Server?.ApplicationUri
+                            ?? _client.ApplicationUri,
                         EndpointUrl = session.Endpoint?.EndpointUrl,
                         PublishTimestamp = publishTime,
                         SequenceNumber = Opc.Ua.SequenceNumber.Increment32(ref _sequenceNumber),
@@ -2063,7 +2068,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     var message = new OpcUaSubscriptionNotification(this, session.MessageContext,
                         notifications, _timeProvider, advance, sequenceNumber)
                     {
-                        ApplicationUri = session.Endpoint?.Server?.ApplicationUri,
+                        ApplicationUri = session.Endpoint?.Server?.ApplicationUri
+                            ?? _client.ApplicationUri,
                         EndpointUrl = session.Endpoint?.EndpointUrl,
                         PublishTimestamp = publishTime,
                         SequenceNumber = Opc.Ua.SequenceNumber.Increment32(ref _sequenceNumber),

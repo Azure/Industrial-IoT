@@ -155,12 +155,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.WatchdogBehavior,
                             BatchSize = item.WriterGroup.NotificationPublishThreshold,
                             DataSetName = item.Writer.DataSet?.Name,
+                            DataSetType = item.Writer.DataSet?.Type,
                             DataSetWriterGroup =
                                 item.WriterGroup.Name == Constants.DefaultWriterGroupName ? null : item.WriterGroup.Name,
                             DataSetWriterId = item.Writer.DataSetWriterName,
                             DataSetRouting = item.Writer.DataSet?.Routing,
                             DataSetPublishingInterval = null,
                             DataSetPublishingIntervalTimespan = null,
+                            WriterGroupExternalId = item.WriterGroup.ExternalId,
+                            WriterGroupProperties = item.WriterGroup.Properties?.ToDictionary(),
                             OpcNodes = ToOpcNodes(item.Writer.DataSet?.DataSetSource?.SubscriptionSettings,
                                     item.Writer.DataSet?.DataSetSource?.PublishedVariables,
                                     item.Writer.DataSet?.DataSetSource?.PublishedEvents, preferTimeSpan, false)?
@@ -245,6 +248,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         OpcPublishingIntervalTimespan = !preferTimeSpan ? null :
                             subscriptionSettings?.PublishingInterval,
                         SkipFirst = variable.SkipFirst,
+                        VariableTypeDefinitionId = variable.TypeDefinitionId,
                         TriggeredNodes = skipTriggeringNodes ? null : ToOpcNodes(subscriptionSettings,
                             variable.Triggering?.PublishedVariables,
                             variable.Triggering?.PublishedEvents, preferTimeSpan, true)?.ToList(),
@@ -286,6 +290,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         // MonitoringMode = evt.MonitoringMode,
                         // ...
                         DeadbandType = null,
+                        VariableTypeDefinitionId = null,
                         DataChangeTrigger = null,
                         DataSetClassFieldId = Guid.Empty,
                         DeadbandValue = null,
@@ -394,6 +399,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         },
                         HeaderLayoutUri = group.Header.MessagingMode?.ToString(),
                         Name = group.Header.DataSetWriterGroup,
+                        Properties = group.Header.WriterGroupProperties,
+                        ExternalId = group.Header.WriterGroupExternalId,
                         NotificationPublishThreshold = group.Header.BatchSize,
                         PublishQueuePartitions = group.Header.WriterGroupPartitions,
                         PublishingInterval = group.Header.GetNormalizedBatchTriggerInterval(),
@@ -433,10 +440,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                     DataSet = new PublishedDataSetModel
                                     {
                                         Name = b.Header.DataSetName,
+                                        Type = b.Header.DataSetType,
                                         DataSetMetaData = new DataSetMetaDataModel
                                         {
                                             DataSetClassId = b.Header.DataSetClassId,
                                             Description = b.Header.DataSetDescription,
+                                            MajorVersion = null,
                                             Name = b.Header.DataSetName
                                         },
                                         ExtensionFields = b.Header.DataSetExtensionFields?
@@ -535,6 +544,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 IndexRange = node.IndexRange,
                                 RegisterNode = node.RegisterNode,
                                 UseCyclicRead = node.UseCyclicRead,
+                                VariableTypeDefinitionId = node.VariableTypeDefinitionId,
                                 CyclicReadMaxAgeTimespan = node.GetNormalizedCyclicReadMaxAge(),
                                 SkipFirst = node.SkipFirst,
                                 DataChangeTrigger = node.DataChangeTrigger,
@@ -575,6 +585,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                     IndexRange = node.IndexRange,
                                     RegisterNode = node.RegisterNode,
                                     UseCyclicRead = node.UseCyclicRead,
+                                    VariableTypeDefinitionId = node.VariableTypeDefinitionId,
                                     CyclicReadMaxAgeTimespan = node.GetNormalizedCyclicReadMaxAge(),
                                     DeadbandType = node.DeadbandType,
                                     DeadbandValue = node.DeadbandValue,
@@ -632,6 +643,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         SubstituteValue = null,
                         SkipFirst = node.SkipFirst,
                         DataChangeTrigger = node.DataChangeTrigger,
+                        TypeDefinitionId = node.VariableTypeDefinitionId,
                         DeadbandValue = node.DeadbandValue,
                         DeadbandType = node.DeadbandType,
                         Publishing = node.Topic == null && node.QualityOfService == null

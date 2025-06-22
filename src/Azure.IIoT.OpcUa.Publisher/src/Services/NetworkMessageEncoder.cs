@@ -22,6 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Globalization;
     using System.Linq;
     using System.Text;
+    using System.Threading;
 
     /// <summary>
     /// Creates PubSub encoded messages
@@ -126,7 +127,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         if (m.CloudEvent != null)
                         {
                             // Send as cloud event
-                            chunkedMessage = chunkedMessage.AsCloudEvent(m.CloudEvent);
+                            chunkedMessage = chunkedMessage.AsCloudEvent(m.CloudEvent with
+                            {
+                                // TODO: To be compliant this should be the message id
+                                // of the network message (json only).  But it is already
+                                // encoded, so we do not get it here. .
+                                // Id = m.NetworkMessage.MessageId,
+                                DataContentType = m.NetworkMessage.ContentType
+                            });
                         }
                         else
                         {

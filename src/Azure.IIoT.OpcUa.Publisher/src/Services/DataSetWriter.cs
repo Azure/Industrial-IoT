@@ -821,7 +821,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                     Context = CreateMessageContext(_writer.MetadataTopic,
                                         _writer.MetadataQos, _writer.MetadataRetain, _writer.MetadataTtl,
                                         () => Interlocked.Increment(ref _metadataSequenceNumber), metadata,
-                                        single)
+                                        single, true)
                                 };
 #pragma warning restore CA2000 // Dispose objects before losing scope
                                 _group._sink.OnMessage(metadataFrame);
@@ -835,7 +835,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             notification.Context = CreateMessageContext(_writer.Topic,
                                 _writer.Qos, _writer.Retain, _writer.Ttl,
                                 () => Interlocked.Increment(ref _dataSetSequenceNumber), metadata,
-                                single);
+                                single, false);
                             _logger.EnqueuingNotification(notification.ToString());
                             _group._sink.OnMessage(notification);
                         }
@@ -848,7 +848,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 DataSetWriterContext CreateMessageContext(string topic, QoS? qos, bool? retain,
                     TimeSpan? ttl, Func<uint> sequenceNumber, PublishedDataSetMessageSchemaModel? metadata,
-                    MonitoredItemNotificationModel? single)
+                    MonitoredItemNotificationModel? single, bool isMetadata)
                 {
                     _group.GetWriterGroup(out var writerGroup, out var networkMessageSchema);
                     return new DataSetWriterContext
@@ -862,12 +862,50 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         NextWriterSequenceNumber = sequenceNumber,
                         WriterGroup = writerGroup,
                         Schema = networkMessageSchema,
-                        CloudEvent = null, // TODO
+                        CloudEvent = GetCloudEventHeader(writerGroup, notification, isMetadata),
                         Topic = GetTopic(_writer.Routing, topic, single?.PathFromRoot),
                         Retain = retain,
                         Ttl = ttl,
                         Qos = qos
                     };
+
+                    CloudEventHeader? GetCloudEventHeader(WriterGroupModel writerGroup,
+                        OpcUaSubscriptionNotification notification, bool isMetadata)
+                    {
+                        if (_group._options.Value.EnableCloudEvents != true)
+                        {
+                            return null;
+                        }
+                        var type = isMetadata ? "Metadata" :
+                            notification.MessageType == MessageType.Event ?
+                                "Event" : "Dataset";
+                        var typeName = _writer.Writer.DataSet?.Type
+                            ?? notification.EventTypeName;
+                        if (!string.IsNullOrEmpty(typeName))
+                        {
+                            type += "/" + typeName;
+                        }
+                        var subject = writerGroup.ExternalId ?? string.Empty;
+                        if (!string.IsNullOrEmpty(_writer.Writer.DataSet?.Name))
+                        {
+                            subject += "/" + _writer.Writer.DataSet.Name;
+                        }
+                        if (!Uri.TryCreate(notification.ApplicationUri ??
+                            notification.EndpointUrl, UriKind.Absolute, out var source))
+                        {
+                            // Set a default source
+                            source = new Uri("urn:" +
+                                _group._options.Value.PublisherId ?? "publisher");
+                        }
+                        return new CloudEventHeader
+                        {
+                            Id = notification.SequenceNumber.ToString(),
+                            Time = notification.PublishTimestamp,
+                            Type = type,
+                            Source = source,
+                            Subject = subject.Length == 0 ? null : subject
+                        };
+                    }
 
                     static string GetTopic(DataSetRoutingMode routing, string topic, Opc.Ua.RelativePath? subpath)
                     {

@@ -197,6 +197,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public TimeSpan? CyclicReadMaxAge { get; set; }
 
         /// <summary>
+        /// Type definition id
+        /// </summary>
+        [DataMember(Name = "typeDefinitionId", Order = 25,
+            EmitDefaultValue = false)]
+        public string? TypeDefinitionId { get; set; }
+
+        /// <summary>
         /// Unique Identifier of variable in the dataset.
         /// </summary>
         [DataMember(Name = "id", Order = 30,

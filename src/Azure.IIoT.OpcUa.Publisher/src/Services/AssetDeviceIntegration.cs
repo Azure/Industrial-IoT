@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using Azure.IIoT.OpcUa.Publisher.Parser;
+    using Azure.Iot.Operations.Connector.Files;
     using Azure.Iot.Operations.Services.AssetAndDeviceRegistry.Models;
     using Furly.Azure.IoT.Operations.Services;
     using Furly.Extensions.Serializers;
@@ -26,8 +27,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// and device notifications into published nodes representation and signals configuration
     /// status errors back.
     /// </summary>
-    internal sealed class AssetDeviceConverter : IAdrNotification, IAsyncDisposable, IDisposable
+    internal sealed class AssetDeviceIntegration : IAdrNotification, IAsyncDisposable, IDisposable
     {
+        /// <summary>
+        /// Currently known assets
+        /// </summary>
+        internal IEnumerable<AssetResource> Assets => _assets.Values;
+
+        /// <summary>
+        /// Currently known devices
+        /// </summary>
+        internal IEnumerable<DeviceResource> Devices => _devices.Values;
+
         /// <summary>
         /// Create asset converter
         /// </summary>
@@ -35,8 +46,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="publishedNodes"></param>
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
-        public AssetDeviceConverter(IAioAdrClient client, IPublishedNodesServices publishedNodes,
-            IJsonSerializer serializer, ILogger<AssetDeviceConverter> logger)
+        public AssetDeviceIntegration(IAioAdrClient client, IPublishedNodesServices publishedNodes,
+            IJsonSerializer serializer, ILogger<AssetDeviceIntegration> logger)
         {
             _client = client;
             _publishedNodes = publishedNodes;
@@ -291,35 +302,42 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     errors.OnError(asset, kDeviceNotFoundErrorCode, "Device was not found");
                     continue;
                 }
-                var assetEndpoint = Deserialize(
+                var deviceEndpointResource = new DeviceEndpointResource(
+                    deviceResource.DeviceName, deviceResource.Device,
+                    asset.Asset.DeviceRef.EndpointName);
+                var endpointConfiguration = Deserialize(
                     endpoint.AdditionalConfiguration?.RootElement.GetRawText(),
-                    () => new PublishedNodesEntryModel { EndpointUrl = string.Empty },
-                    errors, deviceResource);
-                if (assetEndpoint == null)
+                    () => new DeviceEndpointModel(),
+                    errors, deviceEndpointResource);
+                if (endpointConfiguration == null)
                 {
                     continue;
                 }
 
                 // Asset identification
-                assetEndpoint = assetEndpoint with
+                var assetEndpoint = new PublishedNodesEntryModel
                 {
                     EndpointUrl = endpoint.Address,
+                    EndpointSecurityMode = endpointConfiguration.EndpointSecurityMode,
+                    EndpointSecurityPolicy = endpointConfiguration.EndpointSecurityPolicy,
+                    DumpConnectionDiagnostics = endpointConfiguration.DumpConnectionDiagnostics,
+                    UseReverseConnect = endpointConfiguration.UseReverseConnect,
 
                     // We map asset name to writer group as it contains writers for each of its
-                    // entities. This will be split per destination, but this is ok.
+                    // entities. This will be split per destination, but this is ok as the name
+                    // is retained and the Id property receives the unique group name.
                     DataSetWriterGroup = asset.AssetName,
-
-                    // Because we retain the asset id and asset name in new fields
-                    AssetId = asset.Asset.Uuid == null ? Guid.Empty : Guid.Parse(asset.Asset.Uuid),
-                    AssetName = asset.AssetName,
-
-                    // TODO In WoT side DataSetName is the Asset name. This also needs to be fixed over there!
-
+                    WriterGroupExternalId = asset.Asset.Uuid,
                     // And stick all unknown properties and attributes into the new extension section
-                    AssetProperties = CollectAssetAndDeviceProperties(asset, deviceResource)
+                    WriterGroupProperties = CollectAssetAndDeviceProperties(asset, deviceResource)
+
+                    // TODO In WoT side DataSetName is the Asset name. This also needs
+                    // to be fixed over there!
                 };
-                assetEndpoint = await AddAuthenticationFromInboundEndpointAsync(assetEndpoint, endpoint,
-                    errors, ct).ConfigureAwait(false);
+                var credentials = _client.GetEndpointCredentials(asset.Asset.DeviceRef.DeviceName,
+                    asset.Asset.DeviceRef.EndpointName, endpoint);
+                assetEndpoint = AddEndpointCredentials(assetEndpoint, credentials, errors,
+                    deviceEndpointResource);
                 if (asset.Asset.Datasets != null)
                 {
                     var dataSetTemplate = Deserialize(asset.Asset.DefaultDatasetsConfiguration,
@@ -441,48 +459,45 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Add authentication for the endpoint to the entry
         /// </summary>
         /// <param name="template"></param>
-        /// <param name="endpoint"></param>
+        /// <param name="authentication"></param>
         /// <param name="errors"></param>
-        /// <param name="ct"></param>
-        private async ValueTask<PublishedNodesEntryModel> AddAuthenticationFromInboundEndpointAsync(
-            PublishedNodesEntryModel template, InboundEndpointSchemaMapValue endpoint,
-            ValidationErrors errors, CancellationToken ct)
+        /// <param name="resource"></param>
+        private PublishedNodesEntryModel AddEndpointCredentials(
+            PublishedNodesEntryModel template, EndpointCredentials authentication,
+            ValidationErrors errors, DeviceEndpointResource resource)
         {
-            var authentication = endpoint.Authentication;
             template.OpcAuthenticationMode = OpcAuthenticationMode.Anonymous;
             if (authentication == null)
             {
                 return template;
             }
-            switch (authentication.Method)
+            switch (authentication.AuthenticationMethod)
             {
                 case Method.Certificate:
-                    if (authentication.X509Credentials == null)
+                    if (string.IsNullOrWhiteSpace(authentication.ClientCertificate))
                     {
-                        break; // throw
+                        errors.OnError(resource, kAuthenticationValueMissing,
+                            "Client certificate missing");
+                        break;
                     }
-                    // TODO: load secret
-                    await Task.Delay(0, ct).ConfigureAwait(false);
-                    var secret = authentication.X509Credentials.CertificateSecretName;
                     return template with
                     {
                         OpcAuthenticationMode = OpcAuthenticationMode.Certificate,
-                        OpcAuthenticationUsername = secret
+                        OpcAuthenticationUsername = authentication.ClientCertificate
                     };
                 case Method.UsernamePassword:
-                    if (authentication.UsernamePasswordCredentials == null)
+                    if (string.IsNullOrWhiteSpace(authentication.Username) ||
+                        string.IsNullOrWhiteSpace(authentication.Password))
                     {
-                        break; // throw
+                        errors.OnError(resource, kAuthenticationValueMissing,
+                            "User name or password missing");
+                        break;
                     }
-                    // TODO: load secret
-                    await Task.Delay(0, ct).ConfigureAwait(false);
-                    var userName = authentication.UsernamePasswordCredentials.PasswordSecretName;
-                    var password = authentication.UsernamePasswordCredentials.UsernameSecretName;
                     return template with
                     {
                         OpcAuthenticationMode = OpcAuthenticationMode.UsernamePassword,
-                        OpcAuthenticationUsername = userName,
-                        OpcAuthenticationPassword = password
+                        OpcAuthenticationUsername = authentication.Username,
+                        OpcAuthenticationPassword = authentication.Password
                     };
             }
             return template;
@@ -545,7 +560,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 // Dataset maps to DataSetWriter
                 DataSetWriterId = resource.DataSet.Name,
                 DataSetName = resource.DataSet.Name,
-                DataSetTypeDefinitionId = resource.DataSet.TypeRef
+                DataSetType = resource.DataSet.TypeRef
             });
             return ValueTask.CompletedTask;
         }
@@ -622,7 +637,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 // Dataset maps to DataSetWriter
                 DataSetWriterId = resource.Event.Name,
                 DataSetName = resource.Event.Name,
-                DataSetTypeDefinitionId = resource.Event.TypeRef
+                DataSetType = resource.Event.TypeRef
             });
             return ValueTask.CompletedTask;
         }
@@ -700,14 +715,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         {
             return template with
             {
-                // Map the configured endpoint configuration into the dataset template
+                // Map the configured endpoint configuration into the event/dataset template
                 EndpointUrl = deviceEndpoint.EndpointUrl,
                 EndpointSecurityMode = deviceEndpoint.EndpointSecurityMode,
                 EndpointSecurityPolicy = deviceEndpoint.EndpointSecurityPolicy,
+                DumpConnectionDiagnostics = deviceEndpoint.DumpConnectionDiagnostics,
                 UseReverseConnect = deviceEndpoint.UseReverseConnect,
                 OpcAuthenticationMode = deviceEndpoint.OpcAuthenticationMode,
                 OpcAuthenticationPassword = deviceEndpoint.OpcAuthenticationPassword,
                 OpcAuthenticationUsername = deviceEndpoint.OpcAuthenticationUsername,
+                UseSecurity = null,
+                EncryptedAuthPassword = null,
+                EncryptedAuthUsername = null
             };
         }
 
@@ -925,7 +944,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             /// Create error collector
             /// </summary>
             /// <param name="outer"></param>
-            public ValidationErrors(AssetDeviceConverter outer)
+            public ValidationErrors(AssetDeviceIntegration outer)
             {
                 _outer = outer;
             }
@@ -1225,7 +1244,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
 
             private readonly Dictionary<string, AssetStatusResource> _assets = new();
             private readonly Dictionary<string, DeviceStatusResource> _devices = new();
-            private readonly AssetDeviceConverter _outer;
+            private readonly AssetDeviceIntegration _outer;
         }
 
         private const string kNotSupportedErrorCode = "500.0";
@@ -1233,6 +1252,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         private const string kDeviceNotFoundErrorCode = "500.2";
         private const string kBrowsePathInvalidCode = "500.3";
         private const string kTooManyDestinationsError = "500.4";
+        private const string kAuthenticationValueMissing = "500.5";
 
         private readonly ConcurrentDictionary<string, AssetResource> _assets = new();
         private readonly ConcurrentDictionary<string, DeviceResource> _devices = new();

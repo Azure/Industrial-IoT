@@ -13,78 +13,76 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     using Moq;
     using System;
     using System.Collections.Concurrent;
+    using System.Linq;
     using System.Reflection;
     using System.Threading.Channels;
     using System.Threading.Tasks;
     using Xunit;
-    using AssetModel = Azure.Iot.Operations.Services.AssetAndDeviceRegistry.Models.Asset;
+    using AssetModel = Iot.Operations.Services.AssetAndDeviceRegistry.Models.Asset;
 
-    public class AssetDeviceConverterTests
+    public class AssetDeviceIntegrationTests
     {
         [Fact]
         public void ConstructorInitializesFields()
         {
             // Arrange/Act
-            var converter = CreateConverter();
+            var sut = CreateSut();
             // Assert
-            Assert.NotNull(converter);
+            Assert.NotNull(sut);
         }
 
         [Fact]
         public async Task DisposeAsyncCanBeCalledMultipleTimes()
         {
             // Arrange
-            var converter = CreateConverter();
+            var sut = CreateSut();
             // Act
-            await converter.DisposeAsync();
+            await sut.DisposeAsync();
             // Should not throw
-            await converter.DisposeAsync();
+            await sut.DisposeAsync();
         }
 
         [Fact]
         public void DisposeCallsDisposeAsync()
         {
             // Arrange
-            var converter = CreateConverter();
+            var sut = CreateSut();
             // Act/Assert
-            converter.Dispose();
+            sut.Dispose();
             // Should not throw
-            converter.Dispose();
+            sut.Dispose();
         }
 
         [Fact]
-        public void OnDeviceCreated_AddsDeviceAndWritesToChangeFeed()
+        public void OnDeviceCreatedAddsDeviceAndWritesToChangeFeed()
         {
             // Arrange
-            var converter = CreateConverter();
+            var sut = CreateSut();
             var device = new Device();
             const string deviceName = "dev1";
             const string endpointName = "ep1";
 
             // Act
-            converter.OnDeviceCreated(deviceName, endpointName, device);
+            sut.OnDeviceCreated(deviceName, endpointName, device);
             // Assert: device should be in the internal dictionary
-            var key = deviceName + "_" + endpointName;
-            var field = typeof(AssetDeviceConverter).GetField("_devices", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var dict = (System.Collections.Concurrent.ConcurrentDictionary<string, object>)field.GetValue(converter);
-            Assert.True(dict.ContainsKey(key));
+            Assert.Single(sut.Devices, d => d.DeviceName == deviceName);
         }
 
         [Fact]
-        public void OnDeviceCreated_LogsErrorIfChangeFeedWriteFails()
+        public void OnDeviceCreatedLogsErrorIfChangeFeedWriteFails()
         {
             // Arrange
-            var converter = CreateConverter();
+            var sut = CreateSut();
             var device = new Device();
             const string deviceName = "dev1";
             const string endpointName = "ep1";
             // Simulate full channel by completing writer
-            var field = typeof(AssetDeviceConverter).GetField("_changeFeed", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var channel = (System.Threading.Channels.Channel<(string, object)>)field.GetValue(converter);
+            var field = typeof(AssetDeviceIntegration).GetField("_changeFeed", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var channel = (System.Threading.Channels.Channel<(string, object)>)field.GetValue(sut);
             channel.Writer.TryComplete();
 
             // Act
-            converter.OnDeviceCreated(deviceName, endpointName, device);
+            sut.OnDeviceCreated(deviceName, endpointName, device);
             // Assert: error log should be called
             _loggerMock.Verify(l => l.Log(
                 LogLevel.Error,
@@ -95,37 +93,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         }
 
         [Fact]
-        public void OnDeviceUpdated_UpdatesDeviceAndWritesToChangeFeed()
+        public void OnDeviceUpdatedUpdatesDeviceAndWritesToChangeFeed()
         {
             // Arrange
-            var converter = CreateConverter();
+            var sut = CreateSut();
             var device = new Device();
             const string deviceName = "dev1";
             const string endpointName = "ep1";
             // Act
-            converter.OnDeviceUpdated(deviceName, endpointName, device);
+            sut.OnDeviceUpdated(deviceName, endpointName, device);
             // Assert: device should be in the internal dictionary
-            var key = deviceName + "_" + endpointName;
-            var field = typeof(AssetDeviceConverter).GetField("_devices", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var dict = (System.Collections.Concurrent.ConcurrentDictionary<string, object>)field.GetValue(converter);
-            Assert.True(dict.ContainsKey(key));
+            Assert.Single(sut.Devices, d => d.DeviceName == deviceName);
         }
 
         [Fact]
-        public void OnDeviceUpdated_LogsErrorIfChangeFeedWriteFails()
+        public void OnDeviceUpdatedLogsErrorIfChangeFeedWriteFails()
         {
             // Arrange
-            var converter = CreateConverter();
+            var sut = CreateSut();
             var device = new Device();
             const string deviceName = "dev1";
             const string endpointName = "ep1";
             // Simulate full channel by completing writer
-            var field = typeof(AssetDeviceConverter).GetField("_changeFeed", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var channel = (System.Threading.Channels.Channel<(string, object)>)field.GetValue(converter);
+            var field = typeof(AssetDeviceIntegration).GetField("_changeFeed", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var channel = (System.Threading.Channels.Channel<(string, object)>)field.GetValue(sut);
             channel.Writer.TryComplete();
 
             // Act
-            converter.OnDeviceUpdated(deviceName, endpointName, device);
+            sut.OnDeviceUpdated(deviceName, endpointName, device);
             // Assert: error log should be called
             _loggerMock.Verify(l => l.Log(
                 LogLevel.Error,
@@ -136,40 +131,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         }
 
         [Fact]
-        public void OnDeviceDeleted_RemovesDeviceAndWritesToChangeFeed()
+        public void OnDeviceDeletedRemovesDeviceAndWritesToChangeFeed()
         {
             // Arrange
-            var converter = CreateConverter();
+            var sut = CreateSut();
             var device = new Device();
             const string deviceName = "dev1";
             const string endpointName = "ep1";
             // Add device first
-            converter.OnDeviceCreated(deviceName, endpointName, device);
+            sut.OnDeviceCreated(deviceName, endpointName, device);
             // Act
-            converter.OnDeviceDeleted(deviceName, endpointName, device);
+            sut.OnDeviceDeleted(deviceName, endpointName, device);
             // Assert: device should be removed from the internal dictionary
-            var key = deviceName + "_" + endpointName;
-            var field = typeof(AssetDeviceConverter).GetField("_devices", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var dict = (System.Collections.Concurrent.ConcurrentDictionary<string, object>)field.GetValue(converter);
-            Assert.False(dict.ContainsKey(key));
+            Assert.DoesNotContain(sut.Devices, d => d.DeviceName == deviceName);
         }
 
         [Fact]
-        public void OnDeviceDeleted_LogsErrorIfChangeFeedWriteFails()
+        public void OnDeviceDeletedLogsErrorIfChangeFeedWriteFails()
         {
             // Arrange
-            var converter = CreateConverter();
+            var sut = CreateSut();
             var device = new Device();
             const string deviceName = "dev1";
             const string endpointName = "ep1";
             // Add device first
-            converter.OnDeviceCreated(deviceName, endpointName, device);
+            sut.OnDeviceCreated(deviceName, endpointName, device);
+
             // Simulate full channel by completing writer
-            var field = typeof(AssetDeviceConverter).GetField("_changeFeed", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var channel = (System.Threading.Channels.Channel<(string, object)>)field.GetValue(converter);
+            var field = typeof(AssetDeviceIntegration).GetField("_changeFeed", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var channel = (System.Threading.Channels.Channel<(string, object)>)field.GetValue(sut);
             channel.Writer.TryComplete();
+
             // Act
-            converter.OnDeviceDeleted(deviceName, endpointName, device);
+            sut.OnDeviceDeleted(deviceName, endpointName, device);
+
             // Assert: error log should be called
             _loggerMock.Verify(l => l.Log(
                 LogLevel.Error,
@@ -180,40 +175,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         }
 
         [Fact]
-        public void OnAssetCreated_AddsAssetAndWritesToChangeFeed()
+        public void OnAssetCreatedAddsAssetAndWritesToChangeFeed()
         {
             // Arrange
-            var converter = CreateConverter();
+            var sut = CreateSut();
             var asset = new AssetModel { DeviceRef = new AssetDeviceRef { DeviceName = "dev1", EndpointName = "ep1" } };
             const string deviceName = "dev1";
             const string endpointName = "ep1";
             const string assetName = "asset1";
 
             // Act
-            converter.OnAssetCreated(deviceName, endpointName, assetName, asset);
+            sut.OnAssetCreated(deviceName, endpointName, assetName, asset);
             // Assert: asset should be in the internal dictionary
             var key = deviceName + "_" + endpointName + "_" + assetName;
-            var field = typeof(AssetDeviceConverter).GetField("_assets", BindingFlags.NonPublic | BindingFlags.Instance);
-            var dict = (ConcurrentDictionary<string, object>)field.GetValue(converter);
+            var field = typeof(AssetDeviceIntegration).GetField("_assets", BindingFlags.NonPublic | BindingFlags.Instance);
+            var dict = (ConcurrentDictionary<string, object>)field.GetValue(sut);
             Assert.True(dict.ContainsKey(key));
         }
 
         [Fact]
-        public void OnAssetCreated_LogsErrorIfChangeFeedWriteFails()
+        public void OnAssetCreatedLogsErrorIfChangeFeedWriteFails()
         {
             // Arrange
-            var converter = CreateConverter();
+            var sut = CreateSut();
             var asset = new AssetModel { DeviceRef = new AssetDeviceRef { DeviceName = "dev1", EndpointName = "ep1" } };
             const string deviceName = "dev1";
             const string endpointName = "ep1";
             const string assetName = "asset1";
             // Simulate full channel by completing writer
-            var field = typeof(AssetDeviceConverter).GetField("_changeFeed", BindingFlags.NonPublic | BindingFlags.Instance);
-            var channel = (Channel<(string, object)>)field.GetValue(converter);
+            var field = typeof(AssetDeviceIntegration).GetField("_changeFeed", BindingFlags.NonPublic | BindingFlags.Instance);
+            var channel = (Channel<(string, object)>)field.GetValue(sut);
             channel.Writer.TryComplete();
 
             // Act
-            converter.OnAssetCreated(deviceName, endpointName, assetName, asset);
+            sut.OnAssetCreated(deviceName, endpointName, assetName, asset);
             // Assert: error log should be called
             _loggerMock.Verify(l => l.Log(
                 LogLevel.Error,
@@ -224,39 +219,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         }
 
         [Fact]
-        public void OnAssetUpdated_UpdatesAssetAndWritesToChangeFeed()
+        public void OnAssetUpdatedUpdatesAssetAndWritesToChangeFeed()
         {
             // Arrange
-            var converter = CreateConverter();
+            var sut = CreateSut();
             var asset = new AssetModel { DeviceRef = new AssetDeviceRef { DeviceName = "dev1", EndpointName = "ep1" } };
             const string deviceName = "dev1";
             const string endpointName = "ep1";
             const string assetName = "asset1";
             // Act
-            converter.OnAssetUpdated(deviceName, endpointName, assetName, asset);
+            sut.OnAssetUpdated(deviceName, endpointName, assetName, asset);
             // Assert: asset should be in the internal dictionary
             var key = deviceName + "_" + endpointName + "_" + assetName;
-            var field = typeof(AssetDeviceConverter).GetField("_assets", BindingFlags.NonPublic | BindingFlags.Instance);
-            var dict = (ConcurrentDictionary<string, object>)field.GetValue(converter);
+            var field = typeof(AssetDeviceIntegration).GetField("_assets", BindingFlags.NonPublic | BindingFlags.Instance);
+            var dict = (ConcurrentDictionary<string, object>)field.GetValue(sut);
             Assert.True(dict.ContainsKey(key));
         }
 
         [Fact]
-        public void OnAssetUpdated_LogsErrorIfChangeFeedWriteFails()
+        public void OnAssetUpdatedLogsErrorIfChangeFeedWriteFails()
         {
             // Arrange
-            var converter = CreateConverter();
+            var sut = CreateSut();
             var asset = new AssetModel { DeviceRef = new AssetDeviceRef { DeviceName = "dev1", EndpointName = "ep1" } };
             const string deviceName = "dev1";
             const string endpointName = "ep1";
             const string assetName = "asset1";
             // Simulate full channel by completing writer
-            var field = typeof(AssetDeviceConverter).GetField("_changeFeed", BindingFlags.NonPublic | BindingFlags.Instance);
-            var channel = (Channel<(string, object)>)field.GetValue(converter);
+            var field = typeof(AssetDeviceIntegration).GetField("_changeFeed", BindingFlags.NonPublic | BindingFlags.Instance);
+            var channel = (Channel<(string, object)>)field.GetValue(sut);
             channel.Writer.TryComplete();
 
             // Act
-            converter.OnAssetUpdated(deviceName, endpointName, assetName, asset);
+            sut.OnAssetUpdated(deviceName, endpointName, assetName, asset);
             // Assert: error log should be called
             _loggerMock.Verify(l => l.Log(
                 LogLevel.Error,
@@ -267,42 +262,42 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         }
 
         [Fact]
-        public void OnAssetDeleted_RemovesAssetAndWritesToChangeFeed()
+        public void OnAssetDeletedRemovesAssetAndWritesToChangeFeed()
         {
             // Arrange
-            var converter = CreateConverter();
+            var sut = CreateSut();
             var asset = new AssetModel { DeviceRef = new AssetDeviceRef { DeviceName = "dev1", EndpointName = "ep1" } };
             const string deviceName = "dev1";
             const string endpointName = "ep1";
             const string assetName = "asset1";
             // Add asset first
-            converter.OnAssetCreated(deviceName, endpointName, assetName, asset);
+            sut.OnAssetCreated(deviceName, endpointName, assetName, asset);
             // Act
-            converter.OnAssetDeleted(deviceName, endpointName, assetName, asset);
+            sut.OnAssetDeleted(deviceName, endpointName, assetName, asset);
             // Assert: asset should be removed from the internal dictionary
             var key = deviceName + "_" + endpointName + "_" + assetName;
-            var field = typeof(AssetDeviceConverter).GetField("_assets", BindingFlags.NonPublic | BindingFlags.Instance);
-            var dict = (ConcurrentDictionary<string, object>)field.GetValue(converter);
+            var field = typeof(AssetDeviceIntegration).GetField("_assets", BindingFlags.NonPublic | BindingFlags.Instance);
+            var dict = (ConcurrentDictionary<string, object>)field.GetValue(sut);
             Assert.False(dict.ContainsKey(key));
         }
 
         [Fact]
-        public void OnAssetDeleted_LogsErrorIfChangeFeedWriteFails()
+        public void OnAssetDeletedLogsErrorIfChangeFeedWriteFails()
         {
             // Arrange
-            var converter = CreateConverter();
+            var sut = CreateSut();
             var asset = new AssetModel { DeviceRef = new AssetDeviceRef { DeviceName = "dev1", EndpointName = "ep1" } };
             const string deviceName = "dev1";
             const string endpointName = "ep1";
             const string assetName = "asset1";
             // Add asset first
-            converter.OnAssetCreated(deviceName, endpointName, assetName, asset);
+            sut.OnAssetCreated(deviceName, endpointName, assetName, asset);
             // Simulate full channel by completing writer
-            var field = typeof(AssetDeviceConverter).GetField("_changeFeed", BindingFlags.NonPublic | BindingFlags.Instance);
-            var channel = (Channel<(string, object)>)field.GetValue(converter);
+            var field = typeof(AssetDeviceIntegration).GetField("_changeFeed", BindingFlags.NonPublic | BindingFlags.Instance);
+            var channel = (Channel<(string, object)>)field.GetValue(sut);
             channel.Writer.TryComplete();
             // Act
-            converter.OnAssetDeleted(deviceName, endpointName, assetName, asset);
+            sut.OnAssetDeleted(deviceName, endpointName, assetName, asset);
             // Assert: error log should be called
             _loggerMock.Verify(l => l.Log(
                 LogLevel.Error,
@@ -312,12 +307,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Once);
         }
 
-        private AssetDeviceConverter CreateConverter() =>
+        private AssetDeviceIntegration CreateSut() =>
             new(_clientMock.Object, _publishedNodesMock.Object, _serializerMock.Object, _loggerMock.Object);
 
         private readonly Mock<IAioAdrClient> _clientMock = new();
         private readonly Mock<IPublishedNodesServices> _publishedNodesMock = new();
         private readonly Mock<IJsonSerializer> _serializerMock = new();
-        private readonly Mock<ILogger<AssetDeviceConverter>> _loggerMock = new();
+        private readonly Mock<ILogger<AssetDeviceIntegration>> _loggerMock = new();
     }
 }

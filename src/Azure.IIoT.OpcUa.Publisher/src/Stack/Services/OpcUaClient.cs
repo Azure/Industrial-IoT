@@ -44,6 +44,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         internal const string Namespace = "http://opcfoundation.org/UA/Client/Types.xsd";
 
         /// <summary>
+        /// Application uri or the client
+        /// </summary>
+        public string ApplicationUri => _configuration.ApplicationUri;
+
+        /// <summary>
         /// The session keepalive interval to be used in ms.
         /// </summary>
         public TimeSpan? KeepAliveInterval { get; set; }
@@ -1303,8 +1308,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
 
                     endpointUrl = Utils.ParseUri(endpointDescription.EndpointUrl);
-                    var endpointConfiguration = EndpointConfiguration.Create(
-                        _configuration);
+                    var endpointConfiguration = EndpointConfiguration.Create(_configuration);
                     endpointConfiguration.OperationTimeout =
                         (int)timeout.TotalMilliseconds;
                     var endpoint = new ConfiguredEndpoint(null, endpointDescription,

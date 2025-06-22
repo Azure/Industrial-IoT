@@ -28,6 +28,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 id.Append(model.DataSetWriterGroup);
             }
+            if (!string.IsNullOrEmpty(model.WriterGroupExternalId))
+            {
+                id.Append(model.WriterGroupExternalId);
+            }
             if (model.WriterGroupTransport != null)
             {
                 id.Append(model.WriterGroupTransport);
@@ -86,6 +90,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             }
             if (!string.Equals(model.DataSetWriterGroup,
                 that.DataSetWriterGroup, StringComparison.Ordinal))
+            {
+                return false;
+            }
+            if (!string.Equals(model.WriterGroupExternalId ?? string.Empty,
+                that.WriterGroupExternalId ?? string.Empty, StringComparison.Ordinal))
             {
                 return false;
             }
@@ -355,6 +364,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 id.Append(model.DataSetKeyFrameCount.Value);
             }
+            if (model.DataSetType != null)
+            {
+                id.Append(model.DataSetType);
+            }
             if (model.DisableSubscriptionTransfer != null)
             {
                 id.Append(model.DisableSubscriptionTransfer.Value);
@@ -517,6 +530,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             }
             if (!string.Equals(model.DataSetName ?? string.Empty,
                 that.DataSetName ?? string.Empty, StringComparison.Ordinal))
+            {
+                return false;
+            }
+            if (!string.Equals(model.DataSetType ?? string.Empty,
+                that.DataSetType ?? string.Empty, StringComparison.Ordinal))
             {
                 return false;
             }

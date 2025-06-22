@@ -1,0 +1,102 @@
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
+
+namespace Azure.IIoT.OpcUa.Publisher.Models
+{
+    using Furly.Extensions.Messaging;
+    using Furly.Extensions.Serializers;
+    using System;
+    using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations;
+    using System.Runtime.Serialization;
+
+    /// <summary>
+    /// Endpoint configuration for devices. Property names are
+    /// the same as in <see cref="PublishedNodesEntryModel"/> but
+    /// this configuration is used when parsing device endpoint
+    /// configuration from a ADR device resource.
+    /// </summary>
+    [DataContract]
+    public sealed record class DeviceEndpointModel
+    {
+        /// <summary>
+        /// The specific security mode to use for the specified endpoint.
+        /// If the security mode is not available with any configured
+        /// security policy connectivity will fail. Default:
+        /// <see cref="SecurityMode.NotNone"/>
+        /// </summary>
+        [DataMember(Name = "EndpointSecurityMode", Order = 0,
+            EmitDefaultValue = false)]
+        public SecurityMode? EndpointSecurityMode { get; set; }
+
+        /// <summary>
+        /// The security policy URI to use for the endpoint connection.
+        /// Overrides UseSecurity setting and refines
+        /// EndpointSecurityMode choice. Examples include
+        /// "http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256".
+        /// If the specified policy is not available with the chosen
+        /// security mode, connectivity will fail. This allows enforcing
+        /// specific security requirements.
+        /// </summary>
+        [DataMember(Name = "EndpointSecurityPolicy", Order = 1,
+            EmitDefaultValue = false)]
+        public string? EndpointSecurityPolicy { get; set; }
+
+        /// <summary>
+        /// Use reverse connect to connect ot the endpoint
+        /// </summary>
+        [DataMember(Name = "UseReverseConnect", Order = 2,
+            EmitDefaultValue = false)]
+        public bool? UseReverseConnect { get; set; }
+
+        /// <summary>
+        /// Specifies the authentication mode for connecting to the OPC
+        /// UA server. Supported modes:
+        /// - Anonymous: No authentication (default)
+        /// - UsernamePassword: Username and password authentication
+        /// - Certificate: Certificate-based authentication using X.509
+        ///   certificates
+        /// When using credentials or certificates, encrypted
+        /// communication should be enabled via UseSecurity or
+        /// EndpointSecurityMode to protect secrets. For certificate
+        /// auth, the certificate must be in the User certificate
+        /// store.
+        /// </summary>
+        [DataMember(Name = "OpcAuthenticationMode", Order = 4)]
+        public OpcAuthenticationMode OpcAuthenticationMode { get; set; }
+
+        /// <summary>
+        /// The plaintext username for UsernamePassword authentication,
+        /// or the subject name of the certificate for Certificate
+        /// authentication. When using Certificate mode, this refers to
+        /// a certificate in the User certificate store of the PKI
+        /// configuration.
+        /// </summary>
+        [DataMember(Name = "OpcAuthenticationUsername", Order = 5,
+            EmitDefaultValue = false)]
+        public string? OpcAuthenticationUsername { get; set; }
+
+        /// <summary>
+        /// The plaintext password for UsernamePassword authentication,
+        /// or the password protecting the private key for Certificate
+        /// authentication. For Certificate mode, this must match the
+        /// password used when adding the certificate to the PKI store.
+        /// </summary>
+        [DataMember(Name = "OpcAuthenticationPassword", Order = 6,
+            EmitDefaultValue = false)]
+        public string? OpcAuthenticationPassword { get; set; }
+
+        /// <summary>
+        /// Enables detailed server diagnostics logging for the
+        /// connection. When enabled, provides additional diagnostic
+        /// information useful for troubleshooting connectivity,
+        /// authentication, and subscription issues. The diagnostics
+        /// data is included in the publisher's logs. Default: false
+        /// </summary>
+        [DataMember(Name = "DumpConnectionDiagnostics", Order = 10,
+            EmitDefaultValue = false)]
+        public bool? DumpConnectionDiagnostics { get; set; }
+    }
+}

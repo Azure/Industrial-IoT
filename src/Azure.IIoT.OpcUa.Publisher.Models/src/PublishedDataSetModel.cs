@@ -52,8 +52,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// The data set routing option
         /// </summary>
-        [DataMember(Name = "Routing", Order = 5,
+        [DataMember(Name = "routing", Order = 5,
             EmitDefaultValue = false)]
         public DataSetRoutingMode? Routing { get; set; }
+
+        /// <summary>
+        /// Type of the dataset
+        /// </summary>
+        [DataMember(Name = "type", Order = 6,
+            EmitDefaultValue = false)]
+        public string? Type { get; set; }
     }
 }

@@ -670,37 +670,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public HeartbeatBehavior? DefaultHeartbeatBehavior { get; set; }
 
         /// <summary>
-        /// Contains a globally unique asset identifier related to
-        /// the entry concept that allows correlation into an asset
-        /// management system.
+        /// Contains a globally unique group identifier related to
+        /// the entry concept that allows correlation into other systems.
         /// </summary>
-        [DataMember(Name = "AssetId", Order = 57,
+        [DataMember(Name = "WriterGroupExternalId", Order = 57,
             EmitDefaultValue = false)]
-        public Guid AssetId { get; set; }
+        public string? WriterGroupExternalId { get; set; }
 
         /// <summary>
-        /// The name of the asset associated with this entry.
-        /// </summary>
-        [DataMember(Name = "AssetName", Order = 58,
-            EmitDefaultValue = false)]
-        public string? AssetName { get; set; }
-
-        /// <summary>
-        /// Additional properties of the asset that should be retained
+        /// Additional properties of the writer group that should be retained
         /// with the configuration.
         /// </summary>
-        [DataMember(Name = "AssetProperties", Order = 59,
+        [DataMember(Name = "WriterGroupProperties", Order = 59,
             EmitDefaultValue = false)]
-        public Dictionary<string, VariantValue>? AssetProperties { get; set; }
+        public Dictionary<string, VariantValue>? WriterGroupProperties { get; set; }
 
         /// <summary>
         /// A type definition id that references a well known opc ua
         /// type definition node for the dataset represented by this
         /// entry.
         /// </summary>
-        [DataMember(Name = "DataSetTypeDefinitionId", Order = 60,
+        [DataMember(Name = "DataSetType", Order = 60,
             EmitDefaultValue = false)]
-        public string? DataSetTypeDefinitionId { get; set; }
+        public string? DataSetType { get; set; }
 
         /// <summary>
         /// Enables detailed server diagnostics logging for the
