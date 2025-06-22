@@ -521,7 +521,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             ct.ThrowIfCancellationRequested();
 
             // Map dataset configuration on top of entry
-            var datasetTemplate = Deserialize(resource.DataSet.DatasetConfiguration, () => template,
+            var datasetTemplate = Deserialize(resource.DataSet.DatasetConfiguration,
+                () => new DataSetEventModel { EndpointUrl = template.EndpointUrl },
                 errors, resource);
             if (datasetTemplate == null)
             {
@@ -538,7 +539,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     var node = Deserialize(
                         datapoint.DataPointConfiguration?.RootElement.GetRawText(),
-                        () => new OpcNodeModel(), errors, resource);
+                        () => new DataPointModel(), errors, resource);
                     if (node == null)
                     {
                         continue;
@@ -581,13 +582,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             ct.ThrowIfCancellationRequested();
 
-            // Map dataset configuration on top of entry
-            var eventTemplate = Deserialize(resource.Event.EventConfiguration?.RootElement.GetRawText(),
-                () => template, errors, resource);
+            // Map event configuration on top of entry
+            var eventTemplate = Deserialize(
+                resource.Event.EventConfiguration?.RootElement.GetRawText(),
+                () => new DataSetEventModel { EndpointUrl = template.EndpointUrl },
+                errors, resource);
             if (eventTemplate == null)
             {
                 return ValueTask.CompletedTask;
             }
+
+            // Deserialize node model first
 
             // Create event node
             var node = new OpcNodeModel
@@ -644,14 +649,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <summary>
-        /// Create entry for an entity in the asset
+        /// Create entry for a dataset or event in the asset
         /// </summary>
         /// <param name="endpointTemplate"></param>
         /// <param name="entityTemplate"></param>
         /// <param name="nodes"></param>
         /// <returns></returns>
         private static PublishedNodesEntryModel CreateEntryForEntityOfAsset(
-            PublishedNodesEntryModel endpointTemplate, PublishedNodesEntryModel entityTemplate,
+            PublishedNodesEntryModel endpointTemplate, DataSetEventModel entityTemplate,
             List<OpcNodeModel> nodes)
         {
             return endpointTemplate with
@@ -660,7 +665,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 // Set defaults for iot operations, there will never be any different configuration
                 // allowed in the resource of AIO
                 //
-                OpcNodes = nodes,
                 BatchSize = 0,
                 BatchTriggerInterval = 0,
                 BatchTriggerIntervalTimespan = null,
@@ -669,6 +673,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 MessageEncoding =
                     entityTemplate.MessageEncoding == MessageEncoding.Avro
                         ? MessageEncoding.Avro : MessageEncoding.Json,
+
+                OpcNodes = nodes,
 
                 // Dataset configuration
                 DataSetPublishingInterval =

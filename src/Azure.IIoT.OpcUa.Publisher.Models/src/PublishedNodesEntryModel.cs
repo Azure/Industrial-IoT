@@ -35,7 +35,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// </para>
     /// </summary>
     [DataContract]
-    public sealed record class PublishedNodesEntryModel
+    public record class PublishedNodesEntryModel
     {
         /// <summary>
         /// A monotonically increasing number identifying the change

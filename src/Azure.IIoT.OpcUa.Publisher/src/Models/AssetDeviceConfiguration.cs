@@ -13,6 +13,71 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     using System.Runtime.Serialization;
 
     /// <summary>
+    /// Data point configuration model
+    /// </summary>
+    [DataContract]
+    public sealed record class DataPointModel : OpcNodeModel
+    {
+        /// <summary>
+        /// Adapt the publishing interval property
+        /// </summary>
+        [DataMember(Name = "publishingInterval", Order = 100,
+            EmitDefaultValue = false)]
+        public int? PublishingInterval
+        {
+            get => OpcPublishingInterval;
+            set => OpcPublishingInterval = value;
+        }
+    }
+
+    /// <summary>
+    /// Dataset and event default and reource configuration model
+    /// </summary>
+    [DataContract]
+    public sealed record class DataSetEventModel : PublishedNodesEntryModel
+    {
+        /// <summary>
+        /// Adapt the sampling interval property
+        /// </summary>
+        [DataMember(Name = "samplingInterval", Order = 100,
+            EmitDefaultValue = false)]
+        public int? SamplingInterval
+        {
+            get => DataSetSamplingInterval;
+            set => DataSetSamplingInterval = value;
+        }
+
+        /// <summary>
+        /// Adapt the publishing interval property
+        /// </summary>
+        [DataMember(Name = "publishingInterval", Order = 101,
+            EmitDefaultValue = false)]
+        public int? PublishingInterval
+        {
+            get => DataSetPublishingInterval;
+            set => DataSetPublishingInterval = value;
+        }
+
+        /// <summary>
+        /// Adapt the key frame count property
+        /// </summary>
+        [DataMember(Name = "keyFrameCount", Order = 102,
+            EmitDefaultValue = false)]
+        public uint? KeyFrameCount
+        {
+            get => DataSetKeyFrameCount;
+            set => DataSetKeyFrameCount = value;
+        }
+
+        /// <summary>
+        /// Adapt the start instance property
+        /// </summary>
+        [DataMember(Name = "publishingInterval", Order = 103,
+            EmitDefaultValue = false)]
+        public string? StartInstance { get; set; }
+    }
+
+    /// <summary>
     /// Endpoint configuration for devices. Property names are
     /// the same as in <see cref="PublishedNodesEntryModel"/> but
     /// this configuration is used when parsing device endpoint

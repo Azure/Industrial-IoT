@@ -19,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// OpcNodes collection.
     /// </summary>
     [DataContract]
-    public sealed record class OpcNodeModel
+    public record class OpcNodeModel
     {
         /// <summary>
         /// The OPC UA node identifier string in standard notation.
