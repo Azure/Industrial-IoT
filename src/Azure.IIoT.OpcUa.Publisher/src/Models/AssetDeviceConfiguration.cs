@@ -163,5 +163,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "DumpConnectionDiagnostics", Order = 10,
             EmitDefaultValue = false)]
         public bool? DumpConnectionDiagnostics { get; set; }
+
+        /// <summary>
+        /// Runs asset discovery on the endpoint
+        /// </summary>
+        [DataMember(Name = "RunAssetDiscovery", Order = 11,
+            EmitDefaultValue = false)]
+        public bool? RunAssetDiscovery { get; set; }
+
+        /// <summary>
+        /// Finds assets for the selected types.
+        /// </summary>
+        [DataMember(Name = "AssetTypes", Order = 12,
+            EmitDefaultValue = false)]
+        public HashSet<string>? AssetTypes { get; set; }
     }
 }

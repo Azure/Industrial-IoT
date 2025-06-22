@@ -173,6 +173,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     builder.AddAzureIoTOperations();
                     builder.RegisterType<AssetDeviceIntegration>()
                         .AsImplementedInterfaces();
+                    builder.Configure<PublisherOptions>(o =>
+                    {
+                        o.UseStandardsCompliantEncoding = true;
+                        o.EnableCloudEvents = true;
+                        // TODO: o.TopicTemplates.Telemetry = "";
+                    });
                 }
                 else if (Environment.GetEnvironmentVariable("AIO_BROKER_HOSTNAME") != null)
                 {

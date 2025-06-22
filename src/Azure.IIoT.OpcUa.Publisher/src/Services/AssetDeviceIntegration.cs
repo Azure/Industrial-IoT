@@ -64,6 +64,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     });
             _processor = Task.Factory.StartNew(() => RunAsync(_cts.Token), _cts.Token,
                 TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
+            _timer = new PeriodicTimer(TimeSpan.FromSeconds(30));
+            _discovery = Task.Factory.StartNew(() => DiscoverAsync(_cts.Token), _cts.Token,
+                TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
         }
 
         /// <inheritdoc/>
@@ -78,6 +81,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 await _cts.CancelAsync().ConfigureAwait(false);
                 _changeFeed.Writer.TryComplete();
+                _timer.Dispose();
+                try
+                {
+                    await _discovery.ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) { }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to close discovery");
+                }
                 try
                 {
                     await _processor.ConfigureAwait(false);
@@ -107,6 +120,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var name = CreateDeviceKey(deviceName, inboundEndpointName);
             var deviceResource = new DeviceResource(deviceName, device);
             _devices.AddOrUpdate(name, deviceResource);
+            Interlocked.Increment(ref _lastDeviceListVersion);
             if (!_changeFeed.Writer.TryWrite((name, deviceResource)))
             {
                 _logger.LogError("Failed to process creation of device {Device}", name);
@@ -120,6 +134,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var name = CreateDeviceKey(deviceName, inboundEndpointName);
             var deviceResource = new DeviceResource(deviceName, device);
             _devices.AddOrUpdate(name, deviceResource);
+            Interlocked.Increment(ref _lastDeviceListVersion);
             if (!_changeFeed.Writer.TryWrite((name, deviceResource)))
             {
                 _logger.LogError("Failed to process update of device {Device}", name);
@@ -131,10 +146,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             Device? device)
         {
             var name = CreateDeviceKey(deviceName, inboundEndpointName);
-            if (_devices.TryRemove(name, out var deviceResource) &&
-               !_changeFeed.Writer.TryWrite((name, deviceResource)))
+            if (_devices.TryRemove(name, out var deviceResource))
             {
-                _logger.LogError("Failed to process deletion of device {Device}", name);
+                Interlocked.Increment(ref _lastDeviceListVersion);
+                if (!_changeFeed.Writer.TryWrite((name, deviceResource)))
+                {
+                    _logger.LogError("Failed to process deletion of device {Device}", name);
+                }
             }
         }
 
@@ -881,6 +899,67 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <summary>
+        /// Run discovery for all known devices
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        internal async Task DiscoverAsync(CancellationToken ct)
+        {
+            while (!ct.IsCancellationRequested &&
+                await _timer.WaitForNextTickAsync(ct).ConfigureAwait(false))
+            {
+                var lastListVersion = _lastDeviceListVersion;
+                foreach (var device in _devices.Values.ToList())
+                {
+                    if ((device.Device.Endpoints?.Inbound) == null)
+                    {
+                        continue;
+                    }
+
+                    var errors = new ValidationErrors(this);
+                    foreach (var endpoint in device.Device.Endpoints.Inbound)
+                    {
+                        var deviceEndpointResource = new DeviceEndpointResource(
+                            device.DeviceName, device.Device, endpoint.Key);
+                        var endpointConfiguration = Deserialize(
+                            endpoint.Value.AdditionalConfiguration?.RootElement.GetRawText(),
+                            () => new DeviceEndpointModel(),
+                            errors, deviceEndpointResource);
+                        if ((endpointConfiguration?.RunAssetDiscovery) != true ||
+                            !(endpointConfiguration.AssetTypes?.Count > 0))
+                        {
+                            continue;
+                        }
+
+                        // Run discovery
+                        foreach (var type in endpointConfiguration.AssetTypes)
+                        {
+                            try
+                            {
+                                // TODO
+                                await Task.Delay(0, ct).ConfigureAwait(false);
+                            }
+                            catch (Exception ex)
+                            {
+                                errors.OnError(deviceEndpointResource, kDiscoveryError, ex.Message);
+                                _logger.LogError(ex, "Failed to run discovery for device {Device}",
+                                    device.DeviceName);
+                            }
+                        }
+                    }
+                    await errors.ReportAsync(ct).ConfigureAwait(false);
+
+                    // Compare last device list version, if version changed, stop and continue on
+                    // next timer fired. This will settle the changes and limit resource usage.
+                    if (_lastDeviceListVersion != lastListVersion)
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Deserialize configuration
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -1260,6 +1339,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private const string kBrowsePathInvalidCode = "500.3";
         private const string kTooManyDestinationsError = "500.4";
         private const string kAuthenticationValueMissing = "500.5";
+        private const string kDiscoveryError = "500.6";
 
         private readonly ConcurrentDictionary<string, AssetResource> _assets = new();
         private readonly ConcurrentDictionary<string, DeviceResource> _devices = new();
@@ -1270,6 +1350,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly ILogger _logger;
         private readonly CancellationTokenSource _cts;
         private readonly Task _processor;
+        private readonly Task _discovery;
+        private readonly PeriodicTimer _timer;
+        private int _lastDeviceListVersion;
         private bool _isDisposed;
     }
 }
