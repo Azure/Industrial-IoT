@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 {
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Publisher.Parser;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
@@ -144,16 +145,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     !_request.CreateSingleWriter && !currentObject.OriginalNode.HasErrors)
                 {
                     // Create a new writer entry for the object
+                    var root = currentObject.ObjectFromBrowse.RootFrame;
                     var result = await SaveEntryAsync(new ServiceResponse<PublishedNodesEntryModel>
                     {
                         Result = _entry with
                         {
-                            DataSetName = currentObject.CreateDataSetName(
-                                context.Session.MessageContext),
-                            DataSetWriterId = currentObject.CreateWriterId(),
+                            DataSetWriterId = currentObject.CreateWriterId(), // Unique
+                            DataSetWriterGroup = _entry.DataSetWriterGroup ?? root?.BrowseName?.Name,
+                            DataSetName = currentObject.CreateDataSetName(root), // with DataSetWriterGroup as root
+                            // Type of the dataset
+                            DataSetType = currentObject.ObjectFromBrowse.TypeDefinitionId?.AsString(
+                                    context.Session.MessageContext, NamespaceFormat.Expanded),
+                            // Type of the writer group
                             NodeId = new NodeIdModel
                             {
-                                Identifier = currentObject.OriginalNode.NodeId?.AsString(
+                                Identifier = root?.TypeDefinitionId?.AsString(
                                     context.Session.MessageContext, NamespaceFormat.Expanded)
                             },
                             OpcNodes = currentObject
@@ -723,8 +729,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 return _variables.Select(frame => template with
                 {
                     Id = frame.NodeId.AsString(context, NamespaceFormat.Expanded),
+                    VariableTypeDefinitionId = frame.TypeDefinitionId?
+                        .AsString(context, NamespaceFormat.Expanded),
                     AttributeId = null, // Defaults to variable
                     DataSetFieldId = CreateUniqueId(frame),
+                    // TODO: BrowsePath = frame.BrowsePath.ToRelativePath(out var prefix).AsString(prefix),
+                    DisplayName = frame.DisplayName
                 });
 
                 string CreateUniqueId(BrowseFrame frame)
@@ -759,9 +769,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// Create data set name for the object
             /// </summary>
-            /// <param name="context"></param>
+            /// <param name="root"></param>
             /// <returns></returns>
-            public string CreateDataSetName(IServiceMessageContext context)
+            public string CreateDataSetName(BrowseFrame? root)
             {
                 var cur = ObjectFromBrowse;
                 var result = string.Empty;
@@ -773,11 +783,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
                     cur = cur.Parent;
                 }
-                while (cur != null);
-
-                // var result = ObjectFromBrowse.NodeId.AsString(context,
-                //     NamespaceFormat.Expanded)!;
-                // Debug.Assert(result != null);
+                while (cur != null && cur != root);
                 return result;
             }
 

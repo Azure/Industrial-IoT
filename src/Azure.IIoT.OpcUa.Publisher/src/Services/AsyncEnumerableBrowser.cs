@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using System.Reflection.Metadata;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -251,7 +252,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 .Where(reference => MatchTypeDefinitionId(context.Session, reference.TypeDefinition))
                 .Select(reference => new BrowseFrame((NodeId)reference.NodeId,
                     reference.BrowseName, reference.DisplayName?.Text,
-                    reference.TypeDefinition, reference.NodeClass, frame))
+                    reference.TypeDefinition, reference.NodeClass, frame,
+                    IsChildOf(context.Session, reference.ReferenceTypeId)))
                 .ToList();
 
             if (_stopWhenFound && matching.Count != 0)
@@ -264,7 +266,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         Push(reference.NodeId, reference.BrowseName,
                             reference.DisplayName?.Text, reference.TypeDefinition,
-                            reference.NodeClass, frame);
+                            reference.NodeClass, frame,
+                            IsChildOf(context.Session, reference.ReferenceTypeId));
                     }
                 }
             }
@@ -275,7 +278,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     Push(reference.NodeId, reference.BrowseName,
                         reference.DisplayName?.Text, reference.TypeDefinition,
-                        reference.NodeClass, frame);
+                        reference.NodeClass, frame,
+                        IsChildOf(context.Session, reference.ReferenceTypeId));
                 }
             }
 
@@ -286,6 +290,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             // Pass matching on
             return HandleMatching(context, matching);
+
+            bool IsChildOf(IOpcUaSession session, NodeId referenceTypeId)
+            {
+                return session.NodeCache.IsTypeOf(referenceTypeId, ReferenceTypeIds.HasChild);
+            }
 
             // Helper to match type definition to desired type definition id
             bool MatchTypeDefinitionId(IOpcUaSession session, ExpandedNodeId typeDefinition)
@@ -324,9 +333,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="typeDefinition"></param>
         /// <param name="nodeClass"></param>
         /// <param name="parent"></param>
-        private void Push(ExpandedNodeId nodeId, QualifiedName? browseName,
-            string? displayName, ExpandedNodeId typeDefinition,
-            Opc.Ua.NodeClass nodeClass, BrowseFrame? parent)
+        /// <param name="isChildOfParent"></param>
+        private void Push(ExpandedNodeId nodeId, QualifiedName? browseName, string? displayName,
+            ExpandedNodeId typeDefinition, Opc.Ua.NodeClass nodeClass, BrowseFrame? parent,
+            bool? isChildOfParent)
         {
             if ((nodeId?.ServerIndex ?? 1u) != 0)
             {
@@ -336,7 +346,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             if (!NodeId.IsNull(local) && !_visited.Contains(local))
             {
                 var frame = new BrowseFrame(local, browseName, displayName,
-                    typeDefinition, nodeClass, parent);
+                    typeDefinition, nodeClass, parent, isChildOfParent);
                 if (_maxDepth.HasValue && frame.Depth >= _maxDepth.Value)
                 {
                     return;
@@ -370,9 +380,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="TypeDefinitionId"></param>
         /// <param name="NodeClass"></param>
         /// <param name="Parent"></param>
+        /// <param name="isChildOfParent"></param>
         protected internal record class BrowseFrame(NodeId NodeId, QualifiedName? BrowseName = null,
             string? DisplayName = null, ExpandedNodeId? TypeDefinitionId = null,
-            Opc.Ua.NodeClass? NodeClass = null, BrowseFrame? Parent = null)
+            Opc.Ua.NodeClass? NodeClass = null, BrowseFrame? Parent = null,
+            bool? isChildOfParent = null)
         {
             /// <summary>
             /// Current depth of this frame
@@ -391,7 +403,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <summary>
-            /// Browse path to the node
+            /// Get the root frame that is not a child of anything
+            /// </summary>
+            public BrowseFrame? RootFrame
+            {
+                get
+                {
+                    //
+                    // child, not child, child, child, not child (*), not child, not child.
+                    // (*) <- this is what we want to return here
+                    //
+                    BrowseFrame? found = null;
+                    for (var parent = this; parent != null; parent = parent.Parent)
+                    {
+                        if (parent.isChildOfParent != true)
+                        {
+                            found ??= parent; // Set if not already set
+                            continue;
+                        }
+                        found = null;
+                    }
+                    return found;
+                }
+            }
+
+            /// <summary>
+            /// Browse path to the node from root
             /// </summary>
             public string BrowsePath
             {

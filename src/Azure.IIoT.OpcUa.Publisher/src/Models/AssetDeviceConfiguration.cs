@@ -13,7 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     using System.Runtime.Serialization;
 
     /// <summary>
-    /// Data point configuration model
+    /// Data point additional configuration model
     /// </summary>
     [DataContract]
     public sealed record class DataPointModel : OpcNodeModel
@@ -31,7 +31,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     }
 
     /// <summary>
-    /// Dataset and event default and reource configuration model
+    /// Dataset and event default and reource additional configuration
+    /// model.
     /// </summary>
     [DataContract]
     public sealed record class DataSetEventModel : PublishedNodesEntryModel
@@ -78,10 +79,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     }
 
     /// <summary>
-    /// Endpoint configuration for devices. Property names are
-    /// the same as in <see cref="PublishedNodesEntryModel"/> but
-    /// this configuration is used when parsing device endpoint
-    /// configuration from a ADR device resource.
+    /// Endpoint additional configuration for devices. Property names are
+    /// the same as in <see cref="PublishedNodesEntryModel"/> but this
+    /// configuration is used when parsing device endpoint configuration
+    /// from a ADR device resource.
     /// </summary>
     [DataContract]
     public sealed record class DeviceEndpointModel
