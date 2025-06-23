@@ -22,6 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
+    using static Azure.IIoT.OpcUa.Publisher.Services.AssetDeviceIntegration;
 
     /// <summary>
     /// Asset and device configuration integration with Azure iot operations. Converts asset
@@ -45,13 +46,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         /// <param name="client"></param>
         /// <param name="publishedNodes"></param>
+        /// <param name="configurationServices"></param>
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
         public AssetDeviceIntegration(IAioAdrClient client, IPublishedNodesServices publishedNodes,
-            IJsonSerializer serializer, ILogger<AssetDeviceIntegration> logger)
+            IConfigurationServices configurationServices, IJsonSerializer serializer,
+            ILogger<AssetDeviceIntegration> logger)
         {
             _client = client;
             _publishedNodes = publishedNodes;
+            _configurationServices = configurationServices;
             _serializer = serializer;
             _logger = logger;
             _cts = new CancellationTokenSource();
@@ -293,6 +297,62 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 await _changeFeed.Reader.WaitToReadAsync(ct).ConfigureAwait(false);
             }
             catch (OperationCanceledException) { }
+        }
+
+
+        internal async ValueTask DiscoverAsync(DeviceEndpointResource resource, HashSet<string> types,
+            ValidationErrors errors, CancellationToken ct)
+        {
+            if (resource.Device.Endpoints?.Inbound == null ||
+                !resource.Device.Endpoints.Inbound.TryGetValue(resource.EndpointName, out var endpoint))
+            {
+                errors.OnError(resource, kDeviceNotFoundErrorCode, "Endpoint was not found");
+                return; // throw
+            }
+            var endpointConfiguration = Deserialize(
+                endpoint.AdditionalConfiguration?.RootElement.GetRawText(),
+                () => new DeviceEndpointModel(),
+                errors, resource);
+            if (endpointConfiguration == null)
+            {
+                return;
+            }
+            // endpoint
+            var assetEndpoint = new PublishedNodesEntryModel
+            {
+                EndpointUrl = endpoint.Address,
+                EndpointSecurityMode = endpointConfiguration.EndpointSecurityMode,
+                EndpointSecurityPolicy = endpointConfiguration.EndpointSecurityPolicy,
+                DumpConnectionDiagnostics = endpointConfiguration.DumpConnectionDiagnostics,
+                UseReverseConnect = endpointConfiguration.UseReverseConnect,
+            };
+            var credentials = _client.GetEndpointCredentials(resource.DeviceName,
+                resource.EndpointName, endpoint);
+            assetEndpoint = AddEndpointCredentials(assetEndpoint, credentials, errors,
+                resource);
+            foreach (var type in types)
+            {
+                var template = assetEndpoint with
+                {
+                    // Expand the type
+                    OpcNodes = [ new OpcNodeModel { Id = type } ]
+                };
+                await foreach (var found in _configurationServices.ExpandAsync(assetEndpoint,
+                    new PublishedNodeExpansionModel
+                    {
+                        CreateSingleWriter = false, // Writer per dataset
+                        ExcludeRootIfInstanceNode = false, // not an instance node
+                        DiscardErrors = true,
+                        FlattenTypeInstance = false,
+                        NoSubTypesOfTypeNodes = false
+                    }, ct).ConfigureAwait(false))
+                {
+                    if (found.Result?.OpcNodes?.Count > 0)
+                    {
+                        // Add new dataset
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -931,7 +991,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             continue;
                         }
 
-                        // Run discovery
+                        // Run discovery for each configured type
                         foreach (var type in endpointConfiguration.AssetTypes)
                         {
                             try
@@ -1344,6 +1404,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly ConcurrentDictionary<string, AssetResource> _assets = new();
         private readonly ConcurrentDictionary<string, DeviceResource> _devices = new();
         private readonly Channel<(string, Resource)> _changeFeed;
+        private readonly IConfigurationServices _configurationServices;
         private readonly IAioAdrClient _client;
         private readonly IPublishedNodesServices _publishedNodes;
         private readonly IJsonSerializer _serializer;

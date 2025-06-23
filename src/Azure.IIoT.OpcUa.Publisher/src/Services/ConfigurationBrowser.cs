@@ -151,6 +151,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             DataSetName = currentObject.CreateDataSetName(
                                 context.Session.MessageContext),
                             DataSetWriterId = currentObject.CreateWriterId(),
+                            NodeId = new NodeIdModel
+                            {
+                                Identifier = currentObject.OriginalNode.NodeId.AsString(
+                                    context.Session.MessageContext, NamespaceFormat.Expanded)
+                            },
                             OpcNodes = currentObject
                                 .GetOpcNodeModels(
                                     currentObject.OriginalNode.NodeFromConfiguration,
@@ -758,9 +763,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <returns></returns>
             public string CreateDataSetName(IServiceMessageContext context)
             {
-                var result = ObjectFromBrowse.NodeId.AsString(context,
-                    NamespaceFormat.Expanded)!;
-                Debug.Assert(result != null);
+                var cur = ObjectFromBrowse;
+                var result = string.Empty;
+                do
+                {
+                    if (cur.BrowseName != null)
+                    {
+                        result = cur.BrowseName.Name + "." + result;
+                    }
+                    cur = cur.Parent;
+                }
+                while (cur != null);
+
+                // var result = ObjectFromBrowse.NodeId.AsString(context,
+                //     NamespaceFormat.Expanded)!;
+                // Debug.Assert(result != null);
                 return result;
             }
 

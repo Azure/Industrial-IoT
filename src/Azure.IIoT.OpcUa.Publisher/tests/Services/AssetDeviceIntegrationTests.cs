@@ -309,11 +309,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         }
 
         private AssetDeviceIntegration CreateSut() =>
-            new(_clientMock.Object, _publishedNodesMock.Object, _serializerMock.Object, _loggerMock.Object);
+            new(_clientMock.Object, _publishedNodesMock.Object, _configurationServicesMock.Object,
+                _serializerMock.Object, _loggerMock.Object);
 
         private readonly Mock<IAioAdrClient> _clientMock = new();
         private readonly Mock<IPublishedNodesServices> _publishedNodesMock = new();
         private readonly Mock<IJsonSerializer> _serializerMock = new();
+        private readonly Mock<IConfigurationServices> _configurationServicesMock = new();
         private readonly Mock<ILogger<AssetDeviceIntegration>> _loggerMock = new();
     }
 }
