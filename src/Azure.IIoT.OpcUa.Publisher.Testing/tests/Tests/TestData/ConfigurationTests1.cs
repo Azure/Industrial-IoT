@@ -394,6 +394,66 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             });
         }
 
+        public async Task ExpandServerTypeTestAsync(CancellationToken ct = default)
+        {
+            var entry = _connection.ToPublishedNodesEntry();
+            entry.OpcNodes = new[]
+            {
+                new OpcNodeModel
+                {
+                    Id = Opc.Ua.ObjectTypeIds.ServerType.ToString()
+                }
+            };
+            var results = await _service.ExpandAsync(entry,
+                new PublishedNodeExpansionModel
+                {
+                    DiscardErrors = false,
+                    ExcludeRootIfInstanceNode = false,
+                    NoSubTypesOfTypeNodes = false,
+                    FlattenTypeInstance = false,
+                    CreateSingleWriter = false
+                }, ct).ToListAsync(ct).ConfigureAwait(false);
+
+            Assert.Equal(1, results.Count);
+            Assert.All(results, r =>
+            {
+                Assert.Null(r.ErrorInfo);
+                Assert.NotNull(r.Result);
+                Assert.NotNull(r.Result.OpcNodes);
+                Assert.True(r.Result.OpcNodes.Count > 0);
+            });
+        }
+
+        public async Task ExpandTestDataObjectTypeTestAsync(CancellationToken ct = default)
+        {
+            var entry = _connection.ToPublishedNodesEntry();
+            entry.OpcNodes = new[]
+            {
+                new OpcNodeModel
+                {
+                    Id = TestData.ObjectTypeIds.TestDataObjectType.ToString()
+                }
+            };
+            var results = await _service.ExpandAsync(entry,
+                new PublishedNodeExpansionModel
+                {
+                    DiscardErrors = false,
+                    ExcludeRootIfInstanceNode = false,
+                    NoSubTypesOfTypeNodes = false,
+                    FlattenTypeInstance = false,
+                    CreateSingleWriter = false
+                }, ct).ToListAsync(ct).ConfigureAwait(false);
+
+            Assert.Equal(12, results.Count);
+            Assert.All(results, r =>
+            {
+                Assert.Null(r.ErrorInfo);
+                Assert.NotNull(r.Result);
+                Assert.NotNull(r.Result.OpcNodes);
+                Assert.True(r.Result.OpcNodes.Count > 0);
+            });
+        }
+
         public async Task ExpandVariablesTest1Async(CancellationToken ct = default)
         {
             // Test only variables as node ids in an entry

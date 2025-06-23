@@ -899,7 +899,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         }
                         return new CloudEventHeader
                         {
-                            Id = notification.SequenceNumber.ToString(),
+                            Id = notification.SequenceNumber.ToString(CultureInfo.InvariantCulture),
                             Time = notification.PublishTimestamp,
                             Type = type,
                             Source = source,

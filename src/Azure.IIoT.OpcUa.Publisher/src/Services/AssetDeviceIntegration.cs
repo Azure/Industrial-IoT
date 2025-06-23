@@ -22,7 +22,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
-    using static Azure.IIoT.OpcUa.Publisher.Services.AssetDeviceIntegration;
 
     /// <summary>
     /// Asset and device configuration integration with Azure iot operations. Converts asset
@@ -239,7 +238,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         // Removed, stop monitoring assets and clear asset list
                                         await _client.StopMonitoringAssetsAsync(device.DeviceName,
                                             endpoint, ct).ConfigureAwait(false);
-                                        break;
                                     }
                                     else
                                     {
@@ -299,7 +297,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             catch (OperationCanceledException) { }
         }
 
-
         internal async ValueTask DiscoverAsync(DeviceEndpointResource resource, HashSet<string> types,
             ValidationErrors errors, CancellationToken ct)
         {
@@ -324,7 +321,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 EndpointSecurityMode = endpointConfiguration.EndpointSecurityMode,
                 EndpointSecurityPolicy = endpointConfiguration.EndpointSecurityPolicy,
                 DumpConnectionDiagnostics = endpointConfiguration.DumpConnectionDiagnostics,
-                UseReverseConnect = endpointConfiguration.UseReverseConnect,
+                UseReverseConnect = endpointConfiguration.UseReverseConnect
             };
             var credentials = _client.GetEndpointCredentials(resource.DeviceName,
                 resource.EndpointName, endpoint);
@@ -541,7 +538,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="authentication"></param>
         /// <param name="errors"></param>
         /// <param name="resource"></param>
-        private PublishedNodesEntryModel AddEndpointCredentials(
+        private static PublishedNodesEntryModel AddEndpointCredentials(
             PublishedNodesEntryModel template, EndpointCredentials authentication,
             ValidationErrors errors, DeviceEndpointResource resource)
         {
@@ -1396,7 +1393,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private const string kNotSupportedErrorCode = "500.0";
         private const string kJsonSerializationErrorCode = "500.1";
         private const string kDeviceNotFoundErrorCode = "500.2";
-        private const string kBrowsePathInvalidCode = "500.3";
         private const string kTooManyDestinationsError = "500.4";
         private const string kAuthenticationValueMissing = "500.5";
         private const string kDiscoveryError = "500.6";

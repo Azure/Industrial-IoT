@@ -209,8 +209,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="Queue"></param>
         /// <param name="OnSentCallback"></param>
         /// <param name="Schema"></param>
-        /// <param name="EncodingContext"></param>
         /// <param name="CloudEvent"></param>
+        /// <param name="EncodingContext"></param>
         private record struct EncodedMessage(int NotificationsPerMessage,
             PubSubMessage NetworkMessage, PublishingQueueSettingsModel Queue,
             Action OnSentCallback, IEventSchema? Schema, CloudEventHeader? CloudEvent,

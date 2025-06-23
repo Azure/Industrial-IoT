@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 {
-    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.Iot.Operations.Services.AssetAndDeviceRegistry.Models;
     using AssetModel = Iot.Operations.Services.AssetAndDeviceRegistry.Models.Asset;
@@ -14,8 +13,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     using Microsoft.Extensions.Logging;
     using Moq;
     using System;
-    using System.Collections.Concurrent;
-    using System.Linq;
     using System.Reflection;
     using System.Threading.Channels;
     using System.Threading.Tasks;
@@ -44,7 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         }
 
         [Fact]
-        public void DisposeCallsDisposeAsync()
+        public void DisposeCallsDisposeAsyncMethod()
         {
             // Arrange
             var sut = CreateSut();
@@ -188,10 +185,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             // Act
             sut.OnAssetCreated(deviceName, endpointName, assetName, asset);
             // Assert: asset should be in the internal dictionary
-            var key = deviceName + "_" + endpointName + "_" + assetName;
-            var field = typeof(AssetDeviceIntegration).GetField("_assets", BindingFlags.NonPublic | BindingFlags.Instance);
-            var dict = (ConcurrentDictionary<string, object>)field.GetValue(sut);
-            Assert.True(dict.ContainsKey(key));
+            Assert.Single(sut.Assets, a => a.AssetName == assetName);
         }
 
         [Fact]
@@ -231,10 +225,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             // Act
             sut.OnAssetUpdated(deviceName, endpointName, assetName, asset);
             // Assert: asset should be in the internal dictionary
-            var key = deviceName + "_" + endpointName + "_" + assetName;
-            var field = typeof(AssetDeviceIntegration).GetField("_assets", BindingFlags.NonPublic | BindingFlags.Instance);
-            var dict = (ConcurrentDictionary<string, object>)field.GetValue(sut);
-            Assert.True(dict.ContainsKey(key));
+            Assert.Single(sut.Assets, a => a.AssetName == assetName);
         }
 
         [Fact]
@@ -276,10 +267,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             // Act
             sut.OnAssetDeleted(deviceName, endpointName, assetName, asset);
             // Assert: asset should be removed from the internal dictionary
-            var key = deviceName + "_" + endpointName + "_" + assetName;
-            var field = typeof(AssetDeviceIntegration).GetField("_assets", BindingFlags.NonPublic | BindingFlags.Instance);
-            var dict = (ConcurrentDictionary<string, object>)field.GetValue(sut);
-            Assert.False(dict.ContainsKey(key));
+            Assert.DoesNotContain(sut.Assets, a => a.AssetName == assetName);
         }
 
         [Fact]

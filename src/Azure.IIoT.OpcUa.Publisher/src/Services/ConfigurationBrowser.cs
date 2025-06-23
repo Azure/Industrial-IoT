@@ -153,7 +153,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             DataSetWriterId = currentObject.CreateWriterId(),
                             NodeId = new NodeIdModel
                             {
-                                Identifier = currentObject.OriginalNode.NodeId.AsString(
+                                Identifier = currentObject.OriginalNode.NodeId?.AsString(
                                     context.Session.MessageContext, NamespaceFormat.Expanded)
                             },
                             OpcNodes = currentObject

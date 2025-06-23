@@ -263,6 +263,7 @@ namespace DeterministicAlarms
         /// <param name="errors"></param>
         /// <param name="filterErrors"></param>
         /// <param name="monitoredItems"></param>
+        /// <param name="createDurable"></param>
         /// <param name="globalIdCounter"></param>
         /// <remarks>
         /// This method only handles data change subscriptions. Event subscriptions are created by the SDK.

@@ -462,7 +462,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
             try
             {
-                using var registration = ct.Register(() => tcs.TrySetCanceled());
+                await using var registration = ct.Register(() => tcs.TrySetCanceled());
                 _logger.Resetting(this);
                 TriggerConnectionEvent(ConnectionEvent.Reset, tcs);
             }
@@ -978,7 +978,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                         case SessionState.Connected: // only valid when connected.
                                             Debug.Assert(_reconnectHandler.State == SessionReconnectHandler.ReconnectState.Ready);
                                             _logger.ReconnectingSession(this, _sessionName,
-                                                (context is ServiceResult sr) ? "error " + sr.ToString() : "RESET");
+                                                (context is ServiceResult sr) ? "error " + sr : "RESET");
 
                                             // Ensure no more access to the session through reader locks
                                             Debug.Assert(_disconnectLock == null);
@@ -1635,7 +1635,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (channelChanged)
                 {
                     _channelMonitor.Change(lifetime, Timeout.InfiniteTimeSpan);
-                    _logger.ChannelGotNewToken(token.ChannelId.ToString(), token.TokenId.ToString(), token.CreatedAt);
+                    _logger.ChannelGotNewToken(
+                        token.ChannelId.ToString(CultureInfo.InvariantCulture),
+                        token.TokenId.ToString(CultureInfo.InvariantCulture),
+                        token.CreatedAt);
                 }
                 else
                 {
@@ -2302,24 +2305,30 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
         public static partial void CloseFailed(this ILogger logger, Exception ex, OpcUaClient client);
 
         [LoggerMessage(EventId = EventClass + 10, Level = LogLevel.Information,
-            Message = "{Client}: Session disconnected during service call with message {Message}, retrying.")]
-        public static partial void SessionDisconnected(this ILogger logger, OpcUaClient client, string message);
+            Message = "{Client}: Session disconnected during service call with message " +
+            "{Message}, retrying.")]
+        public static partial void SessionDisconnected(this ILogger logger, OpcUaClient client,
+            string message);
 
         [LoggerMessage(EventId = EventClass + 11, Level = LogLevel.Debug,
             Message = "{Client}: Processing event {Event} in State {State}...")]
-        public static partial void ProcessingEvent(this ILogger logger, OpcUaClient client, string @event, string state);
+        public static partial void ProcessingEvent(this ILogger logger, OpcUaClient client,
+            string @event, string state);
 
         [LoggerMessage(EventId = EventClass + 12, Level = LogLevel.Information,
             Message = "{Client}: Retrying connecting session in {RetryDelay}...")]
-        public static partial void RetryingConnection(this ILogger logger, OpcUaClient client, TimeSpan retryDelay);
+        public static partial void RetryingConnection(this ILogger logger, OpcUaClient client,
+            TimeSpan retryDelay);
 
         [LoggerMessage(EventId = EventClass + 13, Level = LogLevel.Information,
             Message = "{Client}: Reconnecting session {Session} due to {Reason}...")]
-        public static partial void ReconnectingSession(this ILogger logger, OpcUaClient client, string session, string reason);
+        public static partial void ReconnectingSession(this ILogger logger, OpcUaClient client,
+            string session, string reason);
 
         [LoggerMessage(EventId = EventClass + 14, Level = LogLevel.Information,
             Message = "{Client}: Begin reconnecting session {Session}...")]
-        public static partial void BeginReconnectingSession(this ILogger logger, OpcUaClient client, string session);
+        public static partial void BeginReconnectingSession(this ILogger logger, OpcUaClient client,
+            string session);
 
         [LoggerMessage(EventId = EventClass + 15, Level = LogLevel.Error,
             Message = "{Client}: Reconnect handler mismatch.")]
@@ -2327,7 +2336,8 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
 
         [LoggerMessage(EventId = EventClass + 16, Level = LogLevel.Information,
             Message = "{Client}: Completed reconnecting session {Session}...")]
-        public static partial void CompletedReconnectingSession(this ILogger logger, OpcUaClient client, string session);
+        public static partial void CompletedReconnectingSession(this ILogger logger,
+            OpcUaClient client, string session);
 
         [LoggerMessage(EventId = EventClass + 17, Level = LogLevel.Information,
             Message = "{Client}: Client RECOVERED!")]
@@ -2339,15 +2349,18 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
 
         [LoggerMessage(EventId = EventClass + 19, Level = LogLevel.Debug,
             Message = "{Client}: Event {Event} in State {State} processed.")]
-        public static partial void EventProcessed(this ILogger logger, OpcUaClient client, string @event, string state);
+        public static partial void EventProcessed(this ILogger logger, OpcUaClient client,
+            string @event, string state);
 
         [LoggerMessage(EventId = EventClass + 20, Level = LogLevel.Error,
             Message = "{Client}: Connection manager exited unexpectedly...")]
-        public static partial void ConnectionManagerExited(this ILogger logger, Exception ex, OpcUaClient client);
+        public static partial void ConnectionManagerExited(this ILogger logger, Exception ex,
+            OpcUaClient client);
 
         [LoggerMessage(EventId = EventClass + 21, Level = LogLevel.Error,
             Message = "{Client}: Exception in management loop.")]
-        public static partial void ManagementLoopException(this ILogger logger, Exception ex, OpcUaClient client);
+        public static partial void ManagementLoopException(this ILogger logger, Exception ex,
+            OpcUaClient client);
 
         [LoggerMessage(EventId = EventClass + 22, Level = LogLevel.Information,
             Message = "{Client}: Disconnect because client is disposed.")]
@@ -2359,27 +2372,35 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
 
         [LoggerMessage(EventId = EventClass + 24, Level = LogLevel.Information,
             Message = "{Client}: Connecting to {EndpointUrl}...")]
-        public static partial void ConnectingToEndpoint(this ILogger logger, OpcUaClient client, string endpointUrl);
+        public static partial void ConnectingToEndpoint(this ILogger logger, OpcUaClient client,
+            string endpointUrl);
 
         [LoggerMessage(EventId = EventClass + 25, Level = LogLevel.Warning,
             Message = "{Client}: No endpoint found that matches connection of session {Name}.")]
         public static partial void NoMatchingEndpoint(this ILogger logger, OpcUaClient client, string name);
 
         [LoggerMessage(EventId = EventClass + 26, Level = LogLevel.Warning,
-            Message = "{Client}: Although the use of best security was configured, there was no security-enabled endpoint available at url {EndpointUrl}. An endpoint with no security will be used for session {Name} but no credentials will be sent over it.")]
-        public static partial void NoSecurityEnabled(this ILogger logger, OpcUaClient client, Uri endpointUrl, string name);
+            Message = "{Client}: Although the use of best security was configured, there was no security-enabled " +
+            "endpoint available at url {EndpointUrl}. An endpoint with no security will be used for session {Name} " +
+            "but no credentials will be sent over it.")]
+        public static partial void NoSecurityEnabled(this ILogger logger, OpcUaClient client,
+            Uri endpointUrl, string name);
 
         [LoggerMessage(EventId = EventClass + 27, Level = LogLevel.Warning,
-            Message = "{Client}: No UserTokenPolicy for {TokenType}/{IssuedTokenType} found on endpoint {EndpointUrl} (session: {Name}).")]
-        public static partial void NoUserTokenPolicy(this ILogger logger, OpcUaClient client, UserTokenType tokenType, XmlQualifiedName issuedTokenType, Uri endpointUrl, string name);
+            Message = "{Client}: No UserTokenPolicy for {TokenType}/{IssuedTokenType} found on endpoint " +
+            "{EndpointUrl} (session: {Name}).")]
+        public static partial void NoUserTokenPolicy(this ILogger logger, OpcUaClient client,
+            UserTokenType tokenType, XmlQualifiedName issuedTokenType, Uri endpointUrl, string name);
 
         [LoggerMessage(EventId = EventClass + 28, Level = LogLevel.Information,
             Message = "{Client}: #{Attempt} - Creating session {Name} with endpoint {EndpointUrl}...")]
-        public static partial void CreatingSession(this ILogger logger, int attempt, OpcUaClient client, string name, Uri endpointUrl);
+        public static partial void CreatingSession(this ILogger logger, int attempt, OpcUaClient client,
+            string name, Uri endpointUrl);
 
         [LoggerMessage(EventId = EventClass + 29, Level = LogLevel.Information,
             Message = "{Client}: New Session {Name} created with endpoint {EndpointUrl} ({Original}).")]
-        public static partial void NewSessionCreated(this ILogger logger, OpcUaClient client, string name, Uri endpointUrl, string original);
+        public static partial void NewSessionCreated(this ILogger logger, OpcUaClient client, string name,
+            Uri endpointUrl, string original);
 
         [LoggerMessage(EventId = EventClass + 30, Level = LogLevel.Information,
             Message = "{Client} Client CONNECTED to {EndpointUrl}!")]
@@ -2387,11 +2408,13 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
 
         [LoggerMessage(EventId = EventClass + 31, Level = LogLevel.Information,
             Message = "#{Attempt} - {Client}: Failed to connect to {EndpointUrl}: {Message}...")]
-        public static partial void ConnectionFailed(this ILogger logger, int attempt, OpcUaClient client, Uri endpointUrl, string message);
+        public static partial void ConnectionFailed(this ILogger logger, int attempt, OpcUaClient client,
+            Uri endpointUrl, string message);
 
         [LoggerMessage(EventId = EventClass + 32, Level = LogLevel.Error,
             Message = "{Client}: Received publish error for different session {Session}!")]
-        public static partial void PublishErrorDifferentSession(this ILogger logger, OpcUaClient client, string? session);
+        public static partial void PublishErrorDifferentSession(this ILogger logger, OpcUaClient client,
+            string? session);
 
         [LoggerMessage(EventId = EventClass + 33, Level = LogLevel.Information,
             Message = "{Client}: Publish error: {Error}...")]
@@ -2399,11 +2422,13 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
 
         [LoggerMessage(EventId = EventClass + 34, Level = LogLevel.Trace,
             Message = "{Client}: #{ThreadId} - Sending {Acks} acks and deferring {Deferrals} acks. ({Requests})")]
-        public static partial void SendingAcks(this ILogger logger, OpcUaClient client, int threadId, string acks, string deferrals, int requests);
+        public static partial void SendingAcks(this ILogger logger, OpcUaClient client, int threadId, string acks,
+            string deferrals, int requests);
 
         [LoggerMessage(EventId = EventClass + 35, Level = LogLevel.Error,
             Message = "{Client}: Received keep alive for different session {Session}!")]
-        public static partial void KeepAliveErrorDifferentSession(this ILogger logger, OpcUaClient client, string? session);
+        public static partial void KeepAliveErrorDifferentSession(this ILogger logger, OpcUaClient client,
+            string? session);
 
         [LoggerMessage(EventId = EventClass + 36, Level = LogLevel.Error,
             Message = "{Client}: Error in OnKeepAlive.")]
@@ -2411,23 +2436,28 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
 
         [LoggerMessage(EventId = EventClass + 37, Level = LogLevel.Error,
             Message = "{Client}: Error {Error} during {Action} - triggering reconnect...")]
-        public static partial void TriggerReconnect(this ILogger logger, OpcUaClient client, string error, string action);
+        public static partial void TriggerReconnect(this ILogger logger, OpcUaClient client,
+            string error, string action);
 
         [LoggerMessage(EventId = EventClass + 38, Level = LogLevel.Warning,
             Message = "{Client}: Namespace index #{Index} changed from {OldValue} to {NewValue}")]
-        public static partial void NamespaceIndexChanged(this ILogger logger, OpcUaClient client, int index, string oldValue, string newValue);
+        public static partial void NamespaceIndexChanged(this ILogger logger, OpcUaClient client,
+            int index, string oldValue, string newValue);
 
         [LoggerMessage(EventId = EventClass + 39, Level = LogLevel.Warning,
             Message = "{Client}: Namespace index #{Index} removed {OldValue}")]
-        public static partial void NamespaceIndexRemoved(this ILogger logger, OpcUaClient client, int index, string oldValue);
+        public static partial void NamespaceIndexRemoved(this ILogger logger, OpcUaClient client,
+            int index, string oldValue);
 
         [LoggerMessage(EventId = EventClass + 40, Level = LogLevel.Warning,
             Message = "{Client}: Namespace index #{Index} added {NewValue}")]
-        public static partial void NamespaceIndexAdded(this ILogger logger, OpcUaClient client, int index, string newValue);
+        public static partial void NamespaceIndexAdded(this ILogger logger, OpcUaClient client,
+            int index, string newValue);
 
         [LoggerMessage(EventId = EventClass + 41, Level = LogLevel.Information,
             Message = "Channel {Channel} got new token {TokenId} ({Created}).")]
-        public static partial void ChannelGotNewToken(this ILogger logger, string channel, string tokenId, DateTime created);
+        public static partial void ChannelGotNewToken(this ILogger logger, string channel,
+            string tokenId, DateTime created);
 
         [LoggerMessage(EventId = EventClass + 42, Level = LogLevel.Information,
             Message = "Channel diagnostics for session {SessionId} updated.")]
@@ -2435,23 +2465,29 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
 
         [LoggerMessage(EventId = EventClass + 43, Level = LogLevel.Information,
             Message = "{Client}: Session {Name} with {Endpoint} changed from {Previous} to {State}")]
-        public static partial void SessionStateChanged(this ILogger logger, OpcUaClient client, string name, string endpoint, EndpointConnectivityState previous, EndpointConnectivityState state);
+        public static partial void SessionStateChanged(this ILogger logger, OpcUaClient client,
+            string name, string endpoint,
+            EndpointConnectivityState previous, EndpointConnectivityState state);
 
         [LoggerMessage(EventId = EventClass + 44, Level = LogLevel.Error,
             Message = "{Client}: Exception during state callback")]
-        public static partial void ExceptionDuringStateCallback(this ILogger logger, Exception ex, OpcUaClient client);
+        public static partial void ExceptionDuringStateCallback(this ILogger logger, Exception ex,
+            OpcUaClient client);
 
         [LoggerMessage(EventId = EventClass + 1782, Level = LogLevel.Debug,
             Message = "{Client}: Error, connection to {Endpoint} - leaving state at {Previous}.")]
-        public static partial void ErrorLeavingState(this ILogger logger, OpcUaClient client, string endpoint, EndpointConnectivityState previous);
+        public static partial void ErrorLeavingState(this ILogger logger, OpcUaClient client, string endpoint,
+            EndpointConnectivityState previous);
 
         [LoggerMessage(EventId = EventClass + 48, Level = LogLevel.Debug,
             Message = "{Result} => {State}")]
-        public static partial void ServiceResultToState(this ILogger logger, ServiceResult result, EndpointConnectivityState state);
+        public static partial void ServiceResultToState(this ILogger logger, ServiceResult result,
+            EndpointConnectivityState state);
 
         [LoggerMessage(EventId = EventClass + 49, Level = LogLevel.Debug,
             Message = "{Message} => {State}")]
-        public static partial void ExceptionToState(this ILogger logger, string message, EndpointConnectivityState state);
+        public static partial void ExceptionToState(this ILogger logger, string message,
+            EndpointConnectivityState state);
 
         [LoggerMessage(EventId = EventClass + 50, Level = LogLevel.Debug,
             Message = "{Client}: Successfully closed session {Session}.")]
@@ -2459,15 +2495,19 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
 
         [LoggerMessage(EventId = EventClass + 51, Level = LogLevel.Error,
             Message = "{Client}: Failed to close session {Session}.")]
-        public static partial void SessionCloseFailed(this ILogger logger, Exception ex, OpcUaClient client, OpcUaSession session);
+        public static partial void SessionCloseFailed(this ILogger logger, Exception ex,
+            OpcUaClient client, OpcUaSession session);
 
         [LoggerMessage(EventId = EventClass + 60, Level = LogLevel.Information,
-            Message = "Discovery endpoint {DiscoveryUrl} returned endpoints. Selecting endpoint {EndpointUri} with SecurityMode {SecurityMode} and {SecurityPolicy} SecurityPolicyUri from:\n{Endpoints}")]
-        public static partial void DiscoveryEndpointReturnedEndpoints(this ILogger logger, string? context, Uri discoveryUrl, Uri endpointUri, SecurityMode securityMode, string securityPolicy, string endpoints);
+            Message = "Discovery endpoint {DiscoveryUrl} returned endpoints. Selecting endpoint {EndpointUri} " +
+            "with SecurityMode {SecurityMode} and {SecurityPolicy} SecurityPolicyUri from:\n{Endpoints}")]
+        public static partial void DiscoveryEndpointReturnedEndpoints(this ILogger logger, string? context,
+            Uri discoveryUrl, Uri endpointUri, SecurityMode securityMode, string securityPolicy, string endpoints);
 
         [LoggerMessage(EventId = EventClass + 61, Level = LogLevel.Information,
             Message = "Endpoint {Endpoint} selected via reverse connect!")]
-        public static partial void EndpointSelectedViaReverseConnect(this ILogger logger, string? context, string endpoint);
+        public static partial void EndpointSelectedViaReverseConnect(this ILogger logger, string? context,
+            string endpoint);
 
         [LoggerMessage(EventId = EventClass + 62, Level = LogLevel.Information,
             Message = "Endpoint {Endpoint} selected!")]

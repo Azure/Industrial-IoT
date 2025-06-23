@@ -210,7 +210,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
         private volatile int _scanCount;
     }
 
-    // Source-generated logging for NetworkScanner
+    /// <summary>
+    /// Source-generated logging for NetworkScanner
+    /// </summary>
     internal static partial class NetworkScannerLogging
     {
         private const int EventClass = 1660;

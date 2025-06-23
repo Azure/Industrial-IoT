@@ -349,7 +349,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 ["dotnet.process.memory.virtual.utilization"] =
                     (d, i) => d.MemoryUsedPercentage = (double)i,
                 ["dotnet.process.memory.working_set"] =
-                    (d, i) => d.MemoryUsedInBytes = (ulong)(long)i,
+                    (d, i) => d.MemoryUsedInBytes = (ulong)(long)i
 
                 // ... Add here more items if needed
             };

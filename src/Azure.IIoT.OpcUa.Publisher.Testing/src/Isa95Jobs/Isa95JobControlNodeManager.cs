@@ -33,6 +33,7 @@ namespace Isa95Jobs
     using Opc.Ua.Server;
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Reflection;
     using System.Threading;
     using UAModel.ISA95_JOBCONTROL_V2;
@@ -222,8 +223,13 @@ namespace Isa95Jobs
                 var endTime = DateTime.UtcNow;
                 var response = new ISA95JobResponseDataType
                 {
-                    EncodingMask = ISA95JobResponseDataTypeFields.None | ISA95JobResponseDataTypeFields.StartTime | ISA95JobResponseDataTypeFields.EndTime | ISA95JobResponseDataTypeFields.EquipmentActuals | ISA95JobResponseDataTypeFields.MaterialActuals,
-                    JobOrderID = _jobId.ToString(),
+                    EncodingMask = (ISA95JobResponseDataTypeFields)(
+                        (int)ISA95JobResponseDataTypeFields.None |
+                        (int)ISA95JobResponseDataTypeFields.StartTime |
+                        (int)ISA95JobResponseDataTypeFields.EndTime |
+                        (int)ISA95JobResponseDataTypeFields.EquipmentActuals |
+                        (int)ISA95JobResponseDataTypeFields.MaterialActuals),
+                    JobOrderID = _jobId.ToString(CultureInfo.InvariantCulture),
                     JobResponseID = Guid.NewGuid().ToString(),
                     StartTime = startTime,
                     EndTime = endTime,
@@ -231,14 +237,20 @@ namespace Isa95Jobs
                         [
                             new ISA95EquipmentDataType
                             {
-                                EncodingMask = ISA95EquipmentDataTypeFields.EquipmentUse | ISA95EquipmentDataTypeFields.EngineeringUnits| ISA95EquipmentDataTypeFields.Quantity,
+                                EncodingMask =  (ISA95EquipmentDataTypeFields)(
+                                    (int)ISA95EquipmentDataTypeFields.EquipmentUse |
+                                    (int)ISA95EquipmentDataTypeFields.EngineeringUnits |
+                                    (int)ISA95EquipmentDataTypeFields.Quantity),
                                 EngineeringUnits = new EUInformation("rpm", "RPM"),
                                 EquipmentUse = "consumable",
                                 Quantity = "500"
                             },
                             new ISA95EquipmentDataType
                             {
-                                EncodingMask = ISA95EquipmentDataTypeFields.EquipmentUse | ISA95EquipmentDataTypeFields.EngineeringUnits| ISA95EquipmentDataTypeFields.Quantity,
+                                EncodingMask =  (ISA95EquipmentDataTypeFields)(
+                                    (int)ISA95EquipmentDataTypeFields.EquipmentUse |
+                                    (int)ISA95EquipmentDataTypeFields.EngineeringUnits |
+                                    (int)ISA95EquipmentDataTypeFields.Quantity),
                                 EngineeringUnits = new EUInformation("C", "Celsius"),
                                 EquipmentUse = "consumable",
                                 Quantity = "3"
@@ -248,14 +260,20 @@ namespace Isa95Jobs
                         [
                             new ISA95MaterialDataType
                             {
-                                EncodingMask = ISA95MaterialDataTypeFields.MaterialClassID | ISA95MaterialDataTypeFields.MaterialUse | ISA95MaterialDataTypeFields.Quantity,
+                                EncodingMask = (ISA95MaterialDataTypeFields)(
+                                    (int)ISA95MaterialDataTypeFields.MaterialClassID |
+                                    (int)ISA95MaterialDataTypeFields.MaterialUse |
+                                    (int)ISA95MaterialDataTypeFields.Quantity),
                                 MaterialClassID = Guid.NewGuid().ToString(),
                                 MaterialUse = "consumable",
                                 Quantity = "1"
                             },
                             new ISA95MaterialDataType
                             {
-                                EncodingMask = ISA95MaterialDataTypeFields.MaterialClassID | ISA95MaterialDataTypeFields.MaterialUse | ISA95MaterialDataTypeFields.Quantity,
+                                EncodingMask = (ISA95MaterialDataTypeFields)(
+                                    (int)ISA95MaterialDataTypeFields.MaterialClassID |
+                                    (int)ISA95MaterialDataTypeFields.MaterialUse |
+                                    (int)ISA95MaterialDataTypeFields.Quantity),
                                 MaterialClassID = Guid.NewGuid().ToString(),
                                 MaterialUse = "consumable",
                                 Quantity = "2"
@@ -269,12 +287,15 @@ namespace Isa95Jobs
                     JobOrder = new ISA95JobOrderDataType
                     {
                         EncodingMask = ISA95JobOrderDataTypeFields.None,
-                        JobOrderID = _jobId.ToString(),
+                        JobOrderID = _jobId.ToString(CultureInfo.InvariantCulture),
                         EquipmentRequirements =
                             [
                                 new ISA95EquipmentDataType
                                 {
-                                    EncodingMask = ISA95EquipmentDataTypeFields.EquipmentUse | ISA95EquipmentDataTypeFields.EngineeringUnits | ISA95EquipmentDataTypeFields.Quantity,
+                                    EncodingMask = (ISA95EquipmentDataTypeFields)(
+                                        (int)ISA95EquipmentDataTypeFields.EquipmentUse |
+                                        (int) ISA95EquipmentDataTypeFields.EngineeringUnits |
+                                        (int)ISA95EquipmentDataTypeFields.Quantity),
                                     EngineeringUnits = new EUInformation("rpm", "RPM"),
                                     EquipmentUse = "free",
                                     Quantity = "1000"
@@ -287,19 +308,19 @@ namespace Isa95Jobs
                         {
                             StateNumber = ++_state,
                             BrowsePath = new RelativePath(new QualifiedName("State " + _state, NamespaceIndex)),
-                            StateText = new LocalizedText("en-US", "State " + _state),
+                            StateText = new LocalizedText("en-US", "State " + _state)
                         },
                         new ISA95StateDataType
                         {
                             StateNumber = ++_state,
                             BrowsePath = new RelativePath(new QualifiedName("State " + _state, NamespaceIndex)),
-                            StateText = new LocalizedText("en-US", "State " + _state),
+                            StateText = new LocalizedText("en-US", "State " + _state)
                         },
                         new ISA95StateDataType
                         {
                             StateNumber = ++_state,
                             BrowsePath = new RelativePath(new QualifiedName("State " + _state, NamespaceIndex)),
-                            StateText = new LocalizedText("en-US", "State " + _state),
+                            StateText = new LocalizedText("en-US", "State " + _state)
                         }
                     ]
                 };
