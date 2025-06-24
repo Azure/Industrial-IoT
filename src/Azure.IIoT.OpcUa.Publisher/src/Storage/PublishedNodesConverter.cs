@@ -156,12 +156,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             BatchSize = item.WriterGroup.NotificationPublishThreshold,
                             DataSetName = item.Writer.DataSet?.Name,
                             DataSetType = item.Writer.DataSet?.Type,
+                            DataSetRootNodeId = item.Writer.DataSet?.RootNode,
                             DataSetWriterGroup =
                                 item.WriterGroup.Name == Constants.DefaultWriterGroupName ? null : item.WriterGroup.Name,
                             DataSetWriterId = item.Writer.DataSetWriterName,
                             DataSetRouting = item.Writer.DataSet?.Routing,
                             DataSetPublishingInterval = null,
                             DataSetPublishingIntervalTimespan = null,
+                            WriterGroupRootNodeId = item.WriterGroup.RootNode,
+                            WriterGroupType = item.WriterGroup.Type,
                             WriterGroupExternalId = item.WriterGroup.ExternalId,
                             WriterGroupProperties = item.WriterGroup.Properties?.ToDictionary(),
                             OpcNodes = ToOpcNodes(item.Writer.DataSet?.DataSetSource?.SubscriptionSettings,
@@ -441,6 +444,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                     {
                                         Name = b.Header.DataSetName,
                                         Type = b.Header.DataSetType,
+                                        RootNode = b.Header.DataSetRootNodeId,
                                         DataSetMetaData = new DataSetMetaDataModel
                                         {
                                             DataSetClassId = b.Header.DataSetClassId,

@@ -57,9 +57,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public DataSetRoutingMode? Routing { get; set; }
 
         /// <summary>
+        /// Root node of the dataset
+        /// </summary>
+        [DataMember(Name = "rootNode", Order = 6,
+            EmitDefaultValue = false)]
+        public string? RootNode { get; set; }
+
+        /// <summary>
         /// Type of the dataset
         /// </summary>
-        [DataMember(Name = "type", Order = 6,
+        [DataMember(Name = "type", Order = 7,
             EmitDefaultValue = false)]
         public string? Type { get; set; }
     }

@@ -67,6 +67,57 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
         {
         }
 
+        internal static IServerFactory Create(string serverType, ILogger<TestServerFactory> logger)
+        {
+            switch (serverType.ToLowerInvariant())
+            {
+                case "reference":
+                    return new TestServerFactory(logger,
+                    [
+                        new Reference.ReferenceServer(),
+                    ]);
+                case "plc":
+                    return new TestServerFactory(logger,
+                    [
+                        new Plc.PlcServer(new TimeService(), logger, 1),
+                    ]);
+                case "asset":
+                    return new TestServerFactory(logger,
+                    [
+                        new Asset.AssetServer(logger),
+                    ]);
+                case "testdata":
+                    return new TestServerFactory(logger,
+                    [
+                        new TestData.TestDataServer(),
+                        new MemoryBuffer.MemoryBufferServer(),
+                        new Boiler.BoilerServer(),
+                        new Vehicles.VehiclesServer(),
+                        new DataAccess.DataAccessServer(),
+                    ]);
+                default:
+                    return new TestServerFactory(logger,
+                    [
+                        new TestData.TestDataServer(),
+                        new MemoryBuffer.MemoryBufferServer(),
+                        new Boiler.BoilerServer(),
+                        new Vehicles.VehiclesServer(),
+                        new Reference.ReferenceServer(),
+                        new HistoricalEvents.HistoricalEventsServer(new TimeService()),
+                        new HistoricalAccess.HistoricalAccessServer(new TimeService()),
+                        new Views.ViewsServer(),
+                        new DataAccess.DataAccessServer(),
+                        new Alarms.AlarmConditionServer(new TimeService()),
+                        new PerfTest.PerfTestServer(),
+                        new SimpleEvents.SimpleEventsServer(),
+                        new Plc.PlcServer(new TimeService(), logger, 1),
+                        new FileSystem.FileSystemServer(),
+                        new Asset.AssetServer(logger),
+                        new Isa95Jobs.Isa95JobControlServer()
+                    ]);
+            }
+        }
+
         /// <inheritdoc/>
         public ApplicationConfiguration CreateServer(IEnumerable<int> ports,
             string pkiRootPath, out ServerBase server,

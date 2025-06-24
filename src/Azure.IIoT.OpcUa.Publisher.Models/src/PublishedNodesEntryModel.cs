@@ -686,13 +686,42 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public Dictionary<string, VariantValue>? WriterGroupProperties { get; set; }
 
         /// <summary>
-        /// A type definition id that references a well known opc ua
-        /// type definition node for the dataset represented by this
-        /// entry.
+        /// A type definition id that references a well known opc ua type
+        /// definition node for the dataset represented by this entry.
+        /// If set it is used in context of cloud events to specify a concrete
+        /// type of dataset message in the cloud events type header.
         /// </summary>
         [DataMember(Name = "DataSetType", Order = 60,
             EmitDefaultValue = false)]
         public string? DataSetType { get; set; }
+
+        /// <summary>
+        /// A root node that all nodes that use a non rooted browse paths in the
+        /// dataset should start from.
+        /// </summary>
+        [DataMember(Name = "DataSetRootNodeId", Order = 61,
+            EmitDefaultValue = false)]
+        public string? DataSetRootNodeId { get; set; }
+
+        /// <summary>
+        /// A node that represents the writer group in the server address space.
+        /// This is the instance id of the root node from which all datasets
+        /// originate. It is informational only and would not need to be
+        /// configured
+        /// </summary>
+        [DataMember(Name = "WriterGroupRootNodeId", Order = 62,
+            EmitDefaultValue = false)]
+        public string? WriterGroupRootNodeId { get; set; }
+
+        /// <summary>
+        /// A type that is attached to the writer group and explains the shape
+        /// of the writer group. It is the type definition id of the writer
+        /// group root node id. It is informational only and would not need
+        /// to be configured
+        /// </summary>
+        [DataMember(Name = "WriterGroupType", Order = 63,
+            EmitDefaultValue = false)]
+        public string? WriterGroupType { get; set; }
 
         /// <summary>
         /// Enables detailed server diagnostics logging for the

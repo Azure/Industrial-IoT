@@ -164,10 +164,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public int? PublishQueuePartitions { get; set; }
 
         /// <summary>
+        /// Root node of the writer group
+        /// </summary>
+        [DataMember(Name = "rootNode", Order = 19,
+            EmitDefaultValue = false)]
+        public string? RootNode { get; set; }
+
+        /// <summary>
+        /// Type of the writer group
+        /// </summary>
+        [DataMember(Name = "type", Order = 20,
+            EmitDefaultValue = false)]
+        public string? Type { get; set; }
+
+        /// <summary>
         /// External identifier of the writer group in the subscriber.
         /// (Publisher extension)
         /// </summary>
-        [DataMember(Name = "externalId", Order = 19,
+        [DataMember(Name = "externalId", Order = 21,
             EmitDefaultValue = false)]
         public string? ExternalId { get; set; }
 
@@ -175,7 +189,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Writer group properties and attributes
         /// (Publisher extension)
         /// </summary>
-        [DataMember(Name = "properties", Order = 20,
+        [DataMember(Name = "properties", Order = 22,
             EmitDefaultValue = false)]
         public Dictionary<string, VariantValue>? Properties { get; set; }
     }

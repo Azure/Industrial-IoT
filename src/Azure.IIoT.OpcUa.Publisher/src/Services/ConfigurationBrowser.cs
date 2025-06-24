@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Microsoft.Azure.Amqp.Framing;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Opc.Ua;
@@ -75,10 +76,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             if (_currentObject != null)
             {
                 // collect matching variables under the current object instance
-                if (_currentObject.AddVariables(matching))
+                if (_currentObject.AddVariables(matching.Where(m => m.NodeClass == Opc.Ua.NodeClass.Variable)))
                 {
                     _logger.DroppedDuplicateVariables();
                 }
+                _currentObject.OriginalNode.AddObjectsOrVariables(
+                    matching.Where(m => m.NodeClass == Opc.Ua.NodeClass.Object));
             }
             else
             {
@@ -152,16 +155,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         {
                             DataSetWriterId = currentObject.CreateWriterId(), // Unique
                             DataSetWriterGroup = _entry.DataSetWriterGroup ?? root?.BrowseName?.Name,
-                            DataSetName = currentObject.CreateDataSetName(root), // with DataSetWriterGroup as root
+                            // Name of the dataset with DataSetWriterGroup as root
+                            DataSetName = currentObject.CreateDataSetName(root),
+                            DataSetRootNodeId = currentObject.ObjectFromBrowse.NodeId?.AsString(
+                                context.Session.MessageContext, NamespaceFormat.Expanded),
                             // Type of the dataset
                             DataSetType = currentObject.ObjectFromBrowse.TypeDefinitionId?.AsString(
-                                    context.Session.MessageContext, NamespaceFormat.Expanded),
+                                context.Session.MessageContext, NamespaceFormat.Expanded),
                             // Type of the writer group
-                            NodeId = new NodeIdModel
-                            {
-                                Identifier = root?.TypeDefinitionId?.AsString(
-                                    context.Session.MessageContext, NamespaceFormat.Expanded)
-                            },
+                            WriterGroupType = root?.TypeDefinitionId?.AsString(
+                                context.Session.MessageContext, NamespaceFormat.Expanded),
+                            WriterGroupRootNodeId = root?.NodeId?.AsString(
+                                context.Session.MessageContext, NamespaceFormat.Expanded),
                             OpcNodes = currentObject
                                 .GetOpcNodeModels(
                                     currentObject.OriginalNode.NodeFromConfiguration,
@@ -357,8 +362,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             }
                         }
                         var depth = _request.MaxDepth == 0 ? 1 : _request.MaxDepth;
-                        Restart(CurrentNode.NodeId, maxDepth: depth,
-                            referenceTypeId: ReferenceTypeIds.HierarchicalReferences);
+                        Restart(
+                            CurrentNode.NodeId == null ? null : new BrowseFrame(CurrentNode.NodeId),
+                            maxDepth: depth, referenceTypeId: ReferenceTypeIds.HierarchicalReferences);
                         return true;
                     case (uint)Opc.Ua.NodeClass.VariableType:
                     case (uint)Opc.Ua.NodeClass.ObjectType:
@@ -369,7 +375,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 Opc.Ua.NodeClass.Object : Opc.Ua.NodeClass.Variable;
                         var stopWhenFound = instanceClass == Opc.Ua.NodeClass.Variable ||
                             _request.FlattenTypeInstance;
-                        Restart(ObjectIds.ObjectsFolder, maxDepth: _request.MaxDepth,
+                        Restart(null, maxDepth: _request.MaxDepth,
                             typeDefinitionId: CurrentNode.NodeId,
                             stopWhenFound: stopWhenFound,
                             referenceTypeId: ReferenceTypeIds.HierarchicalReferences,
@@ -389,7 +395,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             }
                         }
                         // Now we expand the variable here
-                        Restart(CurrentNode.NodeId,
+                        Restart(CurrentNode.NodeId == null ? null : new BrowseFrame(CurrentNode.NodeId),
                             _request.MaxLevelsToExpand == 0 ? 1 : _request.MaxLevelsToExpand,
                             referenceTypeId: ReferenceTypeIds.Aggregates,
                             nodeClass: Opc.Ua.NodeClass.Variable);
@@ -421,18 +427,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 if (node.TryGetNextObject(out _currentObject))
                 {
                     Debug.Assert(_currentObject != null);
+                    //
+                    // Now we are at the level where we expand the variables of the object. We
+                    // search and match only varibles and variables in variables (properties).
+                    //
                     var nodeClass = Opc.Ua.NodeClass.Variable;
-                    var maxDepth = _request.MaxLevelsToExpand == 0 ? (uint?)null :
-                        _request.MaxLevelsToExpand;
-                    if (_currentObject.OriginalNode.NodeClass == (uint)Opc.Ua.NodeClass.ObjectType
-                        && _request.FlattenTypeInstance)
+                    var matchClass = Opc.Ua.NodeClass.Variable;
+                    var maxDepth = _request.MaxLevelsToExpand != 0
+                        ? _request.MaxLevelsToExpand : (uint?)null;
+
+                    //
+                    // If the original node class was object type we also search for sub components
+                    // of the object found (other aggregates). We match variables if we flatten
+                    // and objects and variables when we want to create individual entries per object
+                    //
+                    if (_currentObject.OriginalNode.NodeClass == (uint)Opc.Ua.NodeClass.ObjectType)
                     {
                         nodeClass |= Opc.Ua.NodeClass.Object;
-                        maxDepth = null;
+                        if (!_request.FlattenTypeInstance)
+                        {
+                            // Match not just variables but also objects and expand them
+                            matchClass |= Opc.Ua.NodeClass.Object;
+                        }
+                        // maxDepth = null;
                     }
-                    Restart(_currentObject.ObjectFromBrowse.NodeId, maxDepth,
-                        referenceTypeId: ReferenceTypeIds.Aggregates,
-                        nodeClass: nodeClass, matchClass: Opc.Ua.NodeClass.Variable);
+                    Restart(_currentObject.ObjectFromBrowse, maxDepth,
+                        referenceTypeId: ReferenceTypeIds.Aggregates, nodeClass: nodeClass,
+                        matchClass: matchClass);
                     return true;
                 }
             }
@@ -728,13 +749,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
                 return _variables.Select(frame => template with
                 {
+                    // Use absolute nodes
                     Id = frame.NodeId.AsString(context, NamespaceFormat.Expanded),
+
+                    // TODO - use browse paths instead:
+                    // Id = ObjectFromBrowse.NodeId.AsString(context, NamespaceFormat.Expanded)
+                    // BrowsePath = frame.BrowsePath.ToRelativePath(out var prefix).AsString(prefix),
+
                     VariableTypeDefinitionId = frame.TypeDefinitionId?
                         .AsString(context, NamespaceFormat.Expanded),
                     AttributeId = null, // Defaults to variable
                     DataSetFieldId = CreateUniqueId(frame),
-                    // TODO: BrowsePath = frame.BrowsePath.ToRelativePath(out var prefix).AsString(prefix),
-                    DisplayName = frame.DisplayName
+
+                    DisplayName = frame.DisplayName // TODO: frame.BrowsePathFromObject
                 });
 
                 string CreateUniqueId(BrowseFrame frame)
@@ -767,23 +794,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <summary>
-            /// Create data set name for the object
+            /// Create data set name for the object that is rooted in
+            /// the writer group structurally. We use . seperator to
+            /// create names that can be reused in topics and paths.
             /// </summary>
             /// <param name="root"></param>
             /// <returns></returns>
             public string CreateDataSetName(BrowseFrame? root)
             {
                 var cur = ObjectFromBrowse;
-                var result = string.Empty;
-                do
+                if (cur.BrowseName?.Name == null || cur == root)
                 {
-                    if (cur.BrowseName != null)
-                    {
-                        result = cur.BrowseName.Name + "." + result;
-                    }
+                    return "Default";
+                }
+
+                var result = cur.BrowseName.Name;
+                cur = cur.Parent;
+                while (cur != null && cur != root)
+                {
+                    Debug.Assert(cur.BrowseName?.Name != null);
+                    result = cur.BrowseName.Name + "." + result;
                     cur = cur.Parent;
                 }
-                while (cur != null && cur != root);
                 return result;
             }
 

@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Microsoft.Extensions.Options;
     using Opc.Ua;
+    using Opc.Ua.Export;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -46,7 +47,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="matchClass"></param>
         protected AsyncEnumerableBrowser(RequestHeaderModel? header,
             IOptions<PublisherOptions> options, TimeProvider? timeProvider = null,
-            NodeId? root = null, NodeId? typeDefinitionId = null,
+            BrowseFrame? root = null, NodeId? typeDefinitionId = null,
             bool includeTypeDefinitionSubtypes = true, bool stopWhenFound = false,
             uint? maxDepth = null, Opc.Ua.NodeClass nodeClass = Opc.Ua.NodeClass.Object,
             NodeId? referenceTypeId = null, bool includeReferenceTypeSubtypes = true,
@@ -97,7 +98,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="includeReferenceTypeSubtypes"></param>
         /// <param name="nodeClass"></param>
         /// <param name="matchClass"></param>
-        protected void Restart(NodeId? root = null, uint? maxDepth = null,
+        protected void Restart(BrowseFrame? root = null, uint? maxDepth = null,
             NodeId? typeDefinitionId = null, bool includeTypeDefinitionSubtypes = true,
             bool stopWhenFound = false,
             NodeId? referenceTypeId = null, bool includeReferenceTypeSubtypes = true,
@@ -247,18 +248,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             var matching = refs
-                .Where(reference => reference.NodeClass == _matchClass
+                .Where(reference => ((int)reference.NodeClass & (int)_matchClass) != 0
                     && (reference.NodeId?.ServerIndex ?? 1u) == 0)
                 .Where(reference => MatchTypeDefinitionId(context.Session, reference.TypeDefinition))
                 .Select(reference => new BrowseFrame((NodeId)reference.NodeId,
                     reference.BrowseName, reference.DisplayName?.Text,
                     reference.TypeDefinition, reference.NodeClass, frame,
-                    IsChildOf(context.Session, reference.ReferenceTypeId)))
+                    IsChildOf(context.Session, reference, frame)))
                 .ToList();
 
             if (_stopWhenFound && matching.Count != 0)
             {
-                // Only add what we did not match to browser deeper
+                // Only add what we did not match to browse deeper
                 var stop = matching.Select(r => r.NodeId).ToHashSet();
                 foreach (var reference in refs)
                 {
@@ -267,7 +268,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         Push(reference.NodeId, reference.BrowseName,
                             reference.DisplayName?.Text, reference.TypeDefinition,
                             reference.NodeClass, frame,
-                            IsChildOf(context.Session, reference.ReferenceTypeId));
+                            IsChildOf(context.Session, reference, frame));
                     }
                 }
             }
@@ -279,7 +280,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     Push(reference.NodeId, reference.BrowseName,
                         reference.DisplayName?.Text, reference.TypeDefinition,
                         reference.NodeClass, frame,
-                        IsChildOf(context.Session, reference.ReferenceTypeId));
+                        IsChildOf(context.Session, reference, frame));
                 }
             }
 
@@ -291,9 +292,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             // Pass matching on
             return HandleMatching(context, matching);
 
-            bool IsChildOf(IOpcUaSession session, NodeId referenceTypeId)
+            bool? IsChildOf(IOpcUaSession session, ReferenceDescription reference,
+                BrowseFrame parent)
             {
-                return session.NodeCache.IsTypeOf(referenceTypeId, ReferenceTypeIds.HasChild);
+                var referenceTypeId = reference.ReferenceTypeId;
+                var parentTypeDefinitionId = parent.TypeDefinitionId;
+
+                if (Opc.Ua.NodeId.IsNull(parentTypeDefinitionId))
+                {
+                    return null;
+                }
+                if (session.NodeCache.IsTypeOf(referenceTypeId, ReferenceTypeIds.HasComponent) ||
+                    session.NodeCache.IsTypeOf(referenceTypeId, ReferenceTypeIds.HasProperty))
+                {
+                    var parentIsFolder =
+                        session.NodeCache.IsTypeOf(parentTypeDefinitionId, ObjectTypeIds.FolderType);
+#if DEBUG
+                    Debug.WriteLine(parent.BrowseName
+                        + "(" + (parentIsFolder ? "Folder" : "Component") + ")--"
+                        + referenceTypeId + "-->" + reference.BrowseName);
+#endif
+                    return !parentIsFolder;
+                }
+                return false;
             }
 
             // Helper to match type definition to desired type definition id
@@ -320,7 +341,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             // Initialize
             _visited.Clear();
-            _browseStack.Push(new BrowseFrame(_root));
+            _browseStack.Push(_root);
             Push(BrowseAsync);
         }
 
@@ -380,11 +401,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="TypeDefinitionId"></param>
         /// <param name="NodeClass"></param>
         /// <param name="Parent"></param>
-        /// <param name="isChildOfParent"></param>
+        /// <param name="IsChildOfParent"></param>
         protected internal record class BrowseFrame(NodeId NodeId, QualifiedName? BrowseName = null,
             string? DisplayName = null, ExpandedNodeId? TypeDefinitionId = null,
             Opc.Ua.NodeClass? NodeClass = null, BrowseFrame? Parent = null,
-            bool? isChildOfParent = null)
+            bool? IsChildOfParent = null)
         {
             /// <summary>
             /// Current depth of this frame
@@ -416,7 +437,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     BrowseFrame? found = null;
                     for (var parent = this; parent != null; parent = parent.Parent)
                     {
-                        if (parent.isChildOfParent != true)
+                        if (parent.IsChildOfParent != true)
                         {
                             found ??= parent; // Set if not already set
                             continue;
@@ -434,12 +455,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 get
                 {
-                    var path = BrowseName;
+                    var path = BrowseName?.ToString() ?? string.Empty;
                     for (var parent = Parent; parent?.BrowseName != null; parent = parent.Parent)
                     {
                         path = $"{parent.BrowseName}/{path}";
                     }
-                    return "/" + (path ?? string.Empty);
+                    return "/" + path;
                 }
             }
         }
@@ -456,7 +477,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="includeReferenceTypeSubtypes"></param>
         /// <param name="stopWhenFound"></param>
         /// <param name="matchClass"></param>
-        private void Initialize(uint? maxDepth, NodeId? root, Opc.Ua.NodeClass nodeClass,
+        private void Initialize(uint? maxDepth, BrowseFrame? root, Opc.Ua.NodeClass nodeClass,
             NodeId? typeDefinitionId, bool includeTypeDefinitionSubtypes,
             NodeId? referenceTypeId, bool includeReferenceTypeSubtypes,
             bool stopWhenFound, Opc.Ua.NodeClass? matchClass)
@@ -465,7 +486,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _nodeClass = nodeClass;
             _matchClass = matchClass ?? nodeClass;
             _maxDepth = maxDepth;
-            _root = root ?? ObjectIds.ObjectsFolder;
+            _root = root ?? new BrowseFrame(ObjectIds.ObjectsFolder);
 
             _typeDefinitionId =
                 typeDefinitionId;
@@ -481,7 +502,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private Opc.Ua.NodeClass _nodeClass;
         private Opc.Ua.NodeClass _matchClass;
         private uint? _maxDepth;
-        private NodeId _root;
+        private BrowseFrame _root;
         private NodeId _referenceTypeId;
         private bool _includeReferenceTypeSubtypes;
         private NodeId? _typeDefinitionId;

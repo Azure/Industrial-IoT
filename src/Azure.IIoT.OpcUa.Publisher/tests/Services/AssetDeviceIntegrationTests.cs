@@ -13,10 +13,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     using Microsoft.Extensions.Logging;
     using Moq;
     using System;
-    using System.Reflection;
-    using System.Threading.Channels;
     using System.Threading.Tasks;
     using Xunit;
+    using Microsoft.Extensions.Options;
 
     public class AssetDeviceIntegrationTests
     {
@@ -67,27 +66,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         }
 
         [Fact]
-        public void OnDeviceCreatedLogsErrorIfChangeFeedWriteFails()
+        public void OnDeviceCreatedThrowsIfChangeFeedWasCompleted()
         {
             // Arrange
             var sut = CreateSut();
             var device = new Device();
             const string deviceName = "dev1";
             const string endpointName = "ep1";
-            // Simulate full channel by completing writer
-            var field = typeof(AssetDeviceIntegration).GetField("_changeFeed", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var channel = (System.Threading.Channels.Channel<(string, object)>)field.GetValue(sut);
-            channel.Writer.TryComplete();
+            TryCompleteChannel(sut);
 
-            // Act
-            sut.OnDeviceCreated(deviceName, endpointName, device);
-            // Assert: error log should be called
-            _loggerMock.Verify(l => l.Log(
-                LogLevel.Error,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Failed to process creation of device")),
-                null,
-                It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Once);
+            // Act / Assert
+            Assert.Throws<ObjectDisposedException>(
+                () => sut.OnDeviceCreated(deviceName, endpointName, device));
         }
 
         [Fact]
@@ -105,27 +95,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         }
 
         [Fact]
-        public void OnDeviceUpdatedLogsErrorIfChangeFeedWriteFails()
+        public void OnDeviceUpdatedThrowsIfChangeFeedWasCompleted()
         {
             // Arrange
             var sut = CreateSut();
             var device = new Device();
             const string deviceName = "dev1";
             const string endpointName = "ep1";
-            // Simulate full channel by completing writer
-            var field = typeof(AssetDeviceIntegration).GetField("_changeFeed", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var channel = (System.Threading.Channels.Channel<(string, object)>)field.GetValue(sut);
-            channel.Writer.TryComplete();
+            TryCompleteChannel(sut);
 
-            // Act
-            sut.OnDeviceUpdated(deviceName, endpointName, device);
-            // Assert: error log should be called
-            _loggerMock.Verify(l => l.Log(
-                LogLevel.Error,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Failed to process update of device")),
-                null,
-                It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Once);
+            // Act / Assert
+            Assert.Throws<ObjectDisposedException>(
+                () => sut.OnDeviceUpdated(deviceName, endpointName, device));
         }
 
         [Fact]
@@ -145,7 +126,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         }
 
         [Fact]
-        public void OnDeviceDeletedLogsErrorIfChangeFeedWriteFails()
+        public void OnDeviceDeletedThrowsIfChangeFeedWasCompleted()
         {
             // Arrange
             var sut = CreateSut();
@@ -154,22 +135,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             const string endpointName = "ep1";
             // Add device first
             sut.OnDeviceCreated(deviceName, endpointName, device);
+            TryCompleteChannel(sut);
 
-            // Simulate full channel by completing writer
-            var field = typeof(AssetDeviceIntegration).GetField("_changeFeed", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var channel = (System.Threading.Channels.Channel<(string, object)>)field.GetValue(sut);
-            channel.Writer.TryComplete();
-
-            // Act
-            sut.OnDeviceDeleted(deviceName, endpointName, device);
-
-            // Assert: error log should be called
-            _loggerMock.Verify(l => l.Log(
-                LogLevel.Error,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Failed to process deletion of device")),
-                null,
-                It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Once);
+            // Act / Assert
+            Assert.Throws<ObjectDisposedException>(
+                () => sut.OnDeviceDeleted(deviceName, endpointName, device));
         }
 
         [Fact]
@@ -177,7 +147,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         {
             // Arrange
             var sut = CreateSut();
-            var asset = new AssetModel { DeviceRef = new AssetDeviceRef { DeviceName = "dev1", EndpointName = "ep1" } };
+            var asset = new AssetModel
+            {
+                DeviceRef = new AssetDeviceRef
+                {
+                    DeviceName = "dev1",
+                    EndpointName = "ep1"
+                }
+            };
             const string deviceName = "dev1";
             const string endpointName = "ep1";
             const string assetName = "asset1";
@@ -189,28 +166,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         }
 
         [Fact]
-        public void OnAssetCreatedLogsErrorIfChangeFeedWriteFails()
+        public void OnAssetCreatedThrowsIfChangeFeedWasCompleted()
         {
             // Arrange
             var sut = CreateSut();
-            var asset = new AssetModel { DeviceRef = new AssetDeviceRef { DeviceName = "dev1", EndpointName = "ep1" } };
+            var asset = new AssetModel
+            {
+                DeviceRef = new AssetDeviceRef
+                {
+                    DeviceName = "dev1",
+                    EndpointName = "ep1"
+                }
+            };
             const string deviceName = "dev1";
             const string endpointName = "ep1";
             const string assetName = "asset1";
-            // Simulate full channel by completing writer
-            var field = typeof(AssetDeviceIntegration).GetField("_changeFeed", BindingFlags.NonPublic | BindingFlags.Instance);
-            var channel = (Channel<(string, object)>)field.GetValue(sut);
-            channel.Writer.TryComplete();
+            TryCompleteChannel(sut);
 
-            // Act
-            sut.OnAssetCreated(deviceName, endpointName, assetName, asset);
-            // Assert: error log should be called
-            _loggerMock.Verify(l => l.Log(
-                LogLevel.Error,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Failed to process creation of asset")),
-                null,
-                It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Once);
+            // Act / Assert
+            Assert.Throws<ObjectDisposedException>(() => sut.OnAssetCreated(deviceName, endpointName, assetName, asset));
         }
 
         [Fact]
@@ -218,7 +192,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         {
             // Arrange
             var sut = CreateSut();
-            var asset = new AssetModel { DeviceRef = new AssetDeviceRef { DeviceName = "dev1", EndpointName = "ep1" } };
+            var asset = new AssetModel
+            {
+                DeviceRef = new AssetDeviceRef
+                {
+                    DeviceName = "dev1",
+                    EndpointName = "ep1"
+                }
+            };
             const string deviceName = "dev1";
             const string endpointName = "ep1";
             const string assetName = "asset1";
@@ -229,28 +210,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         }
 
         [Fact]
-        public void OnAssetUpdatedLogsErrorIfChangeFeedWriteFails()
+        public void OnAssetUpdatedThrowsIfChangeFeedWasCompleted()
         {
             // Arrange
             var sut = CreateSut();
-            var asset = new AssetModel { DeviceRef = new AssetDeviceRef { DeviceName = "dev1", EndpointName = "ep1" } };
+            var asset = new AssetModel
+            {
+                DeviceRef = new AssetDeviceRef
+                {
+                    DeviceName = "dev1",
+                    EndpointName = "ep1"
+                }
+            };
             const string deviceName = "dev1";
             const string endpointName = "ep1";
             const string assetName = "asset1";
-            // Simulate full channel by completing writer
-            var field = typeof(AssetDeviceIntegration).GetField("_changeFeed", BindingFlags.NonPublic | BindingFlags.Instance);
-            var channel = (Channel<(string, object)>)field.GetValue(sut);
-            channel.Writer.TryComplete();
+            TryCompleteChannel(sut);
 
-            // Act
-            sut.OnAssetUpdated(deviceName, endpointName, assetName, asset);
-            // Assert: error log should be called
-            _loggerMock.Verify(l => l.Log(
-                LogLevel.Error,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Failed to process update of asset")),
-                null,
-                It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Once);
+            // Act / Assert
+            Assert.Throws<ObjectDisposedException>(() => sut.OnAssetUpdated(deviceName, endpointName, assetName, asset));
         }
 
         [Fact]
@@ -258,7 +236,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         {
             // Arrange
             var sut = CreateSut();
-            var asset = new AssetModel { DeviceRef = new AssetDeviceRef { DeviceName = "dev1", EndpointName = "ep1" } };
+            var asset = new AssetModel
+            {
+                DeviceRef = new AssetDeviceRef
+                {
+                    DeviceName = "dev1",
+                    EndpointName = "ep1"
+                }
+            };
             const string deviceName = "dev1";
             const string endpointName = "ep1";
             const string assetName = "asset1";
@@ -271,35 +256,45 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         }
 
         [Fact]
-        public void OnAssetDeletedLogsErrorIfChangeFeedWriteFails()
+        public void OnAssetDeletedThrowsIfChangeFeedWasCompleted()
         {
             // Arrange
             var sut = CreateSut();
-            var asset = new AssetModel { DeviceRef = new AssetDeviceRef { DeviceName = "dev1", EndpointName = "ep1" } };
+            var asset = new AssetModel
+            {
+                DeviceRef = new AssetDeviceRef
+                {
+                    DeviceName = "dev1",
+                    EndpointName = "ep1"
+                }
+            };
             const string deviceName = "dev1";
             const string endpointName = "ep1";
             const string assetName = "asset1";
             // Add asset first
             sut.OnAssetCreated(deviceName, endpointName, assetName, asset);
+            TryCompleteChannel(sut);
+            // Act / Assert
+            Assert.Throws<ObjectDisposedException>(
+                () => sut.OnAssetDeleted(deviceName, endpointName, assetName, asset));
+        }
+
+        private static void TryCompleteChannel(AssetDeviceIntegration sut)
+        {
             // Simulate full channel by completing writer
-            var field = typeof(AssetDeviceIntegration).GetField("_changeFeed", BindingFlags.NonPublic | BindingFlags.Instance);
-            var channel = (Channel<(string, object)>)field.GetValue(sut);
+            var field = typeof(AssetDeviceIntegration).GetField("_changeFeed",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var channel =
+                (System.Threading.Channels.Channel<(string, AssetDeviceIntegration.Resource)>)
+                    field.GetValue(sut);
             channel.Writer.TryComplete();
-            // Act
-            sut.OnAssetDeleted(deviceName, endpointName, assetName, asset);
-            // Assert: error log should be called
-            _loggerMock.Verify(l => l.Log(
-                LogLevel.Error,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Failed to process deletion of asset")),
-                null,
-                It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Once);
         }
 
         private AssetDeviceIntegration CreateSut() =>
             new(_clientMock.Object, _publishedNodesMock.Object, _configurationServicesMock.Object,
-                _serializerMock.Object, _loggerMock.Object);
+                _serializerMock.Object, _optionsMock.Object, _loggerMock.Object);
 
+        private readonly Mock<IOptions<PublisherOptions>> _optionsMock = new();
         private readonly Mock<IAioAdrClient> _clientMock = new();
         private readonly Mock<IPublishedNodesServices> _publishedNodesMock = new();
         private readonly Mock<IJsonSerializer> _serializerMock = new();

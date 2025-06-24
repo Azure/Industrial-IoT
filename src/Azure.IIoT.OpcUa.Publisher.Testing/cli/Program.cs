@@ -31,15 +31,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                 (s, e) => Console.WriteLine("unhandled: " + e.ExceptionObject);
             var host = Utils.GetHostName();
             var ports = new List<int>();
+            var server = "sample";
             try
             {
                 for (var i = 0; i < args.Length; i++)
                 {
                     switch (args[i])
                     {
-                        case "--sample":
+                        case "-server":
                         case "-s":
-                            break;
+                            i++;
+                            if (i < args.Length)
+                            {
+                                server = args[i];
+                                break;
+                            }
+                            throw new ArgumentException(
+                                "Missing arguments for server option");
                         case "-p":
                         case "--port":
                             i++;
@@ -87,8 +95,7 @@ Options:
 
 Operations (Mutually exclusive):
 
-    --sample / -s           Run sample server and wait for cancellation.
-                            Default if port is specified.
+    --server / -s           Run server with the given name (e.g. sample, testdata, etc.)
 "
                     );
                 return;
@@ -101,7 +108,7 @@ Operations (Mutually exclusive):
             try
             {
                 Console.WriteLine("Running ...");
-                RunServerAsync(ports).Wait();
+                RunServerAsync(server, ports).Wait();
             }
             catch (Exception e)
             {
@@ -116,13 +123,14 @@ Operations (Mutually exclusive):
         /// <summary>
         /// Run server until exit
         /// </summary>
+        /// <param name="serverType"></param>
         /// <param name="ports"></param>
-        private static async Task RunServerAsync(IEnumerable<int> ports)
+        private static async Task RunServerAsync(string serverType, IEnumerable<int> ports)
         {
             var logger = Log.Console<ServerConsoleHost>();
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             AssemblyLoadContext.Default.Unloading += _ => tcs.TrySetResult(true);
-            using var server = new ServerConsoleHost(new TestServerFactory(Log.Console<TestServerFactory>()), logger)
+            using var server = new ServerConsoleHost(TestServerFactory.Create(serverType, Log.Console<TestServerFactory>()), logger)
             {
                 AutoAccept = true
             };

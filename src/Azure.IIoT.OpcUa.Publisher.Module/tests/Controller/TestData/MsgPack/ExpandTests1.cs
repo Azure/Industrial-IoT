@@ -110,6 +110,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.TestData.MsgPack
         }
 
         [Fact]
+        public Task ExpandBoilerTypeTestAsync()
+        {
+            return GetTests().ExpandBoilerTypeTestAsync();
+        }
+
+        [Fact]
+        public Task ExpandBoilerDrumTypeTestAsync()
+        {
+            return GetTests().ExpandBoilerDrumTypeTestAsync();
+        }
+
+        [Fact]
+        public Task ExpandBoilerDrumAndValveTypeTestAsync()
+        {
+            return GetTests().ExpandBoilerDrumAndValveTypeTestAsync();
+        }
+
+        [Fact]
+        public Task ExpandValveTypeTestAsync()
+        {
+            return GetTests().ExpandValveTypeTestAsync();
+        }
+
+        [Fact]
         public Task ExpandTestDataObjectTypeTestAsync()
         {
             return GetTests().ExpandTestDataObjectTypeTestAsync();

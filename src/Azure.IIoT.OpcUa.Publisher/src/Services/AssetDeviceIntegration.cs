@@ -12,6 +12,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Furly.Azure.IoT.Operations.Services;
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
+    using Opc.Ua;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -47,15 +49,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="publishedNodes"></param>
         /// <param name="configurationServices"></param>
         /// <param name="serializer"></param>
+        /// <param name="options"></param>
         /// <param name="logger"></param>
         public AssetDeviceIntegration(IAioAdrClient client, IPublishedNodesServices publishedNodes,
             IConfigurationServices configurationServices, IJsonSerializer serializer,
-            ILogger<AssetDeviceIntegration> logger)
+            IOptions<PublisherOptions> options, ILogger<AssetDeviceIntegration> logger)
         {
             _client = client;
             _publishedNodes = publishedNodes;
             _configurationServices = configurationServices;
             _serializer = serializer;
+            _options = options;
             _logger = logger;
             _cts = new CancellationTokenSource();
             _changeFeed
@@ -124,10 +128,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var deviceResource = new DeviceResource(deviceName, device);
             _devices.AddOrUpdate(name, deviceResource);
             Interlocked.Increment(ref _lastDeviceListVersion);
-            if (!_changeFeed.Writer.TryWrite((name, deviceResource)))
-            {
-                _logger.LogError("Failed to process creation of device {Device}", name);
-            }
+            var success = _changeFeed.Writer.TryWrite((name, deviceResource));
+            ObjectDisposedException.ThrowIf(!success,
+                $"Failed to process creation of device {name}");
         }
 
         /// <inheritdoc/>
@@ -138,10 +141,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var deviceResource = new DeviceResource(deviceName, device);
             _devices.AddOrUpdate(name, deviceResource);
             Interlocked.Increment(ref _lastDeviceListVersion);
-            if (!_changeFeed.Writer.TryWrite((name, deviceResource)))
-            {
-                _logger.LogError("Failed to process update of device {Device}", name);
-            }
+            var success = _changeFeed.Writer.TryWrite((name, deviceResource));
+            ObjectDisposedException.ThrowIf(!success,
+                $"Failed to process update of device {name}");
         }
 
         /// <inheritdoc/>
@@ -149,14 +151,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             Device? device)
         {
             var name = CreateDeviceKey(deviceName, inboundEndpointName);
-            if (_devices.TryRemove(name, out var deviceResource))
+            if (!_devices.TryRemove(name, out var deviceResource))
             {
-                Interlocked.Increment(ref _lastDeviceListVersion);
-                if (!_changeFeed.Writer.TryWrite((name, deviceResource)))
-                {
-                    _logger.LogError("Failed to process deletion of device {Device}", name);
-                }
+                return;
             }
+            Interlocked.Increment(ref _lastDeviceListVersion);
+            var success = _changeFeed.Writer.TryWrite((name, deviceResource));
+            ObjectDisposedException.ThrowIf(!success,
+                $"Failed to publish deletion of {name}.");
         }
 
         /// <inheritdoc/>
@@ -164,25 +166,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             string assetName, Asset asset)
         {
             var name = CreateAssetKey(deviceName, inboundEndpointName, assetName);
-            var assetResource = new AssetResource(deviceName, asset);
+            var assetResource = new AssetResource(assetName, asset);
             _assets.AddOrUpdate(name, assetResource);
-            if (!_changeFeed.Writer.TryWrite((name, assetResource)))
-            {
-                _logger.LogError("Failed to process creation of asset {Asset}", name);
-            }
-        }
+            var success = _changeFeed.Writer.TryWrite((name, assetResource));
+            ObjectDisposedException.ThrowIf(!success,
+                $"Failed to publish creation of asset {name}.");
+    }
 
         /// <inheritdoc/>
         public void OnAssetUpdated(string deviceName, string inboundEndpointName,
             string assetName, Asset asset)
         {
             var name = CreateAssetKey(deviceName, inboundEndpointName, assetName);
-            var assetResource = new AssetResource(deviceName, asset);
+            var assetResource = new AssetResource(assetName, asset);
             _assets.AddOrUpdate(name, assetResource);
-            if (!_changeFeed.Writer.TryWrite((name, assetResource)))
-            {
-                _logger.LogError("Failed to process update of asset {Asset}", name);
-            }
+            var success = _changeFeed.Writer.TryWrite((name, assetResource));
+            ObjectDisposedException.ThrowIf(!success,
+                $"Failed to publish update of asset {name}.");
         }
 
         /// <inheritdoc/>
@@ -190,11 +190,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             string assetName, Asset? asset)
         {
             var name = CreateAssetKey(deviceName, inboundEndpointName, assetName);
-            if (_assets.TryRemove(name, out var asseteResource) &&
-               !_changeFeed.Writer.TryWrite((name, asseteResource)))
+            if (!_assets.TryRemove(name, out var asseteResource))
             {
-                _logger.LogError("Failed to process deletion of asset {Asset}", name);
+                return;
             }
+            var success = _changeFeed.Writer.TryWrite((name, asseteResource));
+            ObjectDisposedException.ThrowIf(!success,
+                $"Failed to publish deletion of asset {name}.");
         }
 
         /// <summary>
@@ -297,6 +299,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             catch (OperationCanceledException) { }
         }
 
+        /// <summary>
+        /// Discover assets
+        /// </summary>
+        /// <param name="resource"></param>
+        /// <param name="types"></param>
+        /// <param name="errors"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
         internal async ValueTask DiscoverAsync(DeviceEndpointResource resource, HashSet<string> types,
             ValidationErrors errors, CancellationToken ct)
         {
@@ -327,28 +337,120 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 resource.EndpointName, endpoint);
             assetEndpoint = AddEndpointCredentials(assetEndpoint, credentials, errors,
                 resource);
+
+            // Find all assets that comply with the provided types.
+            var assetEntries = new List<PublishedNodesEntryModel>();
             foreach (var type in types)
             {
                 var template = assetEndpoint with
                 {
-                    // Expand the type
-                    OpcNodes = [ new OpcNodeModel { Id = type } ]
+                    // Expand the type - TODO, we could also pass all types here at once
+                    OpcNodes = [new OpcNodeModel { Id = type }]
                 };
                 await foreach (var found in _configurationServices.ExpandAsync(assetEndpoint,
                     new PublishedNodeExpansionModel
                     {
                         CreateSingleWriter = false, // Writer per dataset
-                        ExcludeRootIfInstanceNode = false, // not an instance node
+                        ExcludeRootIfInstanceNode = false,
                         DiscardErrors = true,
                         FlattenTypeInstance = false,
                         NoSubTypesOfTypeNodes = false
                     }, ct).ConfigureAwait(false))
                 {
-                    if (found.Result?.OpcNodes?.Count > 0)
+                    if (found.ErrorInfo != null)
                     {
-                        // Add new dataset
+                        // Add to cumulative log
+                        continue;
                     }
+                    if (found.Result?.OpcNodes == null ||
+                        found.Result.OpcNodes.Count == 0 ||
+                        found.Result.DataSetWriterGroup == null ||
+                        found.Result.WriterGroupRootNodeId == null ||
+                        found.Result.WriterGroupType == null)
+                    {
+                        continue;
+                    }
+                    assetEntries.Add(found.Result);
                 }
+            }
+
+            // Convert assets to dAsset and report them as found. We group the assets per name
+            // and asset type ref. We resolve the duplicate names later from the hashset
+            var uniqueAssetNames = new HashSet<string>();
+            foreach (var (assetName, assetId, assetTypeRef, datasets) in assetEntries
+                .GroupBy(e => (
+                    AssetName: e.DataSetWriterGroup!,
+                    AssetId: e.WriterGroupRootNodeId!,
+                    AssetTypeRef: e.WriterGroupType!
+                ))
+                .Select(group => (
+                    group.Key.AssetName,
+                    group.Key.AssetId,
+                    group.Key.AssetTypeRef,
+                    group.ToList())))
+            {
+                var uniqueAssetName = assetName + "." + assetId.ToSha1Hash();
+                // Ensure unique asset names
+                for (var i = 1; !uniqueAssetNames.Add(uniqueAssetName); i++)
+                {
+                    uniqueAssetName = assetName + "." + i;
+                }
+                // ensure no duplicate datasets and datapoints (names) are added into the asset
+                var distinctDatasets = datasets
+                    .GroupBy(d => d.DataSetName)
+                    .SelectMany(group => group.Select((d, i) => d with
+                    {
+                        DataSetName = i == 0 ? d.DataSetName : d.DataSetName + "." + i,
+                        OpcNodes = d.OpcNodes!
+                            .GroupBy(n => n.DisplayName)
+                            .SelectMany(group => group.Select((n, i) => n with
+                            {
+                                DisplayName = i == 0 ? n.DisplayName : n.DisplayName + "." + i
+                            }))
+                            .ToList()
+                    }))
+                    .ToList();
+
+                var dAsset = new DiscoveredAsset
+                {
+                    DeviceRef = new AssetDeviceRef
+                    {
+                        DeviceName = resource.DeviceName,
+                        EndpointName = resource.EndpointName
+                    },
+                    AssetName = uniqueAssetName,
+                    AssetTypeRefs = [assetTypeRef],
+                    Datasets = distinctDatasets.ConvertAll(d => new DiscoveredAssetDataset
+                    {
+                        Name = d.DataSetName ?? "Default", // Should never be null here
+                        TypeRef = d.DataSetType,
+                        DataSource = d.DataSetRootNodeId,
+                        DataPoints = d.OpcNodes!.Select(n => new DiscoveredAssetDatasetDataPoint
+                        {
+                            Name = n.DisplayName, // Name of property in message/schema
+                            DataSource = n.Id!,
+                            TypeRef = n.VariableTypeDefinitionId
+                        }).ToList(),
+                        Destinations = null,
+                        // TODO Set topic to what it would be based on structure
+
+                        // Destinations = new List<DatasetDestination>
+                        // {
+                        //      new DatasetDestination
+                        //     {
+                        //          Configuration = new DestinationConfiguration
+                        //         {
+                        //              Topic = // TODO
+                        //         }
+                        //     }
+                        // }
+                    }),
+                    // TODO: Add events
+                    Events = null
+                };
+                // TODO: Add attributes and other information from properties
+                await _client.ReportDiscoveredAssetAsync(resource.DeviceName, resource.EndpointName,
+                    assetName, dAsset, cancellationToken: ct).ConfigureAwait(false);
             }
         }
 
@@ -987,21 +1089,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         {
                             continue;
                         }
-
-                        // Run discovery for each configured type
-                        foreach (var type in endpointConfiguration.AssetTypes)
+                        // Run discovery
+                        try
                         {
-                            try
-                            {
-                                // TODO
-                                await Task.Delay(0, ct).ConfigureAwait(false);
-                            }
-                            catch (Exception ex)
-                            {
-                                errors.OnError(deviceEndpointResource, kDiscoveryError, ex.Message);
-                                _logger.LogError(ex, "Failed to run discovery for device {Device}",
-                                    device.DeviceName);
-                            }
+                            await DiscoverAsync(deviceEndpointResource,
+                                endpointConfiguration.AssetTypes, errors, ct).ConfigureAwait(false);
+                        }
+                        catch (Exception ex)
+                        {
+                            errors.OnError(deviceEndpointResource, kDiscoveryError, ex.Message);
+                            _logger.LogError(ex, "Failed to run discovery for device {Device}",
+                                device.DeviceName);
                         }
                     }
                     await errors.ReportAsync(ct).ConfigureAwait(false);
@@ -1404,6 +1502,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly IAioAdrClient _client;
         private readonly IPublishedNodesServices _publishedNodes;
         private readonly IJsonSerializer _serializer;
+        private readonly IOptions<PublisherOptions> _options;
         private readonly ILogger _logger;
         private readonly CancellationTokenSource _cts;
         private readonly Task _processor;

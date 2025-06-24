@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
     using Furly.Exceptions;
     using Opc.Ua;
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -310,6 +311,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     ExcludeRootIfInstanceNode = false,
                     NoSubTypesOfTypeNodes = false,
                     FlattenTypeInstance = false,
+                    MaxLevelsToExpand = 1,
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
@@ -381,6 +383,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     ExcludeRootIfInstanceNode = false,
                     FlattenTypeInstance = false,
                     NoSubTypesOfTypeNodes = false,
+                    MaxLevelsToExpand = 1,
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
@@ -414,7 +417,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
-            Assert.Equal(1, results.Count);
+            Assert.Equal(33, results.Count);
             Assert.All(results, r =>
             {
                 Assert.Null(r.ErrorInfo);
@@ -444,7 +447,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
-            Assert.Equal(12, results.Count);
+            Assert.Equal(24, results.Count);
             Assert.All(results, r =>
             {
                 Assert.Null(r.ErrorInfo);
@@ -453,6 +456,151 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 Assert.True(r.Result.OpcNodes.Count > 0);
             });
         }
+
+        public async Task ExpandBoilerTypeTestAsync(CancellationToken ct = default)
+        {
+            var entry = _connection.ToPublishedNodesEntry();
+            entry.OpcNodes = new[]
+            {
+                new OpcNodeModel
+                {
+                    Id = Boiler.ObjectTypeIds.BoilerType.ToString()
+                }
+            };
+            var results = await _service.ExpandAsync(entry,
+                new PublishedNodeExpansionModel
+                {
+                    DiscardErrors = false,
+                    ExcludeRootIfInstanceNode = false,
+                    NoSubTypesOfTypeNodes = false,
+                    FlattenTypeInstance = false,
+                    CreateSingleWriter = false
+                }, ct).ToListAsync(ct).ConfigureAwait(false);
+
+            Assert.Equal(24, results.Count);
+            var groups = results.GroupBy(r => r.Result?.DataSetWriterGroup);
+            Assert.Equal(2, groups.Count());
+            Assert.All(groups, g =>
+            {
+                Assert.Equal(12, g.Count());
+                Assert.Contains(g.Key, new HashSet<string?> { "Boiler #1", "Boiler #2" });
+            });
+            Assert.All(results, r =>
+            {
+                Assert.Null(r.ErrorInfo);
+                Assert.NotNull(r.Result);
+                Assert.NotNull(r.Result.OpcNodes);
+                Assert.True(r.Result.OpcNodes.Count > 0);
+            });
+        }
+
+        public async Task ExpandBoilerDrumTypeTestAsync(CancellationToken ct = default)
+        {
+            var entry = _connection.ToPublishedNodesEntry();
+            entry.OpcNodes = new[]
+            {
+                new OpcNodeModel
+                {
+                    Id = Boiler.ObjectTypeIds.BoilerDrumType.ToString()
+                }
+            };
+            var results = await _service.ExpandAsync(entry,
+                new PublishedNodeExpansionModel
+                {
+                    DiscardErrors = false,
+                    ExcludeRootIfInstanceNode = false,
+                    NoSubTypesOfTypeNodes = false,
+                    FlattenTypeInstance = false,
+                    CreateSingleWriter = false
+                }, ct).ToListAsync(ct).ConfigureAwait(false);
+
+            Assert.Equal(4, results.Count);
+            var groups = results.GroupBy(r => r.Result?.DataSetWriterGroup);
+            Assert.Equal(2, groups.Count());
+            Assert.All(groups, g =>
+            {
+                Assert.Equal(2, g.Count());
+                Assert.Contains(g.Key, new HashSet<string?> { "Boiler #1", "Boiler #2" });
+            });
+            Assert.All(results, r =>
+            {
+                Assert.Null(r.ErrorInfo);
+                Assert.NotNull(r.Result);
+                Assert.NotNull(r.Result.OpcNodes);
+                Assert.True(r.Result.OpcNodes.Count > 0);
+            });
+        }
+
+        public async Task ExpandValveTypeTestAsync(CancellationToken ct = default)
+        {
+            var entry = _connection.ToPublishedNodesEntry();
+            entry.OpcNodes = new[]
+            {
+                new OpcNodeModel
+                {
+                    Id = Boiler.ObjectTypeIds.ValveType.ToString()
+                }
+            };
+            var results = await _service.ExpandAsync(entry,
+                new PublishedNodeExpansionModel
+                {
+                    DiscardErrors = false,
+                    ExcludeRootIfInstanceNode = false,
+                    NoSubTypesOfTypeNodes = false,
+                    FlattenTypeInstance = false,
+                    CreateSingleWriter = false
+                }, ct).ToListAsync(ct).ConfigureAwait(false);
+
+            Assert.Equal(2, results.Count);
+            var groups = results.GroupBy(r =>
+                (r.Result?.DataSetWriterGroup, r.Result?.WriterGroupRootNodeId));
+            Assert.Equal(2, groups.Count());
+            Assert.All(results, r =>
+            {
+                Assert.Null(r.ErrorInfo);
+                Assert.NotNull(r.Result);
+                Assert.NotNull(r.Result.OpcNodes);
+                Assert.True(r.Result.OpcNodes.Count > 0);
+            });
+        }
+
+        public async Task ExpandBoilerDrumAndValveTypeTestAsync(CancellationToken ct = default)
+        {
+            var entry = _connection.ToPublishedNodesEntry();
+            entry.OpcNodes = new[]
+            {
+                new OpcNodeModel
+                {
+                    Id = Boiler.ObjectTypeIds.BoilerDrumType.ToString()
+                },
+                new OpcNodeModel
+                {
+                    Id = Boiler.ObjectTypeIds.ValveType.ToString()
+                }
+            };
+            var results = await _service.ExpandAsync(entry,
+                new PublishedNodeExpansionModel
+                {
+                    DiscardErrors = false,
+                    ExcludeRootIfInstanceNode = false,
+                    NoSubTypesOfTypeNodes = false,
+                    FlattenTypeInstance = false,
+                    CreateSingleWriter = false
+                }, ct).ToListAsync(ct).ConfigureAwait(false);
+
+            Assert.Equal(6, results.Count);
+            var groups = results.GroupBy(r =>
+                (r.Result?.DataSetWriterGroup, r.Result?.WriterGroupRootNodeId));
+            Assert.Equal(4, groups.Count()); // 2 drum, 2 valve
+            Assert.All(results, r =>
+            {
+                Assert.Null(r.ErrorInfo);
+                Assert.NotNull(r.Result);
+                Assert.NotNull(r.Result.OpcNodes);
+                Assert.True(r.Result.OpcNodes.Count > 0);
+            });
+        }
+
 
         public async Task ExpandVariablesTest1Async(CancellationToken ct = default)
         {
@@ -499,10 +647,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     ExcludeRootIfInstanceNode = false,
                     NoSubTypesOfTypeNodes = false,
                     FlattenTypeInstance = false,
+                    MaxLevelsToExpand = 1,
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
-            Assert.Equal(156, results.Count);
+            Assert.Equal(158, results.Count);
             Assert.All(results, r =>
             {
                 Assert.Null(r.ErrorInfo);
