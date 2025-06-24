@@ -1172,17 +1172,17 @@ If the OPC Publisher has successfully started then this will produce e.g., outpu
 ```json
       ...
       "$version": 3,
-      "__apikey__": "...",
+      "__apikey__": "<api-key>",
       "__certificate__": "...",
       "__type__": "OpcPublisher",
       "__version__": "2.9.11"
       ...
 ```
 
-You can now send HTTP requests to the publisher module http server at `https://localhost:8081` with the Authorization header `ApiKey 6dee3fd4-0bb2-4fb1-9736-99bb4435f020`. E.g., to call this API with the previously retrieved API Key run
+You can now send HTTP requests to the publisher module http server at `https://localhost:8081` with the Authorization header `ApiKey <api-key>`. E.g., to call this API with the previously retrieved API Key run
 
 ```bash
-curl -H "Authorization: ApiKey 6dee3fd4-0bb2-4fb1-9736-99bb4435f020" https://localhost:8081/v2/configuration
+curl -H "Authorization: ApiKey <api-key>" https://localhost:8081/v2/configuration
 {"endpoints":[]}
 ```
 
