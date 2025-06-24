@@ -462,7 +462,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
             try
             {
-                await using var registration = ct.Register(() => tcs.TrySetCanceled());
+                await using var registration = ct.Register(() => tcs.TrySetCanceled()).ConfigureAwait(false);
                 _logger.Resetting(this);
                 TriggerConnectionEvent(ConnectionEvent.Reset, tcs);
             }

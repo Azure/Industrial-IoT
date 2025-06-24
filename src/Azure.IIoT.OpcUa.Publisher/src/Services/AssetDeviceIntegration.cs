@@ -5,6 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
+    using Avro.File;
+    using Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Parser;
     using Azure.Iot.Operations.Connector.Files;
@@ -13,7 +15,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
-    using Opc.Ua;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -72,7 +73,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _processor = Task.Factory.StartNew(() => RunAsync(_cts.Token), _cts.Token,
                 TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
             _timer = new PeriodicTimer(TimeSpan.FromSeconds(30));
-            _discovery = Task.Factory.StartNew(() => DiscoverAsync(_cts.Token), _cts.Token,
+            _discovery = Task.Factory.StartNew(() => RunDiscoveryPeriodicallyAsync(_cts.Token), _cts.Token,
                 TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
         }
 
@@ -96,7 +97,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 catch (OperationCanceledException) { }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to close discovery");
+                    _logger.LogError(ex, "Failed to close discovery runner.");
                 }
                 try
                 {
@@ -105,7 +106,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 catch (OperationCanceledException) { }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to close processor");
+                    _logger.LogError(ex, "Failed to close conversion processor");
                 }
             }
             finally
@@ -153,6 +154,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var name = CreateDeviceKey(deviceName, inboundEndpointName);
             if (!_devices.TryRemove(name, out var deviceResource))
             {
+                _logger.LogDebug("Reported deletion for resource {Resource} which was not found.",
+                     name);
                 return;
             }
             Interlocked.Increment(ref _lastDeviceListVersion);
@@ -192,6 +195,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var name = CreateAssetKey(deviceName, inboundEndpointName, assetName);
             if (!_assets.TryRemove(name, out var asseteResource))
             {
+                _logger.LogDebug("Reported deletion for resource {Resource} which was not found.",
+                     name);
                 return;
             }
             var success = _changeFeed.Writer.TryWrite((name, asseteResource));
@@ -205,7 +210,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async Task RunAsync(CancellationToken ct)
+        internal async Task RunAsync(CancellationToken ct)
         {
             try
             {
@@ -307,8 +312,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="errors"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        internal async ValueTask DiscoverAsync(DeviceEndpointResource resource, HashSet<string> types,
-            ValidationErrors errors, CancellationToken ct)
+        internal async ValueTask RunDiscoveryUsingTypesAsync(DeviceEndpointResource resource,
+            HashSet<string> types, ValidationErrors errors, CancellationToken ct)
         {
             if (resource.Device.Endpoints?.Inbound == null ||
                 !resource.Device.Endpoints.Inbound.TryGetValue(resource.EndpointName, out var endpoint))
@@ -360,6 +365,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     if (found.ErrorInfo != null)
                     {
                         // Add to cumulative log
+                        errors.OnError(resource, kDiscoveryError, found.ErrorInfo.ToString());
                         continue;
                     }
                     if (found.Result?.OpcNodes == null ||
@@ -368,6 +374,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         found.Result.WriterGroupRootNodeId == null ||
                         found.Result.WriterGroupType == null)
                     {
+                        _logger.LogWarning("Dropping result {Result} without required information.",
+                            found.Result);
                         continue;
                     }
                     assetEntries.Add(found.Result);
@@ -431,19 +439,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             DataSource = n.Id!,
                             TypeRef = n.VariableTypeDefinitionId
                         }).ToList(),
-                        Destinations = null,
-                        // TODO Set topic to what it would be based on structure
-
-                        // Destinations = new List<DatasetDestination>
-                        // {
-                        //      new DatasetDestination
-                        //     {
-                        //          Configuration = new DestinationConfiguration
-                        //         {
-                        //              Topic = // TODO
-                        //         }
-                        //     }
-                        // }
+                        Destinations =
+                        [
+                            new DatasetDestination
+                            {
+                                Target = DatasetTarget.Mqtt,
+                                Configuration = new DestinationConfiguration
+                                {
+                                    Qos = _options.Value.DefaultQualityOfService
+                                        == Furly.Extensions.Messaging.QoS.AtMostOnce ? QoS.Qos0 : QoS.Qos1,
+                                    Topic =
+                                        $"{_options.Value.PublisherId}/data/{d.DataSetWriterGroup}/{d.DataSetName}",
+                                    Retain = _options.Value.DefaultMessageRetention
+                                        == true ? Retain.Keep : Retain.Never,
+                                    Ttl = (ulong?)_options.Value.DefaultMessageTimeToLive?.TotalSeconds
+                                }
+                            }
+                        ],
                     }),
                     // TODO: Add events
                     Events = null
@@ -476,8 +488,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     !deviceResource.Device.Endpoints.Inbound.TryGetValue(
                         asset.Asset.DeviceRef.EndpointName, out var endpoint))
                 {
-                    _logger.LogError("Device referenced by asset was not found");
-                    errors.OnError(asset, kDeviceNotFoundErrorCode, "Device was not found");
+                    errors.OnError(asset, kDeviceNotFoundErrorCode,
+                        "Device referenced by asset was not found");
                     continue;
                 }
                 var deviceEndpointResource = new DeviceEndpointResource(
@@ -580,7 +592,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="asset"></param>
         /// <param name="device"></param>
         /// <returns></returns>
-        private static Dictionary<string, VariantValue>? CollectAssetAndDeviceProperties(
+        internal static Dictionary<string, VariantValue>? CollectAssetAndDeviceProperties(
             AssetResource asset, DeviceResource device)
         {
             var fields = new Dictionary<string, VariantValue>();
@@ -588,7 +600,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 if (!VariantValue.IsNullOrNullValue(value))
                 {
-                    fields.Add(key, value);
+                    fields.AddOrUpdate(key, value);
                 }
             }
 
@@ -732,8 +744,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
             }
             var entry = CreateEntryForEntityOfAsset(template, datasetTemplate, nodes);
-            AddDestination(entry, resource.Asset.DefaultDatasetsDestinations, resource.DataSet.Destinations,
-                errors, resource);
+            AddDestination(entry, resource.Asset.DefaultDatasetsDestinations,
+                resource.DataSet.Destinations, errors, resource);
             entries.Add(entry with
             {
                 // Dataset maps to DataSetWriter
@@ -929,6 +941,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             entry = WithoutDestinationConfiguration(entry);
             if (destinations?.Count > 1)
             {
+                // TODO: We could generate 2 or more entries each with different destination
                 errors.OnError(resource, kTooManyDestinationsError,
                     "More than 1 destination is not allowed for datasets. Using Mqtt");
             }
@@ -1062,7 +1075,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
-        internal async Task DiscoverAsync(CancellationToken ct)
+        internal async Task RunDiscoveryPeriodicallyAsync(CancellationToken ct)
         {
             while (!ct.IsCancellationRequested &&
                 await _timer.WaitForNextTickAsync(ct).ConfigureAwait(false))
@@ -1092,7 +1105,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         // Run discovery
                         try
                         {
-                            await DiscoverAsync(deviceEndpointResource,
+                            await RunDiscoveryUsingTypesAsync(deviceEndpointResource,
                                 endpointConfiguration.AssetTypes, errors, ct).ConfigureAwait(false);
                         }
                         catch (Exception ex)
@@ -1199,6 +1212,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <param name="error"></param>
             public void OnError(Resource resource, string code, string error)
             {
+                _outer._logger.LogWarning("Encountered Error {Code} {Error} for resource {Resource}.",
+                    code, error, resource);
                 switch (resource)
                 {
                     case DeviceEndpointResource dr:
@@ -1237,6 +1252,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <returns></returns>
             public async ValueTask ReportAsync(CancellationToken ct)
             {
+                if (_devices.Count > 0 || _assets.Count > 0)
+                {
+                    _outer._logger.LogInformation("Reporting status for {Assets} assets and {Devices} devices.",
+                        _assets.Count, _devices.Count);
+                }
+
                 var client = _outer._client;
                 foreach (var (deviceName, status) in _devices)
                 {
