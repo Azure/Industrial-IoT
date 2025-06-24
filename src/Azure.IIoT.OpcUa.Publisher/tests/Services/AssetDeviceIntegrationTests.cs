@@ -24,6 +24,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 
     public class AssetDeviceIntegrationTests
     {
+        public AssetDeviceIntegrationTests()
+        {
+            _optionsMock.SetupGet(o => o.Value).Returns(new PublisherOptions
+            {
+                PublisherId = "aio"
+            });
+        }
+
         [Fact]
         public void ConstructorInitializesFields()
         {
