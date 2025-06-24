@@ -1172,17 +1172,17 @@ If the OPC Publisher has successfully started then this will produce e.g., outpu
 ```json
       ...
       "$version": 3,
-      "__apikey__": "...",
+      "__apikey__": "<api-key>",
       "__certificate__": "...",
       "__type__": "OpcPublisher",
       "__version__": "2.9.11"
       ...
 ```
 
-You can now send HTTP requests to the publisher module http server at `https://localhost:8081` with the Authorization header `ApiKey 6dee3fd4-0bb2-4fb1-9736-99bb4435f020`. E.g., to call this API with the previously retrieved API Key run
+You can now send HTTP requests to the publisher module http server at `https://localhost:8081` with the Authorization header `ApiKey <api-key>`. E.g., to call this API with the previously retrieved API Key run
 
 ```bash
-curl -H "Authorization: ApiKey 6dee3fd4-0bb2-4fb1-9736-99bb4435f020" https://localhost:8081/v2/configuration
+curl -H "Authorization: ApiKey <api-key>" https://localhost:8081/v2/configuration
 {"endpoints":[]}
 ```
 
@@ -1387,7 +1387,7 @@ To simplify the getting started experience, the OPC Publisher Edge module has a 
 
 ## OPC UA stack
 
-The OPC UA .NET Standard reference stack of the OPC Foundation (contributed by Microsoft) is used for OPC UA secure communications by the Industrial IoT platform. Modules and services consume the re-distributable NuGet package licensed by the OPC Foundation. The open source for the reference implementation is provided by the OPC Foundation on GitHub in [this public repository](https://github.com/OPCFoundation/UA-.NETStandard).
+The OPC UA .NET Standard reference stack of the OPC Foundation (contributed by Microsoft) is used for OPC UA secure communications by OPC Publisher. Modules and services consume the re-distributable NuGet package licensed by the OPC Foundation. The open source for the reference implementation is provided by the OPC Foundation on GitHub in [this public repository](https://github.com/OPCFoundation/UA-.NETStandard).
 
 ## Performance and Memory Tuning OPC Publisher
 
