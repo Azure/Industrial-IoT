@@ -5,10 +5,10 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
-    using Autofac;
-    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Module.Controllers;
     using Azure.IIoT.OpcUa.Publisher.Services;
+    using Azure.IIoT.OpcUa.Encoders;
+    using Autofac;
     using Furly.Azure.EventHubs;
     using Furly.Azure.IoT.Edge;
     using Furly.Azure.IoT.Operations.Services;

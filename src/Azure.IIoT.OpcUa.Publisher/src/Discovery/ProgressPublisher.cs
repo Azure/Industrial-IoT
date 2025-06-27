@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Discovery
 {
-    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Encoders;
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;

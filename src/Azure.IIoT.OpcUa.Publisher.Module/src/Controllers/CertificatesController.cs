@@ -5,10 +5,10 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
 {
-    using Asp.Versioning;
-    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Module.Filters;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
+    using Asp.Versioning;
     using Furly;
     using Furly.Tunnel.Router;
     using Microsoft.AspNetCore.Authorization;

@@ -6,10 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using System;
-    using System.Collections.Generic;
-    using JsonDataSetMessageContentMask = Opc.Ua.JsonDataSetMessageContentMask;
-    using JsonNetworkMessageContentMask = Opc.Ua.JsonNetworkMessageContentMask;
     using UaAggregateBits = Opc.Ua.AggregateBits;
     using UaApplicationType = Opc.Ua.ApplicationType;
     using UaBrowseDirection = Opc.Ua.BrowseDirection;
@@ -17,15 +13,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     using UaDataSetFieldContentMask = Opc.Ua.DataSetFieldContentMask;
     using UaDeadbandType = Opc.Ua.DeadbandType;
     using UaDiagnosticsLevel = Opc.Ua.DiagnosticsMasks;
-    using UadpDataSetMessageContentMask = Opc.Ua.UadpDataSetMessageContentMask;
-    using UadpNetworkMessageContentMask = Opc.Ua.UadpNetworkMessageContentMask;
     using UaExceptionDeviationFormat = Opc.Ua.ExceptionDeviationFormat;
     using UaFilterOperator = Opc.Ua.FilterOperator;
+    using JsonDataSetMessageContentMask = Opc.Ua.JsonDataSetMessageContentMask;
+    using JsonNetworkMessageContentMask = Opc.Ua.JsonNetworkMessageContentMask;
+    using UaSecurityMode = Opc.Ua.MessageSecurityMode;
     using UaMonitoringMode = Opc.Ua.MonitoringMode;
     using UaNodeClass = Opc.Ua.NodeClass;
     using UaPermissionType = Opc.Ua.PermissionType;
-    using UaSecurityMode = Opc.Ua.MessageSecurityMode;
     using UaTimestampsToReturn = Opc.Ua.TimestampsToReturn;
+    using UadpDataSetMessageContentMask = Opc.Ua.UadpDataSetMessageContentMask;
+    using UadpNetworkMessageContentMask = Opc.Ua.UadpNetworkMessageContentMask;
+    using System;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Stack types conversions

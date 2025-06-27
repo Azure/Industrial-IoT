@@ -5,22 +5,22 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 {
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.Iot.Operations.Services.AssetAndDeviceRegistry.Models;
-    using AssetModel = Iot.Operations.Services.AssetAndDeviceRegistry.Models.Asset;
     using Furly.Azure.IoT.Operations.Services;
     using Furly.Extensions.Serializers;
+    using AssetModel = Iot.Operations.Services.AssetAndDeviceRegistry.Models.Asset;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using Moq;
     using System;
+    using System.Buffers;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
-    using Microsoft.Extensions.Options;
-    using System.Collections.Generic;
-    using Azure.IIoT.OpcUa.Publisher.Models;
-    using System.Linq;
-    using System.Buffers;
-    using System.Threading;
 
     public class AssetDeviceIntegrationTests
     {

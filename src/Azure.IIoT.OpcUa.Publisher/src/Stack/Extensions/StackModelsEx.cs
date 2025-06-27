@@ -9,12 +9,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     using Furly.Extensions.Serializers;
     using Opc.Ua;
     using Opc.Ua.Extensions;
+    using DiagnosticsLevel = Publisher.Models.DiagnosticsLevel;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Threading.Tasks;
-    using DiagnosticsLevel = Publisher.Models.DiagnosticsLevel;
 
     /// <summary>
     /// Stack models extensions

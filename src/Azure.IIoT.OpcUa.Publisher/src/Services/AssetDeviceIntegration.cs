@@ -5,12 +5,12 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
-    using Avro.File;
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Parser;
     using Azure.Iot.Operations.Connector.Files;
     using Azure.Iot.Operations.Services.AssetAndDeviceRegistry.Models;
+    using Avro.File;
     using Furly.Azure.IoT.Operations.Services;
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;

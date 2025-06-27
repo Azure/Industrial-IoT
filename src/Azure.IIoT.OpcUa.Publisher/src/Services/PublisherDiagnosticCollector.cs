@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
-    using Autofac;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Autofac;
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Concurrent;

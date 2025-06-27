@@ -13,6 +13,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
+    using BrowseDirection = Models.BrowseDirection;
+    using NodeClass = Models.NodeClass;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
@@ -22,8 +24,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using BrowseDirection = Models.BrowseDirection;
-    using NodeClass = Models.NodeClass;
 
     /// <summary>
     /// This class provides access to a servers address space providing node

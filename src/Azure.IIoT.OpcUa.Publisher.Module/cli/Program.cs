@@ -5,12 +5,12 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
-    using Autofac;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Sample;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
+    using Autofac;
     using Furly.Azure;
     using Furly.Azure.IoT;
     using Furly.Azure.IoT.Models;

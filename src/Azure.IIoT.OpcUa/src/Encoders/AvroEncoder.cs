@@ -5,10 +5,10 @@
 
 namespace Azure.IIoT.OpcUa.Encoders
 {
-    using Avro;
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Encoders.Schemas.Avro;
+    using Avro;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;

@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
 {
-    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
     using System;
     using System.Linq;

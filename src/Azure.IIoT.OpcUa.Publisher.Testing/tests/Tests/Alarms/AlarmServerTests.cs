@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
-    using Alarms;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Alarms;
     using FluentAssertions;
     using System;
     using System.Collections.Generic;

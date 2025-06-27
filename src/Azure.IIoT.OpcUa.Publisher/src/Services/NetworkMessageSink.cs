@@ -5,10 +5,10 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
-    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Messaging.Clients;
     using Microsoft.Extensions.Logging;

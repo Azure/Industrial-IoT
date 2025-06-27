@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
 {
-    using Autofac;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
+    using Autofac;
     using Furly.Exceptions;
     using Opc.Ua;
     using System;

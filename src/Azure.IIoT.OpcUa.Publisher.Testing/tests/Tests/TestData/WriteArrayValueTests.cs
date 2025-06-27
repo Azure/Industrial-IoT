@@ -5,8 +5,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
-    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Encoders;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Json;
     using Opc.Ua;

@@ -5,11 +5,11 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
-    using Autofac;
-    using Azure.IIoT.OpcUa.Encoders;
-    using Azure.IIoT.OpcUa.Publisher.Parser;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
+    using Azure.IIoT.OpcUa.Publisher.Parser;
+    using Azure.IIoT.OpcUa.Encoders;
+    using Autofac;
 
     /// <summary>
     /// Container builder extensions

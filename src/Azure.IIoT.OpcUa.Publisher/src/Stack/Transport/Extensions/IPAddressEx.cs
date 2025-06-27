@@ -5,8 +5,8 @@
 
 namespace System.Net
 {
-    using Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models;
     using System.Threading.Tasks;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Transport.Models;
 
     /// <summary>
     /// Ip address extensions
