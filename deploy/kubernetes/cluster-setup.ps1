@@ -68,6 +68,7 @@ param(
 )
 
 $forceReinstall = $Force.IsPresent
+$test = $true
 
 #Requires -RunAsAdministrator
 
@@ -132,12 +133,46 @@ if ($installAz) {
 # install required az extensions
 az config set extension.dynamic_install_allow_preview=true 2>&1 | Out-Null `
     -ErrorAction SilentlyContinue
-$extensions  =
-@(
-    "connectedk8s",
-    "azure-iot-ops",
-    "k8s-configuration"
-)
+$ensureLatest = "false"
+$extensions = @( "connectedk8s", "k8s-configuration" )
+if (!$script:UsePreviewExtension.IsPresent) {
+    $ensureLatest = "true"
+    $extensions += "azure-iot-ops"
+}
+elseif (!$test) {
+    $iotOpsWhl = $($(az storage blob list `
+        --container-name drop --account-name azedgecli --auth-mode login `
+        --query "max_by([?!contains(name, '255.255')].{ Name:name, Date:properties.creationTime }, &Date)" `
+        --output json) | ConvertFrom-Json).Name
+    if ((-not $?) -or (-not $iotOpsWhl)) {
+        Write-Host "Error: No preview extension found." -ForegroundColor Red
+        exit -1
+    }
+    else {
+        $extensionVersion = $iotOpsWhl -replace "azext_iot_ops-", "" -replace "-py3-none-any.whl", ""
+        # Create a temp folder
+        $temp = New-Item -ItemType Directory -Path ([System.IO.Path]::GetTempPath()) `
+            -Name ([System.Guid]::NewGuid().ToString()) | Select-Object -ExpandProperty FullName
+        $ext="$($temp)/$($iotOpsWhl)"
+        $errOut = $($stdOut = & {az storage blob download `
+            --auth-mode login `
+            --container-name drop `
+            --account-name azedgecli `
+            --name $iotOpsWhl `
+            --file $ext}) 2>&1
+        if ($?) {
+            $errOut = $($stdOut = & {az extension add --allow-preview true `
+                --upgrade --yes --source $ext}) 2>&1
+        }
+        if (-not $?) {
+            Write-Host "Error installing az iot ops extension $($extensionVersion) - $errOut." `
+                -ForegroundColor Red
+            exit -1
+        }
+        Write-Host "Using iot ops preview extension version $($extensionVersion)..." `
+            -ForegroundColor Cyan
+    }
+}
 foreach ($p in $extensions) {
     $errOut = $($stdOut = & {az extension add `
         --upgrade `
@@ -151,38 +186,6 @@ foreach ($p in $extensions) {
 }
 if (![string]::IsNullOrWhiteSpace($SubscriptionId)) {
     az account set --subscription $SubscriptionId 2>&1 | Out-Null
-}
-$ensureLatest = "true"
-if ($script:UsePreviewExtension.IsPresent) {
-    $iotOpsExtensionFile = $($(az storage blob list `
-        --container-name drop --account-name azedgecli --auth-mode login `
-        --query "max_by([?!contains(name, '255.255')].{ Name:name, Date:properties.creationTime }, &Date)" `
-        --output json) | ConvertFrom-Json).Name
-    $extensionVersion = $iotOpsExtensionFile `
-        -replace "azext_iot_ops-", "" `
-        -replace "-py3-none-any.whl", ""
-    # Create a temp folder
-    $temp = New-Item -ItemType Directory -Path ([System.IO.Path]::GetTempPath()) `
-        -Name ([System.Guid]::NewGuid().ToString()) | Select-Object -ExpandProperty FullName
-    $ext="$($temp)/$($iotOpsExtensionFile)"
-    $errOut = $($stdOut = & {az storage blob download `
-        --auth-mode login `
-        --container-name drop `
-        --account-name azedgecli `
-        --name $iotOpsExtensionFile `
-        --file $ext}) 2>&1
-    if ($?) {
-        $errOut = $($stdOut = & {az extension add --allow-preview true `
-            --upgrade --yes --source $ext}) 2>&1
-    }
-    if (-not $?) {
-        Write-Host "Error installing az iot ops extension version $extensionVersion - $errOut." `
-            -ForegroundColor Red
-        exit -1
-    }
-    Write-Host "Using iot ops preview extension version $($extensionVersion)..." `
-        -ForegroundColor Cyan
-    $ensureLatest = "false"
 }
 
 # install chocolatey
@@ -234,32 +237,42 @@ if ([string]::IsNullOrWhiteSpace($TenantId)) {
     $TenantId = $session[0].tenantId
 }
 
+if ($script:Connector -eq "Local" -or $script:Connector -eq "Debug") {
+    Write-Host "Building opc publisher as connector..." -ForegroundColor Cyan
+    $projFile = "Azure.IIoT.OpcUa.Publisher.Module"
+    $projFile = "../../src/$($projFile)/src/$($projFile).csproj"
+    $configuration = $script:Connector
+    if ($configuration -eq "Local") {
+        $configuration = "Release"
+    }
+    dotnet restore $projFile -s https://api.nuget.org/v3/index.json
+    dotnet publish $projFile -c $configuration --self-contained false `
+        /t:PublishContainer -r linux-x64 /p:ContainerImageTag=debug
+    if (-not $?) {
+        Write-Host "Error building opc publisher as connector." -ForegroundColor Red
+        exit -1
+    }
+}
+
 #
 # Create the cluster
 #
-$distro = "K8s"
 if ($ClusterType -eq "none") {
     Write-Host "Skipping cluster creation..." -ForegroundColor Green
 }
 elseif ($ClusterType -eq "microk8s") {
-    $distro = "microk8s"
     $errOut = $($stdOut = & {microk8s status}) 2>&1
     if (-not $?) {
         Write-Host "Error querying microk8s status - $errOut" -ForegroundColor Red
         exit -1
     }
-    if ($forceReinstall) {
-        Write-Host "Resetting microk8s cluster..." -ForegroundColor Cyan
-        microk8s uninstall
-        microk8s install --cpu 4 --mem 16
-        microk8s start
-        Write-Host "Microk8s re-installed and started..." -ForegroundColor Green
-    }
-    elseif ($stdOut -match "microk8s is running") {
+    if (!$forceReinstall -and $stdOut -match "microk8s is running") {
         Write-Host "Microk8s cluster is running..." -ForegroundColor Green
     }
     else {
-        Write-Host "Starting microk8s cluster..." -ForegroundColor Cyan
+        Write-Host "Resetting microk8s cluster..." -ForegroundColor Cyan
+        microk8s uninstall
+        microk8s install --cpu 4 --mem 16
         microk8s start
         if (-not $?) {
             Write-Host "Error starting microk8s cluster - $errOut" -ForegroundColor Red
@@ -289,7 +302,6 @@ elseif ($ClusterType -eq "microk8s") {
     # microk8s dashboard-proxy
 }
 elseif ($ClusterType -eq "k3d") {
-    $distro = "K3s"
     $errOut = $($table = & {k3d cluster list --no-headers} -split "`n") 2>&1
     if (-not $?) {
         Write-Host "Error querying k3d clusters - $errOut" -ForegroundColor Red
@@ -479,7 +491,8 @@ $resourceProviders =
 )
 foreach ($rp in $resourceProviders) {
     $errOut = $($obj = & {az provider show -n $rp `
-        --subscription $SubscriptionId | ConvertFrom-Json}) 2>&1
+        --subscription $SubscriptionId `
+        --only-show-errors --output json | ConvertFrom-Json}) 2>&1
     if (-not $?) {
         Write-Host "Error querying provider $rp : $errOut" -ForegroundColor Red
         exit -1
@@ -500,7 +513,8 @@ foreach ($rp in $resourceProviders) {
 $errOut = $($rg = & {az group show `
     --name $srName `
     --resource-group $ResourceGroup `
-    --subscription $SubscriptionId} | ConvertFrom-Json) 2>&1
+    --subscription $SubscriptionId `
+    --only-show-errors --output json} | ConvertFrom-Json) 2>&1
 if ($rg -and $forceReinstall) {
     Write-Host "Deleting existing resource group $($rg.Name)..." `
         -ForegroundColor Yellow
@@ -513,7 +527,8 @@ if (!$rg) {
     $errOut = $($rg = & {az group create `
         --name $ResourceGroup `
         --location $Location `
-        --subscription $SubscriptionId} | ConvertFrom-Json) 2>&1
+        --subscription $SubscriptionId `
+        --only-show-errors --output json} | ConvertFrom-Json) 2>&1
     if (-not $? -or !$rg) {
         Write-Host "Error creating resource group - $errOut." -ForegroundColor Red
         exit -1
@@ -532,14 +547,16 @@ else {
 $errOut = $($mi = & {az identity show `
     --name $Name `
     --resource-group $($rg.Name) `
-    --subscription $SubscriptionId} | ConvertFrom-Json) 2>&1
+    --subscription $SubscriptionId `
+    --only-show-errors --output json} | ConvertFrom-Json) 2>&1
 if (!$mi) {
     Write-Host "Creating managed identity $Name..." -ForegroundColor Cyan
     $errOut = $($mi = & {az identity create `
         --name $Name `
         --location $Location `
         --resource-group $($rg.Name) `
-        --subscription $SubscriptionId} | ConvertFrom-Json) 2>&1
+        --subscription $SubscriptionId `
+        --only-show-errors --output json} | ConvertFrom-Json) 2>&1
     if (-not $? -or !$mi) {
         Write-Host "Error creating managed identity - $errOut." -ForegroundColor Red
         exit -1
@@ -555,7 +572,8 @@ $storageAccountName = $Name.Replace("-", "")
 $errOut = $($stg = & {az storage account show `
     --name $storageAccountName `
     --resource-group $($rg.Name) `
-    --subscription $SubscriptionId} | ConvertFrom-Json) 2>&1
+    --subscription $SubscriptionId `
+    --only-show-errors --output json} | ConvertFrom-Json) 2>&1
 if (!$stg) {
     Write-Host "Creating Storage account $storageAccountName" -ForegroundColor Cyan
     $errOut = $($stg = & {az storage account create `
@@ -564,7 +582,8 @@ if (!$stg) {
         --resource-group $($rg.Name) `
         --allow-shared-key-access false `
         --enable-hierarchical-namespace `
-        --subscription $SubscriptionId} | ConvertFrom-Json) 2>&1
+        --subscription $SubscriptionId `
+        --only-show-errors --output json} | ConvertFrom-Json) 2>&1
     if (-not $? -or !$stg) {
         Write-Host "Error creating storage $storageAccountName - $errOut." `
             -ForegroundColor Red
@@ -580,7 +599,8 @@ else {
 $keyVaultName = $Name + "kv"
 $errOut = $($kv = & {az keyvault show `
     --name $keyVaultName `
-    --subscription $SubscriptionId} | ConvertFrom-Json) 2>&1
+    --subscription $SubscriptionId `
+    --only-show-errors --output json} | ConvertFrom-Json) 2>&1
 if (!$kv) {
     Write-Host "Creating Key vault $keyVaultName" -ForegroundColor Cyan
     az keyvault purge --name $keyVaultName --location $Location `
@@ -589,7 +609,8 @@ if (!$kv) {
         --enable-rbac-authorization true `
         --name $keyVaultName `
         --resource-group $($rg.Name) `
-        --subscription $SubscriptionId} | ConvertFrom-Json) 2>&1
+        --subscription $SubscriptionId `
+        --only-show-errors --output json} | ConvertFrom-Json) 2>&1
     if (-not $? -or !$kv) {
         Write-Host "Error creating Azure Keyvault - $errOut." `
             -ForegroundColor Red
@@ -613,7 +634,8 @@ $srName = "$($Name.ToLowerInvariant())sr"
 $errOut = $($sr = & {az iot ops schema registry show `
     --name $srName `
     --resource-group $($rg.Name) `
-    --subscription $SubscriptionId} | ConvertFrom-Json) 2>&1
+    --subscription $SubscriptionId `
+    --only-show-errors --output json} | ConvertFrom-Json) 2>&1
 if (!$sr) {
     Write-Host "Creating Azure IoT Operations schema registry..." -ForegroundColor Cyan
     $errOut = $($sr = & {az iot ops schema registry create `
@@ -622,7 +644,8 @@ if (!$sr) {
         --registry-namespace $srName `
         --location $Location `
         --sa-resource-id $stg.id `
-        --subscription $SubscriptionId} | ConvertFrom-Json) 2>&1
+        --subscription $SubscriptionId `
+        --only-show-errors --output json} | ConvertFrom-Json) 2>&1
     if (-not $? -or !$sr) {
         Write-Host "Error creating Azure IoT Operations schema registry - $errOut." `
             -ForegroundColor Red
@@ -666,32 +689,69 @@ foreach ($ra in $roleassignments) {
 $errOut = $($cc = & {az connectedk8s show `
     --name $Name `
     --resource-group $($rg.Name) `
-    --subscription $SubscriptionId} | ConvertFrom-Json) 2>&1
-if (!$cc -or $forceReinstall) {
-    Write-Host "Connecting cluster to Arc in $($rg.Name)..." -ForegroundColor Cyan
-    $cc = az connectedk8s connect -n $Name -g $Name --subscription $SubscriptionId `
-        --correlation-id "d009f5dd-dba8-4ac7-bac9-b54ef3a6671a" 2>&1 | Out-Host
-    if (-not $?) {
-        Write-Host "Error: connecting cluster to Arc failed." -ForegroundColor Red
-        exit -1
-    }
-    Write-Host "Cluster $Name connected to Arc." -ForegroundColor Green
+    --subscription $SubscriptionId `
+    --only-show-errors --output json} | ConvertFrom-Json) 2>&1
+if ($cc -and !$forceReinstall) {
+    Write-Host "Cluster $($cc.name) already connected to Arc." -ForegroundColor Green
 }
 else {
-    Write-Host "Cluster $($cc.name) already connected." -ForegroundColor Green
+    if ($cc) {
+        Write-Host "Disconnecting existing Arc cluster $($cc.name)..." `
+            -ForegroundColor Yellow
+        az connectedk8s delete `
+            --name $cc.name `
+            --resource-group $($rg.Name) `
+            --subscription $SubscriptionId `
+            --yes 2>&1 | Out-Null
+        if (-not $?) {
+            Write-Host "Error: disconnecting cluster $($cc.name) from Arc failed." `
+                -ForegroundColor Red
+            exit -1
+        }
+    }
+    Write-Host "Connecting cluster to Arc in $($rg.Name)..." -ForegroundColor Cyan
+    az connectedk8s connect `
+        --name $Name `
+        --resource-group $($rg.Name) `
+        --subscription $SubscriptionId `
+        --correlation-id "d009f5dd-dba8-4ac7-bac9-b54ef3a6671a" 2>&1 | Out-Host
+    if (-not $?) {
+        Write-Host "Error: connecting cluster $($Name) to Arc failed." -ForegroundColor Red
+        exit -1
+    }
+    $errOut = $($cc = & {az connectedk8s show `
+        --name $Name `
+        --resource-group $($rg.Name) `
+        --subscription $SubscriptionId `
+        --only-show-errors --output json} | ConvertFrom-Json) 2>&1
+    Write-Host "Cluster $($cc.name) connected to Arc." -ForegroundColor Green
 }
 
 # enable custom location feature
 $errOut = $($objectId = & {az ad sp show `
     --id bc313c14-388c-4e7d-a58e-70017303ee3b --query id -o tsv}) 2>&1
+Write-Host "Enabling custom location feature for cluster $Name..." -ForegroundColor Cyan
 az connectedk8s enable-features `
-    --name $Name `
+    --name $cc.name `
     --resource-group $rg.Name `
     --subscription $SubscriptionId `
     --custom-locations-oid $objectId `
     --features cluster-connect custom-locations
 if (-not $?) {
     Write-Host "Error: Failed to enable custom location feature." -ForegroundColor Red
+    exit -1
+}
+# enable workload identity
+Write-Host "Enabling workload identity for cluster $Name..." -ForegroundColor Cyan
+az connectedk8s update `
+    --name $cc.name `
+    --resource-group $rg.Name `
+    --subscription $SubscriptionId `
+    --auto-upgrade true `
+    --enable-oidc-issuer `
+    --enable-workload-identity
+if (-not $?) {
+    Write-Host "Error: Failed to enable workload identity." -ForegroundColor Red
     exit -1
 }
 
@@ -702,8 +762,8 @@ $adrNsResource="/subscriptions/$($SubscriptionId)"
 $adrNsResource="$($adrNsResource)/resourceGroups/$($rg.Name)"
 $adrNsResource="$($adrNsResource)/providers/Microsoft.DeviceRegistry/namespaces/$($Name)"
 $ns = & {az rest --method get `
-  --url "$($adrNsResource)?api-version=2025-07-01-preview" `
-  --headers "Content-Type=application/json"} | ConvertFrom-Json 2>&1
+    --url "$($adrNsResource)?api-version=2025-07-01-preview" `
+    --headers "Content-Type=application/json"} | ConvertFrom-Json 2>&1
 if ($? -and $ns -and $ns.id) {
     Write-Host "ADR namespace $adrNsResource already exists." -ForegroundColor Green
 }
@@ -733,7 +793,8 @@ else {
 $errOut = $($iotOps = & {az iot ops show `
     --resource-group $($rg.Name) `
     --name $Name `
-    --subscription $SubscriptionId} | ConvertFrom-Json) 2>&1
+    --subscription $SubscriptionId `
+    --only-show-errors --output json} | ConvertFrom-Json) 2>&1
 if (!$iotOps) {
     Write-Host "Initializing cluster $Name for deployment of Azure IoT operations..." `
         -ForegroundColor Cyan
@@ -744,13 +805,8 @@ if (!$iotOps) {
         "--resource-group", $rg.Name, `
         "--subscription", $SubscriptionId, `
         "--ensure-latest", $ensureLatest, `
-        "--enable-fault-tolerance", "false", `
         "--only-show-errors"
-        )
-    if ($script:OpsVersion) {
-        $iotOpsInit += "--ops-train", $script:OpsTrain
-        $iotOpsInit += "--ops-version", $script:OpsVersion
-    }
+    )
     & az iot ops $iotOpsInit
     if (-not $?) {
         Write-Host "Error initializing cluster $Name for Azure IoT Operations." `
@@ -769,7 +825,6 @@ if (!$iotOps) {
         "--location", $Location, `
         "--sr-resource-id", $sr.id, `
         "--ns-resource-id", $adrNsResource, `
-        "--kubernetes-distro", $distro, `
         "--enable-rsync", "true", `
         "--add-insecure-listener", "true", `
         "--only-show-errors"
@@ -787,7 +842,17 @@ if (!$iotOps) {
             exit -1
         }
     }
-    Write-Host "Azure IoT Operations instance $Name created." `
+    $errOut = $($iotOps = & {az iot ops show `
+        --resource-group $($rg.Name) `
+        --name $Name `
+        --subscription $SubscriptionId `
+        --only-show-errors --output json} | ConvertFrom-Json) 2>&1
+    if (-not $iotOps) {
+        Write-Host "Error retrieving created Azure IoT Operations instance - $errOut." `
+            -ForegroundColor Red
+        exit -1
+    }
+    Write-Host "Azure IoT Operations instance $($iotOps.id) created." `
         -ForegroundColor Green
 }
 else {
@@ -818,7 +883,8 @@ else {
 $errOut = $($mia = & {az iot ops identity show `
     --name $iotOps.name `
     --resource-group $($rg.Name) `
-    --subscription $SubscriptionId} | ConvertFrom-Json) 2>&1
+    --subscription $SubscriptionId `
+    --only-show-errors --output json} | ConvertFrom-Json) 2>&1
 if (!$mia) {
     Write-Host "Assign managed identity $($mi.id) to instance $($iotOps.id)..." `
         -ForegroundColor Cyan
@@ -826,7 +892,8 @@ if (!$mia) {
         --name $iotOps.name `
         --resource-group $($rg.Name) `
         --subscription $SubscriptionId `
-        --mi-user-assigned $mi.id} | ConvertFrom-Json) 2>&1
+        --mi-user-assigned $mi.id `
+        --only-show-errors --output json} | ConvertFrom-Json) 2>&1
     if (-not $? -or !$mia) {
         Write-Host "Error assigning managed identity to instance - $errOut." `
             -ForegroundColor Red
@@ -841,113 +908,72 @@ else {
         -ForegroundColor Green
 }
 
-$errOut = $($ss = & {az iot ops secretsync show `
-    --name $iotOps.name `
+$errOut = $($ss = & {az iot ops secretsync list `
+    --instance $iotOps.name `
     --resource-group $($rg.Name) `
-    --subscription $SubscriptionId } | ConvertFrom-Json) 2>&1
+    --subscription $SubscriptionId `
+    --only-show-errors --output json } | ConvertFrom-Json) 2>&1
 if (!$ss) {
-    Write-Host "Enabling secret sync with $(kv.id) for instance $($iotOps.id)..." `
+    Write-Host "Enabling secret sync with $($kv.id) for instance $($iotOps.id)..." `
         -ForegroundColor Cyan
     $errOut = $($ss = & {az iot ops secretsync enable `
-        --name $iotOps.name `
+        --instance $iotOps.name `
         --kv-resource-id $kv.id `
-        --resource-group $($rg.Name) `
+        --resource-group $rg.Name `
         --subscription $SubscriptionId `
-        --mi-user-assigned $mi.id} | ConvertFrom-Json) 2>&1
+        --mi-user-assigned $mi.id `
+        --only-show-errors --output json} | ConvertFrom-Json) 2>&1
     if (-not $? -or !$ss) {
         Write-Host "Error enabling secret sync for instance - $errOut." `
             -ForegroundColor Red
         exit -1
     }
-    Write-Host "Secret sync with $(kv.id) enabled for $($iotOps.id)." `
+    Write-Host "Secret sync with $($kv.id) enabled for $($iotOps.id)." `
         -ForegroundColor Green
 }
 else {
-    Write-Host "Secret sync with $(kv.id) already enabled in $($iotOps.id)." `
+    Write-Host "Secret sync with $($kv.id) already enabled in $($iotOps.id)." `
         -ForegroundColor Green
 }
 
-exit 0
+#
+# TODO
+#
+if ($DeployEventHub){
+    Write-Host "Creating eventhub namespace $Name..." -ForegroundColor Cyan
+    az eventhubs namespace create --name $Name --resource-group $($rg.Name) `
+        --location $Location `
+        --disable-local-auth true `
+        --subscription $SubscriptionId
+    Write-Host "Creating eventhub $Name..." -ForegroundColor Cyan
+    az eventhubs eventhub create --name $Name `
+        --resource-group $($rg.Name) `
+        --location $Location `
+        --namespace-name $Name `
+        --retention-time 1 `
+        --partition-count 1 `
+        --cleanup-policy Delete `
+        --enable-capture true `
+        --capture-interval 60 `
+        --destination-name EventHubArchive.AzureBlockBlob `
+        --storage-account $storageAccountName `
+        --blob-container "data" `
+        --subscription $SubscriptionId
 
-Write-Host "Creating eventhub namespace $Name..." -ForegroundColor Cyan
-az eventhubs namespace create --name $Name --resource-group $($rg.Name) `
-    --location $Location `
-    --disable-local-auth true `
-    --subscription $SubscriptionId
-Write-Host "Creating eventhub $Name..." -ForegroundColor Cyan
-az eventhubs eventhub create --name $Name `
-    --resource-group $($rg.Name) `
-    --location $Location `
-    --namespace-name $Name `
-    --retention-time 1 `
-    --partition-count 1 `
-    --cleanup-policy Delete `
-    --enable-capture true `
-    --capture-interval 60 `
-    --destination-name EventHubArchive.AzureBlockBlob `
-    --storage-account $storageAccountName `
-    --blob-container "data" `
-    --subscription $SubscriptionId
+    Write-Host "Creating data flow to event hub..." -ForegroundColor Cyan
+    (Get-Content -Raw dataflow.yml) `
+        -replace "<namespace>", "$Name" `
+        -replace "<EVENTHUB>", "$Name" | Set-Content -NoNewLine dataflow-$Name.yml
+    kubectl apply -f dataflow-$Name.yml  --wait
+    Remove-Item dataflow-$Name.yml
 
-Write-Host "Creating data flow to event hub..." -ForegroundColor Cyan
-(Get-Content -Raw dataflow.yml) `
-    -replace "<namespace>", "$Name" `
-    -replace "<EVENTHUB>", "$Name" | Set-Content -NoNewLine dataflow-$Name.yml
-kubectl apply -f dataflow-$Name.yml  --wait
-Remove-Item dataflow-$Name.yml
-
-$runtimeNamespace = "azure-iot-operations"
-$numberOfPlcs = 10
-$numberOfAssets = 90
-Write-Host "Creating $numberOfPlcs OPC PLCs..." -ForegroundColor Cyan
-helm upgrade -i aio-opc-plc ..\..\distrib\helm\microsoft-opc-plc\ `
-    --namespace $runtimeNamespace `
-    --set simulations=$numberOfPlcs `
-    --set deployDefaultIssuerCA=false `
-    --wait
-
-Write-Host "Creating asset endpoint profiles..." -ForegroundColor Cyan
-for ($i = 0; $i -lt $numberOfPlcs; $i++) {
-    az iot ops asset endpoint create -n aep-$i -g $($rg.Name) `
-        -c $Name --target-address "opc.tcp://opcplc-00000$($i%$numberOfPlcs):50000" `
-        --additional-config '{\"applicationName\": \"opcua-connector\", \"defaults\": { \"publishingIntervalMilliseconds\": 100,  \"samplingIntervalMilliseconds\": 500,  \"queueSize\": 15,}, \"session\": {\"timeout\": 60000}, \"subscription\": {\"maxItems\": 1000}, \"security\": { \"autoAcceptUntrustedServerCertificates\": true}}'
+    $runtimeNamespace = "azure-iot-operations"
+    $numberOfPlcs = 10
+    $numberOfAssets = 90
+    Write-Host "Creating $numberOfPlcs OPC PLCs..." -ForegroundColor Cyan
+    helm upgrade -i aio-opc-plc ..\..\distrib\helm\microsoft-opc-plc\ `
+        --namespace $runtimeNamespace `
+        --set simulations=$numberOfPlcs `
+        --set deployDefaultIssuerCA=false `
+        --wait
 }
-
-Write-Host "Creating assets..." -ForegroundColor Cyan
-# https://learn.microsoft.com/en-us/cli/azure/iot/ops/asset/data-point?view=azure-cli-latest#az-iot-ops-asset-data-point-add
-for ($i = 0; $i -lt $numberOfAssets; $i++) {
-    Write-Host "Creating asset asset-$i"
-    az iot ops asset create -n asset-$i -g $($rg.Name) `
-        --endpoint aep-$($i%$numberOfPlcs) -c $Name --data capability_id=FastUInt1 data_source="nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1" 
-    Write-Host "Importing data points..."
-    az iot ops asset data-point import --asset asset-$i `
-        --resource-group $($rg.Name) --input-file .\asset_dataPoints.json
-}
-
-Write-Host "Creating asset asset-with-events" -ForegroundColor Cyan
-az iot ops asset create -n asset-with-events -g $($rg.Name) `
-    --endpoint aep-0 -c $Name --event capability_id=Event1 event_notifier="ns=0; i=2253"
-
-helm repo add jetstack https://charts.jetstack.io --force-update
-helm repo update
-helm upgrade cert-manager jetstack/cert-manager --install `
-    --namespace cert-manager `
-    --create-namespace `
-    --set crds.enabled=true `
-    --wait
-helm repo add akri-helm-charts https://project-akri.github.io/akri/
-helm repo update
-helm upgrade --install akri akri-helm-charts/akri `
-    --namespace akri `
-    --create-namespace `
-    --wait
-helm upgrade --install aio-mq oci://mcr.microsoft.com/azureiotoperations/helm/aio-broker `
-    --version $mqVersion `
-    --namespace $mqNamespace `
-    --create-namespace `
-    --wait
-
-kubectl apply -f ..\..\distrib\helm\mq\broker-sat.yaml -n $mqNamespace
-$e4kMqttAddress = 'mqtt://aio-broker.' + $mqNamespace + ':1883'
-helm repo add prometheus-community https://prometheus-community.github.io/helm-charts/
-helm repo update
