@@ -5,10 +5,10 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
+    using Autofac;
+    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Module.Controllers;
     using Azure.IIoT.OpcUa.Publisher.Services;
-    using Azure.IIoT.OpcUa.Encoders;
-    using Autofac;
     using Furly.Azure.EventHubs;
     using Furly.Azure.IoT.Edge;
     using Furly.Azure.IoT.Operations.Services;
@@ -500,6 +500,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         }
 
         /// <summary>
+        /// Add connector configuration
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <returns></returns>
+        public static IConfigurationBuilder AddConnectorAdditionalConfiguration(
+            this IConfigurationBuilder builder)
+        {
+            var connectorConfigMountPath = Environment.GetEnvironmentVariable(
+                Azure.Iot.Operations.Connector.ConnectorConfigurations.
+                    ConnectorFileMountSettings.ConnectorConfigMountPathEnvVar);
+            if (string.IsNullOrEmpty(connectorConfigMountPath))
+            {
+                return builder;
+            }
+            var additionalConfiguration = Path.Combine(connectorConfigMountPath,
+                "ADDITIONAL_CONNECTOR_CONFIGURATION");
+            var diagnostics = Path.Combine(connectorConfigMountPath,
+                 Azure.Iot.Operations.Connector.ConnectorConfigurations.
+                    ConnectorFileMountSettings.ConnectorDiagnosticsConfigFileName);
+            return builder
+                .AddJsonFile(diagnostics, optional: true,
+                    reloadOnChange: true)
+                .AddJsonFile(additionalConfiguration, optional: true,
+                    reloadOnChange: true);
+        }
+
+        /// <summary>
         /// Otlp configuration from environment
         /// </summary>
         internal sealed class Otlp : ConfigureOptionBase<OtlpExporterOptions>,
@@ -519,11 +546,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             internal const string OtlpEndpointDisabled = "disabled";
 
             /// <summary>
+            /// Otlp collector endpoint
+            /// </summary>
+            public string OTlpEndpoint => GetStringOrDefault(OtlpCollectorEndpointKey,
+                GetStringOrDefault("OTLP_METRIC_ENDPOINT_3P", string.Empty));
+
+            /// <summary>
             /// Use prometheus
             /// </summary>
             public bool AddPrometheusEndpoint
                 => GetBoolOrDefault(EnableMetricsKey,
-                        GetStringOrDefault(OtlpCollectorEndpointKey) == null);
+                        string.IsNullOrEmpty(OTlpEndpoint));
 
             /// <summary>
             /// Max metrics to collect, the default in otel is 1000
@@ -558,7 +591,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// <inheritdoc/>
             public override void Configure(string? name, OtlpExporterOptions options)
             {
-                var endpoint = GetStringOrDefault(OtlpCollectorEndpointKey);
+                var endpoint = OTlpEndpoint;
                 if (!string.IsNullOrEmpty(endpoint) &&
                     Uri.TryCreate(endpoint, UriKind.RelativeOrAbsolute, out var uri))
                 {
@@ -581,7 +614,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     new PeriodicExportingMetricReaderOptions
                     {
                         ExportIntervalMilliseconds = GetIntOrDefault(
-                            OtlpExportIntervalMillisecondsKey, OtlpExportIntervalMillisecondsDefault)
+                            OtlpExportIntervalMillisecondsKey,
+                            GetIntOrDefault("OTLP_METRIC_EXPORT_INTERVAL_3P",
+                                OtlpExportIntervalMillisecondsDefault))
                     };
             }
 

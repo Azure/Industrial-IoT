@@ -678,6 +678,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     .AddJsonFile("appsettings.json", true)
                     .AddEnvironmentVariables()
                     .AddFromDotEnvFile()
+                    .AddConnectorAdditionalConfiguration()
                     .AddInMemoryCollection(this).Build();
                 try
                 {

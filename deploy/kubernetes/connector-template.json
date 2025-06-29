@@ -1,0 +1,78 @@
+{
+    "extendedLocation": {
+        "name": "{{ExtendedLocation}}",
+        "type": "CustomLocation"
+    },
+    "properties": {
+        "aioMetadata": {
+            "aioMinVersion": "1.2.*",
+            "aioMaxVersion": "2.0.0"
+        },
+        "runtimeConfiguration": {
+            "runtimeConfigurationType": "ManagedConfiguration",
+            "managedConfigurationSettings": {
+                "managedConfigurationType": "ImageConfiguration",
+                "imageConfigurationSettings": {
+                    "imageName": "{{ImageName}}",
+                    "imagePullPolicy": "{{ImagePullPolicy}}",
+                    "replicas": 1,
+                    "registrySettings": {
+                        "registrySettingsType": "ContainerRegistry",
+                        "containerRegistrySettings": {
+                            "registry": "mcr.microsoft.com"
+                        }
+                    },
+                    "tagDigestSettings": {
+                        "tagDigestType": "Tag",
+                        "tag": "latest"
+                    }
+                },
+                "allocation": {
+                    "policy": "Bucketized",
+                    "bucketSize": 1
+                },
+                "additionalConfiguration": {
+                    "EnableMetrics": "true",
+                    "UseStandardsCompliantEncoding": "true"
+                },
+                "persistentVolumeClaims": [
+                    {
+                        "claimName": "opcpublisher-config",
+                        "mountPath": "/app"
+                    }
+                ],
+                "secrets": []
+            }
+        },
+        "deviceInboundEndpointTypes": [
+            {
+                "endpointType": "microsoft.opcpublisher",
+                "version": "2.9",
+                "description": "OPC Publisher managed OPC UA server endpoint",
+                "configurationSchemaRefs": {
+                    "defaultDatasetConfigSchemaRef": "opc-publisher-dataset-schema",
+                    "defaultEventsConfigSchemaRef": "opc-publisher-events-schema",
+                    "additionalConfigSchemaRef": "opc-publisher-endpoint-schema"
+                }
+            }
+        ],
+        "diagnostics": {
+            "logs": {
+                "level": "info"
+            }
+        },
+        "mqttConnectionConfiguration": {
+            "host": "aio-broker:18883",
+            "authentication": {
+                "method": "ServiceAccountToken",
+                "serviceAccountTokenSettings": {
+                    "audience": "aio-internal"
+                }
+            },
+            "tls": {
+                "mode": "Enabled",
+                "trustedCaCertificateConfigMapRef": "azure-iot-operations-aio-ca-trust-bundle"
+            }
+        }
+    }
+}

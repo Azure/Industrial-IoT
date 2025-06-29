@@ -86,6 +86,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                     .AddEnvironmentVariables()
                     .AddFromDotEnvFile()
                     .AddSecrets()
+                    .AddConnectorAdditionalConfiguration()
                     .AddInMemoryCollection(new CommandLine(args)))
                 .ConfigureWebHostDefaults(builder => builder
                     //.UseUrls("http://*:9702", "https://*:9703")

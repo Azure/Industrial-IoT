@@ -165,7 +165,7 @@ elseif (!$test) {
                 --upgrade --yes --source $ext}) 2>&1
         }
         if (-not $?) {
-            Write-Host "Error installing az iot ops extension $($extensionVersion) - $errOut." `
+            Write-Host "Error installing az iot ops extension $($extensionVersion) - $($errOut)." `
                 -ForegroundColor Red
             exit -1
         }
@@ -246,7 +246,7 @@ if ($ClusterType -eq "none") {
 elseif ($ClusterType -eq "microk8s") {
     $errOut = $($stdOut = & {microk8s status}) 2>&1
     if (-not $?) {
-        Write-Host "Error querying microk8s status - $errOut" -ForegroundColor Red
+        Write-Host "Error querying microk8s status - $($errOut)" -ForegroundColor Red
         exit -1
     }
     if (!$forceReinstall -and $stdOut -match "microk8s is running") {
@@ -258,7 +258,7 @@ elseif ($ClusterType -eq "microk8s") {
         microk8s install --cpu 4 --mem 16
         microk8s start
         if (-not $?) {
-            Write-Host "Error starting microk8s cluster - $errOut" -ForegroundColor Red
+            Write-Host "Error starting microk8s cluster - $($errOut)" -ForegroundColor Red
             exit -1
         }
         Write-Host "Microk8s cluster started." -ForegroundColor Green
@@ -287,7 +287,7 @@ elseif ($ClusterType -eq "microk8s") {
 elseif ($ClusterType -eq "k3d") {
     $errOut = $($table = & {k3d cluster list --no-headers} -split "`n") 2>&1
     if (-not $?) {
-        Write-Host "Error querying k3d clusters - $errOut" -ForegroundColor Red
+        Write-Host "Error querying k3d clusters - $($errOut)" -ForegroundColor Red
         exit -1
     }
     $clusters = $table | ForEach-Object { $($_ -split " ")[0].Trim() }
@@ -325,7 +325,7 @@ elseif ($ClusterType -eq "k3d") {
             --env K3D_FIX_MOUNTS=1@all `
             --wait
         if (-not $?) {
-            Write-Host "Error creating k3d cluster - $errOut" -ForegroundColor Red
+            Write-Host "Error creating k3d cluster - $($errOut)" -ForegroundColor Red
             exit -1
         }
         Write-Host "Cluster created..." -ForegroundColor Green
@@ -353,7 +353,7 @@ elseif ($ClusterType -eq "minikube") {
         }
     }
     elseif (-not $?) {
-        Write-Host "Error querying minikube clusters - $errOut" -ForegroundColor Red
+        Write-Host "Error querying minikube clusters - $($errOut)" -ForegroundColor Red
         exit -1
     }
     else {
@@ -394,7 +394,7 @@ elseif ($ClusterType -eq "minikube") {
         Start-Sleep -Seconds 5
         & {minikube start -p $Name --cpus=4 --memory=8192 --nodes=4 --driver=hyperv}
         if (-not $?) {
-            Write-Host "Error creating minikube cluster - $errOut" -ForegroundColor Red
+            Write-Host "Error creating minikube cluster - $($errOut)" -ForegroundColor Red
             minikube logs --file=$($Name).log
             exit -1
         }
@@ -407,7 +407,7 @@ elseif ($ClusterType -eq "kind") {
         Write-Host "Cluster $Name exists..." -ForegroundColor Green
     }
     elseif (-not $?) {
-        Write-Host "Error querying kind clusters - $errOut" -ForegroundColor Red
+        Write-Host "Error querying kind clusters - $($errOut)" -ForegroundColor Red
         exit -1
     }
     else {
@@ -440,7 +440,7 @@ nodes:
         $clusterConfig -replace "`r`n", "`n" `
             | kind create cluster --name $Name --config -
         if (-not $?) {
-            Write-Host "Error creating kind cluster - $errOut" -ForegroundColor Red
+            Write-Host "Error creating kind cluster - $($errOut)" -ForegroundColor Red
             exit -1
         }
         Write-Host "Cluster created..." -ForegroundColor Green
@@ -513,7 +513,7 @@ if (!$rg) {
         --subscription $SubscriptionId `
         --only-show-errors --output json} | ConvertFrom-Json) 2>&1
     if (-not $? -or !$rg) {
-        Write-Host "Error creating resource group - $errOut." -ForegroundColor Red
+        Write-Host "Error creating resource group - $($errOut)." -ForegroundColor Red
         exit -1
     }
     Write-Host "Resource group $($rg.id) created." -ForegroundColor Green
@@ -541,7 +541,7 @@ if (!$mi) {
         --subscription $SubscriptionId `
         --only-show-errors --output json} | ConvertFrom-Json) 2>&1
     if (-not $? -or !$mi) {
-        Write-Host "Error creating managed identity - $errOut." -ForegroundColor Red
+        Write-Host "Error creating managed identity - $($errOut)." -ForegroundColor Red
         exit -1
     }
     Write-Host "Managed identity $($mi.id) created." -ForegroundColor Green
@@ -568,7 +568,7 @@ if (!$stg) {
         --subscription $SubscriptionId `
         --only-show-errors --output json} | ConvertFrom-Json) 2>&1
     if (-not $? -or !$stg) {
-        Write-Host "Error creating storage $storageAccountName - $errOut." `
+        Write-Host "Error creating storage $storageAccountName - $($errOut)." `
             -ForegroundColor Red
         exit -1
     }
@@ -576,6 +576,68 @@ if (!$stg) {
 }
 else {
     Write-Host "Storage account $($stg.id) exists." -ForegroundColor Green
+}
+
+# Event Hub namespace
+$eventHubNamespace = $Name
+$errOut = $($ehNs = & {az eventhubs namespace show `
+    --name $eventHubNamespace `
+    --resource-group $($rg.Name) `
+    --subscription $SubscriptionId `
+    --only-show-errors --output json} | ConvertFrom-Json) 2>&1
+if (!$ehNs) {
+    Write-Host "Creating eventhub namespace $($eventHubNamespace)..." -ForegroundColor Cyan
+    $errOut = $($ehNs = & {az eventhubs namespace create `
+        --name $eventHubNamespace `
+        --resource-group $rg.Name `
+        --location $Location `
+        --disable-local-auth true `
+        --subscription $SubscriptionId `
+        --only-show-errors --output json} | ConvertFrom-Json) 2>&1
+    if (-not $? -or !$ehNs) {
+        Write-Host "Error creating event hub namespace $($eventHubNamespace) - $($errOut)." `
+            -ForegroundColor Red
+        exit -1
+    }
+    Write-Host "Event Hub Namespace $($ehNs.id) created." -ForegroundColor Green
+}
+else {
+    Write-Host "Event Hub Namespace $($ehNs.id) exists." -ForegroundColor Green
+}
+# Event Hub
+$eventHubName = $Name + "ev"
+$errOut = $($eh = & {az eventhubs eventhub show `
+    --name $eventHubName `
+    --namespace-name $ehNs.Name `
+    --resource-group $rg.Name `
+    --subscription $SubscriptionId `
+    --only-show-errors --output json} | ConvertFrom-Json) 2>&1
+if (!$eh) {
+    Write-Host "Creating event hub $($eventHubName)..." -ForegroundColor Cyan
+    $errOut = $($eh = & {az eventhubs eventhub create `
+        --name $eventHubName `
+        --resource-group $rg.Name `
+        --location $Location `
+        --namespace-name $ehNs.Name `
+        --retention-time 1 `
+        --partition-count 1 `
+        --cleanup-policy Delete `
+        --enable-capture true `
+        --capture-interval 60 `
+        --destination-name EventHubArchive.AzureBlockBlob `
+        --storage-account $stg.name `
+        --blob-container "data" `
+        --subscription $SubscriptionId `
+        --only-show-errors --output json} | ConvertFrom-Json) 2>&1
+    if (-not $? -or !$eh) {
+        Write-Host "Error creating event hub $($eventHubName) - $($errOut)." `
+            -ForegroundColor Red
+        exit -1
+    }
+    Write-Host "Event Hub $($eh.id) created." -ForegroundColor Green
+}
+else {
+    Write-Host "Event Hub $($eh.id) exists." -ForegroundColor Green
 }
 
 # Keyvault
@@ -595,7 +657,7 @@ if (!$kv) {
         --subscription $SubscriptionId `
         --only-show-errors --output json} | ConvertFrom-Json) 2>&1
     if (-not $? -or !$kv) {
-        Write-Host "Error creating Azure Keyvault - $errOut." `
+        Write-Host "Error creating Azure Keyvault - $($errOut)." `
             -ForegroundColor Red
         exit -1
     }
@@ -630,7 +692,7 @@ if (!$sr) {
         --subscription $SubscriptionId `
         --only-show-errors --output json} | ConvertFrom-Json) 2>&1
     if (-not $? -or !$sr) {
-        Write-Host "Error creating Azure IoT Operations schema registry - $errOut." `
+        Write-Host "Error creating Azure IoT Operations schema registry - $($errOut)." `
             -ForegroundColor Red
         exit -1
     }
@@ -820,7 +882,7 @@ if (!$iotOps) {
     if (-not $?) {
         & az iot ops $iotOpsCreate
         if (-not $?) {
-            Write-Host "Error creating Azure IoT Operations instance - $errOut." `
+            Write-Host "Error creating Azure IoT Operations instance - $($errOut)." `
                 -ForegroundColor Red
             exit -1
         }
@@ -831,7 +893,7 @@ if (!$iotOps) {
         --subscription $SubscriptionId `
         --only-show-errors --output json} | ConvertFrom-Json) 2>&1
     if (-not $iotOps) {
-        Write-Host "Error retrieving created Azure IoT Operations instance - $errOut." `
+        Write-Host "Error retrieving created Azure IoT Operations instance - $($errOut)." `
             -ForegroundColor Red
         exit -1
     }
@@ -855,7 +917,7 @@ else {
     }
     & az iot ops $iotOpsUpgrade
     if (-not $?) {
-        Write-Host "Error upgrading Azure IoT Operations instance - $errOut." `
+        Write-Host "Error upgrading Azure IoT Operations instance - $($errOut)." `
             -ForegroundColor Red
         exit -1
     }
@@ -878,7 +940,7 @@ if (!$mia) {
         --mi-user-assigned $mi.id `
         --only-show-errors --output json} | ConvertFrom-Json) 2>&1
     if (-not $? -or !$mia) {
-        Write-Host "Error assigning managed identity to instance - $errOut." `
+        Write-Host "Error assigning managed identity to instance - $($errOut)." `
             -ForegroundColor Red
         exit -1
     }
@@ -907,7 +969,7 @@ if (!$ss) {
         --mi-user-assigned $mi.id `
         --only-show-errors --output json} | ConvertFrom-Json) 2>&1
     if (-not $? -or !$ss) {
-        Write-Host "Error enabling secret sync for instance - $errOut." `
+        Write-Host "Error enabling secret sync for instance - $($errOut)." `
             -ForegroundColor Red
         exit -1
     }
@@ -921,10 +983,10 @@ else {
 
 if ($script:Connector -ne "None") {
     $runtimeNamespace = "azure-iot-operations"
-
     if ($script:Connector -eq "Official") {
         Write-Host "Using official connector image..." -ForegroundColor Cyan
         $containerImage = "mcr.microsoft.com/iotedge/opc-publisher:latest"
+        $containerPull = "Always"
     }
     else {
         Write-Host "Building opc publisher connector..." -ForegroundColor Cyan
@@ -942,6 +1004,7 @@ if ($script:Connector -ne "None") {
             exit -1
         }
         $containerImage = "iotedge/opc-publisher:latest"
+        $containerPull = "Never"
     }
 
     if ($script:ClusterType -eq "microk8s") {
@@ -950,6 +1013,35 @@ if ($script:Connector -ne "None") {
     elseif ($script:ClusterType -eq "k3d") {
         k3d image import $containerImage
     }
+    elseif ($script:ClusterType -eq "kind") {
+        kind load docker-image $containerImage
+    }
+
+    # Deploy connector template
+    Write-Host "Deploying connector template..." -ForegroundColor Cyan
+    $ctName = "opcpublisher"
+    $ctResource="/subscriptions/$($SubscriptionId)"
+    $ctResource="$($ctResource)/resourceGroups/$($rg.Name)"
+    $ctResource="$($ctResource)/providers/Microsoft.IotOperations"
+    $ctResource="$($ctResource)/instances/$($Name)"
+    $ctResource="$($ctResource)/akriConnectorTemplates/$($ctName)"
+    $body = $($(Get-Content .\connector-template.json) `
+        -replace "{{ExtendedLocation}}", $iotOps.extendedLocation.name `
+        -replace "{{ImageName}}", $containerImage `
+        -replace "{{ImagePullPolicy}}", $containerPull `
+        | ConvertFrom-Json `
+        | ConvertTo-Json -Depth 100 -Compress).Replace('"', '\"')    
+    az rest --method put `
+        --url "$($ctResource)?api-version=2025-07-01-preview" `
+        --headers "Content-Type=application/json" `
+        --body @connector-template.json 
+
+    #Write-Host "Creating data flow to event hub..." -ForegroundColor Cyan
+    #(Get-Content -Raw dataflow.yml) `
+    #    -replace "<namespace>", "$Name" `
+    #    -replace "<EVENTHUB>", "$Name" | Set-Content -NoNewLine dataflow-$Name.yml
+    #kubectl apply -f dataflow-$Name.yml  --wait
+    #Remove-Item dataflow-$Name.yml
 
     $numberOfPlcs = 10
     Write-Host "Creating $numberOfPlcs OPC PLCs..." -ForegroundColor Cyan
@@ -958,37 +1050,4 @@ if ($script:Connector -ne "None") {
         --set simulations=$numberOfPlcs `
         --set deployDefaultIssuerCA=false `
         --wait
-}
-
-#
-# TODO
-#
-if ($DeployEventHub){
-    Write-Host "Creating eventhub namespace $Name..." -ForegroundColor Cyan
-    az eventhubs namespace create --name $Name --resource-group $($rg.Name) `
-        --location $Location `
-        --disable-local-auth true `
-        --subscription $SubscriptionId
-    Write-Host "Creating eventhub $Name..." -ForegroundColor Cyan
-    az eventhubs eventhub create --name $Name `
-        --resource-group $($rg.Name) `
-        --location $Location `
-        --namespace-name $Name `
-        --retention-time 1 `
-        --partition-count 1 `
-        --cleanup-policy Delete `
-        --enable-capture true `
-        --capture-interval 60 `
-        --destination-name EventHubArchive.AzureBlockBlob `
-        --storage-account $storageAccountName `
-        --blob-container "data" `
-        --subscription $SubscriptionId
-
-    Write-Host "Creating data flow to event hub..." -ForegroundColor Cyan
-    (Get-Content -Raw dataflow.yml) `
-        -replace "<namespace>", "$Name" `
-        -replace "<EVENTHUB>", "$Name" | Set-Content -NoNewLine dataflow-$Name.yml
-    kubectl apply -f dataflow-$Name.yml  --wait
-    Remove-Item dataflow-$Name.yml
-
 }
