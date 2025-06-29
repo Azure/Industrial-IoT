@@ -237,23 +237,6 @@ if ([string]::IsNullOrWhiteSpace($TenantId)) {
     $TenantId = $session[0].tenantId
 }
 
-if ($script:Connector -eq "Local" -or $script:Connector -eq "Debug") {
-    Write-Host "Building opc publisher as connector..." -ForegroundColor Cyan
-    $projFile = "Azure.IIoT.OpcUa.Publisher.Module"
-    $projFile = "../../src/$($projFile)/src/$($projFile).csproj"
-    $configuration = $script:Connector
-    if ($configuration -eq "Local") {
-        $configuration = "Release"
-    }
-    dotnet restore $projFile -s https://api.nuget.org/v3/index.json
-    dotnet publish $projFile -c $configuration --self-contained false `
-        /t:PublishContainer -r linux-x64 /p:ContainerImageTag=debug
-    if (-not $?) {
-        Write-Host "Error building opc publisher as connector." -ForegroundColor Red
-        exit -1
-    }
-}
-
 #
 # Create the cluster
 #
@@ -936,6 +919,47 @@ else {
         -ForegroundColor Green
 }
 
+if ($script:Connector -ne "None") {
+    $runtimeNamespace = "azure-iot-operations"
+
+    if ($script:Connector -eq "Official") {
+        Write-Host "Using official connector image..." -ForegroundColor Cyan
+        $containerImage = "mcr.microsoft.com/iotedge/opc-publisher:latest"
+    }
+    else {
+        Write-Host "Building opc publisher connector..." -ForegroundColor Cyan
+        $projFile = "Azure.IIoT.OpcUa.Publisher.Module"
+        $projFile = "../../src/$($projFile)/src/$($projFile).csproj"
+        $configuration = $script:Connector
+        if ($configuration -eq "Local") {
+            $configuration = "Release"
+        }
+        dotnet restore $projFile -s https://api.nuget.org/v3/index.json
+        dotnet publish $projFile -c $configuration --self-contained false `
+            /t:PublishContainer -r linux-x64 /p:ContainerImageTag=latest
+        if (-not $?) {
+            Write-Host "Error building opc publisher connector." -ForegroundColor Red
+            exit -1
+        }
+        $containerImage = "iotedge/opc-publisher:latest"
+    }
+
+    if ($script:ClusterType -eq "microk8s") {
+        microk8s images import $containerImage
+    }
+    elseif ($script:ClusterType -eq "k3d") {
+        k3d image import $containerImage
+    }
+
+    $numberOfPlcs = 10
+    Write-Host "Creating $numberOfPlcs OPC PLCs..." -ForegroundColor Cyan
+    helm upgrade -i opc-plc helm\opc-plc\ `
+        --namespace $runtimeNamespace `
+        --set simulations=$numberOfPlcs `
+        --set deployDefaultIssuerCA=false `
+        --wait
+}
+
 #
 # TODO
 #
@@ -967,13 +991,4 @@ if ($DeployEventHub){
     kubectl apply -f dataflow-$Name.yml  --wait
     Remove-Item dataflow-$Name.yml
 
-    $runtimeNamespace = "azure-iot-operations"
-    $numberOfPlcs = 10
-    $numberOfAssets = 90
-    Write-Host "Creating $numberOfPlcs OPC PLCs..." -ForegroundColor Cyan
-    helm upgrade -i aio-opc-plc ..\..\distrib\helm\microsoft-opc-plc\ `
-        --namespace $runtimeNamespace `
-        --set simulations=$numberOfPlcs `
-        --set deployDefaultIssuerCA=false `
-        --wait
 }

@@ -1,0 +1,54 @@
+image: mcr.microsoft.com/iotedge/opc-plc
+tag: 2.12.35
+pullPolicy: Always
+pullSecrets: []
+
+# Controls number of OPC PLCs that should be deployed.
+simulations: 1
+
+# Number of fast nodes.
+fastNodes: 2000
+# Rate in milliseconds to change fast nodes.
+fastRate: 1000
+
+openTelemetry:
+  # OpenTelemetry Endpoint Uri
+  endpointUri: null
+
+  # OpenTelemetry Export Interval in seconds
+  exportIntervalSeconds: 60
+
+  # OpenTelemetry Export Protocol
+  exportProtocol: grpc
+
+# Number of slow nodes.
+slowNodes: 25
+# Maximum number of parallel sessions.
+maxSessionCount: 100
+# Maximum number of subscriptions.
+maxSubscriptionCount: 100
+# Maximum number of requests that will be queued waiting for a thread.
+maxQueuedRequestCount: 2000
+
+# Controls if the security bar is lowered for the OPC PLC simulation server. When set to true, all client connections will be accepted.
+autoAcceptUntrustedCertificates: true
+
+# Controls if the security context should be set for the OPC PLC simulation server.
+setSecurityContext: true
+
+# Additional arguments for the OPC PLC simulation
+# This should be an array of arrays, where each inner array contains the arguments for a specific instance.
+additionalArgs: []
+
+resources:
+  requests:
+    memory: 192Mi
+    cpu: 125m
+  limits:
+    memory: 768Mi
+    cpu: 500m
+
+nameOverride: null
+
+deployDefaultIssuerCA: false
+
