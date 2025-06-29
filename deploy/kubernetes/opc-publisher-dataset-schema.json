@@ -1,0 +1,111 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DataSetEventModel",
+  "description": "Dataset and event default and resource additional configuration model. Inherits all properties from PublishedNodesEntryModel and adds mapped properties for samplingInterval, publishingInterval, keyFrameCount, and StartInstance.",
+  "type": "object",
+  "properties": {
+    "DataSetClassId": {
+      "type": ["string", "null"],
+      "format": "uuid",
+      "description": "The optional dataset class id as it shall appear in dataset messages and dataset metadata."
+    },
+    "DataSetPublishingInterval": {
+      "type": ["integer", "null"],
+      "description": "The publishing interval used for a grouped set of nodes under a certain DataSetWriter, expressed in milliseconds."
+    },
+    "DataSetPublishingIntervalTimespan": {
+      "type": ["string", "null"],
+      "description": "The publishing interval for a dataset writer, expressed as a TimeSpan value."
+    },
+    "DataSetKeyFrameCount": {
+      "type": ["integer", "null"],
+      "description": "Controls key frame insertion frequency in the message stream."
+    },
+    "SendKeepAliveDataSetMessages": {
+      "type": "boolean",
+      "description": "Controls whether to send keep alive messages for this dataset."
+    },
+    "MaxKeepAliveCount": {
+      "type": ["integer", "null"],
+      "description": "Defines how many publishing timer expirations to wait before sending a keep-alive message."
+    },
+    "DataSetDescription": {
+      "type": ["string", "null"],
+      "description": "The optional description of the dataset."
+    },
+    "Priority": {
+      "type": ["integer", "null"],
+      "description": "Priority of the writer subscription."
+    },
+    "DataSetExtensionFields": {
+      "type": ["object", "null"],
+      "description": "Optional key-value pairs inserted into key frame and metadata messages in the same data set.",
+      "additionalProperties": true
+    },
+    "MessagingMode": {
+      "type": ["string", "null"],
+      "description": "The messaging mode to use when publishing the data sets in the writer group."
+    },
+    "MessageEncoding": {
+      "type": ["string", "null"],
+      "description": "The encoding format to use for messages in the writer group."
+    },
+    "WriterGroupPartitions": {
+      "type": ["integer", "null"],
+      "description": "Specifies how many partitions to split the writer group into when publishing to target topics."
+    },
+    "DisableSubscriptionTransfer": {
+      "type": ["boolean", "null"],
+      "description": "Controls whether subscription transfer is disabled during reconnect."
+    },
+    "RepublishAfterTransfer": {
+      "type": ["boolean", "null"],
+      "description": "Controls whether to republish missed values after a subscription is transferred during reconnect handling."
+    },
+    "OpcNodeWatchdogTimespan": {
+      "type": ["string", "null"],
+      "description": "The timeout duration used to monitor whether monitored items in the subscription are continuously reporting fresh data."
+    },
+    "DataSetWriterWatchdogBehavior": {
+      "type": ["string", "null"],
+      "description": "Defines what action to take when the watchdog timer triggers."
+    },
+    "OpcNodeWatchdogCondition": {
+      "type": ["string", "null"],
+      "description": "Specifies the condition that triggers the watchdog behavior."
+    },
+    "DataSetSamplingInterval": {
+      "type": ["integer", "null"],
+      "description": "Default sampling interval in milliseconds for all monitored items in the dataset."
+    },
+    "DataSetSamplingIntervalTimespan": {
+      "type": ["string", "null"],
+      "description": "Default sampling interval as TimeSpan for all monitored items in the dataset."
+    },
+    "DefaultHeartbeatInterval": {
+      "type": ["integer", "null"],
+      "description": "The interval in milliseconds at which to publish heartbeat messages."
+    },
+    "DefaultHeartbeatIntervalTimespan": {
+      "type": ["string", "null"],
+      "description": "The heartbeat interval as TimeSpan for all nodes in this dataset."
+    },
+    "DefaultHeartbeatBehavior": {
+      "type": ["string", "null"],
+      "description": "Configures how heartbeat messages are handled for all nodes."
+    },
+    "samplingInterval": {
+      "type": ["integer", "null"],
+      "description": "Adapted sampling interval property. Sets or gets DataSetSamplingInterval."
+    },
+    "publishingInterval": {
+      "type": ["integer", "null"],
+      "description": "Adapted publishing interval property. Sets or gets DataSetPublishingInterval."
+    },
+    "keyFrameCount": {
+      "type": ["integer", "null"],
+      "description": "Adapted key frame count property. Sets or gets DataSetKeyFrameCount."
+    }
+  },
+  "additionalProperties": false
+}

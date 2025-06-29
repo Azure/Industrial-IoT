@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DeviceEndpointModel",
+  "type": "object",
+  "properties": {
+    "EndpointSecurityMode": {
+      "type": ["string", "null"],
+      "description": "The specific security mode to use for the specified endpoint."
+    },
+    "EndpointSecurityPolicy": {
+      "type": ["string", "null"],
+      "description": "The security policy URI to use for the endpoint connection."
+    },
+    "UseReverseConnect": {
+      "type": ["boolean", "null"],
+      "description": "Use reverse connect to connect ot the endpoint."
+    },
+    "OpcAuthenticationMode": {
+      "type": "string",
+      "description": "The authentication mode for connecting to the OPC UA server."
+    },
+    "OpcAuthenticationUsername": {
+      "type": ["string", "null"],
+      "description": "The username or certificate subject name for authentication."
+    },
+    "OpcAuthenticationPassword": {
+      "type": ["string", "null"],
+      "description": "The password for authentication or certificate private key."
+    },
+    "DumpConnectionDiagnostics": {
+      "type": ["boolean", "null"],
+      "description": "Enables detailed server diagnostics logging for the connection."
+    },
+    "RunAssetDiscovery": {
+      "type": ["boolean", "null"],
+      "description": "Runs asset discovery on the endpoint."
+    },
+    "AssetTypes": {
+      "type": ["array", "null"],
+      "items": { "type": "string" },
+      "description": "Finds assets for the selected types."
+    }
+  },
+  "additionalProperties": false
+}
