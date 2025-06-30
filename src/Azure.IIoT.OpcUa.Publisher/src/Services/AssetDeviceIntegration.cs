@@ -711,7 +711,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             // Map dataset configuration on top of entry
             var datasetTemplate = Deserialize(resource.DataSet.DatasetConfiguration,
-                () => new DataSetEventModel { EndpointUrl = template.EndpointUrl },
+                () => new DataSetModel { EndpointUrl = template.EndpointUrl },
                 errors, resource);
             if (datasetTemplate == null)
             {
@@ -774,26 +774,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             // Map event configuration on top of entry
             var eventTemplate = Deserialize(
                 resource.Event.EventConfiguration?.RootElement.GetRawText(),
-                () => new DataSetEventModel { EndpointUrl = template.EndpointUrl },
+                () => new EventModel { EndpointUrl = template.EndpointUrl },
                 errors, resource);
             if (eventTemplate == null)
             {
                 return ValueTask.CompletedTask;
             }
 
-            // Deserialize node model first
+            var eventFilter = eventTemplate.EventFilter ?? new EventFilterModel();
+            if (!string.IsNullOrEmpty(resource.Event.TypeRef))
+            {
+                eventFilter.TypeDefinitionId = resource.Event.TypeRef;
+            }
 
-            // Create event node
+            // Create the single event node here
             var node = new OpcNodeModel
             {
                 Id = resource.Event.EventNotifier,
                 DisplayName = resource.Event.Name,
                 DataSetFieldId = resource.Event.Name,
                 FetchDisplayName = false,
-                EventFilter = new EventFilterModel
-                {
-                    TypeDefinitionId = resource.Event.TypeRef
-                }
+                EventFilter = eventFilter,
+                ConditionHandling = eventTemplate.ConditionHandling,
+                SkipFirst = eventTemplate.SkipFirst,
+                QueueSize = eventTemplate.QueueSize,
+                DiscardNew = eventTemplate.DiscardNew
             };
 
             // Map datapoints a filter statement
@@ -838,14 +843,78 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <summary>
-        /// Create entry for a dataset or event in the asset
+        /// Create entry for a dataset in the asset
         /// </summary>
         /// <param name="endpointTemplate"></param>
         /// <param name="entityTemplate"></param>
         /// <param name="nodes"></param>
         /// <returns></returns>
         private static PublishedNodesEntryModel CreateEntryForEntityOfAsset(
-            PublishedNodesEntryModel endpointTemplate, DataSetEventModel entityTemplate,
+            PublishedNodesEntryModel endpointTemplate, DataSetModel entityTemplate,
+            List<OpcNodeModel> nodes)
+        {
+            return endpointTemplate with
+            {
+                //
+                // Set defaults for iot operations, there will never be any different configuration
+                // allowed in the resource of AIO
+                //
+                BatchSize = 0,
+                BatchTriggerInterval = 0,
+                BatchTriggerIntervalTimespan = null,
+                MessagingMode = MessagingMode.SingleDataSet, // TODO: Validate this is the correct format
+                DataSetFetchDisplayNames = false,
+                MessageEncoding =
+                    entityTemplate.MessageEncoding == MessageEncoding.Avro
+                        ? MessageEncoding.Avro : MessageEncoding.Json,
+
+                OpcNodes = nodes,
+
+                // Dataset configuration
+                DataSetPublishingInterval =
+                    entityTemplate.DataSetPublishingInterval,
+                DataSetPublishingIntervalTimespan =
+                    entityTemplate.DataSetPublishingIntervalTimespan,
+                DataSetRouting =
+                    entityTemplate.DataSetRouting,
+                DataSetSamplingIntervalTimespan =
+                    entityTemplate.DataSetSamplingIntervalTimespan,
+                DataSetSamplingInterval =
+                    entityTemplate.DataSetSamplingInterval,
+                DataSetClassId =
+                    entityTemplate.DataSetClassId,
+                DataSetKeyFrameCount =
+                    entityTemplate.DataSetKeyFrameCount,
+                DataSetWriterWatchdogBehavior =
+                    entityTemplate.DataSetWriterWatchdogBehavior,
+                SendKeepAliveDataSetMessages =
+                    entityTemplate.SendKeepAliveDataSetMessages,
+                DefaultHeartbeatInterval =
+                    entityTemplate.DefaultHeartbeatInterval,
+                DefaultHeartbeatIntervalTimespan =
+                    entityTemplate.DefaultHeartbeatIntervalTimespan,
+                MaxKeepAliveCount =
+                    entityTemplate.MaxKeepAliveCount,
+                RepublishAfterTransfer =
+                    entityTemplate.RepublishAfterTransfer,
+                DefaultHeartbeatBehavior =
+                    entityTemplate.DefaultHeartbeatBehavior,
+                Priority =
+                    entityTemplate.Priority,
+                DisableSubscriptionTransfer =
+                    entityTemplate.DisableSubscriptionTransfer,
+            };
+        }
+
+        /// <summary>
+        /// Create entry for an event in the asset
+        /// </summary>
+        /// <param name="endpointTemplate"></param>
+        /// <param name="entityTemplate"></param>
+        /// <param name="nodes"></param>
+        /// <returns></returns>
+        private static PublishedNodesEntryModel CreateEntryForEntityOfAsset(
+            PublishedNodesEntryModel endpointTemplate, EventModel entityTemplate,
             List<OpcNodeModel> nodes)
         {
             return endpointTemplate with

@@ -356,6 +356,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                     It.IsAny<PublishedNodeExpansionModel>(),
                     default))
                 .Returns(AsyncEnumerable.Range(0, 1).Select(_ => serviceResponseMock));
+#pragma warning disable CA2012 // Use ValueTasks correctly
             _clientMock.Setup(c => c.ReportDiscoveredAssetAsync(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
@@ -363,6 +364,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                     It.IsAny<DiscoveredAsset>(), null, default))
                 .Returns(ValueTask.FromResult<DiscoveredAssetResponseSchema>(null))
                 .Verifiable();
+#pragma warning restore CA2012 // Use ValueTasks correctly
 
             // Act
             await sut.RunDiscoveryUsingTypesAsync(resource, types, errors, default);
@@ -421,6 +423,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                     It.IsAny<PublishedNodeExpansionModel>(),
                     default))
                 .Returns(AsyncEnumerable.Range(0, 1).Select(_ => serviceResponseMock));
+#pragma warning disable CA2012 // Use ValueTasks correctly
             _clientMock.Setup(c => c.ReportDiscoveredAssetAsync(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
@@ -428,6 +431,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                     It.IsAny<DiscoveredAsset>(), null, default))
                 .Returns(ValueTask.FromResult<DiscoveredAssetResponseSchema>(null))
                 .Verifiable();
+#pragma warning restore CA2012 // Use ValueTasks correctly
 
             // Act
             await sut.RunDiscoveryUsingTypesAsync(resource, types, errors, default);
@@ -517,7 +521,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 
             // Act
             var result = await sut.ToPublishedNodesAsync(
-                new AssetDeviceIntegration.DeviceResource[0], new[] { asset }, errors, default);
+                Array.Empty<AssetDeviceIntegration.DeviceResource>(), new[] { asset }, errors, default);
 
             // Assert
             Assert.NotNull(result);
@@ -611,6 +615,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             });
             errors.OnError(device, "code1", "error1");
             errors.OnError(asset, "code2", "error2");
+#pragma warning disable CA2012 // Use ValueTasks correctly
             _clientMock
                 .Setup(c => c.UpdateDeviceStatusAsync(
                     It.IsAny<string>(),
@@ -620,6 +625,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                     It.IsAny<CancellationToken>()))
                 .Returns(ValueTask.FromResult<DeviceStatus>(null))
                 .Verifiable();
+#pragma warning restore CA2012 // Use ValueTasks correctly
+#pragma warning disable CA2012 // Use ValueTasks correctly
             _clientMock
                 .Setup(c => c.UpdateAssetStatusAsync(
                     It.IsAny<string>(),
@@ -630,6 +637,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                     It.IsAny<CancellationToken>()))
                 .Returns(ValueTask.FromResult<AssetStatus>(null))
                 .Verifiable();
+#pragma warning restore CA2012 // Use ValueTasks correctly
 
             // Act
             await errors.ReportAsync(default);

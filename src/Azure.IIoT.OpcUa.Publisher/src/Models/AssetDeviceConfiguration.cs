@@ -19,9 +19,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     public sealed record class DataPointModel : OpcNodeModel
     {
         /// <summary>
+        /// Adapt the sampling interval property
+        /// </summary>
+        [DataMember(Name = "samplingInterval", Order = 100,
+            EmitDefaultValue = false)]
+        public int? SamplingInterval
+        {
+            get => OpcSamplingInterval;
+            set => OpcSamplingInterval = value;
+        }
+
+        /// <summary>
         /// Adapt the publishing interval property
         /// </summary>
-        [DataMember(Name = "publishingInterval", Order = 100,
+        [DataMember(Name = "publishingInterval", Order = 101,
             EmitDefaultValue = false)]
         public int? PublishingInterval
         {
@@ -31,11 +42,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     }
 
     /// <summary>
-    /// Dataset and event default and reource additional configuration
+    /// Dataset reource additional configuration
     /// model.
     /// </summary>
     [DataContract]
-    public sealed record class DataSetEventModel : PublishedNodesEntryModel
+    public sealed record class DataSetModel : PublishedNodesEntryModel
     {
         /// <summary>
         /// Adapt the sampling interval property
@@ -76,6 +87,96 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "publishingInterval", Order = 103,
             EmitDefaultValue = false)]
         public string? StartInstance { get; set; }
+    }
+
+    /// <summary>
+    /// Event reource additional configuration
+    /// model.
+    /// </summary>
+    [DataContract]
+    public sealed record class EventModel : PublishedNodesEntryModel
+    {
+        /// <summary>
+        /// Adapt the sampling interval property
+        /// </summary>
+        [DataMember(Name = "samplingInterval", Order = 100,
+            EmitDefaultValue = false)]
+        public int? SamplingInterval
+        {
+            get => DataSetSamplingInterval;
+            set => DataSetSamplingInterval = value;
+        }
+
+        /// <summary>
+        /// Adapt the publishing interval property
+        /// </summary>
+        [DataMember(Name = "publishingInterval", Order = 101,
+            EmitDefaultValue = false)]
+        public int? PublishingInterval
+        {
+            get => DataSetPublishingInterval;
+            set => DataSetPublishingInterval = value;
+        }
+
+        /// <summary>
+        /// Adapt the key frame count property
+        /// </summary>
+        [DataMember(Name = "keyFrameCount", Order = 102,
+            EmitDefaultValue = false)]
+        public uint? KeyFrameCount
+        {
+            get => DataSetKeyFrameCount;
+            set => DataSetKeyFrameCount = value;
+        }
+
+        /// <summary>
+        /// Size of the server-side queue for this monitored item.
+        /// Controls how many values can be buffered during slow
+        /// connections. Values are discarded according to DiscardNew
+        /// when queue is full. Default is 1 unless otherwise
+        /// configured. Larger queues help prevent data loss but use
+        /// more server memory.
+        /// </summary>
+        [DataMember(Name = "QueueSize", Order = 104,
+            EmitDefaultValue = false)]
+        public uint? QueueSize { get; set; }
+
+        /// <summary>
+        /// Controls queue overflow behavior for monitored items.
+        /// True: Discard newest values when queue is full (LIFO).
+        /// False: Discard oldest values when queue is full (FIFO,
+        /// default). Use True to preserve historical data during
+        /// connection issues. Use False to maintain current value
+        /// accuracy.
+        /// </summary>
+        [DataMember(Name = "DiscardNew", Order = 105,
+            EmitDefaultValue = false)]
+        public bool? DiscardNew { get; set; }
+
+        /// <summary>
+        /// Event Filter to apply. When specified the node is assmed
+        /// to be an event notifier node to subscribe to.
+        /// </summary>
+        [DataMember(Name = "EventFilter", Order = 106,
+            EmitDefaultValue = false)]
+        public EventFilterModel? EventFilter { get; set; }
+
+        /// <summary>
+        /// Settings for pending condition handling
+        /// </summary>
+        [DataMember(Name = "ConditionHandling", Order = 107,
+            EmitDefaultValue = false)]
+        public ConditionHandlingOptionsModel? ConditionHandling { get; set; }
+
+        /// <summary>
+        /// Controls handling of initial value notification. True:
+        /// Suppress first value from monitored item. False: Publish
+        /// initial value (default). Useful when only changes are
+        /// relevant. Server always sends initial value on creation.
+        /// </summary>
+        [DataMember(Name = "SkipFirst", Order = 108,
+            EmitDefaultValue = false)]
+        public bool? SkipFirst { get; set; }
     }
 
     /// <summary>
