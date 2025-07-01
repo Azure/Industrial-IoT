@@ -73,6 +73,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         server.Start();
                     }
 
+                    var aioIntegration = _scope.ResolveOptional<AssetDeviceIntegration>();
+                    if (aioIntegration != null)
+                    {
+                        _logger.EnabledAioIntegration();
+                    }
+
                     // Now report runtime state as restarted. This can crash and we will retry.
                     await runtimeStateReporter.SendRestartAnnouncementAsync(
                         cancellationToken).ConfigureAwait(false);
@@ -225,5 +231,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         [LoggerMessage(EventId = EventClass + 13, Level = LogLevel.Information,
             Message = "Received request to shutdown publisher process.")]
         public static partial void ShutdownRequested(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 14, Level = LogLevel.Information,
+            Message = "Integration with Azure IoT Operations enabled...")]
+        public static partial void EnabledAioIntegration(this ILogger logger);
     }
 }

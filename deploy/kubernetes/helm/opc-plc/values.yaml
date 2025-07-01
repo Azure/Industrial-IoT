@@ -1,5 +1,5 @@
 image: mcr.microsoft.com/iotedge/opc-plc
-tag: 2.12.35
+tag: latest
 pullPolicy: Always
 pullSecrets: []
 

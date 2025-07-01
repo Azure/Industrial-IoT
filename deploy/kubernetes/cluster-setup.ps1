@@ -253,7 +253,7 @@ if (![string]::IsNullOrWhiteSpace($SubscriptionId)) {
 # Install chocolatey
 $errOut = $($chocolateyVersion = & { choco --version }) 2>&1
 if (!$chocolateyVersion -or $errOut) {
-    Write-Host "Installing Choco CLI..." -ForegroundColor Cyan
+    Write-Host "Installing Chocolatey CLI..." -ForegroundColor Cyan
     [System.Net.ServicePointManager]::SecurityProtocol = `
         [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
     $scriptLoc = 'https://community.chocolatey.org/install.ps1'
@@ -317,8 +317,6 @@ elseif ($ClusterType -eq "microk8s") {
         "dns",
         "hostpath-storage",
         "ingress",
-        "dashboard",
-        # "registry",
         "cert-manager"
     )
     foreach ($f in $features) {
@@ -331,7 +329,6 @@ elseif ($ClusterType -eq "microk8s") {
         }
     }
     microk8s config > $env:USERPROFILE/.kube/config
-    # microk8s dashboard-proxy
 }
 elseif ($ClusterType -eq "k3d") {
     $errOut = $($table = & { k3d cluster list --no-headers } -split "`n") 2>&1
@@ -751,7 +748,7 @@ $errOut = $($cc = & { az connectedk8s show `
     --resource-group $($rg.Name) `
     --subscription $SubscriptionId `
     --only-show-errors --output json } | ConvertFrom-Json) 2>&1
-if ($cc -and !$forceReinstall) {
+if ($cc -and !$forceReinstall -and $cc.connectivityStatus -ne "Offline") {
     Write-Host "Cluster $($cc.name) already connected to Arc." -ForegroundColor Green
 }
 else {
@@ -858,10 +855,38 @@ $errOut = $($iotOps = & { az iot ops show `
     --name $script:InstanceName `
     --subscription $SubscriptionId `
     --only-show-errors --output json } | ConvertFrom-Json) 2>&1
+if ($iotOps) {
+    # first check cluster extension is deployed on the cluster and if not reset the instance
+    $queryVersion = "[?scope.cluster.releaseNamespace == '$($script:InstanceNamespace)'"
+    $queryVersion = "$($queryVersion) && extensionType == 'microsoft.iotoperations'"
+    $queryVersion = "$($queryVersion) ].{ version:currentVersion, train:releaseTrain }"
+    $currentVersion = $(az k8s-extension list `
+        --cluster-name $Name --cluster-type connectedClusters `
+        --resource-group $rg.Name `
+        --query $queryVersion --output json) | ConvertFrom-Json
+    if (!$currentVersion) {
+        Write-Host "No Azure IoT Operations extension found on cluster $Name. Resetting." `
+            - ForegroundColor Yellow
+        az iot ops delete --name $iotOps.name --cluster $Name --yes --only-show-errors `
+            --resource-group $rg.Name --subscription $SubscriptionId `
+        if (-not $?) {
+            Write-Host "Error removing Azure IoT Operations instance from cluster $Name." `
+                -ForegroundColor Red
+            exit -1
+        }
+        Write-Host "Azure IoT Operations instance removed from cluster $Name." `
+            -ForegroundColor Green
+        $iotOps = $null
+        $currentVersion = $null
+    }
+    else {
+        Write-Host "Azure IoT Operations instance found with $($currentVersion.Version)." `
+            -ForegroundColor Green
+    }
+}
 if (!$iotOps) {
     Write-Host "Initializing cluster $Name for deployment of Azure IoT operations..." `
         -ForegroundColor Cyan
-
     $iotOpsInit = @(
         "init", `
         "--cluster", $Name, `
@@ -922,14 +947,6 @@ if (!$iotOps) {
 }
 else {
     # check if we need to upgrade the cluster extension
-    $queryVersion = "[?scope.cluster.releaseNamespace == '$($script:InstanceNamespace)'"
-    $queryVersion = "$($queryVersion) && extensionType == 'microsoft.iotoperations'"
-    $queryVersion = "$($queryVersion) ].{ version:currentVersion, train:releaseTrain }"
-    $currentVersion = $(az k8s-extension list `
-        --cluster-name $Name --cluster-type connectedClusters `
-        --resource-group $rg.Name `
-        --query $queryVersion --output json) | ConvertFrom-Json
-
     $upgrade = $true
     if ($script:OpsVersion -and $currentVersion.Version -ge $script:OpsVersion) {
         $upgrade = $false
@@ -972,7 +989,7 @@ $errOut = $($mia = & { az iot ops identity show `
     --resource-group $($rg.Name) `
     --subscription $SubscriptionId `
     --only-show-errors --output json } | ConvertFrom-Json) 2>&1
-if (!$mia) {
+if (!$mia -or $mia.type -ne "UserAssigned") {
     Write-Host "Assign managed identity $($mi.id) to instance $($iotOps.id)..." `
         -ForegroundColor Cyan
     $errOut = $($mia = & { az iot ops identity assign `
@@ -1080,6 +1097,7 @@ else {
     if ($configuration -eq "Local") {
         $configuration = "Release"
     }
+    $containerImage = "$($containerName):$($containerTag)"
     Write-Host "Publishing $configuration OPC Publisher as $containerImage..." `
         -ForegroundColor Cyan
     dotnet restore $projFile -s https://api.nuget.org/v3/index.json
@@ -1089,7 +1107,6 @@ else {
         Write-Host "Error building opc publisher connector." -ForegroundColor Red
         exit -1
     }
-    $containerImage = "$($containerName):$($containerTag)"
     Write-Host "$configuration container image $containerImage published successfully." `
         -ForegroundColor Green
     $containerPull = "IfNotPresent"
@@ -1199,7 +1216,7 @@ $template = @{
                 imageConfigurationSettings = @{
                     imageName = $containerName
                     imagePullPolicy = $containerPull
-                    replicas = 1
+                    # replicas = 1
                     registrySettings = $containerRegistry
                     tagDigestSettings = @{
                         tagDigestType = "Tag"
@@ -1212,14 +1229,15 @@ $template = @{
                 }
                 additionalConfiguration = @{
                     EnableMetrics = "True"
+                    LogFormat = "syslog"
                     UseStandardsCompliantEncoding = "True"
                 }
-                persistentVolumeClaims = @(
-                    @{
-                        claimName = "OpcPublisherData"
-                        mountPath = "/app"
-                    }
-                )
+                #persistentVolumeClaims = @(
+                #    @{
+                #        claimName = "OpcPublisherData"
+                #        mountPath = "/app"
+                #    }
+                #)
                 secrets = @()
             }
         }
@@ -1237,7 +1255,7 @@ $template = @{
         )
         diagnostics = @{
             logs = @{
-                level = "info"
+                level = "debug" # "info"
             }
         }
         mqttConnectionConfiguration = @{
@@ -1255,7 +1273,6 @@ $template = @{
         }
     }
 }
-
 $ctName = "opc-publisher"
 $ctResource = "/subscriptions/$($SubscriptionId)"
 $ctResource = "$($ctResource)/resourceGroups/$($rg.Name)"
@@ -1274,7 +1291,7 @@ if (-not $?) {
     exit -1
 }
 
-# Deploy discovery handler template
+# Deploy discovery handler
 $template = @{
     extendedLocation = $iotOps.extendedLocation
     properties = @{
@@ -1285,7 +1302,7 @@ $template = @{
         imageConfiguration = @{
             imageName = $containerName
             imagePullPolicy = $containerPull
-            replicas = 1
+            # replicas = 1
             registrySettings = $containerRegistry
             tagDigestSettings = @{
                 tagDigestType = "Tag"
@@ -1293,9 +1310,15 @@ $template = @{
             }
         }
         mode = "Enabled"
+        schedule = @{
+            scheduleType = "Cron" # or "Continuous" or "RunOnce"
+            cron = "*/10 * * * *"
+        }
         additionalConfiguration = @{
             EnableMetrics = "True"
+            LogFormat = "syslog"
             UseStandardsCompliantEncoding = "True"
+            AutoDiscoverDevicesOnStartup = "True"
         }
         discoverableDeviceEndpointTypes = @(
             @{
@@ -1303,14 +1326,10 @@ $template = @{
                 version = "2.9"
             }
         )
-        schedule = @{
-            scheduleType = "Cron"
-            cron = "* * * * *"
-        }
         secrets = @()
         diagnostics = @{
             logs = @{
-                level = "info"
+                level = "debug" # "info"
             }
         }
         mqttConnectionConfiguration = @{
@@ -1328,7 +1347,6 @@ $template = @{
         }
     }
 }
-
 $dhName = "opc-publisher"
 $dhResource = "/subscriptions/$($SubscriptionId)"
 $dhResource = "$($dhResource)/resourceGroups/$($rg.Name)"
@@ -1348,17 +1366,69 @@ if (-not $?) {
     exit -1
 }
 
-# Deploy 2 simulators
-$numberOfPlcs = 2
-Write-Host "Creating $numberOfPlcs OPC PLCs..." -ForegroundColor Cyan
+#
+# Deploy simulation servers
+#
+$numberOfDevices = 2
+Write-Host "Creating $numberOfDevices OPC PLC simulation servers..." -ForegroundColor Cyan
 helm upgrade -i opc-plc helm\opc-plc\ `
     --namespace $script:InstanceNamespace `
-    --set simulations=$numberOfPlcs `
+    --set simulations=$numberOfDevices `
     --set deployDefaultIssuerCA=false `
     --wait
-
-#
-# Deploy devices
-#
-
-
+for ($i = 0; $i -lt $numberOfDevices; $i++) {
+    $deviceName = "opc-plc-$("{0:D6}" -f $i)"
+    $deviceResource = "$($adrNsResource)/devices/$($deviceName)"
+    $errOut = $($device = & { az rest --method get `
+        --url "$($deviceResource)?api-version=2025-07-01-preview" `
+        --headers "Content-Type=application/json" } | ConvertFrom-Json) 2>&1
+    if (!$device -or !$device.id) {
+        $address = "opcplc-$($deviceName).$($script:InstanceNamespace)"
+        $address = "opc.tcp://$($address).svc.cluster.local:50000"
+        $body = $(@{
+            extendedLocation = $iotOps.extendedLocation
+            location = $Location
+            properties = @{
+                # externalDeviceId = "unique-edge-device-identifier"
+                enabled = $true
+                attributes = @{
+                    deviceType = "LDS"
+                }
+                endpoints = @{
+                    inbound = @{
+                        "None" = @{
+                            address = $address
+                            endpointType = "Microsoft.OpcPublisher"
+                            version = "2.9"
+                            authentication = @{
+                                method = "Anonymous"
+                            }
+                            additionalConfiguration = $(@{
+                                EndpointSecurityMode = "None"
+                                EndpointSecurityPolicy = "None"
+                                RunAssetDiscovery = $True
+                                AssetTypes = @(
+                                    "nsu=http://opcfoundation.org/UA/Boiler/;i=1132"
+                                )
+                            } | ConvertTo-Json -Depth 100 -Compress).Replace('"', '\"')
+                        }
+                    }
+                }
+            }
+        } | ConvertTo-Json -Depth 100 -Compress).Replace('"', '\"')
+        Write-Host "Creating ADR namespaced device $deviceResource..." -ForegroundColor Cyan
+        $errOut = $($device = & { az rest --method put `
+            --url "$($deviceResource)?api-version=2025-07-01-preview" `
+            --headers "Content-Type=application/json" `
+            --body $body } | ConvertFrom-Json) 2>&1
+        if (-not $? -or !$device -or !$device.id) {
+            Write-Host "Error: Failed to create device $($deviceResource) - $($errOut)." `
+                -ForegroundColor Red
+            exit -1
+        }
+        Write-Host "ADR namespaced device $($device.id) created." -ForegroundColor Green
+    }
+    else {
+        Write-Host "ADR namespaced device $($device.id) exists." -ForegroundColor Green
+    }
+}

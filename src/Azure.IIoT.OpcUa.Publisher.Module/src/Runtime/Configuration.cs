@@ -164,32 +164,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         public static void AddIoTOperationsServices(this ContainerBuilder builder,
             IConfiguration configuration)
         {
-            // TODO: Use configuration
-            if (KubernetesClientConfiguration.IsInCluster())
+            var aio = new AioIntegration(configuration);
+            aio.Configure(new PublisherOptions());
+            if (aio.RunningInAzureIoTOperations)
             {
-                if (Environment.GetEnvironmentVariable("CONNECTOR_ID") != null)
+                builder.RegisterType<AioIntegration>()
+                    .AsImplementedInterfaces();
+                // Add azure iot operations sdk integration
+                builder.AddAzureIoTOperations();
+                if (aio.ConnectorId != null)
                 {
-                    // Add azure iot operations sdk integration
-                    builder.AddAzureIoTOperations();
                     builder.RegisterType<AssetDeviceIntegration>()
                         .AsImplementedInterfaces();
-                    builder.Configure<PublisherOptions>(o =>
-                    {
-                        o.UseStandardsCompliantEncoding = true;
-                        o.EnableCloudEvents = true;
-                        // TODO: o.TopicTemplates.Telemetry = "";
-                    });
-                }
-                else if (Environment.GetEnvironmentVariable("AIO_BROKER_HOSTNAME") != null)
-                {
-                    builder.AddAzureIoTOperations();
-                    // No adr integration we might only have broker
-                }
-                else
-                {
-                    // TODO: Enable
-                    // Test running as workload and add Mqttclient too
-                    // builder.AddAzureIoTOperationsCore();
                 }
             }
         }
@@ -682,9 +668,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 var levelString = GetStringOrDefault(LogLevelKey);
                 if (!string.IsNullOrEmpty(levelString))
                 {
-                    if (Enum.TryParse<LogLevel>(levelString, out var logLevel))
+                    if (Enum.TryParse<LogLevel>(levelString, true, out var ll))
                     {
-                        options.MinLevel = logLevel;
+                        options.MinLevel = ll;
                     }
                     else
                     {
@@ -699,6 +685,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                                 break;
                         }
                     }
+                    // Use command line configuration only
+                    return;
+                }
+
+                // Get diagnostic config from { logs: { level: x } }
+                levelString = GetStringOrDefault("logs__level");
+                if (string.IsNullOrEmpty(levelString))
+                {
+                    return;
+                }
+                switch (levelString.ToLowerInvariant())
+                {
+                    case "trace":
+                        options.MinLevel = LogLevel.Trace;
+                        return;
+                    case "debug":
+                        options.MinLevel = LogLevel.Debug;
+                        return;
+                    case "info":
+                        options.MinLevel = LogLevel.Information;
+                        return;
+                    case "warn":
+                        options.MinLevel = LogLevel.Warning;
+                        return;
+                    case "error":
+                        options.MinLevel = LogLevel.Error;
+                        return;
+                    case "none":
+                        options.MinLevel = LogLevel.None;
+                        return;
+                }
+                // Since it is free form, try to adapt to .net log level names
+                if (Enum.TryParse<LogLevel>(levelString, true, out var logLevel))
+                {
+                    options.MinLevel = logLevel;
                 }
             }
 
@@ -1310,6 +1331,65 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// </summary>
             /// <param name="configuration"></param>
             public IoTEdge(IConfiguration configuration)
+                : base(configuration)
+            {
+            }
+        }
+
+        /// <summary>
+        /// Configure Azure IoT Operations integration
+        /// </summary>
+        internal sealed class AioIntegration : ConfigureOptionBase<PublisherOptions>
+        {
+            /// <summary>
+            /// Running in Azure IoT Operations
+            /// </summary>
+            public bool RunningInAzureIoTOperations { get; set; }
+
+            /// <summary>
+            /// Connector Id
+            /// </summary>
+            public string? ConnectorId { get; set; }
+
+            /// <summary>
+            /// Configuration
+            /// </summary>
+            public const string AioBrokerHostNameKey = "AIO_BROKER_HOSTNAME";
+            public const string ConnectorIdKey = "CONNECTOR_ID";
+
+            /// <inheritdoc/>
+            public override void Configure(string? name, PublisherOptions options)
+            {
+                if (KubernetesClientConfiguration.IsInCluster())
+                {
+                    ConnectorId = GetStringOrDefault(ConnectorIdKey);
+                    if (!string.IsNullOrEmpty(ConnectorId))
+                    {
+                        options.UseStandardsCompliantEncoding = true;
+                        options.EnableCloudEvents = true;
+                        options.PublisherId = ConnectorId;
+                        RunningInAzureIoTOperations = true;
+                    }
+                    else if (!string.IsNullOrEmpty(GetStringOrDefault(AioBrokerHostNameKey)))
+                    {
+                        // builder.AddAzureIoTOperations();
+                        RunningInAzureIoTOperations = true;
+                        // No adr integration we might only have broker
+                    }
+                    else
+                    {
+                        // TODO: Enable
+                        // Test running as workload and add Mqttclient too
+                        // builder.AddAzureIoTOperationsCore();
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Create configuration
+            /// </summary>
+            /// <param name="configuration"></param>
+            public AioIntegration(IConfiguration configuration)
                 : base(configuration)
             {
             }
