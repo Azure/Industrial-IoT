@@ -41,6 +41,7 @@ param(
     [string] $TenantId,
     [switch] $RunOnce
 )
+$ErrorActionPreference = 'Continue'
 
 $azVersion = (az version)[1].Split(":")[1].Split('"')[1]
 if ($azVersion -lt "2.74.0" -or !$azVersion) {
@@ -118,39 +119,44 @@ while ($true) {
         --url "$($adrNsResource)/discoveredAssets?api-version=2025-07-01-preview" `
         --headers "Content-Type=application/json" } | ConvertFrom-Json) 2>&1
     foreach ($dAsset in $dAssets) {
+        # todo: Filter data points too
+        $datasets = $dAsset.properties.datasets `
+            | Select-Object -Property * -ExcludeProperty lastUpdatedOn
+        # todo: Filter data points too
+        $events = $dAsset.properties.events `
+            | Select-Object -Property * -ExcludeProperty lastUpdatedOn
+        $streams = $dAsset.properties.streams `
+            | Select-Object -Property * -ExcludeProperty lastUpdatedOn
+        $managementGroups = $dAsset.properties.managementGroups `
+            | Select-Object -Property * -ExcludeProperty lastUpdatedOn
+
         $body = $(@{
             extendedLocation = $dAsset.extendedLocation
             location = $dAsset.location
             properties = @{
                 # externalAssetId = "unique-edge-device-identifier"
                 enabled = $true
-                displayName = $dAsset.displayName
-                description = $dAsset.description
-                # manufacturer
-                # manufacturer
-                # model
-                # productCode
-                # hardwareRevision
-                # softwareRevision
-                # documentationUri
-                # serialNumber
-                # defaultDatasetsConfiguration
-                # defaultManagementGroupsConfiguration
-                # etc.
+                displayName = $dAsset.properties.displayName
+                description = $dAsset.properties.description
+                manufacturer = $dAsset.properties.manufacturer
+                model = $dAsset.properties.model
+                productCode = $dAsset.properties.productCode
+                hardwareRevision = $dAsset.properties.hardwareRevision
+                softwareRevision = $dAsset.properties.softwareRevision
+                documentationUri = $dAsset.properties.documentationUri
+                serialNumber = $dAsset.properties.serialNumber
+                defaultDatasetsConfiguration = `
+                    $dAsset.properties.defaultDatasetsConfiguration
+                defaultManagementGroupsConfiguration = `
+                    $dAsset.properties.defaultManagementGroupsConfiguration
+                # .... add more properties as needed
                 deviceRef = $dAsset.properties.deviceRef
                 discoveredAssetRefs = @($dAsset.name)
                 assetTypeRefs = $dAsset.properties.assetTypeRefs
-
-                # todo: Filter data points too
-                datasets = $dAsset.properties.datasets `
-                    | Select-Object -Property * -ExcludeProperty lastUpdatedOn
-                # todo: Filter data points too
-                events = $dAsset.properties.events `
-                    | Select-Object -Property * -ExcludeProperty lastUpdatedOn
-                streams = $dAsset.properties.streams `
-                    | Select-Object -Property * -ExcludeProperty lastUpdatedOn
-                managementGroups = $dAsset.properties.managementGroups `
-                    | Select-Object -Property * -ExcludeProperty lastUpdatedOn
+                datasets = $datasets
+                events = $events
+                streams = $streams
+                managementGroups = $managementGroups
             }
         } | ConvertTo-Json -Depth 100 -Compress).Replace('"', '\"')
         Write-Host "Create or update asset $($dAsset.name)..." -ForegroundColor Cyan

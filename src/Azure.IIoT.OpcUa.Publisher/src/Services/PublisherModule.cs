@@ -31,11 +31,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 ?? string.Empty, "true");
 
         /// <summary>
-        /// Whether the module is running
-        /// </summary>
-        public event EventHandler<bool>? OnRunning;
-
-        /// <summary>
         /// Create hosted service for module operation
         /// </summary>
         /// <param name="scope"></param>
@@ -73,7 +68,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         server.Start();
                     }
 
-                    var aioIntegration = _scope.ResolveOptional<AssetDeviceIntegration>();
+                    var aioIntegration = _scope.Resolve<AssetDeviceIntegration>();
+                    // var aioIntegration = _scope.ResolveOptional<AssetDeviceIntegration>();
                     if (aioIntegration != null)
                     {
                         _logger.EnabledAioIntegration();
@@ -84,7 +80,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         cancellationToken).ConfigureAwait(false);
 
                     _logger.Started(version);
-                    OnRunning?.Invoke(this, true);
                     return;
                 }
                 catch (Exception ex)
@@ -147,7 +142,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 #pragma warning restore CA2000 // Dispose objects before losing scope
             }
 
-            OnRunning?.Invoke(this, false);
             _logger.Stopped();
             return Task.CompletedTask;
         }

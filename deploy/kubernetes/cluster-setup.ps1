@@ -84,7 +84,7 @@ param(
 
 #Requires -RunAsAdministrator
 
-$ErrorActionPreference = 'Stop'
+$ErrorActionPreference = 'Continue'
 # $path = Split-Path $script:MyInvocation.MyCommand.Path
 
 if (![Environment]::Is64BitProcess) {
@@ -193,8 +193,8 @@ if ($ClusterType -ne "none" `
 }
 
 # Install required az extensions
-az config set extension.dynamic_install_allow_preview=true 2>&1 | Out-Null `
-    -ErrorAction SilentlyContinue
+az config set extension.dynamic_install_allow_preview=true --only-show-errors 2>&1 `
+    | Out-Null
 $ensureLatest = "false"
 $extensions = @( "connectedk8s", "k8s-configuration" )
 if ($script:OpsExtension -eq "stable"){
@@ -202,19 +202,22 @@ if ($script:OpsExtension -eq "stable"){
     $extensions += "azure-iot-ops"
 }
 elseif ($script:OpsExtension -eq "preview") {
+    $query = "[?!contains(name, '255')].{ Name:name, Date:properties.creationTime }"
     $iotOpsWhl = $($(az storage blob list `
         --container-name drop --account-name azedgecli --auth-mode login `
-        --query "max_by([?!contains(name, '255')].{ Name:name, Date:properties.creationTime }, &Date)" `
+        --query "max_by($query, &Date)" `
         --output json) | ConvertFrom-Json).Name
     if ((-not $?) -or (-not $iotOpsWhl)) {
         Write-Host "Error: No preview extension found." -ForegroundColor Red
         exit -1
     }
     else {
-        $extensionVersion = $iotOpsWhl -replace "azext_iot_ops-", "" -replace "-py3-none-any.whl", ""
+        $extensionVersion = $iotOpsWhl `
+            -replace "azext_iot_ops-", "" -replace "-py3-none-any.whl", ""
         # Create a temp folder
         $temp = New-Item -ItemType Directory -Path ([System.IO.Path]::GetTempPath()) `
-            -Name ([System.Guid]::NewGuid().ToString()) | Select-Object -ExpandProperty FullName
+            -Name ([System.Guid]::NewGuid().ToString()) `
+            | Select-Object -ExpandProperty FullName
         $ext = "$($temp)/$($iotOpsWhl)"
         $errOut = $($stdOut = & { az storage blob download `
             --auth-mode login `
@@ -227,11 +230,11 @@ elseif ($script:OpsExtension -eq "preview") {
                 --upgrade --yes --source $ext }) 2>&1
         }
         if (-not $?) {
-            Write-Host "Error installing az iot ops extension $($extensionVersion) - $($errOut)." `
+            Write-Host "Error installing iot ops extension $($extensionVersion) - $($errOut)." `
                 -ForegroundColor Red
             exit -1
         }
-        Write-Host "Using iot ops preview extension version $($extensionVersion)..." `
+        Write-Host "Using iot ops extension version $($extensionVersion)..." `
             -ForegroundColor Cyan
     }
 }
@@ -293,6 +296,8 @@ if ($ClusterType -eq "none") {
     Write-Host "Skipping cluster creation..." -ForegroundColor Green
 }
 elseif ($ClusterType -eq "microk8s") {
+    # ensure multipass is running
+    Start-Service -Name "Multipass" -ErrorAction SilentlyContinue | Out-Null
     $errOut = $($stdOut = & { microk8s status }) 2>&1
     if (-not $?) {
         Write-Host "Error querying microk8s status - $($errOut)" -ForegroundColor Red
@@ -540,15 +545,14 @@ foreach ($rp in $resourceProviders) {
 }
 
 $errOut = $($rg = & { az group show `
-    --name $srName `
-    --resource-group $ResourceGroup `
+    --name $ResourceGroup `
     --subscription $SubscriptionId `
     --only-show-errors --output json } | ConvertFrom-Json) 2>&1
 if ($rg -and $forceReinstall) {
     Write-Host "Deleting existing resource group $($rg.Name)..." `
         -ForegroundColor Yellow
-    az group delete --name $($rg.Name) --subscription $SubscriptionId `
-        --yes 2>&1 | Out-Null
+    az group delete --name $rg.Name --subscription $SubscriptionId `
+        --only-show-errors --yes
     $rg = $null
 }
 if (!$rg) {
@@ -1097,6 +1101,7 @@ else {
     if ($configuration -eq "Local") {
         $configuration = "Release"
     }
+    $containerTag = Get-Date -Format "MMddHHmmss"
     $containerImage = "$($containerName):$($containerTag)"
     Write-Host "Publishing $configuration OPC Publisher as $containerImage..." `
         -ForegroundColor Cyan

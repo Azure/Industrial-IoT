@@ -26,7 +26,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Threading.Channels;
     using System.Threading.Tasks;
     using Furly;
-    using Autofac;
 
     /// <summary>
     /// Asset and device configuration integration with Azure iot operations. Converts asset

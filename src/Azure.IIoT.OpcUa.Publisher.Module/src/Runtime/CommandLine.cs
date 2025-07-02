@@ -696,11 +696,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 // Validate edge configuration
                 var iotEdgeOptions = new IoTEdgeClientOptions();
                 new Configuration.IoTEdge(configuration).Configure(iotEdgeOptions);
-                var aio = new Configuration.AioIntegration(configuration);
-                aio.Configure(new PublisherOptions());
-
+                var publisherOptions = new PublisherOptions();
+                new Configuration.Aio(configuration).Configure(publisherOptions);
                 // Check that the important values are provided
-                if (iotEdgeOptions.EdgeHubConnectionString == null && !aio.RunningInAzureIoTOperations)
+                if (iotEdgeOptions.EdgeHubConnectionString == null &&
+                    publisherOptions.IsAzureIoTOperationsConnector == null)
                 {
                     _logger.Warning(
                         "To connect to Azure IoT Hub you must run as module inside IoT Edge or " +

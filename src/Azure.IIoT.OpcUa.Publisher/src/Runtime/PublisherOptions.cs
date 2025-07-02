@@ -306,5 +306,11 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// Secure port
         /// </summary>
         public int? HttpServerPort { get; set; }
+
+        /// <summary>
+        /// Publisher runs as Azure IoT Operations connector.
+        /// If null, not running in Azure IoT Operations.
+        /// </summary>
+        public bool? IsAzureIoTOperationsConnector { get; set; }
     }
 }

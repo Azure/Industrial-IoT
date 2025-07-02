@@ -37,11 +37,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using OpenTelemetry.Trace;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Net;
     using System.Text.RegularExpressions;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Configuration extensions
@@ -164,15 +167,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         public static void AddIoTOperationsServices(this ContainerBuilder builder,
             IConfiguration configuration)
         {
-            var aio = new AioIntegration(configuration);
-            aio.Configure(new PublisherOptions());
-            if (aio.RunningInAzureIoTOperations)
+            var publisherOptions = new PublisherOptions();
+            new Aio(configuration).Configure(publisherOptions);
+            if (publisherOptions.IsAzureIoTOperationsConnector.HasValue)
             {
-                builder.RegisterType<AioIntegration>()
+                builder.RegisterType<Aio>()
                     .AsImplementedInterfaces();
                 // Add azure iot operations sdk integration
                 builder.AddAzureIoTOperations();
-                if (aio.ConnectorId != null)
+                if (publisherOptions.IsAzureIoTOperationsConnector.Value)
                 {
                     builder.RegisterType<AssetDeviceIntegration>()
                         .AsImplementedInterfaces();
@@ -1339,41 +1342,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// <summary>
         /// Configure Azure IoT Operations integration
         /// </summary>
-        internal sealed class AioIntegration : ConfigureOptionBase<PublisherOptions>
+        internal sealed class Aio : ConfigureOptionBase<PublisherOptions>
         {
-            /// <summary>
-            /// Running in Azure IoT Operations
-            /// </summary>
-            public bool RunningInAzureIoTOperations { get; set; }
-
-            /// <summary>
-            /// Connector Id
-            /// </summary>
-            public string? ConnectorId { get; set; }
-
             /// <summary>
             /// Configuration
             /// </summary>
-            public const string AioBrokerHostNameKey = "AIO_BROKER_HOSTNAME";
-            public const string ConnectorIdKey = "CONNECTOR_ID";
+            public const string AioBrokerHostName = "AIO_BROKER_HOSTNAME";
+            public const string ConnectorId = "CONNECTOR_ID";
 
             /// <inheritdoc/>
             public override void Configure(string? name, PublisherOptions options)
             {
                 if (KubernetesClientConfiguration.IsInCluster())
                 {
-                    ConnectorId = GetStringOrDefault(ConnectorIdKey);
-                    if (!string.IsNullOrEmpty(ConnectorId))
+                    var connectorId = GetStringOrDefault(ConnectorId);
+                    if (!string.IsNullOrEmpty(connectorId))
                     {
                         options.UseStandardsCompliantEncoding = true;
                         options.EnableCloudEvents = true;
-                        options.PublisherId = ConnectorId;
-                        RunningInAzureIoTOperations = true;
+                        options.PublisherId = connectorId;
+                        options.IsAzureIoTOperationsConnector = true;
                     }
-                    else if (!string.IsNullOrEmpty(GetStringOrDefault(AioBrokerHostNameKey)))
+                    else if (!string.IsNullOrEmpty(GetStringOrDefault(AioBrokerHostName)))
                     {
                         // builder.AddAzureIoTOperations();
-                        RunningInAzureIoTOperations = true;
+                        options.IsAzureIoTOperationsConnector = false;
                         // No adr integration we might only have broker
                     }
                     else
@@ -1389,7 +1382,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// Create configuration
             /// </summary>
             /// <param name="configuration"></param>
-            public AioIntegration(IConfiguration configuration)
+            public Aio(IConfiguration configuration)
                 : base(configuration)
             {
             }
