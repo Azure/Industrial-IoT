@@ -22,10 +22,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// </summary>
         /// <param name="discoveryUrl"></param>
         /// <param name="locales"></param>
+        /// <param name="findServersOnNetwork"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<IEnumerable<DiscoveredEndpointModel>> FindEndpointsAsync(
             Uri discoveryUrl, IReadOnlyList<string>? locales = null,
-            CancellationToken ct = default);
+            bool findServersOnNetwork = true, CancellationToken ct = default);
     }
 }

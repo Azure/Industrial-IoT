@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Module.Controllers;
     using Azure.IIoT.OpcUa.Publisher.Services;
+    using Azure.Iot.Operations.Protocol;
     using Furly.Azure.EventHubs;
     using Furly.Azure.IoT.Edge;
     using Furly.Azure.IoT.Operations.Services;
@@ -171,14 +172,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             new Aio(configuration).Configure(publisherOptions);
             if (publisherOptions.IsAzureIoTOperationsConnector.HasValue)
             {
+                // builder.AddAzureIoTOperations();
+                builder.AddAzureIoTOperationsCore();
+
+                builder.RegisterType<ApplicationContext>()
+                    .AsSelf().SingleInstance();
+                builder.AddAdrClient();
+                // builder.AddStateStore();
+                // builder.AddLeaderElection();
+                // builder.AddSchemaRegistry();
+
                 builder.RegisterType<Aio>()
                     .AsImplementedInterfaces();
-                // Add azure iot operations sdk integration
-                builder.AddAzureIoTOperations();
                 if (publisherOptions.IsAzureIoTOperationsConnector.Value)
                 {
-                    builder.RegisterType<AssetDeviceIntegration>()
-                        .AsImplementedInterfaces();
+                    builder.RegisterType<AssetDeviceIntegration>().AsSelf()
+                        .AsImplementedInterfaces().SingleInstance();
                 }
             }
         }
@@ -693,7 +702,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 }
 
                 // Get diagnostic config from { logs: { level: x } }
-                levelString = GetStringOrDefault("logs__level");
+                levelString = GetStringOrDefault("logs:level");
                 if (string.IsNullOrEmpty(levelString))
                 {
                     return;
@@ -1353,28 +1362,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// <inheritdoc/>
             public override void Configure(string? name, PublisherOptions options)
             {
-                if (KubernetesClientConfiguration.IsInCluster())
+                if (!KubernetesClientConfiguration.IsInCluster())
                 {
-                    var connectorId = GetStringOrDefault(ConnectorId);
-                    if (!string.IsNullOrEmpty(connectorId))
-                    {
-                        options.UseStandardsCompliantEncoding = true;
-                        options.EnableCloudEvents = true;
-                        options.PublisherId = connectorId;
-                        options.IsAzureIoTOperationsConnector = true;
-                    }
-                    else if (!string.IsNullOrEmpty(GetStringOrDefault(AioBrokerHostName)))
-                    {
-                        // builder.AddAzureIoTOperations();
-                        options.IsAzureIoTOperationsConnector = false;
-                        // No adr integration we might only have broker
-                    }
-                    else
-                    {
-                        // TODO: Enable
-                        // Test running as workload and add Mqttclient too
-                        // builder.AddAzureIoTOperationsCore();
-                    }
+                    return;
+                }
+                var connectorId = GetStringOrDefault(ConnectorId);
+                if (!string.IsNullOrEmpty(connectorId))
+                {
+                    options.IsAzureIoTOperationsConnector = true;
+                    options.UseStandardsCompliantEncoding = true;
+                    options.EnableCloudEvents = true;
+                    options.PublisherId = connectorId;
+                }
+                else if (!string.IsNullOrEmpty(GetStringOrDefault(AioBrokerHostName)))
+                {
+                    options.IsAzureIoTOperationsConnector = false;
+                    // No adr integration we might only have broker
+                }
+                else
+                {
+                    // TODO: Enable
+                    // Test running as workload and add Mqttclient too
                 }
             }
 

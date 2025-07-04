@@ -79,7 +79,8 @@ if (-not $PodName) {
 }
 else {
     if (-not $pods.Contains($PodName)) {
-        Write-Host "Pod '$PodName' not found in namespace '$Namespace'." -ForegroundColor Red
+        Write-Host "Pod '$PodName' not found in namespace '$Namespace'." `
+            -ForegroundColor Red
         exit -1
     }
     Write-Host "Using pod '$PodName'." -ForegroundColor Green
@@ -90,12 +91,18 @@ Remove-Item -Path debugger.tar -Force -ErrorAction SilentlyContinue
 
 # Build and make .net debugger image available in cluster
 $containerTag = Get-Date -Format "MMddHHmmss"
-docker build -f Dockerfile -t debugger:$($containerTag) .
+Write-Host "Building debugger image with tag '$containerTag'..." `
+    -ForegroundColor Cyan
+docker build --progress auto -f Dockerfile -t debugger:$($containerTag) .
 docker image save debugger:$($containerTag) -o debugger.tar
-
+Write-Host "Debugger image built with tag '$containerTag'." `
+    -ForegroundColor Green
 if ($ClusterType -eq "microk8s") {
     multipass transfer debugger.tar microk8s-vm:/tmp/debugger.tar
     microk8s ctr image import /tmp/debugger.tar
+    Write-Host "Debugger image imported into microk8s cluster." `
+        -ForegroundColor Green
+    docker image rm -f debugger:$($containerTag)
 }
 else {
     # TODO
@@ -114,10 +121,12 @@ while ($true) {
         # if one use it otherwise let user select one
         if ($containers.Count -eq 1) {
             $ContainerName = $containers
-            Write-Host "Using container '$ContainerName' in pod '$PodName'." -ForegroundColor Green
+            Write-Host "Using container '$ContainerName' in pod '$PodName'." `
+                -ForegroundColor Green
         }
         else {
-            $ContainerName = $containers | Out-GridView -Title "Select a container to debug" -PassThru
+            $ContainerName = $containers `
+                | Out-GridView -Title "Select a container to debug" -PassThru
             if (-not $ContainerName) {
                 Write-Host "No container selected." -ForegroundColor Yellow
                 exit 0
@@ -220,9 +229,25 @@ else {
     while ($true) {
         $podStatus = kubectl get pod $PodName -n $Namespace -o jsonpath='{.status.phase}'
         if ($podStatus -eq "Running") {
-            Write-Host "Pod '$PodName' is running."`
-                -ForegroundColor Green
-            break
+            if ($ReplaceImage) {
+                $podDescription = $(kubectl get pod $PodName -n $Namespace -o json) `
+                    | ConvertFrom-Json
+                $images = $podDescription.spec.containers.image
+                if ($images -contains $ReplaceImage) {
+                    Write-Host "Pod '$PodName' is running with '$ReplaceImage'."`
+                        -ForegroundColor Green
+                    break
+                }
+                else {
+                    Write-Host "Pod '$PodName' is running but still using the old image." `
+                        -ForegroundColor Yellow
+                }
+            }
+            else {
+                Write-Host "Pod '$PodName' is running."`
+                    -ForegroundColor Green
+                break
+            }
         }
         elseif ($podStatus -eq "Pending") {
             Write-Host "Pod '$PodName' is pending..."`

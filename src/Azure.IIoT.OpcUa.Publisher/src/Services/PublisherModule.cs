@@ -68,8 +68,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         server.Start();
                     }
 
-                    var aioIntegration = _scope.Resolve<AssetDeviceIntegration>();
-                    // var aioIntegration = _scope.ResolveOptional<AssetDeviceIntegration>();
+                    var aioIntegration = _scope.ResolveOptional<AssetDeviceIntegration>();
                     if (aioIntegration != null)
                     {
                         _logger.EnabledAioIntegration();

@@ -208,7 +208,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public async Task<IEnumerable<DiscoveredEndpointModel>> FindEndpointsAsync(
-            Uri discoveryUrl, IReadOnlyList<string>? locales, CancellationToken ct)
+            Uri discoveryUrl, IReadOnlyList<string>? locales, bool findServersOnNetwork,
+            CancellationToken ct)
         {
             var results = new HashSet<DiscoveredEndpointModel>();
             var visitedUris = new HashSet<string> {
@@ -228,7 +229,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     await Retry.Do(_logger, ct, () => DiscoverAsync(discoveryUrl,
                             localeIds, nextServer.Item2, 20000, visitedUris,
-                            queue, results),
+                            queue, results, findServersOnNetwork),
                         _ => !ct.IsCancellationRequested, Retry.NoBackoff,
                         kMaxDiscoveryAttempts - 1).ConfigureAwait(false);
                 }
@@ -385,9 +386,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="visitedUris"></param>
         /// <param name="queue"></param>
         /// <param name="result"></param>
+        /// <param name="findServersOnNetwork"></param>
         private async Task DiscoverAsync(Uri discoveryUrl, StringCollection? localeIds,
             IEnumerable<string> caps, int timeout, HashSet<string> visitedUris,
-            Queue<Tuple<Uri, List<string>>> queue, HashSet<DiscoveredEndpointModel> result)
+            Queue<Tuple<Uri, List<string>>> queue, HashSet<DiscoveredEndpointModel> result,
+            bool findServersOnNetwork)
         {
             var endpointConfiguration = EndpointConfiguration.Create(_configuration.Value);
             endpointConfiguration.OperationTimeout = timeout;
@@ -416,6 +419,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }.ToString(),
                     Capabilities = new HashSet<string>(caps)
                 });
+            }
+
+            if (!findServersOnNetwork)
+            {
+                return;
             }
 
             //

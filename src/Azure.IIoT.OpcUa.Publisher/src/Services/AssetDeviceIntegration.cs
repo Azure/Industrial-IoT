@@ -5,16 +5,21 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
+    using Avro.File;
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Parser;
+    using Azure.IIoT.OpcUa.Publisher.Stack;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Azure.Iot.Operations.Connector;
     using Azure.Iot.Operations.Connector.Files;
     using Azure.Iot.Operations.Services.AssetAndDeviceRegistry.Models;
-    using Avro.File;
+    using Furly;
     using Furly.Azure.IoT.Operations.Services;
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
+    using Opc.Ua;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -25,14 +30,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
-    using Furly;
 
     /// <summary>
     /// Asset and device configuration integration with Azure iot operations. Converts asset
     /// and device notifications into published nodes representation and signals configuration
     /// status errors back.
     /// </summary>
-    public sealed class AssetDeviceIntegration : IAdrNotification, IAsyncDisposable, IDisposable
+    public sealed class AssetDeviceIntegration : IAsyncDisposable, IDisposable
     {
         /// <summary>
         /// Currently known assets
@@ -50,31 +54,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="client"></param>
         /// <param name="publishedNodes"></param>
         /// <param name="configurationServices"></param>
+        /// <param name="endpointDiscovery"></param>
         /// <param name="serializer"></param>
         /// <param name="options"></param>
         /// <param name="logger"></param>
         public AssetDeviceIntegration(IAioAdrClient client, IPublishedNodesServices publishedNodes,
-            IConfigurationServices configurationServices, IJsonSerializer serializer,
-            IOptions<PublisherOptions> options, ILogger<AssetDeviceIntegration> logger)
+            IConfigurationServices configurationServices, IEndpointDiscovery endpointDiscovery,
+            IJsonSerializer serializer, IOptions<PublisherOptions> options,
+            ILogger<AssetDeviceIntegration> logger)
         {
             _client = client;
             _publishedNodes = publishedNodes;
             _configurationServices = configurationServices;
+            _endpointDiscovery = endpointDiscovery;
             _serializer = serializer;
             _options = options;
             _logger = logger;
             _cts = new CancellationTokenSource();
-            _changeFeed
-                = Channel.CreateUnbounded<(string, Resource)>(
-                    new UnboundedChannelOptions
-                    {
-                        SingleReader = true,
-                        SingleWriter = false
-                    });
+            _client.OnDeviceChanged += OnDeviceChanged;
+            _client.OnAssetChanged += OnAssetChanged;
+            _changeFeed = Channel.CreateUnbounded<(string, Resource)>(new UnboundedChannelOptions
+            {
+                SingleReader = true,
+                SingleWriter = false
+            });
             _processor = Task.Factory.StartNew(() => RunAsync(_cts.Token), _cts.Token,
                 TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
             _timer = new PeriodicTimer(TimeSpan.FromSeconds(30));
-            _discovery = Task.Factory.StartNew(() => RunDiscoveryPeriodicallyAsync(_cts.Token), _cts.Token,
+            _discovery = Task.Factory.StartNew(() => RunDiscoveryAsync(_cts.Token), _cts.Token,
                 TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
         }
 
@@ -122,8 +129,63 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             DisposeAsync().AsTask().GetAwaiter().GetResult();
         }
 
-        /// <inheritdoc/>
-        public void OnDeviceCreated(string deviceName, string inboundEndpointName,
+        /// <summary>
+        /// Asset change handler
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        internal void OnAssetChanged(object? sender, AssetChangedEventArgs e)
+        {
+            switch (e.ChangeType)
+            {
+                case ChangeType.Created:
+                    OnAssetCreated(e.DeviceName, e.InboundEndpointName, e.AssetName, e.Asset!);
+                    break;
+                case ChangeType.Updated:
+                    OnAssetUpdated(e.DeviceName, e.InboundEndpointName, e.AssetName, e.Asset!);
+                    break;
+                case ChangeType.Deleted:
+                    OnAssetDeleted(e.DeviceName, e.InboundEndpointName, e.AssetName, e.Asset);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(e), e.ChangeType,
+                        "Unknown asset change type");
+            }
+        }
+
+        /// <summary>
+        /// Device change handler
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        internal void OnDeviceChanged(object? sender, DeviceChangedEventArgs e)
+        {
+            switch (e.ChangeType)
+            {
+                case ChangeType.Created:
+                    OnDeviceCreated(e.DeviceName, e.InboundEndpointName, e.Device!);
+                    break;
+                case ChangeType.Updated:
+                    OnDeviceUpdated(e.DeviceName, e.InboundEndpointName, e.Device!);
+                    break;
+                case ChangeType.Deleted:
+                    OnDeviceDeleted(e.DeviceName, e.InboundEndpointName, e.Device);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(e), e.ChangeType,
+                        "Unknown device change type");
+            }
+        }
+
+        /// <summary>
+        /// Handle device created
+        /// </summary>
+        /// <param name="deviceName"></param>
+        /// <param name="inboundEndpointName"></param>
+        /// <param name="device"></param>
+        internal void OnDeviceCreated(string deviceName, string inboundEndpointName,
             Device device)
         {
             var name = CreateDeviceKey(deviceName, inboundEndpointName);
@@ -135,8 +197,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 $"Failed to process creation of device {name}");
         }
 
-        /// <inheritdoc/>
-        public void OnDeviceUpdated(string deviceName, string inboundEndpointName,
+        /// <summary>
+        /// Handle device updated
+        /// </summary>
+        /// <param name="deviceName"></param>
+        /// <param name="inboundEndpointName"></param>
+        /// <param name="device"></param>
+        internal void OnDeviceUpdated(string deviceName, string inboundEndpointName,
             Device device)
         {
             var name = CreateDeviceKey(deviceName, inboundEndpointName);
@@ -148,8 +215,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 $"Failed to process update of device {name}");
         }
 
-        /// <inheritdoc/>
-        public void OnDeviceDeleted(string deviceName, string inboundEndpointName,
+        /// <summary>
+        /// Handle device deletion
+        /// </summary>
+        /// <param name="deviceName"></param>
+        /// <param name="inboundEndpointName"></param>
+        /// <param name="device"></param>
+        internal void OnDeviceDeleted(string deviceName, string inboundEndpointName,
             Device? device)
         {
             var name = CreateDeviceKey(deviceName, inboundEndpointName);
@@ -165,8 +237,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 $"Failed to publish deletion of {name}.");
         }
 
-        /// <inheritdoc/>
-        public void OnAssetCreated(string deviceName, string inboundEndpointName,
+        /// <summary>
+        /// Handle asset created
+        /// </summary>
+        /// <param name="deviceName"></param>
+        /// <param name="inboundEndpointName"></param>
+        /// <param name="assetName"></param>
+        /// <param name="asset"></param>
+        internal void OnAssetCreated(string deviceName, string inboundEndpointName,
             string assetName, Asset asset)
         {
             var name = CreateAssetKey(deviceName, inboundEndpointName, assetName);
@@ -175,10 +253,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var success = _changeFeed.Writer.TryWrite((name, assetResource));
             ObjectDisposedException.ThrowIf(!success,
                 $"Failed to publish creation of asset {name}.");
-    }
+        }
 
-        /// <inheritdoc/>
-        public void OnAssetUpdated(string deviceName, string inboundEndpointName,
+        /// <summary>
+        /// Handle asset updated
+        /// </summary>
+        /// <param name="deviceName"></param>
+        /// <param name="inboundEndpointName"></param>
+        /// <param name="assetName"></param>
+        /// <param name="asset"></param>
+        internal void OnAssetUpdated(string deviceName, string inboundEndpointName,
             string assetName, Asset asset)
         {
             var name = CreateAssetKey(deviceName, inboundEndpointName, assetName);
@@ -189,8 +273,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 $"Failed to publish update of asset {name}.");
         }
 
-        /// <inheritdoc/>
-        public void OnAssetDeleted(string deviceName, string inboundEndpointName,
+        /// <summary>
+        /// Handle asset deletion
+        /// </summary>
+        /// <param name="deviceName"></param>
+        /// <param name="inboundEndpointName"></param>
+        /// <param name="assetName"></param>
+        /// <param name="asset"></param>
+        internal void OnAssetDeleted(string deviceName, string inboundEndpointName,
             string assetName, Asset? asset)
         {
             var name = CreateAssetKey(deviceName, inboundEndpointName, assetName);
@@ -353,7 +443,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     // Expand the type - TODO, we could also pass all types here at once
                     OpcNodes = [new OpcNodeModel { Id = type }]
                 };
-                await foreach (var found in _configurationServices.ExpandAsync(assetEndpoint,
+                await foreach (var found in _configurationServices.ExpandAsync(template,
                     new PublishedNodeExpansionModel
                     {
                         CreateSingleWriter = false, // Writer per dataset
@@ -1145,7 +1235,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
-        internal async Task RunDiscoveryPeriodicallyAsync(CancellationToken ct)
+        internal async Task RunDiscoveryAsync(CancellationToken ct)
         {
             while (!ct.IsCancellationRequested &&
                 await _timer.WaitForNextTickAsync(ct).ConfigureAwait(false))
@@ -1159,32 +1249,68 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
 
                     var errors = new ValidationErrors(this);
+                    var eps = new List<DiscoveredEndpointModel>();
                     foreach (var endpoint in device.Device.Endpoints.Inbound)
                     {
-                        var deviceEndpointResource = new DeviceEndpointResource(
-                            device.DeviceName, device.Device, endpoint.Key);
+                        var deviceEndpointResource = new DeviceEndpointResource(device.DeviceName,
+                            device.Device, endpoint.Key);
+
+                        if (!Uri.TryCreate(endpoint.Value.Address, UriKind.Absolute, out var endpointUri))
+                        {
+                            errors.OnError(deviceEndpointResource, kInvalidEndpointUrl,
+                                "Invalid endpoint URL: " + endpoint.Value.Address);
+                            continue;
+                        }
                         var endpointConfiguration = Deserialize(
                             endpoint.Value.AdditionalConfiguration?.RootElement.GetRawText(),
                             () => new DeviceEndpointModel(),
                             errors, deviceEndpointResource);
-                        if ((endpointConfiguration?.RunAssetDiscovery) != true ||
-                            !(endpointConfiguration.AssetTypes?.Count > 0))
+                        if (endpointConfiguration == null)
                         {
                             continue;
                         }
-                        // Run discovery
-                        try
+
+                        if ((endpointConfiguration.RunAssetDiscovery) == true &&
+                            endpointConfiguration.AssetTypes?.Count > 0)
                         {
-                            await RunDiscoveryUsingTypesAsync(deviceEndpointResource,
-                                endpointConfiguration.AssetTypes, errors, ct).ConfigureAwait(false);
+                            // Run discovery
+                            try
+                            {
+                                await RunDiscoveryUsingTypesAsync(deviceEndpointResource,
+                                    endpointConfiguration.AssetTypes, errors, ct).ConfigureAwait(false);
+                            }
+                            catch (Exception ex)
+                            {
+                                errors.OnError(deviceEndpointResource, kDiscoveryError, ex.Message);
+                                _logger.LogError(ex, "Failed to run discovery for device {Device}",
+                                    device.DeviceName);
+                            }
                         }
-                        catch (Exception ex)
+
+                        if (endpointConfiguration.Source == null &&
+                            endpointConfiguration.EndpointSecurityMode == SecurityMode.None)
                         {
-                            errors.OnError(deviceEndpointResource, kDiscoveryError, ex.Message);
-                            _logger.LogError(ex, "Failed to run discovery for device {Device}",
-                                device.DeviceName);
+                            try
+                            {
+                                var endpoints = await _endpointDiscovery.FindEndpointsAsync(
+                                    endpointUri, findServersOnNetwork: false, ct: ct).ConfigureAwait(false);
+                                eps.AddRange(endpoints);
+                            }
+                            catch (Exception ex)
+                            {
+                                errors.OnError(device, kDiscoveryError, ex.Message);
+                                _logger.LogError(ex, "Failed to run endpoint discovery for device {Device}",
+                                    device.DeviceName);
+                            }
                         }
                     }
+
+                    if (eps.Count > 0)
+                    {
+                        // Update device with the discovered endpoints
+
+                    }
+
                     await errors.ReportAsync(ct).ConfigureAwait(false);
 
                     // Compare last device list version, if version changed, stop and continue on
@@ -1585,11 +1711,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private const string kTooManyDestinationsError = "500.4";
         private const string kAuthenticationValueMissing = "500.5";
         private const string kDiscoveryError = "500.6";
+        private const string kInvalidEndpointUrl = "500.7";
 
         private readonly ConcurrentDictionary<string, AssetResource> _assets = new();
         private readonly ConcurrentDictionary<string, DeviceResource> _devices = new();
         private readonly Channel<(string, Resource)> _changeFeed;
         private readonly IConfigurationServices _configurationServices;
+        private readonly IEndpointDiscovery _endpointDiscovery;
         private readonly IAioAdrClient _client;
         private readonly IPublishedNodesServices _publishedNodes;
         private readonly IJsonSerializer _serializer;

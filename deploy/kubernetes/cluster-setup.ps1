@@ -1177,8 +1177,6 @@ foreach ($s in $connectorSchemas) {
         Write-Host "Creating schema $($s.Name) in registry $($sr.name)..." `
             -ForegroundColor Cyan
         $schemaPath = Join-Path "iotops" "$($s.Name).json"
-        #$schemaContent = $(Get-Content $(Join-Path "iotops" "$($s.Name).json") `
-        #    | ConvertTo-Json -Depth 100 -Compress).Replace('"', '\"')
         $errOut = $($schema = & { az iot ops schema create `
             --resource-group $rg.Name `
             --registry $sr.name `
@@ -1260,7 +1258,7 @@ $template = @{
         )
         diagnostics = @{
             logs = @{
-                level = "debug" # "info"
+                level = "info"
             }
         }
         mqttConnectionConfiguration = @{
@@ -1334,7 +1332,7 @@ $template = @{
         secrets = @()
         diagnostics = @{
             logs = @{
-                level = "debug" # "info"
+                level = "info"
             }
         }
         mqttConnectionConfiguration = @{
@@ -1359,7 +1357,6 @@ $dhResource = "$($dhResource)/providers/Microsoft.IoTOperations"
 $dhResource = "$($dhResource)/instances/$($iotOps.name)"
 $dhResource = "$($dhResource)/akriDiscoveryHandlers/$($dhName)"
 $body = $($template | ConvertTo-Json -Depth 100 -Compress).Replace('"', '\"')
-$body | Out-Host
 Write-Host "Deploying discovery handler template $($dhName)..." -ForegroundColor Cyan
 az rest --method put `
     --url "$($dhResource)?api-version=2025-07-01-preview" `
@@ -1387,10 +1384,12 @@ for ($i = 0; $i -lt $numberOfDevices; $i++) {
     $errOut = $($device = & { az rest --method get `
         --url "$($deviceResource)?api-version=2025-07-01-preview" `
         --headers "Content-Type=application/json" } | ConvertFrom-Json) 2>&1
-    if (!$device -or !$device.id) {
+    if (!$device -or !$device.id -or !$test) {  # force we always recreate
         $address = "opcplc-$($deviceName).$($script:InstanceNamespace)"
         $address = "opc.tcp://$($address).svc.cluster.local:50000"
-        $body = $(@{
+        # Make temp file to preserve the correct json format
+        $tempFile = New-TemporaryFile
+        $body = @{
             extendedLocation = $iotOps.extendedLocation
             location = $Location
             properties = @{
@@ -1413,19 +1412,24 @@ for ($i = 0; $i -lt $numberOfDevices; $i++) {
                                 EndpointSecurityPolicy = "None"
                                 RunAssetDiscovery = $True
                                 AssetTypes = @(
-                                    "nsu=http://opcfoundation.org/UA/Boiler/;i=1132"
+                                    "nsu=http://opcfoundation.org/UA/Boiler/;i=1132",
+                                    "nsu=http://microsoft.com/Opc/OpcPlc/Boiler;i=1000",
+                                    "nsu=http://microsoft.com/Opc/OpcPlc/Boiler;i=3"
                                 )
-                            } | ConvertTo-Json -Depth 100 -Compress).Replace('"', '\"')
+                            } | ConvertTo-Json -Depth 100 -Compress)
                         }
                     }
                 }
             }
-        } | ConvertTo-Json -Depth 100 -Compress).Replace('"', '\"')
+        } | ConvertTo-Json -Depth 100
+        $body | Out-Host
+        $body | Out-File -Path $tempFile
         Write-Host "Creating ADR namespaced device $deviceResource..." -ForegroundColor Cyan
         $errOut = $($device = & { az rest --method put `
             --url "$($deviceResource)?api-version=2025-07-01-preview" `
             --headers "Content-Type=application/json" `
-            --body $body } | ConvertFrom-Json) 2>&1
+            --body @$tempFile } | ConvertFrom-Json) 2>&1
+        Remove-Item -Path $tempFile -Force
         if (-not $? -or !$device -or !$device.id) {
             Write-Host "Error: Failed to create device $($deviceResource) - $($errOut)." `
                 -ForegroundColor Red

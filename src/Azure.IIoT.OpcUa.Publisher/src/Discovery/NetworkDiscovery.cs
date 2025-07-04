@@ -483,7 +483,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                 var eps = await _client.FindEndpointsAsync(new UriBuilder(url)
                 {
                     Host = item.Key.Address.ToString()
-                }.Uri, locales, request.Token).ConfigureAwait(false);
+                }.Uri, locales, findServersOnNetwork: true, request.Token).ConfigureAwait(false);
 
                 count++;
                 var endpoints = 0;

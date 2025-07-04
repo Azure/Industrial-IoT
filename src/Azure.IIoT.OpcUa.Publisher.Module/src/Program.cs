@@ -5,8 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module
 {
-    using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
     using Autofac.Extensions.DependencyInjection;
+    using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
+    using k8s;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Hosting;
@@ -46,7 +47,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         {
 #if DEBUG
             if (args.Any(a => a.Contains("wfd", StringComparison.InvariantCultureIgnoreCase) ||
-                a.Contains("waitfordebugger", StringComparison.InvariantCultureIgnoreCase)))
+                a.Contains("waitfordebugger", StringComparison.InvariantCultureIgnoreCase)) ||
+                KubernetesClientConfiguration.IsInCluster())
             {
                 Console.WriteLine("Waiting for debugger being attached...");
                 while (!Debugger.IsAttached)
@@ -54,6 +56,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                     Thread.Sleep(1000);
                 }
                 Console.WriteLine("Debugger attached.");
+                Debugger.Break();
             }
 #endif
             RunAsync(args).GetAwaiter().GetResult();

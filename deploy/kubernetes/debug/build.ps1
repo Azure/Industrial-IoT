@@ -34,10 +34,10 @@ $containerTag = Get-Date -Format "MMddHHmmss"
 $containerImage = "$($containerName):$($containerTag)"
 Write-Host "Publishing $Configuration OPC Publisher as $containerImage..." `
     -ForegroundColor Cyan
+dotnet clean $projFile -c $Configuration
 dotnet restore $projFile -s https://api.nuget.org/v3/index.json
 dotnet publish $projFile -c $Configuration --self-contained false --no-restore `
-    /t:PublishContainer -r linux-x64 /p:ContainerImageTag=$($containerTag) `
-    /p:DebugType=full /p:DebugSymbols=true /p:EmbedUntrackedSources=true
+    /t:PublishContainer -r linux-x64 /p:ContainerImageTag=$($containerTag)
 if (-not $?) {
     Write-Host "Error building opc publisher connector." -ForegroundColor Red
     exit -1
@@ -54,6 +54,7 @@ if ($script:ClusterType -eq "microk8s") {
     multipass transfer $imageTar microk8s-vm:/tmp/image.tar
     microk8s ctr image import /tmp/image.tar
     Remove-Item -Path $imageTar -Force
+    docker image rm -f $containerImage
     $containerImage = "docker.io/$containerImage"
 }
 elseif ($script:ClusterType -eq "k3d") {
