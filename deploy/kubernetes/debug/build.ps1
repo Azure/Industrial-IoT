@@ -58,7 +58,12 @@ if ($script:ClusterType -eq "microk8s") {
     $containerImage = "docker.io/$containerImage"
 }
 elseif ($script:ClusterType -eq "k3d") {
-    k3d image import $containerImage --mode auto
+    # import in all clusters which avoids asking for the cluster name
+    $clusters = $(& { k3d cluster list --no-headers } -split ")`n") `
+        | ForEach-Object { $($_ -split " ")[0].Trim() }
+    k3d image import $containerImage `
+        --mode auto `
+        --cluster $($clusters -join ",")
 }
 elseif ($script:ClusterType -eq "kind") {
     kind load docker-image $containerImage
