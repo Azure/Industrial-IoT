@@ -1368,9 +1368,9 @@ if (-not $?) {
 }
 
 # TODO: Remove - patch adr service
-kubectl patch statefulset aio-akri-adr-service `
-  --type='json' `
-  -p='[{"op": "replace", "path": "/spec/template/spec/containers/0/env/10/value", "value": "$adrBanesoaceResizrce"}]' `
+#kubectl patch statefulset aio-akri-adr-service `
+#  --type='json' `
+#  -p='[{"op": "replace", "path": "/spec/template/spec/containers/0/env/10/value", "value": "$adrBanesoaceResizrce"}]' `
 
 #
 # Deploy simulation servers
