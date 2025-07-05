@@ -918,7 +918,7 @@ if (!$iotOps) {
         "--name", $script:InstanceName, `
         "--location", $Location, `
         "--sr-resource-id", $sr.id, `
-        "--ns-resource-id", $adrNsResource, `
+        "--ns-resource-id", $ns.id, `
         "--enable-rsync", "true", `
         "--add-insecure-listener", "true", `
         "--only-show-errors"
@@ -1007,7 +1007,6 @@ if (!$mia -or $mia.type -ne "UserAssigned") {
             -ForegroundColor Red
         exit -1
     }
-    $mia | Out-Host
     Write-Host "Managed identity $($mi.id) assigned to instance $($iotOps.id)." `
         -ForegroundColor Green
 }
@@ -1134,7 +1133,7 @@ if ($script:ClusterType -eq "microk8s") {
     }
 }
 elseif ($script:ClusterType -eq "k3d") {
-    k3d image import $containerImage --mode auto
+    k3d image import $containerImage --mode auto --cluster $Name
 }
 elseif ($script:ClusterType -eq "kind") {
     kind load docker-image $containerImage
@@ -1385,7 +1384,7 @@ helm upgrade -i opc-plc helm\opc-plc\ `
     --wait
 for ($i = 0; $i -lt $numberOfDevices; $i++) {
     $deviceName = "opc-plc-$("{0:D6}" -f $i)"
-    $deviceResource = "$($adrNsResource)/devices/$($deviceName)"
+    $deviceResource = "$($ns.id)/devices/$($deviceName)"
     $errOut = $($device = & { az rest --method get `
         --url "$($deviceResource)?api-version=2025-07-01-preview" `
         --headers "Content-Type=application/json" } | ConvertFrom-Json) 2>&1

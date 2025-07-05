@@ -104,6 +104,14 @@ if ($ClusterType -eq "microk8s") {
         -ForegroundColor Green
     docker image rm -f debugger:$($containerTag)
 }
+elseif ($script:ClusterType -eq "k3d") {
+    # import in all clusters which avoids asking for the cluster name
+    $clusters = $(& { k3d cluster list --no-headers } -split ")`n") `
+        | ForEach-Object { $($_ -split " ")[0].Trim() }
+    k3d image import debugger:$($containerTag) `
+        --mode auto `
+        --cluster $($clusters -join ",")
+}
 else {
     # TODO
 }
