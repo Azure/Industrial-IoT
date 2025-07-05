@@ -92,7 +92,12 @@ while ($true) {
     $errOut = $($dDevices = & { az rest --method get `
         --url "$($ns.id)/discoveredDevices?api-version=2025-07-01-preview" `
         --headers "Content-Type=application/json" } | ConvertFrom-Json) 2>&1
-    foreach ($dDevice in $dDevices) {
+    if (!$dDevices -or !$dDevices.value) {
+        Write-Host "Error fetching discovered devices - $($errOut)." `
+            -ForegroundColor Red
+        exit -1
+    }
+    foreach ($dDevice in $dDevices.value) {
         $body = $(@{
             extendedLocation = $dDevice.extendedLocation
             location = $dDevice.location
@@ -116,9 +121,14 @@ while ($true) {
         }
     }
     $errOut = $($dAssets = & { az rest --method get `
-        --url "$($adrNsResource)/discoveredAssets?api-version=2025-07-01-preview" `
+        --url "$($ns.id)/discoveredAssets?api-version=2025-07-01-preview" `
         --headers "Content-Type=application/json" } | ConvertFrom-Json) 2>&1
-    foreach ($dAsset in $dAssets) {
+    if (!$dAssets -or !$dAssets.value) {
+        Write-Host "Error fetching discovered assets - $($errOut)." `
+            -ForegroundColor Red
+        exit -1
+    }
+    foreach ($dAsset in $dAssets.value) {
         # todo: Filter data points too
         $datasets = $dAsset.properties.datasets `
             | Select-Object -Property * -ExcludeProperty lastUpdatedOn
