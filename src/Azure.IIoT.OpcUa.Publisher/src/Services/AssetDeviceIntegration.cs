@@ -17,6 +17,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Furly;
     using Furly.Azure.IoT.Operations.Services;
     using Furly.Extensions.Serializers;
+    using Microsoft.Azure.Amqp.Encoding;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Opc.Ua;
@@ -27,6 +28,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Globalization;
     using System.Linq;
     using System.Text.Json;
+    using System.Text.Json.Serialization;
+    using System.Text.RegularExpressions;
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
@@ -488,11 +491,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     group.Key.AssetTypeRef,
                     group.ToList())))
             {
-                var uniqueAssetName = assetName + "." + assetId.ToSha1Hash();
+                var crAssetName = MakeValidName(assetName + "." + assetId.ToSha1Hash());
+                var uniqueAssetName = crAssetName;
                 // Ensure unique asset names
                 for (var i = 1; !uniqueAssetNames.Add(uniqueAssetName); i++)
                 {
-                    uniqueAssetName = assetName + "." + i;
+                    uniqueAssetName = crAssetName + "." + i;
                 }
                 // ensure no duplicate datasets and datapoints (names) are added into the asset
                 var distinctDatasets = datasets
@@ -518,6 +522,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         EndpointName = resource.EndpointName
                     },
                     AssetName = uniqueAssetName,
+                    Model = assetName, // DisplayName = assetName,
                     AssetTypeRefs = [assetTypeRef],
                     Datasets = distinctDatasets.ConvertAll(d => new DiscoveredAssetDataset
                     {
@@ -540,7 +545,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                     Qos = _options.Value.DefaultQualityOfService
                                         == Furly.Extensions.Messaging.QoS.AtMostOnce ? QoS.Qos0 : QoS.Qos1,
                                     Topic =
-                                        $"{_options.Value.PublisherId}/data/{d.DataSetWriterGroup}/{d.DataSetName}",
+                    $"{Furly.Extensions.Messaging.TopicFilter.Escape(_options.Value.PublisherId ?? "source")}/" +
+                    $"{Furly.Extensions.Messaging.TopicFilter.Escape(d.DataSetWriterGroup?? "asset")}/" +
+                    $"{Furly.Extensions.Messaging.TopicFilter.Escape(d.DataSetName ?? "dataset")}",
                                     Retain = _options.Value.DefaultMessageRetention
                                         == true ? Retain.Keep : Retain.Never,
                                     Ttl = (ulong?)_options.Value.DefaultMessageTimeToLive?.TotalSeconds
@@ -551,9 +558,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     // TODO: Add events
                     Events = null
                 };
+
                 // TODO: Add attributes and other information from properties
+
+#if DEBUG
+#pragma warning disable CA1869 // Cache and reuse 'JsonSerializerOptions' instances
+                _logger.LogInformation("Reporting new discovered asset {AssetName} " +
+                    "with id {AssetId} and type {AssetTypeRef}:\n{Asset}",
+                    uniqueAssetName, assetId, assetTypeRef, JsonSerializer.Serialize(
+                        dAsset, new JsonSerializerOptions
+                        {
+                            WriteIndented = true,
+                            Converters = { new JsonStringEnumConverter() },
+                            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                        }));
+#pragma warning restore CA1869 // Cache and reuse 'JsonSerializerOptions' instances
+#endif
                 await _client.ReportDiscoveredAssetAsync(resource.DeviceName, resource.EndpointName,
-                    assetName, dAsset, cancellationToken: ct).ConfigureAwait(false);
+                    uniqueAssetName, dAsset, cancellationToken: ct).ConfigureAwait(false);
             }
         }
 
@@ -1357,6 +1379,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         private static string CreateAssetKey(string deviceName, string inboundEndpointName,
             string assetName) => $"{deviceName}_{inboundEndpointName}_{assetName}";
+
+        private static string MakeValidName(string input)
+        {
+            // Convert to lowercase
+            string sanitized = input.ToLower();
+            // Replace invalid characters with '-'
+            sanitized = Regex.Replace(sanitized, @"[^a-z0-9.-]", "-");
+            // Ensure it starts and ends with an alphanumeric character
+            sanitized = Regex.Replace(sanitized, @"^-+|-+$", "");
+            // Truncate to 253 characters if necessary
+            if (sanitized.Length > 253)
+            {
+                sanitized = sanitized.Substring(0, 253);
+            }
+            return sanitized;
+        }
 
         /// <summary>
         /// Base resoure and corresponding resources

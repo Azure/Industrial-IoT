@@ -68,7 +68,7 @@ param(
         "Official",
         "Local",
         "Debug"
-    )] $Connector = "Debug",
+    )] $Connector = "Local",
     [string] $OpsVersion = $null,
     [string] [ValidateSet(
         "integration",
@@ -1367,6 +1367,11 @@ if (-not $?) {
         -ForegroundColor Red
     exit -1
 }
+
+# TODO: Remove - patch adr service
+kubectl patch statefulset aio-akri-adr-service `
+  --type='json' `
+  -p='[{"op": "replace", "path": "/spec/template/spec/containers/0/env/10/value", "value": "$adrBanesoaceResizrce"}]' `
 
 #
 # Deploy simulation servers
