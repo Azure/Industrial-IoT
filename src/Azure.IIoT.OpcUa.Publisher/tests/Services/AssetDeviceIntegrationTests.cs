@@ -134,7 +134,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             // Add device first
             sut.OnDeviceCreated(deviceName, endpointName, device);
             // Act
-            sut.OnDeviceDeleted(deviceName, endpointName, device);
+            sut.OnDeviceDeleted(deviceName, endpointName);
             // Assert: device should be removed from the internal dictionary
             Assert.DoesNotContain(sut.Devices, d => d.DeviceName == deviceName);
         }
@@ -153,7 +153,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 
             // Act / Assert
             Assert.Throws<ObjectDisposedException>(
-                () => sut.OnDeviceDeleted(deviceName, endpointName, device));
+                () => sut.OnDeviceDeleted(deviceName, endpointName));
         }
 
         [Fact]
@@ -266,7 +266,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             // Add asset first
             sut.OnAssetCreated(deviceName, endpointName, assetName, asset);
             // Act
-            sut.OnAssetDeleted(deviceName, endpointName, assetName, asset);
+            sut.OnAssetDeleted(deviceName, endpointName, assetName);
             // Assert: asset should be removed from the internal dictionary
             Assert.DoesNotContain(sut.Assets, a => a.AssetName == assetName);
         }
@@ -292,7 +292,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             TryCompleteChannel(sut);
             // Act / Assert
             Assert.Throws<ObjectDisposedException>(
-                () => sut.OnAssetDeleted(deviceName, endpointName, assetName, asset));
+                () => sut.OnAssetDeleted(deviceName, endpointName, assetName));
         }
 
         [Fact]

@@ -162,7 +162,7 @@ else {
 # Log into azure
 #
 Write-Host "Log into Azure..." -ForegroundColor Cyan
-$loginParams = @()
+$loginParams = @( "--only-show-errors" )
 if (![string]::IsNullOrWhiteSpace($TenantId)) {
     $loginParams += @("--tenant", $TenantId)
 }
@@ -728,6 +728,7 @@ $roleAssignments =
     @("Contributor", $stg.id, $mi.principalId),
     @("Storage Blob Data Owner", $stg.id, $mi.principalId),
     @("Contributor", $ehNs.id, $mi.principalId),
+    @("Contributor", $rg.id, $mi.principalId),
     @("Key Vault Administrator", $kv.id, $mi.principalId)
 )
 foreach ($ra in $roleAssignments) {
@@ -920,7 +921,6 @@ if (!$iotOps) {
         "--location", $Location, `
         "--sr-resource-id", $sr.id, `
         "--ns-resource-id", $ns.id, `
-        "--enable-rsync", "true", `
         "--add-insecure-listener", "true", `
         "--only-show-errors"
     )
@@ -937,6 +937,19 @@ if (!$iotOps) {
             exit -1
         }
     }
+    $errOut = $($syncRules = & { az iot ops rsync enable `
+        --resource-group $($rg.Name) `
+        --name $script:InstanceName `
+        --subscription $SubscriptionId `
+        --only-show-errors --output json } | ConvertFrom-Json) 2>&1
+    if (-not $?) {
+        Write-Host "Error enabling Azure IoT Operations sync rules - $($errOut)." `
+            -ForegroundColor Red
+        exit -1
+    }
+    Write-Host "Azure IoT Operations sync rules $($syncRules.name -join ',') created." `
+        -ForegroundColor Green
+
     $errOut = $($iotOps = & { az iot ops show `
         --resource-group $($rg.Name) `
         --name $script:InstanceName `

@@ -146,7 +146,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     OnAssetUpdated(e.DeviceName, e.InboundEndpointName, e.AssetName, e.Asset!);
                     break;
                 case ChangeType.Deleted:
-                    OnAssetDeleted(e.DeviceName, e.InboundEndpointName, e.AssetName, e.Asset);
+                    OnAssetDeleted(e.DeviceName, e.InboundEndpointName, e.AssetName);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(e), e.ChangeType,
@@ -171,7 +171,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     OnDeviceUpdated(e.DeviceName, e.InboundEndpointName, e.Device!);
                     break;
                 case ChangeType.Deleted:
-                    OnDeviceDeleted(e.DeviceName, e.InboundEndpointName, e.Device);
+                    OnDeviceDeleted(e.DeviceName, e.InboundEndpointName);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(e), e.ChangeType,
@@ -220,9 +220,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         /// <param name="deviceName"></param>
         /// <param name="inboundEndpointName"></param>
-        /// <param name="device"></param>
-        internal void OnDeviceDeleted(string deviceName, string inboundEndpointName,
-            Device? device)
+        internal void OnDeviceDeleted(string deviceName, string inboundEndpointName)
         {
             var name = CreateDeviceKey(deviceName, inboundEndpointName);
             if (!_devices.TryRemove(name, out var deviceResource))
@@ -279,9 +277,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="deviceName"></param>
         /// <param name="inboundEndpointName"></param>
         /// <param name="assetName"></param>
-        /// <param name="asset"></param>
         internal void OnAssetDeleted(string deviceName, string inboundEndpointName,
-            string assetName, Asset? asset)
+            string assetName)
         {
             var name = CreateAssetKey(deviceName, inboundEndpointName, assetName);
             if (!_assets.TryRemove(name, out var asseteResource))
@@ -306,10 +303,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             try
             {
                 // Read changes in batches
-                var updatesReceived = false;
                 while (!ct.IsCancellationRequested)
                 {
-                    while (!ct.IsCancellationRequested && _changeFeed.Reader.TryRead(out var change))
+                    var updatesReceived = false;
+                    while (_changeFeed.Reader.TryRead(out var change))
                     {
                         (var name, var resource) = change;
                         switch (resource)
@@ -353,6 +350,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         }
                         updatesReceived = true;
                     }
+
                     // Process changes
                     if (updatesReceived)
                     {
@@ -394,8 +392,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                         _timer.Change(TimeSpan.Zero, TimeSpan.FromMinutes(30)); // TODO Make period configurable
                     }
+                    await _changeFeed.Reader.WaitToReadAsync(ct).ConfigureAwait(false);
                 }
-                await _changeFeed.Reader.WaitToReadAsync(ct).ConfigureAwait(false);
             }
             catch (OperationCanceledException) { }
             catch (ObjectDisposedException) { }
@@ -543,9 +541,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                     Qos = _options.Value.DefaultQualityOfService
                                         == Furly.Extensions.Messaging.QoS.AtMostOnce ? QoS.Qos0 : QoS.Qos1,
                                     Topic =
-                    $"{Furly.Extensions.Messaging.TopicFilter.Escape(_options.Value.PublisherId ?? "source")}/" +
-                    $"{Furly.Extensions.Messaging.TopicFilter.Escape(d.DataSetWriterGroup?? "asset")}/" +
-                    $"{Furly.Extensions.Messaging.TopicFilter.Escape(d.DataSetName ?? "dataset")}",
+            $"{Furly.Extensions.Messaging.TopicFilter.Escape(_options.Value.PublisherId ?? "source")}/" +
+            $"{Furly.Extensions.Messaging.TopicFilter.Escape(d.DataSetWriterGroup?? "asset")}/" +
+            $"{Furly.Extensions.Messaging.TopicFilter.Escape(d.DataSetName ?? "dataset")}",
                                     Retain = _options.Value.DefaultMessageRetention
                                         == true ? Retain.Keep : Retain.Never,
                                     Ttl = (ulong?)_options.Value.DefaultMessageTimeToLive?.TotalSeconds
@@ -559,19 +557,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 // TODO: Add attributes and other information from properties
 
-#if DEBUG
-#pragma warning disable CA1869 // Cache and reuse 'JsonSerializerOptions' instances
-                _logger.LogInformation("Reporting new discovered asset {AssetName} " +
+                if (_logger.IsEnabled(LogLevel.Debug))
+                {
+                    _logger.LogInformation("Reporting new discovered asset {AssetName} " +
                     "with id {AssetId} and type {AssetTypeRef}:\n{Asset}",
                     uniqueAssetName, assetId, assetTypeRef, JsonSerializer.Serialize(
-                        dAsset, new JsonSerializerOptions
-                        {
-                            WriteIndented = true,
-                            Converters = { new JsonStringEnumConverter() },
-                            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-                        }));
-#pragma warning restore CA1869 // Cache and reuse 'JsonSerializerOptions' instances
-#endif
+                        dAsset, kDebugSerializerOptions));
+                }
                 await _client.ReportDiscoveredAssetAsync(resource.DeviceName, resource.EndpointName,
                     uniqueAssetName, dAsset, cancellationToken: ct).ConfigureAwait(false);
             }
@@ -590,37 +582,63 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var newEndpoints = new Dictionary<string, DiscoveredDeviceInboundEndpoint>();
             var endpoints = await _endpointDiscovery.FindEndpointsAsync(
                 endpointUri, findServersOnNetwork: false, ct: ct).ConfigureAwait(false);
-            var endpointType = _options.Value.AioEndpointType ?? "Microsoft.OpcPublisher";
+            var endpointType = _options.Value.AioDiscoveredDeviceEndpointType
+                ?? "Microsoft.OpcPublisher";
             foreach (var ep in endpoints)
             {
                 var desc = ep.Description;
-                var name = "None";
+                var name = desc.SecurityMode.ToString();
                 if (desc.SecurityMode != MessageSecurityMode.None)
                 {
                     if (!Uri.TryCreate(desc.SecurityPolicyUri, UriKind.Absolute,
-                        out var securityProfileUri))
+                        out var securityProfileUri) ||
+                        securityProfileUri.Fragment.Length == 0 ||
+                        securityProfileUri.Fragment[0] != '#')
                     {
                         continue;
                     }
-                    name = $"{desc.SecurityMode}_{securityProfileUri.Fragment}";
+                    name += "." + securityProfileUri.Fragment.Remove('#');
                 }
+                if (desc.TransportProfileUri != Profiles.UaTcpTransport)
+                {
+                    if (!Uri.TryCreate(desc.TransportProfileUri, UriKind.Absolute,
+                        out var transportProfileUri))
+                    {
+                        continue;
+                    }
+                    var pathParts = transportProfileUri.PathAndQuery.Split('/');
+                    if (pathParts.Length == 0)
+                    {
+                        continue;
+                    }
+                    name += "." + pathParts[pathParts.Length - 1];
+                }
+                // TODO: Add user token types
+
                 var epModel = new DeviceEndpointModel
                 {
                     Source = "Discovery",
                     EndpointSecurityMode = desc.SecurityMode.ToServiceType(),
                     EndpointSecurityPolicy = desc.SecurityPolicyUri
                 };
-                var uniqueName = name;
+                var uniqueName = MakeValidName(name);
                 if (newEndpoints.ContainsKey(uniqueName) ||
                     (resource.Device.Endpoints?.Inbound?.ContainsKey(uniqueName) ?? false))
                 {
                     continue;
                 }
+                var additionalConfiguration = _serializer.SerializeToString(epModel);
+                if (additionalConfiguration.Length > 512)
+                {
+                    _logger.LogError("Additional configuration for endpoint {EndpointName} " +
+                        "on device {DeviceName} is too long ({Length} > 512). Skipping.",
+                        uniqueName, resource.DeviceName, additionalConfiguration.Length);
+                }
                 newEndpoints.Add(uniqueName, new DiscoveredDeviceInboundEndpoint
                 {
                     Address = ep.AccessibleEndpointUrl,
                     EndpointType = endpointType,
-                    AdditionalConfiguration = _serializer.SerializeToString(epModel)
+                    AdditionalConfiguration = additionalConfiguration
                 });
             }
             if (newEndpoints.Count <= 0)
@@ -646,19 +664,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             };
             // TODO: Add attributes and other information from properties
 
-#if DEBUG
-#pragma warning disable CA1869 // Cache and reuse 'JsonSerializerOptions' instances
-            _logger.LogInformation("Reporting new discovered dvice {DeviceName} " +
-                "with type {EndpointType}:\n{Device}",
-                resource.DeviceName, endpointType, JsonSerializer.Serialize(
-                    dDevice, new JsonSerializerOptions
-                    {
-                        WriteIndented = true,
-                        Converters = { new JsonStringEnumConverter() },
-                        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-                    }));
-#pragma warning restore CA1869 // Cache and reuse 'JsonSerializerOptions' instances
-#endif
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug("Reporting new discovered device {DeviceName} " +
+                    "with type {EndpointType}:\n{Device}",
+                    resource.DeviceName, endpointType, JsonSerializer.Serialize(
+                        dDevice, kDebugSerializerOptions));
+            }
             await _client.ReportDiscoveredDeviceAsync(resource.DeviceName, dDevice,
                 endpointType, cancellationToken: ct).ConfigureAwait(false);
         }
@@ -1836,6 +1848,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private const string kAuthenticationValueMissing = "500.5";
         private const string kDiscoveryError = "500.6";
         private const string kInvalidEndpointUrl = "500.7";
+
+        private static readonly JsonSerializerOptions kDebugSerializerOptions = new()
+        {
+            WriteIndented = true,
+            Converters = { new JsonStringEnumConverter() },
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        };
 
         private readonly ConcurrentDictionary<string, AssetResource> _assets = new();
         private readonly ConcurrentDictionary<string, DeviceResource> _devices = new();

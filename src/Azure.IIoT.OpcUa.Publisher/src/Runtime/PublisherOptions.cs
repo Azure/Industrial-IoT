@@ -314,9 +314,12 @@ namespace Azure.IIoT.OpcUa.Publisher
         public bool? IsAzureIoTOperationsConnector { get; set; }
 
         /// <summary>
-        /// Endpoint type that publisher should handle.
-        /// Default is Microsoft.OpcPublisher.
+        /// When discovering device endpoints this is the
+        /// Endpoint type string that publisher should add
+        /// to the endpoints. Default is Microsoft.OpcPublisher.
+        /// Set this to Microsoft.OpcUa to let Azure IoT
+        /// Operations handle the OPC UA discovered endpoints.
         /// </summary>
-        public string? AioEndpointType { get; set; }
+        public string? AioDiscoveredDeviceEndpointType { get; set; }
     }
 }
