@@ -312,5 +312,11 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// If null, not running in Azure IoT Operations.
         /// </summary>
         public bool? IsAzureIoTOperationsConnector { get; set; }
+
+        /// <summary>
+        /// Endpoint type that publisher should handle.
+        /// Default is Microsoft.OpcPublisher.
+        /// </summary>
+        public string? AioEndpointType { get; set; }
     }
 }

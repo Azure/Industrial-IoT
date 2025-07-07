@@ -72,7 +72,8 @@ param(
     [string] $OpsVersion = $null,
     [string] [ValidateSet(
         "integration",
-        "stable"
+        "stable",
+        "dev"
     )] $OpsTrain = "integration",
     [switch] $Force,
     [string] [ValidateSet(
@@ -1043,6 +1044,32 @@ else {
         -ForegroundColor Green
 }
 
+# Patch instance if needed
+if (!$iotOps.properties.adrNamespaceRef) {
+    Write-Host "Setting ADR namespace reference $($ns.id) for instance $($iotOps.id)..." `
+        -ForegroundColor Cyan
+    $iotOps.properties | Add-Member -MemberType NoteProperty `
+        -Name adrNamespaceRef -Value @{ resourceId = $ns.id }
+
+    $iotOps | ConvertTo-Json -Depth 100 | Out-Host
+    $body = $($iotOps | ConvertTo-Json -Depth 100 -Compress).Replace('"', '\"')
+    $errOut = $($iotOps = & { az rest --method put `
+        --url "$($iotOps.id)?api-version=2025-07-01-preview" `
+        --headers "Content-Type=application/json" `
+        --body $body } | ConvertFrom-Json) 2>&1
+    if (-not $? -or !$iotOps) {
+        Write-Host "Error setting ADR namespace reference for instance - $($errOut)." `
+            -ForegroundColor Red
+        exit -1
+    }
+    Write-Host "ADR namespace reference $($ns.id) set for instance $($iotOps.id)." `
+        -ForegroundColor Green
+}
+else {
+    Write-Host "ADR namespace reference $($ns.id) exists in instance $($iotOps.id)." `
+        -ForegroundColor Green
+}
+
 $eventHubEndpointName = "eventhub-endpoint"
 $errOut = $($eh = & { az iot ops dataflow endpoint show `
     --instance $iotOps.name `
@@ -1366,11 +1393,6 @@ if (-not $?) {
         -ForegroundColor Red
     exit -1
 }
-
-# TODO: Remove - patch adr service
-#kubectl patch statefulset aio-akri-adr-service `
-#  --type='json' `
-#  -p='[{"op": "replace", "path": "/spec/template/spec/containers/0/env/10/value", "value": "$adrBanesoaceResizrce"}]' `
 
 #
 # Deploy simulation servers

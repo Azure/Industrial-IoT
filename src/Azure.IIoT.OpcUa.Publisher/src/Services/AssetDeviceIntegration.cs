@@ -5,21 +5,17 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
-    using Avro.File;
-    using Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Parser;
     using Azure.IIoT.OpcUa.Publisher.Stack;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.Iot.Operations.Connector;
     using Azure.Iot.Operations.Connector.Files;
     using Azure.Iot.Operations.Services.AssetAndDeviceRegistry.Models;
-    using Furly;
     using Furly.Azure.IoT.Operations.Services;
     using Furly.Extensions.Serializers;
-    using Microsoft.Azure.Amqp.Encoding;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
+    using Nito.AsyncEx;
     using Opc.Ua;
     using System;
     using System.Collections.Concurrent;
@@ -83,7 +79,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             });
             _processor = Task.Factory.StartNew(() => RunAsync(_cts.Token), _cts.Token,
                 TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
-            _timer = new PeriodicTimer(TimeSpan.FromSeconds(30));
+            _trigger = new AsyncManualResetEvent();
+            _timer = new Timer(_ => _trigger.Set());
             _discovery = Task.Factory.StartNew(() => RunDiscoveryAsync(_cts.Token), _cts.Token,
                 TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
         }
@@ -310,104 +307,111 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 // Read changes in batches
                 var updatesReceived = false;
-                while (!ct.IsCancellationRequested && _changeFeed.Reader.TryRead(out var change))
+                while (!ct.IsCancellationRequested)
                 {
-                    (var name, var resource) = change;
-                    switch (resource)
+                    while (!ct.IsCancellationRequested && _changeFeed.Reader.TryRead(out var change))
                     {
-                        case AssetResource asset:
-                            if (!_assets.ContainsKey(name))
+                        (var name, var resource) = change;
+                        switch (resource)
+                        {
+                            case AssetResource asset:
+                                if (!_assets.ContainsKey(name))
+                                {
+                                    await _client.StopMonitoringAssetsAsync(
+                                        asset.Asset.DeviceRef.DeviceName,
+                                        asset.Asset.DeviceRef.EndpointName, ct).ConfigureAwait(false);
+                                }
+                                else
+                                {
+                                    await _client.StartMonitoringAssetsAsync(
+                                        asset.Asset.DeviceRef.DeviceName,
+                                        asset.Asset.DeviceRef.EndpointName, ct).ConfigureAwait(false);
+                                }
+                                break;
+                            case DeviceResource device:
+                                if (device.Device.Endpoints?.Inbound != null)
+                                {
+                                    foreach (var endpoint in device.Device.Endpoints.Inbound.Keys)
+                                    {
+                                        if (!_devices.ContainsKey(name))
+                                        {
+                                            // Removed, stop monitoring assets and clear asset list
+                                            await _client.StopMonitoringAssetsAsync(device.DeviceName,
+                                                endpoint, ct).ConfigureAwait(false);
+                                        }
+                                        else
+                                        {
+                                            await _client.StartMonitoringAssetsAsync(device.DeviceName,
+                                                endpoint, ct).ConfigureAwait(false);
+                                        }
+                                    }
+                                }
+                                break;
+                            default:
+                                Debug.Fail("Should not happen");
+                                break;
+                        }
+                        updatesReceived = true;
+                    }
+                    // Process changes
+                    if (updatesReceived)
+                    {
+                        // Reconcile devices with assets - remove assets without devices or endpoints
+                        foreach (var (name, asset) in _assets)
+                        {
+                            var key = CreateDeviceKey(
+                                asset.Asset.DeviceRef.DeviceName,
+                                asset.Asset.DeviceRef.EndpointName);
+                            if (!_devices.ContainsKey(key))
                             {
+                                _logger.LogDebug("Removing asset {Asset} without device {Device}",
+                                    name, key);
+                                _assets.TryRemove(name, out var _);
                                 await _client.StopMonitoringAssetsAsync(
                                     asset.Asset.DeviceRef.DeviceName,
                                     asset.Asset.DeviceRef.EndpointName, ct).ConfigureAwait(false);
                             }
-                            else
-                            {
-                                await _client.StartMonitoringAssetsAsync(
-                                    asset.Asset.DeviceRef.DeviceName,
-                                    asset.Asset.DeviceRef.EndpointName, ct).ConfigureAwait(false);
-                            }
-                            break;
-                        case DeviceResource device:
-                            if (device.Device.Endpoints?.Inbound != null)
-                            {
-                                foreach (var endpoint in device.Device.Endpoints.Inbound.Keys)
-                                {
-                                    if (!_devices.ContainsKey(name))
-                                    {
-                                        // Removed, stop monitoring assets and clear asset list
-                                        await _client.StopMonitoringAssetsAsync(device.DeviceName,
-                                            endpoint, ct).ConfigureAwait(false);
-                                    }
-                                    else
-                                    {
-                                        await _client.StartMonitoringAssetsAsync(device.DeviceName,
-                                            endpoint, ct).ConfigureAwait(false);
-                                    }
-                                }
-                            }
-                            break;
-                        default:
-                            Debug.Fail("Should not happen");
-                            break;
-                    }
-                    updatesReceived = true;
-                }
-                // Process changes
-                if (updatesReceived)
-                {
-                    // Reconcile devices with assets - remove assets without devices or endpoints
-                    foreach (var (name, asset) in _assets)
-                    {
-                        var key = CreateDeviceKey(
-                            asset.Asset.DeviceRef.DeviceName,
-                            asset.Asset.DeviceRef.EndpointName);
-                        if (!_devices.ContainsKey(key))
-                        {
-                            _logger.LogDebug("Removing asset {Asset} without device {Device}",
-                                name, key);
-                            _assets.TryRemove(name, out var _);
-                            await _client.StopMonitoringAssetsAsync(
-                                asset.Asset.DeviceRef.DeviceName,
-                                asset.Asset.DeviceRef.EndpointName, ct).ConfigureAwait(false);
                         }
+
+                        // Convert
+                        var errors = new ValidationErrors(this);
+                        var devices = _devices.Values.ToList();
+                        var assets = _assets.Values.ToList();
+
+                        _logger.LogInformation("Converting {Assets} Assets on {Devices} devices...",
+                            assets.Count, devices.Count);
+                        var entries = await ToPublishedNodesAsync(devices, assets, errors,
+                            ct).ConfigureAwait(false);
+
+                        // Report all errors
+                        await errors.ReportAsync(ct).ConfigureAwait(false);
+
+                        // Apply to configuration
+                        await _publishedNodes.SetConfiguredEndpointsAsync(entries,
+                            ct).ConfigureAwait(false);
+                        _logger.LogInformation("{Assets} Assets on {Devices} devices updated.",
+                            assets.Count, devices.Count);
+
+                        _timer.Change(TimeSpan.Zero, TimeSpan.FromMinutes(30)); // TODO Make period configurable
                     }
-
-                    // Convert
-                    var errors = new ValidationErrors(this);
-                    var devices = _devices.Values.ToList();
-                    var assets = _assets.Values.ToList();
-
-                    _logger.LogInformation("Converting {Assets} Assets on {Devices} devices...",
-                        assets.Count, devices.Count);
-                    var entries = await ToPublishedNodesAsync(devices, assets, errors,
-                        ct).ConfigureAwait(false);
-
-                    // Report all errors
-                    await errors.ReportAsync(ct).ConfigureAwait(false);
-
-                    // Apply to configuration
-                    await _publishedNodes.SetConfiguredEndpointsAsync(entries,
-                        ct).ConfigureAwait(false);
-                    _logger.LogInformation("{Assets} Assets on {Devices} devices updated.",
-                        assets.Count, devices.Count);
                 }
                 await _changeFeed.Reader.WaitToReadAsync(ct).ConfigureAwait(false);
             }
             catch (OperationCanceledException) { }
+            catch (ObjectDisposedException) { }
         }
 
         /// <summary>
         /// Discover assets
         /// </summary>
         /// <param name="resource"></param>
-        /// <param name="types"></param>
+        /// <param name="endpointConfiguration"></param>
         /// <param name="errors"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         internal async ValueTask RunDiscoveryUsingTypesAsync(DeviceEndpointResource resource,
-            HashSet<string> types, ValidationErrors errors, CancellationToken ct)
+            DeviceEndpointModel endpointConfiguration, ValidationErrors errors,
+            CancellationToken ct)
         {
             if (resource.Device.Endpoints?.Inbound == null ||
                 !resource.Device.Endpoints.Inbound.TryGetValue(resource.EndpointName, out var endpoint))
@@ -415,14 +419,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 errors.OnError(resource, kDeviceNotFoundErrorCode, "Endpoint was not found");
                 return; // throw
             }
-            var endpointConfiguration = Deserialize(
-                endpoint.AdditionalConfiguration?.RootElement.GetRawText(),
-                () => new DeviceEndpointModel(),
-                errors, resource);
-            if (endpointConfiguration == null)
-            {
-                return;
-            }
+
+            Debug.Assert(endpointConfiguration.AssetTypes != null);
             // endpoint
             var assetEndpoint = new PublishedNodesEntryModel
             {
@@ -439,7 +437,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             // Find all assets that comply with the provided types.
             var assetEntries = new List<PublishedNodesEntryModel>();
-            foreach (var type in types)
+            foreach (var type in endpointConfiguration.AssetTypes.Distinct())
             {
                 var template = assetEndpoint with
                 {
@@ -577,6 +575,92 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 await _client.ReportDiscoveredAssetAsync(resource.DeviceName, resource.EndpointName,
                     uniqueAssetName, dAsset, cancellationToken: ct).ConfigureAwait(false);
             }
+        }
+
+        /// <summary>
+        /// Run endpoint discovery for the given endpoint uri.
+        /// </summary>
+        /// <param name="resource"></param>
+        /// <param name="endpointUri"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        private async ValueTask RunEndpointDiscoveryAsync(DeviceEndpointResource resource,
+            Uri endpointUri, CancellationToken ct)
+        {
+            var newEndpoints = new Dictionary<string, DiscoveredDeviceInboundEndpoint>();
+            var endpoints = await _endpointDiscovery.FindEndpointsAsync(
+                endpointUri, findServersOnNetwork: false, ct: ct).ConfigureAwait(false);
+            var endpointType = _options.Value.AioEndpointType ?? "Microsoft.OpcPublisher";
+            foreach (var ep in endpoints)
+            {
+                var desc = ep.Description;
+                var name = "None";
+                if (desc.SecurityMode != MessageSecurityMode.None)
+                {
+                    if (!Uri.TryCreate(desc.SecurityPolicyUri, UriKind.Absolute,
+                        out var securityProfileUri))
+                    {
+                        continue;
+                    }
+                    name = $"{desc.SecurityMode}_{securityProfileUri.Fragment}";
+                }
+                var epModel = new DeviceEndpointModel
+                {
+                    Source = "Discovery",
+                    EndpointSecurityMode = desc.SecurityMode.ToServiceType(),
+                    EndpointSecurityPolicy = desc.SecurityPolicyUri
+                };
+                var uniqueName = name;
+                if (newEndpoints.ContainsKey(uniqueName) ||
+                    (resource.Device.Endpoints?.Inbound?.ContainsKey(uniqueName) ?? false))
+                {
+                    continue;
+                }
+                newEndpoints.Add(uniqueName, new DiscoveredDeviceInboundEndpoint
+                {
+                    Address = ep.AccessibleEndpointUrl,
+                    EndpointType = endpointType,
+                    AdditionalConfiguration = _serializer.SerializeToString(epModel)
+                });
+            }
+            if (newEndpoints.Count <= 0)
+            {
+                _logger.LogDebug("No new endpoints found on device {DeviceName} " +
+                    "using endpoint {EndpointName}.", resource.DeviceName, resource.EndpointName);
+                return;
+            }
+
+            var dDevice = new DiscoveredDevice
+            {
+                ExternalDeviceId = resource.Device.ExternalDeviceId,
+
+                Model = resource.Device.Model,
+                Manufacturer = resource.Device.Manufacturer,
+                OperatingSystem = resource.Device.OperatingSystem,
+                OperatingSystemVersion = resource.Device.OperatingSystemVersion,
+
+                Endpoints = new DiscoveredDeviceEndpoints
+                {
+                    Inbound = newEndpoints
+                }
+            };
+            // TODO: Add attributes and other information from properties
+
+#if DEBUG
+#pragma warning disable CA1869 // Cache and reuse 'JsonSerializerOptions' instances
+            _logger.LogInformation("Reporting new discovered dvice {DeviceName} " +
+                "with type {EndpointType}:\n{Device}",
+                resource.DeviceName, endpointType, JsonSerializer.Serialize(
+                    dDevice, new JsonSerializerOptions
+                    {
+                        WriteIndented = true,
+                        Converters = { new JsonStringEnumConverter() },
+                        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                    }));
+#pragma warning restore CA1869 // Cache and reuse 'JsonSerializerOptions' instances
+#endif
+            await _client.ReportDiscoveredDeviceAsync(resource.DeviceName, dDevice,
+                endpointType, cancellationToken: ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -1259,9 +1343,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <returns></returns>
         internal async Task RunDiscoveryAsync(CancellationToken ct)
         {
-            while (!ct.IsCancellationRequested &&
-                await _timer.WaitForNextTickAsync(ct).ConfigureAwait(false))
+            while (!ct.IsCancellationRequested)
             {
+                _logger.LogInformation("Running discovery for all devices...");
                 var lastListVersion = _lastDeviceListVersion;
                 foreach (var device in _devices.Values.ToList())
                 {
@@ -1271,7 +1355,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
 
                     var errors = new ValidationErrors(this);
-                    var eps = new List<DiscoveredEndpointModel>();
+                    var deviceDiscoveryComplete = false;
                     foreach (var endpoint in device.Device.Endpoints.Inbound)
                     {
                         var deviceEndpointResource = new DeviceEndpointResource(device.DeviceName,
@@ -1292,14 +1376,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             continue;
                         }
 
-                        if ((endpointConfiguration.RunAssetDiscovery) == true &&
+                        if (endpointConfiguration.RunAssetDiscovery == true &&
                             endpointConfiguration.AssetTypes?.Count > 0)
                         {
                             // Run discovery
                             try
                             {
                                 await RunDiscoveryUsingTypesAsync(deviceEndpointResource,
-                                    endpointConfiguration.AssetTypes, errors, ct).ConfigureAwait(false);
+                                    endpointConfiguration, errors, ct).ConfigureAwait(false);
                             }
                             catch (Exception ex)
                             {
@@ -1310,13 +1394,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         }
 
                         if (endpointConfiguration.Source == null &&
-                            endpointConfiguration.EndpointSecurityMode == SecurityMode.None)
+                            endpointConfiguration.EndpointSecurityMode == SecurityMode.None &&
+                            !deviceDiscoveryComplete)
                         {
                             try
                             {
-                                var endpoints = await _endpointDiscovery.FindEndpointsAsync(
-                                    endpointUri, findServersOnNetwork: false, ct: ct).ConfigureAwait(false);
-                                eps.AddRange(endpoints);
+                                await RunEndpointDiscoveryAsync(deviceEndpointResource,
+                                    endpointUri, ct).ConfigureAwait(false);
+                                deviceDiscoveryComplete = true;
                             }
                             catch (Exception ex)
                             {
@@ -1327,21 +1412,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         }
                     }
 
-                    if (eps.Count > 0)
-                    {
-                        // Update device with the discovered endpoints
-
-                    }
-
                     await errors.ReportAsync(ct).ConfigureAwait(false);
 
                     // Compare last device list version, if version changed, stop and continue on
                     // next timer fired. This will settle the changes and limit resource usage.
                     if (_lastDeviceListVersion != lastListVersion)
                     {
+                        _logger.LogInformation("Running discovery for all devices interrupted.");
                         break;
                     }
                 }
+                if (_lastDeviceListVersion == lastListVersion)
+                {
+                    _logger.LogInformation("Running discovery for all devices completed.");
+                    _trigger.Reset();
+                }
+                await _trigger.WaitAsync(ct).ConfigureAwait(false);
             }
         }
 
@@ -1764,7 +1850,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly CancellationTokenSource _cts;
         private readonly Task _processor;
         private readonly Task _discovery;
-        private readonly PeriodicTimer _timer;
+        private readonly AsyncManualResetEvent _trigger;
+        private readonly Timer _timer;
         private int _lastDeviceListVersion;
         private bool _isDisposed;
     }

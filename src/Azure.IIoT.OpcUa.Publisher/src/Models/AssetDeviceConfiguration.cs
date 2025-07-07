@@ -278,7 +278,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "AssetTypes", Order = 12,
             EmitDefaultValue = false)]
-        public HashSet<string>? AssetTypes { get; set; }
+        public IReadOnlyList<string>? AssetTypes { get; set; }
 
         /// <summary>
         /// Source of this endpoint configuration

@@ -327,7 +327,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             };
             var resource = new AssetDeviceIntegration.DeviceEndpointResource(
                 "dev1", device, "ep1");
-            var types = new HashSet<string> { "ns=2;s=Type1" };
+            var types = new List<string> { "ns=2;s=Type1" };
             var errors = new AssetDeviceIntegration.ValidationErrors(sut);
 
             var publishedNodesEntry = new PublishedNodesEntryModel
@@ -368,7 +368,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 #pragma warning restore CA2012 // Use ValueTasks correctly
 
             // Act
-            await sut.RunDiscoveryUsingTypesAsync(resource, types, errors, default);
+            await sut.RunDiscoveryUsingTypesAsync(resource, new DeviceEndpointModel { AssetTypes = types },
+                errors, default);
 
             // Assert
             _clientMock
@@ -401,7 +402,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             };
             var resource = new AssetDeviceIntegration.DeviceEndpointResource(
                 "dev1", device, "ep1");
-            var types = new HashSet<string> { "ns=2;s=Type1" };
+            var types = new List<string> { "ns=2;s=Type1" };
             var errors = new AssetDeviceIntegration.ValidationErrors(sut);
 
             var publishedNodesEntry = new PublishedNodesEntryModel
@@ -435,7 +436,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 #pragma warning restore CA2012 // Use ValueTasks correctly
 
             // Act
-            await sut.RunDiscoveryUsingTypesAsync(resource, types, errors, default);
+            await sut.RunDiscoveryUsingTypesAsync(resource, new DeviceEndpointModel { AssetTypes = types },
+                errors, default);
 
             // Assert
             _clientMock
@@ -453,11 +455,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var sut = CreateSut();
             var device = new Device();
             var resource = new AssetDeviceIntegration.DeviceEndpointResource("dev1", device, "ep1");
-            var types = new HashSet<string> { "ns=2;s=Type1" };
+            var types = new List<string> { "ns=2;s=Type1" };
             var errors = new AssetDeviceIntegration.ValidationErrors(sut);
 
             // Act
-            await sut.RunDiscoveryUsingTypesAsync(resource, types, errors, default);
+            await sut.RunDiscoveryUsingTypesAsync(resource, new DeviceEndpointModel { AssetTypes = types },
+                errors, default);
             // Assert: error should be recorded (no exception thrown)
         }
 
