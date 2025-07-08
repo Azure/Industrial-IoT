@@ -941,7 +941,7 @@ if (!$iotOps) {
         -ForegroundColor Cyan
     $errOut = $(az iot ops rsync enable `
         --resource-group $($rg.Name) `
-        --name $script:InstanceName `
+        --instance $script:InstanceName `
         --subscription $SubscriptionId `
         --only-show-errors) 2>&1
     if (-not $?) {

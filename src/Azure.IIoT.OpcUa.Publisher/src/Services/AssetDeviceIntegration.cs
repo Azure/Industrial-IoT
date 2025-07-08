@@ -29,13 +29,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
+    using static Azure.IIoT.OpcUa.Publisher.Services.AssetDeviceIntegration;
 
     /// <summary>
     /// Asset and device configuration integration with Azure iot operations. Converts asset
     /// and device notifications into published nodes representation and signals configuration
     /// status errors back.
     /// </summary>
-    public sealed class AssetDeviceIntegration : IAsyncDisposable, IDisposable
+    public sealed partial class AssetDeviceIntegration : IAsyncDisposable, IDisposable
     {
         /// <summary>
         /// Currently known assets
@@ -105,7 +106,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 catch (OperationCanceledException) { }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to close discovery runner.");
+                    _logger.FailedToCloseDiscoveryRunner(ex);
                 }
                 try
                 {
@@ -114,7 +115,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 catch (OperationCanceledException) { }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to close conversion processor");
+                    _logger.FailedToCloseConversionProcessor(ex);
                 }
             }
             finally
@@ -197,8 +198,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 // Update has same version as what we already have
                 return;
             }
-            _logger.LogInformation("Device {DeviceName} with endpoint {EndpointName} added.",
-                deviceName, inboundEndpointName);
+            _logger.DeviceAdded(deviceName, inboundEndpointName);
             Interlocked.Increment(ref _lastDeviceListVersion);
             var success = _changeFeed.Writer.TryWrite((name, deviceResource));
             ObjectDisposedException.ThrowIf(!success,
@@ -223,8 +223,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 // Update has same version as what we already have
                 return;
             }
-            _logger.LogDebug("Device {DeviceName} with endpoint {EndpointName} updated.",
-                deviceName, inboundEndpointName);
+            _logger.DeviceUpdated(deviceName, inboundEndpointName);
             Interlocked.Increment(ref _lastDeviceListVersion);
             var success = _changeFeed.Writer.TryWrite((name, deviceResource));
             ObjectDisposedException.ThrowIf(!success,
@@ -241,12 +240,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var name = CreateDeviceKey(deviceName, inboundEndpointName);
             if (!_devices.TryRemove(name, out var deviceResource))
             {
-                _logger.LogDebug("Reported deletion for resource {Resource} which was not found.",
-                     name);
+                _logger.ResourceDeletionNotFound(name);
                 return;
             }
-            _logger.LogDebug("Device {DeviceName} with endpoint {EndpointName} removed.",
-                deviceName, inboundEndpointName);
+            _logger.DeviceRemoved(deviceName, inboundEndpointName);
             Interlocked.Increment(ref _lastDeviceListVersion);
             var success = _changeFeed.Writer.TryWrite((name, deviceResource));
             ObjectDisposedException.ThrowIf(!success,
@@ -272,9 +269,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 // Update has same version as what we already have
                 return;
             }
-            _logger.LogInformation("Asset {AssetName} on device {DeviceName} " +
-                "with endpoint {EndpointName} added.",
-                assetName, deviceName, inboundEndpointName);
+            _logger.AssetAdded(assetName, deviceName, inboundEndpointName);
             var success = _changeFeed.Writer.TryWrite((name, assetResource));
             ObjectDisposedException.ThrowIf(!success,
                 $"Failed to publish creation of asset {name}.");
@@ -299,9 +294,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 // Update has same version as what we already have
                 return;
             }
-            _logger.LogDebug("Asset {AssetName} on device {DeviceName} " +
-                "with endpoint {EndpointName} updated.",
-                assetName, deviceName, inboundEndpointName);
+            _logger.AssetUpdated(assetName, deviceName, inboundEndpointName);
             var success = _changeFeed.Writer.TryWrite((name, assetResource));
             ObjectDisposedException.ThrowIf(!success,
                 $"Failed to publish update of asset {name}.");
@@ -319,13 +312,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var name = CreateAssetKey(deviceName, inboundEndpointName, assetName);
             if (!_assets.TryRemove(name, out var asseteResource))
             {
-                _logger.LogDebug("Reported deletion for resource {Resource} which was not found.",
-                     name);
+                _logger.ResourceDeletionNotFound(name);
                 return;
             }
-            _logger.LogDebug("Asset {AssetName} on device {DeviceName} " +
-                "with endpoint {EndpointName} removed.",
-                assetName, deviceName, inboundEndpointName);
+            _logger.AssetRemoved(assetName, deviceName, inboundEndpointName);
             var success = _changeFeed.Writer.TryWrite((name, asseteResource));
             ObjectDisposedException.ThrowIf(!success,
                 $"Failed to publish deletion of asset {name}.");
@@ -403,8 +393,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 asset.Asset.DeviceRef.EndpointName);
                             if (!_devices.ContainsKey(key))
                             {
-                                _logger.LogDebug("Removing asset {Asset} without device {Device}",
-                                    name, key);
+                                _logger.RemovingAssetWithoutDevice(name, key);
                                 _assets.TryRemove(name, out var _);
                                 await _client.StopMonitoringAssetsAsync(
                                     asset.Asset.DeviceRef.DeviceName,
@@ -417,8 +406,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         var devices = _devices.Values.ToList();
                         var assets = _assets.Values.ToList();
 
-                        _logger.LogInformation("Converting {Assets} Assets on {Devices} devices...",
-                            assets.Count, devices.Count);
+                        _logger.ConvertingAssetsOnDevices(assets.Count, devices.Count);
                         var entries = await ToPublishedNodesAsync(devices, assets, errors,
                             ct).ConfigureAwait(false);
 
@@ -430,15 +418,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             ct).ConfigureAwait(false);
                         if (_logger.IsEnabled(LogLevel.Information))
                         {
-                            _logger.LogInformation("New configuration applied: \n{Configuration}",
+                            _logger.NewConfigurationApplied(
                                 _serializer.SerializeToString(entries, SerializeOption.Indented));
                         }
-                        _logger.LogInformation("{Assets} Assets on {Devices} devices updated.",
-                            assets.Count, devices.Count);
+                        _logger.AssetsAndDevicesUpdated(assets.Count, devices.Count);
                     }
                     if (deviceAddedOrUpdated)
                     {
-                        _logger.LogInformation("Devices were updated, starting immediate discovery.");
+                        _logger.DevicesUpdatedStartingDiscovery();
                         _timer.Change(TimeSpan.Zero, kDefaultDeviceDiscoveryRefresh); // TODO Make period configurable
                     }
                     await _changeFeed.Reader.WaitToReadAsync(ct).ConfigureAwait(false);
@@ -513,8 +500,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         found.Result.WriterGroupRootNodeId == null ||
                         found.Result.WriterGroupType == null)
                     {
-                        _logger.LogWarning("Dropping result {Result} without required information.",
-                            found.Result);
+                        _logger.DroppingResultWithoutRequiredInformation(found.Result?.ToString());
                         continue;
                     }
                     assetEntries.Add(found.Result);
@@ -569,7 +555,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     Attributes = new Dictionary<string, string>
                     {
                         [kAssetIdAttribute] = assetId,
-                        [kAssetNameAttribute] = assetName,
+                        [kAssetNameAttribute] = assetName
                     },
                     AssetName = uniqueAssetName,
                     // ExternalAssetId = assetId,
@@ -605,7 +591,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                     Ttl = (ulong?)_options.Value.DefaultMessageTimeToLive?.TotalSeconds
                                 }
                             }
-                        ],
+                        ]
                     }),
                     // TODO: Add events
                     Events = null
@@ -615,10 +601,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 if (_logger.IsEnabled(LogLevel.Debug))
                 {
-                    _logger.LogDebug("Reporting new discovered asset {AssetName} " +
-                        "with id {AssetId} and type {AssetTypeRef}:\n{Asset}",
-                    uniqueAssetName, assetId, assetTypeRef, JsonSerializer.Serialize(
-                        dAsset, kDebugSerializerOptions));
+                    _logger.ReportingNewDiscoveredAsset(uniqueAssetName, assetId, assetTypeRef,
+                        JsonSerializer.Serialize(dAsset, kDebugSerializerOptions));
                 }
                 await _client.ReportDiscoveredAssetAsync(resource.DeviceName, resource.EndpointName,
                     uniqueAssetName, dAsset, cancellationToken: ct).ConfigureAwait(false);
@@ -692,9 +676,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var additionalConfiguration = _serializer.SerializeToString(epModel);
                 if (additionalConfiguration.Length > 512)
                 {
-                    _logger.LogError("Additional configuration for endpoint {EndpointName} " +
-                        "on device {DeviceName} is too long ({Length} > 512). Skipping.",
-                        uniqueName, resource.DeviceName, additionalConfiguration.Length);
+                    _logger.EndpointConfigurationTooLong(uniqueName, resource.DeviceName,
+                        additionalConfiguration.Length);
                 }
                 newEndpoints.Add(uniqueName, new DiscoveredDeviceInboundEndpoint
                 {
@@ -706,10 +689,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     AdditionalConfiguration = additionalConfiguration
                 });
             }
-            if (newEndpoints.Count <= 0)
+            if (newEndpoints.Count == 0)
             {
-                _logger.LogDebug("No new endpoints found on device {DeviceName} " +
-                    "using endpoint {EndpointName}.", resource.DeviceName, resource.EndpointName);
+                _logger.NoNewEndpointsFound(resource.DeviceName, resource.EndpointName);
                 return;
             }
 
@@ -731,10 +713,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug("Reporting new discovered device {DeviceName} " +
-                    "with type {EndpointType}:\n{Device}",
-                    resource.DeviceName, endpointType, JsonSerializer.Serialize(
-                        dDevice, kDebugSerializerOptions));
+                _logger.ReportingNewDiscoveredDevice(resource.DeviceName, endpointType,
+                    JsonSerializer.Serialize(dDevice, kDebugSerializerOptions));
             }
             await _client.ReportDiscoveredDeviceAsync(resource.DeviceName, dDevice,
                 endpointType, cancellationToken: ct).ConfigureAwait(false);
@@ -780,7 +760,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 // Asset identification
                 var address = endpoint.Address;
-                if (address.Contains(kAddressSplit))
+                if (address.Contains(kAddressSplit, StringComparison.Ordinal))
                 {
                     address = address.Split(kAddressSplit)[0];
                 }
@@ -1261,6 +1241,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         /// <param name="template"></param>
         /// <param name="deviceEndpoint"></param>
+        /// <private>
+        /// Adds a new entry for a dataset. Will not add one if configuration parsing fails.
+        /// This does not apply to opc nodes, if any fail to validate, there will still be
+        /// an entry, but the status will reflect this error.
+        /// </private>
         private static PublishedNodesEntryModel WithEndpoint(PublishedNodesEntryModel template,
             PublishedNodesEntryModel deviceEndpoint)
         {
@@ -1443,7 +1428,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             while (!ct.IsCancellationRequested)
             {
-                _logger.LogInformation("Running discovery for all devices...");
+                _logger.RunningDiscoveryForAllDevices();
                 var lastListVersion = _lastDeviceListVersion;
                 foreach (var device in _devices.Values.ToList())
                 {
@@ -1486,8 +1471,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             catch (Exception ex)
                             {
                                 errors.OnError(deviceEndpointResource, kDiscoveryError, ex.Message);
-                                _logger.LogError(ex, "Failed to run discovery for device {Device}",
-                                    device.DeviceName);
+                                _logger.FailedToRunDiscoveryForDevice(ex, device.DeviceName);
                             }
                         }
 
@@ -1504,8 +1488,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             catch (Exception ex)
                             {
                                 errors.OnError(device, kDiscoveryError, ex.Message);
-                                _logger.LogError(ex, "Failed to run endpoint discovery for device {Device}",
-                                    device.DeviceName);
+                                _logger.FailedToRunEndpointDiscoveryForDevice(ex, device.DeviceName);
                             }
                         }
                     }
@@ -1516,13 +1499,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     // next timer fired. This will settle the changes and limit resource usage.
                     if (_lastDeviceListVersion != lastListVersion)
                     {
-                        _logger.LogInformation("Running discovery for all devices interrupted.");
+                        _logger.RunningDiscoveryInterrupted();
                         break;
                     }
                 }
                 if (_lastDeviceListVersion == lastListVersion)
                 {
-                    _logger.LogInformation("Running discovery for all devices completed.");
+                    _logger.RunningDiscoveryCompleted();
                     _trigger.Reset();
                 }
                 await _trigger.WaitAsync(ct).ConfigureAwait(false);
@@ -1569,9 +1552,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             // Convert to lowercase
             string sanitized = input.ToLowerInvariant();
             // Ascii escape invalid characters with '-'
-            sanitized = Regex.Replace(sanitized, @"[^a-z0-9-]", "-");
+            sanitized = EscapeInvalid().Replace(sanitized, "-");
             // Ensure it starts and ends with an alphanumeric character
-            sanitized = Regex.Replace(sanitized, @"^-+|-+$", "");
+            sanitized = EnsureAlphaStart().Replace(sanitized, "");
             // Truncate to 61 characters if necessary (63 max, 2 chars for index)
             if (sanitized.Length > 61)
             {
@@ -1579,6 +1562,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
             return sanitized;
         }
+
+        [GeneratedRegex("[^a-z0-9-]")]
+        private static partial Regex EscapeInvalid();
+
+        [GeneratedRegex("^-+|-+$")]
+        private static partial Regex EnsureAlphaStart();
 
         /// <summary>
         /// Base resoure and corresponding resources
@@ -1630,8 +1619,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <param name="error"></param>
             public void OnError(Resource resource, string code, string error)
             {
-                _outer._logger.LogWarning("Encountered Error {Code} {Error} for resource {Resource}.",
-                    code, error, resource);
+                _outer._logger.EncounteredError(code, error, resource);
                 switch (resource)
                 {
                     case DeviceEndpointResource dr:
@@ -1672,8 +1660,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 if (_devices.Count > 0 || _assets.Count > 0)
                 {
-                    _outer._logger.LogInformation("Reporting status for {Assets} assets and {Devices} devices.",
-                        _assets.Count, _devices.Count);
+                    _outer._logger.ReportingStatus(_assets.Count, _devices.Count);
                 }
 
                 var client = _outer._client;
@@ -1964,5 +1951,139 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly Timer _timer;
         private int _lastDeviceListVersion;
         private bool _isDisposed;
+    }
+
+    /// <summary>
+    /// Source-generated logging extensions for AssetDeviceIntegration
+    /// </summary>
+    internal static partial class AssetDeviceIntegrationLogging
+    {
+        private const int EventClass = 2000;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Error,
+            Message = "Failed to close discovery runner.")]
+        internal static partial void FailedToCloseDiscoveryRunner(this ILogger logger,
+            Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Error,
+            Message = "Failed to close conversion processor")]
+        internal static partial void FailedToCloseConversionProcessor(this ILogger logger,
+            Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Information,
+            Message = "Device {DeviceName} with endpoint {EndpointName} added.")]
+        internal static partial void DeviceAdded(this ILogger logger, string deviceName,
+            string endpointName);
+
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Debug,
+            Message = "Device {DeviceName} with endpoint {EndpointName} updated.")]
+        internal static partial void DeviceUpdated(this ILogger logger, string deviceName,
+            string endpointName);
+
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Debug,
+            Message = "Reported deletion for resource {Resource} which was not found.")]
+        internal static partial void ResourceDeletionNotFound(this ILogger logger, string resource);
+
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Debug,
+            Message = "Device {DeviceName} with endpoint {EndpointName} removed.")]
+        internal static partial void DeviceRemoved(this ILogger logger,
+            string deviceName, string endpointName);
+
+        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Information,
+            Message = "Asset {AssetName} on device {DeviceName} with endpoint {EndpointName} added.")]
+        internal static partial void AssetAdded(this ILogger logger, string assetName,
+            string deviceName, string endpointName);
+
+        [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Debug,
+            Message = "Asset {AssetName} on device {DeviceName} with endpoint {EndpointName} updated.")]
+        internal static partial void AssetUpdated(this ILogger logger, string assetName,
+            string deviceName, string endpointName);
+
+        [LoggerMessage(EventId = EventClass + 9, Level = LogLevel.Debug,
+            Message = "Asset {AssetName} on device {DeviceName} with endpoint {EndpointName} removed.")]
+        internal static partial void AssetRemoved(this ILogger logger, string assetName,
+            string deviceName, string endpointName);
+
+        [LoggerMessage(EventId = EventClass + 10, Level = LogLevel.Debug,
+            Message = "Removing asset {Asset} without device {Device}")]
+        internal static partial void RemovingAssetWithoutDevice(this ILogger logger,
+            string asset, string device);
+
+        [LoggerMessage(EventId = EventClass + 11, Level = LogLevel.Information,
+            Message = "Converting {Assets} Assets on {Devices} devices...")]
+        internal static partial void ConvertingAssetsOnDevices(this ILogger logger,
+            int assets, int devices);
+
+        [LoggerMessage(EventId = EventClass + 12, Level = LogLevel.Information,
+            Message = "New configuration applied: \n{Configuration}")]
+        internal static partial void NewConfigurationApplied(this ILogger logger,
+            string configuration);
+
+        [LoggerMessage(EventId = EventClass + 13, Level = LogLevel.Information,
+            Message = "{Assets} Assets on {Devices} devices updated.")]
+        internal static partial void AssetsAndDevicesUpdated(this ILogger logger,
+            int assets, int devices);
+
+        [LoggerMessage(EventId = EventClass + 14, Level = LogLevel.Information,
+            Message = "Devices were updated, starting immediate discovery.")]
+        internal static partial void DevicesUpdatedStartingDiscovery(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 15, Level = LogLevel.Warning,
+            Message = "Dropping result {Result} without required information.")]
+        internal static partial void DroppingResultWithoutRequiredInformation(
+            this ILogger logger, string? result);
+
+        [LoggerMessage(EventId = EventClass + 16, Level = LogLevel.Debug,
+            Message = "Reporting new discovered asset {AssetName} with id " +
+            "{AssetId} and type {AssetTypeRef}:\n{Asset}")]
+        internal static partial void ReportingNewDiscoveredAsset(this ILogger logger,
+            string assetName, string assetId, string assetTypeRef, string asset);
+
+        [LoggerMessage(EventId = EventClass + 17, Level = LogLevel.Error,
+            Message = "Additional configuration for endpoint {EndpointName} on " +
+            "device {DeviceName} is too long ({Length} > 512). Skipping.")]
+        internal static partial void EndpointConfigurationTooLong(this ILogger logger,
+            string endpointName, string deviceName, int length);
+
+        [LoggerMessage(EventId = EventClass + 18, Level = LogLevel.Debug,
+            Message = "No new endpoints found on device {DeviceName} using endpoint {EndpointName}.")]
+        internal static partial void NoNewEndpointsFound(this ILogger logger, string deviceName,
+            string endpointName);
+
+        [LoggerMessage(EventId = EventClass + 19, Level = LogLevel.Debug,
+            Message = "Reporting new discovered device {DeviceName} with type {EndpointType}:\n{Device}")]
+        internal static partial void ReportingNewDiscoveredDevice(this ILogger logger,
+            string deviceName, string endpointType, string device);
+
+        [LoggerMessage(EventId = EventClass + 20, Level = LogLevel.Information,
+            Message = "Running discovery for all devices...")]
+        internal static partial void RunningDiscoveryForAllDevices(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 21, Level = LogLevel.Error,
+            Message = "Failed to run discovery for device {Device}")]
+        internal static partial void FailedToRunDiscoveryForDevice(this ILogger logger,
+            Exception ex, string device);
+
+        [LoggerMessage(EventId = EventClass + 22, Level = LogLevel.Error,
+            Message = "Failed to run endpoint discovery for device {Device}")]
+        internal static partial void FailedToRunEndpointDiscoveryForDevice(this ILogger logger,
+            Exception ex, string device);
+
+        [LoggerMessage(EventId = EventClass + 23, Level = LogLevel.Information,
+            Message = "Running discovery for all devices interrupted.")]
+        internal static partial void RunningDiscoveryInterrupted(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 24, Level = LogLevel.Information,
+            Message = "Running discovery for all devices completed.")]
+        internal static partial void RunningDiscoveryCompleted(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 25, Level = LogLevel.Information,
+            Message = "Reporting status for {Assets} assets and {Devices} devices.")]
+        internal static partial void ReportingStatus(this ILogger logger, int assets, int devices);
+
+        [LoggerMessage(EventId = EventClass + 26, Level = LogLevel.Warning,
+            Message = "Encountered Error {Code} {Error} for resource {Resource}.")]
+        internal static partial void EncounteredError(this ILogger logger, string code, string error,
+            Resource resource);
     }
 }
