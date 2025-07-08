@@ -36,7 +36,7 @@
 param(
     [string] [Parameter(Mandatory = $true)] $AdrNamespaceName,
     [string] [Parameter(Mandatory = $true)] $ResourceGroup,
-    [string] $SubscriptionId,
+    [string] $SubscriptionId = "53d910a7-f1f8-4b7a-8ee0-6e6b67bddd82",
     [string] $Location= "westus",
     [string] $TenantId,
     [switch] $RunOnce
@@ -86,15 +86,17 @@ if (!$ns -or !$ns.id) {
     exit -1
 }
 
+$tempFile = New-TemporaryFile
 Write-Host "Onboarding devices and assets in ADR namespace $($ns.name)..." `
     -ForegroundColor Green
 while ($true) {
     $errOut = $($dDevices = & { az rest --method get `
         --url "$($ns.id)/discoveredDevices?api-version=2025-07-01-preview" `
         --headers "Content-Type=application/json" } | ConvertFrom-Json) 2>&1
+
     if ($dDevices -and $dDevices.value) {
         foreach ($dDevice in $dDevices.value) {
-            $body = $(@{
+            $body = @{
                 extendedLocation = $dDevice.extendedLocation
                 location = $dDevice.location
                 properties = @{
@@ -102,12 +104,14 @@ while ($true) {
                     enabled = $true
                     endpoints = $dDevice.properties.endpoints
                 }
-            } | ConvertTo-Json -Depth 100 -Compress).Replace('"', '\"')
+            } | ConvertTo-Json -Depth 100
+            #$body | Out-Host
+            $body | Out-File -FilePath $tempFile -Encoding utf8 -Force
             Write-Host "Create or update device $($dDevice.name)..." -ForegroundColor Cyan
             $errOut = $($device = & { az rest --method put `
                 --url "$($ns.id)/devices/$($dDevice.name)?api-version=2025-07-01-preview" `
                 --headers "Content-Type=application/json" `
-                --body $body } | ConvertFrom-Json) 2>&1
+                --body @$tempFile } | ConvertFrom-Json) 2>&1
             if (!$device.id) {
                 Write-Host "Error onboarding device $($dDevice.Name): $($errOut)" `
                     -ForegroundColor Red
@@ -126,23 +130,27 @@ while ($true) {
     if ($dAssets -and $dAssets.value) {
         foreach ($dAsset in $dAssets.value) {
             # todo: Filter data points too
-            $datasets = $dAsset.properties.datasets `
+            [array]$datasets = $dAsset.properties.datasets `
                 | Select-Object -Property * -ExcludeProperty lastUpdatedOn
             # todo: Filter data points too
-            $events = $dAsset.properties.events `
+            [array]$events = $dAsset.properties.events `
                 | Select-Object -Property * -ExcludeProperty lastUpdatedOn
-            $streams = $dAsset.properties.streams `
+            [array]$streams = $dAsset.properties.streams `
                 | Select-Object -Property * -ExcludeProperty lastUpdatedOn
-            $managementGroups = $dAsset.properties.managementGroups `
+            [array]$managementGroups = $dAsset.properties.managementGroups `
                 | Select-Object -Property * -ExcludeProperty lastUpdatedOn
 
-            $body = $(@{
+            $displayName = $dAsset.properties.displayName
+            if (!$displayName) {
+                $displayName = $dAsset.properties.model
+            }
+            $body = @{
                 extendedLocation = $dAsset.extendedLocation
                 location = $dAsset.location
                 properties = @{
                     # externalAssetId = "unique-edge-device-identifier"
                     enabled = $true
-                    displayName = $dAsset.properties.displayName
+                    displayName = $displayName
                     description = $dAsset.properties.description
                     manufacturer = $dAsset.properties.manufacturer
                     model = $dAsset.properties.model
@@ -158,18 +166,20 @@ while ($true) {
                     # .... add more properties as needed
                     deviceRef = $dAsset.properties.deviceRef
                     discoveredAssetRefs = @($dAsset.name)
-                    assetTypeRefs = $dAsset.properties.assetTypeRefs
+                    assetTypeRefs = [array]$dAsset.properties.assetTypeRefs
                     datasets = $datasets
                     events = $events
                     streams = $streams
                     managementGroups = $managementGroups
                 }
-            } | ConvertTo-Json -Depth 100 -Compress).Replace('"', '\"')
+            } | ConvertTo-Json -Depth 100
+            #$body | Out-Host
+            $body | Out-File -FilePath $tempFile -Encoding utf8 -Force
             Write-Host "Create or update asset $($dAsset.name)..." -ForegroundColor Cyan
             $errOut = $($asset = & { az rest --method put `
                 --url "$($ns.id)/assets/$($dAsset.name)?api-version=2025-07-01-preview" `
                 --headers "Content-Type=application/json" `
-                --body $body } | ConvertFrom-Json) 2>&1
+                --body @$tempFile } | ConvertFrom-Json) 2>&1
             if (!$asset.id) {
                 Write-Host "Error onboarding asset $($dAsset.Name): $($errOut)" `
                     -ForegroundColor Red
@@ -187,3 +197,4 @@ while ($true) {
     }
     Start-Sleep -Seconds 5
 }
+Remove-Item -Path $tempFile -Force

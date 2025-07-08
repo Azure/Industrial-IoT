@@ -177,7 +177,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "SendKeepAliveDataSetMessages", Order = 12,
             EmitDefaultValue = false)]
-        public bool SendKeepAliveDataSetMessages { get; set; }
+        public bool? SendKeepAliveDataSetMessages { get; set; }
 
         /// <summary>
         /// The required OPC UA server endpoint URL to connect to. This

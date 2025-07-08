@@ -321,5 +321,12 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// Operations handle the OPC UA discovered endpoints.
         /// </summary>
         public string? AioDiscoveredDeviceEndpointType { get; set; }
+
+        /// <summary>
+        /// When discovering device endpoints this is the
+        /// Endpoint type version that publisher should add
+        /// to the endpoints.
+        /// </summary>
+        public string? AioDiscoveredDeviceEndpointTypeVersion { get; set; }
     }
 }

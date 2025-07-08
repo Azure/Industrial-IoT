@@ -298,7 +298,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var referenceTypeId = reference.ReferenceTypeId;
                 var parentTypeDefinitionId = parent.TypeDefinitionId;
 
-                if (Opc.Ua.NodeId.IsNull(parentTypeDefinitionId))
+                if (NodeId.IsNull(parentTypeDefinitionId))
                 {
                     return null;
                 }
@@ -307,7 +307,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     var parentIsFolder =
                         session.NodeCache.IsTypeOf(parentTypeDefinitionId, ObjectTypeIds.FolderType);
-#if DEBUG
+#if DEBUGX
                     Debug.WriteLine(parent.BrowseName
                         + "(" + (parentIsFolder ? "Folder" : "Component") + ")--"
                         + referenceTypeId + "-->" + reference.BrowseName);
@@ -324,7 +324,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     return true;
                 }
-                if (_includeTypeDefinitionSubtypes && !Opc.Ua.NodeId.IsNull(typeDefinition))
+                if (_includeTypeDefinitionSubtypes && !NodeId.IsNull(typeDefinition))
                 {
                     var typeDefinitionId = ExpandedNodeId.ToNodeId(typeDefinition,
                         session.MessageContext.NamespaceUris);

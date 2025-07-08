@@ -119,7 +119,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             WriterGroupMessageRetention = item.WriterGroup.Publishing?.Retain,
                             WriterGroupPartitions = item.WriterGroup.PublishQueuePartitions,
                             WriterGroupQueueName = item.WriterGroup.Publishing?.QueueName,
-                            SendKeepAliveDataSetMessages = item.Writer.DataSet?.SendKeepAlive ?? false,
+                            SendKeepAliveDataSetMessages = item.Writer.DataSet?.SendKeepAlive,
                             DataSetExtensionFields = item.Writer.DataSet?.ExtensionFields?.ToDictionary(
                                 e => e.DataSetFieldName, e => e.Value),
                             MetaDataUpdateTimeTimespan = item.Writer.MetaDataUpdateTime,
@@ -404,6 +404,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         Name = group.Header.DataSetWriterGroup,
                         Properties = group.Header.WriterGroupProperties,
                         ExternalId = group.Header.WriterGroupExternalId,
+                        Type = group.Header.WriterGroupType,
+                        RootNode = group.Header.WriterGroupRootNodeId,
                         NotificationPublishThreshold = group.Header.BatchSize,
                         PublishQueuePartitions = group.Header.WriterGroupPartitions,
                         PublishingInterval = group.Header.GetNormalizedBatchTriggerInterval(),

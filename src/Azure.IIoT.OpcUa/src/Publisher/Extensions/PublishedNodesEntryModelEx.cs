@@ -394,7 +394,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 id.Append(model.DisableSubscriptionTransfer.Value);
             }
-            if (model.SendKeepAliveDataSetMessages)
+            if (model.SendKeepAliveDataSetMessages == true)
             {
                 id.AppendLine();
             }
@@ -577,7 +577,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 return false;
             }
-            if (model.SendKeepAliveDataSetMessages != that.SendKeepAliveDataSetMessages)
+            if ((model.SendKeepAliveDataSetMessages ?? false) !=
+                (that.SendKeepAliveDataSetMessages ?? false))
             {
                 return false;
             }

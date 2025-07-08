@@ -16,6 +16,6 @@ az extension add --source azure_iot_ops-1.8.0a1-py3-none-any.whl `
     --only-show-errors
 
 Write-Host "Azure IoT Operations Private Preview enabled." -ForegroundColor Green
-Write-Host "Use '--ops-extension installed' command line option for ./cluster.setup.ps1 script" `
+Write-Host "You must use '--ops-extension installed' parameter for ./cluster.setup.ps1 script" `
     -ForegroundColor Yellow
 Write-Host "Otherwise this script must be run again." -ForegroundColor Yellow

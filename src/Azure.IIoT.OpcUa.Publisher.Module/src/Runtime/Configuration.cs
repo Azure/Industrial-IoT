@@ -174,20 +174,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             {
                 // builder.AddAzureIoTOperations();
                 builder.AddAzureIoTOperationsCore();
-
-                builder.RegisterType<ApplicationContext>()
-                    .AsSelf().SingleInstance();
                 builder.AddAdrClient();
+                builder.AddSchemaRegistry();
                 // builder.AddStateStore();
                 // builder.AddLeaderElection();
-                // builder.AddSchemaRegistry();
 
-                builder.RegisterType<Aio>()
-                    .AsImplementedInterfaces();
+                builder.RegisterType<Aio>().AsImplementedInterfaces();
                 if (publisherOptions.IsAzureIoTOperationsConnector.Value)
                 {
-                    builder.RegisterType<AssetDeviceIntegration>().AsSelf()
-                        .AsImplementedInterfaces().SingleInstance();
+                    builder.RegisterInstance(new HybridLogicalClock(
+                        DateTime.UtcNow, 0, publisherOptions.PublisherId))
+                        .AsSelf().SingleInstance();
+                    builder.RegisterType<AssetDeviceIntegration>()
+                        .AsSelf().AsImplementedInterfaces().SingleInstance();
                 }
             }
         }

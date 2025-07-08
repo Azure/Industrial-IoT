@@ -176,7 +176,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <inheritdoc/>
             public override int GetHashCode()
             {
-                var hashCode = 81523234;
+                var hashCode = 81523234 + base.GetHashCode();
                 hashCode = (hashCode * -1521134295) +
                     EqualityComparer<string>.Default.GetHashCode(
                         Template.DataSetFieldId ?? string.Empty);

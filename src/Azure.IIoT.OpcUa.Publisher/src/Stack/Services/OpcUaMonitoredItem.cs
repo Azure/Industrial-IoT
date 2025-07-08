@@ -195,6 +195,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             return CloneMonitoredItem(true, true);
         }
 
+        /// <inheritdoc/>
+        public override int GetHashCode()
+        {
+            return Owner.GetHashCode();
+        }
+
         /// <summary>
         /// Create items
         /// </summary>
