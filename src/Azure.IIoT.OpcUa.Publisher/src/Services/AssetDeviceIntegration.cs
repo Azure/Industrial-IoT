@@ -459,7 +459,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             // endpoint
             var assetEndpoint = new PublishedNodesEntryModel
             {
-                EndpointUrl = endpoint.Address,
+                EndpointUrl = GetEndpointUrl(endpoint.Address),
                 EndpointSecurityMode = endpointConfiguration.EndpointSecurityMode,
                 EndpointSecurityPolicy = endpointConfiguration.EndpointSecurityPolicy,
                 DumpConnectionDiagnostics = endpointConfiguration.DumpConnectionDiagnostics,
@@ -620,7 +620,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private async ValueTask RunEndpointDiscoveryAsync(DeviceEndpointResource resource,
             Uri endpointUri, CancellationToken ct)
         {
-            var newEndpoints = new Dictionary<string, DiscoveredDeviceInboundEndpoint>();
+            var newEndpoints = new Dictionary<string, DiscoveredDeviceInboundEndpoint>(
+                StringComparer.OrdinalIgnoreCase);
             var endpoints = await _endpointDiscovery.FindEndpointsAsync(
                 endpointUri, findServersOnNetwork: false, ct: ct).ConfigureAwait(false);
             var endpointType = _options.Value.AioDiscoveredDeviceEndpointType;
@@ -670,7 +671,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 };
                 var uniqueName = MakeValidName(name);
                 if (newEndpoints.ContainsKey(uniqueName) ||
-                    (resource.Device.Endpoints?.Inbound?.ContainsKey(uniqueName) ?? false))
+                    (resource.Device.Endpoints?.Inbound?.Any(e =>
+                        e.Key.Equals(uniqueName, StringComparison.OrdinalIgnoreCase)) ?? false))
                 {
                     continue;
                 }
@@ -682,9 +684,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
                 newEndpoints.Add(uniqueName, new DiscoveredDeviceInboundEndpoint
                 {
-                    //Address = ep.AccessibleEndpointUrl
-                    // TODO: Remove once adr is fixed
-                    Address = $"{ep.AccessibleEndpointUrl}{kAddressSplit}{newEndpoints.Count + 100}",
+                    Address = SetEndpointUrl(ep.AccessibleEndpointUrl),
                     EndpointType = endpointType,
                     Version = endpointTypeVersion,
                     AdditionalConfiguration = additionalConfiguration
@@ -760,14 +760,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
 
                 // Asset identification
-                var address = endpoint.Address;
-                if (address.Contains(kAddressSplit, StringComparison.Ordinal))
-                {
-                    address = address.Split(kAddressSplit)[0];
-                }
                 var assetEndpoint = new PublishedNodesEntryModel
                 {
-                    EndpointUrl = address,
+                    EndpointUrl = GetEndpointUrl(endpoint.Address),
                     EndpointSecurityMode = endpointConfiguration.EndpointSecurityMode,
                     EndpointSecurityPolicy = endpointConfiguration.EndpointSecurityPolicy,
                     DumpConnectionDiagnostics = endpointConfiguration.DumpConnectionDiagnostics,
@@ -1445,10 +1440,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         var deviceEndpointResource = new DeviceEndpointResource(device.DeviceName,
                             device.Device, endpoint.Key);
 
-                        if (!Uri.TryCreate(endpoint.Value.Address, UriKind.Absolute, out var endpointUri))
+                        var url = GetEndpointUrl(endpoint.Value.Address);
+                        if (!Uri.TryCreate(url, UriKind.Absolute, out var endpointUri))
                         {
                             errors.OnError(deviceEndpointResource, kInvalidEndpointUrl,
-                                "Invalid endpoint URL: " + endpoint.Value.Address);
+                                "Invalid endpoint URL: " + url);
                             continue;
                         }
                         var endpointConfiguration = Deserialize(
@@ -1923,7 +1919,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private const string kDiscoveryError = "500.6";
         private const string kInvalidEndpointUrl = "500.7";
 
-        private const string kAddressSplit = "?___"; // TODO: Remove when adr is fixed
         private static readonly TimeSpan kDefaultDeviceDiscoveryRefresh = TimeSpan.FromHours(6);
         private static readonly JsonSerializerOptions kDebugSerializerOptions = new()
         {
@@ -1952,6 +1947,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly Timer _timer;
         private int _lastDeviceListVersion;
         private bool _isDisposed;
+
+        // TODO: START: Remove once adr is fixed
+        private static string SetEndpointUrl(string endpointUrl)
+            => $"{endpointUrl}{kAddressSplit}{Interlocked.Increment(ref _epindex)}";
+        private static int _epindex;
+        private static string GetEndpointUrl(string address)
+            => address.Contains(kAddressSplit, StringComparison.Ordinal) ?
+                address.Split(kAddressSplit)[0] : address;
+        private const string kAddressSplit = "?___";
+        // TODO: END Remove when adr is fixed
     }
 
     /// <summary>

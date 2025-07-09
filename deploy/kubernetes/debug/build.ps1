@@ -72,5 +72,5 @@ Write-Host "Container $containerImage imported into $($script:ClusterType) clust
     -ForegroundColor Green
 
 if ($StartDebugger) {
-    ./debug.ps1 -ReplaceImage $containerImage
+    ./debug.ps1 -Image $containerImage
 }

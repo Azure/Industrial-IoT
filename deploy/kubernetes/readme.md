@@ -76,7 +76,8 @@ Options:
   -ContainerName        # Target container name (will prompt if not specified)
   -Namespace            # Kubernetes namespace (default: azure-iot-operations)
   -ClusterType          # Cluster type (default: microk8s)
-  -ReplaceImage         # Replace existing image in the pod
+  -Image                # Replace the image in the pod with a debug image of this name
+  -Fork                 # Fork a new pod rather than changing the existing one
 ```
 
 The script:

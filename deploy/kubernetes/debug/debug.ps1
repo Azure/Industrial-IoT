@@ -11,10 +11,9 @@
         The name of the container in the pod to debug.
     .PARAMETER Namespace
         The Kubernetes namespace where the pod is located.
-        Default is "azure-iot-operations".
     .PARAMETER ClusterType
         The type of Kubernetes cluster. Default is "microk8s".
-    .PARAMETER ReplaceImage
+    .PARAMETER Image
         If specified, the script will replace the existing image in the pod
         See --set-image in kubectl debug documentation.
 #>
@@ -24,7 +23,8 @@ param(
     [string] $ContainerName,
     [string] $Namespace,
     [string] $ClusterType = "microk8s",
-    [string] $ReplaceImage
+    [string] $Image,
+    [switch] $Fork
 )
 
 $ErrorActionPreference = 'Stop'
@@ -183,13 +183,121 @@ while ($true) {
     }
 }
 
-# Attach the debugger container to the specified pod and container
-Write-Host "Attaching debugger to pod '$PodName' and container '$ContainerName'..." `
-    -ForegroundColor Cyan
+if ($script:Fork.IsPresent) {
+    # Check if the pods already contain a debug pod
+    $debugPod = "$($PodName)-debug"
+    if ($pods.Contains($debugPod)) {
+        # delete the existing debug pod
+        Write-Host "Debug pod '$($debugPod)' already exists - deleting it." `
+            -ForegroundColor Yellow
+       # kubectl -n $Namespace delete pod $debugPod --wait=true
+    }
 
-if (-not $ReplaceImage) {
+    # Attach the debugger container to the specified pod and container
+    Write-Host "Forking pod '$PodName' with container '$ContainerName' to '$($debugPod)'..." `
+        -ForegroundColor Cyan
+    if ($Image) {
+         # Replace the existing image in the pod
+        kubectl -n $Namespace debug $PodName -n $($Namespace) `
+            -it --attach=false `
+            --image=docker.io/library/debugger:$($containerTag) `
+            --profile=general `
+            --container=debugger `
+            --keep-annotations=true `
+            --keep-labels=true `
+            --keep-init-containers=true `
+            --keep-liveness=true `
+            --keep-readiness=true `
+            --keep-startup=true `
+            --same-node=true `
+            --set-image="$($ContainerName)=$($Image)" `
+            --image-pull-policy=IfNotPresent `
+            --share-processes=true `
+            --copy-to=$($debugPod) `
+    }
+    else {
+        kubectl -n $Namespace debug $PodName -n $($Namespace) `
+            -it --attach=false `
+            --image=docker.io/library/debugger:$($containerTag) `
+            --profile=general `
+            --container=debugger `
+            --keep-annotations=true `
+            --keep-labels=true `
+            --keep-init-containers=true `
+            --keep-liveness=true `
+            --keep-readiness=true `
+            --keep-startup=true `
+            --same-node=true `
+            --image-pull-policy=IfNotPresent `
+            --share-processes=true `
+            --copy-to=$($debugPod) `
+    }
+    if (-not $?) {
+        Write-Host "Failed to fork pod '$PodName' with container '$ContainerName' to '$($debugPod)'." `
+            -ForegroundColor Red
+        exit -1
+    }
+    Write-Host "Debugging pod '$PodName' as '$($debugPod)' with container '$ContainerName'." `
+        -ForegroundColor Green
+    $PodName = $debugPod
+}
+elseif ($Image) {
+    # Set the image to the specified one
+    Write-Host "Replacing image in pod '$PodName' for container '$ContainerName' with '$Image'..." `
+        -ForegroundColor Cyan
+    kubectl set image "pod/$($PodName)" "$($ContainerName)=$($Image)" -n $($Namespace)
+    if (-not $?) {
+        Write-Host "Failed to replace image in pod '$PodName' for container '$ContainerName'." `
+            -ForegroundColor Red
+        exit -1
+    }
+    Write-Host "Image in pod '$PodName' for container '$ContainerName' replaced with '$Image'." `
+        -ForegroundColor Green
+}
+
+# Now wait for the pod to start
+Write-Host "Checking state of pod '$PodName'..." -ForegroundColor Cyan
+while ($true) {
+    $podStatus = kubectl get pod $PodName -n $Namespace -o jsonpath='{.status.phase}'
+    if ($podStatus -eq "Running") {
+        if ($Image) {
+            $podDescription = $(kubectl get pod $PodName -n $Namespace -o json) `
+                | ConvertFrom-Json
+            $images = $podDescription.spec.containers.image
+            if ($images -contains $Image) {
+                Write-Host "Pod '$PodName' is running with '$Image'."`
+                    -ForegroundColor Green
+                break
+            }
+            else {
+                Write-Host "Pod '$PodName' is running but still using the old image." `
+                    -ForegroundColor Yellow
+            }
+        }
+        else {
+            Write-Host "Pod '$PodName' is running."`
+                -ForegroundColor Green
+            break
+        }
+    }
+    elseif ($podStatus -eq "Pending") {
+        Write-Host "Pod '$PodName' is pending..."`
+            -ForegroundColor Yellow
+    }
+    else {
+        Write-Host "Pod '$PodName' is in state '$podStatus'." `
+            -ForegroundColor Red
+        exit -1
+    }
+    Start-Sleep -Seconds 1
+}
+
+if (-not $script:Fork.IsPresent) {
+
+    Write-Host "Attaching debugger to pod '$PodName' and container '$ContainerName'..." `
+        -ForegroundColor Cyan
     # Attach to running container
-    kubectl -n azure-iot-operations debug $PodName -n $($Namespace) `
+    kubectl -n $Namespace debug $PodName -n $($Namespace) `
         --image=docker.io/library/debugger:$($containerTag) `
         --target=$ContainerName `
         --profile=general `
@@ -201,77 +309,6 @@ if (-not $ReplaceImage) {
     Write-Host "Debugging pod '$PodName' and container '$ContainerName'." `
         -ForegroundColor Green
 }
-else {
-    # Check if the pods already contain a debug pod
-    $debugPod = "$($PodName)-debug"
-    if ($pods.Contains($debugPod)) {
-        # delete the existing debug pod
-        Write-Host "Debug pod '$($debugPod)' already exists - deleting it." `
-            -ForegroundColor Yellow
-        kubectl -n $Namespace delete pod $debugPod --wait=true
-    }
-
-    # Replace the existing image in the pod
-    kubectl -n azure-iot-operations debug $PodName -n $($Namespace) `
-        --image=docker.io/library/debugger:$($containerTag) `
-        --profile=general `
-        --container=debugger `
-        --copy-to=$($debugPod) `
-        --keep-annotations=true `
-        --keep-labels=true `
-        --keep-init-containers=true `
-        --keep-liveness=true `
-        --keep-readiness=true `
-        --keep-startup=true `
-        --same-node=true `
-        --set-image="$($ContainerName)=$($ReplaceImage)" `
-        --image-pull-policy=IfNotPresent `
-        --share-processes=true `
-        -it --attach=false #--replace=true
-
-    Write-Host "Debugging pod '$PodName' as '$($debugPod)' with container '$ContainerName'." `
-        -ForegroundColor Green
-    $PodName = $debugPod
-    # Now wait for the pod to start
-    Write-Host "Waiting for pod '$PodName' to start..." -ForegroundColor Cyan
-    while ($true) {
-        $podStatus = kubectl get pod $PodName -n $Namespace -o jsonpath='{.status.phase}'
-        if ($podStatus -eq "Running") {
-            if ($ReplaceImage) {
-                $podDescription = $(kubectl get pod $PodName -n $Namespace -o json) `
-                    | ConvertFrom-Json
-                $images = $podDescription.spec.containers.image
-                if ($images -contains $ReplaceImage) {
-                    Write-Host "Pod '$PodName' is running with '$ReplaceImage'."`
-                        -ForegroundColor Green
-                    break
-                }
-                else {
-                    Write-Host "Pod '$PodName' is running but still using the old image." `
-                        -ForegroundColor Yellow
-                }
-            }
-            else {
-                Write-Host "Pod '$PodName' is running."`
-                    -ForegroundColor Green
-                break
-            }
-        }
-        elseif ($podStatus -eq "Pending") {
-            Write-Host "Pod '$PodName' is pending..."`
-                -ForegroundColor Yellow
-        }
-        else {
-            Write-Host "Pod '$PodName' is in state '$podStatus'." `
-                -ForegroundColor Red
-            exit -1
-        }
-        Start-Sleep -Seconds 1
-    }
-}
-
-# Bug: Need to have tmp in both images point to the same location
-# echo 'export TMPDIR=/proc/<app's PID>/root/tmp' > ~/.bashrc
 
 Remove-Item -Path debugger.tar
 Write-Host "Visual Studio Debugger listening on localhost:50000." `

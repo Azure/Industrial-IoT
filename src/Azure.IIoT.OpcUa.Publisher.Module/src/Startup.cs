@@ -19,6 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
     using OpenTelemetry.Resources;
     using OpenTelemetry.Trace;
     using System;
+    using System.Diagnostics;
 
     /// <summary>
     /// Webservice startup
@@ -58,6 +59,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddLogging(options => options
+                .AddDebug()
                 .AddConsole()
                 .AddConsoleFormatter<Syslog, ConsoleFormatterOptions>()
                 .AddOpenTelemetry(Configuration, options =>
@@ -70,8 +72,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                         .AddService(Constants.EntityTypePublisher,
                             default, GetType().Assembly.GetReleaseVersion().ToString()));
                     options.AddOtlpExporter(Configuration);
-                })
-                .AddDebug())
+                }))
                 ;
 
             services.AddHttpClient();

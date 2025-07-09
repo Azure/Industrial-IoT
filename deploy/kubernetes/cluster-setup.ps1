@@ -1410,7 +1410,6 @@ for ($i = 0; $i -lt $numberOfDevices; $i++) {
     if (!$device -or !$device.id -or !$test) {  # force we always recreate
         $address = "opcplc-$($deviceName).$($script:InstanceNamespace)"
         $address = "opc.tcp://$($address).svc.cluster.local:50000"
-        # Make temp file to preserve the correct json format
         $body = @{
             extendedLocation = $iotOps.extendedLocation
             location = $Location
@@ -1422,7 +1421,7 @@ for ($i = 0; $i -lt $numberOfDevices; $i++) {
                 }
                 endpoints = @{
                     inbound = @{
-                        "None" = @{
+                        "none" = @{
                             address = $address
                             endpointType = "Microsoft.OpcPublisher"
                             version = "2.9"
