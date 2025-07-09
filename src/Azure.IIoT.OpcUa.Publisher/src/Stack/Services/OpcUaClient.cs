@@ -2499,18 +2499,18 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
             OpcUaClient client, OpcUaSession session);
 
         [LoggerMessage(EventId = EventClass + 60, Level = LogLevel.Information,
-            Message = "Discovery endpoint {DiscoveryUrl} returned endpoints. Selecting endpoint {EndpointUri} " +
+            Message = "{Context}: Discovery endpoint {DiscoveryUrl} returned endpoints. Selecting endpoint {EndpointUri} " +
             "with SecurityMode {SecurityMode} and {SecurityPolicy} SecurityPolicyUri from:\n{Endpoints}")]
         public static partial void DiscoveryEndpointReturnedEndpoints(this ILogger logger, string? context,
             Uri discoveryUrl, Uri endpointUri, SecurityMode securityMode, string securityPolicy, string endpoints);
 
         [LoggerMessage(EventId = EventClass + 61, Level = LogLevel.Information,
-            Message = "Endpoint {Endpoint} selected via reverse connect!")]
+            Message = "{Context}: Endpoint {Endpoint} selected via reverse connect!")]
         public static partial void EndpointSelectedViaReverseConnect(this ILogger logger, string? context,
             string endpoint);
 
         [LoggerMessage(EventId = EventClass + 62, Level = LogLevel.Information,
-            Message = "Endpoint {Endpoint} selected!")]
+            Message = "{Context}: Endpoint {Endpoint} selected!")]
         public static partial void EndpointSelected(this ILogger logger, string? context, string endpoint);
     }
 }

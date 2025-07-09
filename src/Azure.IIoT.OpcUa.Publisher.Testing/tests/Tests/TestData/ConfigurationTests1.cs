@@ -601,7 +601,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             });
         }
 
-
         public async Task ExpandVariablesTest1Async(CancellationToken ct = default)
         {
             // Test only variables as node ids in an entry

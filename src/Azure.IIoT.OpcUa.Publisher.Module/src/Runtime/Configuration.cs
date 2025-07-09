@@ -175,9 +175,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 // builder.AddAzureIoTOperations();
                 builder.AddAzureIoTOperationsCore();
                 builder.AddAdrClient();
+                builder.AddTelemetryPublisher();
                 builder.AddSchemaRegistry();
+                builder.AddLeaderElection();
                 // builder.AddStateStore();
-                // builder.AddLeaderElection();
 
                 builder.RegisterType<Aio>().AsImplementedInterfaces();
                 if (publisherOptions.IsAzureIoTOperationsConnector.Value)

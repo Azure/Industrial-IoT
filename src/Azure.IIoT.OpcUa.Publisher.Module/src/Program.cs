@@ -7,10 +7,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
 {
     using Autofac.Extensions.DependencyInjection;
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
+    using Furly.Extensions.Hosting;
     using k8s;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Diagnostics;
     using System.IO;
@@ -59,7 +62,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                 Debugger.Break();
             }
 #endif
-            RunAsync(args).GetAwaiter().GetResult();
+            using var cts = new CancellationTokenSource();
+            RunAsync(args, cts.Token).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -68,10 +72,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         /// <param name="args"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public static Task RunAsync(string[] args, CancellationToken ct = default)
+        public static async Task RunAsync(string[] args, CancellationToken ct)
         {
             LogLogo();
-            return CreateHostBuilder(args).Build().RunAsync(ct);
+            await CreateHostBuilder(args).RunAsync(ct).ConfigureAwait(false);
         }
 
         /// <summary>

@@ -402,26 +402,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         }
 
                         // Convert
-                        var errors = new ValidationErrors(this);
-                        var devices = _devices.Values.ToList();
                         var assets = _assets.Values.ToList();
-
-                        _logger.ConvertingAssetsOnDevices(assets.Count, devices.Count);
-                        var entries = await ToPublishedNodesAsync(devices, assets, errors,
-                            ct).ConfigureAwait(false);
-
-                        // Report all errors
-                        await errors.ReportAsync(ct).ConfigureAwait(false);
-
-                        // Apply to configuration
-                        await _publishedNodes.SetConfiguredEndpointsAsync(entries,
-                            ct).ConfigureAwait(false);
-                        if (_logger.IsEnabled(LogLevel.Information))
+                        if (assets.Count > 0)
                         {
-                            _logger.NewConfigurationApplied(
-                                _serializer.SerializeToString(entries, SerializeOption.Indented));
+                            var errors = new ValidationErrors(this);
+                            var devices = _devices.Values.ToList();
+
+                            _logger.ConvertingAssetsOnDevices(assets.Count, devices.Count);
+                            var entries = await ToPublishedNodesAsync(devices, assets, errors, ct).ConfigureAwait(false);
+
+                            // Report all errors
+                            await errors.ReportAsync(ct).ConfigureAwait(false);
+
+                            // Apply configuration
+                            await _publishedNodes.SetConfiguredEndpointsAsync(entries, ct).ConfigureAwait(false);
+                            if (_logger.IsEnabled(LogLevel.Information))
+                            {
+                                _logger.NewConfigurationApplied(
+                                    _serializer.SerializeToString(entries, SerializeOption.Indented));
+                            }
+                            _logger.AssetsAndDevicesUpdated(assets.Count, devices.Count);
                         }
-                        _logger.AssetsAndDevicesUpdated(assets.Count, devices.Count);
                     }
                     if (deviceAddedOrUpdated)
                     {

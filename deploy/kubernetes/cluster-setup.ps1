@@ -334,7 +334,7 @@ elseif ($ClusterType -eq "microk8s") {
             exit -1
         }
     }
-    microk8s config > $env:USERPROFILE/.kube/config
+    $(microk8s config) | Out-File $env:USERPROFILE/.kube/config -Encoding utf8 -Force
 }
 elseif ($ClusterType -eq "k3d") {
     $errOut = $($table = & { k3d cluster list --no-headers } -split "`n") 2>&1
@@ -761,7 +761,7 @@ else {
     if ($cc) {
         Write-Host "Disconnecting existing Arc cluster $($cc.name)..." `
             -ForegroundColor Yellow
-        az connectedk8s delete `
+        az connectedk8s delete --only-show-errors `
             --name $cc.name `
             --resource-group $($rg.Name) `
             --subscription $SubscriptionId `
@@ -773,7 +773,7 @@ else {
         }
     }
     Write-Host "Connecting cluster to Arc in $($rg.Name)..." -ForegroundColor Cyan
-    az connectedk8s connect `
+    az connectedk8s connect --only-show-errors `
         --name $Name `
         --resource-group $($rg.Name) `
         --subscription $SubscriptionId `
@@ -830,23 +830,27 @@ $errOut = $($ns = & { az rest --method get `
     --url "$($adrNsResource)?api-version=2025-07-01-preview" `
     --headers "Content-Type=application/json" } | ConvertFrom-Json) 2>&1
 if (!$ns -or !$ns.id) {
-    $body = $(@{
+    $body = @{
         location = $Location
         identity = @{
             type = "SystemAssigned"
         }
         properties = @{}
-    } | ConvertTo-Json -Depth 100 -Compress).Replace('"', '\"')
+    } | ConvertTo-Json -Depth 100
+    $tempFile = New-TemporaryFile
+    $body | Out-File -FilePath $tempFile -Encoding utf8 -Force
     Write-Host "Creating ADR namespace $adrNsResource..." -ForegroundColor Cyan
     $errOut = $($ns = & { az rest --method put `
         --url "$($adrNsResource)?api-version=2025-07-01-preview" `
         --headers "Content-Type=application/json" `
-        --body $body } | ConvertFrom-Json) 2>&1
+        --body @$tempFile } | ConvertFrom-Json) 2>&1
     if (-not $?) {
         Write-Host "Error: Failed to create ADR namespace $($adrNsResource) - $($errOut)." `
             -ForegroundColor Red
+        Remove-Item $tempFile -Force
         exit -1
     }
+    Remove-Item $tempFile -Force
     Write-Host "ADR namespace $($ns.id) created." -ForegroundColor Green
 }
 else {
@@ -1059,32 +1063,6 @@ else {
         -ForegroundColor Green
 }
 
-# Patch instance if needed
-if (!$iotOps.properties.adrNamespaceRef) {
-    Write-Host "Setting ADR namespace reference $($ns.id) for instance $($iotOps.id)..." `
-        -ForegroundColor Cyan
-    $iotOps.properties | Add-Member -MemberType NoteProperty `
-        -Name adrNamespaceRef -Value @{ resourceId = $ns.id }
-
-    $iotOps | ConvertTo-Json -Depth 100 | Out-Host
-    $body = $($iotOps | ConvertTo-Json -Depth 100 -Compress).Replace('"', '\"')
-    $errOut = $($iotOps = & { az rest --method put `
-        --url "$($iotOps.id)?api-version=2025-07-01-preview" `
-        --headers "Content-Type=application/json" `
-        --body $body } | ConvertFrom-Json) 2>&1
-    if (-not $? -or !$iotOps) {
-        Write-Host "Error setting ADR namespace reference for instance - $($errOut)." `
-            -ForegroundColor Red
-        exit -1
-    }
-    Write-Host "ADR namespace reference $($ns.id) set for instance $($iotOps.id)." `
-        -ForegroundColor Green
-}
-else {
-    Write-Host "ADR namespace reference $($ns.id) exists in instance $($iotOps.id)." `
-        -ForegroundColor Green
-}
-
 $eventHubEndpointName = "eventhub-endpoint"
 $errOut = $($eh = & { az iot ops dataflow endpoint show `
     --instance $iotOps.name `
@@ -1246,6 +1224,7 @@ foreach ($s in $connectorSchemas) {
 }
 
 # Deploy connector template
+$tempFile = New-TemporaryFile
 $template = @{
     extendedLocation = $iotOps.extendedLocation
     properties = @{
@@ -1269,7 +1248,7 @@ $template = @{
                 }
                 allocation = @{
                     policy = "Bucketized"
-                    bucketSize = 1
+                    bucketSize = 20
                 }
                 additionalConfiguration = @{
                     EnableMetrics = "True"
@@ -1316,25 +1295,26 @@ $template = @{
             }
         }
     }
-}
+} | ConvertTo-Json -Depth 100
+$template | Out-File -FilePath $tempFile -Encoding utf8 -Force
+
 $ctName = "opc-publisher"
 $ctResource = "/subscriptions/$($SubscriptionId)"
 $ctResource = "$($ctResource)/resourceGroups/$($rg.Name)"
 $ctResource = "$($ctResource)/providers/Microsoft.IoTOperations"
 $ctResource = "$($ctResource)/instances/$($iotOps.name)"
 $ctResource = "$($ctResource)/akriConnectorTemplates/$($ctName)"
-$body = $($template | ConvertTo-Json -Depth 100 -Compress).Replace('"', '\"')
 Write-Host "Deploying connector template $($ctName)..." -ForegroundColor Cyan
 az rest --method put `
     --url "$($ctResource)?api-version=2025-07-01-preview" `
     --headers "Content-Type=application/json" `
-    --body $body
+    --body @$tempFile
 if (-not $?) {
     Write-Host "Error deploying connector template $($ctName) - $($errOut)." `
         -ForegroundColor Red
+    Remove-Item -Path $tempFile -Force
     exit -1
 }
-
 # Deploy discovery handler
 $template = @{
     extendedLocation = $iotOps.extendedLocation
@@ -1390,22 +1370,24 @@ $template = @{
             }
         }
     }
-}
+} | ConvertTo-Json -Depth 100
+$template | Out-File -FilePath $tempFile -Encoding utf8 -Force
+
 $dhName = "opc-publisher"
 $dhResource = "/subscriptions/$($SubscriptionId)"
 $dhResource = "$($dhResource)/resourceGroups/$($rg.Name)"
 $dhResource = "$($dhResource)/providers/Microsoft.IoTOperations"
 $dhResource = "$($dhResource)/instances/$($iotOps.name)"
 $dhResource = "$($dhResource)/akriDiscoveryHandlers/$($dhName)"
-$body = $($template | ConvertTo-Json -Depth 100 -Compress).Replace('"', '\"')
 Write-Host "Deploying discovery handler template $($dhName)..." -ForegroundColor Cyan
 az rest --method put `
     --url "$($dhResource)?api-version=2025-07-01-preview" `
     --headers "Content-Type=application/json" `
-    --body $body
+    --body @$tempFile
 if (-not $?) {
     Write-Host "Error deploying discovery handler template $($dhName) - $($errOut)." `
         -ForegroundColor Red
+    Remove-Item -Path $tempFile -Force
     exit -1
 }
 
@@ -1429,7 +1411,6 @@ for ($i = 0; $i -lt $numberOfDevices; $i++) {
         $address = "opcplc-$($deviceName).$($script:InstanceNamespace)"
         $address = "opc.tcp://$($address).svc.cluster.local:50000"
         # Make temp file to preserve the correct json format
-        $tempFile = New-TemporaryFile
         $body = @{
             extendedLocation = $iotOps.extendedLocation
             location = $Location
@@ -1464,17 +1445,16 @@ for ($i = 0; $i -lt $numberOfDevices; $i++) {
                 }
             }
         } | ConvertTo-Json -Depth 100
-        $body | Out-Host
-        $body | Out-File -Path $tempFile
+        $body | Out-File -FilePath $tempFile -Encoding utf8 -Force
         Write-Host "Creating ADR namespaced device $deviceResource..." -ForegroundColor Cyan
         $errOut = $($device = & { az rest --method put `
             --url "$($deviceResource)?api-version=2025-07-01-preview" `
             --headers "Content-Type=application/json" `
             --body @$tempFile } | ConvertFrom-Json) 2>&1
-        Remove-Item -Path $tempFile -Force
         if (-not $? -or !$device -or !$device.id) {
             Write-Host "Error: Failed to create device $($deviceResource) - $($errOut)." `
                 -ForegroundColor Red
+            Remove-Item -Path $tempFile -Force
             exit -1
         }
         Write-Host "ADR namespaced device $($device.id) created." -ForegroundColor Green
@@ -1483,3 +1463,5 @@ for ($i = 0; $i -lt $numberOfDevices; $i++) {
         Write-Host "ADR namespaced device $($device.id) exists." -ForegroundColor Green
     }
 }
+Remove-Item -Path $tempFile -Force
+

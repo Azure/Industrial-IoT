@@ -58,7 +58,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 if (logLevel >= LogLevel.Error)
                 {
-                    _logger.StackMessage(eventId, exception, formatter(state, exception));
+                    _logger.StackMessage(exception, formatter(state, exception));
                 }
             }
 
@@ -87,6 +87,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private const int EventClass = 1200;
 
         [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Error, Message = "{message}")]
-        public static partial void StackMessage(this ILogger logger, EventId eventId, Exception? exception, string message);
+        public static partial void StackMessage(this ILogger logger, Exception? exception, string message);
     }
 }
