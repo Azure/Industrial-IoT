@@ -1,0 +1,29 @@
+image: mcr.microsoft.com/iot/opc-ua-test-server
+tag: 2.9.15-preview1
+pullPolicy: Always
+pullSecrets: []
+
+# Controls number of OPC UA Test servers that should be deployed.
+simulations: 1
+
+# Controls if the security bar is lowered for the OPC UA Test simulation server. When set to true, all client connections will be accepted.
+autoAcceptUntrustedCertificates: true
+
+# Controls if the security context should be set for the OPC UA Test server simulation server.
+setSecurityContext: true
+
+# Additional arguments for the OPC UA Test server simulation
+# This should be an array of arrays, where each inner array contains the arguments for a specific instance.
+additionalArgs: []
+
+resources:
+  requests:
+    memory: 192Mi
+    cpu: 125m
+  limits:
+    memory: 768Mi
+    cpu: 500m
+
+nameOverride: null
+deployDefaultIssuerCA: false
+

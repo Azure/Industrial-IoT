@@ -1,4 +1,4 @@
-{{- $opcuabrokerLabels := include "opcuabroker.labels" . -}}
+{{- $simulationLabels := include "simulation.labels" . -}}
 {{- $releaseName := .Release.Name -}}
 
 {{ range $i := until (.Values.simulations | int) }}
@@ -7,13 +7,13 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: aio-opc-ua-opcplc-default-application-{{ $suffix }}
+  name: opc-ua-opc-plc-default-application-{{ $suffix }}
   namespace: {{ $.Release.Namespace }}
   labels:
-    {{- $opcuabrokerLabels | nindent 4 }}
+    {{- $simulationLabels | nindent 4 }}
 spec:
   # Secret names are always required.
-  secretName: aio-opc-ua-opcplc-default-application-cert-{{ $suffix }}
+  secretName: opc-ua-opc-plc-default-application-cert-{{ $suffix }}
   duration: 8760h # 365d
   renewBefore: 4380h # 182d
   subject:
@@ -37,10 +37,10 @@ spec:
     - server auth
   # At least one of a DNS Name, URI, or IP address is required.
   uris:
-    - urn:OpcPlc:opcplc-{{ $suffix }}
+    - urn:OpcPlc:opc-plc-{{ $suffix }}
   dnsNames:
-    - opcplc-{{ $suffix }}.{{ $.Release.Namespace }}
-    - opcplc-{{ $suffix }}
+    - opc-plc-{{ $suffix }}.{{ $.Release.Namespace }}
+    - opc-plc-{{ $suffix }}
   issuerRef:
     kind: Issuer
 {{- if $.Values.deployDefaultIssuerCA }}

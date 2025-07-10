@@ -1,6 +1,6 @@
-{{- $opcuabrokerLabels := include "opcuabroker.labels" . -}}
-{{- $opcuabrokerSelectorLabels := include "opcuabroker.selectorLabels" . -}}
-{{- $opcuabrokerConfigMap := include "opcuabroker.configmap" . -}}
+{{- $simulationLabels := include "simulation.labels" . -}}
+{{- $simulationSelectorLabels := include "simulation.selectorLabels" . -}}
+{{- $simulationConfigMap := include "simulation.configmap" . -}}
 {{- $releaseName := .Release.Name -}}
 
 {{ range $i := until (.Values.simulations | int) }}
@@ -8,21 +8,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: opcplc-{{ $suffix }}
+  name: opc-plc-{{ $suffix }}
   namespace: {{ $.Release.Namespace }}
   labels:
-    {{- $opcuabrokerLabels | nindent 4 }}
-    app.kubernetes.io/component: opcplc-{{ $suffix }}
+    {{- $simulationLabels | nindent 4 }}
+    app.kubernetes.io/component: opc-plc-{{ $suffix }}
 spec:
   selector:
     matchLabels:
-      {{- $opcuabrokerSelectorLabels | nindent 6 }}
-      app.kubernetes.io/component: opcplc-{{ $suffix }}
+      {{- $simulationSelectorLabels | nindent 6 }}
+      app.kubernetes.io/component: opc-plc-{{ $suffix }}
   template:
     metadata:
       labels:
-        {{- $opcuabrokerSelectorLabels | nindent 8 }}
-        app.kubernetes.io/component: opcplc-{{ $suffix }}
+        {{- $simulationSelectorLabels | nindent 8 }}
+        app.kubernetes.io/component: opc-plc-{{ $suffix }}
     spec:
       {{- with $.Values.pullSecrets }}
       imagePullSecrets:
@@ -31,7 +31,7 @@ spec:
       nodeSelector:
         "kubernetes.io/os": linux
       containers:
-      - name: opcplc
+      - name: opc-plc
         {{- if $.Values.setSecurityContext }}
         securityContext:
           allowPrivilegeEscalation: false
@@ -50,8 +50,8 @@ spec:
         ports:
         - containerPort: 50000
         args:
-          - "--ph=opcplc-{{ $suffix }}.{{ $.Release.Namespace }}"
-          - "--cdn=opcplc-{{ $suffix }}.{{ $.Release.Namespace }},opcplc-{{ $suffix }}"
+          - "--ph=opc-plc-{{ $suffix }}.{{ $.Release.Namespace }}"
+          - "--cdn=opc-plc-{{ $suffix }}.{{ $.Release.Namespace }},opc-plc-{{ $suffix }}"
           - "--nodesfile=/app/nodesfile.json"
           - "--ut"
           {{- if $.Values.autoAcceptUntrustedCertificates }}
@@ -83,27 +83,27 @@ spec:
           {{- end }}
           {{- end }}
         volumeMounts:
-          - name: opcplc-config-{{ $suffix }}
+          - name: opc-plc-config-{{ $suffix }}
             mountPath: /app/nodesfile.json
             subPath: nodesfile.json
-          - name: aio-opc-ua-opcplc-default-application-cert-{{ $suffix }}
+          - name: opc-ua-opc-plc-default-application-cert-{{ $suffix }}
             mountPath: /app/pki/own/
-          - name: aio-opc-ua-opcplc-default-trusted-cert-{{ $suffix }}
+          - name: opc-ua-opc-plc-default-trusted-cert-{{ $suffix }}
             mountPath: /app/pki/trusted/
 {{ if $.Values.resources }}
         resources:
 {{ toYaml $.Values.resources | indent 10 }}
 {{- end }}
       volumes:
-        - name: opcplc-config-{{ $suffix }}
+        - name: opc-plc-config-{{ $suffix }}
           configMap:
-            name: {{ $opcuabrokerConfigMap }}
-        - name: aio-opc-ua-opcplc-default-application-cert-{{ $suffix }}
+            name: {{ $simulationConfigMap }}
+        - name: opc-ua-opc-plc-default-application-cert-{{ $suffix }}
           secret:
-            secretName: aio-opc-ua-opcplc-default-application-cert-{{ $suffix }}
-        - name: aio-opc-ua-opcplc-default-trusted-cert-{{ $suffix }}
+            secretName: opc-ua-opc-plc-default-application-cert-{{ $suffix }}
+        - name: opc-ua-opc-plc-default-trusted-cert-{{ $suffix }}
           # fallback to trust the own certificate secret. this contain the CA certificate when used.
           secret:
-            secretName: aio-opc-ua-opcplc-default-application-cert-{{ $suffix }}
+            secretName: opc-ua-opc-plc-default-application-cert-{{ $suffix }}
 ---
 {{ end }}

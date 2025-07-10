@@ -128,6 +128,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             MessageTtlTimespan = item.Writer.Publishing?.Ttl,
                             MessageRetention = item.Writer.Publishing?.Retain,
                             MetaDataQueueName = item.Writer.MetaData?.QueueName,
+                            MetaDataRetention = item.Writer.MetaData?.Retain,
+                            MetaDataTtlTimespan = item.Writer.MetaData?.Ttl,
                             MetaDataUpdateTime = null,
                             BatchTriggerIntervalTimespan = item.WriterGroup.PublishingInterval,
                             BatchTriggerInterval = null,
@@ -439,8 +441,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                     {
                                         QueueName = b.Header.MetaDataQueueName,
                                         RequestedDeliveryGuarantee = null,
-                                        Retain = true,
-                                        Ttl = null
+                                        Retain = b.Header.MetaDataRetention,
+                                        Ttl = b.Header.MetaDataTtlTimespan
                                     },
                                     DataSet = new PublishedDataSetModel
                                     {

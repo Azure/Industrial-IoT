@@ -1,0 +1,25 @@
+{{- $simulationLabels := include "simulation.labels" . -}}
+{{- $simulationSelectorLabels := include "simulation.selectorLabels" . -}}
+{{- $releaseName := .Release.Name -}}
+
+{{ range $i := until (.Values.simulations | int) }}
+{{ $suffix := printf "%s-%06d" $releaseName $i }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: opc-plc-{{ $suffix }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- $simulationLabels | nindent 4 }}
+    app.kubernetes.io/component: opc-plc-{{ $suffix }}-service
+spec:
+  type: ClusterIP
+  selector:
+    {{- $simulationSelectorLabels | nindent 4 }}
+    app.kubernetes.io/component: opc-plc-{{ $suffix }}
+  ports:
+  - port: 50000
+    protocol: TCP
+    targetPort: 50000
+---
+{{ end }}

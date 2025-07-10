@@ -724,6 +724,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public string? WriterGroupType { get; set; }
 
         /// <summary>
+        /// Metadata retention setting for the dataset writer.
+        /// </summary>
+        [DataMember(Name = "MetaDataRetention", Order = 65,
+            EmitDefaultValue = false)]
+        public bool? MetaDataRetention { get; set; }
+
+        /// <summary>
+        /// Metadata time-to-live duration for the dataset writer.
+        /// </summary>
+        [DataMember(Name = "MetaDataTtlTimespan", Order = 66,
+            EmitDefaultValue = false)]
+        public TimeSpan? MetaDataTtlTimespan { get; set; }
+
+        /// <summary>
         /// Enables detailed server diagnostics logging for the
         /// connection. When enabled, provides additional diagnostic
         /// information useful for troubleshooting connectivity,

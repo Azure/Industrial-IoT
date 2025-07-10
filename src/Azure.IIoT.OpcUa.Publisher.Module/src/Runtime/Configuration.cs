@@ -12,6 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Azure.Iot.Operations.Protocol;
     using Furly.Azure.EventHubs;
     using Furly.Azure.IoT.Edge;
+    using Furly.Azure.IoT.Operations.Runtime;
     using Furly.Azure.IoT.Operations.Services;
     using Furly.Extensions.AspNetCore.OpenApi;
     using Furly.Extensions.Configuration;
@@ -177,8 +178,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 builder.AddAdrClient();
                 builder.AddTelemetryPublisher();
                 builder.AddSchemaRegistry();
-                builder.AddLeaderElection();
+                // builder.AddLeaderElection();
                 // builder.AddStateStore();
+
+                builder.Configure<AioOptions>(o => o.HookAioSdkTraceLogging = true);
 
                 builder.RegisterType<Aio>().AsImplementedInterfaces();
                 if (publisherOptions.IsAzureIoTOperationsConnector.Value)

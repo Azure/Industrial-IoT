@@ -93,9 +93,28 @@ while ($true) {
     $errOut = $($dDevices = & { az rest --method get `
         --url "$($ns.id)/discoveredDevices?api-version=2025-07-01-preview" `
         --headers "Content-Type=application/json" } | ConvertFrom-Json) 2>&1
-
+    $onboardComplete = $false
+    $needsSync = $false
     if ($dDevices -and $dDevices.value) {
         foreach ($dDevice in $dDevices.value) {
+
+            $device = & { az rest --method get `
+                --url "$($ns.id)/devices/$($dDevice.name)?api-version=2025-07-01-preview" `
+                --headers "Content-Type=application/json" } | ConvertFrom-Json
+            if ($device -and $device.id) {
+                Write-Host "Device $($device.name) exists with version $($device.properties.version)..." `
+                    -ForegroundColor Cyan
+                if ($device.properties.version -ne $dDevice.properties.version) {
+                    Write-Host "Discovered Device $($dDevice.name) has a different version $($dDevice.properties.version)." `
+                        -ForegroundColor Yellow
+                    $needsSync = $true
+                }
+                else {
+                    Write-Host "Device $($device.name) is up to date." -ForegroundColor Green
+                    $onboardComplete = $true
+                    continue
+                }
+            }
             $body = @{
                 extendedLocation = $dDevice.extendedLocation
                 location = $dDevice.location
@@ -113,11 +132,12 @@ while ($true) {
                 --headers "Content-Type=application/json" `
                 --body @$tempFile } | ConvertFrom-Json) 2>&1
             if (!$device.id) {
-                Write-Host "Error onboarding device $($dDevice.Name): $($errOut)" `
+                Write-Host "Error onboarding device $($dDevice.name): $($errOut)" `
                     -ForegroundColor Red
             } else {
-                Write-Host "Device $($device.id) created or updated successfully." `
+                Write-Host "Device $($device.name) created or updated successfully." `
                     -ForegroundColor Green
+                $onboardComplete = $true
             }
         }
     }
@@ -129,6 +149,24 @@ while ($true) {
         --headers "Content-Type=application/json" } | ConvertFrom-Json) 2>&1
     if ($dAssets -and $dAssets.value) {
         foreach ($dAsset in $dAssets.value) {
+            $asset = & { az rest --method get `
+                --url "$($ns.id)/assets/$($dAsset.name)?api-version=2025-07-01-preview" `
+                --headers "Content-Type=application/json" } | ConvertFrom-Json
+            if ($asset -and $asset.id) {
+                Write-Host "Asset $($asset.name) exists with version $($asset.properties.version)..." `
+                    -ForegroundColor Cyan
+                if ($asset.properties.version -ne $dAsset.properties.version) {
+                    Write-Host "Discovered Asset $($dAsset.name) has a different version $($dAsset.properties.version)." `
+                        -ForegroundColor Yellow
+                    $needsSync = $true
+                }
+                else {
+                    Write-Host "Asset $($asset.name) is up to date." -ForegroundColor Green
+                    $onboardComplete = $true
+                    continue
+                }
+            }
+
             # todo: Filter data points too
             [array]$datasets = $dAsset.properties.datasets `
                 | Select-Object -Property * -ExcludeProperty lastUpdatedOn
@@ -181,19 +219,23 @@ while ($true) {
                 --headers "Content-Type=application/json" `
                 --body @$tempFile } | ConvertFrom-Json) 2>&1
             if (!$asset.id) {
-                Write-Host "Error onboarding asset $($dAsset.Name): $($errOut)" `
+                Write-Host "Error onboarding asset $($dAsset.name): $($errOut)" `
                     -ForegroundColor Red
             } else {
-                Write-Host "Asset $($asset.id) created or updated successfully." `
+                Write-Host "Asset $($asset.name) created or updated successfully." `
                     -ForegroundColor Green
+                $onboardComplete = $true
             }
         }
     }
     else {
         Write-Host "No discovered assets found." -ForegroundColor Yellow
     }
-    if ($script:RunOnce.IsPresent) {
+    if ($script:RunOnce.IsPresent -and $onboardComplete -and -not $needsSync) {
         break
+    }
+    if ($needsSync) {
+        continue
     }
     Start-Sleep -Seconds 60
 }

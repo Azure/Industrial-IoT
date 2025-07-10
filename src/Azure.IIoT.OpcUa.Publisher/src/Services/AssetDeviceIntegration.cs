@@ -23,13 +23,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Diagnostics;
     using System.Globalization;
     using System.Linq;
+    using System.Text;
     using System.Text.Json;
     using System.Text.Json.Serialization;
     using System.Text.RegularExpressions;
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
-    using static Azure.IIoT.OpcUa.Publisher.Services.AssetDeviceIntegration;
 
     /// <summary>
     /// Asset and device configuration integration with Azure iot operations. Converts asset
@@ -583,10 +583,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 {
                                     Qos = _options.Value.DefaultQualityOfService
                                         == Furly.Extensions.Messaging.QoS.AtMostOnce ? QoS.Qos0 : QoS.Qos1,
-                                    Topic =
-            $"{Furly.Extensions.Messaging.TopicFilter.Escape(_options.Value.PublisherId ?? "source")}/" +
-            $"{Furly.Extensions.Messaging.TopicFilter.Escape(d.DataSetWriterGroup?? "asset")}/" +
-            $"{Furly.Extensions.Messaging.TopicFilter.Escape(d.DataSetName ?? "dataset")}",
+                                    Topic = CreateTopic(d.DataSetWriterGroup, d.DataSetName),
                                     Retain = _options.Value.DefaultMessageRetention
                                         == true ? Retain.Keep : Retain.Never,
                                     Ttl = (ulong?)_options.Value.DefaultMessageTimeToLive?.TotalSeconds
@@ -632,6 +629,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 endpointType = "Microsoft.OpcPublisher";
                 endpointTypeVersion = $"{releaseVersion.Major}.{releaseVersion.Minor}";
             }
+            var newEndpointCount = 0;
             foreach (var ep in endpoints)
             {
                 var desc = ep.Description;
@@ -670,10 +668,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     EndpointSecurityPolicy = desc.SecurityPolicyUri
                 };
                 var uniqueName = MakeValidName(name);
-                if (newEndpoints.ContainsKey(uniqueName) ||
-                    (resource.Device.Endpoints?.Inbound?.Any(e =>
-                        e.Key.Equals(uniqueName, StringComparison.OrdinalIgnoreCase)) ?? false))
+                if (newEndpoints.ContainsKey(uniqueName))
                 {
+                    continue;
+                }
+                var existing = resource.Device.Endpoints?.Inbound?.FirstOrDefault(e =>
+                    e.Key.Equals(uniqueName, StringComparison.OrdinalIgnoreCase));
+                if (existing.HasValue)
+                {
+                    // Copy original endpoint information
+                    newEndpoints.Add(existing.Value.Key, new DiscoveredDeviceInboundEndpoint
+                    {
+                        Address = existing.Value.Value.Address,
+                        EndpointType = existing.Value.Value.EndpointType,
+                        Version = existing.Value.Value.Version,
+                        SupportedAuthenticationMethods = existing.Value.Value.Authentication == null ?
+                            [] : [existing.Value.Value.Authentication.Method.ToString()],
+                        AdditionalConfiguration = JsonSerializer.Serialize(
+                            existing.Value.Value.AdditionalConfiguration)
+                    });
                     continue;
                 }
                 var additionalConfiguration = _serializer.SerializeToString(epModel);
@@ -687,10 +700,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     Address = SetEndpointUrl(ep.AccessibleEndpointUrl),
                     EndpointType = endpointType,
                     Version = endpointTypeVersion,
+                    SupportedAuthenticationMethods = GetSupportedAuthenticationMethods(desc),
                     AdditionalConfiguration = additionalConfiguration
                 });
+                newEndpointCount++;
             }
-            if (newEndpoints.Count == 0)
+            if (newEndpointCount == 0)
             {
                 _logger.NoNewEndpointsFound(resource.DeviceName, resource.EndpointName);
                 return;
@@ -710,6 +725,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     Inbound = newEndpoints
                 }
             };
+
             // TODO: Add attributes and other information from properties
 
             if (_logger.IsEnabled(LogLevel.Debug))
@@ -719,6 +735,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
             await _client.ReportDiscoveredDeviceAsync(resource.DeviceName, dDevice,
                 endpointType, cancellationToken: ct).ConfigureAwait(false);
+
+            static List<string>? GetSupportedAuthenticationMethods(EndpointDescription desc)
+            {
+                if (desc.UserIdentityTokens == null || desc.UserIdentityTokens.Count == 0)
+                {
+                    return null;
+                }
+                var methods = new HashSet<string>();
+                foreach (var token in desc.UserIdentityTokens)
+                {
+                    switch (token.TokenType)
+                    {
+                        case UserTokenType.Anonymous:
+                            methods.Add(Method.Anonymous.ToString());
+                            break;
+                        case UserTokenType.UserName:
+                            methods.Add(Method.UsernamePassword.ToString());
+                            break;
+                        case UserTokenType.Certificate:
+                            methods.Add(Method.Certificate.ToString());
+                            break;
+                        case UserTokenType.IssuedToken:
+                            // Not supported
+                            break;
+                    }
+                }
+                return methods.ToList();
+            }
         }
 
         /// <summary>
@@ -1126,9 +1170,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 BatchTriggerIntervalTimespan = null,
                 MessagingMode = MessagingMode.SingleDataSet, // TODO: Validate this is the correct format
                 DataSetFetchDisplayNames = false,
-                MessageEncoding =
-                    entityTemplate.MessageEncoding == MessageEncoding.Avro
-                        ? MessageEncoding.Avro : MessageEncoding.Json,
+                MessageEncoding = entityTemplate.MessageEncoding == MessageEncoding.Avro
+                    ? MessageEncoding.Avro : MessageEncoding.Json,
 
                 OpcNodes = nodes,
 
@@ -1270,6 +1313,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <summary>
+        /// Create a topic for the asset and dataset
+        /// </summary>
+        /// <param name="assetName"></param>
+        /// <param name="dataSetName"></param>
+        /// <returns></returns>
+        private static string CreateTopic(string? assetName, string? dataSetName)
+        {
+            var builder = new StringBuilder("{RootTopic}");
+            if (!string.IsNullOrEmpty(assetName))
+            {
+                builder.Append('/');
+                builder.Append(Furly.Extensions.Messaging.TopicFilter.Escape(assetName ?? "asset"));
+            }
+            if (!string.IsNullOrEmpty(dataSetName))
+            {
+                foreach (var part in dataSetName.Split('.', StringSplitOptions.RemoveEmptyEntries))
+                {
+                    builder.Append('/');
+                    builder.Append(Furly.Extensions.Messaging.TopicFilter.Escape(part));
+                }
+            }
+            return builder.ToString();
+        }
+
+        /// <summary>
         /// Add dataset destination configuration
         /// </summary>
         /// <param name="entry"></param>
@@ -1319,9 +1387,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             _ => null
                         },
                         QueueName = configuration.Topic,
+                        MessageTtlTimespan = configuration.Ttl == null ? null
+                            : TimeSpan.FromSeconds(configuration.Ttl.Value),
                         MetaDataQueueName = configuration.Topic == null ? null :
                             $"{configuration.Topic.Trim('/')}/metadata",
-                        MessageTtlTimespan = configuration.Ttl == null ? null
+                        MetaDataRetention = configuration.Retain switch
+                        {
+                            Retain.Keep => true,
+                            Retain.Never => false,
+                            _ => null
+                        },
+                        MetaDataTtlTimespan = configuration.Ttl == null ? null
                             : TimeSpan.FromSeconds(configuration.Ttl.Value)
                     };
                 case DatasetTarget.Storage:
@@ -1381,6 +1457,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         },
                         QueueName = configuration.Topic,
                         MessageTtlTimespan = configuration.Ttl == null ? null
+                            : TimeSpan.FromSeconds(configuration.Ttl.Value),
+                        MetaDataQueueName = configuration.Topic == null ? null :
+                            $"{configuration.Topic.Trim('/')}/metadata",
+                        MetaDataRetention = configuration.Retain switch
+                        {
+                            Retain.Keep => true,
+                            Retain.Never => false,
+                            _ => null
+                        },
+                        MetaDataTtlTimespan = configuration.Ttl == null ? null
                             : TimeSpan.FromSeconds(configuration.Ttl.Value)
                     };
                 case EventStreamTarget.Storage:
@@ -2020,8 +2106,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         internal static partial void ConvertingAssetsOnDevices(this ILogger logger,
             int assets, int devices);
 
-        [LoggerMessage(EventId = EventClass + 12, Level = LogLevel.Information,
-            Message = "New configuration applied: \n{Configuration}")]
+        [LoggerMessage(EventId = EventClass + 12, Level = LogLevel.Information, SkipEnabledCheck = true,
+            Message = "New configuration applied:\n{Configuration}")]
         internal static partial void NewConfigurationApplied(this ILogger logger,
             string configuration);
 
@@ -2039,7 +2125,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         internal static partial void DroppingResultWithoutRequiredInformation(
             this ILogger logger, string? result);
 
-        [LoggerMessage(EventId = EventClass + 16, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 16, Level = LogLevel.Debug, SkipEnabledCheck = true,
             Message = "Reporting new discovered asset {AssetName} with id " +
             "{AssetId} and type {AssetTypeRef}:\n{Asset}")]
         internal static partial void ReportingNewDiscoveredAsset(this ILogger logger,
@@ -2056,7 +2142,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         internal static partial void NoNewEndpointsFound(this ILogger logger, string deviceName,
             string endpointName);
 
-        [LoggerMessage(EventId = EventClass + 19, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 19, Level = LogLevel.Debug, SkipEnabledCheck = true,
             Message = "Reporting new discovered device {DeviceName} with type {EndpointType}:\n{Device}")]
         internal static partial void ReportingNewDiscoveredDevice(this ILogger logger,
             string deviceName, string endpointType, string device);
@@ -2090,6 +2176,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         [LoggerMessage(EventId = EventClass + 26, Level = LogLevel.Warning,
             Message = "Encountered Error {Code} {Error} for resource {Resource}.")]
         internal static partial void EncounteredError(this ILogger logger, string code, string error,
-            Resource resource);
+            AssetDeviceIntegration.Resource resource);
     }
 }

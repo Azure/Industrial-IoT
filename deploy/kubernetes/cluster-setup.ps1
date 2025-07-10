@@ -1394,73 +1394,17 @@ if (-not $?) {
 #
 # Deploy simulation servers
 #
-$numberOfDevices = 2
-Write-Host "Creating $numberOfDevices OPC PLC simulation servers..." -ForegroundColor Cyan
-helm upgrade -i opc-plc helm\opc-plc\ `
-    --namespace $script:InstanceNamespace `
-    --set simulations=$numberOfDevices `
-    --set deployDefaultIssuerCA=false `
-    --wait
-for ($i = 0; $i -lt $numberOfDevices; $i++) {
-    $deviceName = "opc-plc-$("{0:D6}" -f $i)"
-    $deviceResource = "$($ns.id)/devices/$($deviceName)"
-    $errOut = $($device = & { az rest --method get `
-        --url "$($deviceResource)?api-version=2025-07-01-preview" `
-        --headers "Content-Type=application/json" } | ConvertFrom-Json) 2>&1
-    if (!$device -or !$device.id -or !$test) {  # force we always recreate
-        $address = "opcplc-$($deviceName).$($script:InstanceNamespace)"
-        $address = "opc.tcp://$($address).svc.cluster.local:50000"
-        $body = @{
-            extendedLocation = $iotOps.extendedLocation
-            location = $Location
-            properties = @{
-                # externalDeviceId = "unique-edge-device-identifier"
-                enabled = $true
-                attributes = @{
-                    deviceType = "LDS"
-                }
-                endpoints = @{
-                    inbound = @{
-                        "none" = @{
-                            address = $address
-                            endpointType = "Microsoft.OpcPublisher"
-                            version = "2.9"
-                            authentication = @{
-                                method = "Anonymous"
-                            }
-                            additionalConfiguration = $(@{
-                                EndpointSecurityMode = "None"
-                                EndpointSecurityPolicy = "None"
-                                RunAssetDiscovery = $True
-                                AssetTypes = @(
-                                    "nsu=http://opcfoundation.org/UA/Boiler/;i=1132",
-                                    "nsu=http://microsoft.com/Opc/OpcPlc/Boiler;i=1000",
-                                    "nsu=http://microsoft.com/Opc/OpcPlc/Boiler;i=3",
-                                    "i=2004"
-                                )
-                            } | ConvertTo-Json -Depth 100 -Compress)
-                        }
-                    }
-                }
-            }
-        } | ConvertTo-Json -Depth 100
-        $body | Out-File -FilePath $tempFile -Encoding utf8 -Force
-        Write-Host "Creating ADR namespaced device $deviceResource..." -ForegroundColor Cyan
-        $errOut = $($device = & { az rest --method put `
-            --url "$($deviceResource)?api-version=2025-07-01-preview" `
-            --headers "Content-Type=application/json" `
-            --body @$tempFile } | ConvertFrom-Json) 2>&1
-        if (-not $? -or !$device -or !$device.id) {
-            Write-Host "Error: Failed to create device $($deviceResource) - $($errOut)." `
-                -ForegroundColor Red
-            Remove-Item -Path $tempFile -Force
-            exit -1
-        }
-        Write-Host "ADR namespaced device $($device.id) created." -ForegroundColor Green
-    }
-    else {
-        Write-Host "ADR namespaced device $($device.id) exists." -ForegroundColor Green
-    }
+./simulation/deploy-opc-plc.ps1 `
+    -InstanceNamespace $script:InstanceNamespace `
+    -ExtendedLocation $iotOps.extendedLocation `
+    -Location $Location `
+    -AdrNsResourceId $adrNsResource
+    -NumberOfDevices 2
+    -Force:$forceReinstall `
+if (-not $?) {
+    Write-Host "Error deploying simulation servers." -ForegroundColor Red
+    Remove-Item -Path $tempFile -Force
+    exit -1
 }
 Remove-Item -Path $tempFile -Force
 
