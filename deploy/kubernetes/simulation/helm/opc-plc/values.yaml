@@ -2,25 +2,21 @@ image: mcr.microsoft.com/iotedge/opc-plc
 tag: latest
 pullPolicy: Always
 pullSecrets: []
-
 # Controls number of OPC PLCs that should be deployed.
 simulations: 1
+
+openTelemetry:
+  # OpenTelemetry Endpoint Uri
+  endpointUri: null
+  # OpenTelemetry Export Interval in seconds
+  exportIntervalSeconds: 60
+  # OpenTelemetry Export Protocol
+  exportProtocol: grpc
 
 # Number of fast nodes.
 fastNodes: 2000
 # Rate in milliseconds to change fast nodes.
 fastRate: 1000
-
-openTelemetry:
-  # OpenTelemetry Endpoint Uri
-  endpointUri: null
-
-  # OpenTelemetry Export Interval in seconds
-  exportIntervalSeconds: 60
-
-  # OpenTelemetry Export Protocol
-  exportProtocol: grpc
-
 # Number of slow nodes.
 slowNodes: 25
 # Maximum number of parallel sessions.
@@ -49,6 +45,5 @@ resources:
     cpu: 500m
 
 nameOverride: null
-
 deployDefaultIssuerCA: false
 

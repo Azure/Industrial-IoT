@@ -36,7 +36,7 @@ spec:
         securityContext:
           allowPrivilegeEscalation: false
           privileged: false
-          # OPC PLC runs as root.
+          # OPC Tester runs as root.
           # runAsNonRoot: true
           # readOnlyRootFilesystem: true
           capabilities:
@@ -52,12 +52,8 @@ spec:
         args:
           - "--port"
           - "50000"
-          - "--host" 
-          - "opc-test-{{ $suffix }}.{{ $.Release.Namespace }}"
-          - "--cdn=opc-test-{{ $suffix }}.{{ $.Release.Namespace }},opc-test-{{ $suffix }}"
-          {{- if $.Values.autoAcceptUntrustedCertificates }}
-          - "--autoaccept"
-          {{- end }}
+          - "--hosts"
+          - "opc-test-{{ $suffix }}.{{ $.Release.Namespace }},opc-test-{{ $suffix }}"
           # Check if additionalArgs are defined and have arguments for the current instance
           {{- if and (hasKey $.Values "additionalArgs") (not (empty $.Values.additionalArgs)) (index $.Values.additionalArgs $i) }}
           # Add additional arguments for the current instance

@@ -2,12 +2,14 @@
     .SYNOPSIS
         Deploys OPC UA simulation servers in a Kubernetes cluster
         and registers them with Azure IoT Operations.
-
     .DESCRIPTION
         This script deploys a specified number of OPC UA simulation
         servers using Helm and registers them as devices in Azure IoT
         Operations. Each server is configured with specific endpoint
         settings and asset discovery capabilities.
+    .NOTES
+        DO NOT USE FOR PRODUCTION SYSTEMS. This script is intended for
+        development and testing purposes only.
 
     .PARAMETER SimulationName
         The type of simulation to deploy. Currently supports "opc-plc"
