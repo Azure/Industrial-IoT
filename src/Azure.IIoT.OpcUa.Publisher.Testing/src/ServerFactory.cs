@@ -206,7 +206,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                         },
                         TrustedIssuerCertificates = new CertificateTrustList
                         {
-                            StoreType = CertificateStoreType.Directory,
+                            StoreType = certStoreType,
                             StorePath = $"{pkiRootPath}/issuer"
                         },
                         RejectedCertificateStore = new CertificateTrustList
