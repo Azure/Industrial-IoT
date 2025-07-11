@@ -266,7 +266,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _timeProvider = subscription._timeProvider;
             _metrics = subscription._metrics;
             _firstDataChangeReceived = subscription._firstDataChangeReceived;
-            _lastPublishReceived = subscription._lastPublishReceived;
 
             Template = subscription.Template;
             Name = subscription.Name;
@@ -888,7 +887,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Debug.Assert(Created);
 
                 _firstDataChangeReceived = false;
-                _lastPublishReceived = _timeProvider.GetTimestamp();
             }
             else
             {
@@ -913,7 +911,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     _logger.PublishingIntervalChanged(DesiredPublishingInterval, this);
                     PublishingInterval = (int)DesiredPublishingInterval.TotalMilliseconds;
-                    _lastPublishReceived = _timeProvider.GetTimestamp();
                     modifySubscription = true;
                 }
 
@@ -1297,6 +1294,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 await Task.WhenAll(finalize).ConfigureAwait(false);
             }
 
+            _sendFakeKeepAlives = partition.Items.Select(m => m.Item1).Distinct().Count() > 1;
             if (applyChanges)
             {
                 // Apply any additional changes
@@ -1557,7 +1555,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _currentSequenceNumber = 0;
                 _goodMonitoredItems = 0;
                 _badMonitoredItems = 0;
-                _lastPublishReceived = 0;
 
                 _reportingItems = 0;
                 _disabledItems = 0;
@@ -1777,10 +1774,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return;
             }
 
-            var lastPublishReceived = _lastPublishReceived;
-            _lastPublishReceived = _timeProvider.GetTimestamp();
-            var sendKeepAlive = _timeProvider.GetElapsedTime(lastPublishReceived)
-                >= TimeSpan.FromMilliseconds(CurrentPublishingInterval);
             ResetKeepAliveTimer();
 
             var sw = Stopwatch.StartNew();
@@ -1821,29 +1814,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
 
                 // Send fake keep alives to all the other subscribers
-                if (sendKeepAlive)
-                {
-                    var owners = events.SelectMany(e => e.Item2.Notifications.Keys)
-                        .Distinct()
-                        .ToHashSet();
-                    foreach (var callback in CurrentlyMonitored
-                        .Select(c => c.Owner)
-                        .Distinct()
-                        .Where(o => !owners.Contains(o)))
-                    {
-                        callback.OnSubscriptionKeepAlive(new OpcUaSubscriptionNotification(this,
-                            session.MessageContext, Array.Empty<MonitoredItemNotificationModel>(),
-                            _timeProvider)
-                        {
-                            ApplicationUri = session.Endpoint?.Server?.ApplicationUri
-                                ?? _client.ApplicationUri,
-                            EndpointUrl = session.Endpoint?.EndpointUrl,
-                            PublishTimestamp = publishTime,
-                            SequenceNumber = Opc.Ua.SequenceNumber.Increment32(ref _sequenceNumber),
-                            MessageType = MessageType.KeepAlive
-                        });
-                    }
-                }
+                SendFakeKeepAlives(session);
 
                 var total = events.Sum(e => e.Item2.Notifications.Count);
 #pragma warning disable CA2000 // Dispose objects before losing scope
@@ -1921,7 +1892,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return;
             }
 
-            _lastPublishReceived = _timeProvider.GetTimestamp();
             var sw = Stopwatch.StartNew();
             try
             {
@@ -2060,10 +2030,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             var firstDataChangeReceived = _firstDataChangeReceived;
             _firstDataChangeReceived = true;
-            var lastPublishReceived = _lastPublishReceived;
-            _lastPublishReceived = _timeProvider.GetTimestamp();
-            var sendKeepAlive = _timeProvider.GetElapsedTime(lastPublishReceived)
-                >= TimeSpan.FromMilliseconds(CurrentPublishingInterval);
 
             var sw = Stopwatch.StartNew();
             try
@@ -2097,27 +2063,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                 }
 
-                // Send fake keep alives to all the other subscribers
-                if (sendKeepAlive)
-                {
-                    foreach (var callback in CurrentlyMonitored
-                        .Select(c => c.Owner)
-                        .Distinct()
-                        .Where(o => !collector.Notifications.ContainsKey(o)))
-                    {
-                        callback.OnSubscriptionKeepAlive(new OpcUaSubscriptionNotification(this,
-                            session.MessageContext, Array.Empty<MonitoredItemNotificationModel>(),
-                            _timeProvider)
-                        {
-                            ApplicationUri = session.Endpoint?.Server?.ApplicationUri
-                                ?? _client.ApplicationUri,
-                            EndpointUrl = session.Endpoint?.EndpointUrl,
-                            PublishTimestamp = publishTime,
-                            SequenceNumber = Opc.Ua.SequenceNumber.Increment32(ref _sequenceNumber),
-                            MessageType = MessageType.KeepAlive
-                        });
-                    }
-                }
+                SendFakeKeepAlives(session);
 
                 // Send to listeners
 #pragma warning disable CA2000 // Dispose objects before losing scope
@@ -2160,6 +2106,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     _logger.SlowDataChangeCallback();
                 }
+            }
+        }
+
+        /// <summary>
+        /// Send fake keep alives to all subscribers
+        /// </summary>
+        /// <param name="session"></param>
+        private void SendFakeKeepAlives(ISession session)
+        {
+            // Send fake keep alives to all the other subscribers
+            if (!_sendFakeKeepAlives)
+            {
+                return;
+            }
+            var lastPublishTime = _timeProvider.GetUtcNow() - KeepAliveTimeout;
+            foreach (var monitoredItems in CurrentlyMonitored.GroupBy(c => c.Owner))
+            {
+                // Late is when the item never received a value or the last value is older than the keep alive timeout.
+                if (!monitoredItems.All(m => !m.LastReceivedTime.HasValue || m.LastReceivedTime < lastPublishTime))
+                {
+                    continue;
+                }
+                monitoredItems.Key.OnSubscriptionKeepAlive(new OpcUaSubscriptionNotification(this,
+                    session.MessageContext, Array.Empty<MonitoredItemNotificationModel>(),
+                    _timeProvider)
+                {
+                    ApplicationUri = session.Endpoint?.Server?.ApplicationUri
+                        ?? _client.ApplicationUri,
+                    EndpointUrl = session.Endpoint?.EndpointUrl,
+                    PublishTimestamp = _timeProvider.GetUtcNow(),
+                    SequenceNumber = Opc.Ua.SequenceNumber.Increment32(ref _sequenceNumber),
+                    MessageType = MessageType.KeepAlive
+                });
             }
         }
 
@@ -2441,7 +2420,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 ResetKeepAliveTimer();
                 ResetMonitoredItemWatchdogTimer(true);
                 _publishingStopped = false;
-                _lastPublishReceived = 0;
             }
             if (e.Status.HasFlag(PublishStateChangedMask.Transferred))
             {
@@ -2696,7 +2674,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private uint _sequenceNumber;
         private uint _currentSequenceNumber;
         private bool _firstDataChangeReceived;
-        private long _lastPublishReceived;
         private bool _forceRecreate;
         private uint? _childId;
         private readonly uint? _parentId;
@@ -2726,6 +2703,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private long _unassignedNotifications;
         private bool _publishingStopped;
         private bool _disposed;
+        private bool _sendFakeKeepAlives;
         private readonly Lock _timers = new();
     }
 

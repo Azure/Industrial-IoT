@@ -42,7 +42,7 @@
 param(
     [string] [Parameter(Mandatory = $true)] $AdrNamespaceName,
     [string] [Parameter(Mandatory = $true)] $ResourceGroup,
-    [string] $SubscriptionId,
+    [string] $SubscriptionId = "53d910a7-f1f8-4b7a-8ee0-6e6b67bddd82",
     [string] $Location = "westus",
     [string] $TenantId,
     [switch] $RunOnce,
