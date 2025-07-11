@@ -1252,6 +1252,7 @@ $template = @{
                 }
                 additionalConfiguration = @{
                     EnableMetrics = "True"
+                    DisableDataSetMetaData = "True"
                     LogFormat = "syslog"
                 }
                 #persistentVolumeClaims = @(
@@ -1337,9 +1338,10 @@ $template = @{
             cron = "*/10 * * * *"
         }
         additionalConfiguration = @{
+            AutoDiscoverDevicesOnStartup = "True"
             EnableMetrics = "True"
             LogFormat = "syslog"
-            AutoDiscoverDevicesOnStartup = "True"
+            DisableDataSetMetaData = "True"
         }
         discoverableDeviceEndpointTypes = @(
             @{

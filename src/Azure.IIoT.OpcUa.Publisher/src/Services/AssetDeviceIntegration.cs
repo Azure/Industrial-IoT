@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Parser;
     using Azure.IIoT.OpcUa.Publisher.Stack;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.Iot.Operations.Connector;
     using Azure.Iot.Operations.Connector.Files;
     using Azure.Iot.Operations.Services.AssetAndDeviceRegistry.Models;
@@ -401,7 +402,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             }
                         }
 
-                        // Convert
+                        // Convert assets to published nodes entries and update configuration
                         var assets = _assets.Values.ToList();
                         if (assets.Count > 0)
                         {
@@ -409,13 +410,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             var devices = _devices.Values.ToList();
 
                             _logger.ConvertingAssetsOnDevices(assets.Count, devices.Count);
-                            var entries = await ToPublishedNodesAsync(devices, assets, errors, ct).ConfigureAwait(false);
+                            var entries = await ToPublishedNodesAsync(devices, assets, errors,
+                                ct).ConfigureAwait(false);
 
                             // Report all errors
                             await errors.ReportAsync(ct).ConfigureAwait(false);
 
                             // Apply configuration
-                            await _publishedNodes.SetConfiguredEndpointsAsync(entries, ct).ConfigureAwait(false);
+                            await _publishedNodes.SetConfiguredEndpointsAsync(entries,
+                                ct).ConfigureAwait(false);
                             if (_logger.IsEnabled(LogLevel.Information))
                             {
                                 _logger.NewConfigurationApplied(
@@ -427,7 +430,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     if (deviceAddedOrUpdated)
                     {
                         _logger.DevicesUpdatedStartingDiscovery();
-                        _timer.Change(TimeSpan.Zero, kDefaultDeviceDiscoveryRefresh); // TODO Make period configurable
+                        // TODO Make period configurable
+                        _timer.Change(TimeSpan.Zero, kDefaultDeviceDiscoveryRefresh);
                     }
                     await _changeFeed.Reader.WaitToReadAsync(ct).ConfigureAwait(false);
                 }
@@ -523,12 +527,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     group.Key.AssetTypeRef,
                     group.ToList())))
             {
-                var crAssetName = MakeValidName(assetName + assetId.ToSha1Hash());
-                var uniqueAssetName = crAssetName;
+                var uniqueId = (resource.DeviceName + assetId).ToSha1Hash();
+                var assetResourceName = MakeValidName(assetName, uniqueId.Length + 1).TrimEnd('-')
+                    + "-" + uniqueId;
+                var uniqueAssetName = assetResourceName;
                 // Ensure unique asset names
                 for (var i = 1; !uniqueAssetNames.Add(uniqueAssetName); i++)
                 {
-                    uniqueAssetName = crAssetName + i;
+                    uniqueAssetName = assetResourceName + i;
                 }
                 // ensure no duplicate datasets and datapoints (names) are added into the asset
                 var distinctDatasets = datasets
@@ -617,10 +623,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private async ValueTask RunEndpointDiscoveryAsync(DeviceEndpointResource resource,
             Uri endpointUri, CancellationToken ct)
         {
-            var newEndpoints = new Dictionary<string, DiscoveredDeviceInboundEndpoint>(
-                StringComparer.OrdinalIgnoreCase);
-            var endpoints = await _endpointDiscovery.FindEndpointsAsync(
-                endpointUri, findServersOnNetwork: false, ct: ct).ConfigureAwait(false);
             var endpointType = _options.Value.AioDiscoveredDeviceEndpointType;
             var endpointTypeVersion = _options.Value.AioDiscoveredDeviceEndpointTypeVersion;
             if (endpointType == null)
@@ -629,10 +631,100 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 endpointType = "Microsoft.OpcPublisher";
                 endpointTypeVersion = $"{releaseVersion.Major}.{releaseVersion.Minor}";
             }
+
+            // First run endpoint discovery to find endpoints on the current device
+            var endpoints = await _endpointDiscovery.FindEndpointsAsync(
+                endpointUri, findServersOnNetwork: false, ct: ct).ConfigureAwait(false);
+            var dCurrentDevice = new DiscoveredDevice
+            {
+                ExternalDeviceId = resource.Device.ExternalDeviceId,
+                Model = resource.Device.Model,
+                Manufacturer = resource.Device.Manufacturer,
+                OperatingSystem = resource.Device.OperatingSystem,
+                OperatingSystemVersion = resource.Device.OperatingSystemVersion,
+                Attributes = resource.Device.Attributes
+            };
+
+            // Now report all endpoints on the network that are not part of current device
+            var alreadyFound = endpoints
+                .Select(e => e.Description?.Server?.ApplicationUri)
+                .ToHashSet();
+            var servers = await _endpointDiscovery.FindEndpointsAsync(endpointUri,
+                findServersOnNetwork: true, ct: ct).ConfigureAwait(false);
+            var currentDeviceIsDiscoveryServer = false;
+            foreach (var server in servers
+                .Where(ep => ep.Description?.Server != null &&
+                    !alreadyFound.Contains(ep.Description.Server.ApplicationUri))
+                .GroupBy(ep => ep.Description.Server.ApplicationUri))
+            {
+                var serverEndpoints = server.ToList();
+                Debug.Assert(serverEndpoints.Count > 0);
+                currentDeviceIsDiscoveryServer = true;
+                var applicationDescription = serverEndpoints[0].Description.Server;
+                var serverDeviceId = server.Key.ToSha1Hash();
+                var deviceName = MakeValidName(
+                    applicationDescription.ApplicationName.ToString(),
+                    serverDeviceId.Length + 1).TrimEnd('-') + "-" + serverDeviceId;
+                var dServerDevice = new DiscoveredDevice
+                {
+                    ExternalDeviceId = serverDeviceId,
+                    Model = applicationDescription.ProductUri
+                };
+                try
+                {
+                    await ReportDiscoveredDeviceAsync(deviceName, dServerDevice, endpoints,
+                        endpointType, endpointTypeVersion, ct: ct).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    _logger.FailedToReportDiscoveredServer(ex, deviceName);
+                }
+            }
+            // Now update our device
+            dCurrentDevice.Attributes ??= new Dictionary<string, string>();
+            dCurrentDevice.Attributes.AddOrUpdate("LDS", currentDeviceIsDiscoveryServer.ToString());
+            await ReportDiscoveredDeviceAsync(resource.DeviceName, dCurrentDevice, endpoints,
+                endpointType, endpointTypeVersion, resource, ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Report a new discovered device with the given endpoints
+        /// </summary>
+        /// <param name="deviceName"></param>
+        /// <param name="dDevice"></param>
+        /// <param name="endpoints"></param>
+        /// <param name="endpointType"></param>
+        /// <param name="endpointTypeVersion"></param>
+        /// <param name="resource"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        private async ValueTask ReportDiscoveredDeviceAsync(string deviceName, DiscoveredDevice dDevice,
+            IEnumerable<DiscoveredEndpointModel> endpoints, string endpointType, string? endpointTypeVersion,
+            DeviceEndpointResource? resource = null, CancellationToken ct = default)
+        {
+            var newEndpoints = new Dictionary<string, DiscoveredDeviceInboundEndpoint>(
+                StringComparer.OrdinalIgnoreCase);
+            dDevice.Attributes ??= new Dictionary<string, string>();
             var newEndpointCount = 0;
             foreach (var ep in endpoints)
             {
                 var desc = ep.Description;
+
+                dDevice.Attributes.AddOrUpdate(nameof(desc.Server.ApplicationType),
+                    desc.Server.ApplicationType.ToString());
+                dDevice.Attributes.AddOrUpdate(nameof(desc.Server.ApplicationName),
+                    desc.Server.ApplicationName.ToString());
+                dDevice.Attributes.AddOrUpdate(nameof(desc.Server.ApplicationUri),
+                    desc.Server.ApplicationUri);
+                dDevice.Attributes.AddOrUpdate(nameof(desc.Server.ProductUri),
+                    desc.Server.ProductUri);
+                dDevice.Attributes.AddOrUpdate(nameof(desc.Server.DiscoveryProfileUri),
+                    desc.Server.DiscoveryProfileUri.ToString());
+                dDevice.Attributes.AddOrUpdate(nameof(desc.Server.DiscoveryUrls),
+                    string.Join(',', desc.Server.DiscoveryUrls));
+                dDevice.Attributes.AddOrUpdate(nameof(desc.Server.GatewayServerUri),
+                    desc.Server.GatewayServerUri);
+
                 var name = desc.SecurityMode.ToString();
                 if (desc.SecurityMode != MessageSecurityMode.None)
                 {
@@ -659,7 +751,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
                     name += $".{pathParts[pathParts.Length - 1]}";
                 }
-                // TODO: Add user token types
 
                 var epModel = new DeviceEndpointModel
                 {
@@ -673,9 +764,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     continue;
                 }
-                var existing = resource.Device.Endpoints?.Inbound?.FirstOrDefault(e =>
+                var existing = resource?.Device.Endpoints?.Inbound?.FirstOrDefault(e =>
                     e.Key.Equals(uniqueName, StringComparison.OrdinalIgnoreCase));
-                if (existing.HasValue)
+                if (existing.HasValue && existing.Value.Key != null)
                 {
                     // Merge discovered into existing endpoint information
                     if (!string.IsNullOrEmpty(existing.Value.Value.AdditionalConfiguration))
@@ -683,7 +774,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         // Deserialize existing configuration
                         var errors = new ValidationErrors(this);
                         var epModelExisting = Deserialize(existing.Value.Value.AdditionalConfiguration,
-                            () => new DeviceEndpointModel(), errors, resource);
+                            () => new DeviceEndpointModel(), errors, resource!);
                         if (epModelExisting != null)
                         {
                             epModelExisting.EndpointSecurityMode ??= epModel.EndpointSecurityMode;
@@ -706,7 +797,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var additionalConfiguration = _serializer.SerializeToString(epModel);
                 if (additionalConfiguration.Length > 512)
                 {
-                    _logger.EndpointConfigurationTooLong(uniqueName, resource.DeviceName,
+                    _logger.EndpointConfigurationTooLong(uniqueName, deviceName,
                         additionalConfiguration.Length);
                 }
                 newEndpoints.Add(uniqueName, new DiscoveredDeviceInboundEndpoint
@@ -719,35 +810,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 });
                 newEndpointCount++;
             }
+
             if (newEndpointCount == 0)
             {
-                _logger.NoNewEndpointsFound(resource.DeviceName, resource.EndpointName);
+                _logger.NoEndpointsFound(deviceName);
                 return;
             }
 
-            var dDevice = new DiscoveredDevice
-            {
-                ExternalDeviceId = resource.Device.ExternalDeviceId,
-
-                Model = resource.Device.Model,
-                Manufacturer = resource.Device.Manufacturer,
-                OperatingSystem = resource.Device.OperatingSystem,
-                OperatingSystemVersion = resource.Device.OperatingSystemVersion,
-
-                Endpoints = new DiscoveredDeviceEndpoints
-                {
-                    Inbound = newEndpoints
-                }
-            };
-
-            // TODO: Add attributes and other information from properties
-
+            dDevice.Endpoints = new DiscoveredDeviceEndpoints { Inbound = newEndpoints };
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.ReportingNewDiscoveredDevice(resource.DeviceName, endpointType,
+                _logger.ReportingNewDiscoveredDevice(deviceName, endpointType,
                     JsonSerializer.Serialize(dDevice, kDebugSerializerOptions));
             }
-            await _client.ReportDiscoveredDeviceAsync(resource.DeviceName, dDevice,
+            await _client.ReportDiscoveredDeviceAsync(deviceName, dDevice,
                 endpointType, cancellationToken: ct).ConfigureAwait(false);
 
             static List<string>? GetSupportedAuthenticationMethods(EndpointDescription desc)
@@ -1644,18 +1720,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private static string CreateAssetKey(string deviceName, string inboundEndpointName,
             string assetName) => $"{deviceName}_{inboundEndpointName}_{assetName}";
 
-        private static string MakeValidName(string input)
+        private static string MakeValidName(string input, int leaveRoom = 0)
         {
+            Debug.Assert(leaveRoom < 63);
             // Convert to lowercase
             string sanitized = input.ToLowerInvariant();
             // Ascii escape invalid characters with '-'
             sanitized = EscapeInvalid().Replace(sanitized, "-");
             // Ensure it starts and ends with an alphanumeric character
             sanitized = EnsureAlphaStart().Replace(sanitized, "");
-            // Truncate to 61 characters if necessary (63 max, 2 chars for index)
-            if (sanitized.Length > 61)
+            // Truncate to characters if necessary (63 max)
+            var maxChars = 63 - leaveRoom;
+            if (sanitized.Length > maxChars)
             {
-                sanitized = sanitized.Substring(0, 61);
+                sanitized = sanitized.Substring(0, maxChars);
             }
             return sanitized;
         }
@@ -2152,9 +2230,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             string endpointName, string deviceName, int length);
 
         [LoggerMessage(EventId = EventClass + 18, Level = LogLevel.Debug,
-            Message = "No new endpoints found on device {DeviceName} using endpoint {EndpointName}.")]
-        internal static partial void NoNewEndpointsFound(this ILogger logger, string deviceName,
-            string endpointName);
+            Message = "No endpoints found on device {DeviceName}.")]
+        internal static partial void NoEndpointsFound(this ILogger logger, string deviceName);
 
         [LoggerMessage(EventId = EventClass + 19, Level = LogLevel.Debug, SkipEnabledCheck = true,
             Message = "Reporting new discovered device {DeviceName} with type {EndpointType}:\n{Device}")]
@@ -2191,5 +2268,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             Message = "Encountered Error {Code} {Error} for resource {Resource}.")]
         internal static partial void EncounteredError(this ILogger logger, string code, string error,
             AssetDeviceIntegration.Resource resource);
+
+        [LoggerMessage(EventId = EventClass + 27, Level = LogLevel.Error,
+            Message = "Failed to report new discovered server {Device}")]
+        internal static partial void FailedToReportDiscoveredServer(this ILogger logger,
+            Exception ex, string device);
+
     }
 }
