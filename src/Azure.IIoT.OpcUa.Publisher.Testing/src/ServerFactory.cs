@@ -81,12 +81,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
 
         /// <inheritdoc/>
         public ApplicationConfiguration CreateServer(IEnumerable<int> ports,
-            string pkiRootPath, out ServerBase server,
-            Action<ServerConfiguration> configure)
+            string pkiRootPath, out ServerBase server, string listenHostName,
+            IEnumerable<string> alternativeAddresses, string path,
+            string certStoreType, Action<ServerConfiguration> configure)
         {
             server = new Server(LogStatus, _nodes, _logger);
             return Server.CreateServerConfiguration(_tempPath,
-                ports, pkiRootPath, EnableDiagnostics);
+                ports, listenHostName, alternativeAddresses, path,
+                pkiRootPath, certStoreType, EnableDiagnostics, configure);
         }
 
         /// <inheritdoc/>
@@ -143,13 +145,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             /// <summary>
             /// Create configuration
             /// </summary>
-            /// <param name="curDir"></param>
-            /// <param name="ports"></param>
-            /// <param name="pkiRootPath"></param>
-            /// <param name="enableDiagnostics"></param>
-            /// <returns></returns>
             public static ApplicationConfiguration CreateServerConfiguration(string curDir,
-                IEnumerable<int> ports, string pkiRootPath, bool enableDiagnostics = false)
+                IEnumerable<int> ports, string hostName, IEnumerable<string> alternativeAddresses,
+                string path, string pkiRootPath, string certStoreType, bool enableDiagnostics = false,
+                Action<ServerConfiguration> configure = null)
             {
                 var extensions = new List<object>
                 {
@@ -179,15 +178,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                         CurrentDirectory = curDir
                     }
                 };
+                certStoreType ??= CertificateStoreType.Directory;
                 if (string.IsNullOrEmpty(pkiRootPath))
                 {
                     pkiRootPath = "pki";
                 }
-                return new ApplicationConfiguration
+                path ??= "/UA/SampleServer";
+                if (path.Length > 0 && !path.StartsWith("/", StringComparison.Ordinal))
+                {
+                    path = "/" + path;
+                }
+                var configuration = new ApplicationConfiguration
                 {
                     ApplicationName = "UA Core Sample Server",
                     ApplicationType = ApplicationType.Server,
-                    ApplicationUri = $"urn:{Utils.GetHostName()}:OPCFoundation:CoreSampleServer",
+                    ApplicationUri = $"urn:{hostName ?? Utils.GetHostName()}:OPCFoundation:CoreSampleServer",
                     Extensions = [.. extensions.Select(XmlElementEx.SerializeObject)],
 
                     ProductUri = "http://opcfoundation.org/UA/SampleServer",
@@ -195,13 +200,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                     {
                         ApplicationCertificate = new CertificateIdentifier
                         {
-                            StoreType = CertificateStoreType.Directory,
+                            StoreType = certStoreType,
                             StorePath = $"{pkiRootPath}/own",
                             SubjectName = "UA Core Sample Server"
                         },
                         TrustedPeerCertificates = new CertificateTrustList
                         {
-                            StoreType = CertificateStoreType.Directory,
+                            StoreType = certStoreType,
                             StorePath = $"{pkiRootPath}/trusted"
                         },
                         TrustedIssuerCertificates = new CertificateTrustList
@@ -211,7 +216,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                         },
                         RejectedCertificateStore = new CertificateTrustList
                         {
-                            StoreType = CertificateStoreType.Directory,
+                            StoreType = certStoreType,
                             StorePath = $"{pkiRootPath}/rejected"
                         },
                         MinimumCertificateKeySize = 1024,
@@ -261,8 +266,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                         // Runtime configuration
                         BaseAddresses = [.. ports
                             .Distinct()
-                            .Select(p => $"opc.tcp://localhost:{p}/UA/SampleServer")],
-
+                            .Select(p => $"opc.tcp://{hostName ?? "localhost"}:{p}{path}")],
+                        AlternateBaseAddresses = alternativeAddresses == null ? null :
+                            [.. alternativeAddresses.Distinct().SelectMany(e => ports
+                                .Distinct()
+                                .Select(p => $"opc.tcp://{e}:{p}{path}"))],
                         SecurityPolicies = [
                             new ServerSecurityPolicy {
                                 SecurityMode = MessageSecurityMode.Sign,
@@ -323,6 +331,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                         TraceMasks = 1
                     }
                 };
+                configure?.Invoke(configuration.ServerConfiguration);
+                return configuration;
             }
 
             private NodeId[] Sessions => CurrentInstance.SessionManager
@@ -873,8 +883,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                 }
                 return base.ValidateRequest(requestHeader, requestType);
             }
-#pragma warning restore CA5394 // Do not use insecure randomness
 
+#pragma warning restore CA5394 // Do not use insecure randomness
             private readonly ILogger _logger;
             private readonly bool _logStatus;
             private readonly IEnumerable<INodeManagerFactory> _nodes;

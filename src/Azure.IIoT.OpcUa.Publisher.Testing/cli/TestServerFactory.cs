@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
     using Opc.Ua.Test;
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
@@ -120,12 +121,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
 
         /// <inheritdoc/>
         public ApplicationConfiguration CreateServer(IEnumerable<int> ports,
-            string pkiRootPath, out ServerBase server,
-            Action<ServerConfiguration> configure)
+            string pkiRootPath, out ServerBase server, string listenHostName,
+            IEnumerable<string> alternativeAddresses, string path,
+            string certStoreType, Action<ServerConfiguration> configure)
         {
             server = new Server(LogStatus, _nodes, _logger);
             return Server.CreateServerConfiguration(
-                ports, pkiRootPath, configure);
+                ports, listenHostName, alternativeAddresses, path,
+                pkiRootPath, certStoreType, configure: configure);
         }
 
         /// <inheritdoc/>
@@ -148,13 +151,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
             /// <summary>
             /// Create configuration
             /// </summary>
-            /// <param name="ports"></param>
-            /// <param name="pkiRootPath"></param>
-            /// <param name="configure"></param>
-            /// <returns></returns>
             public static ApplicationConfiguration CreateServerConfiguration(
-                IEnumerable<int> ports, string pkiRootPath,
-                Action<ServerConfiguration> configure)
+                IEnumerable<int> ports, string hostName, IEnumerable<string> alternativeAddresses,
+                string path, string pkiRootPath, string certStoreType, bool enableDiagnostics = false,
+                Action<ServerConfiguration> configure = null)
             {
                 var extensions = new List<object>
                 {
@@ -178,15 +178,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                     }
                     /// ...
                 };
+                certStoreType ??= CertificateStoreType.Directory;
                 if (string.IsNullOrEmpty(pkiRootPath))
                 {
                     pkiRootPath = "pki";
+                }
+                path ??= "/UA/SampleServer";
+                if (path.Length > 0 && !path.StartsWith("/", StringComparison.Ordinal))
+                {
+                    path = "/" + path;
                 }
                 var configuration = new ApplicationConfiguration
                 {
                     ApplicationName = "UA Core Sample Server",
                     ApplicationType = ApplicationType.Server,
-                    ApplicationUri = $"urn:{Utils.GetHostName()}:OPCFoundation:CoreSampleServer",
+                    ApplicationUri = $"urn:{hostName ?? Utils.GetHostName()}:OPCFoundation:CoreSampleServer",
                     Extensions = new XmlElementCollection(
                         extensions.Select(XmlElementEx.SerializeObject)),
 
@@ -195,29 +201,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                     {
                         ApplicationCertificate = new CertificateIdentifier
                         {
-                            StoreType = CertificateStoreType.Directory,
-                            StorePath = $"{pkiRootPath}/own",
+                            StoreType = certStoreType,
+                            StorePath = $"{pkiRootPath}own",
                             SubjectName = "UA Core Sample Server"
                         },
                         TrustedPeerCertificates = new CertificateTrustList
                         {
-                            StoreType = CertificateStoreType.Directory,
-                            StorePath = $"{pkiRootPath}/trusted"
+                            StoreType = certStoreType,
+                            StorePath = $"{pkiRootPath}trusted"
                         },
                         TrustedIssuerCertificates = new CertificateTrustList
                         {
-                            StoreType = CertificateStoreType.Directory,
-                            StorePath = $"{pkiRootPath}/issuer"
+                            StoreType = certStoreType,
+                            StorePath = $"{pkiRootPath}issuer"
                         },
                         RejectedCertificateStore = new CertificateTrustList
                         {
-                            StoreType = CertificateStoreType.Directory,
-                            StorePath = $"{pkiRootPath}/rejected"
+                            StoreType = certStoreType,
+                            StorePath = $"{pkiRootPath}rejected"
                         },
                         MinimumCertificateKeySize = 1024,
                         RejectSHA1SignedCertificates = false,
                         AutoAcceptUntrustedCertificates = true,
-                        AddAppCertToTrustedStore = true
+                        AddAppCertToTrustedStore = true,
+                        RejectUnknownRevocationStatus = true
                     },
                     TransportConfigurations = [],
                     TransportQuotas = new TransportQuotas(),
@@ -237,13 +244,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                         ],
 
                         NodeManagerSaveFile = "nodes.xml",
-                        DiagnosticsEnabled = false,
+                        DiagnosticsEnabled = enableDiagnostics,
                         ShutdownDelay = 0,
 
                         // Runtime configuration
-                        BaseAddresses = new StringCollection(ports
+                        BaseAddresses = [.. ports
                             .Distinct()
-                            .Select(p => $"opc.tcp://localhost:{p}/UA/SampleServer")),
+                            .Select(p => $"opc.tcp://{hostName ?? "localhost"}:{p}{path}")],
+                        AlternateBaseAddresses = alternativeAddresses == null ? null :
+                            [.. alternativeAddresses.Distinct().SelectMany(e => ports
+                                .Distinct()
+                                .Select(p => $"opc.tcp://{e}:{p}{path}"))],
 
                         SecurityPolicies = [
                             new ServerSecurityPolicy {

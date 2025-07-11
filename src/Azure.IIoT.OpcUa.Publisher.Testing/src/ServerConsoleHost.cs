@@ -30,6 +30,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public string PkiRootPath { get; set; }
         /// <inheritdoc/>
         public bool AutoAccept { get; set; }
+        /// <inheritdoc/>
+        public string HostName { get; set; }
+        /// <inheritdoc/>
+        public List<string> AlternativeHosts { get; set; }
+        /// <inheritdoc/>
+        public string UriPath { get; set; }
+        /// <inheritdoc/>
+        public string CertStoreType { get; set; }
 
         /// <summary>
         /// Get access to the server
@@ -140,7 +148,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 #pragma warning disable CA1508 // Avoid dead conditional code
                     if (_server == null)
                     {
-                        await StartServerInternalAsync(ports, PkiRootPath).ConfigureAwait(false);
+                        await StartServerInternalAsync(ports).ConfigureAwait(false);
                         _ports = ports.ToArray();
                         return;
                     }
@@ -180,8 +188,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _logger.Restarting(this);
                     Debug.Assert(_ports != null);
 
-                    await StartServerInternalAsync(_ports,
-                        PkiRootPath).ConfigureAwait(false);
+                    await StartServerInternalAsync(_ports).ConfigureAwait(false);
                 }
             }
             finally
@@ -207,15 +214,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Start server
         /// </summary>
         /// <param name="ports"></param>
-        /// <param name="pkiRootPath"></param>
         /// <returns></returns>
         /// <exception cref="InvalidConfigurationException"></exception>
-        private async Task StartServerInternalAsync(IEnumerable<int> ports, string pkiRootPath)
+        private async Task StartServerInternalAsync(IEnumerable<int> ports)
         {
             ApplicationInstance.MessageDlg = new DummyDialog();
 
-            var config = _factory.CreateServer(ports, pkiRootPath, out _server,
-                configuration => configuration.DiagnosticsEnabled = true);
+            var config = _factory.CreateServer(ports, PkiRootPath, out _server,
+                listenHostName: HostName,
+                alternativeAddresses: AlternativeHosts,
+                path: UriPath,
+                certStoreType: CertStoreType,
+                configure: configuration => configuration.DiagnosticsEnabled = true);
             _logger.ServerCreated(this);
 
             config.SecurityConfiguration.AutoAcceptUntrustedCertificates = AutoAccept;

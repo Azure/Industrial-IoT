@@ -61,7 +61,7 @@
     <EmbeddedResource Include="Generated\Isa95Jobs\Design\UAModel.ISA95_JOBCONTROL_V2.Types.xsd" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Extensions" Version="1.1.26" />
+    <PackageReference Include="Furly.Extensions" Version="1.1.28" />
     <PackageReference Include="System.IO.Pipelines" Version="9.0.7" />
     <PackageReference Include="System.Linq.Async" Version="6.0.3" />
     <PackageReference Include="System.Text.Json" Version="9.0.7" />

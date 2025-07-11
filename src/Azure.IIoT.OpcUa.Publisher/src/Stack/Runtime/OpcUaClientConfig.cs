@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
 {
     using Furly.Extensions.Configuration;
+    using k8s;
     using Microsoft.Extensions.Configuration;
     using Opc.Ua;
     using System;
@@ -269,12 +270,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
 
             if (options.Security.ApplicationCertificates == null)
             {
+                var storeType = GetStringOrDefault(ApplicationCertificateStoreTypeKey,
+                    CertificateStoreType.Directory);
                 options.Security.ApplicationCertificates = new()
                 {
                     StorePath = GetStringOrDefault(ApplicationCertificateStorePathKey,
-                        $"{options.Security.PkiRootPath}/own"),
-                    StoreType = GetStringOrDefault(ApplicationCertificateStoreTypeKey,
-                        CertificateStoreType.Directory),
+                        $"{GetStoreMoniker(storeType)}{options.Security.PkiRootPath}/own"),
+                    StoreType = storeType,
                     SubjectName = GetStringOrDefault(ApplicationCertificateSubjectNameKey,
                         $"CN={options.ApplicationName}, C=DE, S=Bav, O=Microsoft, DC=localhost")
                 };
@@ -282,42 +284,94 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
 
             if (options.Security.RejectedCertificateStore == null)
             {
+                var storeType = GetStringOrDefault(RejectedCertificateStoreTypeKey,
+                    CertificateStoreType.Directory);
                 options.Security.RejectedCertificateStore = new()
                 {
                     StorePath = GetStringOrDefault(RejectedCertificateStorePathKey,
-                        $"{options.Security.PkiRootPath}/rejected"),
-                    StoreType = GetStringOrDefault(RejectedCertificateStoreTypeKey,
-                        CertificateStoreType.Directory)
+                        $"{GetStoreMoniker(storeType)}{options.Security.PkiRootPath}/rejected"),
+                    StoreType = storeType
                 };
             }
 
             if (options.Security.TrustedIssuerCertificates == null)
             {
+                var storeType = GetStringOrDefault(TrustedIssuerCertificatesTypeKey,
+                    CertificateStoreType.Directory);
+
                 //
                 // Returns the legacy 'issuers' if folder already exists or per
                 // specification.
                 //
-                var legacyPath = $"{options.Security.PkiRootPath}/issuers";
-                var path = Directory.Exists(legacyPath) ? legacyPath :
-                    $"{options.Security.PkiRootPath}/issuer";
+                var moniker = GetStoreMoniker(storeType);
+                var legacyPath = $"{moniker}{options.Security.PkiRootPath}/issuers";
+                var path = moniker.Length == 0 && Directory.Exists(legacyPath) ?
+                    legacyPath : $"{moniker}{options.Security.PkiRootPath}/issuer";
 
                 options.Security.TrustedIssuerCertificates = new()
                 {
-                    StorePath = GetStringOrDefault(TrustedIssuerCertificatesPathKey,
-                        path),
-                    StoreType = GetStringOrDefault(TrustedIssuerCertificatesTypeKey,
-                        CertificateStoreType.Directory)
+                    StorePath = GetStringOrDefault(TrustedIssuerCertificatesPathKey, path),
+                    StoreType = storeType
                 };
             }
 
             if (options.Security.TrustedPeerCertificates == null)
             {
+                var storeType = GetStringOrDefault(TrustedPeerCertificatesTypeKey,
+                    CertificateStoreType.Directory);
                 options.Security.TrustedPeerCertificates = new()
                 {
                     StorePath = GetStringOrDefault(TrustedPeerCertificatesPathKey,
-                        $"{options.Security.PkiRootPath}/trusted"),
-                    StoreType = GetStringOrDefault(TrustedPeerCertificatesTypeKey,
-                        CertificateStoreType.Directory)
+                        $"{GetStoreMoniker(storeType)}{options.Security.PkiRootPath}/trusted"),
+                    StoreType = storeType
+                };
+            }
+
+            if (options.Security.TrustedUserCertificates == null)
+            {
+                var storeType = GetStringOrDefault(TrustedUserCertificatesTypeKey,
+                    CertificateStoreType.Directory);
+                options.Security.TrustedUserCertificates = new()
+                {
+                    StorePath = GetStringOrDefault(TrustedUserCertificatesPathKey,
+                        $"{GetStoreMoniker(storeType)}{options.Security.PkiRootPath}/user"),
+                    StoreType = storeType
+                };
+            }
+
+            if (options.Security.TrustedHttpsCertificates == null)
+            {
+                var storeType = GetStringOrDefault(TrustedHttpsCertificatesTypeKey,
+                    CertificateStoreType.Directory);
+                options.Security.TrustedHttpsCertificates = new()
+                {
+                    StorePath = GetStringOrDefault(TrustedHttpsCertificatesPathKey,
+                        $"{GetStoreMoniker(storeType)}{options.Security.PkiRootPath}/https"),
+                    StoreType = storeType
+                };
+            }
+
+            if (options.Security.HttpsIssuerCertificates == null)
+            {
+                var storeType = GetStringOrDefault(HttpsIssuerCertificatesTypeKey,
+                    CertificateStoreType.Directory);
+                options.Security.HttpsIssuerCertificates = new()
+                {
+                    StorePath = GetStringOrDefault(HttpsIssuerCertificatesPathKey,
+                        $"{GetStoreMoniker(storeType)}{options.Security.PkiRootPath}/https/issuer"),
+                    StoreType = storeType
+                };
+            }
+
+            if (options.Security.UserIssuerCertificates == null)
+            {
+                var storeType = GetStringOrDefault(UserIssuerCertificatesTypeKey,
+                    CertificateStoreType.Directory);
+                options.Security.UserIssuerCertificates = new()
+                {
+                    StorePath = GetStringOrDefault(UserIssuerCertificatesPathKey,
+                        $"{GetStoreMoniker(storeType)}{options.Security.PkiRootPath}/user/issuer"),
+                    StoreType = storeType
                 };
             }
 
@@ -372,50 +426,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
             options.OpcUaKeySetLogFolderName ??= GetStringOrDefault(OpcUaKeySetLogFolderNameKey);
             options.EnableOpcUaStackLogging ??= GetBoolOrNull(EnableOpcUaStackLoggingKey);
 
-            if (options.Security.TrustedUserCertificates == null)
-            {
-                options.Security.TrustedUserCertificates = new()
-                {
-                    StorePath = GetStringOrDefault(TrustedUserCertificatesPathKey,
-                        $"{options.Security.PkiRootPath}/user"),
-                    StoreType = GetStringOrDefault(TrustedUserCertificatesTypeKey,
-                        CertificateStoreType.Directory)
-                };
-            }
-
-            if (options.Security.TrustedHttpsCertificates == null)
-            {
-                options.Security.TrustedHttpsCertificates = new()
-                {
-                    StorePath = GetStringOrDefault(TrustedHttpsCertificatesPathKey,
-                        $"{options.Security.PkiRootPath}/https"),
-                    StoreType = GetStringOrDefault(TrustedHttpsCertificatesTypeKey,
-                        CertificateStoreType.Directory)
-                };
-            }
-
-            if (options.Security.HttpsIssuerCertificates == null)
-            {
-                options.Security.HttpsIssuerCertificates = new()
-                {
-                    StorePath = GetStringOrDefault(HttpsIssuerCertificatesPathKey,
-                        $"{options.Security.PkiRootPath}/https/issuer"),
-                    StoreType = GetStringOrDefault(HttpsIssuerCertificatesTypeKey,
-                        CertificateStoreType.Directory)
-                };
-            }
-
-            if (options.Security.UserIssuerCertificates == null)
-            {
-                options.Security.UserIssuerCertificates = new()
-                {
-                    StorePath = GetStringOrDefault(UserIssuerCertificatesPathKey,
-                        $"{options.Security.PkiRootPath}/user/issuer"),
-                    StoreType = GetStringOrDefault(UserIssuerCertificatesTypeKey,
-                        CertificateStoreType.Directory)
-                };
-            }
-
             if (options.Security.ApplicationCertificatePassword == null)
             {
                 options.Security.ApplicationCertificatePassword =
@@ -426,6 +436,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                 options.Security.TryUseConfigurationFromExistingAppCert =
                     GetBoolOrNull(TryConfigureFromExistingAppCertKey);
             }
+
+            static string GetStoreMoniker(string storeType) => storeType switch
+            {
+                CertificateStoreType.Directory or CertificateStoreType.X509Store => string.Empty,
+                FlatCertificateStore.StoreTypePrefix => FlatCertificateStore.StoreTypePrefix,
+                _ => throw new ArgumentOutOfRangeException(nameof(storeType),
+                    $"Unknown certificate store type '{storeType}'")
+            };
         }
 
         /// <inheritdoc/>

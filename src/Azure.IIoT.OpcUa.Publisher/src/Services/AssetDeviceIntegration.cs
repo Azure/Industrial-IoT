@@ -583,7 +583,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 {
                                     Qos = _options.Value.DefaultQualityOfService
                                         == Furly.Extensions.Messaging.QoS.AtMostOnce ? QoS.Qos0 : QoS.Qos1,
-                                    Topic = CreateTopic(d.DataSetWriterGroup, d.DataSetName),
+                                    Topic = CreateTopic(resource.DeviceName, d.DataSetWriterGroup, d.DataSetName),
                                     Retain = _options.Value.DefaultMessageRetention
                                         == true ? Retain.Keep : Retain.Never,
                                     Ttl = (ulong?)_options.Value.DefaultMessageTimeToLive?.TotalSeconds
@@ -667,6 +667,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     EndpointSecurityMode = desc.SecurityMode.ToServiceType(),
                     EndpointSecurityPolicy = desc.SecurityPolicyUri
                 };
+                var supportedAuthenticationMethods = GetSupportedAuthenticationMethods(desc);
                 var uniqueName = MakeValidName(name);
                 if (newEndpoints.ContainsKey(uniqueName))
                 {
@@ -676,18 +677,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     e.Key.Equals(uniqueName, StringComparison.OrdinalIgnoreCase));
                 if (existing.HasValue)
                 {
-                    // Copy original endpoint information
-                    newEndpoints.Add(existing.Value.Key, new DiscoveredDeviceInboundEndpoint
+                    // Merge discovered into existing endpoint information
+                    if (!string.IsNullOrEmpty(existing.Value.Value.AdditionalConfiguration))
                     {
-                        Address = existing.Value.Value.Address,
-                        EndpointType = existing.Value.Value.EndpointType,
-                        Version = existing.Value.Value.Version,
-                        SupportedAuthenticationMethods = existing.Value.Value.Authentication == null ?
-                            [] : [existing.Value.Value.Authentication.Method.ToString()],
-                        AdditionalConfiguration = JsonSerializer.Serialize(
-                            existing.Value.Value.AdditionalConfiguration)
-                    });
+                        // Deserialize existing configuration
+                        var errors = new ValidationErrors(this);
+                        var epModelExisting = Deserialize(existing.Value.Value.AdditionalConfiguration,
+                            () => new DeviceEndpointModel(), errors, resource);
+                        if (epModelExisting != null)
+                        {
+                            epModelExisting.EndpointSecurityMode ??= epModel.EndpointSecurityMode;
+                            epModelExisting.EndpointSecurityPolicy ??= epModel.EndpointSecurityPolicy;
+                            epModelExisting.Source = "Discovery";
+                            epModel = epModelExisting;
+                        }
+                    }
+                    uniqueName = existing.Value.Key; // Keep casing
+#if SKIP_ADDRESS_MISMATCH
+                    if (existing.Value.Value.Address != ep.AccessibleEndpointUrl)
+                    {
+                        continue; // Ignore if address does not match
+                    }
+#endif
+#if SKIP_EXISTING_ENDPOINTS
                     continue;
+#endif
                 }
                 var additionalConfiguration = _serializer.SerializeToString(epModel);
                 if (additionalConfiguration.Length > 512)
@@ -700,7 +714,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     Address = SetEndpointUrl(ep.AccessibleEndpointUrl),
                     EndpointType = endpointType,
                     Version = endpointTypeVersion,
-                    SupportedAuthenticationMethods = GetSupportedAuthenticationMethods(desc),
+                    SupportedAuthenticationMethods = supportedAuthenticationMethods,
                     AdditionalConfiguration = additionalConfiguration
                 });
                 newEndpointCount++;
@@ -748,13 +762,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     switch (token.TokenType)
                     {
                         case UserTokenType.Anonymous:
-                            methods.Add(Method.Anonymous.ToString());
+                            methods.Add(nameof(Method.Anonymous));
                             break;
                         case UserTokenType.UserName:
-                            methods.Add(Method.UsernamePassword.ToString());
+                            methods.Add(nameof(Method.UsernamePassword));
                             break;
                         case UserTokenType.Certificate:
-                            methods.Add(Method.Certificate.ToString());
+                            methods.Add(nameof(Method.Certificate));
                             break;
                         case UserTokenType.IssuedToken:
                             // Not supported
@@ -794,10 +808,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var deviceEndpointResource = new DeviceEndpointResource(
                     deviceResource.DeviceName, deviceResource.Device,
                     asset.Asset.DeviceRef.EndpointName);
-                var endpointConfiguration = Deserialize(
-                    endpoint.AdditionalConfiguration?.RootElement.GetRawText(),
-                    () => new DeviceEndpointModel(),
-                    errors, deviceEndpointResource);
+                var endpointConfiguration = Deserialize(endpoint.AdditionalConfiguration,
+                    () => new DeviceEndpointModel(), errors, deviceEndpointResource);
                 if (endpointConfiguration == null)
                 {
                     continue;
@@ -1030,8 +1042,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 // Map datapoints to OPC nodes
                 foreach (var datapoint in resource.DataSet.DataPoints)
                 {
-                    var node = Deserialize(
-                        datapoint.DataPointConfiguration?.RootElement.GetRawText(),
+                    var node = Deserialize(datapoint.DataPointConfiguration,
                         () => new DataPointModel(), errors, resource);
                     if (node == null)
                     {
@@ -1078,8 +1089,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             ct.ThrowIfCancellationRequested();
 
             // Map event configuration on top of entry
-            var eventTemplate = Deserialize(
-                resource.Event.EventConfiguration?.RootElement.GetRawText(),
+            var eventTemplate = Deserialize(resource.Event.EventConfiguration,
                 () => new EventModel { EndpointUrl = template.EndpointUrl },
                 errors, resource);
             if (eventTemplate == null)
@@ -1114,7 +1124,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 foreach (var datapoint in resource.Event.DataPoints)
                 {
                     var operand = Deserialize<SimpleAttributeOperandModel>(
-                        datapoint.DataPointConfiguration?.RootElement.GetRawText(),
+                        datapoint.DataPointConfiguration,
                         () => new SimpleAttributeOperandModel(), errors, resource);
                     if (operand != null)
                     {
@@ -1315,16 +1325,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Create a topic for the asset and dataset
         /// </summary>
+        /// <param name="deviceName"></param>
         /// <param name="assetName"></param>
         /// <param name="dataSetName"></param>
         /// <returns></returns>
-        private static string CreateTopic(string? assetName, string? dataSetName)
+        private static string CreateTopic(string? deviceName, string? assetName, string? dataSetName)
         {
             var builder = new StringBuilder("{RootTopic}");
+            if (!string.IsNullOrEmpty(deviceName))
+            {
+                builder.Append('/');
+                builder.Append(Furly.Extensions.Messaging.TopicFilter.Escape(deviceName));
+            }
             if (!string.IsNullOrEmpty(assetName))
             {
                 builder.Append('/');
-                builder.Append(Furly.Extensions.Messaging.TopicFilter.Escape(assetName ?? "asset"));
+                builder.Append(Furly.Extensions.Messaging.TopicFilter.Escape(assetName));
             }
             if (!string.IsNullOrEmpty(dataSetName))
             {
@@ -1533,10 +1549,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 "Invalid endpoint URL: " + url);
                             continue;
                         }
-                        var endpointConfiguration = Deserialize(
-                            endpoint.Value.AdditionalConfiguration?.RootElement.GetRawText(),
-                            () => new DeviceEndpointModel(),
-                            errors, deviceEndpointResource);
+                        var endpointConfiguration = Deserialize(endpoint.Value.AdditionalConfiguration,
+                            () => new DeviceEndpointModel(), errors, deviceEndpointResource);
                         if (endpointConfiguration == null)
                         {
                             continue;

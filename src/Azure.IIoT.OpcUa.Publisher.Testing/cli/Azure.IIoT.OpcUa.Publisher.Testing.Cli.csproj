@@ -17,6 +17,9 @@
     <None Remove="pki\**" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="KubernetesClient" Version="17.0.4" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Publisher.Testing.Servers.csproj" />
   </ItemGroup>
 </Project>

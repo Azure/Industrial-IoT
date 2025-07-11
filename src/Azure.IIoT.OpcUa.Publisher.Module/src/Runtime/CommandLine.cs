@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
     using Furly.Azure.IoT.Edge;
     using Furly.Extensions.Messaging;
@@ -500,7 +501,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     "The path where the own application cert should be stored.\nDefault: $\"{{PkiRootPath}}/own\".\n",
                     s => this[OpcUaClientConfig.ApplicationCertificateStorePathKey] = s },
                 { $"apt|at=|appcertstoretype=|{OpcUaClientConfig.ApplicationCertificateStoreTypeKey}=",
-                    $"The own application cert store type.\nAllowed values:\n    `{CertificateStoreType.Directory}`\n    `{CertificateStoreType.X509Store}`\nDefault: `{CertificateStoreType.Directory}`.\n",
+                    $"The own application cert store type.\nAllowed values:\n    `{CertificateStoreType.Directory}`\n    `{CertificateStoreType.X509Store}`\n    `{FlatCertificateStore.StoreTypeName}`\nDefault: `{CertificateStoreType.Directory}`.\n",
                     s => SetStoreType(s, OpcUaClientConfig.ApplicationCertificateStoreTypeKey, "apt") },
                 { $"cfa|configurefromappcert:|{OpcUaClientConfig.TryConfigureFromExistingAppCertKey}:",
                     "Automatically set the application subject name, host name and application uri from the first valid application certificate found in the application certificate store path.\nIf the chosen certificate is valid, it will be used, otherwise a new, self-signed certificate with the information will be created.\nDefault: `false`.\n",
@@ -512,31 +513,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     "The path of the trusted cert store.\nDefault: $\"{{PkiRootPath}}/trusted\".\n",
                     s => this[OpcUaClientConfig.TrustedPeerCertificatesPathKey] = s },
                 { $"tpt|{OpcUaClientConfig.TrustedPeerCertificatesTypeKey}=",
-                    $"Trusted peer certificate store type.\nAllowed values:\n    `{CertificateStoreType.Directory}`\n    `{CertificateStoreType.X509Store}`\nDefault: `{CertificateStoreType.Directory}`.\n",
+                    $"Trusted peer certificate store type.\nAllowed values:\n    `{CertificateStoreType.Directory}`\n    `{CertificateStoreType.X509Store}`\n    `{FlatCertificateStore.StoreTypeName}`\nDefault: `{CertificateStoreType.Directory}`.\n",
                     s => SetStoreType(s, OpcUaClientConfig.TrustedPeerCertificatesTypeKey, "tpt") },
                 { $"rp|rejectedcertstorepath=|{OpcUaClientConfig.RejectedCertificateStorePathKey}=",
                     "The path of the rejected cert store.\nDefault: $\"{{PkiRootPath}}/rejected\".\n",
                     s => this[OpcUaClientConfig.RejectedCertificateStorePathKey] = s },
                 { $"rpt|{OpcUaClientConfig.RejectedCertificateStoreTypeKey}=",
-                    $"Rejected certificate store type.\nAllowed values:\n    `{CertificateStoreType.Directory}`\n    `{CertificateStoreType.X509Store}`\nDefault: `{CertificateStoreType.Directory}`.\n",
+                    $"Rejected certificate store type.\nAllowed values:\n    `{CertificateStoreType.Directory}`\n    `{CertificateStoreType.X509Store}`\n    `{FlatCertificateStore.StoreTypeName}`\nDefault: `{CertificateStoreType.Directory}`.\n",
                     s => SetStoreType(s, OpcUaClientConfig.RejectedCertificateStoreTypeKey, "rpt") },
                 { $"ip|issuercertstorepath=|{OpcUaClientConfig.TrustedIssuerCertificatesPathKey}=",
                     "The path of the trusted issuer cert store.\nDefault: $\"{{PkiRootPath}}/issuer\".\n",
                     s => this[OpcUaClientConfig.TrustedIssuerCertificatesPathKey] = s },
                 { $"ipt|{OpcUaClientConfig.TrustedIssuerCertificatesTypeKey}=",
-                    $"Trusted issuer certificate store type.\nAllowed values:\n    `{CertificateStoreType.Directory}`\n    `{CertificateStoreType.X509Store}`\nDefault: `{CertificateStoreType.Directory}`.\n",
+                    $"Trusted issuer certificate store type.\nAllowed values:\n    `{CertificateStoreType.Directory}`\n    `{CertificateStoreType.X509Store}`\n    `{FlatCertificateStore.StoreTypeName}`\nDefault: `{CertificateStoreType.Directory}`.\n",
                     s => SetStoreType(s, OpcUaClientConfig.TrustedIssuerCertificatesTypeKey, "ipt") },
                 { $"up|usercertstorepath=|{OpcUaClientConfig.TrustedUserCertificatesPathKey}=",
                     "The path of the certificate store for user certificates.\nDefault: $\"{{PkiRootPath}}/users\".\n",
                     s => this[OpcUaClientConfig.TrustedUserCertificatesPathKey] = s },
                 { $"upt|{OpcUaClientConfig.TrustedUserCertificatesTypeKey}=",
-                    $"Type of certificate store for all User certificates.\nAllowed values:\n    `{CertificateStoreType.Directory}`\n    `{CertificateStoreType.X509Store}`\nDefault: `{CertificateStoreType.Directory}`.\n",
+                    $"Type of certificate store for all User certificates.\nAllowed values:\n    `{CertificateStoreType.Directory}`\n    `{CertificateStoreType.X509Store}`\n    `{FlatCertificateStore.StoreTypeName}`\nDefault: `{CertificateStoreType.Directory}`.\n",
                     s => SetStoreType(s, OpcUaClientConfig.TrustedUserCertificatesTypeKey, "upt") },
                 { $"uip|userissuercertstorepath=|{OpcUaClientConfig.UserIssuerCertificatesPathKey}=",
                     "The path of the user issuer cert store.\nDefault: $\"{{PkiRootPath}}/users/issuer\".\n",
                     s => this[OpcUaClientConfig.UserIssuerCertificatesPathKey] = s },
                 { $"uit|{OpcUaClientConfig.UserIssuerCertificatesTypeKey}=",
-                    $"Type of the issuer certificate store for User certificates.\nAllowed values:\n    `{CertificateStoreType.Directory}`\n    `{CertificateStoreType.X509Store}`\nDefault: `{CertificateStoreType.Directory}`.\n",
+                    $"Type of the issuer certificate store for User certificates.\nAllowed values:\n    `{CertificateStoreType.Directory}`\n    `{CertificateStoreType.X509Store}`\n    `{FlatCertificateStore.StoreTypeName}`\nDefault: `{CertificateStoreType.Directory}`.\n",
                     s => SetStoreType(s, OpcUaClientConfig.UserIssuerCertificatesTypeKey, "uip") },
 
                 "",
@@ -698,6 +699,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 new Configuration.IoTEdge(configuration).Configure(iotEdgeOptions);
                 var publisherOptions = new PublisherOptions();
                 new Configuration.Aio(configuration).Configure(publisherOptions);
+
                 // Check that the important values are provided
                 if (iotEdgeOptions.EdgeHubConnectionString == null &&
                     publisherOptions.IsAzureIoTOperationsConnector == null)
@@ -717,7 +719,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             void SetStoreType(string s, string storeTypeKey, string optionName)
             {
                 if (s.Equals(CertificateStoreType.X509Store, StringComparison.OrdinalIgnoreCase) ||
-                    s.Equals(CertificateStoreType.Directory, StringComparison.OrdinalIgnoreCase))
+                    s.Equals(CertificateStoreType.Directory, StringComparison.OrdinalIgnoreCase) ||
+                    s.Equals(FlatCertificateStore.StoreTypeName, StringComparison.OrdinalIgnoreCase))
                 {
                     this[storeTypeKey] = s;
                     return;

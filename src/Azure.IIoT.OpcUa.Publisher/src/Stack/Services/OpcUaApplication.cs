@@ -112,6 +112,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     nameof(options));
             }
 
+            if (new[]
+            {
+                options.Value.Security.ApplicationCertificates.StoreType,
+                options.Value.Security.TrustedIssuerCertificates.StoreType,
+                options.Value.Security.TrustedPeerCertificates.StoreType,
+                options.Value.Security.RejectedCertificateStore.StoreType,
+                options.Value.Security.TrustedUserCertificates.StoreType,
+                options.Value.Security.HttpsIssuerCertificates.StoreType,
+                options.Value.Security.TrustedHttpsCertificates.StoreType,
+                options.Value.Security.UserIssuerCertificates.StoreType
+            }.Any(t => t?.Equals(FlatCertificateStore.StoreTypeName,
+                StringComparison.OrdinalIgnoreCase) == true))
+            {
+                // Register FlatCertificateStore as known certificate store type.
+                var certStoreTypeName = CertificateStoreType.GetCertificateStoreTypeByName(
+                    FlatCertificateStore.StoreTypeName);
+                if (certStoreTypeName is null)
+                {
+                    CertificateStoreType.RegisterCertificateStoreType(
+                        FlatCertificateStore.StoreTypeName, new FlatCertificateStore());
+                }
+            }
+
             _logger = logger;
             _options = options;
             _timeProvider = timeProvider ?? TimeProvider.System;

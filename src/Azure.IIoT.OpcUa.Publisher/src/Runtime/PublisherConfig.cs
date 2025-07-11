@@ -109,6 +109,8 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string DataSetFieldIdVariableName = "DataSetFieldId";
         public const string DataSetClassIdVariableName = "DataSetClassId";
         public const string EncodingVariableName = "Encoding";
+        public const string ClusterNamespaceVariableName = "ClusterNamespace";
+        public const string ClusterHostVariableName = "ClusterHost";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>
@@ -127,6 +129,8 @@ namespace Azure.IIoT.OpcUa.Publisher
             $"{{{RootTopicVariableName}}}/diagnostics/{{{WriterGroupVariableName}}}";
         public const string RootTopicTemplateDefault =
             $"{{{PublisherIdVariableName}}}";
+        public const string RootTopicTemplateCluster =
+            $"{{{ClusterNamespaceVariableName}}}/{{{PublisherIdVariableName}}}";
         public const string SchemaTopicTemplateDefault =
             $"{{{TelemetryTopicVariableName}}}/schema";
         public const string PublishedNodesFileDefault = "publishednodes.json";
@@ -255,7 +259,8 @@ namespace Azure.IIoT.OpcUa.Publisher
             if (options.TopicTemplates.Root == null)
             {
                 options.TopicTemplates.Root = GetStringOrDefault(
-                    RootTopicTemplateKey, RootTopicTemplateDefault);
+                    RootTopicTemplateKey, options.IsAzureIoTOperationsConnector != null ?
+                        RootTopicTemplateCluster : RootTopicTemplateDefault);
             }
 
             if (options.TopicTemplates.Method == null)

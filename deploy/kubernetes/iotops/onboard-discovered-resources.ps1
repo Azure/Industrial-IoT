@@ -14,7 +14,7 @@
         DO NOT USE FOR PRODUCTION SYSTEMS. This script is intended for
         development and testing purposes only.
 
-    .PARAMETER AdrNamespace
+    .PARAMETER AdrNamespaceName
         The ADR namespace to use for the instance.
         Default is the same as the instance name.
     .PARAMETER ResourceGroup
@@ -37,9 +37,10 @@ param(
     [string] [Parameter(Mandatory = $true)] $AdrNamespaceName,
     [string] [Parameter(Mandatory = $true)] $ResourceGroup,
     [string] $SubscriptionId,
-    [string] $Location,
+    [string] $Location = "westus",
     [string] $TenantId,
-    [switch] $RunOnce
+    [switch] $RunOnce,
+    [switch] $SkipLogin
 )
 $ErrorActionPreference = 'Continue'
 
@@ -53,21 +54,23 @@ if ($azVersion -lt "2.74.0" -or !$azVersion) {
 #
 # Log into azure
 #
-Write-Host "Log into Azure..." -ForegroundColor Cyan
-$loginParams = @( "--only-show-errors" )
-if (![string]::IsNullOrWhiteSpace($TenantId)) {
-    $loginParams += @("--tenant", $TenantId)
-}
-$session = (az login @loginParams) | ConvertFrom-Json
-if (-not $session) {
-    Write-Host "Error: Login failed." -ForegroundColor Red
-    exit -1
-}
-if ([string]::IsNullOrWhiteSpace($SubscriptionId)) {
-    $SubscriptionId = $session[0].id
-}
-if ([string]::IsNullOrWhiteSpace($TenantId)) {
-    $TenantId = $session[0].tenantId
+if (-not $script:SkipLogin.IsPresent) {
+    Write-Host "Log into Azure..." -ForegroundColor Cyan
+    $loginParams = @( "--only-show-errors" )
+    if (![string]::IsNullOrWhiteSpace($TenantId)) {
+        $loginParams += @("--tenant", $TenantId)
+    }
+    $session = (az login @loginParams) | ConvertFrom-Json
+    if (-not $session) {
+        Write-Host "Error: Login failed." -ForegroundColor Red
+        exit -1
+    }
+    if ([string]::IsNullOrWhiteSpace($SubscriptionId)) {
+        $SubscriptionId = $session[0].id
+    }
+    if ([string]::IsNullOrWhiteSpace($TenantId)) {
+        $TenantId = $session[0].tenantId
+    }
 }
 
 #

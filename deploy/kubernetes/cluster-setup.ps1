@@ -15,7 +15,7 @@
     .PARAMETER InstanceName
         The name of the instance to create. Default is the same as the
         cluster name.
-    .PARAMETER InstanceNamespace
+    .PARAMETER ClusterNamespace
         The namespace to create the instance in.
         Default is azure-iot-operations.
     .PARAMETER ResourceGroup
@@ -51,7 +51,6 @@
 param(
     [string] [Parameter(Mandatory = $true)] $Name,
     [string] $InstanceName,
-    [string] $InstanceNamespace,
     [string] $SharedFolderPath,
     [string] $ResourceGroup,
     [string] $TenantId,
@@ -63,6 +62,7 @@ param(
         "k3d",
         "microk8s"
     )] $ClusterType = "microk8s",
+    [string] $ClusterNamespace,
     [string] [ValidateSet(
         "None",
         "Official",
@@ -86,7 +86,7 @@ param(
 #Requires -RunAsAdministrator
 
 $ErrorActionPreference = 'Continue'
-# $path = Split-Path $script:MyInvocation.MyCommand.Path
+$scriptDirectory = Split-Path -Path $MyInvocation.MyCommand.Path
 
 if (![Environment]::Is64BitProcess) {
     Write-Host "Error: Run this in 64bit Powershell session" -ForegroundColor Red
@@ -116,11 +116,11 @@ if ([string]::IsNullOrWhiteSpace($script:InstanceName)) {
     $script:InstanceName = $Name
 }
 Write-Host "Using instance name $($script:InstanceName)..." -ForegroundColor Cyan
-if ([string]::IsNullOrWhiteSpace($script:InstanceNamespace)) {
-    $script:InstanceNamespace = "azure-iot-operations"
+if ([string]::IsNullOrWhiteSpace($script:ClusterNamespace)) {
+    $script:ClusterNamespace = "azure-iot-operations"
 }
 else {
-    Write-Host "   ... with cluster namespace $($script:InstanceNamespace)..." `
+    Write-Host "   ... with cluster namespace $($script:ClusterNamespace)..." `
         -ForegroundColor Cyan
 }
 if (![string]::IsNullOrEmpty($script:OpsVersion)) {
@@ -867,7 +867,7 @@ $errOut = $($iotOps = & { az iot ops show `
     --only-show-errors --output json } | ConvertFrom-Json) 2>&1
 if ($iotOps) {
     # first check cluster extension is deployed on the cluster and if not reset the instance
-    $queryVersion = "[?scope.cluster.releaseNamespace == '$($script:InstanceNamespace)'"
+    $queryVersion = "[?scope.cluster.releaseNamespace == '$($script:ClusterNamespace)'"
     $queryVersion = "$($queryVersion) && extensionType == 'microsoft.iotoperations'"
     $queryVersion = "$($queryVersion) ].{ version:currentVersion, train:releaseTrain }"
     $currentVersion = $(az k8s-extension list `
@@ -920,7 +920,7 @@ if (!$iotOps) {
         "--cluster", $Name, `
         "--resource-group", $rg.Name, `
         "--subscription", $SubscriptionId, `
-        "--cluster-namespace", $script:InstanceNamespace, `
+        "--cluster-namespace", $script:ClusterNamespace, `
         "--name", $script:InstanceName, `
         "--location", $Location, `
         "--sr-resource-id", $sr.id, `
@@ -1253,7 +1253,6 @@ $template = @{
                 additionalConfiguration = @{
                     EnableMetrics = "True"
                     LogFormat = "syslog"
-                    UseStandardsCompliantEncoding = "True"
                 }
                 #persistentVolumeClaims = @(
                 #    @{
@@ -1341,7 +1340,6 @@ $template = @{
         additionalConfiguration = @{
             EnableMetrics = "True"
             LogFormat = "syslog"
-            UseStandardsCompliantEncoding = "True"
             AutoDiscoverDevicesOnStartup = "True"
         }
         discoverableDeviceEndpointTypes = @(
@@ -1394,13 +1392,18 @@ if (-not $?) {
 #
 # Deploy simulation servers
 #
-./simulation/deploy-opc-plc.ps1 `
-    -InstanceNamespace $script:InstanceNamespace `
-    -ExtendedLocation $iotOps.extendedLocation `
+& $(Join-Path $(Join-Path $scriptDirectory "simulation") "deploy.ps1") `
+    -SimulationName "opc-plc" -Count 2 `
+    -InstanceName $script:InstanceName `
+    -AdrNamespaceName $Name `
+    -SubscriptionId $SubscriptionId `
+    -TenantId $TenantId `
+    -ResourceGroup $rg.Name `
     -Location $Location `
-    -AdrNsResourceId $adrNsResource
-    -NumberOfDevices 2
-    -Force:$forceReinstall `
+    -Namespace $script:ClusterNamespace `
+    -SkipLogin `
+    -Force  # :$forceReinstall `
+
 if (-not $?) {
     Write-Host "Error deploying simulation servers." -ForegroundColor Red
     Remove-Item -Path $tempFile -Force
