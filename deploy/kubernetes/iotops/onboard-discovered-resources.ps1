@@ -89,6 +89,44 @@ if (!$ns -or !$ns.id) {
     exit -1
 }
 
+#
+# Remove properties from discovered resource that are not supported on actual resource
+#
+function Remove-PropertyRecursively {
+    param (
+        [Parameter(Mandatory)] [PSObject] $Object,
+        [Parameter(Mandatory)] [string] $PropertyName
+    )
+
+    # Check if the object is a hashtable or PSCustomObject
+    if ($Object -is [System.Collections.IDictionary]) {
+        # Remove the property if it exists
+        if ($Object.ContainsKey($PropertyName)) {
+            $Object.Remove($PropertyName)
+        }
+
+        # Recursively process nested objects
+        foreach ($key in $Object.Keys) {
+            Remove-PropertyRecursively -Object $Object[$key] -PropertyName $PropertyName
+        }
+    } elseif ($Object -is [System.Collections.IEnumerable] -and -not ($Object -is [string])) {
+        # Iterate through enumerable objects
+        foreach ($item in $Object) {
+            Remove-PropertyRecursively -Object $item -PropertyName $PropertyName
+        }
+    } elseif ($Object -is [PSCustomObject]) {
+        # Remove the property if it exists
+        if ($Object.PSObject.Properties[$PropertyName]) {
+            $Object.PSObject.Properties.Remove($PropertyName)
+        }
+
+        # Recursively process nested properties
+        foreach ($property in $Object.PSObject.Properties) {
+            Remove-PropertyRecursively -Object $property.Value -PropertyName $PropertyName
+        }
+    }
+}
+
 $tempFile = New-TemporaryFile
 Write-Host "Onboarding devices and assets in ADR namespace $($ns.name)..." `
     -ForegroundColor Green
@@ -118,13 +156,15 @@ while ($true) {
                     continue
                 }
             }
+
+            Remove-PropertyRecursively -Object $dDevice.properties -PropertyName "supportedAuthenticationMethods"
             $body = @{
                 extendedLocation = $dDevice.extendedLocation
                 location = $dDevice.location
                 properties = @{
-                    # externalDeviceId = "unique-edge-device-identifier"
+                    externalDeviceId = $dDevice.properties.externalDeviceId
                     enabled = $true
-                    endpoints = $dDevice.properties.endpoints
+                    endpoints = $endpoints
                 }
             } | ConvertTo-Json -Depth 100
             #$body | Out-Host
@@ -171,25 +211,26 @@ while ($true) {
             }
 
             # todo: Filter data points too
-            [array]$datasets = $dAsset.properties.datasets `
-                | Select-Object -Property * -ExcludeProperty lastUpdatedOn
+            #[array]$datasets = $dAsset.properties.datasets `
+            #    | Select-Object -Property * -ExcludeProperty lastUpdatedOn
             # todo: Filter data points too
-            [array]$events = $dAsset.properties.events `
-                | Select-Object -Property * -ExcludeProperty lastUpdatedOn
-            [array]$streams = $dAsset.properties.streams `
-                | Select-Object -Property * -ExcludeProperty lastUpdatedOn
-            [array]$managementGroups = $dAsset.properties.managementGroups `
-                | Select-Object -Property * -ExcludeProperty lastUpdatedOn
+            #[array]$events = $dAsset.properties.events `
+            #    | Select-Object -Property * -ExcludeProperty lastUpdatedOn
+            #[array]$streams = $dAsset.properties.streams `
+            #    | Select-Object -Property * -ExcludeProperty lastUpdatedOn
+            #[array]$managementGroups = $dAsset.properties.managementGroups `
+            #    | Select-Object -Property * -ExcludeProperty lastUpdatedOn
 
             $displayName = $dAsset.properties.displayName
             if (!$displayName) {
                 $displayName = $dAsset.properties.model
             }
+            Remove-PropertyRecursively -Object $dDevice.properties -PropertyName "lastUpdatedOn"
             $body = @{
                 extendedLocation = $dAsset.extendedLocation
                 location = $dAsset.location
                 properties = @{
-                    # externalAssetId = "unique-edge-device-identifier"
+                    externalAssetId = $dAsset.properties.externalAssetId
                     enabled = $true
                     displayName = $displayName
                     description = $dAsset.properties.description

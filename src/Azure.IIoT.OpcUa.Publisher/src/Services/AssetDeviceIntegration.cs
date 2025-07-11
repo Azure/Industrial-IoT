@@ -712,22 +712,47 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 dDevice.Attributes.AddOrUpdate(nameof(desc.Server.ApplicationType),
                     desc.Server.ApplicationType.ToString());
-                dDevice.Attributes.AddOrUpdate(nameof(desc.Server.ApplicationName),
-                    desc.Server.ApplicationName.ToString());
-                dDevice.Attributes.AddOrUpdate(nameof(desc.Server.ApplicationUri),
-                    desc.Server.ApplicationUri);
-                dDevice.Attributes.AddOrUpdate(nameof(desc.Server.ProductUri),
-                    desc.Server.ProductUri);
-                dDevice.Attributes.AddOrUpdate(nameof(desc.Server.DiscoveryProfileUri),
-                    desc.Server.DiscoveryProfileUri.ToString());
-                dDevice.Attributes.AddOrUpdate(nameof(desc.Server.DiscoveryUrls),
-                    string.Join(',', desc.Server.DiscoveryUrls));
-                dDevice.Attributes.AddOrUpdate(nameof(desc.Server.GatewayServerUri),
-                    desc.Server.GatewayServerUri);
-
+                if (desc.Server.ApplicationName?.Text != null)
+                {
+                    dDevice.Attributes.AddOrUpdate(nameof(desc.Server.ApplicationName),
+                        desc.Server.ApplicationName.Text);
+                }
+                if (desc.Server.ApplicationUri != null)
+                {
+                    dDevice.Attributes.AddOrUpdate(nameof(desc.Server.ApplicationUri),
+                        desc.Server.ApplicationUri);
+                }
+                if (desc.Server.ProductUri != null)
+                {
+                    dDevice.Attributes.AddOrUpdate(nameof(desc.Server.ProductUri),
+                        desc.Server.ProductUri);
+                }
+                if (desc.Server.DiscoveryProfileUri != null)
+                {
+                    dDevice.Attributes.AddOrUpdate(nameof(desc.Server.DiscoveryProfileUri),
+                        desc.Server.DiscoveryProfileUri);
+                }
+                if (desc.Server.DiscoveryUrls != null && desc.Server.DiscoveryUrls.Count > 0)
+                {
+                    dDevice.Attributes.AddOrUpdate(nameof(desc.Server.DiscoveryUrls),
+                        string.Join(',', desc.Server.DiscoveryUrls));
+                }
+                if (desc.Server.GatewayServerUri != null)
+                {
+                    dDevice.Attributes.AddOrUpdate(nameof(desc.Server.GatewayServerUri),
+                        desc.Server.GatewayServerUri);
+                }
+                if (ep.Capabilities != null)
+                {
+                    foreach (var cap in ep.Capabilities)
+                    {
+                        dDevice.Attributes.AddOrUpdate(cap.ToUpperInvariant(), "True");
+                    }
+                }
                 var name = desc.SecurityMode.ToString();
                 if (desc.SecurityMode != MessageSecurityMode.None)
                 {
+                    name = $"l{desc.SecurityLevel}.{name}";
                     if (!Uri.TryCreate(desc.SecurityPolicyUri, UriKind.Absolute,
                         out var securityProfileUri) ||
                         securityProfileUri.Fragment.Length == 0 ||
@@ -751,7 +776,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
                     name += $".{pathParts[pathParts.Length - 1]}";
                 }
-
+                // Add desc.ServerCertificate somewhere
                 var epModel = new DeviceEndpointModel
                 {
                     Source = "Discovery",

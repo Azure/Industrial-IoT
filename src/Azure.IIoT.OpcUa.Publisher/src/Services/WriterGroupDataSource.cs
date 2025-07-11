@@ -144,9 +144,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 // be duplicate writer ids here, if there are we throw an exception.
                 //
                 var writerKeySet = new HashSet<DataSetWriter>();
-                foreach (var processWriter in writerGroup.DataSetWriters)
+                foreach (var writer in writerGroup.DataSetWriters)
                 {
-                    foreach (var key in DataSetWriter.GetDataSetWriters(this, processWriter))
+                    foreach (var key in DataSetWriter.GetDataSetWriters(this, writer))
                     {
                         if (!writerKeySet.Add(key))
                         {
@@ -224,11 +224,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             try
             {
-                foreach (var s in _writers.Values)
+                await _lock.WaitAsync().ConfigureAwait(false);
+                try
                 {
-                    await s.DisposeAsync().ConfigureAwait(false);
+                    foreach (var s in _writers.Values)
+                    {
+                        await s.DisposeAsync().ConfigureAwait(false);
+                    }
                 }
-                _writers.Clear();
+                finally
+                {
+                    _writers.Clear();
+                    _lock.Release();
+                }
             }
             finally
             {

@@ -22,7 +22,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Globalization;
     using System.Linq;
     using System.Text;
-    using System.Threading;
 
     /// <summary>
     /// Creates PubSub encoded messages
@@ -81,6 +80,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var chunkedMessages = new List<(IEvent, Action)>();
                 foreach (var m in GetNetworkMessages(notifications, asBatch))
                 {
+                    if (m.NetworkMessage == null)
+                    {
+                        // Write an empty message to the topic to delete the items on the broker
+                        var chunkedMessage = factory()
+                            .SetTimestamp(_timeProvider.GetUtcNow())
+                            .SetTopic(m.Queue.QueueName)
+                            .SetQoS(m.Queue.RequestedDeliveryGuarantee ?? QoS.AtLeastOnce)
+                            ;
+                        chunkedMessages.Add((chunkedMessage, m.OnSentCallback));
+                        continue;
+                    }
+
                     if (m.EncodingContext == null)
                     {
                         _logger.MissingServiceMessageContext();
@@ -212,7 +223,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="CloudEvent"></param>
         /// <param name="EncodingContext"></param>
         private record struct EncodedMessage(int NotificationsPerMessage,
-            PubSubMessage NetworkMessage, PublishingQueueSettingsModel Queue,
+            PubSubMessage? NetworkMessage, PublishingQueueSettingsModel Queue,
             Action OnSentCallback, IEventSchema? Schema, CloudEventHeader? CloudEvent,
             IServiceMessageContext? EncodingContext = null);
 
@@ -296,43 +307,92 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 var dataSetFieldContentMask =
                                     Context.Writer.DataSetFieldContentMask;
 
-                                if (Notification.MessageType != MessageType.Metadata)
+                                if (Notification.MessageType == MessageType.Metadata)
                                 {
-                                    Debug.Assert(Notification.Notifications != null);
-                                    if (Notification.MessageType == MessageType.KeepAlive)
+                                    if (Context.MetaData?.MetaData != null && !hasSamplesPayload)
                                     {
-                                        Debug.Assert(Notification.Notifications.Count == 0);
-                                        if (hasSamplesPayload)
+                                        if (currentMessage?.Messages.Count > 0)
                                         {
-                                            Drop(Notification.YieldReturn());
-                                            continue;
-                                        }
-
-                                        // Create regular data set messages
-                                        if (!PubSubMessage.TryCreateDataSetMessage(encoding,
-                                            GetDataSetWriterName(Notification, Context),
-                                            Context.DataSetWriterId, dataSetMessageContentMask,
-                                            MessageType.KeepAlive,
-#if KA_WITH_EX_FIELDS
-                                            new DataSet(Context.ExtensionFields, dataSetFieldContentMask),
-#else
-                                            new DataSet(),
+                                            // Start a new message but first emit current
+                                            result.Add(new EncodedMessage(currentNotifications.Count, currentMessage,
+                                                queue, () => currentNotifications.ForEach(n => n.Dispose()),
+                                                schema, cloudEvent, Notification.ServiceMessageContext));
+#if DEBUG
+                                            currentNotifications.ForEach(n => n.MarkProcessed());
 #endif
-                                            GetTimestamp(Notification), Context.NextWriterSequenceNumber(),
-                                            standardsCompliant, Notification.EndpointUrl,
-                                            Notification.ApplicationUri, Context.MetaData?.MetaData,
-                                            out var dataSetMessage))
-                                        {
-                                            Drop(Notification.YieldReturn());
-                                            continue;
+                                            currentMessage = null;
+                                            currentNotifications = new List<OpcUaSubscriptionNotification>();
                                         }
 
-                                        AddMessage(dataSetMessage);
+                                        if (PubSubMessage.TryCreateMetaDataMessage(encoding, publisherId,
+                                            writerGroup.Name ?? Constants.DefaultWriterGroupName,
+                                            GetDataSetWriterName(Notification, Context), Context.DataSetWriterId,
+                                            Context.MetaData.MetaData, namespaceFormat, standardsCompliant,
+                                            out var metadataMessage))
+                                        {
+                                            result.Add(new EncodedMessage(0, metadataMessage, queue, Notification.Dispose,
+                                                    schema, cloudEvent, Notification.ServiceMessageContext));
+                                        }
+#if DEBUG
+                                        Notification.MarkProcessed();
+#endif
                                         LogNotification(Notification, false);
-                                        currentNotifications.Add(Notification);
+                                    }
+                                }
+                                else if (Notification.MessageType == MessageType.Closed)
+                                {
+                                    if (currentMessage?.Messages.Count > 0)
+                                    {
+                                        // Start a new message but first emit current
+                                        result.Add(new EncodedMessage(currentNotifications.Count, currentMessage,
+                                            queue, () => currentNotifications.ForEach(n => n.Dispose()),
+                                            schema, cloudEvent, Notification.ServiceMessageContext));
+#if DEBUG
+                                        currentNotifications.ForEach(n => n.MarkProcessed());
+#endif
+                                        currentMessage = null;
+                                        currentNotifications = new List<OpcUaSubscriptionNotification>();
+                                    }
+
+                                    result.Add(new EncodedMessage(0, null, queue, Notification.Dispose, null, null, null));
+                                    currentNotifications.Add(Notification);
+                                }
+                                else if (Notification.MessageType == MessageType.KeepAlive)
+                                {
+                                    Debug.Assert(Notification.Notifications.Count == 0);
+                                    if (hasSamplesPayload)
+                                    {
+                                        Drop(Notification.YieldReturn());
                                         continue;
                                     }
 
+                                    // Create regular data set messages
+                                    if (!PubSubMessage.TryCreateDataSetMessage(encoding,
+                                        GetDataSetWriterName(Notification, Context),
+                                        Context.DataSetWriterId, dataSetMessageContentMask,
+                                        MessageType.KeepAlive,
+#if KA_WITH_EX_FIELDS
+                                        new DataSet(Context.ExtensionFields, dataSetFieldContentMask),
+#else
+                                        new DataSet(),
+#endif
+                                        GetTimestamp(Notification), Context.NextWriterSequenceNumber(),
+                                        standardsCompliant, Notification.EndpointUrl,
+                                        Notification.ApplicationUri, Context.MetaData?.MetaData,
+                                        out var dataSetMessage))
+                                    {
+                                        Drop(Notification.YieldReturn());
+                                        continue;
+                                    }
+
+                                    AddMessage(dataSetMessage);
+                                    LogNotification(Notification, false);
+                                    currentNotifications.Add(Notification);
+                                    continue;
+                                }
+                                else
+                                {
+                                    Debug.Assert(Notification.Notifications != null);
                                     var notificationQueues = Notification.Notifications
                                         .GroupBy(m => m.DataSetFieldName)
                                         .Select(c => new Queue<MonitoredItemNotificationModel>(
@@ -456,48 +516,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         }
                                     }
                                     currentNotifications.Add(Notification);
-
-                                    //
-                                    // Add message and number of notifications processed count to method result.
-                                    // Checks current length and splits if max items reached if configured.
-                                    //
-                                    void AddMessage(BaseDataSetMessage dataSetMessage)
-                                    {
-                                        if (currentMessage == null)
-                                        {
-                                            if (!PubSubMessage.TryCreateNetworkMessage(encoding, publisherId,
-                                                writerGroup.Name ?? Constants.DefaultWriterGroupName, networkMessageContentMask,
-                                                dataSetClassId, () => SequenceNumber.Increment16(ref _sequenceNumber),
-                                                GetTimestamp(Notification) ?? _timeProvider.GetUtcNow(), namespaceFormat,
-                                                standardsCompliant, isBatched, schema, out var message))
-                                            {
-                                                Drop(messages);
-                                                return;
-                                            }
-                                            currentMessage = message;
-                                        }
-                                        currentMessage.Messages.Add(dataSetMessage);
-
-                                        var maxMessagesToPublish = writerGroup.MessageSettings?.MaxDataSetMessagesPerPublish ??
-                                            _options.Value.DefaultMaxDataSetMessagesPerPublish;
-                                        if (maxMessagesToPublish != null && currentMessage.Messages.Count >= maxMessagesToPublish)
-                                        {
-                                            result.Add(new EncodedMessage(currentNotifications.Count, currentMessage,
-                                                queue, () => currentNotifications.ForEach(n => n.Dispose()),
-                                                schema, cloudEvent, Notification.ServiceMessageContext));
-#if DEBUG
-                                            currentNotifications.ForEach(n => n.MarkProcessed());
-#endif
-                                            currentMessage = null;
-                                            currentNotifications = new List<OpcUaSubscriptionNotification>();
-                                        }
-                                    }
                                 }
-                                else if (Context.MetaData?.MetaData != null && !hasSamplesPayload)
+
+                                //
+                                // Add message and number of notifications processed count to method result.
+                                // Checks current length and splits if max items reached if configured.
+                                //
+                                void AddMessage(BaseDataSetMessage dataSetMessage)
                                 {
-                                    if (currentMessage?.Messages.Count > 0)
+                                    if (currentMessage == null)
                                     {
-                                        // Start a new message but first emit current
+                                        if (!PubSubMessage.TryCreateNetworkMessage(encoding, publisherId,
+                                            writerGroup.Name ?? Constants.DefaultWriterGroupName, networkMessageContentMask,
+                                            dataSetClassId, () => SequenceNumber.Increment16(ref _sequenceNumber),
+                                            GetTimestamp(Notification) ?? _timeProvider.GetUtcNow(), namespaceFormat,
+                                            standardsCompliant, isBatched, schema, out var message))
+                                        {
+                                            Drop(messages);
+                                            return;
+                                        }
+                                        currentMessage = message;
+                                    }
+                                    currentMessage.Messages.Add(dataSetMessage);
+
+                                    var maxMessagesToPublish = writerGroup.MessageSettings?.MaxDataSetMessagesPerPublish ??
+                                        _options.Value.DefaultMaxDataSetMessagesPerPublish;
+                                    if (maxMessagesToPublish != null && currentMessage.Messages.Count >= maxMessagesToPublish)
+                                    {
                                         result.Add(new EncodedMessage(currentNotifications.Count, currentMessage,
                                             queue, () => currentNotifications.ForEach(n => n.Dispose()),
                                             schema, cloudEvent, Notification.ServiceMessageContext));
@@ -507,20 +552,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         currentMessage = null;
                                         currentNotifications = new List<OpcUaSubscriptionNotification>();
                                     }
-
-                                    if (PubSubMessage.TryCreateMetaDataMessage(encoding, publisherId,
-                                        writerGroup.Name ?? Constants.DefaultWriterGroupName,
-                                        GetDataSetWriterName(Notification, Context), Context.DataSetWriterId,
-                                        Context.MetaData.MetaData, namespaceFormat, standardsCompliant,
-                                        out var metadataMessage))
-                                    {
-                                        result.Add(new EncodedMessage(0, metadataMessage, queue, Notification.Dispose,
-                                                schema, cloudEvent, Notification.ServiceMessageContext));
-                                    }
-#if DEBUG
-                                    Notification.MarkProcessed();
-#endif
-                                    LogNotification(Notification, false);
                                 }
                             }
                             if (currentMessage?.Messages.Count > 0)

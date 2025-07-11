@@ -181,8 +181,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 // builder.AddLeaderElection();
                 // builder.AddStateStore();
 
-                builder.Configure<AioOptions>(o => o.HookAioSdkTraceLogging = true);
-
                 builder.RegisterType<Aio>().AsImplementedInterfaces();
                 if (publisherOptions.IsAzureIoTOperationsConnector.Value)
                 {
