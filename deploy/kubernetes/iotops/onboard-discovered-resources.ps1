@@ -31,6 +31,12 @@
         If not specified, the script will use the current tenant.
     .PARAMETER RunOnce
         If specified, the script will run only once and exit.
+    .PARAMETER Force
+        If specified, the script will force the onboarding of devices
+        and assets even if they already exist.
+    .PARAMETER SkipLogin
+        If specified, the script will skip the login step and use
+        the current session.
 #>
 
 param(
@@ -40,6 +46,7 @@ param(
     [string] $Location = "westus",
     [string] $TenantId,
     [switch] $RunOnce,
+    [switch] $Force,
     [switch] $SkipLogin
 )
 $ErrorActionPreference = 'Continue'
@@ -139,9 +146,9 @@ while ($true) {
     if ($dDevices -and $dDevices.value) {
         foreach ($dDevice in $dDevices.value) {
 
-            $device = & { az rest --method get `
+            $errOut = $($device = & { az rest --method get `
                 --url "$($ns.id)/devices/$($dDevice.name)?api-version=2025-07-01-preview" `
-                --headers "Content-Type=application/json" } | ConvertFrom-Json
+                --headers "Content-Type=application/json" } | ConvertFrom-Json) 2>&1
             if ($device -and $device.id) {
                 Write-Host "Device $($device.name) exists with version $($device.properties.version)..." `
                     -ForegroundColor Cyan
@@ -150,7 +157,7 @@ while ($true) {
                         -ForegroundColor Yellow
                     $needsSync = $true
                 }
-                else {
+                elseif (-not $script:Force.IsPresent) {
                     Write-Host "Device $($device.name) is up to date." -ForegroundColor Green
                     $onboardComplete = $true
                     continue
@@ -192,9 +199,9 @@ while ($true) {
         --headers "Content-Type=application/json" } | ConvertFrom-Json) 2>&1
     if ($dAssets -and $dAssets.value) {
         foreach ($dAsset in $dAssets.value) {
-            $asset = & { az rest --method get `
+            $errOut = $($asset = & { az rest --method get `
                 --url "$($ns.id)/assets/$($dAsset.name)?api-version=2025-07-01-preview" `
-                --headers "Content-Type=application/json" } | ConvertFrom-Json
+                --headers "Content-Type=application/json" } | ConvertFrom-Json) 2>&1
             if ($asset -and $asset.id) {
                 Write-Host "Asset $($asset.name) exists with version $($asset.properties.version)..." `
                     -ForegroundColor Cyan
@@ -203,7 +210,7 @@ while ($true) {
                         -ForegroundColor Yellow
                     $needsSync = $true
                 }
-                else {
+                elseif (-not $script:Force.IsPresent) {
                     Write-Host "Asset $($asset.name) is up to date." -ForegroundColor Green
                     $onboardComplete = $true
                     continue
@@ -211,21 +218,21 @@ while ($true) {
             }
 
             # todo: Filter data points too
-            #[array]$datasets = $dAsset.properties.datasets `
-            #    | Select-Object -Property * -ExcludeProperty lastUpdatedOn
+            [array]$datasets = $dAsset.properties.datasets `
+                | Select-Object -Property * -ExcludeProperty lastUpdatedOn
             # todo: Filter data points too
-            #[array]$events = $dAsset.properties.events `
-            #    | Select-Object -Property * -ExcludeProperty lastUpdatedOn
-            #[array]$streams = $dAsset.properties.streams `
-            #    | Select-Object -Property * -ExcludeProperty lastUpdatedOn
-            #[array]$managementGroups = $dAsset.properties.managementGroups `
-            #    | Select-Object -Property * -ExcludeProperty lastUpdatedOn
+            [array]$events = $dAsset.properties.events `
+                | Select-Object -Property * -ExcludeProperty lastUpdatedOn
+            [array]$streams = $dAsset.properties.streams `
+                | Select-Object -Property * -ExcludeProperty lastUpdatedOn
+            [array]$managementGroups = $dAsset.properties.managementGroups `
+                | Select-Object -Property * -ExcludeProperty lastUpdatedOn
 
             $displayName = $dAsset.properties.displayName
             if (!$displayName) {
                 $displayName = $dAsset.properties.model
             }
-            Remove-PropertyRecursively -Object $dDevice.properties -PropertyName "lastUpdatedOn"
+            #Remove-PropertyRecursively -Object $dAsset.properties -PropertyName "lastUpdatedOn"
             $body = @{
                 extendedLocation = $dAsset.extendedLocation
                 location = $dAsset.location

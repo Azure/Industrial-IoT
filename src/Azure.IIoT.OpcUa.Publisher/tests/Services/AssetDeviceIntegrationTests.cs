@@ -174,6 +174,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             const string assetName = "asset1";
 
             // Act
+            sut.OnDeviceCreated(deviceName, endpointName, new Device());
             sut.OnAssetCreated(deviceName, endpointName, assetName, asset);
             // Assert: asset should be in the internal dictionary
             Assert.Single(sut.Assets, a => a.AssetName == assetName);
@@ -264,6 +265,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             const string endpointName = "ep1";
             const string assetName = "asset1";
             // Add asset first
+            sut.OnDeviceCreated(deviceName, endpointName, new Device());
             sut.OnAssetCreated(deviceName, endpointName, assetName, asset);
             // Act
             sut.OnAssetDeleted(deviceName, endpointName, assetName);
@@ -288,6 +290,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             const string endpointName = "ep1";
             const string assetName = "asset1";
             // Add asset first
+            sut.OnDeviceCreated(deviceName, endpointName, new Device());
             sut.OnAssetCreated(deviceName, endpointName, assetName, asset);
             TryCompleteChannel(sut);
             // Act / Assert
