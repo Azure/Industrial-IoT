@@ -1813,8 +1813,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                 }
 
-                // Send fake keep alives to all the other subscribers
-                SendFakeKeepAlives(session);
+                if (_sendFakeKeepAlives)
+                {
+                    // Send fake keep alives to all the other subscribers
+                    SendFakeKeepAlives(session);
+                }
 
                 var total = events.Sum(e => e.Item2.Notifications.Count);
 #pragma warning disable CA2000 // Dispose objects before losing scope
@@ -1901,26 +1904,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 // in case of a keepalive,the sequence number is not incremented by the servers
                 _logger.KeepAliveReceived(this, sequenceNumber, publishTime);
 
-#pragma warning disable CA2000 // Dispose objects before losing scope
-                var message = new OpcUaSubscriptionNotification(this, session.MessageContext,
-                    Array.Empty<MonitoredItemNotificationModel>(), _timeProvider)
+                if (_sendFakeKeepAlives)
                 {
-                    ApplicationUri = session.Endpoint?.Server?.ApplicationUri
-                        ?? _client.ApplicationUri,
-                    EndpointUrl = session.Endpoint?.EndpointUrl,
-                    PublishTimestamp = publishTime,
-                    SequenceNumber = Opc.Ua.SequenceNumber.Increment32(ref _sequenceNumber),
-                    MessageType = MessageType.KeepAlive
-                };
-#pragma warning restore CA2000 // Dispose objects before losing scope
-                foreach (var callback in CurrentlyMonitored
-                    .Select(c => c.Owner)
-                    .Distinct())
-                {
-                    callback.OnSubscriptionKeepAlive(message);
+                    SendFakeKeepAlives(session);
                 }
-
-                Debug.Assert(message.Notifications != null);
+                else
+                {
+#pragma warning disable CA2000 // Dispose objects before losing scope
+                    var message = new OpcUaSubscriptionNotification(this, session.MessageContext,
+                        Array.Empty<MonitoredItemNotificationModel>(), _timeProvider)
+                    {
+                        ApplicationUri = session.Endpoint?.Server?.ApplicationUri
+                            ?? _client.ApplicationUri,
+                        EndpointUrl = session.Endpoint?.EndpointUrl,
+                        PublishTimestamp = publishTime,
+                        SequenceNumber = Opc.Ua.SequenceNumber.Increment32(ref _sequenceNumber),
+                        MessageType = MessageType.KeepAlive
+                    };
+#pragma warning restore CA2000 // Dispose objects before losing scope
+                    foreach (var callback in CurrentlyMonitored
+                        .Select(c => c.Owner)
+                        .Distinct())
+                    {
+                        callback.OnSubscriptionKeepAlive(message);
+                    }
+                    Debug.Assert(message.Notifications != null);
+                }
             }
             catch (Exception e)
             {
@@ -2063,7 +2072,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                 }
 
-                SendFakeKeepAlives(session);
+                if (_sendFakeKeepAlives)
+                {
+                    // Send fake keep alives to all the other subscribers
+                    SendFakeKeepAlives(session);
+                }
 
                 // Send to listeners
 #pragma warning disable CA2000 // Dispose objects before losing scope
@@ -2116,15 +2129,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private void SendFakeKeepAlives(ISession session)
         {
             // Send fake keep alives to all the other subscribers
-            if (!_sendFakeKeepAlives)
-            {
-                return;
-            }
-            var lastPublishTime = _timeProvider.GetUtcNow() - KeepAliveTimeout;
+            var keepAliveTimer = _timeProvider.GetUtcNow() - KeepAliveTimeout;
             foreach (var monitoredItems in CurrentlyMonitored.GroupBy(c => c.Owner))
             {
-                // Late is when the item never received a value or the last value is older than the keep alive timeout.
-                if (!monitoredItems.All(m => !m.LastReceivedTime.HasValue || m.LastReceivedTime < lastPublishTime))
+                // Ka when the item never received a value or the last value is older than the keep alive timeout.
+                if (!monitoredItems.All(m => !m.LastReceivedTime.HasValue || m.LastReceivedTime < keepAliveTimer))
                 {
                     continue;
                 }

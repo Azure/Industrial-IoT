@@ -355,7 +355,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                     }
 
                                     result.Add(new EncodedMessage(0, null, queue, Notification.Dispose, null, null, null));
-                                    currentNotifications.Add(Notification);
+#if DEBUG
+                                    Notification.MarkProcessed();
+#endif
+                                    LogNotification(Notification, false);
                                 }
                                 else if (Notification.MessageType == MessageType.KeepAlive)
                                 {
