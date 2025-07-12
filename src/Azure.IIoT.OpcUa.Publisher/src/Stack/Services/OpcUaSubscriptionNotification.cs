@@ -119,8 +119,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
             {
                 MessageType = MessageType.KeyFrame;
 
-                Notifications.Clear();
-                Notifications.AddRange(allNotifications);
+                if (Notifications.IsReadOnly)
+                {
+                    Notifications = [.. allNotifications];
+                }
+                else
+                {
+                    Notifications.Clear();
+                    Notifications.AddRange(allNotifications);
+                }
                 return true;
             }
             return false;
