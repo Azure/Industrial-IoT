@@ -204,6 +204,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
                 return chunkedMessages;
             }
+            catch (ObjectDisposedException) { return []; }
             finally
             {
 #if DEBUG

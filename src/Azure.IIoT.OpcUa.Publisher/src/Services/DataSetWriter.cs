@@ -574,7 +574,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             public void OnSubscriptionKeepAlive(OpcUaSubscriptionNotification notification)
             {
                 Interlocked.Increment(ref _group._keepAliveCount);
-                if (_sendKeepAlives)
+                if (ProcessKeyFrame(ref notification) || _sendKeepAlives)
                 {
                     CallMessageReceiverDelegates(notification);
                 }
@@ -583,22 +583,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <inheritdoc/>
             public void OnSubscriptionDataChangeReceived(OpcUaSubscriptionNotification notification)
             {
-                CallMessageReceiverDelegates(ProcessKeyFrame(notification));
+                ProcessKeyFrame(ref notification);
+                CallMessageReceiverDelegates(notification);
+            }
 
-                OpcUaSubscriptionNotification ProcessKeyFrame(OpcUaSubscriptionNotification notification)
+            /// <summary>
+            /// Process key frame notification
+            /// </summary>
+            /// <param name="notification"></param>
+            /// <returns></returns>
+            private bool ProcessKeyFrame(ref OpcUaSubscriptionNotification notification)
+            {
+                var keyFrameCount = _writer.Writer.KeyFrameCount
+                    ?? _group._options.Value.DefaultKeyFrameCount ?? 0;
+                if (keyFrameCount > 0)
                 {
-                    var keyFrameCount = _writer.Writer.KeyFrameCount
-                        ?? _group._options.Value.DefaultKeyFrameCount ?? 0;
-                    if (keyFrameCount > 0)
+                    var frameCount = Interlocked.Increment(ref _frameCount);
+                    if (((frameCount - 1) % keyFrameCount) == 0)
                     {
-                        var frameCount = Interlocked.Increment(ref _frameCount);
-                        if (((frameCount - 1) % keyFrameCount) == 0)
-                        {
-                            notification.TryUpgradeToKeyFrame(this);
-                        }
+                        notification.TryUpgradeToKeyFrame(this);
+                        return true;
                     }
-                    return notification;
                 }
+                return false;
             }
 
             /// <inheritdoc/>

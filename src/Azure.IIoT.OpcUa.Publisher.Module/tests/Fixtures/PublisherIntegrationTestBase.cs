@@ -233,6 +233,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                     {
                         continue;
                     }
+                    if (evt.Data.IsEmpty)
+                    {
+                        // Skip empty messages
+                        continue;
+                    }
                     var json = Encoding.UTF8.GetString(evt.Data.ToArray());
                     var document = JsonDocument.Parse(json);
                     json = JsonSerializer.Serialize(document, kIndented);
