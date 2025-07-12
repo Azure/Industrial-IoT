@@ -2133,21 +2133,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             foreach (var monitoredItems in CurrentlyMonitored.GroupBy(c => c.Owner))
             {
                 // Ka when the item never received a value or the last value is older than the keep alive timeout.
-                if (!monitoredItems.All(m => !m.LastReceivedTime.HasValue || m.LastReceivedTime < keepAliveTimer))
+                if (monitoredItems.All(m => m.LastReceivedTime.HasValue && m.LastReceivedTime < keepAliveTimer))
                 {
-                    continue;
+                    monitoredItems.Key.OnSubscriptionKeepAlive(new OpcUaSubscriptionNotification(this,
+                        session.MessageContext, Array.Empty<MonitoredItemNotificationModel>(),
+                        _timeProvider)
+                    {
+                        ApplicationUri = session.Endpoint?.Server?.ApplicationUri
+                            ?? _client.ApplicationUri,
+                        EndpointUrl = session.Endpoint?.EndpointUrl,
+                        PublishTimestamp = _timeProvider.GetUtcNow(),
+                        SequenceNumber = Opc.Ua.SequenceNumber.Increment32(ref _sequenceNumber),
+                        MessageType = MessageType.KeepAlive
+                    });
                 }
-                monitoredItems.Key.OnSubscriptionKeepAlive(new OpcUaSubscriptionNotification(this,
-                    session.MessageContext, Array.Empty<MonitoredItemNotificationModel>(),
-                    _timeProvider)
-                {
-                    ApplicationUri = session.Endpoint?.Server?.ApplicationUri
-                        ?? _client.ApplicationUri,
-                    EndpointUrl = session.Endpoint?.EndpointUrl,
-                    PublishTimestamp = _timeProvider.GetUtcNow(),
-                    SequenceNumber = Opc.Ua.SequenceNumber.Increment32(ref _sequenceNumber),
-                    MessageType = MessageType.KeepAlive
-                });
             }
         }
 

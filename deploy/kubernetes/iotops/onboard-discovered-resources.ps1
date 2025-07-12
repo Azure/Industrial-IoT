@@ -174,7 +174,7 @@ while ($true) {
                     endpoints = $endpoints
                 }
             } | ConvertTo-Json -Depth 100
-            #$body | Out-Host
+            $body | Out-Host
             $body | Out-File -FilePath $tempFile -Encoding utf8 -Force
             Write-Host "Create or update device $($dDevice.name)..." -ForegroundColor Cyan
             $errOut = $($device = & { az rest --method put `
@@ -217,22 +217,11 @@ while ($true) {
                 }
             }
 
-            # todo: Filter data points too
-            [array]$datasets = $dAsset.properties.datasets `
-                | Select-Object -Property * -ExcludeProperty lastUpdatedOn
-            # todo: Filter data points too
-            [array]$events = $dAsset.properties.events `
-                | Select-Object -Property * -ExcludeProperty lastUpdatedOn
-            [array]$streams = $dAsset.properties.streams `
-                | Select-Object -Property * -ExcludeProperty lastUpdatedOn
-            [array]$managementGroups = $dAsset.properties.managementGroups `
-                | Select-Object -Property * -ExcludeProperty lastUpdatedOn
-
             $displayName = $dAsset.properties.displayName
             if (!$displayName) {
                 $displayName = $dAsset.properties.model
             }
-            #Remove-PropertyRecursively -Object $dAsset.properties -PropertyName "lastUpdatedOn"
+            Remove-PropertyRecursively -Object $dAsset.properties -PropertyName "lastUpdatedOn"
             $body = @{
                 extendedLocation = $dAsset.extendedLocation
                 location = $dAsset.location
@@ -262,7 +251,7 @@ while ($true) {
                     managementGroups = $managementGroups
                 }
             } | ConvertTo-Json -Depth 100
-            #$body | Out-Host
+            $body | Out-Host
             $body | Out-File -FilePath $tempFile -Encoding utf8 -Force
             Write-Host "Create or update asset $($dAsset.name)..." -ForegroundColor Cyan
             $errOut = $($asset = & { az rest --method put `

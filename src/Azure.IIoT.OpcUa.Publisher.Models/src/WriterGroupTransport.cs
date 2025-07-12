@@ -71,6 +71,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         FileSystem,
 
         /// <summary>
+        /// Publish to Aio MQTT broker using MQTT v5 protocol.
+        /// </summary>
+        [EnumMember(Value = "AioMqtt")]
+        AioMqtt,
+
+        /// <summary>
+        /// Publish to Aio Distributed State store.
+        /// </summary>
+        [EnumMember(Value = "AioDss")]
+        AioDss,
+
+        /// <summary>
         /// Messages are discarded without being published.
         /// Used for testing or when only monitoring is needed.
         /// No external dependencies or configuration required.

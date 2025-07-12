@@ -1166,7 +1166,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 // Dataset maps to DataSetWriter
                 DataSetWriterId = resource.DataSet.Name,
-                SendKeepAliveDataSetMessages = entry.SendKeepAliveDataSetMessages ?? true,
                 DataSetKeyFrameCount = entry.DataSetKeyFrameCount ?? 10,
                 DataSetName = resource.DataSet.Name,
                 DataSetType = resource.DataSet.TypeRef
@@ -1479,18 +1478,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     || d.Target == DatasetTarget.Mqtt);
             if (destination == null)
             {
-                return entry with { WriterGroupTransport = WriterGroupTransport.Mqtt };
+                return entry with { WriterGroupTransport = WriterGroupTransport.AioMqtt };
             }
             var configuration = destination.Configuration;
             switch (destination.Target)
             {
                 case DatasetTarget.BrokerStateStore:
-                    // TODO
-                    return entry;
+                    return entry with
+                    {
+                        WriterGroupTransport = WriterGroupTransport.AioDss,
+                        QueueName = configuration.Key,
+                        MessageTtlTimespan = configuration.Ttl == null ? null
+                            : TimeSpan.FromSeconds(configuration.Ttl.Value),
+                    };
                 case DatasetTarget.Mqtt:
                     return entry with
                     {
-                        WriterGroupTransport = WriterGroupTransport.Mqtt,
+                        WriterGroupTransport = WriterGroupTransport.AioMqtt,
                         QualityOfService = configuration.Qos switch
                         {
                             QoS.Qos0 => Furly.Extensions.Messaging.QoS.AtMostOnce,
@@ -1551,7 +1555,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     || d.Target == EventStreamTarget.Mqtt);
             if (destination == null)
             {
-                return entry with { WriterGroupTransport = WriterGroupTransport.Mqtt };
+                return entry with { WriterGroupTransport = WriterGroupTransport.AioMqtt };
             }
             var configuration = destination.Configuration;
             switch (destination.Target)
@@ -1559,7 +1563,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 case EventStreamTarget.Mqtt:
                     return entry with
                     {
-                        WriterGroupTransport = WriterGroupTransport.Mqtt,
+                        WriterGroupTransport = WriterGroupTransport.AioMqtt,
                         QualityOfService = configuration.Qos switch
                         {
                             QoS.Qos0 => Furly.Extensions.Messaging.QoS.AtMostOnce,
