@@ -30,6 +30,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public string PkiRootPath { get; set; }
         /// <inheritdoc/>
         public bool AutoAccept { get; set; }
+        /// <inheritdoc/>
+        public string HostName { get; set; }
+        /// <inheritdoc/>
+        public List<string> AlternativeHosts { get; set; }
+        /// <inheritdoc/>
+        public string UriPath { get; set; }
+        /// <inheritdoc/>
+        public string CertStoreType { get; set; }
 
         /// <summary>
         /// Get access to the server
@@ -59,7 +67,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 #pragma warning disable CA1508 // Avoid dead conditional code
                     if (_server != null)
                     {
-                        _logger.LogInformation("Stopping server {Instance}.", this);
+                        _logger.StoppingServer(this);
                         try
                         {
                             _server.Stop();
@@ -67,16 +75,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         catch (OperationCanceledException) { }
                         catch (Exception se)
                         {
-                            _logger.LogError(se, "Server {Instance} not cleanly stopped.", this);
+                            _logger.ServerStopError(se, this);
                         }
                         _server.Dispose();
-                        _logger.LogInformation("Server {Instance} stopped.", this);
+                        _logger.ServerStopped(this);
                     }
 #pragma warning restore CA1508 // Avoid dead conditional code
                 }
                 catch (Exception ce)
                 {
-                    _logger.LogError(ce, "Stopping server {Instance} caused exception.", this);
+                    _logger.StoppingError(ce, this);
                 }
                 finally
                 {
@@ -100,7 +108,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Adding reverse connection in server {Instance} failed.", this);
+                _logger.AddReverseConnectionError(ex, this);
             }
             finally
             {
@@ -121,7 +129,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Remove reverse connection in server {Instance} failed.", this);
+                _logger.RemoveReverseConnectionError(ex, this);
             }
             finally
             {
@@ -140,7 +148,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 #pragma warning disable CA1508 // Avoid dead conditional code
                     if (_server == null)
                     {
-                        await StartServerInternalAsync(ports, PkiRootPath).ConfigureAwait(false);
+                        await StartServerInternalAsync(ports).ConfigureAwait(false);
                         _ports = ports.ToArray();
                         return;
                     }
@@ -148,7 +156,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Starting server {Instance} caused exception.", this);
+                    _logger.StartingError(ex, this);
                     _server?.Dispose();
                     _server = null;
                     throw;
@@ -177,11 +185,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         await predicate().ConfigureAwait(false);
                     }
 
-                    _logger.LogInformation("Restarting server {Instance}...", this);
+                    _logger.Restarting(this);
                     Debug.Assert(_ports != null);
 
-                    await StartServerInternalAsync(_ports,
-                        PkiRootPath).ConfigureAwait(false);
+                    await StartServerInternalAsync(_ports).ConfigureAwait(false);
                 }
             }
             finally
@@ -207,24 +214,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Start server
         /// </summary>
         /// <param name="ports"></param>
-        /// <param name="pkiRootPath"></param>
         /// <returns></returns>
         /// <exception cref="InvalidConfigurationException"></exception>
-        private async Task StartServerInternalAsync(IEnumerable<int> ports, string pkiRootPath)
+        private async Task StartServerInternalAsync(IEnumerable<int> ports)
         {
             ApplicationInstance.MessageDlg = new DummyDialog();
 
-            var config = _factory.CreateServer(ports, pkiRootPath, out _server,
-                configuration => configuration.DiagnosticsEnabled = true);
-            _logger.LogInformation("Server {Instance} created...", this);
+            var config = _factory.CreateServer(ports, PkiRootPath, out _server,
+                listenHostName: HostName,
+                alternativeAddresses: AlternativeHosts,
+                path: UriPath,
+                certStoreType: CertStoreType,
+                configure: configuration => configuration.DiagnosticsEnabled = true);
+            _logger.ServerCreated(this);
 
             config.SecurityConfiguration.AutoAcceptUntrustedCertificates = AutoAccept;
             config = ApplicationInstance.FixupAppConfig(config);
 
-            _logger.LogInformation("Server {Instance} - Validate configuration...", this);
+            _logger.ValidatingConfig(this);
             await config.Validate(config.ApplicationType).ConfigureAwait(false);
 
-            _logger.LogInformation("Server {Instance} - Initialize certificate validation...", this);
+            _logger.InitializingCertValidation(this);
             var application = new ApplicationInstance(config);
 
             // check the application certificate.
@@ -232,7 +242,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 silent: true).ConfigureAwait(false);
             if (!hasAppCertificate)
             {
-                _logger.LogError("Server {Instance} - Failed validating own certificate!", this);
+                _logger.CertValidationError(this);
                 throw new InvalidConfigurationException("Application instance certificate invalid!");
             }
 
@@ -241,7 +251,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted)
                 {
                     e.Accept = AutoAccept;
-                    _logger.LogInformation("Server {Instance} - {Action} Certificate {Subject}", this,
+                    _logger.CertificateAction(this,
                         e.Accept ? "Accepted" : "Rejected", e.Certificate.Subject);
                 }
             };
@@ -260,16 +270,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Certificate = config.SecurityConfiguration.ApplicationCertificate.Certificate;
             }
 
-            _logger.LogInformation("Starting server ...");
+            _logger.StartingServer();
             // start the server.
             await application.Start(_server).ConfigureAwait(false);
 
             foreach (var ep in config.ServerConfiguration.BaseAddresses)
             {
-                _logger.LogInformation("Server {Instance} - Listening on {Endpoint}", this, ep);
+                _logger.ServerEndpoint(this, ep);
             }
 
-            _logger.LogInformation("Server {Instance} started.", this);
+            _logger.ServerStarted(this);
         }
 
         /// <inheritdoc/>
@@ -290,5 +300,77 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly SemaphoreSlim _lock = new(1, 1);
         private ServerBase _server;
         private int[] _ports;
+    }
+
+    /// <summary>
+    /// Source-generated logging definitions for ServerConsoleHost
+    /// </summary>
+    internal static partial class ServerConsoleHostLogging
+    {
+        private const int EventClass = 100;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
+            Message = "Stopping server {Instance}.")]
+        public static partial void StoppingServer(this ILogger logger, object instance);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Error,
+            Message = "Server {Instance} not cleanly stopped.")]
+        public static partial void ServerStopError(this ILogger logger, Exception ex, object instance);
+
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Information,
+            Message = "Server {Instance} stopped.")]
+        public static partial void ServerStopped(this ILogger logger, object instance);
+
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Error,
+            Message = "Stopping server {Instance} caused exception.")]
+        public static partial void StoppingError(this ILogger logger, Exception ex, object instance);
+
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Error,
+            Message = "Adding reverse connection in server {Instance} failed.")]
+        public static partial void AddReverseConnectionError(this ILogger logger, Exception ex, object instance);
+
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Error,
+            Message = "Remove reverse connection in server {Instance} failed.")]
+        public static partial void RemoveReverseConnectionError(this ILogger logger, Exception ex, object instance);
+
+        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Error,
+            Message = "Starting server {Instance} caused exception.")]
+        public static partial void StartingError(this ILogger logger, Exception ex, object instance);
+
+        [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Information,
+            Message = "Restarting server {Instance}...")]
+        public static partial void Restarting(this ILogger logger, object instance);
+
+        [LoggerMessage(EventId = EventClass + 9, Level = LogLevel.Information,
+            Message = "Server {Instance} created...")]
+        public static partial void ServerCreated(this ILogger logger, object instance);
+
+        [LoggerMessage(EventId = EventClass + 10, Level = LogLevel.Information,
+            Message = "Server {Instance} - Validate configuration...")]
+        public static partial void ValidatingConfig(this ILogger logger, object instance);
+
+        [LoggerMessage(EventId = EventClass + 11, Level = LogLevel.Information,
+            Message = "Server {Instance} - Initialize certificate validation...")]
+        public static partial void InitializingCertValidation(this ILogger logger, object instance);
+
+        [LoggerMessage(EventId = EventClass + 12, Level = LogLevel.Error,
+            Message = "Server {Instance} - Failed validating own certificate!")]
+        public static partial void CertValidationError(this ILogger logger, object instance);
+
+        [LoggerMessage(EventId = EventClass + 13, Level = LogLevel.Information,
+            Message = "Server {Instance} - {Action} Certificate {Subject}")]
+        public static partial void CertificateAction(this ILogger logger, object instance, string action, string subject);
+
+        [LoggerMessage(EventId = EventClass + 14, Level = LogLevel.Information,
+            Message = "Starting server ...")]
+        public static partial void StartingServer(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 15, Level = LogLevel.Information,
+            Message = "Server {Instance} - Listening on {Endpoint}")]
+        public static partial void ServerEndpoint(this ILogger logger, object instance, string endpoint);
+
+        [LoggerMessage(EventId = EventClass + 16, Level = LogLevel.Information,
+            Message = "Server {Instance} started.")]
+        public static partial void ServerStarted(this ILogger logger, object instance);
     }
 }

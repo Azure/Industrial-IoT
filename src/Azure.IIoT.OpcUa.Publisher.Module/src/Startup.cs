@@ -19,6 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
     using OpenTelemetry.Resources;
     using OpenTelemetry.Trace;
     using System;
+    using System.Diagnostics;
 
     /// <summary>
     /// Webservice startup
@@ -58,6 +59,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddLogging(options => options
+                .AddDebug()
                 .AddConsole()
                 .AddConsoleFormatter<Syslog, ConsoleFormatterOptions>()
                 .AddOpenTelemetry(Configuration, options =>
@@ -70,8 +72,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                         .AddService(Constants.EntityTypePublisher,
                             default, GetType().Assembly.GetReleaseVersion().ToString()));
                     options.AddOtlpExporter(Configuration);
-                })
-                .AddDebug())
+                }))
                 ;
 
             services.AddHttpClient();
@@ -163,7 +164,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
             //
             builder.AddMemoryKeyValueStore();
             builder.AddDaprStateStoreClient(Configuration);
-
             builder.AddNullEventClient();
             builder.AddFileSystemEventClient(Configuration);
             builder.AddFileSystemRpcServer(Configuration);
@@ -172,6 +172,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
             builder.AddEventHubsClient(Configuration);
             builder.AddMqttClient(Configuration);
             builder.AddIoTEdgeServices(Configuration);
+            builder.AddIoTOperationsServices(Configuration);
 
             // Register configuration interfaces
             builder.RegisterInstance(Configuration)

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: microsoft-opc-test
+description: A Helm chart for Kubernetes that deploys the OPC UA test servers.
+type: application
+version: 2.9.15-alpha.1
+appVersion: 2.9.15-alpha.1

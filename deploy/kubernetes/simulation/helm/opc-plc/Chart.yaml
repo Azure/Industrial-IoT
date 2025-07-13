@@ -1,0 +1,6 @@
+apiVersion: v2
+name: microsoft-opc-plc
+description: A Helm chart for Kubernetes that deploys the OPC PLC.
+type: application
+version: 2.9-alpha.1
+appVersion: 2.9-alpha.1

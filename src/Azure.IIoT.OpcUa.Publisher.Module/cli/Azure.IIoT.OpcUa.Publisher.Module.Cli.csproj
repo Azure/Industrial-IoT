@@ -7,8 +7,8 @@
     <TieredPGO>true</TieredPGO>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Azure.IoT" Version="1.1.10" />
-    <PackageReference Include="Furly.Azure.KeyVault" Version="1.1.10" />
+    <PackageReference Include="Furly.Azure.IoT" Version="1.1.32" />
+    <PackageReference Include="Furly.Azure.KeyVault" Version="1.1.32" />
     <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
     <PackageReference Include="System.Net.Primitives" Version="4.3.1" />
   </ItemGroup>
@@ -25,9 +25,6 @@
     <Content Include="Initfiles\*.init">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <None Remove="Initfiles\MachineTools.init" />
-    <None Remove="Initfiles\Objects.init" />
-    <None Remove="initfiles\Variables.init" />
     <Content Include="publishednodes.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

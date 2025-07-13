@@ -49,7 +49,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             var loggerFactory = Log.ConsoleFactory();
             var logger = loggerFactory.CreateLogger<PublisherModule>();
 
-            logger.LogInformation("Publisher module command line interface.");
+            logger.PublisherModuleInit();
             var instances = 1;
             string? connectionString = null;
             string? publishProfile = null;
@@ -222,22 +222,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     }
                     catch (Exception e)
                     {
-                        logger.LogInformation("Error {Error}: Missing connection string - continue...",
-                            e.Message);
+                        logger.MissingConnectionString(e.Message);
                     }
                 }
 
                 deviceId = Dns.GetHostName().ToUpperInvariant();
-                logger.LogInformation("Using <deviceId> '{DeviceId}'", deviceId);
+                logger.UsingDeviceId(deviceId);
                 moduleId = "publisher";
-                logger.LogInformation("Using <moduleId> '{ModuleId}'", moduleId);
+                logger.UsingModuleId(moduleId);
 
                 args = [.. unknownArgs];
             }
             catch (Exception e)
             {
-                logger.LogError(
-                    @"{Error}
+                Console.Error.WriteLine(
+                    $@"{e.Message}
 
 Usage:       Azure.IIoT.OpcUa.Publisher.Module.Cli [options]
 
@@ -250,13 +249,12 @@ Options:
     --help
      -?
      -h      Prints out this help.
-",
-                    e.Message);
+");
                 return;
             }
 
             AppDomain.CurrentDomain.UnhandledException +=
-                (s, e) => logger.LogError(e.ExceptionObject as Exception, "Exception");
+                (s, e) => logger.UnhandledException(e.ExceptionObject as Exception);
 
             using var cts = new CancellationTokenSource();
             Task hostingTask;
@@ -345,7 +343,7 @@ Options:
             }
             catch (Exception e)
             {
-                logger.LogError(e, "Exception");
+                logger.UnhandledException(e);
             }
         }
 
@@ -373,8 +371,7 @@ Options:
             CancellationToken ct = default)
         {
             var logger = loggerFactory.CreateLogger<PublisherModule>();
-            logger.LogInformation("Create or retrieve connection string for {DeviceId} {ModuleId}...",
-                deviceId, moduleId);
+            logger.ConnectionStringStart(deviceId, moduleId);
 
             ConnectionString? cs = null;
             if (connectionString != null)
@@ -386,14 +383,12 @@ Options:
                         cs = await AddOrGetAsync(connectionString, deviceId, moduleId,
                             logger).ConfigureAwait(false);
 
-                        logger.LogInformation("Retrieved connection string for {DeviceId} {ModuleId}.",
-                           deviceId, moduleId);
+                        logger.ConnectionStringRetrieved(deviceId, moduleId);
                         break;
                     }
                     catch (Exception ex)
                     {
-                        logger.LogError(ex, "Failed to get connection string for {DeviceId} {ModuleId}...",
-                            deviceId, moduleId);
+                        logger.ConnectionStringFailed(ex, deviceId, moduleId);
                     }
                 }
             }
@@ -419,8 +414,7 @@ Options:
                 bool acceptAll, ConnectionString? cs, int? reverseConnectPort, string? publishedNodesFilePath,
                 string? publishInitFile, CancellationToken ct)
             {
-                logger.LogInformation("Starting publisher module {DeviceId} {ModuleId}...",
-                    deviceId, moduleId);
+                logger.PublisherModuleStarting(deviceId, moduleId);
                 var arguments = args.ToList();
 
                 if (publishInitFile != null)
@@ -456,8 +450,7 @@ Options:
                     arguments.Add("--urc");
                 }
                 await Publisher.Module.Program.RunAsync([.. arguments], ct).ConfigureAwait(false);
-                logger.LogInformation("Publisher module {DeviceId} {ModuleId} exited.",
-                    deviceId, moduleId);
+                logger.PublisherModuleExited(deviceId, moduleId);
             }
         }
 
@@ -630,7 +623,8 @@ Options:
                     return;
                 }
 
-                var publishInitFile = await LoadInitFileAsync(name, endpointUrl, ct).ConfigureAwait(false);
+                var initProfile = Path.GetFileNameWithoutExtension(publishInitProfile);
+                var publishInitFile = await LoadInitFileAsync(initProfile, endpointUrl, ct).ConfigureAwait(false);
 
                 //
                 // Check whether the profile overrides the messaging mode, then set it to the desired
@@ -757,7 +751,7 @@ Options:
                 }
                 catch (ResourceConflictException)
                 {
-                    logger.LogInformation("IoT Edge device {DeviceId} already exists.", deviceId);
+                    logger.IotEdgeDeviceExists(deviceId);
                 }
 
                 // Create publisher module
@@ -771,7 +765,7 @@ Options:
                 }
                 catch (ResourceConflictException)
                 {
-                    logger.LogInformation("Publisher {ModuleId} already exists...", moduleId);
+                    logger.PublisherExists(moduleId);
                 }
                 var module = await registry.GetRegistrationAsync(deviceId, moduleId).ConfigureAwait(false);
                 return ConnectionString.CreateModuleConnectionString(registry.HostName,
@@ -838,37 +832,37 @@ Options:
                             AutoAccept = true
                         })
                         {
-                            logger.LogInformation("(Re-)Starting server...");
+                            logger.ServerRestarting();
                             await server.StartAsync(new List<int> { port }).ConfigureAwait(false);
                             server.TestServer.InjectErrorResponseRate = errorRate;
                             Server.SetResult(server.TestServer);
                             ServerControl = server.TestServer;
-                            logger.LogInformation("Server (re-)started (Press S to kill).");
+                            logger.ServerRestarted();
                             if (reverseConnectPort != null)
                             {
-                                logger.LogInformation("Reverse connect to client...");
+                                logger.ReverseConnectToClient();
                                 await server.AddReverseConnectionAsync(
                                     new Uri($"opc.tcp://localhost:{reverseConnectPort}"),
                                     1).ConfigureAwait(false);
                             }
                             await kRestartServer.WaitAsync(ct).ConfigureAwait(false);
                             ServerControl = null;
-                            logger.LogInformation("Stopping server...");
+                            logger.StoppingServer();
                             Server = new TaskCompletionSource<ITestServer?>();
                         }
 
-                        logger.LogInformation("Server stopped.");
-                        logger.LogInformation("Waiting to restarting server (Press S to restart)...");
+                        logger.ServerStopped();
+                        logger.WaitingToRestartServer();
                         await kRestartServer.WaitAsync(ct).ConfigureAwait(false);
                     }
                     catch (OperationCanceledException) { }
                     catch (Exception ex)
                     {
-                        logger.LogError(ex, "Server ran into exception.");
+                        logger.ServerException(ex);
                     }
                 }
                 ServerControl = null;
-                logger.LogInformation("Server exited.");
+                logger.ServerExited();
             }
 
             private readonly CancellationTokenSource _cts;
@@ -881,5 +875,93 @@ Options:
             var replacement = $"\"{propertyName}\": \"{newValue}\"";
             return Regex.Replace(json, pattern, replacement);
         }
+    }
+
+    /// <summary>
+    /// Source-generated logging definitions for Program
+    /// </summary>
+    internal static partial class ProgramLogging
+    {
+        private const int EventClass = 0;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
+            Message = "Publisher module command line interface.")]
+        public static partial void PublisherModuleInit(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Information,
+            Message = "Error {Error}: Missing connection string - continue...")]
+        public static partial void MissingConnectionString(this ILogger logger, string error);
+
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Information,
+            Message = "Using <deviceId> '{DeviceId}'")]
+        public static partial void UsingDeviceId(this ILogger logger, string deviceId);
+
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Information,
+            Message = "Using <moduleId> '{ModuleId}'")]
+        public static partial void UsingModuleId(this ILogger logger, string moduleId);
+
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Error,
+            Message = "Exception")]
+        public static partial void UnhandledException(this ILogger logger, Exception? exception);
+
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Information,
+            Message = "Create or retrieve connection string for {DeviceId} {ModuleId}...")]
+        public static partial void ConnectionStringStart(this ILogger logger, string deviceId, string moduleId);
+
+        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Information,
+            Message = "Retrieved connection string for {DeviceId} {ModuleId}.")]
+        public static partial void ConnectionStringRetrieved(this ILogger logger, string deviceId, string moduleId);
+
+        [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Error,
+            Message = "Failed to get connection string for {DeviceId} {ModuleId}...")]
+        public static partial void ConnectionStringFailed(this ILogger logger, Exception exception, string deviceId, string moduleId);
+
+        [LoggerMessage(EventId = EventClass + 9, Level = LogLevel.Information,
+            Message = "Starting publisher module {DeviceId} {ModuleId}...")]
+        public static partial void PublisherModuleStarting(this ILogger logger, string deviceId, string moduleId);
+
+        [LoggerMessage(EventId = EventClass + 10, Level = LogLevel.Information,
+            Message = "Publisher module {DeviceId} {ModuleId} exited.")]
+        public static partial void PublisherModuleExited(this ILogger logger, string deviceId, string moduleId);
+
+        [LoggerMessage(EventId = EventClass + 11, Level = LogLevel.Information,
+            Message = "IoT Edge device {DeviceId} already exists.")]
+        public static partial void IotEdgeDeviceExists(this ILogger logger, string deviceId);
+
+        [LoggerMessage(EventId = EventClass + 12, Level = LogLevel.Information,
+            Message = "Publisher {ModuleId} already exists...")]
+        public static partial void PublisherExists(this ILogger logger, string moduleId);
+
+        [LoggerMessage(EventId = EventClass + 13, Level = LogLevel.Information,
+            Message = "(Re-)Starting server...")]
+        public static partial void ServerRestarting(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 14, Level = LogLevel.Information,
+            Message = "Server (re-)started (Press S to kill).")]
+        public static partial void ServerRestarted(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 15, Level = LogLevel.Information,
+            Message = "Reverse connect to client...")]
+        public static partial void ReverseConnectToClient(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 16, Level = LogLevel.Information,
+            Message = "Stopping server...")]
+        public static partial void StoppingServer(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 17, Level = LogLevel.Information,
+            Message = "Server stopped.")]
+        public static partial void ServerStopped(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 18, Level = LogLevel.Information,
+            Message = "Waiting to restarting server (Press S to restart)...")]
+        public static partial void WaitingToRestartServer(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 19, Level = LogLevel.Error,
+            Message = "Server ran into exception.")]
+        public static partial void ServerException(this ILogger logger, Exception exception);
+
+        [LoggerMessage(EventId = EventClass + 20, Level = LogLevel.Information,
+            Message = "Server exited.")]
+        public static partial void ServerExited(this ILogger logger);
     }
 }

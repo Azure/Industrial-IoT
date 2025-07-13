@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
 {
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Furly.Extensions.Logging;
+    using k8s;
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using System;
@@ -30,16 +31,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
             AppDomain.CurrentDomain.UnhandledException +=
                 (s, e) => Console.WriteLine("unhandled: " + e.ExceptionObject);
             var host = Utils.GetHostName();
+            var runsInKubenetes = KubernetesClientConfiguration.IsInCluster();
             var ports = new List<int>();
+            var server = "sample";
             try
             {
                 for (var i = 0; i < args.Length; i++)
                 {
                     switch (args[i])
                     {
-                        case "--sample":
+                        case "-server":
                         case "-s":
-                            break;
+                            i++;
+                            if (i < args.Length)
+                            {
+                                server = args[i];
+                                break;
+                            }
+                            throw new ArgumentException(
+                                "Missing arguments for server option");
+                        case "-hosts":
+                        case "-H":
+                            i++;
+                            if (i < args.Length)
+                            {
+                                host = args[i];
+                                break;
+                            }
+                            throw new ArgumentException(
+                                "Missing arguments for host option");
                         case "-p":
                         case "--port":
                             i++;
@@ -82,13 +102,13 @@ usage:       [options] operation [args]
 
 Options:
 
-    --port / -p             Port to listen on
+    --hosts / -H            Full host name to use with comma seperated alternative hosts.
+    --port / -p             Port to listen on.
     --help / -? / -h        Prints out this help.
 
 Operations (Mutually exclusive):
 
-    --sample / -s           Run sample server and wait for cancellation.
-                            Default if port is specified.
+    --server / -s           Run server with the given name (e.g. sample, testdata, etc.)
 "
                     );
                 return;
@@ -96,12 +116,18 @@ Operations (Mutually exclusive):
 
             if (ports.Count == 0)
             {
-                ports.Add(51210);
+                ports.Add(runsInKubenetes ? 50000 : 51210);
             }
             try
             {
+                var hosts = host.Split(',');
+                var alternativeHosts = new List<string>();
+                if (hosts.Length > 1)
+                {
+                    alternativeHosts.AddRange(hosts[1..]);
+                }
                 Console.WriteLine("Running ...");
-                RunServerAsync(ports).Wait();
+                RunServerAsync(server, hosts[0], ports, alternativeHosts, runsInKubenetes).Wait();
             }
             catch (Exception e)
             {
@@ -109,21 +135,46 @@ Operations (Mutually exclusive):
                 return;
             }
 
-            Console.WriteLine("Press key to exit...");
-            Console.ReadKey();
+            if (!runsInKubenetes)
+            {
+                Console.WriteLine("Press key to exit...");
+                Console.ReadKey();
+            }
         }
 
         /// <summary>
         /// Run server until exit
         /// </summary>
+        /// <param name="serverType"></param>
+        /// <param name="host"></param>
         /// <param name="ports"></param>
-        private static async Task RunServerAsync(IEnumerable<int> ports)
+        /// <param name="alternativeHosts"></param>
+        /// <param name="runsInKubernetes"></param>
+        private static async Task RunServerAsync(string serverType, string host, IEnumerable<int> ports,
+            List<string> alternativeHosts, bool runsInKubernetes)
         {
             var logger = Log.Console<ServerConsoleHost>();
             var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             AssemblyLoadContext.Default.Unloading += _ => tcs.TrySetResult(true);
-            using var server = new ServerConsoleHost(new TestServerFactory(Log.Console<TestServerFactory>()), logger)
+            if (runsInKubernetes)
             {
+                // Register FlatDirectoryCertificateStoreType as known certificate store type.
+                var certStoreTypeName = CertificateStoreType.GetCertificateStoreTypeByName(
+                    FlatCertificateStore.StoreTypeName);
+                if (certStoreTypeName is null)
+                {
+                    CertificateStoreType.RegisterCertificateStoreType(
+                        FlatCertificateStore.StoreTypeName, new FlatCertificateStore());
+                }
+            }
+            using var server = new ServerConsoleHost(
+                TestServerFactory.Create(serverType, Log.Console<TestServerFactory>()), logger)
+            {
+                HostName = host,
+                AlternativeHosts = alternativeHosts,
+                UriPath = runsInKubernetes ? string.Empty : null,
+                CertStoreType = runsInKubernetes ? FlatCertificateStore.StoreTypeName : null,
+                PkiRootPath = runsInKubernetes ? FlatCertificateStore.StoreTypePrefix + "pki" : null,
                 AutoAccept = true
             };
             await server.StartAsync(ports).ConfigureAwait(false);

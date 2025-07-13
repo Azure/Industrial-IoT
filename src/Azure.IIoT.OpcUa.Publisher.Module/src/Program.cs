@@ -5,11 +5,15 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module
 {
-    using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
     using Autofac.Extensions.DependencyInjection;
+    using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
+    using Furly.Extensions.Hosting;
+    using k8s;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Diagnostics;
     using System.IO;
@@ -46,7 +50,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         {
 #if DEBUG
             if (args.Any(a => a.Contains("wfd", StringComparison.InvariantCultureIgnoreCase) ||
-                    a.Contains("waitfordebugger", StringComparison.InvariantCultureIgnoreCase)))
+                a.Contains("waitfordebugger", StringComparison.InvariantCultureIgnoreCase)) ||
+                KubernetesClientConfiguration.IsInCluster())
             {
                 Console.WriteLine("Waiting for debugger being attached...");
                 while (!Debugger.IsAttached)
@@ -54,9 +59,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                     Thread.Sleep(1000);
                 }
                 Console.WriteLine("Debugger attached.");
+                Debugger.Break();
             }
 #endif
-            RunAsync(args).GetAwaiter().GetResult();
+            using var cts = new CancellationTokenSource();
+            RunAsync(args, cts.Token).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -65,10 +72,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         /// <param name="args"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public static Task RunAsync(string[] args, CancellationToken ct = default)
+        public static async Task RunAsync(string[] args, CancellationToken ct)
         {
             LogLogo();
-            return CreateHostBuilder(args).Build().RunAsync(ct);
+            await CreateHostBuilder(args).RunAsync(ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -86,6 +93,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                     .AddEnvironmentVariables()
                     .AddFromDotEnvFile()
                     .AddSecrets()
+                    .AddConnectorAdditionalConfiguration()
                     .AddInMemoryCollection(new CommandLine(args)))
                 .ConfigureWebHostDefaults(builder => builder
                     //.UseUrls("http://*:9702", "https://*:9703")

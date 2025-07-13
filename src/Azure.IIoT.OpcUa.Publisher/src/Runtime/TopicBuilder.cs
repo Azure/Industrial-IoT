@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using k8s;
     using System;
     using System.Collections.Generic;
     using System.Text.RegularExpressions;
@@ -99,6 +100,13 @@ namespace Azure.IIoT.OpcUa.Publisher
                         ?? options.SiteId
                         ?? Constants.DefaultPublisherId }
             };
+            if (KubernetesClientConfiguration.IsInCluster())
+            {
+                _variables.Add(PublisherConfig.ClusterNamespaceVariableName,
+                    _ => KubernetesClientConfiguration.InClusterConfig().Namespace);
+                _variables.Add(PublisherConfig.ClusterHostVariableName,
+                    _ => KubernetesClientConfiguration.InClusterConfig().Host);
+            }
             if (variables != null)
             {
                 foreach (var kv in variables)

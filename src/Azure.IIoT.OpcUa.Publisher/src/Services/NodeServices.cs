@@ -20,7 +20,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System;
     using System.Buffers;
     using System.Collections.Generic;
-    using System.Collections.Immutable;
     using System.Diagnostics;
     using System.Linq;
     using System.Threading;
@@ -1482,7 +1481,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         }
                         catch (Exception ex) when (ex is not OperationCanceledException)
                         {
-                            _logger.LogInformation(ex, "Failed to obtain child information");
+                            _logger.BrowseStreamChildInfoFailed(ex);
                         }
                     }
                     var (model, _) = await session.ReadNodeAsync(header.ToRequestHeader(_timeProvider), nodeId,
@@ -1706,8 +1705,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 if (nodeId == null)
                 {
                     // Done - no more nodes on the browse stack to browse
-                    _logger.LogDebug("Browsed {Nodes} nodes and {References} references " +
-                        "in address space in {Elapsed}...", _nodes, _references, _sw.Elapsed);
+                    _logger.BrowseStreamSummary(_nodes, _references, _sw.Elapsed);
                     return [];
                 }
 
@@ -1963,5 +1961,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly IFilterParser _parser;
         private readonly IOpcUaClientManager<T> _client;
         private readonly ILogger _logger;
+    }
+
+    internal static partial class NodeServicesLogging
+    {
+        private const int EventClass = 220;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Debug,
+            Message = "Browsed {Nodes} nodes and {References} references in address space in {Elapsed}...")]
+        public static partial void BrowseStreamSummary(this ILogger logger, int Nodes, int References, TimeSpan Elapsed);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Information,
+            Message = "Failed to obtain child information")]
+        public static partial void BrowseStreamChildInfoFailed(this ILogger logger, Exception exception);
     }
 }

@@ -1,0 +1,82 @@
+{{- $simulationLabels := include "simulation.labels" . -}}
+{{- $simulationSelectorLabels := include "simulation.selectorLabels" . -}}
+{{- $simulationConfigMap := include "simulation.configmap" . -}}
+{{- $releaseName := .Release.Name -}}
+
+{{ range $i := until (.Values.simulations | int) }}
+{{ $suffix := printf "%s-%06d" $releaseName $i }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opc-test-{{ $suffix }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- $simulationLabels | nindent 4 }}
+    app.kubernetes.io/component: opc-test-{{ $suffix }}
+spec:
+  selector:
+    matchLabels:
+      {{- $simulationSelectorLabels | nindent 6 }}
+      app.kubernetes.io/component: opc-test-{{ $suffix }}
+  template:
+    metadata:
+      labels:
+        {{- $simulationSelectorLabels | nindent 8 }}
+        app.kubernetes.io/component: opc-test-{{ $suffix }}
+    spec:
+      {{- with $.Values.pullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      nodeSelector:
+        "kubernetes.io/os": linux
+      containers:
+      - name: opc-test
+        {{- if $.Values.setSecurityContext }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          privileged: false
+          # OPC Tester runs as root.
+          # runAsNonRoot: true
+          # readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
+          seccompProfile:
+            type: RuntimeDefault
+        {{- end }}
+        image: {{ $.Values.image }}:{{ $.Values.tag }}
+        imagePullPolicy: {{ $.Values.pullPolicy }}
+        ports:
+        - containerPort: 50000
+        args:
+          - "--port"
+          - "50000"
+          - "--hosts"
+          - "opc-test-{{ $suffix }}.{{ $.Release.Namespace }},opc-test-{{ $suffix }}"
+          # Check if additionalArgs are defined and have arguments for the current instance
+          {{- if and (hasKey $.Values "additionalArgs") (not (empty $.Values.additionalArgs)) (index $.Values.additionalArgs $i) }}
+          # Add additional arguments for the current instance
+          {{- range (index $.Values.additionalArgs $i) }}
+          - {{ . }}
+          {{- end }}
+          {{- end }}
+        volumeMounts:
+          - name: opc-ua-opc-test-default-application-cert-{{ $suffix }}
+            mountPath: /app/pki/own/
+          - name: opc-ua-opc-test-default-trusted-cert-{{ $suffix }}
+            mountPath: /app/pki/trusted/
+{{ if $.Values.resources }}
+        resources:
+{{ toYaml $.Values.resources | indent 10 }}
+{{- end }}
+      volumes:
+        - name: opc-ua-opc-test-default-application-cert-{{ $suffix }}
+          secret:
+            secretName: opc-ua-opc-test-default-application-cert-{{ $suffix }}
+        - name: opc-ua-opc-test-default-trusted-cert-{{ $suffix }}
+          # fallback to trust the own certificate secret. this contain the CA certificate when used.
+          secret:
+            secretName: opc-ua-opc-test-default-application-cert-{{ $suffix }}
+---
+{{ end }}

@@ -20,10 +20,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="ports"></param>
         /// <param name="pkiRootPath"></param>
         /// <param name="server"></param>
+        /// <param name="listenHostName"></param>
+        /// <param name="alternativeAddresses"></param>
+        /// <param name="path"></param>
+        /// <param name="certStoreType"></param>
         /// <param name="configure"></param>
         /// <returns></returns>
         ApplicationConfiguration CreateServer(IEnumerable<int> ports,
-            string pkiRootPath, out ServerBase server,
-            Action<ServerConfiguration> configure = null);
+            string pkiRootPath, out ServerBase server, string listenHostName = null,
+            IEnumerable<string> alternativeAddresses = null, string path = null,
+            string certStoreType = null, Action<ServerConfiguration> configure = null);
     }
 }

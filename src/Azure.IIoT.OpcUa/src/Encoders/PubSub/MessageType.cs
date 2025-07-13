@@ -38,6 +38,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <summary>
         /// Metadata
         /// </summary>
-        Metadata
+        Metadata,
+
+        /// <summary>
+        /// Close notification
+        /// </summary>
+        Closed
     }
 }

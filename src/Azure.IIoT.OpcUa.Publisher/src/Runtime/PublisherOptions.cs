@@ -209,7 +209,13 @@ namespace Azure.IIoT.OpcUa.Publisher
         public TimeSpan? AsyncMetaDataLoadTimeout { get; set; }
 
         /// <summary>
-        /// Enable adding data set routing info to messages
+        /// Flag to send messages with cloud events header
+        /// </summary>
+        public bool? EnableCloudEvents { get; set; }
+
+        /// <summary>
+        /// Enable adding data set routing info to message headers
+        /// Only applies if EnableCloudEvents is not true.
         /// </summary>
         public bool? EnableDataSetRoutingInfo { get; set; }
 
@@ -300,5 +306,27 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// Secure port
         /// </summary>
         public int? HttpServerPort { get; set; }
+
+        /// <summary>
+        /// Publisher runs as Azure IoT Operations connector.
+        /// If null, not running in Azure IoT Operations.
+        /// </summary>
+        public bool? IsAzureIoTOperationsConnector { get; set; }
+
+        /// <summary>
+        /// When discovering device endpoints this is the
+        /// Endpoint type string that publisher should add
+        /// to the endpoints. Default is Microsoft.OpcPublisher.
+        /// Set this to Microsoft.OpcUa to let Azure IoT
+        /// Operations handle the OPC UA discovered endpoints.
+        /// </summary>
+        public string? AioDiscoveredDeviceEndpointType { get; set; }
+
+        /// <summary>
+        /// When discovering device endpoints this is the
+        /// Endpoint type version that publisher should add
+        /// to the endpoints.
+        /// </summary>
+        public string? AioDiscoveredDeviceEndpointTypeVersion { get; set; }
     }
 }

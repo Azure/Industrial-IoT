@@ -8,27 +8,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     using System.Runtime.Serialization;
 
     /// <summary>
-    /// Data set routing
+    /// Specifies how OPC UA node paths are mapped to message routing paths/topics.
+    /// Controls automatic topic structure generation from OPC UA address space.
+    /// Used to create a unified namespace when publishing to message brokers
+    /// that support hierarchical routing like MQTT.
     /// </summary>
     [DataContract]
     public enum DataSetRoutingMode
     {
         /// <summary>
-        /// Use custom topic paths for all elements
+        /// Disable automatic topic path generation.
+        /// Uses only explicitly configured topic templates and queue names.
+        /// Provides maximum control over message routing.
+        /// Best when custom routing patterns are required.
         /// </summary>
         [EnumMember(Value = "None")]
         None = 0,
 
         /// <summary>
-        /// Use browse names as topic path elements
-        /// unless otherwise configured
+        /// Automatically generate topic paths using OPC UA browse names.
+        /// Creates hierarchical paths matching the OPC UA address space structure.
+        /// Makes data organization intuitive and discoverable.
+        /// Example: "Objects/Server/Data/Value1"
+        /// Falls back to configured templates if specified.
         /// </summary>
         [EnumMember(Value = "UseBrowseNames")]
         UseBrowseNames = 1,
 
         /// <summary>
-        /// Use browse names with namespace index
-        /// as path elements unless otherwise configured
+        /// Generate topic paths using browse names prefixed with namespace index.
+        /// Ensures unique paths when nodes have same names in different namespaces.
+        /// Preserves complete namespace context in the routing path.
+        /// Example: "0:Objects/2:MyDevice/2:Sensors/2:Temperature"
+        /// Falls back to configured templates if specified.
         /// </summary>
         [EnumMember(Value = "UseBrowseNamesWithNamespaceIndex")]
         UseBrowseNamesWithNamespaceIndex = 2,

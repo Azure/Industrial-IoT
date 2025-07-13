@@ -472,7 +472,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <inheritdoc/>
             public FileSystemBrowser(RequestHeaderModel? header, IOptions<PublisherOptions> options,
                 TimeProvider timeProvider) : base(header, options, timeProvider,
-                    ObjectIds.ObjectsFolder, ObjectTypeIds.FileDirectoryType, stopWhenFound: true)
+                    null, ObjectTypeIds.FileDirectoryType, stopWhenFound: true)
             {
             }
 

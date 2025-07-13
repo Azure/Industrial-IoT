@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
     using Furly.Azure.IoT.Edge;
     using Furly.Extensions.Messaging;
@@ -261,7 +262,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     "The topic into which OPC Publisher publishes writer group diagnostics events.\nIf not specified, the `{{RootTopic}}/diagnostics/{{WriterGroup}}` template will be used.\nOnly\n    `{{RootTopic}}`\n    `{{SiteId}}`\n    `{{Encoding}}`\n    `{{PublisherId}}` and\n    `{{WriterGroup}}`\ncan currently be used as replacement variables in the template.\nDefault: `{{RootTopic}}/diagnostics/{{WriterGroup}}`\n",
                     t => this[PublisherConfig.DiagnosticsTopicTemplateKey] = t },
                 { $"mdt|metadatatopictemplate:|{PublisherConfig.DataSetMetaDataTopicTemplateKey}:",
-                    "The topic that metadata should be sent to.\nIn case of MQTT the message will be sent as RETAIN message with a TTL of either metadata send interval or infinite if metadata send interval is not configured.\nOnly valid if metadata is supported and/or explicitely enabled.\nThe template variables\n    `{{RootTopic}}`\n    `{{SiteId}}`\n    `{{TelemetryTopic}}`\n    `{{Encoding}}`\n    `{{PublisherId}}`\n    `{{DataSetClassId}}`\n    `{{DataSetWriter}}` and\n    `{{WriterGroup}}`\ncan be used as dynamic parts in the template. \nDefault: `{{TelemetryTopic}}` which means metadata is sent to the same output as regular messages. If specified without value, the default output is `{{TelemetryTopic}}/metadata`.\n",
+                    "The topic that metadata should be sent to.\nIn case of MQTT the message will by default be sent as RETAIN message with a TTL of either metadata send interval or infinite if metadata send interval is not configured.\nOnly valid if metadata is supported and/or explicitely enabled.\nThe template variables\n    `{{RootTopic}}`\n    `{{SiteId}}`\n    `{{TelemetryTopic}}`\n    `{{Encoding}}`\n    `{{PublisherId}}`\n    `{{DataSetClassId}}`\n    `{{DataSetWriter}}` and\n    `{{WriterGroup}}`\ncan be used as dynamic parts in the template. \nDefault: `{{TelemetryTopic}}` which means metadata is sent to the same output as regular messages. If specified without value, the default output is `{{TelemetryTopic}}/metadata`.\n",
                     s => this[PublisherConfig.DataSetMetaDataTopicTemplateKey] = !string.IsNullOrEmpty(s) ? s : PublisherConfig.MetadataTopicTemplateDefault },
                 { $"stt|schematopictemplate:|{PublisherConfig.SchemaTopicTemplateKey}:",
                     "The topic that schemas should be sent to if schema publishing is configured.\nIn case of MQTT schemas will not be sent with .\nOnly valid if schema publishing is enabled (`--ps`).\nThe template variables\n    `{{RootTopic}}`\n    `{{SiteId}}`\n    `{{PublisherId}}`\n    `{{TelemetryTopic}}`\ncan be used as variables inside the template. \nDefault: `{{TelemetryTopic}}/schema` which means the schema is sent to a sub topic where the telemetry message is sent to.\n",
@@ -270,8 +271,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     $"Configures whether messages should automatically be routed using the browse path of the monitored item inside the address space starting from the RootFolder.\nThe browse path is appended as topic structure to the telemetry topic root which can be configured using `--ttt`. Reserved characters in browse names are escaped with their hex ASCII code.\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames<DataSetRoutingMode>())}`\nDefault: `{nameof(DataSetRoutingMode.None)}` (Topics must be configured).\n",
                     (DataSetRoutingMode m) => this[PublisherConfig.DefaultDataSetRoutingKey] = m.ToString() },
                 { $"ri|enableroutinginfo:|{PublisherConfig.EnableDataSetRoutingInfoKey}:",
-                    $"Add routing information to messages. The name of the property is `{Constants.MessagePropertyRoutingKey}` and the value is the `DataSetWriterGroup` from which the particular message is emitted.\nDefault: `{PublisherConfig.EnableDataSetRoutingInfoDefault}`.\n",
+                    $"Add routing information to messages. The name of the property is `{Constants.MessagePropertyRoutingKey}` and the value is the `DataSetWriterGroup` from which the particular message is emitted. Disabled if `{PublisherConfig.EnableCloudEventsKey}` is enabled.\nDefault: `{PublisherConfig.EnableDataSetRoutingInfoDefault}`.\n",
                     (bool? b) => this[PublisherConfig.EnableDataSetRoutingInfoKey] = b?.ToString() ?? "True" },
+                { $"ce|cloudevents:|{PublisherConfig.EnableCloudEventsKey}:",
+                    $"Add cloud event headers to messages. The cloud events comply to the opc ua cloud events extension.\nDefault: `{PublisherConfig.EnableCloudEventsDefault}`.\n",
+                    (bool? b) => this[PublisherConfig.EnableCloudEventsKey] = b?.ToString() ?? "True" },
 
                 "",
                 "Subscription settings",
@@ -497,7 +501,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     "The path where the own application cert should be stored.\nDefault: $\"{{PkiRootPath}}/own\".\n",
                     s => this[OpcUaClientConfig.ApplicationCertificateStorePathKey] = s },
                 { $"apt|at=|appcertstoretype=|{OpcUaClientConfig.ApplicationCertificateStoreTypeKey}=",
-                    $"The own application cert store type.\nAllowed values:\n    `{CertificateStoreType.Directory}`\n    `{CertificateStoreType.X509Store}`\nDefault: `{CertificateStoreType.Directory}`.\n",
+                    $"The own application cert store type.\nAllowed values:\n    `{CertificateStoreType.Directory}`\n    `{CertificateStoreType.X509Store}`\n    `{FlatCertificateStore.StoreTypeName}`\nDefault: `{CertificateStoreType.Directory}`.\n",
                     s => SetStoreType(s, OpcUaClientConfig.ApplicationCertificateStoreTypeKey, "apt") },
                 { $"cfa|configurefromappcert:|{OpcUaClientConfig.TryConfigureFromExistingAppCertKey}:",
                     "Automatically set the application subject name, host name and application uri from the first valid application certificate found in the application certificate store path.\nIf the chosen certificate is valid, it will be used, otherwise a new, self-signed certificate with the information will be created.\nDefault: `false`.\n",
@@ -509,31 +513,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     "The path of the trusted cert store.\nDefault: $\"{{PkiRootPath}}/trusted\".\n",
                     s => this[OpcUaClientConfig.TrustedPeerCertificatesPathKey] = s },
                 { $"tpt|{OpcUaClientConfig.TrustedPeerCertificatesTypeKey}=",
-                    $"Trusted peer certificate store type.\nAllowed values:\n    `{CertificateStoreType.Directory}`\n    `{CertificateStoreType.X509Store}`\nDefault: `{CertificateStoreType.Directory}`.\n",
+                    $"Trusted peer certificate store type.\nAllowed values:\n    `{CertificateStoreType.Directory}`\n    `{CertificateStoreType.X509Store}`\n    `{FlatCertificateStore.StoreTypeName}`\nDefault: `{CertificateStoreType.Directory}`.\n",
                     s => SetStoreType(s, OpcUaClientConfig.TrustedPeerCertificatesTypeKey, "tpt") },
                 { $"rp|rejectedcertstorepath=|{OpcUaClientConfig.RejectedCertificateStorePathKey}=",
                     "The path of the rejected cert store.\nDefault: $\"{{PkiRootPath}}/rejected\".\n",
                     s => this[OpcUaClientConfig.RejectedCertificateStorePathKey] = s },
                 { $"rpt|{OpcUaClientConfig.RejectedCertificateStoreTypeKey}=",
-                    $"Rejected certificate store type.\nAllowed values:\n    `{CertificateStoreType.Directory}`\n    `{CertificateStoreType.X509Store}`\nDefault: `{CertificateStoreType.Directory}`.\n",
+                    $"Rejected certificate store type.\nAllowed values:\n    `{CertificateStoreType.Directory}`\n    `{CertificateStoreType.X509Store}`\n    `{FlatCertificateStore.StoreTypeName}`\nDefault: `{CertificateStoreType.Directory}`.\n",
                     s => SetStoreType(s, OpcUaClientConfig.RejectedCertificateStoreTypeKey, "rpt") },
                 { $"ip|issuercertstorepath=|{OpcUaClientConfig.TrustedIssuerCertificatesPathKey}=",
                     "The path of the trusted issuer cert store.\nDefault: $\"{{PkiRootPath}}/issuer\".\n",
                     s => this[OpcUaClientConfig.TrustedIssuerCertificatesPathKey] = s },
                 { $"ipt|{OpcUaClientConfig.TrustedIssuerCertificatesTypeKey}=",
-                    $"Trusted issuer certificate store type.\nAllowed values:\n    `{CertificateStoreType.Directory}`\n    `{CertificateStoreType.X509Store}`\nDefault: `{CertificateStoreType.Directory}`.\n",
+                    $"Trusted issuer certificate store type.\nAllowed values:\n    `{CertificateStoreType.Directory}`\n    `{CertificateStoreType.X509Store}`\n    `{FlatCertificateStore.StoreTypeName}`\nDefault: `{CertificateStoreType.Directory}`.\n",
                     s => SetStoreType(s, OpcUaClientConfig.TrustedIssuerCertificatesTypeKey, "ipt") },
                 { $"up|usercertstorepath=|{OpcUaClientConfig.TrustedUserCertificatesPathKey}=",
                     "The path of the certificate store for user certificates.\nDefault: $\"{{PkiRootPath}}/users\".\n",
                     s => this[OpcUaClientConfig.TrustedUserCertificatesPathKey] = s },
                 { $"upt|{OpcUaClientConfig.TrustedUserCertificatesTypeKey}=",
-                    $"Type of certificate store for all User certificates.\nAllowed values:\n    `{CertificateStoreType.Directory}`\n    `{CertificateStoreType.X509Store}`\nDefault: `{CertificateStoreType.Directory}`.\n",
+                    $"Type of certificate store for all User certificates.\nAllowed values:\n    `{CertificateStoreType.Directory}`\n    `{CertificateStoreType.X509Store}`\n    `{FlatCertificateStore.StoreTypeName}`\nDefault: `{CertificateStoreType.Directory}`.\n",
                     s => SetStoreType(s, OpcUaClientConfig.TrustedUserCertificatesTypeKey, "upt") },
                 { $"uip|userissuercertstorepath=|{OpcUaClientConfig.UserIssuerCertificatesPathKey}=",
                     "The path of the user issuer cert store.\nDefault: $\"{{PkiRootPath}}/users/issuer\".\n",
                     s => this[OpcUaClientConfig.UserIssuerCertificatesPathKey] = s },
                 { $"uit|{OpcUaClientConfig.UserIssuerCertificatesTypeKey}=",
-                    $"Type of the issuer certificate store for User certificates.\nAllowed values:\n    `{CertificateStoreType.Directory}`\n    `{CertificateStoreType.X509Store}`\nDefault: `{CertificateStoreType.Directory}`.\n",
+                    $"Type of the issuer certificate store for User certificates.\nAllowed values:\n    `{CertificateStoreType.Directory}`\n    `{CertificateStoreType.X509Store}`\n    `{FlatCertificateStore.StoreTypeName}`\nDefault: `{CertificateStoreType.Directory}`.\n",
                     s => SetStoreType(s, OpcUaClientConfig.UserIssuerCertificatesTypeKey, "uip") },
 
                 "",
@@ -675,6 +679,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     .AddJsonFile("appsettings.json", true)
                     .AddEnvironmentVariables()
                     .AddFromDotEnvFile()
+                    .AddConnectorAdditionalConfiguration()
                     .AddInMemoryCollection(this).Build();
                 try
                 {
@@ -692,9 +697,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 // Validate edge configuration
                 var iotEdgeOptions = new IoTEdgeClientOptions();
                 new Configuration.IoTEdge(configuration).Configure(iotEdgeOptions);
+                var publisherOptions = new PublisherOptions();
+                new Configuration.Aio(configuration).Configure(publisherOptions);
 
                 // Check that the important values are provided
-                if (iotEdgeOptions.EdgeHubConnectionString == null)
+                if (iotEdgeOptions.EdgeHubConnectionString == null &&
+                    publisherOptions.IsAzureIoTOperationsConnector == null)
                 {
                     _logger.Warning(
                         "To connect to Azure IoT Hub you must run as module inside IoT Edge or " +
@@ -711,7 +719,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             void SetStoreType(string s, string storeTypeKey, string optionName)
             {
                 if (s.Equals(CertificateStoreType.X509Store, StringComparison.OrdinalIgnoreCase) ||
-                    s.Equals(CertificateStoreType.Directory, StringComparison.OrdinalIgnoreCase))
+                    s.Equals(CertificateStoreType.Directory, StringComparison.OrdinalIgnoreCase) ||
+                    s.Equals(FlatCertificateStore.StoreTypeName, StringComparison.OrdinalIgnoreCase))
                 {
                     this[storeTypeKey] = s;
                     return;

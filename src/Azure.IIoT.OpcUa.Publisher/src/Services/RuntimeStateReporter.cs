@@ -182,7 +182,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 };
 
                 await SendRuntimeStateEventAsync(body, ct).ConfigureAwait(false);
-                _logger.LogInformation("Restart announcement sent successfully.");
+                _logger.RestartAnnouncementSent();
             }
 
             _runtimeState = RuntimeStateEventType.Running;
@@ -204,7 +204,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to resolve hostname.");
+                _logger.HostnameResolveFailed(ex);
                 return VariantValue.Null;
             }
         }
@@ -219,14 +219,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             if (apiKeyStore != null)
             {
                 ApiKey = (string?)apiKeyStore.State[OpcUa.Constants.TwinPropertyApiKeyKey];
-                _logger.LogInformation("Api Key exists in {Store} store...", apiKeyStore.Name);
+                _logger.ApiKeyExists(apiKeyStore.Name);
             }
 
             if (!string.IsNullOrWhiteSpace(_options.Value.ApiKeyOverride) &&
                 ApiKey != _options.Value.ApiKeyOverride)
             {
                 Debug.Assert(_stores.Count > 0);
-                _logger.LogInformation("Using Api Key provided in configuration...");
+                _logger.UsingConfigApiKey();
                 ApiKey = _options.Value.ApiKeyOverride;
 
                 _stores[0].State.Add(OpcUa.Constants.TwinPropertyApiKeyKey, ApiKey);
@@ -236,8 +236,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 Debug.Assert(_stores.Count > 0);
 
-                _logger.LogInformation("Generating new Api Key in {Store} store...",
-                    _stores[0].Name);
+                _logger.GeneratingApiKey(_stores[0].Name);
                 ApiKey = RandomNumberGenerator.GetBytes(20).ToBase64String();
                 _stores[0].State.Add(OpcUa.Constants.TwinPropertyApiKeyKey, ApiKey);
             }
@@ -261,20 +260,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             .Any(a => a.GetSingleElementValue() == dnsName))
                     {
                         var renewalAfter = Certificate.NotAfter - now;
-                        _logger.LogInformation(
-                    "Using valid Certificate found in {Store} store (renewal in {Duration})...",
-                            apiKeyStore.Name, renewalAfter);
+                        _logger.UsingValidCertificate(apiKeyStore.Name, renewalAfter);
                         _renewalTimer.Change(renewalAfter, Timeout.InfiniteTimeSpan);
                         // Done
                         return;
                     }
-                    _logger.LogInformation(
-                        "Certificate found in {Store} store has expired. Generate new...",
-                        apiKeyStore.Name);
+                    _logger.CertificateExpired(apiKeyStore.Name);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Provided Certificate invalid.");
+                    _logger.CertificateInvalid(ex);
                 }
             }
 
@@ -312,23 +307,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         Certificate.Dispose();
                         Certificate = null;
-                        _logger.LogWarning(
-                            "Failed to get certificate with private key using workload API.");
+                        _logger.FailedToGetCertificateWithPrivateKey();
                     }
                     else
                     {
-                        _logger.LogInformation(
-                            "Using server certificate with private key from workload API...");
+                        _logger.UsingWorkloadApiCertificate();
                     }
                 }
                 catch (NotSupportedException nse)
                 {
-                    _logger.LogWarning("Not supported: {Message}. " +
-                        "Unable to use workload API to obtain the certificate!", nse.Message);
+                    _logger.WorkloadApiNotSupported(nse.Message);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to create certificate using workload API.");
+                    _logger.WorkloadApiCertificateFailed(ex);
                 }
             }
             if (Certificate == null)
@@ -346,7 +338,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 req.CertificateExtensions.Add(san.Build());
                 Certificate = req.CreateSelfSigned(DateTimeOffset.Now, expiration);
                 Debug.Assert(Certificate.HasPrivateKey);
-                _logger.LogInformation("Created self-signed ECC server certificate...");
+                _logger.CreatedSelfSignedCertificate();
             }
 
             Debug.Assert(_stores.Count > 0);
@@ -359,9 +351,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var renewalDuration = Certificate.NotAfter - nowOffset.Date - TimeSpan.FromDays(1);
             _renewalTimer.Change(renewalDuration, Timeout.InfiniteTimeSpan);
 
-            _logger.LogInformation(
-                "Stored new Certificate in {Store} store (and scheduled renewal after {Duration}).",
-                apiKeyStore.Name, renewalDuration);
+            _logger.StoredNewCertificate(apiKeyStore.Name, renewalDuration);
             _certificateRenewals++;
         }
 
@@ -378,7 +368,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             catch (Exception ex)
             {
                 // Retry
-                _logger.LogCritical(ex, "Failed to renew certificate - retrying in 1 hour...");
+                _logger.CertificateRenewalFailed(ex);
                 _renewalTimer.Change(TimeSpan.FromHours(1), Timeout.InfiniteTimeSpan);
             }
         }
@@ -413,14 +403,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             }
                         }, ct).ConfigureAwait(false);
 
-                    _logger.LogInformation("{Event} sent via {Transport}.", runtimeStateEvent,
-                        events.Name);
+                    _logger.EventSent(runtimeStateEvent.ToString(), events.Name);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex,
-                        "Failed sending {MessageType} runtime state event through {Transport}.",
-                        runtimeStateEvent.MessageType, events.Name);
+                    _logger.SendEventFailed(ex, runtimeStateEvent.MessageType.ToString(), events.Name);
                 }
             }
         }
@@ -456,7 +443,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error during diagnostics processing.");
+                    _logger.DiagnosticsError(ex);
                 }
             }
         }
@@ -506,8 +493,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex,
-                            "Failed sending Diagnostics event through {Transport}.", events.Name);
+                        _logger.DiagnosticsSendFailed(ex, events.Name);
                     }
                 }
             }
@@ -763,5 +749,89 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private RuntimeStateEventType _runtimeState;
         private Task _publisher;
         private int _certificateRenewals;
+    }
+
+    /// <summary>
+    /// Source-generated logging definitions for RuntimeStateReporter
+    /// </summary>
+    internal static partial class RuntimeStateReporterLogging
+    {
+        private const int EventClass = 330;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
+            Message = "Restart announcement sent successfully.")]
+        public static partial void RestartAnnouncementSent(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Error,
+            Message = "Failed to resolve hostname.")]
+        public static partial void HostnameResolveFailed(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Information,
+            Message = "Api Key exists in {Store} store...")]
+        public static partial void ApiKeyExists(this ILogger logger, string store);
+
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Information,
+            Message = "Using Api Key provided in configuration...")]
+        public static partial void UsingConfigApiKey(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Information,
+            Message = "Generating new Api Key in {Store} store...")]
+        public static partial void GeneratingApiKey(this ILogger logger, string store);
+
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Information,
+            Message = "Using valid Certificate found in {Store} store (renewal in {Duration})...")]
+        public static partial void UsingValidCertificate(this ILogger logger, string store, TimeSpan duration);
+
+        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Information,
+            Message = "Certificate found in {Store} store has expired. Generate new...")]
+        public static partial void CertificateExpired(this ILogger logger, string store);
+
+        [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Error,
+            Message = "Provided Certificate invalid.")]
+        public static partial void CertificateInvalid(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 9, Level = LogLevel.Information,
+            Message = "Using server certificate with private key from workload API...")]
+        public static partial void UsingWorkloadApiCertificate(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 10, Level = LogLevel.Error,
+            Message = "Failed to create certificate using workload API.")]
+        public static partial void WorkloadApiCertificateFailed(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 11, Level = LogLevel.Information,
+            Message = "Created self-signed ECC server certificate...")]
+        public static partial void CreatedSelfSignedCertificate(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 12, Level = LogLevel.Information,
+            Message = "Stored new Certificate in {Store} store (and scheduled renewal after {Duration}).")]
+        public static partial void StoredNewCertificate(this ILogger logger, string store, TimeSpan duration);
+
+        [LoggerMessage(EventId = EventClass + 13, Level = LogLevel.Critical,
+            Message = "Failed to renew certificate - retrying in 1 hour...")]
+        public static partial void CertificateRenewalFailed(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 14, Level = LogLevel.Information,
+            Message = "{Event} sent via {Transport}.")]
+        public static partial void EventSent(this ILogger logger, string? @event, string transport);
+
+        [LoggerMessage(EventId = EventClass + 15, Level = LogLevel.Error,
+            Message = "Failed sending {MessageType} runtime state event through {Transport}.")]
+        public static partial void SendEventFailed(this ILogger logger, Exception ex, string messageType, string transport);
+
+        [LoggerMessage(EventId = EventClass + 16, Level = LogLevel.Error,
+            Message = "Error during diagnostics processing.")]
+        public static partial void DiagnosticsError(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 17, Level = LogLevel.Error,
+            Message = "Failed sending Diagnostics event through {Transport}.")]
+        public static partial void DiagnosticsSendFailed(this ILogger logger, Exception ex, string transport);
+
+        [LoggerMessage(EventId = EventClass + 18, Level = LogLevel.Warning,
+            Message = "Failed to get certificate with private key using workload API.")]
+        public static partial void FailedToGetCertificateWithPrivateKey(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 19, Level = LogLevel.Warning,
+            Message = "Not supported: {Message}. Unable to use workload API to obtain the certificate!")]
+        public static partial void WorkloadApiNotSupported(this ILogger logger, string message);
     }
 }

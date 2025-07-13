@@ -58,7 +58,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 if (logLevel >= LogLevel.Error)
                 {
-                    _logger.Log(logLevel, eventId, state, exception, formatter);
+                    _logger.StackMessage(exception, formatter(state, exception));
                 }
             }
 
@@ -77,5 +77,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             private readonly ILogger _logger;
         }
+    }
+
+    /// <summary>
+    /// Source-generated logging extensions for OpcUaStack
+    /// </summary>
+    internal static partial class OpcUaStackLogging
+    {
+        private const int EventClass = 1200;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Error, Message = "{message}")]
+        public static partial void StackMessage(this ILogger logger, Exception? exception, string message);
     }
 }

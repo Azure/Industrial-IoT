@@ -46,8 +46,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
             var discoveryUrl = new Uri(query.DiscoveryUrl);
 
             // Find endpoints at the real accessible ip address
-            var eps = await _client.FindEndpointsAsync(discoveryUrl, null,
-                ct).ConfigureAwait(false);
+            var eps = await _client.FindEndpointsAsync(discoveryUrl,
+                findServersOnNetwork: true, ct: ct).ConfigureAwait(false);
 
             // Match endpoints
             foreach (var ep in eps)

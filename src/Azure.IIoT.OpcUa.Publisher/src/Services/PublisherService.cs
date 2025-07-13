@@ -114,7 +114,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _isDisposed = true;
             try
             {
-                _logger.LogDebug("Closing publisher service...");
+                _logger.ClosingPublisherService();
                 await _cts.CancelAsync().ConfigureAwait(false);
                 _changeFeed.Writer.TryComplete();
                 try
@@ -124,9 +124,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 catch (OperationCanceledException) { }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to close publisher service processor.");
+                    _logger.FailedToClosePublisherServiceProcessor(ex);
                 }
-                _logger.LogInformation("Publisher service closed succesfully.");
+                _logger.PublisherServiceClosedSuccessfully();
             }
             finally
             {
@@ -181,13 +181,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     try
                     {
                         group.Value.Dispose();
-                        _logger.LogInformation("Writer group job {Job} stopped.",
-                            group.Key);
+                        _logger.WriterGroupJobStopped(group.Key);
                     }
                     catch (Exception ex) when (ex is not OperationCanceledException)
                     {
-                        _logger.LogError(ex, "Failed to stop writer group job {Job}.",
-                            group.Key);
+                        _logger.FailedToStopWriterGroupJob(ex, group.Key);
                     }
                 }
             }
@@ -232,7 +230,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     catch (Exception ex) when (ex is not OperationCanceledException)
                     {
                         exceptions.Add(ex);
-                        _logger.LogError(ex, "Failed to process change.");
+                        _logger.FailedToProcessChange(ex);
                     }
                 }
             }
@@ -247,7 +245,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
                     exceptions.Add(ex);
-                    _logger.LogError(ex, "Failed to dispose writer group job before removal.");
+                    _logger.FailedToDisposeWriterGroupJobBeforeRemoval(ex);
                 }
                 _currentJobs.Remove(delete.Id);
             }
@@ -338,7 +336,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
                 catch (Exception ex)
                 {
-                    outer._logger.LogError(ex, "Failed to create writer group job {Name}", context.Id);
+                    outer._logger.FailedToCreateWriterGroupJob(ex, context.Id);
                     context.Dispose();
                     throw;
                 }
@@ -365,7 +363,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
                 catch (Exception ex)
                 {
-                    _outer._logger.LogError(ex, "Failed to update writer group job {Name}", Id);
+                    _outer._logger.FailedToUpdateWriterGroupJob(ex, Id);
                     throw;
                 }
                 finally
@@ -393,5 +391,49 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly TaskCompletionSource _completedTask;
         private readonly CancellationTokenSource _cts;
         private readonly Channel<(TaskCompletionSource, List<WriterGroupModel>)> _changeFeed;
+    }
+
+    /// <summary>
+    /// Source-generated logging extensions for PublisherService
+    /// </summary>
+    internal static partial class PublisherServiceLogging
+    {
+        private const int EventClass = 300;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Debug,
+            Message = "Closing publisher service...")]
+        public static partial void ClosingPublisherService(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Error,
+            Message = "Failed to close publisher service processor.")]
+        public static partial void FailedToClosePublisherServiceProcessor(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Information,
+            Message = "Publisher service closed succesfully.")]
+        public static partial void PublisherServiceClosedSuccessfully(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Information,
+            Message = "Writer group job {Job} stopped.")]
+        public static partial void WriterGroupJobStopped(this ILogger logger, string job);
+
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Error,
+            Message = "Failed to stop writer group job {Job}.")]
+        public static partial void FailedToStopWriterGroupJob(this ILogger logger, Exception ex, string job);
+
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Error,
+            Message = "Failed to process change.")]
+        public static partial void FailedToProcessChange(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Error,
+            Message = "Failed to dispose writer group job before removal.")]
+        public static partial void FailedToDisposeWriterGroupJobBeforeRemoval(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Error,
+            Message = "Failed to create writer group job {Name}")]
+        public static partial void FailedToCreateWriterGroupJob(this ILogger logger, Exception ex, string name);
+
+        [LoggerMessage(EventId = EventClass + 9, Level = LogLevel.Error,
+            Message = "Failed to update writer group job {Name}")]
+        public static partial void FailedToUpdateWriterGroupJob(this ILogger logger, Exception ex, string name);
     }
 }

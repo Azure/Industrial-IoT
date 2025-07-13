@@ -75,6 +75,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string EnableRuntimeStateReportingKey = "RuntimeStateReporting";
         public const string RuntimeStateRoutingInfoKey = "RuntimeStateRoutingInfo";
         public const string EnableDataSetRoutingInfoKey = "EnableRoutingInfo";
+        public const string EnableCloudEventsKey = "EnableCloudEvents";
         public const string ForceCredentialEncryptionKey = "ForceCredentialEncryption";
         public const string RenewTlsCertificateOnStartupKey = "RenewTlsCertificateOnStartup";
         public const string DefaultTransportKey = "DefaultTransport";
@@ -108,6 +109,8 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string DataSetFieldIdVariableName = "DataSetFieldId";
         public const string DataSetClassIdVariableName = "DataSetClassId";
         public const string EncodingVariableName = "Encoding";
+        public const string ClusterNamespaceVariableName = "ClusterNamespace";
+        public const string ClusterHostVariableName = "ClusterHost";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>
@@ -126,6 +129,8 @@ namespace Azure.IIoT.OpcUa.Publisher
             $"{{{RootTopicVariableName}}}/diagnostics/{{{WriterGroupVariableName}}}";
         public const string RootTopicTemplateDefault =
             $"{{{PublisherIdVariableName}}}";
+        public const string RootTopicTemplateCluster =
+            $"{{{ClusterNamespaceVariableName}}}/{{{PublisherIdVariableName}}}";
         public const string SchemaTopicTemplateDefault =
             $"{{{TelemetryTopicVariableName}}}/schema";
         public const string PublishedNodesFileDefault = "publishednodes.json";
@@ -133,6 +138,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const bool EnableRuntimeStateReportingDefault = false;
         public const bool UseStandardsCompliantEncodingDefault = false;
         public const bool EnableDataSetRoutingInfoDefault = false;
+        public const bool EnableCloudEventsDefault = false;
         public const MessageEncoding MessageEncodingDefault = MessageEncoding.Json;
         public const int MaxNodesPerDataSetDefault = 1000;
         public const int BatchSizeLegacyDefault = 50;
@@ -253,7 +259,8 @@ namespace Azure.IIoT.OpcUa.Publisher
             if (options.TopicTemplates.Root == null)
             {
                 options.TopicTemplates.Root = GetStringOrDefault(
-                    RootTopicTemplateKey, RootTopicTemplateDefault);
+                    RootTopicTemplateKey, options.IsAzureIoTOperationsConnector != null ?
+                        RootTopicTemplateCluster : RootTopicTemplateDefault);
             }
 
             if (options.TopicTemplates.Method == null)
@@ -339,6 +346,8 @@ namespace Azure.IIoT.OpcUa.Publisher
                 options.DiagnosticsTarget = target;
             }
 
+            options.EnableCloudEvents ??= GetBoolOrDefault(
+                    EnableCloudEventsKey, EnableCloudEventsDefault);
             options.EnableDataSetRoutingInfo ??= GetBoolOrDefault(
                     EnableDataSetRoutingInfoKey, EnableDataSetRoutingInfoDefault);
 

@@ -21,7 +21,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Linq;
     using System.Net;
     using System.Net.NetworkInformation;
-    using System.Runtime.ConstrainedExecution;
     using System.Security.Cryptography;
     using System.Security.Cryptography.X509Certificates;
     using System.Text;
@@ -113,6 +112,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     nameof(options));
             }
 
+            if (new[]
+            {
+                options.Value.Security.ApplicationCertificates.StoreType,
+                options.Value.Security.TrustedIssuerCertificates.StoreType,
+                options.Value.Security.TrustedPeerCertificates.StoreType,
+                options.Value.Security.RejectedCertificateStore.StoreType,
+                options.Value.Security.TrustedUserCertificates.StoreType,
+                options.Value.Security.HttpsIssuerCertificates.StoreType,
+                options.Value.Security.TrustedHttpsCertificates.StoreType,
+                options.Value.Security.UserIssuerCertificates.StoreType
+            }.Any(t => t?.Equals(FlatCertificateStore.StoreTypeName,
+                StringComparison.OrdinalIgnoreCase) == true))
+            {
+                // Register FlatCertificateStore as known certificate store type.
+                var certStoreTypeName = CertificateStoreType.GetCertificateStoreTypeByName(
+                    FlatCertificateStore.StoreTypeName);
+                if (certStoreTypeName is null)
+                {
+                    CertificateStoreType.RegisterCertificateStoreType(
+                        FlatCertificateStore.StoreTypeName, new FlatCertificateStore());
+                }
+            }
+
             _logger = logger;
             _options = options;
             _timeProvider = timeProvider ?? TimeProvider.System;
@@ -189,8 +211,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             using var certStore = await OpenAsync(store).ConfigureAwait(false);
             try
             {
-                _logger.LogInformation("Add Certificate {Thumbprint} to {Store}...",
-                    cert.Thumbprint, store);
+                _logger.AddCertificate(cert.Thumbprint, store.ToString());
                 var certCollection = await certStore.FindByThumbprint(
                     cert.Thumbprint).ConfigureAwait(false);
                 if (certCollection.Count != 0)
@@ -225,8 +246,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to add Certificate {Thumbprint} to {Store}...",
-                    cert.Thumbprint, store);
+                _logger.AddCertificateFailed(ex, cert.Thumbprint, store.ToString());
                 throw;
             }
         }
@@ -243,12 +263,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             try
             {
-                _logger.LogInformation("Add Certificate revocation list to {Store}...", store);
+                _logger.AddCrl(store.ToString());
                 await certStore.AddCRL(new X509CRL(crl)).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to add Certificate revocation to {Store}...", store);
+                _logger.AddCrlFailed(ex, store.ToString());
                 throw;
             }
         }
@@ -273,7 +293,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (certCollection.Count != 0)
                 {
                     // This should not happen but maybe a previous approval aborted half-way.
-                    _logger.LogError("Found rejected cert already in trusted store. Deleting...");
+                    _logger.RejectedCertInTrustedStore();
                     await trusted.Delete(thumbprint).ConfigureAwait(false);
                 }
 
@@ -287,8 +307,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to approve Certificate {Thumbprint}...",
-                    thumbprint);
+                _logger.ApproveCertificateFailed(ex, thumbprint);
                 throw;
             }
         }
@@ -310,9 +329,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var x509Certificate = chain[0];
             try
             {
-                _logger.LogInformation("Adding Certificate {Thumbprint}, " +
-                    "{Subject} to trusted store...", x509Certificate.Thumbprint,
-                    x509Certificate.Subject);
+                _logger.AddToTrustedStore(x509Certificate.Thumbprint, x509Certificate.Subject);
 
                 if (isSslCertificate)
                 {
@@ -339,9 +356,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to add Certificate chain {Thumbprint}, " +
-                    "{Subject} to trusted store.", x509Certificate.Thumbprint,
-                    x509Certificate.Subject);
+                _logger.AddToTrustedStoreFailed(ex, x509Certificate.Thumbprint, x509Certificate.Subject);
                 throw;
             }
             finally
@@ -359,8 +374,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             using var certStore = await OpenAsync(store).ConfigureAwait(false);
             try
             {
-                _logger.LogInformation("Removing Certificate {Thumbprint} from {Store}...",
-                    thumbprint, store);
+                _logger.RemoveCertificate(thumbprint, store.ToString());
                 var certCollection = await certStore.FindByThumbprint(thumbprint).ConfigureAwait(false);
                 if (certCollection.Count == 0)
                 {
@@ -369,7 +383,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 // delete all CRLs signed by cert
                 var crlsToDelete = new X509CRLCollection();
-                foreach (var crl in await certStore.EnumerateCRLs().ConfigureAwait(false))
+                foreach (var crl in await certStore.EnumerateCRLs().ConfigureAwait(false)
+                )
                 {
                     foreach (var cert in certCollection)
                     {
@@ -398,14 +413,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     if (!await certStore.DeleteCRL(crl).ConfigureAwait(false))
                     {
                         // intentionally ignore errors, try best effort
-                        _logger.LogError("Failed to delete {Crl}.", crl.ToString());
+                        _logger.DeleteCrlFailed(crl.ToString());
                     }
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to remove Certificate {Thumbprint} from {Store}...",
-                    thumbprint, store);
+                _logger.RemoveCertificateFailed(ex, thumbprint, store.ToString());
                 throw;
             }
         }
@@ -417,13 +431,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             using var certStore = await OpenAsync(store).ConfigureAwait(false);
             try
             {
-                _logger.LogInformation("Removing all Certificate from {Store}...", store);
+                _logger.RemoveAllCertificates(store.ToString());
                 foreach (var certs in await certStore.Enumerate().ConfigureAwait(false))
                 {
                     if (!await certStore.Delete(certs.Thumbprint).ConfigureAwait(false))
                     {
                         // intentionally ignore errors, try best effort
-                        _logger.LogError("Failed to delete {Certificate}.", certs.Thumbprint);
+                        _logger.DeleteCertificateFailed(certs.Thumbprint);
                     }
                 }
                 foreach (var crl in await certStore.EnumerateCRLs().ConfigureAwait(false))
@@ -431,13 +445,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     if (!await certStore.DeleteCRL(crl).ConfigureAwait(false))
                     {
                         // intentionally ignore errors, try best effort
-                        _logger.LogError("Failed to delete {Crl}.", crl.ToString());
+                        _logger.DeleteCrlFailed(crl.ToString());
                     }
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to clear {Store} store.", store);
+                _logger.ClearStoreFailed(ex, store.ToString());
                 throw;
             }
         }
@@ -454,12 +468,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             try
             {
-                _logger.LogInformation("Add Certificate revocation list to {Store}...", store);
+                _logger.AddCrl(store.ToString());
                 await certStore.DeleteCRL(new X509CRL(crl)).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to delete Certificate revocation in {Store}...", store);
+                _logger.DeleteCrlStoreFailed(ex, store.ToString());
                 throw;
             }
         }
@@ -492,7 +506,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 // wait with the configuration until network is up
                 if (!NetworkInterface.GetIsNetworkAvailable())
                 {
-                    _logger.LogWarning("Network not available...");
+                    _logger.NetworkNotAvailable();
                     await Task.Delay(3000).ConfigureAwait(false);
                     continue;
                 }
@@ -536,19 +550,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                     if (ownCertificate == null)
                     {
-                        _logger.LogInformation(
-                            "No application own certificate found. Creating a self-signed " +
-                            "own certificate valid since yesterday for {DefaultLifeTime} months, " +
-                            "with a {DefaultKeySize} bit key and {DefaultHashSize} bit hash.",
-                            CertificateFactory.DefaultLifeTime,
-                            CertificateFactory.DefaultKeySize,
-                            CertificateFactory.DefaultHashSize);
+                        _logger.CreateSelfSignedCert();
                     }
                     else
                     {
-                        _logger.LogInformation(
-                            "Own certificate Subject '{Subject}' (Thumbprint: {Tthumbprint}) loaded.",
-                            ownCertificate.Subject, ownCertificate.Thumbprint);
+                        _logger.OwnCertificateLoaded(ownCertificate.Subject, ownCertificate.Thumbprint);
                     }
 
                     var hasAppCertificate =
@@ -556,7 +562,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     if (!hasAppCertificate ||
                         appConfig.SecurityConfiguration.ApplicationCertificate.Certificate == null)
                     {
-                        _logger.LogError("Failed to load or create application own certificate.");
+                        _logger.LoadCertificateFailed();
                         throw new InvalidConfigurationException(
                             "OPC UA application own certificate invalid");
                     }
@@ -565,25 +571,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     {
                         ownCertificate =
                             appConfig.SecurityConfiguration.ApplicationCertificate.Certificate;
-                        _logger.LogInformation(
-                            "Own certificate Subject '{Subject}' (Thumbprint: {Thumbprint}) created.",
-                            ownCertificate.Subject, ownCertificate.Thumbprint);
+                        _logger.OwnCertificateCreated(ownCertificate.Subject, ownCertificate.Thumbprint);
                     }
                     await ShowCertificateStoreInformationAsync(appConfig).ConfigureAwait(false);
                     return appInstance.ApplicationConfiguration;
                 }
                 catch (Exception e)
                 {
-                    _logger.LogInformation(
-                        "Error {Message} while configuring OPC UA stack - retry...", e.Message);
-                    _logger.LogDebug(e, "Detailed error while configuring OPC UA stack.");
+                    _logger.ConfigureStackRetry(e.Message);
+                    _logger.ConfigureStackDebug(e);
                     innerException = e;
 
                     await Task.Delay(3000).ConfigureAwait(false);
                 }
             }
 
-            _logger.LogCritical("Failed to configure OPC UA stack - exit.");
+            _logger.ConfigureStackFailed();
             throw new InvalidProgramException("OPC UA stack configuration not possible.",
                 innerException);
 
@@ -621,16 +624,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             {
                                 return (uris[0], appName, hostNames[0]);
                             }
-                            _logger.LogDebug(
-                                "Found invalid certificate for {Subject} [{Thumbprint}].",
-                                cert.Subject, cert.Thumbprint);
+                            _logger.InvalidCertFound(cert.Subject, cert.Thumbprint);
                         }
                     }
-                    _logger.LogDebug("Could not find a certificate to take information from.");
+                    _logger.NoCertFound();
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogDebug(ex, "Failed to find a certificate to take information from.");
+                    _logger.FindCertFailed(ex);
                 }
                 return (applicationUri, appName, hostName);
             }
@@ -650,17 +651,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     appConfig.SecurityConfiguration.ApplicationCertificate.OpenStore();
                 var certs = await certStore.Enumerate().ConfigureAwait(false);
                 var certNum = 1;
-                _logger.LogInformation(
-                    "Application own certificate store contains {Count} certs.", certs.Count);
+                _logger.OwnStoreCount(certs.Count);
                 foreach (var cert in certs)
                 {
-                    _logger.LogInformation("{CertNum:D2}: Subject '{Subject}' (Thumbprint: {Thumbprint})",
-                        certNum++, cert.Subject, cert.Thumbprint);
+                    _logger.CertificateInfo(certNum++, cert.Subject, cert.Thumbprint);
                 }
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Error while trying to read information from application store.");
+                _logger.ReadStoreFailed(e);
             }
 
             // show trusted issuer certs
@@ -670,30 +669,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     .TrustedIssuerCertificates.OpenStore();
                 var certs = await certStore.Enumerate().ConfigureAwait(false);
                 var certNum = 1;
-                _logger.LogInformation("Trusted issuer store contains {Count} certs.",
-                    certs.Count);
+                _logger.TrustedIssuerCount(certs.Count);
                 foreach (var cert in certs)
                 {
-                    _logger.LogInformation(
-                        "{CertNum:D2}: Subject '{Subject}' (Thumbprint: {Thumbprint})",
-                        certNum++, cert.Subject, cert.Thumbprint);
+                    _logger.CertificateInfo(certNum++, cert.Subject, cert.Thumbprint);
                 }
                 if (certStore.SupportsCRLs)
                 {
                     var crls = await certStore.EnumerateCRLs().ConfigureAwait(false);
                     var crlNum = 1;
-                    _logger.LogInformation("Trusted issuer store has {Count} CRLs.", crls.Count);
+                    _logger.TrustedIssuerCrlCount(crls.Count);
                     foreach (var crl in crls)
                     {
-                        _logger.LogInformation(
-                            "{CrlNum:D2}: Issuer '{Issuer}', Next update time '{NextUpdate}'",
-                            crlNum++, crl.Issuer, crl.NextUpdate);
+                        _logger.TrustedIssuerCrlInfo(crlNum++, crl.Issuer, crl.NextUpdate);
                     }
                 }
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Error while trying to read information from trusted issuer store.");
+                _logger.TrustedIssuerStoreFailed(e);
             }
 
             // show trusted peer certs
@@ -703,31 +697,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     .TrustedPeerCertificates.OpenStore();
                 var certs = await certStore.Enumerate().ConfigureAwait(false);
                 var certNum = 1;
-                _logger.LogInformation("Trusted peer store contains {Count} certs.",
-                    certs.Count);
+                _logger.TrustedPeerCount(certs.Count);
                 foreach (var cert in certs)
                 {
-                    _logger.LogInformation(
-                        "{CertNum:D2}: Subject '{Subject}' (Thumbprint: {Thumbprint})",
-                        certNum++, cert.Subject, cert.Thumbprint);
+                    _logger.CertificateInfo(certNum++, cert.Subject, cert.Thumbprint);
                 }
                 if (certStore.SupportsCRLs)
                 {
                     var crls = await certStore.EnumerateCRLs().ConfigureAwait(false);
                     var crlNum = 1;
-                    _logger.LogInformation("Trusted peer store has {Count} CRLs.", crls.Count);
+                    _logger.TrustedPeerCrlCount(crls.Count);
                     foreach (var crl in crls)
                     {
-                        _logger.LogInformation(
-                            "{CrlNum:D2}: Issuer '{Issuer}', Next update time '{NextUpdate}'",
-                            crlNum++, crl.Issuer, crl.NextUpdate);
+                        _logger.TrustedPeerCrlInfo(crlNum++, crl.Issuer, crl.NextUpdate);
                     }
                 }
             }
             catch (Exception e)
             {
-                _logger.LogError(e,
-                    "Error while trying to read information from trusted peer store.");
+                _logger.TrustedPeerStoreFailed(e);
             }
 
             // show rejected peer certs
@@ -737,19 +725,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     .RejectedCertificateStore.OpenStore();
                 var certs = await certStore.Enumerate().ConfigureAwait(false);
                 var certNum = 1;
-                _logger.LogInformation("Rejected certificate store contains {Count} certs.",
-                    certs.Count);
+                _logger.RejectedStoreCount(certs.Count);
                 foreach (var cert in certs)
                 {
-                    _logger.LogInformation(
-                        "{CertNum:D2}: Subject '{Subject}' (Thumbprint: {Thumbprint})",
-                        certNum++, cert.Subject, cert.Thumbprint);
+                    _logger.CertificateInfo(certNum++, cert.Subject, cert.Thumbprint);
                 }
             }
             catch (Exception e)
             {
-                _logger.LogError(e,
-                    "Error while trying to read information from rejected certificate store.");
+                _logger.RejectedStoreFailed(e);
             }
         }
 
@@ -991,5 +975,169 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly TimeProvider _timeProvider;
         private readonly string? _identity;
         private bool _disposed;
+    }
+
+    /// <summary>
+    /// Source-generated logging definitions for OpcUaApplication
+    /// </summary>
+    internal static partial class OpcUaApplicationLogging
+    {
+        private const int EventClass = 400;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
+            Message = "Add Certificate {Thumbprint} to {Store}...")]
+        public static partial void AddCertificate(this ILogger logger, string thumbprint, string store);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Error,
+            Message = "Failed to add Certificate {Thumbprint} to {Store}...")]
+        public static partial void AddCertificateFailed(this ILogger logger, Exception ex, string thumbprint, string store);
+
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Information,
+            Message = "Add Certificate revocation list to {Store}...")]
+        public static partial void AddCrl(this ILogger logger, string store);
+
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Error,
+            Message = "Failed to add Certificate revocation to {Store}...")]
+        public static partial void AddCrlFailed(this ILogger logger, Exception ex, string store);
+
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Error,
+            Message = "Found rejected cert already in trusted store. Deleting...")]
+        public static partial void RejectedCertInTrustedStore(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Error,
+            Message = "Failed to approve Certificate {Thumbprint}...")]
+        public static partial void ApproveCertificateFailed(this ILogger logger, Exception ex, string thumbprint);
+
+        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Information,
+            Message = "Adding Certificate {Thumbprint}, {Subject} to trusted store...")]
+        public static partial void AddToTrustedStore(this ILogger logger, string thumbprint, string subject);
+
+        [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Error,
+            Message = "Failed to add Certificate chain {Thumbprint}, {Subject} to trusted store.")]
+        public static partial void AddToTrustedStoreFailed(this ILogger logger, Exception ex, string thumbprint, string subject);
+
+        [LoggerMessage(EventId = EventClass + 9, Level = LogLevel.Information,
+            Message = "Removing Certificate {Thumbprint} from {Store}...")]
+        public static partial void RemoveCertificate(this ILogger logger, string thumbprint, string store);
+
+        [LoggerMessage(EventId = EventClass + 10, Level = LogLevel.Error,
+            Message = "Failed to delete {Crl}.")]
+        public static partial void DeleteCrlFailed(this ILogger logger, string? crl);
+
+        [LoggerMessage(EventId = EventClass + 11, Level = LogLevel.Error,
+            Message = "Failed to remove Certificate {Thumbprint} from {Store}...")]
+        public static partial void RemoveCertificateFailed(this ILogger logger, Exception ex, string thumbprint, string store);
+
+        [LoggerMessage(EventId = EventClass + 12, Level = LogLevel.Information,
+            Message = "Removing all Certificate from {Store}...")]
+        public static partial void RemoveAllCertificates(this ILogger logger, string store);
+
+        [LoggerMessage(EventId = EventClass + 13, Level = LogLevel.Error,
+            Message = "Failed to clear {Store} store.")]
+        public static partial void ClearStoreFailed(this ILogger logger, Exception ex, string store);
+
+        [LoggerMessage(EventId = EventClass + 14, Level = LogLevel.Error,
+            Message = "Failed to delete Certificate revocation in {Store}...")]
+        public static partial void DeleteCrlStoreFailed(this ILogger logger, Exception ex, string store);
+
+        [LoggerMessage(EventId = EventClass + 15, Level = LogLevel.Information,
+            Message = "No application own certificate found. Creating a self-signed certificate.")]
+        public static partial void CreateSelfSignedCert(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 16, Level = LogLevel.Information,
+            Message = "Own certificate Subject '{Subject}' (Thumbprint: {Thumbprint}) loaded.")]
+        public static partial void OwnCertificateLoaded(this ILogger logger, string subject, string thumbprint);
+
+        [LoggerMessage(EventId = EventClass + 17, Level = LogLevel.Error,
+            Message = "Failed to load or create application own certificate.")]
+        public static partial void LoadCertificateFailed(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 18, Level = LogLevel.Information,
+            Message = "Own certificate Subject '{Subject}' (Thumbprint: {Thumbprint}) created.")]
+        public static partial void OwnCertificateCreated(this ILogger logger, string subject, string thumbprint);
+
+        [LoggerMessage(EventId = EventClass + 19, Level = LogLevel.Information,
+            Message = "Error {Message} while configuring OPC UA stack - retry...")]
+        public static partial void ConfigureStackRetry(this ILogger logger, string message);
+
+        [LoggerMessage(EventId = EventClass + 20, Level = LogLevel.Debug,
+            Message = "Detailed error while configuring OPC UA stack.")]
+        public static partial void ConfigureStackDebug(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 21, Level = LogLevel.Critical,
+            Message = "Failed to configure OPC UA stack - exit.")]
+        public static partial void ConfigureStackFailed(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 22, Level = LogLevel.Debug,
+            Message = "Found invalid certificate for {Subject} [{Thumbprint}].")]
+        public static partial void InvalidCertFound(this ILogger logger, string subject, string thumbprint);
+
+        [LoggerMessage(EventId = EventClass + 23, Level = LogLevel.Debug,
+            Message = "Could not find a certificate to take information from.")]
+        public static partial void NoCertFound(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 24, Level = LogLevel.Debug,
+            Message = "Failed to find a certificate to take information from.")]
+        public static partial void FindCertFailed(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 25, Level = LogLevel.Information,
+            Message = "Application own certificate store contains {Count} certs.")]
+        public static partial void OwnStoreCount(this ILogger logger, int count);
+
+        [LoggerMessage(EventId = EventClass + 26, Level = LogLevel.Information,
+            Message = "{CertNum:D2}: Subject '{Subject}' (Thumbprint: {Thumbprint})")]
+        public static partial void CertificateInfo(this ILogger logger, int certNum, string subject, string thumbprint);
+
+        [LoggerMessage(EventId = EventClass + 27, Level = LogLevel.Error,
+            Message = "Error while trying to read information from application store.")]
+        public static partial void ReadStoreFailed(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 28, Level = LogLevel.Information,
+            Message = "Trusted issuer store contains {Count} certs.")]
+        public static partial void TrustedIssuerCount(this ILogger logger, int count);
+
+        [LoggerMessage(EventId = EventClass + 29, Level = LogLevel.Information,
+            Message = "Trusted issuer store has {Count} CRLs.")]
+        public static partial void TrustedIssuerCrlCount(this ILogger logger, int count);
+
+        [LoggerMessage(EventId = EventClass + 30, Level = LogLevel.Information,
+            Message = "{CrlNum:D2}: Issuer '{Issuer}', Next update time '{NextUpdate}'")]
+        public static partial void TrustedIssuerCrlInfo(this ILogger logger, int crlNum, string issuer, DateTime nextUpdate);
+
+        [LoggerMessage(EventId = EventClass + 31, Level = LogLevel.Error,
+            Message = "Error while trying to read information from trusted issuer store.")]
+        public static partial void TrustedIssuerStoreFailed(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 32, Level = LogLevel.Information,
+            Message = "Trusted peer store contains {Count} certs.")]
+        public static partial void TrustedPeerCount(this ILogger logger, int count);
+
+        [LoggerMessage(EventId = EventClass + 33, Level = LogLevel.Information,
+            Message = "Trusted peer store has {Count} CRLs.")]
+        public static partial void TrustedPeerCrlCount(this ILogger logger, int count);
+
+        [LoggerMessage(EventId = EventClass + 34, Level = LogLevel.Information,
+            Message = "{CrlNum:D2}: Issuer '{Issuer}', Next update time '{NextUpdate}'")]
+        public static partial void TrustedPeerCrlInfo(this ILogger logger, int crlNum, string issuer, DateTime nextUpdate);
+
+        [LoggerMessage(EventId = EventClass + 35, Level = LogLevel.Error,
+            Message = "Error while trying to read information from trusted peer store.")]
+        public static partial void TrustedPeerStoreFailed(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 36, Level = LogLevel.Information,
+            Message = "Rejected certificate store contains {Count} certs.")]
+        public static partial void RejectedStoreCount(this ILogger logger, int count);
+
+        [LoggerMessage(EventId = EventClass + 37, Level = LogLevel.Error,
+            Message = "Error while trying to read information from rejected certificate store.")]
+        public static partial void RejectedStoreFailed(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 38, Level = LogLevel.Warning,
+            Message = "Network not available...")]
+        public static partial void NetworkNotAvailable(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 39, Level = LogLevel.Error,
+            Message = "Failed to delete {Certificate}.")]
+        public static partial void DeleteCertificateFailed(this ILogger logger, string? certificate);
     }
 }

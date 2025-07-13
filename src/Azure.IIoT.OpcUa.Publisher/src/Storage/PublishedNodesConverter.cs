@@ -61,14 +61,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         public IEnumerable<PublishedNodesEntryModel> Read(string publishedNodesContent)
         {
             var sw = Stopwatch.StartNew();
-            _logger.LogDebug("Reading and validating published nodes file...");
+            _logger.ReadingPublishedNodesFile();
             try
             {
                 var items = _serializer.Deserialize<List<PublishedNodesEntryModel>>(publishedNodesContent)
                     ?? throw new SerializerException("Published nodes files, malformed.");
 
-                _logger.LogInformation("Read {Count} entry models from published nodes file in {Elapsed}",
-                    items.Count, sw.Elapsed);
+                _logger.ReadPublishedNodesFile(items.Count, sw.Elapsed);
                 return items;
             }
             finally
@@ -120,7 +119,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             WriterGroupMessageRetention = item.WriterGroup.Publishing?.Retain,
                             WriterGroupPartitions = item.WriterGroup.PublishQueuePartitions,
                             WriterGroupQueueName = item.WriterGroup.Publishing?.QueueName,
-                            SendKeepAliveDataSetMessages = item.Writer.DataSet?.SendKeepAlive ?? false,
+                            SendKeepAliveDataSetMessages = item.Writer.DataSet?.SendKeepAlive,
                             DataSetExtensionFields = item.Writer.DataSet?.ExtensionFields?.ToDictionary(
                                 e => e.DataSetFieldName, e => e.Value),
                             MetaDataUpdateTimeTimespan = item.Writer.MetaDataUpdateTime,
@@ -129,6 +128,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             MessageTtlTimespan = item.Writer.Publishing?.Ttl,
                             MessageRetention = item.Writer.Publishing?.Retain,
                             MetaDataQueueName = item.Writer.MetaData?.QueueName,
+                            MetaDataRetention = item.Writer.MetaData?.Retain,
+                            MetaDataTtlTimespan = item.Writer.MetaData?.Ttl,
                             MetaDataUpdateTime = null,
                             BatchTriggerIntervalTimespan = item.WriterGroup.PublishingInterval,
                             BatchTriggerInterval = null,
@@ -156,12 +157,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 item.Writer.DataSet?.DataSetSource?.SubscriptionSettings?.WatchdogBehavior,
                             BatchSize = item.WriterGroup.NotificationPublishThreshold,
                             DataSetName = item.Writer.DataSet?.Name,
+                            DataSetType = item.Writer.DataSet?.Type,
+                            DataSetRootNodeId = item.Writer.DataSet?.RootNode,
                             DataSetWriterGroup =
                                 item.WriterGroup.Name == Constants.DefaultWriterGroupName ? null : item.WriterGroup.Name,
                             DataSetWriterId = item.Writer.DataSetWriterName,
                             DataSetRouting = item.Writer.DataSet?.Routing,
                             DataSetPublishingInterval = null,
                             DataSetPublishingIntervalTimespan = null,
+                            WriterGroupRootNodeId = item.WriterGroup.RootNode,
+                            WriterGroupType = item.WriterGroup.Type,
+                            WriterGroupExternalId = item.WriterGroup.ExternalId,
+                            WriterGroupProperties = item.WriterGroup.Properties?.ToDictionary(),
                             OpcNodes = ToOpcNodes(item.Writer.DataSet?.DataSetSource?.SubscriptionSettings,
                                     item.Writer.DataSet?.DataSetSource?.PublishedVariables,
                                     item.Writer.DataSet?.DataSetSource?.PublishedEvents, preferTimeSpan, false)?
@@ -199,13 +206,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "failed to convert the published nodes.");
+                _logger.FailedToConvertPublishedNodes(ex);
                 return [];
             }
             finally
             {
-                _logger.LogInformation("Converted published nodes entry models to jobs in {Elapsed}",
-                    sw.Elapsed);
+                _logger.ConvertedPublishedNodes(sw.Elapsed);
                 sw.Stop();
             }
 
@@ -247,6 +253,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         OpcPublishingIntervalTimespan = !preferTimeSpan ? null :
                             subscriptionSettings?.PublishingInterval,
                         SkipFirst = variable.SkipFirst,
+                        VariableTypeDefinitionId = variable.TypeDefinitionId,
                         TriggeredNodes = skipTriggeringNodes ? null : ToOpcNodes(subscriptionSettings,
                             variable.Triggering?.PublishedVariables,
                             variable.Triggering?.PublishedEvents, preferTimeSpan, true)?.ToList(),
@@ -288,6 +295,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         // MonitoringMode = evt.MonitoringMode,
                         // ...
                         DeadbandType = null,
+                        VariableTypeDefinitionId = null,
                         DataChangeTrigger = null,
                         DataSetClassFieldId = Guid.Empty,
                         DeadbandValue = null,
@@ -396,6 +404,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         },
                         HeaderLayoutUri = group.Header.MessagingMode?.ToString(),
                         Name = group.Header.DataSetWriterGroup,
+                        Properties = group.Header.WriterGroupProperties,
+                        ExternalId = group.Header.WriterGroupExternalId,
+                        Type = group.Header.WriterGroupType,
+                        RootNode = group.Header.WriterGroupRootNodeId,
                         NotificationPublishThreshold = group.Header.BatchSize,
                         PublishQueuePartitions = group.Header.WriterGroupPartitions,
                         PublishingInterval = group.Header.GetNormalizedBatchTriggerInterval(),
@@ -429,16 +441,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                     {
                                         QueueName = b.Header.MetaDataQueueName,
                                         RequestedDeliveryGuarantee = null,
-                                        Retain = true,
-                                        Ttl = null
+                                        Retain = b.Header.MetaDataRetention,
+                                        Ttl = b.Header.MetaDataTtlTimespan
                                     },
                                     DataSet = new PublishedDataSetModel
                                     {
                                         Name = b.Header.DataSetName,
+                                        Type = b.Header.DataSetType,
+                                        RootNode = b.Header.DataSetRootNodeId,
                                         DataSetMetaData = new DataSetMetaDataModel
                                         {
                                             DataSetClassId = b.Header.DataSetClassId,
                                             Description = b.Header.DataSetDescription,
+                                            MajorVersion = null,
                                             Name = b.Header.DataSetName
                                         },
                                         ExtensionFields = b.Header.DataSetExtensionFields?
@@ -495,13 +510,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "failed to convert the published nodes.");
+                _logger.FailedToConvertPublishedNodes(ex);
                 return [];
             }
             finally
             {
-                _logger.LogInformation("Converted published nodes entry models to jobs in {Elapsed}",
-                    sw.Elapsed);
+                _logger.ConvertedPublishedNodes(sw.Elapsed);
                 sw.Stop();
             }
 
@@ -513,7 +527,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                     {
                         if (!node.TryGetId(out var id))
                         {
-                            _logger.LogError("No node id was configured in the opc node entry - skipping...");
+                            _logger.MissingNodeId();
                             continue;
                         }
                         if (scaleTestCount <= 1)
@@ -538,6 +552,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 IndexRange = node.IndexRange,
                                 RegisterNode = node.RegisterNode,
                                 UseCyclicRead = node.UseCyclicRead,
+                                VariableTypeDefinitionId = node.VariableTypeDefinitionId,
                                 CyclicReadMaxAgeTimespan = node.GetNormalizedCyclicReadMaxAge(),
                                 SkipFirst = node.SkipFirst,
                                 DataChangeTrigger = node.DataChangeTrigger,
@@ -578,6 +593,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                     IndexRange = node.IndexRange,
                                     RegisterNode = node.RegisterNode,
                                     UseCyclicRead = node.UseCyclicRead,
+                                    VariableTypeDefinitionId = node.VariableTypeDefinitionId,
                                     CyclicReadMaxAgeTimespan = node.GetNormalizedCyclicReadMaxAge(),
                                     DeadbandType = node.DeadbandType,
                                     DeadbandValue = node.DeadbandValue,
@@ -635,6 +651,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         SubstituteValue = null,
                         SkipFirst = node.SkipFirst,
                         DataChangeTrigger = node.DataChangeTrigger,
+                        TypeDefinitionId = node.VariableTypeDefinitionId,
                         DeadbandValue = node.DeadbandValue,
                         DeadbandType = node.DeadbandType,
                         Publishing = node.Topic == null && node.QualityOfService == null
@@ -838,7 +855,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 {
                                     Runtime.FailFast("Credential encryption is enforced! " + error, null);
                                 }
-                                _logger.LogError(error + " - not using credential!");
+                                _logger.CredentialDecryptionError(error);
                                 break;
                             }
                         }
@@ -859,7 +876,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 {
                                     Runtime.FailFast("Credential encryption is enforced! " + error, null);
                                 }
-                                _logger.LogError(error + " - not using credential!");
+                                _logger.CredentialDecryptionError(error);
                                 break;
                             }
                         }
@@ -874,7 +891,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         }
                         // There is no reason we should use the encrypted credential here as plain
                         // text so just use none and move on.
-                        _logger.LogError(ex, error + " - not using credential!");
+                        _logger.CredentialDecryptionException(ex, error);
                         break;
                     }
                     return new CredentialModel
@@ -899,5 +916,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         private readonly IIoTEdgeWorkloadApi? _cryptoProvider;
         private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;
+    }
+
+    /// <summary>
+    /// Source-generated logging extensions for PublishedNodesConverter
+    /// </summary>
+    internal static partial class PublishedNodesConverterLogging
+    {
+        private const int EventClass = 1720;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Debug,
+            Message = "Reading and validating published nodes file...")]
+        internal static partial void ReadingPublishedNodesFile(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Information,
+            Message = "Read {Count} entry models from published nodes file in {Elapsed}")]
+        internal static partial void ReadPublishedNodesFile(this ILogger logger, int count, TimeSpan elapsed);
+
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Error,
+            Message = "failed to convert the published nodes.")]
+        internal static partial void FailedToConvertPublishedNodes(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Information,
+            Message = "Converted published nodes entry models to jobs in {Elapsed}")]
+        internal static partial void ConvertedPublishedNodes(this ILogger logger, TimeSpan elapsed);
+
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Error,
+            Message = "No node id was configured in the opc node entry - skipping...")]
+        internal static partial void MissingNodeId(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Error,
+            Message = "{Error} - not using credential!")]
+        internal static partial void CredentialDecryptionError(this ILogger logger, string error);
+
+        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Error,
+            Message = "{Error} - not using credential!")]
+        internal static partial void CredentialDecryptionException(this ILogger logger, Exception ex, string error);
     }
 }

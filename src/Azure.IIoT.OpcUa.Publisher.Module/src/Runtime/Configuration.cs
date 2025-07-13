@@ -5,11 +5,15 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
-    using Azure.IIoT.OpcUa.Publisher.Module.Controllers;
-    using Azure.IIoT.OpcUa.Encoders;
     using Autofac;
+    using Azure.IIoT.OpcUa.Encoders;
+    using Azure.IIoT.OpcUa.Publisher.Module.Controllers;
+    using Azure.IIoT.OpcUa.Publisher.Services;
+    using Azure.Iot.Operations.Protocol;
     using Furly.Azure.EventHubs;
     using Furly.Azure.IoT.Edge;
+    using Furly.Azure.IoT.Operations.Runtime;
+    using Furly.Azure.IoT.Operations.Services;
     using Furly.Extensions.AspNetCore.OpenApi;
     using Furly.Extensions.Configuration;
     using Furly.Extensions.Dapr;
@@ -18,6 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Furly.Extensions.Mqtt;
     using Furly.Extensions.Rpc.Runtime;
     using Furly.Tunnel.Router.Services;
+    using k8s;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Server.Kestrel.Core;
@@ -27,17 +32,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Microsoft.Extensions.Logging.Console;
     using Microsoft.Extensions.Options;
     using Microsoft.OpenApi.Models;
+    using Opc.Ua;
     using OpenTelemetry.Exporter;
     using OpenTelemetry.Logs;
     using OpenTelemetry.Metrics;
     using OpenTelemetry.Trace;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Net;
     using System.Text.RegularExpressions;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Configuration extensions
@@ -149,6 +158,38 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 builder.AddIoTEdgeServices();
                 builder.RegisterType<IoTEdge>()
                     .AsImplementedInterfaces();
+            }
+        }
+
+        /// <summary>
+        /// Add IoT operations services
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="configuration"></param>
+        public static void AddIoTOperationsServices(this ContainerBuilder builder,
+            IConfiguration configuration)
+        {
+            var publisherOptions = new PublisherOptions();
+            new Aio(configuration).Configure(publisherOptions);
+            if (publisherOptions.IsAzureIoTOperationsConnector.HasValue)
+            {
+                // builder.AddAzureIoTOperations();
+                builder.AddAzureIoTOperationsCore();
+                builder.AddAdrClient();
+                builder.AddTelemetryPublisher();
+                builder.AddSchemaRegistry();
+                // builder.AddLeaderElection();
+                // builder.AddStateStore();
+
+                builder.RegisterType<Aio>().AsImplementedInterfaces();
+                if (publisherOptions.IsAzureIoTOperationsConnector.Value)
+                {
+                    builder.RegisterInstance(new HybridLogicalClock(
+                        DateTime.UtcNow, 0, publisherOptions.PublisherId))
+                        .AsSelf().SingleInstance();
+                    builder.RegisterType<AssetDeviceIntegration>()
+                        .AsSelf().AsImplementedInterfaces().SingleInstance();
+                }
             }
         }
 
@@ -458,6 +499,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         }
 
         /// <summary>
+        /// Add connector configuration
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <returns></returns>
+        public static IConfigurationBuilder AddConnectorAdditionalConfiguration(
+            this IConfigurationBuilder builder)
+        {
+            var connectorConfigMountPath = Environment.GetEnvironmentVariable(
+                Azure.Iot.Operations.Connector.ConnectorConfigurations.
+                    ConnectorFileMountSettings.ConnectorConfigMountPathEnvVar);
+            if (string.IsNullOrEmpty(connectorConfigMountPath))
+            {
+                return builder;
+            }
+            var additionalConfiguration = Path.Combine(connectorConfigMountPath,
+                "ADDITIONAL_CONNECTOR_CONFIGURATION");
+            var diagnostics = Path.Combine(connectorConfigMountPath,
+                 Azure.Iot.Operations.Connector.ConnectorConfigurations.
+                    ConnectorFileMountSettings.ConnectorDiagnosticsConfigFileName);
+            return builder
+                .AddJsonFile(diagnostics, optional: true,
+                    reloadOnChange: true)
+                .AddJsonFile(additionalConfiguration, optional: true,
+                    reloadOnChange: true);
+        }
+
+        /// <summary>
         /// Otlp configuration from environment
         /// </summary>
         internal sealed class Otlp : ConfigureOptionBase<OtlpExporterOptions>,
@@ -477,11 +545,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             internal const string OtlpEndpointDisabled = "disabled";
 
             /// <summary>
+            /// Otlp collector endpoint
+            /// </summary>
+            public string OTlpEndpoint => GetStringOrDefault(OtlpCollectorEndpointKey,
+                GetStringOrDefault("OTLP_METRIC_ENDPOINT_3P", string.Empty));
+
+            /// <summary>
             /// Use prometheus
             /// </summary>
             public bool AddPrometheusEndpoint
                 => GetBoolOrDefault(EnableMetricsKey,
-                        GetStringOrDefault(OtlpCollectorEndpointKey) == null);
+                        string.IsNullOrEmpty(OTlpEndpoint));
 
             /// <summary>
             /// Max metrics to collect, the default in otel is 1000
@@ -516,7 +590,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// <inheritdoc/>
             public override void Configure(string? name, OtlpExporterOptions options)
             {
-                var endpoint = GetStringOrDefault(OtlpCollectorEndpointKey);
+                var endpoint = OTlpEndpoint;
                 if (!string.IsNullOrEmpty(endpoint) &&
                     Uri.TryCreate(endpoint, UriKind.RelativeOrAbsolute, out var uri))
                 {
@@ -539,7 +613,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     new PeriodicExportingMetricReaderOptions
                     {
                         ExportIntervalMilliseconds = GetIntOrDefault(
-                            OtlpExportIntervalMillisecondsKey, OtlpExportIntervalMillisecondsDefault)
+                            OtlpExportIntervalMillisecondsKey,
+                            GetIntOrDefault("OTLP_METRIC_EXPORT_INTERVAL_3P",
+                                OtlpExportIntervalMillisecondsDefault))
                     };
             }
 
@@ -605,9 +681,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 var levelString = GetStringOrDefault(LogLevelKey);
                 if (!string.IsNullOrEmpty(levelString))
                 {
-                    if (Enum.TryParse<LogLevel>(levelString, out var logLevel))
+                    if (Enum.TryParse<LogLevel>(levelString, true, out var ll))
                     {
-                        options.MinLevel = logLevel;
+                        options.MinLevel = ll;
                     }
                     else
                     {
@@ -622,6 +698,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                                 break;
                         }
                     }
+                    // Use command line configuration only
+                    return;
+                }
+
+                // Get diagnostic config from { logs: { level: x } }
+                levelString = GetStringOrDefault("logs:level");
+                if (string.IsNullOrEmpty(levelString))
+                {
+                    return;
+                }
+                switch (levelString.ToLowerInvariant())
+                {
+                    case "trace":
+                        options.MinLevel = LogLevel.Trace;
+                        return;
+                    case "debug":
+                        options.MinLevel = LogLevel.Debug;
+                        return;
+                    case "info":
+                        options.MinLevel = LogLevel.Information;
+                        return;
+                    case "warn":
+                        options.MinLevel = LogLevel.Warning;
+                        return;
+                    case "error":
+                        options.MinLevel = LogLevel.Error;
+                        return;
+                    case "none":
+                        options.MinLevel = LogLevel.None;
+                        return;
+                }
+                // Since it is free form, try to adapt to .net log level names
+                if (Enum.TryParse<LogLevel>(levelString, true, out var logLevel))
+                {
+                    options.MinLevel = logLevel;
                 }
             }
 
@@ -1233,6 +1344,54 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// </summary>
             /// <param name="configuration"></param>
             public IoTEdge(IConfiguration configuration)
+                : base(configuration)
+            {
+            }
+        }
+
+        /// <summary>
+        /// Configure Azure IoT Operations integration
+        /// </summary>
+        internal sealed class Aio : ConfigureOptionBase<PublisherOptions>
+        {
+            /// <summary>
+            /// Configuration
+            /// </summary>
+            public const string AioBrokerHostName = "AIO_BROKER_HOSTNAME";
+            public const string ConnectorId = "CONNECTOR_ID";
+
+            /// <inheritdoc/>
+            public override void Configure(string? name, PublisherOptions options)
+            {
+                if (!KubernetesClientConfiguration.IsInCluster())
+                {
+                    return;
+                }
+                var connectorId = GetStringOrDefault(ConnectorId);
+                if (!string.IsNullOrEmpty(connectorId))
+                {
+                    options.IsAzureIoTOperationsConnector = true;
+                    options.UseStandardsCompliantEncoding = true;
+                    options.EnableCloudEvents = true;
+                    options.PublisherId = connectorId;
+                }
+                else if (!string.IsNullOrEmpty(GetStringOrDefault(AioBrokerHostName)))
+                {
+                    options.IsAzureIoTOperationsConnector = false;
+                    // No adr integration we might only have broker
+                }
+                else
+                {
+                    // TODO: Enable
+                    // Test running as workload and add Mqttclient too
+                }
+            }
+
+            /// <summary>
+            /// Create configuration
+            /// </summary>
+            /// <param name="configuration"></param>
+            public Aio(IConfiguration configuration)
                 : base(configuration)
             {
             }

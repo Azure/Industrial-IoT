@@ -27,12 +27,12 @@
  * http://opcfoundation.org/License/MIT/1.00/
  * ======================================================================*/
 
+using Opc.Ua.Server;
 using System;
 using System.Collections.Generic;
-using System.Threading;
-using System.Reflection;
-using Opc.Ua.Server;
 using System.Linq;
+using System.Reflection;
+using System.Threading;
 
 namespace Opc.Ua.Sample
 {

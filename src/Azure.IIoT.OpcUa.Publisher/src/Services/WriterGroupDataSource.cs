@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
-    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Serializers;
@@ -134,9 +133,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         await subscription.DisposeAsync().ConfigureAwait(false);
                     }
-                    _logger.LogInformation(
-                        "Removed all subscriptions from writer group {WriterGroup}.",
-                            writerGroup.Id);
+                    _logger.RemovedAllSubscriptions(writerGroup.Id);
                     _writers.Clear();
                     _writerGroup = writerGroup;
                     return;
@@ -147,9 +144,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 // be duplicate writer ids here, if there are we throw an exception.
                 //
                 var writerKeySet = new HashSet<DataSetWriter>();
-                foreach (var processWriter in writerGroup.DataSetWriters)
+                foreach (var writer in writerGroup.DataSetWriters)
                 {
-                    foreach (var key in DataSetWriter.GetDataSetWriters(this, processWriter))
+                    foreach (var key in DataSetWriter.GetDataSetWriters(this, writer))
                     {
                         if (!writerKeySet.Add(key))
                         {
@@ -206,9 +203,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     writer.Index = index++;
                 }
 
-                _logger.LogInformation(
-                    "Successfully updated all writers inside the writer group {WriterGroup}.",
-                    writerGroup.Id);
+                _logger.UpdatedAllWriters(writerGroup.Id);
 
                 _writerGroup = writerGroup;
             }
@@ -229,11 +224,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             try
             {
-                foreach (var s in _writers.Values)
+                await _lock.WaitAsync().ConfigureAwait(false);
+                try
                 {
-                    await s.DisposeAsync().ConfigureAwait(false);
+                    foreach (var s in _writers.Values)
+                    {
+                        await s.DisposeAsync().ConfigureAwait(false);
+                    }
                 }
-                _writers.Clear();
+                finally
+                {
+                    _writers.Clear();
+                    _lock.Release();
+                }
             }
             finally
             {
@@ -351,9 +354,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             if (!PubSubMessage.TryCreateNetworkMessageSchema(encoding, input,
                                 out schema, _options.Value.SchemaOptions))
                             {
-                                _logger.LogWarning("Failed to create schema for {Encoding} " +
-                                    "encoded messages for writer group {WriterGroup}.",
-                                    encoding, writerGroup.Id);
+                                _logger.FailedToCreateSchema(encoding, writerGroup.Id);
                             }
                         }
                         _schema = schema;
@@ -624,5 +625,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private int _metadataChanges;
         private int _lastMetadataChange = -1;
         private IEventSchema? _schema;
+    }
+
+    /// <summary>
+    /// Source-generated logging extensions for WriterGroupDataSource
+    /// </summary>
+    internal static partial class WriterGroupDataSourceLogging
+    {
+        private const int EventClass = 360;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
+            Message = "Removed all subscriptions from writer group {WriterGroup}.")]
+        public static partial void RemovedAllSubscriptions(this ILogger logger, string writerGroup);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Information,
+            Message = "Successfully updated all writers inside the writer group {WriterGroup}.")]
+        public static partial void UpdatedAllWriters(this ILogger logger, string writerGroup);
+
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Warning,
+            Message = "Failed to create schema for {Encoding} encoded messages for writer group {WriterGroup}.")]
+        public static partial void FailedToCreateSchema(this ILogger logger, MessageEncoding encoding, string writerGroup);
     }
 }

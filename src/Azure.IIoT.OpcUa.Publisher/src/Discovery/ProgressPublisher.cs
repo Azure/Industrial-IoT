@@ -55,7 +55,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
             base.Send(progress);
             if (!_channel.Writer.TryWrite(progress))
             {
-                _logger.LogError("Cannot send if progress publisher is already disposed.");
+                _logger.CannotSendIfProgressPublisherDisposed();
                 ObjectDisposedException.ThrowIf(true, this);
             }
         }
@@ -88,7 +88,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to send discovery progress.");
+                    _logger.FailedToSendDiscoveryProgress(ex);
                 }
             }
         }
@@ -99,5 +99,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         private readonly Channel<DiscoveryProgressModel> _channel;
         private readonly string _topic;
         private readonly IEventClient _events;
+    }
+
+    internal static partial class ProgressPublisherLogging
+    {
+        private const int EventClass = 60;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Error,
+            Message = "Cannot send if progress publisher is already disposed.")]
+        public static partial void CannotSendIfProgressPublisherDisposed(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Error,
+            Message = "Failed to send discovery progress.")]
+        public static partial void FailedToSendDiscoveryProgress(this ILogger logger, Exception ex);
     }
 }

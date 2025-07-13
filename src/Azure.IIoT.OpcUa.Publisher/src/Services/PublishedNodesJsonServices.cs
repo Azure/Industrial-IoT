@@ -486,9 +486,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 }
                                 else
                                 {
-                                    _logger.LogDebug("Node \"{Node}\" is already present " +
-                                        "for entry with \"{Endpoint}\" endpoint.",
-                                        nodeToAdd.Id, entry.EndpointUrl);
+                                    _logger.NodeAlreadyPresent(nodeToAdd.Id, entry.EndpointUrl);
                                 }
                             }
                             dataSetFound = true;
@@ -965,8 +963,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="e"></param>
         private void OnChanged(object? sender, FileSystemEventArgs e)
         {
-            _logger.LogDebug("File {File} {Action}. Triggering file refresh ...",
-                e.ChangeType, e.Name);
+            _logger.FileChanged(e.ChangeType, e.Name);
             _fileChanges.Writer.TryWrite(e.ChangeType == WatcherChangeTypes.Deleted);
         }
 
@@ -1001,23 +998,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 {
                                     if (string.IsNullOrEmpty(_lastKnownFileHash))
                                     {
-                                        _logger.LogInformation(
-                                            "Found published Nodes File with hash {NewHash}, loading...",
-                                            currentFileHash);
+                                        _logger.FoundPublishedNodesFile(currentFileHash);
                                     }
                                     else
                                     {
-                                        _logger.LogInformation("Published Nodes File changed, " +
-                                            "last known hash {LastHash}, new hash {NewHash}, reloading...",
-                                            _lastKnownFileHash, currentFileHash);
+                                        _logger.PublishedNodesFileChanged(_lastKnownFileHash, currentFileHash);
                                     }
 
                                     var entries = _publishedNodesJobConverter.Read(content).ToList();
                                     TransformFromLegacyNodeId(entries);
                                     jobs = _publishedNodesJobConverter.ToWriterGroups(entries);
                                 }
-                                _logger.LogInformation("{Action} publisher configuration completed.",
-                                    clear ? "Resetting" : "Refreshing");
+                                _logger.PublisherConfigurationCompleted(clear ? "Resetting" : "Refreshing");
                                 try
                                 {
                                     await _publisherHost.UpdateAsync(jobs).ConfigureAwait(false);
@@ -1029,7 +1021,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 {
                                     if (_publisherHost.TryUpdate(jobs))
                                     {
-                                        _logger.LogDebug(ex, "Not initializing, update without waiting.");
+                                        _logger.NotInitializingUpdateWithoutWaiting(ex);
                                         _lastKnownFileHash = currentFileHash;
                                     }
                                 }
@@ -1040,8 +1032,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 // avoid double events from FileSystemWatcher
                                 if (lastWriteTime - _lastRead > TimeSpan.FromMilliseconds(10))
                                 {
-                                    _logger.LogDebug("Published Nodes File changed but " +
-                                        "content-hash is equal to last one, nothing to do...");
+                                    _logger.PublishedNodesFileChangedContentHashEqual();
                                 }
                             }
                             _lastRead = lastWriteTime;
@@ -1053,17 +1044,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             if (++retryCount <= 3)
                             {
                                 Debug.Assert(!clear);
-                                _logger.LogDebug(ex,
-                                    "Error while loading job from file. Attempt #{Count}...",
-                                    retryCount);
+                                _logger.ErrorLoadingJobFromFileAttempt(ex, retryCount);
 
                                 // Queue another one and wait a bit
                                 _fileChanges.Writer.TryWrite(false);
                                 await Task.Delay(500).ConfigureAwait(false);
                                 continue;
                             }
-                            _logger.LogError(ex,
-                                "Error while loading job from file. Retry expired, giving up.");
+                            _logger.ErrorLoadingJobFromFileRetryExpired(ex);
                         }
                         catch (SerializerException sx)
                         {
@@ -1071,20 +1059,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             const string error = "SerializerException while loading job from file.";
                             if (_logger.IsEnabled(LogLevel.Debug))
                             {
-                                _logger.LogError(sx, error);
+                                _logger.ErrorLoadingJobFromFileSerializer(sx, error);
                             }
                             else
                             {
-                                _logger.LogError(error);
+                                _logger.ErrorLoadingJobFromFileSerializer(error);
                             }
                             retryCount = 0;
                             _started?.TrySetResult();
                         }
                         catch (Exception ex) when (ex is not ObjectDisposedException)
                         {
-                            _logger.LogError(ex,
-                                "Error during publisher {Action}. Retrying...",
-                                clear ? "Reset" : "Update");
+                            _logger.ErrorDuringPublisherAction(ex, clear ? "Reset" : "Update");
                             _fileChanges.Writer.TryWrite(clear);
                             retryCount = 0;
                             _started?.TrySetResult();
@@ -1296,5 +1282,61 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly Channel<bool> _fileChanges;
         private readonly SemaphoreSlim _api = new(1, 1);
         private readonly SemaphoreSlim _file = new(1, 1);
+    }
+
+    /// <summary>
+    /// Source-generated logging extensions for PublishedNodesJsonServices
+    /// </summary>
+    internal static partial class PublishedNodesJsonServicesLogging
+    {
+        private const int EventClass = 230;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Debug,
+            Message = "File {File} {Action}. Triggering file refresh ...")]
+        public static partial void FileChanged(this ILogger logger, WatcherChangeTypes action, string? file);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Debug,
+            Message = "Error while loading job from file. Attempt #{Count}...")]
+        public static partial void ErrorLoadingJobFromFileAttempt(this ILogger logger, Exception ex, int count);
+
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Error,
+            Message = "Error while loading job from file. Retry expired, giving up.")]
+        public static partial void ErrorLoadingJobFromFileRetryExpired(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Error,
+            Message = "{Error}")]
+        public static partial void ErrorLoadingJobFromFileSerializer(this ILogger logger, Exception ex, string error);
+
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Error,
+            Message = "{Error}")]
+        public static partial void ErrorLoadingJobFromFileSerializer(this ILogger logger, string error);
+
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Error,
+            Message = "Error during publisher {Action}. Retrying...")]
+        public static partial void ErrorDuringPublisherAction(this ILogger logger, Exception ex, string action);
+
+        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Debug,
+            Message = "Node \"{Node}\" is already present for entry with \"{Endpoint}\" endpoint.")]
+        public static partial void NodeAlreadyPresent(this ILogger logger, string? node, string? endpoint);
+
+        [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Information,
+            Message = "Found published Nodes File with hash {NewHash}, loading...")]
+        public static partial void FoundPublishedNodesFile(this ILogger logger, string? newHash);
+
+        [LoggerMessage(EventId = EventClass + 9, Level = LogLevel.Information,
+            Message = "Published Nodes File changed, last known hash {LastHash}, new hash {NewHash}, reloading...")]
+        public static partial void PublishedNodesFileChanged(this ILogger logger, string? lastHash, string? newHash);
+
+        [LoggerMessage(EventId = EventClass + 10, Level = LogLevel.Information,
+            Message = "{Action} publisher configuration completed.")]
+        public static partial void PublisherConfigurationCompleted(this ILogger logger, string action);
+
+        [LoggerMessage(EventId = EventClass + 11, Level = LogLevel.Debug,
+            Message = "Not initializing, update without waiting.")]
+        public static partial void NotInitializingUpdateWithoutWaiting(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 12, Level = LogLevel.Debug,
+            Message = "Published Nodes File changed but content-hash is equal to last one, nothing to do...")]
+        public static partial void PublishedNodesFileChangedContentHashEqual(this ILogger logger);
     }
 }

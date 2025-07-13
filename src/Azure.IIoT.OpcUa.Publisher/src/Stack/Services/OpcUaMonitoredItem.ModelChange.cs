@@ -120,7 +120,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <inheritdoc/>
             public override int GetHashCode()
             {
-                var hashCode = 435243663;
+                var hashCode = 435243663 + base.GetHashCode();
                 hashCode = (hashCode * -1521134295) +
                     EqualityComparer<string>.Default.GetHashCode(
                         Template.DataSetFieldName ?? string.Empty);
@@ -413,7 +413,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                         _browser.OnReferenceChange += OnReferenceChange;
                         _browser.OnNodeChange += OnNodeChange;
-                        _logger.LogInformation("Item {Item} registered with browser.", this);
+                        _logger.ItemRegistered(this);
                     }
                 }
             }
@@ -439,7 +439,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (browser != null)
                 {
                     await browser.CloseAsync().ConfigureAwait(false);
-                    _logger.LogInformation("Item {Item} unregistered from browser.", this);
+                    _logger.ItemUnregistered(this);
                 }
             }
 
@@ -453,5 +453,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private IOpcUaBrowser? _browser;
             private bool _disposed;
         }
+    }
+
+    /// <summary>
+    /// Source-generated logging definitions for OpcUaMonitoredItem ModelChange handling
+    /// </summary>
+    internal static partial class OpcUaMonitoredItemModelChangeLogging
+    {
+        private const int EventClass = 1130;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
+            Message = "Item {Item} registered with browser.")]
+        public static partial void ItemRegistered(this ILogger logger, OpcUaMonitoredItem.ModelChangeEventItem item);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Information,
+            Message = "Item {Item} unregistered from browser.")]
+        public static partial void ItemUnregistered(this ILogger logger, OpcUaMonitoredItem.ModelChangeEventItem item);
     }
 }

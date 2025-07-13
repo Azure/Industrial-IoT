@@ -1966,7 +1966,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                         Debug.Assert(enumType != null);
                         WriteEnumeratedArray(fieldName, enumArray, enumType);
                         return;
-                    case BuiltInType.Variant:
+                    // case BuiltInType.Variant:
                     default:
                         if (array is IEncodeable[] encodeables)
                         {

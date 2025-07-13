@@ -8,12 +8,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Autofac;
-    using Microsoft.Extensions.Diagnostics.ResourceMonitoring;
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Diagnostics.Metrics;
 
@@ -58,8 +56,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 IngestionStart = _timeProvider.GetUtcNow()
             };
             _diagnostics.AddOrUpdate(writerGroupId, _ => diag, (_, _) => diag);
-            _logger.LogInformation("Tracking diagnostics for {WriterGroup} was (re-)started.",
-                writerGroupId);
+            _logger.TrackingDiagnosticsRestarted(writerGroupId);
         }
 
         /// <inheritdoc/>
@@ -122,8 +119,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             if (_diagnostics.TryRemove(writerGroupId, out _))
             {
-                _logger.LogInformation("Stop tracking diagnostics for {WriterGroup}.",
-                    writerGroupId);
+                _logger.TrackingDiagnosticsStopped(writerGroupId);
                 return true;
             }
             return false;
@@ -353,9 +349,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 ["dotnet.process.memory.virtual.utilization"] =
                     (d, i) => d.MemoryUsedPercentage = (double)i,
                 ["dotnet.process.memory.working_set"] =
-                    (d, i) => d.MemoryUsedInBytes = (ulong)(long)i,
+                    (d, i) => d.MemoryUsedInBytes = (ulong)(long)i
 
                 // ... Add here more items if needed
             };
+    }
+
+    /// <summary>
+    /// Source-generated logging extensions for PublisherDiagnosticCollector
+    /// </summary>
+    internal static partial class PublisherDiagnosticCollectorLogging
+    {
+        private const int EventClass = 260;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
+            Message = "Tracking diagnostics for {WriterGroup} was (re-)started.")]
+        public static partial void TrackingDiagnosticsRestarted(this ILogger logger, string writerGroup);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Information,
+            Message = "Stop tracking diagnostics for {WriterGroup}.")]
+        public static partial void TrackingDiagnosticsStopped(this ILogger logger, string writerGroup);
     }
 }

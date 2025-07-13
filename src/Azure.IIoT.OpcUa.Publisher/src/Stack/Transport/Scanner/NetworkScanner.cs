@@ -91,7 +91,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
             _pings = CreatePings(local ? _addresses.Count + 1 :
                 maxProbeCount ?? kDefaultMaxProbeCount);
             // Start initial pings
-            _logger.LogInformation("Start scanning {Sddresses}...", _addresses.Select(a => a.ToString()));
+            _logger.StartScanning(_addresses.Select(a => a.ToString()));
             foreach (var ping in _pings.ToList())
             {
                 OnNextPing(ping);
@@ -208,5 +208,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner
         private readonly TaskCompletionSource<bool> _completion;
         private readonly CancellationToken _ct;
         private volatile int _scanCount;
+    }
+
+    /// <summary>
+    /// Source-generated logging for NetworkScanner
+    /// </summary>
+    internal static partial class NetworkScannerLogging
+    {
+        private const int EventClass = 1660;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
+            Message = "Start scanning {Addresses}...")]
+        internal static partial void StartScanning(this ILogger logger, IEnumerable<string> addresses);
     }
 }

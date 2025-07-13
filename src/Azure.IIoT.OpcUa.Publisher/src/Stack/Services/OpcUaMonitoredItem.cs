@@ -195,6 +195,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             return CloneMonitoredItem(true, true);
         }
 
+        /// <inheritdoc/>
+        public override int GetHashCode()
+        {
+            return Owner.GetHashCode();
+        }
+
         /// <summary>
         /// Create items
         /// </summary>
@@ -262,6 +268,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             GC.SuppressFinalize(this);
         }
 
+        /// <inheritdoc/>
+        public override string ToString()
+        {
+            return base.ToString()!;
+        }
+
         /// <summary>
         /// Try and get metadata for the item
         /// </summary>
@@ -321,9 +333,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             if (Valid)
             {
                 subscription.AddItem(this);
-                _logger.LogDebug(
-                    "Added monitored item {Item} to subscription #{SubscriptionId}.",
-                    this, subscription.Id);
+                _logger.ItemAdded(this, subscription.Id);
                 metadataChanged = true;
                 return true;
             }
@@ -363,9 +373,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             if (AttachedToSubscription)
             {
                 subscription.RemoveItem(this);
-                _logger.LogDebug(
-                    "Removed monitored item {Item} from subscription #{SubscriptionId}.",
-                    this, subscription.Id);
+                _logger.ItemRemoved(this, subscription.Id);
                 metadataChanged = true;
                 return true;
             }
@@ -384,16 +392,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             if (!Valid)
             {
-                _logger.LogError("{Item}: Item was disposed or moved to another subscription",
-                    this);
+                _logger.ItemDisposed(this);
                 return false;
             }
 
             if (!AttachedToSubscription)
             {
-                _logger.LogDebug(
-                    "Item {Item} removed from subscription #{SubscriptionId} with {Status}.",
-                    this, subscription.Id, Status.Error);
+                _logger.ItemRemovedWithStatus(this, subscription.Id, Status.Error);
                 // Complete removal
                 return true;
             }
@@ -402,16 +407,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             if (Status.MonitoringMode == Opc.Ua.MonitoringMode.Disabled)
             {
-                _logger.LogDebug("{Item}: Item is disabled while trying to complete.", this);
+                _logger.ItemDisabled(this);
                 return true;
             }
 
             if (Status.Error != null && StatusCode.IsNotGood(Status.Error.StatusCode))
             {
-                _logger.LogWarning("Error adding monitored item {Item} " +
-                    "to subscription #{SubscriptionId} due to {Status}.",
-                    this, subscription.Id, Status.Error);
-
+                _logger.AddMonitoredItemError(this, subscription.Id, Status.Error);
                 // Not needed, mode changes applied after
                 // applyChanges = true;
                 return false;
@@ -438,36 +440,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             if (SamplingInterval != Status.SamplingInterval &&
                 QueueSize != Status.QueueSize && Status.QueueSize != 0)
             {
-                _logger.LogInformation("Server revised SamplingInterval from {SamplingInterval} " +
-                    "to {CurrentSamplingInterval} and QueueSize from {QueueSize} " +
-                    "to {CurrentQueueSize} for #{SubscriptionId}|{Item}('{Name}').",
+                _logger.RevisionComplete(
                     SamplingInterval, Status.SamplingInterval, QueueSize, Status.QueueSize,
                     Subscription.Id, StartNodeId, DisplayName);
             }
             else if (SamplingInterval != Status.SamplingInterval)
             {
-                _logger.LogInformation("Server revised SamplingInterval from {SamplingInterval} " +
-                    "to {CurrentSamplingInterval} for #{SubscriptionId}|{Item}('{Name}').",
-                    SamplingInterval, Status.SamplingInterval,
+                _logger.SamplingIntervalRevised(SamplingInterval, Status.SamplingInterval,
                     Subscription.Id, StartNodeId, DisplayName);
             }
             else if (QueueSize != Status.QueueSize && Status.QueueSize != 0)
             {
-                _logger.LogInformation("Server revised QueueSize from {QueueSize} " +
-                    "to {CurrentQueueSize} for #{SubscriptionId}|{Item}('{Name}').",
-                    QueueSize, Status.QueueSize,
+                _logger.QueueSizeRevised(QueueSize, Status.QueueSize,
                     Subscription.Id, StartNodeId, DisplayName);
             }
             else
             {
-                _logger.LogDebug("Server accepted configuration " +
-                    "unchanged for #{SubscriptionId}|{Item}('{Name}').",
-                    Subscription.Id, StartNodeId, DisplayName);
+                _logger.ConfigurationAccepted(Subscription.Id, StartNodeId, DisplayName);
             }
 
-            _logger.LogDebug("SamplingInterval set to {SamplingInterval} and QueueSize " +
-                "to {QueueSize} for #{SubscriptionId}|{Item}('{Name}').",
-                Status.SamplingInterval, Status.QueueSize,
+            _logger.ConfigurationSet(Status.SamplingInterval, Status.QueueSize,
                 Subscription.Id, StartNodeId, DisplayName);
         }
 
@@ -523,7 +515,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (Exception ex)
             {
-                _logger.LogDebug(ex, "{Item}: Could not clone last value.", this);
+                _logger.CloneValueFailed(ex, this);
                 LastReceivedValue = encodeablePayload;
             }
             LastReceivedTime = TimeProvider.GetUtcNow();
@@ -615,9 +607,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var itemChange = false;
             if ((updated.DiscardNew ?? false) != (desired.DiscardNew ?? false))
             {
-                _logger.LogDebug("{Item}: Changing discard new mode from {Old} to {New}",
-                    this, updated.DiscardNew ?? false,
-                    desired.DiscardNew ?? false);
+                _logger.DiscardNewModeChanged(this, updated.DiscardNew ?? false, desired.DiscardNew ?? false);
                 updated = updated with { DiscardNew = desired.DiscardNew };
                 DiscardOldest = !(updated.DiscardNew ?? false);
                 itemChange = true;
@@ -625,9 +615,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             if (updated.QueueSize != desired.QueueSize ||
                 updated.AutoSetQueueSize != desired.AutoSetQueueSize)
             {
-                _logger.LogDebug(
-                    "{Item}: Changing queue size from {Old} ({OldAuto}) to {New} ({NewAuto})",
-                    this, updated.QueueSize, updated.AutoSetQueueSize,
+                _logger.QueueSizeChanged(this, updated.QueueSize, updated.AutoSetQueueSize,
                     desired.QueueSize, desired.AutoSetQueueSize);
                 updated = updated with
                 {
@@ -642,7 +630,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             if ((updated.MonitoringMode ?? Publisher.Models.MonitoringMode.Reporting) !=
                 (desired.MonitoringMode ?? Publisher.Models.MonitoringMode.Reporting))
             {
-                _logger.LogDebug("{Item}: Changing monitoring mode from {Old} to {New}",
+                _logger.MonitoringModeChanged(
                     this, updated.MonitoringMode ?? Publisher.Models.MonitoringMode.Reporting,
                     desired.MonitoringMode ?? Publisher.Models.MonitoringMode.Reporting);
                 updated = updated with { MonitoringMode = desired.MonitoringMode };
@@ -700,8 +688,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (Exception ex)
             {
-                _logger.LogInformation("{Item}: Failed to get built in type for type {DataType}" +
-                    " with message: {Message}", this, variable.DataType, ex.Message);
+                _logger.BuiltInTypeFailed(this, variable.DataType.ToString(), ex.Message);
             }
             fields.Add(new PublishedFieldMetaDataModel
             {
@@ -755,9 +742,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             ct).ConfigureAwait(false);
                         if (dataType == null)
                         {
-                            _logger.LogError(
-                                "{Item}: Failed to find node for data type {BaseType}!",
-                                this, baseType);
+                            _logger.DataTypeNodeNotFound(this, baseType.ToString());
                             break;
                         }
 
@@ -865,18 +850,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                     catch (Exception ex) when (ex is not OperationCanceledException)
                     {
-                        _logger.LogInformation("{Item}: Failed to get meta data for type " +
-                            "{DataType} (base: {BaseType}) with message: {Message}", this,
-                            dataTypeId, baseType, ex.Message);
+                        _logger.MetaDataFailed(this, dataTypeId, baseType, ex.Message);
                         break;
                     }
                 }
 
                 object GetDefault(Node dataType, BuiltInType builtInType, IServiceMessageContext context)
                 {
-                    _logger.LogError("{Item}: Could not find a valid type definition for {Type} " +
-                        "({BuiltInType}). Adding a default placeholder with no fields instead.",
-                        this, dataType, builtInType);
+                    _logger.TypeDefinitionNotFound(this, dataType, builtInType);
                     var name = dataType.BrowseName.AsString(context, NamespaceFormat.Expanded);
                     var dataTypeId = dataType.NodeId.AsString(context, NamespaceFormat.Expanded);
                     return dataTypeId == null
@@ -965,15 +946,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         (double)publishingInterval / SamplingInterval)) + 1;
                     if (queueSize != QueueSize && item.QueueSize != queueSize)
                     {
-                        _logger.LogDebug("Auto-set queue size for {Item} to '{QueueSize}'.",
-                            this, queueSize);
+                        _logger.QueueSizeAutoSet(this, queueSize);
                     }
                 }
                 else
                 {
-                    _logger.LogDebug(
-                        "No sampling interval set - cannot calculate queue size for {Item}.",
-                        this);
+                    _logger.NoSamplingInterval(this);
                 }
             }
             var itemChanged = QueueSize != queueSize;
@@ -1023,9 +1001,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             if (Subscription is not OpcUaSubscription subscription)
             {
-                _logger.LogDebug(
-                    "Cannot publish notification. Missing subscription for {Item}.",
-                    this);
+                _logger.MissingSubscription(this);
                 return;
             }
             subscription.SendNotification(owner, messageType, notifications,
@@ -1037,5 +1013,111 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         protected readonly ILogger _logger;
         private uint _sequenceNumber;
+    }
+
+    /// <summary>
+    /// Source-generated logging definitions for OpcUaMonitoredItem
+    /// </summary>
+    internal static partial class OpcUaMonitoredItemLogging
+    {
+        private const int EventClass = 1030;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Debug,
+            Message = "Added monitored item {Item} to subscription #{SubscriptionId}.")]
+        public static partial void ItemAdded(this ILogger logger, OpcUaMonitoredItem item, uint subscriptionId);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Debug,
+            Message = "Removed monitored item {Item} from subscription #{SubscriptionId}.")]
+        public static partial void ItemRemoved(this ILogger logger, OpcUaMonitoredItem item, uint subscriptionId);
+
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Error,
+            Message = "{Item}: Item was disposed or moved to another subscription")]
+        public static partial void ItemDisposed(this ILogger logger, OpcUaMonitoredItem item);
+
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Debug,
+            Message = "Item {Item} removed from subscription #{SubscriptionId} with {Status}.")]
+        public static partial void ItemRemovedWithStatus(this ILogger logger, OpcUaMonitoredItem item, uint subscriptionId, ServiceResult status);
+
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Debug,
+            Message = "{Item}: Item is disabled while trying to complete.")]
+        public static partial void ItemDisabled(this ILogger logger, OpcUaMonitoredItem item);
+
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Information,
+            Message = "Server revised SamplingInterval from {SamplingInterval} to {CurrentSamplingInterval} and " +
+            "QueueSize from {QueueSize} to {CurrentQueueSize} for #{SubscriptionId}|{Item}('{Name}').")]
+        public static partial void RevisionComplete(this ILogger logger, double samplingInterval, double currentSamplingInterval,
+            uint queueSize, uint currentQueueSize, uint subscriptionId, NodeId item, string name);
+
+        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Information,
+            Message = "Server revised SamplingInterval from {SamplingInterval} to {CurrentSamplingInterval} " +
+            "for #{SubscriptionId}|{Item}('{Name}').")]
+        public static partial void SamplingIntervalRevised(this ILogger logger, double samplingInterval,
+            double currentSamplingInterval, uint subscriptionId, NodeId item, string name);
+
+        [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Information,
+            Message = "Server revised QueueSize from {QueueSize} to {CurrentQueueSize} " +
+            "for #{SubscriptionId}|{Item}('{Name}').")]
+        public static partial void QueueSizeRevised(this ILogger logger, uint queueSize, uint currentQueueSize,
+            uint subscriptionId, NodeId item, string name);
+
+        [LoggerMessage(EventId = EventClass + 9, Level = LogLevel.Debug,
+            Message = "Server accepted configuration unchanged for #{SubscriptionId}|{Item}('{Name}').")]
+        public static partial void ConfigurationAccepted(this ILogger logger, uint subscriptionId, NodeId item, string name);
+
+        [LoggerMessage(EventId = EventClass + 10, Level = LogLevel.Debug,
+            Message = "SamplingInterval set to {SamplingInterval} and QueueSize to {QueueSize} " +
+            "for #{SubscriptionId}|{Item}('{Name}').")]
+        public static partial void ConfigurationSet(this ILogger logger, double samplingInterval, uint queueSize,
+            uint subscriptionId, NodeId item, string name);
+
+        [LoggerMessage(EventId = EventClass + 11, Level = LogLevel.Debug,
+            Message = "{Item}: Could not clone last value.")]
+        public static partial void CloneValueFailed(this ILogger logger, Exception ex, OpcUaMonitoredItem item);
+
+        [LoggerMessage(EventId = EventClass + 12, Level = LogLevel.Debug,
+            Message = "{Item}: Changing discard new mode from {Old} to {New}")]
+        public static partial void DiscardNewModeChanged(this ILogger logger, OpcUaMonitoredItem item, bool old, bool @new);
+
+        [LoggerMessage(EventId = EventClass + 13, Level = LogLevel.Debug,
+            Message = "{Item}: Changing queue size from {Old} ({OldAuto}) to {New} ({NewAuto})")]
+        public static partial void QueueSizeChanged(this ILogger logger, OpcUaMonitoredItem item, uint? old, bool? oldAuto, uint? @new, bool? newAuto);
+
+        [LoggerMessage(EventId = EventClass + 14, Level = LogLevel.Debug,
+            Message = "{Item}: Changing monitoring mode from {Old} to {New}")]
+        public static partial void MonitoringModeChanged(this ILogger logger, OpcUaMonitoredItem item, Publisher.Models.MonitoringMode old, Publisher.Models.MonitoringMode @new);
+
+        [LoggerMessage(EventId = EventClass + 15, Level = LogLevel.Information,
+            Message = "{Item}: Failed to get built in type for type {DataType} with message: {Message}")]
+        public static partial void BuiltInTypeFailed(this ILogger logger, OpcUaMonitoredItem item, string dataType, string message);
+
+        [LoggerMessage(EventId = EventClass + 16, Level = LogLevel.Error,
+            Message = "{Item}: Failed to find node for data type {BaseType}!")]
+        public static partial void DataTypeNodeNotFound(this ILogger logger, OpcUaMonitoredItem item, string baseType);
+
+        [LoggerMessage(EventId = EventClass + 17, Level = LogLevel.Information,
+            Message = "{Item}: Failed to get meta data for type {DataType} (base: {BaseType}) with message: {Message}")]
+        public static partial void MetaDataFailed(this ILogger logger, OpcUaMonitoredItem item, NodeId dataType,
+            NodeId? baseType, string message);
+
+        [LoggerMessage(EventId = EventClass + 18, Level = LogLevel.Error,
+            Message = "{Item}: Could not find a valid type definition for {Type} ({BuiltInType}). " +
+            "Adding a default placeholder with no fields instead.")]
+        public static partial void TypeDefinitionNotFound(this ILogger logger, OpcUaMonitoredItem item, Node type, BuiltInType builtInType);
+
+        [LoggerMessage(EventId = EventClass + 19, Level = LogLevel.Debug,
+            Message = "Auto-set queue size for {Item} to '{QueueSize}'.")]
+        public static partial void QueueSizeAutoSet(this ILogger logger, OpcUaMonitoredItem item, uint queueSize);
+
+        [LoggerMessage(EventId = EventClass + 20, Level = LogLevel.Debug,
+            Message = "No sampling interval set - cannot calculate queue size for {Item}.")]
+        public static partial void NoSamplingInterval(this ILogger logger, OpcUaMonitoredItem item);
+
+        [LoggerMessage(EventId = EventClass + 21, Level = LogLevel.Debug,
+            Message = "Cannot publish notification. Missing subscription for {Item}.")]
+        public static partial void MissingSubscription(this ILogger logger, OpcUaMonitoredItem item);
+
+        [LoggerMessage(EventId = EventClass + 22, Level = LogLevel.Warning,
+            Message = "Error adding monitored item {Item} to subscription #{SubscriptionId} due to {Status}.")]
+        internal static partial void AddMonitoredItemError(this ILogger logger, OpcUaMonitoredItem item, uint subscriptionId, ServiceResult status);
     }
 }

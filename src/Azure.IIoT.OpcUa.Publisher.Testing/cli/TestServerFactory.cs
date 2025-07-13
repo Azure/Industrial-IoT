@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
     using Opc.Ua.Test;
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
@@ -67,14 +68,67 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
         {
         }
 
+        internal static IServerFactory Create(string serverType, ILogger<TestServerFactory> logger)
+        {
+            switch (serverType.ToLowerInvariant())
+            {
+                case "reference":
+                    return new TestServerFactory(logger,
+                    [
+                        new Reference.ReferenceServer(),
+                    ]);
+                case "plc":
+                    return new TestServerFactory(logger,
+                    [
+                        new Plc.PlcServer(new TimeService(), logger, 1),
+                    ]);
+                case "asset":
+                    return new TestServerFactory(logger,
+                    [
+                        new Asset.AssetServer(logger),
+                    ]);
+                case "testdata":
+                    return new TestServerFactory(logger,
+                    [
+                        new TestData.TestDataServer(),
+                        new MemoryBuffer.MemoryBufferServer(),
+                        new Boiler.BoilerServer(),
+                        new Vehicles.VehiclesServer(),
+                        new DataAccess.DataAccessServer(),
+                    ]);
+                default:
+                    return new TestServerFactory(logger,
+                    [
+                        new TestData.TestDataServer(),
+                        new MemoryBuffer.MemoryBufferServer(),
+                        new Boiler.BoilerServer(),
+                        new Vehicles.VehiclesServer(),
+                        new Reference.ReferenceServer(),
+                        new HistoricalEvents.HistoricalEventsServer(new TimeService()),
+                        new HistoricalAccess.HistoricalAccessServer(new TimeService()),
+                        new Views.ViewsServer(),
+                        new DataAccess.DataAccessServer(),
+                        new Alarms.AlarmConditionServer(new TimeService()),
+                        new PerfTest.PerfTestServer(),
+                        new SimpleEvents.SimpleEventsServer(),
+                        new Plc.PlcServer(new TimeService(), logger, 1),
+                        new FileSystem.FileSystemServer(),
+                        new Asset.AssetServer(logger),
+                        new Isa95Jobs.Isa95JobControlServer()
+                    ]);
+            }
+        }
+
         /// <inheritdoc/>
         public ApplicationConfiguration CreateServer(IEnumerable<int> ports,
-            string pkiRootPath, out ServerBase server,
-            Action<ServerConfiguration> configure)
+            string pkiRootPath, out ServerBase server, string listenHostName,
+            IEnumerable<string> alternativeAddresses, string path,
+            string certStoreType, Action<ServerConfiguration> configure)
         {
             server = new Server(LogStatus, _nodes, _logger);
             return Server.CreateServerConfiguration(
-                ports, pkiRootPath, configure);
+                ports, listenHostName, alternativeAddresses, path,
+                pkiRootPath, certStoreType, configure: configure);
         }
 
         /// <inheritdoc/>
@@ -97,13 +151,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
             /// <summary>
             /// Create configuration
             /// </summary>
-            /// <param name="ports"></param>
-            /// <param name="pkiRootPath"></param>
-            /// <param name="configure"></param>
-            /// <returns></returns>
             public static ApplicationConfiguration CreateServerConfiguration(
-                IEnumerable<int> ports, string pkiRootPath,
-                Action<ServerConfiguration> configure)
+                IEnumerable<int> ports, string hostName, IEnumerable<string> alternativeAddresses,
+                string path, string pkiRootPath, string certStoreType, bool enableDiagnostics = false,
+                Action<ServerConfiguration> configure = null)
             {
                 var extensions = new List<object>
                 {
@@ -127,15 +178,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                     }
                     /// ...
                 };
+                certStoreType ??= CertificateStoreType.Directory;
                 if (string.IsNullOrEmpty(pkiRootPath))
                 {
                     pkiRootPath = "pki";
+                }
+                path ??= "/UA/SampleServer";
+                if (path.Length > 0 && !path.StartsWith("/", StringComparison.Ordinal))
+                {
+                    path = "/" + path;
                 }
                 var configuration = new ApplicationConfiguration
                 {
                     ApplicationName = "UA Core Sample Server",
                     ApplicationType = ApplicationType.Server,
-                    ApplicationUri = $"urn:{Utils.GetHostName()}:OPCFoundation:CoreSampleServer",
+                    ApplicationUri = $"urn:{hostName ?? Utils.GetHostName()}:OPCFoundation:CoreSampleServer",
                     Extensions = new XmlElementCollection(
                         extensions.Select(XmlElementEx.SerializeObject)),
 
@@ -144,29 +201,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                     {
                         ApplicationCertificate = new CertificateIdentifier
                         {
-                            StoreType = CertificateStoreType.Directory,
-                            StorePath = $"{pkiRootPath}/own",
+                            StoreType = certStoreType,
+                            StorePath = $"{pkiRootPath}own",
                             SubjectName = "UA Core Sample Server"
                         },
                         TrustedPeerCertificates = new CertificateTrustList
                         {
-                            StoreType = CertificateStoreType.Directory,
-                            StorePath = $"{pkiRootPath}/trusted"
+                            StoreType = certStoreType,
+                            StorePath = $"{pkiRootPath}trusted"
                         },
                         TrustedIssuerCertificates = new CertificateTrustList
                         {
-                            StoreType = CertificateStoreType.Directory,
-                            StorePath = $"{pkiRootPath}/issuer"
+                            StoreType = certStoreType,
+                            StorePath = $"{pkiRootPath}issuer"
                         },
                         RejectedCertificateStore = new CertificateTrustList
                         {
-                            StoreType = CertificateStoreType.Directory,
-                            StorePath = $"{pkiRootPath}/rejected"
+                            StoreType = certStoreType,
+                            StorePath = $"{pkiRootPath}rejected"
                         },
                         MinimumCertificateKeySize = 1024,
                         RejectSHA1SignedCertificates = false,
                         AutoAcceptUntrustedCertificates = true,
-                        AddAppCertToTrustedStore = true
+                        AddAppCertToTrustedStore = true,
+                        RejectUnknownRevocationStatus = true
                     },
                     TransportConfigurations = [],
                     TransportQuotas = new TransportQuotas(),
@@ -186,13 +244,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                         ],
 
                         NodeManagerSaveFile = "nodes.xml",
-                        DiagnosticsEnabled = false,
+                        DiagnosticsEnabled = enableDiagnostics,
                         ShutdownDelay = 0,
 
                         // Runtime configuration
-                        BaseAddresses = new StringCollection(ports
+                        BaseAddresses = [.. ports
                             .Distinct()
-                            .Select(p => $"opc.tcp://localhost:{p}/UA/SampleServer")),
+                            .Select(p => $"opc.tcp://{hostName ?? "localhost"}:{p}{path}")],
+                        AlternateBaseAddresses = alternativeAddresses == null ? null :
+                            [.. alternativeAddresses.Distinct().SelectMany(e => ports
+                                .Distinct()
+                                .Select(p => $"opc.tcp://{e}:{p}{path}"))],
 
                         SecurityPolicies = [
                             new ServerSecurityPolicy {
@@ -276,7 +338,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
             protected override MasterNodeManager CreateMasterNodeManager(
                 IServerInternal server, ApplicationConfiguration configuration)
             {
-                _logger.LogInformation("Creating the Node Managers.");
+                _logger.CreatingNodeManagers();
                 var nodeManagers = _nodes
                     .Select(n => n.Create(server, configuration));
                 return new MasterNodeManager(server, configuration, null,
@@ -286,7 +348,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
             /// <inheritdoc/>
             protected override void OnServerStopping()
             {
-                _logger.LogDebug("The server is stopping.");
+                _logger.ServerStopping();
                 base.OnServerStopping();
                 _cts.Cancel();
                 _statusLogger?.Wait();
@@ -314,7 +376,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
             /// <inheritdoc/>
             protected override void OnServerStarting(ApplicationConfiguration configuration)
             {
-                _logger.LogDebug("The server is starting.");
+                _logger.ServerStarting();
                 CreateUserIdentityValidators(configuration);
                 base.OnServerStarting(configuration);
             }
@@ -322,7 +384,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
             /// <inheritdoc/>
             protected override void OnNodeManagerStarted(IServerInternal server)
             {
-                _logger.LogInformation("The NodeManagers have started.");
+                _logger.NodeManagersStarted();
                 base.OnNodeManagerStarted(server);
             }
 
@@ -388,7 +450,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                         }
                         item += $":{session.Id}";
                     }
-                    _logger.LogInformation("{Log}", item);
+                    _logger.ItemStatus(item);
                 }
             }
 
@@ -642,5 +704,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
 
         private readonly ILogger _logger;
         private readonly IEnumerable<INodeManagerFactory> _nodes;
+    }
+
+    /// <summary>
+    /// Source-generated logging definitions for TestServer
+    /// </summary>
+    internal static partial class TestServerLogging
+    {
+        private const int EventClass = 0;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
+            Message = "Creating the Node Managers.")]
+        public static partial void CreatingNodeManagers(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Debug,
+            Message = "The server is stopping.")]
+        public static partial void ServerStopping(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Debug,
+            Message = "The server is starting.")]
+        public static partial void ServerStarting(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Information,
+            Message = "The NodeManagers have started.")]
+        public static partial void NodeManagersStarted(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Information,
+            Message = "{Log}")]
+        public static partial void ItemStatus(this ILogger logger, string log);
     }
 }

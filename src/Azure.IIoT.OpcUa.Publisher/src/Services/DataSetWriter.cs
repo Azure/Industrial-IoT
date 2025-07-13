@@ -5,14 +5,15 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
+    using Azure.IIoT.OpcUa.Encoders;
+    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Azure.IIoT.OpcUa.Encoders;
-    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Serializers;
+    using k8s.KubeConfigModels;
     using Microsoft.Extensions.Logging;
     using Nito.AsyncEx;
     using System;
@@ -36,7 +37,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// and works in a similar way to manage a table of unique writers in
         /// the writer group.
         /// </summary>
-        private sealed class DataSetWriter
+        internal sealed class DataSetWriter
         {
             /// <summary>
             /// Publishing interval which is used to split subscriptions for
@@ -196,14 +197,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
 
                 DataSetWriter CreateDataSetWriter(string id,
-                    (PublishingQueueSettingsModel?, PublishingQueueSettingsModel?) publishSettings,
+                    (PublishingQueueSettingsModel? Metadata, PublishingQueueSettingsModel? Messages) publishSettings,
                     IReadOnlyList<PublishedDataSetVariableModel> data)
                 {
                     return new DataSetWriter(group, routing, dataSetWriter with
                     {
                         Id = id,
-                        MetaData = publishSettings.Item1,
-                        Publishing = publishSettings.Item2,
+                        MetaData = publishSettings.Metadata,
+                        Publishing = publishSettings.Messages,
                         DataSet = dataset with
                         {
                             DataSetMetaData = dataset.DataSetMetaData.Clone(),
@@ -223,14 +224,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
 
                 DataSetWriter CreateEventWriter(string id,
-                    (PublishingQueueSettingsModel?, PublishingQueueSettingsModel?) publishSettings,
+                    (PublishingQueueSettingsModel? Metadata, PublishingQueueSettingsModel? Messages) publishSettings,
                     IReadOnlyList<PublishedDataSetEventModel> data)
                 {
                     return new DataSetWriter(group, routing, dataSetWriter with
                     {
                         Id = id,
-                        MetaData = publishSettings.Item1,
-                        Publishing = publishSettings.Item2,
+                        MetaData = publishSettings.Metadata,
+                        Publishing = publishSettings.Messages,
                         DataSet = dataset with
                         {
                             DataSetMetaData = dataset.DataSetMetaData.Clone(),
@@ -425,8 +426,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 Name = CreateUniqueWriterName(writer.Writer.DataSetWriterName, writerNames);
 
-                _logger.LogDebug("Creating new writer {Id} ({Writer}) in writer group {WriterGroup}...",
-                    Id, Name, _group.Id);
+                logger.CreatingNewWriter(Id, Name, _group.Id);
 
                 // Create monitored items
                 var namespaceFormat =
@@ -464,8 +464,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 writer.InitializeMetaDataTrigger();
                 writer.InitializeKeepAlive();
 
-                group._logger.LogInformation("Created writer {Id} in writer group {WriterGroup}.",
-                    writer.Id, group.Id);
+                group._logger.CreatedWriter(writer.Id, group.Id);
 
                 return writer;
             }
@@ -480,8 +479,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             public async ValueTask UpdateAsync(DataSetWriter dataSetWriter, HashSet<string> writerNames,
                 CancellationToken ct)
             {
-                _logger.LogDebug("Updating writer {Id} in writer group {WriterGroup}...",
-                    Id, _group.Id);
+                _logger.UpdatingWriter(Id, _group.Id);
 
                 var previous = _writer;
                 _writer = dataSetWriter;
@@ -516,18 +514,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     Subscription = await _group._clients.CreateSubscriptionAsync(
                         _connection.Connection, _template, this, ct).ConfigureAwait(false);
 
-                    _logger.LogInformation(
-                        "Recreated subscription for writer {Id} in writer group {WriterGroup}...",
-                       Id, _group.Id);
+                    _logger.RecreatedSubscription(Id, _group.Id);
                 }
                 else
                 {
                     // Trigger reevaluation
                     Subscription.NotifyMonitoredItemsChanged();
 
-                    _logger.LogDebug(
-                        "Updated monitored items for writer {Id} in writer group {WriterGroup}.",
-                        Id, _group.Id);
+                    _logger.UpdatedMonitoredItems(Id, _group.Id);
                 }
 
                 _frameCount = 0;
@@ -545,6 +539,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         return;
                     }
 
+                    // We are under the writer group lock here, so we cannot grab it
+                    SendCloseNotifications();
+
                     _disposed = true;
                     _metadataTimer?.Stop();
 
@@ -554,8 +551,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         Subscription = null;
                     }
 
-                    _logger.LogInformation("Closed writer {Id} in writer group {WriterGroup}.",
-                        Id, _group.Id);
+                    _logger.ClosedWriter(Id, _group.Id);
                 }
                 finally
                 {
@@ -578,7 +574,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             public void OnSubscriptionKeepAlive(OpcUaSubscriptionNotification notification)
             {
                 Interlocked.Increment(ref _group._keepAliveCount);
-                if (_sendKeepAlives)
+                if (ProcessKeyFrame(ref notification) || _sendKeepAlives)
                 {
                     CallMessageReceiverDelegates(notification);
                 }
@@ -587,42 +583,57 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <inheritdoc/>
             public void OnSubscriptionDataChangeReceived(OpcUaSubscriptionNotification notification)
             {
-                CallMessageReceiverDelegates(ProcessKeyFrame(notification));
+                ProcessKeyFrame(ref notification);
+                CallMessageReceiverDelegates(notification);
+            }
 
-                OpcUaSubscriptionNotification ProcessKeyFrame(OpcUaSubscriptionNotification notification)
+            /// <summary>
+            /// Process key frame notification
+            /// </summary>
+            /// <param name="notification"></param>
+            /// <returns></returns>
+            private bool ProcessKeyFrame(ref OpcUaSubscriptionNotification notification)
+            {
+                var keyFrameCount = _writer.Writer.KeyFrameCount
+                    ?? _group._options.Value.DefaultKeyFrameCount ?? 0;
+                if (keyFrameCount > 0)
                 {
-                    var keyFrameCount = _writer.Writer.KeyFrameCount
-                        ?? _group._options.Value.DefaultKeyFrameCount ?? 0;
-                    if (keyFrameCount > 0)
+                    var frameCount = Interlocked.Increment(ref _frameCount);
+                    if (((frameCount - 1) % keyFrameCount) == 0)
                     {
-                        var frameCount = Interlocked.Increment(ref _frameCount);
-                        if (((frameCount - 1) % keyFrameCount) == 0)
-                        {
-                            notification.TryUpgradeToKeyFrame(this);
-                        }
+                        notification.TryUpgradeToKeyFrame(this);
+                        return true;
                     }
-                    return notification;
                 }
+                return false;
             }
 
             /// <inheritdoc/>
-            public void OnSubscriptionDataDiagnosticsChange(bool liveData, int valueChanges, int overflows,
+            public void OnSubscriptionCyclicReadCompleted(OpcUaSubscriptionNotification notification)
+            {
+                CallMessageReceiverDelegates(notification);
+            }
+
+            /// <inheritdoc/>
+            public void OnSubscriptionEventReceived(OpcUaSubscriptionNotification notification)
+            {
+                CallMessageReceiverDelegates(notification);
+            }
+
+            /// <inheritdoc/>
+            public void OnSubscriptionDataDiagnosticsChange(bool liveData, int valueChanges, int overflow,
                 int heartbeats)
             {
                 lock (_lock)
                 {
                     _group._heartbeats.Count += heartbeats;
-                    _group._overflows.Count += overflows;
+                    _group._overflows.Count += overflow;
                     if (liveData)
                     {
                         if (_group._dataChanges.Count >= kNumberOfInvokedMessagesResetThreshold ||
                             _group._valueChanges.Count >= kNumberOfInvokedMessagesResetThreshold)
                         {
-                            _logger.LogDebug(
-                                "Notifications counter has been reset to prevent" +
-                                " overflow. So far, {DataChangesCount} data changes and {ValueChangesCount} " +
-                                "value changes were invoked by message source.",
-                                _group._dataChanges.Count, _group._valueChanges.Count);
+                            _logger.NotificationsCounterReset((int)_group._dataChanges.Count, (int)_group._valueChanges.Count);
                             _group._dataChanges.Count = 0;
                             _group._valueChanges.Count = 0;
                             _group._heartbeats.Count = 0;
@@ -636,26 +647,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <inheritdoc/>
-            public void OnSubscriptionCyclicReadCompleted(OpcUaSubscriptionNotification notification)
-            {
-                CallMessageReceiverDelegates(notification);
-            }
-
-            /// <inheritdoc/>
-            public void OnSubscriptionCyclicReadDiagnosticsChange(int valuesSampled, int overflows)
+            public void OnSubscriptionCyclicReadDiagnosticsChange(int valuesSampled, int overflow)
             {
                 lock (_lock)
                 {
-                    _group._overflows.Count += overflows;
+                    _group._overflows.Count += overflow;
 
                     if (_group._dataChanges.Count >= kNumberOfInvokedMessagesResetThreshold ||
                         _group._sampledValues.Count >= kNumberOfInvokedMessagesResetThreshold)
                     {
-                        _logger.LogDebug(
-                            "Notifications counter has been reset to prevent" +
-                            " overflow. So far, {ReadCount} data changes and {ValuesCount} " +
-                            "value changes were invoked by message source.",
-                            _group._cyclicReads.Count, _group._sampledValues.Count);
+                        _logger.NotificationsCounterResetRead((int)_group._cyclicReads.Count, (int)_group._sampledValues.Count);
                         _group._cyclicReads.Count = 0;
                         _group._sampledValues.Count = 0;
                         _group._sink.OnCounterReset();
@@ -667,31 +668,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <inheritdoc/>
-            public void OnSubscriptionEventReceived(OpcUaSubscriptionNotification notification)
-            {
-                CallMessageReceiverDelegates(notification);
-            }
-
-            /// <inheritdoc/>
-            public void OnSubscriptionEventDiagnosticsChange(bool liveData, int events, int overflows,
+            public void OnSubscriptionEventDiagnosticsChange(bool liveData, int events, int overflow,
                 int modelChanges)
             {
                 lock (_lock)
                 {
                     _group._modelChanges.Count += modelChanges;
-                    _group._overflows.Count += overflows;
+                    _group._overflows.Count += overflow;
 
                     if (liveData)
                     {
                         if (_group._events.Count >= kNumberOfInvokedMessagesResetThreshold ||
                             _group._eventNotification.Count >= kNumberOfInvokedMessagesResetThreshold)
                         {
-                            // reset both
-                            _logger.LogDebug(
-                                "Notifications counter has been reset to prevent" +
-                                " overflow. So far, {EventChangesCount} event changes and {EventValueChangesCount} " +
-                                "event value changes were invoked by message source.",
-                                _group._events.Count, _group._eventNotification.Count);
+                            _logger.NotificationsCounterResetEvent((int)_group._events.Count, (int)_group._eventNotification.Count);
                             _group._events.Count = 0;
                             _group._eventNotification.Count = 0;
                             _group._modelChanges.Count = 0;
@@ -792,6 +782,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 try
                 {
+                    _group.GetWriterGroup(out var writerGroup, out var networkMessageSchema);
                     lock (_lock)
                     {
                         var metadata = MetaData;
@@ -805,16 +796,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 // Block until we have metadata or just continue
                                 _metaDataLoader.Value.BlockUntilLoaded(
                                     _group._options.Value.AsyncMetaDataLoadTimeout ?? TimeSpan.FromSeconds(5));
-                                _logger.LogInformation(
-                                    "Blocked message for {Duration} until metadata was loaded for {Writer}.",
-                                    sw.Elapsed, this);
+                                _logger.BlockedMessageForMetadata(sw.Elapsed, _writer);
                             }
 
                             metadata = MetaData;
                             if (metadata == null)
                             {
-                                _logger.LogWarning("No metadata available for {Writer} - dropping notification.",
-                                    this);
+                                _logger.NoMetadataAvailable(_writer);
                                 Interlocked.Increment(ref _group._messagesWithoutMetadata);
                                 return;
                             }
@@ -842,10 +830,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 {
                                     MessageType = MessageType.Metadata,
                                     EventTypeName = null,
-                                    Context = CreateMessageContext(_writer.MetadataTopic,
-                                        _writer.MetadataQos, _writer.MetadataRetain, _writer.MetadataTtl,
-                                        () => Interlocked.Increment(ref _metadataSequenceNumber), metadata,
-                                        single)
+                                    Context = CreateMessageContext(writerGroup, notification,
+                                        _writer.MetadataTopic, _writer.MetadataQos,
+                                        _writer.MetadataRetain, _writer.MetadataTtl,
+                                        () => Interlocked.Increment(ref _metadataSequenceNumber),
+                                        true, networkMessageSchema,
+                                        single, metadata)
                                 };
 #pragma warning restore CA2000 // Dispose objects before losing scope
                                 _group._sink.OnMessage(metadataFrame);
@@ -856,64 +846,150 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         if (!sourceIsMetaDataTimer)
                         {
                             Debug.Assert(notification.Notifications != null);
-                            notification.Context = CreateMessageContext(_writer.Topic,
-                                _writer.Qos, _writer.Retain, _writer.Ttl,
-                                () => Interlocked.Increment(ref _dataSetSequenceNumber), metadata,
-                                single);
-                            _logger.LogTrace("Enqueuing notification: {Notification}",
-                                notification.ToString());
+                            notification.Context = CreateMessageContext(writerGroup, notification,
+                                _writer.Topic, _writer.Qos, _writer.Retain, _writer.Ttl,
+                                () => Interlocked.Increment(ref _dataSetSequenceNumber),
+                                false, networkMessageSchema, single, metadata);
+                            _logger.EnqueuingNotification(notification.ToString());
                             _group._sink.OnMessage(notification);
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Failed to produce message.");
+                    _logger.FailedToProduceMessage(ex);
                 }
+            }
 
-                DataSetWriterContext CreateMessageContext(string topic, QoS? qos, bool? retain,
-                    TimeSpan? ttl, Func<uint> sequenceNumber, PublishedDataSetMessageSchemaModel? metadata,
-                    MonitoredItemNotificationModel? single)
+            /// <summary>
+            /// Create message context for notification
+            /// </summary>
+            /// <param name="writerGroup"></param>
+            /// <param name="notification"></param>
+            /// <param name="topic"></param>
+            /// <param name="qos"></param>
+            /// <param name="retain"></param>
+            /// <param name="ttl"></param>
+            /// <param name="sequenceNumber"></param>
+            /// <param name="isMetadata"></param>
+            /// <param name="networkMessageSchema"></param>
+            /// <param name="single"></param>
+            /// <param name="metadata"></param>
+            /// <returns></returns>
+            private DataSetWriterContext CreateMessageContext(WriterGroupModel writerGroup,
+                OpcUaSubscriptionNotification notification, string topic, QoS? qos, bool? retain, TimeSpan? ttl,
+                Func<uint> sequenceNumber, bool isMetadata, IEventSchema? networkMessageSchema = null,
+                MonitoredItemNotificationModel? single = null, PublishedDataSetMessageSchemaModel? metadata = null)
+            {
+                return new DataSetWriterContext
                 {
-                    _group.GetWriterGroup(out var writerGroup, out var networkMessageSchema);
-                    return new DataSetWriterContext
-                    {
-                        PublisherId = _group._options.Value.PublisherId ?? Constants.DefaultPublisherId,
-                        DataSetWriterId = (ushort)Index,
-                        MetaData = metadata,
-                        Writer = _writer.Writer,
-                        ExtensionFields = _extensionFields.GetExtensionFieldData(notification),
-                        WriterName = Name,
-                        NextWriterSequenceNumber = sequenceNumber,
-                        WriterGroup = writerGroup,
-                        Schema = networkMessageSchema,
-                        Topic = GetTopic(_writer.Routing, topic, single?.PathFromRoot),
-                        Retain = retain,
-                        Ttl = ttl,
-                        Qos = qos
-                    };
+                    PublisherId = _group._options.Value.PublisherId ?? Constants.DefaultPublisherId,
+                    DataSetWriterId = (ushort)Index,
+                    MetaData = metadata,
+                    Writer = _writer.Writer,
+                    ExtensionFields = _extensionFields.GetExtensionFieldData(notification),
+                    WriterName = Name,
+                    NextWriterSequenceNumber = sequenceNumber,
+                    WriterGroup = writerGroup,
+                    Schema = networkMessageSchema,
+                    CloudEvent = GetCloudEventHeader(writerGroup, notification, isMetadata),
+                    Topic = GetTopic(_writer.Routing, topic, single?.PathFromRoot),
+                    Retain = retain,
+                    Ttl = ttl,
+                    Qos = qos
+                };
 
-                    static string GetTopic(DataSetRoutingMode routing, string topic, Opc.Ua.RelativePath? subpath)
+                CloudEventHeader? GetCloudEventHeader(WriterGroupModel writerGroup,
+                    OpcUaSubscriptionNotification notification, bool isMetadata)
+                {
+                    if (_group._options.Value.EnableCloudEvents != true)
                     {
-                        if (subpath == null || routing == DataSetRoutingMode.None)
-                        {
-                            return topic;
-                        }
-                        // Append subpath to topic (use browse names with namespace index if requested
-                        var sb = new StringBuilder().Append(topic);
-                        foreach (var path in subpath.Elements)
-                        {
-                            sb.Append('/');
-                            if (path.TargetName.NamespaceIndex != 0 &&
-                                routing == DataSetRoutingMode.UseBrowseNamesWithNamespaceIndex)
-                            {
-                                sb.Append(path.TargetName.NamespaceIndex).Append(':');
-                            }
-                            sb.Append(TopicFilter.Escape(path.TargetName.Name));
-                        }
-                        return sb.ToString();
+                        return null;
                     }
+                    var type = isMetadata ? "Metadata" :
+                        notification.MessageType == MessageType.Event ?
+                            "Event" : "Dataset";
+                    var typeName = _writer.Writer.DataSet?.Type
+                        ?? notification.EventTypeName;
+                    if (!string.IsNullOrEmpty(typeName))
+                    {
+                        type += "/" + typeName;
+                    }
+                    var subject = writerGroup.ExternalId ?? string.Empty;
+                    if (!string.IsNullOrEmpty(_writer.Writer.DataSet?.Name))
+                    {
+                        subject += "/" + _writer.Writer.DataSet.Name;
+                    }
+                    if (!Uri.TryCreate(notification.ApplicationUri ??
+                        notification.EndpointUrl, UriKind.Absolute, out var source))
+                    {
+                        // Set a default source
+                        source = new Uri("urn:" +
+                            _group._options.Value.PublisherId ?? "publisher");
+                    }
+                    return new CloudEventHeader
+                    {
+                        Id = notification.SequenceNumber.ToString(CultureInfo.InvariantCulture),
+                        Time = notification.PublishTimestamp,
+                        Type = type,
+                        Source = source,
+                        Subject = subject.Length == 0 ? null : subject
+                    };
                 }
+
+                static string GetTopic(DataSetRoutingMode routing, string topic, Opc.Ua.RelativePath? subpath)
+                {
+                    if (subpath == null || routing == DataSetRoutingMode.None)
+                    {
+                        return topic;
+                    }
+                    // Append subpath to topic (use browse names with namespace index if requested
+                    var sb = new StringBuilder().Append(topic);
+                    foreach (var path in subpath.Elements)
+                    {
+                        sb.Append('/');
+                        if (path.TargetName.NamespaceIndex != 0 &&
+                            routing == DataSetRoutingMode.UseBrowseNamesWithNamespaceIndex)
+                        {
+                            sb.Append(path.TargetName.NamespaceIndex).Append(':');
+                        }
+                        sb.Append(TopicFilter.Escape(path.TargetName.Name));
+                    }
+                    return sb.ToString();
+                }
+            }
+
+            /// <summary>
+            /// Send final close messages to sink. This happens under lock of writer group.
+            /// This will trigger an empty message and cleanup of any messages stuck in the topic
+            /// </summary>
+            private void SendCloseNotifications()
+            {
+                Debug.Assert(_group._lock.CurrentCount == 0, "This happens under lock of writer group.");
+                // Notify close to clean up the topic content if needed
+                if (!IsMetadataDisabled)
+                {
+#pragma warning disable CA2000 // Dispose objects before losing scope
+                    var metadataFrame = new OpcUaSubscriptionNotification(_group._timeProvider.GetUtcNow())
+                    {
+                        MessageType = MessageType.Closed
+                    };
+#pragma warning restore CA2000 // Dispose objects before losing scope
+                    metadataFrame.Context = CreateMessageContext(_group._writerGroup, metadataFrame,
+                        _writer.MetadataTopic, _writer.MetadataQos, false, null,
+                        () => Interlocked.Increment(ref _metadataSequenceNumber), true);
+                    _group._sink.OnMessage(metadataFrame);
+                }
+#pragma warning disable CA2000 // Dispose objects before losing scope
+                var notification = new OpcUaSubscriptionNotification(_group._timeProvider.GetUtcNow())
+                {
+                    MessageType = MessageType.Closed
+                };
+#pragma warning restore CA2000 // Dispose objects before losing scope
+                notification.Context = CreateMessageContext(_group._writerGroup, notification,
+                    _writer.Topic, _writer.Qos, false, null,
+                    () => Interlocked.Increment(ref _dataSetSequenceNumber), false);
+                _group._sink.OnMessage(notification);
             }
 
             /// <summary>
@@ -1021,10 +1097,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         }
                         catch (Exception ex)
                         {
-                            _writer._logger.LogError(
-                                "Failed to get metadata for {Subscription} with error {Error}",
-                                this, ex.Message);
-
+                            _writer._logger.FailedToGetMetadata(_writer._writer, ex.Message);
                             _tcs.TrySetException(ex);
                             Interlocked.Increment(ref _writer._group._metadataLoadFailures);
                         }
@@ -1058,17 +1131,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .UtcDateTime.ToBinary();
 
                     var sw = Stopwatch.StartNew();
-                    _writer._logger.LogDebug("Loading Metadata {Major}.{Minor} for {Writer}...",
-                        dataSetMetaData.MajorVersion ?? 1, minor, _writer.Id);
+                    _writer._logger.LoadingMetadata(dataSetMetaData.MajorVersion ?? 1, minor, _writer.Id);
 
                     var fieldMask = _writer._writer.Writer.DataSetFieldContentMask;
                     var metaData = await subscription.CollectMetaDataAsync(_writer, fieldMask,
                         dataSetMetaData, minor, ct).ConfigureAwait(false);
 
-                    _writer._logger.LogInformation(
-                        "Loading Metadata {Major}.{Minor} for {Writer} took {Duration}.",
-                        dataSetMetaData.MajorVersion ?? 1, minor, _writer.Id,
-                        sw.Elapsed);
+                    _writer._logger.LoadingMetadataTook(dataSetMetaData.MajorVersion ?? 1, minor, _writer.Id, sw.Elapsed);
 
                     var msgMask = _writer._writer.Writer.MessageSettings?.DataSetMessageContentMask;
                     MetaData = new PublishedDataSetMessageSchemaModel
@@ -1280,5 +1349,91 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private bool _sendKeepAlives;
             private bool _disposed;
         }
+    }
+
+    internal static partial class DataSetWriterSubscriptionLogging
+    {
+        private const int EventClass = 130;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Debug,
+            Message = "Creating new writer {Id} ({Writer}) in writer group {WriterGroup}...")]
+        internal static partial void CreatingNewWriter(this ILogger logger, string id,
+            string writer, string writerGroup);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Information,
+            Message = "Created writer {Id} in writer group {WriterGroup}.")]
+        internal static partial void CreatedWriter(this ILogger logger, string id,
+            string writerGroup);
+
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Debug,
+            Message = "Updating writer {Id} in writer group {WriterGroup}...")]
+        internal static partial void UpdatingWriter(this ILogger logger, string id,
+            string writerGroup);
+
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Information,
+            Message = "Recreated subscription for writer {Id} in writer group {WriterGroup}...")]
+        internal static partial void RecreatedSubscription(this ILogger logger, string id,
+            string writerGroup);
+
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Debug,
+            Message = "Updated monitored items for writer {Id} in writer group {WriterGroup}.")]
+        internal static partial void UpdatedMonitoredItems(this ILogger logger, string id,
+            string writerGroup);
+
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Information,
+            Message = "Closed writer {Id} in writer group {WriterGroup}.")]
+        internal static partial void ClosedWriter(this ILogger logger, string id,
+            string writerGroup);
+
+        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Debug,
+            Message = "Notifications counter has been reset to prevent overflow. So far, {DataChangesCount} " +
+            "data changes and {ValueChangesCount} value changes were invoked by message source.")]
+        internal static partial void NotificationsCounterReset(this ILogger logger,
+            int dataChangesCount, int valueChangesCount);
+
+        [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Debug,
+            Message = "Notifications counter has been reset to prevent overflow. So far, {ReadCount} " +
+            "data changes and {ValuesCount} value changes were invoked by message source.")]
+        internal static partial void NotificationsCounterResetRead(this ILogger logger,
+            int readCount, int valuesCount);
+
+        [LoggerMessage(EventId = EventClass + 9, Level = LogLevel.Debug,
+            Message = "Notifications counter has been reset to prevent overflow. So far, {EventChangesCount} " +
+            "event changes and {EventValueChangesCount} event value changes were invoked by message source.")]
+        internal static partial void NotificationsCounterResetEvent(this ILogger logger,
+            int eventChangesCount, int eventValueChangesCount);
+
+        [LoggerMessage(EventId = EventClass + 10, Level = LogLevel.Information,
+            Message = "Blocked message for {Duration} until metadata was loaded for {Writer}.")]
+        internal static partial void BlockedMessageForMetadata(this ILogger logger,
+            TimeSpan duration, WriterGroupDataSource.DataSetWriter writer);
+
+        [LoggerMessage(EventId = EventClass + 11, Level = LogLevel.Warning,
+            Message = "No metadata available for {Writer} - dropping notification.")]
+        internal static partial void NoMetadataAvailable(this ILogger logger,
+            WriterGroupDataSource.DataSetWriter writer);
+
+        [LoggerMessage(EventId = EventClass + 12, Level = LogLevel.Trace,
+            Message = "Enqueuing notification: {Notification}")]
+        internal static partial void EnqueuingNotification(this ILogger logger, string notification);
+
+        [LoggerMessage(EventId = EventClass + 13, Level = LogLevel.Error,
+            Message = "Failed to get metadata for {Writer} with error {Error}")]
+        internal static partial void FailedToGetMetadata(this ILogger logger,
+            WriterGroupDataSource.DataSetWriter writer, string error);
+
+        [LoggerMessage(EventId = EventClass + 14, Level = LogLevel.Debug,
+            Message = "Loading Metadata {Major}.{Minor} for {Writer}...")]
+        internal static partial void LoadingMetadata(this ILogger logger, uint major,
+            uint minor, string writer);
+
+        [LoggerMessage(EventId = EventClass + 15, Level = LogLevel.Information,
+            Message = "Loading Metadata {Major}.{Minor} for {Writer} took {Duration}.")]
+        internal static partial void LoadingMetadataTook(this ILogger logger, uint major,
+            uint minor, string writer, TimeSpan duration);
+
+        [LoggerMessage(EventId = EventClass + 16, Level = LogLevel.Warning,
+            Message = "Failed to produce message.")]
+        internal static partial void FailedToProduceMessage(this ILogger logger, Exception ex);
     }
 }

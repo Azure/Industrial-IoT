@@ -1,0 +1,55 @@
+{{- $simulationLabels := include "simulation.labels" . -}}
+{{- $releaseName := .Release.Name -}}
+
+{{ range $i := until (.Values.simulations | int) }}
+{{ $suffix := printf "%s-%06d" $releaseName $i }}
+{{- if $.Capabilities.APIVersions.Has "cert-manager.io/v1" }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: opc-ua-opc-plc-default-application-{{ $suffix }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- $simulationLabels | nindent 4 }}
+spec:
+  # Secret names are always required.
+  secretName: opc-ua-opc-plc-default-application-cert-{{ $suffix }}
+  duration: 8760h # 365d
+  renewBefore: 4380h # 182d
+  subject:
+    #  It is recommended that the user sets here in the subject at least the organization's name. This information will be stored in the certificate and helps to identify the certificate.
+    # organizations:
+    #  - Microsoft
+  commonName: OpcPlc
+  isCA: false
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS1
+    size: 2048
+    rotationPolicy: Always
+  usages:
+    - content commitment
+    - digital signature
+    - key encipherment
+    - data encipherment
+    - cert sign
+    - client auth
+    - server auth
+  # At least one of a DNS Name, URI, or IP address is required.
+  uris:
+    - urn:OpcPlc:opc-plc-{{ $suffix }}
+  dnsNames:
+    - opc-plc-{{ $suffix }}.{{ $.Release.Namespace }}
+    - opc-plc-{{ $suffix }}
+  issuerRef:
+    kind: Issuer
+{{- if $.Values.deployDefaultIssuerCA }}
+    name: aio-opc-opcuabroker-default-root-ca-issuer
+{{- else }}
+    name: aio-opc-ua-self-signed-issuer
+{{- end }}
+{{- else }}
+{{ fail "cert-manager is required to create Certificate resource. Please install cert-manager."}}
+{{- end }}
+---
+{{ end }}

@@ -28,6 +28,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 id.Append(model.DataSetWriterGroup);
             }
+            if (!string.IsNullOrEmpty(model.WriterGroupExternalId))
+            {
+                id.Append(model.WriterGroupExternalId);
+            }
+            if (!string.IsNullOrEmpty(model.WriterGroupRootNodeId))
+            {
+                id.Append(model.WriterGroupRootNodeId);
+            }
+            if (!string.IsNullOrEmpty(model.WriterGroupType))
+            {
+                id.Append(model.WriterGroupType);
+            }
             if (model.WriterGroupTransport != null)
             {
                 id.Append(model.WriterGroupTransport);
@@ -86,6 +98,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             }
             if (!string.Equals(model.DataSetWriterGroup,
                 that.DataSetWriterGroup, StringComparison.Ordinal))
+            {
+                return false;
+            }
+            if (!string.Equals(model.WriterGroupExternalId ?? string.Empty,
+                that.WriterGroupExternalId ?? string.Empty, StringComparison.Ordinal))
+            {
+                return false;
+            }
+            if (!string.Equals(model.WriterGroupType ?? string.Empty,
+                that.WriterGroupType ?? string.Empty, StringComparison.Ordinal))
+            {
+                return false;
+            }
+            if (!string.Equals(model.WriterGroupRootNodeId ?? string.Empty,
+                that.WriterGroupRootNodeId ?? string.Empty, StringComparison.Ordinal))
             {
                 return false;
             }
@@ -355,11 +382,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 id.Append(model.DataSetKeyFrameCount.Value);
             }
+            if (model.DataSetType != null)
+            {
+                id.Append(model.DataSetType);
+            }
+            if (model.DataSetRootNodeId != null)
+            {
+                id.Append(model.DataSetRootNodeId);
+            }
             if (model.DisableSubscriptionTransfer != null)
             {
                 id.Append(model.DisableSubscriptionTransfer.Value);
             }
-            if (model.SendKeepAliveDataSetMessages)
+            if (model.SendKeepAliveDataSetMessages == true)
             {
                 id.AppendLine();
             }
@@ -520,6 +555,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 return false;
             }
+            if (!string.Equals(model.DataSetType ?? string.Empty,
+                that.DataSetType ?? string.Empty, StringComparison.Ordinal))
+            {
+                return false;
+            }
+            if (!string.Equals(model.DataSetRootNodeId ?? string.Empty,
+                that.DataSetRootNodeId ?? string.Empty, StringComparison.Ordinal))
+            {
+                return false;
+            }
             if (model.DataSetClassId != that.DataSetClassId)
             {
                 return false;
@@ -532,7 +577,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 return false;
             }
-            if (model.SendKeepAliveDataSetMessages != that.SendKeepAliveDataSetMessages)
+            if ((model.SendKeepAliveDataSetMessages ?? false) !=
+                (that.SendKeepAliveDataSetMessages ?? false))
             {
                 return false;
             }

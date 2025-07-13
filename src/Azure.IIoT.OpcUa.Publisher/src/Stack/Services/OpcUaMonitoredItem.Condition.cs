@@ -157,16 +157,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         // stop the timers during condition refresh
                         DisableConditionTimer();
                         state.Active.Clear();
-                        _logger.LogDebug("{Item}: Stopped pending alarm handling " +
-                            "during condition refresh.", this);
+                        _logger.StoppedPendingAlarms(this);
                         return true;
                     }
                     else if (eventType == ObjectTypeIds.RefreshEndEventType)
                     {
                         // restart the timers once condition refresh is done.
                         EnableConditionTimer();
-                        _logger.LogDebug("{Item}: Restarted pending alarm handling " +
-                            "after condition refresh.", this);
+                        _logger.RestartedPendingAlarms(this);
                         return true;
                     }
                     else if (eventType == ObjectTypeIds.RefreshRequiredEventType)
@@ -175,9 +173,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         Debug.Assert(Subscription != null);
 
                         // issue a condition refresh to make sure we are in a correct state
-                        _logger.LogInformation("{Item}: Issuing ConditionRefresh for " +
-                            "item {Name} on subscription {Subscription} due to receiving " +
-                            "a RefreshRequired event", this, Template.DisplayName,
+                        _logger.IssuingConditionRefresh(this, Template.DisplayName,
                             Subscription.DisplayName);
                         try
                         {
@@ -185,15 +181,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         }
                         catch (Exception e)
                         {
-                            _logger.LogInformation("{Item}: ConditionRefresh for item {Name} " +
-                                "on subscription {Subscription} failed with error '{Message}'",
-                                this, Template.DisplayName, Subscription.DisplayName, e.Message);
+                            _logger.ConditionRefreshFailed(this,
+                                Template.DisplayName, Subscription.DisplayName, e.Message);
                             noErrorFound = false;
                         }
                         if (noErrorFound)
                         {
-                            _logger.LogInformation("{Item}: ConditionRefresh for item {Name} " +
-                                "on subscription {Subscription} has completed", this,
+                            _logger.ConditionRefreshCompleted(this,
                                 Template.DisplayName, Subscription.DisplayName);
                         }
                         return true;
@@ -250,8 +244,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var itemChange = false;
                 if (_snapshotInterval != model._snapshotInterval)
                 {
-                    _logger.LogDebug("{Item}: Changing shptshot interval from {Old} to {New}",
-                        this, TimeSpan.FromSeconds(_snapshotInterval).TotalMilliseconds,
+                    _logger.SnapshotIntervalChanged(this,
+                        TimeSpan.FromSeconds(_snapshotInterval).TotalMilliseconds,
                         TimeSpan.FromSeconds(model._snapshotInterval).TotalMilliseconds);
 
                     _snapshotInterval = model._snapshotInterval;
@@ -260,8 +254,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 if (_updateInterval != model._updateInterval)
                 {
-                    _logger.LogDebug("{Item}: Changing update interval from {Old} to {New}",
-                        this, TimeSpan.FromSeconds(_updateInterval).TotalMilliseconds,
+                    _logger.UpdateIntervalChanged(this,
+                        TimeSpan.FromSeconds(_updateInterval).TotalMilliseconds,
                         TimeSpan.FromSeconds(model._updateInterval).TotalMilliseconds);
 
                     _updateInterval = model._updateInterval;
@@ -395,7 +389,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "{Item}: SendPendingConditions failed.", this);
+                    _logger.SendPendingConditionsFailed(ex, this);
                 }
                 finally
                 {
@@ -443,7 +437,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             AutoReset = false
                         };
                         _conditionTimer.Elapsed += OnConditionTimerElapsed;
-                        _logger.LogDebug("Re-enabled condition timer.");
+                        _logger.ConditionTimerReEnabled();
                     }
                     _conditionTimer.Interval = TimeSpan.FromSeconds(1);
                     _conditionTimer.Enabled = true;
@@ -463,7 +457,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         _conditionTimer.Elapsed -= OnConditionTimerElapsed;
                         _conditionTimer.Dispose();
                         _conditionTimer = null;
-                        _logger.LogDebug("Disabled condition timer.");
+                        _logger.ConditionTimerDisabled();
                     }
                     TimerEnabled = false;
                 }
@@ -501,5 +495,56 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private readonly object _timerLock = new();
             private bool _disposed;
         }
+    }
+
+    /// <summary>
+    /// Source-generated logging definitions for OpcUaMonitoredItem Condition handling
+    /// </summary>
+    internal static partial class OpcUaMonitoredItemConditionLogging
+    {
+        private const int EventClass = 1000;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Debug,
+            Message = "{Item}: Stopped pending alarm handling during condition refresh.")]
+        public static partial void StoppedPendingAlarms(this ILogger logger, OpcUaMonitoredItem item);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Debug,
+            Message = "{Item}: Restarted pending alarm handling after condition refresh.")]
+        public static partial void RestartedPendingAlarms(this ILogger logger, OpcUaMonitoredItem item);
+
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Information,
+            Message = "{Item}: Issuing ConditionRefresh for item {Name} on subscription {Subscription} " +
+            "due to receiving first notification.")]
+        public static partial void IssuingConditionRefresh(this ILogger logger, OpcUaMonitoredItem item, string name, string subscription);
+
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Information,
+            Message = "{Item}: ConditionRefresh for item {Name} on subscription {Subscription} " +
+            "failed with error '{Message}'")]
+        public static partial void ConditionRefreshFailed(this ILogger logger, OpcUaMonitoredItem item, string name,
+            string subscription, string message);
+
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Information,
+            Message = "{Item}: ConditionRefresh for item {Name} on subscription {Subscription} has completed")]
+        public static partial void ConditionRefreshCompleted(this ILogger logger, OpcUaMonitoredItem item, string name, string subscription);
+
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Debug,
+            Message = "{Item}: Changing shptshot interval from {Old} to {New}")]
+        public static partial void SnapshotIntervalChanged(this ILogger logger, OpcUaMonitoredItem item, double old, double @new);
+
+        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Debug,
+            Message = "{Item}: Changing update interval from {Old} to {New}")]
+        public static partial void UpdateIntervalChanged(this ILogger logger, OpcUaMonitoredItem item, double old, double @new);
+
+        [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Error,
+            Message = "{Item}: SendPendingConditions failed.")]
+        public static partial void SendPendingConditionsFailed(this ILogger logger, Exception ex, OpcUaMonitoredItem item);
+
+        [LoggerMessage(EventId = EventClass + 9, Level = LogLevel.Debug,
+            Message = "Re-enabled condition timer.")]
+        public static partial void ConditionTimerReEnabled(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 10, Level = LogLevel.Debug,
+            Message = "Disabled condition timer.")]
+        public static partial void ConditionTimerDisabled(this ILogger logger);
     }
 }

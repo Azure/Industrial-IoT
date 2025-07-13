@@ -4,11 +4,20 @@
     <TargetFramework>net9.0</TargetFramework>
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <Nullable>disable</Nullable>
+    <EnableSdkContainerSupport>true</EnableSdkContainerSupport>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ContainerRepository>iot/opc-ua-test-server</ContainerRepository>
+    <ContainerRuntimeIdentifier>linux-x64</ContainerRuntimeIdentifier>
+    <ContainerBaseImage>mcr.microsoft.com/dotnet/runtime:9.0-azurelinux3.0-distroless</ContainerBaseImage>
    </PropertyGroup>
   <ItemGroup>
     <Compile Remove="pki\**" />
     <EmbeddedResource Remove="pki\**" />
     <None Remove="pki\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="KubernetesClient" Version="17.0.4" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Publisher.Testing.Servers.csproj" />

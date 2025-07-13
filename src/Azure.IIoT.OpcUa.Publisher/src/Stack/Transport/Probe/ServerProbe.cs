@@ -93,8 +93,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Probe
                 timeout = _timeout;
                 if (arg.SocketError != SocketError.Success)
                 {
-                    _logger.LogDebug("Probe {Index} : {RemoteEp} found no opc server. {Error}",
-                        index, _socket?.RemoteEndPoint, arg.SocketError);
+                    _logger.ProbeNoOpcServer(index, _socket?.RemoteEndPoint?.ToString(), arg.SocketError);
                     _state = State.BeginProbe;
                     return true;
                 }
@@ -105,8 +104,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Probe
                         case State.BeginProbe:
                             if (arg.ConnectSocket == null)
                             {
-                                _logger.LogError("Probe {Index} : Called without connected socket!",
-                                    index);
+                                _logger.ProbeNoConnectedSocket(index);
                                 return true;
                             }
                             _socket = arg.ConnectSocket;
@@ -131,8 +129,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Probe
                             _buffer[7] = (byte)((_size & 0xFF000000) >> 24);
                             arg.SetBuffer(_buffer, 0, _size);
                             _len = 0;
-                            _logger.LogDebug("Probe {Index} : {Endpoint} ({RemoteEp})...", index,
-                                "opc.tcp://" + ep, _socket.RemoteEndPoint);
+                            _logger.ProbeStart(index, "opc.tcp://" + ep, _socket.RemoteEndPoint?.ToString());
                             _state = State.SendHello;
                             if (!_socket.SendAsync(arg))
                             {
@@ -172,15 +169,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Probe
                                 {
                                     if (TcpMessageType.IsValid(type))
                                     {
-                                        _logger.LogDebug("Probe {Index} : {RemoteEp} " +
-                                            "returned message type {Type} != Ack.",
-                                            index, _socket.RemoteEndPoint, type);
+                                        _logger.ProbeReturnedWrongType(index,
+                                            _socket.RemoteEndPoint?.ToString(), type);
                                     }
                                     else
                                     {
-                                        _logger.LogTrace("Probe {Index} : {RemoteEp} " +
-                                            "returned invalid message type {Type}.",
-                                            index, _socket.RemoteEndPoint, type);
+                                        _logger.ProbeReturnedInvalidType(index,
+                                            _socket.RemoteEndPoint?.ToString(), type);
                                     }
                                     _state = State.BeginProbe;
                                     return true;
@@ -188,9 +183,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Probe
                                 _size = (int)BitConverter.ToUInt32(_buffer, 4);
                                 if (_size > _buffer.Length)
                                 {
-                                    _logger.LogDebug("Probe {Index} : {RemoteEp} " +
-                                        "returned invalid message length {Size}.",
-                                        index, _socket.RemoteEndPoint, _size);
+                                    _logger.ProbeReturnedInvalidLength(index,
+                                        _socket.RemoteEndPoint?.ToString(), _size);
                                     _state = State.BeginProbe;
                                     return true;
                                 }
@@ -222,17 +216,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Probe
                                     var maxMessageSize = (int)decoder.ReadUInt32(null);
                                     var maxChunkCount = (int)decoder.ReadUInt32(null);
 
-                                    _logger.LogInformation("Probe {Index} : found OPC UA " +
-                                        "server at {RemoteEp} (protocol:{ProtocolVersion}) ...",
-                                        index, _socket.RemoteEndPoint, protocolVersion);
+                                    _logger.ProbeFoundOpcUaServer(index,
+                                        _socket.RemoteEndPoint?.ToString(), protocolVersion);
 
                                     if (sendBufferSize < TcpMessageLimits.MinBufferSize ||
                                         receiveBufferSize < TcpMessageLimits.MinBufferSize)
                                     {
-                                        _logger.LogWarning("Probe {Index} : Bad size value read " +
-                                            "{SendBufferSize} or {ReceiveBufferSize} from opc " +
-                                            "server at {RemoteEndPoint}.", index,
-                                        sendBufferSize, receiveBufferSize, _socket.RemoteEndPoint);
+                                        _logger.ProbeBadSizeValue(index, sendBufferSize, receiveBufferSize,
+                                            _socket.RemoteEndPoint?.ToString());
                                     }
                                 }
                                 ok = true;
@@ -277,5 +268,52 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Transport.Probe
         }
 
         private readonly ILogger _logger;
+    }
+
+    /// <summary>
+    /// Source-generated logging for ServerProbe
+    /// </summary>
+    internal static partial class ServerProbeLogging
+    {
+        private const int EventClass = 1600;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Debug,
+            Message = "Probe {Index} : {RemoteEp} found no opc server. {Error}")]
+        internal static partial void ProbeNoOpcServer(this ILogger logger, int index,
+            string? remoteEp, SocketError error);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Error,
+            Message = "Probe {Index} : Called without connected socket!")]
+        internal static partial void ProbeNoConnectedSocket(this ILogger logger, int index);
+
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Debug,
+            Message = "Probe {Index} : {Endpoint} ({RemoteEp})...")]
+        internal static partial void ProbeStart(this ILogger logger, int index,
+            string endpoint, string? remoteEp);
+
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Debug,
+            Message = "Probe {Index} : {RemoteEp} returned message type {Type} != Ack.")]
+        internal static partial void ProbeReturnedWrongType(this ILogger logger, int index,
+            string? remoteEp, uint type);
+
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Trace,
+            Message = "Probe {Index} : {RemoteEp} returned invalid message type {Type}.")]
+        internal static partial void ProbeReturnedInvalidType(this ILogger logger, int index,
+            string? remoteEp, uint type);
+
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Debug,
+            Message = "Probe {Index} : {RemoteEp} returned invalid message length {Size}.")]
+        internal static partial void ProbeReturnedInvalidLength(this ILogger logger, int index,
+            string? remoteEp, int size);
+
+        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Information,
+            Message = "Probe {Index} : found OPC UA server at {RemoteEp} (protocol:{ProtocolVersion}) ...")]
+        internal static partial void ProbeFoundOpcUaServer(this ILogger logger, int index,
+            string? remoteEp, uint protocolVersion);
+
+        [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Warning,
+            Message = "Probe {Index} : Bad size value read {SendBufferSize} or {ReceiveBufferSize} from opc server at {RemoteEp}.")]
+        internal static partial void ProbeBadSizeValue(this ILogger logger, int index,
+            int sendBufferSize, int receiveBufferSize, string? remoteEp);
     }
 }

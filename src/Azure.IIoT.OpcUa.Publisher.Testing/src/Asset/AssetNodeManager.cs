@@ -94,7 +94,7 @@ namespace Asset
                 catch (Exception ex)
                 {
                     // skip this file, but log an error
-                    _logger.LogError(ex, "Error");
+                    _logger.AssetNodeManagerError(ex);
                 }
             }
 
@@ -169,7 +169,7 @@ namespace Asset
                     catch (Exception ex)
                     {
                         // skip this file, but log an error
-                        _logger.LogError(ex, "Error parsing asset configuration file.");
+                        _logger.AssetConfigError(ex);
                     }
                 }
 
@@ -269,7 +269,7 @@ namespace Asset
         {
             lock (Lock)
             {
-                _logger.LogDebug("Data change for {AssetTag}", assetTag);
+                _logger.DataChange(assetTag);
 
                 variable.Value = value;
                 variable.StatusCode = statusCode;
@@ -430,8 +430,7 @@ namespace Asset
                     }
                 }
             }
-            _logger.LogInformation("Successfully parsed WoT file for asset: {AssetId}",
-                assetId);
+            _logger.WoTParsed(assetId);
         }
 
         private bool CreateAssetNode(string assetName, out NodeState assetNode)
@@ -565,7 +564,7 @@ namespace Asset
                                 opcuaCompanionSpecUrl.OriginalString);
                         }
 
-                        _logger.LogInformation("Loading nodeset from local file {File}", nodesetFile);
+                        _logger.LoadingNodeset(nodesetFile);
                         LoadNamespaceUrisFromNodesetXml(namespaceUris, nodesetFile);
                     }
                 }
@@ -612,7 +611,7 @@ namespace Asset
                                 opcuaCompanionSpecUrl.OriginalString);
                         }
 
-                        _logger.LogInformation("Adding node set from local nodeset file");
+                        _logger.AddingNodeset();
                         AddNodesFromNodesetXml(nodesetFile);
                     }
                 }
@@ -684,7 +683,7 @@ $"{type.Assembly.GetName().Name}.Generated.{type.Namespace}.Design.{type.Namespa
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error");
+                    _logger.AssetNodeManagerError(ex);
                 }
             }
         }
@@ -713,7 +712,7 @@ $"{type.Assembly.GetName().Name}.Generated.{type.Namespace}.Design.{type.Namespa
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Error");
+                        _logger.AssetNodeManagerError(ex);
                     }
                 }
             }
@@ -739,7 +738,7 @@ $"{type.Assembly.GetName().Name}.Generated.{type.Namespace}.Design.{type.Namespa
         private AssetTag AddAssetTagForTdProperty(ThingDescription td, string propertyName,
             Property property, string form, string assetId)
         {
-            _logger.LogDebug("Add asset for Property {Property}", property);
+            _logger.AddAssetForProperty(property);
 
             // check if we need to create a new asset first
             if (!_tags.TryGetValue(assetId, out var tagList))
@@ -804,7 +803,7 @@ $"{type.Assembly.GetName().Name}.Generated.{type.Namespace}.Design.{type.Namespa
                 // Try Create modbus asset
                 if (ModbusTcpAsset.TryConnect(parsedUri, _logger, out assetInterface))
                 {
-                    _logger.LogInformation("Created modbus asset {AssetId}", td.Name);
+                    _logger.CreatedModbusAsset(td.Name);
                 }
 
                 // else ...
@@ -902,5 +901,45 @@ $"{type.Assembly.GetName().Name}.Generated.{type.Namespace}.Design.{type.Namespa
         private readonly ILogger _logger;
         private readonly string _folder;
         private long _lastUsedId;
+    }
+
+    /// <summary>
+    /// Source-generated logging definitions for AssetNodeManager
+    /// </summary>
+    internal static partial class AssetNodeManagerLogging
+    {
+        private const int EventClass = 0;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Error,
+            Message = "Error")]
+        public static partial void AssetNodeManagerError(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Error,
+            Message = "Error parsing asset configuration file.")]
+        public static partial void AssetConfigError(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Debug,
+            Message = "Data change for {AssetTag}")]
+        public static partial void DataChange(this ILogger logger, AssetTag assetTag);
+
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Information,
+            Message = "Successfully parsed WoT file for asset: {AssetId}")]
+        public static partial void WoTParsed(this ILogger logger, string assetId);
+
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Information,
+            Message = "Loading nodeset from local file {File}")]
+        public static partial void LoadingNodeset(this ILogger logger, string file);
+
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Information,
+            Message = "Adding node set from local nodeset file")]
+        public static partial void AddingNodeset(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Information,
+            Message = "Created modbus asset {AssetId}")]
+        public static partial void CreatedModbusAsset(this ILogger logger, string assetId);
+
+        [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Debug,
+            Message = "Add asset for Property {Property}")]
+        public static partial void AddAssetForProperty(this ILogger logger, Property property);
     }
 }

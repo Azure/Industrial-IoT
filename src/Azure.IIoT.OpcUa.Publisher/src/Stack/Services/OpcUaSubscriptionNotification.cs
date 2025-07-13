@@ -119,8 +119,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
             {
                 MessageType = MessageType.KeyFrame;
 
-                Notifications.Clear();
-                Notifications.AddRange(allNotifications);
+                if (Notifications.IsReadOnly)
+                {
+                    Notifications = [.. allNotifications];
+                }
+                else
+                {
+                    Notifications.Clear();
+                    Notifications.AddRange(allNotifications);
+                }
                 return true;
             }
             return false;
@@ -142,7 +149,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <inheritdoc/>
         public void DebugAssertProcessed()
         {
-            Debug.Assert(Context == null || _processed);
+            if (Context == null || _processed)
+            {
+                return;
+            }
+            Debug.Fail("Item not processed");
         }
         private bool _processed;
 #endif

@@ -126,7 +126,7 @@ namespace Plc
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError(e, "Error creating address space.");
+                    _logger.AddressSpaceError(e);
                 }
 
                 AddPredefinedNode(SystemContext, root);
@@ -283,7 +283,7 @@ namespace Plc
             }
             else
             {
-                _logger.LogDebug("NodeId type is {NodeIdType}", (string)path.GetType().ToString());
+                _logger.NodeIdType((string)path.GetType().ToString());
                 baseDataVariableState.NodeId = new NodeId(path, namespaceIndex);
                 baseDataVariableState.BrowseName = new QualifiedName(name, namespaceIndex);
             }
@@ -345,5 +345,21 @@ namespace Plc
         private IDictionary<NodeId, IList<IReference>> _externalReferences;
         private Func<ISystemContext, NodeStateCollection> _loadPredefinedNodeshandler;
         private readonly PlcSimulation _simulation;
+    }
+
+    /// <summary>
+    /// Source-generated logging definitions for PlcNodeManager
+    /// </summary>
+    internal static partial class PlcNodeManagerLogging
+    {
+        private const int EventClass = 50;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Error,
+            Message = "Error creating address space.")]
+        public static partial void AddressSpaceError(this ILogger logger, Exception e);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Debug,
+            Message = "NodeId type is {NodeIdType}")]
+        public static partial void NodeIdType(this ILogger logger, string nodeIdType);
     }
 }
