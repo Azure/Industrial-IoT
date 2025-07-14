@@ -34,7 +34,7 @@
     .PARAMETER Connector
         Whether to deploy the OPC Publisher as connector. Official
         installs the official connector build, Local builds and deploys
-        a local version. Debug the debug version. Default is None.
+        a local version. Debug the debug version. Default is Official.
     .PARAMETER OpsVersion
         The version of Azure IoT Operations to use.
         Default is the latest stable release.
@@ -68,7 +68,7 @@ param(
         "Official",
         "Local",
         "Debug"
-    )] $Connector = "Local",
+    )] $Connector = "Official",
     [string] $OpsVersion = $null,
     [string] [ValidateSet(
         "integration",
@@ -1110,6 +1110,7 @@ if ($script:Connector -eq "Official") {
             registry = "mcr.microsoft.com"
         }
     }
+    $containerTag = "2.9.15-preview1"
     $containerImage = "mcr.microsoft.com/$($containerName):$($containerTag)"
     docker pull $containerImage
 }

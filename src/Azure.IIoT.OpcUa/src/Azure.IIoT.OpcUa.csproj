@@ -9,7 +9,7 @@
     <PackageReference Include="Apache.Avro" Version="1.12.0" />
     <PackageReference Include="System.Text.Json" Version="9.0.7" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="3.0.1" />
-    <PackageReference Include="Furly.Extensions" Version="1.1.32" />
+    <PackageReference Include="Furly.Extensions" Version="1.1.33" />
     <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Core" Version="1.5.376.235" />
   </ItemGroup>
   <ItemGroup>
