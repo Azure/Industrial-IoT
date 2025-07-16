@@ -137,7 +137,7 @@ You can use [`.\debug\build.ps1`](./debug/build.ps1) to build a debug version.
 
 # Full syntax with all parameters
 .\debug\build.ps1 `
-    [-Configuration <config>] `                     # Optional: Debug or Release (default: Debug)
+    [-Configuration <config>] `                    # Optional: Debug or Release (default: Debug)
     [-ClusterType <type>] `                        # Optional: Target cluster type (default: microk8s)
     [-StartDebugger]                               # Optional: Start debugger after build
 

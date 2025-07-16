@@ -11,7 +11,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Azure.Identity" Version="1.14.2" />
-    <PackageReference Include="Azure.Core" Version="1.47.0" />
+    <PackageReference Include="Azure.Core" Version="1.47.1" />
     <PackageReference Include="Azure.Messaging.EventHubs" Version="5.12.2" />
     <PackageReference Include="Azure.ResourceManager.ContainerInstance" Version="1.2.1" />
     <PackageReference Include="Azure.ResourceManager.Storage" Version="1.4.3" />
