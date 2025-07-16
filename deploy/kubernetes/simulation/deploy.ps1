@@ -39,6 +39,10 @@
         already exist in the ADR namespace.
     .PARAMETER SkipLogin
         If specified, will skip the Azure login step.
+    .PARAMETER ClusterType
+        The type of Kubernetes cluster to deploy to. Valid values are
+        "kind", "minikube", "k3d", and "microk8s". Optional and only
+        needed if you want to deploy opc-test from local repo.
 #>
 
 param(
@@ -48,7 +52,7 @@ param(
         "opc-test",
         "umati"
     )] $SimulationName = "opc-plc",
-    [int] $Count = 2,
+    [int] $Count = 1,
     [string] [Parameter(Mandatory = $true)] $InstanceName,
     [string] [Parameter(Mandatory = $true)] $ResourceGroup,
     [string] $AdrNamespaceName,
@@ -201,11 +205,9 @@ switch ($script:SimulationName) {
         $assetTypes += "nsu=http://microsoft.com/Opc/OpcPlc/Boiler;i=3"
     }
     "opc-test" {
-        # OPC Test
-        # todo
         $assetTypes += "nsu=http://opcfoundation.org/UA/Boiler/;i=1132" # BoilerType
-        $assetTypes += "nsu=FileSystem;i=16314" # FileSystemType
         $assetTypes += "nsu=http://opcfoundation.org/UA/WoT-Con/;i=115" # AssetType
+        #$assetTypes += "nsu=FileSystem;i=16314" # FileSystemType
     }
     "umati" {
         # $assetTypes += "nsu=http://opcfoundation.org/UA/MachineTool/;i=14" # monitoring
@@ -233,7 +235,6 @@ for ($i = 0; $i -lt $script:Count; $i++) {
             extendedLocation = $iotOps.extendedLocation
             location = $Location
             properties = @{
-                # externalDeviceId = "unique-edge-device-identifier"
                 enabled = $true
                 attributes = @{
                     deviceType = "LDS"

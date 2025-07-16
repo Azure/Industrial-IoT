@@ -1118,7 +1118,7 @@ if ($script:Connector -eq "Official") {
             registry = "mcr.microsoft.com"
         }
     }
-    $containerTag = "2.9.15-preview1"
+    $containerTag = "2.9.15-preview2" # TODO: Remove
     $containerImage = "mcr.microsoft.com/$($containerName):$($containerTag)"
     docker pull $containerImage
 }
