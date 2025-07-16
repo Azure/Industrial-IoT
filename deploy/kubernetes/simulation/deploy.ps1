@@ -103,13 +103,14 @@ if (-not $script:SkipLogin.IsPresent) {
 $displayName = "$($script:Count) $($script:SimulationName) simulation servers"
 if ($script:SimulationName -eq "umati") {
     Write-Host "Using public Umati server for simulation." -ForegroundColor Yellow
+    $script:Count = 1
 }
 elseif ($script:SimulationName -eq "opc-test" -and $script:ClusterType) {
-    # Build opc-test-server image
+    Write-Host "Building opc-test-server image for simulation." -ForegroundColor Yellow
     $projFile = "Azure.IIoT.OpcUa.Publisher.Testing"
     $projFile = "../../../src/$($projFile)/cli/$($projFile).Cli.csproj"
     $configuration = "Debug"
-    $containerTag = Get-Date -Format "MMddHHmmss"
+    $containerTag = "latest"
     $containerName = "iot/opc-ua-test-server"
     $containerImage = "$($containerName):$($containerTag)"
     Write-Host "Publishing $configuration Simulation as $containerImage..." `
@@ -123,8 +124,6 @@ elseif ($script:SimulationName -eq "opc-test" -and $script:ClusterType) {
     }
     Write-Host "$configuration container image $containerImage published successfully." `
         -ForegroundColor Green
-
-    # Import container image using the module function
     Import-ContainerImage -ClusterType $script:ClusterType -ContainerImage $containerImage
     $helmPath = Join-Path $(Join-Path $scriptDirectory "helm") $script:SimulationName
     helm upgrade -i $script:DeploymentName "$($helmPath)" `
@@ -135,7 +134,6 @@ elseif ($script:SimulationName -eq "opc-test" -and $script:ClusterType) {
         --set tag=$($containerTag) `
         --set pullPolicy=IfNotPresent `
         --wait
-
     if (-not $?) {
         Write-Host "Error deploying $($displayName) as $($script:DeploymentName)." `
             -ForegroundColor Red
@@ -181,7 +179,7 @@ if (!$ns -or !$ns.id) {
     exit -1
 }
 $errOut = $($iotOps = & { az iot ops show `
-    --resource-group $rg.Name `
+    --resource-group $script:ResourceGroup `
     --name $script:InstanceName `
     --subscription $SubscriptionId `
     --only-show-errors --output json } | ConvertFrom-Json) 2>&1
@@ -195,20 +193,24 @@ if (!$iotOps) {
 # Deployment simulation configuration
 #
 $assetTypes = @("i=2004")
-if ($script:SimulationName -eq "opc-plc") {
-    # OPC Plc
-    $assetTypes += "nsu=http://opcfoundation.org/UA/Boiler/;i=1132"
-    $assetTypes += "nsu=http://microsoft.com/Opc/OpcPlc/Boiler;i=1000"
-    $assetTypes += "nsu=http://microsoft.com/Opc/OpcPlc/Boiler;i=3"
-}
-elseif ($script:SimulationName -eq "opc-test") {
-    # OPC Test
-    # todo
-}
-elseif ($script:SimulationName -eq "umati") {
-    $assetTypes += "nsu=http://opcfoundation.org/UA/MachineTool/;i=14" # monitoring
-    # $assetTypes += "nsu=http://opcfoundation.org/UA/MachineTool/;i=13" # machine tool
-    $script:Count = 1
+switch ($script:SimulationName) {
+    "opc-plc" {
+        # OPC Plc
+        $assetTypes += "nsu=http://opcfoundation.org/UA/Boiler/;i=1132"
+        $assetTypes += "nsu=http://microsoft.com/Opc/OpcPlc/Boiler;i=1000"
+        $assetTypes += "nsu=http://microsoft.com/Opc/OpcPlc/Boiler;i=3"
+    }
+    "opc-test" {
+        # OPC Test
+        # todo
+        $assetTypes += "nsu=http://opcfoundation.org/UA/Boiler/;i=1132" # BoilerType
+        $assetTypes += "nsu=FileSystem;i=16314" # FileSystemType
+        $assetTypes += "nsu=http://opcfoundation.org/UA/WoT-Con/;i=115" # AssetType
+    }
+    "umati" {
+        # $assetTypes += "nsu=http://opcfoundation.org/UA/MachineTool/;i=14" # monitoring
+        $assetTypes += "nsu=http://opcfoundation.org/UA/MachineTool/;i=13" # machine tool
+    }
 }
 
 for ($i = 0; $i -lt $script:Count; $i++) {

@@ -14,7 +14,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Globalization;
+    using System.Linq;
     using System.Runtime.Loader;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -29,6 +31,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
         /// <exception cref="ArgumentException"></exception>
         public static void Main(string[] args)
         {
+#if DEBUG
+            if (args.Any(a => a.Contains("wfd", StringComparison.InvariantCultureIgnoreCase) ||
+                a.Contains("waitfordebugger", StringComparison.InvariantCultureIgnoreCase)) ||
+                KubernetesClientConfiguration.IsInCluster())
+            {
+                Console.WriteLine("Waiting for debugger being attached...");
+                while (!Debugger.IsAttached)
+                {
+                    Thread.Sleep(1000);
+                }
+                Console.WriteLine("Debugger attached.");
+                Debugger.Break();
+            }
+#endif
             AppDomain.CurrentDomain.UnhandledException +=
                 (s, e) => Console.WriteLine("unhandled: " + e.ExceptionObject);
             var host = Utils.GetHostName();
