@@ -84,14 +84,15 @@ param(
 )
 
 #Requires -RunAsAdministrator
-
 $ErrorActionPreference = 'Continue'
-$scriptDirectory = Split-Path -Path $MyInvocation.MyCommand.Path
 
 if (![Environment]::Is64BitProcess) {
     Write-Host "Error: Run this in 64bit Powershell session" -ForegroundColor Red
     exit -1
 }
+
+$scriptDirectory = Split-Path -Path $MyInvocation.MyCommand.Path
+Import-Module $(Join-Path $(Join-Path $scriptDirectory "common") "cluster-utils.psm1") -Force
 
 #
 # Dump command line arguments
@@ -805,19 +806,26 @@ if (-not $?) {
     Write-Host "Error: Failed to enable custom location feature." -ForegroundColor Red
     exit -1
 }
+
 # enable workload identity
-Write-Host "Enabling workload identity for cluster $Name..." -ForegroundColor Cyan
-az connectedk8s update `
-    --name $cc.name `
-    --resource-group $rg.Name `
-    --subscription $SubscriptionId `
-    --auto-upgrade true `
-    --enable-oidc-issuer `
-    --enable-workload-identity `
-    --only-show-errors
-if (-not $?) {
-    Write-Host "Error: Failed to enable workload identity." -ForegroundColor Red
-    exit -1
+if ($cc.securityProfile.workloadIdentity.enabled -and $cc.oidcIssuerProfile.enabled){
+    Write-Host "Workload identity already enabled for cluster $Name." -ForegroundColor Green
+}
+else {
+    Write-Host "Enabling workload identity for cluster $Name..." -ForegroundColor Cyan
+    az connectedk8s update `
+        --name $cc.name `
+        --resource-group $rg.Name `
+        --subscription $SubscriptionId `
+        --auto-upgrade true `
+        --enable-oidc-issuer `
+        --enable-workload-identity `
+        --only-show-errors
+    if (-not $?) {
+        Write-Host "Error: Failed to enable workload identity." -ForegroundColor Red
+        exit -1
+    }
+    Write-Host "Workload identity enabled for cluster $Name." -ForegroundColor Green
 }
 
 #
@@ -1137,15 +1145,10 @@ else {
     $containerPull = "IfNotPresent"
 }
 
-Write-Host "Importing $containerImage into $($script:ClusterType) cluster..." `
-    -ForegroundColor Cyan
+# Import container image
+Import-ContainerImage -ClusterType $script:ClusterType -ContainerImage $containerImage
 if ($script:ClusterType -eq "microk8s") {
-    # Windows only, support on linux is not implemented yet
-    $imageTar = Join-Path $env:TEMP "image.tar"
-    docker image save $containerImage -o $imageTar
-    multipass transfer $imageTar microk8s-vm:/tmp/image.tar
-    microk8s ctr image import /tmp/image.tar
-    Remove-Item -Path $imageTar -Force
+    $containerImage = "docker.io/$($containerImage)"
     $containerRegistry = @{
         registrySettingsType = "ContainerRegistry"
         containerRegistrySettings = @{
@@ -1153,14 +1156,6 @@ if ($script:ClusterType -eq "microk8s") {
         }
     }
 }
-elseif ($script:ClusterType -eq "k3d") {
-    k3d image import $containerImage --mode auto --cluster $Name
-}
-elseif ($script:ClusterType -eq "kind") {
-    kind load docker-image $containerImage
-}
-Write-Host "Container $containerImage imported into $($script:ClusterType) cluster." `
-    -ForegroundColor Green
 
 #
 # Create connector template
@@ -1395,6 +1390,7 @@ if (-not $?) {
 # Deploy simulation servers
 #
 & $(Join-Path $(Join-Path $scriptDirectory "simulation") "deploy.ps1") `
+    -DeploymentName "simulation1" `
     -SimulationName "opc-plc" -Count 2 `
     -InstanceName $script:InstanceName `
     -AdrNamespaceName $Name `
@@ -1407,9 +1403,30 @@ if (-not $?) {
     -Force  # :$forceReinstall `
 
 if (-not $?) {
-    Write-Host "Error deploying simulation servers." -ForegroundColor Red
+    Write-Host "Error deploying opc plc simulation servers." -ForegroundColor Red
     Remove-Item -Path $tempFile -Force
     exit -1
+}
+
+if ($DeployTestSimulation) {
+    & $(Join-Path $(Join-Path $scriptDirectory "simulation") "deploy.ps1") `
+        -DeploymentName "simulation2" `
+        -SimulationName "opc-test" -Count 2 `
+        -InstanceName $script:InstanceName `
+        -AdrNamespaceName $Name `
+        -SubscriptionId $SubscriptionId `
+        -TenantId $TenantId `
+        -ResourceGroup $rg.Name `
+        -Location $Location `
+        -Namespace $script:ClusterNamespace `
+        -SkipLogin `
+        -Force  # :$forceReinstall `
+
+    if (-not $?) {
+        Write-Host "Error deploying test simulation servers." -ForegroundColor Red
+        Remove-Item -Path $tempFile -Force
+        exit -1
+    }
 }
 Remove-Item -Path $tempFile -Force
 

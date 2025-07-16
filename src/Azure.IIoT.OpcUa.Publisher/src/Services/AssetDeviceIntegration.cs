@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
+    using Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Parser;
     using Azure.IIoT.OpcUa.Publisher.Stack;
@@ -22,6 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.Linq;
     using System.Text;
@@ -31,6 +33,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
+    using static Azure.IIoT.OpcUa.Publisher.Services.AssetDeviceIntegration;
 
     /// <summary>
     /// Asset and device configuration integration with Azure iot operations. Converts asset
@@ -50,23 +53,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         internal IEnumerable<DeviceResource> Devices => _devices.Values;
 
         /// <summary>
-        /// Create asset converter
+        /// Create Akri and asset and device registry integration service
         /// </summary>
         /// <param name="client"></param>
         /// <param name="publishedNodes"></param>
         /// <param name="configurationServices"></param>
+        /// <param name="connections"></param>
         /// <param name="endpointDiscovery"></param>
         /// <param name="serializer"></param>
         /// <param name="options"></param>
         /// <param name="logger"></param>
         public AssetDeviceIntegration(IAioAdrClient client, IPublishedNodesServices publishedNodes,
-            IConfigurationServices configurationServices, IEndpointDiscovery endpointDiscovery,
-            IJsonSerializer serializer, IOptions<PublisherOptions> options,
-            ILogger<AssetDeviceIntegration> logger)
+            IConfigurationServices configurationServices, IConnectionServices<ConnectionModel> connections,
+            IEndpointDiscovery endpointDiscovery, IJsonSerializer serializer,
+            IOptions<PublisherOptions> options, ILogger<AssetDeviceIntegration> logger)
         {
             _client = client;
             _publishedNodes = publishedNodes;
             _configurationServices = configurationServices;
+            _connections = connections;
             _endpointDiscovery = endpointDiscovery;
             _serializer = serializer;
             _options = options;
@@ -139,6 +144,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         internal void OnAssetChanged(object? sender, AssetChangedEventArgs e)
         {
+            if (string.IsNullOrEmpty(e.DeviceName) ||
+                string.IsNullOrEmpty(e.InboundEndpointName) ||
+                string.IsNullOrEmpty(e.AssetName))
+            {
+                _logger.InvalidAssetChangeEventReceived(e.ChangeType, e.DeviceName,
+                    e.InboundEndpointName, e.AssetName);
+                return;
+            }
             switch (e.ChangeType)
             {
                 case ChangeType.Created:
@@ -164,6 +177,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         internal void OnDeviceChanged(object? sender, DeviceChangedEventArgs e)
         {
+            if (string.IsNullOrEmpty(e.DeviceName) ||
+                string.IsNullOrEmpty(e.InboundEndpointName))
+            {
+                _logger.InvalidDeviceChangeEventReceived(e.ChangeType, e.DeviceName,
+                    e.InboundEndpointName);
+                return;
+            }
             switch (e.ChangeType)
             {
                 case ChangeType.Created:
@@ -438,6 +458,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
             catch (OperationCanceledException) { }
             catch (ObjectDisposedException) { }
+            catch (Exception ex)
+            {
+                _logger.UnexpectedErrorProcessingChanges(ex);
+                throw;
+            }
         }
 
         /// <summary>
@@ -452,8 +477,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             DeviceEndpointModel endpointConfiguration, ValidationErrors errors,
             CancellationToken ct)
         {
-            if (resource.Device.Endpoints?.Inbound == null ||
-                !resource.Device.Endpoints.Inbound.TryGetValue(resource.EndpointName, out var endpoint))
+            if (resource.Device.Endpoints == null ||
+                !TryGetInboundEndpoint(resource.Device.Endpoints, resource.EndpointName, out var endpoint))
             {
                 errors.OnError(resource, kDeviceNotFoundErrorCode, "Endpoint was not found");
                 return; // throw
@@ -896,19 +921,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var deviceLookup = devices.ToLookup(k => k.DeviceName);
             foreach (var asset in assets)
             {
-                // Get device inbound endpoint
-                var deviceResource = deviceLookup[asset.Asset.DeviceRef.DeviceName].SingleOrDefault();
-                if (deviceResource?.Device?.Endpoints?.Inbound == null ||
-                    !deviceResource.Device.Endpoints.Inbound.TryGetValue(
-                        asset.Asset.DeviceRef.EndpointName, out var endpoint))
+                // Find the device and endpoint referenced by this asset
+                var deviceRef = asset.Asset.DeviceRef;
+                DeviceResource? deviceResource = null;
+                InboundEndpointSchemaMapValue? endpoint = null;
+                foreach (var device in deviceLookup[deviceRef.DeviceName])
                 {
-                    errors.OnError(asset, kDeviceNotFoundErrorCode,
-                        "Device referenced by asset was not found");
+                    deviceResource = device;
+                    if (string.Equals(device.DeviceName, deviceRef.DeviceName, StringComparison.OrdinalIgnoreCase)
+                        && TryGetInboundEndpoint(device?.Device?.Endpoints, deviceRef.EndpointName, out endpoint))
+                    {
+                        break;
+                    }
+                }
+                if (deviceResource == null)
+                {
+                    errors.OnError(asset, kDeviceNotFoundErrorCode, "Device referenced by asset was not found");
                     continue;
                 }
-                var deviceEndpointResource = new DeviceEndpointResource(
-                    deviceResource.DeviceName, deviceResource.Device,
-                    asset.Asset.DeviceRef.EndpointName);
+                if (endpoint == null)
+                {
+                    errors.OnError(asset, kDeviceNotFoundErrorCode, "Endpoint referenced by asset was not found");
+                    continue;
+                }
+                var deviceEndpointResource = new DeviceEndpointResource(deviceResource.DeviceName,
+                    deviceResource.Device, deviceRef.EndpointName);
                 var endpointConfiguration = Deserialize(endpoint.AdditionalConfiguration,
                     () => new DeviceEndpointModel(), errors, deviceEndpointResource);
                 if (endpointConfiguration == null)
@@ -1661,6 +1698,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             continue;
                         }
 
+                        // Test connection
+                        var canConnectToEndpoint = await TestConnectionAsync(deviceEndpointResource,
+                            endpoint.Value, endpointConfiguration, errors, ct).ConfigureAwait(false);
+                        if (!canConnectToEndpoint)
+                        {
+                            continue;
+                        }
+
                         if (endpointConfiguration.RunAssetDiscovery == true &&
                             endpointConfiguration.AssetTypes?.Count > 0)
                         {
@@ -1715,6 +1760,44 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <summary>
+        /// Test connectivity
+        /// </summary>
+        /// <param name="deviceEndpointResource"></param>
+        /// <param name="endpoint"></param>
+        /// <param name="endpointConfiguration"></param>
+        /// <param name="errors"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        private async Task<bool> TestConnectionAsync(DeviceEndpointResource deviceEndpointResource,
+            InboundEndpointSchemaMapValue endpoint, DeviceEndpointModel endpointConfiguration,
+            ValidationErrors errors, CancellationToken ct)
+        {
+            var assetEndpoint = new PublishedNodesEntryModel
+            {
+                EndpointUrl = GetEndpointUrl(endpoint.Address),
+                EndpointSecurityMode = endpointConfiguration.EndpointSecurityMode,
+                EndpointSecurityPolicy = endpointConfiguration.EndpointSecurityPolicy,
+                DumpConnectionDiagnostics = endpointConfiguration.DumpConnectionDiagnostics,
+                UseReverseConnect = endpointConfiguration.UseReverseConnect
+            };
+            var credentials = _client.GetEndpointCredentials(deviceEndpointResource.DeviceName,
+                deviceEndpointResource.EndpointName, endpoint);
+            assetEndpoint = AddEndpointCredentials(assetEndpoint, credentials, errors,
+                deviceEndpointResource);
+            var testConnection = await _connections.TestConnectionAsync(assetEndpoint.ToConnectionModel(),
+                new TestConnectionRequestModel(), ct).ConfigureAwait(false);
+            if (testConnection.ErrorInfo != null)
+            {
+                errors.OnError(deviceEndpointResource, kDiscoveryError,
+                    "Failed to connect to endpoint: " + testConnection.ErrorInfo.ToString());
+                _logger.FailedToConnectToDeviceEndpoint(deviceEndpointResource.DeviceName,
+                    deviceEndpointResource.EndpointName, testConnection.ErrorInfo);
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>
         /// Deserialize configuration
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -1741,6 +1824,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     + ex.HResult.ToString(CultureInfo.InvariantCulture), ex.Message);
                 return default;
             }
+        }
+
+        private static bool TryGetInboundEndpoint(DeviceEndpoints? endpoints,
+            string endpointName, [NotNullWhen(true)] out InboundEndpointSchemaMapValue? endpoint)
+        {
+            endpoint = endpoints?.Inbound?.FirstOrDefault(
+                ep => string.Equals(ep.Key, endpointName, StringComparison.OrdinalIgnoreCase)).Value;
+            return endpoint != null;
+        }
+
+        private static bool TryGetInboundEndpoint(DeviceStatusEndpoint? endpoints,
+            string endpointName, [NotNullWhen(true)] out DeviceStatusInboundEndpointSchemaMapValue? endpoint)
+        {
+            endpoint = endpoints?.Inbound?.FirstOrDefault(
+                ep => string.Equals(ep.Key, endpointName, StringComparison.OrdinalIgnoreCase)).Value;
+            return endpoint != null;
         }
 
         private static string CreateDeviceKey(string deviceName, string inboundEndpointName)
@@ -1918,7 +2017,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     Inbound = new Dictionary<string, DeviceStatusInboundEndpointSchemaMapValue>()
                 };
                 Debug.Assert(status.Status.Endpoints.Inbound != null);
-                if (!status.Status.Endpoints.Inbound.TryGetValue(resource.EndpointName, out var entry))
+                if (!TryGetInboundEndpoint(status.Status.Endpoints, resource.EndpointName, out var entry))
                 {
                     entry = new DeviceStatusInboundEndpointSchemaMapValue();
                     status.Status.Endpoints.Inbound.Add(resource.EndpointName, entry);
@@ -2141,6 +2240,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly ConcurrentDictionary<string, DeviceResource> _devices = new();
         private readonly Channel<(string, Resource)> _changeFeed;
         private readonly IConfigurationServices _configurationServices;
+        private readonly IConnectionServices<ConnectionModel> _connections;
         private readonly IEndpointDiscovery _endpointDiscovery;
         private readonly IAioAdrClient _client;
         private readonly IPublishedNodesServices _publishedNodes;
@@ -2303,5 +2403,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         internal static partial void FailedToReportDiscoveredServer(this ILogger logger,
             Exception ex, string device);
 
+        [LoggerMessage(EventId = EventClass + 28, Level = LogLevel.Error,
+            Message = "Invalid device change event {ChangeType} received: {Device} {Endpoint}")]
+        internal static partial void InvalidDeviceChangeEventReceived(this ILogger logger,
+            ChangeType changeType, string device, string endpoint);
+
+        [LoggerMessage(EventId = EventClass + 29, Level = LogLevel.Error,
+            Message = "Invalid asset change event {ChangeType} received: {Device} {Endpoint} {Asset}")]
+        internal static partial void InvalidAssetChangeEventReceived(this ILogger logger,
+            ChangeType changeType, string device, string endpoint, string asset);
+
+        [LoggerMessage(EventId = EventClass + 30, Level = LogLevel.Information,
+            Message = "Testing connection with device {Device} on endpoint {Endpoint} resulted in {ErrorInfo}")]
+        internal static partial void FailedToConnectToDeviceEndpoint(this ILogger logger,
+            string device, string endpoint, ServiceResultModel errorInfo);
+
+        [LoggerMessage(EventId = EventClass + 31, Level = LogLevel.Error,
+            Message = "Unexpected error processing asset and device changes")]
+        internal static partial void UnexpectedErrorProcessingChanges(this ILogger logger, Exception ex);
     }
 }

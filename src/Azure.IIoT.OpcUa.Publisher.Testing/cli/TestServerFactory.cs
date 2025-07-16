@@ -202,23 +202,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                         ApplicationCertificate = new CertificateIdentifier
                         {
                             StoreType = certStoreType,
-                            StorePath = $"{pkiRootPath}own",
+                            StorePath = $"{pkiRootPath}/own",
                             SubjectName = "UA Core Sample Server"
                         },
                         TrustedPeerCertificates = new CertificateTrustList
                         {
                             StoreType = certStoreType,
-                            StorePath = $"{pkiRootPath}trusted"
+                            StorePath = $"{pkiRootPath}/trusted"
                         },
                         TrustedIssuerCertificates = new CertificateTrustList
                         {
                             StoreType = certStoreType,
-                            StorePath = $"{pkiRootPath}issuer"
+                            StorePath = $"{pkiRootPath}/issuer"
                         },
                         RejectedCertificateStore = new CertificateTrustList
                         {
                             StoreType = certStoreType,
-                            StorePath = $"{pkiRootPath}rejected"
+                            StorePath = $"{pkiRootPath}/rejected"
                         },
                         MinimumCertificateKeySize = 1024,
                         RejectSHA1SignedCertificates = false,

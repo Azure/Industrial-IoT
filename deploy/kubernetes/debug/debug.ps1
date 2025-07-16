@@ -28,6 +28,9 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+$scriptDirectory = Split-Path -Path $MyInvocation.MyCommand.Path
+Import-Module $(Join-Path $(Join-Path $(Split-Path $scriptDirectory) "common") `
+    "cluster-utils.psm1") -Force
 
 # Get a list of pods and let user select one
 if (-not (Get-Command kubectl -ErrorAction SilentlyContinue)) {
@@ -97,24 +100,9 @@ docker build --progress auto -f Dockerfile -t debugger:$($containerTag) .
 docker image save debugger:$($containerTag) -o debugger.tar
 Write-Host "Debugger image built with tag '$containerTag'." `
     -ForegroundColor Green
-if ($ClusterType -eq "microk8s") {
-    multipass transfer debugger.tar microk8s-vm:/tmp/debugger.tar
-    microk8s ctr image import /tmp/debugger.tar
-    Write-Host "Debugger image imported into microk8s cluster." `
-        -ForegroundColor Green
-    docker image rm -f debugger:$($containerTag)
-}
-elseif ($script:ClusterType -eq "k3d") {
-    # import in all clusters which avoids asking for the cluster name
-    $clusters = $(& { k3d cluster list --no-headers } -split ")`n") `
-        | ForEach-Object { $($_ -split " ")[0].Trim() }
-    k3d image import debugger:$($containerTag) `
-        --mode auto `
-        --cluster $($clusters -join ",")
-}
-else {
-    # TODO
-}
+
+Import-ContainerImage -ClusterType $script:ClusterType `
+    -ContainerImage "debugger:$($containerTag)"
 
 while ($true) {
     # Get main container name if not specified
