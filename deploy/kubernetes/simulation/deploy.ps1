@@ -56,6 +56,12 @@ param(
     [string] $TenantId,
     [string] $Location = "westus",
     [string] $Namespace = "azure-iot-operations",
+    [string] [ValidateSet(
+        "kind",
+        "minikube",
+        "k3d",
+        "microk8s"
+    )] $ClusterType,
     [switch] $Force,
     [switch] $SkipLogin
 )
@@ -95,13 +101,13 @@ if (-not $script:SkipLogin.IsPresent) {
 }
 
 $displayName = "$($script:Count) $($script:SimulationName) simulation servers"
-if ($script:SimulationName -ne "umati") {
+if ($script:SimulationName -eq "umati") {
     Write-Host "Using public Umati server for simulation." -ForegroundColor Yellow
 }
-elseif ($script:ClusterType) {
+elseif ($script:SimulationName -eq "opc-test" -and $script:ClusterType) {
     # Build opc-test-server image
-    $projFile = "Azure.IIoT.OpcUa.Publisher.Testing.Cli"
-    $projFile = "../../src/$($projFile)/cli/$($projFile).csproj"
+    $projFile = "Azure.IIoT.OpcUa.Publisher.Testing"
+    $projFile = "../../../src/$($projFile)/cli/$($projFile).Cli.csproj"
     $configuration = "Debug"
     $containerTag = Get-Date -Format "MMddHHmmss"
     $containerName = "iot/opc-ua-test-server"
@@ -112,7 +118,7 @@ elseif ($script:ClusterType) {
     dotnet publish $projFile -c $configuration --self-contained false --no-restore `
         /t:PublishContainer -r linux-x64 /p:ContainerImageTag=$($containerTag)
     if (-not $?) {
-        Write-Host "Error building opc publisher connector." -ForegroundColor Red
+        Write-Host "Error building opc-ua-test server image connector." -ForegroundColor Red
         exit -1
     }
     Write-Host "$configuration container image $containerImage published successfully." `
