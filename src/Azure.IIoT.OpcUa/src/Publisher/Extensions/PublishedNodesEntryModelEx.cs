@@ -398,6 +398,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 id.AppendLine();
             }
+            if (model.SendKeepAliveAsKeyFrameMessages == true)
+            {
+                id.AppendLine();
+            }
             if (model.Priority != null)
             {
                 id.Append(model.Priority.Value);
@@ -579,6 +583,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             }
             if ((model.SendKeepAliveDataSetMessages ?? false) !=
                 (that.SendKeepAliveDataSetMessages ?? false))
+            {
+                return false;
+            }
+            if ((model.SendKeepAliveAsKeyFrameMessages ?? false) !=
+                (that.SendKeepAliveAsKeyFrameMessages ?? false))
             {
                 return false;
             }

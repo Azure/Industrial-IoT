@@ -61,6 +61,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string MaxNodesPerDataSetKey = "MaxNodesPerDataSet";
         public const string DisableDataSetMetaDataKey = "DisableDataSetMetaData";
         public const string EnableDataSetKeepAlivesKey = "EnableDataSetKeepAlives";
+        public const string SendDataSetKeepAlivesAsKeyFrameKey = "SendDataSetKeepAlivesAsKeyFrame";
         public const string DefaultKeyFrameCountKey = "DefaultKeyFrameCount";
         public const string DisableComplexTypeSystemKey = "DisableComplexTypeSystem";
         public const string DisableSessionPerWriterGroupKey = "DisableSessionPerWriterGroup";
@@ -431,22 +432,23 @@ namespace Azure.IIoT.OpcUa.Publisher
             // Set a default from the strict setting
             options.DisableDataSetMetaData ??= GetBoolOrDefault(DisableDataSetMetaDataKey,
                 !(options.UseStandardsCompliantEncoding ?? false));
-            if (options.SchemaOptions != null)
+            var metaDataEnabled = options.SchemaOptions != null || options.DisableDataSetMetaData != true;
+            if (metaDataEnabled)
             {
-                // Always turn on metadata for schema publishing
+                // Always turn on complex type system for schema publishing
                 options.DisableComplexTypeSystem = false;
-                options.DisableDataSetMetaData = false;
             }
-            if (options.DefaultMetaDataUpdateTime == null && options.DisableDataSetMetaData != true)
+            if (options.DefaultMetaDataUpdateTime == null && metaDataEnabled)
             {
                 options.DefaultMetaDataUpdateTime = GetDurationOrNull(DefaultMetaDataUpdateTimeKey);
             }
-            if (options.AsyncMetaDataLoadTimeout == null && options.DisableDataSetMetaData != true)
+            if (options.AsyncMetaDataLoadTimeout == null && metaDataEnabled)
             {
                 options.AsyncMetaDataLoadTimeout = GetDurationOrDefault(AsyncMetaDataLoadTimeoutKey,
                     TimeSpan.FromMilliseconds(AsyncMetaDataLoadTimeoutDefaultMillis));
             }
             options.EnableDataSetKeepAlives ??= GetBoolOrDefault(EnableDataSetKeepAlivesKey);
+            options.SendDataSetKeepAlivesAsKeyFrame ??= GetBoolOrDefault(SendDataSetKeepAlivesAsKeyFrameKey);
             options.DefaultKeyFrameCount ??= (uint?)GetIntOrNull(DefaultKeyFrameCountKey);
 
             options.DisableSessionPerWriterGroup ??= GetBoolOrDefault(DisableSessionPerWriterGroupKey,

@@ -1204,6 +1204,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 // Dataset maps to DataSetWriter
                 DataSetWriterId = resource.DataSet.Name,
                 DataSetKeyFrameCount = entry.DataSetKeyFrameCount ?? 10,
+                SendKeepAliveDataSetMessages = entry.SendKeepAliveDataSetMessages ?? true,
+                SendKeepAliveAsKeyFrameMessages = entry.SendKeepAliveAsKeyFrameMessages ?? true,
+                MaxKeepAliveCount = entry.MaxKeepAliveCount ?? 30,
                 DataSetName = resource.DataSet.Name,
                 DataSetType = resource.DataSet.TypeRef
             });
@@ -1341,6 +1344,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     entityTemplate.DataSetWriterWatchdogBehavior,
                 SendKeepAliveDataSetMessages =
                     entityTemplate.SendKeepAliveDataSetMessages,
+                SendKeepAliveAsKeyFrameMessages =
+                    entityTemplate.SendKeepAliveAsKeyFrameMessages,
                 DefaultHeartbeatInterval =
                     entityTemplate.DefaultHeartbeatInterval,
                 DefaultHeartbeatIntervalTimespan =
@@ -1405,6 +1410,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     entityTemplate.DataSetWriterWatchdogBehavior,
                 SendKeepAliveDataSetMessages =
                     entityTemplate.SendKeepAliveDataSetMessages,
+                SendKeepAliveAsKeyFrameMessages =
+                    entityTemplate.SendKeepAliveAsKeyFrameMessages,
                 DefaultHeartbeatInterval =
                     entityTemplate.DefaultHeartbeatInterval,
                 DefaultHeartbeatIntervalTimespan =

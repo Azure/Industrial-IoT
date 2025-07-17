@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Microsoft.Azure.Amqp.Framing;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Opc.Ua;
@@ -20,7 +19,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
-    using System.Linq.Expressions;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
@@ -72,22 +70,42 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         /// <inheritdoc/>
         protected override IEnumerable<ServiceResponse<PublishedNodesEntryModel>> HandleMatching(
-            ServiceCallContext context, IReadOnlyList<BrowseFrame> matching)
+            ServiceCallContext context, IReadOnlyList<BrowseFrame> matching,
+            List<ReferenceDescription> references)
         {
-            if (_currentObject != null)
+            uint originalNodeClass;
+            if (_currentObject == null)
             {
-                // collect matching variables under the current object instance
-                if (_currentObject.AddVariables(matching.Where(m => m.NodeClass == Opc.Ua.NodeClass.Variable)))
-                {
-                    _logger.DroppedDuplicateVariables();
-                }
-                _currentObject.OriginalNode.AddObjectsOrVariables(
-                    matching.Where(m => m.NodeClass == Opc.Ua.NodeClass.Object));
+                // collect matching object instances
+                originalNodeClass = CurrentNode.NodeClass;
+                CurrentNode.AddObjectsOrVariables(matching);
             }
             else
             {
-                // collect matching object instances
-                CurrentNode.AddObjectsOrVariables(matching);
+                originalNodeClass = _currentObject.OriginalNode.NodeClass;
+                // collect matching variables under the current object instance
+                var variables = matching.Where(m => m.NodeClass == Opc.Ua.NodeClass.Variable);
+                var objects = matching.Where(m => m.NodeClass == Opc.Ua.NodeClass.Object);
+
+                if (_currentObject.AddVariables(variables))
+                {
+                    _logger.DroppedDuplicateVariables();
+                }
+                // Add components of the current object - these will be expanded
+                // when we move to next object.
+                _currentObject.OriginalNode.AddObjectsOrVariables(objects);
+                if (originalNodeClass == (uint)Opc.Ua.NodeClass.ObjectType && !_request.FlattenTypeInstance)
+                {
+                    // Only expand variables of current object in match loop
+                    references.RemoveAll(m => m.NodeClass == Opc.Ua.NodeClass.Object);
+                }
+            }
+            if ((originalNodeClass == (uint)Opc.Ua.NodeClass.ObjectType && _request.FlattenTypeInstance) ||
+                originalNodeClass == (uint)Opc.Ua.NodeClass.VariableType)
+            {
+                // Browse deeper for other variables of the type
+                var stop = matching.Select(r => r.NodeId).ToHashSet();
+                references.RemoveAll(r => stop.Contains((NodeId)r.NodeId));
             }
             return [];
         }
@@ -199,7 +217,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 // TODO: Could be done in one request for better efficiency
                 foreach (var node in _entry.OpcNodes)
                 {
-                    try {
+                    try
+                    {
                         var nodeId = await context.Session.ResolveNodeIdAsync(_request.Header,
                             node.Id, node.BrowsePath, nameof(node.BrowsePath), TimeProvider,
                             context.Ct).ConfigureAwait(false);
@@ -381,11 +400,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         var instanceClass =
                             CurrentNode.NodeClass == (uint)Opc.Ua.NodeClass.ObjectType ?
                                 Opc.Ua.NodeClass.Object : Opc.Ua.NodeClass.Variable;
-                        var stopWhenFound = instanceClass == Opc.Ua.NodeClass.Variable ||
-                            _request.FlattenTypeInstance;
                         Restart(null, maxDepth: _request.MaxDepth,
                             typeDefinitionId: CurrentNode.NodeId,
-                            stopWhenFound: stopWhenFound,
                             referenceTypeId: ReferenceTypeIds.HierarchicalReferences,
                             matchClass: instanceClass);
                         return true;
