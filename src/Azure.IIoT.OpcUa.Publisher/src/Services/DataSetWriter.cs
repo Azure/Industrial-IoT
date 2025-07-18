@@ -23,6 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using YamlDotNet.Core.Tokens;
 
     public sealed partial class WriterGroupDataSource
     {
@@ -571,12 +572,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <inheritdoc/>
-            public void OnMonitoredItemSemanticsChanged()
+            public async Task OnMonitoredItemSemanticsChangedAsync(CancellationToken ct)
             {
                 if (!IsMetadataDisabled)
                 {
                     // Reload metadata
                     _metaDataLoader.Value.Reload();
+
+                    var timeout = _group._options.Value.AsyncMetaDataLoadTimeout ?? TimeSpan.FromMinutes(1);
+                    if (timeout != TimeSpan.Zero)
+                    {
+                        await _metaDataLoader.Value.BlockUntilLoadedAsync(timeout, ct).ConfigureAwait(false);
+                    }
                 }
             }
 
@@ -792,8 +799,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 try
                 {
-                    var metadata = GetMetadata();
-                    _group.GetWriterGroup(_writer.Topic, out var writerGroup, out var networkMessageSchema);
+                    var metadata = GetMetadata(_group._options.Value.AsyncMetaDataLoadTimeout ?? TimeSpan.FromSeconds(5));
+                    _group.GetSchemaAndWriterGroup(_writer.Topic, out var writerGroup, out var networkMessageSchema);
                     lock (_lock)
                     {
                         var single = notification.Notifications?.Count == 1 ?
@@ -826,7 +833,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                             _writer.MetadataTopic, _writer.MetadataQos,
                                             _writer.MetadataRetain, _writer.MetadataTtl,
                                             () => Interlocked.Increment(ref _metadataSequenceNumber),
-                                            true, networkMessageSchema, single, metadata)
+                                            true, null, single, metadata)
                                     };
 #pragma warning restore CA2000 // Dispose objects before losing scope
                                     _group._sink.OnMessage(metadataFrame);
@@ -862,23 +869,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// Get metadata for the writer and block until it is available
             /// </summary>
             /// <returns></returns>
-            private PublishedDataSetMessageSchemaModel? GetMetadata()
+            internal PublishedDataSetMessageSchemaModel? GetMetadata(TimeSpan timeout)
             {
-                PublishedDataSetMessageSchemaModel? metadata = null;
+                PublishedDataSetMessageSchemaModel? metadata;
                 lock (_lock)
                 {
                     metadata = MetaData;
                     if (metadata == null && !IsMetadataDisabled)
                     {
-                        if (_group._options.Value.AsyncMetaDataLoadTimeout != TimeSpan.Zero)
+                        if (timeout != TimeSpan.Zero)
                         {
                             var sw = Stopwatch.StartNew();
                             // Block until we have metadata or just continue
-                            _metaDataLoader.Value.BlockUntilLoaded(
-                                _group._options.Value.AsyncMetaDataLoadTimeout ?? TimeSpan.FromSeconds(5));
+                            _metaDataLoader.Value.BlockUntilLoaded(timeout);
                             _logger.BlockedMessageForMetadata(sw.Elapsed, _writer);
                         }
-
                         metadata = MetaData;
                     }
                 }
@@ -1054,8 +1059,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 public MetaDataLoader(DataSetWriterSubscription subscription)
                 {
                     _writer = subscription;
-                    _loader = StartAsync(_cts.Token);
                     _tcs = new TaskCompletionSource();
+                    _loader = Task.Factory.StartNew(() => StartAsync(_cts.Token),
+                        default, TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
                 }
 
                 /// <inheritdoc/>
@@ -1099,6 +1105,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
 
                 /// <summary>
+                /// Wait for metadata to be loaded or timeout after timeout
+                /// </summary>
+                /// <param name="timeout"></param>
+                /// <returns></returns>
+                public async Task<bool> BlockUntilLoadedAsync(TimeSpan timeout, CancellationToken ct)
+                {
+                    try
+                    {
+                        await _tcs.Task.WaitAsync(timeout, ct).ConfigureAwait(false);
+                        return true;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                }
+
+                /// <summary>
                 /// Meta data loader task
                 /// </summary>
                 /// <param name="ct"></param>
@@ -1107,8 +1131,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     while (!ct.IsCancellationRequested)
                     {
-                        await _trigger.WaitAsync(ct).ConfigureAwait(false);
-
                         try
                         {
                             await UpdateMetaDataAsync(ct).ConfigureAwait(false);
@@ -1126,6 +1148,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             Interlocked.Increment(ref _writer._group._metadataLoadFailures);
                         }
                         Interlocked.Exchange(ref _tcs, new TaskCompletionSource());
+                        await _trigger.WaitAsync(ct).ConfigureAwait(false);
                     }
                 }
 

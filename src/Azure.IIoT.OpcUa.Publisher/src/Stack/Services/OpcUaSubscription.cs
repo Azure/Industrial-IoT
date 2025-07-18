@@ -1367,9 +1367,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             dispose.ForEach(m => m.Dispose());
 
             // Notify semantic change now that we have update the monitored items
-            foreach (var owner in metadataChanged)
+            var notifySemanticChange = metadataChanged
+                .Select(o => o.OnMonitoredItemSemanticsChangedAsync(ct))
+                .ToArray();
+            if (notifySemanticChange.Length > 0)
             {
-                owner.OnMonitoredItemSemanticsChanged();
+                await Task.WhenAll(notifySemanticChange).ConfigureAwait(false);
             }
 
             // Refresh condition

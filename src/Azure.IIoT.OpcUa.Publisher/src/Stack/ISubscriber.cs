@@ -7,6 +7,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Lightweight subscription a client can create on
@@ -26,7 +28,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// changed, therefore the subscriber should update
         /// its information
         /// </summary>
-        void OnMonitoredItemSemanticsChanged();
+        /// <param name="ct"></param>
+        Task OnMonitoredItemSemanticsChangedAsync(
+            CancellationToken ct = default);
 
         /// <summary>
         /// Called when a keep alive notification is received

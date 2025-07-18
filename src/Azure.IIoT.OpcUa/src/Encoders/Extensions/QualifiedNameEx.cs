@@ -31,7 +31,9 @@ namespace Opc.Ua.Extensions
 
             var qnName = qn.Name ?? string.Empty;
             var buffer = new StringBuilder();
-            if (qn.NamespaceIndex != 0 || qnName.Contains(':', StringComparison.Ordinal))
+            if (namespaceFormat == NamespaceFormat.ExpandedWithNamespace0
+                || qn.NamespaceIndex != 0
+                || qnName.Contains(':', StringComparison.Ordinal))
             {
                 switch (namespaceFormat)
                 {
@@ -47,6 +49,7 @@ namespace Opc.Ua.Extensions
                             }
                         }
                         break;
+                    case NamespaceFormat.ExpandedWithNamespace0:
                     case NamespaceFormat.Expanded:
                         var nsUri2 = context.NamespaceUris.GetString(qn.NamespaceIndex);
                         if (!string.IsNullOrEmpty(nsUri2))

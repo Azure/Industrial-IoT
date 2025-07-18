@@ -427,6 +427,46 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             });
         }
 
+        public async Task ExpandServerTypeWithMethodsTestAsync(CancellationToken ct = default)
+        {
+            var entry = _connection.ToPublishedNodesEntry();
+            entry.OpcNodes = new[]
+            {
+                new OpcNodeModel
+                {
+                    Id = Opc.Ua.ObjectTypeIds.ServerType.ToString()
+                }
+            };
+            var results = await _service.ExpandAsync(entry,
+                new PublishedNodeExpansionModel
+                {
+                    DiscardErrors = false,
+                    IncludeMethods = true,
+                    ExcludeRootIfInstanceNode = false,
+                    NoSubTypesOfTypeNodes = false,
+                    FlattenTypeInstance = false,
+                    CreateSingleWriter = false
+                }, ct).ToListAsync(ct).ConfigureAwait(false);
+            Assert.Equal(34, results.Count);
+            Assert.All(results, r =>
+            {
+                Assert.Null(r.ErrorInfo);
+                Assert.NotNull(r.Result);
+                Assert.NotNull(r.Result.OpcNodes);
+                Assert.True(r.Result.OpcNodes.Count > 0);
+            });
+            var methods = results
+                .SelectMany(r => r.Result!.OpcNodes!).Where(n => n.MethodMetadata != null)
+                .ToList();
+            Assert.Equal(99, methods.Count);
+            Assert.All(methods, m =>
+            {
+                Assert.NotNull(m.MethodMetadata?.InputArguments);
+                Assert.NotNull(m.MethodMetadata?.OutputArguments);
+                Assert.NotNull(m.MethodMetadata?.ObjectId);
+            });
+        }
+
         public async Task ExpandPublishSubscribeTestAsync(CancellationToken ct = default)
         {
             var entry = _connection.ToPublishedNodesEntry();

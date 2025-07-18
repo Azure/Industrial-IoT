@@ -5,12 +5,15 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
+    using Azure.Core;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Parser;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Furly.Extensions.Serializers;
+    using Microsoft.Extensions.Azure;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Opc.Ua;
@@ -84,12 +87,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 originalNodeClass = _currentObject.OriginalNode.NodeClass;
                 // collect matching variables under the current object instance
-                var variables = matching.Where(m => m.NodeClass == Opc.Ua.NodeClass.Variable);
-                var objects = matching.Where(m => m.NodeClass == Opc.Ua.NodeClass.Object);
-
-                if (_currentObject.AddVariables(variables))
+                var nodes = matching
+                    .Where(m => m.NodeClass is Opc.Ua.NodeClass.Variable or Opc.Ua.NodeClass.Method);
+                var objects = matching
+                    .Where(m => m.NodeClass == Opc.Ua.NodeClass.Object);
+                if (_currentObject.AddNodes(nodes))
                 {
-                    _logger.DroppedDuplicateVariables();
+                    _logger.DroppedDuplicateItems();
                 }
                 // Add components of the current object - these will be expanded
                 // when we move to next object.
@@ -142,7 +146,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
             else if (CurrentNode.Variables.ContainsVariables)
             {
-                // Completing a browse for variables
+                // Completing the browse operation for variables of variables
                 await ProcessAsync(CurrentNode.Variables, context, results).ConfigureAwait(false);
             }
             else if (!CurrentNode.ContainsObjects)
@@ -163,8 +167,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             async Task ProcessAsync(ObjectToExpand currentObject, ServiceCallContext context,
                 List<ServiceResponse<PublishedNodesEntryModel>> results)
             {
-                if (currentObject.ContainsVariables &&
-                    !_request.CreateSingleWriter && !currentObject.OriginalNode.HasErrors)
+                if (currentObject.ContainsMethods)
+                {
+                    await currentObject.ExpandArgumentsAsync(context,
+                        _request.Header.ToRequestHeader(TimeProvider)).ConfigureAwait(false);
+                }
+
+                if (!_request.CreateSingleWriter &&
+                    (currentObject.ContainsVariables || currentObject.ContainsMethods) &&
+                    !currentObject.OriginalNode.HasErrors)
                 {
                     // Create a new writer entry for the object
                     var root = currentObject.ObjectFromBrowse.RootFrame;
@@ -180,10 +191,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 context.Session.MessageContext, NamespaceFormat.Expanded),
                             // Type of the dataset
                             DataSetType = currentObject.ObjectFromBrowse.TypeDefinitionId?.AsString(
-                                context.Session.MessageContext, NamespaceFormat.Expanded),
+                                context.Session.MessageContext, NamespaceFormat.ExpandedWithNamespace0),
                             // Type of the writer group
                             WriterGroupType = root?.TypeDefinitionId?.AsString(
-                                context.Session.MessageContext, NamespaceFormat.Expanded),
+                                context.Session.MessageContext, NamespaceFormat.ExpandedWithNamespace0),
                             WriterGroupRootNodeId = root?.NodeId?.AsString(
                                 context.Session.MessageContext, NamespaceFormat.Expanded),
                             OpcNodes = currentObject
@@ -452,13 +463,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     Debug.Assert(_currentObject != null);
                     //
-                    // Now we are at the level where we expand the variables of the object. We
-                    // search and match only varibles and variables in variables (properties).
+                    // Now we are at the level where we expand the variables and optionally methods of
+                    // the object. This will match variables and variables in variables (properties).
+                    // as well as methods if included.
                     //
                     var nodeClass = Opc.Ua.NodeClass.Variable;
                     var matchClass = Opc.Ua.NodeClass.Variable;
-                    var maxDepth = _request.MaxLevelsToExpand != 0
-                        ? _request.MaxLevelsToExpand : (uint?)null;
+                    var maxDepth = _request.MaxLevelsToExpand != 0 ? _request.MaxLevelsToExpand : (uint?)null;
+                    if (_request.IncludeMethods)
+                    {
+                        // Include methods in the match
+                        matchClass |= Opc.Ua.NodeClass.Method;
+                    }
 
                     //
                     // If the original node class was object type we also search for sub components
@@ -640,7 +656,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     case (uint)Opc.Ua.NodeClass.VariableType:
                     case (uint)Opc.Ua.NodeClass.Variable:
-                        Variables.AddVariables(frames
+                        Variables.AddNodes(frames
                             .Where(f => !NodeId.IsNull(f.NodeId) && _knownIds.Add(f.NodeId)));
                         break;
                     default:
@@ -724,17 +740,50 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             public bool ContainsVariables => _variables.Count > 0;
 
+            public bool ContainsMethods => _methods.Count > 0;
+
+            public bool ContainsEvents => _events.Count > 0;
+
             /// <summary>
             /// Add variables
             /// </summary>
             /// <param name="frames"></param>
             /// <returns></returns>
-            public bool AddVariables(IEnumerable<BrowseFrame> frames)
+            public bool AddNodes(IEnumerable<BrowseFrame> frames)
             {
                 var duplicates = false;
                 foreach (var frame in frames)
                 {
-                    duplicates |= !_variables.Add(frame);
+                    switch (frame.NodeClass)
+                    {
+                        case Opc.Ua.NodeClass.Variable:
+                            if (frame.Parent?.NodeId != null)
+                            {
+                                // Collect input and output arguments for later use
+                                     if (frame.BrowseName == BrowseNames.InputArguments)
+                                {
+                                    _input.AddOrUpdate(frame.Parent.NodeId,
+                                        new MethodArgument(frame));
+                                    break;
+                                }
+                                else if (frame.BrowseName == BrowseNames.OutputArguments)
+                                {
+                                    _output.AddOrUpdate(frame.Parent.NodeId,
+                                        new MethodArgument(frame));
+                                    break;
+                                }
+                            }
+                            // Add variable
+                            duplicates |= !_variables.Add(frame);
+                            break;
+                        case Opc.Ua.NodeClass.Method:
+                            // Add methods
+                            duplicates |= !_methods.Add(frame);
+                            break;
+                        default:
+                            // Ignore other node classes
+                            continue;
+                    }
                 }
                 return duplicates;
             }
@@ -771,22 +820,48 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     return [];
                 }
-                return _variables.Select(frame => template with
+
+                // Get variable nodes
+                var nodeModels = _variables.Select(variableFrame => template with
                 {
                     // Use absolute nodes
-                    Id = frame.NodeId.AsString(context, NamespaceFormat.Expanded),
-
+                    Id = variableFrame.NodeId.AsString(context, NamespaceFormat.Expanded),
+                    DataSetFieldId = CreateUniqueId(variableFrame),
+                    DisplayName = variableFrame.DisplayName, // TODO: frame.BrowsePathFromObject,
                     // TODO - use browse paths instead:
                     // Id = ObjectFromBrowse.NodeId.AsString(context, NamespaceFormat.Expanded)
                     // BrowsePath = frame.BrowsePath.ToRelativePath(out var prefix).AsString(prefix),
 
-                    VariableTypeDefinitionId = frame.TypeDefinitionId?
-                        .AsString(context, NamespaceFormat.Expanded),
-                    AttributeId = null, // Defaults to variable
-                    DataSetFieldId = CreateUniqueId(frame),
-
-                    DisplayName = frame.DisplayName // TODO: frame.BrowsePathFromObject
+                    TypeDefinitionId = variableFrame.TypeDefinitionId?.AsString(context,
+                        NamespaceFormat.ExpandedWithNamespace0),
+                    AttributeId = null // Defaults to variable
                 });
+
+                // Add methods if any
+                if (_methods.Count == 0)
+                {
+                    return nodeModels;
+                }
+                return nodeModels.Concat(_methods.Select(methodFrame => template with
+                {
+                    Id = methodFrame.NodeId.AsString(context, NamespaceFormat.Expanded),
+                    DataSetFieldId = CreateUniqueId(methodFrame),
+                    DisplayName = methodFrame.DisplayName, // TODO: frame.BrowsePathFromObject,
+                    // TODO - use browse paths instead:
+                    // Id = ObjectFromBrowse.NodeId.AsString(context, NamespaceFormat.Expanded)
+                    // BrowsePath = frame.BrowsePath.ToRelativePath(out var prefix).AsString(prefix),
+
+                    MethodMetadata = new MethodMetadataModel
+                    {
+                        InputArguments = _input.TryGetValue(methodFrame.NodeId, out var input)
+                            ? input.Arguments : [],
+                        OutputArguments = _output.TryGetValue(methodFrame.NodeId, out var output)
+                            ? output.Arguments : [],
+                        ObjectId = methodFrame.Parent?.NodeId?.AsString(context, NamespaceFormat.Expanded)
+                    },
+                    TypeDefinitionId = methodFrame.TypeDefinitionId?.AsString(context,
+                        NamespaceFormat.ExpandedWithNamespace0)
+                }));
 
                 string CreateUniqueId(BrowseFrame frame)
                 {
@@ -843,8 +918,107 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 return result;
             }
 
+            /// <summary>
+            /// Expand the input and output arguments into metadata
+            /// </summary>
+            /// <param name="context"></param>
+            /// <param name="header"></param>
+            /// <returns></returns>
+            /// <exception cref="NotImplementedException"></exception>
+            internal async Task ExpandArgumentsAsync(ServiceCallContext context,
+                RequestHeader header)
+            {
+                foreach (var input in _input.Values)
+                {
+                    await input.ExpandAsync(context, header).ConfigureAwait(false);
+                    if (input.ErrorInfo != null)
+                    {
+                        // If input argument cannot be resolved, we do not
+                        // return it as part of the metadata.
+                        _input.Remove(input.BrowseFrame.NodeId);
+                        OriginalNode.AddErrorInfo(input.ErrorInfo);
+                    }
+                }
+                foreach (var output in _output.Values)
+                {
+                    await output.ExpandAsync(context, header).ConfigureAwait(false);
+                    if (output.ErrorInfo != null)
+                    {
+                        // If output argument cannot be resolved, we do not
+                        // return it as part of the metadata.
+                        _output.Remove(output.BrowseFrame.NodeId);
+                        OriginalNode.AddErrorInfo(output.ErrorInfo);
+                    }
+                }
+            }
+
+            private readonly HashSet<BrowseFrame> _methods = [];
+            private readonly Dictionary<NodeId, MethodArgument> _input = [];
+            private readonly Dictionary<NodeId, MethodArgument> _output = [];
             private readonly HashSet<BrowseFrame> _variables = [];
             private readonly HashSet<BrowseFrame> _events = [];
+        }
+
+        /// <summary>
+        /// Respresents a method argument.
+        /// </summary>
+        /// <param name="BrowseFrame"></param>
+        internal record MethodArgument(BrowseFrame BrowseFrame)
+        {
+            /// <summary>
+            /// Error info if not resolvable
+            /// </summary>
+            public ServiceResultModel? ErrorInfo { get; private set; } = kDefaultError;
+
+            /// <summary>
+            /// The arguments in order
+            /// </summary>
+            public List<MethodMetadataArgumentModel> Arguments { get; } = [];
+
+            /// <summary>
+            /// Resolve the argument
+            /// </summary>
+            /// <param name="context"></param>
+            /// <param name="header"></param>
+            /// <returns></returns>
+            public async ValueTask ExpandAsync(ServiceCallContext context, RequestHeader header)
+            {
+                var (value, errorInfo) = await context.Session.ReadValueAsync(header, BrowseFrame.NodeId,
+                    context.Ct).ConfigureAwait(false);
+                if (errorInfo != null)
+                {
+                    ErrorInfo = errorInfo;
+                    return;
+                }
+                ErrorInfo = null; // Mark as processed
+                if (value?.Value is not ExtensionObject[] argumentsList)
+                {
+                    return;
+                }
+                Arguments.Clear();
+                foreach (var argument in argumentsList.Select(a => (Argument)a.Body))
+                {
+                    var (dataTypeIdNode, errorInfo2) = await context.Session.ReadNodeAsync(
+                        header, argument.DataType, null, false, false, NamespaceFormat.Expanded,
+                        false, context.Ct).ConfigureAwait(false);
+                    var arg = new MethodMetadataArgumentModel
+                    {
+                        Name = argument.Name,
+                        DefaultValue = argument.Value == null ? VariantValue.Null :
+                            context.Session.Codec.Encode(new Variant(argument.Value), out var type),
+                        ValueRank = argument.ValueRank == ValueRanks.Scalar ?
+                            null : (global::Azure.IIoT.OpcUa.Publisher.Models.NodeValueRank)argument.ValueRank,
+                        ArrayDimensions = argument.ArrayDimensions?.ToArray(),
+                        Description = argument.Description?.ToString(),
+                        ErrorInfo = errorInfo2,
+                        Type = dataTypeIdNode
+                    };
+                    Arguments.Add(arg);
+                }
+            }
+
+            private static readonly ServiceResultModel kDefaultError =
+                ((ServiceResult) StatusCodes.BadInternalError).ToServiceResultModel();
         }
 
         private int _nodeIndex = -1;
@@ -870,7 +1044,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             ConfigurationBrowser.NodeToExpand node, ServiceResultModel error);
 
         [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Debug,
-            Message = "Dropped duplicate variables found.")]
-        public static partial void DroppedDuplicateVariables(this ILogger logger);
+            Message = "Dropped duplicate variables or methods found.")]
+        public static partial void DroppedDuplicateItems(this ILogger logger);
     }
 }

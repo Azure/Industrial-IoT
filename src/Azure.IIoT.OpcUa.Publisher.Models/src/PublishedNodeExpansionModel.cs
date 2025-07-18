@@ -120,10 +120,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public bool FlattenTypeInstance { get; init; }
 
         /// <summary>
+        /// Include not just variables and events but also
+        /// methods when expanding an object.
+        /// </summary>
+        [DataMember(Name = "includeMethods", Order = 8,
+            EmitDefaultValue = false)]
+        public bool IncludeMethods { get; init; }
+
+        /// <summary>
         /// Errors are silently discarded and only
         /// successfully expanded nodes are returned.
         /// </summary>
-        [DataMember(Name = "discardErrors", Order = 8,
+        [DataMember(Name = "discardErrors", Order = 9,
             EmitDefaultValue = false)]
         public bool DiscardErrors { get; init; }
     }

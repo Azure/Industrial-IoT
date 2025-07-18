@@ -146,6 +146,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.TestData.MsgPack
         }
 
         [Fact]
+        public Task ExpandServerTypeWithMethodsTestAsync()
+        {
+            return GetTests().ExpandServerTypeWithMethodsTestAsync();
+        }
+
+        [Fact]
         public Task ExpandPublishSubscribeTestAsync()
         {
             return GetTests().ExpandPublishSubscribeTestAsync();

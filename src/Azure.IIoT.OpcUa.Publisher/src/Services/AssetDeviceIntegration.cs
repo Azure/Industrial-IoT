@@ -149,48 +149,57 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 registration.Namespace == null ||
                 registration.Version == null)
             {
-                _logger.LogError("Registration of schema has invalid values");
+                _logger.SchemaRegistrationInvalidValues();
                 return;
             }
 
             if (schema.Id == null)
             {
-                _logger.LogDebug("Cannot register schema without identifier");
+                _logger.CannotRegisterSchemaWithoutIdentifier();
+                return;
             }
 
-            _logger.LogInformation("Registering {Id} schema {Name} v{Version} in namespace {Namespace}",
-                schema.Id, registration.Name, registration.Version, registration.Namespace);
-
+            var pos = schema.Id.IndexOf('|');
+            if (pos < 3)
+            {
+                _logger.MalformedSchemaId(schema.Id);
+                return;
+            }
+            var assetName = schema.Id.Substring(0, pos);
+            var resourceName = schema.Id.Substring(pos + 1);
+            _logger.RegisteringSchema(registration.Name, registration.Version, resourceName,
+                assetName, registration.Namespace);
             var reference = new MessageSchemaReference
             {
                 SchemaName = registration.Name,
                 SchemaRegistryNamespace = registration.Namespace,
                 SchemaVersion = registration.Version
             };
+            var assetResource = _assets.Values.FirstOrDefault(a => a.AssetName == assetName);
+            if (assetResource == null)
+            {
+                _logger.NoAssetFoundForSchema(assetName, schema.Name);
+                return;
+            }
+            var deviceName = assetResource.Asset.DeviceRef.DeviceName;
+            var endpoint = assetResource.Asset.DeviceRef.EndpointName;
+            Debug.Assert(deviceName != null);
+            Debug.Assert(endpoint != null);
 
-            string? deviceName = null;
-            string? endpoint = null;
-            string? assetName = null;
             List<AssetDatasetEventStreamStatus>? dataSetStatus = null;
             List<AssetDatasetEventStreamStatus>? eventStatus = null;
-
-            foreach (var asset in _assets)
+            var dataSet = assetResource.Asset.Datasets?.Find(d => d.Name == resourceName);
+            if (dataSet != null)
             {
-                deviceName = asset.Value.Asset.DeviceRef.DeviceName;
-                endpoint = asset.Value.Asset.DeviceRef.EndpointName;
-                assetName = asset.Value.AssetName;
-
-                var dataSet = asset.Value.Asset.Datasets?.Find(d => d.Name == schema.Name);
-                if (dataSet != null)
+                dataSetStatus = [new AssetDatasetEventStreamStatus
                 {
-                    dataSetStatus = [new AssetDatasetEventStreamStatus
-                    {
-                        Name = dataSet.Name,
-                        MessageSchemaReference = reference
-                    }];
-                    break;
-                }
-                var @event = asset.Value.Asset.Events?.Find(e => e.Name == schema.Name);
+                    Name = dataSet.Name,
+                    MessageSchemaReference = reference
+                }];
+            }
+            else
+            {
+                var @event = assetResource.Asset.Events?.Find(e => e.Name == resourceName);
                 if (@event != null)
                 {
                     eventStatus = [new AssetDatasetEventStreamStatus
@@ -198,26 +207,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         Name = @event.Name,
                         MessageSchemaReference = reference
                     }];
-                    break;
                 }
             }
-
-            if (eventStatus == null &&
-                dataSetStatus == null)
+            if (eventStatus == null && dataSetStatus == null)
             {
-                _logger.LogInformation("No resource found to attach the schema {Schema} to.",
-                    schema.Name);
+                _logger.NoResourceFoundForSchema(schema.Name);
                 return;
             }
-
-            Debug.Assert(deviceName != null);
-            Debug.Assert(endpoint != null);
-            Debug.Assert(assetName != null);
             await _client.UpdateAssetStatusAsync(deviceName, endpoint, assetName, new AssetStatus
             {
                 Datasets = dataSetStatus,
                 Events = eventStatus
             }, ct: ct).ConfigureAwait(false);
+
+            _logger.RegisteredSchema(registration.Name, registration.Version, resourceName,
+                assetName, registration.Namespace);
         }
 
         /// <summary>
@@ -340,7 +344,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         /// <param name="deviceName"></param>
         /// <param name="inboundEndpointName"></param>
-        internal void OnDeviceDeleted(string deviceName, string inboundEndpointName)
+        internal void OnDeviceDeleted(String deviceName, String inboundEndpointName)
         {
             var name = CreateDeviceKey(deviceName, inboundEndpointName);
             if (!_devices.TryRemove(name, out var deviceResource))
@@ -598,6 +602,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         CreateSingleWriter = false, // Writer per dataset
                         ExcludeRootIfInstanceNode = false,
                         DiscardErrors = true,
+                        IncludeMethods = true,
                         FlattenTypeInstance = false,
                         NoSubTypesOfTypeNodes = false
                     }, ct).ConfigureAwait(false))
@@ -687,7 +692,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         {
                             Name = n.DisplayName, // Name of property in message/schema
                             DataSource = n.Id!,
-                            TypeRef = n.VariableTypeDefinitionId
+                            TypeRef = n.TypeDefinitionId
                         }).ToList(),
                         Destinations =
                         [
@@ -1276,7 +1281,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         DisplayName = datapoint.Name,
                         FetchDisplayName = false,
                         DataSetFieldId = datapoint.Name,
-                        VariableTypeDefinitionId = datapoint.TypeRef
+                        TypeDefinitionId = datapoint.TypeRef
                     });
                 }
             }
@@ -2367,12 +2372,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     {
         private const int EventClass = 2000;
 
-        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Debug,
             Message = "Failed to close discovery runner.")]
         internal static partial void FailedToCloseDiscoveryRunner(this ILogger logger,
             Exception ex);
 
-        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Debug,
             Message = "Failed to close conversion processor")]
         internal static partial void FailedToCloseConversionProcessor(this ILogger logger,
             Exception ex);
@@ -2515,5 +2520,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         [LoggerMessage(EventId = EventClass + 31, Level = LogLevel.Error,
             Message = "Unexpected error processing asset and device changes")]
         internal static partial void UnexpectedErrorProcessingChanges(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 32, Level = LogLevel.Error,
+            Message = "Registration of schema has invalid values")]
+        internal static partial void SchemaRegistrationInvalidValues(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 33, Level = LogLevel.Debug,
+            Message = "Cannot register schema without identifier")]
+        internal static partial void CannotRegisterSchemaWithoutIdentifier(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 34, Level = LogLevel.Debug,
+            Message = "Malformed schema id {Id} cannot be used for lookup")]
+        internal static partial void MalformedSchemaId(this ILogger logger, string id);
+
+        [LoggerMessage(EventId = EventClass + 35, Level = LogLevel.Information,
+            Message = "Registering schema '{Name}' with version '{Version}' for resource '{Resource}' " +
+            "in asset '{Asset}' inside schema namespace '{Namespace}'")]
+        internal static partial void RegisteringSchema(this ILogger logger, string name, string version,
+            string resource, string asset, string @namespace);
+
+        [LoggerMessage(EventId = EventClass + 36, Level = LogLevel.Information,
+            Message = "No asset found with name {AssetName} to attach schema {Schema} to.")]
+        internal static partial void NoAssetFoundForSchema(this ILogger logger, string assetName, string? schema);
+
+        [LoggerMessage(EventId = EventClass + 37, Level = LogLevel.Information,
+            Message = "No resource found to attach the schema {Schema} to.")]
+        internal static partial void NoResourceFoundForSchema(this ILogger logger, string? schema);
+
+        [LoggerMessage(EventId = EventClass + 38, Level = LogLevel.Information,
+            Message = "Registered schema '{Name}' with version '{Version}' for resource '{Resource}' in asset " +
+            "'{Asset}' inside schema namespace '{Namespace}'")]
+        internal static partial void RegisteredSchema(this ILogger logger, string name, string version,
+            string resource, string asset, string @namespace);
     }
 }

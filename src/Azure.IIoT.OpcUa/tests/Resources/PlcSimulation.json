@@ -1,6 +1,9 @@
 {
+    "Id": "c0b8f1a2-3e4f-4b5c-8d6e-7f8a9b0c1d2e",
+    "Version": 1,
     "DataSetMessages": [
         {
+            "Id": "c0b8f1a2-3e4f-4b5c-8d6e-7f8a9b0c1d2e",
             "MetaData": {
                 "MinorVersion": 3595526521,
                 "DataSetMetaData": {
@@ -188,6 +191,7 @@
             "TypeName": null
         },
         {
+            "Id": "754714A3-DF97-484D-BC95-66C48EB61B9A",
             "MetaData": {
                 "MinorVersion": 3598940497,
                 "DataSetMetaData": {

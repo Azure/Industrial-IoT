@@ -119,7 +119,8 @@ namespace Opc.Ua.Extensions
             }
 
             var nsUri = nodeId.NamespaceUri;
-            if (string.IsNullOrEmpty(nsUri) && nodeId.NamespaceIndex != 0)
+            if (string.IsNullOrEmpty(nsUri) &&
+                (namespaceFormat == NamespaceFormat.ExpandedWithNamespace0 || nodeId.NamespaceIndex != 0))
             {
                 nsUri = context.NamespaceUris.GetString(nodeId.NamespaceIndex);
                 if (string.IsNullOrEmpty(nsUri))
@@ -128,7 +129,8 @@ namespace Opc.Ua.Extensions
                 }
             }
             string? srvUri = null;
-            if (nodeId.ServerIndex != 0 && context.ServerUris != null)
+            if (context.ServerUris != null &&
+                (namespaceFormat == NamespaceFormat.ExpandedWithNamespace0 || nodeId.ServerIndex != 0))
             {
                 srvUri = context.ServerUris.GetString(nodeId.ServerIndex);
                 if (string.IsNullOrEmpty(srvUri))
@@ -146,6 +148,7 @@ namespace Opc.Ua.Extensions
                     }
                     return FormatNodeIdUri(nsUri, srvUri, nodeId.IdType, nodeId.Identifier);
                 case NamespaceFormat.Expanded:
+                case NamespaceFormat.ExpandedWithNamespace0:
                     return FormatNodeIdExpanded(nsUri, nodeId.ServerIndex, nodeId.IdType,
                         nodeId.Identifier);
                 case NamespaceFormat.Index:

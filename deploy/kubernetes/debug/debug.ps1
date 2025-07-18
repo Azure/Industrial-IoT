@@ -65,20 +65,16 @@ else {
     Write-Host "Using namespace '$Namespace'." -ForegroundColor Green
 }
 
-# Remove debug tar image if it exists
-Remove-Item -Path debugger.tar -Force -ErrorAction SilentlyContinue
-
 # Build and make .net debugger image available in cluster
 $containerTag = Get-Date -Format "MMddHHmmss"
+$debuggerImage = "debugger:$($containerTag)"
 Write-Host "Building debugger image with tag '$containerTag'..." `
     -ForegroundColor Cyan
-docker build --progress auto -f Dockerfile -t debugger:$($containerTag) .
-docker image save debugger:$($containerTag) -o debugger.tar
+docker build --progress auto -f Dockerfile -t $debuggerImage .
 Write-Host "Debugger image built with tag '$containerTag'." `
     -ForegroundColor Green
-
 Import-ContainerImage -ClusterType $script:ClusterType `
-    -ContainerImage "debugger:$($containerTag)"
+    -ContainerImage $debuggerImage
 
 function Select-PodName {
     # get list of pods in the namespace and let user select one
@@ -317,7 +313,6 @@ if (-not $script:Fork.IsPresent) {
         -ForegroundColor Green
 }
 
-Remove-Item -Path debugger.tar
 Write-Host "Visual Studio Debugger listening on localhost:50000." `
     -ForegroundColor Green
 kubectl port-forward -n $($Namespace) --address=0.0.0.0 pod/$($script:PodName) 50000:22
