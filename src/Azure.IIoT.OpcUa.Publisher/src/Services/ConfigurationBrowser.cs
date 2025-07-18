@@ -656,8 +656,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     case (uint)Opc.Ua.NodeClass.VariableType:
                     case (uint)Opc.Ua.NodeClass.Variable:
-                        Variables.AddNodes(frames
-                            .Where(f => !NodeId.IsNull(f.NodeId) && _knownIds.Add(f.NodeId)));
+                        Variables.AddNodes(frames);
                         break;
                     default:
                         _objects.AddRange(frames
@@ -754,35 +753,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var duplicates = false;
                 foreach (var frame in frames)
                 {
-                    switch (frame.NodeClass)
+                    if (NodeId.IsNull(frame.NodeId))
                     {
-                        case Opc.Ua.NodeClass.Variable:
-                            if (frame.Parent?.NodeId != null)
+                        continue;
+                    }
+                    if (!_knownIds.Add(frame.NodeId))
+                    {
+                        duplicates |= true;
+                        continue;
+                    }
+                    if (frame.NodeClass == Opc.Ua.NodeClass.Method)
+                    {
+                        // Add methods
+                        duplicates |= !_methods.Add(frame);
+                    }
+                    else
+                    {
+                        if (frame.Parent?.NodeId != null)
+                        {
+                            // Collect input and output arguments for later use
+                            if (frame.BrowseName == BrowseNames.InputArguments)
                             {
-                                // Collect input and output arguments for later use
-                                     if (frame.BrowseName == BrowseNames.InputArguments)
-                                {
-                                    _input.AddOrUpdate(frame.Parent.NodeId,
-                                        new MethodArgument(frame));
-                                    break;
-                                }
-                                else if (frame.BrowseName == BrowseNames.OutputArguments)
-                                {
-                                    _output.AddOrUpdate(frame.Parent.NodeId,
-                                        new MethodArgument(frame));
-                                    break;
-                                }
+                                _input.AddOrUpdate(frame.Parent.NodeId,
+                                    new MethodArgument(frame));
+                                break;
                             }
-                            // Add variable
-                            duplicates |= !_variables.Add(frame);
-                            break;
-                        case Opc.Ua.NodeClass.Method:
-                            // Add methods
-                            duplicates |= !_methods.Add(frame);
-                            break;
-                        default:
-                            // Ignore other node classes
-                            continue;
+                            else if (frame.BrowseName == BrowseNames.OutputArguments)
+                            {
+                                _output.AddOrUpdate(frame.Parent.NodeId,
+                                    new MethodArgument(frame));
+                                break;
+                            }
+                        }
+                        // Add variable
+                        duplicates |= !_variables.Add(frame);
                     }
                 }
                 return duplicates;
@@ -952,6 +956,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
             }
 
+            private readonly HashSet<NodeId> _knownIds = [];
             private readonly HashSet<BrowseFrame> _methods = [];
             private readonly Dictionary<NodeId, MethodArgument> _input = [];
             private readonly Dictionary<NodeId, MethodArgument> _output = [];
