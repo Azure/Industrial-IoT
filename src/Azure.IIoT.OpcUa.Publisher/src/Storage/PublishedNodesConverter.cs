@@ -120,6 +120,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             WriterGroupPartitions = item.WriterGroup.PublishQueuePartitions,
                             WriterGroupQueueName = item.WriterGroup.Publishing?.QueueName,
                             SendKeepAliveDataSetMessages = item.Writer.DataSet?.SendKeepAlive,
+                            SendKeepAliveAsKeyFrameMessages = item.Writer.DataSet?.KeepAliveAsKeyFrame,
                             DataSetExtensionFields = item.Writer.DataSet?.ExtensionFields?.ToDictionary(
                                 e => e.DataSetFieldName, e => e.Value),
                             MetaDataUpdateTimeTimespan = item.Writer.MetaDataUpdateTime,
@@ -253,7 +254,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         OpcPublishingIntervalTimespan = !preferTimeSpan ? null :
                             subscriptionSettings?.PublishingInterval,
                         SkipFirst = variable.SkipFirst,
-                        VariableTypeDefinitionId = variable.TypeDefinitionId,
+                        TypeDefinitionId = variable.TypeDefinitionId,
                         TriggeredNodes = skipTriggeringNodes ? null : ToOpcNodes(subscriptionSettings,
                             variable.Triggering?.PublishedVariables,
                             variable.Triggering?.PublishedEvents, preferTimeSpan, true)?.ToList(),
@@ -295,7 +296,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         // MonitoringMode = evt.MonitoringMode,
                         // ...
                         DeadbandType = null,
-                        VariableTypeDefinitionId = null,
+                        TypeDefinitionId = null,
                         DataChangeTrigger = null,
                         DataSetClassFieldId = Guid.Empty,
                         DeadbandValue = null,
@@ -464,6 +465,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                             })
                                             .ToList(),
                                         SendKeepAlive = b.Header.SendKeepAliveDataSetMessages,
+                                        KeepAliveAsKeyFrame = b.Header.SendKeepAliveAsKeyFrameMessages,
                                         Routing = b.Header.DataSetRouting,
                                         DataSetSource = new PublishedDataSetSourceModel
                                         {
@@ -552,7 +554,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 IndexRange = node.IndexRange,
                                 RegisterNode = node.RegisterNode,
                                 UseCyclicRead = node.UseCyclicRead,
-                                VariableTypeDefinitionId = node.VariableTypeDefinitionId,
+                                TypeDefinitionId = node.TypeDefinitionId,
                                 CyclicReadMaxAgeTimespan = node.GetNormalizedCyclicReadMaxAge(),
                                 SkipFirst = node.SkipFirst,
                                 DataChangeTrigger = node.DataChangeTrigger,
@@ -593,7 +595,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                     IndexRange = node.IndexRange,
                                     RegisterNode = node.RegisterNode,
                                     UseCyclicRead = node.UseCyclicRead,
-                                    VariableTypeDefinitionId = node.VariableTypeDefinitionId,
+                                    TypeDefinitionId = node.TypeDefinitionId,
                                     CyclicReadMaxAgeTimespan = node.GetNormalizedCyclicReadMaxAge(),
                                     DeadbandType = node.DeadbandType,
                                     DeadbandValue = node.DeadbandValue,
@@ -651,7 +653,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         SubstituteValue = null,
                         SkipFirst = node.SkipFirst,
                         DataChangeTrigger = node.DataChangeTrigger,
-                        TypeDefinitionId = node.VariableTypeDefinitionId,
+                        TypeDefinitionId = node.TypeDefinitionId,
                         DeadbandValue = node.DeadbandValue,
                         DeadbandType = node.DeadbandType,
                         Publishing = node.Topic == null && node.QualityOfService == null

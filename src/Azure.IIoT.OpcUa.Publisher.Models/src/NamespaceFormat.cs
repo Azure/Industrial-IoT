@@ -31,5 +31,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [EnumMember(Value = "Expanded")]
         Expanded,
+
+        /// <summary>
+        /// With nsu= namespace even for namespace 0
+        /// </summary>
+        [EnumMember(Value = "ExpandedWithNamespace0")]
+        ExpandedWithNamespace0,
     }
 }

@@ -22,11 +22,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     using System.Threading.Tasks;
     using Xunit;
     using Azure.IIoT.OpcUa.Publisher.Stack;
+    using Autofac.Util;
 
     public class AssetDeviceIntegrationTests
     {
         public AssetDeviceIntegrationTests()
         {
+            // Initialize mocks
+            _srMock.Setup(x => x.Register(It.IsAny<IAioSrCallbacks>())).Returns(new Disposable());
             _optionsMock.SetupGet(o => o.Value).Returns(new PublisherOptions
             {
                 PublisherId = "aio"
@@ -691,13 +694,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             channel.Writer.TryComplete();
         }
 
-        private AssetDeviceIntegration CreateSut() =>
-            new(_clientMock.Object, _publishedNodesMock.Object, _configurationServicesMock.Object,
-                _endpointDiscoveryMock.Object, _serializerMock.Object, _optionsMock.Object, _loggerMock.Object);
+        private AssetDeviceIntegration CreateSut()
+        {
+            return new(_clientMock.Object, _srMock.Object, _publishedNodesMock.Object, _configurationServicesMock.Object,
+                _connectionsMock.Object, _endpointDiscoveryMock.Object, _serializerMock.Object,
+                _optionsMock.Object, _loggerMock.Object);
+        }
 
         private readonly Mock<IOptions<PublisherOptions>> _optionsMock = new();
         private readonly Mock<IEndpointDiscovery> _endpointDiscoveryMock = new();
+        private readonly Mock<IConnectionServices<ConnectionModel>> _connectionsMock = new();
         private readonly Mock<IAioAdrClient> _clientMock = new();
+        private readonly Mock<IAioSrClient> _srMock = new();
         private readonly Mock<IPublishedNodesServices> _publishedNodesMock = new();
         private readonly Mock<IJsonSerializer> _serializerMock = new();
         private readonly Mock<IConfigurationServices> _configurationServicesMock = new();

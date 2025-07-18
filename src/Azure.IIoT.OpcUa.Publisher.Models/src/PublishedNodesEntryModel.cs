@@ -738,6 +738,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public TimeSpan? MetaDataTtlTimespan { get; set; }
 
         /// <summary>
+        /// When sending of keep alive messages is enabled, this
+        /// flag controls whether the keep alive messages are sent
+        /// as key frames. Key frames contain all current values.
+        /// </summary>
+        [DataMember(Name = "SendKeepAliveAsKeyFrameMessages", Order = 67,
+            EmitDefaultValue = false)]
+        public bool? SendKeepAliveAsKeyFrameMessages { get; set; }
+
+        /// <summary>
         /// Enables detailed server diagnostics logging for the
         /// connection. When enabled, provides additional diagnostic
         /// information useful for troubleshooting connectivity,

@@ -7,13 +7,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
     using Autofac;
     using Azure.IIoT.OpcUa.Encoders;
+    using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Publisher.Module.Controllers;
     using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.Iot.Operations.Protocol;
     using Furly.Azure.EventHubs;
     using Furly.Azure.IoT.Edge;
-    using Furly.Azure.IoT.Operations.Runtime;
-    using Furly.Azure.IoT.Operations.Services;
     using Furly.Extensions.AspNetCore.OpenApi;
     using Furly.Extensions.Configuration;
     using Furly.Extensions.Dapr;
@@ -32,21 +31,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Microsoft.Extensions.Logging.Console;
     using Microsoft.Extensions.Options;
     using Microsoft.OpenApi.Models;
-    using Opc.Ua;
     using OpenTelemetry.Exporter;
     using OpenTelemetry.Logs;
     using OpenTelemetry.Metrics;
     using OpenTelemetry.Trace;
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Net;
     using System.Text.RegularExpressions;
-    using System.Threading;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// Configuration extensions
@@ -1373,6 +1368,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     options.IsAzureIoTOperationsConnector = true;
                     options.UseStandardsCompliantEncoding = true;
                     options.EnableCloudEvents = true;
+                    options.SchemaOptions = new SchemaOptions();
                     options.PublisherId = connectorId;
                 }
                 else if (!string.IsNullOrEmpty(GetStringOrDefault(AioBrokerHostName)))

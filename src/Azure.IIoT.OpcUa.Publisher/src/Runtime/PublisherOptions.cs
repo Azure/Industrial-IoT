@@ -225,6 +225,12 @@ namespace Azure.IIoT.OpcUa.Publisher
         public bool? EnableDataSetKeepAlives { get; set; }
 
         /// <summary>
+        /// Whether to send keep alive messages as key frames
+        /// or as regular keep alive messages.
+        /// </summary>
+        public bool? SendDataSetKeepAlivesAsKeyFrame { get; set; }
+
+        /// <summary>
         /// Default keyframe count
         /// </summary>
         public uint? DefaultKeyFrameCount { get; set; }

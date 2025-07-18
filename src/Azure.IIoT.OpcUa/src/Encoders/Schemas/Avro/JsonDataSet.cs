@@ -44,17 +44,19 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
         /// <summary>
         /// Get avro schema for a dataset
         /// </summary>
+        /// <param name="id"></param>
         /// <param name="dataSet"></param>
         /// <param name="dataSetFieldContentMask"></param>
         /// <param name="options"></param>
         /// <param name="uniqueNames"></param>
         /// <returns></returns>
-        public JsonDataSet(PublishedDataSetMetaDataModel dataSet,
+        public JsonDataSet(string id, PublishedDataSetMetaDataModel dataSet,
             DataSetFieldContentFlags? dataSetFieldContentMask = null,
             SchemaOptions? options = null, HashSet<string>? uniqueNames = null)
             : base(dataSetFieldContentMask, new JsonBuiltInSchemas(
                 dataSetFieldContentMask ?? default), options)
         {
+            Id = id;
             Schema = Compile(dataSet.DataSetMetaData?.Name, dataSet, uniqueNames)
                 ?? AvroSchema.Null;
         }

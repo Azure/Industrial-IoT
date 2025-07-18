@@ -115,6 +115,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <inheritdoc/>
         public bool TryUpgradeToKeyFrame(ISubscriber owner)
         {
+            if (MessageType == MessageType.KeyFrame)
+            {
+                // Already a key frame
+                return true;
+            }
             if (_outer != null && _outer.TryGetNotifications(owner, out var allNotifications))
             {
                 MessageType = MessageType.KeyFrame;

@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
+    using Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Parser;
     using Azure.IIoT.OpcUa.Publisher.Stack;
@@ -12,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.Iot.Operations.Connector;
     using Azure.Iot.Operations.Connector.Files;
     using Azure.Iot.Operations.Services.AssetAndDeviceRegistry.Models;
+    using Azure.Iot.Operations.Services.SchemaRegistry.SchemaRegistry;
     using Furly.Azure.IoT.Operations.Services;
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
@@ -22,6 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.Linq;
     using System.Text;
@@ -37,7 +40,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// and device notifications into published nodes representation and signals configuration
     /// status errors back.
     /// </summary>
-    public sealed partial class AssetDeviceIntegration : IAsyncDisposable, IDisposable
+    public sealed partial class AssetDeviceIntegration : IAioSrCallbacks, IAsyncDisposable, IDisposable
     {
         /// <summary>
         /// Currently known assets
@@ -50,23 +53,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         internal IEnumerable<DeviceResource> Devices => _devices.Values;
 
         /// <summary>
-        /// Create asset converter
+        /// Create Akri and asset and device registry integration service
         /// </summary>
         /// <param name="client"></param>
+        /// <param name="schemaRegistry"></param>
         /// <param name="publishedNodes"></param>
         /// <param name="configurationServices"></param>
+        /// <param name="connections"></param>
         /// <param name="endpointDiscovery"></param>
         /// <param name="serializer"></param>
         /// <param name="options"></param>
         /// <param name="logger"></param>
-        public AssetDeviceIntegration(IAioAdrClient client, IPublishedNodesServices publishedNodes,
-            IConfigurationServices configurationServices, IEndpointDiscovery endpointDiscovery,
+        public AssetDeviceIntegration(IAioAdrClient client, IAioSrClient schemaRegistry,
+            IPublishedNodesServices publishedNodes, IConfigurationServices configurationServices,
+            IConnectionServices<ConnectionModel> connections, IEndpointDiscovery endpointDiscovery,
             IJsonSerializer serializer, IOptions<PublisherOptions> options,
             ILogger<AssetDeviceIntegration> logger)
         {
             _client = client;
             _publishedNodes = publishedNodes;
             _configurationServices = configurationServices;
+            _connections = connections;
             _endpointDiscovery = endpointDiscovery;
             _serializer = serializer;
             _options = options;
@@ -74,6 +81,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _cts = new CancellationTokenSource();
             _client.OnDeviceChanged += OnDeviceChanged;
             _client.OnAssetChanged += OnAssetChanged;
+            _schemaRegistry = schemaRegistry;
+            _srevents = schemaRegistry.Register(this);
             _changeFeed = Channel.CreateUnbounded<(string, Resource)>(new UnboundedChannelOptions
             {
                 SingleReader = true,
@@ -121,6 +130,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
             finally
             {
+                _srevents.Dispose();
                 _cts.Dispose();
             }
         }
@@ -131,6 +141,89 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             DisposeAsync().AsTask().GetAwaiter().GetResult();
         }
 
+        /// <inheritdoc/>
+        public async ValueTask OnSchemaRegisteredAsync(Furly.Extensions.Messaging.IEventSchema schema,
+            Schema registration, CancellationToken ct)
+        {
+            if (registration.Name == null ||
+                registration.Namespace == null ||
+                registration.Version == null)
+            {
+                _logger.SchemaRegistrationInvalidValues();
+                return;
+            }
+
+            if (schema.Id == null)
+            {
+                _logger.CannotRegisterSchemaWithoutIdentifier();
+                return;
+            }
+
+            var pos = schema.Id.IndexOf('|');
+            if (pos < 3)
+            {
+                _logger.MalformedSchemaId(schema.Id);
+                return;
+            }
+            var assetName = schema.Id.Substring(0, pos);
+            var resourceName = schema.Id.Substring(pos + 1);
+            _logger.RegisteringSchema(registration.Name, registration.Version, resourceName,
+                assetName, registration.Namespace);
+            var reference = new MessageSchemaReference
+            {
+                SchemaName = registration.Name,
+                SchemaRegistryNamespace = registration.Namespace,
+                SchemaVersion = registration.Version
+            };
+            var assetResource = _assets.Values.FirstOrDefault(a => a.AssetName == assetName);
+            if (assetResource == null)
+            {
+                _logger.NoAssetFoundForSchema(assetName, schema.Name);
+                return;
+            }
+            var deviceName = assetResource.Asset.DeviceRef.DeviceName;
+            var endpoint = assetResource.Asset.DeviceRef.EndpointName;
+            Debug.Assert(deviceName != null);
+            Debug.Assert(endpoint != null);
+
+            List<AssetDatasetEventStreamStatus>? dataSetStatus = null;
+            List<AssetDatasetEventStreamStatus>? eventStatus = null;
+            var dataSet = assetResource.Asset.Datasets?.Find(d => d.Name == resourceName);
+            if (dataSet != null)
+            {
+                dataSetStatus = [new AssetDatasetEventStreamStatus
+                {
+                    Name = dataSet.Name,
+                    MessageSchemaReference = reference
+                }];
+            }
+            else
+            {
+                var @event = assetResource.Asset.Events?.Find(e => e.Name == resourceName);
+                if (@event != null)
+                {
+                    eventStatus = [new AssetDatasetEventStreamStatus
+                    {
+                        Name = @event.Name,
+                        MessageSchemaReference = reference
+                    }];
+                }
+            }
+            if (eventStatus == null && dataSetStatus == null)
+            {
+                _logger.NoResourceFoundForSchema(schema.Name);
+                return;
+            }
+            await _client.UpdateAssetStatusAsync(deviceName, endpoint, assetName, new AssetStatus
+            {
+                Datasets = dataSetStatus,
+                Events = eventStatus
+            }, ct: ct).ConfigureAwait(false);
+
+            _logger.RegisteredSchema(registration.Name, registration.Version, resourceName,
+                assetName, registration.Namespace);
+        }
+
         /// <summary>
         /// Asset change handler
         /// </summary>
@@ -139,6 +232,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         internal void OnAssetChanged(object? sender, AssetChangedEventArgs e)
         {
+            if (string.IsNullOrEmpty(e.DeviceName) ||
+                string.IsNullOrEmpty(e.InboundEndpointName) ||
+                string.IsNullOrEmpty(e.AssetName))
+            {
+                _logger.InvalidAssetChangeEventReceived(e.ChangeType, e.DeviceName,
+                    e.InboundEndpointName, e.AssetName);
+                return;
+            }
             switch (e.ChangeType)
             {
                 case ChangeType.Created:
@@ -164,6 +265,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         internal void OnDeviceChanged(object? sender, DeviceChangedEventArgs e)
         {
+            if (string.IsNullOrEmpty(e.DeviceName) ||
+                string.IsNullOrEmpty(e.InboundEndpointName))
+            {
+                _logger.InvalidDeviceChangeEventReceived(e.ChangeType, e.DeviceName,
+                    e.InboundEndpointName);
+                return;
+            }
             switch (e.ChangeType)
             {
                 case ChangeType.Created:
@@ -236,7 +344,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         /// <param name="deviceName"></param>
         /// <param name="inboundEndpointName"></param>
-        internal void OnDeviceDeleted(string deviceName, string inboundEndpointName)
+        internal void OnDeviceDeleted(String deviceName, String inboundEndpointName)
         {
             var name = CreateDeviceKey(deviceName, inboundEndpointName);
             if (!_devices.TryRemove(name, out var deviceResource))
@@ -438,6 +546,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
             catch (OperationCanceledException) { }
             catch (ObjectDisposedException) { }
+            catch (Exception ex)
+            {
+                _logger.UnexpectedErrorProcessingChanges(ex);
+                throw;
+            }
         }
 
         /// <summary>
@@ -452,8 +565,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             DeviceEndpointModel endpointConfiguration, ValidationErrors errors,
             CancellationToken ct)
         {
-            if (resource.Device.Endpoints?.Inbound == null ||
-                !resource.Device.Endpoints.Inbound.TryGetValue(resource.EndpointName, out var endpoint))
+            if (resource.Device.Endpoints == null ||
+                !TryGetInboundEndpoint(resource.Device.Endpoints, resource.EndpointName, out var endpoint))
             {
                 errors.OnError(resource, kDeviceNotFoundErrorCode, "Endpoint was not found");
                 return; // throw
@@ -489,6 +602,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         CreateSingleWriter = false, // Writer per dataset
                         ExcludeRootIfInstanceNode = false,
                         DiscardErrors = true,
+                        IncludeMethods = true,
                         FlattenTypeInstance = false,
                         NoSubTypesOfTypeNodes = false
                     }, ct).ConfigureAwait(false))
@@ -578,7 +692,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         {
                             Name = n.DisplayName, // Name of property in message/schema
                             DataSource = n.Id!,
-                            TypeRef = n.VariableTypeDefinitionId
+                            TypeRef = n.TypeDefinitionId
                         }).ToList(),
                         Destinations =
                         [
@@ -896,19 +1010,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var deviceLookup = devices.ToLookup(k => k.DeviceName);
             foreach (var asset in assets)
             {
-                // Get device inbound endpoint
-                var deviceResource = deviceLookup[asset.Asset.DeviceRef.DeviceName].SingleOrDefault();
-                if (deviceResource?.Device?.Endpoints?.Inbound == null ||
-                    !deviceResource.Device.Endpoints.Inbound.TryGetValue(
-                        asset.Asset.DeviceRef.EndpointName, out var endpoint))
+                // Find the device and endpoint referenced by this asset
+                var deviceRef = asset.Asset.DeviceRef;
+                DeviceResource? deviceResource = null;
+                InboundEndpointSchemaMapValue? endpoint = null;
+                foreach (var device in deviceLookup[deviceRef.DeviceName])
                 {
-                    errors.OnError(asset, kDeviceNotFoundErrorCode,
-                        "Device referenced by asset was not found");
+                    deviceResource = device;
+                    if (string.Equals(device.DeviceName, deviceRef.DeviceName, StringComparison.OrdinalIgnoreCase)
+                        && TryGetInboundEndpoint(device?.Device?.Endpoints, deviceRef.EndpointName, out endpoint))
+                    {
+                        break;
+                    }
+                }
+                if (deviceResource == null)
+                {
+                    errors.OnError(asset, kDeviceNotFoundErrorCode, "Device referenced by asset was not found");
                     continue;
                 }
-                var deviceEndpointResource = new DeviceEndpointResource(
-                    deviceResource.DeviceName, deviceResource.Device,
-                    asset.Asset.DeviceRef.EndpointName);
+                if (endpoint == null)
+                {
+                    errors.OnError(asset, kDeviceNotFoundErrorCode, "Endpoint referenced by asset was not found");
+                    continue;
+                }
+                var deviceEndpointResource = new DeviceEndpointResource(deviceResource.DeviceName,
+                    deviceResource.Device, deviceRef.EndpointName);
                 var endpointConfiguration = Deserialize(endpoint.AdditionalConfiguration,
                     () => new DeviceEndpointModel(), errors, deviceEndpointResource);
                 if (endpointConfiguration == null)
@@ -1155,7 +1281,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         DisplayName = datapoint.Name,
                         FetchDisplayName = false,
                         DataSetFieldId = datapoint.Name,
-                        VariableTypeDefinitionId = datapoint.TypeRef
+                        TypeDefinitionId = datapoint.TypeRef
                     });
                 }
             }
@@ -1167,6 +1293,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 // Dataset maps to DataSetWriter
                 DataSetWriterId = resource.DataSet.Name,
                 DataSetKeyFrameCount = entry.DataSetKeyFrameCount ?? 10,
+                SendKeepAliveDataSetMessages = entry.SendKeepAliveDataSetMessages ?? true,
+                SendKeepAliveAsKeyFrameMessages = entry.SendKeepAliveAsKeyFrameMessages ?? true,
+                MaxKeepAliveCount = entry.MaxKeepAliveCount ?? 30,
                 DataSetName = resource.DataSet.Name,
                 DataSetType = resource.DataSet.TypeRef
             });
@@ -1304,6 +1433,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     entityTemplate.DataSetWriterWatchdogBehavior,
                 SendKeepAliveDataSetMessages =
                     entityTemplate.SendKeepAliveDataSetMessages,
+                SendKeepAliveAsKeyFrameMessages =
+                    entityTemplate.SendKeepAliveAsKeyFrameMessages,
                 DefaultHeartbeatInterval =
                     entityTemplate.DefaultHeartbeatInterval,
                 DefaultHeartbeatIntervalTimespan =
@@ -1368,6 +1499,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     entityTemplate.DataSetWriterWatchdogBehavior,
                 SendKeepAliveDataSetMessages =
                     entityTemplate.SendKeepAliveDataSetMessages,
+                SendKeepAliveAsKeyFrameMessages =
+                    entityTemplate.SendKeepAliveAsKeyFrameMessages,
                 DefaultHeartbeatInterval =
                     entityTemplate.DefaultHeartbeatInterval,
                 DefaultHeartbeatIntervalTimespan =
@@ -1661,6 +1794,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             continue;
                         }
 
+                        // Test connection
+                        var canConnectToEndpoint = await TestConnectionAsync(deviceEndpointResource,
+                            endpoint.Value, endpointConfiguration, errors, ct).ConfigureAwait(false);
+                        if (!canConnectToEndpoint)
+                        {
+                            continue;
+                        }
+
                         if (endpointConfiguration.RunAssetDiscovery == true &&
                             endpointConfiguration.AssetTypes?.Count > 0)
                         {
@@ -1715,6 +1856,44 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <summary>
+        /// Test connectivity
+        /// </summary>
+        /// <param name="deviceEndpointResource"></param>
+        /// <param name="endpoint"></param>
+        /// <param name="endpointConfiguration"></param>
+        /// <param name="errors"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        private async Task<bool> TestConnectionAsync(DeviceEndpointResource deviceEndpointResource,
+            InboundEndpointSchemaMapValue endpoint, DeviceEndpointModel endpointConfiguration,
+            ValidationErrors errors, CancellationToken ct)
+        {
+            var assetEndpoint = new PublishedNodesEntryModel
+            {
+                EndpointUrl = GetEndpointUrl(endpoint.Address),
+                EndpointSecurityMode = endpointConfiguration.EndpointSecurityMode,
+                EndpointSecurityPolicy = endpointConfiguration.EndpointSecurityPolicy,
+                DumpConnectionDiagnostics = endpointConfiguration.DumpConnectionDiagnostics,
+                UseReverseConnect = endpointConfiguration.UseReverseConnect
+            };
+            var credentials = _client.GetEndpointCredentials(deviceEndpointResource.DeviceName,
+                deviceEndpointResource.EndpointName, endpoint);
+            assetEndpoint = AddEndpointCredentials(assetEndpoint, credentials, errors,
+                deviceEndpointResource);
+            var testConnection = await _connections.TestConnectionAsync(assetEndpoint.ToConnectionModel(),
+                new TestConnectionRequestModel(), ct).ConfigureAwait(false);
+            if (testConnection.ErrorInfo != null)
+            {
+                errors.OnError(deviceEndpointResource, kDiscoveryError,
+                    "Failed to connect to endpoint: " + testConnection.ErrorInfo.ToString());
+                _logger.FailedToConnectToDeviceEndpoint(deviceEndpointResource.DeviceName,
+                    deviceEndpointResource.EndpointName, testConnection.ErrorInfo);
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>
         /// Deserialize configuration
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -1741,6 +1920,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     + ex.HResult.ToString(CultureInfo.InvariantCulture), ex.Message);
                 return default;
             }
+        }
+
+        private static bool TryGetInboundEndpoint(DeviceEndpoints? endpoints,
+            string endpointName, [NotNullWhen(true)] out InboundEndpointSchemaMapValue? endpoint)
+        {
+            endpoint = endpoints?.Inbound?.FirstOrDefault(
+                ep => string.Equals(ep.Key, endpointName, StringComparison.OrdinalIgnoreCase)).Value;
+            return endpoint != null;
+        }
+
+        private static bool TryGetInboundEndpoint(DeviceStatusEndpoint? endpoints,
+            string endpointName, [NotNullWhen(true)] out DeviceStatusInboundEndpointSchemaMapValue? endpoint)
+        {
+            endpoint = endpoints?.Inbound?.FirstOrDefault(
+                ep => string.Equals(ep.Key, endpointName, StringComparison.OrdinalIgnoreCase)).Value;
+            return endpoint != null;
         }
 
         private static string CreateDeviceKey(string deviceName, string inboundEndpointName)
@@ -1918,7 +2113,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     Inbound = new Dictionary<string, DeviceStatusInboundEndpointSchemaMapValue>()
                 };
                 Debug.Assert(status.Status.Endpoints.Inbound != null);
-                if (!status.Status.Endpoints.Inbound.TryGetValue(resource.EndpointName, out var entry))
+                if (!TryGetInboundEndpoint(status.Status.Endpoints, resource.EndpointName, out var entry))
                 {
                     entry = new DeviceStatusInboundEndpointSchemaMapValue();
                     status.Status.Endpoints.Inbound.Add(resource.EndpointName, entry);
@@ -2139,8 +2334,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         private readonly ConcurrentDictionary<string, AssetResource> _assets = new();
         private readonly ConcurrentDictionary<string, DeviceResource> _devices = new();
+        private readonly IAioSrClient _schemaRegistry;
+        private readonly IDisposable _srevents;
         private readonly Channel<(string, Resource)> _changeFeed;
         private readonly IConfigurationServices _configurationServices;
+        private readonly IConnectionServices<ConnectionModel> _connections;
         private readonly IEndpointDiscovery _endpointDiscovery;
         private readonly IAioAdrClient _client;
         private readonly IPublishedNodesServices _publishedNodes;
@@ -2162,6 +2360,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private static string GetEndpointUrl(string address)
             => address.Contains(kAddressSplit, StringComparison.Ordinal) ?
                 address.Split(kAddressSplit)[0] : address;
+
         private const string kAddressSplit = "?___";
         // TODO: END Remove when adr is fixed
     }
@@ -2173,12 +2372,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     {
         private const int EventClass = 2000;
 
-        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Debug,
             Message = "Failed to close discovery runner.")]
         internal static partial void FailedToCloseDiscoveryRunner(this ILogger logger,
             Exception ex);
 
-        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Debug,
             Message = "Failed to close conversion processor")]
         internal static partial void FailedToCloseConversionProcessor(this ILogger logger,
             Exception ex);
@@ -2303,5 +2502,55 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         internal static partial void FailedToReportDiscoveredServer(this ILogger logger,
             Exception ex, string device);
 
+        [LoggerMessage(EventId = EventClass + 28, Level = LogLevel.Error,
+            Message = "Invalid device change event {ChangeType} received: {Device} {Endpoint}")]
+        internal static partial void InvalidDeviceChangeEventReceived(this ILogger logger,
+            ChangeType changeType, string device, string endpoint);
+
+        [LoggerMessage(EventId = EventClass + 29, Level = LogLevel.Error,
+            Message = "Invalid asset change event {ChangeType} received: {Device} {Endpoint} {Asset}")]
+        internal static partial void InvalidAssetChangeEventReceived(this ILogger logger,
+            ChangeType changeType, string device, string endpoint, string asset);
+
+        [LoggerMessage(EventId = EventClass + 30, Level = LogLevel.Information,
+            Message = "Testing connection with device {Device} on endpoint {Endpoint} resulted in {ErrorInfo}")]
+        internal static partial void FailedToConnectToDeviceEndpoint(this ILogger logger,
+            string device, string endpoint, ServiceResultModel errorInfo);
+
+        [LoggerMessage(EventId = EventClass + 31, Level = LogLevel.Error,
+            Message = "Unexpected error processing asset and device changes")]
+        internal static partial void UnexpectedErrorProcessingChanges(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 32, Level = LogLevel.Error,
+            Message = "Registration of schema has invalid values")]
+        internal static partial void SchemaRegistrationInvalidValues(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 33, Level = LogLevel.Debug,
+            Message = "Cannot register schema without identifier")]
+        internal static partial void CannotRegisterSchemaWithoutIdentifier(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 34, Level = LogLevel.Debug,
+            Message = "Malformed schema id {Id} cannot be used for lookup")]
+        internal static partial void MalformedSchemaId(this ILogger logger, string id);
+
+        [LoggerMessage(EventId = EventClass + 35, Level = LogLevel.Information,
+            Message = "Registering schema '{Name}' with version '{Version}' for resource '{Resource}' " +
+            "in asset '{Asset}' inside schema namespace '{Namespace}'")]
+        internal static partial void RegisteringSchema(this ILogger logger, string name, string version,
+            string resource, string asset, string @namespace);
+
+        [LoggerMessage(EventId = EventClass + 36, Level = LogLevel.Information,
+            Message = "No asset found with name {AssetName} to attach schema {Schema} to.")]
+        internal static partial void NoAssetFoundForSchema(this ILogger logger, string assetName, string? schema);
+
+        [LoggerMessage(EventId = EventClass + 37, Level = LogLevel.Information,
+            Message = "No resource found to attach the schema {Schema} to.")]
+        internal static partial void NoResourceFoundForSchema(this ILogger logger, string? schema);
+
+        [LoggerMessage(EventId = EventClass + 38, Level = LogLevel.Information,
+            Message = "Registered schema '{Name}' with version '{Version}' for resource '{Resource}' in asset " +
+            "'{Asset}' inside schema namespace '{Namespace}'")]
+        internal static partial void RegisteredSchema(this ILogger logger, string name, string version,
+            string resource, string asset, string @namespace);
     }
 }

@@ -355,9 +355,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// type definition node for the variable represented by this
         /// node entry.
         /// </summary>
-        [DataMember(Name = "VariableTypeDefinitionId", Order = 33,
+        [DataMember(Name = "TypeDefinitionId", Order = 33,
             EmitDefaultValue = false)]
-        public string? VariableTypeDefinitionId { get; set; }
+        public string? TypeDefinitionId { get; set; }
+
+        /// <summary>
+        /// If the node is a method this is the method metadata that
+        /// represents the input and output arguments of the method.
+        /// </summary>
+        [DataMember(Name = "MethodMetadata", Order = 34,
+            EmitDefaultValue = false)]
+        public MethodMetadataModel? MethodMetadata { get; set; }
 
         /// <summary>
         /// Alternative node identifier with full namespace URI. Same

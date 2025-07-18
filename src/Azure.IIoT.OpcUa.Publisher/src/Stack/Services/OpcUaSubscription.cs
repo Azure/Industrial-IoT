@@ -1367,9 +1367,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             dispose.ForEach(m => m.Dispose());
 
             // Notify semantic change now that we have update the monitored items
-            foreach (var owner in metadataChanged)
+            var notifySemanticChange = metadataChanged
+                .Select(o => o.OnMonitoredItemSemanticsChangedAsync(ct))
+                .ToArray();
+            if (notifySemanticChange.Length > 0)
             {
-                owner.OnMonitoredItemSemanticsChanged();
+                await Task.WhenAll(notifySemanticChange).ConfigureAwait(false);
             }
 
             // Refresh condition
@@ -2128,13 +2131,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="session"></param>
         private void SendFakeKeepAlives(ISession session)
         {
-            // Send fake keep alives to all the other subscribers
-            var keepAliveTimer = _timeProvider.GetUtcNow() - KeepAliveTimeout;
+            // Send fake keep alives to all subscribers that need one
+            var now = _timeProvider.GetUtcNow();
+            var keepAliveTimer = now - KeepAliveTimeout;
             foreach (var monitoredItems in CurrentlyMonitored.GroupBy(c => c.Owner))
             {
                 // Ka when the item never received a value or the last value is older than the keep alive timeout.
-                if (monitoredItems.All(m => m.LastReceivedTime.HasValue && m.LastReceivedTime < keepAliveTimer))
+                if (monitoredItems.All(m => m.LastActivityTime < keepAliveTimer))
                 {
+                    foreach (var monitoredItem in monitoredItems)
+                    {
+                        monitoredItem.LastActivityTime = now;
+                    }
                     monitoredItems.Key.OnSubscriptionKeepAlive(new OpcUaSubscriptionNotification(this,
                         session.MessageContext, Array.Empty<MonitoredItemNotificationModel>(),
                         _timeProvider)

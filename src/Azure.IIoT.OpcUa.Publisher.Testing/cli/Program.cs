@@ -12,8 +12,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Globalization;
+    using System.Linq;
     using System.Runtime.Loader;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -28,6 +31,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
         /// <exception cref="ArgumentException"></exception>
         public static void Main(string[] args)
         {
+#if DEBUG
+            if (args.Any(a => a.Contains("wfd", StringComparison.InvariantCultureIgnoreCase) ||
+                a.Contains("waitfordebugger", StringComparison.InvariantCultureIgnoreCase)) ||
+                KubernetesClientConfiguration.IsInCluster())
+            {
+                Console.WriteLine("Waiting for debugger being attached...");
+                while (!Debugger.IsAttached)
+                {
+                    Thread.Sleep(1000);
+                }
+                Console.WriteLine("Debugger attached.");
+                Debugger.Break();
+            }
+#endif
             AppDomain.CurrentDomain.UnhandledException +=
                 (s, e) => Console.WriteLine("unhandled: " + e.ExceptionObject);
             var host = Utils.GetHostName();
@@ -40,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                 {
                     switch (args[i])
                     {
-                        case "-server":
+                        case "--server":
                         case "-s":
                             i++;
                             if (i < args.Length)
@@ -50,7 +67,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                             }
                             throw new ArgumentException(
                                 "Missing arguments for server option");
-                        case "-hosts":
+                        case "--hosts":
                         case "-H":
                             i++;
                             if (i < args.Length)
@@ -59,7 +76,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                                 break;
                             }
                             throw new ArgumentException(
-                                "Missing arguments for host option");
+                                "Missing arguments for hosts option");
                         case "-p":
                         case "--port":
                             i++;
@@ -75,7 +92,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                         case "--help":
                             throw new ArgumentException("Help");
                         default:
-                            throw new ArgumentException($"Unknown {args[i]}");
+                            throw new ArgumentException($"Unsupported option '{args[i]}'");
                     }
                 }
                 if (ports.Count == 0)
@@ -87,8 +104,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                     }
                     else
                     {
-                        throw new ArgumentException(
-                            "Missing port to run sample server or specify --sample option.");
+                        throw new ArgumentException("Missing port to run sample server.");
                     }
                 }
             }
@@ -120,12 +136,13 @@ Operations (Mutually exclusive):
             }
             try
             {
-                var hosts = host.Split(',');
+                var hosts = host.Split(',', StringSplitOptions.TrimEntries);
                 var alternativeHosts = new List<string>();
                 if (hosts.Length > 1)
                 {
                     alternativeHosts.AddRange(hosts[1..]);
                 }
+                Debug.Assert(hosts.Length > 0);
                 Console.WriteLine("Running ...");
                 RunServerAsync(server, hosts[0], ports, alternativeHosts, runsInKubenetes).Wait();
             }
@@ -166,6 +183,7 @@ Operations (Mutually exclusive):
                     CertificateStoreType.RegisterCertificateStoreType(
                         FlatCertificateStore.StoreTypeName, new FlatCertificateStore());
                 }
+                Console.WriteLine("Running in Kubernetes, using flat certificate store.");
             }
             using var server = new ServerConsoleHost(
                 TestServerFactory.Create(serverType, Log.Console<TestServerFactory>()), logger)
@@ -179,7 +197,7 @@ Operations (Mutually exclusive):
             };
             await server.StartAsync(ports).ConfigureAwait(false);
 #if DEBUG
-            if (!Console.IsInputRedirected)
+            if (!Console.IsInputRedirected && !runsInKubernetes)
             {
                 Console.WriteLine("Press any key to exit...");
                 Console.TreatControlCAsInput = true;

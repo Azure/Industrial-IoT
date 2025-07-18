@@ -226,7 +226,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
 
                 LastReceivedValue = cyclicReadNotification;
-                LastReceivedTime = TimeProvider.GetUtcNow();
+                LastReceivedTime = LastActivityTime = TimeProvider.GetUtcNow();
                 notifications.Add(Owner, ToMonitoredItemNotification(
                     cyclicReadNotification.Value, cyclicReadNotification.Overflow));
                 return true;
