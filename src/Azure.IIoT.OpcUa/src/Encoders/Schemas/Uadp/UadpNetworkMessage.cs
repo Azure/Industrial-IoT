@@ -28,7 +28,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Uadp
         public ulong Version { get; }
 
         /// <inheritdoc/>
-        public string? Id { get; }
+        public string Id { get; }
 
         /// <inheritdoc/>
         public string Schema { get; }
@@ -46,6 +46,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Uadp
                 .Max(dataSet => dataSet?.MetaData?.MinorVersion ?? 0) ?? 0;
             var major = networkMessage.DataSetMessages?
                 .Max(dataSet => dataSet?.MetaData?.DataSetMetaData.MajorVersion ?? 0) ?? 0;
+            Id = networkMessage.Id;
             Version = ((ulong)major << 32) + minor;
             Name = networkMessage.TypeName ?? string.Empty;
         }

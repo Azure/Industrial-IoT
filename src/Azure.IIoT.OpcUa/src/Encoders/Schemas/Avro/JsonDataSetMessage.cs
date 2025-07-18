@@ -35,7 +35,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
             NetworkMessageContentFlags networkMessageContentFlags,
             SchemaOptions options, HashSet<string> uniqueNames)
         {
-            DataSetSchema = new JsonDataSet(dataSetMessage.MetaData,
+            DataSetSchema = new JsonDataSet(dataSetMessage.Id, dataSetMessage.MetaData,
                 dataSetMessage.DataSetFieldContentFlags, options, uniqueNames);
             Schema = Compile(dataSetMessage.TypeName, dataSetMessage.DataSetMessageContentFlags
                     ?? PubSubMessage.DefaultDataSetMessageContentFlags,

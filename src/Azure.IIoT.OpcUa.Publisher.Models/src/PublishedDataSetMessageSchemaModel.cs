@@ -14,30 +14,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     public sealed record class PublishedDataSetMessageSchemaModel
     {
         /// <summary>
+        /// The identifier of the schema
+        /// </summary>
+        [DataMember(Name = "id", Order = 1,
+            EmitDefaultValue = false)]
+        public required string Id { get; init; }
+
+        /// <summary>
         /// Metadata describing the data set message content
         /// </summary>
-        [DataMember(Name = "metaData", Order = 1,
+        [DataMember(Name = "metaData", Order = 2,
             EmitDefaultValue = false)]
         public required PublishedDataSetMetaDataModel MetaData { get; init; }
 
         /// <summary>
         /// Dataset content encoding flags
         /// </summary>
-        [DataMember(Name = "dataSetMessageContentFlags", Order = 2,
+        [DataMember(Name = "dataSetMessageContentFlags", Order = 3,
             EmitDefaultValue = false)]
         public required DataSetMessageContentFlags? DataSetMessageContentFlags { get; init; }
 
         /// <summary>
         /// Dataset field encoding flags
         /// </summary>
-        [DataMember(Name = "dataSetFieldContentFlags", Order = 3,
+        [DataMember(Name = "dataSetFieldContentFlags", Order = 4,
             EmitDefaultValue = false)]
         public required DataSetFieldContentFlags? DataSetFieldContentFlags { get; init; }
 
         /// <summary>
         /// Optional type name for the message type
         /// </summary>
-        [DataMember(Name = "typeName", Order = 4,
+        [DataMember(Name = "typeName", Order = 5,
             EmitDefaultValue = false)]
         public string? TypeName { get; init; }
     }

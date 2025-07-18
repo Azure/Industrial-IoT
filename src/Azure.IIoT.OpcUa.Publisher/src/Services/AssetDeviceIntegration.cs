@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.Iot.Operations.Connector;
     using Azure.Iot.Operations.Connector.Files;
     using Azure.Iot.Operations.Services.AssetAndDeviceRegistry.Models;
+    using Azure.Iot.Operations.Services.SchemaRegistry.SchemaRegistry;
     using Furly.Azure.IoT.Operations.Services;
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
@@ -33,14 +34,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
-    using static Azure.IIoT.OpcUa.Publisher.Services.AssetDeviceIntegration;
 
     /// <summary>
     /// Asset and device configuration integration with Azure iot operations. Converts asset
     /// and device notifications into published nodes representation and signals configuration
     /// status errors back.
     /// </summary>
-    public sealed partial class AssetDeviceIntegration : IAsyncDisposable, IDisposable
+    public sealed partial class AssetDeviceIntegration : IAioSrCallbacks, IAsyncDisposable, IDisposable
     {
         /// <summary>
         /// Currently known assets
@@ -56,6 +56,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Create Akri and asset and device registry integration service
         /// </summary>
         /// <param name="client"></param>
+        /// <param name="schemaRegistry"></param>
         /// <param name="publishedNodes"></param>
         /// <param name="configurationServices"></param>
         /// <param name="connections"></param>
@@ -63,10 +64,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="serializer"></param>
         /// <param name="options"></param>
         /// <param name="logger"></param>
-        public AssetDeviceIntegration(IAioAdrClient client, IPublishedNodesServices publishedNodes,
-            IConfigurationServices configurationServices, IConnectionServices<ConnectionModel> connections,
-            IEndpointDiscovery endpointDiscovery, IJsonSerializer serializer,
-            IOptions<PublisherOptions> options, ILogger<AssetDeviceIntegration> logger)
+        public AssetDeviceIntegration(IAioAdrClient client, IAioSrClient schemaRegistry,
+            IPublishedNodesServices publishedNodes, IConfigurationServices configurationServices,
+            IConnectionServices<ConnectionModel> connections, IEndpointDiscovery endpointDiscovery,
+            IJsonSerializer serializer, IOptions<PublisherOptions> options,
+            ILogger<AssetDeviceIntegration> logger)
         {
             _client = client;
             _publishedNodes = publishedNodes;
@@ -79,6 +81,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _cts = new CancellationTokenSource();
             _client.OnDeviceChanged += OnDeviceChanged;
             _client.OnAssetChanged += OnAssetChanged;
+            _schemaRegistry = schemaRegistry;
+            _srevents = schemaRegistry.Register(this);
             _changeFeed = Channel.CreateUnbounded<(string, Resource)>(new UnboundedChannelOptions
             {
                 SingleReader = true,
@@ -126,6 +130,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
             finally
             {
+                _srevents.Dispose();
                 _cts.Dispose();
             }
         }
@@ -134,6 +139,85 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public void Dispose()
         {
             DisposeAsync().AsTask().GetAwaiter().GetResult();
+        }
+
+        /// <inheritdoc/>
+        public async ValueTask OnSchemaRegisteredAsync(Furly.Extensions.Messaging.IEventSchema schema,
+            Schema registration, CancellationToken ct)
+        {
+            if (registration.Name == null ||
+                registration.Namespace == null ||
+                registration.Version == null)
+            {
+                _logger.LogError("Registration of schema has invalid values");
+                return;
+            }
+
+            if (schema.Id == null)
+            {
+                _logger.LogDebug("Cannot register schema without identifier");
+            }
+
+            _logger.LogInformation("Registering {Id} schema {Name} v{Version} in namespace {Namespace}",
+                schema.Id, registration.Name, registration.Version, registration.Namespace);
+
+            var reference = new MessageSchemaReference
+            {
+                SchemaName = registration.Name,
+                SchemaRegistryNamespace = registration.Namespace,
+                SchemaVersion = registration.Version
+            };
+
+            string? deviceName = null;
+            string? endpoint = null;
+            string? assetName = null;
+            List<AssetDatasetEventStreamStatus>? dataSetStatus = null;
+            List<AssetDatasetEventStreamStatus>? eventStatus = null;
+
+            foreach (var asset in _assets)
+            {
+                deviceName = asset.Value.Asset.DeviceRef.DeviceName;
+                endpoint = asset.Value.Asset.DeviceRef.EndpointName;
+                assetName = asset.Value.AssetName;
+
+                var dataSet = asset.Value.Asset.Datasets?.Find(d => d.Name == schema.Name);
+                if (dataSet != null)
+                {
+                    dataSetStatus = [new AssetDatasetEventStreamStatus
+                    {
+                        Name = dataSet.Name,
+                        MessageSchemaReference = reference
+                    }];
+                    break;
+                }
+                var @event = asset.Value.Asset.Events?.Find(e => e.Name == schema.Name);
+                if (@event != null)
+                {
+                    eventStatus = [new AssetDatasetEventStreamStatus
+                    {
+                        Name = @event.Name,
+                        MessageSchemaReference = reference
+                    }];
+                    break;
+                }
+            }
+
+            if (eventStatus == null &&
+                dataSetStatus == null)
+            {
+                _logger.LogInformation("No resource found to attach the schema {Schema} to.",
+                    schema.Name);
+                return;
+            }
+
+            Debug.Assert(deviceName != null);
+            Debug.Assert(endpoint != null);
+            Debug.Assert(assetName != null);
+            await _client.UpdateAssetStatusAsync(deviceName, endpoint, assetName, new AssetStatus
+            {
+                Datasets = dataSetStatus,
+                Events = eventStatus
+            }, ct: ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -2245,6 +2329,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         private readonly ConcurrentDictionary<string, AssetResource> _assets = new();
         private readonly ConcurrentDictionary<string, DeviceResource> _devices = new();
+        private readonly IAioSrClient _schemaRegistry;
+        private readonly IDisposable _srevents;
         private readonly Channel<(string, Resource)> _changeFeed;
         private readonly IConfigurationServices _configurationServices;
         private readonly IConnectionServices<ConnectionModel> _connections;
@@ -2269,6 +2355,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private static string GetEndpointUrl(string address)
             => address.Contains(kAddressSplit, StringComparison.Ordinal) ?
                 address.Split(kAddressSplit)[0] : address;
+
         private const string kAddressSplit = "?___";
         // TODO: END Remove when adr is fixed
     }

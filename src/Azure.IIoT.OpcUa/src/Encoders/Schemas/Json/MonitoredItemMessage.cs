@@ -56,9 +56,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
         {
             _options = options;
             _withDataSetMessageHeader = withDataSetMessageHeader;
-            _dataSet = new JsonDataSet(dataSetMessage.MetaData,
+            _dataSet = new JsonDataSet(dataSetMessage.Id, dataSetMessage.MetaData,
                 dataSetMessage.DataSetFieldContentFlags, options, definitions, uniqueNames);
             Definitions = definitions ?? [];
+            Id = dataSetMessage.Id;
             Name = GetName(dataSetMessage.TypeName, uniqueNames);
             _dataSetFieldContentMask = dataSetMessage.DataSetFieldContentFlags
                     ?? PubSubMessage.DefaultDataSetFieldContentFlags;

@@ -493,21 +493,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 ServiceCallContext context, IReadOnlyList<BrowseFrame> matching,
                 List<ReferenceDescription> references)
             {
-                foreach (var match in matching)
-                {
-                    yield return new ServiceResponse<FileSystemObjectModel>
-                    {
-                        Result = new FileSystemObjectModel
-                        {
-                            NodeId = Header.AsString(match.NodeId,
-                                context.Session.MessageContext, Options),
-                            Name = match.DisplayName
-                        }
-                    };
-                }
                 // Only add what we did not match to browse deeper
                 var stop = matching.Select(r => r.NodeId).ToHashSet();
                 references.RemoveAll(r => stop.Contains((NodeId)r.NodeId));
+                return matching.Select(match => new ServiceResponse<FileSystemObjectModel>
+                {
+                    Result = new FileSystemObjectModel
+                    {
+                        NodeId = Header.AsString(match.NodeId,
+                            context.Session.MessageContext, Options),
+                        Name = match.DisplayName
+                    }
+                });
             }
         }
 

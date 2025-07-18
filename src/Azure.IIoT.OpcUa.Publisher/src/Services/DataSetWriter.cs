@@ -377,6 +377,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             public string Name { get; private set; }
 
             /// <summary>
+            /// Topic assigned to the writer
+            /// </summary>
+            public string Topic => _writer.Topic;
+
+            /// <summary>
             /// Writer id
             /// </summary>
             public string Id => _writer.Writer.Id;
@@ -788,7 +793,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 try
                 {
                     var metadata = GetMetadata();
-                    _group.GetWriterGroup(out var writerGroup, out var networkMessageSchema);
+                    _group.GetWriterGroup(_writer.Topic, out var writerGroup, out var networkMessageSchema);
                     lock (_lock)
                     {
                         var single = notification.Notifications?.Count == 1 ?
@@ -1131,9 +1136,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 /// <returns></returns>
                 internal async Task UpdateMetaDataAsync(CancellationToken ct = default)
                 {
+                    var dataSetName = _writer._writer.Writer.DataSet?.Name
+                        ?? _writer._writer.Writer.DataSetWriterName
+                        ?? _writer.Id;
+                    var writerGroup = _writer._group._writerGroup.Name
+                        ?? _writer._group.Id;
                     var dataSetMetaData = _writer._writer.DataSet?.DataSetMetaData;
                     var subscription = _writer.Subscription;
-                    if (dataSetMetaData == null || subscription == null)
+                    if (dataSetMetaData == null || subscription == null || dataSetName == null)
                     {
                         // Metadata disabled
                         MetaData = null;
@@ -1156,11 +1166,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     var metaData = await subscription.CollectMetaDataAsync(_writer, fieldMask,
                         dataSetMetaData, minor, ct).ConfigureAwait(false);
 
-                    _writer._logger.LoadingMetadataTook(dataSetMetaData.MajorVersion ?? 1, minor, _writer.Id, sw.Elapsed);
+                    _writer._logger.LoadingMetadataTook(dataSetMetaData.MajorVersion ?? 1, minor,
+                        _writer.Id, sw.Elapsed);
 
                     var msgMask = _writer._writer.Writer.MessageSettings?.DataSetMessageContentMask;
                     MetaData = new PublishedDataSetMessageSchemaModel
                     {
+                        Id = $"{writerGroup}|{dataSetName}",
                         MetaData = metaData with
                         {
                             Fields = _writer._extensionFields.AddMetadata(metaData.Fields)

@@ -1311,79 +1311,82 @@ if (-not $?) {
     Remove-Item -Path $tempFile -Force
     exit -1
 }
-# Deploy discovery handler
-$template = @{
-    extendedLocation = $iotOps.extendedLocation
-    properties = @{
-        aioMetadata = @{
-            aioMinVersion = "1.2.*"
-            aioMaxVersion = "1.*.*"
-        }
-        imageConfiguration = @{
-            imageName = $containerName
-            imagePullPolicy = $containerPull
-            registrySettings = $containerRegistry
-            tagDigestSettings = @{
-                tagDigestType = "Tag"
-                tag = $containerTag
+
+# Deploy discovery handler - disabled in current version of Azure IoT Operations
+if ($DeployDiscoveryHandler) {
+    $template = @{
+        extendedLocation = $iotOps.extendedLocation
+        properties = @{
+            aioMetadata = @{
+                aioMinVersion = "1.2.*"
+                aioMaxVersion = "1.*.*"
             }
-        }
-        mode = "Enabled"
-        schedule = @{
-            scheduleType = "Cron" # or "Continuous" or "RunOnce"
-            cron = "*/10 * * * *"
-        }
-        additionalConfiguration = @{
-            AutoDiscoverDevicesOnStartup = "True"
-            EnableMetrics = "True"
-            LogFormat = "syslog"
-            DisableDataSetMetaData = "True"
-        }
-        discoverableDeviceEndpointTypes = @(
-            @{
-                endpointType = "Microsoft.OpcPublisher"
-                version = "2.9"
-            }
-        )
-        secrets = @()
-        diagnostics = @{
-            logs = @{
-                level = "info"
-            }
-        }
-        mqttConnectionConfiguration = @{
-            host = "aio-broker:18883"
-            authentication = @{
-                method = "ServiceAccountToken"
-                serviceAccountTokenSettings = @{
-                    audience = "aio-internal"
+            imageConfiguration = @{
+                imageName = $containerName
+                imagePullPolicy = $containerPull
+                registrySettings = $containerRegistry
+                tagDigestSettings = @{
+                    tagDigestType = "Tag"
+                    tag = $containerTag
                 }
             }
-            tls = @{
-                mode = "Enabled"
-                trustedCaCertificateConfigMapRef = "azure-iot-operations-aio-ca-trust-bundle"
+            mode = "Enabled"
+            schedule = @{
+                scheduleType = "Cron" # or "Continuous" or "RunOnce"
+                cron = "*/10 * * * *"
+            }
+            additionalConfiguration = @{
+                AutoDiscoverDevicesOnStartup = "True"
+                EnableMetrics = "True"
+                LogFormat = "syslog"
+                DisableDataSetMetaData = "True"
+            }
+            discoverableDeviceEndpointTypes = @(
+                @{
+                    endpointType = "Microsoft.OpcPublisher"
+                    version = "2.9"
+                }
+            )
+            secrets = @()
+            diagnostics = @{
+                logs = @{
+                    level = "info"
+                }
+            }
+            mqttConnectionConfiguration = @{
+                host = "aio-broker:18883"
+                authentication = @{
+                    method = "ServiceAccountToken"
+                    serviceAccountTokenSettings = @{
+                        audience = "aio-internal"
+                    }
+                }
+                tls = @{
+                    mode = "Enabled"
+                    trustedCaCertificateConfigMapRef = "azure-iot-operations-aio-ca-trust-bundle"
+                }
             }
         }
-    }
-} | ConvertTo-Json -Depth 100
-$template | Out-File -FilePath $tempFile -Encoding utf8 -Force
+    } | ConvertTo-Json -Depth 100
+    $template | Out-File -FilePath $tempFile -Encoding utf8 -Force
 
-$dhName = "opc-publisher"
-$dhResource = "/subscriptions/$($SubscriptionId)"
-$dhResource = "$($dhResource)/resourceGroups/$($rg.Name)"
-$dhResource = "$($dhResource)/providers/Microsoft.IoTOperations"
-$dhResource = "$($dhResource)/instances/$($iotOps.name)"
-$dhResource = "$($dhResource)/akriDiscoveryHandlers/$($dhName)"
-Write-Host "Deploying discovery handler template $($dhName)..." -ForegroundColor Cyan
-az rest --method put `
-    --url "$($dhResource)?api-version=2025-07-01-preview" `
-    --headers "Content-Type=application/json" `
-    --body @$tempFile
-if (-not $?) {
-    Write-Host "Error deploying discovery handler template $($dhName) - $($errOut)." `
-        -ForegroundColor Red
-    Remove-Item -Path $tempFile -Force
-    exit -1
+    $dhName = "opc-publisher"
+    $dhResource = "/subscriptions/$($SubscriptionId)"
+    $dhResource = "$($dhResource)/resourceGroups/$($rg.Name)"
+    $dhResource = "$($dhResource)/providers/Microsoft.IoTOperations"
+    $dhResource = "$($dhResource)/instances/$($iotOps.name)"
+    $dhResource = "$($dhResource)/akriDiscoveryHandlers/$($dhName)"
+    Write-Host "Deploying discovery handler template $($dhName)..." -ForegroundColor Cyan
+    az rest --method put `
+        --url "$($dhResource)?api-version=2025-07-01-preview" `
+        --headers "Content-Type=application/json" `
+        --body @$tempFile
+    if (-not $?) {
+        Write-Host "Error deploying discovery handler template $($dhName) - $($errOut)." `
+            -ForegroundColor Red
+        Remove-Item -Path $tempFile -Force
+        exit -1
+    }
 }
 
 #

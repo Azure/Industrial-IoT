@@ -312,9 +312,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Safely get the writer group
         /// </summary>
+        /// <param name="topic"></param>
         /// <param name="writerGroup"></param>
         /// <param name="schema"></param>
-        private void GetWriterGroup(out WriterGroupModel writerGroup, out IEventSchema? schema)
+        private void GetWriterGroup(string topic, out WriterGroupModel writerGroup, out IEventSchema? schema)
         {
             if (_lastMetadataChange != _metadataChanges)
             {
@@ -331,12 +332,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         }
                         else
                         {
+                            var id = writerGroup.Name ?? writerGroup.Id;
                             var encoding = writerGroup.MessageType ?? MessageEncoding.Json;
+                            var datasetSchemaMetadata = _writers.Values
+                                .Where(s => s.Topic == topic)
+                                .Select(s => s.MetaData)
+                                .ToList();
+                            if (datasetSchemaMetadata.Count == 1)
+                            {
+                                id = datasetSchemaMetadata[0]?.Id ?? id;
+                            }
+                            else
+                            {
+                                id = $"{id}|{topic.ToSha1Hash()}";
+                            }
                             var input = new PublishedNetworkMessageSchemaModel
                             {
-                                DataSetMessages = _writers.Values
-                                    .Select(s => s.MetaData)
-                                    .ToList(),
+                                Id = id,
+                                Version = (ulong)_metadataChanges,
+                                DataSetMessages = datasetSchemaMetadata,
                                 NetworkMessageContentFlags =
                                     writerGroup.MessageSettings?.NetworkMessageContentMask
                             };
@@ -352,12 +366,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 #pragma warning restore CA1869 // Cache and reuse 'JsonSerializerOptions' instances
 #endif
                             if (!PubSubMessage.TryCreateNetworkMessageSchema(encoding, input,
-                                out schema, _options.Value.SchemaOptions))
+                                out var compiledSchema, _options.Value.SchemaOptions))
                             {
                                 _logger.FailedToCreateSchema(encoding, writerGroup.Id);
+                                schema = null;
+                            }
+                            else
+                            {
+                                schema = _schemas.AddOrUpdate(topic, compiledSchema,
+                                    (_, _) => compiledSchema);
                             }
                         }
-                        _schema = schema;
                         _lastMetadataChange = _metadataChanges;
                         return;
                     }
@@ -368,7 +387,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
             }
             writerGroup = _writerGroup;
-            schema = _schema;
+            _schemas.TryGetValue(topic, out schema);
         }
 
         /// <summary>
@@ -618,13 +637,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly RollingAverage _heartbeats;
         private readonly RollingAverage _overflows;
         private WriterGroupModel _writerGroup;
+        private readonly ConcurrentDictionary<string, IEventSchema> _schemas = new();
         private long _keepAliveCount;
         private int _messagesWithoutMetadata;
         private int _metadataLoadSuccess;
         private int _metadataLoadFailures;
         private int _metadataChanges;
         private int _lastMetadataChange = -1;
-        private IEventSchema? _schema;
     }
 
     /// <summary>
