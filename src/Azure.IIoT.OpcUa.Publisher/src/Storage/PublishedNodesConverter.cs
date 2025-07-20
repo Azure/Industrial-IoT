@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
+    using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -172,7 +173,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             WriterGroupProperties = item.WriterGroup.Properties?.ToDictionary(),
                             OpcNodes = ToOpcNodes(item.Writer.DataSet?.DataSetSource?.SubscriptionSettings,
                                     item.Writer.DataSet?.DataSetSource?.PublishedVariables,
-                                    item.Writer.DataSet?.DataSetSource?.PublishedEvents, preferTimeSpan, false)?
+                                    item.Writer.DataSet?.DataSetSource?.PublishedEvents,
+                                    item.Writer.DataSet?.DataSetSource?.PublishedMethods, preferTimeSpan, false)?
                                 .ToList() ?? [],
                             // ...
 
@@ -217,8 +219,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             }
 
             static IEnumerable<OpcNodeModel>? ToOpcNodes(PublishedDataSetSettingsModel? subscriptionSettings,
-                PublishedDataItemsModel? publishedVariables, PublishedEventItemsModel? publishedEvents, bool preferTimeSpan,
-                bool skipTriggeringNodes)
+                PublishedDataItemsModel? publishedVariables, PublishedEventItemsModel? publishedEvents,
+                PublishedMethodItemsModel? publishedMethods, bool preferTimeSpan, bool skipTriggeringNodes)
             {
                 if (publishedVariables == null && publishedEvents == null)
                 {
@@ -257,7 +259,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         TypeDefinitionId = variable.TypeDefinitionId,
                         TriggeredNodes = skipTriggeringNodes ? null : ToOpcNodes(subscriptionSettings,
                             variable.Triggering?.PublishedVariables,
-                            variable.Triggering?.PublishedEvents, preferTimeSpan, true)?.ToList(),
+                            variable.Triggering?.PublishedEvents,
+                            variable.Triggering?.PublishedMethods, preferTimeSpan, true)?.ToList(),
                         Topic = variable.Publishing?.QueueName,
                         QualityOfService = variable.Publishing?.RequestedDeliveryGuarantee,
 
@@ -289,7 +292,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         QueueSize = evt.QueueSize,
                         TriggeredNodes = skipTriggeringNodes ? null : ToOpcNodes(subscriptionSettings,
                             evt.Triggering?.PublishedVariables,
-                            evt.Triggering?.PublishedEvents, preferTimeSpan, true)?.ToList(),
+                            evt.Triggering?.PublishedEvents,
+                            evt.Triggering?.PublishedMethods, preferTimeSpan, true)?.ToList(),
                         Topic = evt.Publishing?.QueueName,
                         QualityOfService = evt.Publishing?.RequestedDeliveryGuarantee,
 
@@ -312,6 +316,51 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         RegisterNode = null,
                         UseCyclicRead = null,
                         IndexRange = null,
+                        OpcPublishingInterval = preferTimeSpan ? null : (int?)
+                            subscriptionSettings?.PublishingInterval?.TotalMilliseconds,
+                        OpcPublishingIntervalTimespan = !preferTimeSpan ? null :
+                            subscriptionSettings?.PublishingInterval,
+                        SkipFirst = null
+                    })).Concat((publishedMethods?.PublishedData ?? Enumerable.Empty<PublishedDataSetMethodModel>())
+                    .Select(method => new OpcNodeModel
+                    {
+                        Id = method.MethodId,
+                        MethodMetadata = method.Metadata, // TODO: Clone
+                        DataSetFieldId = method.Id,
+                        BrowsePath = method.BrowsePath,
+                        TriggeredNodes = skipTriggeringNodes ? null : ToOpcNodes(subscriptionSettings,
+                            method.Triggering?.PublishedVariables,
+                            method.Triggering?.PublishedEvents,
+                            method.Triggering?.PublishedMethods, preferTimeSpan, true)?.ToList(),
+                        Topic = method.Publishing?.QueueName,
+                        QualityOfService = method.Publishing?.RequestedDeliveryGuarantee,
+
+                        // MonitoringMode = method.MonitoringMode,
+                        // ...
+                        DeadbandType = null,
+                        TypeDefinitionId = null,
+                        DataChangeTrigger = null,
+                        DataSetClassFieldId = Guid.Empty,
+                        DeadbandValue = null,
+                        ExpandedNodeId = null,
+                        HeartbeatInterval = null,
+                        HeartbeatBehavior = null,
+                        HeartbeatIntervalTimespan = null,
+                        OpcSamplingInterval = null,
+                        OpcSamplingIntervalTimespan = null,
+                        CyclicReadMaxAgeTimespan = null,
+                        CyclicReadMaxAge = null,
+                        AttributeId = null,
+                        RegisterNode = null,
+                        UseCyclicRead = null,
+                        IndexRange = null,
+                        ConditionHandling = null,
+                        DiscardNew = null,
+                        QueueSize = null,
+                        ModelChangeHandling = null,
+                        FetchDisplayName = null,
+                        DisplayName = null,
+                        EventFilter = null,
                         OpcPublishingInterval = preferTimeSpan ? null : (int?)
                             subscriptionSettings?.PublishingInterval?.TotalMilliseconds,
                         OpcPublishingIntervalTimespan = !preferTimeSpan ? null :
@@ -491,7 +540,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                                 // ...
                                             },
                                             PublishedVariables = ToPublishedDataItems(nodes.Where(n => n != kDummyEntry), false),
-                                            PublishedEvents = ToPublishedEventItems(nodes.Where(n => n != kDummyEntry), false)
+                                            PublishedEvents = ToPublishedEventItems(nodes.Where(n => n != kDummyEntry), false),
+                                            PublishedMethods = ToPublishedMethodItems(nodes.Where(n => n != kDummyEntry), false)
                                         }
                                     },
                                     MessageSettings = null,
@@ -668,7 +718,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             ? null : new PublishedDataSetTriggerModel
                             {
                                 PublishedVariables = ToPublishedDataItems(node.TriggeredNodes, true),
-                                PublishedEvents = ToPublishedEventItems(node.TriggeredNodes, true)
+                                PublishedEvents = ToPublishedEventItems(node.TriggeredNodes, true),
+                                PublishedMethods = ToPublishedMethodItems(node.TriggeredNodes, true)
                             }
                     })
                     .ToList()
@@ -707,7 +758,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             ? null : new PublishedDataSetTriggerModel
                             {
                                 PublishedVariables = ToPublishedDataItems(node.TriggeredNodes, true),
-                                PublishedEvents = ToPublishedEventItems(node.TriggeredNodes, true)
+                                PublishedEvents = ToPublishedEventItems(node.TriggeredNodes, true),
+                                PublishedMethods = ToPublishedMethodItems(node.TriggeredNodes, true)
+                            }
+                    }).ToList()
+                };
+            }
+
+            static PublishedMethodItemsModel ToPublishedMethodItems(IEnumerable<OpcNodeModel> opcNodes, bool skipTriggering)
+            {
+                return new PublishedMethodItemsModel
+                {
+                    PublishedData = opcNodes.Where(node => node.MethodMetadata != null)
+                    .Select(node => new PublishedDataSetMethodModel
+                    {
+                        Id = node.DataSetFieldId,
+                        MethodId = node.Id,
+                        Metadata = node.MethodMetadata, // TODO: .Clone()
+                        BrowsePath = node.BrowsePath,
+                        TypeDefinitionId = node.EventFilter?.TypeDefinitionId,
+                        Publishing = node.Topic == null && node.QualityOfService == null
+                            ? null : new PublishingQueueSettingsModel
+                            {
+                                QueueName = node.Topic,
+                                RequestedDeliveryGuarantee = node.QualityOfService,
+                                Retain = null,
+                                Ttl = null
+                            },
+                        Triggering = skipTriggering || node.TriggeredNodes == null
+                            ? null : new PublishedDataSetTriggerModel
+                            {
+                                PublishedVariables = ToPublishedDataItems(node.TriggeredNodes, true),
+                                PublishedEvents = ToPublishedEventItems(node.TriggeredNodes, true),
+                                PublishedMethods = ToPublishedMethodItems(node.TriggeredNodes, true)
                             }
                     }).ToList()
                 };

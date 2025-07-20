@@ -28,15 +28,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public PublishedEventItemsModel? PublishedEvents { get; set; }
 
         /// <summary>
+        /// Or published method calls
+        /// </summary>
+        [DataMember(Name = "publishedMethods", Order = 2,
+            EmitDefaultValue = false)]
+        public PublishedMethodItemsModel? PublishedMethods { get; set; }
+
+        /// <summary>
         /// Connection information (publisher extension)
         /// </summary>
-        [DataMember(Name = "connection", Order = 2)]
+        [DataMember(Name = "connection", Order = 3)]
         public ConnectionModel? Connection { get; set; }
 
         /// <summary>
         /// Subscription settings (publisher extension)
         /// </summary>
-        [DataMember(Name = "subscriptionSettings", Order = 3,
+        [DataMember(Name = "subscriptionSettings", Order = 4,
             EmitDefaultValue = false)]
         public PublishedDataSetSettingsModel? SubscriptionSettings { get; set; }
     }

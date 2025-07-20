@@ -1108,6 +1108,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 /// Wait for metadata to be loaded or timeout after timeout
                 /// </summary>
                 /// <param name="timeout"></param>
+                /// <param name="ct"></param>
                 /// <returns></returns>
                 public async Task<bool> BlockUntilLoadedAsync(TimeSpan timeout, CancellationToken ct)
                 {

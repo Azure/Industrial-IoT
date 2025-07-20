@@ -26,5 +26,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "publishedEvents", Order = 1,
             EmitDefaultValue = false)]
         public PublishedEventItemsModel? PublishedEvents { get; set; }
+
+        /// <summary>
+        /// Or published calls
+        /// </summary>
+        [DataMember(Name = "publishedMethods", Order = 2,
+            EmitDefaultValue = false)]
+        public PublishedMethodItemsModel? PublishedMethods { get; set; }
     }
 }
