@@ -629,7 +629,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             // Convert assets to dAsset and report them as found. We group the assets per name
             // and asset type ref. We resolve the duplicate names later from the hashset
             var uniqueAssetNames = new HashSet<string>();
-            foreach (var (assetName, assetId, assetTypeRef, datasets) in assetEntries
+            foreach (var (assetName, assetId, assetTypeRef, opcNodes) in assetEntries
                 .GroupBy(e => (
                     AssetName: e.DataSetWriterGroup!,
                     AssetId: e.WriterGroupRootNodeId!,
@@ -651,8 +651,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     uniqueAssetName = assetResourceName + i;
                 }
                 // ensure no duplicate datasets and datapoints (names) are added into the asset
-                var distinctDatasets = datasets
-                    .GroupBy(d => d.DataSetName)
+                var distinctEntries = opcNodes
+                    .GroupBy(entry => entry.DataSetName)
                     .SelectMany(group => group.Select((d, i) => d with
                     {
                         DataSetName = i == 0 ? d.DataSetName : d.DataSetName + "." + i,
@@ -666,6 +666,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }))
                     .ToList();
 
+                var distinctDatasets = distinctEntries
+                    .Select(entry => entry with
+                    {
+                        OpcNodes = entry.OpcNodes!
+                            .Where(n => n.AttributeId != NodeAttribute.EventNotifier &&
+                                n.MethodMetadata == null)
+                            .ToList(),
+                    })
+                    .Where(d => d.OpcNodes!.Count > 0)
+                    .ToList();
+                var distinctEvents = distinctEntries
+                    .Select(entry => entry with
+                    {
+                        OpcNodes = entry.OpcNodes!
+                            .Where(n => n.AttributeId == NodeAttribute.EventNotifier &&
+                                n.MethodMetadata == null)
+                            .ToList(),
+                    })
+                    .SelectMany(d => d.OpcNodes!.Select(n => d with { OpcNodes = [n] }))
+                    .ToList();
+                var distinctManagementGroups = distinctEntries
+                    .Select(entry => entry with
+                    {
+                        OpcNodes = entry.OpcNodes!
+                            .Where(n => n.MethodMetadata != null)
+                            .ToList(),
+                    })
+                    .Where(d => d.OpcNodes!.Count > 0)
+                    .ToList();
                 var dAsset = new DiscoveredAsset
                 {
                     DeviceRef = new AssetDeviceRef
@@ -711,8 +740,43 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             }
                         ]
                     }),
-                    // TODO: Add events
-                    Events = null
+                    Events = distinctEvents.ConvertAll(d => new DetectedAssetEventSchemaElement
+                    {
+                        Name = d.OpcNodes![0].DataSetFieldId ?? "Default", // Should never be null here
+                        TypeRef = d.OpcNodes![0].TypeDefinitionId,
+                        EventNotifier = d.OpcNodes![0].Id!,
+                        Destinations =
+                        [
+                            new EventStreamDestination
+                            {
+                                Target = EventStreamTarget.Mqtt,
+                                Configuration = new DestinationConfiguration
+                                {
+                                    Qos = _options.Value.DefaultQualityOfService
+                                        == Furly.Extensions.Messaging.QoS.AtMostOnce ? QoS.Qos0 : QoS.Qos1,
+                                    Topic = CreateTopic(resource.DeviceName, d.DataSetWriterGroup, d.DataSetName),
+                                    Retain = _options.Value.DefaultMessageRetention
+                                        == true ? Retain.Keep : Retain.Never,
+                                    Ttl = (ulong?)_options.Value.DefaultMessageTimeToLive?.TotalSeconds
+                                }
+                            }
+                        ]
+                    }),
+                    ManagementGroups = distinctManagementGroups.ConvertAll(d => new DiscoveredAssetManagementGroup
+                    {
+                        Name = d.DataSetName ?? "Default", // Should never be null here
+                        TypeRef = d.DataSetType,
+                        Actions = d.OpcNodes!.Select(n => new DiscoveredAssetManagementGroupAction
+                        {
+                            Name = n.DataSetFieldId ?? "Default", // Should never be null
+                            ActionType = AssetManagementGroupActionType.Call,
+                            TargetUri = n.Id!,
+                            Topic = CreateTopic(resource.DeviceName, d.DataSetWriterGroup, d.DataSetName),
+                            TypeRef = n.TypeDefinitionId,
+                            // ActionConfiguration = JsonSerializer.SerializeToDocument(n.MethodMetadata) // TOO Long
+                        }).ToList(),
+                    }),
+                    Streams = null,
                 };
 
                 // TODO: Add attributes and other information from properties
@@ -1564,7 +1628,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <returns></returns>
         private static string CreateTopic(string? deviceName, string? assetName, string? dataSetName)
         {
-            var builder = new StringBuilder("{RootTopic}");
+            var builder = new StringBuilder("{RootTopic}"); // /opcua/{Encoding}/{MessageType}");
             if (!string.IsNullOrEmpty(deviceName))
             {
                 builder = builder.Append('/').Append(Furly.Extensions.Messaging.TopicFilter.Escape(deviceName));
@@ -1640,8 +1704,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         QueueName = configuration.Topic,
                         MessageTtlTimespan = configuration.Ttl == null ? null
                             : TimeSpan.FromSeconds(configuration.Ttl.Value),
-                        MetaDataQueueName = configuration.Topic == null ? null :
-                            $"{configuration.Topic.Trim('/')}/metadata",
+                        MetaDataQueueName = configuration.Topic,
                         MetaDataRetention = configuration.Retain switch
                         {
                             Retain.Keep => true,
@@ -1709,8 +1772,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         QueueName = configuration.Topic,
                         MessageTtlTimespan = configuration.Ttl == null ? null
                             : TimeSpan.FromSeconds(configuration.Ttl.Value),
-                        MetaDataQueueName = configuration.Topic == null ? null :
-                            $"{configuration.Topic.Trim('/')}/metadata",
+                        MetaDataQueueName = configuration.Topic,
                         MetaDataRetention = configuration.Retain switch
                         {
                             Retain.Keep => true,
