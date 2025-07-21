@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
     using Furly.Extensions.Messaging;
     using global::Avro;
     using System.Collections.Generic;
-    using System.Globalization;
     using System.Linq;
 
     /// <summary>
@@ -32,9 +31,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
         string IEventSchema.Schema => Schema.ToString();
 
         /// <inheritdoc/>
-        public string? Id => SchemaNormalization
-            .ParsingFingerprint64(Schema)
-            .ToString(CultureInfo.InvariantCulture);
+        public string Id { get; }
 
         /// <inheritdoc/>
         public abstract Schema Schema { get; }
@@ -43,6 +40,15 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
         /// The data set schema
         /// </summary>
         protected abstract BaseDataSetSchema<Schema> DataSetSchema { get; }
+
+        /// <summary>
+        /// Create based dataset message
+        /// </summary>
+        /// <param name="id"></param>
+        protected BaseDataSetMessage(string id)
+        {
+            Id = id;
+        }
 
         /// <inheritdoc/>
         public override string? ToString()
