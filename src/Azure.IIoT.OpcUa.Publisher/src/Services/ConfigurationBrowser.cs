@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
-    using Azure.Core;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Parser;
@@ -13,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Furly.Extensions.Serializers;
-    using Microsoft.Extensions.Azure;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Opc.Ua;
@@ -167,11 +165,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             async Task ProcessAsync(ObjectToExpand currentObject, ServiceCallContext context,
                 List<ServiceResponse<PublishedNodesEntryModel>> results)
             {
-                if (currentObject.ContainsMethods)
-                {
-                    await currentObject.ExpandArgumentsAsync(context,
-                        _request.Header.ToRequestHeader(TimeProvider)).ConfigureAwait(false);
-                }
+                await currentObject.CompleteAsync(_request.Header.ToRequestHeader(TimeProvider),
+                    context).ConfigureAwait(false);
 
                 if (!_request.CreateSingleWriter &&
                     (currentObject.ContainsVariables || currentObject.ContainsMethods) &&
@@ -250,11 +245,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             {
                                 NodeId = nodeId,
                                 AttributeId = Attributes.DisplayName
-                            },
-                            new ReadValueId
-                            {
-                                NodeId = nodeId,
-                                AttributeId = Attributes.EventNotifier
                             }
                         };
                         var response = await context.Session.Services.ReadAsync(
@@ -273,8 +263,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             readResults[1].Result.GetValueOrDefaultEx<QualifiedName>();
                         var displayName = errorInfo != null ? null :
                             readResults[2].Result.GetValueOrDefaultEx<LocalizedText>();
-                        var eventNotifier = errorInfo != null ? (byte)0 :
-                            readResults[3].Result.GetValueOrDefaultEx<byte>();
 
                         ExpandedNodeId? typeDefinitionId = null;
                         if (errorInfo == null)
@@ -302,12 +290,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             }
                         }
                         _expanded.Add(new NodeToExpand(node, nodeId, nodeClass,
-                            browseName, displayName, eventNotifier, typeDefinitionId, errorInfo));
+                            browseName, displayName, typeDefinitionId, errorInfo));
                     }
                     catch (Exception e)
                     {
                         _expanded.Add(new NodeToExpand(node, NodeId.Null, Opc.Ua.NodeClass.Unspecified,
-                            null, null, 0, null, e.ToServiceResultModel()));
+                            null, null, null, e.ToServiceResultModel()));
                     }
                 }
 
@@ -581,17 +569,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <param name="nodeClass"></param>
             /// <param name="browseName"></param>
             /// <param name="displayName"></param>
-            /// <param name="eventNotifier"></param>
             /// <param name="typeDefinitionId"></param>
             /// <param name="errorInfo"></param>
             public NodeToExpand(OpcNodeModel nodeFromConfiguration, NodeId? nodeId,
                 Opc.Ua.NodeClass nodeClass, QualifiedName? browseName, LocalizedText? displayName,
-                byte eventNotifier, ExpandedNodeId? typeDefinitionId, ServiceResultModel? errorInfo)
+                ExpandedNodeId? typeDefinitionId, ServiceResultModel? errorInfo)
             {
                 NodeFromConfiguration = nodeFromConfiguration;
                 NodeId = nodeId;
                 NodeClass = (uint)nodeClass;
-                EventNotifier = eventNotifier;
 
                 if (errorInfo != null)
                 {
@@ -741,7 +727,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             public bool ContainsMethods => _methods.Count > 0;
 
-            public bool ContainsEvents => _events.Count > 0;
+            public bool ContainsEvents => _eventTypesGenerated.Count > 0;
 
             /// <summary>
             /// Add variables
@@ -793,21 +779,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <summary>
-            /// Add events
-            /// </summary>
-            /// <param name="frames"></param>
-            /// <returns></returns>
-            public bool AddEvents(IEnumerable<BrowseFrame> frames)
-            {
-                var duplicates = false;
-                foreach (var frame in frames)
-                {
-                    duplicates |= !_events.Add(frame);
-                }
-                return duplicates;
-            }
-
-            /// <summary>
             /// Get node models
             /// </summary>
             /// <param name="template"></param>
@@ -842,37 +813,62 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 });
 
                 // Add methods if any
-                if (_methods.Count == 0)
+                if (_eventTypesGenerated.Count != 0)
                 {
-                    return nodeModels;
+                    nodeModels = nodeModels.Concat(_eventTypesGenerated
+                        .SelectMany(eventSource => eventSource.Value.Select(evt => template with
+                        {
+                            Id = _eventNotifier.AsString(context, NamespaceFormat.Expanded),
+                            AttributeId = NodeAttribute.EventNotifier,
+
+                            DataSetFieldId = CreateUniqueId(eventSource.Key, evt.BrowseName),
+                            DisplayName = evt.DisplayName.Text, // TODO: frame.BrowsePathFromObject,
+
+                            // EventFilter = new EventFilterModel(),
+                            // TODO - use browse paths instead:
+                            // Id = ObjectFromBrowse.NodeId.AsString(context, NamespaceFormat.Expanded)
+                            // BrowsePath = frame.BrowsePath.ToRelativePath(out var prefix).AsString(prefix),
+
+                            TypeDefinitionId = evt.TypeDefinition?.AsString(context,
+                                NamespaceFormat.ExpandedWithNamespace0)
+                        })));
                 }
-                return nodeModels.Concat(_methods.Select(methodFrame => template with
+
+                // Add methods if any
+                if (_methods.Count != 0)
                 {
-                    Id = methodFrame.NodeId.AsString(context, NamespaceFormat.Expanded),
-                    DataSetFieldId = CreateUniqueId(methodFrame),
-                    DisplayName = methodFrame.DisplayName, // TODO: frame.BrowsePathFromObject,
-                    // TODO - use browse paths instead:
-                    // Id = ObjectFromBrowse.NodeId.AsString(context, NamespaceFormat.Expanded)
-                    // BrowsePath = frame.BrowsePath.ToRelativePath(out var prefix).AsString(prefix),
-
-                    MethodMetadata = new MethodMetadataModel
+                    nodeModels = nodeModels.Concat(_methods.Select(methodFrame => template with
                     {
-                        InputArguments = _input.TryGetValue(methodFrame.NodeId, out var input)
-                            ? input.Arguments : [],
-                        OutputArguments = _output.TryGetValue(methodFrame.NodeId, out var output)
-                            ? output.Arguments : [],
-                        ObjectId = methodFrame.Parent?.NodeId?.AsString(context, NamespaceFormat.Expanded)
-                    },
-                    TypeDefinitionId = methodFrame.TypeDefinitionId?.AsString(context,
-                        NamespaceFormat.ExpandedWithNamespace0)
-                }));
+                        Id = methodFrame.NodeId.AsString(context, NamespaceFormat.Expanded),
+                        DataSetFieldId = CreateUniqueId(methodFrame),
+                        DisplayName = methodFrame.DisplayName, // TODO: frame.BrowsePathFromObject,
+                        // TODO - use browse paths instead:
+                        // Id = ObjectFromBrowse.NodeId.AsString(context, NamespaceFormat.Expanded)
+                        // BrowsePath = frame.BrowsePath.ToRelativePath(out var prefix).AsString(prefix),
 
-                string CreateUniqueId(BrowseFrame frame)
+                        MethodMetadata = new MethodMetadataModel
+                        {
+                            InputArguments = _input.TryGetValue(methodFrame.NodeId, out var input)
+                                ? input.Arguments : [],
+                            OutputArguments = _output.TryGetValue(methodFrame.NodeId, out var output)
+                                ? output.Arguments : [],
+                            ObjectId = methodFrame.Parent?.NodeId?.AsString(context, NamespaceFormat.Expanded)
+                        },
+                        TypeDefinitionId = methodFrame.TypeDefinitionId?.AsString(context,
+                            NamespaceFormat.ExpandedWithNamespace0)
+                    }));
+                }
+
+                string CreateUniqueId(BrowseFrame frame, QualifiedName? extra = null)
                 {
                     var id = template.DataSetFieldId ?? string.Empty;
                     id = createLongIds ?
                         $"{id}{ObjectFromBrowse.BrowsePath}{frame.BrowsePath}" :
                         $"{id}{frame.BrowsePath}";
+                    if (extra != null)
+                    {
+                        id = $"{id}/{extra.Name}";
+                    }
                     var uniqueId = id;
                     for (var index = 1; !ids.Add(uniqueId); index++)
                     {
@@ -880,6 +876,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
                     return uniqueId;
                 }
+                return nodeModels;
             }
 
             /// <summary>
@@ -923,35 +920,111 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <summary>
-            /// Expand the input and output arguments into metadata
+            /// Complete object
             /// </summary>
+            /// <param name="requestHeader"></param>
             /// <param name="context"></param>
-            /// <param name="header"></param>
             /// <returns></returns>
-            /// <exception cref="NotImplementedException"></exception>
-            internal async Task ExpandArgumentsAsync(ServiceCallContext context,
-                RequestHeader header)
+            internal async Task CompleteAsync(RequestHeader requestHeader, ServiceCallContext context)
             {
-                foreach (var input in _input.Values)
-                {
-                    await input.ExpandAsync(context, header).ConfigureAwait(false);
-                    if (input.ErrorInfo != null)
+                //
+                // Find events anything in this set generates, then find the event notifier for them
+                // The SourceNode of GeneratesEvent and AlwaysGeneratesEvent is limited to ObjectType,
+                // VariableType AND Method InstanceDeclaration Nodes on ObjectTypes (not objects!).
+                //
+                var browseDescriptions = _variables
+                    .Concat(_methods)
+                    .Append(ObjectFromBrowse)
+                    .Where(t => !NodeId.IsNull(t.TypeDefinitionId))
+                    .Select(t => new BrowseDescription
                     {
-                        // If input argument cannot be resolved, we do not
-                        // return it as part of the metadata.
-                        _input.Remove(input.BrowseFrame.NodeId);
-                        OriginalNode.AddErrorInfo(input.ErrorInfo);
+                        Handle = t,
+                        NodeId = ExpandedNodeId.ToNodeId(
+                            t.TypeDefinitionId, context.Session.MessageContext.NamespaceUris)!,
+                        ReferenceTypeId = ReferenceTypeIds.GeneratesEvent,
+                        IncludeSubtypes = true,
+                        NodeClassMask = (uint)Opc.Ua.NodeClass.ObjectType,
+                        ResultMask = (uint)BrowseResultMask.All
+                    })
+                    .ToArray();
+
+                _eventTypesGenerated.Clear();
+                if (browseDescriptions.Length != 0)
+                {
+                    await foreach (var result in context.Session.BrowseAsync(requestHeader, null,
+                        browseDescriptions, context.Ct).ConfigureAwait(false))
+                    {
+                        if (result.ErrorInfo != null)
+                        {
+                            OriginalNode.AddErrorInfo(result.ErrorInfo);
+                            continue;
+                        }
+                        Debug.Assert(result.References != null);
+                        Debug.Assert(result.Description != null);
+                        if (result.References.Count == 0)
+                        {
+                            // No events generated
+                            continue;
+                        }
+                        var originalFrame = (BrowseFrame)result.Description.Handle;
+                        if (!_eventTypesGenerated.TryGetValue(originalFrame, out var eventList))
+                        {
+                            eventList = [];
+                        }
+                        eventList.AddRange(result.References);
                     }
                 }
-                foreach (var output in _output.Values)
+                if (_eventTypesGenerated.Count > 0)
                 {
-                    await output.ExpandAsync(context, header).ConfigureAwait(false);
-                    if (output.ErrorInfo != null)
+                    // Find the event notifier. This should use HasEventSource if possible, but we just
+                    // try and find it in the objects to the root here
+                    var readValueIds = ObjectFromBrowse.AllFramesToRoot
+                        .Where(f => f.NodeClass == Opc.Ua.NodeClass.Object && !NodeId.IsNull(f.NodeId))
+                        .Select(f => new ReadValueId
+                        {
+                            NodeId = f.NodeId,
+                            AttributeId = Attributes.EventNotifier
+                        })
+                        .ToArray();
+                    var response = await context.Session.Services.ReadAsync(requestHeader, 0,
+                        Opc.Ua.TimestampsToReturn.Neither, readValueIds, context.Ct).ConfigureAwait(false);
+                    var readResults = response.Validate(response.Results, s => s.StatusCode,
+                        response.DiagnosticInfos, readValueIds);
+                    if (readResults.ErrorInfo != null)
                     {
-                        // If output argument cannot be resolved, we do not
-                        // return it as part of the metadata.
-                        _output.Remove(output.BrowseFrame.NodeId);
-                        OriginalNode.AddErrorInfo(output.ErrorInfo);
+                        OriginalNode.AddErrorInfo(readResults.ErrorInfo);
+                    }
+                    else
+                    {
+                        _eventNotifier = readResults.FirstOrDefault(d => d.ErrorInfo != null &&
+                            (d.Result.GetValue<byte>(0) & EventNotifiers.SubscribeToEvents)
+                                == EventNotifiers.SubscribeToEvents)?.Request.NodeId ?? ObjectIds.Server;
+                    }
+                }
+
+                if (ContainsMethods)
+                {
+                    foreach (var input in _input.Values)
+                    {
+                        await input.ExpandAsync(context, requestHeader).ConfigureAwait(false);
+                        if (input.ErrorInfo != null)
+                        {
+                            // If input argument cannot be resolved, we do not
+                            // return it as part of the metadata.
+                            _input.Remove(input.BrowseFrame.NodeId);
+                            OriginalNode.AddErrorInfo(input.ErrorInfo);
+                        }
+                    }
+                    foreach (var output in _output.Values)
+                    {
+                        await output.ExpandAsync(context, requestHeader).ConfigureAwait(false);
+                        if (output.ErrorInfo != null)
+                        {
+                            // If output argument cannot be resolved, we do not
+                            // return it as part of the metadata.
+                            _output.Remove(output.BrowseFrame.NodeId);
+                            OriginalNode.AddErrorInfo(output.ErrorInfo);
+                        }
                     }
                 }
             }
@@ -961,7 +1034,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private readonly Dictionary<NodeId, MethodArgument> _input = [];
             private readonly Dictionary<NodeId, MethodArgument> _output = [];
             private readonly HashSet<BrowseFrame> _variables = [];
-            private readonly HashSet<BrowseFrame> _events = [];
+            private readonly Dictionary<BrowseFrame, List<ReferenceDescription>> _eventTypesGenerated = [];
+            private NodeId _eventNotifier = ObjectIds.Server;
         }
 
         /// <summary>
@@ -1023,7 +1097,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             private static readonly ServiceResultModel kDefaultError =
-                ((ServiceResult) StatusCodes.BadInternalError).ToServiceResultModel();
+                ((ServiceResult)StatusCodes.BadInternalError).ToServiceResultModel();
         }
 
         private int _nodeIndex = -1;

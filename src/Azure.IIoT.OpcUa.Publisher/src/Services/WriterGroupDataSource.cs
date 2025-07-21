@@ -404,9 +404,7 @@ $"md_{DateTimeOffset.UtcNow.ToBinary()}_{writerGroup.Id}_{_metadataChanges}.json
         /// <param name="Topic"></param>
         /// <param name="Version"></param>
         /// <param name="Schema"></param>
-        private sealed record class SchemaGroup(string Topic, ulong Version, IEventSchema Schema)
-        {
-        }
+        private sealed record class SchemaGroup(string Topic, ulong Version, IEventSchema Schema);
 
         /// <summary>
         /// Runtime duration

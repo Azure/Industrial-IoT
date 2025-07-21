@@ -10,10 +10,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Microsoft.Azure.Amqp.Framing;
     using Microsoft.Extensions.Options;
     using Opc.Ua;
-    using Opc.Ua.Export;
     using Opc.Ua.Extensions;
     using System;
     using System.Buffers;

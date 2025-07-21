@@ -237,7 +237,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                     certificateType, password).ConfigureAwait(false);
             }
 
-            private bool MatchCertificate(X509Certificate2 certificate, string thumbprint,
+            private static bool MatchCertificate(X509Certificate2 certificate, string thumbprint,
                 string subjectName, string applicationUri, NodeId certificateType)
             {
                 if (certificateType == null ||

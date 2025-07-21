@@ -36,7 +36,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
         string IEventSchema.Schema => Schema.ToString();
 
         /// <inheritdoc/>
-        public string? Id { get; }
+        public string Id { get; }
 
         /// <inheritdoc/>
         public override Schema Schema { get; }

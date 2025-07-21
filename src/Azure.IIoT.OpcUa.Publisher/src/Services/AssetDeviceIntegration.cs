@@ -159,7 +159,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 return;
             }
 
-            var pos = schema.Id.IndexOf('|');
+            var pos = schema.Id.IndexOf('|', StringComparison.Ordinal);
             if (pos < 3)
             {
                 _logger.MalformedSchemaId(schema.Id);
@@ -610,7 +610,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     if (found.ErrorInfo != null)
                     {
                         // Add to cumulative log
-                        errors.OnError(resource, kDiscoveryError, found.ErrorInfo.ToString());
+                        errors.OnError(resource, kDiscoveryError, AsString(found.ErrorInfo));
                         continue;
                     }
                     if (found.Result?.OpcNodes == null ||
@@ -846,7 +846,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     dDevice.Attributes.AddOrUpdate(nameof(desc.Server.DiscoveryProfileUri),
                         desc.Server.DiscoveryProfileUri);
                 }
-                if (desc.Server.DiscoveryUrls != null && desc.Server.DiscoveryUrls.Count > 0)
+                if (desc.Server.DiscoveryUrls?.Count > 0)
                 {
                     dDevice.Attributes.AddOrUpdate(nameof(desc.Server.DiscoveryUrls),
                         string.Join(',', desc.Server.DiscoveryUrls));
@@ -1567,20 +1567,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var builder = new StringBuilder("{RootTopic}");
             if (!string.IsNullOrEmpty(deviceName))
             {
-                builder.Append('/');
-                builder.Append(Furly.Extensions.Messaging.TopicFilter.Escape(deviceName));
+                builder = builder.Append('/').Append(Furly.Extensions.Messaging.TopicFilter.Escape(deviceName));
             }
             if (!string.IsNullOrEmpty(assetName))
             {
-                builder.Append('/');
-                builder.Append(Furly.Extensions.Messaging.TopicFilter.Escape(assetName));
+                builder = builder.Append('/').Append(Furly.Extensions.Messaging.TopicFilter.Escape(assetName));
             }
             if (!string.IsNullOrEmpty(dataSetName))
             {
                 foreach (var part in dataSetName.Split('.', StringSplitOptions.RemoveEmptyEntries))
                 {
-                    builder.Append('/');
-                    builder.Append(Furly.Extensions.Messaging.TopicFilter.Escape(part));
+                    builder = builder.Append('/').Append(Furly.Extensions.Messaging.TopicFilter.Escape(part));
                 }
             }
             return builder.ToString();
@@ -1885,7 +1882,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             if (testConnection.ErrorInfo != null)
             {
                 errors.OnError(deviceEndpointResource, kDiscoveryError,
-                    "Failed to connect to endpoint: " + testConnection.ErrorInfo.ToString());
+                    "Failed to connect to endpoint: " + AsString(testConnection.ErrorInfo));
                 _logger.FailedToConnectToDeviceEndpoint(deviceEndpointResource.DeviceName,
                     deviceEndpointResource.EndpointName, testConnection.ErrorInfo);
                 return false;
@@ -1960,6 +1957,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 sanitized = sanitized.Substring(0, maxChars);
             }
             return sanitized;
+        }
+
+        /// <summary>
+        /// Create string from error
+        /// </summary>
+        /// <param name="errorInfo"></param>
+        /// <returns></returns>
+        private static string AsString(ServiceResultModel errorInfo)
+        {
+            var str = new StringBuilder();
+            Append(str, errorInfo);
+            return str.ToString();
+
+            static StringBuilder Append(StringBuilder builder, ServiceResultModel error)
+            {
+                builder = builder
+                    .Append(error.SymbolicId ??
+                        error.StatusCode.ToString(CultureInfo.InvariantCulture))
+                    .Append(':')
+                    .Append(error.ErrorMessage);
+                if (error.Inner != null)
+                {
+                    builder = builder.AppendLine("=>");
+                    builder = Append(builder, error.Inner);
+                }
+                return builder;
+            }
         }
 
         [GeneratedRegex("[^a-z0-9-]")]

@@ -29,7 +29,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
         public ulong Version { get; }
 
         /// <inheritdoc/>
-        public string? Id { get; }
+        public string Id { get; }
 
         /// <inheritdoc/>
         string IEventSchema.Schema => ToString()!;

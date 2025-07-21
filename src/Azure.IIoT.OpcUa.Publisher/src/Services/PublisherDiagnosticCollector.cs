@@ -351,7 +351,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 ["dotnet.process.memory.working_set"] =
                     (d, i) => d.MemoryUsedInBytes = (ulong)(long)i
 
-                // ... Add here more items if needed
+                    // ... Add here more items if needed
             };
     }
 

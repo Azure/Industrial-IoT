@@ -23,7 +23,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using YamlDotNet.Core.Tokens;
 
     public sealed partial class WriterGroupDataSource
     {
@@ -868,6 +867,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// Get metadata for the writer and block until it is available
             /// </summary>
+            /// <param name="timeout"></param>
             /// <returns></returns>
             internal PublishedDataSetMessageSchemaModel? GetMetadata(TimeSpan timeout)
             {

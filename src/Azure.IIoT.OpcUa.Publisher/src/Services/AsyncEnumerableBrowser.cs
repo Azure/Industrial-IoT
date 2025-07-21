@@ -10,12 +10,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Microsoft.Extensions.Options;
     using Opc.Ua;
-    using Opc.Ua.Export;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
-    using System.Reflection.Metadata;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -437,6 +435,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         path = $"{parent.BrowseName}/{path}";
                     }
                     return "/" + path;
+                }
+            }
+
+            /// <summary>
+            /// All browse frames to the root
+            /// </summary>
+            public IEnumerable<BrowseFrame> AllFramesToRoot
+            {
+                get
+                {
+                    for (var frame = this; frame != null; frame = frame.Parent)
+                    {
+                        yield return frame;
+                    }
                 }
             }
         }
