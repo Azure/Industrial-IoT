@@ -46,7 +46,7 @@
 #>
 
 param(
-    [string] $DeploymentName = "simulation",
+    [string] [Parameter(Mandatory = $true)] $DeploymentName,
     [string] [ValidateSet(
         "opc-plc",
         "opc-test",
@@ -55,17 +55,18 @@ param(
     [int] $Count = 1,
     [string] [Parameter(Mandatory = $true)] $InstanceName,
     [string] [Parameter(Mandatory = $true)] $ResourceGroup,
-    [string] $AdrNamespaceName,
+    [string] [Parameter(Mandatory = $true)] $AdrNamespaceName,
     [string] $SubscriptionId,
     [string] $TenantId,
     [string] $Location = "westus",
-    [string] $Namespace = "azure-iot-operations",
+    [string] $Namespace,
     [string] [ValidateSet(
         "kind",
         "minikube",
         "k3d",
         "microk8s"
-    )] $ClusterType,
+    )] $ClusterType ="microk8s",
+    [switch] $AddServerType,
     [switch] $Force,
     [switch] $SkipLogin
 )
@@ -102,6 +103,57 @@ if (-not $script:SkipLogin.IsPresent) {
     if ([string]::IsNullOrWhiteSpace($TenantId)) {
         $TenantId = $session[0].tenantId
     }
+}
+
+#
+# Check adr namespace and azure iot instances exists
+#
+$adrNsResource = "/subscriptions/$($SubscriptionId)"
+$adrNsResource = "$($adrNsResource)/resourceGroups/$($ResourceGroup)"
+$adrNsResource = "$($adrNsResource)/providers/Microsoft.DeviceRegistry"
+$adrNsResource = "$($adrNsResource)/namespaces/$($AdrNamespaceName)"
+$errOut = $($ns = & { az rest --method get `
+    --url "$($adrNsResource)?api-version=2025-07-01-preview" `
+    --headers "Content-Type=application/json" } | ConvertFrom-Json) 2>&1
+if (!$ns -or !$ns.id) {
+    Write-Host "ADR namespace $($adrNsResource) not found - $($errOut)." `
+        -ForegroundColor Red
+    exit -1
+}
+$errOut = $($iotOps = & { az iot ops show `
+    --resource-group $script:ResourceGroup `
+    --name $script:InstanceName `
+    --subscription $SubscriptionId `
+    --only-show-errors --output json } | ConvertFrom-Json) 2>&1
+if (!$iotOps) {
+    Write-Host "Error: Failed to get IoT Operations instance - $($errOut)." `
+        -ForegroundColor Red
+    exit -1
+}
+
+#
+# Get list of namespaces and let user select one or validate the one provided
+#
+$namespaces = kubectl get namespaces --no-headers | ForEach-Object {
+    $_.Split()[0]
+}
+if (-not $namespaces) {
+    Write-Host "No namespaces found." -ForegroundColor Red
+    exit -1
+}
+if (-not $script:Namespace) {
+    $script:Namespace = $namespaces | Out-GridView -Title "Select a namespace" -PassThru
+    if (-not $script:Namespace) {
+        Write-Host "No namespace selected." -ForegroundColor Yellow
+        exit 0
+    }
+}
+else {
+    if (-not $namespaces.Contains($script:Namespace)) {
+        Write-Host "Namespace '$script:Namespace' not found." -ForegroundColor Red
+        exit -1
+    }
+    Write-Host "Using namespace '$script:Namespace'." -ForegroundColor Green
 }
 
 $displayName = "$($script:Count) $($script:SimulationName) simulation servers"
@@ -168,35 +220,12 @@ else {
 $tempFile = New-TemporaryFile
 
 #
-# Check adr namespace and azure iot instances exists
-#
-$adrNsResource = "/subscriptions/$($SubscriptionId)"
-$adrNsResource = "$($adrNsResource)/resourceGroups/$($ResourceGroup)"
-$adrNsResource = "$($adrNsResource)/providers/Microsoft.DeviceRegistry"
-$adrNsResource = "$($adrNsResource)/namespaces/$($AdrNamespaceName)"
-$errOut = $($ns = & { az rest --method get `
-    --url "$($adrNsResource)?api-version=2025-07-01-preview" `
-    --headers "Content-Type=application/json" } | ConvertFrom-Json) 2>&1
-if (!$ns -or !$ns.id) {
-    Write-Host "ADR namespace $($adrNsResource) not found - $($errOut)." `
-        -ForegroundColor Red
-    exit -1
-}
-$errOut = $($iotOps = & { az iot ops show `
-    --resource-group $script:ResourceGroup `
-    --name $script:InstanceName `
-    --subscription $SubscriptionId `
-    --only-show-errors --output json } | ConvertFrom-Json) 2>&1
-if (!$iotOps) {
-    Write-Host "Error: Failed to get IoT Operations instance - $($errOut)." `
-        -ForegroundColor Red
-    exit -1
-}
-
-#
 # Deployment simulation configuration
 #
-$assetTypes = @("i=2004")
+$assetTypes = @()
+if ($script:AddServerType) {
+    $assetTypes += "nsu=http://opcfoundation.org/UA/;i=2004"
+}
 switch ($script:SimulationName) {
     "opc-plc" {
         # OPC Plc

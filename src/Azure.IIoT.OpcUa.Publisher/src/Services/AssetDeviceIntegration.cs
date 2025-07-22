@@ -26,6 +26,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
+    using System.IO;
+    using System.IO.Compression;
     using System.Linq;
     using System.Text;
     using System.Text.Json;
@@ -714,13 +716,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     AssetTypeRefs = [assetTypeRef],
                     Datasets = distinctDatasets.ConvertAll(d => new DiscoveredAssetDataset
                     {
-                        Name = d.DataSetName ?? "Default", // Should never be null here
+                        Name = GetDefault(d.DataSetName),
                         TypeRef = d.DataSetType,
                         DataSource = d.DataSetRootNodeId,
                         DataPoints = d.OpcNodes!.Select(n => new DiscoveredAssetDatasetDataPoint
                         {
                             Name = n.DisplayName, // Name of property in message/schema
                             DataSource = n.Id!,
+                            DataPointConfiguration = null,
                             TypeRef = n.TypeDefinitionId
                         }).ToList(),
                         Destinations =
@@ -742,7 +745,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }),
                     Events = distinctEvents.ConvertAll(d => new DetectedAssetEventSchemaElement
                     {
-                        Name = d.OpcNodes![0].DataSetFieldId ?? "Default", // Should never be null here
+                        Name = GetDefault(d.OpcNodes![0].DataSetFieldId),
                         TypeRef = d.OpcNodes![0].TypeDefinitionId,
                         EventNotifier = d.OpcNodes![0].Id!,
                         Destinations =
@@ -764,16 +767,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }),
                     ManagementGroups = distinctManagementGroups.ConvertAll(d => new DiscoveredAssetManagementGroup
                     {
-                        Name = d.DataSetName ?? "Default", // Should never be null here
+                        Name = GetDefault(d.DataSetName),
                         TypeRef = d.DataSetType,
-                        Actions = d.OpcNodes!.Select(n => new DiscoveredAssetManagementGroupAction
+                        DefaultTimeOutInSeconds = null,
+                        DefaultTopic = null,
+                        Actions = d.OpcNodes!.Select(n =>
                         {
-                            Name = n.DataSetFieldId ?? "Default", // Should never be null
-                            ActionType = AssetManagementGroupActionType.Call,
-                            TargetUri = n.Id!,
-                            Topic = CreateTopic(resource.DeviceName, d.DataSetWriterGroup, d.DataSetName),
-                            TypeRef = n.TypeDefinitionId,
-                            // ActionConfiguration = JsonSerializer.SerializeToDocument(n.MethodMetadata) // TOO Long
+                            return new DiscoveredAssetManagementGroupAction
+                            {
+                                Name = GetDefault(n.DisplayName), // Name of command in schema
+                                ActionType = AssetManagementGroupActionType.Call,
+                                TargetUri = n.Id!,
+                                TimeOutInSeconds = null,
+                                Topic = CreateTopic(resource.DeviceName, d.DataSetWriterGroup, d.DataSetName),
+                                TypeRef = n.TypeDefinitionId,
+                                ActionConfiguration = ConvertActionConfiguration(n.MethodMetadata!)
+                            };
                         }).ToList(),
                     }),
                     Streams = null,
@@ -789,6 +798,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 await _client.ReportDiscoveredAssetAsync(resource.DeviceName, resource.EndpointName,
                     uniqueAssetName, dAsset, cancellationToken: ct).ConfigureAwait(false);
             }
+            static string GetDefault(string? value) => string.IsNullOrWhiteSpace(value) ? "Default" : value;
         }
 
         /// <summary>
@@ -1168,6 +1178,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
                 }
 
+                if (asset.Asset.ManagementGroups != null)
+                {
+                    var managementGroupTemplate = Deserialize(asset.Asset.DefaultManagementGroupsConfiguration,
+                        () => new PublishedNodesEntryModel { EndpointUrl = string.Empty },
+                        errors, asset);
+                    if (managementGroupTemplate != null)
+                    {
+                        managementGroupTemplate = WithEndpoint(managementGroupTemplate, assetEndpoint);
+                        foreach (var managementGroup in asset.Asset.ManagementGroups)
+                        {
+                            var managementGroupResource = new ManagementGroupResource(asset.AssetName, asset.Asset,
+                                managementGroup);
+                            await AddEntryForManagementGroupAsync(managementGroupTemplate, managementGroupResource,
+                                entries, errors, ct).ConfigureAwait(false);
+                        }
+                    }
+                }
+
                 if (asset.Asset.Streams != null)
                 {
                     foreach (var stream in asset.Asset.Streams)
@@ -1176,17 +1204,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             asset.Asset, stream);
                         errors.OnError(streamResource, kNotSupportedErrorCode,
                             "Streams not supported yet");
-                    }
-                }
-
-                if (asset.Asset.ManagementGroups != null)
-                {
-                    foreach (var managementGroup in asset.Asset.ManagementGroups)
-                    {
-                        var managementGroupResource = new ManagementGroupResource(asset.AssetName,
-                            asset.Asset, managementGroup);
-                        errors.OnError(managementGroupResource, kNotSupportedErrorCode,
-                            "Management groups not supported yet");
                     }
                 }
             }
@@ -1343,8 +1360,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         Id = datapoint.DataSource,
                         DisplayName = datapoint.Name,
-                        FetchDisplayName = false,
                         DataSetFieldId = datapoint.Name,
+                        FetchDisplayName = false,
                         TypeDefinitionId = datapoint.TypeRef
                     });
                 }
@@ -1449,6 +1466,99 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 DataSetType = resource.Event.TypeRef
             });
             return ValueTask.CompletedTask;
+        }
+
+        /// <summary>
+        /// Add an entry for the event. Will not add one if validation of content fails.
+        /// </summary>
+        /// <param name="template"></param>
+        /// <param name="resource"></param>
+        /// <param name="entries"></param>
+        /// <param name="errors"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        private ValueTask AddEntryForManagementGroupAsync(PublishedNodesEntryModel template,
+            ManagementGroupResource resource, List<PublishedNodesEntryModel> entries,
+            ValidationErrors errors, CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+
+            // Map event configuration on top of entry
+            var managementGroupTemplate = Deserialize(resource.ManagementGroup.ManagementGroupConfiguration,
+                () => new ManagementGroupModel { EndpointUrl = template.EndpointUrl },
+                errors, resource);
+            if (managementGroupTemplate == null)
+            {
+                return ValueTask.CompletedTask;
+            }
+
+            if (resource.ManagementGroup.Actions == null ||
+                resource.ManagementGroup.Actions.Count == 0)
+            {
+                return ValueTask.CompletedTask;
+            }
+
+            // map actions to nodes
+            foreach (var action in resource.ManagementGroup.Actions
+                .GroupBy(a => a.Topic ?? resource.ManagementGroup.DefaultTopic))
+            {
+                var nodes = new List<OpcNodeModel>();
+                foreach (var a in action)
+                {
+                    nodes.Add(new OpcNodeModel
+                    {
+                        Id = a.TargetUri,
+                        DisplayName = a.Name,
+                        DataSetFieldId = a.Name,
+                        FetchDisplayName = false,
+                        MethodMetadata = ConvertActionConfiguration(a.ActionConfiguration)
+                    });
+                }
+                var entry = CreateEntryForEntityOfAsset(template, managementGroupTemplate, nodes);
+                entries.Add(entry with
+                {
+                    // Dataset maps to DataSetWriter
+                    DataSetWriterId = resource.ManagementGroup.Name,
+                    DataSetName = resource.ManagementGroup.Name,
+                    DataSetType = resource.ManagementGroup.TypeRef,
+                    QueueName = action.Key
+                });
+            }
+            return ValueTask.CompletedTask;
+        }
+
+        /// <summary>
+        /// Create entry for a management group in the asset
+        /// </summary>
+        /// <param name="endpointTemplate"></param>
+        /// <param name="entityTemplate"></param>
+        /// <param name="nodes"></param>
+        /// <returns></returns>
+        private static PublishedNodesEntryModel CreateEntryForEntityOfAsset(
+            PublishedNodesEntryModel endpointTemplate, ManagementGroupModel entityTemplate,
+            List<OpcNodeModel> nodes)
+        {
+            return endpointTemplate with
+            {
+                //
+                // Set defaults for iot operations, there will never be any different configuration
+                // allowed in the resource of AIO
+                //
+                BatchSize = 0,
+                BatchTriggerInterval = 0,
+                BatchTriggerIntervalTimespan = null,
+                MessagingMode = MessagingMode.SingleDataSet, // TODO: Validate this is the correct format
+                DataSetFetchDisplayNames = false,
+                MessageEncoding = entityTemplate.MessageEncoding == MessageEncoding.Avro
+                    ? MessageEncoding.Avro : MessageEncoding.Json,
+
+                OpcNodes = nodes,
+
+                DataSetClassId =
+                    entityTemplate.DataSetClassId,
+                Priority =
+                    entityTemplate.Priority,
+            };
         }
 
         /// <summary>
@@ -1987,6 +2097,94 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             endpoint = endpoints?.Inbound?.FirstOrDefault(
                 ep => string.Equals(ep.Key, endpointName, StringComparison.OrdinalIgnoreCase)).Value;
             return endpoint != null;
+        }
+
+        /// <summary>
+        /// Compress method metadata
+        /// </summary>
+        /// <param name="methodMetadata"></param>
+        /// <param name="compressionLevel"></param>
+        /// <returns></returns>
+        internal JsonDocument? ConvertActionConfiguration(MethodMetadataModel methodMetadata,
+            int compressionLevel = 0)
+        {
+            byte[] compressed;
+            using (var input = new MemoryStream(
+                _serializer.SerializeToMemory(methodMetadata).ToArray()))
+            using (var result = new MemoryStream())
+            {
+                using (var gs = new GZipStream(result, CompressionMode.Compress))
+                {
+                    input.CopyTo(gs);
+                }
+                compressed = result.ToArray();
+            }
+            var json = JsonSerializer.Serialize(new { m = compressed });
+            if (json.Length > 480) // 512 is max size but we are leaving some room here
+            {
+                if (compressionLevel > 2)
+                {
+                    return null;
+                }
+                // We send the object id but compress or fully remove the argument information
+                return ConvertActionConfiguration(methodMetadata with
+                {
+                    InputArguments = compressionLevel > 1 ? null : methodMetadata.InputArguments?
+                        .Select(a => new MethodMetadataArgumentModel
+                        {
+                            Name = a.Name,
+                            Type = new NodeModel { NodeId = a.Type.NodeId }
+                        })
+                        .ToList(),
+                    OutputArguments = compressionLevel > 1 ? null : methodMetadata.OutputArguments?
+                        .Select(a => new MethodMetadataArgumentModel
+                        {
+                            Name = a.Name,
+                            Type = new NodeModel { NodeId = a.Type.NodeId }
+                        })
+                        .ToList()
+                }, ++compressionLevel);
+            }
+            return JsonDocument.Parse(json);
+        }
+
+        /// <summary>
+        /// Decompress method metadata
+        /// </summary>
+        /// <param name="actionConfigurationJson"></param>
+        /// <returns></returns>
+        internal MethodMetadataModel ConvertActionConfiguration(string? actionConfigurationJson)
+        {
+            if (actionConfigurationJson == null)
+            {
+                return new MethodMetadataModel();
+            }
+            try
+            {
+                var actionConfiguration = JsonDocument.Parse(actionConfigurationJson);
+                if (actionConfiguration == null ||
+                    !actionConfiguration.RootElement.TryGetProperty("m", out var compressedElement) ||
+                    !compressedElement.TryGetBytesFromBase64(out var compressed))
+                {
+                    return new MethodMetadataModel();
+                }
+                byte[] decompressed;
+                using (var input = new MemoryStream(compressed))
+                using (var output = new MemoryStream())
+                {
+                    using (var gs = new GZipStream(input, CompressionMode.Decompress))
+                    {
+                        gs.CopyTo(output);
+                    }
+                    decompressed = output.ToArray();
+                }
+                return _serializer.Deserialize<MethodMetadataModel>(decompressed)
+                    ?? new MethodMetadataModel();
+            }
+            catch
+            {
+                return new MethodMetadataModel();
+            }
         }
 
         private static bool TryGetInboundEndpoint(DeviceStatusEndpoint? endpoints,

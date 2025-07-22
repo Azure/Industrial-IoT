@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
+    using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -676,7 +677,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             {
                 return new PublishedDataItemsModel
                 {
-                    PublishedData = opcNodes.Where(node => node.EventFilter == null && node.ModelChangeHandling == null)
+                    PublishedData = opcNodes
+                    .Where(node => node.MethodMetadata == null && node.EventFilter == null && node.ModelChangeHandling == null)
                     .Select(node => new PublishedDataSetVariableModel
                     {
                         Id = node.DataSetFieldId,
@@ -729,7 +731,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             {
                 return new PublishedEventItemsModel
                 {
-                    PublishedData = opcNodes.Where(node => node.EventFilter != null || node.ModelChangeHandling != null)
+                    PublishedData = opcNodes
+                    .Where(node => node.MethodMetadata == null && (node.EventFilter != null || node.ModelChangeHandling != null))
                     .Select(node => new PublishedDataSetEventModel
                     {
                         Id = node.DataSetFieldId,

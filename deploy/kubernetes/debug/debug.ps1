@@ -22,7 +22,12 @@ param(
     [string] $PodName,
     [string] $ContainerName,
     [string] $Namespace,
-    [string] $ClusterType = "microk8s",
+    [string] [ValidateSet(
+        "kind",
+        "minikube",
+        "k3d",
+        "microk8s"
+    )] $ClusterType ="microk8s",
     [string] $Image,
     [switch] $Fork
 )
@@ -50,19 +55,19 @@ if (-not $namespaces) {
     Write-Host "No namespaces found." -ForegroundColor Red
     exit -1
 }
-if (-not $Namespace) {
-    $Namespace = $namespaces | Out-GridView -Title "Select a namespace" -PassThru
-    if (-not $Namespace) {
+if (-not $script:Namespace) {
+    $script:Namespace = $namespaces | Out-GridView -Title "Select a namespace" -PassThru
+    if (-not $script:Namespace) {
         Write-Host "No namespace selected." -ForegroundColor Yellow
         exit 0
     }
 }
 else {
-    if (-not $namespaces.Contains($Namespace)) {
-        Write-Host "Namespace '$Namespace' not found." -ForegroundColor Red
+    if (-not $namespaces.Contains($script:Namespace)) {
+        Write-Host "Namespace '$script:Namespace' not found." -ForegroundColor Red
         exit -1
     }
-    Write-Host "Using namespace '$Namespace'." -ForegroundColor Green
+    Write-Host "Using namespace '$script:Namespace'." -ForegroundColor Green
 }
 
 # Build and make .net debugger image available in cluster

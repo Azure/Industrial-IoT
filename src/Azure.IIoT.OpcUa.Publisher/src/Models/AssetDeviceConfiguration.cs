@@ -86,8 +86,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     }
 
     /// <summary>
-    /// Event reource additional configuration
-    /// model.
+    /// Management group reource additional configuration model.
+    /// </summary>
+    [DataContract]
+    public sealed record class ManagementGroupModel : PublishedNodesEntryModel
+    {
+    }
+
+    /// <summary>
+    /// Event reource additional configuration model.
     /// </summary>
     [DataContract]
     public sealed record class EventModel : PublishedNodesEntryModel

@@ -259,17 +259,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <inheritdoc/>
         public HttpClient CreateClient(string name)
         {
-            var client = CreateClient(new WebApplicationFactoryClientOptions
+            return CreateClient(new WebApplicationFactoryClientOptions
             {
                 AllowAutoRedirect = false
             });
+        }
 
-            // Api key
+        /// <inheritdoc/>
+        protected override void ConfigureClient(HttpClient client)
+        {
             var apiKey = _connection.Twin.State[Constants.TwinPropertyApiKeyKey].ConvertTo<string>();
+            base.ConfigureClient(client);
             client.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("ApiKey", apiKey);
-            client.Timeout = TimeSpan.FromMinutes(10);
-            return client;
+            client.Timeout = TimeSpan.FromMinutes(30);
         }
 
         /// <summary>

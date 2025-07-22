@@ -19,7 +19,7 @@ Secrets such as `EdgeHubConnectionString`, other connection strings, or the `Api
 ██║   ██║██╔═══╝ ██║         ██╔═══╝ ██║   ██║██╔══██╗██║     ██║╚════██║██╔══██║██╔══╝  ██╔══██╗
 ╚██████╔╝██║     ╚██████╗    ██║     ╚██████╔╝██████╔╝███████╗██║███████║██║  ██║███████╗██║  ██║
  ╚═════╝ ╚═╝      ╚═════╝    ╚═╝      ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-                                2.9.13-rc.6+653ce4c709 (.NET 9.0.4/win-x64/OPC Stack 1.5.375.457)
+                               2.9.15-rc.19+f5384eb34a (.NET 9.0.7/win-x64/OPC Stack 1.5.376.235)
 General
 -------
 
@@ -127,6 +127,7 @@ Messaging configuration
                                    `Uri`
                                    `Index`
                                    `Expanded`
+                                   `ExpandedWithNamespace0`
                                Default: `Expanded` if `-c` is specified,
                                otherwise `Uri` for backwards compatibility.
       --mm, --messagingmode, --MessagingMode=VALUE
@@ -252,6 +253,11 @@ Messaging configuration
                                If the chosen messaging profile does not support
                                keep alive messages this setting is ignored.
                                Default: `false` (to save bandwidth).
+      --kaf, --keepalivesaskeyframe, --SendDataSetKeepAlivesAsKeyFrame[=VALUE]
+                             When the sending of keep alive messages is enabled
+                               determines whether the empty keep alive message
+                               will be promoted to a key frame messages
+                               Default: `false`.
       --msi, --metadatasendinterval, --DefaultMetaDataUpdateTime=VALUE
                              Default value in milliseconds for the metadata
                                send interval which determines in which interval
@@ -325,6 +331,8 @@ Messaging configuration
                                    `Dapr`
                                    `Http`
                                    `FileSystem`
+                                   `AioMqtt`
+                                   `AioDss`
                                    `Null`
                                Default: `IoTHub` or the first configured
                                transport of the allowed value list.
@@ -501,10 +509,10 @@ Routing configuration
                                Default: `{RootTopic}/diagnostics/{WriterGroup}`
       --mdt, --metadatatopictemplate, --DataSetMetaDataTopicTemplate[=VALUE]
                              The topic that metadata should be sent to.
-                               In case of MQTT the message will be sent as
-                               RETAIN message with a TTL of either metadata
-                               send interval or infinite if metadata send
-                               interval is not configured.
+                               In case of MQTT the message will by default be
+                               sent as RETAIN message with a TTL of either
+                               metadata send interval or infinite if metadata
+                               send interval is not configured.
                                Only valid if metadata is supported and/or
                                explicitely enabled.
                                The template variables
@@ -555,7 +563,13 @@ Routing configuration
                              Add routing information to messages. The name of
                                the property is `$$RoutingInfo` and the value is
                                the `DataSetWriterGroup` from which the
-                               particular message is emitted.
+                               particular message is emitted. Disabled if `
+                               EnableCloudEvents` is enabled.
+                               Default: `False`.
+      --ce, --cloudevents, --EnableCloudEvents[=VALUE]
+                             Add cloud event headers to messages. The cloud
+                               events comply to the opc ua cloud events
+                               extension.
                                Default: `False`.
 
 Subscription settings
@@ -980,6 +994,7 @@ OPC UA Client configuration
                                Allowed values:
                                    `Directory`
                                    `X509Store`
+                                   `FlatDirectory`
                                Default: `Directory`.
       --cfa, --configurefromappcert, --TryConfigureFromExistingAppCert[=VALUE]
                              Automatically set the application subject name,
@@ -1004,6 +1019,7 @@ OPC UA Client configuration
                                Allowed values:
                                    `Directory`
                                    `X509Store`
+                                   `FlatDirectory`
                                Default: `Directory`.
       --rp, --rejectedcertstorepath, --RejectedCertificateStorePath=VALUE
                              The path of the rejected cert store.
@@ -1013,6 +1029,7 @@ OPC UA Client configuration
                                Allowed values:
                                    `Directory`
                                    `X509Store`
+                                   `FlatDirectory`
                                Default: `Directory`.
       --ip, --issuercertstorepath, --TrustedIssuerCertificatesPath=VALUE
                              The path of the trusted issuer cert store.
@@ -1022,6 +1039,7 @@ OPC UA Client configuration
                                Allowed values:
                                    `Directory`
                                    `X509Store`
+                                   `FlatDirectory`
                                Default: `Directory`.
       --up, --usercertstorepath, --TrustedUserCertificatesPath=VALUE
                              The path of the certificate store for user
@@ -1033,6 +1051,7 @@ OPC UA Client configuration
                                Allowed values:
                                    `Directory`
                                    `X509Store`
+                                   `FlatDirectory`
                                Default: `Directory`.
       --uip, --userissuercertstorepath, --UserIssuerCertificatesPath=VALUE
                              The path of the user issuer cert store.
@@ -1043,6 +1062,7 @@ OPC UA Client configuration
                                Allowed values:
                                    `Directory`
                                    `X509Store`
+                                   `FlatDirectory`
                                Default: `Directory`.
 
 Diagnostic options

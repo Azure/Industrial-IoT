@@ -195,7 +195,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             OpcNodes = currentObject
                                 .GetOpcNodeModels(
                                     currentObject.OriginalNode.NodeFromConfiguration,
-                                    context.Session.MessageContext)
+                                    context.Session.MessageContext, createLongIds: false)
                                 .ToList()
                         }
                     }, context.Ct).ConfigureAwait(false);
@@ -1087,10 +1087,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             context.Session.Codec.Encode(new Variant(argument.Value), out var type),
                         ValueRank = argument.ValueRank == ValueRanks.Scalar ?
                             null : (global::Azure.IIoT.OpcUa.Publisher.Models.NodeValueRank)argument.ValueRank,
-                        ArrayDimensions = argument.ArrayDimensions?.ToArray(),
-                        Description = argument.Description?.ToString(),
+                        ArrayDimensions = argument.ArrayDimensions?.Count > 0 ?
+                            argument.ArrayDimensions?.ToArray() : null,
+                        Description = string.IsNullOrEmpty(argument?.Description.Text) ?
+                            null : argument.Description.Text,
                         ErrorInfo = errorInfo2,
-                        Type = dataTypeIdNode
+                        Type = dataTypeIdNode with
+                        {
+                            // Compress by removing non relevant fields
+                            WriteMask = null,
+                            UserAccessLevel = null,
+                            UserWriteMask = null,
+                            AccessLevel = null,
+                            Children = null,
+                            SourcePicoseconds = null,
+                            ServerPicoseconds = null,
+                            ServerTimestamp = null,
+                            SourceTimestamp = null,
+                        }
                     };
                     Arguments.Add(arg);
                 }

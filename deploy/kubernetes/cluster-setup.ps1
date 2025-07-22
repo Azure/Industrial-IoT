@@ -46,6 +46,10 @@
     .PARAMETER OpsExtension
         (Internal) Use a preview version of the Azure IoT Operations
         extension to use.
+    .PARAMETER DeployPlcSimulation
+        Whether to deploy the PLC simulation. Default is false.
+    .PARAMETER DeployTestSimulation
+        Whether to deploy the Test simulation. Default is false.
 #>
 
 param(
@@ -80,11 +84,19 @@ param(
         "preview",
         "installed",
         "stable"
-    )] $OpsExtension = "stable"
+    )] $OpsExtension = "stable",
+    [switch] $DeployPlcSimulation,
+    [switch] $DeployTestSimulation,
+    [switch] $DeployDiscoveryHandler
 )
 
 #Requires -RunAsAdministrator
 $ErrorActionPreference = 'Continue'
+
+if ($script:DeployDiscoveryHandler.IsPresent) {
+    Write-Host "DeployDiscoveryHandler is not supported yet." -ForegroundColor Red
+    $script:DeployDiscoveryHandler = $false
+}
 
 if (![Environment]::Is64BitProcess) {
     Write-Host "Error: Run this in 64bit Powershell session" -ForegroundColor Red
@@ -1313,7 +1325,7 @@ if (-not $?) {
 }
 
 # Deploy discovery handler - disabled in current version of Azure IoT Operations
-if ($DeployDiscoveryHandler) {
+if ($script:DeployDiscoveryHandler.IsPresent) {
     $template = @{
         extendedLocation = $iotOps.extendedLocation
         properties = @{
@@ -1392,26 +1404,27 @@ if ($DeployDiscoveryHandler) {
 #
 # Deploy simulation servers
 #
-& $(Join-Path $(Join-Path $scriptDirectory "simulation") "deploy.ps1") `
-    -DeploymentName "simulation1" `
-    -SimulationName "opc-plc" -Count 2 `
-    -InstanceName $script:InstanceName `
-    -AdrNamespaceName $Name `
-    -SubscriptionId $SubscriptionId `
-    -TenantId $TenantId `
-    -ResourceGroup $rg.Name `
-    -Location $Location `
-    -Namespace $script:ClusterNamespace `
-    -SkipLogin `
-    -Force  # :$forceReinstall `
+if ($script:DeployPlcSimulation.IsPresent) {
+    & $(Join-Path $(Join-Path $scriptDirectory "simulation") "deploy.ps1") `
+        -DeploymentName "simulation1" `
+        -SimulationName "opc-plc" -Count 2 `
+        -InstanceName $script:InstanceName `
+        -AdrNamespaceName $Name `
+        -SubscriptionId $SubscriptionId `
+        -TenantId $TenantId `
+        -ResourceGroup $rg.Name `
+        -Location $Location `
+        -Namespace $script:ClusterNamespace `
+        -SkipLogin `
+        -Force  # :$forceReinstall `
 
-if (-not $?) {
-    Write-Host "Error deploying opc plc simulation servers." -ForegroundColor Red
-    Remove-Item -Path $tempFile -Force
-    exit -1
+    if (-not $?) {
+        Write-Host "Error deploying opc plc simulation servers." -ForegroundColor Red
+        Remove-Item -Path $tempFile -Force
+        exit -1
+    }
 }
-
-if ($DeployTestSimulation) {
+if ($script:DeployTestSimulation.IsPresent) {
     & $(Join-Path $(Join-Path $scriptDirectory "simulation") "deploy.ps1") `
         -DeploymentName "simulation2" `
         -SimulationName "opc-test" -Count 2 `
