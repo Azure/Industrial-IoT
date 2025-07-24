@@ -1260,6 +1260,7 @@ $template = @{
                 }
                 additionalConfiguration = @{
                     EnableMetrics = "True"
+                    UseFileChangePolling = "True"
                     DisableDataSetMetaData = "True"
                     LogFormat = "syslog"
                 }
@@ -1350,6 +1351,7 @@ if ($script:DeployDiscoveryHandler.IsPresent) {
             additionalConfiguration = @{
                 AutoDiscoverDevicesOnStartup = "True"
                 EnableMetrics = "True"
+                UseFileChangePolling = "True"
                 LogFormat = "syslog"
                 DisableDataSetMetaData = "True"
             }

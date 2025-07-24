@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Azure.Iot.Operations.Protocol;
     using Furly.Azure.EventHubs;
     using Furly.Azure.IoT.Edge;
+    using Furly.Azure.IoT.Operations.Runtime;
     using Furly.Extensions.AspNetCore.OpenApi;
     using Furly.Extensions.Configuration;
     using Furly.Extensions.Dapr;
@@ -175,6 +176,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 builder.AddSchemaRegistry();
                 // builder.AddLeaderElection();
                 // builder.AddStateStore();
+
+                if (publisherOptions.UseFileChangePolling == true)
+                {
+                    builder.Configure<AioOptions>(options =>
+                        options.FileSystemPollingInterval = TimeSpan.FromSeconds(5));
+                }
 
                 builder.RegisterType<Aio>().AsImplementedInterfaces();
                 if (publisherOptions.IsAzureIoTOperationsConnector.Value)
