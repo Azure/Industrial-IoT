@@ -13,7 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// Simple attribute operand model
     /// </summary>
     [DataContract]
-    public sealed record class SimpleAttributeOperandModel
+    public record class SimpleAttributeOperandModel
     {
         /// <summary>
         /// Type definition node id if operand is

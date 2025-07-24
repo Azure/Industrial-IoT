@@ -10,38 +10,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     using System.Runtime.Serialization;
 
     /// <summary>
-    /// Data point additional configuration model
-    /// </summary>
-    [DataContract]
-    public sealed record class DataPointModel : OpcNodeModel
-    {
-        /// <summary>
-        /// Adapt the sampling interval property
-        /// </summary>
-        [DataMember(Name = "samplingInterval", Order = 100,
-            EmitDefaultValue = false)]
-        public int? SamplingInterval
-        {
-            get => OpcSamplingInterval;
-            set => OpcSamplingInterval = value;
-        }
-
-        /// <summary>
-        /// Adapt the publishing interval property
-        /// </summary>
-        [DataMember(Name = "publishingInterval", Order = 101,
-            EmitDefaultValue = false)]
-        public int? PublishingInterval
-        {
-            get => OpcPublishingInterval;
-            set => OpcPublishingInterval = value;
-        }
-    }
-
-    /// <summary>
     /// Base data set and event model
     /// </summary>
-    public abstract record class BaseDataSetEventModel
+    public abstract record class DataSetEventConfiguration
     {
         /// <summary>
         /// The encoding format to use for messages. Allowed values
@@ -173,35 +144,42 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// Dataset reource additional configuration model.
     /// </summary>
     [DataContract]
-    public sealed record class DataSetModel : BaseDataSetEventModel
-    {
-        /// <summary>
-        /// Adapt the start instance property
-        /// </summary>
-        [DataMember(Name = "startInstance", Order = 103,
-            EmitDefaultValue = false)]
-        public string? StartInstance { get; set; }
-    }
+    public sealed record class DataSetConfiguration : DataSetEventConfiguration;
 
     /// <summary>
-    /// Management group action reource additional configuration model.
+    /// Dataset Data point additional configuration model
     /// </summary>
     [DataContract]
-    public sealed record class ActionModel
+    public sealed record class DataSetDataPointConfiguration : OpcNodeModel
     {
         /// <summary>
-        /// Compiled method metadata
+        /// Adapt the sampling interval property
         /// </summary>
-        [DataMember(Name = "_io", Order = 0,
+        [DataMember(Name = "samplingInterval", Order = 100,
             EmitDefaultValue = false)]
-        public required byte[] CompiledMetadata { get; set; }
+        public int? SamplingInterval
+        {
+            get => OpcSamplingInterval;
+            set => OpcSamplingInterval = value;
+        }
+
+        /// <summary>
+        /// Adapt the publishing interval property
+        /// </summary>
+        [DataMember(Name = "publishingInterval", Order = 101,
+            EmitDefaultValue = false)]
+        public int? PublishingInterval
+        {
+            get => OpcPublishingInterval;
+            set => OpcPublishingInterval = value;
+        }
     }
 
     /// <summary>
     /// Management group reource additional configuration model.
     /// </summary>
     [DataContract]
-    public sealed record class ManagementGroupModel
+    public sealed record class ManagementGroupConfiguration
     {
         /// <summary>
         /// Node id of the node which the event pertains to
@@ -238,10 +216,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     }
 
     /// <summary>
+    /// Management group action reource additional configuration model.
+    /// </summary>
+    [DataContract]
+    public sealed record class ActionConfiguration
+    {
+        /// <summary>
+        /// Compiled method metadata
+        /// </summary>
+        [DataMember(Name = "_io", Order = 0,
+            EmitDefaultValue = false)]
+        public required byte[] CompiledMetadata { get; set; }
+    }
+
+    /// <summary>
     /// Event reource additional configuration model.
     /// </summary>
     [DataContract]
-    public sealed record class EventModel : BaseDataSetEventModel
+    public sealed record class EventConfiguration : DataSetEventConfiguration
     {
         /// <summary>
         /// Name of the source node
@@ -273,7 +265,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// configured. Larger queues help prevent data loss but use
         /// more server memory.
         /// </summary>
-        [DataMember(Name = "QueueSize", Order = 105,
+        [DataMember(Name = "queueSize", Order = 105,
             EmitDefaultValue = false)]
         public uint? QueueSize { get; set; }
 
@@ -285,7 +277,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// connection issues. Use False to maintain current value
         /// accuracy.
         /// </summary>
-        [DataMember(Name = "DiscardNew", Order = 106,
+        [DataMember(Name = "discardNew", Order = 106,
             EmitDefaultValue = false)]
         public bool? DiscardNew { get; set; }
 
@@ -293,14 +285,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Event Filter to apply. When specified the node is assmed
         /// to be an event notifier node to subscribe to.
         /// </summary>
-        [DataMember(Name = "EventFilter", Order = 107,
+        [DataMember(Name = "eventFilter", Order = 107,
             EmitDefaultValue = false)]
         public EventFilterModel? EventFilter { get; set; }
 
         /// <summary>
         /// Settings for pending condition handling
         /// </summary>
-        [DataMember(Name = "ConditionHandling", Order = 108,
+        [DataMember(Name = "conditionHandling", Order = 108,
             EmitDefaultValue = false)]
         public ConditionHandlingOptionsModel? ConditionHandling { get; set; }
 
@@ -310,10 +302,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// initial value (default). Useful when only changes are
         /// relevant. Server always sends initial value on creation.
         /// </summary>
-        [DataMember(Name = "SkipFirst", Order = 109,
+        [DataMember(Name = "skipFirst", Order = 109,
             EmitDefaultValue = false)]
         public bool? SkipFirst { get; set; }
     }
+
+    /// <summary>
+    /// Event data point configuration
+    /// </summary>
+    [DataContract]
+    public sealed record class EventDataPointConfiguration : SimpleAttributeOperandModel;
 
     /// <summary>
     /// Endpoint additional configuration for devices. Property names are
@@ -322,7 +320,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// from a ADR device resource.
     /// </summary>
     [DataContract]
-    public sealed record class DeviceEndpointModel
+    public sealed record class DeviceEndpointConfiguration
     {
         /// <summary>
         /// The specific security mode to use for the specified endpoint.
@@ -330,7 +328,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// security policy connectivity will fail. Default:
         /// <see cref="SecurityMode.NotNone"/>
         /// </summary>
-        [DataMember(Name = "EndpointSecurityMode", Order = 0,
+        [DataMember(Name = "endpointSecurityMode", Order = 0,
             EmitDefaultValue = false)]
         public SecurityMode? EndpointSecurityMode { get; set; }
 
@@ -343,14 +341,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// security mode, connectivity will fail. This allows enforcing
         /// specific security requirements.
         /// </summary>
-        [DataMember(Name = "EndpointSecurityPolicy", Order = 1,
+        [DataMember(Name = "endpointSecurityPolicy", Order = 1,
             EmitDefaultValue = false)]
         public string? EndpointSecurityPolicy { get; set; }
 
         /// <summary>
         /// Use reverse connect to connect ot the endpoint
         /// </summary>
-        [DataMember(Name = "UseReverseConnect", Order = 2,
+        [DataMember(Name = "useReverseConnect", Order = 2,
             EmitDefaultValue = false)]
         public bool? UseReverseConnect { get; set; }
 
@@ -367,7 +365,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// auth, the certificate must be in the User certificate
         /// store.
         /// </summary>
-        [DataMember(Name = "OpcAuthenticationMode", Order = 4)]
+        [DataMember(Name = "opcAuthenticationMode", Order = 4)]
         public OpcAuthenticationMode OpcAuthenticationMode { get; set; }
 
         /// <summary>
@@ -377,7 +375,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// a certificate in the User certificate store of the PKI
         /// configuration.
         /// </summary>
-        [DataMember(Name = "OpcAuthenticationUsername", Order = 5,
+        [DataMember(Name = "opcAuthenticationUsername", Order = 5,
             EmitDefaultValue = false)]
         public string? OpcAuthenticationUsername { get; set; }
 
@@ -387,7 +385,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// authentication. For Certificate mode, this must match the
         /// password used when adding the certificate to the PKI store.
         /// </summary>
-        [DataMember(Name = "OpcAuthenticationPassword", Order = 6,
+        [DataMember(Name = "opcAuthenticationPassword", Order = 6,
             EmitDefaultValue = false)]
         public string? OpcAuthenticationPassword { get; set; }
 
@@ -398,7 +396,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// authentication, and subscription issues. The diagnostics
         /// data is included in the publisher's logs. Default: false
         /// </summary>
-        [DataMember(Name = "DumpConnectionDiagnostics", Order = 10,
+        [DataMember(Name = "dumpConnectionDiagnostics", Order = 10,
             EmitDefaultValue = false)]
         public bool? DumpConnectionDiagnostics { get; set; }
 
@@ -410,28 +408,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// don't support subscription transfer. Can be configured
         /// globally via command line options.
         /// </summary>
-        [DataMember(Name = "DisableSubscriptionTransfer", Order = 11,
+        [DataMember(Name = "disableSubscriptionTransfer", Order = 11,
             EmitDefaultValue = false)]
         public bool? DisableSubscriptionTransfer { get; set; }
 
         /// <summary>
         /// Runs asset discovery on the endpoint
         /// </summary>
-        [DataMember(Name = "RunAssetDiscovery", Order = 13,
+        [DataMember(Name = "runAssetDiscovery", Order = 13,
             EmitDefaultValue = false)]
         public bool? RunAssetDiscovery { get; set; }
 
         /// <summary>
         /// Finds assets for the selected types.
         /// </summary>
-        [DataMember(Name = "AssetTypes", Order = 14,
+        [DataMember(Name = "assetTypes", Order = 14,
             EmitDefaultValue = false)]
         public IReadOnlyList<string>? AssetTypes { get; set; }
 
         /// <summary>
         /// Source of this endpoint configuration
         /// </summary>
-        [DataMember(Name = "Source", Order = 15,
+        [DataMember(Name = "source", Order = 15,
             EmitDefaultValue = false)]
         public string? Source { get; set; }
     }

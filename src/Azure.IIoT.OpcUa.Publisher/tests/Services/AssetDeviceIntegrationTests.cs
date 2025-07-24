@@ -374,7 +374,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 #pragma warning restore CA2012 // Use ValueTasks correctly
 
             // Act
-            await sut.RunDiscoveryUsingTypesAsync(resource, new DeviceEndpointModel { AssetTypes = types },
+            await sut.RunDiscoveryUsingTypesAsync(resource, new DeviceEndpointConfiguration { AssetTypes = types },
                 errors, default);
 
             // Assert
@@ -442,7 +442,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 #pragma warning restore CA2012 // Use ValueTasks correctly
 
             // Act
-            await sut.RunDiscoveryUsingTypesAsync(resource, new DeviceEndpointModel { AssetTypes = types },
+            await sut.RunDiscoveryUsingTypesAsync(resource, new DeviceEndpointConfiguration { AssetTypes = types },
                 errors, default);
 
             // Assert
@@ -465,7 +465,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var errors = new AssetDeviceIntegration.ValidationErrors(sut);
 
             // Act
-            await sut.RunDiscoveryUsingTypesAsync(resource, new DeviceEndpointModel { AssetTypes = types },
+            await sut.RunDiscoveryUsingTypesAsync(resource, new DeviceEndpointConfiguration { AssetTypes = types },
                 errors, default);
             // Assert: error should be recorded (no exception thrown)
         }
