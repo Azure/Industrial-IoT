@@ -169,7 +169,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     context).ConfigureAwait(false);
 
                 if (!_request.CreateSingleWriter &&
-                    (currentObject.ContainsVariables || currentObject.ContainsMethods) &&
+                    (currentObject.ContainsVariables || currentObject.ContainsMethods || currentObject.ContainsEvents) &&
                     !currentObject.OriginalNode.HasErrors)
                 {
                     // Create a new writer entry for the object
