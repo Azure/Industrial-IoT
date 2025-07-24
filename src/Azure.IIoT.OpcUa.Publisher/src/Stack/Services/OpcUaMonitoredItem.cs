@@ -787,7 +787,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     var dtNode = await session.NodeCache.FetchNodeAsync(dataTypeId,
                                             ct).ConfigureAwait(false);
                                     if (dtNode is DataTypeNode v &&
-                                        v.DataTypeDefinition.Body is DataTypeDefinition t)
+                                        v.DataTypeDefinition?.Body is DataTypeDefinition t)
                                     {
                                         types ??= [];
                                         types.Add(dataTypeId, t);

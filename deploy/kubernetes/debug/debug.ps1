@@ -70,17 +70,6 @@ else {
     Write-Host "Using namespace '$script:Namespace'." -ForegroundColor Green
 }
 
-# Build and make .net debugger image available in cluster
-$containerTag = Get-Date -Format "MMddHHmmss"
-$debuggerImage = "debugger:$($containerTag)"
-Write-Host "Building debugger image with tag '$containerTag'..." `
-    -ForegroundColor Cyan
-docker build --progress auto -f Dockerfile -t $debuggerImage .
-Write-Host "Debugger image built with tag '$containerTag'." `
-    -ForegroundColor Green
-Import-ContainerImage -ClusterType $script:ClusterType `
-    -ContainerImage $debuggerImage
-
 function Select-PodName {
     # get list of pods in the namespace and let user select one
     $pods = kubectl get pods -n $Namespace --no-headers | ForEach-Object {
@@ -107,6 +96,17 @@ function Select-PodName {
 }
 Select-PodName
 Write-Host "Using pod '$script:PodName'." -ForegroundColor Green
+
+# Build and make .net debugger image available in cluster
+$containerTag = Get-Date -Format "MMddHHmmss"
+$debuggerImage = "debugger:$($containerTag)"
+Write-Host "Building debugger image with tag '$containerTag'..." `
+    -ForegroundColor Cyan
+docker build --progress auto -f Dockerfile -t $debuggerImage .
+Write-Host "Debugger image built with tag '$containerTag'." `
+    -ForegroundColor Green
+Import-ContainerImage -ClusterType $script:ClusterType `
+    -ContainerImage $debuggerImage
 
 while ($true) {
     # Get main container name if not specified

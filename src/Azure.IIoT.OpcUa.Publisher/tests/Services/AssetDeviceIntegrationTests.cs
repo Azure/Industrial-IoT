@@ -614,7 +614,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             // Arrange
             var sut = CreateSut();
             var errors = new AssetDeviceIntegration.ValidationErrors(sut);
-            var device = new AssetDeviceIntegration.DeviceResource("dev1", new Device());
+            var device = new AssetDeviceIntegration.DeviceEndpointResource("dev1", new Device(), "ep1");
             var asset = new AssetDeviceIntegration.AssetResource("asset1", new AssetModel
             {
                 DeviceRef = new AssetDeviceRef
@@ -676,7 +676,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             // Arrange
             var sut = CreateSut();
             var errors = new AssetDeviceIntegration.ValidationErrors(sut);
-            var device = new AssetDeviceIntegration.DeviceResource("dev1", new Device());
+            var device = new AssetDeviceIntegration.DeviceEndpointResource("dev1", new Device(), "ep1");
 
             // Act
             errors.OnError(device, "code1", "error1");

@@ -887,7 +887,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             Message = "#{Attempt}: Wrong TLS certificate trust list provisioned - trying to reset and reload configuration...")]
         public static partial void WrongCertificate(this ILogger logger, Exception ex, int attempt);
 
-        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Debug, SkipEnabledCheck = true,
             Message = "#{Attempt}: Error '{Error}' during sending network message. Retrying in {Delay}...")]
         public static partial void SendErrorWithStack(this ILogger logger, Exception ex, int attempt, string error, TimeSpan delay);
 

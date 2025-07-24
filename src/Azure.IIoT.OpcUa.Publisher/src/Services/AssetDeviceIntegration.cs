@@ -529,7 +529,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             // Apply configuration
                             await _publishedNodes.SetConfiguredEndpointsAsync(entries,
                                 ct).ConfigureAwait(false);
-                            if (_logger.IsEnabled(LogLevel.Information))
+                            if (_logger.IsDebugLogConfigurationEnabled())
                             {
                                 _logger.NewConfigurationApplied(
                                     _serializer.SerializeToString(entries, SerializeOption.Indented));
@@ -582,6 +582,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 EndpointSecurityMode = endpointConfiguration.EndpointSecurityMode,
                 EndpointSecurityPolicy = endpointConfiguration.EndpointSecurityPolicy,
                 DumpConnectionDiagnostics = endpointConfiguration.DumpConnectionDiagnostics,
+                DisableSubscriptionTransfer = endpointConfiguration.DisableSubscriptionTransfer,
                 UseReverseConnect = endpointConfiguration.UseReverseConnect
             };
             var credentials = _client.GetEndpointCredentials(resource.DeviceName,
@@ -643,9 +644,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     group.Key.AssetTypeRef,
                     group.ToList())))
             {
-                var uniqueId = (resource.DeviceName + assetId).ToSha1Hash();
-                var assetResourceName = MakeValidName(assetName, uniqueId.Length + 1).TrimEnd('-')
-                    + "-" + uniqueId;
+                var uniqueId = "-" + (resource.DeviceName + assetId).ToSha1Hash();
+                var assetResourceName = MakeValidArmResourceName(assetName, uniqueId).TrimEnd('-')
+                    + uniqueId;
                 var uniqueAssetName = assetResourceName;
                 // Ensure unique asset names
                 for (var i = 1; !uniqueAssetNames.Add(uniqueAssetName); i++)
@@ -716,9 +717,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     AssetTypeRefs = [assetTypeRef],
                     Datasets = distinctDatasets.ConvertAll(d => new DiscoveredAssetDataset
                     {
-                        Name = GetDefault(d.DataSetName),
+                        Name = GetAssetResourceName(d.DataSetName),
                         TypeRef = d.DataSetType,
                         DataSource = d.DataSetRootNodeId,
+                        DataSetConfiguration = null,
                         DataPoints = d.OpcNodes!.Select(n => new DiscoveredAssetDatasetDataPoint
                         {
                             Name = n.DisplayName, // Name of property in message/schema
@@ -745,9 +747,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }),
                     Events = distinctEvents.ConvertAll(d => new DetectedAssetEventSchemaElement
                     {
-                        Name = GetDefault(d.OpcNodes![0].DataSetFieldId),
+                        Name = GetAssetResourceName(d.DataSetName, d.OpcNodes![0].DisplayName),
                         TypeRef = d.OpcNodes![0].TypeDefinitionId,
                         EventNotifier = d.OpcNodes![0].Id!,
+                        EventConfiguration = _serializer.SerializeToString(new EventModel
+                        {
+                            DataSource = d.DataSetRootNodeId,
+                            SourceName = d.DataSetName,
+                            EventName = d.OpcNodes![0].DisplayName
+                        }),
                         Destinations =
                         [
                             new EventStreamDestination
@@ -757,7 +765,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 {
                                     Qos = _options.Value.DefaultQualityOfService
                                         == Furly.Extensions.Messaging.QoS.AtMostOnce ? QoS.Qos0 : QoS.Qos1,
-                                    Topic = CreateTopic(resource.DeviceName, d.DataSetWriterGroup, d.DataSetName),
+                                    Topic = CreateTopic(resource.DeviceName, d.DataSetWriterGroup,
+                                        d.DataSetName, d.OpcNodes![0].DisplayName),
                                     Retain = _options.Value.DefaultMessageRetention
                                         == true ? Retain.Keep : Retain.Never,
                                     Ttl = (ulong?)_options.Value.DefaultMessageTimeToLive?.TotalSeconds
@@ -767,30 +776,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }),
                     ManagementGroups = distinctManagementGroups.ConvertAll(d => new DiscoveredAssetManagementGroup
                     {
-                        Name = GetDefault(d.DataSetName),
+                        Name = GetAssetResourceName(d.DataSetName),
                         TypeRef = d.DataSetType,
                         DefaultTimeOutInSeconds = null,
                         DefaultTopic = null,
-                        Actions = d.OpcNodes!.Select(n =>
+                        ManagementGroupConfiguration = _serializer.SerializeToString(new ManagementGroupModel
                         {
-                            return new DiscoveredAssetManagementGroupAction
-                            {
-                                Name = GetDefault(n.DisplayName), // Name of command in schema
-                                ActionType = AssetManagementGroupActionType.Call,
-                                TargetUri = n.Id!,
-                                TimeOutInSeconds = null,
-                                Topic = CreateTopic(resource.DeviceName, d.DataSetWriterGroup, d.DataSetName),
-                                TypeRef = n.TypeDefinitionId,
-                                ActionConfiguration = ConvertActionConfiguration(n.MethodMetadata!)
-                            };
-                        }).ToList(),
+                            DataSource = d.DataSetRootNodeId
+                        }),
+                        // TODO: Could have a object id here or in action as "dataSource"
+                        Actions = d.OpcNodes!.Select(n => new DiscoveredAssetManagementGroupAction
+                        {
+                            Name = n.DisplayName!, // Name of command in schema
+                            ActionType = AssetManagementGroupActionType.Call,
+                            TargetUri = n.Id!, // Method id of the instance declaration
+                            TypeRef = n.TypeDefinitionId, // Method type ref on the object type ref
+                            TimeOutInSeconds = null,
+                            Topic = CreateTopic(resource.DeviceName, d.DataSetWriterGroup, d.DataSetName, n.DisplayName),
+                            ActionConfiguration = ConvertActionConfiguration(n.MethodMetadata!)
+                        }).ToList()
                     }),
-                    Streams = null,
+                    Streams = null
                 };
 
                 // TODO: Add attributes and other information from properties
 
-                if (_logger.IsEnabled(LogLevel.Debug))
+                if (_logger.IsDebugLogConfigurationEnabled())
                 {
                     _logger.ReportingNewDiscoveredAsset(uniqueAssetName, assetId, assetTypeRef,
                         JsonSerializer.Serialize(dAsset, kDebugSerializerOptions));
@@ -798,7 +809,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 await _client.ReportDiscoveredAssetAsync(resource.DeviceName, resource.EndpointName,
                     uniqueAssetName, dAsset, cancellationToken: ct).ConfigureAwait(false);
             }
-            static string GetDefault(string? value) => string.IsNullOrWhiteSpace(value) ? "Default" : value;
+            static string GetAssetResourceName(string? dataSetName, string? name = null)
+            {
+                name = string.IsNullOrEmpty(name) ? null : "." + name;
+                dataSetName = string.IsNullOrWhiteSpace(dataSetName)
+                    ? "Default" : MakeValidName(dataSetName, name);
+                return name != null ? dataSetName + name : dataSetName;
+            }
         }
 
         /// <summary>
@@ -849,10 +866,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 Debug.Assert(serverEndpoints.Count > 0);
                 currentDeviceIsDiscoveryServer = true;
                 var applicationDescription = serverEndpoints[0].Description.Server;
-                var serverDeviceId = server.Key.ToSha1Hash();
-                var deviceName = MakeValidName(
-                    applicationDescription.ApplicationName.ToString(),
-                    serverDeviceId.Length + 1).TrimEnd('-') + "-" + serverDeviceId;
+                var serverDeviceId = "-" + server.Key.ToSha1Hash();
+                var deviceName = MakeValidArmResourceName(
+                    applicationDescription.ApplicationName.ToString(), serverDeviceId)
+                    .TrimEnd('-') + serverDeviceId;
                 var dServerDevice = new DiscoveredDevice
                 {
                     ExternalDeviceId = serverDeviceId,
@@ -972,7 +989,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     EndpointSecurityPolicy = desc.SecurityPolicyUri
                 };
                 var supportedAuthenticationMethods = GetSupportedAuthenticationMethods(desc);
-                var uniqueName = MakeValidName(name);
+                var uniqueName = MakeValidArmResourceName(name);
                 if (newEndpoints.ContainsKey(uniqueName))
                 {
                     continue;
@@ -1031,7 +1048,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             dDevice.Endpoints = new DiscoveredDeviceEndpoints { Inbound = newEndpoints };
-            if (_logger.IsEnabled(LogLevel.Debug))
+            if (_logger.IsDebugLogConfigurationEnabled())
             {
                 _logger.ReportingNewDiscoveredDevice(deviceName, endpointType,
                     JsonSerializer.Serialize(dDevice, kDebugSerializerOptions));
@@ -1123,6 +1140,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     EndpointSecurityMode = endpointConfiguration.EndpointSecurityMode,
                     EndpointSecurityPolicy = endpointConfiguration.EndpointSecurityPolicy,
                     DumpConnectionDiagnostics = endpointConfiguration.DumpConnectionDiagnostics,
+                    DisableSubscriptionTransfer = endpointConfiguration.DisableSubscriptionTransfer,
                     UseReverseConnect = endpointConfiguration.UseReverseConnect,
 
                     // We map asset name to writer group as it contains writers for each of its
@@ -1334,15 +1352,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             ct.ThrowIfCancellationRequested();
 
             // Map dataset configuration on top of entry
-            var datasetTemplate = Deserialize(resource.DataSet.DatasetConfiguration,
-                () => new DataSetModel { EndpointUrl = template.EndpointUrl },
-                errors, resource);
-            if (datasetTemplate == null)
+            var additionalConfiguration = Deserialize(resource.DataSet.DatasetConfiguration,
+                () => new DataSetModel(), errors, resource);
+            if (additionalConfiguration == null)
             {
                 return ValueTask.CompletedTask;
             }
 
-            // TODO: Resolve typeref
+            // TODO: Resolve typeref to ensure it exists
 
             var nodes = new List<OpcNodeModel>();
             if (resource.DataSet.DataPoints != null)
@@ -1350,13 +1367,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 // Map datapoints to OPC nodes
                 foreach (var datapoint in resource.DataSet.DataPoints)
                 {
-                    var node = Deserialize(datapoint.DataPointConfiguration,
-                        () => new DataPointModel(), errors, resource);
-                    if (node == null)
+                    var nodeFromAdditionalConfiguration = Deserialize(
+                        datapoint.DataPointConfiguration, () => new DataPointModel(),
+                        errors, resource);
+                    if (nodeFromAdditionalConfiguration == null)
                     {
                         continue;
                     }
-                    nodes.Add(node with
+                    nodes.Add(nodeFromAdditionalConfiguration with
                     {
                         Id = datapoint.DataSource,
                         DisplayName = datapoint.Name,
@@ -1366,19 +1384,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     });
                 }
             }
-            var entry = CreateEntryForEntityOfAsset(template, datasetTemplate, nodes);
+            var entry = CreateEntryForAssetResource(template, additionalConfiguration, nodes);
             entry = AddDestination(entry, resource.Asset.DefaultDatasetsDestinations,
                 resource.DataSet.Destinations, errors, resource);
             entries.Add(entry with
             {
-                // Dataset maps to DataSetWriter
+                // Dataset writer id maps to name
                 DataSetWriterId = resource.DataSet.Name,
+                // Dataset name as well (-> source of the dataset)
+                DataSetName = resource.DataSet.Name,
+                // Root node id is the data source of the dataset
+                DataSetRootNodeId = resource.DataSet.DataSource,
+                // Type is the dataset typeref
+                DataSetType = resource.DataSet.TypeRef,
+
+                // Dataset configuration overrides
                 DataSetKeyFrameCount = entry.DataSetKeyFrameCount ?? 10,
                 SendKeepAliveDataSetMessages = entry.SendKeepAliveDataSetMessages ?? true,
                 SendKeepAliveAsKeyFrameMessages = entry.SendKeepAliveAsKeyFrameMessages ?? true,
-                MaxKeepAliveCount = entry.MaxKeepAliveCount ?? 30,
-                DataSetName = resource.DataSet.Name,
-                DataSetType = resource.DataSet.TypeRef
+                MaxKeepAliveCount = entry.MaxKeepAliveCount ?? 30
             });
             return ValueTask.CompletedTask;
         }
@@ -1399,15 +1423,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             ct.ThrowIfCancellationRequested();
 
             // Map event configuration on top of entry
-            var eventTemplate = Deserialize(resource.Event.EventConfiguration,
-                () => new EventModel { EndpointUrl = template.EndpointUrl },
-                errors, resource);
-            if (eventTemplate == null)
+            var additionalConfiguration = Deserialize(resource.Event.EventConfiguration,
+                () => new EventModel(), errors, resource);
+            if (additionalConfiguration == null)
             {
                 return ValueTask.CompletedTask;
             }
 
-            var eventFilter = eventTemplate.EventFilter ?? new EventFilterModel();
+            var eventFilter = additionalConfiguration.EventFilter ?? new EventFilterModel();
             if (!string.IsNullOrEmpty(resource.Event.TypeRef))
             {
                 eventFilter.TypeDefinitionId = resource.Event.TypeRef;
@@ -1419,12 +1442,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 Id = resource.Event.EventNotifier,
                 DisplayName = resource.Event.Name,
                 DataSetFieldId = resource.Event.Name,
+                TypeDefinitionId = resource.Event.TypeRef,
                 FetchDisplayName = false,
                 EventFilter = eventFilter,
-                ConditionHandling = eventTemplate.ConditionHandling,
-                SkipFirst = eventTemplate.SkipFirst,
-                QueueSize = eventTemplate.QueueSize,
-                DiscardNew = eventTemplate.DiscardNew
+                ConditionHandling = additionalConfiguration.ConditionHandling,
+                SkipFirst = additionalConfiguration.SkipFirst,
+                QueueSize = additionalConfiguration.QueueSize,
+                DiscardNew = additionalConfiguration.DiscardNew
             };
 
             // Map datapoints a filter statement
@@ -1433,8 +1457,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var selectClause = new List<SimpleAttributeOperandModel>();
                 foreach (var datapoint in resource.Event.DataPoints)
                 {
-                    var operand = Deserialize<SimpleAttributeOperandModel>(
-                        datapoint.DataPointConfiguration,
+                    var operand = Deserialize(datapoint.DataPointConfiguration,
                         () => new SimpleAttributeOperandModel(), errors, resource);
                     if (operand != null)
                     {
@@ -1455,15 +1478,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
                 var newEventFilter = node.EventFilter with { SelectClauses = selectClause };
             }
-            var entry = CreateEntryForEntityOfAsset(template, eventTemplate, [node]);
+            var entry = CreateEntryForAssetResource(template, additionalConfiguration, [node]);
             entry = AddDestination(entry, resource.Asset.DefaultEventsDestinations,
                 resource.Event.Destinations, errors, resource);
             entries.Add(entry with
             {
-                // Dataset maps to DataSetWriter
+                // Dataset writer id maps to name
                 DataSetWriterId = resource.Event.Name,
-                DataSetName = resource.Event.Name,
-                DataSetType = resource.Event.TypeRef
+                // Dataset name is the source of the event (!= event resource name)
+                DataSetName = additionalConfiguration.SourceName ?? resource.Event.Name,
+                // Root node id is the data source of the event
+                DataSetRootNodeId = additionalConfiguration.DataSource,
+                // Type ref is the event type
+                DataSetType = resource.Event.TypeRef,
+
+                // Event configuration overrides
+                MaxKeepAliveCount = entry.MaxKeepAliveCount ?? 30
             });
             return ValueTask.CompletedTask;
         }
@@ -1484,10 +1514,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             ct.ThrowIfCancellationRequested();
 
             // Map event configuration on top of entry
-            var managementGroupTemplate = Deserialize(resource.ManagementGroup.ManagementGroupConfiguration,
-                () => new ManagementGroupModel { EndpointUrl = template.EndpointUrl },
-                errors, resource);
-            if (managementGroupTemplate == null)
+            var additionalConfiguration = Deserialize(
+                resource.ManagementGroup.ManagementGroupConfiguration,
+                () => new ManagementGroupModel(), errors, resource);
+            if (additionalConfiguration == null)
             {
                 return ValueTask.CompletedTask;
             }
@@ -1505,22 +1535,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var nodes = new List<OpcNodeModel>();
                 foreach (var a in action)
                 {
+                    var actionResource = new ManagementActionResource(resource.AssetName,
+                        resource.Asset, resource.ManagementGroup, a);
                     nodes.Add(new OpcNodeModel
                     {
                         Id = a.TargetUri,
                         DisplayName = a.Name,
                         DataSetFieldId = a.Name,
                         FetchDisplayName = false,
-                        MethodMetadata = ConvertActionConfiguration(a.ActionConfiguration)
+                        MethodMetadata = ConvertActionConfiguration(a.ActionConfiguration, errors,
+                            actionResource)
                     });
                 }
-                var entry = CreateEntryForEntityOfAsset(template, managementGroupTemplate, nodes);
+                var entry = CreateEntryForAssetResource(template, additionalConfiguration, nodes);
                 entries.Add(entry with
                 {
-                    // Dataset maps to DataSetWriter
+                    // Writer id maps to the name of the management group
                     DataSetWriterId = resource.ManagementGroup.Name,
+                    // The name as well (target of the actions)
                     DataSetName = resource.ManagementGroup.Name,
+                    // Root node id is the data source of the management group
+                    DataSetRootNodeId = additionalConfiguration.DataSource,
+                    // Type ref is the type of the object that has the methods
                     DataSetType = resource.ManagementGroup.TypeRef,
+
+                    // Add topic
                     QueueName = action.Key
                 });
             }
@@ -1534,7 +1573,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="entityTemplate"></param>
         /// <param name="nodes"></param>
         /// <returns></returns>
-        private static PublishedNodesEntryModel CreateEntryForEntityOfAsset(
+        private static PublishedNodesEntryModel CreateEntryForAssetResource(
             PublishedNodesEntryModel endpointTemplate, ManagementGroupModel entityTemplate,
             List<OpcNodeModel> nodes)
         {
@@ -1547,7 +1586,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 BatchSize = 0,
                 BatchTriggerInterval = 0,
                 BatchTriggerIntervalTimespan = null,
-                MessagingMode = MessagingMode.SingleDataSet, // TODO: Validate this is the correct format
+                MessagingMode = MessagingMode.SingleDataSet,
                 DataSetFetchDisplayNames = false,
                 MessageEncoding = entityTemplate.MessageEncoding == MessageEncoding.Avro
                     ? MessageEncoding.Avro : MessageEncoding.Json,
@@ -1565,11 +1604,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Create entry for a dataset in the asset
         /// </summary>
         /// <param name="endpointTemplate"></param>
-        /// <param name="entityTemplate"></param>
+        /// <param name="additionalConfiguration"></param>
         /// <param name="nodes"></param>
         /// <returns></returns>
-        private static PublishedNodesEntryModel CreateEntryForEntityOfAsset(
-            PublishedNodesEntryModel endpointTemplate, DataSetModel entityTemplate,
+        private static PublishedNodesEntryModel CreateEntryForAssetResource(
+            PublishedNodesEntryModel endpointTemplate, DataSetModel additionalConfiguration,
             List<OpcNodeModel> nodes)
         {
             return endpointTemplate with
@@ -1581,48 +1620,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 BatchSize = 0,
                 BatchTriggerInterval = 0,
                 BatchTriggerIntervalTimespan = null,
-                MessagingMode = MessagingMode.SingleDataSet, // TODO: Validate this is the correct format
+                MessagingMode = MessagingMode.SingleDataSet,
                 DataSetFetchDisplayNames = false,
-                MessageEncoding = entityTemplate.MessageEncoding == MessageEncoding.Avro
+                MessageEncoding = additionalConfiguration.MessageEncoding == MessageEncoding.Avro
                     ? MessageEncoding.Avro : MessageEncoding.Json,
 
                 OpcNodes = nodes,
 
                 // Dataset configuration
                 DataSetPublishingInterval =
-                    entityTemplate.DataSetPublishingInterval,
-                DataSetPublishingIntervalTimespan =
-                    entityTemplate.DataSetPublishingIntervalTimespan,
-                DataSetRouting =
-                    entityTemplate.DataSetRouting,
-                DataSetSamplingIntervalTimespan =
-                    entityTemplate.DataSetSamplingIntervalTimespan,
+                    additionalConfiguration.PublishingInterval,
                 DataSetSamplingInterval =
-                    entityTemplate.DataSetSamplingInterval,
+                    additionalConfiguration.SamplingInterval,
                 DataSetClassId =
-                    entityTemplate.DataSetClassId,
+                    additionalConfiguration.DataSetClassId,
                 DataSetKeyFrameCount =
-                    entityTemplate.DataSetKeyFrameCount,
+                    additionalConfiguration.KeyFrameCount,
                 DataSetWriterWatchdogBehavior =
-                    entityTemplate.DataSetWriterWatchdogBehavior,
+                    additionalConfiguration.DataSetWriterWatchdogBehavior,
                 SendKeepAliveDataSetMessages =
-                    entityTemplate.SendKeepAliveDataSetMessages,
+                    additionalConfiguration.SendKeepAliveDataSetMessages,
                 SendKeepAliveAsKeyFrameMessages =
-                    entityTemplate.SendKeepAliveAsKeyFrameMessages,
-                DefaultHeartbeatInterval =
-                    entityTemplate.DefaultHeartbeatInterval,
-                DefaultHeartbeatIntervalTimespan =
-                    entityTemplate.DefaultHeartbeatIntervalTimespan,
+                    additionalConfiguration.SendKeepAliveAsKeyFrameMessages,
                 MaxKeepAliveCount =
-                    entityTemplate.MaxKeepAliveCount,
+                    additionalConfiguration.MaxKeepAliveCount,
                 RepublishAfterTransfer =
-                    entityTemplate.RepublishAfterTransfer,
-                DefaultHeartbeatBehavior =
-                    entityTemplate.DefaultHeartbeatBehavior,
+                    additionalConfiguration.RepublishAfterTransfer,
                 Priority =
-                    entityTemplate.Priority,
-                DisableSubscriptionTransfer =
-                    entityTemplate.DisableSubscriptionTransfer,
+                    additionalConfiguration.Priority
             };
         }
 
@@ -1630,11 +1655,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Create entry for an event in the asset
         /// </summary>
         /// <param name="endpointTemplate"></param>
-        /// <param name="entityTemplate"></param>
+        /// <param name="additionalConfiguration"></param>
         /// <param name="nodes"></param>
         /// <returns></returns>
-        private static PublishedNodesEntryModel CreateEntryForEntityOfAsset(
-            PublishedNodesEntryModel endpointTemplate, EventModel entityTemplate,
+        private static PublishedNodesEntryModel CreateEntryForAssetResource(
+            PublishedNodesEntryModel endpointTemplate, EventModel additionalConfiguration,
             List<OpcNodeModel> nodes)
         {
             return endpointTemplate with
@@ -1646,49 +1671,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 BatchSize = 0,
                 BatchTriggerInterval = 0,
                 BatchTriggerIntervalTimespan = null,
-                MessagingMode = MessagingMode.SingleDataSet, // TODO: Validate this is the correct format
+                MessagingMode = MessagingMode.SingleDataSet,
                 DataSetFetchDisplayNames = false,
                 MessageEncoding =
-                    entityTemplate.MessageEncoding == MessageEncoding.Avro
+                    additionalConfiguration.MessageEncoding == MessageEncoding.Avro
                         ? MessageEncoding.Avro : MessageEncoding.Json,
 
                 OpcNodes = nodes,
 
                 // Dataset configuration
                 DataSetPublishingInterval =
-                    entityTemplate.DataSetPublishingInterval,
-                DataSetPublishingIntervalTimespan =
-                    entityTemplate.DataSetPublishingIntervalTimespan,
-                DataSetRouting =
-                    entityTemplate.DataSetRouting,
-                DataSetSamplingIntervalTimespan =
-                    entityTemplate.DataSetSamplingIntervalTimespan,
+                    additionalConfiguration.PublishingInterval,
                 DataSetSamplingInterval =
-                    entityTemplate.DataSetSamplingInterval,
-                DataSetClassId =
-                    entityTemplate.DataSetClassId,
+                    additionalConfiguration.SamplingInterval,
                 DataSetKeyFrameCount =
-                    entityTemplate.DataSetKeyFrameCount,
+                    additionalConfiguration.KeyFrameCount,
+                DataSetClassId =
+                    additionalConfiguration.DataSetClassId,
                 DataSetWriterWatchdogBehavior =
-                    entityTemplate.DataSetWriterWatchdogBehavior,
+                    additionalConfiguration.DataSetWriterWatchdogBehavior,
                 SendKeepAliveDataSetMessages =
-                    entityTemplate.SendKeepAliveDataSetMessages,
+                    additionalConfiguration.SendKeepAliveDataSetMessages,
                 SendKeepAliveAsKeyFrameMessages =
-                    entityTemplate.SendKeepAliveAsKeyFrameMessages,
-                DefaultHeartbeatInterval =
-                    entityTemplate.DefaultHeartbeatInterval,
-                DefaultHeartbeatIntervalTimespan =
-                    entityTemplate.DefaultHeartbeatIntervalTimespan,
+                    additionalConfiguration.SendKeepAliveAsKeyFrameMessages,
                 MaxKeepAliveCount =
-                    entityTemplate.MaxKeepAliveCount,
+                    additionalConfiguration.MaxKeepAliveCount,
                 RepublishAfterTransfer =
-                    entityTemplate.RepublishAfterTransfer,
-                DefaultHeartbeatBehavior =
-                    entityTemplate.DefaultHeartbeatBehavior,
+                    additionalConfiguration.RepublishAfterTransfer,
                 Priority =
-                    entityTemplate.Priority,
-                DisableSubscriptionTransfer =
-                    entityTemplate.DisableSubscriptionTransfer,
+                    additionalConfiguration.Priority
             };
         }
 
@@ -1735,8 +1746,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="deviceName"></param>
         /// <param name="assetName"></param>
         /// <param name="dataSetName"></param>
+        /// <param name="extra"></param>
         /// <returns></returns>
-        private static string CreateTopic(string? deviceName, string? assetName, string? dataSetName)
+        private static string CreateTopic(string? deviceName, string? assetName, string? dataSetName, string? extra = null)
         {
             var builder = new StringBuilder("{RootTopic}"); // /opcua/{Encoding}/{MessageType}");
             if (!string.IsNullOrEmpty(deviceName))
@@ -1753,6 +1765,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     builder = builder.Append('/').Append(Furly.Extensions.Messaging.TopicFilter.Escape(part));
                 }
+            }
+            if (!string.IsNullOrEmpty(extra))
+            {
+                builder = builder.Append('/').Append(Furly.Extensions.Messaging.TopicFilter.Escape(extra));
             }
             return builder.ToString();
         }
@@ -1933,94 +1949,109 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             while (!ct.IsCancellationRequested)
             {
-                _logger.RunningDiscoveryForAllDevices();
                 var lastListVersion = _lastDeviceListVersion;
-                foreach (var device in _devices.Values.ToList())
+                try
                 {
-                    if ((device.Device.Endpoints?.Inbound) == null)
-                    {
-                        continue;
-                    }
-
+                    _logger.RunningDiscoveryForAllDevices();
                     var errors = new ValidationErrors(this);
-                    var deviceDiscoveryComplete = false;
-                    foreach (var endpoint in device.Device.Endpoints.Inbound)
+                    foreach (var device in _devices.Values.ToList())
                     {
-                        var deviceEndpointResource = new DeviceEndpointResource(device.DeviceName,
-                            device.Device, endpoint.Key);
-
-                        var url = GetEndpointUrl(endpoint.Value.Address);
-                        if (!Uri.TryCreate(url, UriKind.Absolute, out var endpointUri))
-                        {
-                            errors.OnError(deviceEndpointResource, kInvalidEndpointUrl,
-                                "Invalid endpoint URL: " + url);
-                            continue;
-                        }
-                        var endpointConfiguration = Deserialize(endpoint.Value.AdditionalConfiguration,
-                            () => new DeviceEndpointModel(), errors, deviceEndpointResource);
-                        if (endpointConfiguration == null)
+                        if ((device.Device.Endpoints?.Inbound) == null)
                         {
                             continue;
                         }
 
-                        // Test connection
-                        var canConnectToEndpoint = await TestConnectionAsync(deviceEndpointResource,
-                            endpoint.Value, endpointConfiguration, errors, ct).ConfigureAwait(false);
-                        if (!canConnectToEndpoint)
+                        var deviceDiscoveryComplete = false;
+                        foreach (var endpoint in device.Device.Endpoints.Inbound)
                         {
-                            continue;
+                            var deviceEndpointResource = new DeviceEndpointResource(device.DeviceName,
+                                device.Device, endpoint.Key);
+
+                            var url = GetEndpointUrl(endpoint.Value.Address);
+                            if (!Uri.TryCreate(url, UriKind.Absolute, out var endpointUri))
+                            {
+                                errors.OnError(deviceEndpointResource, kInvalidEndpointUrl,
+                                    "Invalid endpoint URL: " + url);
+                                continue;
+                            }
+                            var endpointConfiguration = Deserialize(endpoint.Value.AdditionalConfiguration,
+                                () => new DeviceEndpointModel(), errors, deviceEndpointResource);
+                            if (endpointConfiguration == null)
+                            {
+                                continue;
+                            }
+
+                            // Test connection
+                            var canConnectToEndpoint = await TestConnectionAsync(deviceEndpointResource,
+                                endpoint.Value, endpointConfiguration, errors, ct).ConfigureAwait(false);
+                            if (!canConnectToEndpoint)
+                            {
+                                continue;
+                            }
+
+                            if (endpointConfiguration.RunAssetDiscovery == true &&
+                                endpointConfiguration.AssetTypes?.Count > 0)
+                            {
+                                // Run discovery
+                                try
+                                {
+                                    await RunDiscoveryUsingTypesAsync(deviceEndpointResource,
+                                        endpointConfiguration, errors, ct).ConfigureAwait(false);
+                                }
+                                catch (Exception ex)
+                                {
+                                    errors.OnError(deviceEndpointResource, kDiscoveryError, ex.Message);
+                                    _logger.FailedToRunDiscoveryForDevice(ex, device.DeviceName);
+                                }
+                            }
+
+                            if (endpointConfiguration.Source == null &&
+                                endpointConfiguration.EndpointSecurityMode == SecurityMode.None &&
+                                !deviceDiscoveryComplete)
+                            {
+                                try
+                                {
+                                    await RunEndpointDiscoveryAsync(deviceEndpointResource,
+                                        endpointUri, ct).ConfigureAwait(false);
+                                    deviceDiscoveryComplete = true;
+                                }
+                                catch (Exception ex)
+                                {
+                                    errors.OnError(deviceEndpointResource, kDiscoveryError, ex.Message);
+                                    _logger.FailedToRunEndpointDiscoveryForDevice(ex, device.DeviceName);
+                                }
+                            }
                         }
 
-                        if (endpointConfiguration.RunAssetDiscovery == true &&
-                            endpointConfiguration.AssetTypes?.Count > 0)
+                        // Compare last device list version, if version changed, stop and continue on
+                        // next timer fired. This will settle the changes and limit resource usage.
+                        if (_lastDeviceListVersion != lastListVersion)
                         {
-                            // Run discovery
-                            try
-                            {
-                                await RunDiscoveryUsingTypesAsync(deviceEndpointResource,
-                                    endpointConfiguration, errors, ct).ConfigureAwait(false);
-                            }
-                            catch (Exception ex)
-                            {
-                                errors.OnError(deviceEndpointResource, kDiscoveryError, ex.Message);
-                                _logger.FailedToRunDiscoveryForDevice(ex, device.DeviceName);
-                            }
-                        }
-
-                        if (endpointConfiguration.Source == null &&
-                            endpointConfiguration.EndpointSecurityMode == SecurityMode.None &&
-                            !deviceDiscoveryComplete)
-                        {
-                            try
-                            {
-                                await RunEndpointDiscoveryAsync(deviceEndpointResource,
-                                    endpointUri, ct).ConfigureAwait(false);
-                                deviceDiscoveryComplete = true;
-                            }
-                            catch (Exception ex)
-                            {
-                                errors.OnError(device, kDiscoveryError, ex.Message);
-                                _logger.FailedToRunEndpointDiscoveryForDevice(ex, device.DeviceName);
-                            }
+                            _logger.RunningDiscoveryInterrupted();
+                            break;
                         }
                     }
-
                     await errors.ReportAsync(ct).ConfigureAwait(false);
-
-                    // Compare last device list version, if version changed, stop and continue on
-                    // next timer fired. This will settle the changes and limit resource usage.
-                    if (_lastDeviceListVersion != lastListVersion)
-                    {
-                        _logger.RunningDiscoveryInterrupted();
-                        break;
-                    }
+                }
+                catch (OperationCanceledException) { break; }
+                catch (Exception ex)
+                {
+                    _logger.UnexpectedErrorDuringDiscovery(ex);
                 }
                 if (_lastDeviceListVersion == lastListVersion)
                 {
                     _logger.RunningDiscoveryCompleted();
                     _trigger.Reset();
                 }
-                await _trigger.WaitAsync(ct).ConfigureAwait(false);
+                try
+                {
+                    await _trigger.WaitAsync(ct).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) { break; }
+                catch (Exception ex)
+                {
+                    _logger.UnexpectedErrorDuringDiscovery(ex);
+                }
             }
         }
 
@@ -2043,6 +2074,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 EndpointSecurityMode = endpointConfiguration.EndpointSecurityMode,
                 EndpointSecurityPolicy = endpointConfiguration.EndpointSecurityPolicy,
                 DumpConnectionDiagnostics = endpointConfiguration.DumpConnectionDiagnostics,
+                DisableSubscriptionTransfer = endpointConfiguration.DisableSubscriptionTransfer,
                 UseReverseConnect = endpointConfiguration.UseReverseConnect
             };
             var credentials = _client.GetEndpointCredentials(deviceEndpointResource.DeviceName,
@@ -2105,7 +2137,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="methodMetadata"></param>
         /// <param name="compressionLevel"></param>
         /// <returns></returns>
-        internal JsonDocument? ConvertActionConfiguration(MethodMetadataModel methodMetadata,
+        internal string? ConvertActionConfiguration(MethodMetadataModel methodMetadata,
             int compressionLevel = 0)
         {
             byte[] compressed;
@@ -2119,8 +2151,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
                 compressed = result.ToArray();
             }
-            var json = JsonSerializer.Serialize(new { m = compressed });
-            if (json.Length > 480) // 512 is max size but we are leaving some room here
+            var json = JsonSerializer.Serialize(new ActionModel { CompiledMetadata = compressed });
+            if (Encoding.UTF8.GetByteCount(json) > 512) // 512 is max size but we are leaving some room here
             {
                 if (compressionLevel > 2)
                 {
@@ -2145,15 +2177,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .ToList()
                 }, ++compressionLevel);
             }
-            return JsonDocument.Parse(json);
+            return json;
         }
 
         /// <summary>
         /// Decompress method metadata
         /// </summary>
         /// <param name="actionConfigurationJson"></param>
+        /// <param name="errors"></param>
+        /// <param name="resource"></param>
         /// <returns></returns>
-        internal MethodMetadataModel ConvertActionConfiguration(string? actionConfigurationJson)
+        internal MethodMetadataModel ConvertActionConfiguration(string? actionConfigurationJson,
+            ValidationErrors errors, Resource resource)
         {
             if (actionConfigurationJson == null)
             {
@@ -2161,15 +2196,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
             try
             {
-                var actionConfiguration = JsonDocument.Parse(actionConfigurationJson);
-                if (actionConfiguration == null ||
-                    !actionConfiguration.RootElement.TryGetProperty("m", out var compressedElement) ||
-                    !compressedElement.TryGetBytesFromBase64(out var compressed))
+                var actionConfiguration = Deserialize(actionConfigurationJson,
+                    () => new ActionModel { CompiledMetadata = [] }, errors, resource);
+                if (actionConfiguration?.CompiledMetadata == null ||
+                    actionConfiguration.CompiledMetadata.Length == 0)
                 {
                     return new MethodMetadataModel();
                 }
                 byte[] decompressed;
-                using (var input = new MemoryStream(compressed))
+                using (var input = new MemoryStream(actionConfiguration.CompiledMetadata))
                 using (var output = new MemoryStream())
                 {
                     using (var gs = new GZipStream(input, CompressionMode.Decompress))
@@ -2201,8 +2236,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private static string CreateAssetKey(string deviceName, string inboundEndpointName,
             string assetName) => $"{deviceName}_{inboundEndpointName}_{assetName}";
 
-        private static string MakeValidName(string input, int leaveRoom = 0)
+        private static string MakeValidArmResourceName(string input, string? postFix = null)
         {
+            var leaveRoom = postFix == null ? 0 : Encoding.UTF8.GetByteCount(postFix);
             Debug.Assert(leaveRoom < 63);
             // Convert to lowercase
             string sanitized = input.ToLowerInvariant();
@@ -2217,6 +2253,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 sanitized = sanitized.Substring(0, maxChars);
             }
             return sanitized;
+        }
+
+        private static string MakeValidName(string input, string? postFix = null)
+        {
+            var leaveRoom = postFix == null ? 0 : Encoding.UTF8.GetByteCount(postFix);
+            var length = Encoding.UTF8.GetByteCount(input);
+            // Truncate to characters if necessary (128 max)
+            var maxChars = leaveRoom > 128 ? 0 : 128 - leaveRoom;
+            if (length > maxChars)
+            {
+                return input.ToSha1Hash();
+            }
+            return input;
         }
 
         /// <summary>
@@ -2349,15 +2398,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var client = _outer._client;
                 foreach (var (deviceName, status) in _devices)
                 {
-                    await client.UpdateDeviceStatusAsync(deviceName, null!,
-                        status.Status, ct: ct).ConfigureAwait(false);
+                    try
+                    {
+                        await client.UpdateDeviceStatusAsync(status.DeviceName, status.EndpointName,
+                            status.Status, ct: ct).ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        _outer._logger.FailedToUpdateDeviceStatus(ex,
+                            status.DeviceName, status.EndpointName);
+                    }
                 }
                 foreach (var (assetName, status) in _assets)
                 {
-                    await client.UpdateAssetStatusAsync(
-                        status.Asset.DeviceRef.DeviceName,
-                        status.Asset.DeviceRef.EndpointName,
-                        assetName, status.Status, ct: ct).ConfigureAwait(false);
+                    try
+                    {
+                        await client.UpdateAssetStatusAsync(
+                            status.Asset.DeviceRef.DeviceName,
+                            status.Asset.DeviceRef.EndpointName,
+                            assetName, status.Status, ct: ct).ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        _outer._logger.FailedToUpdateAssetStatus(ex, assetName,
+                            status.Asset.DeviceRef.DeviceName, status.Asset.DeviceRef.EndpointName);
+                    }
                 }
             }
 
@@ -2369,7 +2434,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <param name="error"></param>
             private void Add(DeviceResource resource, string code, string error)
             {
-                var status = GetDeviceStatusResource(resource);
+                var ep = resource.Device.Endpoints?.Inbound?.FirstOrDefault().Key;
+                if (string.IsNullOrEmpty(ep))
+                {
+                    // Cannot find an endpoint but we need it to attach status
+                    return;
+                }
+                var status = GetDeviceStatusResource(new DeviceEndpointResource(
+                    resource.DeviceName, resource.Device, ep));
                 if (status.Status.Config == null)
                 {
                     status.Status.Config = new ConfigStatus
@@ -2562,7 +2634,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 });
             }
 
-            private DeviceStatusResource GetDeviceStatusResource(DeviceResource device)
+            private DeviceStatusResource GetDeviceStatusResource(DeviceEndpointResource device)
             {
                 if (!_devices.TryGetValue(device.DeviceName, out var deviceStatus))
                 {
@@ -2586,8 +2658,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 public AssetStatus Status { get; } = new();
             }
-            internal record class DeviceStatusResource(DeviceResource resource)
-                : DeviceResource(resource.DeviceName, resource.Device)
+            internal record class DeviceStatusResource(DeviceEndpointResource resource)
+                : DeviceEndpointResource(resource.DeviceName, resource.Device, resource.EndpointName)
             {
                 public DeviceStatus Status { get; } = new();
             }
@@ -2656,6 +2728,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     {
         private const int EventClass = 2000;
 
+        internal static bool IsDebugLogConfigurationEnabled(this ILogger logger)
+#if !DEBUG
+            => logger.IsEnabled(LogLevel.Debug);
+#else
+            => true;
+#endif
+
         [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Debug,
             Message = "Failed to close discovery runner.")]
         internal static partial void FailedToCloseDiscoveryRunner(this ILogger logger,
@@ -2710,7 +2789,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         internal static partial void ConvertingAssetsOnDevices(this ILogger logger,
             int assets, int devices);
 
-        [LoggerMessage(EventId = EventClass + 12, Level = LogLevel.Information, SkipEnabledCheck = true,
+        [LoggerMessage(EventId = EventClass + 12, Level = LogLevel.Debug, SkipEnabledCheck = true,
             Message = "New configuration applied:\n{Configuration}")]
         internal static partial void NewConfigurationApplied(this ILogger logger,
             string configuration);
@@ -2836,5 +2915,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             "'{Asset}' inside schema namespace '{Namespace}'")]
         internal static partial void RegisteredSchema(this ILogger logger, string name, string version,
             string resource, string asset, string @namespace);
+
+        [LoggerMessage(EventId = EventClass + 39, Level = LogLevel.Error,
+            Message = "Unexpected error during discovery.")]
+        internal static partial void UnexpectedErrorDuringDiscovery(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 40, Level = LogLevel.Error,
+            Message = "Failed to update asset status for asset {Asset} with device {Device} with endpoint {Endpoint}")]
+        internal static partial void FailedToUpdateAssetStatus(this ILogger logger, Exception ex,
+            string asset, string device, string endpoint);
+
+        [LoggerMessage(EventId = EventClass + 41, Level = LogLevel.Error,
+            Message = "Failed to update asset status for device {Device} with endpoint {Endpoint}")]
+        internal static partial void FailedToUpdateDeviceStatus(this ILogger logger, Exception ex,
+            string device, string endpoint);
     }
 }

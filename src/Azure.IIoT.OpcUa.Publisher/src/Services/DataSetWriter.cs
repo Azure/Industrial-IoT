@@ -936,10 +936,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         return null;
                     }
                     var type = isMetadata ? "Metadata" :
-                        notification.MessageType == MessageType.Event ?
-                            "Event" : "Dataset";
-                    var typeName = _writer.Writer.DataSet?.Type
-                        ?? notification.EventTypeName;
+                        notification.MessageType == MessageType.Event ? "Event" : "Dataset";
+                    var typeName = _writer.Writer.DataSet?.Type ?? notification.EventTypeName;
                     if (!string.IsNullOrEmpty(typeName))
                     {
                         type += "/" + typeName;
@@ -949,16 +947,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         subject += "/" + _writer.Writer.DataSet.Name;
                     }
-                    if (!Uri.TryCreate(notification.ApplicationUri ??
-                        notification.EndpointUrl, UriKind.Absolute, out var source))
+                    if (!Uri.TryCreate(notification.ApplicationUri ?? notification.EndpointUrl,
+                        UriKind.Absolute, out var source))
                     {
                         // Set a default source
                         source = new Uri("urn:" +
                             _group._options.Value.PublisherId ?? "publisher");
                     }
+                    var id = Guid.CreateVersion7(_group._timeProvider.GetUtcNow());
                     return new CloudEventHeader
                     {
-                        Id = notification.SequenceNumber.ToString(CultureInfo.InvariantCulture),
+                        Id = $"{id:N}/{notification.SequenceNumber:X}",
                         Time = notification.PublishTimestamp,
                         Type = type,
                         Source = source,

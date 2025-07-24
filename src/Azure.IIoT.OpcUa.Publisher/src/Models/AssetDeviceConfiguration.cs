@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
+    using System;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
 
@@ -38,99 +39,231 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     }
 
     /// <summary>
-    /// Dataset reource additional configuration
-    /// model.
+    /// Base data set and event model
     /// </summary>
-    [DataContract]
-    public sealed record class DataSetModel : PublishedNodesEntryModel
+    public abstract record class BaseDataSetEventModel
     {
+        /// <summary>
+        /// The encoding format to use for messages. Allowed values
+        /// include:
+        /// - Avro: Avro binary encoding
+        /// - Json: Standard JSON encoding
+        /// </summary>
+        [DataMember(Name = "messageEncoding", Order = 1,
+            EmitDefaultValue = false)]
+        public MessageEncoding? MessageEncoding { get; set; }
+
+        /// <summary>
+        /// Priority of the writer subscription.
+        /// </summary>
+        [DataMember(Name = "priority", Order = 2,
+            EmitDefaultValue = false)]
+        public byte? Priority { get; set; }
+
+        /// <summary>
+        /// The optional dataset class id as it shall appear in dataset
+        /// messages and dataset metadata. Used to uniquely identify the
+        /// type of dataset being published. Default: Guid.Empty
+        /// </summary>
+        [DataMember(Name = "dataSetClassId", Order = 3,
+            EmitDefaultValue = false)]
+        public Guid DataSetClassId { get; set; }
+
         /// <summary>
         /// Adapt the sampling interval property
         /// </summary>
-        [DataMember(Name = "samplingInterval", Order = 100,
+        [DataMember(Name = "samplingInterval", Order = 4,
             EmitDefaultValue = false)]
-        public int? SamplingInterval
-        {
-            get => DataSetSamplingInterval;
-            set => DataSetSamplingInterval = value;
-        }
+        public int? SamplingInterval { get; set; }
 
         /// <summary>
         /// Adapt the publishing interval property
         /// </summary>
-        [DataMember(Name = "publishingInterval", Order = 101,
+        [DataMember(Name = "publishingInterval", Order = 5,
             EmitDefaultValue = false)]
-        public int? PublishingInterval
-        {
-            get => DataSetPublishingInterval;
-            set => DataSetPublishingInterval = value;
-        }
+        public int? PublishingInterval { get; set; }
 
         /// <summary>
         /// Adapt the key frame count property
         /// </summary>
-        [DataMember(Name = "keyFrameCount", Order = 102,
+        [DataMember(Name = "keyFrameCount", Order = 6,
             EmitDefaultValue = false)]
-        public uint? KeyFrameCount
-        {
-            get => DataSetKeyFrameCount;
-            set => DataSetKeyFrameCount = value;
-        }
+        public uint? KeyFrameCount { get; set; }
 
+        /// <summary>
+        /// Defines how many publishing timer expirations to wait
+        /// before sending a keep-alive message when no notifications
+        /// are pending. Works with SendKeepAliveDataSetMessages to
+        /// maintain connection awareness. Keep-alive messages help
+        /// detect connection issues even when no data changes are
+        /// occurring.
+        /// </summary>
+        [DataMember(Name = "maxKeepAliveCount", Order = 7,
+            EmitDefaultValue = false)]
+        public uint? MaxKeepAliveCount { get; set; }
+
+        /// <summary>
+        /// Controls whether to send keep alive messages for this
+        /// dataset when a subscription keep alive notification is
+        /// received. Keep alive messages help maintain connection
+        /// status awareness. Only valid if the messaging mode supports
+        /// keep alive messages. Default: false
+        /// </summary>
+        [DataMember(Name = "sendKeepAliveDataSetMessages", Order = 8,
+            EmitDefaultValue = false)]
+        public bool? SendKeepAliveDataSetMessages { get; set; }
+
+        /// <summary>
+        /// When sending of keep alive messages is enabled, this
+        /// flag controls whether the keep alive messages are sent
+        /// as key frames. Key frames contain all current values.
+        /// </summary>
+        [DataMember(Name = "sendKeepAliveAsKeyFrameMessages", Order = 9,
+            EmitDefaultValue = false)]
+        public bool? SendKeepAliveAsKeyFrameMessages { get; set; }
+
+        /// <summary>
+        /// Defines what action to take when the watchdog timer
+        /// triggers. Available behaviors:
+        /// - Diagnostic: Log the event only
+        /// - Reset: Reset the subscription
+        /// - FailFast: Terminate the connection
+        /// - ExitProcess: Shut down the publisher
+        /// </summary>
+        [DataMember(Name = "dataSetWriterWatchdogBehavior", Order = 10,
+            EmitDefaultValue = false)]
+        public SubscriptionWatchdogBehavior? DataSetWriterWatchdogBehavior { get; set; }
+
+        /// <summary>
+        /// Specifies the condition that triggers the watchdog
+        /// behavior. Options:
+        /// - WhenAnyAreLate: Execute when any monitored item is late
+        ///   (default)
+        /// - WhenAllAreLate: Execute only when all items are late
+        /// </summary>
+        [DataMember(Name = "opcNodeWatchdogCondition", Order = 11,
+            EmitDefaultValue = false)]
+        public MonitoredItemWatchdogCondition? OpcNodeWatchdogCondition { get; set; }
+
+        /// <summary>
+        /// The timeout duration used to monitor whether monitored
+        /// items in the subscription are continuously reporting fresh
+        /// data. This watchdog mechanism helps detect stale data or
+        /// connectivity issues. When this timeout expires, the
+        /// configured DataSetWriterWatchdogBehavior is triggered based
+        /// on OpcNodeWatchdogCondition. Expressed as a TimeSpan value.
+        /// </summary>
+        [DataMember(Name = "opcNodeWatchdogTimespan", Order = 12,
+            EmitDefaultValue = false)]
+        public TimeSpan? OpcNodeWatchdogTimespan { get; set; }
+
+        /// <summary>
+        /// Controls whether to republish missed values after a
+        /// subscription is transferred during reconnect handling. Only
+        /// applies when DisableSubscriptionTransfer is false. Helps
+        /// ensure no data is lost during connection interruptions.
+        /// Default: true
+        /// </summary>
+        [DataMember(Name = "republishAfterTransfer", Order = 13,
+            EmitDefaultValue = false)]
+        public bool? RepublishAfterTransfer { get; set; }
+    }
+
+    /// <summary>
+    /// Dataset reource additional configuration model.
+    /// </summary>
+    [DataContract]
+    public sealed record class DataSetModel : BaseDataSetEventModel
+    {
         /// <summary>
         /// Adapt the start instance property
         /// </summary>
-        [DataMember(Name = "publishingInterval", Order = 103,
+        [DataMember(Name = "startInstance", Order = 103,
             EmitDefaultValue = false)]
         public string? StartInstance { get; set; }
+    }
+
+    /// <summary>
+    /// Management group action reource additional configuration model.
+    /// </summary>
+    [DataContract]
+    public sealed record class ActionModel
+    {
+        /// <summary>
+        /// Compiled method metadata
+        /// </summary>
+        [DataMember(Name = "_io", Order = 0,
+            EmitDefaultValue = false)]
+        public required byte[] CompiledMetadata { get; set; }
     }
 
     /// <summary>
     /// Management group reource additional configuration model.
     /// </summary>
     [DataContract]
-    public sealed record class ManagementGroupModel : PublishedNodesEntryModel
+    public sealed record class ManagementGroupModel
     {
+        /// <summary>
+        /// Node id of the node which the event pertains to
+        /// </summary>
+        [DataMember(Name = "dataSource", Order = 0,
+            EmitDefaultValue = false)]
+        public string? DataSource { get; set; }
+
+        /// <summary>
+        /// The encoding format to use for messages. Allowed values
+        /// include:
+        /// - Avro: Avro binary encoding
+        /// - Json: Standard JSON encoding
+        /// </summary>
+        [DataMember(Name = "messageEncoding", Order = 1,
+            EmitDefaultValue = false)]
+        public MessageEncoding? MessageEncoding { get; set; }
+
+        /// <summary>
+        /// Priority of the writer subscription.
+        /// </summary>
+        [DataMember(Name = "priority", Order = 2,
+            EmitDefaultValue = false)]
+        public byte? Priority { get; set; }
+
+        /// <summary>
+        /// The optional dataset class id as it shall appear in dataset
+        /// messages and dataset metadata. Used to uniquely identify the
+        /// type of dataset being published. Default: Guid.Empty
+        /// </summary>
+        [DataMember(Name = "dataSetClassId", Order = 3,
+            EmitDefaultValue = false)]
+        public Guid DataSetClassId { get; set; }
     }
 
     /// <summary>
     /// Event reource additional configuration model.
     /// </summary>
     [DataContract]
-    public sealed record class EventModel : PublishedNodesEntryModel
+    public sealed record class EventModel : BaseDataSetEventModel
     {
         /// <summary>
-        /// Adapt the sampling interval property
+        /// Name of the source node
         /// </summary>
-        [DataMember(Name = "samplingInterval", Order = 100,
+        [DataMember(Name = "sourceName", Order = 99,
             EmitDefaultValue = false)]
-        public int? SamplingInterval
-        {
-            get => DataSetSamplingInterval;
-            set => DataSetSamplingInterval = value;
-        }
+        public string? SourceName { get; set; }
 
         /// <summary>
-        /// Adapt the publishing interval property
+        /// Node id of the node which the event pertains to
         /// </summary>
-        [DataMember(Name = "publishingInterval", Order = 101,
+        [DataMember(Name = "dataSource", Order = 100,
             EmitDefaultValue = false)]
-        public int? PublishingInterval
-        {
-            get => DataSetPublishingInterval;
-            set => DataSetPublishingInterval = value;
-        }
+        public string? DataSource { get; set; }
 
         /// <summary>
-        /// Adapt the key frame count property
+        /// The name of the event which should be the post
+        /// fix of the name of the event resource.
         /// </summary>
-        [DataMember(Name = "keyFrameCount", Order = 102,
+        [DataMember(Name = "eventName", Order = 101,
             EmitDefaultValue = false)]
-        public uint? KeyFrameCount
-        {
-            get => DataSetKeyFrameCount;
-            set => DataSetKeyFrameCount = value;
-        }
+        public string? EventName { get; set; }
 
         /// <summary>
         /// Size of the server-side queue for this monitored item.
@@ -140,7 +273,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// configured. Larger queues help prevent data loss but use
         /// more server memory.
         /// </summary>
-        [DataMember(Name = "QueueSize", Order = 104,
+        [DataMember(Name = "QueueSize", Order = 105,
             EmitDefaultValue = false)]
         public uint? QueueSize { get; set; }
 
@@ -152,7 +285,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// connection issues. Use False to maintain current value
         /// accuracy.
         /// </summary>
-        [DataMember(Name = "DiscardNew", Order = 105,
+        [DataMember(Name = "DiscardNew", Order = 106,
             EmitDefaultValue = false)]
         public bool? DiscardNew { get; set; }
 
@@ -160,14 +293,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Event Filter to apply. When specified the node is assmed
         /// to be an event notifier node to subscribe to.
         /// </summary>
-        [DataMember(Name = "EventFilter", Order = 106,
+        [DataMember(Name = "EventFilter", Order = 107,
             EmitDefaultValue = false)]
         public EventFilterModel? EventFilter { get; set; }
 
         /// <summary>
         /// Settings for pending condition handling
         /// </summary>
-        [DataMember(Name = "ConditionHandling", Order = 107,
+        [DataMember(Name = "ConditionHandling", Order = 108,
             EmitDefaultValue = false)]
         public ConditionHandlingOptionsModel? ConditionHandling { get; set; }
 
@@ -177,7 +310,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// initial value (default). Useful when only changes are
         /// relevant. Server always sends initial value on creation.
         /// </summary>
-        [DataMember(Name = "SkipFirst", Order = 108,
+        [DataMember(Name = "SkipFirst", Order = 109,
             EmitDefaultValue = false)]
         public bool? SkipFirst { get; set; }
     }
@@ -270,23 +403,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public bool? DumpConnectionDiagnostics { get; set; }
 
         /// <summary>
+        /// Controls whether subscription transfer is disabled during
+        /// reconnect. When false (default), attempts to transfer
+        /// subscriptions on reconnect to maintain data continuity. Set
+        /// to true to fix interoperability issues with servers that
+        /// don't support subscription transfer. Can be configured
+        /// globally via command line options.
+        /// </summary>
+        [DataMember(Name = "DisableSubscriptionTransfer", Order = 11,
+            EmitDefaultValue = false)]
+        public bool? DisableSubscriptionTransfer { get; set; }
+
+        /// <summary>
         /// Runs asset discovery on the endpoint
         /// </summary>
-        [DataMember(Name = "RunAssetDiscovery", Order = 11,
+        [DataMember(Name = "RunAssetDiscovery", Order = 13,
             EmitDefaultValue = false)]
         public bool? RunAssetDiscovery { get; set; }
 
         /// <summary>
         /// Finds assets for the selected types.
         /// </summary>
-        [DataMember(Name = "AssetTypes", Order = 12,
+        [DataMember(Name = "AssetTypes", Order = 14,
             EmitDefaultValue = false)]
         public IReadOnlyList<string>? AssetTypes { get; set; }
 
         /// <summary>
         /// Source of this endpoint configuration
         /// </summary>
-        [DataMember(Name = "Source", Order = 13,
+        [DataMember(Name = "Source", Order = 15,
             EmitDefaultValue = false)]
         public string? Source { get; set; }
     }
