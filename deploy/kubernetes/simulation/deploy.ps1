@@ -50,7 +50,8 @@ param(
     [string] [ValidateSet(
         "opc-plc",
         "opc-test",
-        "umati"
+        "umati",
+        "umati-public"
     )] $SimulationName = "opc-plc",
     [int] $Count = 1,
     [string] [Parameter(Mandatory = $true)] $InstanceName,
@@ -157,7 +158,7 @@ else {
 }
 
 $displayName = "$($script:Count) $($script:SimulationName) simulation servers"
-if ($script:SimulationName -eq "umati") {
+if ($script:SimulationName -eq "umati-public") {
     Write-Host "Using public Umati server for simulation." -ForegroundColor Yellow
     $script:Count = 1
 }
@@ -242,6 +243,10 @@ switch ($script:SimulationName) {
         # $assetTypes += "nsu=http://opcfoundation.org/UA/MachineTool/;i=14" # monitoring
         $assetTypes += "nsu=http://opcfoundation.org/UA/MachineTool/;i=13" # machine tool
     }
+    "umati-public" {
+        # $assetTypes += "nsu=http://opcfoundation.org/UA/MachineTool/;i=14" # monitoring
+        $assetTypes += "nsu=http://opcfoundation.org/UA/MachineTool/;i=13" # machine tool
+    }
 }
 
 for ($i = 0; $i -lt $script:Count; $i++) {
@@ -252,13 +257,13 @@ for ($i = 0; $i -lt $script:Count; $i++) {
         --url "$($deviceResource)?api-version=2025-07-01-preview" `
         --headers "Content-Type=application/json" } | ConvertFrom-Json) 2>&1
     if (!$device -or !$device.id -or $script:Force.IsPresent) {
-        if ($script:SimulationName -eq "umati") { 
+        if ($script:SimulationName -eq "umati-public") { 
             $address = "opc.tcp://opcua.umati.app:4840"
         }
         else {
             $address = "$($script:SimulationName)-$($DeploymentName)-$($suffix)"
             $address = "$($address).$($script:Namespace).svc.cluster.local"
-            $address = "opc.tcp://$($address):50000"
+            $address = "opc.tcp://$($address):4840"
         }
         $body = @{
             extendedLocation = $iotOps.extendedLocation

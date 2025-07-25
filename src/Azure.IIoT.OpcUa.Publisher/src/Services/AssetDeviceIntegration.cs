@@ -1156,7 +1156,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     // entities. This will be split per destination, but this is ok as the name
                     // is retained and the Id property receives the unique group name.
                     DataSetWriterGroup = asset.AssetName,
-                    WriterGroupExternalId = asset.Asset.Uuid,
+                    DataSetSubject = asset.Asset.Uuid,
                     WriterGroupType = asset.Asset.AssetTypeRefs?.Count == 1 ?
                         asset.Asset.AssetTypeRefs[0] : null,
                     WriterGroupRootNodeId = asset.Asset.Attributes == null ?
@@ -1174,32 +1174,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     deviceEndpointResource);
                 if (asset.Asset.Datasets != null)
                 {
-                    var dataSetTemplate = Deserialize(asset.Asset.DefaultDatasetsConfiguration,
+                    var dataSetAdditionalConfiguration = Deserialize(asset.Asset.DefaultDatasetsConfiguration,
                         () => new PublishedNodesEntryModel { EndpointUrl = string.Empty },
                         errors, asset);
-                    if (dataSetTemplate != null)
+                    if (dataSetAdditionalConfiguration != null)
                     {
-                        dataSetTemplate = WithEndpoint(dataSetTemplate, assetEndpoint);
+                        dataSetAdditionalConfiguration = WithEndpoint(dataSetAdditionalConfiguration, assetEndpoint);
                         foreach (var dataset in asset.Asset.Datasets)
                         {
                             var datasetResource = new DataSetResource(asset.AssetName, asset.Asset, dataset);
-                            await AddEntryForDataSetAsync(dataSetTemplate, datasetResource,
+                            await AddEntryForDataSetAsync(dataSetAdditionalConfiguration, datasetResource,
                                 entries, errors, ct).ConfigureAwait(false);
                         }
                     }
                 }
                 if (asset.Asset.Events != null)
                 {
-                    var eventsTemplate = Deserialize(asset.Asset.DefaultEventsConfiguration,
+                    var eventAdditionalConfiguration = Deserialize(asset.Asset.DefaultEventsConfiguration,
                         () => new PublishedNodesEntryModel { EndpointUrl = string.Empty },
                         errors, asset);
-                    if (eventsTemplate != null)
+                    if (eventAdditionalConfiguration != null)
                     {
-                        eventsTemplate = WithEndpoint(eventsTemplate, assetEndpoint);
+                        eventAdditionalConfiguration = WithEndpoint(eventAdditionalConfiguration, assetEndpoint);
                         foreach (var @event in asset.Asset.Events)
                         {
                             var eventResource = new EventResource(asset.AssetName, asset.Asset, @event);
-                            await AddEntryForEventAsync(eventsTemplate, eventResource,
+                            await AddEntryForEventAsync(eventAdditionalConfiguration, eventResource,
                                 entries, errors, ct).ConfigureAwait(false);
                         }
                     }
@@ -1207,17 +1207,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 if (asset.Asset.ManagementGroups != null)
                 {
-                    var managementGroupTemplate = Deserialize(asset.Asset.DefaultManagementGroupsConfiguration,
+                    var managementGroupConfiguration = Deserialize(asset.Asset.DefaultManagementGroupsConfiguration,
                         () => new PublishedNodesEntryModel { EndpointUrl = string.Empty },
                         errors, asset);
-                    if (managementGroupTemplate != null)
+                    if (managementGroupConfiguration != null)
                     {
-                        managementGroupTemplate = WithEndpoint(managementGroupTemplate, assetEndpoint);
+                        managementGroupConfiguration = WithEndpoint(managementGroupConfiguration, assetEndpoint);
                         foreach (var managementGroup in asset.Asset.ManagementGroups)
                         {
                             var managementGroupResource = new ManagementGroupResource(asset.AssetName, asset.Asset,
                                 managementGroup);
-                            await AddEntryForManagementGroupAsync(managementGroupTemplate, managementGroupResource,
+                            await AddEntryForManagementGroupAsync(managementGroupConfiguration, managementGroupResource,
                                 entries, errors, ct).ConfigureAwait(false);
                         }
                     }
@@ -1406,6 +1406,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 DataSetRootNodeId = resource.DataSet.DataSource,
                 // Type is the dataset typeref
                 DataSetType = resource.DataSet.TypeRef,
+                // Source is the data set source uri
+                DataSetSourceUri = CreateSourceUri(resource.Asset, resource.DataSet.DataSource),
+                // Subject is the asset uuid and dataset name
+                DataSetSubject = CreateSubject(resource.Asset, resource.DataSet.Name),
 
                 // Dataset configuration overrides
                 DataSetKeyFrameCount = entry.DataSetKeyFrameCount ?? 10,
@@ -1501,6 +1505,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 DataSetRootNodeId = additionalConfiguration.DataSource,
                 // Type ref is the event type
                 DataSetType = resource.Event.TypeRef,
+                // Source is the device uuid and event notifier (emitting the event)
+                DataSetSourceUri = CreateSourceUri(resource.Asset, resource.Event.EventNotifier),
+                // Subject is the asset uuid and dataset name
+                DataSetSubject = CreateSubject(resource.Asset, resource.Event.Name,
+                    additionalConfiguration.DataSource),
 
                 // Event configuration overrides
                 MaxKeepAliveCount = entry.MaxKeepAliveCount ?? 30
@@ -1568,6 +1577,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     DataSetRootNodeId = additionalConfiguration.DataSource,
                     // Type ref is the type of the object that has the methods
                     DataSetType = resource.ManagementGroup.TypeRef,
+                    // Source is the data set source uri
+                    DataSetSourceUri = CreateSourceUri(resource.Asset, additionalConfiguration.DataSource),
+                    // Subject is the asset uuid and management group name
+                    DataSetSubject = CreateSubject(resource.Asset, resource.ManagementGroup.Name),
 
                     // Add topic
                     QueueName = action.Key
@@ -1745,42 +1758,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 DataSetWriterGroup = deviceEndpoint.DataSetWriterGroup,
                 WriterGroupType = deviceEndpoint.WriterGroupType,
                 WriterGroupRootNodeId = deviceEndpoint.WriterGroupRootNodeId,
-                WriterGroupExternalId = deviceEndpoint.WriterGroupExternalId,
                 WriterGroupProperties = deviceEndpoint.WriterGroupProperties
             };
-        }
-
-        /// <summary>
-        /// Create a topic for the asset and dataset
-        /// </summary>
-        /// <param name="deviceName"></param>
-        /// <param name="assetName"></param>
-        /// <param name="dataSetName"></param>
-        /// <param name="extra"></param>
-        /// <returns></returns>
-        private static string CreateTopic(string? deviceName, string? assetName, string? dataSetName, string? extra = null)
-        {
-            var builder = new StringBuilder("{RootTopic}"); // /opcua/{Encoding}/{MessageType}");
-            if (!string.IsNullOrEmpty(deviceName))
-            {
-                builder = builder.Append('/').Append(Furly.Extensions.Messaging.TopicFilter.Escape(deviceName));
-            }
-            if (!string.IsNullOrEmpty(assetName))
-            {
-                builder = builder.Append('/').Append(Furly.Extensions.Messaging.TopicFilter.Escape(assetName));
-            }
-            if (!string.IsNullOrEmpty(dataSetName))
-            {
-                foreach (var part in dataSetName.Split('.', StringSplitOptions.RemoveEmptyEntries))
-                {
-                    builder = builder.Append('/').Append(Furly.Extensions.Messaging.TopicFilter.Escape(part));
-                }
-            }
-            if (!string.IsNullOrEmpty(extra))
-            {
-                builder = builder.Append('/').Append(Furly.Extensions.Messaging.TopicFilter.Escape(extra));
-            }
-            return builder.ToString();
         }
 
         /// <summary>
@@ -2102,6 +2081,87 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 return false;
             }
             return true;
+        }
+
+        /// <summary>
+        /// Create a topic for the asset and dataset
+        /// </summary>
+        /// <param name="deviceName"></param>
+        /// <param name="assetName"></param>
+        /// <param name="dataSetName"></param>
+        /// <param name="extra"></param>
+        /// <returns></returns>
+        private static string CreateTopic(string? deviceName, string? assetName, string? dataSetName,
+            string? extra = null)
+        {
+            var builder = new StringBuilder("{RootTopic}"); // /opcua/{Encoding}/{MessageType}");
+            if (!string.IsNullOrEmpty(deviceName))
+            {
+                builder = builder.Append('/').Append(Furly.Extensions.Messaging.TopicFilter.Escape(deviceName));
+            }
+            if (!string.IsNullOrEmpty(assetName))
+            {
+                builder = builder.Append('/').Append(Furly.Extensions.Messaging.TopicFilter.Escape(assetName));
+            }
+            if (!string.IsNullOrEmpty(dataSetName))
+            {
+                foreach (var part in dataSetName.Split('.', StringSplitOptions.RemoveEmptyEntries))
+                {
+                    builder = builder.Append('/').Append(Furly.Extensions.Messaging.TopicFilter.Escape(part));
+                }
+            }
+            if (!string.IsNullOrEmpty(extra))
+            {
+                builder = builder.Append('/').Append(Furly.Extensions.Messaging.TopicFilter.Escape(extra));
+            }
+            return builder.ToString();
+        }
+
+        /// <summary>
+        /// Create cloud event source uri as per specification for azure iot operations
+        /// Identifies the context in which the event happened.
+        /// </summary>
+        /// <param name="asset"></param>
+        /// <param name="dataSource"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        private string CreateSourceUri(Asset asset, string? dataSource = null)
+        {
+            var key = CreateDeviceKey(asset.DeviceRef.DeviceName, asset.DeviceRef.EndpointName);
+            if (!_devices.TryGetValue(key, out var device))
+            {
+                throw new ArgumentException("Device not found for asset", nameof(asset));
+            }
+            var builder = new StringBuilder("ms-aio:")
+                .Append(device.Device.ExternalDeviceId)
+                .Append('_')
+                .Append(asset.DeviceRef.EndpointName);
+            if (!string.IsNullOrEmpty(dataSource))
+            {
+                builder = builder.Append('/').Append(dataSource.UrlEncode());
+            }
+            return builder.ToString();
+        }
+
+        /// <summary>
+        /// Create cloud event subject as per specification for azure iot operations
+        /// Identifies what the event is about.
+        /// </summary>
+        /// <param name="asset"></param>
+        /// <param name="dataSetName"></param>
+        /// <param name="dataSubject"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        private string CreateSubject(Asset asset, string dataSetName, string? dataSubject = null)
+        {
+            var builder = new StringBuilder(asset.ExternalAssetId)
+                .Append('/')
+                .Append(dataSetName);
+            if (!string.IsNullOrEmpty(dataSubject))
+            {
+                builder = builder.Append('/').Append(dataSubject.UrlEncode());
+            }
+            return builder.ToString();
         }
 
         /// <summary>

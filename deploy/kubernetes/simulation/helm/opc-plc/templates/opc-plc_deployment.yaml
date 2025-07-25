@@ -48,7 +48,7 @@ spec:
         image: {{ $.Values.image }}:{{ $.Values.tag }}
         imagePullPolicy: {{ $.Values.pullPolicy }}
         ports:
-        - containerPort: 50000
+        - containerPort: 4840
         args:
           - "--ph=opc-plc-{{ $suffix }}.{{ $.Release.Namespace }}"
           - "--cdn=opc-plc-{{ $suffix }}.{{ $.Release.Namespace }},opc-plc-{{ $suffix }}"
@@ -62,7 +62,7 @@ spec:
           - "--fn={{ $.Values.fastNodes }}"
           - "--veryfastrate={{ $.Values.fastRate }}"
           - "--gn=5"
-          - "--pn=50000"
+          - "--pn=4840"
           {{- if $.Values.openTelemetry.endpointUri }}
           - "--otlpee={{ $.Values.openTelemetry.endpointUri }}"
           - "--otlpei={{ $.Values.openTelemetry.exportIntervalSeconds }}"

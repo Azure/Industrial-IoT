@@ -107,7 +107,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var endpointDescription = await OpcUaClient.SelectEndpointAsync(
                     _configuration.Value, endpointUrl, null,
                     endpoint.Endpoint.SecurityMode ?? SecurityMode.NotNone,
-                    endpoint.Endpoint.SecurityPolicy, _logger, endpoint,
+                    endpoint.Endpoint.SecurityPolicy, _logger, endpoint.Endpoint,
                     ct: ct).ConfigureAwait(false);
 
                 var endpointConfiguration = EndpointConfiguration.Create(

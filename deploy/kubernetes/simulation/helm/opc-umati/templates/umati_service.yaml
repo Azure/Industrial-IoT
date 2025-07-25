@@ -7,16 +7,16 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: opc-plc-{{ $suffix }}
+  name: umati-{{ $suffix }}
   namespace: {{ $.Release.Namespace }}
   labels:
     {{- $simulationLabels | nindent 4 }}
-    app.kubernetes.io/component: opc-plc-{{ $suffix }}-service
+    app.kubernetes.io/component: umati-{{ $suffix }}-service
 spec:
   type: ClusterIP
   selector:
     {{- $simulationSelectorLabels | nindent 4 }}
-    app.kubernetes.io/component: opc-plc-{{ $suffix }}
+    app.kubernetes.io/component: umati-{{ $suffix }}
   ports:
   - port: 4840
     protocol: TCP

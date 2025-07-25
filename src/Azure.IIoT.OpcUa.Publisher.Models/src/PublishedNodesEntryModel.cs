@@ -670,12 +670,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public HeartbeatBehavior? DefaultHeartbeatBehavior { get; set; }
 
         /// <summary>
-        /// Contains a globally unique group identifier related to
-        /// the entry concept that allows correlation into other systems.
+        /// Contains an uri identifier that allows correlation of the writer
+        /// data set source into other systems. Will be used as part of
+        /// cloud events header if enabled.
         /// </summary>
-        [DataMember(Name = "WriterGroupExternalId", Order = 57,
+        [DataMember(Name = "DataSetSourceUri", Order = 57,
             EmitDefaultValue = false)]
-        public string? WriterGroupExternalId { get; set; }
+        public string? DataSetSourceUri { get; set; }
+
+        /// <summary>
+        /// Contains an identifier that allows correlation of the writer
+        /// group into other systems in the context of the source. Will be
+        /// used as part of cloud events header if enabled.
+        /// </summary>
+        [DataMember(Name = "DataSetSubject", Order = 58,
+            EmitDefaultValue = false)]
+        public string? DataSetSubject { get; set; }
 
         /// <summary>
         /// Additional properties of the writer group that should be retained

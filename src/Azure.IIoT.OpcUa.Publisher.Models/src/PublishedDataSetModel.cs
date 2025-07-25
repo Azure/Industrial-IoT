@@ -66,16 +66,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
 
         /// <summary>
         /// Root node of the dataset
+        /// (Publisher extension)
         /// </summary>
-        [DataMember(Name = "rootNode", Order = 7,
+        [DataMember(Name = "subject", Order = 7,
             EmitDefaultValue = false)]
         public string? RootNode { get; set; }
 
         /// <summary>
         /// Type of the dataset
+        /// (Publisher extension)
         /// </summary>
         [DataMember(Name = "type", Order = 8,
             EmitDefaultValue = false)]
         public string? Type { get; set; }
+
+        /// <summary>
+        /// Subject of the dataset
+        /// (Publisher extension)
+        /// </summary>
+        [DataMember(Name = "subject", Order = 9,
+            EmitDefaultValue = false)]
+        public string? Subject { get; set; }
     }
 }

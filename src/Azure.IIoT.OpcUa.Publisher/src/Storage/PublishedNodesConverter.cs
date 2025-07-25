@@ -161,6 +161,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             DataSetName = item.Writer.DataSet?.Name,
                             DataSetType = item.Writer.DataSet?.Type,
                             DataSetRootNodeId = item.Writer.DataSet?.RootNode,
+                            DataSetSourceUri = item.Writer.DataSet?.DataSetSource?.Uri,
+                            DataSetSubject = item.Writer.DataSet?.Subject,
                             DataSetWriterGroup =
                                 item.WriterGroup.Name == Constants.DefaultWriterGroupName ? null : item.WriterGroup.Name,
                             DataSetWriterId = item.Writer.DataSetWriterName,
@@ -169,7 +171,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             DataSetPublishingIntervalTimespan = null,
                             WriterGroupRootNodeId = item.WriterGroup.RootNode,
                             WriterGroupType = item.WriterGroup.Type,
-                            WriterGroupExternalId = item.WriterGroup.ExternalId,
                             WriterGroupProperties = item.WriterGroup.Properties?.ToDictionary(),
                             OpcNodes = ToOpcNodes(item.Writer.DataSet?.DataSetSource?.SubscriptionSettings,
                                     item.Writer.DataSet?.DataSetSource?.PublishedVariables,
@@ -455,7 +456,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         HeaderLayoutUri = group.Header.MessagingMode?.ToString(),
                         Name = group.Header.DataSetWriterGroup,
                         Properties = group.Header.WriterGroupProperties,
-                        ExternalId = group.Header.WriterGroupExternalId,
                         Type = group.Header.WriterGroupType,
                         RootNode = group.Header.WriterGroupRootNodeId,
                         NotificationPublishThreshold = group.Header.BatchSize,
@@ -498,6 +498,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                     {
                                         Name = b.Header.DataSetName,
                                         Type = b.Header.DataSetType,
+                                        Subject = group.Header.DataSetSubject,
                                         RootNode = b.Header.DataSetRootNodeId,
                                         DataSetMetaData = new DataSetMetaDataModel
                                         {
@@ -518,6 +519,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                         Routing = b.Header.DataSetRouting,
                                         DataSetSource = new PublishedDataSetSourceModel
                                         {
+                                            Uri = b.Header.DataSetSourceUri,
                                             Connection = b.Header.ToConnectionModel(ToCredential),
                                             SubscriptionSettings = new PublishedDataSetSettingsModel
                                             {

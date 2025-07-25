@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
+    using System;
     using System.Runtime.Serialization;
 
     /// <summary>
@@ -46,5 +47,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "subscriptionSettings", Order = 4,
             EmitDefaultValue = false)]
         public PublishedDataSetSettingsModel? SubscriptionSettings { get; set; }
+
+        /// <summary>
+        /// Identifies the source of the dataset to subscribers.
+        /// (publisher extension)
+        /// </summary>
+        [DataMember(Name = "uri", Order = 4,
+            EmitDefaultValue = false)]
+        public string? Uri { get; set; }
     }
 }

@@ -28,10 +28,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 id.Append(model.DataSetWriterGroup);
             }
-            if (!string.IsNullOrEmpty(model.WriterGroupExternalId))
-            {
-                id.Append(model.WriterGroupExternalId);
-            }
             if (!string.IsNullOrEmpty(model.WriterGroupRootNodeId))
             {
                 id.Append(model.WriterGroupRootNodeId);
@@ -98,11 +94,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             }
             if (!string.Equals(model.DataSetWriterGroup,
                 that.DataSetWriterGroup, StringComparison.Ordinal))
-            {
-                return false;
-            }
-            if (!string.Equals(model.WriterGroupExternalId ?? string.Empty,
-                that.WriterGroupExternalId ?? string.Empty, StringComparison.Ordinal))
             {
                 return false;
             }
@@ -474,6 +465,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 id.AppendLine();
             }
+            if (!string.IsNullOrEmpty(model.DataSetSourceUri))
+            {
+                id.Append(model.DataSetSourceUri);
+            }
+            if (!string.IsNullOrEmpty(model.DataSetSubject))
+            {
+                id.Append(model.DataSetSubject);
+            }
             Debug.Assert(id.Length != 0); // Should always have an endpoint mixed in
             return id.ToString().ToSha1Hash();
         }
@@ -566,6 +565,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             }
             if (!string.Equals(model.DataSetRootNodeId ?? string.Empty,
                 that.DataSetRootNodeId ?? string.Empty, StringComparison.Ordinal))
+            {
+                return false;
+            }
+            if (!string.Equals(model.DataSetSourceUri ?? string.Empty,
+                that.DataSetSourceUri ?? string.Empty, StringComparison.Ordinal))
+            {
+                return false;
+            }
+            if (!string.Equals(model.DataSetSubject ?? string.Empty,
+                that.DataSetSubject ?? string.Empty, StringComparison.Ordinal))
             {
                 return false;
             }

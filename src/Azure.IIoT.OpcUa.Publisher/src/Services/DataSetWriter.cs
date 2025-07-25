@@ -942,26 +942,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         type += "/" + typeName;
                     }
-                    var subject = writerGroup.ExternalId ?? string.Empty;
-                    if (!string.IsNullOrEmpty(_writer.Writer.DataSet?.Name))
-                    {
-                        subject += "/" + _writer.Writer.DataSet.Name;
-                    }
-                    if (!Uri.TryCreate(notification.ApplicationUri ?? notification.EndpointUrl,
+                    if (!Uri.TryCreate(_writer.Writer.DataSet?.DataSetSource?.Uri ??
+                            notification.ApplicationUri ?? notification.EndpointUrl,
                         UriKind.Absolute, out var source))
                     {
                         // Set a default source
-                        source = new Uri("urn:" +
+                        source = new Uri("urn:" + _writer.Writer.DataSet?.DataSetSource?.Uri ??
                             _group._options.Value.PublisherId ?? "publisher");
                     }
-                    var id = Guid.CreateVersion7(_group._timeProvider.GetUtcNow());
+                    var messageId = Guid.CreateVersion7(_group._timeProvider.GetUtcNow());
                     return new CloudEventHeader
                     {
-                        Id = $"{id:N}/{notification.SequenceNumber:X}",
+                        Id = $"{messageId:N}/{notification.SequenceNumber:X}",
                         Time = notification.PublishTimestamp,
                         Type = type,
                         Source = source,
-                        Subject = subject.Length == 0 ? null : subject
+                        Subject = _writer.Writer.DataSet?.Subject
                     };
                 }
 

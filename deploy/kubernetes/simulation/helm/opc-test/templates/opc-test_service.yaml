@@ -18,8 +18,8 @@ spec:
     {{- $simulationSelectorLabels | nindent 4 }}
     app.kubernetes.io/component: opc-test-{{ $suffix }}
   ports:
-  - port: 50000
+  - port: 4840
     protocol: TCP
-    targetPort: 50000
+    targetPort: 4840
 ---
 {{ end }}
