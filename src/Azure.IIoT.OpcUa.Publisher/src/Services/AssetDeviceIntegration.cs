@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
+    using Azure.IIoT.OpcUa.Publisher.Discovery;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Parser;
     using Azure.IIoT.OpcUa.Publisher.Stack;
@@ -62,13 +63,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="publishedNodes"></param>
         /// <param name="configurationServices"></param>
         /// <param name="connections"></param>
-        /// <param name="endpointDiscovery"></param>
+        /// <param name="discovery"></param>
         /// <param name="serializer"></param>
         /// <param name="options"></param>
         /// <param name="logger"></param>
         public AssetDeviceIntegration(IAioAdrClient client, IAioSrClient schemaRegistry,
             IPublishedNodesServices publishedNodes, IConfigurationServices configurationServices,
-            IConnectionServices<ConnectionModel> connections, IEndpointDiscovery endpointDiscovery,
+            IConnectionServices<ConnectionModel> connections, IDiscoveryServices discovery,
             IJsonSerializer serializer, IOptions<PublisherOptions> options,
             ILogger<AssetDeviceIntegration> logger)
         {
@@ -76,7 +77,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _publishedNodes = publishedNodes;
             _configurationServices = configurationServices;
             _connections = connections;
-            _endpointDiscovery = endpointDiscovery;
+            _discovery = discovery;
             _serializer = serializer;
             _options = options;
             _logger = logger;
@@ -94,7 +95,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
             _trigger = new AsyncManualResetEvent();
             _timer = new Timer(_ => _trigger.Set());
-            _discovery = Task.Factory.StartNew(() => RunDiscoveryAsync(_cts.Token), _cts.Token,
+            _assetDiscovery = Task.Factory.StartNew(() => RunAssetDiscoveryAsync(_cts.Token), _cts.Token,
+                TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
+            _deviceDiscovery = Task.Factory.StartNew(() => RunDeviceDiscoveryAsync(_cts.Token), _cts.Token,
                 TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
         }
 
@@ -113,7 +116,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _timer.Dispose();
                 try
                 {
-                    await _discovery.ConfigureAwait(false);
+                    await _assetDiscovery.ConfigureAwait(false);
                 }
                 catch (OperationCanceledException) { }
                 catch (Exception ex)
@@ -128,6 +131,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 catch (Exception ex)
                 {
                     _logger.FailedToCloseConversionProcessor(ex);
+                }
+                try
+                {
+                    await _deviceDiscovery.ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) { }
+                catch (Exception ex)
+                {
+                    _logger.FailedToCloseDiscoveryRunner(ex);
                 }
             }
             finally
@@ -837,18 +849,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private async ValueTask RunEndpointDiscoveryAsync(DeviceEndpointResource resource,
             Uri endpointUri, CancellationToken ct)
         {
-            var endpointType = _options.Value.AioDiscoveredDeviceEndpointType;
-            var endpointTypeVersion = _options.Value.AioDiscoveredDeviceEndpointTypeVersion;
-            if (endpointType == null)
-            {
-                var releaseVersion = GetType().Assembly.GetReleaseVersion();
-                endpointType = "Microsoft.OpcPublisher";
-                endpointTypeVersion = $"{releaseVersion.Major}.{releaseVersion.Minor}";
-            }
-
-            // First run endpoint discovery to find endpoints on the current device
-            var endpoints = await _endpointDiscovery.FindEndpointsAsync(
-                endpointUri, findServersOnNetwork: false, ct: ct).ConfigureAwait(false);
+            GetEndpointTypeAndVersion(out var endpointType, out var endpointTypeVersion);
             var dCurrentDevice = new DiscoveredDevice
             {
                 ExternalDeviceId = resource.Device.ExternalDeviceId,
@@ -859,15 +860,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 Attributes = resource.Device.Attributes
             };
 
+            // First run endpoint discovery to find endpoints on the current device
+            var endpoints = await _discovery.FindEndpointsAsync(
+                endpointUri, findServersOnNetwork: false, ct: ct).ConfigureAwait(false);
+
             // Now report all endpoints on the network that are not part of current device
             var alreadyFound = endpoints
                 .Select(e => e.Description?.Server?.ApplicationUri)
+                .Where(uri => uri != null)
+                .Distinct()
                 .ToHashSet();
-            var servers = await _endpointDiscovery.FindEndpointsAsync(endpointUri,
+            var servers = await _discovery.FindEndpointsAsync(endpointUri,
                 findServersOnNetwork: true, ct: ct).ConfigureAwait(false);
             var currentDeviceIsDiscoveryServer = false;
             foreach (var server in servers
-                .Where(ep => ep.Description?.Server != null &&
+                .Where(ep => ep.Description?.Server?.ApplicationUri != null &&
                     !alreadyFound.Contains(ep.Description.Server.ApplicationUri))
                 .GroupBy(ep => ep.Description.Server.ApplicationUri))
             {
@@ -886,7 +893,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 };
                 try
                 {
-                    await ReportDiscoveredDeviceAsync(deviceName, dServerDevice, endpoints,
+                    await ReportDiscoveredDeviceAsync(deviceName, dServerDevice, serverEndpoints,
                         endpointType, endpointTypeVersion, ct: ct).ConfigureAwait(false);
                 }
                 catch (Exception ex)
@@ -899,6 +906,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             dCurrentDevice.Attributes.AddOrUpdate("LDS", currentDeviceIsDiscoveryServer.ToString());
             await ReportDiscoveredDeviceAsync(resource.DeviceName, dCurrentDevice, endpoints,
                 endpointType, endpointTypeVersion, resource, ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Get endpoint type and version for new endpoints
+        /// </summary>
+        /// <param name="endpointType"></param>
+        /// <param name="endpointTypeVersion"></param>
+        private void GetEndpointTypeAndVersion(out string endpointType, out string? endpointTypeVersion)
+        {
+            var type = _options.Value.AioDiscoveredDeviceEndpointType;
+            endpointTypeVersion = _options.Value.AioDiscoveredDeviceEndpointTypeVersion;
+            if (type == null)
+            {
+                var releaseVersion = GetType().Assembly.GetReleaseVersion();
+                endpointType = "Microsoft.OpcPublisher";
+                endpointTypeVersion = $"{releaseVersion.Major}.{releaseVersion.Minor}";
+            }
+            else
+            {
+                endpointType = type;
+            }
         }
 
         /// <summary>
@@ -1930,11 +1958,91 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <summary>
+        /// Run network discovery if configured
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        internal async Task RunDeviceDiscoveryAsync(CancellationToken ct)
+        {
+            if (_options.Value.AioNetworkDiscoveryMode == null ||
+                _options.Value.AioNetworkDiscoveryMode == DiscoveryMode.Off)
+            {
+                _logger.NetworkDiscoveryDisabled();
+                return;
+            }
+            var progress = new ProgressLogger(_logger);
+            var request = new DiscoveryRequestModel
+            {
+                Discovery = _options.Value.AioNetworkDiscoveryMode.Value,
+                Configuration = _options.Value.AioNetworkDiscovery,
+            };
+            GetEndpointTypeAndVersion(out var endpointType, out var endpointTypeVersion);
+            while (!ct.IsCancellationRequested)
+            {
+                try
+                {
+                    _logger.RunningNetworkDiscovery();
+                    var servers = await _discovery.FindServersAsync(request, progress, ct)
+                        .ConfigureAwait(false);
+
+                    var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                    foreach (var server in servers
+                        .Where(ep => ep.Description?.Server?.ApplicationUri != null)
+                        .GroupBy(ep => ep.Description.Server.ApplicationUri))
+                    {
+                        if (!set.Add(server.Key) ||
+                            _devices.Values.Any(d => d.Device.Attributes?.TryGetValue(
+                            nameof(ApplicationDescription.ApplicationUri), out var uri) == true &&
+                            string.Equals(uri, server.Key, StringComparison.OrdinalIgnoreCase)))
+                        {
+                            _logger.DeviceAlreadyPresentSkipping(server.Key);
+                            continue;
+                        }
+                        var endpoints = server.ToList();
+                        Debug.Assert(endpoints.Count > 0);
+                        var applicationDescription = endpoints[0].Description.Server;
+                        var serverDeviceId = "-" + server.Key.ToSha1Hash();
+                        var deviceName = MakeValidArmResourceName(
+                            applicationDescription.ApplicationName.ToString(), serverDeviceId)
+                            .TrimEnd('-') + serverDeviceId;
+                        var dServerDevice = new DiscoveredDevice
+                        {
+                            ExternalDeviceId = serverDeviceId,
+                            Model = applicationDescription.ProductUri
+                        };
+                        try
+                        {
+                            await ReportDiscoveredDeviceAsync(deviceName, dServerDevice, endpoints,
+                                endpointType, endpointTypeVersion, ct: ct).ConfigureAwait(false);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.FailedToReportDiscoveredServer(ex, deviceName);
+                        }
+                    }
+                    _logger.NetworkDiscoveryComplete();
+
+                    if (!(_options.Value.AioNetworkDiscoveryInterval > TimeSpan.Zero))
+                    {
+                        _logger.NetworkDiscoveryConfiguredToOnlyRunOnce();
+                        break;
+                    }
+                    await Task.Delay(_options.Value.AioNetworkDiscoveryInterval.Value, ct).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) { break; }
+                catch (Exception ex)
+                {
+                    _logger.UnexpectedErrorDuringNetworkDiscovery(ex);
+                }
+            }
+        }
+
+        /// <summary>
         /// Run discovery for all known devices
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
-        internal async Task RunDiscoveryAsync(CancellationToken ct)
+        internal async Task RunAssetDiscoveryAsync(CancellationToken ct)
         {
             while (!ct.IsCancellationRequested)
             {
@@ -2766,7 +2874,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly Channel<(string, Resource)> _changeFeed;
         private readonly IConfigurationServices _configurationServices;
         private readonly IConnectionServices<ConnectionModel> _connections;
-        private readonly IEndpointDiscovery _endpointDiscovery;
+        private readonly IDiscoveryServices _discovery;
         private readonly IAioAdrClient _client;
         private readonly IPublishedNodesServices _publishedNodes;
         private readonly IJsonSerializer _serializer;
@@ -2774,7 +2882,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly ILogger _logger;
         private readonly CancellationTokenSource _cts;
         private readonly Task _processor;
-        private readonly Task _discovery;
+        private readonly Task _assetDiscovery;
+        private readonly Task _deviceDiscovery;
         private readonly AsyncManualResetEvent _trigger;
         private readonly Timer _timer;
         private int _lastDeviceListVersion;
@@ -3000,5 +3109,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             Message = "Failed to update asset status for device {Device} with endpoint {Endpoint}")]
         internal static partial void FailedToUpdateDeviceStatus(this ILogger logger, Exception ex,
             string device, string endpoint);
+
+        [LoggerMessage(EventId = EventClass + 42, Level = LogLevel.Information,
+            Message = "Running network discovery ...")]
+        internal static partial void RunningNetworkDiscovery(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 43, Level = LogLevel.Information,
+            Message = "Network discovery completed.")]
+        internal static partial void NetworkDiscoveryComplete(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 44, Level = LogLevel.Error,
+            Message = "Unexpected error during network discovery.")]
+        internal static partial void UnexpectedErrorDuringNetworkDiscovery(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 45, Level = LogLevel.Information,
+            Message = "Device {Device} already present - skipping.")]
+        internal static partial void DeviceAlreadyPresentSkipping(this ILogger logger, string device);
+
+        [LoggerMessage(EventId = EventClass + 46, Level = LogLevel.Information,
+            Message = "Network discovery disabled.")]
+        internal static partial void NetworkDiscoveryDisabled(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 47, Level = LogLevel.Information,
+            Message = "Network discovery was configured to only run once - exiting.")]
+        internal static partial void NetworkDiscoveryConfiguredToOnlyRunOnce(this ILogger logger);
     }
 }

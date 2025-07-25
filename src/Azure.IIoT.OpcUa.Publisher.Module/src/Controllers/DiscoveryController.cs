@@ -46,8 +46,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// </summary>
         /// <param name="discover"></param>
         /// <param name="servers"></param>
-        public DiscoveryController(INetworkDiscovery<object> discover,
-            IServerDiscovery<object> servers)
+        public DiscoveryController(INetworkDiscovery discover,
+            IServerDiscovery servers)
         {
             _discover = discover ?? throw new ArgumentNullException(nameof(discover));
             _servers = servers ?? throw new ArgumentNullException(nameof(servers));
@@ -186,7 +186,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             return true;
         }
 
-        private readonly INetworkDiscovery<object> _discover;
-        private readonly IServerDiscovery<object> _servers;
+        private readonly INetworkDiscovery _discover;
+        private readonly IServerDiscovery _servers;
     }
 }

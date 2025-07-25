@@ -12,8 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher
     /// <summary>
     /// Server discovery interface
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public interface IServerDiscovery<T> where T : class
+    public interface IServerDiscovery
     {
         /// <summary>
         /// Find a server using the endpoint url in the query
@@ -22,11 +21,10 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// list.
         /// </summary>
         /// <param name="query"></param>
-        /// <param name="context"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<ApplicationRegistrationModel> FindServerAsync(
-            ServerEndpointQueryModel query, T? context = null,
+            ServerEndpointQueryModel query,
             CancellationToken ct = default);
     }
 }

@@ -1359,8 +1359,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// <summary>
             /// Configuration
             /// </summary>
-            public const string AioBrokerHostName = "AIO_BROKER_HOSTNAME";
+            public const string BrokerHostName = "AIO_BROKER_HOSTNAME";
             public const string ConnectorId = "CONNECTOR_ID";
+
+            public const string DiscoveredDeviceEndpointTypeKey =
+                "AioDiscoveredDeviceEndpointType";
+            public const string DiscoveredDeviceEndpointTypeVersionKey =
+                "AioDiscoveredDeviceEndpointTypeVersion";
+            public const string NetworkDiscoveryModeKey =
+                "AioNetworkDiscoveryMode";
+            public const string NetworkDiscoveryIntervalKey =
+                "AioNetworkDiscoveryInterval";
+            public const string NetworkDiscoveryAddressRangesToScanKey =
+                "AioNetworkDiscoveryAddressRangesToScan";
+            public const string NetworkDiscoveryNetworkProbeTimeoutKey =
+                "AioNetworkDiscoveryNetworkProbeTimeout";
+            public const string NetworkDiscoveryMaxNetworkProbesKey =
+                "AioNetworkDiscoveryMaxNetworkProbes";
+            public const string NetworkDiscoveryPortRangesToScanKey =
+                "AioNetworkDiscoveryPortRangesToScan";
+            public const string NetworkDiscoveryPortProbeTimeoutKey =
+                "AioNetworkDiscoveryPortProbeTimeout";
+            public const string NetworkDiscoveryMaxPortProbesKey =
+                "AioNetworkDiscoveryMaxPortProbes";
 
             /// <inheritdoc/>
             public override void Configure(string? name, PublisherOptions options)
@@ -1377,8 +1398,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     options.EnableCloudEvents = true;
                     options.SchemaOptions = new SchemaOptions();
                     options.PublisherId = connectorId;
+
+                    options.AioDiscoveredDeviceEndpointType =
+                        GetStringOrDefault(DiscoveredDeviceEndpointTypeKey);
+                    options.AioDiscoveredDeviceEndpointTypeVersion =
+                        GetStringOrDefault(DiscoveredDeviceEndpointTypeVersionKey);
+                    var discoveryMode = GetStringOrDefault(NetworkDiscoveryModeKey);
+                    if (Enum.TryParse<Models.DiscoveryMode>(discoveryMode, true, out var mode))
+                    {
+                        options.AioNetworkDiscoveryMode = mode;
+                    }
+                    options.AioNetworkDiscoveryInterval =
+                        GetDurationOrNull(NetworkDiscoveryIntervalKey, TimeSpan.FromHours(12));
+                    options.AioNetworkDiscovery.AddressRangesToScan =
+                        GetStringOrDefault(NetworkDiscoveryAddressRangesToScanKey);
+                    options.AioNetworkDiscovery.NetworkProbeTimeout =
+                        GetDurationOrNull(NetworkDiscoveryNetworkProbeTimeoutKey);
+                    options.AioNetworkDiscovery.MaxNetworkProbes =
+                        GetIntOrNull(NetworkDiscoveryMaxNetworkProbesKey);
+                    options.AioNetworkDiscovery.PortRangesToScan =
+                        GetStringOrDefault(NetworkDiscoveryPortRangesToScanKey);
+                    options.AioNetworkDiscovery.PortProbeTimeout =
+                        GetDurationOrNull(NetworkDiscoveryPortProbeTimeoutKey);
+                    options.AioNetworkDiscovery.MaxPortProbes =
+                        GetIntOrNull(NetworkDiscoveryMaxPortProbesKey);
+                    options.UseFileChangePolling =
+                        GetBoolOrNull(PublisherConfig.UseFileChangePollingKey);
                 }
-                else if (!string.IsNullOrEmpty(GetStringOrDefault(AioBrokerHostName)))
+                else if (!string.IsNullOrEmpty(GetStringOrDefault(BrokerHostName)))
                 {
                     options.IsAzureIoTOperationsConnector = false;
                     // No adr integration we might only have broker

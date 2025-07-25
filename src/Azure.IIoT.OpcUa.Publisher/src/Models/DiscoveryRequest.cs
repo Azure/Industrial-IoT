@@ -31,7 +31,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         public bool IsScan { get; }
 
-        private readonly TimeProvider _timeProvider;
+        /// <summary>
+        /// Progress reporter
+        /// </summary>
+        public IDiscoveryProgress Progress { get; }
 
         /// <summary>
         /// Original discovery request model
@@ -85,9 +88,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Create request wrapper
         /// </summary>
+        /// <param name="progress"></param>
         /// <param name="timeProvider"></param>
-        public DiscoveryRequest(TimeProvider timeProvider) :
-            this(null, null, timeProvider)
+        public DiscoveryRequest(IDiscoveryProgress progress, TimeProvider timeProvider) :
+            this(null, null, progress, timeProvider)
         {
         }
 
@@ -96,16 +100,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="mode"></param>
         /// <param name="configuration"></param>
+        /// <param name="progress"></param>
         /// <param name="timeProvider"></param>
         public DiscoveryRequest(DiscoveryMode? mode, DiscoveryConfigModel? configuration,
-            TimeProvider timeProvider) :
+            IDiscoveryProgress progress, TimeProvider timeProvider) :
             this(new DiscoveryRequestModel
             {
                 Id = string.Empty,
                 Configuration = configuration.Clone(),
                 Context = null,
                 Discovery = mode
-            }, timeProvider, NetworkClass.Wired, true)
+            }, progress, timeProvider, NetworkClass.Wired, true)
         {
         }
 
@@ -113,15 +118,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Create request wrapper
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="progress"></param>
         /// <param name="timeProvider"></param>
         /// <param name="networkClass"></param>
         /// <param name="isScan"></param>
-        public DiscoveryRequest(DiscoveryRequestModel request, TimeProvider timeProvider,
-            NetworkClass networkClass = NetworkClass.Wired, bool isScan = false)
+        /// <param name="cancellationToken"></param>
+        public DiscoveryRequest(DiscoveryRequestModel request, IDiscoveryProgress progress,
+            TimeProvider timeProvider, NetworkClass networkClass = NetworkClass.Wired,
+            bool isScan = false, CancellationToken cancellationToken = default)
         {
             _timeProvider = timeProvider;
+            Progress = progress;
             Request = request?.Clone(_timeProvider) ?? throw new ArgumentNullException(nameof(request));
-            _cts = new CancellationTokenSource();
+
+            _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             NetworkClass = networkClass;
             IsScan = isScan;
 
@@ -248,7 +258,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         /// <param name="request"></param>
         private DiscoveryRequest(DiscoveryRequest request) :
-            this(request.Request, request._timeProvider, request.NetworkClass, request.IsScan)
+            this(request.Request, request.Progress, request._timeProvider, request.NetworkClass, request.IsScan)
         {
         }
 
@@ -312,6 +322,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary> Default icmp timeout is 3 seconds </summary>
         private static readonly TimeSpan kDefaultNetworkProbeTimeout = TimeSpan.FromSeconds(3);
 
+        private readonly TimeProvider _timeProvider;
         private readonly CancellationTokenSource _cts;
     }
 }

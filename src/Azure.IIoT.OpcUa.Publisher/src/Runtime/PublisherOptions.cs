@@ -334,5 +334,25 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// to the endpoints.
         /// </summary>
         public string? AioDiscoveredDeviceEndpointTypeVersion { get; set; }
+
+        /// <summary>
+        /// Enables discovery of OPC UA servers on the network
+        /// and reporting as devices to Azure IoT Operations.
+        /// If null, discovery is disabled.
+        /// </summary>
+        public DiscoveryMode? AioNetworkDiscoveryMode { get; set; }
+
+        /// <summary>
+        /// Discovery of OPC UA servers on the network and reporting
+        /// as devices to Azure IoT Operations runs at the configured
+        /// interval. If 0 or null, discovery runs once and
+        /// exits.
+        /// </summary>
+        public TimeSpan? AioNetworkDiscoveryInterval { get; set; }
+
+        /// <summary>
+        /// Configure the discovery behavior of the publisher.
+        /// </summary>
+        public DiscoveryConfigModel AioNetworkDiscovery { get; } = new();
     }
 }

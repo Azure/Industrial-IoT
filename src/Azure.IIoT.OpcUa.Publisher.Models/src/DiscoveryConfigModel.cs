@@ -25,18 +25,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Network probe timeout
         /// </summary>
-        [IgnoreDataMember]
-        [Obsolete("Use NetworkProbeTimeout")]
-        public int? NetworkProbeTimeoutMs
-        {
-            get => (int?)NetworkProbeTimeout?.TotalMilliseconds;
-            set => NetworkProbeTimeout = value != null ?
-                TimeSpan.FromMilliseconds(value.Value) : null;
-        }
-
-        /// <summary>
-        /// Network probe timeout
-        /// </summary>
         [DataMember(Name = "networkProbeTimeout", Order = 1,
             EmitDefaultValue = false)]
         public TimeSpan? NetworkProbeTimeout { get; set; }
@@ -58,18 +46,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Port probe timeout
         /// </summary>
-        [IgnoreDataMember]
-        [Obsolete("Use PortProbeTimeout")]
-        public int? PortProbeTimeoutMs
-        {
-            get => (int?)PortProbeTimeout?.TotalMilliseconds;
-            set => PortProbeTimeout = value != null ?
-                TimeSpan.FromMilliseconds(value.Value) : null;
-        }
-
-        /// <summary>
-        /// Port probe timeout
-        /// </summary>
         [DataMember(Name = "portProbeTimeout", Order = 4,
             EmitDefaultValue = false)]
         public TimeSpan? PortProbeTimeout { get; set; }
@@ -87,18 +63,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "minPortProbesPercent", Order = 6,
             EmitDefaultValue = false)]
         public int? MinPortProbesPercent { get; set; }
-
-        /// <summary>
-        /// Delay time between discovery sweeps in seconds
-        /// </summary>
-        [IgnoreDataMember]
-        [Obsolete("Use IdleTimeBetweenScans")]
-        public int? IdleTimeBetweenScansSec
-        {
-            get => (int?)IdleTimeBetweenScans?.TotalSeconds;
-            set => IdleTimeBetweenScans = value != null ?
-                TimeSpan.FromSeconds(value.Value) : null;
-        }
 
         /// <summary>
         /// Delay time between discovery sweeps
