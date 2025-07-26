@@ -106,6 +106,8 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string WriterGroupIdVariableName = "WriterGroupId";
         public const string DataSetWriterNameVariableName = "DataSetWriterName";
         public const string DataSetWriterVariableName = "DataSetWriter";
+        public const string DataSetNameVariableName = "DataSetName";
+        public const string DataSetTopicPathVariableName = "DataSetTopicPath";
         public const string DataSetWriterIdVariableName = "DataSetWriterId";
         public const string DataSetFieldIdVariableName = "DataSetFieldId";
         public const string DataSetClassIdVariableName = "DataSetClassId";

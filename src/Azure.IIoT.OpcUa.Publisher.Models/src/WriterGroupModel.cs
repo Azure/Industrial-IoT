@@ -184,5 +184,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "properties", Order = 21,
             EmitDefaultValue = false)]
         public Dictionary<string, VariantValue>? Properties { get; set; }
+
+        /// <summary>
+        /// Publisher identifier if different from the global one
+        /// (Publisher extension)
+        /// </summary>
+        [DataMember(Name = "publisherId", Order = 22,
+            EmitDefaultValue = false)]
+        public string? PublisherId { get; set; }
     }
 }

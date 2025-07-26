@@ -69,7 +69,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     new KeyValuePair<string, object?>(Constants.SiteIdTag,
                         _outer._options?.Value.SiteId),
                     new KeyValuePair<string, object?>(Constants.PublisherIdTag,
-                        _outer._options?.Value.PublisherId),
+                        writerGroup.PublisherId ?? _outer._options?.Value.PublisherId),
                     new KeyValuePair<string, object?>(Constants.WriterGroupIdTag,
                         _writerGroupId),
                     new KeyValuePair<string, object?>(Constants.WriterGroupNameTag,

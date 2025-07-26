@@ -37,6 +37,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
+    using static Azure.IIoT.OpcUa.Publisher.Services.AssetDeviceIntegration;
 
     /// <summary>
     /// Asset and device configuration integration with Azure iot operations. Converts asset
@@ -1184,6 +1185,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     // entities. This will be split per destination, but this is ok as the name
                     // is retained and the Id property receives the unique group name.
                     DataSetWriterGroup = asset.AssetName,
+                    PublisherId = deviceResource.DeviceName,
                     WriterGroupType = asset.Asset.AssetTypeRefs?.Count == 1 ?
                         asset.Asset.AssetTypeRefs[0] : null,
                     WriterGroupRootNodeId = asset.Asset.Attributes == null ?
@@ -1783,6 +1785,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 // Add the fixed asset information
                 DataSetWriterGroup = deviceEndpoint.DataSetWriterGroup,
+                PublisherId = deviceEndpoint.PublisherId,
                 WriterGroupType = deviceEndpoint.WriterGroupType,
                 WriterGroupRootNodeId = deviceEndpoint.WriterGroupRootNodeId,
                 WriterGroupProperties = deviceEndpoint.WriterGroupProperties
@@ -2201,7 +2204,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private static string CreateTopic(string? deviceName, string? assetName, string? dataSetName,
             string? extra = null)
         {
-            var builder = new StringBuilder("{RootTopic}"); // /opcua/{Encoding}/{MessageType}");
+            var builder = new StringBuilder();
+            builder = builder.Append('/').Append('{').Append(PublisherConfig.RootTopicVariableName).Append('}');
+
+            // /opcua/{Encoding}/{MessageType}");
+#if OLD
             if (!string.IsNullOrEmpty(deviceName))
             {
                 builder = builder.Append('/').Append(Furly.Extensions.Messaging.TopicFilter.Escape(deviceName));
@@ -2217,9 +2224,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     builder = builder.Append('/').Append(Furly.Extensions.Messaging.TopicFilter.Escape(part));
                 }
             }
+#else
+            if (!string.IsNullOrEmpty(assetName))
+            {
+                builder = builder.Append('/').Append('{').Append(PublisherConfig.WriterGroupIdVariableName).Append('}');
+            }
+            if (!string.IsNullOrEmpty(dataSetName))
+            {
+                builder = builder.Append('/').Append('{').Append(PublisherConfig.DataSetTopicPathVariableName).Append('}');
+            }
+#endif
             if (!string.IsNullOrEmpty(extra))
             {
                 builder = builder.Append('/').Append(Furly.Extensions.Messaging.TopicFilter.Escape(extra));
+            }
+            if (builder.Length > 128) // Topic length limit in adr is 128
+            {
+                builder.Length = 128;
             }
             return builder.ToString();
         }

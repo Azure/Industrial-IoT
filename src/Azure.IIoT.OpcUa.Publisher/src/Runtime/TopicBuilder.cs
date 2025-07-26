@@ -102,16 +102,16 @@ namespace Azure.IIoT.OpcUa.Publisher
             };
             if (KubernetesClientConfiguration.IsInCluster())
             {
-                _variables.Add(PublisherConfig.ClusterNamespaceVariableName,
+                _variables.AddOrUpdate(PublisherConfig.ClusterNamespaceVariableName,
                     _ => KubernetesClientConfiguration.InClusterConfig().Namespace);
-                _variables.Add(PublisherConfig.ClusterHostVariableName,
+                _variables.AddOrUpdate(PublisherConfig.ClusterHostVariableName,
                     _ => KubernetesClientConfiguration.InClusterConfig().Host);
             }
             if (variables != null)
             {
                 foreach (var kv in variables)
                 {
-                    _variables.Add(kv.Key, _ => kv.Value);
+                    _variables.AddOrUpdate(kv.Key, _ => kv.Value);
                 }
             }
         }

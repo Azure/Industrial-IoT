@@ -135,11 +135,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     dataSetWriter.DataSetWriterName ?? Constants.DefaultDataSetWriterName);
                 var escWriterGroup = TopicFilter.Escape(
                     group._writerGroup.Name ?? Constants.DefaultWriterGroupName);
+                var escPublisherId = TopicFilter.Escape(
+                    group._writerGroup.PublisherId ?? options.PublisherId
+                        ?? Constants.DefaultPublisherId);
+                var escDataSetTopicPath = escWriterName;
+                var escDataSetName = escWriterName;
+                if (dataset.Name != null)
+                {
+                    escDataSetName = TopicFilter.Escape(dataset.Name);
+                    escDataSetTopicPath = string.Empty;
+                    foreach (var element in dataset.Name.Split('.', StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        if (string.IsNullOrEmpty(escDataSetTopicPath))
+                        {
+                            escDataSetTopicPath = TopicFilter.Escape(element);
+                        }
+                        else
+                        {
+                            escDataSetTopicPath += "/" + TopicFilter.Escape(element);
+                        }
+                    }
+                };
 
                 var variables = new Dictionary<string, string>
                 {
+                    [PublisherConfig.PublisherIdKey] = escPublisherId,
                     [PublisherConfig.DataSetWriterIdVariableName] = dataSetWriter.Id,
                     [PublisherConfig.DataSetWriterVariableName] = escWriterName,
+                    [PublisherConfig.DataSetNameVariableName] = escDataSetName,
+                    [PublisherConfig.DataSetTopicPathVariableName] = escDataSetTopicPath,
                     [PublisherConfig.DataSetWriterNameVariableName] = escWriterName,
                     [PublisherConfig.DataSetClassIdVariableName] = dataSetClassId.ToString(),
                     [PublisherConfig.WriterGroupIdVariableName] = group.Id,
@@ -912,7 +936,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 return new DataSetWriterContext
                 {
-                    PublisherId = _group._options.Value.PublisherId ?? Constants.DefaultPublisherId,
+                    PublisherId = writerGroup.PublisherId
+                        ?? _group._options.Value.PublisherId ?? Constants.DefaultPublisherId,
                     DataSetWriterId = (ushort)Index,
                     MetaData = metadata,
                     Writer = _writer.Writer,
@@ -948,7 +973,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         // Set a default source
                         source = new Uri("urn:" + _writer.Writer.DataSet?.DataSetSource?.Uri ??
-                            _group._options.Value.PublisherId ?? "publisher");
+                                writerGroup.PublisherId
+                            ?? _group._options.Value.PublisherId ?? "publisher");
                     }
                     var messageId = Guid.CreateVersion7(_group._timeProvider.GetUtcNow());
                     return new CloudEventHeader
