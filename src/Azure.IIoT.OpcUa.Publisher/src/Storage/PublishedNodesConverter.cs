@@ -498,7 +498,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                     {
                                         Name = b.Header.DataSetName,
                                         Type = b.Header.DataSetType,
-                                        Subject = group.Header.DataSetSubject,
+                                        Subject = b.Header.DataSetSubject,
                                         RootNode = b.Header.DataSetRootNodeId,
                                         DataSetMetaData = new DataSetMetaDataModel
                                         {

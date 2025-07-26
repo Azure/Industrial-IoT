@@ -1184,7 +1184,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     // entities. This will be split per destination, but this is ok as the name
                     // is retained and the Id property receives the unique group name.
                     DataSetWriterGroup = asset.AssetName,
-                    DataSetSubject = asset.Asset.Uuid,
                     WriterGroupType = asset.Asset.AssetTypeRefs?.Count == 1 ?
                         asset.Asset.AssetTypeRefs[0] : null,
                     WriterGroupRootNodeId = asset.Asset.Attributes == null ?
