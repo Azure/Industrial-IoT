@@ -7,13 +7,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
     using Autofac;
     using Azure.IIoT.OpcUa.Encoders;
+    using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Publisher.Module.Controllers;
     using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.Iot.Operations.Protocol;
     using Furly.Azure.EventHubs;
     using Furly.Azure.IoT.Edge;
     using Furly.Azure.IoT.Operations.Runtime;
-    using Furly.Azure.IoT.Operations.Services;
     using Furly.Extensions.AspNetCore.OpenApi;
     using Furly.Extensions.Configuration;
     using Furly.Extensions.Dapr;
@@ -32,21 +32,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Microsoft.Extensions.Logging.Console;
     using Microsoft.Extensions.Options;
     using Microsoft.OpenApi.Models;
-    using Opc.Ua;
     using OpenTelemetry.Exporter;
     using OpenTelemetry.Logs;
     using OpenTelemetry.Metrics;
     using OpenTelemetry.Trace;
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Net;
     using System.Text.RegularExpressions;
-    using System.Threading;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// Configuration extensions
@@ -180,6 +176,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 builder.AddSchemaRegistry();
                 // builder.AddLeaderElection();
                 // builder.AddStateStore();
+
+                if (publisherOptions.UseFileChangePolling == true)
+                {
+                    builder.Configure<AioOptions>(options =>
+                        options.FileSystemPollingInterval = TimeSpan.FromSeconds(5));
+                }
 
                 builder.RegisterType<Aio>().AsImplementedInterfaces();
                 if (publisherOptions.IsAzureIoTOperationsConnector.Value)
@@ -1357,8 +1359,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// <summary>
             /// Configuration
             /// </summary>
-            public const string AioBrokerHostName = "AIO_BROKER_HOSTNAME";
+            public const string BrokerHostName = "AIO_BROKER_HOSTNAME";
             public const string ConnectorId = "CONNECTOR_ID";
+
+            public const string DiscoveredDeviceEndpointTypeKey =
+                "AioDiscoveredDeviceEndpointType";
+            public const string DiscoveredDeviceEndpointTypeVersionKey =
+                "AioDiscoveredDeviceEndpointTypeVersion";
+            public const string NetworkDiscoveryModeKey =
+                "AioNetworkDiscoveryMode";
+            public const string NetworkDiscoveryIntervalKey =
+                "AioNetworkDiscoveryInterval";
+            public const string NetworkDiscoveryAddressRangesToScanKey =
+                "AioNetworkDiscoveryAddressRangesToScan";
+            public const string NetworkDiscoveryNetworkProbeTimeoutKey =
+                "AioNetworkDiscoveryNetworkProbeTimeout";
+            public const string NetworkDiscoveryMaxNetworkProbesKey =
+                "AioNetworkDiscoveryMaxNetworkProbes";
+            public const string NetworkDiscoveryPortRangesToScanKey =
+                "AioNetworkDiscoveryPortRangesToScan";
+            public const string NetworkDiscoveryPortProbeTimeoutKey =
+                "AioNetworkDiscoveryPortProbeTimeout";
+            public const string NetworkDiscoveryMaxPortProbesKey =
+                "AioNetworkDiscoveryMaxPortProbes";
 
             /// <inheritdoc/>
             public override void Configure(string? name, PublisherOptions options)
@@ -1373,9 +1396,36 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     options.IsAzureIoTOperationsConnector = true;
                     options.UseStandardsCompliantEncoding = true;
                     options.EnableCloudEvents = true;
+                    options.SchemaOptions = new SchemaOptions();
                     options.PublisherId = connectorId;
+
+                    options.AioDiscoveredDeviceEndpointType =
+                        GetStringOrDefault(DiscoveredDeviceEndpointTypeKey);
+                    options.AioDiscoveredDeviceEndpointTypeVersion =
+                        GetStringOrDefault(DiscoveredDeviceEndpointTypeVersionKey);
+                    var discoveryMode = GetStringOrDefault(NetworkDiscoveryModeKey);
+                    if (Enum.TryParse<Models.DiscoveryMode>(discoveryMode, true, out var mode))
+                    {
+                        options.AioNetworkDiscoveryMode = mode;
+                    }
+                    options.AioNetworkDiscoveryInterval =
+                        GetDurationOrNull(NetworkDiscoveryIntervalKey, TimeSpan.FromHours(12));
+                    options.AioNetworkDiscovery.AddressRangesToScan =
+                        GetStringOrDefault(NetworkDiscoveryAddressRangesToScanKey);
+                    options.AioNetworkDiscovery.NetworkProbeTimeout =
+                        GetDurationOrNull(NetworkDiscoveryNetworkProbeTimeoutKey);
+                    options.AioNetworkDiscovery.MaxNetworkProbes =
+                        GetIntOrNull(NetworkDiscoveryMaxNetworkProbesKey);
+                    options.AioNetworkDiscovery.PortRangesToScan =
+                        GetStringOrDefault(NetworkDiscoveryPortRangesToScanKey);
+                    options.AioNetworkDiscovery.PortProbeTimeout =
+                        GetDurationOrNull(NetworkDiscoveryPortProbeTimeoutKey);
+                    options.AioNetworkDiscovery.MaxPortProbes =
+                        GetIntOrNull(NetworkDiscoveryMaxPortProbesKey);
+                    options.UseFileChangePolling =
+                        GetBoolOrNull(PublisherConfig.UseFileChangePollingKey);
                 }
-                else if (!string.IsNullOrEmpty(GetStringOrDefault(AioBrokerHostName)))
+                else if (!string.IsNullOrEmpty(GetStringOrDefault(BrokerHostName)))
                 {
                     options.IsAzureIoTOperationsConnector = false;
                     // No adr integration we might only have broker

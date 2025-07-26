@@ -16,12 +16,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
     using System.Linq;
 
     /// <summary>
-    /// Network message avro schema
+    /// Network message json schema
     /// </summary>
     public sealed class JsonNetworkMessage : IEventSchema
     {
         /// <inheritdoc/>
-        public string Type => ContentMimeType.AvroSchema;
+        public string Type => ContentMimeType.JsonSchema;
 
         /// <inheritdoc/>
         public string Name { get; }
@@ -30,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
         public ulong Version { get; }
 
         /// <inheritdoc/>
-        public string? Id { get; }
+        public string Id { get; }
 
         /// <inheritdoc/>
         string IEventSchema.Schema => ToString()!;
@@ -67,6 +67,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
             Definitions = definitions ?? [];
             _options = options ?? new SchemaOptions();
 
+            Version = networkMessage.Version;
+            Id = networkMessage.Id;
             Name = GetName(networkMessage.TypeName);
             Ref = Compile(networkMessage);
         }

@@ -196,6 +196,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 {
                     MetaData = new PublishedDataSetMessageSchemaModel
                     {
+                        Id = "dataset",
                         DataSetFieldContentFlags = null,
                         DataSetMessageContentFlags = null,
                         MetaData = new PublishedDataSetMetaDataModel

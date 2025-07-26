@@ -1,0 +1,23 @@
+{{ $suffix := printf "%s-%06d" $releaseName $i }}
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "simulation.configmap" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "simulation.labels" . | nindent 4 }}
+data:
+  configuration.json: |-
+    {
+      "Hostname": "umati-{{ $suffix }}.{{ $.Release.Namespace }}",
+      "Port": 4840,
+      "UserPassAuthentication": [],
+      "Encryption": {
+        "ServerCert": "server_cert.pem",
+        "ServerKey": "server_key.pem",
+        "TrustedClients": ["trusted/trustedClient.der"],
+        "IssuerCerts": [],
+        "Revocation": []
+      }
+    }

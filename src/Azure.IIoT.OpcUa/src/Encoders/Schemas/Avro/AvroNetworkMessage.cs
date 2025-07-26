@@ -26,7 +26,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
         /// <param name="options"></param>
         /// <returns></returns>
         public AvroNetworkMessage(PublishedNetworkMessageSchemaModel networkMessage,
-            SchemaOptions? options = null)
+            SchemaOptions? options = null) : base(networkMessage.Id, networkMessage.Version)
         {
             Schema = Compile(networkMessage, options);
         }

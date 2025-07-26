@@ -33,9 +33,9 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
         /// <returns></returns>
         internal MonitoredItemMessage(PublishedDataSetMessageSchemaModel dataSetMessage,
             NetworkMessageContentFlags networkMessageContentFlags,
-            SchemaOptions options, HashSet<string> uniqueNames)
+            SchemaOptions options, HashSet<string> uniqueNames) : base(dataSetMessage.Id)
         {
-            DataSetSchema = new JsonDataSet(dataSetMessage.MetaData,
+            DataSetSchema = new JsonDataSet(dataSetMessage.Id, dataSetMessage.MetaData,
                 dataSetMessage.DataSetFieldContentFlags, options, uniqueNames);
             _dataSetFieldContentMask = dataSetMessage.DataSetFieldContentFlags
                     ?? PubSubMessage.DefaultDataSetFieldContentFlags;

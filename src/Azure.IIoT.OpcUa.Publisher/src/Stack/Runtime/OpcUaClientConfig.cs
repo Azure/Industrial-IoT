@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
 {
     using Furly.Extensions.Configuration;
-    using k8s;
     using Microsoft.Extensions.Configuration;
     using Opc.Ua;
     using System;

@@ -34,7 +34,6 @@ namespace Asset
     using Microsoft.Extensions.Logging;
     using Newtonsoft.Json;
     using Opc.Ua;
-    using UANodeSet = Opc.Ua.Export.UANodeSet;
     using Opc.Ua.Server;
     using System;
     using System.Collections.Generic;
@@ -622,7 +621,7 @@ namespace Asset
             string nodesetFile)
         {
             using var stream = new FileStream(nodesetFile, FileMode.Open, FileAccess.Read);
-            var nodeSet = UANodeSet.Read(stream);
+            var nodeSet = Opc.Ua.Export.UANodeSet.Read(stream);
 
             if (nodeSet.NamespaceUris?.Length > 0)
             {
@@ -648,7 +647,7 @@ $"{type.Assembly.GetName().Name}.Generated.{type.Namespace}.Design.{type.Namespa
             }
             try
             {
-                var nodeSet = UANodeSet.Read(stream);
+                var nodeSet = Opc.Ua.Export.UANodeSet.Read(stream);
                 if (nodeSet.NamespaceUris?.Length > 0)
                 {
                     foreach (var ns in nodeSet.NamespaceUris)
@@ -669,7 +668,7 @@ $"{type.Assembly.GetName().Name}.Generated.{type.Namespace}.Design.{type.Namespa
         private void AddNodesFromNodesetXml(string nodesetFile)
         {
             using var stream = new FileStream(nodesetFile, FileMode.Open);
-            var nodeSet = UANodeSet.Read(stream);
+            var nodeSet = Opc.Ua.Export.UANodeSet.Read(stream);
 
             var predefinedNodes = new NodeStateCollection();
 
@@ -700,7 +699,7 @@ $"{type.Assembly.GetName().Name}.Generated.{type.Namespace}.Design.{type.Namespa
             }
             try
             {
-                var nodeSet = UANodeSet.Read(stream);
+                var nodeSet = Opc.Ua.Export.UANodeSet.Read(stream);
                 var predefinedNodes = new NodeStateCollection();
                 nodeSet.Import(SystemContext, predefinedNodes);
 

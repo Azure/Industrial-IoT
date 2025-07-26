@@ -1303,7 +1303,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             Message = "Error while loading job from file. Retry expired, giving up.")]
         public static partial void ErrorLoadingJobFromFileRetryExpired(this ILogger logger, Exception ex);
 
-        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Error, SkipEnabledCheck = true,
             Message = "{Error}")]
         public static partial void ErrorLoadingJobFromFileSerializer(this ILogger logger, Exception ex, string error);
 

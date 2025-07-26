@@ -1,5 +1,5 @@
 image: mcr.microsoft.com/iot/opc-ua-test-server
-tag: 2.9.15-preview1
+tag: 2.9.15-preview2
 pullPolicy: Always
 pullSecrets: []
 # Controls number of OPC UA Test servers that should be deployed.

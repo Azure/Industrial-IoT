@@ -150,6 +150,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public DateTimeOffset? LastReceivedTime { get; private set; }
 
         /// <summary>
+        /// Last keep alive sent or value received
+        /// </summary>
+        public DateTimeOffset LastActivityTime { get; set; }
+
+        /// <summary>
         /// Create item
         /// </summary>
         /// <param name="owner"></param>
@@ -162,6 +167,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Owner = owner;
             NodeId = nodeId;
             TimeProvider = timeProvider;
+            LastActivityTime = timeProvider.GetUtcNow();
             _logger = logger;
         }
 
@@ -181,6 +187,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _logger = item._logger;
 
             LastReceivedTime = item.LastReceivedTime;
+            LastActivityTime = item.LastActivityTime;
             LastReceivedValue = item.LastReceivedValue;
             Valid = item.Valid;
         }
@@ -518,7 +525,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _logger.CloneValueFailed(ex, this);
                 LastReceivedValue = encodeablePayload;
             }
-            LastReceivedTime = TimeProvider.GetUtcNow();
+            LastReceivedTime = LastActivityTime = TimeProvider.GetUtcNow();
             return true;
         }
 
@@ -780,7 +787,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     var dtNode = await session.NodeCache.FetchNodeAsync(dataTypeId,
                                             ct).ConfigureAwait(false);
                                     if (dtNode is DataTypeNode v &&
-                                        v.DataTypeDefinition.Body is DataTypeDefinition t)
+                                        v.DataTypeDefinition?.Body is DataTypeDefinition t)
                                     {
                                         types ??= [];
                                         types.Add(dataTypeId, t);

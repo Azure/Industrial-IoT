@@ -5,12 +5,20 @@
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <Nullable>disable</Nullable>
     <EnableSdkContainerSupport>true</EnableSdkContainerSupport>
+    <InvariantGlobalization>false</InvariantGlobalization>
   </PropertyGroup>
   <PropertyGroup>
     <ContainerRepository>iot/opc-ua-test-server</ContainerRepository>
     <ContainerRuntimeIdentifier>linux-x64</ContainerRuntimeIdentifier>
-    <ContainerBaseImage>mcr.microsoft.com/dotnet/runtime:9.0-azurelinux3.0-distroless</ContainerBaseImage>
-   </PropertyGroup>
+    <ContainerBaseImage>mcr.microsoft.com/dotnet/runtime:9.0-azurelinux3.0-distroless-extra</ContainerBaseImage>
+    <ContainerUser>root</ContainerUser>
+  </PropertyGroup>
+  <ItemGroup>
+    <ContainerEnvironmentVariable Include="APP_UID" Value="" />
+    <ContainerEnvironmentVariable Include="DOTNET_ReadyToRun" Value="0" />
+    <ContainerEnvironmentVariable Include="DOTNET_TieredPGO" Value="1" />
+    <ContainerEnvironmentVariable Include="DOTNET_TC_QuickJitForLoops" Value="1" />
+  </ItemGroup>
   <ItemGroup>
     <Compile Remove="pki\**" />
     <EmbeddedResource Remove="pki\**" />

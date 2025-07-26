@@ -19,7 +19,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
     using OpenTelemetry.Resources;
     using OpenTelemetry.Trace;
     using System;
-    using System.Diagnostics;
 
     /// <summary>
     /// Webservice startup

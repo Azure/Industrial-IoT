@@ -472,7 +472,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <inheritdoc/>
             public FileSystemBrowser(RequestHeaderModel? header, IOptions<PublisherOptions> options,
                 TimeProvider timeProvider) : base(header, options, timeProvider,
-                    null, ObjectTypeIds.FileDirectoryType, stopWhenFound: true)
+                    null, ObjectTypeIds.FileDirectoryType)
             {
             }
 
@@ -488,20 +488,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             /// <inheritdoc/>
             protected override IEnumerable<ServiceResponse<FileSystemObjectModel>> HandleMatching(
-                ServiceCallContext context, IReadOnlyList<BrowseFrame> matching)
+                ServiceCallContext context, IReadOnlyList<BrowseFrame> matching,
+                List<ReferenceDescription> references)
             {
-                foreach (var match in matching)
+                // Only add what we did not match to browse deeper
+                var stop = matching.Select(r => r.NodeId).ToHashSet();
+                references.RemoveAll(r => stop.Contains((NodeId)r.NodeId));
+                return matching.Select(match => new ServiceResponse<FileSystemObjectModel>
                 {
-                    yield return new ServiceResponse<FileSystemObjectModel>
+                    Result = new FileSystemObjectModel
                     {
-                        Result = new FileSystemObjectModel
-                        {
-                            NodeId = Header.AsString(match.NodeId,
-                                context.Session.MessageContext, Options),
-                            Name = match.DisplayName
-                        }
-                    };
-                }
+                        NodeId = Header.AsString(match.NodeId,
+                            context.Session.MessageContext, Options),
+                        Name = match.DisplayName
+                    }
+                });
             }
         }
 

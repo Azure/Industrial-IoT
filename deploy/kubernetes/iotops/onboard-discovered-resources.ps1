@@ -171,10 +171,10 @@ while ($true) {
                 properties = @{
                     externalDeviceId = $dDevice.properties.externalDeviceId
                     enabled = $true
-                    endpoints = $endpoints
+                    endpoints = $dDevice.properties.endpoints
                 }
             } | ConvertTo-Json -Depth 100
-            $body | Out-Host
+            #$body | Out-Host
             $body | Out-File -FilePath $tempFile -Encoding utf8 -Force
             Write-Host "Create or update device $($dDevice.name)..." -ForegroundColor Cyan
             $errOut = $($device = & { az rest --method put `
@@ -245,13 +245,13 @@ while ($true) {
                     deviceRef = $dAsset.properties.deviceRef
                     discoveredAssetRefs = @($dAsset.name)
                     assetTypeRefs = [array]$dAsset.properties.assetTypeRefs
-                    datasets = $datasets
-                    events = $events
-                    streams = $streams
-                    managementGroups = $managementGroups
+                    datasets = [array]$dAsset.properties.datasets
+                    events = [array]$dAsset.properties.events
+                    streams = [array]$dAsset.properties.streams
+                    managementGroups = [array]$dAsset.properties.managementGroups
                 }
             } | ConvertTo-Json -Depth 100
-            $body | Out-Host
+            #$body | Out-Host
             $body | Out-File -FilePath $tempFile -Encoding utf8 -Force
             Write-Host "Create or update asset $($dAsset.name)..." -ForegroundColor Cyan
             $errOut = $($asset = & { az rest --method put `

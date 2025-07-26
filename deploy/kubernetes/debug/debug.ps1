@@ -22,12 +22,20 @@ param(
     [string] $PodName,
     [string] $ContainerName,
     [string] $Namespace,
-    [string] $ClusterType = "microk8s",
+    [string] [ValidateSet(
+        "kind",
+        "minikube",
+        "k3d",
+        "microk8s"
+    )] $ClusterType ="microk8s",
     [string] $Image,
     [switch] $Fork
 )
 
 $ErrorActionPreference = 'Stop'
+$scriptDirectory = Split-Path -Path $MyInvocation.MyCommand.Path
+Import-Module $(Join-Path $(Join-Path $(Split-Path $scriptDirectory) "common") `
+    "cluster-utils.psm1") -Force
 
 # Get a list of pods and let user select one
 if (-not (Get-Command kubectl -ErrorAction SilentlyContinue)) {
@@ -47,81 +55,65 @@ if (-not $namespaces) {
     Write-Host "No namespaces found." -ForegroundColor Red
     exit -1
 }
-if (-not $Namespace) {
-    $Namespace = $namespaces | Out-GridView -Title "Select a namespace" -PassThru
-    if (-not $Namespace) {
+if (-not $script:Namespace) {
+    $script:Namespace = $namespaces | Out-GridView -Title "Select a namespace" -PassThru
+    if (-not $script:Namespace) {
         Write-Host "No namespace selected." -ForegroundColor Yellow
         exit 0
     }
 }
 else {
-    if (-not $namespaces.Contains($Namespace)) {
-        Write-Host "Namespace '$Namespace' not found." -ForegroundColor Red
+    if (-not $namespaces.Contains($script:Namespace)) {
+        Write-Host "Namespace '$script:Namespace' not found." -ForegroundColor Red
         exit -1
     }
-    Write-Host "Using namespace '$Namespace'." -ForegroundColor Green
+    Write-Host "Using namespace '$script:Namespace'." -ForegroundColor Green
 }
 
-# get list of pods in the namespace and let user select one
-$pods = kubectl get pods -n $Namespace --no-headers | ForEach-Object {
-    $_.Split()[0]
-}
-if (-not $pods) {
-    Write-Host "No pods found in namespace '$Namespace'." -ForegroundColor Red
-    exit -1
-}
-if (-not $PodName) {
-    $PodName = $pods | Out-GridView -Title "Select a pod to debug" -PassThru
-    if (-not $PodName) {
-        Write-Host "No pod selected." -ForegroundColor Yellow
-        exit 0
+function Select-PodName {
+    # get list of pods in the namespace and let user select one
+    $pods = kubectl get pods -n $Namespace --no-headers | ForEach-Object {
+        $_.Split()[0]
     }
-}
-else {
-    if (-not $pods.Contains($PodName)) {
-        Write-Host "Pod '$PodName' not found in namespace '$Namespace'." `
-            -ForegroundColor Red
+    if (-not $pods) {
+        Write-Host "No pods found in namespace '$Namespace'." -ForegroundColor Red
         exit -1
     }
-    Write-Host "Using pod '$PodName'." -ForegroundColor Green
+    if (-not $script:PodName) {
+        $script:PodName = $pods | Out-GridView -Title "Select a pod to debug" -PassThru
+        if (-not $script:PodName) {
+            Write-Host "No pod selected." -ForegroundColor Yellow
+            exit 0
+        }
+    }
+    else {
+        if (-not $pods.Contains($script:PodName)) {
+            Write-Host "Pod '$script:PodName' not found in namespace '$Namespace'." `
+                -ForegroundColor Red
+            exit -1
+        }
+    }
 }
-
-# Remove debug tar image if it exists
-Remove-Item -Path debugger.tar -Force -ErrorAction SilentlyContinue
+Select-PodName
+Write-Host "Using pod '$script:PodName'." -ForegroundColor Green
 
 # Build and make .net debugger image available in cluster
 $containerTag = Get-Date -Format "MMddHHmmss"
+$debuggerImage = "debugger:$($containerTag)"
 Write-Host "Building debugger image with tag '$containerTag'..." `
     -ForegroundColor Cyan
-docker build --progress auto -f Dockerfile -t debugger:$($containerTag) .
-docker image save debugger:$($containerTag) -o debugger.tar
+docker build --progress auto -f Dockerfile -t $debuggerImage .
 Write-Host "Debugger image built with tag '$containerTag'." `
     -ForegroundColor Green
-if ($ClusterType -eq "microk8s") {
-    multipass transfer debugger.tar microk8s-vm:/tmp/debugger.tar
-    microk8s ctr image import /tmp/debugger.tar
-    Write-Host "Debugger image imported into microk8s cluster." `
-        -ForegroundColor Green
-    docker image rm -f debugger:$($containerTag)
-}
-elseif ($script:ClusterType -eq "k3d") {
-    # import in all clusters which avoids asking for the cluster name
-    $clusters = $(& { k3d cluster list --no-headers } -split ")`n") `
-        | ForEach-Object { $($_ -split " ")[0].Trim() }
-    k3d image import debugger:$($containerTag) `
-        --mode auto `
-        --cluster $($clusters -join ",")
-}
-else {
-    # TODO
-}
+Import-ContainerImage -ClusterType $script:ClusterType `
+    -ContainerImage $debuggerImage
 
 while ($true) {
     # Get main container name if not specified
-    $containers = $(kubectl get pod $PodName -n $Namespace `
+    $containers = $(kubectl get pod $script:PodName -n $Namespace `
             -o jsonpath-as-json='{.spec.containers[*].name}') | ConvertFrom-Json
     if (-not $containers -or $containers.Count -eq 0) {
-        Write-Host "No containers found in pod '$PodName'." -ForegroundColor Red
+        Write-Host "No containers found in pod '$script:PodName'." -ForegroundColor Red
         exit -1
     }
     # If ContainerName is not specified, use the first container
@@ -129,7 +121,7 @@ while ($true) {
         # if one use it otherwise let user select one
         if ($containers.Count -eq 1) {
             $ContainerName = $containers
-            Write-Host "Using container '$ContainerName' in pod '$PodName'." `
+            Write-Host "Using container '$ContainerName' in pod '$script:PodName'." `
                 -ForegroundColor Green
         }
         else {
@@ -143,41 +135,48 @@ while ($true) {
     }
     else {
         if (-not $containers.Contains($ContainerName)) {
-            Write-Host "Container '$ContainerName' not found in pod '$PodName'." `
+            Write-Host "Container '$ContainerName' not found in pod '$script:PodName'." `
                 -ForegroundColor Red
             exit -1
         }
-        Write-Host "Attach debugger to container '$ContainerName' in pod '$PodName'." `
+        Write-Host "Attach debugger to container '$ContainerName' in pod '$script:PodName'." `
             -ForegroundColor Green
     }
 
-    $ephemeralContainers = $(kubectl get pod $PodName -n $Namespace `
+    $ephemeralContainers = $(kubectl get pod $script:PodName -n $Namespace `
         -o jsonpath-as-json='{.spec.ephemeralContainers[*].name}') | ConvertFrom-Json
     if (-not $ephemeralContainers -or -not $ephemeralContainers.Contains("debugger")) {
         # Debugger container is not attached yet, so we can proceed
+        Write-Host "Debugger container not attached to pod '$script:PodName'." `
+            -ForegroundColor Green
         break
     }
-    Write-Host "Debugger already attached to pod '$PodName' - Restarting pod." `
+    Write-Host "Debugger already attached to pod '$script:PodName' - Restarting pod." `
         -ForegroundColor Yellow
     # Delete the current pod so we can recreate it with the debug container
-    kubectl -n $Namespace delete pod $PodName --wait=true
+    kubectl -n $Namespace delete pod $script:PodName --wait=true
     # Now wait for the pod to be restarted
-    Write-Host "Waiting for pod '$PodName' to be restarted..." -ForegroundColor Cyan
+    Write-Host "Waiting for pod '$script:PodName' to be restarted..." -ForegroundColor Cyan
     while ($true) {
-        $podStatus = kubectl get pod $PodName -n $Namespace -o jsonpath='{.status.phase}'
+        $podStatus = kubectl get pod $script:PodName -n $Namespace -o jsonpath='{.status.phase}'
         if ($podStatus -eq "Running") {
-            Write-Host "Pod '$PodName' is running."`
+            Write-Host "Pod '$script:PodName' is running."`
                 -ForegroundColor Green
             break
         }
         elseif ($podStatus -eq "Pending") {
-            Write-Host "Pod '$PodName' is pending..."`
+            Write-Host "Pod '$script:PodName' is pending..."`
                 -ForegroundColor Yellow
         }
+        elseif (!$podStatus -or $podStatus -eq "") {
+            $script:PodName = $null
+            Select-PodName
+            Write-Host "Switching to Pod '$script:PodName'." `
+                -ForegroundColor Green
+        }
         else {
-            Write-Host "Pod '$PodName' is in state '$podStatus'." `
-                -ForegroundColor Red
-            exit -1
+            Write-Host "Pod '$script:PodName' is in state '$podStatus'." `
+                -ForegroundColor Yellow
         }
         Start-Sleep -Seconds 1
     }
@@ -185,7 +184,7 @@ while ($true) {
 
 if ($script:Fork.IsPresent) {
     # Check if the pods already contain a debug pod
-    $debugPod = "$($PodName)-debug"
+    $debugPod = "$($script:PodName)-debug"
     if ($pods.Contains($debugPod)) {
         # delete the existing debug pod
         Write-Host "Debug pod '$($debugPod)' already exists - deleting it." `
@@ -194,11 +193,11 @@ if ($script:Fork.IsPresent) {
     }
 
     # Attach the debugger container to the specified pod and container
-    Write-Host "Forking pod '$PodName' with container '$ContainerName' to '$($debugPod)'..." `
+    Write-Host "Forking pod '$script:PodName' with container '$ContainerName' to '$($debugPod)'..." `
         -ForegroundColor Cyan
     if ($Image) {
          # Replace the existing image in the pod
-        kubectl -n $Namespace debug $PodName -n $($Namespace) `
+        kubectl -n $Namespace debug $script:PodName -n $($Namespace) `
             -it --attach=false `
             --image=docker.io/library/debugger:$($containerTag) `
             --profile=general `
@@ -216,7 +215,7 @@ if ($script:Fork.IsPresent) {
             --copy-to=$($debugPod) `
     }
     else {
-        kubectl -n $Namespace debug $PodName -n $($Namespace) `
+        kubectl -n $Namespace debug $script:PodName -n $($Namespace) `
             -it --attach=false `
             --image=docker.io/library/debugger:$($containerTag) `
             --profile=general `
@@ -233,71 +232,80 @@ if ($script:Fork.IsPresent) {
             --copy-to=$($debugPod) `
     }
     if (-not $?) {
-        Write-Host "Failed to fork pod '$PodName' with container '$ContainerName' to '$($debugPod)'." `
+        Write-Host "Failed to fork pod '$script:PodName' with container '$ContainerName' to '$($debugPod)'." `
             -ForegroundColor Red
         exit -1
     }
-    Write-Host "Debugging pod '$PodName' as '$($debugPod)' with container '$ContainerName'." `
+    Write-Host "Debugging pod '$script:PodName' as '$($debugPod)' with container '$ContainerName'." `
         -ForegroundColor Green
-    $PodName = $debugPod
+    $script:PodName = $debugPod
 }
 elseif ($Image) {
     # Set the image to the specified one
-    Write-Host "Replacing image in pod '$PodName' for container '$ContainerName' with '$Image'..." `
+    Write-Host "Replacing image in pod '$script:PodName' for container '$ContainerName' with '$Image'..." `
         -ForegroundColor Cyan
-    kubectl set image "pod/$($PodName)" "$($ContainerName)=$($Image)" -n $($Namespace)
+    kubectl set image "pod/$($script:PodName)" "$($ContainerName)=$($Image)" -n $($Namespace)
     if (-not $?) {
-        Write-Host "Failed to replace image in pod '$PodName' for container '$ContainerName'." `
+        Write-Host "Failed to replace image in pod '$script:PodName' for container '$ContainerName'." `
             -ForegroundColor Red
         exit -1
     }
-    Write-Host "Image in pod '$PodName' for container '$ContainerName' replaced with '$Image'." `
+    Write-Host "Image in pod '$script:PodName' for container '$ContainerName' replaced with '$Image'." `
         -ForegroundColor Green
 }
 
 # Now wait for the pod to start
-Write-Host "Checking state of pod '$PodName'..." -ForegroundColor Cyan
+Write-Host "Checking state of pod '$script:PodName'..." -ForegroundColor Cyan
 while ($true) {
-    $podStatus = kubectl get pod $PodName -n $Namespace -o jsonpath='{.status.phase}'
+    $podStatus = kubectl get pod $script:PodName -n $Namespace -o jsonpath='{.status.phase}'
     if ($podStatus -eq "Running") {
         if ($Image) {
-            $podDescription = $(kubectl get pod $PodName -n $Namespace -o json) `
+            $podDescription = $(kubectl get pod $script:PodName -n $Namespace -o json) `
                 | ConvertFrom-Json
             $images = $podDescription.spec.containers.image
             if ($images -contains $Image) {
-                Write-Host "Pod '$PodName' is running with '$Image'."`
+                Write-Host "Pod '$script:PodName' is running with '$Image'."`
                     -ForegroundColor Green
                 break
             }
             else {
-                Write-Host "Pod '$PodName' is running but still using the old image." `
+                Write-Host "Pod '$script:PodName' is running but still using the old image." `
                     -ForegroundColor Yellow
             }
         }
         else {
-            Write-Host "Pod '$PodName' is running."`
+            Write-Host "Pod '$script:PodName' is running."`
                 -ForegroundColor Green
             break
         }
     }
     elseif ($podStatus -eq "Pending") {
-        Write-Host "Pod '$PodName' is pending..."`
+        Write-Host "Pod '$script:PodName' is pending..."`
             -ForegroundColor Yellow
     }
-    else {
-        Write-Host "Pod '$PodName' is in state '$podStatus'." `
+    elseif (!$podStatus -or $podStatus -eq "") {
+        $ContainerName = $containers `
+                | Out-GridView -Title "Select a container to debug" -PassThru
+            if (-not $ContainerName) {
+                Write-Host "No container selected." -ForegroundColor Yellow
+                exit 0
+            }
+        Write-Host "Pod '$script:PodName' in unknown state..."`
             -ForegroundColor Red
-        exit -1
+    }
+    else {
+        Write-Host "Pod '$script:PodName' is in state '$podStatus'." `
+            -ForegroundColor Yellow
     }
     Start-Sleep -Seconds 1
 }
 
 if (-not $script:Fork.IsPresent) {
 
-    Write-Host "Attaching debugger to pod '$PodName' and container '$ContainerName'..." `
+    Write-Host "Attaching debugger to pod '$script:PodName' and container '$ContainerName'..." `
         -ForegroundColor Cyan
     # Attach to running container
-    kubectl -n $Namespace debug $PodName -n $($Namespace) `
+    kubectl -n $Namespace debug $script:PodName -n $($Namespace) `
         --image=docker.io/library/debugger:$($containerTag) `
         --target=$ContainerName `
         --profile=general `
@@ -306,12 +314,11 @@ if (-not $script:Fork.IsPresent) {
         --share-processes=true `
         -it --attach=false
 
-    Write-Host "Debugging pod '$PodName' and container '$ContainerName'." `
+    Write-Host "Debugging pod '$script:PodName' and container '$ContainerName'." `
         -ForegroundColor Green
 }
 
-Remove-Item -Path debugger.tar
 Write-Host "Visual Studio Debugger listening on localhost:50000." `
     -ForegroundColor Green
-kubectl port-forward -n $($Namespace) --address=0.0.0.0 pod/$($PodName) 50000:22
+kubectl port-forward -n $($Namespace) --address=0.0.0.0 pod/$($script:PodName) 50000:22
 

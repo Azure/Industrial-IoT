@@ -1452,7 +1452,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             e.DeferredAcknowledgementsToSend.AddRange(acks.Except(e.AcknowledgementsToSend));
 
-            if (_logger.IsEnabled(LogLevel.Debug))
+            if (_logger.IsEnabled(LogLevel.Trace))
             {
                 _logger.SendingAcks(this, Environment.CurrentManagedThreadId,
                     ToString(e.AcknowledgementsToSend),
@@ -2420,7 +2420,7 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
             Message = "{Client}: Publish error: {Error}...")]
         public static partial void PublishError(this ILogger logger, OpcUaClient client, string error);
 
-        [LoggerMessage(EventId = EventClass + 34, Level = LogLevel.Trace,
+        [LoggerMessage(EventId = EventClass + 34, Level = LogLevel.Trace, SkipEnabledCheck = true,
             Message = "{Client}: #{ThreadId} - Sending {Acks} acks and deferring {Deferrals} acks. ({Requests})")]
         public static partial void SendingAcks(this ILogger logger, OpcUaClient client, int threadId, string acks,
             string deferrals, int requests);

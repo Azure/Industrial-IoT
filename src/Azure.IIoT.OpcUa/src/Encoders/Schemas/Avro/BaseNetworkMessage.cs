@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
     using Furly.Extensions.Messaging;
     using global::Avro;
     using System.Collections.Generic;
-    using System.Globalization;
     using System.Linq;
 
     /// <summary>
@@ -33,9 +32,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
         string IEventSchema.Schema => Schema.ToString();
 
         /// <inheritdoc/>
-        public string? Id => SchemaNormalization
-            .ParsingFingerprint64(Schema)
-            .ToString(CultureInfo.InvariantCulture);
+        public string Id { get; }
 
         /// <inheritdoc/>
         public abstract Schema Schema { get; }
@@ -44,6 +41,17 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
         public override string? ToString()
         {
             return Schema.ToString();
+        }
+
+        /// <summary>
+        /// Create network message schema
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="version"></param>
+        protected BaseNetworkMessage(string id, ulong version)
+        {
+            Version = version;
+            Id = id;
         }
 
         /// <summary>

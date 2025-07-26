@@ -33,9 +33,9 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
         /// <returns></returns>
         internal AvroDataSetMessage(PublishedDataSetMessageSchemaModel dataSetMessage,
             NetworkMessageContentFlags networkMessageContentFlags,
-            SchemaOptions options, HashSet<string> uniqueNames)
+            SchemaOptions options, HashSet<string> uniqueNames) : base(dataSetMessage.Id)
         {
-            DataSetSchema = new AvroDataSet(dataSetMessage.MetaData,
+            DataSetSchema = new AvroDataSet(dataSetMessage.Id, dataSetMessage.MetaData,
                 dataSetMessage.DataSetFieldContentFlags, options, uniqueNames);
             Schema = Compile(dataSetMessage.TypeName, dataSetMessage.DataSetMessageContentFlags
                     ?? PubSubMessage.DefaultDataSetMessageContentFlags,

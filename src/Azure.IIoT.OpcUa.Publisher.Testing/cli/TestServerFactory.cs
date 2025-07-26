@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
     using Opc.Ua.Test;
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
@@ -151,6 +150,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
             /// <summary>
             /// Create configuration
             /// </summary>
+            /// <param name="ports"></param>
+            /// <param name="hostName"></param>
+            /// <param name="alternativeAddresses"></param>
+            /// <param name="path"></param>
+            /// <param name="pkiRootPath"></param>
+            /// <param name="certStoreType"></param>
+            /// <param name="enableDiagnostics"></param>
+            /// <param name="configure"></param>
+            /// <returns></returns>
             public static ApplicationConfiguration CreateServerConfiguration(
                 IEnumerable<int> ports, string hostName, IEnumerable<string> alternativeAddresses,
                 string path, string pkiRootPath, string certStoreType, bool enableDiagnostics = false,
@@ -184,7 +192,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                     pkiRootPath = "pki";
                 }
                 path ??= "/UA/SampleServer";
-                if (path.Length > 0 && !path.StartsWith("/", StringComparison.Ordinal))
+                if (path.Length > 0 && !path.StartsWith('/'))
                 {
                     path = "/" + path;
                 }
@@ -202,23 +210,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                         ApplicationCertificate = new CertificateIdentifier
                         {
                             StoreType = certStoreType,
-                            StorePath = $"{pkiRootPath}own",
+                            StorePath = $"{pkiRootPath}/own",
                             SubjectName = "UA Core Sample Server"
                         },
                         TrustedPeerCertificates = new CertificateTrustList
                         {
                             StoreType = certStoreType,
-                            StorePath = $"{pkiRootPath}trusted"
+                            StorePath = $"{pkiRootPath}/trusted"
                         },
                         TrustedIssuerCertificates = new CertificateTrustList
                         {
                             StoreType = certStoreType,
-                            StorePath = $"{pkiRootPath}issuer"
+                            StorePath = $"{pkiRootPath}/issuer"
                         },
                         RejectedCertificateStore = new CertificateTrustList
                         {
                             StoreType = certStoreType,
-                            StorePath = $"{pkiRootPath}rejected"
+                            StorePath = $"{pkiRootPath}/rejected"
                         },
                         MinimumCertificateKeySize = 1024,
                         RejectSHA1SignedCertificates = false,

@@ -34,7 +34,7 @@
     .PARAMETER Connector
         Whether to deploy the OPC Publisher as connector. Official
         installs the official connector build, Local builds and deploys
-        a local version. Debug the debug version. Default is None.
+        a local version. Debug the debug version. Default is Official.
     .PARAMETER OpsVersion
         The version of Azure IoT Operations to use.
         Default is the latest stable release.
@@ -46,6 +46,10 @@
     .PARAMETER OpsExtension
         (Internal) Use a preview version of the Azure IoT Operations
         extension to use.
+    .PARAMETER DeployPlcSimulation
+        Whether to deploy the PLC simulation. Default is false.
+    .PARAMETER DeployTestSimulation
+        Whether to deploy the Test simulation. Default is false.
 #>
 
 param(
@@ -68,7 +72,7 @@ param(
         "Official",
         "Local",
         "Debug"
-    )] $Connector = "Local",
+    )] $Connector = "Official",
     [string] $OpsVersion = $null,
     [string] [ValidateSet(
         "integration",
@@ -80,18 +84,27 @@ param(
         "preview",
         "installed",
         "stable"
-    )] $OpsExtension = "stable"
+    )] $OpsExtension = "stable",
+    [switch] $DeployPlcSimulation,
+    [switch] $DeployTestSimulation,
+    [switch] $DeployDiscoveryHandler
 )
 
 #Requires -RunAsAdministrator
-
 $ErrorActionPreference = 'Continue'
-$scriptDirectory = Split-Path -Path $MyInvocation.MyCommand.Path
+
+if ($script:DeployDiscoveryHandler.IsPresent) {
+    Write-Host "DeployDiscoveryHandler is not supported yet." -ForegroundColor Red
+    $script:DeployDiscoveryHandler = $false
+}
 
 if (![Environment]::Is64BitProcess) {
     Write-Host "Error: Run this in 64bit Powershell session" -ForegroundColor Red
     exit -1
 }
+
+$scriptDirectory = Split-Path -Path $MyInvocation.MyCommand.Path
+Import-Module $(Join-Path $(Join-Path $scriptDirectory "common") "cluster-utils.psm1") -Force
 
 #
 # Dump command line arguments
@@ -805,19 +818,26 @@ if (-not $?) {
     Write-Host "Error: Failed to enable custom location feature." -ForegroundColor Red
     exit -1
 }
+
 # enable workload identity
-Write-Host "Enabling workload identity for cluster $Name..." -ForegroundColor Cyan
-az connectedk8s update `
-    --name $cc.name `
-    --resource-group $rg.Name `
-    --subscription $SubscriptionId `
-    --auto-upgrade true `
-    --enable-oidc-issuer `
-    --enable-workload-identity `
-    --only-show-errors
-if (-not $?) {
-    Write-Host "Error: Failed to enable workload identity." -ForegroundColor Red
-    exit -1
+if ($cc.securityProfile.workloadIdentity.enabled -and $cc.oidcIssuerProfile.enabled){
+    Write-Host "Workload identity already enabled for cluster $Name." -ForegroundColor Green
+}
+else {
+    Write-Host "Enabling workload identity for cluster $Name..." -ForegroundColor Cyan
+    az connectedk8s update `
+        --name $cc.name `
+        --resource-group $rg.Name `
+        --subscription $SubscriptionId `
+        --auto-upgrade true `
+        --enable-oidc-issuer `
+        --enable-workload-identity `
+        --only-show-errors
+    if (-not $?) {
+        Write-Host "Error: Failed to enable workload identity." -ForegroundColor Red
+        exit -1
+    }
+    Write-Host "Workload identity enabled for cluster $Name." -ForegroundColor Green
 }
 
 #
@@ -1110,6 +1130,7 @@ if ($script:Connector -eq "Official") {
             registry = "mcr.microsoft.com"
         }
     }
+    $containerTag = "2.9.15-preview2" # TODO: Remove
     $containerImage = "mcr.microsoft.com/$($containerName):$($containerTag)"
     docker pull $containerImage
 }
@@ -1136,15 +1157,10 @@ else {
     $containerPull = "IfNotPresent"
 }
 
-Write-Host "Importing $containerImage into $($script:ClusterType) cluster..." `
-    -ForegroundColor Cyan
+# Import container image
+Import-ContainerImage -ClusterType $script:ClusterType -ContainerImage $containerImage
 if ($script:ClusterType -eq "microk8s") {
-    # Windows only, support on linux is not implemented yet
-    $imageTar = Join-Path $env:TEMP "image.tar"
-    docker image save $containerImage -o $imageTar
-    multipass transfer $imageTar microk8s-vm:/tmp/image.tar
-    microk8s ctr image import /tmp/image.tar
-    Remove-Item -Path $imageTar -Force
+    $containerImage = "docker.io/$($containerImage)"
     $containerRegistry = @{
         registrySettingsType = "ContainerRegistry"
         containerRegistrySettings = @{
@@ -1152,14 +1168,6 @@ if ($script:ClusterType -eq "microk8s") {
         }
     }
 }
-elseif ($script:ClusterType -eq "k3d") {
-    k3d image import $containerImage --mode auto --cluster $Name
-}
-elseif ($script:ClusterType -eq "kind") {
-    kind load docker-image $containerImage
-}
-Write-Host "Container $containerImage imported into $($script:ClusterType) cluster." `
-    -ForegroundColor Green
 
 #
 # Create connector template
@@ -1252,6 +1260,7 @@ $template = @{
                 }
                 additionalConfiguration = @{
                     EnableMetrics = "True"
+                    UseFileChangePolling = "True"
                     DisableDataSetMetaData = "True"
                     LogFormat = "syslog"
                 }
@@ -1315,100 +1324,127 @@ if (-not $?) {
     Remove-Item -Path $tempFile -Force
     exit -1
 }
-# Deploy discovery handler
-$template = @{
-    extendedLocation = $iotOps.extendedLocation
-    properties = @{
-        aioMetadata = @{
-            aioMinVersion = "1.2.*"
-            aioMaxVersion = "1.*.*"
-        }
-        imageConfiguration = @{
-            imageName = $containerName
-            imagePullPolicy = $containerPull
-            registrySettings = $containerRegistry
-            tagDigestSettings = @{
-                tagDigestType = "Tag"
-                tag = $containerTag
+
+# Deploy discovery handler - disabled in current version of Azure IoT Operations
+if ($script:DeployDiscoveryHandler.IsPresent) {
+    $template = @{
+        extendedLocation = $iotOps.extendedLocation
+        properties = @{
+            aioMetadata = @{
+                aioMinVersion = "1.2.*"
+                aioMaxVersion = "1.*.*"
             }
-        }
-        mode = "Enabled"
-        schedule = @{
-            scheduleType = "Cron" # or "Continuous" or "RunOnce"
-            cron = "*/10 * * * *"
-        }
-        additionalConfiguration = @{
-            AutoDiscoverDevicesOnStartup = "True"
-            EnableMetrics = "True"
-            LogFormat = "syslog"
-            DisableDataSetMetaData = "True"
-        }
-        discoverableDeviceEndpointTypes = @(
-            @{
-                endpointType = "Microsoft.OpcPublisher"
-                version = "2.9"
-            }
-        )
-        secrets = @()
-        diagnostics = @{
-            logs = @{
-                level = "info"
-            }
-        }
-        mqttConnectionConfiguration = @{
-            host = "aio-broker:18883"
-            authentication = @{
-                method = "ServiceAccountToken"
-                serviceAccountTokenSettings = @{
-                    audience = "aio-internal"
+            imageConfiguration = @{
+                imageName = $containerName
+                imagePullPolicy = $containerPull
+                registrySettings = $containerRegistry
+                tagDigestSettings = @{
+                    tagDigestType = "Tag"
+                    tag = $containerTag
                 }
             }
-            tls = @{
-                mode = "Enabled"
-                trustedCaCertificateConfigMapRef = "azure-iot-operations-aio-ca-trust-bundle"
+            mode = "Enabled"
+            schedule = @{
+                scheduleType = "Cron" # or "Continuous" or "RunOnce"
+                cron = "*/10 * * * *"
+            }
+            additionalConfiguration = @{
+                AutoDiscoverDevicesOnStartup = "True"
+                EnableMetrics = "True"
+                UseFileChangePolling = "True"
+                LogFormat = "syslog"
+                DisableDataSetMetaData = "True"
+            }
+            discoverableDeviceEndpointTypes = @(
+                @{
+                    endpointType = "Microsoft.OpcPublisher"
+                    version = "2.9"
+                }
+            )
+            secrets = @()
+            diagnostics = @{
+                logs = @{
+                    level = "info"
+                }
+            }
+            mqttConnectionConfiguration = @{
+                host = "aio-broker:18883"
+                authentication = @{
+                    method = "ServiceAccountToken"
+                    serviceAccountTokenSettings = @{
+                        audience = "aio-internal"
+                    }
+                }
+                tls = @{
+                    mode = "Enabled"
+                    trustedCaCertificateConfigMapRef = "azure-iot-operations-aio-ca-trust-bundle"
+                }
             }
         }
-    }
-} | ConvertTo-Json -Depth 100
-$template | Out-File -FilePath $tempFile -Encoding utf8 -Force
+    } | ConvertTo-Json -Depth 100
+    $template | Out-File -FilePath $tempFile -Encoding utf8 -Force
 
-$dhName = "opc-publisher"
-$dhResource = "/subscriptions/$($SubscriptionId)"
-$dhResource = "$($dhResource)/resourceGroups/$($rg.Name)"
-$dhResource = "$($dhResource)/providers/Microsoft.IoTOperations"
-$dhResource = "$($dhResource)/instances/$($iotOps.name)"
-$dhResource = "$($dhResource)/akriDiscoveryHandlers/$($dhName)"
-Write-Host "Deploying discovery handler template $($dhName)..." -ForegroundColor Cyan
-az rest --method put `
-    --url "$($dhResource)?api-version=2025-07-01-preview" `
-    --headers "Content-Type=application/json" `
-    --body @$tempFile
-if (-not $?) {
-    Write-Host "Error deploying discovery handler template $($dhName) - $($errOut)." `
-        -ForegroundColor Red
-    Remove-Item -Path $tempFile -Force
-    exit -1
+    $dhName = "opc-publisher"
+    $dhResource = "/subscriptions/$($SubscriptionId)"
+    $dhResource = "$($dhResource)/resourceGroups/$($rg.Name)"
+    $dhResource = "$($dhResource)/providers/Microsoft.IoTOperations"
+    $dhResource = "$($dhResource)/instances/$($iotOps.name)"
+    $dhResource = "$($dhResource)/akriDiscoveryHandlers/$($dhName)"
+    Write-Host "Deploying discovery handler template $($dhName)..." -ForegroundColor Cyan
+    az rest --method put `
+        --url "$($dhResource)?api-version=2025-07-01-preview" `
+        --headers "Content-Type=application/json" `
+        --body @$tempFile
+    if (-not $?) {
+        Write-Host "Error deploying discovery handler template $($dhName) - $($errOut)." `
+            -ForegroundColor Red
+        Remove-Item -Path $tempFile -Force
+        exit -1
+    }
 }
 
 #
 # Deploy simulation servers
 #
-& $(Join-Path $(Join-Path $scriptDirectory "simulation") "deploy.ps1") `
-    -SimulationName "opc-plc" -Count 2 `
-    -InstanceName $script:InstanceName `
-    -AdrNamespaceName $Name `
-    -SubscriptionId $SubscriptionId `
-    -TenantId $TenantId `
-    -ResourceGroup $rg.Name `
-    -Location $Location `
-    -Namespace $script:ClusterNamespace `
-    -SkipLogin `
-    -Force  # :$forceReinstall `
+if ($script:DeployPlcSimulation.IsPresent) {
+    & $(Join-Path $(Join-Path $scriptDirectory "simulation") "deploy.ps1") `
+        -DeploymentName "simulation1" `
+        -SimulationName "opc-plc" -Count 2 `
+        -InstanceName $script:InstanceName `
+        -AdrNamespaceName $Name `
+        -SubscriptionId $SubscriptionId `
+        -TenantId $TenantId `
+        -ResourceGroup $rg.Name `
+        -Location $Location `
+        -Namespace $script:ClusterNamespace `
+        -SkipLogin `
+        -Force  # :$forceReinstall `
 
-if (-not $?) {
-    Write-Host "Error deploying simulation servers." -ForegroundColor Red
-    Remove-Item -Path $tempFile -Force
-    exit -1
+    if (-not $?) {
+        Write-Host "Error deploying opc plc simulation servers." -ForegroundColor Red
+        Remove-Item -Path $tempFile -Force
+        exit -1
+    }
+}
+if ($script:DeployTestSimulation.IsPresent) {
+    & $(Join-Path $(Join-Path $scriptDirectory "simulation") "deploy.ps1") `
+        -DeploymentName "simulation2" `
+        -SimulationName "opc-test" -Count 2 `
+        -InstanceName $script:InstanceName `
+        -AdrNamespaceName $Name `
+        -SubscriptionId $SubscriptionId `
+        -TenantId $TenantId `
+        -ResourceGroup $rg.Name `
+        -Location $Location `
+        -Namespace $script:ClusterNamespace `
+        -SkipLogin `
+        -Force  # :$forceReinstall `
+
+    if (-not $?) {
+        Write-Host "Error deploying test simulation servers." -ForegroundColor Red
+        Remove-Item -Path $tempFile -Force
+        exit -1
+    }
 }
 Remove-Item -Path $tempFile -Force
 

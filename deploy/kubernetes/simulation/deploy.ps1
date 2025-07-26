@@ -16,8 +16,6 @@
         and "opc-test". Default is "opc-plc".
     .PARAMETER Count
         Number of simulation servers to deploy.
-    .PARAMETER InstanceName
-        The name of the Azure IoT Operations instance
     .PARAMETER AdrNamespaceName
         The Azure IoT Operations namespace to deploy the simulation
         devices into. Must exist already.
@@ -31,29 +29,53 @@
         The subscription id to scope all activity to.
     .PARAMETER Location
         The Azure region where the resources will be created.
+    .PARAMETER InstanceName
+        The name of the Azure IoT Operations instance to register
+        the devices with. This instance must already exist.
+    .PARAMETER DeploymentName
+        The name of the Helm deployment for the simulation servers.
     .PARAMETER Force
         If specified, will force the creation of devices even if they
         already exist in the ADR namespace.
     .PARAMETER SkipLogin
         If specified, will skip the Azure login step.
+    .PARAMETER ClusterType
+        The type of Kubernetes cluster to deploy to. Valid values are
+        "kind", "minikube", "k3d", and "microk8s". Optional and only
+        needed if you want to deploy opc-test from local repo.
 #>
 
 param(
-    [string] [ValidateSet("opc-plc", "opc-test")] $SimulationName = "opc-plc",
-    [int] $Count = 2,
+    [string] [Parameter(Mandatory = $true)] $DeploymentName,
+    [string] [ValidateSet(
+        "opc-plc",
+        "opc-test",
+        "umati",
+        "umati-public"
+    )] $SimulationName = "opc-plc",
+    [int] $Count = 1,
     [string] [Parameter(Mandatory = $true)] $InstanceName,
-    [string] $AdrNamespaceName,
+    [string] [Parameter(Mandatory = $true)] $ResourceGroup,
+    [string] [Parameter(Mandatory = $true)] $AdrNamespaceName,
     [string] $SubscriptionId,
     [string] $TenantId,
-    [string] [Parameter(Mandatory = $true)] $ResourceGroup,
     [string] $Location = "westus",
-    [string] $Namespace = "azure-iot-operations",
+    [string] $Namespace,
+    [string] [ValidateSet(
+        "kind",
+        "minikube",
+        "k3d",
+        "microk8s"
+    )] $ClusterType ="microk8s",
+    [switch] $AddServerType,
     [switch] $Force,
     [switch] $SkipLogin
 )
 
 $ErrorActionPreference = "Continue"
 $scriptDirectory = Split-Path -Path $MyInvocation.MyCommand.Path
+Import-Module $(Join-Path $(Join-Path $(Split-Path $scriptDirectory) "common") `
+    "cluster-utils.psm1") -Force
 
 $azVersion = (az version)[1].Split(":")[1].Split('"')[1]
 if ($azVersion -lt "2.74.0" -or !$azVersion) {
@@ -84,17 +106,6 @@ if (-not $script:SkipLogin.IsPresent) {
     }
 }
 
-$deploymentName = "simulation"
-$tempFile = New-TemporaryFile
-Write-Host "Creating $($script:Count) $($script:SimulationName) simulations..." `
-    -ForegroundColor Cyan
-$helmPath = Join-Path $(Join-Path $scriptDirectory "helm") $script:SimulationName
-helm upgrade -i $deploymentName "$($helmPath)" `
-    --namespace $script:Namespace `
-    --set simulations=$script:Count `
-    --set deployDefaultIssuerCA=false `
-    --wait
-
 #
 # Check adr namespace and azure iot instances exists
 #
@@ -111,7 +122,7 @@ if (!$ns -or !$ns.id) {
     exit -1
 }
 $errOut = $($iotOps = & { az iot ops show `
-    --resource-group $rg.Name `
+    --resource-group $script:ResourceGroup `
     --name $script:InstanceName `
     --subscription $SubscriptionId `
     --only-show-errors --output json } | ConvertFrom-Json) 2>&1
@@ -122,18 +133,120 @@ if (!$iotOps) {
 }
 
 #
+# Get list of namespaces and let user select one or validate the one provided
+#
+$namespaces = kubectl get namespaces --no-headers | ForEach-Object {
+    $_.Split()[0]
+}
+if (-not $namespaces) {
+    Write-Host "No namespaces found." -ForegroundColor Red
+    exit -1
+}
+if (-not $script:Namespace) {
+    $script:Namespace = $namespaces | Out-GridView -Title "Select a namespace" -PassThru
+    if (-not $script:Namespace) {
+        Write-Host "No namespace selected." -ForegroundColor Yellow
+        exit 0
+    }
+}
+else {
+    if (-not $namespaces.Contains($script:Namespace)) {
+        Write-Host "Namespace '$script:Namespace' not found." -ForegroundColor Red
+        exit -1
+    }
+    Write-Host "Using namespace '$script:Namespace'." -ForegroundColor Green
+}
+
+$displayName = "$($script:Count) $($script:SimulationName) simulation servers"
+if ($script:SimulationName -eq "umati-public") {
+    Write-Host "Using public Umati server for simulation." -ForegroundColor Yellow
+    $script:Count = 1
+}
+elseif ($script:SimulationName -eq "opc-test" -and $script:ClusterType) {
+    Write-Host "Building opc-test-server image for simulation." -ForegroundColor Yellow
+    $projFile = "Azure.IIoT.OpcUa.Publisher.Testing"
+    $projFile = "../../../src/$($projFile)/cli/$($projFile).Cli.csproj"
+    $configuration = "Debug"
+    $containerTag = "latest"
+    $containerName = "iot/opc-ua-test-server"
+    $containerImage = "$($containerName):$($containerTag)"
+    Write-Host "Publishing $configuration Simulation as $containerImage..." `
+        -ForegroundColor Cyan
+    dotnet restore $projFile -s https://api.nuget.org/v3/index.json
+    dotnet publish $projFile -c $configuration --self-contained false --no-restore `
+        /t:PublishContainer -r linux-x64 /p:ContainerImageTag=$($containerTag)
+    if (-not $?) {
+        Write-Host "Error building opc-ua-test server image connector." -ForegroundColor Red
+        exit -1
+    }
+    Write-Host "$configuration container image $containerImage published successfully." `
+        -ForegroundColor Green
+    Import-ContainerImage -ClusterType $script:ClusterType -ContainerImage $containerImage
+    $helmPath = Join-Path $(Join-Path $scriptDirectory "helm") $script:SimulationName
+    helm upgrade -i $script:DeploymentName "$($helmPath)" `
+        --namespace $script:Namespace `
+        --set simulations=$script:Count `
+        --set deployDefaultIssuerCA=false `
+        --set image=$($containerName) `
+        --set tag=$($containerTag) `
+        --set pullPolicy=IfNotPresent `
+        --wait
+    if (-not $?) {
+        Write-Host "Error deploying $($displayName) as $($script:DeploymentName)." `
+            -ForegroundColor Red
+        exit -1
+    }
+    Write-Host "Deployment of $($displayName) as $($script:DeploymentName) completed." `
+        -ForegroundColor Green
+}
+else {
+    Write-Host "Deploying $($displayName) as $($script:DeploymentName)..." `
+        -ForegroundColor Cyan
+    $helmPath = Join-Path $(Join-Path $scriptDirectory "helm") $script:SimulationName
+    helm upgrade -i $script:DeploymentName "$($helmPath)" `
+        --namespace $script:Namespace `
+        --set simulations=$script:Count `
+        --set deployDefaultIssuerCA=false `
+        --wait
+
+    if (-not $?) {
+        Write-Host "Error deploying $($displayName) as $($script:DeploymentName)." `
+            -ForegroundColor Red
+        exit -1
+    }
+    Write-Host "Deployment of $($displayName) as $($script:DeploymentName) completed." `
+        -ForegroundColor Green
+}
+
+$tempFile = New-TemporaryFile
+
+#
 # Deployment simulation configuration
 #
-$assetTypes = @("i=2004")
-if ($script:SimulationName -eq "opc-plc") {
-    # OPC Plc
-    $assetTypes += "nsu=http://opcfoundation.org/UA/Boiler/;i=1132"
-    $assetTypes += "nsu=http://microsoft.com/Opc/OpcPlc/Boiler;i=1000"
-    $assetTypes += "nsu=http://microsoft.com/Opc/OpcPlc/Boiler;i=3"
+$assetTypes = @()
+if ($script:AddServerType) {
+    $assetTypes += "nsu=http://opcfoundation.org/UA/;i=2004"
 }
-elseif ($script:SimulationName -eq "opc-test") {
-    # OPC Test
-    # todo
+switch ($script:SimulationName) {
+    "opc-plc" {
+        # OPC Plc
+        $assetTypes += "nsu=http://opcfoundation.org/UA/Boiler/;i=1132"
+        $assetTypes += "nsu=http://microsoft.com/Opc/OpcPlc/Boiler;i=1000"
+        $assetTypes += "nsu=http://microsoft.com/Opc/OpcPlc/Boiler;i=3"
+    }
+    "opc-test" {
+        $assetTypes += "nsu=http://opcfoundation.org/UA/Boiler/;i=1132" # BoilerType
+        $assetTypes += "nsu=http://opcfoundation.org/UA/WoT-Con/;i=115" # AssetType
+        #$assetTypes += "nsu=FileSystem;i=16314" # FileSystemType
+    }
+    "umati" {
+        # $assetTypes += "nsu=http://opcfoundation.org/UA/MachineTool/;i=14" # monitoring
+        $assetTypes += "nsu=http://opcfoundation.org/UA/MachineTool/;i=13" # machine tool
+    }
+    "umati-public" {
+        # $assetTypes += "nsu=http://opcfoundation.org/UA/MachineTool/;i=14" # monitoring
+        $assetTypes += "nsu=http://opcfoundation.org/UA/MachineTool/;i=13" # machine tool
+    }
 }
 
 for ($i = 0; $i -lt $script:Count; $i++) {
@@ -144,14 +257,18 @@ for ($i = 0; $i -lt $script:Count; $i++) {
         --url "$($deviceResource)?api-version=2025-07-01-preview" `
         --headers "Content-Type=application/json" } | ConvertFrom-Json) 2>&1
     if (!$device -or !$device.id -or $script:Force.IsPresent) {
-        $address = "$($script:SimulationName)-$($deploymentName)-$($suffix)"
-        $address = "$($address).$($script:Namespace).svc.cluster.local"
-        $address = "opc.tcp://$($address):50000"
+        if ($script:SimulationName -eq "umati-public") { 
+            $address = "opc.tcp://opcua.umati.app:4840"
+        }
+        else {
+            $address = "$($script:SimulationName)-$($DeploymentName)-$($suffix)"
+            $address = "$($address).$($script:Namespace).svc.cluster.local"
+            $address = "opc.tcp://$($address):4840"
+        }
         $body = @{
             extendedLocation = $iotOps.extendedLocation
             location = $Location
             properties = @{
-                # externalDeviceId = "unique-edge-device-identifier"
                 enabled = $true
                 attributes = @{
                     deviceType = "LDS"

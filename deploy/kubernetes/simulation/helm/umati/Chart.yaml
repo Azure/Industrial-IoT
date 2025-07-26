@@ -1,0 +1,6 @@
+apiVersion: v2
+name: umati-sample-server
+description: A Helm chart for Kubernetes that deploys the Umati sample server.
+type: application
+version: 1.0-alpha.1
+appVersion: 1.0-alpha.1

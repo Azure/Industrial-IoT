@@ -312,64 +312,106 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Safely get the writer group
         /// </summary>
+        /// <param name="topic"></param>
         /// <param name="writerGroup"></param>
         /// <param name="schema"></param>
-        private void GetWriterGroup(out WriterGroupModel writerGroup, out IEventSchema? schema)
+        private void GetSchemaAndWriterGroup(string topic, out WriterGroupModel writerGroup, out IEventSchema? schema)
         {
-            if (_lastMetadataChange != _metadataChanges)
+            if (_options.Value.SchemaOptions == null)
             {
-                _lock.Wait();
-                try
+                // No schema options, so no schema support
+                writerGroup = _writerGroup;
+                schema = null;
+                return;
+            }
+            if (_schemaGroups.TryGetValue(topic, out var schemaGroup) &&
+                schemaGroup.Version == (ulong)_metadataChanges)
+            {
+                writerGroup = _writerGroup;
+                schema = schemaGroup.Schema;
+                return;
+            }
+            _lock.Wait();
+            try
+            {
+                writerGroup = _writerGroup;
+                if (_schemaGroups.TryGetValue(topic, out schemaGroup) &&
+                    schemaGroup.Version == (ulong)_metadataChanges)
                 {
-                    if (_lastMetadataChange != _metadataChanges)
-                    {
-                        // Check for schema support and create schema only if enabled
-                        writerGroup = _writerGroup;
-                        if (_options.Value.SchemaOptions == null)
-                        {
-                            schema = null;
-                        }
-                        else
-                        {
-                            var encoding = writerGroup.MessageType ?? MessageEncoding.Json;
-                            var input = new PublishedNetworkMessageSchemaModel
-                            {
-                                DataSetMessages = _writers.Values
-                                    .Select(s => s.MetaData)
-                                    .ToList(),
-                                NetworkMessageContentFlags =
-                                    writerGroup.MessageSettings?.NetworkMessageContentMask
-                            };
+                    schema = schemaGroup.Schema;
+                    return;
+                }
+                var id = writerGroup.Name ?? writerGroup.Id;
+                var encoding = writerGroup.MessageType ?? MessageEncoding.Json;
+                var datasetSchemaMetadata = _writers.Values
+                    .Where(s => s.Topic == topic)
+                    .Select(s => s.MetaData)
+                    .ToList();
+                if (datasetSchemaMetadata.Any(m => m == null))
+                {
+                    // If any of the dataset metadata is null, we cannot create a schema
+                    _logger.FailedToCreateSchemaMissingMetadata(encoding, writerGroup.Id);
+                    schema = null;
+                    return;
+                }
+
+                if (datasetSchemaMetadata.Count == 1)
+                {
+                    id = datasetSchemaMetadata[0]!.Id ?? id;
+                }
+                else
+                {
+                    id = $"{id}|{topic.ToSha1Hash()}";
+                }
+                var input = new PublishedNetworkMessageSchemaModel
+                {
+                    Id = id,
+                    Version = (ulong)_metadataChanges,
+                    DataSetMessages = datasetSchemaMetadata,
+                    NetworkMessageContentFlags =
+                        writerGroup.MessageSettings?.NetworkMessageContentMask
+                };
 #if DUMP_METADATA
 #pragma warning disable CA1869 // Cache and reuse 'JsonSerializerOptions' instances
-                            System.IO.File.WriteAllText(
-           $"md_{DateTimeOffset.UtcNow.ToBinary()}_{writerGroup.Id}_{_metadataChanges}.json",
-                                System.Text.Json.JsonSerializer.Serialize(input,
-                                    new System.Text.Json.JsonSerializerOptions
-                                    {
-                                        WriteIndented = true
-                                    }));
+                System.IO.File.WriteAllText(
+$"md_{DateTimeOffset.UtcNow.ToBinary()}_{writerGroup.Id}_{_metadataChanges}.json",
+                    System.Text.Json.JsonSerializer.Serialize(input,
+                        new System.Text.Json.JsonSerializerOptions
+                        {
+                            WriteIndented = true
+                        }));
 #pragma warning restore CA1869 // Cache and reuse 'JsonSerializerOptions' instances
 #endif
-                            if (!PubSubMessage.TryCreateNetworkMessageSchema(encoding, input,
-                                out schema, _options.Value.SchemaOptions))
-                            {
-                                _logger.FailedToCreateSchema(encoding, writerGroup.Id);
-                            }
-                        }
-                        _schema = schema;
-                        _lastMetadataChange = _metadataChanges;
+                try
+                {
+                    if (PubSubMessage.TryCreateNetworkMessageSchema(encoding, input,
+                        out schema, _options.Value.SchemaOptions))
+                    {
+                        schemaGroup = new SchemaGroup(topic, (ulong)_metadataChanges, schema);
+                        _schemaGroups.AddOrUpdate(topic, schemaGroup, (_, _) => schemaGroup);
                         return;
                     }
+                    _logger.FailedToCreateSchema(encoding, writerGroup.Id);
                 }
-                finally
+                catch (Exception ex)
                 {
-                    _lock.Release();
+                    _logger.FailedToCreateSchemaWithException(ex, encoding, writerGroup.Id);
                 }
+                schema = null;
             }
-            writerGroup = _writerGroup;
-            schema = _schema;
+            finally
+            {
+                _lock.Release();
+            }
         }
+
+        /// <summary>
+        /// Manages a schema and metadata for a group of writers
+        /// </summary>
+        /// <param name="Topic"></param>
+        /// <param name="Version"></param>
+        /// <param name="Schema"></param>
+        private sealed record class SchemaGroup(string Topic, ulong Version, IEventSchema Schema);
 
         /// <summary>
         /// Runtime duration
@@ -597,6 +639,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         private const long kNumberOfInvokedMessagesResetThreshold = long.MaxValue - 10000;
         private readonly ConcurrentDictionary<DataSetWriter, DataSetWriterSubscription> _writers = new();
+        private readonly ConcurrentDictionary<string, SchemaGroup> _schemaGroups = new();
         private readonly Meter _meter = Diagnostics.NewMeter();
         private readonly ILoggerFactory _loggerFactory;
         private readonly IJsonSerializer _serializer;
@@ -623,8 +666,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private int _metadataLoadSuccess;
         private int _metadataLoadFailures;
         private int _metadataChanges;
-        private int _lastMetadataChange = -1;
-        private IEventSchema? _schema;
     }
 
     /// <summary>
@@ -643,7 +684,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public static partial void UpdatedAllWriters(this ILogger logger, string writerGroup);
 
         [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Warning,
+            Message = "Failed to create schema for {Encoding} encoded messages for writer group {WriterGroup} because dataset metadata was null.")]
+        public static partial void FailedToCreateSchemaMissingMetadata(this ILogger logger, MessageEncoding encoding, string writerGroup);
+
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Warning,
             Message = "Failed to create schema for {Encoding} encoded messages for writer group {WriterGroup}.")]
         public static partial void FailedToCreateSchema(this ILogger logger, MessageEncoding encoding, string writerGroup);
+
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Error,
+            Message = "Failed to create schema for {Encoding} encoded messages for writer group {WriterGroup}.")]
+        public static partial void FailedToCreateSchemaWithException(this ILogger logger, Exception ex, MessageEncoding encoding, string writerGroup);
+
+
     }
 }

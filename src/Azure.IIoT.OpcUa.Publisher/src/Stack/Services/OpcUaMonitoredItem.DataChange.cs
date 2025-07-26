@@ -528,7 +528,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Message = "Aggregate filter applied with result {Result} for {Item}")]
         public static partial void AggregateFilterError(this ILogger logger, string result, OpcUaMonitoredItem.DataChange item);
 
-        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Debug, SkipEnabledCheck = true,
             Message = "Aggregate filter applied with result {Result} for {Item}")]
         public static partial void AggregateFilterApplied(this ILogger logger, string result, OpcUaMonitoredItem.DataChange item);
 

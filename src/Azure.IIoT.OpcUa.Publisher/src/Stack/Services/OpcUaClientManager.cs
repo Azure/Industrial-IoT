@@ -107,7 +107,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var endpointDescription = await OpcUaClient.SelectEndpointAsync(
                     _configuration.Value, endpointUrl, null,
                     endpoint.Endpoint.SecurityMode ?? SecurityMode.NotNone,
-                    endpoint.Endpoint.SecurityPolicy, _logger, endpoint,
+                    endpoint.Endpoint.SecurityPolicy, _logger, endpoint.Endpoint,
                     ct: ct).ConfigureAwait(false);
 
                 var endpointConfiguration = EndpointConfiguration.Create(
@@ -120,7 +120,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _configuration.Value, reverseConnectManager: null, configuredEndpoint,
                     updateBeforeConnect: true, // Update endpoint through discovery
                     checkDomain: false, // Domain must match on connect
-                    "Test" + Guid.NewGuid().ToString(),
+                    "Test" + Guid.NewGuid().ToString("N"),
                     10000, userIdentity, null, ct).ConfigureAwait(false);
                 try
                 {

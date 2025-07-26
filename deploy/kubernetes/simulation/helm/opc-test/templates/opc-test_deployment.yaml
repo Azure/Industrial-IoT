@@ -1,6 +1,5 @@
 {{- $simulationLabels := include "simulation.labels" . -}}
 {{- $simulationSelectorLabels := include "simulation.selectorLabels" . -}}
-{{- $simulationConfigMap := include "simulation.configmap" . -}}
 {{- $releaseName := .Release.Name -}}
 
 {{ range $i := until (.Values.simulations | int) }}
@@ -48,10 +47,10 @@ spec:
         image: {{ $.Values.image }}:{{ $.Values.tag }}
         imagePullPolicy: {{ $.Values.pullPolicy }}
         ports:
-        - containerPort: 50000
+        - containerPort: 4840
         args:
           - "--port"
-          - "50000"
+          - "4840"
           - "--hosts"
           - "opc-test-{{ $suffix }}.{{ $.Release.Namespace }},opc-test-{{ $suffix }}"
           # Check if additionalArgs are defined and have arguments for the current instance

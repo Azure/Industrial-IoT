@@ -28,6 +28,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
         /// <param name="useArrayEnvelope"></param>
         public JsonNetworkMessage(PublishedNetworkMessageSchemaModel networkMessage,
             SchemaOptions? options = null, bool useCompatibilityMode = false, bool useArrayEnvelope = false)
+            : base(networkMessage.Id, networkMessage.Version)
         {
             networkMessage = SetAdditionalFlags(networkMessage, useCompatibilityMode, useArrayEnvelope);
             Schema = Compile(networkMessage, options);

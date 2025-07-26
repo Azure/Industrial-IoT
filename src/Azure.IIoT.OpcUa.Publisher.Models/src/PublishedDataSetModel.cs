@@ -50,24 +50,42 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public bool? SendKeepAlive { get; set; }
 
         /// <summary>
+        /// Whenever sending a keep alive message send a keyframe
+        /// message instead.
+        /// </summary>
+        [DataMember(Name = "keepAliveAsKeyFrame", Order = 5,
+            EmitDefaultValue = false)]
+        public bool? KeepAliveAsKeyFrame { get; set; }
+
+        /// <summary>
         /// The data set routing option
         /// </summary>
-        [DataMember(Name = "routing", Order = 5,
+        [DataMember(Name = "routing", Order = 6,
             EmitDefaultValue = false)]
         public DataSetRoutingMode? Routing { get; set; }
 
         /// <summary>
         /// Root node of the dataset
+        /// (Publisher extension)
         /// </summary>
-        [DataMember(Name = "rootNode", Order = 6,
+        [DataMember(Name = "rootNode", Order = 7,
             EmitDefaultValue = false)]
         public string? RootNode { get; set; }
 
         /// <summary>
         /// Type of the dataset
+        /// (Publisher extension)
         /// </summary>
-        [DataMember(Name = "type", Order = 7,
+        [DataMember(Name = "type", Order = 8,
             EmitDefaultValue = false)]
         public string? Type { get; set; }
+
+        /// <summary>
+        /// Subject of the dataset
+        /// (Publisher extension)
+        /// </summary>
+        [DataMember(Name = "subject", Order = 9,
+            EmitDefaultValue = false)]
+        public string? Subject { get; set; }
     }
 }

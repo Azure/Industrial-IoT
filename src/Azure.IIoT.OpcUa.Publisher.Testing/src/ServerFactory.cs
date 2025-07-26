@@ -145,6 +145,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             /// <summary>
             /// Create configuration
             /// </summary>
+            /// <param name="curDir"></param>
+            /// <param name="ports"></param>
+            /// <param name="hostName"></param>
+            /// <param name="alternativeAddresses"></param>
+            /// <param name="path"></param>
+            /// <param name="pkiRootPath"></param>
+            /// <param name="certStoreType"></param>
+            /// <param name="enableDiagnostics"></param>
+            /// <param name="configure"></param>
+            /// <returns></returns>
             public static ApplicationConfiguration CreateServerConfiguration(string curDir,
                 IEnumerable<int> ports, string hostName, IEnumerable<string> alternativeAddresses,
                 string path, string pkiRootPath, string certStoreType, bool enableDiagnostics = false,
@@ -184,7 +194,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                     pkiRootPath = "pki";
                 }
                 path ??= "/UA/SampleServer";
-                if (path.Length > 0 && !path.StartsWith("/", StringComparison.Ordinal))
+                if (path.Length > 0 && !path.StartsWith('/'))
                 {
                     path = "/" + path;
                 }

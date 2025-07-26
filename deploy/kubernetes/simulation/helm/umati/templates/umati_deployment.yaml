@@ -1,0 +1,77 @@
+{{- $simulationLabels := include "simulation.labels" . -}}
+{{- $simulationSelectorLabels := include "simulation.selectorLabels" . -}}
+{{- $simulationConfigMap := include "simulation.configmap" . -}}
+{{- $releaseName := .Release.Name -}}
+
+{{ range $i := until (.Values.simulations | int) }}
+{{ $suffix := printf "%s-%06d" $releaseName $i }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: umati-{{ $suffix }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- $simulationLabels | nindent 4 }}
+    app.kubernetes.io/component: umati-{{ $suffix }}
+spec:
+  selector:
+    matchLabels:
+      {{- $simulationSelectorLabels | nindent 6 }}
+      app.kubernetes.io/component: umati-{{ $suffix }}
+  template:
+    metadata:
+      labels:
+        {{- $simulationSelectorLabels | nindent 8 }}
+        app.kubernetes.io/component: umati-{{ $suffix }}
+    spec:
+      {{- with $.Values.pullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      nodeSelector:
+        "kubernetes.io/os": linux
+      containers:
+      - name: umati
+        {{- if $.Values.setSecurityContext }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          privileged: false
+          # runAsNonRoot: true
+          # readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
+          seccompProfile:
+            type: RuntimeDefault
+        {{- end }}
+        image: {{ $.Values.image }}:{{ $.Values.tag }}
+        imagePullPolicy: {{ $.Values.pullPolicy }}
+        ports:
+        - containerPort: 50000
+        args:
+          - "/app/configuration.json"
+        volumeMounts:
+          - name: umati-config-{{ $suffix }}
+            mountPath: /app/configuration.json
+            subPath: configuration.json
+          - name: opc-ua-umati-default-application-cert-{{ $suffix }}
+            mountPath: /app/pki/own/
+          - name: opc-ua-umati-default-trusted-cert-{{ $suffix }}
+            mountPath: /app/pki/trusted/
+{{ if $.Values.resources }}
+        resources:
+{{ toYaml $.Values.resources | indent 10 }}
+{{- end }}
+      volumes:
+        - name: umati-config-{{ $suffix }}
+          configMap:
+            name: {{ $simulationConfigMap }}
+        - name: opc-ua-umati-default-application-cert-{{ $suffix }}
+          secret:
+            secretName: opc-ua-umati-default-application-cert-{{ $suffix }}
+        - name: opc-ua-umati-default-trusted-cert-{{ $suffix }}
+          # fallback to trust the own certificate secret. this contain the CA certificate when used.
+          secret:
+            secretName: opc-ua-umati-default-application-cert-{{ $suffix }}
+---
+{{ end }}

@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Serializers;
-    using k8s.KubeConfigModels;
     using Microsoft.Extensions.Logging;
     using Nito.AsyncEx;
     using System;
@@ -378,6 +377,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             public string Name { get; private set; }
 
             /// <summary>
+            /// Topic assigned to the writer
+            /// </summary>
+            public string Topic => _writer.Topic;
+
+            /// <summary>
             /// Writer id
             /// </summary>
             public string Id => _writer.Writer.Id;
@@ -396,8 +400,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <summary>
             /// Metadata disabled
             /// </summary>
-            internal bool IsMetadataDisabled => _writer.DataSet?.DataSetMetaData == null
-                || _group._options.Value.DisableDataSetMetaData == true;
+            internal bool IsMetadataDisabled => !SendMetadata
+                && _group._options.Value.SchemaOptions == null;
+
+            /// <summary>
+            /// Metadata disabled
+            /// </summary>
+            internal bool SendMetadata => _writer.DataSet?.DataSetMetaData != null
+                && _group._options.Value.DisableDataSetMetaData != true;
 
             /// <summary>
             /// Subscription id
@@ -561,12 +571,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <inheritdoc/>
-            public void OnMonitoredItemSemanticsChanged()
+            public async Task OnMonitoredItemSemanticsChangedAsync(CancellationToken ct)
             {
                 if (!IsMetadataDisabled)
                 {
                     // Reload metadata
                     _metaDataLoader.Value.Reload();
+
+                    var timeout = _group._options.Value.AsyncMetaDataLoadTimeout ?? TimeSpan.FromMinutes(1);
+                    if (timeout != TimeSpan.Zero)
+                    {
+                        await _metaDataLoader.Value.BlockUntilLoadedAsync(timeout, ct).ConfigureAwait(false);
+                    }
                 }
             }
 
@@ -574,8 +590,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             public void OnSubscriptionKeepAlive(OpcUaSubscriptionNotification notification)
             {
                 Interlocked.Increment(ref _group._keepAliveCount);
-                if (ProcessKeyFrame(ref notification) || _sendKeepAlives)
+                if (_sendKeepAlives)
                 {
+                    if (_sendKeepAliveAsKeyFrame)
+                    {
+                        notification.TryUpgradeToKeyFrame(this);
+                    }
                     CallMessageReceiverDelegates(notification);
                 }
             }
@@ -583,29 +603,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <inheritdoc/>
             public void OnSubscriptionDataChangeReceived(OpcUaSubscriptionNotification notification)
             {
-                ProcessKeyFrame(ref notification);
-                CallMessageReceiverDelegates(notification);
-            }
+                CallMessageReceiverDelegates(ProcessKeyFrame(notification));
 
-            /// <summary>
-            /// Process key frame notification
-            /// </summary>
-            /// <param name="notification"></param>
-            /// <returns></returns>
-            private bool ProcessKeyFrame(ref OpcUaSubscriptionNotification notification)
-            {
-                var keyFrameCount = _writer.Writer.KeyFrameCount
-                    ?? _group._options.Value.DefaultKeyFrameCount ?? 0;
-                if (keyFrameCount > 0)
+                OpcUaSubscriptionNotification ProcessKeyFrame(OpcUaSubscriptionNotification notification)
                 {
-                    var frameCount = Interlocked.Increment(ref _frameCount);
-                    if (((frameCount - 1) % keyFrameCount) == 0)
+                    var keyFrameCount = _writer.Writer.KeyFrameCount
+                        ?? _group._options.Value.DefaultKeyFrameCount ?? 0;
+                    if (keyFrameCount > 0)
                     {
-                        notification.TryUpgradeToKeyFrame(this);
-                        return true;
+                        var frameCount = Interlocked.Increment(ref _frameCount);
+                        if (((frameCount - 1) % keyFrameCount) == 0)
+                        {
+                            notification.TryUpgradeToKeyFrame(this);
+                        }
                     }
+                    return notification;
                 }
-                return false;
             }
 
             /// <inheritdoc/>
@@ -702,6 +715,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 _sendKeepAlives = _writer.DataSet?.SendKeepAlive
                     ?? _group._options.Value.EnableDataSetKeepAlives == true;
+                _sendKeepAliveAsKeyFrame = _sendKeepAlives &&
+                    (_writer.DataSet?.KeepAliveAsKeyFrame
+                        ?? _group._options.Value.SendDataSetKeepAlivesAsKeyFrame == true);
             }
 
             /// <summary>
@@ -712,7 +728,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var metaDataSendInterval = _writer.Writer.MetaDataUpdateTime
                     ?? _group._options.Value.DefaultMetaDataUpdateTime
                     ?? TimeSpan.Zero;
-                if (metaDataSendInterval > TimeSpan.Zero && !IsMetadataDisabled)
+                if (metaDataSendInterval > TimeSpan.Zero && SendMetadata)
                 {
                     if (_metadataTimer == null)
                     {
@@ -782,64 +798,51 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 try
                 {
-                    _group.GetWriterGroup(out var writerGroup, out var networkMessageSchema);
+                    var metadata = GetMetadata(_group._options.Value.AsyncMetaDataLoadTimeout ?? TimeSpan.FromSeconds(5));
+                    _group.GetSchemaAndWriterGroup(_writer.Topic, out var writerGroup, out var networkMessageSchema);
                     lock (_lock)
                     {
-                        var metadata = MetaData;
                         var single = notification.Notifications?.Count == 1 ?
                             notification.Notifications[0] : null;
-                        if (metadata == null && !IsMetadataDisabled)
+                        if (SendMetadata)
                         {
-                            if (_group._options.Value.AsyncMetaDataLoadTimeout != TimeSpan.Zero)
+                            if (metadata != null)
                             {
-                                var sw = Stopwatch.StartNew();
-                                // Block until we have metadata or just continue
-                                _metaDataLoader.Value.BlockUntilLoaded(
-                                    _group._options.Value.AsyncMetaDataLoadTimeout ?? TimeSpan.FromSeconds(5));
-                                _logger.BlockedMessageForMetadata(sw.Elapsed, _writer);
-                            }
+                                var sendMetadata = sourceIsMetaDataTimer;
+                                //
+                                // Only send if called from metadata timer or if the metadata version changes.
+                                //
+                                if (_lastMajorVersion != metadata.MetaData.DataSetMetaData.MajorVersion ||
+                                    _lastMinorVersion != metadata.MetaData.MinorVersion)
+                                {
+                                    _lastMajorVersion = metadata.MetaData.DataSetMetaData.MajorVersion;
+                                    _lastMinorVersion = metadata.MetaData.MinorVersion;
 
-                            metadata = MetaData;
-                            if (metadata == null)
+                                    Interlocked.Increment(ref _group._metadataChanges);
+                                    sendMetadata = true;
+                                }
+                                if (sendMetadata)
+                                {
+#pragma warning disable CA2000 // Dispose objects before losing scope
+                                    var metadataFrame = new OpcUaSubscriptionNotification(notification)
+                                    {
+                                        MessageType = MessageType.Metadata,
+                                        EventTypeName = null,
+                                        Context = CreateMessageContext(writerGroup, notification,
+                                            _writer.MetadataTopic, _writer.MetadataQos,
+                                            _writer.MetadataRetain, _writer.MetadataTtl,
+                                            () => Interlocked.Increment(ref _metadataSequenceNumber),
+                                            true, null, single, metadata)
+                                    };
+#pragma warning restore CA2000 // Dispose objects before losing scope
+                                    _group._sink.OnMessage(metadataFrame);
+                                    InitializeMetaDataTrigger();
+                                }
+                            }
+                            else
                             {
                                 _logger.NoMetadataAvailable(_writer);
                                 Interlocked.Increment(ref _group._messagesWithoutMetadata);
-                                return;
-                            }
-                        }
-
-                        if (metadata != null)
-                        {
-                            var sendMetadata = sourceIsMetaDataTimer;
-                            //
-                            // Only send if called from metadata timer or if the metadata version changes.
-                            //
-                            if (_lastMajorVersion != metadata.MetaData.DataSetMetaData.MajorVersion ||
-                                _lastMinorVersion != metadata.MetaData.MinorVersion)
-                            {
-                                _lastMajorVersion = metadata.MetaData.DataSetMetaData.MajorVersion;
-                                _lastMinorVersion = metadata.MetaData.MinorVersion;
-
-                                Interlocked.Increment(ref _group._metadataChanges);
-                                sendMetadata = true;
-                            }
-                            if (sendMetadata)
-                            {
-#pragma warning disable CA2000 // Dispose objects before losing scope
-                                var metadataFrame = new OpcUaSubscriptionNotification(notification)
-                                {
-                                    MessageType = MessageType.Metadata,
-                                    EventTypeName = null,
-                                    Context = CreateMessageContext(writerGroup, notification,
-                                        _writer.MetadataTopic, _writer.MetadataQos,
-                                        _writer.MetadataRetain, _writer.MetadataTtl,
-                                        () => Interlocked.Increment(ref _metadataSequenceNumber),
-                                        true, networkMessageSchema,
-                                        single, metadata)
-                                };
-#pragma warning restore CA2000 // Dispose objects before losing scope
-                                _group._sink.OnMessage(metadataFrame);
-                                InitializeMetaDataTrigger();
                             }
                         }
 
@@ -859,6 +862,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     _logger.FailedToProduceMessage(ex);
                 }
+            }
+
+            /// <summary>
+            /// Get metadata for the writer and block until it is available
+            /// </summary>
+            /// <param name="timeout"></param>
+            /// <returns></returns>
+            internal PublishedDataSetMessageSchemaModel? GetMetadata(TimeSpan timeout)
+            {
+                PublishedDataSetMessageSchemaModel? metadata;
+                lock (_lock)
+                {
+                    metadata = MetaData;
+                    if (metadata == null && !IsMetadataDisabled)
+                    {
+                        if (timeout != TimeSpan.Zero)
+                        {
+                            var sw = Stopwatch.StartNew();
+                            // Block until we have metadata or just continue
+                            _metaDataLoader.Value.BlockUntilLoaded(timeout);
+                            _logger.BlockedMessageForMetadata(sw.Elapsed, _writer);
+                        }
+                        metadata = MetaData;
+                    }
+                }
+                return metadata;
             }
 
             /// <summary>
@@ -907,33 +936,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         return null;
                     }
                     var type = isMetadata ? "Metadata" :
-                        notification.MessageType == MessageType.Event ?
-                            "Event" : "Dataset";
-                    var typeName = _writer.Writer.DataSet?.Type
-                        ?? notification.EventTypeName;
+                        notification.MessageType == MessageType.Event ? "Event" : "Dataset";
+                    var typeName = _writer.Writer.DataSet?.Type ?? notification.EventTypeName;
                     if (!string.IsNullOrEmpty(typeName))
                     {
                         type += "/" + typeName;
                     }
-                    var subject = writerGroup.ExternalId ?? string.Empty;
-                    if (!string.IsNullOrEmpty(_writer.Writer.DataSet?.Name))
-                    {
-                        subject += "/" + _writer.Writer.DataSet.Name;
-                    }
-                    if (!Uri.TryCreate(notification.ApplicationUri ??
-                        notification.EndpointUrl, UriKind.Absolute, out var source))
+                    if (!Uri.TryCreate(_writer.Writer.DataSet?.DataSetSource?.Uri ??
+                            notification.ApplicationUri ?? notification.EndpointUrl,
+                        UriKind.Absolute, out var source))
                     {
                         // Set a default source
-                        source = new Uri("urn:" +
+                        source = new Uri("urn:" + _writer.Writer.DataSet?.DataSetSource?.Uri ??
                             _group._options.Value.PublisherId ?? "publisher");
                     }
+                    var messageId = Guid.CreateVersion7(_group._timeProvider.GetUtcNow());
                     return new CloudEventHeader
                     {
-                        Id = notification.SequenceNumber.ToString(CultureInfo.InvariantCulture),
+                        Id = $"{messageId:N}/{notification.SequenceNumber:X}",
                         Time = notification.PublishTimestamp,
                         Type = type,
                         Source = source,
-                        Subject = subject.Length == 0 ? null : subject
+                        Subject = _writer.Writer.DataSet?.Subject
                     };
                 }
 
@@ -967,7 +991,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 Debug.Assert(_group._lock.CurrentCount == 0, "This happens under lock of writer group.");
                 // Notify close to clean up the topic content if needed
-                if (!IsMetadataDisabled)
+                if (SendMetadata)
                 {
 #pragma warning disable CA2000 // Dispose objects before losing scope
                     var metadataFrame = new OpcUaSubscriptionNotification(_group._timeProvider.GetUtcNow())
@@ -1030,8 +1054,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 public MetaDataLoader(DataSetWriterSubscription subscription)
                 {
                     _writer = subscription;
-                    _loader = StartAsync(_cts.Token);
                     _tcs = new TaskCompletionSource();
+                    _loader = Task.Factory.StartNew(() => StartAsync(_cts.Token),
+                        default, TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
                 }
 
                 /// <inheritdoc/>
@@ -1075,6 +1100,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
 
                 /// <summary>
+                /// Wait for metadata to be loaded or timeout after timeout
+                /// </summary>
+                /// <param name="timeout"></param>
+                /// <param name="ct"></param>
+                /// <returns></returns>
+                public async Task<bool> BlockUntilLoadedAsync(TimeSpan timeout, CancellationToken ct)
+                {
+                    try
+                    {
+                        await _tcs.Task.WaitAsync(timeout, ct).ConfigureAwait(false);
+                        return true;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                }
+
+                /// <summary>
                 /// Meta data loader task
                 /// </summary>
                 /// <param name="ct"></param>
@@ -1083,8 +1127,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     while (!ct.IsCancellationRequested)
                     {
-                        await _trigger.WaitAsync(ct).ConfigureAwait(false);
-
                         try
                         {
                             await UpdateMetaDataAsync(ct).ConfigureAwait(false);
@@ -1102,6 +1144,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             Interlocked.Increment(ref _writer._group._metadataLoadFailures);
                         }
                         Interlocked.Exchange(ref _tcs, new TaskCompletionSource());
+                        await _trigger.WaitAsync(ct).ConfigureAwait(false);
                     }
                 }
 
@@ -1112,9 +1155,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 /// <returns></returns>
                 internal async Task UpdateMetaDataAsync(CancellationToken ct = default)
                 {
+                    var dataSetName = _writer._writer.Writer.DataSet?.Name
+                        ?? _writer._writer.Writer.DataSetWriterName
+                        ?? _writer.Id;
+                    var writerGroup = _writer._group._writerGroup.Name
+                        ?? _writer._group.Id;
                     var dataSetMetaData = _writer._writer.DataSet?.DataSetMetaData;
                     var subscription = _writer.Subscription;
-                    if (dataSetMetaData == null || subscription == null)
+                    if (dataSetMetaData == null || subscription == null || dataSetName == null)
                     {
                         // Metadata disabled
                         MetaData = null;
@@ -1137,11 +1185,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     var metaData = await subscription.CollectMetaDataAsync(_writer, fieldMask,
                         dataSetMetaData, minor, ct).ConfigureAwait(false);
 
-                    _writer._logger.LoadingMetadataTook(dataSetMetaData.MajorVersion ?? 1, minor, _writer.Id, sw.Elapsed);
+                    _writer._logger.LoadingMetadataTook(dataSetMetaData.MajorVersion ?? 1, minor,
+                        _writer.Id, sw.Elapsed);
 
                     var msgMask = _writer._writer.Writer.MessageSettings?.DataSetMessageContentMask;
                     MetaData = new PublishedDataSetMessageSchemaModel
                     {
+                        Id = $"{writerGroup}|{dataSetName}",
                         MetaData = metaData with
                         {
                             Fields = _writer._extensionFields.AddMetadata(metaData.Fields)
@@ -1347,6 +1397,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private uint _dataSetSequenceNumber;
             private uint _metadataSequenceNumber;
             private bool _sendKeepAlives;
+            private bool _sendKeepAliveAsKeyFrame;
             private bool _disposed;
         }
     }
