@@ -68,7 +68,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Root node of the dataset
         /// (Publisher extension)
         /// </summary>
-        [DataMember(Name = "subject", Order = 7,
+        [DataMember(Name = "rootNode", Order = 7,
             EmitDefaultValue = false)]
         public string? RootNode { get; set; }
 

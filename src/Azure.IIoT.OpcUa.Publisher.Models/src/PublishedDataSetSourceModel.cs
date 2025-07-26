@@ -52,7 +52,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Identifies the source of the dataset to subscribers.
         /// (publisher extension)
         /// </summary>
-        [DataMember(Name = "uri", Order = 4,
+        [DataMember(Name = "uri", Order = 5,
             EmitDefaultValue = false)]
         public string? Uri { get; set; }
     }

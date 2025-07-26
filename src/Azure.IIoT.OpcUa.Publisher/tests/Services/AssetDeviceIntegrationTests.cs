@@ -475,7 +475,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         {
             // Arrange
             var sut = CreateSut();
-            var device = new AssetDeviceIntegration.DeviceResource("dev1", new Device
+            var d = new Device
             {
                 Endpoints = new DeviceEndpoints
                 {
@@ -489,7 +489,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                         }
                     }
                 }
-            });
+            };
+            var device = new AssetDeviceIntegration.DeviceResource("dev1", d);
+            sut.OnDeviceCreated("dev1", "ep1", d);
             var dataset = new AssetDataset
             {
                 Name = "ds1",
