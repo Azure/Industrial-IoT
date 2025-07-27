@@ -2218,9 +2218,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Create a topic for the asset and dataset
         /// </summary>
         /// <param name="extra"></param>
-        ///
-        ///
-        ///
         /// <returns></returns>
         private static string CreateTopic(string? extra = null)
         {
