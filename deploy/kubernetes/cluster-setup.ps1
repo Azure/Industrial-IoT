@@ -1132,7 +1132,6 @@ if ($script:Connector -eq "Official") {
     }
     $containerTag = "2.9.15-preview2" # TODO: Remove
     $containerImage = "mcr.microsoft.com/$($containerName):$($containerTag)"
-    docker pull $containerImage
 }
 else {
     $projFile = "Azure.IIoT.OpcUa.Publisher.Module"
@@ -1155,16 +1154,16 @@ else {
     Write-Host "$configuration container image $containerImage published successfully." `
         -ForegroundColor Green
     $containerPull = "IfNotPresent"
-}
 
-# Import container image
-Import-ContainerImage -ClusterType $script:ClusterType -ContainerImage $containerImage
-if ($script:ClusterType -eq "microk8s") {
-    $containerImage = "docker.io/$($containerImage)"
-    $containerRegistry = @{
-        registrySettingsType = "ContainerRegistry"
-        containerRegistrySettings = @{
-            registry = "docker.io"
+    # Import container image
+    Import-ContainerImage -ClusterType $script:ClusterType -ContainerImage $containerImage
+    if ($script:ClusterType -eq "microk8s") {
+        $containerImage = "docker.io/$($containerImage)"
+        $containerRegistry = @{
+            registrySettingsType = "ContainerRegistry"
+            containerRegistrySettings = @{
+                registry = "docker.io"
+            }
         }
     }
 }
@@ -1349,7 +1348,7 @@ if ($script:DeployDiscoveryHandler.IsPresent) {
                 cron = "*/10 * * * *"
             }
             additionalConfiguration = @{
-                AutoDiscoverDevicesOnStartup = "True"
+                AioNetworkDiscoveryMode = "Fast"
                 EnableMetrics = "True"
                 UseFileChangePolling = "True"
                 LogFormat = "syslog"

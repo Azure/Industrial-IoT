@@ -737,6 +737,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     // DisplayName = assetName,
                     Model = assetName,
                     AssetTypeRefs = [assetTypeRef],
+                    DefaultDatasetsDestinations =
+                    [
+                        new DatasetDestination
+                        {
+                            Target = DatasetTarget.Mqtt,
+                            Configuration = new DestinationConfiguration
+                            {
+                                Qos = _options.Value.DefaultQualityOfService
+                                    == Furly.Extensions.Messaging.QoS.AtMostOnce ? QoS.Qos0 : QoS.Qos1,
+                                Topic = CreateTopic(),
+                                Retain = _options.Value.DefaultMessageRetention
+                                    == true ? Retain.Keep : Retain.Never,
+                                Ttl = (ulong?)_options.Value.DefaultMessageTimeToLive?.TotalSeconds
+                            }
+                        }
+                    ],
+                    DefaultEventsDestinations = null,
+                    DefaultStreamsDestinations = null,
+                    DefaultDatasetsConfiguration = null,
+                    DefaultEventsConfiguration = null,
+                    DefaultStreamsConfiguration = null,
+                    DefaultManagementGroupsConfiguration = null,
                     Datasets = distinctDatasets.ConvertAll(d => new DiscoveredAssetDataset
                     {
                         Name = GetAssetResourceName(d.DataSetName),
@@ -750,22 +772,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             DataPointConfiguration = null,
                             TypeRef = n.TypeDefinitionId
                         }).ToList(),
-                        Destinations =
-                        [
-                            new DatasetDestination
-                            {
-                                Target = DatasetTarget.Mqtt,
-                                Configuration = new DestinationConfiguration
-                                {
-                                    Qos = _options.Value.DefaultQualityOfService
-                                        == Furly.Extensions.Messaging.QoS.AtMostOnce ? QoS.Qos0 : QoS.Qos1,
-                                    Topic = CreateTopic(resource.DeviceName, d.DataSetWriterGroup, d.DataSetName),
-                                    Retain = _options.Value.DefaultMessageRetention
-                                        == true ? Retain.Keep : Retain.Never,
-                                    Ttl = (ulong?)_options.Value.DefaultMessageTimeToLive?.TotalSeconds
-                                }
-                            }
-                        ]
+                        //Destinations =
+                        //[
+                        //    new DatasetDestination
+                        //    {
+                        //        Target = DatasetTarget.Mqtt,
+                        //        Configuration = new DestinationConfiguration
+                        //        {
+                        //            Qos = _options.Value.DefaultQualityOfService
+                        //                == Furly.Extensions.Messaging.QoS.AtMostOnce ? QoS.Qos0 : QoS.Qos1,
+                        //            Topic = CreateTopic(resource.DeviceName, d.DataSetWriterGroup, d.DataSetName),
+                        //            Retain = _options.Value.DefaultMessageRetention
+                        //                == true ? Retain.Keep : Retain.Never,
+                        //            Ttl = (ulong?)_options.Value.DefaultMessageTimeToLive?.TotalSeconds
+                        //        }
+                        //    }
+                        //]
                     }),
                     Events = distinctEvents.ConvertAll(d => new DetectedAssetEventSchemaElement
                     {
@@ -787,8 +809,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 {
                                     Qos = _options.Value.DefaultQualityOfService
                                         == Furly.Extensions.Messaging.QoS.AtMostOnce ? QoS.Qos0 : QoS.Qos1,
-                                    Topic = CreateTopic(resource.DeviceName, d.DataSetWriterGroup,
-                                        d.DataSetName, d.OpcNodes![0].DisplayName),
+                                    Topic = CreateTopic(d.OpcNodes![0].DisplayName),
                                     Retain = _options.Value.DefaultMessageRetention
                                         == true ? Retain.Keep : Retain.Never,
                                     Ttl = (ulong?)_options.Value.DefaultMessageTimeToLive?.TotalSeconds
@@ -814,7 +835,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             TargetUri = n.Id!, // Method id of the instance declaration
                             TypeRef = n.TypeDefinitionId, // Method type ref on the object type ref
                             TimeOutInSeconds = null,
-                            Topic = CreateTopic(resource.DeviceName, d.DataSetWriterGroup, d.DataSetName, n.DisplayName),
+                            Topic = CreateTopic(n.DisplayName),
                             ActionConfiguration = ConvertActionConfiguration(n.MethodMetadata!)
                         }).ToList()
                     }),
@@ -2196,18 +2217,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Create a topic for the asset and dataset
         /// </summary>
-        /// <param name="deviceName"></param>
-        /// <param name="assetName"></param>
-        /// <param name="dataSetName"></param>
         /// <param name="extra"></param>
+        ///
+        ///
+        ///
         /// <returns></returns>
-        private static string CreateTopic(string? deviceName, string? assetName, string? dataSetName,
-            string? extra = null)
+        private static string CreateTopic(string? extra = null)
         {
-            var builder = new StringBuilder();
-            builder = builder.Append('/').Append('{').Append(PublisherConfig.RootTopicVariableName).Append('}');
-
             // /opcua/{Encoding}/{MessageType}");
+            var builder = new StringBuilder()
+                .Append('/')
+                .Append('{').Append(PublisherConfig.RootTopicVariableName).Append('}')
+                .Append('/')
+                .Append('{').Append(PublisherConfig.WriterGroupIdVariableName).Append('}')
+                .Append('/')
+                .Append('{').Append(PublisherConfig.DataSetTopicPathVariableName).Append('}');
 #if OLD
             if (!string.IsNullOrEmpty(deviceName))
             {
@@ -2223,15 +2247,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     builder = builder.Append('/').Append(Furly.Extensions.Messaging.TopicFilter.Escape(part));
                 }
-            }
-#else
-            if (!string.IsNullOrEmpty(assetName))
-            {
-                builder = builder.Append('/').Append('{').Append(PublisherConfig.WriterGroupIdVariableName).Append('}');
-            }
-            if (!string.IsNullOrEmpty(dataSetName))
-            {
-                builder = builder.Append('/').Append('{').Append(PublisherConfig.DataSetTopicPathVariableName).Append('}');
             }
 #endif
             if (!string.IsNullOrEmpty(extra))
