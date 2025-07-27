@@ -2226,7 +2226,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 .Append('/')
                 .Append('{').Append(PublisherConfig.RootTopicVariableName).Append('}')
                 .Append('/')
-                .Append('{').Append(PublisherConfig.WriterGroupIdVariableName).Append('}')
+                .Append('{').Append(PublisherConfig.WriterGroupVariableName).Append('}')
                 .Append('/')
                 .Append('{').Append(PublisherConfig.DataSetTopicPathVariableName).Append('}');
 #if OLD
