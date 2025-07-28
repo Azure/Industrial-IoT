@@ -54,7 +54,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Runtime
         {
             var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
             options.Value.PublisherId = "MyPublisher";
-            new TopicBuilder(options.Value).EventsTopic.Should().Be($"{options.Value.PublisherId}/events");
+            new TopicBuilder(options.Value).EventsTopic.Should().Be($"{options.Value.PublisherId}/EventSource/EventName");
         }
 
         [Fact]
