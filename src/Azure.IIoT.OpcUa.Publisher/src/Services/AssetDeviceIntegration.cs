@@ -1207,7 +1207,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     // We map asset name to writer group as it contains writers for each of its
                     // entities. This will be split per destination, but this is ok as the name
                     // is retained and the Id property receives the unique group name.
-                    DataSetWriterGroup = asset.AssetName,
+                    DataSetWriterGroup = asset.Asset.DisplayName ?? asset.Asset.Model ?? asset.AssetName,
                     PublisherId = deviceResource.DeviceName,
                     WriterGroupType = asset.Asset.AssetTypeRefs?.Count == 1 ?
                         asset.Asset.AssetTypeRefs[0] : null,
