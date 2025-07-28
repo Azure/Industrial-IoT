@@ -96,11 +96,6 @@ namespace Azure.IIoT.OpcUa.Publisher
         public PublisherDiagnosticTargetType? DiagnosticsTarget { get; set; }
 
         /// <summary>
-        /// If diagnostic target is events select the event transports to use.
-        /// </summary>
-        public HashSet<WriterGroupTransport> RuntimeStateReporterTransports { get; } = new();
-
-        /// <summary>
         /// Log ingress notifications to informational log
         /// </summary>
         public bool? DebugLogNotifications { get; set; }
@@ -152,6 +147,12 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// Default topic templates
         /// </summary>
         public TopicTemplatesOptions TopicTemplates { get; } = new TopicTemplatesOptions();
+
+        /// <summary>
+        /// Allowed transports for all events and diagnostics targets. If empty all
+        /// configured event clients are used.
+        /// </summary>
+        public HashSet<WriterGroupTransport> AllowedEventAndDiagnosticsTransports { get; } = new();
 
         /// <summary>
         /// Default transport to use if not found

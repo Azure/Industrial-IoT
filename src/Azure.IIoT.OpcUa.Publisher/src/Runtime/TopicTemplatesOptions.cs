@@ -26,7 +26,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public string? Events { get; set; }
 
         /// <summary>
-        /// ChannelDiagnostics topic template
+        /// Diagnostics topic template
         /// </summary>
         public string? Diagnostics { get; set; }
 

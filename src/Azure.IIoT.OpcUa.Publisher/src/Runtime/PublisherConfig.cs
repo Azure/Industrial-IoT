@@ -111,6 +111,9 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string DataSetWriterIdVariableName = "DataSetWriterId";
         public const string DataSetFieldIdVariableName = "DataSetFieldId";
         public const string DataSetClassIdVariableName = "DataSetClassId";
+        public const string EventNameVariableName = "EventName";
+        public const string EventContextVariableName = "EventContext";
+        public const string EventSourceVariableName = "EventSource";
         public const string EncodingVariableName = "Encoding";
         public const string ClusterNamespaceVariableName = "ClusterNamespace";
         public const string ClusterHostVariableName = "ClusterHost";
@@ -125,7 +128,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string MethodTopicTemplateDefault =
             $"{{{RootTopicVariableName}}}/methods";
         public const string EventsTopicTemplateDefault =
-            $"{{{RootTopicVariableName}}}/events";
+            $"{{{RootTopicVariableName}}}/{{{EventSourceVariableName}}}/{{{EventNameVariableName}}}";
         public const string MetadataTopicTemplateDefault =
             $"{{{TelemetryTopicVariableName}}}/metadata";
         public const string DiagnosticsTopicTemplateDefault =

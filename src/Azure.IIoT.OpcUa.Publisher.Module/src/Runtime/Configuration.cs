@@ -1391,52 +1391,48 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     return;
                 }
                 var connectorId = GetStringOrDefault(ConnectorId);
-                if (!string.IsNullOrEmpty(connectorId))
+                if (string.IsNullOrEmpty(connectorId))
                 {
-                    options.IsAzureIoTOperationsConnector = true;
-                    options.UseStandardsCompliantEncoding = true;
-                    options.EnableCloudEvents = true;
-                    options.DiagnosticsTarget = Models.PublisherDiagnosticTargetType.Events;
-                    options.RuntimeStateReporterTransports.Add(Models.WriterGroupTransport.AioMqtt);
-                    options.SchemaOptions = new SchemaOptions();
-                    options.PublisherId = connectorId;
+                    return;
+                }
 
-                    options.AioDiscoveredDeviceEndpointType =
-                        GetStringOrDefault(DiscoveredDeviceEndpointTypeKey);
-                    options.AioDiscoveredDeviceEndpointTypeVersion =
-                        GetStringOrDefault(DiscoveredDeviceEndpointTypeVersionKey);
-                    var discoveryMode = GetStringOrDefault(NetworkDiscoveryModeKey);
-                    if (Enum.TryParse<Models.DiscoveryMode>(discoveryMode, true, out var mode))
-                    {
-                        options.AioNetworkDiscoveryMode = mode;
-                    }
-                    options.AioNetworkDiscoveryInterval =
-                        GetDurationOrNull(NetworkDiscoveryIntervalKey, TimeSpan.FromHours(12));
-                    options.AioNetworkDiscovery.AddressRangesToScan =
-                        GetStringOrDefault(NetworkDiscoveryAddressRangesToScanKey);
-                    options.AioNetworkDiscovery.NetworkProbeTimeout =
-                        GetDurationOrNull(NetworkDiscoveryNetworkProbeTimeoutKey);
-                    options.AioNetworkDiscovery.MaxNetworkProbes =
-                        GetIntOrNull(NetworkDiscoveryMaxNetworkProbesKey);
-                    options.AioNetworkDiscovery.PortRangesToScan =
-                        GetStringOrDefault(NetworkDiscoveryPortRangesToScanKey);
-                    options.AioNetworkDiscovery.PortProbeTimeout =
-                        GetDurationOrNull(NetworkDiscoveryPortProbeTimeoutKey);
-                    options.AioNetworkDiscovery.MaxPortProbes =
-                        GetIntOrNull(NetworkDiscoveryMaxPortProbesKey);
-                    options.UseFileChangePolling =
-                        GetBoolOrNull(PublisherConfig.UseFileChangePollingKey);
-                }
-                else if (!string.IsNullOrEmpty(GetStringOrDefault(BrokerHostName)))
+                // Set default connector operations mode
+                options.IsAzureIoTOperationsConnector = true;
+                options.UseStandardsCompliantEncoding = true;
+                options.EnableCloudEvents = true;
+                options.DiagnosticsTarget = Models.PublisherDiagnosticTargetType.Events;
+                options.EnableRuntimeStateReporting = true;
+                options.AllowedEventAndDiagnosticsTransports.Add(
+                    Models.WriterGroupTransport.AioMqtt);
+                options.SchemaOptions = new SchemaOptions();
+                options.RuntimeStateRoutingInfo = "status";
+                options.PublisherId = connectorId;
+
+                options.AioDiscoveredDeviceEndpointType =
+                    GetStringOrDefault(DiscoveredDeviceEndpointTypeKey);
+                options.AioDiscoveredDeviceEndpointTypeVersion =
+                    GetStringOrDefault(DiscoveredDeviceEndpointTypeVersionKey);
+                var discoveryMode = GetStringOrDefault(NetworkDiscoveryModeKey);
+                if (Enum.TryParse<Models.DiscoveryMode>(discoveryMode, true, out var mode))
                 {
-                    options.IsAzureIoTOperationsConnector = false;
-                    // No adr integration we might only have broker
+                    options.AioNetworkDiscoveryMode = mode;
                 }
-                else
-                {
-                    // TODO: Enable
-                    // Test running as workload and add Mqttclient too
-                }
+                options.AioNetworkDiscoveryInterval =
+                    GetDurationOrNull(NetworkDiscoveryIntervalKey, TimeSpan.FromHours(12));
+                options.AioNetworkDiscovery.AddressRangesToScan =
+                    GetStringOrDefault(NetworkDiscoveryAddressRangesToScanKey);
+                options.AioNetworkDiscovery.NetworkProbeTimeout =
+                    GetDurationOrNull(NetworkDiscoveryNetworkProbeTimeoutKey);
+                options.AioNetworkDiscovery.MaxNetworkProbes =
+                    GetIntOrNull(NetworkDiscoveryMaxNetworkProbesKey);
+                options.AioNetworkDiscovery.PortRangesToScan =
+                    GetStringOrDefault(NetworkDiscoveryPortRangesToScanKey);
+                options.AioNetworkDiscovery.PortProbeTimeout =
+                    GetDurationOrNull(NetworkDiscoveryPortProbeTimeoutKey);
+                options.AioNetworkDiscovery.MaxPortProbes =
+                    GetIntOrNull(NetworkDiscoveryMaxPortProbesKey);
+                options.UseFileChangePolling =
+                    GetBoolOrNull(PublisherConfig.UseFileChangePollingKey);
             }
 
             /// <summary>

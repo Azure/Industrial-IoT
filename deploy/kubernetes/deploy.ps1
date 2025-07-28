@@ -39,8 +39,8 @@
     .PARAMETER BucketSize
         The size of the bucket to use to partition devices across
         connectors. Default is 1 where every connector gets one device.
-    .PARAMETER DeployDiscoveryHandler
-        Whether to deploy the discovery handler. Default is false.
+    .PARAMETER NetworkDiscoveryMode
+        Network discovery mode to use. Default is "Off" (disabled).
     .PARAMETER SkipLogin
         Skip the login to Azure. This is useful when running in a CI/CD
     .PARAMETER Force
@@ -67,17 +67,17 @@ param(
         "Local",
         "Debug"
     )] $ConnectorType = "Official",
+    [string] [ValidateSet(
+        "Off",
+        "Fast",
+        "Local",
+        "Full"
+    )] $NetworkDiscoveryMode = "Off",
     [int] $BucketSize = 1,
-    [switch] $DeployDiscoveryHandler,
     [switch] $SkipLogin,
     [switch] $Force
 )
 $ErrorActionPreference = 'Continue'
-
-if ($script:DeployDiscoveryHandler.IsPresent) {
-    Write-Host "DeployDiscoveryHandler is not supported yet." -ForegroundColor Red
-    $script:DeployDiscoveryHandler = $false
-}
 
 $scriptDirectory = Split-Path -Path $MyInvocation.MyCommand.Path
 Import-Module $(Join-Path $(Join-Path $scriptDirectory "common") "cluster-utils.psm1") -Force
@@ -343,6 +343,8 @@ $template = @{
                 additionalConfiguration = @{
                     EnableMetrics = "True"
                     UseFileChangePolling = "True"
+                    AioNetworkDiscoveryMode = $null
+                    AioNetworkDiscoveryInterval = $null
                     DisableDataSetMetaData = "True"
                     LogFormat = "syslog"
                 }
@@ -387,6 +389,19 @@ $template = @{
         }
     }
 } | ConvertTo-Json -Depth 100
+
+# Workaround for discovery while discovery handler is not yet supported
+if ($script:NetworkDiscoveryMode -ne "Off") {
+    Write-Host "Network Discovery via discovery handler is not supported yet." `
+         -ForegroundColor Yellow
+    Write-Host "Enabling discovery in connector instead." `
+         -ForegroundColor Yellow
+    $additionalConfig = $template.properties.runtimeConfiguration.additionalConfiguration
+    $additionalConfig.AioNetworkDiscoveryMode = $script:NetworkDiscoveryMode
+    $additionalConfig.AioNetworkDiscoveryInterval = "00:10:00"
+    $script:NetworkDiscoveryMode = "Off"
+}
+
 $template | Out-File -FilePath $tempFile -Encoding utf8 -Force
 
 $ctName = "opc-publisher"
@@ -408,7 +423,7 @@ if (-not $?) {
 }
 
 # Deploy discovery handler - disabled in current version of Azure IoT Operations
-if ($script:DeployDiscoveryHandler.IsPresent) {
+if ($script:NetworkDiscoveryMode -ne "Off") {
     $template = @{
         extendedLocation = $iotOps.extendedLocation
         properties = @{
@@ -431,7 +446,7 @@ if ($script:DeployDiscoveryHandler.IsPresent) {
                 cron = "*/10 * * * *"
             }
             additionalConfiguration = @{
-                AioNetworkDiscoveryMode = "Fast"
+                AioNetworkDiscoveryMode = "$($script:NetworkDiscoveryMode)"
                 EnableMetrics = "True"
                 UseFileChangePolling = "True"
                 LogFormat = "syslog"

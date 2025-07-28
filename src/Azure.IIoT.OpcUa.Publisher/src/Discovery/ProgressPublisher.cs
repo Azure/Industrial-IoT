@@ -5,13 +5,16 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Discovery
 {
-    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Encoders;
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
+    using System.Collections.Concurrent;
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Text;
     using System.Threading.Channels;
     using System.Threading.Tasks;
@@ -29,21 +32,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// <param name="options"></param>
         /// <param name="logger"></param>
         /// <param name="timeProvider"></param>
-        public ProgressPublisher(IEventClient events, IJsonSerializer serializer,
+        public ProgressPublisher(IEnumerable<IEventClient> events, IJsonSerializer serializer,
             IOptions<PublisherOptions> options, ILogger<ProgressPublisher> logger,
             TimeProvider? timeProvider = null)
             : base(logger, timeProvider)
         {
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _events = events ?? throw new ArgumentNullException(nameof(events));
+            _options = options;
+
+            if (_options.Value.AllowedEventAndDiagnosticsTransports.Count > 0)
+            {
+                var allowed = _options.Value.AllowedEventAndDiagnosticsTransports
+                    .Select(t => t.ToString())
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+                events = events
+                    .Where(e => allowed.Contains(e.Name))
+                    .ToList();
+            }
+
+            _events = events.Reverse().ToList();
             _channel = Channel.CreateUnbounded<DiscoveryProgressModel>(
                 new UnboundedChannelOptions
                 {
                     SingleReader = true,
                     SingleWriter = false
                 });
-            _topic = new TopicBuilder(options.Value).EventsTopic;
             _sender = Task.Factory.StartNew(SendProgressAsync,
                 default, TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
         }
@@ -51,7 +65,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// <inheritdoc/>
         protected override void Send(DiscoveryProgressModel progress)
         {
-            progress.DiscovererId = _events.Identity;
             base.Send(progress);
             if (!_channel.Writer.TryWrite(progress))
             {
@@ -78,17 +91,53 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         {
             await foreach (var progress in _channel.Reader.ReadAllAsync().ConfigureAwait(false))
             {
-                try
+                var eventsTopic = _topicCache.GetOrAdd(
+                    (progress.EventType.ToString(), progress.RequestId),
+                id => new TopicBuilder(_options.Value, variables: new Dictionary<string, string>
                 {
-                    await _events.SendEventAsync(_topic,
-                        _serializer.SerializeToMemory((object)progress),
-                        _serializer.MimeType, Encoding.UTF8.WebName,
-                        e => e.AddProperty(OpcUa.Constants.MessagePropertySchemaKey,
-                            MessageSchemaTypes.DiscoveryMessage)).ConfigureAwait(false);
-                }
-                catch (Exception ex)
+                    [PublisherConfig.EventNameVariableName] =
+                        id.Item1 ?? Constants.DefaultEventName,
+                    [PublisherConfig.EventContextVariableName] =
+                        id.Item2 ?? Constants.DefaultContextName,
+                    [PublisherConfig.EventSourceVariableName] =
+                        "discovery",
+                    [PublisherConfig.EncodingVariableName] =
+                        MessageEncoding.Json.ToString()
+                    // ...
+                }).EventsTopic);
+
+                await Task.WhenAll(_events.Select(SendOneEventAsync)).ConfigureAwait(false);
+
+                async Task SendOneEventAsync(IEventClient events)
                 {
-                    _logger.FailedToSendDiscoveryProgress(ex);
+                    try
+                    {
+                        await events.SendEventAsync(eventsTopic,
+                            _serializer.SerializeToMemory(progress with { DiscovererId = events.Identity }),
+                            _serializer.MimeType, Encoding.UTF8.WebName,
+                            eventMessage =>
+                            {
+                                if (_options.Value.EnableCloudEvents == true)
+                                {
+                                    eventMessage = eventMessage.AsCloudEvent(new CloudEventHeader
+                                    {
+                                        Id = Guid.NewGuid().ToString("N"),
+                                        Source = new Uri("urn:" + _options.Value.PublisherId),
+                                        Subject = progress.EventType.ToString(),
+                                        Type = MessageSchemaTypes.DiscoveryMessage,
+                                    });
+                                }
+                                else
+                                {
+                                    eventMessage.AddProperty(OpcUa.Constants.MessagePropertySchemaKey,
+                                       MessageSchemaTypes.DiscoveryMessage);
+                                }
+                            }).ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.FailedToSendDiscoveryProgress(ex);
+                    }
                 }
             }
         }
@@ -97,8 +146,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         private readonly IJsonSerializer _serializer;
         private readonly Task _sender;
         private readonly Channel<DiscoveryProgressModel> _channel;
-        private readonly string _topic;
-        private readonly IEventClient _events;
+        private readonly IOptions<PublisherOptions> _options;
+        private readonly ConcurrentDictionary<(string, string?), string> _topicCache = new();
+        private readonly List<IEventClient> _events;
     }
 
     internal static partial class ProgressPublisherLogging

@@ -29,6 +29,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Azure.IIoT.OpcUa.Encoders.PubSub;
 
     /// <summary>
     /// This class manages reporting of runtime state.
@@ -80,9 +81,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             ArgumentNullException.ThrowIfNull(stores);
             ArgumentNullException.ThrowIfNull(events);
 
-            if (_options.Value.RuntimeStateReporterTransports.Count > 0)
+            if (_options.Value.AllowedEventAndDiagnosticsTransports.Count > 0)
             {
-                var allowed = _options.Value.RuntimeStateReporterTransports
+                var allowed = _options.Value.AllowedEventAndDiagnosticsTransports
                     .Select(t => t.ToString())
                     .ToHashSet(StringComparer.OrdinalIgnoreCase);
                 events = events
@@ -98,7 +99,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     nameof(stores));
             }
             _runtimeState = RuntimeStateEventType.RestartAnnouncement;
-            _topicCache = new ConcurrentDictionary<string, string>();
 
             _diagnosticInterval = options.Value.DiagnosticsInterval ?? TimeSpan.Zero;
             _diagnostics = options.Value.DiagnosticsTarget
@@ -392,24 +392,52 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private async Task SendRuntimeStateEventAsync(RuntimeStateEventModel runtimeStateEvent,
             CancellationToken ct)
         {
-            await Task.WhenAll(_events.Select(SendEventAsync)).ConfigureAwait(false);
+            var eventsTopic = _topicCache.GetOrAdd(
+                (runtimeStateEvent.MessageType.ToString(), runtimeStateEvent.DeviceId),
+                id => new TopicBuilder(_options.Value, variables: new Dictionary<string, string>
+                {
+                    [PublisherConfig.EventNameVariableName] =
+                        id.Item1 ?? Constants.DefaultEventName,
+                    [PublisherConfig.EventContextVariableName] =
+                        id.Item2 ?? Constants.DefaultContextName,
+                    [PublisherConfig.EventSourceVariableName] =
+                        _options.Value.RuntimeStateRoutingInfo ?? "status",
+                    [PublisherConfig.EncodingVariableName] =
+                        MessageEncoding.Json.ToString()
+                    // ...
+                }).EventsTopic);
+            await Task.WhenAll(_events.Select(SendOneEventAsync)).ConfigureAwait(false);
 
-            async Task SendEventAsync(IEventClient events)
+            async Task SendOneEventAsync(IEventClient events)
             {
                 try
                 {
-                    await events.SendEventAsync(new TopicBuilder(_options.Value).EventsTopic,
+                    await events.SendEventAsync(eventsTopic,
                         _serializer.SerializeToMemory(runtimeStateEvent), _serializer.MimeType,
                         Encoding.UTF8.WebName, configure: eventMessage =>
                         {
-                            eventMessage
-                                .SetRetain(true)
-                                .AddProperty(OpcUa.Constants.MessagePropertySchemaKey,
-                                    MessageSchemaTypes.RuntimeStateMessage);
-                            if (_options.Value.RuntimeStateRoutingInfo != null)
+                            eventMessage.SetRetain(true);
+                            if (_options.Value.EnableCloudEvents == true)
                             {
-                                eventMessage.AddProperty(OpcUa.Constants.MessagePropertyRoutingKey,
-                                    _options.Value.RuntimeStateRoutingInfo);
+                                eventMessage = eventMessage.AsCloudEvent(new CloudEventHeader
+                                {
+                                    Id = Guid.NewGuid().ToString("N"),
+                                    Source = new Uri("urn:" + _options.Value.PublisherId),
+                                    Subject = runtimeStateEvent.MessageType.ToString(),
+                                    Type = MessageSchemaTypes.RuntimeStateMessage,
+                                });
+                            }
+                            else
+                            {
+                                eventMessage = eventMessage
+                                    .AddProperty(OpcUa.Constants.MessagePropertySchemaKey,
+                                        MessageSchemaTypes.RuntimeStateMessage);
+                                if (_options.Value.RuntimeStateRoutingInfo != null)
+                                {
+                                    eventMessage = eventMessage
+                                        .AddProperty(OpcUa.Constants.MessagePropertyRoutingKey,
+                                            _options.Value.RuntimeStateRoutingInfo);
+                                }
                             }
                         }, ct).ConfigureAwait(false);
 
@@ -469,19 +497,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             foreach (var (writerGroupId, info) in diagnostics)
             {
-                var diagnosticsTopic = _topicCache.GetOrAdd(writerGroupId,
+                var diagnosticsTopic = _topicCache.GetOrAdd((writerGroupId, info.WriterGroupName),
                     id => new TopicBuilder(_options.Value, variables: new Dictionary<string, string>
                     {
+                        [PublisherConfig.WriterGroupIdVariableName] =
+                            id.Item1 ?? Constants.DefaultWriterGroupName,
                         [PublisherConfig.DataSetWriterGroupVariableName] =
-                            id ?? Constants.DefaultWriterGroupName,
+                            id.Item2 ?? Constants.DefaultWriterGroupName,
                         [PublisherConfig.WriterGroupVariableName] =
-                            id ?? Constants.DefaultWriterGroupName
+                            id.Item2 ?? Constants.DefaultWriterGroupName,
+                        [PublisherConfig.EncodingVariableName] =
+                            MessageEncoding.Json.ToString(),
                         // ...
                     }).DiagnosticsTopic);
 
-                await Task.WhenAll(_events.Select(SendEventAsync)).ConfigureAwait(false);
+                await Task.WhenAll(_events.Select(SendOneEventAsync)).ConfigureAwait(false);
 
-                async Task SendEventAsync(IEventClient events)
+                async Task SendOneEventAsync(IEventClient events)
                 {
                     try
                     {
@@ -491,13 +523,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             {
                                 eventMessage
                                     .SetRetain(true)
-                                    .SetTtl(_diagnosticInterval + TimeSpan.FromSeconds(10))
-                                    .AddProperty(OpcUa.Constants.MessagePropertySchemaKey,
-                                        MessageSchemaTypes.WriterGroupDiagnosticsMessage);
-                                if (_options.Value.RuntimeStateRoutingInfo != null)
+                                    .SetTtl(_diagnosticInterval + TimeSpan.FromSeconds(10));
+                                if (_options.Value.EnableCloudEvents == true)
                                 {
-                                    eventMessage.AddProperty(OpcUa.Constants.MessagePropertyRoutingKey,
-                                        _options.Value.RuntimeStateRoutingInfo);
+                                    eventMessage = eventMessage.AsCloudEvent(new CloudEventHeader
+                                    {
+                                        Id = Guid.NewGuid().ToString("N"),
+                                        Source = new Uri("urn:" + _options.Value.PublisherId),
+                                        Subject = info.WriterGroupName,
+                                        Type = MessageSchemaTypes.WriterGroupDiagnosticsMessage,
+                                    });
+                                }
+                                else
+                                {
+                                    eventMessage = eventMessage
+                                        .AddProperty(OpcUa.Constants.MessagePropertySchemaKey,
+                                            MessageSchemaTypes.WriterGroupDiagnosticsMessage);
+                                    if (_options.Value.RuntimeStateRoutingInfo != null)
+                                    {
+                                        eventMessage = eventMessage
+                                            .AddProperty(OpcUa.Constants.MessagePropertyRoutingKey,
+                                                _options.Value.RuntimeStateRoutingInfo);
+                                    }
                                 }
                             }, ct).ConfigureAwait(false);
                     }
@@ -739,7 +786,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         private const int kCertificateLifetimeDays = 30;
-        private readonly ConcurrentDictionary<string, string> _topicCache;
+        private readonly ConcurrentDictionary<(string, string?), string> _topicCache = new();
         private readonly ILogger _logger;
         private readonly IIoTEdgeDeviceIdentity? _identity;
         private readonly IDiagnosticCollector _collector;
