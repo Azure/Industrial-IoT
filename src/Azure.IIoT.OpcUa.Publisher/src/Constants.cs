@@ -54,5 +54,15 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// Default Site id
         /// </summary>
         public const string DefaultSiteId = "<<UnknownSite>>";
+
+        /// <summary>
+        /// Default event  name
+        /// </summary>
+        public const string DefaultEventName = "<<UnknownEvent>>";
+
+        /// <summary>
+        /// Default context name
+        /// </summary>
+        public const string DefaultContextName = "<<UnknownContext>>";
     }
 }

@@ -1261,7 +1261,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             }
                             else
                             {
-                                _logger.DisplayNameReadFailed(result.Request.GetDisplayName!.Value.NodeId, this, result.ErrorInfo);
+                                _logger.DisplayNameReadFailed(
+                                    result.Request.GetDisplayName!.Value.NodeId,
+                                    this, result.ErrorInfo);
                             }
                             result.Request.GetDisplayName!.Value.Update(
                                 displayName ?? string.Empty);
@@ -1271,12 +1273,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             _logger.CompletingItems(desiredMonitoredItems.Count, remove.Count, this);
+            var errors = new List<(string Item, StatusCode Error, bool Report)>();
             foreach (var monitoredItem in desiredMonitoredItems.Concat(remove))
             {
                 if (!monitoredItem.TryCompleteChanges(this, ref applyChanges))
                 {
+                    if (add.Contains(monitoredItem) || same.Contains(monitoredItem))
+                    {
+                        errors.Add((monitoredItem.ToString(),
+                            monitoredItem.Status?.Error?.StatusCode ?? StatusCodes.BadMonitoredItemIdInvalid,
+                            !monitoredItem.ErrorReported));
+                        monitoredItem.ErrorReported = true;
+                    }
                     // Apply more changes in future passes
                     badMonitoredItems++;
+                }
+            }
+
+            // Dump errors in a concise way all at once
+            foreach (var errorGroup in errors.GroupBy(e => e.Error))
+            {
+                var errorItems = errorGroup
+                    .Where(e => e.Report)
+                    .Select(e => e.Item)
+                    .ToArray();
+                if (errorItems.Length > 0)
+                {
+                    _logger.ErrorAddingMonitoredItemsWithErrors(errorGroup.Key.ToString(), errorGroup.Count(),
+                        SubscriptionId, string.Join("\n    ", errorItems));
+                }
+                else
+                {
+                    _logger.ErrorAddingMonitoredItems(errorGroup.Key.ToString(), errorGroup.Count(),
+                        SubscriptionId);
                 }
             }
 
@@ -1341,7 +1370,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             {
                                 if (StatusCode.IsNotGood(results[i].StatusCode))
                                 {
-                                    _logger.MonitoringSetFailedForItem(itemsToChange[i].StartNodeId, this, results[i].StatusCode);
+                                    _logger.MonitoringSetFailedForItem(itemsToChange[i].StartNodeId,
+                                        this, results[i].StatusCode);
                                 }
                             }
                             // Retry later
@@ -1628,19 +1658,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     if (errorsDuringSync == 0 && disabledItems == 0)
                     {
-                        _logger.SubscriptionRemovedNodes(this, disposed, count,
+                        _logger.SubscriptionReportState(this, disposed, count,
                             goodMonitoredItems, badMonitoredItems, reportingItems);
                     }
                     else
                     {
-                        _logger.SubscriptionRemovedNodesWithErrors(this, disposed, count,
+                        _logger.SubscriptionReportStateWithErrors(this, disposed, count,
                             goodMonitoredItems, badMonitoredItems, reportingItems,
                             disabledItems, errorsDuringSync);
                     }
                 }
                 else
                 {
-                    _logger.SubscriptionRemovedNodesFull(this, disposed, count,
+                    _logger.SubscriptionReportStateFull(this, disposed, count,
                         goodMonitoredItems, badMonitoredItems, reportingItems,
                         disabledItems, errorsDuringSync, notAppliedItems,
                         samplingItems, heartbeatItems, heartbeatsEnabled,
@@ -3044,14 +3074,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         [LoggerMessage(EventId = EventClass + 70, Level = LogLevel.Information,
             Message = "{Subscription} - Removed {Removed} - now monitoring {Count} nodes:" +
             "\n# Good/Bad/Reporting:   {Good}/{Bad}/{Reporting}")]
-        public static partial void SubscriptionRemovedNodes(this ILogger logger, OpcUaSubscription subscription,
+        public static partial void SubscriptionReportState(this ILogger logger, OpcUaSubscription subscription,
             int removed, int count, int good, int bad, int reporting);
 
         [LoggerMessage(EventId = EventClass + 71, Level = LogLevel.Warning,
             Message = "{Subscription} - Removed {Removed} - now monitoring {Count} nodes:" +
             "\n# Good/Bad/Reporting:   {Good}/{Bad}/{Reporting}" +
             "\n# Disabled/Errors:      {Disabled}/{Errors}")]
-        public static partial void SubscriptionRemovedNodesWithErrors(this ILogger logger, OpcUaSubscription subscription,
+        public static partial void SubscriptionReportStateWithErrors(this ILogger logger, OpcUaSubscription subscription,
             int removed, int count, int good, int bad, int reporting, int disabled, int errors);
 
         [LoggerMessage(EventId = EventClass + 72, Level = LogLevel.Information,
@@ -3061,7 +3091,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             "\n# Sampling:             {Sampling}" +
             "\n# Heartbeat/ing:        {Heartbeat}/{EnabledHeartbeats}" +
             "\n# Condition/ing:        {Conditions}/{EnabledConditions}")]
-        public static partial void SubscriptionRemovedNodesFull(this ILogger logger, OpcUaSubscription subscription,
+        public static partial void SubscriptionReportStateFull(this ILogger logger, OpcUaSubscription subscription,
             int removed, int count, int good, int bad, int reporting, int disabled, int errors, int notApplied, int sampling,
             int heartbeat, int enabledHeartbeats, int conditions, int enabledConditions);
 
@@ -3204,5 +3234,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             "{SequenceNumber} missing {ExpectedSequenceNumber} which were {Dropped}, publishTime {PublishTime}")]
         public static partial void UnexpectedDataChangeSequenceNumber(this ILogger logger, OpcUaSubscription subscription,
             uint sequenceNumber, string expectedSequenceNumber, string dropped, DateTime publishTime);
+
+        [LoggerMessage(EventId = EventClass + 101, Level = LogLevel.Debug,
+           Message = "Error {Error} occurred {Count} times for subscription {SubscriptionId}.")]
+        public static partial void ErrorAddingMonitoredItems(this ILogger logger, string error,
+            int count, uint subscriptionId);
+
+        [LoggerMessage(EventId = EventClass + 102, Level = LogLevel.Error,
+           Message = "Error {Error} occurred {Count} times for subscription {SubscriptionId}. NEW:\n    {Items}.")]
+        public static partial void ErrorAddingMonitoredItemsWithErrors(this ILogger logger, string error,
+            int count, uint subscriptionId, string items);
     }
 }

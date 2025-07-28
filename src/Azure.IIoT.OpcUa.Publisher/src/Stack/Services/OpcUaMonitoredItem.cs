@@ -155,6 +155,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public DateTimeOffset LastActivityTime { get; set; }
 
         /// <summary>
+        /// Error already reported
+        /// </summary>
+        public bool ErrorReported { get; set; }
+
+        /// <summary>
         /// Create item
         /// </summary>
         /// <param name="owner"></param>
@@ -407,6 +412,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 _logger.ItemRemovedWithStatus(this, subscription.Id, Status.Error);
                 // Complete removal
+                ErrorReported = false;
                 return true;
             }
 
@@ -415,6 +421,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             if (Status.MonitoringMode == Opc.Ua.MonitoringMode.Disabled)
             {
                 _logger.ItemDisabled(this);
+                ErrorReported = false;
                 return true;
             }
 
@@ -431,6 +438,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 applyChanges = true;
             }
+            ErrorReported = false;
             return true;
         }
 
@@ -447,19 +455,45 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             if (SamplingInterval != Status.SamplingInterval &&
                 QueueSize != Status.QueueSize && Status.QueueSize != 0)
             {
-                _logger.RevisionComplete(
-                    SamplingInterval, Status.SamplingInterval, QueueSize, Status.QueueSize,
-                    Subscription.Id, StartNodeId, DisplayName);
+                if (Status.SamplingInterval > SamplingInterval ||
+                    Status.QueueSize < QueueSize)
+                {
+                    _logger.StatusRevisedInfo(
+                        SamplingInterval, Status.SamplingInterval, QueueSize, Status.QueueSize,
+                        Subscription.Id, StartNodeId, DisplayName);
+                }
+                else
+                {
+                    _logger.StatusRevisedDebug(
+                        SamplingInterval, Status.SamplingInterval, QueueSize, Status.QueueSize,
+                        Subscription.Id, StartNodeId, DisplayName);
+                }
             }
             else if (SamplingInterval != Status.SamplingInterval)
             {
-                _logger.SamplingIntervalRevised(SamplingInterval, Status.SamplingInterval,
-                    Subscription.Id, StartNodeId, DisplayName);
+                if (Status.SamplingInterval < SamplingInterval)
+                {
+                    _logger.SamplingIntervalRevisedDown(SamplingInterval, Status.SamplingInterval,
+                        Subscription.Id, StartNodeId, DisplayName);
+                }
+                else
+                {
+                    _logger.SamplingIntervalRevisedUp(SamplingInterval, Status.SamplingInterval,
+                        Subscription.Id, StartNodeId, DisplayName);
+                }
             }
             else if (QueueSize != Status.QueueSize && Status.QueueSize != 0)
             {
-                _logger.QueueSizeRevised(QueueSize, Status.QueueSize,
-                    Subscription.Id, StartNodeId, DisplayName);
+                if (Status.QueueSize < QueueSize)
+                {
+                    _logger.QueueSizeRevisedDown(QueueSize, Status.QueueSize,
+                        Subscription.Id, StartNodeId, DisplayName);
+                }
+                else
+                {
+                    _logger.QueueSizeRevisedUp(QueueSize, Status.QueueSize,
+                        Subscription.Id, StartNodeId, DisplayName);
+                }
             }
             else
             {
@@ -1049,24 +1083,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Message = "{Item}: Item is disabled while trying to complete.")]
         public static partial void ItemDisabled(this ILogger logger, OpcUaMonitoredItem item);
 
-        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Information,
-            Message = "Server revised SamplingInterval from {SamplingInterval} to {CurrentSamplingInterval} and " +
-            "QueueSize from {QueueSize} to {CurrentQueueSize} for #{SubscriptionId}|{Item}('{Name}').")]
-        public static partial void RevisionComplete(this ILogger logger, double samplingInterval, double currentSamplingInterval,
-            uint queueSize, uint currentQueueSize, uint subscriptionId, NodeId item, string name);
-
-        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Information,
-            Message = "Server revised SamplingInterval from {SamplingInterval} to {CurrentSamplingInterval} " +
-            "for #{SubscriptionId}|{Item}('{Name}').")]
-        public static partial void SamplingIntervalRevised(this ILogger logger, double samplingInterval,
-            double currentSamplingInterval, uint subscriptionId, NodeId item, string name);
-
-        [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Information,
-            Message = "Server revised QueueSize from {QueueSize} to {CurrentQueueSize} " +
-            "for #{SubscriptionId}|{Item}('{Name}').")]
-        public static partial void QueueSizeRevised(this ILogger logger, uint queueSize, uint currentQueueSize,
-            uint subscriptionId, NodeId item, string name);
-
         [LoggerMessage(EventId = EventClass + 9, Level = LogLevel.Debug,
             Message = "Server accepted configuration unchanged for #{SubscriptionId}|{Item}('{Name}').")]
         public static partial void ConfigurationAccepted(this ILogger logger, uint subscriptionId, NodeId item, string name);
@@ -1123,8 +1139,44 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Message = "Cannot publish notification. Missing subscription for {Item}.")]
         public static partial void MissingSubscription(this ILogger logger, OpcUaMonitoredItem item);
 
-        [LoggerMessage(EventId = EventClass + 22, Level = LogLevel.Warning,
+        [LoggerMessage(EventId = EventClass + 22, Level = LogLevel.Debug,
             Message = "Error adding monitored item {Item} to subscription #{SubscriptionId} due to {Status}.")]
         internal static partial void AddMonitoredItemError(this ILogger logger, OpcUaMonitoredItem item, uint subscriptionId, ServiceResult status);
+
+        [LoggerMessage(EventId = EventClass + 23, Level = LogLevel.Debug,
+            Message = "Server revised SamplingInterval from {SamplingInterval} to {CurrentSamplingInterval} and " +
+            "QueueSize from {QueueSize} to {CurrentQueueSize} for #{SubscriptionId}|{Item}('{Name}').")]
+        public static partial void StatusRevisedDebug(this ILogger logger, double samplingInterval, double currentSamplingInterval,
+            uint queueSize, uint currentQueueSize, uint subscriptionId, NodeId item, string name);
+
+        [LoggerMessage(EventId = EventClass + 24, Level = LogLevel.Debug,
+            Message = "Server revised SamplingInterval from {SamplingInterval} to {CurrentSamplingInterval} " +
+            "for #{SubscriptionId}|{Item}('{Name}').")]
+        public static partial void SamplingIntervalRevisedDown(this ILogger logger, double samplingInterval,
+            double currentSamplingInterval, uint subscriptionId, NodeId item, string name);
+
+        [LoggerMessage(EventId = EventClass + 25, Level = LogLevel.Information,
+            Message = "Server revised QueueSize from {QueueSize} to {CurrentQueueSize} " +
+            "for #{SubscriptionId}|{Item}('{Name}').")]
+        public static partial void QueueSizeRevisedDown(this ILogger logger, uint queueSize, uint currentQueueSize,
+            uint subscriptionId, NodeId item, string name);
+
+        [LoggerMessage(EventId = EventClass + 26, Level = LogLevel.Information,
+            Message = "Server revised SamplingInterval from {SamplingInterval} to {CurrentSamplingInterval} and " +
+            "QueueSize from {QueueSize} to {CurrentQueueSize} for #{SubscriptionId}|{Item}('{Name}').")]
+        public static partial void StatusRevisedInfo(this ILogger logger, double samplingInterval, double currentSamplingInterval,
+            uint queueSize, uint currentQueueSize, uint subscriptionId, NodeId item, string name);
+
+        [LoggerMessage(EventId = EventClass + 27, Level = LogLevel.Information,
+            Message = "Server revised SamplingInterval from {SamplingInterval} to {CurrentSamplingInterval} " +
+            "for #{SubscriptionId}|{Item}('{Name}').")]
+        public static partial void SamplingIntervalRevisedUp(this ILogger logger, double samplingInterval,
+            double currentSamplingInterval, uint subscriptionId, NodeId item, string name);
+
+        [LoggerMessage(EventId = EventClass + 28, Level = LogLevel.Debug,
+            Message = "Server revised QueueSize from {QueueSize} to {CurrentQueueSize} " +
+            "for #{SubscriptionId}|{Item}('{Name}').")]
+        public static partial void QueueSizeRevisedUp(this ILogger logger, uint queueSize, uint currentQueueSize,
+            uint subscriptionId, NodeId item, string name);
     }
 }

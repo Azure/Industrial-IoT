@@ -757,6 +757,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public bool? SendKeepAliveAsKeyFrameMessages { get; set; }
 
         /// <summary>
+        /// Set a publisher id to use that is different form the
+        /// global publisher identity.
+        /// </summary>
+        [DataMember(Name = "PublisherId", Order = 68,
+            EmitDefaultValue = false)]
+        public string? PublisherId { get; set; }
+
+        /// <summary>
         /// Enables detailed server diagnostics logging for the
         /// connection. When enabled, provides additional diagnostic
         /// information useful for troubleshooting connectivity,

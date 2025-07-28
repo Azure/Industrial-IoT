@@ -124,12 +124,16 @@ namespace Opc.Ua
         {
             try
             {
-                var expected = lastSequenceNumber + 1 == 0 ? 1 : lastSequenceNumber + 1;
-                var ok = sequenceNumber == expected;
-                if (!ok)
+                // Allow duplicates as events and data changes can be in the same notification
+                if (lastSequenceNumber != sequenceNumber)
                 {
-                    missing = [.. Missing(lastSequenceNumber, sequenceNumber, out dropped)];
-                    return false;
+                    var expected = lastSequenceNumber + 1 == 0 ? 1 : lastSequenceNumber + 1;
+                    var ok = sequenceNumber == expected;
+                    if (!ok)
+                    {
+                        missing = [.. Missing(lastSequenceNumber, sequenceNumber, out dropped)];
+                        return false;
+                    }
                 }
                 missing = [];
                 dropped = false;

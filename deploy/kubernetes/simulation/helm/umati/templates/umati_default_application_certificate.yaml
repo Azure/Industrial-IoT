@@ -14,6 +14,8 @@ metadata:
 spec:
   # Secret names are always required.
   secretName: opc-ua-umati-default-application-cert-{{ $suffix }}
+  #additionalOutputFormats:
+  #- type: DER
   duration: 8760h # 365d
   renewBefore: 4380h # 182d
   subject:

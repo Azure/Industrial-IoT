@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher
     using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Furly.Extensions.Messaging;
     using System;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Publisher configuration
@@ -146,6 +147,12 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// Default topic templates
         /// </summary>
         public TopicTemplatesOptions TopicTemplates { get; } = new TopicTemplatesOptions();
+
+        /// <summary>
+        /// Allowed transports for all events and diagnostics targets. If empty all
+        /// configured event clients are used.
+        /// </summary>
+        public HashSet<WriterGroupTransport> AllowedEventAndDiagnosticsTransports { get; } = new();
 
         /// <summary>
         /// Default transport to use if not found

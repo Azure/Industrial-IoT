@@ -24,6 +24,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
         public static string GetUniqueWriterGroupId(this PublishedNodesEntryModel model)
         {
             var id = new StringBuilder();
+            if (!string.IsNullOrEmpty(model.PublisherId))
+            {
+                id.Append(model.PublisherId);
+            }
             if (!string.IsNullOrEmpty(model.DataSetWriterGroup))
             {
                 id.Append(model.DataSetWriterGroup);
@@ -91,6 +95,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             if (ReferenceEquals(model, that))
             {
                 return true;
+            }
+            if (!string.Equals(model.PublisherId ?? string.Empty,
+                that.PublisherId ?? string.Empty, StringComparison.Ordinal))
+            {
+                return false;
             }
             if (!string.Equals(model.DataSetWriterGroup,
                 that.DataSetWriterGroup, StringComparison.Ordinal))

@@ -361,6 +361,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
                 else
                 {
+                    _logger.MultiDataSetSchema(topic, writerGroup.Id);
                     id = $"{id}|{topic.ToSha1Hash()}";
                 }
                 var input = new PublishedNetworkMessageSchemaModel
@@ -679,7 +680,7 @@ $"md_{DateTimeOffset.UtcNow.ToBinary()}_{writerGroup.Id}_{_metadataChanges}.json
             Message = "Removed all subscriptions from writer group {WriterGroup}.")]
         public static partial void RemovedAllSubscriptions(this ILogger logger, string writerGroup);
 
-        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Information,
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Debug,
             Message = "Successfully updated all writers inside the writer group {WriterGroup}.")]
         public static partial void UpdatedAllWriters(this ILogger logger, string writerGroup);
 
@@ -695,6 +696,8 @@ $"md_{DateTimeOffset.UtcNow.ToBinary()}_{writerGroup.Id}_{_metadataChanges}.json
             Message = "Failed to create schema for {Encoding} encoded messages for writer group {WriterGroup}.")]
         public static partial void FailedToCreateSchemaWithException(this ILogger logger, Exception ex, MessageEncoding encoding, string writerGroup);
 
-
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Debug,
+            Message = "Multiple dataset metadata found for topic {Topic} in writer group {WriterGroup}. Using hash to create unique id.")]
+        public static partial void MultiDataSetSchema(this ILogger logger, string topic, string writerGroup);
     }
 }

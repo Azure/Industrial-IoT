@@ -23,7 +23,6 @@ spec:
         {{- $simulationSelectorLabels | nindent 8 }}
         app.kubernetes.io/component: umati-{{ $suffix }}
     spec:
-      hostname: umati-{{ $suffix }}
       {{- with $.Values.pullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}

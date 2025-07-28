@@ -37,6 +37,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
+    using static Azure.IIoT.OpcUa.Publisher.Services.AssetDeviceIntegration;
 
     /// <summary>
     /// Asset and device configuration integration with Azure iot operations. Converts asset
@@ -225,7 +226,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
             if (eventStatus == null && dataSetStatus == null)
             {
-                _logger.NoResourceFoundForSchema(schema.Name);
+                _logger.NoResourceFoundInAssetForSchema(resourceName, assetName, schema.Name);
                 return;
             }
             await _client.UpdateAssetStatusAsync(deviceName, endpoint, assetName, new AssetStatus
@@ -736,6 +737,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     // DisplayName = assetName,
                     Model = assetName,
                     AssetTypeRefs = [assetTypeRef],
+                    DefaultDatasetsDestinations =
+                    [
+                        new DatasetDestination
+                        {
+                            Target = DatasetTarget.Mqtt,
+                            Configuration = new DestinationConfiguration
+                            {
+                                Qos = _options.Value.DefaultQualityOfService
+                                    == Furly.Extensions.Messaging.QoS.AtMostOnce ? QoS.Qos0 : QoS.Qos1,
+                                Topic = CreateTopic(),
+                                Retain = _options.Value.DefaultMessageRetention
+                                    == true ? Retain.Keep : Retain.Never,
+                                Ttl = (ulong?)_options.Value.DefaultMessageTimeToLive?.TotalSeconds
+                            }
+                        }
+                    ],
+                    DefaultEventsDestinations = null,
+                    DefaultStreamsDestinations = null,
+                    DefaultDatasetsConfiguration = null,
+                    DefaultEventsConfiguration = null,
+                    DefaultStreamsConfiguration = null,
+                    DefaultManagementGroupsConfiguration = null,
                     Datasets = distinctDatasets.ConvertAll(d => new DiscoveredAssetDataset
                     {
                         Name = GetAssetResourceName(d.DataSetName),
@@ -748,8 +771,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             DataSource = n.Id!,
                             DataPointConfiguration = null,
                             TypeRef = n.TypeDefinitionId
-                        }).ToList(),
-                        Destinations =
+                        }).ToList()
+#if OLD
+                        ,Destinations =
                         [
                             new DatasetDestination
                             {
@@ -758,13 +782,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 {
                                     Qos = _options.Value.DefaultQualityOfService
                                         == Furly.Extensions.Messaging.QoS.AtMostOnce ? QoS.Qos0 : QoS.Qos1,
-                                    Topic = CreateTopic(resource.DeviceName, d.DataSetWriterGroup, d.DataSetName),
+                                    Topic = CreateTopic(),
                                     Retain = _options.Value.DefaultMessageRetention
                                         == true ? Retain.Keep : Retain.Never,
                                     Ttl = (ulong?)_options.Value.DefaultMessageTimeToLive?.TotalSeconds
                                 }
                             }
                         ]
+#endif
                     }),
                     Events = distinctEvents.ConvertAll(d => new DetectedAssetEventSchemaElement
                     {
@@ -786,8 +811,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 {
                                     Qos = _options.Value.DefaultQualityOfService
                                         == Furly.Extensions.Messaging.QoS.AtMostOnce ? QoS.Qos0 : QoS.Qos1,
-                                    Topic = CreateTopic(resource.DeviceName, d.DataSetWriterGroup,
-                                        d.DataSetName, d.OpcNodes![0].DisplayName),
+                                    Topic = CreateTopic(d.OpcNodes![0].DisplayName),
                                     Retain = _options.Value.DefaultMessageRetention
                                         == true ? Retain.Keep : Retain.Never,
                                     Ttl = (ulong?)_options.Value.DefaultMessageTimeToLive?.TotalSeconds
@@ -813,7 +837,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             TargetUri = n.Id!, // Method id of the instance declaration
                             TypeRef = n.TypeDefinitionId, // Method type ref on the object type ref
                             TimeOutInSeconds = null,
-                            Topic = CreateTopic(resource.DeviceName, d.DataSetWriterGroup, d.DataSetName, n.DisplayName),
+                            Topic = CreateTopic(n.DisplayName),
                             ActionConfiguration = ConvertActionConfiguration(n.MethodMetadata!)
                         }).ToList()
                     }),
@@ -1183,7 +1207,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     // We map asset name to writer group as it contains writers for each of its
                     // entities. This will be split per destination, but this is ok as the name
                     // is retained and the Id property receives the unique group name.
-                    DataSetWriterGroup = asset.AssetName,
+                    DataSetWriterGroup = asset.Asset.DisplayName ?? asset.Asset.Model ?? asset.AssetName,
+                    PublisherId = deviceResource.DeviceName,
                     WriterGroupType = asset.Asset.AssetTypeRefs?.Count == 1 ?
                         asset.Asset.AssetTypeRefs[0] : null,
                     WriterGroupRootNodeId = asset.Asset.Attributes == null ?
@@ -1783,6 +1808,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 // Add the fixed asset information
                 DataSetWriterGroup = deviceEndpoint.DataSetWriterGroup,
+                PublisherId = deviceEndpoint.PublisherId,
                 WriterGroupType = deviceEndpoint.WriterGroupType,
                 WriterGroupRootNodeId = deviceEndpoint.WriterGroupRootNodeId,
                 WriterGroupProperties = deviceEndpoint.WriterGroupProperties
@@ -2193,33 +2219,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Create a topic for the asset and dataset
         /// </summary>
-        /// <param name="deviceName"></param>
-        /// <param name="assetName"></param>
-        /// <param name="dataSetName"></param>
         /// <param name="extra"></param>
         /// <returns></returns>
-        private static string CreateTopic(string? deviceName, string? assetName, string? dataSetName,
-            string? extra = null)
+        private static string CreateTopic(string? extra = null)
         {
-            var builder = new StringBuilder("{RootTopic}"); // /opcua/{Encoding}/{MessageType}");
-            if (!string.IsNullOrEmpty(deviceName))
-            {
-                builder = builder.Append('/').Append(Furly.Extensions.Messaging.TopicFilter.Escape(deviceName));
-            }
-            if (!string.IsNullOrEmpty(assetName))
-            {
-                builder = builder.Append('/').Append(Furly.Extensions.Messaging.TopicFilter.Escape(assetName));
-            }
-            if (!string.IsNullOrEmpty(dataSetName))
-            {
-                foreach (var part in dataSetName.Split('.', StringSplitOptions.RemoveEmptyEntries))
-                {
-                    builder = builder.Append('/').Append(Furly.Extensions.Messaging.TopicFilter.Escape(part));
-                }
-            }
+            // /opcua/{Encoding}/{MessageType}");
+            var builder = new StringBuilder()
+                .Append('/')
+                .Append('{').Append(PublisherConfig.RootTopicVariableName).Append('}')
+                .Append('/')
+                .Append('{').Append(PublisherConfig.WriterGroupVariableName).Append('}')
+                .Append('/')
+                .Append('{').Append(PublisherConfig.DataSetTopicPathVariableName).Append('}');
+
             if (!string.IsNullOrEmpty(extra))
             {
                 builder = builder.Append('/').Append(Furly.Extensions.Messaging.TopicFilter.Escape(extra));
+            }
+            if (builder.Length > 128) // Topic length limit in adr is 128
+            {
+                builder.Length = 128;
             }
             return builder.ToString();
         }
@@ -3086,8 +3105,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         internal static partial void NoAssetFoundForSchema(this ILogger logger, string assetName, string? schema);
 
         [LoggerMessage(EventId = EventClass + 37, Level = LogLevel.Information,
-            Message = "No resource found to attach the schema {Schema} to.")]
-        internal static partial void NoResourceFoundForSchema(this ILogger logger, string? schema);
+            Message = "No resource {Resource} found in Asset {Asset} to attach the schema {Schema} to.")]
+        internal static partial void NoResourceFoundInAssetForSchema(this ILogger logger, string resource, string asset, string? schema);
 
         [LoggerMessage(EventId = EventClass + 38, Level = LogLevel.Information,
             Message = "Registered schema '{Name}' with version '{Version}' for resource '{Resource}' in asset " +
