@@ -13,13 +13,6 @@ Create chart name and version as used by the chart label.
 {{- end }}
 
 {{/*
-Name of ConfigMap for Umati sample server.
-*/}}
-{{- define "simulation.configmap" -}}
-{{- printf "%s-%s" "umati-config" $.Release.Name | replace "+" "_" | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
-{{/*
 Common labels
 */}}
 {{- define "simulation.labels" -}}

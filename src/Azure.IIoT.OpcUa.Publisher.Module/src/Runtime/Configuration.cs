@@ -1396,6 +1396,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     options.IsAzureIoTOperationsConnector = true;
                     options.UseStandardsCompliantEncoding = true;
                     options.EnableCloudEvents = true;
+                    options.DiagnosticsTarget = Models.PublisherDiagnosticTargetType.Events;
+                    options.RuntimeStateReporterTransports.Add(Models.WriterGroupTransport.AioMqtt);
                     options.SchemaOptions = new SchemaOptions();
                     options.PublisherId = connectorId;
 

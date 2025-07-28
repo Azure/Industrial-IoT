@@ -80,6 +80,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             ArgumentNullException.ThrowIfNull(stores);
             ArgumentNullException.ThrowIfNull(events);
 
+            if (_options.Value.RuntimeStateReporterTransports.Count > 0)
+            {
+                var allowed = _options.Value.RuntimeStateReporterTransports
+                    .Select(t => t.ToString())
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+                events = events
+                    .Where(e => allowed.Contains(e.Name))
+                    .ToList();
+            }
+
             _events = events.Reverse().ToList();
             _stores = stores.Reverse().ToList();
             if (_stores.Count == 0)

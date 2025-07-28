@@ -91,18 +91,19 @@ the insecure port (1883) locally using the `.\debug\forward-mq.ps1`.
 ### Onboarding discovered Assets and Devices
 
 The import or onboarding flow can be managed using the Digital Operations Experience user
-interface. The `.\iotops\onboard-discovered-resources.ps1` powershell script can be used
-to effectively copy the discovered resource into Azure Device Registry and allows you to
-bypass the DOE experience.
+interface.
+The `.\iotops\adr-tool.ps1` powershell script can be used to effectively copy the discovered
+resource into Azure Device Registry and allows you to bypass the DOE experience.
 
 #### Using the onboarding script
 
 ```powershell
 # Basic usage
-.\iotops\onboard-discovered-resources.ps1 -AdrNamespaceName <namespace> -ResourceGroup <resource-group>
+.\iotops\adr-tool.ps1 -AdrNamespaceName <namespace> -ResourceGroup <resource-group>
 
 # Full syntax with all options
-.\iotops\onboard-discovered-resources.ps1 `
+.\iotops\adr-tool.ps1 `
+    -Action Onboard `
     -AdrNamespaceName <namespace> `                   # Required: ADR namespace name
     -ResourceGroup <resource-group> `                 # Required: Azure resource group
     [-SubscriptionId <subscription-id>] `             # Optional: Azure subscription ID

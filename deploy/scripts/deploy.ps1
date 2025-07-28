@@ -9,121 +9,89 @@
  .PARAMETER type
     The type of deployment (local, services, simulation, all),
     defaults to all.
-
  .PARAMETER version
     Set to mcr image tag to deploy - if not set and version can
     not be parsed from branch name will deploy "latest".
-
  .PARAMETER branchName
     The branch name where to find the deployment templates - if
     not set, will try to use git.
-
  .PARAMETER repo
     The repository to find the deployment templates in - if not
     set will try to use git or set default.
-
  .PARAMETER resourceGroupName
     Can be the name of an existing or new resource group.
-
  .PARAMETER resourceGroupLocation
     Optional, a resource group location. If specified, will try
      to create a new resource group in this location.
-
  .PARAMETER subscriptionId
     Optional, the subscription id where resources will be deployed.
-
  .PARAMETER subscriptionName
     Or alternatively the subscription name.
-
  .PARAMETER tenantId
     The Azure Active Directory tenant tied to the subscription(s)
     that should be listed as options.
-
  .PARAMETER applicationName
     The name of the application, if not local deployment.
-
  .PARAMETER context
     A previously created az context to be used for authentication.
-
  .PARAMETER containerRegistryServer
     The container registry server to use to pull images
-
  .PARAMETER containerRegistryUsername
     The user name to use to pull images
-
  .PARAMETER containerRegistryPassword
     The password to use to pull images
-
  .PARAMETER imageNamespace
     Override the automatically determined namespace of the
     container images
-
  .PARAMETER acrRegistryName
     An optional name of an Azure container registry to deploy
     containers from.
-
  .PARAMETER acrSubscriptionName
     The subscription of the container registry, if different
     from the specified subscription.
-
  .PARAMETER acrTenantId
     The tenant where the container registry resides. If not
     provided uses all.
-
  .PARAMETER environmentName
     The cloud environment to use, defaults to AzureCloud.
-
  .PARAMETER simulationProfile
     If you are deploying a simulation, the simulation profile
     to use, if not default.
-
  .PARAMETER numberOfSimulationsPerEdge
     Number of simulations to deploy per edge.
-
  .PARAMETER numberOfLinuxGateways
     Number of Linux gateways to deploy into the simulation.
-
  .PARAMETER numberOfWindowsGateways
     Number of Windows gateways to deploy into the simulation.
-
  .PARAMETER gatewayVmSku
     Virtual machine SKU size that hosts simulated edge gateway.
     Suggestion: use VM with at least 2 cores and 8 GB of memory.
     Must Support Generation 1.
-
  .PARAMETER opcPlcVmSku
     Virtual machine SKU size that hosts simulated OPC UA PLC.
     Suggestion: use VM with at least 1 core and 2 GB of memory.
     Must Support Generation 1.
-
  .PARAMETER noAadAppRegistration
     Do not deploy service with Azure Active Directory authentication
     support. Do not use in production!.
-
  .PARAMETER authTenantId
     Specifies an Azure Active Directory tenant for authentication
     that is different from the one tied to the subscription.
-
  .PARAMETER aadConfig
     The aad configuration object (use aad-register.ps1 to create
     object). If not provided, calls aad-register.ps1.
-
  .PARAMETER aadApplicationName
     The application name to use when registering aad application.
     If not set, uses applicationName.
-
  .PARAMETER credentials
     Use these credentials to log in. If not provided you are
     prompted to provide credentials
-
  .PARAMETER disableRbacAuthorization
     Disable using Azure RBAC authorization using role assignments
     to the managed identity and use legacy style keys and shared
     access tokens to access services.
-
  .PARAMETER isServicePrincipal
     The credentials provided are service principal credentials.
-
  .PARAMETER whatIfDeployment
     Create everything but run the deployment as what-if then
     exit.

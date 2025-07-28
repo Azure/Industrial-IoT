@@ -93,11 +93,6 @@ param(
 #Requires -RunAsAdministrator
 $ErrorActionPreference = 'Continue'
 
-if ($script:DeployDiscoveryHandler.IsPresent) {
-    Write-Host "DeployDiscoveryHandler is not supported yet." -ForegroundColor Red
-    $script:DeployDiscoveryHandler = $false
-}
-
 if (![Environment]::Is64BitProcess) {
     Write-Host "Error: Run this in 64bit Powershell session" -ForegroundColor Red
     exit -1
@@ -120,7 +115,9 @@ Write-Host "Using resource group $ResourceGroup..." -ForegroundColor Cyan
 if ([string]::IsNullOrWhiteSpace($TenantId)) {
     $TenantId = $env:AZURE_TENANT_ID
 }
-Write-Host "Using tenant $TenantId..." -ForegroundColor Cyan
+if (![string]::IsNullOrWhiteSpace($TenantId)) {
+    Write-Host "Using tenant $TenantId..." -ForegroundColor Cyan
+}
 if ([string]::IsNullOrWhiteSpace($Location)) {
     $Location = "westus"
 }
@@ -1113,293 +1110,33 @@ else {
         -ForegroundColor Green
 }
 
-if ($script:Connector -eq "None") {
-    Write-Host "No connector selected. Exiting..." -ForegroundColor Yellow
-    return
-}
+#
+# Deploy opc publisher as connector
+#
+if ($script:Connector -ne "None") {
+    & $(Join-Path $scriptDirectory "deploy.ps1") `
+        -Name $Name `
+        -ClusterType $script:ClusterType `
+        -ConnectorType $script:Connector `
+        -OpsInstanceName $iotOps.Name `
+        -SchemaRegistryName $sr.Name `
+        -AdrNamespaceName $ns.Name `
+        -SubscriptionId $SubscriptionId `
+        -TenantId $TenantId `
+        -ResourceGroup $rg.Name `
+        -Location $Location `
+        -DeployDiscoveryHandler:$script:DeployDiscoveryHandler.IsPresent `
+        -SkipLogin `
+        -Force  # :$forceReinstall `
 
-$containerTag = "latest"
-$containerRegistry = $null
-$containerName = "iotedge/opc-publisher"
-if ($script:Connector -eq "Official") {
-    Write-Host "Using official OPC Publisher image as connector..." -ForegroundColor Cyan
-    $containerPull = "Always"
-    $containerRegistry = @{
-        registrySettingsType = "ContainerRegistry"
-        containerRegistrySettings = @{
-            registry = "mcr.microsoft.com"
-        }
+    if (-not $?) {
+        Write-Host "Error deploying opc publisher connector." -ForegroundColor Red
+        exit -1
     }
-    $containerTag = "2.9.15-preview2" # TODO: Remove
-    $containerImage = "mcr.microsoft.com/$($containerName):$($containerTag)"
 }
 else {
-    $projFile = "Azure.IIoT.OpcUa.Publisher.Module"
-    $projFile = "../../src/$($projFile)/src/$($projFile).csproj"
-    $configuration = $script:Connector
-    if ($configuration -eq "Local") {
-        $configuration = "Release"
-    }
-    $containerTag = Get-Date -Format "MMddHHmmss"
-    $containerImage = "$($containerName):$($containerTag)"
-    Write-Host "Publishing $configuration OPC Publisher as $containerImage..." `
-        -ForegroundColor Cyan
-    dotnet restore $projFile -s https://api.nuget.org/v3/index.json
-    dotnet publish $projFile -c $configuration --self-contained false --no-restore `
-        /t:PublishContainer -r linux-x64 /p:ContainerImageTag=$($containerTag)
-    if (-not $?) {
-        Write-Host "Error building opc publisher connector." -ForegroundColor Red
-        exit -1
-    }
-    Write-Host "$configuration container image $containerImage published successfully." `
-        -ForegroundColor Green
-    $containerPull = "IfNotPresent"
-
-    # Import container image
-    Import-ContainerImage -ClusterType $script:ClusterType -ContainerImage $containerImage
-    if ($script:ClusterType -eq "microk8s") {
-        $containerImage = "docker.io/$($containerImage)"
-        $containerRegistry = @{
-            registrySettingsType = "ContainerRegistry"
-            containerRegistrySettings = @{
-                registry = "docker.io"
-            }
-        }
-    }
-}
-
-#
-# Create connector template
-#
-$connectorSchemas =
-@(
-    @{
-        Name = "opc-publisher-endpoint-schema"
-        Description = "OPC Publisher Endpoint Schema"
-    },
-    @{
-        Name = "opc-publisher-dataset-schema"
-        Description = "OPC Publisher Dataset Schema"
-    },
-    @{
-        Name = "opc-publisher-event-schema"
-        Description = "OPC Publisher Event Schema"
-    },
-    @{
-        Name = "opc-publisher-dataset-datapoint-schema"
-        Description = "OPC Publisher Connector Template"
-    }
-)
-# Upload schemas
-$schemaIds = @()
-foreach ($s in $connectorSchemas) {
-    $errOut = $($schema = & { az iot ops schema show `
-        --resource-group $rg.Name `
-        --registry $sr.name `
-        --name $($s.Name -replace "-", "") `
-        --subscription $SubscriptionId `
-        --only-show-errors --output json } | ConvertFrom-Json) 2>&1
-    if (!$schema -or $forceReinstall) {
-        Write-Host "Creating schema $($s.Name) in registry $($sr.name)..." `
-            -ForegroundColor Cyan
-        $schemaPath = Join-Path "iotops" "$($s.Name).json"
-        $errOut = $($schema = & { az iot ops schema create `
-            --resource-group $rg.Name `
-            --registry $sr.name `
-            --name $($s.Name -replace "-", "") `
-            --display-name $s.Name `
-            --version-content @$schemaPath `
-            --version "1" `
-            --desc $s.Description `
-            --version-desc "$($s.Name) (v1)" `
-            --format json `
-            --type message `
-            --subscription $SubscriptionId `
-            --only-show-errors --output json } | ConvertFrom-Json) 2>&1
-        if (-not $? -or !$schema) {
-            $stdOut | Out-Host
-            Write-Host "Error creating schema $($s.Name) : $errOut" `
-                -ForegroundColor Red
-            exit -1
-        }
-        Write-Host "Schema $($schema.id) created." -ForegroundColor Green
-    }
-    else {
-        Write-Host "Schema $($schema.id) exists." -ForegroundColor Green
-    }
-    $schemaIds += $schema.id
-}
-
-# Deploy connector template
-$tempFile = New-TemporaryFile
-$template = @{
-    extendedLocation = $iotOps.extendedLocation
-    properties = @{
-        aioMetadata = @{
-            aioMinVersion = "1.2.*"
-            aioMaxVersion = "1.*.*"
-        }
-        runtimeConfiguration = @{
-            runtimeConfigurationType = "ManagedConfiguration"
-            managedConfigurationSettings = @{
-                managedConfigurationType = "ImageConfiguration"
-                imageConfigurationSettings = @{
-                    imageName = $containerName
-                    imagePullPolicy = $containerPull
-                    replicas = 1 # set to 2 when HA is supported
-                    registrySettings = $containerRegistry
-                    tagDigestSettings = @{
-                        tagDigestType = "Tag"
-                        tag = $containerTag
-                    }
-                }
-                allocation = @{
-                    policy = "Bucketized"
-                    bucketSize = 20
-                }
-                additionalConfiguration = @{
-                    EnableMetrics = "True"
-                    UseFileChangePolling = "True"
-                    DisableDataSetMetaData = "True"
-                    LogFormat = "syslog"
-                }
-                #persistentVolumeClaims = @(
-                #    @{
-                #        claimName = "OpcPublisherData"
-                #        mountPath = "/app"
-                #    }
-                #)
-                secrets = @()
-            }
-        }
-        deviceInboundEndpointTypes = @(
-            @{
-                endpointType = "Microsoft.OpcPublisher"
-                version = "2.9"
-                description = "OPC Publisher managed OPC UA server"
-                configurationSchemaRefs = @{
-                    additionalConfigSchemaRef = $schemaIds[0]
-                    defaultDatasetConfigSchemaRef = $schemaIds[1]
-                    defaultEventsConfigSchemaRef = $schemaIds[2]
-                }
-            }
-        )
-        diagnostics = @{
-            logs = @{
-                level = "info"
-            }
-        }
-        mqttConnectionConfiguration = @{
-            host = "aio-broker:18883"
-            authentication = @{
-                method = "ServiceAccountToken"
-                serviceAccountTokenSettings = @{
-                    audience = "aio-internal"
-                }
-            }
-            tls = @{
-                mode = "Enabled"
-                trustedCaCertificateConfigMapRef = "azure-iot-operations-aio-ca-trust-bundle"
-            }
-        }
-    }
-} | ConvertTo-Json -Depth 100
-$template | Out-File -FilePath $tempFile -Encoding utf8 -Force
-
-$ctName = "opc-publisher"
-$ctResource = "/subscriptions/$($SubscriptionId)"
-$ctResource = "$($ctResource)/resourceGroups/$($rg.Name)"
-$ctResource = "$($ctResource)/providers/Microsoft.IoTOperations"
-$ctResource = "$($ctResource)/instances/$($iotOps.name)"
-$ctResource = "$($ctResource)/akriConnectorTemplates/$($ctName)"
-Write-Host "Deploying connector template $($ctName)..." -ForegroundColor Cyan
-az rest --method put `
-    --url "$($ctResource)?api-version=2025-07-01-preview" `
-    --headers "Content-Type=application/json" `
-    --body @$tempFile
-if (-not $?) {
-    Write-Host "Error deploying connector template $($ctName) - $($errOut)." `
-        -ForegroundColor Red
-    Remove-Item -Path $tempFile -Force
-    exit -1
-}
-
-# Deploy discovery handler - disabled in current version of Azure IoT Operations
-if ($script:DeployDiscoveryHandler.IsPresent) {
-    $template = @{
-        extendedLocation = $iotOps.extendedLocation
-        properties = @{
-            aioMetadata = @{
-                aioMinVersion = "1.2.*"
-                aioMaxVersion = "1.*.*"
-            }
-            imageConfiguration = @{
-                imageName = $containerName
-                imagePullPolicy = $containerPull
-                registrySettings = $containerRegistry
-                tagDigestSettings = @{
-                    tagDigestType = "Tag"
-                    tag = $containerTag
-                }
-            }
-            mode = "Enabled"
-            schedule = @{
-                scheduleType = "Cron" # or "Continuous" or "RunOnce"
-                cron = "*/10 * * * *"
-            }
-            additionalConfiguration = @{
-                AioNetworkDiscoveryMode = "Fast"
-                EnableMetrics = "True"
-                UseFileChangePolling = "True"
-                LogFormat = "syslog"
-                DisableDataSetMetaData = "True"
-            }
-            discoverableDeviceEndpointTypes = @(
-                @{
-                    endpointType = "Microsoft.OpcPublisher"
-                    version = "2.9"
-                }
-            )
-            secrets = @()
-            diagnostics = @{
-                logs = @{
-                    level = "info"
-                }
-            }
-            mqttConnectionConfiguration = @{
-                host = "aio-broker:18883"
-                authentication = @{
-                    method = "ServiceAccountToken"
-                    serviceAccountTokenSettings = @{
-                        audience = "aio-internal"
-                    }
-                }
-                tls = @{
-                    mode = "Enabled"
-                    trustedCaCertificateConfigMapRef = "azure-iot-operations-aio-ca-trust-bundle"
-                }
-            }
-        }
-    } | ConvertTo-Json -Depth 100
-    $template | Out-File -FilePath $tempFile -Encoding utf8 -Force
-
-    $dhName = "opc-publisher"
-    $dhResource = "/subscriptions/$($SubscriptionId)"
-    $dhResource = "$($dhResource)/resourceGroups/$($rg.Name)"
-    $dhResource = "$($dhResource)/providers/Microsoft.IoTOperations"
-    $dhResource = "$($dhResource)/instances/$($iotOps.name)"
-    $dhResource = "$($dhResource)/akriDiscoveryHandlers/$($dhName)"
-    Write-Host "Deploying discovery handler template $($dhName)..." -ForegroundColor Cyan
-    az rest --method put `
-        --url "$($dhResource)?api-version=2025-07-01-preview" `
-        --headers "Content-Type=application/json" `
-        --body @$tempFile
-    if (-not $?) {
-        Write-Host "Error deploying discovery handler template $($dhName) - $($errOut)." `
-            -ForegroundColor Red
-        Remove-Item -Path $tempFile -Force
-        exit -1
-    }
+    Write-Host "No connector selected - no connector will be deployed..." `
+        -ForegroundColor Yellow
 }
 
 #
@@ -1421,7 +1158,6 @@ if ($script:DeployPlcSimulation.IsPresent) {
 
     if (-not $?) {
         Write-Host "Error deploying opc plc simulation servers." -ForegroundColor Red
-        Remove-Item -Path $tempFile -Force
         exit -1
     }
 }
@@ -1441,9 +1177,7 @@ if ($script:DeployTestSimulation.IsPresent) {
 
     if (-not $?) {
         Write-Host "Error deploying test simulation servers." -ForegroundColor Red
-        Remove-Item -Path $tempFile -Force
         exit -1
     }
 }
-Remove-Item -Path $tempFile -Force
 

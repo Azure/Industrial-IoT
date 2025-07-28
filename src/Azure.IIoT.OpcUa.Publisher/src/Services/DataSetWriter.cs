@@ -1205,19 +1205,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .UtcDateTime.ToBinary();
 
                     var sw = Stopwatch.StartNew();
-                    _writer._logger.LoadingMetadata(dataSetMetaData.MajorVersion ?? 1, minor, _writer.Id);
+                    var id = $"{writerGroup}|{dataSetName}";
+                    _writer._logger.LoadingMetadata(dataSetMetaData.MajorVersion ?? 1, minor, id);
 
                     var fieldMask = _writer._writer.Writer.DataSetFieldContentMask;
                     var metaData = await subscription.CollectMetaDataAsync(_writer, fieldMask,
                         dataSetMetaData, minor, ct).ConfigureAwait(false);
 
                     _writer._logger.LoadingMetadataTook(dataSetMetaData.MajorVersion ?? 1, minor,
-                        _writer.Id, sw.Elapsed);
+                        id, sw.Elapsed);
 
                     var msgMask = _writer._writer.Writer.MessageSettings?.DataSetMessageContentMask;
                     MetaData = new PublishedDataSetMessageSchemaModel
                     {
-                        Id = $"{writerGroup}|{dataSetName}",
+                        Id = id,
                         MetaData = metaData with
                         {
                             Fields = _writer._extensionFields.AddMetadata(metaData.Fields)

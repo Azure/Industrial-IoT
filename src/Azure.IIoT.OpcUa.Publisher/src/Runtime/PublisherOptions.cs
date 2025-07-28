@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher
     using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Furly.Extensions.Messaging;
     using System;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Publisher configuration
@@ -93,6 +94,11 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// How to emit diagnostics
         /// </summary>
         public PublisherDiagnosticTargetType? DiagnosticsTarget { get; set; }
+
+        /// <summary>
+        /// If diagnostic target is events select the event transports to use.
+        /// </summary>
+        public HashSet<WriterGroupTransport> RuntimeStateReporterTransports { get; } = new();
 
         /// <summary>
         /// Log ingress notifications to informational log

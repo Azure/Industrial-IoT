@@ -1,23 +1,27 @@
+{{- $simulationLabels := include "simulation.labels" . -}}
+{{- $releaseName := .Release.Name -}}
+{{ range $i := until (.Values.simulations | int) }}
 {{ $suffix := printf "%s-%06d" $releaseName $i }}
-
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "simulation.configmap" . }}
-  namespace: {{ .Release.Namespace }}
+  name: umati-config-{{ $suffix }}
+  namespace: {{ $.Release.Namespace }}
   labels:
-    {{- include "simulation.labels" . | nindent 4 }}
+    {{- $simulationLabels | nindent 4 }}
 data:
   configuration.json: |-
     {
-      "Hostname": "umati-{{ $suffix }}.{{ $.Release.Namespace }}",
+      "Hostname": "umati-{{ $suffix }}.{{ $.Release.Namespace }}.svc.cluster.local",
       "Port": 4840,
       "UserPassAuthentication": [],
       "Encryption": {
-        "ServerCert": "server_cert.pem",
-        "ServerKey": "server_key.pem",
+        "ServerCert": "/app/pki/own/tls.crt",
+        "ServerKey": "/app/pki/own/key.der",
         "TrustedClients": ["trusted/trustedClient.der"],
         "IssuerCerts": [],
         "Revocation": []
       }
     }
+---
+{{ end }}
