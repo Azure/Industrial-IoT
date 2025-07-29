@@ -1,0 +1,27 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "edgeName": {
+            "value": "",
+            "metadata": {
+                "description": "The name of the IoT Edge device. This name must be unique within the IoT Hub.",
+                "displayName": "IoT Edge Device Name"
+            }
+        },
+        "dpsIdScope": {
+            "value": "",
+            "metadata": {
+                "description": "The ID scope for the Device Provisioning Service. This is used to identify the DPS instance.",
+                "displayName": "DPS ID Scope"
+            }
+        },
+        "dpsConnString": {
+            "value": "",
+            "metadata": {
+                "description": "The connection string for the Device Provisioning Service.",
+                "displayName": "DPS Connection String"
+            }
+        }
+    }
+}

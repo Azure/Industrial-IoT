@@ -171,7 +171,7 @@
             "settings": {
                 "wmfVersion": "latest",
                 "configuration": {
-                    "url": "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/dsc-install.zip')]",
+                    "url": "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/iotedge/arm/dsc-install.zip')]",
                     "script": "dsc-install.ps1",
                     "function": "InstallWindowsFeatures"
                 }
@@ -184,9 +184,9 @@
             "autoUpgradeMinorVersion": true,
             "settings": {
                 "fileUris": [
-                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/dps-enroll.ps1')]",
-                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/eflow-setup.ps1')]",
-                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/TLSSettings.ps1')]"
+                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/iotedge/arm/dps-enroll.ps1')]",
+                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/iotedge/arm/eflow-setup.ps1')]",
+                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/iotedge/arm/TLSSettings.ps1')]"
                 ]
             },
             "protectedSettings": {
@@ -228,9 +228,9 @@
             "autoUpgradeMinorVersion": true,
             "settings": {
                 "fileUris": [
-                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/dps-enroll.ps1')]",
-                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/edge-setup.ps1')]",
-                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/edge-setup.sh')]"
+                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/iotedge/arm/dps-enroll.ps1')]",
+                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/iotedge/arm/edge-setup.ps1')]",
+                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/iotedge/arm/edge-setup.sh')]"
                 ]
             },
             "protectedSettings": {
@@ -502,8 +502,8 @@
                                 "autoUpgradeMinorVersion": true,
                                 "settings": {
                                     "fileUris": [
-                                        "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/simulation.sh')]",
-                                        "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/', parameters('simulationProfile'), '.yml')]"
+                                        "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/iotedge/arm/simulation.sh')]",
+                                        "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/iotedge/arm/', parameters('simulationProfile'), '.yml')]"
                                     ]
                                 },
                                 "protectedSettings": {
