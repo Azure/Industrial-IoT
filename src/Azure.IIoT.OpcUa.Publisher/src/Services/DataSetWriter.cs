@@ -573,6 +573,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         return;
                     }
 
+                    if (_metaDataLoader.IsValueCreated)
+                    {
+                        await _metaDataLoader.Value.DisposeAsync().ConfigureAwait(false);
+                    }
+
                     // We are under the writer group lock here, so we cannot grab it
                     SendCloseNotifications();
 
