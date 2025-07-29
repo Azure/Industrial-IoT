@@ -208,7 +208,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                         var configuration = new ConfigurationBuilder()
                             .AddFromDotEnvFile()
                             .AddEnvironmentVariables()
-                            .AddFromKeyVault(ConfigurationProviderPriority.Lowest)
                             .Build();
                         connectionString = configuration.GetValue("PCS_IOTHUB_CONNSTRING", string.Empty);
                         if (string.IsNullOrEmpty(connectionString))
