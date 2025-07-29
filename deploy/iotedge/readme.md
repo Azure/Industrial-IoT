@@ -4,10 +4,15 @@
 
 ## Table Of Contents <!-- omit in toc -->
 
+- [Deploy IoT Edge simulation to Azure](#deploy-iot-edge-simulation-to-azure)
 - [Azure IoT Edge EFLOW](#azure-iot-edge-eflow)
   - [Deploying a debug OPC Publisher](#deploying-a-debug-opc-publisher)
 - [IoTEdgeHubDev](#iotedgehubdev)
 - [Azure VM based IoT Edge](#azure-vm-based-iot-edge)
+
+## Deploy IoT Edge simulation to Azure
+
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2FIndustrial-IoT%2Fmain%2Fdeploy%2Fiotedge%2Fazuredeploy.json)
 
 ## Azure IoT Edge EFLOW
 

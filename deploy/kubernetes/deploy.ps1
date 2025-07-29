@@ -85,13 +85,13 @@ Import-Module $(Join-Path $(Join-Path $scriptDirectory "common") "cluster-utils.
 #
 # Dump command line arguments
 #
-if ([string]::IsNullOrWhiteSpace($ResourceGroup)) {
-    $ResourceGroup = $Name
-    Write-Host "Using resource group $ResourceGroup..." -ForegroundColor Cyan
+if ([string]::IsNullOrWhiteSpace($script:ResourceGroup)) {
+    $script:ResourceGroup = $script:Name
+    Write-Host "Using resource group $($script:ResourceGroup)..." -ForegroundColor Cyan
 }
-if ([string]::IsNullOrWhiteSpace($Location)) {
-    $Location = "westus"
-    Write-Host "Using location $Location..." -ForegroundColor Cyan
+if ([string]::IsNullOrWhiteSpace($script:Location)) {
+    $script:Location = "westus"
+    Write-Host "Using location $($script:Location)..." -ForegroundColor Cyan
 }
 if ([string]::IsNullOrWhiteSpace($script:OpsInstanceName)) {
     $script:OpsInstanceName = $Name
@@ -131,24 +131,24 @@ if (!$azVersion -or $azVersion[0].version -lt "2.0.0") {
 # Log into azure
 #
 if (-not $script:SkipLogin.IsPresent -or -not $SubscriptionId) {
-    if ([string]::IsNullOrWhiteSpace($TenantId)) {
-        $TenantId = $env:AZURE_TENANT_ID
+    if ([string]::IsNullOrWhiteSpace($script:TenantId)) {
+        $script:TenantId = $env:AZURE_TENANT_ID
     }
     Write-Host "Log into Azure..." -ForegroundColor Cyan
     $loginParams = @( "--only-show-errors" )
-    if (![string]::IsNullOrWhiteSpace($TenantId)) {
-        $loginParams += @("--tenant", $TenantId)
+    if (![string]::IsNullOrWhiteSpace($script:TenantId)) {
+        $loginParams += @("--tenant", $script:TenantId)
     }
     $session = (az login @loginParams) | ConvertFrom-Json
     if (-not $session) {
         Write-Host "Error: Login failed." -ForegroundColor Red
         exit -1
     }
-    if ([string]::IsNullOrWhiteSpace($SubscriptionId)) {
-        $SubscriptionId = $session[0].id
+    if ([string]::IsNullOrWhiteSpace($script:SubscriptionId)) {
+        $script:SubscriptionId = $session[0].id
     }
-    if ([string]::IsNullOrWhiteSpace($TenantId)) {
-        $TenantId = $session[0].tenantId
+    if ([string]::IsNullOrWhiteSpace($script:TenantId)) {
+        $script:TenantId = $session[0].tenantId
     }
 }
 
@@ -156,18 +156,18 @@ if (-not $script:SkipLogin.IsPresent -or -not $SubscriptionId) {
 # Check adr namespace schema registry and azure iot instance exists
 #
 $errOut = $($rg = & { az group show `
-    --name $ResourceGroup `
-    --subscription $SubscriptionId `
+    --name $script:ResourceGroup `
+    --subscription $script:SubscriptionId `
     --only-show-errors --output json } | ConvertFrom-Json) 2>&1
 if (!$rg) {
-    Write-Host "Resource group $($ResourceGroup) not found - $($errOut)." `
+    Write-Host "Resource group $($script:ResourceGroup) not found - $($errOut)." `
         -ForegroundColor Red
     exit -1
 }
-$adrNsResource = "/subscriptions/$($SubscriptionId)"
-$adrNsResource = "$($adrNsResource)/resourceGroups/$($ResourceGroup)"
+$adrNsResource = "/subscriptions/$($script:SubscriptionId)"
+$adrNsResource = "$($adrNsResource)/resourceGroups/$($script:ResourceGroup)"
 $adrNsResource = "$($adrNsResource)/providers/Microsoft.DeviceRegistry"
-$adrNsResource = "$($adrNsResource)/namespaces/$($AdrNamespaceName)"
+$adrNsResource = "$($adrNsResource)/namespaces/$($script:AdrNamespaceName)"
 $errOut = $($ns = & { az rest --method get `
     --url "$($adrNsResource)?api-version=2025-07-01-preview" `
     --headers "Content-Type=application/json" } | ConvertFrom-Json) 2>&1
@@ -179,7 +179,7 @@ if (!$ns -or !$ns.id) {
 $errOut = $($iotOps = & { az iot ops show `
     --resource-group $script:ResourceGroup `
     --name $script:OpsInstanceName `
-    --subscription $SubscriptionId `
+    --subscription $script:SubscriptionId `
     --only-show-errors --output json } | ConvertFrom-Json) 2>&1
 if (!$iotOps) {
     Write-Host "Azure IoT Operations instance $($script:OpsInstanceName) not found - $($errOut)." `
@@ -189,7 +189,7 @@ if (!$iotOps) {
 $errOut = $($sr = & { az iot ops schema registry show `
     --name $script:SchemaRegistryName `
     --resource-group $($rg.Name) `
-    --subscription $SubscriptionId `
+    --subscription $script:SubscriptionId `
     --only-show-errors --output json } | ConvertFrom-Json) 2>&1
 if (!$sr) {
     Write-Host "Schema registry $($script:SchemaRegistryName) not found. $($errOut)." `
@@ -280,7 +280,7 @@ foreach ($s in $connectorSchemas) {
         --resource-group $rg.Name `
         --registry $sr.name `
         --name $($s.Name -replace "-", "") `
-        --subscription $SubscriptionId `
+        --subscription $script:SubscriptionId `
         --only-show-errors --output json } | ConvertFrom-Json) 2>&1
     if (!$schema -or $script:Force.IsPresent) {
         Write-Host "Creating schema $($s.Name) in registry $($sr.name)..." `
@@ -297,7 +297,7 @@ foreach ($s in $connectorSchemas) {
             --version-desc "$($s.Name) (v1)" `
             --format json `
             --type message `
-            --subscription $SubscriptionId `
+            --subscription $script:SubscriptionId `
             --only-show-errors --output json } | ConvertFrom-Json) 2>&1
         if (-not $? -or !$schema) {
             $stdOut | Out-Host
@@ -405,7 +405,7 @@ if ($script:NetworkDiscoveryMode -ne "Off") {
 $template | Out-File -FilePath $tempFile -Encoding utf8 -Force
 
 $ctName = "opc-publisher"
-$ctResource = "/subscriptions/$($SubscriptionId)"
+$ctResource = "/subscriptions/$($script:SubscriptionId)"
 $ctResource = "$($ctResource)/resourceGroups/$($rg.Name)"
 $ctResource = "$($ctResource)/providers/Microsoft.IoTOperations"
 $ctResource = "$($ctResource)/instances/$($iotOps.name)"
@@ -482,7 +482,7 @@ if ($script:NetworkDiscoveryMode -ne "Off") {
     $template | Out-File -FilePath $tempFile -Encoding utf8 -Force
 
     $dhName = "opc-publisher"
-    $dhResource = "/subscriptions/$($SubscriptionId)"
+    $dhResource = "/subscriptions/$($script:SubscriptionId)"
     $dhResource = "$($dhResource)/resourceGroups/$($rg.Name)"
     $dhResource = "$($dhResource)/providers/Microsoft.IoTOperations"
     $dhResource = "$($dhResource)/instances/$($iotOps.name)"

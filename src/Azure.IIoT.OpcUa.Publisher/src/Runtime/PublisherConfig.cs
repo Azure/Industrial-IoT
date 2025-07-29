@@ -32,7 +32,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string SiteIdKey = "SiteId";
         public const string PublishedNodesFileKey = "PublishedNodesFile";
         public const string UseFileChangePollingKey = "UseFileChangePolling";
-        public const string CreatePublishFileIfNotExistKey = "CreatePublishFileIfNotExistKey";
+        public const string CreatePublishFileIfNotExistKey = "CreatePublishFileIfNotExist";
         public const string MessagingModeKey = "MessagingMode";
         public const string MessageEncodingKey = "MessageEncoding";
         public const string FullFeaturedMessageKey = "FullFeaturedMessage";

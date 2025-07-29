@@ -29,7 +29,7 @@
         The subscription id to scope all activity to.
     .PARAMETER Location
         The Azure region where the resources will be created.
-    .PARAMETER InstanceName
+    .PARAMETER OpsInstanceName
         The name of the Azure IoT Operations instance to register
         the devices with. This instance must already exist.
     .PARAMETER DeploymentName
@@ -54,7 +54,7 @@ param(
         "umati-public"
     )] $SimulationName = "opc-plc",
     [int] $Count = 1,
-    [string] [Parameter(Mandatory = $true)] $InstanceName,
+    [string] [Parameter(Mandatory = $true)] $OpsInstanceName,
     [string] [Parameter(Mandatory = $true)] $ResourceGroup,
     [string] [Parameter(Mandatory = $true)] $AdrNamespaceName,
     [string] $SubscriptionId,
@@ -123,7 +123,7 @@ if (!$ns -or !$ns.id) {
 }
 $errOut = $($iotOps = & { az iot ops show `
     --resource-group $script:ResourceGroup `
-    --name $script:InstanceName `
+    --name $script:OpsInstanceName `
     --subscription $SubscriptionId `
     --only-show-errors --output json } | ConvertFrom-Json) 2>&1
 if (!$iotOps) {

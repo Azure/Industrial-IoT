@@ -5,18 +5,19 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
+    using Autofac;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Sample;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
-    using Autofac;
     using Furly.Azure;
     using Furly.Azure.IoT;
     using Furly.Azure.IoT.Models;
     using Furly.Exceptions;
     using Furly.Extensions.Logging;
     using Furly.Extensions.Serializers;
+    using Microsoft.AspNetCore.Hosting.Server;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
     using Nito.AsyncEx;
@@ -416,15 +417,17 @@ Options:
             {
                 logger.PublisherModuleStarting(deviceId, moduleId);
                 var arguments = args.ToList();
+                if (publishedNodesFilePath == null)
+                {
+                    publishedNodesFilePath = "profile.json";
+                    await CopyProfileToPnJsonAsync("Empty", publishedNodesFilePath, null, ct).ConfigureAwait(false);
+                }
+
+                arguments.Add($"--pf={publishedNodesFilePath}");
 
                 if (publishInitFile != null)
                 {
                     arguments.Add($"--pi={publishInitFile}");
-                }
-
-                if (publishedNodesFilePath != null)
-                {
-                    arguments.Add($"--pf={publishedNodesFilePath}");
                 }
                 if (!args.Any(a => a.StartsWith("-t=", StringComparison.OrdinalIgnoreCase)))
                 {
@@ -662,26 +665,17 @@ Options:
         }
 
         private static async Task<string?> LoadPnJsonAsync(ServerWrapper server, string? publishProfile,
-            string endpointUrl, CancellationToken ct)
+            string? endpointUrl, CancellationToken ct)
         {
             const string publishedNodesFilePath = "profile.json";
             if (!string.IsNullOrEmpty(publishProfile))
             {
-                var publishedNodesFile = $"./Profiles/{publishProfile}.json";
-                if (!File.Exists(publishedNodesFile))
-                {
-                    throw new ArgumentException($"Profile {publishProfile} does not exist");
-                }
-                await File.WriteAllTextAsync(publishedNodesFilePath,
-                    (await File.ReadAllTextAsync(publishedNodesFile, ct).ConfigureAwait(false))
-                    .Replace("{{EndpointUrl}}", endpointUrl,
-                        StringComparison.Ordinal), ct).ConfigureAwait(false);
-
+                await CopyProfileToPnJsonAsync(publishProfile, publishedNodesFilePath, endpointUrl, ct).ConfigureAwait(false);
                 return publishedNodesFilePath;
             }
 
             var testServer = await server.Server.Task.ConfigureAwait(false);
-            if (testServer?.PublishedNodesJson != null)
+            if (testServer?.PublishedNodesJson != null && endpointUrl != null)
             {
                 var json = testServer.PublishedNodesJson.Replace("{{EndpointUrl}}",
                     endpointUrl, StringComparison.Ordinal);
@@ -692,6 +686,22 @@ Options:
                 return publishedNodesFilePath;
             }
             return null;
+        }
+
+        private static async Task CopyProfileToPnJsonAsync(string publishProfile, string publishedNodesFilePath,
+            string? endpointUrl, CancellationToken ct)
+        {
+            var publishedNodesFile = $"./Profiles/{publishProfile}.json";
+            if (!File.Exists(publishedNodesFile))
+            {
+                throw new ArgumentException($"Profile {publishProfile} does not exist");
+            }
+            var text = await File.ReadAllTextAsync(publishedNodesFile, ct).ConfigureAwait(false);
+            if (endpointUrl != null)
+            {
+                text = text.Replace("{{EndpointUrl}}", endpointUrl, StringComparison.Ordinal);
+            }
+            await File.WriteAllTextAsync(publishedNodesFilePath, text, ct).ConfigureAwait(false);
         }
 
         private static async Task<string?> LoadInitFileAsync(string? initProfile, string endpointUrl,

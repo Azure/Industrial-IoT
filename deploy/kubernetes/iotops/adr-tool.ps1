@@ -29,9 +29,6 @@
     .PARAMETER SubscriptionId
         The subscription id where the namespace is located.
         If not specified, the script will use the current subscription.
-    .PARAMETER Location
-        The location of the cluster.
-        Default is "westus".
     .PARAMETER TenantId
         The tenant id to use when logging into Azure.
         If not specified, the script will use the current tenant.
@@ -51,10 +48,10 @@ param(
         "Onboard",
         "Cleanup"
     )] [string] $Action,
-    [string] [Parameter(Mandatory = $true)] $AdrNamespaceName,
-    [string] [Parameter(Mandatory = $true)] $ResourceGroup,
+    [string] [Parameter(Mandatory = $true)] $Name,
+    [string] $AdrNamespaceName,
+    [string] $ResourceGroup,
     [string] $SubscriptionId = "53d910a7-f1f8-4b7a-8ee0-6e6b67bddd82",
-    [string] $Location = "westus",
     [string] $TenantId,
     [switch] $RunOnce,
     [switch] $Force,
@@ -62,6 +59,15 @@ param(
 )
 
 $ErrorActionPreference = 'Continue'
+
+if ([string]::IsNullOrWhiteSpace($ResourceGroup)) {
+    $ResourceGroup = $script:Name
+    Write-Host "Using resource group $ResourceGroup..." -ForegroundColor Cyan
+}
+if ([string]::IsNullOrWhiteSpace($script:AdrNamespaceName)) {
+    $script:AdrNamespaceName = $script:Name
+    Write-Host "Using ADR namespace name $($script:AdrNamespaceName)..." -ForegroundColor Cyan
+}
 
 $azVersion = (az version)[1].Split(":")[1].Split('"')[1]
 if ($azVersion -lt "2.74.0" -or !$azVersion) {
@@ -76,27 +82,27 @@ if ($azVersion -lt "2.74.0" -or !$azVersion) {
 if (-not $script:SkipLogin.IsPresent) {
     Write-Host "Log into Azure..." -ForegroundColor Cyan
     $loginParams = @( "--only-show-errors" )
-    if (![string]::IsNullOrWhiteSpace($TenantId)) {
-        $loginParams += @("--tenant", $TenantId)
+    if (![string]::IsNullOrWhiteSpace($script:TenantId)) {
+        $loginParams += @("--tenant", $script:TenantId)
     }
     $session = (az login @loginParams) | ConvertFrom-Json
     if (-not $session) {
         Write-Host "Error: Login failed." -ForegroundColor Red
         exit -1
     }
-    if ([string]::IsNullOrWhiteSpace($SubscriptionId)) {
-        $SubscriptionId = $session[0].id
+    if ([string]::IsNullOrWhiteSpace($script:SubscriptionId)) {
+        $script:SubscriptionId = $session[0].id
     }
-    if ([string]::IsNullOrWhiteSpace($TenantId)) {
-        $TenantId = $session[0].tenantId
+    if ([string]::IsNullOrWhiteSpace($script:TenantId)) {
+        $script:TenantId = $session[0].tenantId
     }
 }
 
 #
 # Check adr namespace exists
 #
-$adrNsResource = "/subscriptions/$($SubscriptionId)"
-$adrNsResource = "$($adrNsResource)/resourceGroups/$($ResourceGroup)"
+$adrNsResource = "/subscriptions/$($script:SubscriptionId)"
+$adrNsResource = "$($adrNsResource)/resourceGroups/$($script:ResourceGroup)"
 $adrNsResource = "$($adrNsResource)/providers/Microsoft.DeviceRegistry"
 $adrNsResource = "$($adrNsResource)/namespaces/$($AdrNamespaceName)"
 $errOut = $($ns = & { az rest --method get `

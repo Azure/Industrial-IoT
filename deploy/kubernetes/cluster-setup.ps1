@@ -12,7 +12,7 @@
 
     .PARAMETER Name
         The name of the cluster
-    .PARAMETER InstanceName
+    .PARAMETER OpsInstanceName
         The name of the instance to create. Default is the same as the
         cluster name.
     .PARAMETER ClusterNamespace
@@ -54,7 +54,7 @@
 
 param(
     [string] [Parameter(Mandatory = $true)] $Name,
-    [string] $InstanceName,
+    [string] $OpsInstanceName,
     [string] $SharedFolderPath,
     [string] $ResourceGroup,
     [string] $TenantId,
@@ -87,7 +87,7 @@ param(
     )] $OpsExtension = "stable",
     [switch] $DeployPlcSimulation,
     [switch] $DeployTestSimulation,
-    [switch] $DeployDiscoveryHandler
+    [switch] $EnableNetworkDiscovery
 )
 
 #Requires -RunAsAdministrator
@@ -108,24 +108,24 @@ $forceReinstall = $script:Force.IsPresent
 if ($forceReinstall) {
     Write-Host "Force reinstall..." -ForegroundColor Yellow
 }
-if ([string]::IsNullOrWhiteSpace($ResourceGroup)) {
-    $ResourceGroup = $Name
+if ([string]::IsNullOrWhiteSpace($script:ResourceGroup)) {
+    $script:ResourceGroup = $script:Name
 }
-Write-Host "Using resource group $ResourceGroup..." -ForegroundColor Cyan
-if ([string]::IsNullOrWhiteSpace($TenantId)) {
-    $TenantId = $env:AZURE_TENANT_ID
+Write-Host "Using resource group $($script:ResourceGroup)..." -ForegroundColor Cyan
+if ([string]::IsNullOrWhiteSpace($script:TenantId)) {
+    $script:TenantId = $env:AZURE_TENANT_ID
 }
-if (![string]::IsNullOrWhiteSpace($TenantId)) {
-    Write-Host "Using tenant $TenantId..." -ForegroundColor Cyan
+if (![string]::IsNullOrWhiteSpace($script:TenantId)) {
+    Write-Host "Using tenant $($script:TenantId)..." -ForegroundColor Cyan
 }
-if ([string]::IsNullOrWhiteSpace($Location)) {
-    $Location = "westus"
+if ([string]::IsNullOrWhiteSpace($script:Location)) {
+    $script:Location = "westus"
 }
-Write-Host "Using location $Location..." -ForegroundColor Cyan
-if ([string]::IsNullOrWhiteSpace($script:InstanceName)) {
-    $script:InstanceName = $Name
+Write-Host "Using location $($script:Location)..." -ForegroundColor Cyan
+if ([string]::IsNullOrWhiteSpace($script:OpsInstanceName)) {
+    $script:OpsInstanceName = $script:Name
 }
-Write-Host "Using instance name $($script:InstanceName)..." -ForegroundColor Cyan
+Write-Host "Using instance name $($script:OpsInstanceName)..." -ForegroundColor Cyan
 if ([string]::IsNullOrWhiteSpace($script:ClusterNamespace)) {
     $script:ClusterNamespace = "azure-iot-operations"
 }
@@ -173,8 +173,8 @@ else {
 #
 Write-Host "Log into Azure..." -ForegroundColor Cyan
 $loginParams = @( "--only-show-errors" )
-if (![string]::IsNullOrWhiteSpace($TenantId)) {
-    $loginParams += @("--tenant", $TenantId)
+if (![string]::IsNullOrWhiteSpace($script:TenantId)) {
+    $loginParams += @("--tenant", $script:TenantId)
 }
 $session = (az login @loginParams) | ConvertFrom-Json
 if (-not $session) {
@@ -182,16 +182,16 @@ if (-not $session) {
     exit -1
 }
 if ([string]::IsNullOrWhiteSpace($SubscriptionId)) {
-    $SubscriptionId = $session[0].id
+    $script:SubscriptionId = $session[0].id
 }
 if ([string]::IsNullOrWhiteSpace($TenantId)) {
-    $TenantId = $session[0].tenantId
+    $script:TenantId = $session[0].tenantId
 }
 
 Write-Host "Ensuring all required dependencies are installed..." -ForegroundColor Cyan
 
-if ($ClusterType -ne "none" `
-    -and $ClusterType -ne "microk8s" `
+if ($script:ClusterType -ne "none" `
+    -and $script:ClusterType -ne "microk8s" `
     -and $script:Connector -ne "None") {
     # check if docker is installed
     $errOut = $($docker = & { docker version --format json | ConvertFrom-Json }) 2>&1
@@ -282,8 +282,8 @@ $packages =
     "headlamp",
     "k9s"
 )
-if ($ClusterType -ne "none" -and $ClusterType -ne "microk8s") {
-    $packages += $ClusterType
+if ($script:ClusterType -ne "none" -and $script:ClusterType -ne "microk8s") {
+    $packages += $script:ClusterType
 }
 foreach ($p in $packages) {
     $errOut = $($stdOut = & { choco install $p --yes }) 2>&1
@@ -303,10 +303,10 @@ foreach ($p in $packages) {
 #
 # Create the cluster
 #
-if ($ClusterType -eq "none") {
+if ($script:ClusterType -eq "none") {
     Write-Host "Skipping cluster creation..." -ForegroundColor Green
 }
-elseif ($ClusterType -eq "microk8s") {
+elseif ($script:ClusterType -eq "microk8s") {
     # ensure multipass is running
     Start-Service -Name "Multipass" -ErrorAction SilentlyContinue | Out-Null
     $errOut = $($stdOut = & { microk8s status }) 2>&1
@@ -346,15 +346,15 @@ elseif ($ClusterType -eq "microk8s") {
     }
     $(microk8s config) | Out-File $env:USERPROFILE/.kube/config -Encoding utf8 -Force
 }
-elseif ($ClusterType -eq "k3d") {
+elseif ($script:ClusterType -eq "k3d") {
     $errOut = $($table = & { k3d cluster list --no-headers } -split "`n") 2>&1
     if (-not $?) {
         Write-Host "Error querying k3d clusters - $($errOut)" -ForegroundColor Red
         exit -1
     }
     $clusters = $table | ForEach-Object { $($_ -split " ")[0].Trim() }
-    if (($clusters -contains $Name) -and (!$forceReinstall)) {
-        Write-Host "Cluster $Name exists..." -ForegroundColor Green
+    if (($clusters -contains $script:Name) -and (!$forceReinstall)) {
+        Write-Host "Cluster $script:Name exists..." -ForegroundColor Green
     }
     else {
         foreach ($cluster in $clusters) {
@@ -366,7 +366,7 @@ elseif ($ClusterType -eq "k3d") {
             Write-Host "Deleting existing cluster $cluster..." -ForegroundColor Yellow
             k3d cluster delete $cluster 2>&1 | Out-Null
         }
-        Write-Host "Creating k3d cluster $Name..." -ForegroundColor Cyan
+        Write-Host "Creating k3d cluster $script:Name..." -ForegroundColor Cyan
 
         $fullPath1 = Join-Path $mountPath "system"
         if (!(Test-Path $fullPath1)) {
@@ -379,7 +379,7 @@ elseif ($ClusterType -eq "k3d") {
         }
         $volumeMapping2 = "$($fullPath2):/storage/user@all"
         $env:K3D_FIX_MOUNTS = 1
-        k3d cluster create $Name `
+        k3d cluster create $script:Name `
             --agents 3 `
             --servers 1 `
             --volume $volumeMapping1 `
@@ -393,25 +393,25 @@ elseif ($ClusterType -eq "k3d") {
         Write-Host "Cluster created..." -ForegroundColor Green
     }
 }
-elseif ($ClusterType -eq "minikube") {
+elseif ($script:ClusterType -eq "minikube") {
     $errOut = $($clusters = & { minikube profile list -o json } | ConvertFrom-Json) 2>&1
-    if (($clusters.valid.Name -contains $Name) -and (!$forceReinstall)) {
-        Write-Host "Valid minikube cluster $Name exists..." -ForegroundColor Green
+    if (($clusters.valid.Name -contains $script:Name) -and (!$forceReinstall)) {
+        Write-Host "Valid minikube cluster $script:Name exists..." -ForegroundColor Green
         # Start the cluster
         if ($stat.Host -Contains "Stopped" -or
             $stat.APIServer -Contains "Stopped" -or
             $stat.Kubelet -Contains "Stopped") {
-            Write-Host "Minikube cluster $Name stopped. Starting..." -ForegroundColor Cyan
-            minikube start -p $Name
+            Write-Host "Minikube cluster $script:Name stopped. Starting..." -ForegroundColor Cyan
+            minikube start -p $script:Name
             if (-not $?) {
                 Write-Host "Error starting minikube cluster." -ForegroundColor Red
-                minikube logs --file=$($Name).log
+                minikube logs --file=$($script:Name).log
                 exit -1
             }
-            Write-Host "Minikube cluster $Name started." -ForegroundColor Green
+            Write-Host "Minikube cluster $script:Name started." -ForegroundColor Green
         }
         else {
-            Write-Host "Minikube cluster $Name running." -ForegroundColor Green
+            Write-Host "Minikube cluster $script:Name running." -ForegroundColor Green
         }
     }
     elseif (-not $?) {
@@ -423,11 +423,11 @@ elseif ($ClusterType -eq "minikube") {
             Write-Host "Deleting other clusters..." -ForegroundColor Yellow
             minikube delete --all --purge
         }
-        elseif ($clusters.invalid.Name -contains $Name) {
-            Write-Host "Delete bad minikube cluster $Name..." -ForegroundColor Yellow
-            minikube delete -p $Name
+        elseif ($clusters.invalid.Name -contains $script:Name) {
+            Write-Host "Delete bad minikube cluster $script:Name..." -ForegroundColor Yellow
+            minikube delete -p $script:Name
         }
-        Write-Host "Creating new minikube cluster $Name..." -ForegroundColor Cyan
+        Write-Host "Creating new minikube cluster $script:Name..." -ForegroundColor Cyan
 
         if (Get-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V-All) {
             Write-Host "Hyper-V is enabled..." -ForegroundColor Green
@@ -454,19 +454,19 @@ elseif ($ClusterType -eq "minikube") {
             }
         }
         Start-Sleep -Seconds 5
-        & { minikube start -p $Name --cpus=4 --memory=8192 --nodes=4 --driver=hyperv }
+        & { minikube start -p $script:Name --cpus=4 --memory=8192 --nodes=4 --driver=hyperv }
         if (-not $?) {
             Write-Host "Error creating minikube cluster - $($errOut)" -ForegroundColor Red
-            minikube logs --file=$($Name).log
+            minikube logs --file=$($script:Name).log
             exit -1
         }
         Write-Host "Cluster created..." -ForegroundColor Green
     }
 }
-elseif ($ClusterType -eq "kind") {
+elseif ($script:ClusterType -eq "kind") {
     $errOut = $($clusters = & { kind get clusters } -split "`n") 2>&1
-    if (($clusters -contains $Name) -and (!$forceReinstall)) {
-        Write-Host "Cluster $Name exists..." -ForegroundColor Green
+    if (($clusters -contains $script:Name) -and (!$forceReinstall)) {
+        Write-Host "Cluster $script:Name exists..." -ForegroundColor Green
     }
     elseif (-not $?) {
         Write-Host "Error querying kind clusters - $($errOut)" -ForegroundColor Red
@@ -482,7 +482,7 @@ elseif ($ClusterType -eq "kind") {
             Write-Host "Deleting existing cluster $cluster..." -ForegroundColor Yellow
             kind delete cluster --name $cluster 2>&1 | Out-Null
         }
-        Write-Host "Creating kind cluster $Name..." -ForegroundColor Cyan
+        Write-Host "Creating kind cluster $script:Name..." -ForegroundColor Cyan
 
         $clusterConfig = @"
 kind: Cluster
@@ -500,7 +500,7 @@ nodes:
 - role: worker
 "@
         $clusterConfig -replace "`r`n", "`n" `
-        | kind create cluster --name $Name --config -
+        | kind create cluster --name $script:Name --config -
         if (-not $?) {
             Write-Host "Error creating kind cluster - $($errOut)" -ForegroundColor Red
             exit -1
@@ -509,7 +509,7 @@ nodes:
     }
 }
 else {
-    Write-Host "Error: Unsupported cluster type $ClusterType" -ForegroundColor Red
+    Write-Host "Error: Unsupported cluster type $script:ClusterType" -ForegroundColor Red
     exit -1
 }
 
@@ -556,8 +556,8 @@ foreach ($rp in $resourceProviders) {
 }
 
 $errOut = $($rg = & { az group show `
-    --name $ResourceGroup `
-    --subscription $SubscriptionId `
+    --name $script:ResourceGroup `
+    --subscription $script:SubscriptionId `
     --only-show-errors --output json } | ConvertFrom-Json) 2>&1
 if ($rg -and $forceReinstall) {
     Write-Host "Deleting existing resource group $($rg.Name)..." `
@@ -567,11 +567,11 @@ if ($rg -and $forceReinstall) {
     $rg = $null
 }
 if (!$rg) {
-    Write-Host "Creating resource group $ResourceGroup..." -ForegroundColor Cyan
+    Write-Host "Creating resource group $script:ResourceGroup..." -ForegroundColor Cyan
     $errOut = $($rg = & { az group create `
-        --name $ResourceGroup `
-        --location $Location `
-        --subscription $SubscriptionId `
+        --name $script:ResourceGroup `
+        --location $script:Location `
+        --subscription $script:SubscriptionId `
         --only-show-errors --output json } | ConvertFrom-Json) 2>&1
     if (-not $? -or !$rg) {
         Write-Host "Error creating resource group - $($errOut)." -ForegroundColor Red
@@ -589,14 +589,14 @@ else {
 
 # Managed identity
 $errOut = $($mi = & { az identity show `
-    --name $Name `
+    --name $script:Name `
     --resource-group $($rg.Name) `
     --subscription $SubscriptionId `
     --only-show-errors --output json } | ConvertFrom-Json) 2>&1
 if (!$mi) {
-    Write-Host "Creating managed identity $Name..." -ForegroundColor Cyan
+    Write-Host "Creating managed identity $script:Name..." -ForegroundColor Cyan
     $errOut = $($mi = & { az identity create `
-        --name $Name `
+        --name $script:Name `
         --location $Location `
         --resource-group $($rg.Name) `
         --subscription $SubscriptionId `
@@ -612,7 +612,7 @@ else {
 }
 
 # Storage account
-$storageAccountName = $Name.Replace("-", "")
+$storageAccountName = $script:Name.Replace("-", "")
 $errOut = $($stg = & { az storage account show `
     --name $storageAccountName `
     --resource-group $($rg.Name) `
@@ -640,7 +640,7 @@ else {
 }
 
 # Event Hub namespace
-$eventHubNamespace = $Name
+$eventHubNamespace = $script:Name
 $errOut = $($ehNs = & { az eventhubs namespace show `
     --name $eventHubNamespace `
     --resource-group $($rg.Name) `
@@ -667,7 +667,7 @@ else {
 }
 
 # Keyvault
-$keyVaultName = $Name + "kv"
+$keyVaultName = $script:Name + "kv"
 $errOut = $($kv = & { az keyvault show `
     --name $keyVaultName `
     --subscription $SubscriptionId `
@@ -701,7 +701,7 @@ else {
 }
 
 # Azure IoT Operations schema registry
-$srName = "$($Name.ToLowerInvariant())sr"
+$srName = "$($script:Name.ToLowerInvariant())sr"
 $errOut = $($sr = & { az iot ops schema registry show `
     --name $srName `
     --resource-group $($rg.Name) `
@@ -760,7 +760,7 @@ foreach ($ra in $roleAssignments) {
 # Connect the cluster to Arc
 #
 $errOut = $($cc = & { az connectedk8s show `
-    --name $Name `
+    --name $script:Name `
     --resource-group $($rg.Name) `
     --subscription $SubscriptionId `
     --only-show-errors --output json } | ConvertFrom-Json) 2>&1
@@ -784,16 +784,16 @@ else {
     }
     Write-Host "Connecting cluster to Arc in $($rg.Name)..." -ForegroundColor Cyan
     az connectedk8s connect --only-show-errors `
-        --name $Name `
+        --name $script:Name `
         --resource-group $($rg.Name) `
         --subscription $SubscriptionId `
         --correlation-id "d009f5dd-dba8-4ac7-bac9-b54ef3a6671a" 2>&1 | Out-Host
     if (-not $?) {
-        Write-Host "Error: connecting cluster $($Name) to Arc failed." -ForegroundColor Red
+        Write-Host "Error: connecting cluster $($script:Name) to Arc failed." -ForegroundColor Red
         exit -1
     }
     $errOut = $($cc = & { az connectedk8s show `
-        --name $Name `
+        --name $script:Name `
         --resource-group $($rg.Name) `
         --subscription $SubscriptionId `
         --only-show-errors --output json } | ConvertFrom-Json) 2>&1
@@ -803,7 +803,7 @@ else {
 # enable custom location feature
 $errOut = $($objectId = & { az ad sp show `
             --id bc313c14-388c-4e7d-a58e-70017303ee3b --query id -o tsv }) 2>&1
-Write-Host "Enabling custom location feature for cluster $Name..." -ForegroundColor Cyan
+Write-Host "Enabling custom location feature for cluster $script:Name..." -ForegroundColor Cyan
 az connectedk8s enable-features `
     --name $cc.name `
     --resource-group $rg.Name `
@@ -818,10 +818,10 @@ if (-not $?) {
 
 # enable workload identity
 if ($cc.securityProfile.workloadIdentity.enabled -and $cc.oidcIssuerProfile.enabled){
-    Write-Host "Workload identity already enabled for cluster $Name." -ForegroundColor Green
+    Write-Host "Workload identity already enabled for cluster $script:Name." -ForegroundColor Green
 }
 else {
-    Write-Host "Enabling workload identity for cluster $Name..." -ForegroundColor Cyan
+    Write-Host "Enabling workload identity for cluster $script:Name..." -ForegroundColor Cyan
     az connectedk8s update `
         --name $cc.name `
         --resource-group $rg.Name `
@@ -834,7 +834,7 @@ else {
         Write-Host "Error: Failed to enable workload identity." -ForegroundColor Red
         exit -1
     }
-    Write-Host "Workload identity enabled for cluster $Name." -ForegroundColor Green
+    Write-Host "Workload identity enabled for cluster $script:Name." -ForegroundColor Green
 }
 
 #
@@ -842,7 +842,7 @@ else {
 #
 $adrNsResource = "/subscriptions/$($SubscriptionId)"
 $adrNsResource = "$($adrNsResource)/resourceGroups/$($rg.Name)"
-$adrNsResource = "$($adrNsResource)/providers/Microsoft.DeviceRegistry/namespaces/$($Name)"
+$adrNsResource = "$($adrNsResource)/providers/Microsoft.DeviceRegistry/namespaces/$($script:Name)"
 $errOut = $($ns = & { az rest --method get `
     --url "$($adrNsResource)?api-version=2025-07-01-preview" `
     --headers "Content-Type=application/json" } | ConvertFrom-Json) 2>&1
@@ -879,7 +879,7 @@ else {
 #
 $errOut = $($iotOps = & { az iot ops show `
     --resource-group $rg.Name `
-    --name $script:InstanceName `
+    --name $script:OpsInstanceName `
     --subscription $SubscriptionId `
     --only-show-errors --output json } | ConvertFrom-Json) 2>&1
 if ($iotOps) {
@@ -888,20 +888,20 @@ if ($iotOps) {
     $queryVersion = "$($queryVersion) && extensionType == 'microsoft.iotoperations'"
     $queryVersion = "$($queryVersion) ].{ version:currentVersion, train:releaseTrain }"
     $currentVersion = $(az k8s-extension list `
-        --cluster-name $Name --cluster-type connectedClusters `
+        --cluster-name $script:Name --cluster-type connectedClusters `
         --resource-group $rg.Name `
         --query $queryVersion --output json) | ConvertFrom-Json
     if (!$currentVersion) {
-        Write-Host "No Azure IoT Operations extension found on cluster $Name. Resetting." `
+        Write-Host "No Azure IoT Operations extension found on cluster $script:Name. Resetting." `
             - ForegroundColor Yellow
-        az iot ops delete --name $iotOps.name --cluster $Name --yes --only-show-errors `
+        az iot ops delete --name $iotOps.name --cluster $script:Name --yes --only-show-errors `
             --resource-group $rg.Name --subscription $SubscriptionId `
         if (-not $?) {
-            Write-Host "Error removing Azure IoT Operations instance from cluster $Name." `
+            Write-Host "Error removing Azure IoT Operations instance from cluster $script:Name." `
                 -ForegroundColor Red
             exit -1
         }
-        Write-Host "Azure IoT Operations instance removed from cluster $Name." `
+        Write-Host "Azure IoT Operations instance removed from cluster $script:Name." `
             -ForegroundColor Green
         $iotOps = $null
         $currentVersion = $null
@@ -912,11 +912,11 @@ if ($iotOps) {
     }
 }
 if (!$iotOps) {
-    Write-Host "Initializing cluster $Name for deployment of Azure IoT operations..." `
+    Write-Host "Initializing cluster $script:Name for deployment of Azure IoT operations..." `
         -ForegroundColor Cyan
     $iotOpsInit = @(
         "init", `
-        "--cluster", $Name, `
+        "--cluster", $script:Name, `
         "--resource-group", $rg.Name, `
         "--subscription", $SubscriptionId, `
         "--ensure-latest", $ensureLatest, `
@@ -924,21 +924,21 @@ if (!$iotOps) {
     )
     & az iot ops $iotOpsInit
     if (-not $?) {
-        Write-Host "Error initializing cluster $Name for Azure IoT Operations." `
+        Write-Host "Error initializing cluster $script:Name for Azure IoT Operations." `
             -ForegroundColor Red
         exit -1
     }
     Write-Host "Cluster ready for Azure IoT Operations deployment..." `
         -ForegroundColor Green
-    Write-Host "Creating the Azure IoT Operations instance $($script:InstanceName)..." `
+    Write-Host "Creating the Azure IoT Operations instance $($script:OpsInstanceName)..." `
         -ForegroundColor Cyan
     $iotOpsCreate = @(
         "create", `
-        "--cluster", $Name, `
+        "--cluster", $script:Name, `
         "--resource-group", $rg.Name, `
         "--subscription", $SubscriptionId, `
         "--cluster-namespace", $script:ClusterNamespace, `
-        "--name", $script:InstanceName, `
+        "--name", $script:OpsInstanceName, `
         "--location", $Location, `
         "--sr-resource-id", $sr.id, `
         "--ns-resource-id", $ns.id, `
@@ -962,7 +962,7 @@ if (!$iotOps) {
         -ForegroundColor Cyan
     $errOut = $(az iot ops rsync enable `
         --resource-group $($rg.Name) `
-        --instance $script:InstanceName `
+        --instance $script:OpsInstanceName `
         --subscription $SubscriptionId `
         --only-show-errors) 2>&1
     if (-not $?) {
@@ -975,7 +975,7 @@ if (!$iotOps) {
 
     $errOut = $($iotOps = & { az iot ops show `
         --resource-group $($rg.Name) `
-        --name $script:InstanceName `
+        --name $script:OpsInstanceName `
         --subscription $SubscriptionId `
         --only-show-errors --output json } | ConvertFrom-Json) 2>&1
     if (-not $iotOps) {
@@ -1114,8 +1114,12 @@ else {
 # Deploy opc publisher as connector
 #
 if ($script:Connector -ne "None") {
+    $discoveryMode = "Off"
+    if ($script:EnableNetworkDiscovery.IsPresent) {
+        $discoveryMode = "Fast"
+    }
     & $(Join-Path $scriptDirectory "deploy.ps1") `
-        -Name $Name `
+        -Name $script:Name `
         -ClusterType $script:ClusterType `
         -ConnectorType $script:Connector `
         -OpsInstanceName $iotOps.Name `
@@ -1125,7 +1129,7 @@ if ($script:Connector -ne "None") {
         -TenantId $TenantId `
         -ResourceGroup $rg.Name `
         -Location $Location `
-        -DeployDiscoveryHandler:$script:DeployDiscoveryHandler.IsPresent `
+        -NetworkDiscoveryMode $discoveryMode `
         -SkipLogin `
         -Force  # :$forceReinstall `
 
@@ -1146,8 +1150,8 @@ if ($script:DeployPlcSimulation.IsPresent) {
     & $(Join-Path $(Join-Path $scriptDirectory "simulation") "deploy.ps1") `
         -DeploymentName "simulation1" `
         -SimulationName "opc-plc" -Count 2 `
-        -InstanceName $script:InstanceName `
-        -AdrNamespaceName $Name `
+        -InstanceName $script:OpsInstanceName `
+        -AdrNamespaceName $script:Name `
         -SubscriptionId $SubscriptionId `
         -TenantId $TenantId `
         -ResourceGroup $rg.Name `
@@ -1165,8 +1169,8 @@ if ($script:DeployTestSimulation.IsPresent) {
     & $(Join-Path $(Join-Path $scriptDirectory "simulation") "deploy.ps1") `
         -DeploymentName "simulation2" `
         -SimulationName "opc-test" -Count 2 `
-        -InstanceName $script:InstanceName `
-        -AdrNamespaceName $Name `
+        -InstanceName $script:OpsInstanceName `
+        -AdrNamespaceName $script:Name `
         -SubscriptionId $SubscriptionId `
         -TenantId $TenantId `
         -ResourceGroup $rg.Name `
