@@ -32,6 +32,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Microsoft.Extensions.Logging.Console;
     using Microsoft.Extensions.Options;
     using Microsoft.OpenApi.Models;
+    using OpenTelemetry;
     using OpenTelemetry.Exporter;
     using OpenTelemetry.Logs;
     using OpenTelemetry.Metrics;
@@ -309,83 +310,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         }
 
         /// <summary>
-        /// Add runtime instrumentation if requested
-        /// </summary>
-        /// <param name="builder"></param>
-        /// <param name="configuration"></param>
-        /// <returns></returns>
-        public static MeterProviderBuilder AddRuntimeInstrumentation(this MeterProviderBuilder builder,
-            IConfiguration configuration)
-        {
-            var options = new Otlp(configuration);
-            if (options.AddRuntimeInstrumentation)
-            {
-                builder
-                    .AddRuntimeInstrumentation()
-                    .AddHttpClientInstrumentation()
-                    .AddAspNetCoreInstrumentation();
-            }
-            return builder;
-        }
-
-        /// <summary>
-        /// Add otlp exporter if configured
-        /// </summary>
-        /// <param name="builder"></param>
-        /// <param name="configuration"></param>
-        public static MeterProviderBuilder AddOtlpExporter(this MeterProviderBuilder builder,
-            IConfiguration configuration)
-        {
-            var option = new Otlp(configuration);
-            var exporterOptions = new OtlpExporterOptions();
-            option.Configure(exporterOptions);
-            if (exporterOptions.Endpoint.Host != Otlp.OtlpEndpointDisabled)
-            {
-                builder.SetMaxMetricStreams(option.MaxMetricStreams);
-                builder.ConfigureServices(services => services.ConfigureOtlpExporter());
-                builder.AddOtlpExporter();
-            }
-            return builder;
-        }
-
-        /// <summary>
-        /// Add prometheus exporter if configured
-        /// </summary>
-        /// <param name="builder"></param>
-        /// <param name="configuration"></param>
-        public static MeterProviderBuilder AddPrometheusExporter(this MeterProviderBuilder builder,
-            IConfiguration configuration)
-        {
-            var option = new Otlp(configuration);
-            if (option.AddPrometheusEndpoint)
-            {
-                builder.ConfigureServices(services => services.AddSingleton<Otlp>());
-                builder.SetMaxMetricStreams(option.MaxMetricStreams);
-
-                builder.AddPrometheusExporter(options =>
-                {
-                    options.DisableTotalNameSuffixForCounters =
-                        !option.EnableTotalNameSuffixForCounters;
-
-                    //
-                    // Configures scrape endpoint response caching. Multiple scrape requests
-                    // within the cache duration time period will receive the same previously
-                    // generated response. Disable response caching. The default value is 300.
-                    //
-                    options.ScrapeResponseCacheDurationMilliseconds = 0;
-                });
-            }
-            return builder;
-        }
-
-        /// <summary>
         /// Use prometheus endpoint
         /// </summary>
         /// <param name="app"></param>
         /// <returns></returns>
         public static IApplicationBuilder UseOpenTelemetryPrometheusEndpoint(this IApplicationBuilder app)
         {
-            if (app.ApplicationServices.GetService<Otlp>()?.AddPrometheusEndpoint == true)
+            if (app.ApplicationServices.GetService<Otel>()?.AddPrometheusEndpoint == true)
             {
                 app.UseOpenTelemetryPrometheusScrapingEndpoint();
             }
@@ -419,18 +350,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         }
 
         /// <summary>
-        /// Add otlp exporter if configured
-        /// </summary>
-        /// <param name="builder"></param>
-        /// <param name="configuration"></param>
-        public static OpenTelemetryLoggerOptions AddOtlpExporter(
-            this OpenTelemetryLoggerOptions builder, IConfiguration configuration)
-        {
-            builder.AddOtlpExporter((o, _) => new Otlp(configuration).Configure(o));
-            return builder;
-        }
-
-        /// <summary>
         /// Add open telemetry to the logging builder
         /// </summary>
         /// <param name="builder"></param>
@@ -439,46 +358,109 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         public static ILoggingBuilder AddOpenTelemetry(this ILoggingBuilder builder,
             IConfiguration configuration, Action<OpenTelemetryLoggerOptions> configure)
         {
-            var exporterOptions = new OtlpExporterOptions();
-            var configurator = new Otlp(configuration);
-            configurator.Configure(exporterOptions);
-            if (exporterOptions.Endpoint.Host != Otlp.OtlpEndpointDisabled)
+            var configurator = new Otel(configuration);
+            if (configurator.EnableOtelLogging)
             {
-                builder.AddOpenTelemetry(configure);
+                builder.Services.AddOtel();
+                builder.AddOpenTelemetry(options =>
+                {
+                    configure(options);
+                    options.AddOtlpExporter((o, _) => configurator.Configure("Logging", o));
+                });
             }
             return builder;
         }
 
         /// <summary>
-        /// Add otlp exporter if configured
+        /// Enable tracing if tracing enabled
         /// </summary>
         /// <param name="builder"></param>
         /// <param name="configuration"></param>
-        public static TracerProviderBuilder AddOtlpExporter(this TracerProviderBuilder builder,
-            IConfiguration configuration)
+        /// <param name="configure"></param>
+        /// <returns></returns>
+        public static OpenTelemetryBuilder WithTracing(this OpenTelemetryBuilder builder,
+            IConfiguration configuration, Action<TracerProviderBuilder> configure)
         {
-            var exporterOptions = new OtlpExporterOptions();
-            new Otlp(configuration).Configure(exporterOptions);
-            if (exporterOptions.Endpoint.Host != Otlp.OtlpEndpointDisabled)
+            var configurator = new Otel(configuration);
+            if (configurator.EnableOtelTraces)
             {
-                builder.ConfigureServices(services => services.ConfigureOtlpExporter());
-                builder.AddOtlpExporter();
+                return builder.WithTracing(options =>
+                {
+                    options.ConfigureServices(services => services.AddOtel());
+                    options.AddOtlpExporter(o => configurator.Configure("Traces", o));
+                    if (configurator.AddRuntimeInstrumentation)
+                    {
+                        options = options
+                            .AddHttpClientInstrumentation()
+                            .AddAspNetCoreInstrumentation();
+                    }
+                    configure(options);
+                });
             }
             return builder;
         }
 
         /// <summary>
-        /// Configure otlp exporter
+        /// Enable tracing if tracing enabled
         /// </summary>
-        /// <param name="services"></param>
+        /// <param name="builder"></param>
+        /// <param name="configuration"></param>
+        /// <param name="configure"></param>
         /// <returns></returns>
-        private static IServiceCollection ConfigureOtlpExporter(this IServiceCollection services)
+        public static OpenTelemetryBuilder WithMetrics(this OpenTelemetryBuilder builder,
+            IConfiguration configuration, Action<MeterProviderBuilder> configure)
         {
-            return services
-                .AddSingleton<IConfigureOptions<OtlpExporterOptions>, Otlp>()
-                .AddSingleton<IConfigureNamedOptions<OtlpExporterOptions>, Otlp>()
-                .AddSingleton<IConfigureOptions<MetricReaderOptions>, Otlp>()
-                .AddSingleton<IConfigureNamedOptions<MetricReaderOptions>, Otlp>();
+            var configurator = new Otel(configuration);
+            if (configurator.AddPrometheusEndpoint ||
+                configurator.EnableOtelMetrics ||
+                configurator.AddRuntimeInstrumentation) // We use runtime instrumentation for diagnostics
+            {
+                return builder.WithMetrics(options =>
+                {
+                    options.ConfigureServices(services => services.AddOtel());
+                    if (configurator.AddPrometheusEndpoint)
+                    {
+                        options.SetMaxMetricStreams(configurator.MaxMetricStreams);
+                        options.AddPrometheusExporter(o =>
+                        {
+                            o.DisableTotalNameSuffixForCounters =
+                                !configurator.EnableTotalNameSuffixForCounters;
+
+                            //
+                            // Configures scrape endpoint response caching. Multiple scrape requests
+                            // within the cache duration time period will receive the same previously
+                            // generated response. Disable response caching. The default value is 300.
+                            //
+                            o.ScrapeResponseCacheDurationMilliseconds = 0;
+                        });
+                        if (configurator.AddRuntimeInstrumentation)
+                        {
+                            options = options
+                                .AddHttpClientInstrumentation()
+                                .AddAspNetCoreInstrumentation();
+                        }
+                    }
+                    if (configurator.EnableOtelMetrics)
+                    {
+                        options = options
+                            .SetMaxMetricStreams(configurator.MaxMetricStreams)
+                            .AddOtlpExporter(o => configurator.Configure("Metrics", o));
+
+                        if (configurator.AddRuntimeInstrumentation)
+                        {
+                            options = options
+                                .AddHttpClientInstrumentation()
+                                .AddAspNetCoreInstrumentation();
+                        }
+                    }
+                    if (configurator.AddRuntimeInstrumentation)
+                    {
+                        options = options.AddRuntimeInstrumentation();
+                    }
+                    configure(options);
+                });
+            }
+            return builder;
         }
 
         /// <summary>
@@ -528,12 +510,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         }
 
         /// <summary>
-        /// Otlp configuration from environment
+        /// Add obs configuration
         /// </summary>
-        internal sealed class Otlp : ConfigureOptionBase<OtlpExporterOptions>,
-            IConfigureOptions<MetricReaderOptions>, IConfigureNamedOptions<MetricReaderOptions>
+        /// <param name="services"></param>
+        /// <returns></returns>
+        private static IServiceCollection AddOtel(this IServiceCollection services)
+        {
+            return services
+                .AddSingleton<Otel>()
+                .AddSingleton<IConfigureOptions<MetricReaderOptions>>(
+                    services => services.GetRequiredService<Otel>())
+                .AddSingleton<IConfigureNamedOptions<MetricReaderOptions>>(
+                    services => services.GetRequiredService<Otel>())
+                ;
+        }
+
+        /// <summary>
+        /// Otel configuration from environment
+        /// </summary>
+        internal sealed class Otel : ConfigureOptionBase<MetricReaderOptions>
         {
             public const string EnableMetricsKey = "EnableMetrics";
+            public const string EnableOtelLoggingKey = "EnableOtelLogging";
+            public const string EnableOtelTracesKey = "EnableOtelTraces";
             public const string OtlpCollectorEndpointKey = "OtlpCollectorEndpoint";
             public const string OtlpMaxMetricStreamsKey = "OtlpMaxMetricStreams";
             public const string OtlpExportIntervalMillisecondsKey = "OtlpExportIntervalMilliseconds";
@@ -544,72 +543,98 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             public const int OtlpMaxMetricDefault = 4000;
             public const bool OtlpRuntimeInstrumentationDefault = false;
             public const bool OtlpTotalNameSuffixForCountersDefault = false;
-            internal const string OtlpEndpointDisabled = "disabled";
-
-            /// <summary>
-            /// Otlp collector endpoint
-            /// </summary>
-            public string OTlpEndpoint => GetStringOrDefault(OtlpCollectorEndpointKey,
-                GetStringOrDefault("OTLP_METRIC_ENDPOINT_3P", string.Empty));
-
-            /// <summary>
-            /// Use prometheus
-            /// </summary>
-            public bool AddPrometheusEndpoint
-                => GetBoolOrDefault(EnableMetricsKey,
-                        string.IsNullOrEmpty(OTlpEndpoint));
-
-            /// <summary>
-            /// Max metrics to collect, the default in otel is 1000
-            /// </summary>
-            public int MaxMetricStreams
-                => Math.Max(1, GetIntOrDefault(OtlpMaxMetricStreamsKey,
-                        OtlpMaxMetricDefault));
 
             /// <summary>
             /// Add runtime instrumentation
             /// </summary>
             public bool AddRuntimeInstrumentation
-                => GetBoolOrDefault(OtlpRuntimeInstrumentationKey,
-                        OtlpRuntimeInstrumentationDefault);
+                => GetBoolOrDefault(OtlpRuntimeInstrumentationKey, OtlpRuntimeInstrumentationDefault);
+
+            /// <summary>
+            /// Otlp collector endpoint
+            /// </summary>
+            public string OTlpMetricsEndpoint => GetStringOrDefault(OtlpCollectorEndpointKey,
+                GetStringOrDefault("OTLP_GRPC_METRIC_ENDPOINT",
+                    GetStringOrDefault("OTLP_HTTP_METRIC_ENDPOINT", string.Empty)));
+
+            /// <summary>
+            /// Otlp collector endpoint
+            /// </summary>
+            public string OTlpTracesEndpoint => GetStringOrDefault(OtlpCollectorEndpointKey,
+                GetStringOrDefault("OTLP_GRPC_TRACE_ENDPOINT",
+                    GetStringOrDefault("OTLP_HTTP_TRACE_ENDPOINT", string.Empty)));
+
+            /// <summary>
+            /// Otlp collector endpoint
+            /// </summary>
+            public string OTlpLogEndpoint => GetStringOrDefault(OtlpCollectorEndpointKey,
+                GetStringOrDefault("OTLP_GRPC_LOG_ENDPOINT",
+                    GetStringOrDefault("OTLP_HTTP_LOG_ENDPOINT", string.Empty)));
+
+            /// <summary>
+            /// Enable otel or prometheus metrics
+            /// </summary>
+            public bool EnableMetrics
+                => GetBoolOrDefault(EnableMetricsKey);
+
+            /// <summary>
+            /// Use prometheus
+            /// </summary>
+            public bool AddPrometheusEndpoint
+                => GetBoolOrDefault(EnableMetricsKey) && string.IsNullOrEmpty(OTlpMetricsEndpoint);
+
+            /// <summary>
+            /// Use otel metrics exporter
+            /// </summary>
+            public bool EnableOtelMetrics
+                => GetBoolOrDefault(EnableMetricsKey) && !string.IsNullOrEmpty(OTlpMetricsEndpoint);
+
+            /// <summary>
+            /// Logging over otel enabled and endpoint configured
+            /// </summary>
+            public bool EnableOtelLogging
+                => GetBoolOrDefault(EnableOtelLoggingKey) && !string.IsNullOrEmpty(OTlpLogEndpoint);
+
+            /// <summary>
+            /// Traces over otel
+            /// </summary>
+            public bool EnableOtelTraces
+                => GetBoolOrDefault(EnableOtelTracesKey) && !string.IsNullOrEmpty(OTlpTracesEndpoint);
+
+            /// <summary>
+            /// Max metrics to collect, the default in otel is 1000
+            /// </summary>
+            public int MaxMetricStreams
+                => Math.Max(1, GetIntOrDefault(OtlpMaxMetricStreamsKey, OtlpMaxMetricDefault));
 
             /// <summary>
             /// Enable total suffix
             /// </summary>
             public bool EnableTotalNameSuffixForCounters
-                => GetBoolOrDefault(OtlpTotalNameSuffixForCountersKey,
-                        OtlpTotalNameSuffixForCountersDefault);
-
-            /// <summary>
-            /// Create otlp configuration
-            /// </summary>
-            /// <param name="configuration"></param>
-            public Otlp(IConfiguration configuration)
-                : base(configuration)
-            {
-            }
+                => GetBoolOrDefault(OtlpTotalNameSuffixForCountersKey, OtlpTotalNameSuffixForCountersDefault);
 
             /// <inheritdoc/>
-            public override void Configure(string? name, OtlpExporterOptions options)
+            public void Configure(string? name, OtlpExporterOptions options)
             {
-                var endpoint = OTlpEndpoint;
+                var endpoint = name switch
+                {
+                    "Metrics" => OTlpMetricsEndpoint,
+                    "Traces" => OTlpTracesEndpoint,
+                    "Logging" => OTlpLogEndpoint,
+                    _ => null,
+                };
                 if (!string.IsNullOrEmpty(endpoint) &&
                     Uri.TryCreate(endpoint, UriKind.RelativeOrAbsolute, out var uri))
                 {
-                    options.Endpoint = uri;
-                }
-                else if (endpoint == null)
-                {
-                    options.Endpoint = new UriBuilder
+                    options.Endpoint = new UriBuilder(uri)
                     {
-                        Scheme = Uri.UriSchemeHttp,
-                        Host = OtlpEndpointDisabled
+                        Scheme = Uri.UriSchemeHttp
                     }.Uri;
                 }
             }
 
             /// <inheritdoc/>
-            public void Configure(string? name, MetricReaderOptions options)
+            public override void Configure(string? name, MetricReaderOptions options)
             {
                 options.PeriodicExportingMetricReaderOptions =
                     new PeriodicExportingMetricReaderOptions
@@ -621,10 +646,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     };
             }
 
-            /// <inheritdoc/>
-            public void Configure(MetricReaderOptions options)
+            /// <summary>
+            /// Create otlp configuration
+            /// </summary>
+            /// <param name="configuration"></param>
+            public Otel(IConfiguration configuration)
+                : base(configuration)
             {
-                Configure(null, options);
             }
         }
 

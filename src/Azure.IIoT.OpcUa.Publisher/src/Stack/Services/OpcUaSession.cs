@@ -135,10 +135,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
+            if (_disposed)
+            {
+                return;
+            }
+            _disposed = true;
+
+            var nodeCache = NodeCache;
+            if (disposing && nodeCache != null)
+            {
+                nodeCache.Clear();
+            }
+
             // Disposes all contained subscriptions
             base.Dispose(disposing);
 
-            if (disposing && !_disposed)
+            if (disposing)
             {
                 var sessionName = SessionName;
 
@@ -151,7 +163,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 SessionConfigurationChanged -=
                     Session_SessionConfigurationChanged;
 
-                _disposed = true;
                 CloseChannel(); // Ensure channel is closed
 
                 try
@@ -1282,7 +1293,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                         // Clear cache to release memory.
                         // TODO: we should have a real node cache here
-                        nodeCache.Clear();
                         return complexTypeSystem;
                     }
                 }

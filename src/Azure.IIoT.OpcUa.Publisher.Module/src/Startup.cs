@@ -70,7 +70,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                         .AddTelemetrySdk()
                         .AddService(Constants.EntityTypePublisher,
                             default, GetType().Assembly.GetReleaseVersion().ToString()));
-                    options.AddOtlpExporter(Configuration);
                 }))
                 ;
 
@@ -96,16 +95,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                 .ConfigureResource(r => r
                     .AddService(Constants.EntityTypePublisher,
                         default, GetType().Assembly.GetReleaseVersion().ToString()))
-                .WithTracing(builder => builder
+                .WithTracing(Configuration, builder => builder
                     .SetSampler(new AlwaysOnSampler())
                     .AddHttpClientInstrumentation()
-                    .AddAspNetCoreInstrumentation()
-                    .AddOtlpExporter(Configuration))
-                .WithMetrics(builder => builder
-                    .AddMeter(Diagnostics.Meter.Name)
-                    .AddRuntimeInstrumentation(Configuration)
-                    .AddPrometheusExporter(Configuration)
-                    .AddOtlpExporter(Configuration))
+                    .AddAspNetCoreInstrumentation())
+                .WithMetrics(Configuration, builder => builder
+                    .AddMeter(Diagnostics.Meter.Name))
                 ;
 
             services.AddControllers()
