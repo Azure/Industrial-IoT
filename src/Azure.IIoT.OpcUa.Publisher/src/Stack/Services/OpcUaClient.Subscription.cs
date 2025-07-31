@@ -140,6 +140,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
+        /// Called by subscription when closed or deleted.
+        /// </summary>
+        /// <param name="subscription"></param>
+        internal void OnSubscriptionClosed(OpcUaSubscription subscription)
+        {
+            // Remove all subscriptions from cache
+            lock (_cache)
+            {
+                if (subscription.IsRoot)
+                {
+                    _cache.Remove(subscription.Template);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Called when session is closed to remove all subscriptions
+        /// </summary>
+        /// <param name="session"></param>
+        internal void OnSessionClosing(OpcUaSession session)
+        {
+            // Remove all subscriptions from cache
+            lock (_cache)
+            {
+                foreach (var subscription in session.SubscriptionHandles.Values
+                    .Where(s => s.IsRoot && !s.IsClosed))
+                {
+                    _cache.Remove(subscription.Template);
+                }
+            }
+        }
+
+        /// <summary>
         /// Try get subscription with subscription model
         /// </summary>
         /// <param name="template"></param>
@@ -151,11 +184,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // Fast lookup
             lock (_cache)
             {
-                if (_cache.TryGetValue(template, out subscription) &&
-                    !subscription.IsClosed &&
-                    subscription.IsRoot)
+                if (_cache.TryGetValue(template, out subscription))
                 {
-                    return true;
+                    if (!subscription.IsClosed && subscription.IsRoot)
+                    {
+                        return true;
+                    }
+                    _cache.Remove(template);
                 }
                 subscription = _session?.SubscriptionHandles.Values
                     .FirstOrDefault(s => s.IsRoot && s.Template == template);
@@ -378,7 +413,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 if (updates + removals + additions != 0)
                 {
-                    _logger.SyncSummary(this, removals, additions, updates, session.SubscriptionHandles.Count, sw.ElapsedMilliseconds);
+                    _logger.SyncSummary(this, removals, additions, updates,
+                        session.SubscriptionHandles.Count, sw.ElapsedMilliseconds);
                 }
                 return true;
             }

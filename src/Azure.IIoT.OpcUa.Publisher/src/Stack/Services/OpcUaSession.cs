@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Encoders;
+    using Furly.Extensions.Utils;
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
@@ -141,10 +142,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             _disposed = true;
 
-            var nodeCache = NodeCache;
-            if (disposing && nodeCache != null)
+            if (disposing)
             {
-                nodeCache.Clear();
+                var nodeCache = NodeCache;
+                if (nodeCache != null)
+                {
+                    nodeCache.Clear();
+                }
+
+                _client.OnSessionClosing(this);
             }
 
             // Disposes all contained subscriptions
@@ -168,6 +174,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 try
                 {
                     _cts.Cancel();
+                    if (_complexTypeSystem != null)
+                    {
+                        Try.Op(() => _complexTypeSystem.Wait(TimeSpan.FromSeconds(5)));
+                    }
                     _logger.SessionDisposed(sessionName);
                 }
                 finally
