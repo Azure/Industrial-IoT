@@ -987,7 +987,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 }
             }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
-            Assert.Equal(2467, results.Count);
+            Assert.Equal(2547, results.Count);
         }
 
         public async Task NodeBrowseStaticArrayVariablesTestAsync(CancellationToken ct = default)
