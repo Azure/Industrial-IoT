@@ -211,9 +211,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 ComplexTypeSystem? typeSystem, List<PublishedFieldMetaDataModel> fields,
                 NodeIdDictionary<object> dataTypes, CancellationToken ct)
             {
+                var nodeId = NodeId.ToExpandedNodeId(session.MessageContext);
+                if (Opc.Ua.NodeId.IsNull(nodeId))
+                {
+                    // Failed.
+                    return;
+                }
                 try
                 {
-                    var node = await session.LruNodeCache.GetNodeAsync(NodeId, ct).ConfigureAwait(false);
+                    var node = await session.LruNodeCache.GetNodeAsync(nodeId, ct).ConfigureAwait(false);
                     if (node is VariableNode variable)
                     {
                         await AddVariableFieldAsync(fields, dataTypes, session, typeSystem, variable,
@@ -222,7 +228,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
-                    _logger.GetMetadataFailed(this, Template.DisplayName, NodeId, ex.Message);
+                    _logger.GetMetadataFailed(this, Template.DisplayName, nodeId, ex.Message);
                 }
             }
 
@@ -516,7 +522,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Debug,
             Message = "{Item}: Failed to get meta data for field {Field} with node {NodeId} with message {Message}.")]
-        public static partial void GetMetadataFailed(this ILogger logger, OpcUaMonitoredItem.DataChange item, string field, NodeId nodeId, string message);
+        public static partial void GetMetadataFailed(this ILogger logger, OpcUaMonitoredItem.DataChange item, string field, ExpandedNodeId nodeId, string message);
 
         [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Error,
             Message = "Aggregate filter applied with result {Result} for {Item}")]
