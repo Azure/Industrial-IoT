@@ -724,8 +724,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             byte builtInType = 0;
             try
             {
-                builtInType = (byte)await TypeInfo.GetBuiltInTypeAsync(variable.DataType,
-                    session.TypeTree, ct).ConfigureAwait(false);
+                builtInType = (byte)await session.LruNodeCache.GetBuiltInTypeAsync(variable.DataType,
+                    ct).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -795,9 +795,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             break;
                         }
 
-                        var builtInType = await TypeInfo.GetBuiltInTypeAsync(dataTypeId,
-                            session.TypeTree, ct).ConfigureAwait(false);
-                        baseType = await session.TypeTree.FindSuperTypeAsync(dataTypeId,
+                        var builtInType = await session.LruNodeCache.GetBuiltInTypeAsync(
+                            dataTypeId, ct).ConfigureAwait(false);
+                        baseType = await session.LruNodeCache.GetSuperTypeAsync(dataTypeId,
                             ct).ConfigureAwait(false);
 
                         var browseName = dataType.BrowseName

@@ -36,7 +36,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             namespaceTable ??= new NamespaceTable();
 
             var nodeCache = SetupMockedNodeCache(namespaceTable).Object;
-            var typeTable = nodeCache.TypeTree;
 
             using var mock = Autofac.Extras.Moq.AutoMock.GetLoose();
             var session = mock.Mock<IOpcUaSession>();
@@ -46,8 +45,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             };
             var codec = new JsonVariantEncoder(messageContext, new NewtonsoftJsonSerializer());
             session.SetupGet(x => x.Codec).Returns(codec);
-            session.SetupGet(x => x.TypeTree).Returns(typeTable);
-            session.SetupGet(x => x.NodeCache).Returns(nodeCache);
             session.SetupGet(x => x.MessageContext).Returns(messageContext);
             return session;
         }

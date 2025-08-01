@@ -279,8 +279,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 if (session.LruNodeCache.IsTypeOf(referenceTypeId, ReferenceTypeIds.HasComponent) ||
                     session.LruNodeCache.IsTypeOf(referenceTypeId, ReferenceTypeIds.HasProperty))
                 {
-                    var parentIsFolder = session.LruNodeCache.IsTypeOf(
-                        ExpandedNodeId.ToNodeId(parentTypeDefinitionId, session.MessageContext.NamespaceUris),
+                    var parentIsFolder = session.LruNodeCache.IsTypeOf(parentTypeDefinitionId,
                         ObjectTypeIds.FolderType);
 #if DEBUG
                     Debug.WriteLine(parent.BrowseName
