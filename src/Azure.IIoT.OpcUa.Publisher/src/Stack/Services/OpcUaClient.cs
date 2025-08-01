@@ -109,6 +109,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public bool DisableComplexTypePreloading { get; set; }
 
         /// <summary>
+        /// Node cache timeout
+        /// </summary>
+        public TimeSpan NodeCacheTimeout { get; set; } = TimeSpan.FromMinutes(1);
+
+        /// <summary>
+        /// Node cache capacity
+        /// </summary>
+        public int NodeCacheCapacity { get; set; } = 4096;
+
+        /// <summary>
         /// Operation limits to use in the sessions
         /// </summary>
         internal OperationLimits? LimitOverrides { get; set; }
@@ -254,6 +264,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             OperationTimeout = _options.Value.Quotas.OperationTimeout == 0 ? null :
                 TimeSpan.FromMilliseconds(_options.Value.Quotas.OperationTimeout);
+            NodeCacheTimeout =
+                _options.Value.NodeCacheTimeout ?? TimeSpan.FromMinutes(1);
+            NodeCacheCapacity =
+                _options.Value.NodeCacheCapacity ?? 4096;
             DisableComplexTypePreloading =
                 _options.Value.DisableComplexTypePreloading ?? false;
             MinReconnectDelay =

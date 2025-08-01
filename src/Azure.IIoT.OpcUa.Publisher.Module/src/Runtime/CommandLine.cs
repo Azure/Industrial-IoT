@@ -441,6 +441,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     "Limit max number of nodes per browse request when batching browse operations or the server limit if less.\nDefault: `0` (using server limit).\n",
                     (uint u) => this[OpcUaClientConfig.MaxNodesPerBrowseOverrideKey] = u.ToString(CultureInfo.CurrentCulture) },
 
+                { $"ncc|nodecachecapacity=|{OpcUaClientConfig.NodeCacheCapacityKey}=",
+                    "The max size of the node caches used in the complex type system.\nThere are caches (values, nodes, references).\nDefault: `4096`.\n",
+                    (uint u) => this[OpcUaClientConfig.NodeCacheCapacityKey] = u.ToString(CultureInfo.CurrentCulture) },
+                { $"nct|nodecachetimeout=|{OpcUaClientConfig.NodeCacheTimeoutKey}=",
+                    "The timeout of a node cache entries if not used in milliseconds.\nDefault: `3600`.\n",
+                    (uint u) => this[OpcUaClientConfig.NodeCacheTimeoutKey] = u.ToString(CultureInfo.CurrentCulture) },
+
                 { $"mpr|minpublishrequests=|{OpcUaClientConfig.MinPublishRequestsKey}=",
                     $"Minimum number of publish requests to queue once subscriptions are created in the session.\nDefault: `{OpcUaClientConfig.MinPublishRequestsDefault}`.\n",
                     (uint u) => this[OpcUaClientConfig.MinPublishRequestsKey] = u.ToString(CultureInfo.CurrentCulture) },

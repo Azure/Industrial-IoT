@@ -75,6 +75,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string MaxPublishRequestsKey = "MaxPublishRequests";
         public const string MaxNodesPerBrowseOverrideKey = "MaxNodesPerBrowseOverride";
         public const string MaxNodesPerReadOverrideKey = "MaxNodesPerReadOverride";
+        public const string NodeCacheCapacityKey = "NodeCacheCapacity";
+        public const string NodeCacheTimeoutKey = "NodeCacheTimeout";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>
@@ -228,6 +230,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
 
             options.MaxNodesPerReadOverride ??= GetIntOrNull(MaxNodesPerReadOverrideKey);
             options.MaxNodesPerBrowseOverride ??= GetIntOrNull(MaxNodesPerBrowseOverrideKey);
+
+            options.NodeCacheCapacity ??= GetIntOrNull(NodeCacheCapacityKey);
+            options.NodeCacheTimeout ??= GetDurationOrNull(NodeCacheTimeoutKey);
 
             if (options.Security.MinimumCertificateKeySize == 0)
             {

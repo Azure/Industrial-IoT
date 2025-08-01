@@ -104,7 +104,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _client = client;
             _serializer = serializer;
             _timeProvider = timeProvider;
-            LruNodeCache = new LruNodeCache(this);
+            LruNodeCache = new LruNodeCache(this,
+                client.NodeCacheTimeout, client.NodeCacheCapacity, true);
             CreatedAt = _timeProvider.GetUtcNow();
 
             Initialize();
