@@ -276,11 +276,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     return null;
                 }
-                if (session.NodeCache.IsTypeOf(referenceTypeId, ReferenceTypeIds.HasComponent) ||
-                    session.NodeCache.IsTypeOf(referenceTypeId, ReferenceTypeIds.HasProperty))
+                if (session.LruNodeCache.IsTypeOf(referenceTypeId, ReferenceTypeIds.HasComponent) ||
+                    session.LruNodeCache.IsTypeOf(referenceTypeId, ReferenceTypeIds.HasProperty))
                 {
-                    var parentIsFolder =
-                        session.NodeCache.IsTypeOf(parentTypeDefinitionId, ObjectTypeIds.FolderType);
+                    var parentIsFolder = session.LruNodeCache.IsTypeOf(
+                        ExpandedNodeId.ToNodeId(parentTypeDefinitionId, session.MessageContext.NamespaceUris),
+                        ObjectTypeIds.FolderType);
 #if DEBUG
                     Debug.WriteLine(parent.BrowseName
                         + "(" + (parentIsFolder ? "Folder" : "Component") + ")--"
@@ -302,7 +303,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     var typeDefinitionId = ExpandedNodeId.ToNodeId(typeDefinition,
                         session.MessageContext.NamespaceUris);
-                    return session.NodeCache.IsTypeOf(typeDefinitionId, _typeDefinitionId);
+                    return session.LruNodeCache.IsTypeOf(typeDefinitionId, _typeDefinitionId);
                 }
                 return false;
             }

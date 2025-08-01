@@ -44,6 +44,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         ITypeTable TypeTree { get; }
 
         /// <summary>
+        /// Get the lru node cache
+        /// </summary>
+        ILruNodeCache LruNodeCache { get; }
+
+        /// <summary>
         /// Get the node cache
         /// </summary>
         INodeCache NodeCache { get; }
