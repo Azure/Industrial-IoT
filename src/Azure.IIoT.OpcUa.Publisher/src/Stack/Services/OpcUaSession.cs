@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Encoders;
+    using Furly.Extensions.Utils;
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
@@ -135,10 +136,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
+            if (_disposed)
+            {
+                return;
+            }
+            _disposed = true;
+
+            if (disposing)
+            {
+                var nodeCache = NodeCache;
+                if (nodeCache != null)
+                {
+                    nodeCache.Clear();
+                }
+
+                _client.OnSessionClosing(this);
+            }
+
             // Disposes all contained subscriptions
             base.Dispose(disposing);
 
-            if (disposing && !_disposed)
+            if (disposing)
             {
                 var sessionName = SessionName;
 
@@ -151,12 +169,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 SessionConfigurationChanged -=
                     Session_SessionConfigurationChanged;
 
-                _disposed = true;
                 CloseChannel(); // Ensure channel is closed
 
                 try
                 {
                     _cts.Cancel();
+                    if (_complexTypeSystem != null)
+                    {
+                        Try.Op(() => _complexTypeSystem.Wait(TimeSpan.FromSeconds(5)));
+                    }
                     _logger.SessionDisposed(sessionName);
                 }
                 finally
@@ -1282,7 +1303,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                         // Clear cache to release memory.
                         // TODO: we should have a real node cache here
-                        nodeCache.Clear();
                         return complexTypeSystem;
                     }
                 }

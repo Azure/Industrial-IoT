@@ -1,0 +1,26 @@
+###
+// @delay 5
+// @retries 3
+ExpandAndCreateOrUpdateDataSetWriterEntries_V2
+
+{
+    "entry": {
+        "EndpointUrl": "opc.tcp://DESKTOP-BGFJS91:50001",
+        "UseSecurity": false,
+        "DataSetWriterGroup": "Simulation",
+        "OpcNodes": [
+            { "Id": "ns=2;s=Sim.CH1" }
+        ]
+    },
+    "request": {
+        "maxLevelsToExpand": 1,
+        "createSingleWriter": true
+    }
+}
+
+###
+# @on-error
+Shutdown_V2
+
+true
+###

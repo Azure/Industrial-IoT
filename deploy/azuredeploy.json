@@ -366,7 +366,7 @@
             "properties": {
                 "iotHubs": [
                     {
-                        "connectionString": "[concat('HostName=', reference(variables('iotHubResourceId')).hostName, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listkeys(variables('iotHubKeyResource'), '2018-04-01').primaryKey)]",
+                        "connectionString": "[concat('HostName=', reference(variables('iotHubResourceId')).hostName, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listKeys(variables('iotHubKeyResource'), '2018-04-01').primaryKey)]",
                         "iotHubResourceId": "[variables('iotHubResourceId')]",
                         "location": "[resourceGroup().location]",
                         "name": "[reference(variables('iotHubResourceId')).hostName]"
@@ -381,16 +381,9 @@
     "outputs": {
         "iotHubConnString": {
             "type": "string",
-            "value": "[concat('HostName=', reference(variables('iotHubResourceId')).hostName)]",
+            "value": "[concat('HostName=', reference(variables('iotHubResourceId')).hostName, ';SharedAccessKeyName=', variables('iotHubKeyName'), ';SharedAccessKey=', listKeys(variables('iotHubKeyResource'), '2018-04-01').primaryKey)]",
             "metadata": {
                 "description": "The connection string for the IoT Hub. Use this to connect to IoT Hub using your user principal or managed identity."
-            }
-        },
-        "dpsIdScope": {
-            "type": "string",
-            "value": "[reference(variables('dpsResourceId'), '2018-01-22').idScope]",
-            "metadata": {
-                "description": "The ID scope for the Device Provisioning Service. Use this to deploy IoT Edge devices using DPS."
             }
         },
         "dpsConnString": {
@@ -398,6 +391,13 @@
             "value": "[concat('HostName=', reference(variables('dpsResourceId'), '2018-01-22'). serviceOperationsHostName, ';SharedAccessKeyName=', listKeys(variables('dpsResourceId'), '2018-01-22').value[0].keyName, ';SharedAccessKey=', listKeys(variables('dpsResourceId'), '2018-01-22').value[0].primaryKey)]",
             "metadata": {
                 "description": "The connection string for the Device Provisioning Service. Use this to deploy IoT Edge devices using DPS."
+            }
+        },
+        "dpsIdScope": {
+            "type": "string",
+            "value": "[reference(variables('dpsResourceId'), '2018-01-22').idScope]",
+            "metadata": {
+                "description": "The ID scope for the Device Provisioning Service. Use this to deploy IoT Edge devices using DPS."
             }
         },
         "tenantId": {

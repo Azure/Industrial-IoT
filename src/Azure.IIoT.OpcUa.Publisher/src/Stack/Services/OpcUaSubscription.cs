@@ -1611,6 +1611,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 Debug.Assert(Session == null, "Subscription should not be part of session");
                 Debug.Assert(!CurrentlyMonitored.Any(), "Not all items removed.");
+
+                _client.OnSubscriptionClosed(this);
                 _logger.SubscriptionClosed2(this);
             }
             catch (Exception e)

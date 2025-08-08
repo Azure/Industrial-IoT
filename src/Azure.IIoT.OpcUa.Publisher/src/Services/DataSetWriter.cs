@@ -573,6 +573,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         return;
                     }
 
+                    if (_metaDataLoader.IsValueCreated)
+                    {
+                        await _metaDataLoader.Value.DisposeAsync().ConfigureAwait(false);
+                    }
+
                     // We are under the writer group lock here, so we cannot grab it
                     SendCloseNotifications();
 
@@ -822,7 +827,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 try
                 {
-                    var metadata = GetMetadata(_group._options.Value.AsyncMetaDataLoadTimeout ?? TimeSpan.FromSeconds(5));
+                    var metadata = GetMetadata(_group._options.Value.AsyncMetaDataLoadTimeout ?? TimeSpan.FromSeconds(1));
                     _group.GetSchemaAndWriterGroup(_writer.Topic, out var writerGroup, out var networkMessageSchema);
                     lock (_lock)
                     {
