@@ -700,6 +700,32 @@ else {
     Write-Host "Key vault $($kv.id) exists." -ForegroundColor Green
 }
 
+#
+# Assign roles to the managed identity
+#
+$roleAssignments =
+@(
+    @("Contributor", $stg.id, $mi.principalId),
+    @("Storage Blob Data Owner", $stg.id, $mi.principalId),
+    @("Contributor", $ehNs.id, $mi.principalId),
+    @("Contributor", $rg.id, $mi.principalId),
+    @("Key Vault Administrator", $kv.id, $mi.principalId)
+)
+foreach ($ra in $roleAssignments) {
+    Write-Host "Assigning $($ra[0]) role to $($ra[2])..." -ForegroundColor Cyan
+    $errOut = $($obj = & { az role assignment create `
+        --role $ra[0] `
+        --assignee-object-id $ra[2] `
+        --assignee-principal-type ServicePrincipal `
+        --scope $ra[1] | ConvertFrom-Json }) 2>&1
+    if (-not $?) {
+        Write-Host "Error assigning role $($ra[0]) to $($ra[2]) : $errOut" `
+            -ForegroundColor Red
+        #exit -1
+    }
+    Write-Host "Role $($ra[0]) assigned to $($ra[2])." -ForegroundColor Green
+}
+
 # Azure IoT Operations schema registry
 $srName = "$($script:Name.ToLowerInvariant())sr"
 $errOut = $($sr = & { az iot ops schema registry show `
@@ -728,32 +754,6 @@ if (!$sr) {
 else {
     Write-Host "Azure IoT Operations schema registry $($sr.id) exists." `
         -ForegroundColor Green
-}
-
-#
-# Assign roles to the managed identity
-#
-$roleAssignments =
-@(
-    @("Contributor", $stg.id, $mi.principalId),
-    @("Storage Blob Data Owner", $stg.id, $mi.principalId),
-    @("Contributor", $ehNs.id, $mi.principalId),
-    @("Contributor", $rg.id, $mi.principalId),
-    @("Key Vault Administrator", $kv.id, $mi.principalId)
-)
-foreach ($ra in $roleAssignments) {
-    Write-Host "Assigning $($ra[0]) role to $($ra[2])..." -ForegroundColor Cyan
-    $errOut = $($obj = & { az role assignment create `
-        --role $ra[0] `
-        --assignee-object-id $ra[2] `
-        --assignee-principal-type ServicePrincipal `
-        --scope $ra[1] | ConvertFrom-Json }) 2>&1
-    if (-not $?) {
-        Write-Host "Error assigning role $($ra[0]) to $($ra[2]) : $errOut" `
-            -ForegroundColor Red
-        #exit -1
-    }
-    Write-Host "Role $($ra[0]) assigned to $($ra[2])." -ForegroundColor Green
 }
 
 #
