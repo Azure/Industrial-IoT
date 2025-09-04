@@ -1,0 +1,22 @@
+﻿[
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "MessagingMode": "PubSub",
+        "DataSetPublishingInterval": 100,
+        "OpcNodes": [
+            {
+                "Id": "ns=0;s=unknown1",
+                "OpcSamplingInterval": 100,
+                "FetchDisplayName": true
+            },
+            {
+                "Id": "ns=0;s=unknown2",
+                "OpcSamplingInterval": 100
+            },
+            {
+                "Id": "ns=0;s=unknown3",
+                "OpcSamplingInterval": 100
+            }
+        ]
+    }
+]

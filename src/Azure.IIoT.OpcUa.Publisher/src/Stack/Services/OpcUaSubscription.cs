@@ -2327,14 +2327,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     return;
                 }
 
-                if (!IsOnline || _lastMonitoredItemCheck == null)
+                var lastCheck = _lastMonitoredItemCheck;
+
+                if (!IsOnline || lastCheck == null)
                 {
                     // Stop watchdog
                     _monitoredItemWatcher.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
                     return;
                 }
 
-                if (_goodMonitoredItems == 0)
+                if (MonitoredItemCount == 0)
                 {
                     _lastMonitoredItemCheck = _timeProvider.GetUtcNow();
                     return;
@@ -2345,7 +2347,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 foreach (var item in CurrentlyMonitored)
                 {
                     itemsChecked++;
-                    if (item.WasLastValueReceivedBefore(_lastMonitoredItemCheck.Value))
+                    if (item.WasLastValueReceivedBefore(lastCheck.Value))
                     {
                         _logger.MonitoredItemLate(item, this);
                         _lateMonitoredItems++;
@@ -2362,11 +2364,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     return;
                 }
-                if (itemsChecked != missing && WatchdogCondition
-                    != MonitoredItemWatchdogCondition.WhenAllAreLate)
+                if (itemsChecked != missing)
                 {
+                    if (WatchdogCondition == MonitoredItemWatchdogCondition.WhenAllAreLate)
+                    {
+                        _logger.SomeItemsLateDebug(missing, itemsChecked, this);
+                        return;
+                    }
                     _logger.SomeItemsLate(this);
-                    return;
+                }
+                else
+                {
+                    _logger.AllItemsLate(this);
                 }
                 _logger.LateItemsSummary(missing, itemsChecked, this, action);
             }
@@ -2992,8 +3001,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public static partial void AllItemsReporting(this ILogger logger, OpcUaSubscription subscription);
 
         [LoggerMessage(EventId = EventClass + 51, Level = LogLevel.Debug,
-            Message = "Some monitored items in {Subscription} are late.")]
-        public static partial void SomeItemsLate(this ILogger logger, OpcUaSubscription subscription);
+            Message = "{Count} of the {Total} monitored items in {Subscription} are late " +
+            "- no action.")]
+        public static partial void SomeItemsLateDebug(this ILogger logger, int count, int total,
+            OpcUaSubscription subscription);
 
         [LoggerMessage(EventId = EventClass + 52, Level = LogLevel.Information,
             Message = "{Count} of the {Total} monitored items in {Subscription} are now late " +
@@ -3246,5 +3257,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
            Message = "Error {Error} occurred {Count} times for subscription {SubscriptionId}. NEW:\n    {Items}.")]
         public static partial void ErrorAddingMonitoredItemsWithErrors(this ILogger logger, string error,
             int count, uint subscriptionId, string items);
+
+        [LoggerMessage(EventId = EventClass + 103, Level = LogLevel.Information,
+            Message = "All monitored items in {Subscription} are late.")]
+        public static partial void AllItemsLate(this ILogger logger, OpcUaSubscription subscription);
+
+        [LoggerMessage(EventId = EventClass + 104, Level = LogLevel.Information,
+            Message = "Some monitored items in {Subscription} are late.")]
+        public static partial void SomeItemsLate(this ILogger logger, OpcUaSubscription subscription);
     }
 }
