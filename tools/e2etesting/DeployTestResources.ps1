@@ -112,7 +112,7 @@ if (!$StorageAccountName) {
 $storageAccount = Get-AzStorageAccount -ResourceGroupName $resourceGroup.ResourceGroupName -Name $StorageAccountName -ErrorAction SilentlyContinue
 if (!$storageAccount) {
     Write-Host "Storage Account '$($StorageAccountName)' does not exist, creating..."
-    $storageAccount = New-AzStorageAccount -AllowBlobPublicAccess $True -AllowCrossTenantReplication $True -ResourceGroupName $resourceGroup.ResourceGroupName -Name $StorageAccountName -SkuName Standard_LRS -Location $resourceGroup.Location
+    $storageAccount = New-AzStorageAccount -AllowCrossTenantReplication $True -ResourceGroupName $resourceGroup.ResourceGroupName -Name $StorageAccountName -SkuName Standard_LRS -Location $resourceGroup.Location
 }
 
 $storageContext = $storageAccount.Context

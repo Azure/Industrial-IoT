@@ -313,7 +313,7 @@ For more in depth information check out [the Azure IoT Edge Portal documentation
 
 The following diagram courtesy of the OPC Foundation's [Part 14 of the OPC UA specification](https://reference.opcfoundation.org/Core/Part14/v105/docs/5) illustrates the inner workings of the OPC Publisher process:
 
-![Publisher](https://reference.opcfoundation.org/api/image/get/307/image006.png)
+![Publisher](https://reference.opcfoundation.org/api/image/get/413/image006.png)
 
 Publishing OPC UA telemetry from an OPC UA server works as follows:
 
@@ -663,7 +663,7 @@ A `DataSetWriter` is a group of (variable or event notifier) nodes inside an OPC
 
 The following overview diagram courtesy of the OPC Foundation shows how the server operates based on the configuration:
 
-![Reference](https://reference.opcfoundation.org/api/image/get/17/image018.png)
+![Reference](https://reference.opcfoundation.org/api/image/get/407/image018.png)
 
 A subscription is created for a `DataSetWriter` if none with the same subscription settings already exists. The publishing interval (configured using the `DataSetPublishingInterval` or `OpcPublishingInterval` values) is an attribute of the subscription (hence multiple writers are instantiated if there are multiple different publishing intervals nodes under a data set writer configured). The publishing interval defines the cyclic rate at which it collects values from the monitored item queues. Each time it attempts to send a Notification Message to OPC Publisher containing new values or events of its monitored items.
 
