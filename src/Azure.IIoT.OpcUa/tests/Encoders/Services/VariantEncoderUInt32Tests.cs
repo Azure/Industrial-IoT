@@ -499,7 +499,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 { { 123u, 124u, 125u }, { 123u, 124u, 125u }, { 123u, 124u, 125u } }
             });
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.UInt32);
-            var expected = new Variant(new uint[,,] {
+            var expected = new Variant((object)new uint[,,] {
                     { { 123u, 124u, 125u }, { 123u, 124u, 125u }, { 123u, 124u, 125u } },
                     { { 123u, 124u, 125u }, { 123u, 124u, 125u }, { 123u, 124u, 125u } },
                     { { 123u, 124u, 125u }, { 123u, 124u, 125u }, { 123u, 124u, 125u } },
@@ -528,7 +528,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
             });
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.Variant);
-            var expected = new Variant(new uint[,,] {
+            var expected = new Variant((object)new uint[,,] {
                     { { 123u, 124u, 125u }, { 123u, 124u, 125u }, { 123u, 124u, 125u } },
                     { { 123u, 124u, 125u }, { 123u, 124u, 125u }, { 123u, 124u, 125u } },
                     { { 123u, 124u, 125u }, { 123u, 124u, 125u }, { 123u, 124u, 125u } },
@@ -557,7 +557,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
             });
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.Variant);
-            var expected = new Variant(new uint[,,] {
+            var expected = new Variant((object)new uint[,,] {
                     { { 123u, 124u, 125u }, { 123u, 124u, 125u }, { 123u, 124u, 125u } },
                     { { 123u, 124u, 125u }, { 123u, 124u, 125u }, { 123u, 124u, 125u } },
                     { { 123u, 124u, 125u }, { 123u, 124u, 125u }, { 123u, 124u, 125u } },
@@ -586,7 +586,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
             });
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.Null);
-            var expected = new Variant(new uint[,,] {
+            var expected = new Variant((object)new uint[,,] {
                     { { 123u, 124u, 125u }, { 123u, 124u, 125u }, { 123u, 124u, 125u } },
                     { { 123u, 124u, 125u }, { 123u, 124u, 125u }, { 123u, 124u, 125u } },
                     { { 123u, 124u, 125u }, { 123u, 124u, 125u }, { 123u, 124u, 125u } },
@@ -615,7 +615,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
             });
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.Null);
-            var expected = new Variant(new uint[,,] {
+            var expected = new Variant((object)new uint[,,] {
                     { { 123u, 124u, 125u }, { 123u, 124u, 125u }, { 123u, 124u, 125u } },
                     { { 123u, 124u, 125u }, { 123u, 124u, 125u }, { 123u, 124u, 125u } },
                     { { 123u, 124u, 125u }, { 123u, 124u, 125u }, { 123u, 124u, 125u } },

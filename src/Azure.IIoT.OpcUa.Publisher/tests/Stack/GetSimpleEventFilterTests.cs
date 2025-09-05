@@ -171,54 +171,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             Assert.Equal(nodeId, ObjectTypeIds.ConditionType);
         }
 
-        protected override Mock<INodeCache> SetupMockedNodeCache(NamespaceTable namespaceTable = null)
+        protected override MockCache SetupMockedNodeCache()
         {
-            AddNode(_baseObjectTypeNode);
-            AddNode(_baseEventTypeNode);
-            AddNode(_messageNode);
-            AddNode(_conditionTypeNode);
-            AddNode(_conditionNameNode);
-            AddNode(_commentNode);
-            AddNode(_enabledStateNode);
-            AddNode(_idNode);
-            _baseObjectTypeNode.ReferenceTable.Add(ReferenceTypeIds.HasSubtype, false, ObjectTypeIds.BaseEventType);
-            _baseEventTypeNode.ReferenceTable.Add(ReferenceTypeIds.HasSubtype, true, ObjectTypeIds.BaseObjectType);
-            _baseEventTypeNode.ReferenceTable.Add(ReferenceTypeIds.HasProperty, false, _messageNode.NodeId);
-            _messageNode.ReferenceTable.Add(ReferenceTypeIds.HasProperty, true, ObjectTypeIds.BaseEventType);
-            _baseEventTypeNode.ReferenceTable.Add(ReferenceTypeIds.HasSubtype, false, ObjectTypeIds.ConditionType);
-            _conditionTypeNode.ReferenceTable.Add(ReferenceTypeIds.HasSubtype, true, ObjectTypeIds.BaseEventType);
-            _conditionTypeNode.ReferenceTable.Add(ReferenceTypeIds.HasProperty, false, _conditionNameNode.NodeId);
-            _conditionTypeNode.ReferenceTable.Add(ReferenceTypeIds.HasProperty, false, _commentNode.NodeId);
-            _conditionNameNode.ReferenceTable.Add(ReferenceTypeIds.HasProperty, true, ObjectTypeIds.ConditionType);
-            _conditionTypeNode.ReferenceTable.Add(ReferenceTypeIds.HasComponent, false, _enabledStateNode.NodeId);
-            _enabledStateNode.ReferenceTable.Add(ReferenceTypeIds.HasComponent, true, ObjectTypeIds.ConditionType);
-            _enabledStateNode.ReferenceTable.Add(ReferenceTypeIds.HasProperty, false, _idNode.NodeId);
-            _idNode.ReferenceTable.Add(ReferenceTypeIds.HasProperty, true, _enabledStateNode.NodeId);
-            _commentNode.ReferenceTable.Add(ReferenceTypeIds.HasProperty, true, ObjectTypeIds.ConditionType);
+            var mockCache = base.SetupMockedNodeCache();
 
-            var nodeCache = base.SetupMockedNodeCache(namespaceTable);
-            var typeTable = nodeCache.Object.TypeTree as TypeTable;
-            typeTable.Add(_baseObjectTypeNode);
-            typeTable.Add(_baseEventTypeNode);
-            typeTable.Add(_conditionTypeNode);
-            typeTable.AddSubtype(ObjectTypeIds.BaseEventType, ObjectTypeIds.BaseObjectType);
-            typeTable.AddSubtype(ObjectTypeIds.ConditionType, ObjectTypeIds.BaseEventType);
-            nodeCache.Setup(x => x.FetchNodeAsync(It.IsAny<ExpandedNodeId>(), It.IsAny<CancellationToken>()))
-                .Returns((ExpandedNodeId x, CancellationToken _) =>
-                {
-                    if (x.IdType == IdType.Numeric && x.Identifier is uint id)
-                    {
-                        return Task.FromResult(_nodes[id]);
-                    }
-                    return Task.FromResult<Node>(null);
-                });
+            mockCache.Add(_baseObjectTypeNode);
+            mockCache.Add(_baseEventTypeNode);
+            mockCache.Add(_conditionTypeNode);
+            mockCache.Add(_messageNode);
+            mockCache.Add(_conditionNameNode);
+            mockCache.Add(_commentNode);
+            mockCache.Add(_enabledStateNode);
+            mockCache.Add(_idNode);
 
-            return nodeCache;
-        }
+            mockCache.AddReference(_baseObjectTypeNode.NodeId, ReferenceTypeIds.HasSubtype, ObjectTypeIds.BaseEventType);
+            mockCache.AddReference(_baseEventTypeNode.NodeId, ReferenceTypeIds.HasProperty, _messageNode.NodeId);
+            mockCache.AddReference(_baseEventTypeNode.NodeId, ReferenceTypeIds.HasSubtype, ObjectTypeIds.ConditionType);
+            mockCache.AddReference(_conditionTypeNode.NodeId, ReferenceTypeIds.HasProperty, _conditionNameNode.NodeId);
+            mockCache.AddReference(_conditionTypeNode.NodeId, ReferenceTypeIds.HasComponent, _enabledStateNode.NodeId);
+            mockCache.AddReference(_enabledStateNode.NodeId, ReferenceTypeIds.HasComponent, ObjectTypeIds.ConditionType);
+            mockCache.AddReference(_idNode.NodeId, ReferenceTypeIds.HasProperty, _enabledStateNode.NodeId);
+            mockCache.AddReference(_commentNode.NodeId, ReferenceTypeIds.HasProperty, ObjectTypeIds.ConditionType);
 
-        private void AddNode(Node node)
-        {
-            _nodes[(uint)node.NodeId.Identifier] = node;
+            return mockCache;
         }
 
         private readonly Node _baseObjectTypeNode = new()
@@ -298,7 +273,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             NodeClass = Opc.Ua.NodeClass.Variable,
             NodeId = VariableIds.ConditionType_EnabledState_Id
         };
-
-        private readonly Dictionary<uint, Node> _nodes = [];
     }
 }

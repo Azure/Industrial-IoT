@@ -474,7 +474,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } }
             });
             var variant = codec.Decode(str, BuiltInType.Null);
-            var expected = new Variant(new string[,,] {
+            var expected = new Variant((object)new string[,,] {
                     { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
                     { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
                     { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
@@ -499,7 +499,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } }
             });
             var variant = codec.Decode(str, BuiltInType.String);
-            var expected = new Variant(new string[,,] {
+            var expected = new Variant((object)new string[,,] {
                     { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
                     { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
                     { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
@@ -528,7 +528,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
             });
             var variant = codec.Decode(str, BuiltInType.Variant);
-            var expected = new Variant(new string[,,] {
+            var expected = new Variant((object)new string[,,] {
                     { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
                     { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
                     { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
@@ -557,7 +557,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
             });
             var variant = codec.Decode(str, BuiltInType.Variant);
-            var expected = new Variant(new string[,,] {
+            var expected = new Variant((object)new string[,,] {
                     { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
                     { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
                     { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
@@ -586,7 +586,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
             });
             var variant = codec.Decode(str, BuiltInType.Null);
-            var expected = new Variant(new string[,,] {
+            var expected = new Variant((object)new string[,,] {
                     { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
                     { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
                     { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
@@ -615,7 +615,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
             });
             var variant = codec.Decode(str, BuiltInType.Null);
-            var expected = new Variant(new string[,,] {
+            var expected = new Variant((object)new string[,,] {
                     { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
                     { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },
                     { { "test", "zhf", "33" }, { "test", "zhf", "33" }, { "test", "zhf", "33" } },

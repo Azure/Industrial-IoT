@@ -500,7 +500,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
             );
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.UInt64);
-            var expected = new Variant(new ulong[,,] {
+            var expected = new Variant((object)new ulong[,,] {
                     { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
                     { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
                     { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
@@ -529,7 +529,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
             });
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.Variant);
-            var expected = new Variant(new ulong[,,] {
+            var expected = new Variant((object)new ulong[,,] {
                     { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
                     { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
                     { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
@@ -558,7 +558,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
             });
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.Variant);
-            var expected = new Variant(new ulong[,,] {
+            var expected = new Variant((object)new ulong[,,] {
                     { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
                     { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
                     { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
@@ -587,7 +587,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
             });
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.Null);
-            var expected = new Variant(new ulong[,,] {
+            var expected = new Variant((object)new ulong[,,] {
                     { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
                     { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
                     { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
@@ -616,7 +616,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
             });
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.Null);
-            var expected = new Variant(new ulong[,,] {
+            var expected = new Variant((object)new ulong[,,] {
                     { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
                     { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
                     { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },

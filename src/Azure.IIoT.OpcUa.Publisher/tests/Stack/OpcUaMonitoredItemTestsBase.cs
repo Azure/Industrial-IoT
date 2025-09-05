@@ -17,28 +17,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
 
     public abstract class OpcUaMonitoredItemTestsBase
     {
-        protected virtual Mock<INodeCache> SetupMockedNodeCache(NamespaceTable namespaceTable = null)
+        protected virtual MockCache SetupMockedNodeCache()
         {
-            using var mock = Autofac.Extras.Moq.AutoMock.GetLoose();
-            var nodeCache = mock.Mock<INodeCache>();
-            namespaceTable ??= new NamespaceTable();
-            var typeTable = new TypeTable(namespaceTable);
-            nodeCache.SetupGet(x => x.TypeTree).Returns(new AsyncTypeTable(typeTable));
-            nodeCache.SetupGet(x => x.NamespaceUris).Returns(namespaceTable);
-            return nodeCache;
+            return new MockCache();
         }
 
         protected virtual Mock<IOpcUaSession> SetupMockedSession(NamespaceTable namespaceTable = null)
         {
             namespaceTable ??= new NamespaceTable();
 
-            var nodeCache = SetupMockedNodeCache(namespaceTable).Object;
+            var nodeCache = SetupMockedNodeCache();
 
             using var mock = Autofac.Extras.Moq.AutoMock.GetLoose();
             var session = mock.Mock<IOpcUaSession>();
@@ -48,6 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             };
             var codec = new JsonVariantEncoder(messageContext, new NewtonsoftJsonSerializer());
             session.SetupGet(x => x.Codec).Returns(codec);
+            session.SetupGet(x => x.LruNodeCache).Returns(nodeCache);
             session.SetupGet(x => x.MessageContext).Returns(messageContext);
             return session;
         }
@@ -69,83 +63,78 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             return monitoredItemWrapper;
         }
 
-        internal sealed class AsyncTypeTable : IAsyncTypeTable
+        public sealed class MockCache : ILruNodeCache
         {
-            private readonly ITypeTable _table;
+            public ISession Session => throw new NotSupportedException();
 
-            public AsyncTypeTable(ITypeTable table)
+            public void Clear()
             {
-                _table = table;
+                throw new NotImplementedException();
             }
 
-            public ValueTask<NodeId> FindDataTypeIdAsync(ExpandedNodeId encodingId, CancellationToken ct = default)
+            public ValueTask<BuiltInType> GetBuiltInTypeAsync(NodeId datatypeId, CancellationToken ct = default)
             {
-                return ValueTask.FromResult(_table.FindDataTypeId(encodingId));
+                throw new NotImplementedException();
             }
 
-            public ValueTask<NodeId> FindDataTypeIdAsync(NodeId encodingId, CancellationToken ct = default)
+            public ValueTask<INode> GetNodeAsync(NodeId nodeId, CancellationToken ct = default)
             {
-                return ValueTask.FromResult(_table.FindDataTypeId(encodingId));
+                throw new NotImplementedException();
             }
 
-            public ValueTask<NodeId> FindReferenceTypeAsync(QualifiedName browseName, CancellationToken ct = default)
+            public ValueTask<IReadOnlyList<INode>> GetNodesAsync(IReadOnlyList<NodeId> nodeIds, CancellationToken ct = default)
             {
-                return ValueTask.FromResult(_table.FindReferenceType(browseName));
+                throw new NotImplementedException();
             }
 
-            public ValueTask<QualifiedName> FindReferenceTypeNameAsync(NodeId referenceTypeId, CancellationToken ct = default)
+            public ValueTask<INode> GetNodeWithBrowsePathAsync(NodeId nodeId, QualifiedNameCollection browsePath, CancellationToken ct = default)
             {
-                return ValueTask.FromResult(_table.FindReferenceTypeName(referenceTypeId));
+                throw new NotImplementedException();
             }
 
-            public ValueTask<IList<NodeId>> FindSubTypesAsync(ExpandedNodeId typeId, CancellationToken ct = default)
+            public ValueTask<IReadOnlyList<INode>> GetReferencesAsync(IReadOnlyList<NodeId> nodeIds, IReadOnlyList<NodeId> referenceTypeIds, bool isInverse, bool includeSubtypes = true, CancellationToken ct = default)
             {
-                return ValueTask.FromResult(_table.FindSubTypes(typeId));
+                throw new NotImplementedException();
             }
 
-            public ValueTask<NodeId> FindSuperTypeAsync(ExpandedNodeId typeId, CancellationToken ct = default)
+            public ValueTask<IReadOnlyList<INode>> GetReferencesAsync(NodeId nodeId, NodeId referenceTypeId, bool isInverse, bool includeSubtypes = true, CancellationToken ct = default)
             {
-                return ValueTask.FromResult(_table.FindSuperType(typeId));
+                throw new NotImplementedException();
             }
 
-            public ValueTask<NodeId> FindSuperTypeAsync(NodeId typeId, CancellationToken ct = default)
+            public ValueTask<NodeId> GetSuperTypeAsync(NodeId typeId, CancellationToken ct = default)
             {
-                return ValueTask.FromResult(_table.FindSuperType(typeId));
+                throw new NotImplementedException();
             }
 
-            public ValueTask<bool> IsEncodingForAsync(NodeId expectedTypeId, ExtensionObject value, CancellationToken ct = default)
+            public ValueTask<DataValue> GetValueAsync(NodeId nodeId, CancellationToken ct = default)
             {
-                return ValueTask.FromResult(_table.IsEncodingFor(expectedTypeId, value));
+                throw new NotImplementedException();
             }
 
-            public ValueTask<bool> IsEncodingForAsync(NodeId expectedTypeId, object value, CancellationToken ct = default)
+            public ValueTask<IReadOnlyList<DataValue>> GetValuesAsync(IReadOnlyList<NodeId> nodeIds, CancellationToken ct = default)
             {
-                return ValueTask.FromResult(_table.IsEncodingFor(expectedTypeId, value));
+                throw new NotImplementedException();
             }
 
-            public ValueTask<bool> IsEncodingOfAsync(ExpandedNodeId encodingId, ExpandedNodeId datatypeId, CancellationToken ct = default)
+            public bool IsTypeOf(NodeId subTypeId, NodeId superTypeId)
             {
-                return ValueTask.FromResult(_table.IsEncodingOf(encodingId, datatypeId));
+                throw new NotImplementedException();
             }
 
-            public ValueTask<bool> IsKnownAsync(ExpandedNodeId typeId, CancellationToken ct = default)
+            public ValueTask LoadTypeHierarchyAsync(IReadOnlyList<NodeId> typeIds, CancellationToken ct = default)
             {
-                return ValueTask.FromResult(_table.IsKnown(typeId));
+                throw new NotImplementedException();
             }
 
-            public ValueTask<bool> IsKnownAsync(NodeId typeId, CancellationToken ct = default)
+            internal void Add(Node baseObjectTypeNode)
             {
-                return ValueTask.FromResult(_table.IsKnown(typeId));
+                throw new NotImplementedException();
             }
 
-            public ValueTask<bool> IsTypeOfAsync(ExpandedNodeId subTypeId, ExpandedNodeId superTypeId, CancellationToken ct = default)
+            internal void AddReference(NodeId nodeId, NodeId referenceTypeId, NodeId otherNodeId)
             {
-                return ValueTask.FromResult(_table.IsTypeOf(subTypeId, superTypeId));
-            }
-
-            public ValueTask<bool> IsTypeOfAsync(NodeId subTypeId, NodeId superTypeId, CancellationToken ct = default)
-            {
-                return ValueTask.FromResult(_table.IsTypeOf(subTypeId, superTypeId));
+                throw new NotImplementedException();
             }
         }
 
