@@ -1297,7 +1297,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (Connected)
                 {
                     var complexTypeSystem = new ComplexTypeSystem(new NodeCacheResolver(LruNodeCache));
-                    await complexTypeSystem.Load().ConfigureAwait(false);
+                    await complexTypeSystem.LoadAsync(ct: _cts.Token).ConfigureAwait(false);
 
                     if (Connected)
                     {

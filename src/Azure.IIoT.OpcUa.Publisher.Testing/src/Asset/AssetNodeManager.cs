@@ -286,7 +286,7 @@ namespace Asset
         /// <param name="handle">The handle for the node.</param>
         /// <param name="monitoredItem">The monitored item.</param>
         protected override void OnMonitoredItemCreated(ServerSystemContext context,
-            NodeHandle handle, MonitoredItem monitoredItem)
+            NodeHandle handle, ISampledDataChangeMonitoredItem monitoredItem)
         {
             if (TryGetBinding(handle.Node, out var assetInterface, out var assetTag)
                 && monitoredItem.MonitoringMode != MonitoringMode.Disabled
@@ -304,7 +304,7 @@ namespace Asset
         /// <param name="handle">The handle for the node.</param>
         /// <param name="monitoredItem">The monitored item.</param>
         protected override void OnMonitoredItemModified(ServerSystemContext context,
-            NodeHandle handle, MonitoredItem monitoredItem)
+            NodeHandle handle, ISampledDataChangeMonitoredItem monitoredItem)
         {
             if (TryGetBinding(handle.Node, out var assetInterface, out var assetTag)
                 && monitoredItem.MonitoringMode != MonitoringMode.Disabled
@@ -323,7 +323,7 @@ namespace Asset
         /// <param name="handle">The handle for the node.</param>
         /// <param name="monitoredItem">The monitored item.</param>
         protected override void OnMonitoredItemDeleted(ServerSystemContext context,
-            NodeHandle handle, MonitoredItem monitoredItem)
+            NodeHandle handle, ISampledDataChangeMonitoredItem monitoredItem)
         {
             if (TryGetBinding(handle.Node, out var assetInterface, out var assetTag)
                 && handle.Node is BaseVariableState)
@@ -341,7 +341,7 @@ namespace Asset
         /// <param name="previousMode">The previous monitoring mode.</param>
         /// <param name="monitoringMode">The current monitoring mode.</param>
         protected override void OnMonitoringModeChanged(ServerSystemContext context,
-            NodeHandle handle, MonitoredItem monitoredItem, MonitoringMode previousMode,
+            NodeHandle handle, ISampledDataChangeMonitoredItem monitoredItem, MonitoringMode previousMode,
             MonitoringMode monitoringMode)
         {
             if (TryGetBinding(handle.Node, out var assetInterface, out var assetTag)

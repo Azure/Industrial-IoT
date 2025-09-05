@@ -559,8 +559,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                         try
                         {
-                            store.Delete(e.Certificate.Thumbprint);
-                            store.Add(e.Certificate);
+                            store.DeleteAsync(e.Certificate.Thumbprint);
+                            store.AddAsync(e.Certificate);
                         }
                         finally
                         {

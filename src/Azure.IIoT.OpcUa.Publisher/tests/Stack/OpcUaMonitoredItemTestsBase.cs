@@ -5,17 +5,20 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
 {
+    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
-    using Azure.IIoT.OpcUa.Encoders;
     using Furly.Extensions.Logging;
     using Furly.Extensions.Serializers.Newtonsoft;
     using Moq;
     using Opc.Ua;
     using Opc.Ua.Client;
     using System;
+    using System.Collections.Generic;
     using System.Linq;
+    using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
 
     public abstract class OpcUaMonitoredItemTestsBase
@@ -26,7 +29,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             var nodeCache = mock.Mock<INodeCache>();
             namespaceTable ??= new NamespaceTable();
             var typeTable = new TypeTable(namespaceTable);
-            nodeCache.SetupGet(x => x.TypeTree).Returns(typeTable);
+            nodeCache.SetupGet(x => x.TypeTree).Returns(new AsyncTypeTable(typeTable));
             nodeCache.SetupGet(x => x.NamespaceUris).Returns(namespaceTable);
             return nodeCache;
         }
@@ -64,6 +67,86 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                 await monitoredItemWrapper.FinalizeAddTo(session, default);
             }
             return monitoredItemWrapper;
+        }
+
+        internal sealed class AsyncTypeTable : IAsyncTypeTable
+        {
+            private readonly ITypeTable _table;
+
+            public AsyncTypeTable(ITypeTable table)
+            {
+                _table = table;
+            }
+
+            public ValueTask<NodeId> FindDataTypeIdAsync(ExpandedNodeId encodingId, CancellationToken ct = default)
+            {
+                return ValueTask.FromResult(_table.FindDataTypeId(encodingId));
+            }
+
+            public ValueTask<NodeId> FindDataTypeIdAsync(NodeId encodingId, CancellationToken ct = default)
+            {
+                return ValueTask.FromResult(_table.FindDataTypeId(encodingId));
+            }
+
+            public ValueTask<NodeId> FindReferenceTypeAsync(QualifiedName browseName, CancellationToken ct = default)
+            {
+                return ValueTask.FromResult(_table.FindReferenceType(browseName));
+            }
+
+            public ValueTask<QualifiedName> FindReferenceTypeNameAsync(NodeId referenceTypeId, CancellationToken ct = default)
+            {
+                return ValueTask.FromResult(_table.FindReferenceTypeName(referenceTypeId));
+            }
+
+            public ValueTask<IList<NodeId>> FindSubTypesAsync(ExpandedNodeId typeId, CancellationToken ct = default)
+            {
+                return ValueTask.FromResult(_table.FindSubTypes(typeId));
+            }
+
+            public ValueTask<NodeId> FindSuperTypeAsync(ExpandedNodeId typeId, CancellationToken ct = default)
+            {
+                return ValueTask.FromResult(_table.FindSuperType(typeId));
+            }
+
+            public ValueTask<NodeId> FindSuperTypeAsync(NodeId typeId, CancellationToken ct = default)
+            {
+                return ValueTask.FromResult(_table.FindSuperType(typeId));
+            }
+
+            public ValueTask<bool> IsEncodingForAsync(NodeId expectedTypeId, ExtensionObject value, CancellationToken ct = default)
+            {
+                return ValueTask.FromResult(_table.IsEncodingFor(expectedTypeId, value));
+            }
+
+            public ValueTask<bool> IsEncodingForAsync(NodeId expectedTypeId, object value, CancellationToken ct = default)
+            {
+                return ValueTask.FromResult(_table.IsEncodingFor(expectedTypeId, value));
+            }
+
+            public ValueTask<bool> IsEncodingOfAsync(ExpandedNodeId encodingId, ExpandedNodeId datatypeId, CancellationToken ct = default)
+            {
+                return ValueTask.FromResult(_table.IsEncodingOf(encodingId, datatypeId));
+            }
+
+            public ValueTask<bool> IsKnownAsync(ExpandedNodeId typeId, CancellationToken ct = default)
+            {
+                return ValueTask.FromResult(_table.IsKnown(typeId));
+            }
+
+            public ValueTask<bool> IsKnownAsync(NodeId typeId, CancellationToken ct = default)
+            {
+                return ValueTask.FromResult(_table.IsKnown(typeId));
+            }
+
+            public ValueTask<bool> IsTypeOfAsync(ExpandedNodeId subTypeId, ExpandedNodeId superTypeId, CancellationToken ct = default)
+            {
+                return ValueTask.FromResult(_table.IsTypeOf(subTypeId, superTypeId));
+            }
+
+            public ValueTask<bool> IsTypeOfAsync(NodeId subTypeId, NodeId superTypeId, CancellationToken ct = default)
+            {
+                return ValueTask.FromResult(_table.IsTypeOf(subTypeId, superTypeId));
+            }
         }
 
         internal sealed class SimpleSubscription : Subscription

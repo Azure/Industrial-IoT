@@ -447,7 +447,7 @@ namespace HistoricalAccess
         /// <param name="context"></param>
         /// <param name="handle"></param>
         /// <param name="monitoredItem"></param>
-        protected override void OnMonitoredItemCreated(ServerSystemContext context, NodeHandle handle, MonitoredItem monitoredItem)
+        protected override void OnMonitoredItemCreated(ServerSystemContext context, NodeHandle handle, ISampledDataChangeMonitoredItem monitoredItem)
         {
             lock (Lock)
             {
@@ -571,7 +571,7 @@ namespace HistoricalAccess
         /// <param name="context"></param>
         /// <param name="handle"></param>
         /// <param name="monitoredItem"></param>
-        protected override void OnMonitoredItemDeleted(ServerSystemContext context, NodeHandle handle, MonitoredItem monitoredItem)
+        protected override void OnMonitoredItemDeleted(ServerSystemContext context, NodeHandle handle, ISampledDataChangeMonitoredItem monitoredItem)
         {
             lock (Lock)
             {

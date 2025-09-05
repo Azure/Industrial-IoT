@@ -411,7 +411,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             string sessionName, uint sessionTimeout, IUserIdentity identity, IList<string> preferredLocales,
             CancellationToken ct)
         {
-            return await Session.Create(this, configuration, (ITransportWaitingConnection?)null, endpoint,
+            return await Session.CreateAsync(this, configuration, (ITransportWaitingConnection?)null, endpoint,
                 updateBeforeConnect, checkDomain, sessionName, sessionTimeout,
                 identity, preferredLocales, ct).ConfigureAwait(false);
         }
@@ -422,17 +422,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             bool checkDomain, string sessionName, uint sessionTimeout, IUserIdentity identity,
             IList<string> preferredLocales, CancellationToken ct)
         {
-            return await Session.Create(this, configuration, connection, endpoint, updateBeforeConnect,
+            return await Session.CreateAsync(this, configuration, connection, endpoint, updateBeforeConnect,
                 checkDomain, sessionName, sessionTimeout, identity, preferredLocales, ct).ConfigureAwait(false);
-        }
-
-        /// <inheritdoc/>
-        public override ISession Create(ApplicationConfiguration configuration, ITransportChannel channel,
-            ConfiguredEndpoint endpoint, X509Certificate2 clientCertificate,
-            EndpointDescriptionCollection? availableEndpoints, StringCollection? discoveryProfileUris)
-        {
-            return Session.Create(this, configuration, channel, endpoint, clientCertificate,
-                availableEndpoints, discoveryProfileUris);
         }
 
         /// <inheritdoc/>
@@ -450,7 +441,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ITransportWaitingConnection? connection;
             do
             {
-                connection = await reverseConnectManager.WaitForConnection(endpoint.EndpointUrl,
+                connection = await reverseConnectManager.WaitForConnectionAsync(endpoint.EndpointUrl,
                     endpoint.ReverseConnect?.ServerUri, ct).ConfigureAwait(false);
                 if (updateBeforeConnect)
                 {
@@ -1302,7 +1293,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     ITransportWaitingConnection? connection = null;
                     if (_reverseConnectManager != null)
                     {
-                        connection = await _reverseConnectManager.WaitForConnection(
+                        connection = await _reverseConnectManager.WaitForConnectionAsync(
                             endpointUrl, null, ct).ConfigureAwait(false);
                     }
 

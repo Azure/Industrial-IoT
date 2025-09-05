@@ -162,7 +162,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // show application certs
             using var certStore = await OpenAsync(store).ConfigureAwait(false);
             var certificates = new List<X509CertificateModel>();
-            foreach (var cert in await certStore.Enumerate().ConfigureAwait(false))
+            foreach (var cert in await certStore.EnumerateAsync(ct).ConfigureAwait(false))
             {
                 switch (store)
                 {
@@ -172,9 +172,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             goto default;
                         }
                         var certificateType = DetermineCertificateType(cert);
-                        var withPrivateKey = await certStore.LoadPrivateKey(cert.Thumbprint,
-                            cert.Subject, null, certificateType,
-                            Password).ConfigureAwait(false);
+                        var withPrivateKey = await certStore.LoadPrivateKeyAsync(cert.Thumbprint, cert.Subject, null, certificateType, Password, ct).ConfigureAwait(false);
                         if (withPrivateKey == null)
                         {
                             goto default;
@@ -198,7 +196,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 return Array.Empty<byte[]>();
             }
-            var crls = await certStore.EnumerateCRLs().ConfigureAwait(false);
+            var crls = await certStore.EnumerateCRLsAsync(ct).ConfigureAwait(false);
             return crls.Select(c => c.RawData).ToList();
         }
 
@@ -212,15 +210,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             try
             {
                 _logger.AddCertificate(cert.Thumbprint, store.ToString());
-                var certCollection = await certStore.FindByThumbprint(
-                    cert.Thumbprint).ConfigureAwait(false);
+                var certCollection = await certStore.FindByThumbprintAsync(cert.Thumbprint, ct).ConfigureAwait(false);
                 if (certCollection.Count != 0)
                 {
-                    await certStore.Delete(cert.Thumbprint).ConfigureAwait(false);
+                    await certStore.DeleteAsync(cert.Thumbprint, ct).ConfigureAwait(false);
                 }
 
-                await certStore.Add(cert, store == CertificateStoreName.Application ?
-                    Password : password).ConfigureAwait(false);
+                await certStore.AddAsync(cert, store == CertificateStoreName.Application ?
+                    Password : password, ct).ConfigureAwait(false);
 
                 if (store == CertificateStoreName.Application)
                 {
@@ -240,7 +237,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     {
                         using var trustedCert = new X509Certificate2(cert);
                         using var trustedStore = await OpenAsync(CertificateStoreName.Trusted).ConfigureAwait(false);
-                        await trustedStore.Add(trustedCert).ConfigureAwait(false);
+                        await trustedStore.AddAsync(trustedCert, ct: ct).ConfigureAwait(false);
                     }
                 }
             }
@@ -264,7 +261,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             try
             {
                 _logger.AddCrl(store.ToString());
-                await certStore.AddCRL(new X509CRL(crl)).ConfigureAwait(false);
+                await certStore.AddCRLAsync(new X509CRL(crl), ct).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -279,7 +276,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ObjectDisposedException.ThrowIf(_disposed, this);
             thumbprint = SanitizeThumbprint(thumbprint);
             using var rejected = await OpenAsync(CertificateStoreName.Rejected).ConfigureAwait(false);
-            var certCollection = await rejected.FindByThumbprint(thumbprint).ConfigureAwait(false);
+            var certCollection = await rejected.FindByThumbprintAsync(thumbprint, ct).ConfigureAwait(false);
             if (certCollection.Count == 0)
             {
                 throw new ResourceNotFoundException("Certificate not found");
@@ -289,20 +286,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             try
             {
                 using var trusted = await OpenAsync(CertificateStoreName.Trusted).ConfigureAwait(false);
-                certCollection = await trusted.FindByThumbprint(thumbprint).ConfigureAwait(false);
+                certCollection = await trusted.FindByThumbprintAsync(thumbprint, ct).ConfigureAwait(false);
                 if (certCollection.Count != 0)
                 {
                     // This should not happen but maybe a previous approval aborted half-way.
                     _logger.RejectedCertInTrustedStore();
-                    await trusted.Delete(thumbprint).ConfigureAwait(false);
+                    await trusted.DeleteAsync(thumbprint, ct).ConfigureAwait(false);
                 }
 
                 // Add the trusted cert and remove from rejected
-                await trusted.Add(trustedCert).ConfigureAwait(false);
-                if (!await rejected.Delete(thumbprint).ConfigureAwait(false))
+                await trusted.AddAsync(trustedCert, ct: ct).ConfigureAwait(false);
+                if (!await rejected.DeleteAsync(thumbprint, ct).ConfigureAwait(false))
                 {
                     // Try revert back...
-                    await trusted.Delete(thumbprint).ConfigureAwait(false);
+                    await trusted.DeleteAsync(thumbprint, ct).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
@@ -333,24 +330,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 if (isSslCertificate)
                 {
-                    configuration.SecurityConfiguration.TrustedHttpsCertificates
-                        .Add(x509Certificate.YieldReturn());
+                    await configuration.SecurityConfiguration.TrustedHttpsCertificates
+                        .AddAsync(x509Certificate.YieldReturn(), ct: ct).ConfigureAwait(false);
                     chain.RemoveAt(0);
                     if (chain.Count > 0)
                     {
-                        configuration.SecurityConfiguration.HttpsIssuerCertificates
-                            .Add(chain);
+                        await configuration.SecurityConfiguration.HttpsIssuerCertificates
+                            .AddAsync(chain, ct: ct).ConfigureAwait(false);
                     }
                 }
                 else
                 {
-                    configuration.SecurityConfiguration.TrustedPeerCertificates
-                        .Add(x509Certificate.YieldReturn());
+                    await configuration.SecurityConfiguration.TrustedPeerCertificates
+                        .AddAsync(x509Certificate.YieldReturn(), ct: ct).ConfigureAwait(false);
                     chain.RemoveAt(0);
                     if (chain.Count > 0)
                     {
-                        configuration.SecurityConfiguration.TrustedIssuerCertificates
-                            .Add(chain);
+                        await configuration.SecurityConfiguration.TrustedIssuerCertificates
+                            .AddAsync(chain, ct: ct).ConfigureAwait(false);
                     }
                 }
             }
@@ -375,7 +372,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             try
             {
                 _logger.RemoveCertificate(thumbprint, store.ToString());
-                var certCollection = await certStore.FindByThumbprint(thumbprint).ConfigureAwait(false);
+                var certCollection = await certStore.FindByThumbprintAsync(thumbprint, ct).ConfigureAwait(false);
                 if (certCollection.Count == 0)
                 {
                     throw new ResourceNotFoundException("Certificate not found.");
@@ -383,7 +380,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 // delete all CRLs signed by cert
                 var crlsToDelete = new X509CRLCollection();
-                foreach (var crl in await certStore.EnumerateCRLs().ConfigureAwait(false)
+                foreach (var crl in await certStore.EnumerateCRLsAsync(ct).ConfigureAwait(false)
                 )
                 {
                     foreach (var cert in certCollection)
@@ -404,13 +401,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     Value.SecurityConfiguration.ApplicationCertificates = existing;
                 }
 
-                if (!await certStore.Delete(thumbprint).ConfigureAwait(false))
+                if (!await certStore.DeleteAsync(thumbprint, ct).ConfigureAwait(false))
                 {
                     throw new ResourceNotFoundException("Certificate not found.");
                 }
                 foreach (var crl in crlsToDelete)
                 {
-                    if (!await certStore.DeleteCRL(crl).ConfigureAwait(false))
+                    if (!await certStore.DeleteCRLAsync(crl, ct).ConfigureAwait(false))
                     {
                         // intentionally ignore errors, try best effort
                         _logger.DeleteCrlFailed(crl.ToString());
@@ -432,17 +429,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             try
             {
                 _logger.RemoveAllCertificates(store.ToString());
-                foreach (var certs in await certStore.Enumerate().ConfigureAwait(false))
+                foreach (var certs in await certStore.EnumerateAsync(ct).ConfigureAwait(false))
                 {
-                    if (!await certStore.Delete(certs.Thumbprint).ConfigureAwait(false))
+                    if (!await certStore.DeleteAsync(certs.Thumbprint, ct).ConfigureAwait(false))
                     {
                         // intentionally ignore errors, try best effort
                         _logger.DeleteCertificateFailed(certs.Thumbprint);
                     }
                 }
-                foreach (var crl in await certStore.EnumerateCRLs().ConfigureAwait(false))
+                foreach (var crl in await certStore.EnumerateCRLsAsync(ct).ConfigureAwait(false))
                 {
-                    if (!await certStore.DeleteCRL(crl).ConfigureAwait(false))
+                    if (!await certStore.DeleteCRLAsync(crl, ct).ConfigureAwait(false))
                     {
                         // intentionally ignore errors, try best effort
                         _logger.DeleteCrlFailed(crl.ToString());
@@ -469,7 +466,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             try
             {
                 _logger.AddCrl(store.ToString());
-                await certStore.DeleteCRL(new X509CRL(crl)).ConfigureAwait(false);
+                await certStore.DeleteCRLAsync(new X509CRL(crl), ct).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -558,7 +555,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
 
                     var hasAppCertificate =
-                        await appInstance.CheckApplicationInstanceCertificates(true).ConfigureAwait(false);
+                        await appInstance.CheckApplicationInstanceCertificatesAsync(true).ConfigureAwait(false);
                     if (!hasAppCertificate ||
                         appConfig.SecurityConfiguration.ApplicationCertificate.Certificate == null)
                     {
@@ -602,7 +599,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         using var certStore = CertificateStoreIdentifier.CreateStore(
                             options.ApplicationCertificates.StoreType);
                         certStore.Open(options.ApplicationCertificates.StorePath, false);
-                        var certs = await certStore.Enumerate().ConfigureAwait(false);
+                        var certs = await certStore.EnumerateAsync().ConfigureAwait(false);
                         var subjects = new List<string>();
                         foreach (var cert in certs.Where(c => c != null).OrderBy(c => c.NotAfter))
                         {
@@ -649,7 +646,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 using var certStore =
                     appConfig.SecurityConfiguration.ApplicationCertificate.OpenStore();
-                var certs = await certStore.Enumerate().ConfigureAwait(false);
+                var certs = await certStore.EnumerateAsync().ConfigureAwait(false);
                 var certNum = 1;
                 _logger.OwnStoreCount(certs.Count);
                 foreach (var cert in certs)
@@ -667,7 +664,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 using var certStore = appConfig.SecurityConfiguration
                     .TrustedIssuerCertificates.OpenStore();
-                var certs = await certStore.Enumerate().ConfigureAwait(false);
+                var certs = await certStore.EnumerateAsync().ConfigureAwait(false);
                 var certNum = 1;
                 _logger.TrustedIssuerCount(certs.Count);
                 foreach (var cert in certs)
@@ -676,7 +673,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 if (certStore.SupportsCRLs)
                 {
-                    var crls = await certStore.EnumerateCRLs().ConfigureAwait(false);
+                    var crls = await certStore.EnumerateCRLsAsync().ConfigureAwait(false);
                     var crlNum = 1;
                     _logger.TrustedIssuerCrlCount(crls.Count);
                     foreach (var crl in crls)
@@ -695,7 +692,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 using var certStore = appConfig.SecurityConfiguration
                     .TrustedPeerCertificates.OpenStore();
-                var certs = await certStore.Enumerate().ConfigureAwait(false);
+                var certs = await certStore.EnumerateAsync().ConfigureAwait(false);
                 var certNum = 1;
                 _logger.TrustedPeerCount(certs.Count);
                 foreach (var cert in certs)
@@ -704,7 +701,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 if (certStore.SupportsCRLs)
                 {
-                    var crls = await certStore.EnumerateCRLs().ConfigureAwait(false);
+                    var crls = await certStore.EnumerateCRLsAsync().ConfigureAwait(false);
                     var crlNum = 1;
                     _logger.TrustedPeerCrlCount(crls.Count);
                     foreach (var crl in crls)
@@ -723,7 +720,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 using var certStore = appConfig.SecurityConfiguration
                     .RejectedCertificateStore.OpenStore();
-                var certs = await certStore.Enumerate().ConfigureAwait(false);
+                var certs = await certStore.EnumerateAsync().ConfigureAwait(false);
                 var certNum = 1;
                 _logger.RejectedStoreCount(certs.Count);
                 foreach (var cert in certs)

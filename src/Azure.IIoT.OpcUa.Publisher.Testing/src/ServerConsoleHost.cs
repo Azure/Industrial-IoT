@@ -232,13 +232,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             config = ApplicationInstance.FixupAppConfig(config);
 
             _logger.ValidatingConfig(this);
-            await config.Validate(config.ApplicationType).ConfigureAwait(false);
+            await config.ValidateAsync(config.ApplicationType).ConfigureAwait(false);
 
             _logger.InitializingCertValidation(this);
             var application = new ApplicationInstance(config);
 
             // check the application certificate.
-            var hasAppCertificate = await application.CheckApplicationInstanceCertificates(
+            var hasAppCertificate = await application.CheckApplicationInstanceCertificatesAsync(
                 silent: true).ConfigureAwait(false);
             if (!hasAppCertificate)
             {
@@ -256,7 +256,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             };
 
-            await config.CertificateValidator.Update(config).ConfigureAwait(false);
+            await config.CertificateValidator.UpdateAsync(config).ConfigureAwait(false);
 
             // Set Certificate
             try
@@ -272,7 +272,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             _logger.StartingServer();
             // start the server.
-            await application.Start(_server).ConfigureAwait(false);
+            await application.StartAsync(_server).ConfigureAwait(false);
 
             foreach (var ep in config.ServerConfiguration.BaseAddresses)
             {

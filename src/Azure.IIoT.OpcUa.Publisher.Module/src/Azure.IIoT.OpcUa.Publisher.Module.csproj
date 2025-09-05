@@ -38,8 +38,8 @@
     <PackageReference Include="Furly.Extensions.MessagePack" Version="1.1.41" />
     <PackageReference Include="Furly.Azure.EventHubs" Version="1.1.41" />
     <PackageReference Include="Furly.Azure.IoT" Version="1.1.41" />
-    <PackageReference Include="Azure.Identity" Version="1.14.2" />
-    <PackageReference Include="Azure.Core" Version="1.47.1" />
+    <PackageReference Include="Azure.Identity" Version="1.15.0" />
+    <PackageReference Include="Azure.Core" Version="1.47.3" />
     <PackageReference Include="Furly.Tunnel" Version="1.1.41" />
     <PackageReference Include="Mono.Options" Version="6.12.0.148" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.12.0" />

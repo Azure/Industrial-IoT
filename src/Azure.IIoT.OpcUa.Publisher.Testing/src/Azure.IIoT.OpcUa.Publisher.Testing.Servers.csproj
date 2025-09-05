@@ -62,11 +62,9 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Furly.Extensions" Version="1.1.41" />
-    <PackageReference Include="System.IO.Pipelines" Version="9.0.7" />
+    <PackageReference Include="System.IO.Pipelines" Version="9.0.8" />
     <PackageReference Include="System.Linq.Async" Version="6.0.3" />
-    <PackageReference Include="System.Text.Json" Version="9.0.7" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\OPCFoundation\UA-.NETStandard_PORT\Libraries\Opc.Ua.Server\Opc.Ua.Server.csproj" />
+    <PackageReference Include="System.Text.Json" Version="9.0.8" />
+    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Server" Version="1.5.377.11-preview" />
   </ItemGroup>
 </Project>

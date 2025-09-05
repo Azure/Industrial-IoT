@@ -487,7 +487,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             /// </summary>
             /// <param name="session"></param>
             /// <param name="reason"></param>
-            private void OnEvent(Session session, SessionEventReason reason)
+            private void OnEvent(ISession session, SessionEventReason reason)
             {
                 _lastEventTime = DateTime.UtcNow;
                 LogSessionStatus(session, reason.ToString());
@@ -520,7 +520,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             /// <param name="session"></param>
             /// <param name="reason"></param>
             /// <param name="lastContact"></param>
-            private void LogSessionStatus(Session session, string reason, DateTime? lastContact = null)
+            private void LogSessionStatus(ISession session, string reason, DateTime? lastContact = null)
             {
                 lock (session.DiagnosticsLock)
                 {
@@ -604,7 +604,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             /// <param name="args"></param>
             /// <exception cref="ArgumentNullException"><paramref name="session"/> is <c>null</c>.</exception>
             /// <exception cref="ServiceResultException"></exception>
-            private void SessionManager_ImpersonateUser(Session session,
+            private void SessionManager_ImpersonateUser(ISession session,
                 ImpersonateEventArgs args)
             {
                 ArgumentNullException.ThrowIfNull(session);
