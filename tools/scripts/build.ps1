@@ -44,7 +44,7 @@ Param(
 
 $ErrorActionPreference = "Stop"
 
-$Path = & (Join-Path $PSScriptRoot "get-root.ps1") -fileName "Industrial-IoT.sln"
+$Path = & (Join-Path $PSScriptRoot "get-root.ps1") -fileName "Industrial-IoT.slnx"
 
 $configuration = "Release"
 if ($script:Debug.IsPresent) {

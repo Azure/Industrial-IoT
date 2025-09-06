@@ -320,7 +320,7 @@ elseif ($script:ClusterType -eq "microk8s") {
     else {
         Write-Host "Resetting microk8s cluster..." -ForegroundColor Cyan
         microk8s uninstall
-        microk8s install --cpu 4 --mem 16
+        microk8s install --cpu 4 --mem 8
         microk8s start
         if (-not $?) {
             Write-Host "Error starting microk8s cluster - $($errOut)" -ForegroundColor Red

@@ -68,7 +68,7 @@ Follow these steps:
 ### To debug publisher messages and message validation issues
 
 * Stop the app service instance in the resource group.
-* Start the TestEventProcessor service from the tools\e2etesting\TestEventProcessor\TestEventProcessor.sln solution file
+* Start the TestEventProcessor service from the tools\e2etesting\TestEventProcessor\TestEventProcessor.slnx solution file
 * Change the .env file generated from KeyVault and change the TESTEVENTPROCESSOR_* variables to the default values found
   in the TestEventProcessor's appsettings.json and launchSettings.json files.
     "TESTEVENTPROCESSOR_BASEURL": "https://localhost:49450",
