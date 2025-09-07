@@ -171,29 +171,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             Assert.Equal(nodeId, ObjectTypeIds.ConditionType);
         }
 
-        protected override MockCache SetupMockedNodeCache()
+        public GetSimpleEventFilterTests()
         {
-            var mockCache = base.SetupMockedNodeCache();
+            AddNode(_baseObjectTypeNode);
+            AddNode(_baseEventTypeNode);
+            AddNode(_messageNode);
+            AddNode(_conditionTypeNode);
+            AddNode(_conditionNameNode);
+            AddNode(_commentNode);
+            AddNode(_enabledStateNode);
+            AddNode(_idNode);
+            _baseObjectTypeNode.ReferenceTable.Add(ReferenceTypeIds.HasSubtype, false, ObjectTypeIds.BaseEventType);
+            _baseEventTypeNode.ReferenceTable.Add(ReferenceTypeIds.HasSubtype, true, ObjectTypeIds.BaseObjectType);
+            _baseEventTypeNode.ReferenceTable.Add(ReferenceTypeIds.HasProperty, false, _messageNode.NodeId);
+            _messageNode.ReferenceTable.Add(ReferenceTypeIds.HasProperty, true, ObjectTypeIds.BaseEventType);
+            _baseEventTypeNode.ReferenceTable.Add(ReferenceTypeIds.HasSubtype, false, ObjectTypeIds.ConditionType);
+            _conditionTypeNode.ReferenceTable.Add(ReferenceTypeIds.HasSubtype, true, ObjectTypeIds.BaseEventType);
+            _conditionTypeNode.ReferenceTable.Add(ReferenceTypeIds.HasProperty, false, _conditionNameNode.NodeId);
+            _conditionTypeNode.ReferenceTable.Add(ReferenceTypeIds.HasProperty, false, _commentNode.NodeId);
+            _conditionNameNode.ReferenceTable.Add(ReferenceTypeIds.HasProperty, true, ObjectTypeIds.ConditionType);
+            _conditionTypeNode.ReferenceTable.Add(ReferenceTypeIds.HasComponent, false, _enabledStateNode.NodeId);
+            _enabledStateNode.ReferenceTable.Add(ReferenceTypeIds.HasComponent, true, ObjectTypeIds.ConditionType);
+            _enabledStateNode.ReferenceTable.Add(ReferenceTypeIds.HasProperty, false, _idNode.NodeId);
+            _idNode.ReferenceTable.Add(ReferenceTypeIds.HasProperty, true, _enabledStateNode.NodeId);
+            _commentNode.ReferenceTable.Add(ReferenceTypeIds.HasProperty, true, ObjectTypeIds.ConditionType);
+        }
 
-            mockCache.Add(_baseObjectTypeNode);
-            mockCache.Add(_baseEventTypeNode);
-            mockCache.Add(_conditionTypeNode);
-            mockCache.Add(_messageNode);
-            mockCache.Add(_conditionNameNode);
-            mockCache.Add(_commentNode);
-            mockCache.Add(_enabledStateNode);
-            mockCache.Add(_idNode);
+        protected override Node GetNode(uint id)
+        {
+            return _nodes.TryGetValue(id, out var node) ? node : base.GetNode(id);
+        }
 
-            mockCache.AddReference(_baseObjectTypeNode.NodeId, ReferenceTypeIds.HasSubtype, ObjectTypeIds.BaseEventType);
-            mockCache.AddReference(_baseEventTypeNode.NodeId, ReferenceTypeIds.HasProperty, _messageNode.NodeId);
-            mockCache.AddReference(_baseEventTypeNode.NodeId, ReferenceTypeIds.HasSubtype, ObjectTypeIds.ConditionType);
-            mockCache.AddReference(_conditionTypeNode.NodeId, ReferenceTypeIds.HasProperty, _conditionNameNode.NodeId);
-            mockCache.AddReference(_conditionTypeNode.NodeId, ReferenceTypeIds.HasComponent, _enabledStateNode.NodeId);
-            mockCache.AddReference(_enabledStateNode.NodeId, ReferenceTypeIds.HasComponent, ObjectTypeIds.ConditionType);
-            mockCache.AddReference(_idNode.NodeId, ReferenceTypeIds.HasProperty, _enabledStateNode.NodeId);
-            mockCache.AddReference(_commentNode.NodeId, ReferenceTypeIds.HasProperty, ObjectTypeIds.ConditionType);
-
-            return mockCache;
+        private void AddNode(Node node)
+        {
+            _nodes[(uint)node.NodeId.Identifier] = node;
         }
 
         private readonly Node _baseObjectTypeNode = new()
@@ -273,5 +284,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             NodeClass = Opc.Ua.NodeClass.Variable,
             NodeId = VariableIds.ConditionType_EnabledState_Id
         };
+
+        private readonly Dictionary<uint, Node> _nodes = [];
     }
 }

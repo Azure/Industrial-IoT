@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
 {
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Stack;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Furly.Extensions.Logging;
@@ -22,18 +23,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
 
     public abstract class OpcUaMonitoredItemTestsBase
     {
-        protected virtual MockCache SetupMockedNodeCache()
-        {
-            return new MockCache();
-        }
-
         protected virtual Mock<IOpcUaSession> SetupMockedSession(NamespaceTable namespaceTable = null)
         {
+            using var mock = Autofac.Extras.Moq.AutoMock.GetLoose();
             namespaceTable ??= new NamespaceTable();
 
-            var nodeCache = SetupMockedNodeCache();
+            var s = new Mock<ISession>();
+            s.Setup(x => x.ReadNodeAsync(It.IsAny<NodeId>(), It.IsAny<CancellationToken>()))
+                .Returns((NodeId x, CancellationToken _)
+                => Task.FromResult(GetNode(x)));
+            s.Setup(x => x.ReadNodesAsync(It.IsAny<IList<NodeId>>(), It.IsAny<NodeClass>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .Returns((IList<NodeId> nodeIds, NodeClass nodeClass, bool includeReferences, CancellationToken cancellationToken)
+                => Task.FromResult(GetNodes(nodeIds, nodeClass, includeReferences)));
+            s.Setup(x => x.FetchReferencesAsync(It.IsAny<NodeId>(), It.IsAny<CancellationToken>()))
+                .Returns((NodeId x, CancellationToken _)
+                => Task.FromResult(new ReferenceDescriptionCollection(GetReferences(x))));
 
-            using var mock = Autofac.Extras.Moq.AutoMock.GetLoose();
+            var nodeCache = new LruNodeCache(s.Object);
+
             var session = mock.Mock<IOpcUaSession>();
             var messageContext = new ServiceMessageContext
             {
@@ -43,7 +50,60 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             session.SetupGet(x => x.Codec).Returns(codec);
             session.SetupGet(x => x.LruNodeCache).Returns(nodeCache);
             session.SetupGet(x => x.MessageContext).Returns(messageContext);
+
             return session;
+        }
+
+        protected virtual IEnumerable<ReferenceDescription> GetReferences(NodeId x)
+        {
+            var node = GetNode(x);
+            return node == null ? Array.Empty<ReferenceDescription>() :
+                node.ReferenceTable.Select(r => new ReferenceDescription
+                {
+                    ReferenceTypeId = new NodeId(r.ReferenceTypeId),
+                    IsForward = !r.IsInverse,
+                    NodeId = new ExpandedNodeId(r.TargetId)
+                });
+        }
+
+        protected virtual IEnumerable<ReferenceDescription> GetReferences(uint id)
+        {
+            return Array.Empty<ReferenceDescription>();
+        }
+
+        protected virtual (IList<Node>, IList<ServiceResult>) GetNodes(
+            IList<NodeId> nodeIds, NodeClass nodeClass, bool includeReferences)
+        {
+            var nodes = new List<Node>();
+            var results = new List<ServiceResult>();
+            foreach (var id in nodeIds)
+            {
+                var node = GetNode(id);
+                if (node != null && (nodeClass == NodeClass.Unspecified || node.NodeClass == nodeClass))
+                {
+                    nodes.Add(node);
+                    results.Add(ServiceResult.Good);
+                }
+                else
+                {
+                    results.Add(new ServiceResult(StatusCodes.BadNodeIdUnknown));
+                }
+            }
+            return (nodes, results);
+        }
+
+        protected virtual Node GetNode(NodeId x)
+        {
+            if (x.IdType == IdType.Numeric && x.Identifier is uint id)
+            {
+                return GetNode(id);
+            }
+            return null;
+        }
+
+        protected virtual Node GetNode(uint id)
+        {
+            return null;
         }
 
         internal async Task<OpcUaMonitoredItem> GetMonitoredItemAsync(BaseMonitoredItemModel template,
@@ -61,81 +121,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                 await monitoredItemWrapper.FinalizeAddTo(session, default);
             }
             return monitoredItemWrapper;
-        }
-
-        public sealed class MockCache : ILruNodeCache
-        {
-            public ISession Session => throw new NotSupportedException();
-
-            public void Clear()
-            {
-                throw new NotImplementedException();
-            }
-
-            public ValueTask<BuiltInType> GetBuiltInTypeAsync(NodeId datatypeId, CancellationToken ct = default)
-            {
-                throw new NotImplementedException();
-            }
-
-            public ValueTask<INode> GetNodeAsync(NodeId nodeId, CancellationToken ct = default)
-            {
-                throw new NotImplementedException();
-            }
-
-            public ValueTask<IReadOnlyList<INode>> GetNodesAsync(IReadOnlyList<NodeId> nodeIds, CancellationToken ct = default)
-            {
-                throw new NotImplementedException();
-            }
-
-            public ValueTask<INode> GetNodeWithBrowsePathAsync(NodeId nodeId, QualifiedNameCollection browsePath, CancellationToken ct = default)
-            {
-                throw new NotImplementedException();
-            }
-
-            public ValueTask<IReadOnlyList<INode>> GetReferencesAsync(IReadOnlyList<NodeId> nodeIds, IReadOnlyList<NodeId> referenceTypeIds, bool isInverse, bool includeSubtypes = true, CancellationToken ct = default)
-            {
-                throw new NotImplementedException();
-            }
-
-            public ValueTask<IReadOnlyList<INode>> GetReferencesAsync(NodeId nodeId, NodeId referenceTypeId, bool isInverse, bool includeSubtypes = true, CancellationToken ct = default)
-            {
-                throw new NotImplementedException();
-            }
-
-            public ValueTask<NodeId> GetSuperTypeAsync(NodeId typeId, CancellationToken ct = default)
-            {
-                throw new NotImplementedException();
-            }
-
-            public ValueTask<DataValue> GetValueAsync(NodeId nodeId, CancellationToken ct = default)
-            {
-                throw new NotImplementedException();
-            }
-
-            public ValueTask<IReadOnlyList<DataValue>> GetValuesAsync(IReadOnlyList<NodeId> nodeIds, CancellationToken ct = default)
-            {
-                throw new NotImplementedException();
-            }
-
-            public bool IsTypeOf(NodeId subTypeId, NodeId superTypeId)
-            {
-                throw new NotImplementedException();
-            }
-
-            public ValueTask LoadTypeHierarchyAsync(IReadOnlyList<NodeId> typeIds, CancellationToken ct = default)
-            {
-                throw new NotImplementedException();
-            }
-
-            internal void Add(Node baseObjectTypeNode)
-            {
-                throw new NotImplementedException();
-            }
-
-            internal void AddReference(NodeId nodeId, NodeId referenceTypeId, NodeId otherNodeId)
-            {
-                throw new NotImplementedException();
-            }
         }
 
         internal sealed class SimpleSubscription : Subscription
