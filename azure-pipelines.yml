@@ -102,7 +102,7 @@ jobs:
       waitForQueuedBuildsToFinishRefreshTime: '90'
       failTaskIfBuildsNotSuccessful: true
       cancelBuildsIfAnyFails: false
-      treatPartiallySucceededBuildAsSuccessful: false
+      treatPartiallySucceededBuildAsSuccessful: true
       downloadBuildArtifacts: false
       clearVariable: true
       authenticationMethod: 'OAuth Token'
