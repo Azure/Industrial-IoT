@@ -246,6 +246,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
             _monitoredItemWatcher = _timeProvider.CreateTimer(OnMonitoredItemWatchdog, null,
                 Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+            _resyncTimer = _timeProvider.CreateTimer(OnResync, null,
+                Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
 
             InitializeMetrics();
             _client.OnSubscriptionCreated(this);
@@ -293,6 +295,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _keepAliveWatcher = _timeProvider.CreateTimer(OnKeepAliveMissing, null,
                 Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
             _monitoredItemWatcher = _timeProvider.CreateTimer(OnMonitoredItemWatchdog, null,
+                Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+            _resyncTimer = _timeProvider.CreateTimer(OnResync, null,
                 Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
 
             InitializeMetrics();
@@ -402,6 +406,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 try
                 {
+                    _resyncTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
                     ResetMonitoredItemWatchdogTimer(false);
                     _keepAliveWatcher.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
 
@@ -441,6 +446,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _disposed = true;
                     _keepAliveWatcher.Dispose();
                     _monitoredItemWatcher.Dispose();
+                    _resyncTimer.Dispose();
                     _meter.Dispose();
 
                     Handle = null;
@@ -691,7 +697,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="ct"></param>
         /// <returns></returns>
         /// <exception cref="ServiceResultException"></exception>
-        internal async ValueTask<TimeSpan> SyncAsync(uint? maxMonitoredItemsPerSubscription,
+        internal async ValueTask SyncAsync(uint? maxMonitoredItemsPerSubscription,
             OperationLimitsModel limits, CancellationToken ct)
         {
             Debug.Assert(IsRoot);
@@ -715,7 +721,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     "Session not of expected type.");
             }
 
-            var retryDelay = Timeout.InfiniteTimeSpan;
+            var retryDelay = TimeSpan.MaxValue;
 
             // Force recreate all subscriptions in the chain if needed
             await ForceRecreateIfNeededAsync(session).ConfigureAwait(false);
@@ -773,7 +779,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // Force finalize all subscriptions in the (new) chain if needed
             await FinalizeSyncAsync(ct).ConfigureAwait(false);
 
-            return retryDelay;
+            if (IsRoot && retryDelay > TimeSpan.Zero && retryDelay != TimeSpan.MaxValue)
+            {
+                _resyncTimer.Change(retryDelay, Timeout.InfiniteTimeSpan);
+                _logger.ResyncTimerArmed(retryDelay, this);
+            }
         }
 
         /// <summary>
@@ -1442,29 +1452,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var conditionsEnabled = set
                 .Count(r => r is OpcUaMonitoredItem.Condition h && h.TimerEnabled);
 
+            var resyncCounter = Interlocked.Increment(ref _resyncCounter);
+            var resyncTotal = Interlocked.Increment(ref _resyncTotal);
+
             ReportMonitoredItemChanges(set.Count, goodMonitoredItems, badMonitoredItems,
                 errorsDuringSync, notAppliedItems, reportingItems, disabledItems, heartbeatItems,
                 heartbeatsEnabled, conditionItems, conditionsEnabled, samplingItems,
-                dispose.Count);
+                dispose.Count, resyncCounter, resyncTotal);
 
             // Set up subscription management trigger
             if (badMonitoredItems != 0 || errorsDuringSync != 0)
             {
                 // There were items that could not be added to subscription
                 return Delay(_options.Value.InvalidMonitoredItemRetryDelayDuration,
-                    TimeSpan.FromMinutes(5));
+                    TimeSpan.FromMinutes(5),
+                    _options.Value.InvalidMonitoredItemRetryDelayDurationMax,
+                    resyncCounter);
             }
             else if (desiredMonitoredItems.Count != set.Count)
             {
                 // There were items !Valid but desired.
                 return Delay(_options.Value.BadMonitoredItemRetryDelayDuration,
-                    TimeSpan.FromMinutes(30));
+                    TimeSpan.FromMinutes(30),
+                    _options.Value.InvalidMonitoredItemRetryDelayDurationMax,
+                    resyncCounter);
             }
             else
             {
                 // Nothing to do
+                resyncCounter = 0;
                 return Delay(_options.Value.SubscriptionManagementIntervalDuration,
-                    Timeout.InfiniteTimeSpan);
+                    TimeSpan.MaxValue);
             }
         }
 
@@ -1588,7 +1606,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _currentSequenceNumber = 0;
                 _goodMonitoredItems = 0;
                 _badMonitoredItems = 0;
-
+                _resyncCounter = 0;
                 _reportingItems = 0;
                 _disabledItems = 0;
                 _samplingItems = 0;
@@ -1637,13 +1655,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="conditionsEnabled"></param>
         /// <param name="samplingItems"></param>
         /// <param name="disposed"></param>
+        /// <param name="resyncCounter"></param>
+        /// <param name="resyncTotal"></param>
         private void ReportMonitoredItemChanges(int count,
             int goodMonitoredItems, int badMonitoredItems,
             int errorsDuringSync, int notAppliedItems,
             int reportingItems, int disabledItems,
             int heartbeatItems, int heartbeatsEnabled,
             int conditionItems, int conditionsEnabled,
-            int samplingItems, int disposed)
+            int samplingItems, int disposed,
+            int resyncCounter, int resyncTotal)
         {
             if (_badMonitoredItems != badMonitoredItems ||
                 _errorsDuringSync != errorsDuringSync ||
@@ -1660,19 +1681,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     if (errorsDuringSync == 0 && disabledItems == 0)
                     {
-                        _logger.SubscriptionReportState(this, disposed, count,
+                        _logger.SubscriptionReportState(this, resyncCounter,
+                            resyncTotal, disposed, count,
                             goodMonitoredItems, badMonitoredItems, reportingItems);
                     }
                     else
                     {
-                        _logger.SubscriptionReportStateWithErrors(this, disposed, count,
+                        _logger.SubscriptionReportStateWithErrors(this, resyncCounter,
+                            resyncTotal, disposed, count,
                             goodMonitoredItems, badMonitoredItems, reportingItems,
                             disabledItems, errorsDuringSync);
                     }
                 }
                 else
                 {
-                    _logger.SubscriptionReportStateFull(this, disposed, count,
+                    _logger.SubscriptionReportStateFull(this, resyncCounter, resyncTotal,
+                        disposed, count,
                         goodMonitoredItems, badMonitoredItems, reportingItems,
                         disabledItems, errorsDuringSync, notAppliedItems,
                         samplingItems, heartbeatItems, heartbeatsEnabled,
@@ -1681,7 +1705,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             else
             {
-                _logger.SubscriptionNoMonitoredItemChange(this);
+                _logger.SubscriptionNoMonitoredItemChange(this, resyncCounter, resyncTotal);
             }
 
             _badMonitoredItems = badMonitoredItems;
@@ -1700,18 +1724,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="delay"></param>
         /// <param name="defaultDelay"></param>
+        /// <param name="maxDelay"></param>
+        /// <param name="counter"></param>
         /// <returns></returns>
-        private static TimeSpan Delay(TimeSpan? delay, TimeSpan defaultDelay)
+        private static TimeSpan Delay(TimeSpan? delay, TimeSpan defaultDelay,
+            TimeSpan? maxDelay = null, int counter = 1)
         {
             if (delay == null)
             {
-                delay = defaultDelay;
+                return defaultDelay;
             }
-            else if (delay == TimeSpan.Zero)
+            if (delay == TimeSpan.Zero)
             {
-                delay = Timeout.InfiniteTimeSpan;
+                return TimeSpan.MaxValue;
             }
-            return delay.Value;
+
+            var minDelay = delay.Value;
+            if (minDelay < TimeSpan.Zero)
+            {
+                minDelay = TimeSpan.FromMilliseconds(-minDelay.TotalMilliseconds);
+            }
+
+            // Use exponential backoff for small delays
+            else if (maxDelay == null && minDelay > TimeSpan.FromSeconds(10))
+            {
+                return minDelay;
+            }
+
+            var max = maxDelay ?? defaultDelay;
+
+            // Exponential backoff
+            var backoff = (int)Math.Pow(2, Math.Min(counter, 10));
+            var calculated = TimeSpan.FromTicks(minDelay.Ticks * backoff);
+            return calculated > max ? max : calculated;
         }
 
         /// <summary>
@@ -1815,7 +1860,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             try
             {
                 var sequenceNumber = notification.SequenceNumber;
-                var publishTime = notification.PublishTime;
+                var publishTime = DateTime.SpecifyKind(notification.PublishTime, DateTimeKind.Utc);
 
                 Debug.Assert(notification.Events != null);
 
@@ -1934,7 +1979,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             try
             {
                 var sequenceNumber = notification.SequenceNumber;
-                var publishTime = notification.PublishTime;
+                var publishTime = DateTime.SpecifyKind(notification.PublishTime, DateTimeKind.Utc);
 
                 // in case of a keepalive,the sequence number is not incremented by the servers
                 _logger.KeepAliveReceived(this, sequenceNumber, publishTime);
@@ -2079,7 +2124,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             try
             {
                 var sequenceNumber = notification.SequenceNumber;
-                var publishTime = notification.PublishTime;
+                var publishTime = DateTime.SpecifyKind(notification.PublishTime, DateTimeKind.Utc);
 
                 // All notifications have the same message and thus sequence number
                 if (sequenceNumber == 1)
@@ -2309,6 +2354,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _lastMonitoredItemCheck = _timeProvider.GetUtcNow();
                 Debug.Assert(timeout != TimeSpan.Zero);
                 _monitoredItemWatcher.Change(timeout, timeout);
+            }
+        }
+
+        /// <summary>
+        /// Hand resynchronization
+        /// </summary>
+        /// <param name="state"></param>
+        private void OnResync(object? state)
+        {
+            lock (_timers)
+            {
+                if (_disposed || _resyncTimer == null)
+                {
+                    Debug.Fail("Should not be called after dispose");
+                    return;
+                }
+
+                if (IsRoot)
+                {
+                    _client.TriggerSubscriptionSynchronization(this);
+                }
             }
         }
 
@@ -2698,6 +2764,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_late_nodes",
                 () => new Measurement<long>(_lateMonitoredItems, _metrics.TagList),
                 description: "Monitored items that are late reporting.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_subscription_resync_count",
+                () => new Measurement<long>(_resyncCounter, _metrics.TagList),
+                description: "How many times the subscriptions was resynced due to error.");
+            _meter.CreateObservableCounter("iiot_edge_publisher_subscription_resync_total",
+                () => new Measurement<long>(_resyncTotal, _metrics.TagList),
+                description: "Total number of resynchronization attempts on the subscription.");
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_subscription_stopped_count",
                 () => new Measurement<int>(_publishingStopped ? 1 : 0, _metrics.TagList),
                 description: "Number of subscriptions that stopped publishing.");
@@ -2741,6 +2813,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly IMetricsContext _metrics;
         private readonly ITimer _keepAliveWatcher;
         private readonly ITimer _monitoredItemWatcher;
+        private readonly ITimer _resyncTimer;
         private readonly TimeProvider _timeProvider;
         private readonly Meter _meter = Diagnostics.NewMeter();
         private static uint _lastIndex;
@@ -2757,6 +2830,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private int _errorsDuringSync;
         private int _missingKeepAlives;
         private int _continuouslyMissingKeepAlives;
+        private int _resyncCounter;
+        private int _resyncTotal;
         private long _unassignedNotifications;
         private bool _publishingStopped;
         private bool _disposed;
@@ -3085,32 +3160,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public static partial void SubscriptionItemsModified(this ILogger logger, OpcUaSubscription subscription);
 
         [LoggerMessage(EventId = EventClass + 70, Level = LogLevel.Information,
-            Message = "{Subscription} - Removed {Removed} - now monitoring {Count} nodes:" +
+            Message = "{Subscription} - [{ResyncCount}/{ResyncTotal}] Removed {Removed} - now monitoring {Count} nodes:" +
             "\n# Good/Bad/Reporting:   {Good}/{Bad}/{Reporting}")]
         public static partial void SubscriptionReportState(this ILogger logger, OpcUaSubscription subscription,
-            int removed, int count, int good, int bad, int reporting);
+            int resyncCount, int resyncTotal, int removed, int count, int good, int bad, int reporting);
 
         [LoggerMessage(EventId = EventClass + 71, Level = LogLevel.Warning,
-            Message = "{Subscription} - Removed {Removed} - now monitoring {Count} nodes:" +
+            Message = "{Subscription} - [{ResyncCount}/{ResyncTotal}] Removed {Removed} - now monitoring {Count} nodes:" +
             "\n# Good/Bad/Reporting:   {Good}/{Bad}/{Reporting}" +
             "\n# Disabled/Errors:      {Disabled}/{Errors}")]
         public static partial void SubscriptionReportStateWithErrors(this ILogger logger, OpcUaSubscription subscription,
-            int removed, int count, int good, int bad, int reporting, int disabled, int errors);
+            int resyncCount, int resyncTotal, int removed, int count, int good, int bad,
+            int reporting, int disabled, int errors);
 
         [LoggerMessage(EventId = EventClass + 72, Level = LogLevel.Information,
-            Message = "{Subscription} - Removed {Removed} - now monitoring {Count} nodes:" +
+            Message = "{Subscription} - [{ResyncCount}/{ResyncTotal}] Removed {Removed} - now monitoring {Count} nodes:" +
             "\n# Good/Bad/Reporting:   {Good}/{Bad}/{Reporting}" +
             "\n# Disabled/Errors:      {Disabled}/{Errors} (Not applied: {NotApplied})" +
             "\n# Sampling:             {Sampling}" +
             "\n# Heartbeat/ing:        {Heartbeat}/{EnabledHeartbeats}" +
             "\n# Condition/ing:        {Conditions}/{EnabledConditions}")]
         public static partial void SubscriptionReportStateFull(this ILogger logger, OpcUaSubscription subscription,
-            int removed, int count, int good, int bad, int reporting, int disabled, int errors, int notApplied, int sampling,
+            int resyncCount, int resyncTotal, int removed, int count, int good, int bad,
+            int reporting, int disabled, int errors, int notApplied, int sampling,
             int heartbeat, int enabledHeartbeats, int conditions, int enabledConditions);
 
         [LoggerMessage(EventId = EventClass + 73, Level = LogLevel.Debug,
-            Message = "{Subscription} Applied changes to monitored items, but nothing changed.")]
-        public static partial void SubscriptionNoMonitoredItemChange(this ILogger logger, OpcUaSubscription subscription);
+            Message = "{Subscription} - [{ResyncCount}/{ResyncTotal}] Applied changes to monitored items, but nothing changed.")]
+        public static partial void SubscriptionNoMonitoredItemChange(this ILogger logger, OpcUaSubscription subscription,
+            int resyncCount, int resyncTotal);
 
         [LoggerMessage(EventId = EventClass + 74, Level = LogLevel.Information,
             Message = "Successfully created subscription {Subscription}'.\nActual (revised) state/desired state:" +
@@ -3265,5 +3343,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         [LoggerMessage(EventId = EventClass + 104, Level = LogLevel.Information,
             Message = "Some monitored items in {Subscription} are late.")]
         public static partial void SomeItemsLate(this ILogger logger, OpcUaSubscription subscription);
+
+        [LoggerMessage(EventId = EventClass + 105, Level = LogLevel.Information,
+            Message = "Resync timer set to {RetryDelay} for {Subscription}.")]
+        public static partial void ResyncTimerArmed(this ILogger logger, TimeSpan retryDelay,
+            OpcUaSubscription subscription);
     }
 }

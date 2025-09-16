@@ -4,9 +4,9 @@
     <ParallelAlgorithm>aggressive</ParallelAlgorithm>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Json.More.Net" Version="2.1.2" />
+    <PackageReference Include="Json.More.Net" Version="2.1.3" />
     <PackageReference Include="FluentAssertions" Version="[7.2.0]" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.8" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.9" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Include="Moq" Version="[4.20.2]" />
     <PackageReference Include="Neovolve.Logging.Xunit" Version="6.3.0" />
