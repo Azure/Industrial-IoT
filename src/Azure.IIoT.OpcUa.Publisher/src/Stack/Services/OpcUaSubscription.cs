@@ -329,6 +329,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
             _monitoredItemWatcher = _timeProvider.CreateTimer(OnMonitoredItemWatchdog, null,
                 Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+            _resyncTimer = _timeProvider.CreateTimer(OnResync, null,
+                Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
 
             InitializeMetrics();
             ResetMonitoredItemWatchdogTimer(PublishingEnabled);
@@ -1740,20 +1742,44 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             var minDelay = delay.Value;
+            // If the delay is negative we consider it to mean exponential backoff
             if (minDelay < TimeSpan.Zero)
             {
                 minDelay = TimeSpan.FromMilliseconds(-minDelay.TotalMilliseconds);
             }
 
-            // Use exponential backoff for small delays
-            else if (maxDelay == null && minDelay > TimeSpan.FromSeconds(10))
+            //
+            // Otherwise if the max delay is not set, and min delay larger than 10
+            // seconds we consider it to mean constant retry (old behavior)
+            //
+            else if (maxDelay == null && minDelay > kMaxExponentialRetryDelayDefault)
             {
                 return minDelay;
             }
 
             var max = maxDelay ?? defaultDelay;
 
-            // Exponential backoff
+            //
+            // If the max configured is below the delay configured then we also
+            // consider this to mean retry every x seconds (we do not need to calc
+            // an exponential retry
+            //
+            if (max <= minDelay)
+            {
+                return minDelay;
+            }
+
+            //
+            // If the max delay is smaller than 10 seconds, we set it to 10 seconds
+            // to avoid constant thrashing
+            //
+            if (max < kMaxExponentialRetryDelayDefault)
+            {
+                // Do not allow a max below 10 seconds
+                max = kMaxExponentialRetryDelayDefault;
+            }
+
+            // Calculate the exponential backoff - no need to add jitter.
             var backoff = (int)Math.Pow(2, Math.Min(counter, 10));
             var calculated = TimeSpan.FromTicks(minDelay.Ticks * backoff);
             return calculated > max ? max : calculated;
@@ -2798,6 +2824,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             static double Ratio(int value, int count) => count == 0 ? 0.0 : (double)value / count;
         }
 
+        private static readonly TimeSpan kMaxExponentialRetryDelayDefault = TimeSpan.FromSeconds(10);
         private const int kMaxMonitoredItemPerSubscriptionDefault = 64 * 1024;
         private uint _previousSequenceNumber;
         private uint _sequenceNumber;
