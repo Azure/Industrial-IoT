@@ -155,7 +155,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             escDataSetTopicPath += "/" + TopicFilter.Escape(element);
                         }
                     }
-                };
+                }
 
                 var variables = new Dictionary<string, string>
                 {

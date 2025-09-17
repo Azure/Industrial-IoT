@@ -1,0 +1,11 @@
+<Solution>
+  <Project Path="ApproveRejected/ApproveRejected.csproj" />
+  <Project Path="BrowseCertificates/BrowseCertificates.csproj" />
+  <Project Path="GetCertificate/GetApplicationCert.csproj" />
+  <Project Path="GetConfiguration/GetConfiguration.csproj" />
+  <Project Path="ManageWriter/ManageWriter.csproj" />
+  <Project Path="MonitorMessages/MonitorMessages.csproj" />
+  <Project Path="ReadCurrentTime/ReadCurrentTime.csproj" />
+  <Project Path="ResetClients/GetAndResetConnections.csproj" />
+  <Project Path="WriteReadbackValue/WriteReadbackValue.csproj" />
+</Solution>

@@ -338,7 +338,7 @@ namespace DataAccess
         /// <param name="context">The context.</param>
         /// <param name="handle">The handle for the node.</param>
         /// <param name="monitoredItem">The monitored item.</param>
-        protected override void OnMonitoredItemCreated(ServerSystemContext context, NodeHandle handle, MonitoredItem monitoredItem)
+        protected override void OnMonitoredItemCreated(ServerSystemContext context, NodeHandle handle, ISampledDataChangeMonitoredItem monitoredItem)
         {
             if (handle.Node.GetHierarchyRoot() is BlockState block)
             {
@@ -355,7 +355,7 @@ namespace DataAccess
         /// <param name="context">The context.</param>
         /// <param name="handle">The handle for the node.</param>
         /// <param name="monitoredItem">The monitored item.</param>
-        protected override void OnMonitoredItemDeleted(ServerSystemContext context, NodeHandle handle, MonitoredItem monitoredItem)
+        protected override void OnMonitoredItemDeleted(ServerSystemContext context, NodeHandle handle, ISampledDataChangeMonitoredItem monitoredItem)
         {
             if (handle.Node.GetHierarchyRoot() is BlockState block && !block.StopMonitoring(context))
             {

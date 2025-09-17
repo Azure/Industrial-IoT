@@ -171,7 +171,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             Assert.Equal(nodeId, ObjectTypeIds.ConditionType);
         }
 
-        protected override Mock<INodeCache> SetupMockedNodeCache(NamespaceTable namespaceTable = null)
+        public GetSimpleEventFilterTests()
         {
             AddNode(_baseObjectTypeNode);
             AddNode(_baseEventTypeNode);
@@ -195,25 +195,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             _enabledStateNode.ReferenceTable.Add(ReferenceTypeIds.HasProperty, false, _idNode.NodeId);
             _idNode.ReferenceTable.Add(ReferenceTypeIds.HasProperty, true, _enabledStateNode.NodeId);
             _commentNode.ReferenceTable.Add(ReferenceTypeIds.HasProperty, true, ObjectTypeIds.ConditionType);
+        }
 
-            var nodeCache = base.SetupMockedNodeCache(namespaceTable);
-            var typeTable = nodeCache.Object.TypeTree as TypeTable;
-            typeTable.Add(_baseObjectTypeNode);
-            typeTable.Add(_baseEventTypeNode);
-            typeTable.Add(_conditionTypeNode);
-            typeTable.AddSubtype(ObjectTypeIds.BaseEventType, ObjectTypeIds.BaseObjectType);
-            typeTable.AddSubtype(ObjectTypeIds.ConditionType, ObjectTypeIds.BaseEventType);
-            nodeCache.Setup(x => x.FetchNodeAsync(It.IsAny<ExpandedNodeId>(), It.IsAny<CancellationToken>()))
-                .Returns((ExpandedNodeId x, CancellationToken _) =>
-                {
-                    if (x.IdType == IdType.Numeric && x.Identifier is uint id)
-                    {
-                        return Task.FromResult(_nodes[id]);
-                    }
-                    return Task.FromResult<Node>(null);
-                });
-
-            return nodeCache;
+        protected override Node GetNode(uint id)
+        {
+            return _nodes.TryGetValue(id, out var node) ? node : base.GetNode(id);
         }
 
         private void AddNode(Node node)

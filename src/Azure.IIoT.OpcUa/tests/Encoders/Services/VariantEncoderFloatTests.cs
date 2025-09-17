@@ -486,7 +486,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 { { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f } }
             });
             var variant = codec.Decode(str, BuiltInType.Float);
-            var expected = new Variant(new float[,,] {
+            var expected = new Variant((object)new float[,,] {
                     { { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f } },
                     { { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f } },
                     { { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f } },
@@ -515,7 +515,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
             });
             var variant = codec.Decode(str, BuiltInType.Variant);
-            var expected = new Variant(new float[,,] {
+            var expected = new Variant((object)new float[,,] {
                     { { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f } },
                     { { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f } },
                     { { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f } },
@@ -544,7 +544,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
             });
             var variant = codec.Decode(str, BuiltInType.Variant);
-            var expected = new Variant(new float[,,] {
+            var expected = new Variant((object)new float[,,] {
                     { { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f } },
                     { { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f } },
                     { { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f } },
@@ -573,7 +573,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
             });
             var variant = codec.Decode(str, BuiltInType.Null);
-            var expected = new Variant(new float[,,] {
+            var expected = new Variant((object)new float[,,] {
                     { { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f } },
                     { { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f } },
                     { { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f } },
@@ -602,7 +602,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
             });
             var variant = codec.Decode(str, BuiltInType.Null);
-            var expected = new Variant(new float[,,] {
+            var expected = new Variant((object)new float[,,] {
                     { { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f } },
                     { { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f } },
                     { { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f }, { -123.456f, 124.567f, -125.0f } },

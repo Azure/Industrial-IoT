@@ -11,6 +11,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading;
 using System.Threading.Tasks;
 
 /// <summary>
@@ -89,21 +90,22 @@ public sealed class FlatCertificateStore : ICertificateStoreType
         public void Close() => _innerStore.Close();
 
         /// <inheritdoc/>
-        public Task Add(X509Certificate2 certificate, string? password = null)
-            => _innerStore.Add(certificate, password);
+        public Task AddAsync(X509Certificate2 certificate, string? password = null, CancellationToken ct = default)
+            => _innerStore.AddAsync(certificate, password, ct);
 
         /// <inheritdoc/>
-        public Task AddRejected(X509Certificate2Collection certificates, int maxCertificates)
-            => _innerStore.AddRejected(certificates, maxCertificates);
+        public Task AddRejectedAsync(X509Certificate2Collection certificates, int maxCertificates, CancellationToken ct = default)
+            => _innerStore.AddRejectedAsync(certificates, maxCertificates, ct);
 
         /// <inheritdoc/>
-        public Task<bool> Delete(string thumbprint) => _innerStore.Delete(thumbprint);
+        public Task<bool> DeleteAsync(string thumbprint, CancellationToken ct = default)
+            => _innerStore.DeleteAsync(thumbprint, ct);
 
         /// <inheritdoc/>
-        public async Task<X509Certificate2Collection> Enumerate()
+        public async Task<X509Certificate2Collection> EnumerateAsybc(CancellationToken ct = default)
         {
             var certificatesCollection =
-                await _innerStore.Enumerate().ConfigureAwait(false);
+                await _innerStore.EnumerateAsync(ct).ConfigureAwait(false);
             if (!_innerStore.Directory.Exists)
             {
                 return certificatesCollection;
@@ -133,24 +135,28 @@ public sealed class FlatCertificateStore : ICertificateStoreType
         }
 
         /// <inheritdoc/>
-        public Task AddCRL(X509CRL crl) => _innerStore.AddCRL(crl);
+        public Task AddCRLAsync(X509CRL crl, CancellationToken ct = default)
+            => _innerStore.AddCRLAsync(crl, ct);
 
         /// <inheritdoc/>
-        public Task<bool> DeleteCRL(X509CRL crl) => _innerStore.DeleteCRL(crl);
+        public Task<bool> DeleteCRLAsync(X509CRL crl, CancellationToken ct = default)
+            => _innerStore.DeleteCRLAsync(crl, ct);
 
         /// <inheritdoc/>
-        public Task<X509CRLCollection> EnumerateCRLs() => _innerStore.EnumerateCRLs();
+        public Task<X509CRLCollection> EnumerateCRLsAsync(CancellationToken ct = default)
+            => _innerStore.EnumerateCRLsAsync(ct);
 
         /// <inheritdoc/>
-        public Task<X509CRLCollection> EnumerateCRLs(X509Certificate2 issuer,
-            bool validateUpdateTime = true)
-            => _innerStore.EnumerateCRLs(issuer, validateUpdateTime);
+        public Task<X509CRLCollection> EnumerateCRLsAsync(X509Certificate2 issuer,
+            bool validateUpdateTime = true, CancellationToken ct = default)
+            => _innerStore.EnumerateCRLsAsync(issuer, validateUpdateTime, ct);
 
         /// <inheritdoc/>
-        public async Task<X509Certificate2Collection> FindByThumbprint(string thumbprint)
+        public async Task<X509Certificate2Collection> FindByThumbprintAsync(
+            string thumbprint, CancellationToken ct = default)
         {
             var certificatesCollection =
-                await _innerStore.FindByThumbprint(thumbprint).ConfigureAwait(false);
+                await _innerStore.FindByThumbprintAsync(thumbprint, ct).ConfigureAwait(false);
 
             if (!_innerStore.Directory.Exists)
             {
@@ -184,22 +190,23 @@ public sealed class FlatCertificateStore : ICertificateStoreType
         }
 
         /// <inheritdoc/>
-        public Task<StatusCode> IsRevoked(X509Certificate2 issuer, X509Certificate2 certificate)
-            => _innerStore.IsRevoked(issuer, certificate);
+        public Task<StatusCode> IsRevokedAsync(X509Certificate2 issuer, X509Certificate2 certificate,
+            CancellationToken ct = default)
+            => _innerStore.IsRevokedAsync(issuer, certificate, ct);
 
         /// <inheritdoc/>
-        public Task<X509Certificate2> LoadPrivateKey(string thumbprint, string subjectName,
-            string password) => LoadPrivateKey(thumbprint, subjectName, applicationUri: null,
-                certificateType: null, password);
+        public Task<X509Certificate2> LoadPrivateKeyAsync(string thumbprint, string subjectName,
+            string password, CancellationToken ct = default)
+            => LoadPrivateKeyAsync(thumbprint, subjectName, applicationUri: null, certificateType: null, password, ct);
 
         /// <inheritdoc/>
-        public async Task<X509Certificate2> LoadPrivateKey(string thumbprint, string subjectName,
-            string? applicationUri, NodeId? certificateType, string password)
+        public async Task<X509Certificate2> LoadPrivateKeyAsync(string thumbprint, string subjectName,
+            string? applicationUri, NodeId? certificateType, string password, CancellationToken ct = default)
         {
             if (!_innerStore.Directory.Exists)
             {
-                return await _innerStore.LoadPrivateKey(thumbprint, subjectName, applicationUri,
-                    certificateType, password).ConfigureAwait(false);
+                return await _innerStore.LoadPrivateKeyAsync(thumbprint, subjectName, applicationUri,
+                    certificateType, password, ct).ConfigureAwait(false);
             }
 
             foreach (var file in _innerStore.Directory.GetFiles('*' + CrtExtension))
@@ -233,8 +240,8 @@ public sealed class FlatCertificateStore : ICertificateStoreType
                 }
             }
 
-            return await _innerStore.LoadPrivateKey(thumbprint, subjectName, applicationUri,
-                certificateType, password).ConfigureAwait(false);
+            return await _innerStore.LoadPrivateKeyAsync(thumbprint, subjectName, applicationUri,
+                certificateType, password, ct).ConfigureAwait(false);
         }
 
         private static bool MatchCertificate(X509Certificate2 certificate, string thumbprint,
@@ -266,5 +273,51 @@ public sealed class FlatCertificateStore : ICertificateStoreType
             }
             return false;
         }
+
+        [Obsolete]
+        public Task<X509Certificate2Collection> Enumerate()
+            => _innerStore.Enumerate();
+
+        public Task<X509Certificate2Collection> EnumerateAsync(CancellationToken ct = default)
+            => _innerStore.EnumerateAsync(ct);
+
+        [Obsolete]
+        public Task Add(X509Certificate2 certificate, string? password = null)
+            => _innerStore.Add(certificate, password);
+
+        [Obsolete]
+        public Task AddRejected(X509Certificate2Collection certificates, int maxCertificates)
+            => _innerStore.AddRejected(certificates, maxCertificates);
+
+        [Obsolete]
+        public Task<bool> Delete(string thumbprint)
+            => _innerStore.Delete(thumbprint);
+
+        [Obsolete]
+        public Task<X509Certificate2Collection> FindByThumbprint(string thumbprint)
+            => _innerStore.FindByThumbprint(thumbprint);
+
+        [Obsolete]
+        public Task<X509Certificate2> LoadPrivateKey(string thumbprint, string subjectName, string applicationUri,
+            NodeId certificateType, string password)
+            => _innerStore.LoadPrivateKey(thumbprint, subjectName, applicationUri, certificateType, password);
+
+        [Obsolete]
+        public Task<StatusCode> IsRevoked(X509Certificate2 issuer, X509Certificate2 certificate)
+            => _innerStore.IsRevoked(issuer, certificate);
+
+        [Obsolete]
+        public Task<X509CRLCollection> EnumerateCRLs()
+            => _innerStore.EnumerateCRLs();
+
+        [Obsolete]
+        public Task<X509CRLCollection> EnumerateCRLs(X509Certificate2 issuer, bool validateUpdateTime = true)
+            => _innerStore.EnumerateCRLs(issuer, validateUpdateTime);
+
+        [Obsolete]
+        public Task AddCRL(X509CRL crl) => _innerStore.AddCRL(crl);
+
+        [Obsolete]
+        public Task<bool> DeleteCRL(X509CRL crl) => _innerStore.DeleteCRL(crl);
     }
 }

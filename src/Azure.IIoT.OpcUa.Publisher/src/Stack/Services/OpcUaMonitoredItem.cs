@@ -724,8 +724,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             byte builtInType = 0;
             try
             {
-                builtInType = (byte)await TypeInfo.GetBuiltInTypeAsync(variable.DataType,
-                    session.TypeTree, ct).ConfigureAwait(false);
+                builtInType = (byte)await session.LruNodeCache.GetBuiltInTypeAsync(variable.DataType,
+                    ct).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -779,7 +779,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     try
                     {
-                        var dataType = await session.NodeCache.FetchNodeAsync(baseType,
+                        var dataType = await session.LruNodeCache.GetNodeAsync(baseType,
                             ct).ConfigureAwait(false);
                         if (dataType == null)
                         {
@@ -787,7 +787,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             break;
                         }
 
-                        dataTypeId = dataType.NodeId;
+                        dataTypeId = ExpandedNodeId.ToNodeId(dataType.NodeId, session.MessageContext.NamespaceUris);
                         Debug.Assert(!Opc.Ua.NodeId.IsNull(dataTypeId));
                         if (IsBuiltInType(dataTypeId))
                         {
@@ -795,9 +795,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             break;
                         }
 
-                        var builtInType = await TypeInfo.GetBuiltInTypeAsync(dataTypeId,
-                            session.TypeTree, ct).ConfigureAwait(false);
-                        baseType = await session.TypeTree.FindSuperTypeAsync(dataTypeId,
+                        var builtInType = await session.LruNodeCache.GetBuiltInTypeAsync(
+                            dataTypeId, ct).ConfigureAwait(false);
+                        baseType = await session.LruNodeCache.GetSuperTypeAsync(dataTypeId,
                             ct).ConfigureAwait(false);
 
                         var browseName = dataType.BrowseName
@@ -818,7 +818,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     dataType.NodeId);
                                 if (types == null || types.Count == 0)
                                 {
-                                    var dtNode = await session.NodeCache.FetchNodeAsync(dataTypeId,
+                                    var dtNode = await session.LruNodeCache.GetNodeAsync(dataTypeId,
                                             ct).ConfigureAwait(false);
                                     if (dtNode is DataTypeNode v &&
                                         v.DataTypeDefinition?.Body is DataTypeDefinition t)
@@ -828,8 +828,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     }
                                     else
                                     {
-                                        dataTypes.AddOrUpdate(dataType.NodeId, GetDefault(
-                                            dataType, builtInType, session.MessageContext));
+                                        dataTypes.AddOrUpdate(
+                                            ExpandedNodeId.ToNodeId(dataType.NodeId, session.MessageContext.NamespaceUris),
+                                            GetDefault(dataType, builtInType, session.MessageContext));
                                         break;
                                     }
                                 }
@@ -896,9 +897,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                 }
 
-                object GetDefault(Node dataType, BuiltInType builtInType, IServiceMessageContext context)
+                object GetDefault(INode dataType, BuiltInType builtInType, IServiceMessageContext context)
                 {
-                    _logger.TypeDefinitionNotFound(this, dataType, builtInType);
+                    _logger.TypeDefinitionNotFound(this, dataType.NodeId, builtInType);
                     var name = dataType.BrowseName.AsString(context, NamespaceFormat.Expanded);
                     var dataTypeId = dataType.NodeId.AsString(context, NamespaceFormat.Expanded);
                     return dataTypeId == null
@@ -1125,7 +1126,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         [LoggerMessage(EventId = EventClass + 18, Level = LogLevel.Error,
             Message = "{Item}: Could not find a valid type definition for {Type} ({BuiltInType}). " +
             "Adding a default placeholder with no fields instead.")]
-        public static partial void TypeDefinitionNotFound(this ILogger logger, OpcUaMonitoredItem item, Node type, BuiltInType builtInType);
+        public static partial void TypeDefinitionNotFound(this ILogger logger, OpcUaMonitoredItem item, ExpandedNodeId type, BuiltInType builtInType);
 
         [LoggerMessage(EventId = EventClass + 19, Level = LogLevel.Debug,
             Message = "Auto-set queue size for {Item} to '{QueueSize}'.")]

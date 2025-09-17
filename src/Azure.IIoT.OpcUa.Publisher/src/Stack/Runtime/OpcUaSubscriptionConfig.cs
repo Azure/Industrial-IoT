@@ -46,6 +46,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string SubscriptionErrorRetryDelaySecondsKey = "SubscriptionErrorRetryDelaySeconds";
         public const string InvalidMonitoredItemRetryDelaySecondsKey = "InvalidMonitoredItemRetryDelaySeconds";
         public const string BadMonitoredItemRetryDelaySecondsKey = "BadMonitoredItemRetryDelaySeconds";
+        public const string InvalidMonitoredItemRetryDelayMaxSecondsKey = "InvalidMonitoredItemRetryDelayMaxSeconds";
+        public const string BadMonitoredItemRetryDelayMaxSecondsKey = "BadMonitoredItemRetryDelayMaxSeconds";
         public const string SubscriptionManagementIntervalSecondsKey = "SubscriptionManagementIntervalSeconds";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
@@ -157,6 +159,36 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                 {
                     options.InvalidMonitoredItemRetryDelayDuration =
                         TimeSpan.FromSeconds(retryTimeout.Value);
+                }
+            }
+
+            if (options.BadMonitoredItemRetryDelayDurationMax == null)
+            {
+                var retryTimeout = GetIntOrNull(BadMonitoredItemRetryDelayMaxSecondsKey);
+                if (retryTimeout.HasValue)
+                {
+                    options.BadMonitoredItemRetryDelayDurationMax =
+                        TimeSpan.FromSeconds(retryTimeout.Value);
+                    if (options.BadMonitoredItemRetryDelayDuration == null)
+                    {
+                        options.BadMonitoredItemRetryDelayDuration =
+                            TimeSpan.FromSeconds(2);
+                    }
+                }
+            }
+
+            if (options.InvalidMonitoredItemRetryDelayDurationMax == null)
+            {
+                var retryTimeout = GetIntOrNull(InvalidMonitoredItemRetryDelayMaxSecondsKey);
+                if (retryTimeout.HasValue)
+                {
+                    options.InvalidMonitoredItemRetryDelayDurationMax =
+                        TimeSpan.FromSeconds(retryTimeout.Value);
+                    if (options.InvalidMonitoredItemRetryDelayDuration == null)
+                    {
+                        options.InvalidMonitoredItemRetryDelayDuration =
+                            TimeSpan.FromSeconds(2);
+                    }
                 }
             }
 

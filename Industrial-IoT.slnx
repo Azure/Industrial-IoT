@@ -1,0 +1,28 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+  </Configurations>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Azure.IIoT.OpcUa.Publisher.Models/src/Azure.IIoT.OpcUa.Publisher.Models.csproj" />
+    <Project Path="src/Azure.IIoT.OpcUa.Publisher.Module/src/Azure.IIoT.OpcUa.Publisher.Module.csproj" />
+    <Project Path="src/Azure.IIoT.OpcUa.Publisher.Sdk/src/Azure.IIoT.OpcUa.Publisher.Sdk.csproj" />
+    <Project Path="src/Azure.IIoT.OpcUa.Publisher.Testing/src/Azure.IIoT.OpcUa.Publisher.Testing.Servers.csproj" />
+    <Project Path="src/Azure.IIoT.OpcUa.Publisher.Testing/tests/Azure.IIoT.OpcUa.Publisher.Testing.csproj" />
+    <Project Path="src/Azure.IIoT.OpcUa.Publisher/src/Azure.IIoT.OpcUa.Publisher.csproj" />
+    <Project Path="src/Azure.IIoT.OpcUa/src/Azure.IIoT.OpcUa.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="src/Azure.IIoT.OpcUa.Publisher.Models/tests/Azure.IIoT.OpcUa.Publisher.Models.Tests.csproj" />
+    <Project Path="src/Azure.IIoT.OpcUa.Publisher.Module/tests/Azure.IIoT.OpcUa.Publisher.Module.Tests.csproj" />
+    <Project Path="src/Azure.IIoT.OpcUa.Publisher/tests/Azure.IIoT.OpcUa.Publisher.Tests.csproj" />
+    <Project Path="src/Azure.IIoT.OpcUa/tests/Azure.IIoT.OpcUa.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="src/Azure.IIoT.OpcUa.Publisher.Module/cli/Azure.IIoT.OpcUa.Publisher.Module.Cli.csproj" />
+    <Project Path="src/Azure.IIoT.OpcUa.Publisher.Testing/cli/Azure.IIoT.OpcUa.Publisher.Testing.Cli.csproj" />
+  </Folder>
+</Solution>

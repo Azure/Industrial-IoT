@@ -124,7 +124,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                                         Id = Guid.NewGuid().ToString("N"),
                                         Source = new Uri("urn:" + _options.Value.PublisherId),
                                         Subject = progress.EventType.ToString(),
-                                        Type = MessageSchemaTypes.DiscoveryMessage,
+                                        Type = MessageSchemaTypes.DiscoveryMessage
                                     });
                                 }
                                 else

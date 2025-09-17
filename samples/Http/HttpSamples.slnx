@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="BrowseAll/BrowseAll.csproj" />
+  <Project Path="GetConfiguration/GetConfiguration.csproj" />
+  <Project Path="GetDiagnostics/GetDiagnostics.csproj" />
+  <Project Path="ReadCurrentTime/ReadCurrentTime.csproj" />
+  <Project Path="SetConfiguration/SetConfiguration.csproj" />
+  <Project Path="WriteReadbackValue/WriteReadbackValue.csproj" />
+</Solution>

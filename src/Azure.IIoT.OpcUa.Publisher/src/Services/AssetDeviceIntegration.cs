@@ -1999,7 +1999,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var request = new DiscoveryRequestModel
             {
                 Discovery = _options.Value.AioNetworkDiscoveryMode.Value,
-                Configuration = _options.Value.AioNetworkDiscovery,
+                Configuration = _options.Value.AioNetworkDiscovery
             };
             GetEndpointTypeAndVersion(out var endpointType, out var endpointTypeVersion);
             while (!ct.IsCancellationRequested)

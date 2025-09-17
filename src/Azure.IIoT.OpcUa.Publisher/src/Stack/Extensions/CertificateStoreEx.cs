@@ -12,6 +12,8 @@ namespace Opc.Ua
     using System.Diagnostics;
     using System.Linq;
     using System.Security.Cryptography.X509Certificates;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Certificate store extensions
@@ -24,19 +26,20 @@ namespace Opc.Ua
         /// <param name="store"></param>
         /// <param name="certificates"></param>
         /// <param name="noCopy"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="certificates"/>
         /// is <c>null</c>.</exception>
-        public static void Add(this ICertificateStore store,
+        public static async Task AddAsync(this ICertificateStore store,
             IEnumerable<X509Certificate2> certificates,
-            bool noCopy = false)
+            bool noCopy = false, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(certificates);
             foreach (var cert in certificates)
             {
-                Try.Op(() => store.Delete(cert.Thumbprint));
+                await Try.Async(() => store.DeleteAsync(cert.Thumbprint, ct)).ConfigureAwait(false);
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                store.Add(noCopy ? cert : new X509Certificate2(cert));
+                await store.AddAsync(noCopy ? cert : new X509Certificate2(cert), ct: ct).ConfigureAwait(false);
 #pragma warning restore CA2000 // Dispose objects before losing scope
             }
         }
@@ -46,16 +49,17 @@ namespace Opc.Ua
         /// </summary>
         /// <param name="store"></param>
         /// <param name="certificates"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="certificates"/>
         /// is <c>null</c>.</exception>
-        public static void Remove(this ICertificateStore store,
-            IEnumerable<X509Certificate2> certificates)
+        public static async Task RemoveAsync(this ICertificateStore store,
+            IEnumerable<X509Certificate2> certificates, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(certificates);
             foreach (var cert in certificates)
             {
-                store.Delete(cert.Thumbprint);
+                await store.DeleteAsync(cert.Thumbprint, ct).ConfigureAwait(false);
             }
         }
 

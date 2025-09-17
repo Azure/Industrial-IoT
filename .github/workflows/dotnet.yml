@@ -10,7 +10,7 @@ jobs:
     strategy:
       matrix:
         solution:
-          - '**/*.sln'
+          - '**/*.slnx'
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4

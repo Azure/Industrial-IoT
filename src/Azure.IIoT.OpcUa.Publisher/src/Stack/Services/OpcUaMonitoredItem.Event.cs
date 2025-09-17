@@ -540,23 +540,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Debug.Assert(Template != null);
                 var typeDefinitionId = Template.EventFilter.TypeDefinitionId.ToNodeId(
                     session.MessageContext);
-                var nodes = new List<Node>();
-                ExpandedNodeId? superType = null;
-                var typeDefinitionNode = await session.NodeCache.FetchNodeAsync(typeDefinitionId,
+                var nodes = new List<INode>();
+                NodeId? superType = null;
+                var typeDefinitionNode = await session.LruNodeCache.GetNodeAsync(typeDefinitionId,
                     ct).ConfigureAwait(false);
                 nodes.Insert(0, typeDefinitionNode);
-                do
+                while (true)
                 {
-                    superType = nodes[0].GetSuperType(session.TypeTree);
-                    if (superType != null)
+                    superType = await session.LruNodeCache.GetSuperTypeAsync(nodes[0].NodeId, ct)
+                        .ConfigureAwait(false);
+                    if (Opc.Ua.NodeId.IsNull(superType))
                     {
-                        typeDefinitionNode = await session.NodeCache.FetchNodeAsync(superType,
-                            ct).ConfigureAwait(false);
-                        nodes.Insert(0, typeDefinitionNode);
+                        break;
                     }
+                    typeDefinitionNode = await session.LruNodeCache.GetNodeAsync(superType,
+                        ct).ConfigureAwait(false);
+                    nodes.Insert(0, typeDefinitionNode);
                 }
-                while (superType != null);
-
                 var fieldNames = new List<QualifiedName>();
 
                 foreach (var node in nodes)
@@ -608,7 +608,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="ct"></param>
             /// <returns></returns>
             private static async ValueTask<INode?> FindNodeWithBrowsePathAsync(IOpcUaSession session,
-                QualifiedNameCollection browsePath, ExpandedNodeId nodeId, CancellationToken ct)
+                QualifiedNameCollection browsePath, NodeId nodeId, CancellationToken ct)
             {
                 INode? found = null;
                 foreach (var browseName in browsePath)
@@ -616,25 +616,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     found = null;
                     while (found == null)
                     {
-                        found = await session.NodeCache.FindAsync(nodeId, ct).ConfigureAwait(false);
-                        if (found is not Node node)
-                        {
-                            return null;
-                        }
+                        found = await session.LruNodeCache.GetNodeAsync(nodeId, ct).ConfigureAwait(false);
 
                         //
-                        // Get all hierarchical references of the node and
-                        // match browse name
+                        // Get all hierarchical references of the node and match browse name
                         //
-                        foreach (var reference in node.ReferenceTable.Find(
-                            ReferenceTypeIds.HierarchicalReferences, false,
-                                true, session.TypeTree))
+                        var references = await session.LruNodeCache.GetReferencesAsync(nodeId,
+                            ReferenceTypeIds.HierarchicalReferences, false, true, ct).ConfigureAwait(false);
+                        foreach (var reference in references)
                         {
-                            var target = await session.NodeCache.FindAsync(reference.TargetId,
-                                ct).ConfigureAwait(false);
+                            var target = await session.LruNodeCache.GetNodeAsync(reference.NodeId, ct).ConfigureAwait(false);
                             if (target?.BrowseName == browseName)
                             {
-                                nodeId = target.NodeId;
                                 found = target;
                                 break;
                             }
@@ -643,8 +636,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         if (found == null)
                         {
                             // Try super type
-                            nodeId = await session.TypeTree.FindSuperTypeAsync(nodeId,
-                                ct).ConfigureAwait(false);
+                            nodeId = await session.LruNodeCache.GetSuperTypeAsync(nodeId, ct).ConfigureAwait(false);
                             if (Opc.Ua.NodeId.IsNull(nodeId))
                             {
                                 // Nothing can be found since there is no more super type
@@ -652,7 +644,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             }
                         }
                     }
-                    nodeId = found.NodeId;
+                    nodeId = ExpandedNodeId.ToNodeId(found.NodeId, session.MessageContext.NamespaceUris);
                 }
                 return found;
             }
@@ -667,32 +659,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="browsePathPrefix"></param>
             /// <param name="ct"></param>
             protected static async ValueTask ParseFieldsAsync(IOpcUaSession session, List<QualifiedName> fieldNames,
-                Node node, string browsePathPrefix, CancellationToken ct)
+                INode node, string browsePathPrefix, CancellationToken ct)
             {
-                foreach (var reference in node.ReferenceTable)
+                var references = await session.LruNodeCache.GetReferencesAsync(node.NodeId, ReferenceTypeIds.HasComponent,
+                    false, true, ct).ConfigureAwait(false);
+                foreach (var reference in references)
                 {
-                    if (reference.ReferenceTypeId == ReferenceTypeIds.HasComponent &&
-                        !reference.IsInverse)
+                    var componentNode = await session.LruNodeCache.GetNodeAsync(reference.NodeId, ct).ConfigureAwait(false);
+                    if (componentNode.NodeClass == Opc.Ua.NodeClass.Variable)
                     {
-                        var componentNode = await session.NodeCache.FetchNodeAsync(reference.TargetId,
-                            ct).ConfigureAwait(false);
-                        if (componentNode.NodeClass == Opc.Ua.NodeClass.Variable)
-                        {
-                            var fieldName = browsePathPrefix + componentNode.BrowseName.Name;
-                            fieldNames.Add(new QualifiedName(
-                                fieldName, componentNode.BrowseName.NamespaceIndex));
-                            await ParseFieldsAsync(session, fieldNames, componentNode,
-                                $"{fieldName}|", ct).ConfigureAwait(false);
-                        }
-                    }
-                    else if (reference.ReferenceTypeId == ReferenceTypeIds.HasProperty)
-                    {
-                        var propertyNode = await session.NodeCache.FetchNodeAsync(reference.TargetId,
-                            ct).ConfigureAwait(false);
-                        var fieldName = browsePathPrefix + propertyNode.BrowseName.Name;
+                        var fieldName = browsePathPrefix + componentNode.BrowseName.Name;
                         fieldNames.Add(new QualifiedName(
-                            fieldName, propertyNode.BrowseName.NamespaceIndex));
+                            fieldName, componentNode.BrowseName.NamespaceIndex));
+                        await ParseFieldsAsync(session, fieldNames, componentNode,
+                            $"{fieldName}|", ct).ConfigureAwait(false);
                     }
+                }
+                references = await session.LruNodeCache.GetReferencesAsync(node.NodeId, ReferenceTypeIds.HasProperty,
+                    false, false, ct).ConfigureAwait(false);
+                foreach (var reference in references)
+                {
+                    var propertyNode = await session.LruNodeCache.GetNodeAsync(reference.NodeId, ct).ConfigureAwait(false);
+                    var fieldName = browsePathPrefix + propertyNode.BrowseName.Name;
+                    fieldNames.Add(new QualifiedName(
+                        fieldName, propertyNode.BrowseName.NamespaceIndex));
                 }
             }
         }

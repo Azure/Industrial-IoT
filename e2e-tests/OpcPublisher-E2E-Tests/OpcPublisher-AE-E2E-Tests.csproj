@@ -10,23 +10,23 @@
     <None Remove="TestResults\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Azure.Identity" Version="1.14.2" />
-    <PackageReference Include="Azure.Core" Version="1.47.1" />
+    <PackageReference Include="Azure.Identity" Version="1.16.0" />
+    <PackageReference Include="Azure.Core" Version="1.48.0" />
     <PackageReference Include="Azure.Messaging.EventHubs" Version="5.12.2" />
     <PackageReference Include="Azure.ResourceManager.ContainerInstance" Version="1.2.1" />
-    <PackageReference Include="Azure.ResourceManager.Storage" Version="1.4.3" />
+    <PackageReference Include="Azure.ResourceManager.Storage" Version="1.4.4" />
     <PackageReference Include="Azure.Storage.Files.Shares" Version="12.23.0" />
     <PackageReference Include="FluentAssertions" Version="[7.2.0]" />
-    <PackageReference Include="Azure.ResourceManager" Version="1.13.1" />
+    <PackageReference Include="Azure.ResourceManager" Version="1.13.2" />
     <PackageReference Include="Neovolve.Logging.Xunit" Version="6.3.0" />
-    <PackageReference Include="System.Text.Json" Version="9.0.7" />
+    <PackageReference Include="System.Text.Json" Version="9.0.9" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Include="Microsoft.Azure.Devices" Version="1.40.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="9.0.7" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="9.0.9" />
     <PackageReference Include="SSH.NET" Version="2025.0.0" />
     <PackageReference Include="System.Linq.Async" Version="6.0.3" />
     <PackageReference Include="xunit" Version="2.9.3" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.2">
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>

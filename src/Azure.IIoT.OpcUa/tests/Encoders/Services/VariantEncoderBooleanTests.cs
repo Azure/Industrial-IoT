@@ -427,7 +427,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 { { true, false, true }, { true, false, true }, { true, false, true } }
             });
             var variant = codec.Decode(str, BuiltInType.Null);
-            var expected = new Variant(new bool[,,] {
+            var expected = new Variant((object)new bool[,,] {
                     { { true, false, true }, { true, false, true }, { true, false, true } },
                     { { true, false, true }, { true, false, true }, { true, false, true } },
                     { { true, false, true }, { true, false, true }, { true, false, true } },
@@ -452,7 +452,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 { { true, false, true }, { true, false, true }, { true, false, true } }
             });
             var variant = codec.Decode(str, BuiltInType.Boolean);
-            var expected = new Variant(new bool[,,] {
+            var expected = new Variant((object)new bool[,,] {
                     { { true, false, true }, { true, false, true }, { true, false, true } },
                     { { true, false, true }, { true, false, true }, { true, false, true } },
                     { { true, false, true }, { true, false, true }, { true, false, true } },
@@ -481,7 +481,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
             });
             var variant = codec.Decode(str, BuiltInType.Variant);
-            var expected = new Variant(new bool[,,] {
+            var expected = new Variant((object)new bool[,,] {
                     { { true, false, true }, { true, false, true }, { true, false, true } },
                     { { true, false, true }, { true, false, true }, { true, false, true } },
                     { { true, false, true }, { true, false, true }, { true, false, true } },
@@ -510,7 +510,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
             });
             var variant = codec.Decode(str, BuiltInType.Variant);
-            var expected = new Variant(new bool[,,] {
+            var expected = new Variant((object)new bool[,,] {
                     { { true, false, true }, { true, false, true }, { true, false, true } },
                     { { true, false, true }, { true, false, true }, { true, false, true } },
                     { { true, false, true }, { true, false, true }, { true, false, true } },
@@ -539,7 +539,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
             });
             var variant = codec.Decode(str, BuiltInType.Null);
-            var expected = new Variant(new bool[,,] {
+            var expected = new Variant((object)new bool[,,] {
                     { { true, false, true }, { true, false, true }, { true, false, true } },
                     { { true, false, true }, { true, false, true }, { true, false, true } },
                     { { true, false, true }, { true, false, true }, { true, false, true } },
@@ -568,7 +568,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
             });
             var variant = codec.Decode(str, BuiltInType.Null);
-            var expected = new Variant(new bool[,,] {
+            var expected = new Variant((object)new bool[,,] {
                     { { true, false, true }, { true, false, true }, { true, false, true } },
                     { { true, false, true }, { true, false, true }, { true, false, true } },
                     { { true, false, true }, { true, false, true }, { true, false, true } },

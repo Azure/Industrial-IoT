@@ -137,5 +137,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// Limit max nodes to browse in a batch operation
         /// </summary>
         public int? MaxNodesPerBrowseOverride { get; set; }
+
+        /// <summary>
+        /// Node cache timeout
+        /// </summary>
+        public TimeSpan? NodeCacheTimeout { get; set; }
+
+        /// <summary>
+        /// Node cache capacity
+        /// </summary>
+        public int? NodeCacheCapacity { get; set; }
     }
 }

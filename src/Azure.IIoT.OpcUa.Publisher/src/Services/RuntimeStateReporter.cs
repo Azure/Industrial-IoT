@@ -424,7 +424,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                     Id = Guid.NewGuid().ToString("N"),
                                     Source = new Uri("urn:" + _options.Value.PublisherId),
                                     Subject = runtimeStateEvent.MessageType.ToString(),
-                                    Type = MessageSchemaTypes.RuntimeStateMessage,
+                                    Type = MessageSchemaTypes.RuntimeStateMessage
                                 });
                             }
                             else
@@ -507,7 +507,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         [PublisherConfig.WriterGroupVariableName] =
                             id.Item2 ?? Constants.DefaultWriterGroupName,
                         [PublisherConfig.EncodingVariableName] =
-                            MessageEncoding.Json.ToString(),
+                            MessageEncoding.Json.ToString()
                         // ...
                     }).DiagnosticsTopic);
 
@@ -531,7 +531,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         Id = Guid.NewGuid().ToString("N"),
                                         Source = new Uri("urn:" + _options.Value.PublisherId),
                                         Subject = info.WriterGroupName,
-                                        Type = MessageSchemaTypes.WriterGroupDiagnosticsMessage,
+                                        Type = MessageSchemaTypes.WriterGroupDiagnosticsMessage
                                     });
                                 }
                                 else

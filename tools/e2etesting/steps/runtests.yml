@@ -85,12 +85,12 @@ steps:
     command: restore
     feedsToUse: config
     nugetConfigPath: '$(Build.SourcesDirectory)/nuget.config'
-    projects: '$(BasePath)\e2e-tests\IIoTPlatform-E2E-Tests.sln'
+    projects: '$(BasePath)\e2e-tests\IIoTPlatform-E2E-Tests.slnx'
 - task: DotNetCoreCLI@2
   displayName: 'Build xUnit tests'
   inputs:
     command: build
-    projects: '$(BasePath)\e2e-tests\IIoTPlatform-E2E-Tests.sln'
+    projects: '$(BasePath)\e2e-tests\IIoTPlatform-E2E-Tests.slnx'
     arguments: '--configuration Release'
 - task: DotNetCoreCLI@2
   displayName: 'Executing xUnit tests (with ${{ parameters.ModeName }}=${{ parameters.ModeValue }})'
@@ -98,7 +98,7 @@ steps:
   retryCountOnTaskFailure: 1
   inputs:
     command: test
-    projects: '$(TestPath)\IIoTPlatform-E2E-Tests.sln'
+    projects: '$(TestPath)\IIoTPlatform-E2E-Tests.slnx'
     arguments: '--configuration Release --filter ${{ parameters.ModeName }}=${{ parameters.ModeValue }} --verbosity=normal --logger "console;verbosity=detailed" --logger trx'
   env:
     ApplicationName: '$(ApplicationName)'

@@ -8,6 +8,8 @@ namespace Opc.Ua
     using System;
     using System.Collections.Generic;
     using System.Security.Cryptography.X509Certificates;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Certificate trust list extensions
@@ -19,14 +21,15 @@ namespace Opc.Ua
         /// </summary>
         /// <param name="trustList"></param>
         /// <param name="certificates"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="certificates"/> is <c>null</c>.</exception>
-        public static void Remove(this CertificateTrustList trustList,
-            IEnumerable<X509Certificate2> certificates)
+        public static async Task RemoveAsync(this CertificateTrustList trustList,
+            IEnumerable<X509Certificate2> certificates, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(certificates);
             using var trustedStore = trustList.OpenStore();
-            trustedStore.Remove(certificates);
+            await trustedStore.RemoveAsync(certificates, ct).ConfigureAwait(false);
             foreach (var cert in certificates)
             {
                 trustList.TrustedCertificates.Remove(new CertificateIdentifier(cert));
@@ -39,14 +42,16 @@ namespace Opc.Ua
         /// <param name="trustList"></param>
         /// <param name="certificates"></param>
         /// <param name="noCopy"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="certificates"/> is <c>null</c>.</exception>
-        public static void Add(this CertificateTrustList trustList,
-            IEnumerable<X509Certificate2> certificates, bool noCopy = false)
+        public static async Task AddAsync(this CertificateTrustList trustList,
+            IEnumerable<X509Certificate2> certificates, bool noCopy = false,
+            CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(certificates);
             using var trustedStore = trustList.OpenStore();
-            trustedStore.Add(certificates, noCopy);
+            await trustedStore.AddAsync(certificates, noCopy, ct: ct).ConfigureAwait(false);
             foreach (var cert in certificates)
             {
 #pragma warning disable CA2000 // Dispose objects before losing scope

@@ -1,0 +1,16 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+  </Configurations>
+  <Folder Name="/Dependencies/" />
+  <Folder Name="/Dependencies/src/">
+    <Project Path="../src/Azure.IIoT.OpcUa.Publisher.Models/src/Azure.IIoT.OpcUa.Publisher.Models.csproj" />
+    <Project Path="../src/Azure.IIoT.OpcUa.Publisher.Sdk/src/Azure.IIoT.OpcUa.Publisher.Sdk.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path="../tools/e2etesting/GetSecrets.ps1" />
+    <File Path=".env" />
+  </Folder>
+  <Project Path="OpcPublisher-E2E-Tests/OpcPublisher-AE-E2E-Tests.csproj" />
+</Solution>

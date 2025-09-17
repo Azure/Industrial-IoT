@@ -39,6 +39,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public ISessionServices Services => this;
 
+        /// <inheritdoc/>
+        public ILruNodeCache LruNodeCache { get; }
+
         /// <summary>
         /// Time the session was created
         /// </summary>
@@ -101,6 +104,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _client = client;
             _serializer = serializer;
             _timeProvider = timeProvider;
+            LruNodeCache = new LruNodeCache(this,
+                client.NodeCacheTimeout, client.NodeCacheCapacity, true);
             CreatedAt = _timeProvider.GetUtcNow();
 
             Initialize();
@@ -122,6 +127,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _client = session._client;
             _serializer = session._serializer;
             _timeProvider = session._timeProvider;
+            LruNodeCache = session.LruNodeCache;
             CreatedAt = _timeProvider.GetUtcNow();
 
             _complexTypeSystem = session._complexTypeSystem;
@@ -144,11 +150,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             if (disposing)
             {
-                var nodeCache = NodeCache;
-                if (nodeCache != null)
-                {
-                    nodeCache.Clear();
-                }
+                NodeCache?.Clear();
+                LruNodeCache.Clear();
 
                 _client.OnSessionClosing(this);
             }
@@ -1291,11 +1294,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Debug.Assert(!_client.DisableComplexTypeLoading);
             return Task.Run(async () =>
             {
-                var nodeCache = NodeCache;
                 if (Connected)
                 {
-                    var complexTypeSystem = new ComplexTypeSystem(this);
-                    await complexTypeSystem.Load().ConfigureAwait(false);
+                    var complexTypeSystem = new ComplexTypeSystem(new NodeCacheResolver(LruNodeCache));
+                    await complexTypeSystem.LoadAsync(ct: _cts.Token).ConfigureAwait(false);
 
                     if (Connected)
                     {

@@ -172,5 +172,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// misconfigured.
         /// </summary>
         public TimeSpan? InvalidMonitoredItemRetryDelayDuration { get; set; }
+
+        /// <summary>
+        /// The max interval to use for bad monitored items.
+        /// In this case exponential backoff is used.
+        /// </summary>
+        public TimeSpan? BadMonitoredItemRetryDelayDurationMax { get; set; }
+
+        /// <summary>
+        /// The max interval to use for invalid monitored items.
+        /// In this case exponential backoff is used.
+        /// </summary>
+        public TimeSpan? InvalidMonitoredItemRetryDelayDurationMax { get; set; }
     }
 }

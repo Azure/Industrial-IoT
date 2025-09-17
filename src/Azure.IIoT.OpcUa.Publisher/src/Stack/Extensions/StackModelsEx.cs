@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Threading.Tasks;
+    using System.Threading;
 
     /// <summary>
     /// Stack models extensions
@@ -298,10 +299,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// </summary>
         /// <param name="credential"></param>
         /// <param name="configuration"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         /// <exception cref="ServiceResultException"></exception>
-        public static async ValueTask<IUserIdentity> ToUserIdentityAsync(
-            this CredentialModel? credential, ApplicationConfiguration configuration)
+        public static async ValueTask<IUserIdentity> ToUserIdentityAsync(this CredentialModel? credential,
+            ApplicationConfiguration configuration, CancellationToken ct = default)
         {
             if (credential == null || credential.Type == CredentialType.None)
             {
@@ -325,10 +327,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                     {
                         using var users = configuration.SecurityConfiguration
                             .TrustedUserCertificates.OpenStore();
-#pragma warning disable CS0618 // Type or member is obsolete /* TODO add rsa/ecc*/
-                        var userCertWithPrivateKey = await users.LoadPrivateKey(
-                            thumbprint, subjectName, passCode).ConfigureAwait(false);
-#pragma warning restore CS0618 // Type or member is obsolete
+                        var userCertWithPrivateKey = await users.LoadPrivateKeyAsync(thumbprint, subjectName,
+                            null, null /* TODO add rsa/ecc*/, passCode, ct).ConfigureAwait(false);
                         if (userCertWithPrivateKey == null)
                         {
                             throw new ServiceResultException(StatusCodes.BadCertificateInvalid,

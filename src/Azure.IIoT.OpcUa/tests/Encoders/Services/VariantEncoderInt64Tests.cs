@@ -499,12 +499,12 @@ namespace Azure.IIoT.OpcUa.Encoders
                 { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } }
             });
             var variant = codec.Decode(str, BuiltInType.Null);
-            var expected = new Variant(new long[,,] {
-                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
-                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
-                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
-                    { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } }
-                });
+            var expected = new Variant((object)new long[,,] {
+                { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
+                { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } }
+            });
             var encoded = codec.Encode(variant);
             Assert.NotNull(encoded);
             Assert.True(expected.Value is Matrix);
@@ -524,7 +524,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } }
             });
             var variant = codec.Decode(str, BuiltInType.Int64);
-            var expected = new Variant(new long[,,] {
+            var expected = new Variant((object)new long[,,] {
                     { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
                     { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
                     { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
@@ -553,7 +553,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
             });
             var variant = codec.Decode(str, BuiltInType.Variant);
-            var expected = new Variant(new long[,,] {
+            var expected = new Variant((object)new long[,,] {
                     { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
                     { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
                     { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
@@ -582,7 +582,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
             });
             var variant = codec.Decode(str, BuiltInType.Variant);
-            var expected = new Variant(new long[,,] {
+            var expected = new Variant((object)new long[,,] {
                     { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
                     { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
                     { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
@@ -611,7 +611,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
             });
             var variant = codec.Decode(str, BuiltInType.Null);
-            var expected = new Variant(new long[,,] {
+            var expected = new Variant((object)new long[,,] {
                     { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
                     { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
                     { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
@@ -640,7 +640,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
             });
             var variant = codec.Decode(str, BuiltInType.Null);
-            var expected = new Variant(new long[,,] {
+            var expected = new Variant((object)new long[,,] {
                     { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
                     { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },
                     { { 123L, -124L, -125L }, { 123L, -124L, -125L }, { 123L, -124L, -125L } },

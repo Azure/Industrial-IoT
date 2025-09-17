@@ -499,7 +499,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } }
             });
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.UInt16);
-            var expected = new Variant(new ushort[,,] {
+            var expected = new Variant((object)new ushort[,,] {
                     { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
                     { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
                     { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
@@ -528,7 +528,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
             });
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.Variant);
-            var expected = new Variant(new ushort[,,] {
+            var expected = new Variant((object)new ushort[,,] {
                     { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
                     { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
                     { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
@@ -557,7 +557,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
             });
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.Variant);
-            var expected = new Variant(new ushort[,,] {
+            var expected = new Variant((object)new ushort[,,] {
                     { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
                     { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
                     { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
@@ -586,7 +586,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
             });
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.Null);
-            var expected = new Variant(new ushort[,,] {
+            var expected = new Variant((object)new ushort[,,] {
                     { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
                     { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
                     { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
@@ -615,7 +615,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 }
             });
             var variant = codec.Decode(_serializer.FromObject(str), BuiltInType.Null);
-            var expected = new Variant(new ushort[,,] {
+            var expected = new Variant((object)new ushort[,,] {
                     { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
                     { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
                     { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },

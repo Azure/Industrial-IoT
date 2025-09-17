@@ -226,9 +226,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 // Get the max item per subscription as well as max
                 var caps = await session.GetServerCapabilitiesAsync(
                     NamespaceFormat.Uri, ct).ConfigureAwait(false);
-                var delay = await subscription.SyncAsync(caps.MaxMonitoredItemsPerSubscription,
+                await subscription.SyncAsync(caps.MaxMonitoredItemsPerSubscription,
                     caps.OperationLimits, ct).ConfigureAwait(false);
-                RescheduleSynchronization(delay);
             }
             catch (Exception ex)
             {
@@ -347,13 +346,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                 session.AddSubscription(subscription);
 
                                 // Sync the subscription which will get it to go live.
-                                var delay = await subscription.SyncAsync(maxMonitoredItems,
+                                await subscription.SyncAsync(maxMonitoredItems,
                                     caps.OperationLimits, ct).ConfigureAwait(false);
                                 Interlocked.Increment(ref additions);
                                 Debug.Assert(session == subscription.Session);
 
                                 s2r[add].ForEach(r => r.Dirty = false);
-                                return delay;
+                                return TimeSpan.MaxValue;
                             }
                             catch (OperationCanceledException)
                             {
@@ -375,12 +374,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             try
                             {
                                 var subscription = existing[update];
-                                var delay = await subscription.SyncAsync(maxMonitoredItems,
+                                await subscription.SyncAsync(maxMonitoredItems,
                                     caps.OperationLimits, ct).ConfigureAwait(false);
                                 Interlocked.Increment(ref updates);
                                 Debug.Assert(session == subscription.Session);
                                 s2r[update].ForEach(r => r.Dirty = false);
-                                return delay;
+                                return TimeSpan.MaxValue;
                             }
                             catch (OperationCanceledException)
                             {
@@ -473,7 +472,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             var nextSync = _timeProvider.GetUtcNow() + delay;
-            if (nextSync <= _nextSync)
+            if (_nextSync == null || nextSync <= _nextSync)
             {
                 _logger.RescheduleSync(nextSync, delay.TotalMilliseconds);
                 _nextSync = nextSync;
@@ -646,7 +645,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private readonly OpcUaClient _outer;
         }
 
-        private DateTimeOffset _nextSync;
+        private DateTimeOffset? _nextSync;
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private readonly SemaphoreSlim _subscriptionLock = new(1, 1);
         private readonly ITimer _resyncTimer;
