@@ -775,6 +775,9 @@ namespace Azure.IIoT.OpcUa.Encoders
                         return ReadExtensionObjectArray(fieldName).ToArray();
                     case BuiltInType.DiagnosticInfo:
                         return ReadDiagnosticInfoArray(fieldName).ToArray();
+                    case BuiltInType.Null:
+                        ArgumentNullException.ThrowIfNull(systemType);
+                        return ReadEncodeableArray(fieldName, systemType);
                     default:
                         throw new DecodingException(
                             $"Cannot decode unknown type in Array object with BuiltInType: {builtInType}.");
