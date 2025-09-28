@@ -201,38 +201,45 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             Debug.Assert(deviceName != null);
             Debug.Assert(endpoint != null);
 
-            List<AssetDatasetEventStreamStatus>? dataSetStatus = null;
-            List<AssetDatasetEventStreamStatus>? eventStatus = null;
+            AssetDatasetEventStreamStatus? dataSetStatus = null;
+            AssetEventGroupStatus? eventGroupStatus = null;
             var dataSet = assetResource.Asset.Datasets?.Find(d => d.Name == resourceName);
             if (dataSet != null)
             {
-                dataSetStatus = [new AssetDatasetEventStreamStatus
+                dataSetStatus = new AssetDatasetEventStreamStatus
                 {
                     Name = dataSet.Name,
                     MessageSchemaReference = reference
-                }];
+                };
             }
             else
             {
-                var @event = assetResource.Asset.Events?.Find(e => e.Name == resourceName);
+                var @event = assetResource.Asset.EventGroups?
+                    .Select(eg => (eg, eg.Events?.Find(e => e.Name == resourceName)!))
+                    .FirstOrDefault(t => t.Item2 != null);
                 if (@event != null)
                 {
-                    eventStatus = [new AssetDatasetEventStreamStatus
+                    eventGroupStatus = new AssetEventGroupStatus
                     {
-                        Name = @event.Name,
-                        MessageSchemaReference = reference
-                    }];
+                        Events = [
+                            new AssetDatasetEventStreamStatus
+                            {
+                                Name = @event.Value.Item2.Name,
+                                MessageSchemaReference = reference
+                            }
+                        ]
+                    };
                 }
             }
-            if (eventStatus == null && dataSetStatus == null)
+            if (eventGroupStatus == null && dataSetStatus == null)
             {
                 _logger.NoResourceFoundInAssetForSchema(resourceName, assetName, schema.Name);
                 return;
             }
             await _client.UpdateAssetStatusAsync(deviceName, endpoint, assetName, new AssetStatus
             {
-                Datasets = dataSetStatus,
-                Events = eventStatus
+                Datasets = dataSetStatus != null ? [dataSetStatus] : null,
+                EventGroups = eventGroupStatus != null ? [eventGroupStatus] : null
             }, ct: ct).ConfigureAwait(false);
 
             _logger.RegisteredSchema(registration.Name, registration.Version, resourceName,
@@ -701,7 +708,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     })
                     .Where(d => d.OpcNodes!.Count > 0)
                     .ToList();
-                var distinctEvents = distinctEntries
+                var distinctEventGroups = distinctEntries
                     .Select(entry => entry with
                     {
                         OpcNodes = entry.OpcNodes!
@@ -709,7 +716,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 n.MethodMetadata == null)
                             .ToList(),
                     })
-                    .SelectMany(d => d.OpcNodes!.Select(n => d with { OpcNodes = [n] }))
+                    .Where(d => d.OpcNodes!.Count > 0)
                     .ToList();
                 var distinctManagementGroups = distinctEntries
                     .Select(entry => entry with
@@ -732,10 +739,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         [kAssetIdAttribute] = assetId,
                         [kAssetNameAttribute] = assetName
                     },
-                    AssetName = uniqueAssetName,
-                    // ExternalAssetId = assetId,
-                    // DisplayName = assetName,
+                    // AssetName = uniqueAssetName,
+                    ExternalAssetId = assetId,
+                    DisplayName = assetName,
                     Model = assetName,
+                    Description = null, // TODO
                     AssetTypeRefs = [assetTypeRef],
                     DefaultDatasetsDestinations =
                     [
@@ -767,7 +775,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         DataSetConfiguration = null,
                         DataPoints = d.OpcNodes!.Select(n => new DiscoveredAssetDatasetDataPoint
                         {
-                            Name = n.DisplayName, // Name of property in message/schema
+                            Name = n.DisplayName!, // Name of property in message/schema
                             DataSource = n.Id!,
                             DataPointConfiguration = null,
                             TypeRef = n.TypeDefinitionId
@@ -791,52 +799,55 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         ]
 #endif
                     }),
-                    Events = distinctEvents.ConvertAll(d => new DetectedAssetEventSchemaElement
+                    EventGroups = distinctEventGroups.ConvertAll(d => new DiscoveredAssetEventGroup
                     {
-                        Name = GetAssetResourceName(d.DataSetName, d.OpcNodes![0].DisplayName),
-                        TypeRef = d.OpcNodes![0].TypeDefinitionId,
-                        EventNotifier = d.OpcNodes![0].Id!,
-                        EventConfiguration = _serializer.SerializeToString(new EventConfiguration
+                        Name = GetAssetResourceName(d.DataSetName),
+                        TypeRef = d.DataSetType,
+                        DataSource = d.DataSetRootNodeId,
+                        EventGroupConfiguration = null,
+                        DefaultEventsDestinations = null,
+                        Events = d.OpcNodes!.Select(n => new DiscoveredAssetEvent
                         {
-                            DataSource = d.DataSetRootNodeId,
-                            SourceName = d.DataSetName,
-                            EventName = d.OpcNodes![0].DisplayName
-                        }),
-                        Destinations =
-                        [
-                            new EventStreamDestination
+                            Name = GetAssetResourceName(d.DataSetName, n.DisplayName),
+                            TypeRef = n.TypeDefinitionId,
+                            DataSource = n.Id!,
+                            EventConfiguration = _serializer.SerializeToString(new EventConfiguration
                             {
-                                Target = EventStreamTarget.Mqtt,
-                                Configuration = new DestinationConfiguration
+                                EventName = n.DisplayName
+                            }),
+                            Destinations =
+                            [
+                                new EventStreamDestination
                                 {
-                                    Qos = _options.Value.DefaultQualityOfService
-                                        == Furly.Extensions.Messaging.QoS.AtMostOnce ? QoS.Qos0 : QoS.Qos1,
-                                    Topic = CreateTopic(d.OpcNodes![0].DisplayName),
-                                    Retain = _options.Value.DefaultMessageRetention
-                                        == true ? Retain.Keep : Retain.Never,
-                                    Ttl = (ulong?)_options.Value.DefaultMessageTimeToLive?.TotalSeconds
+                                    Target = EventStreamTarget.Mqtt,
+                                    Configuration = new DestinationConfiguration
+                                    {
+                                        Qos = _options.Value.DefaultQualityOfService
+                                            == Furly.Extensions.Messaging.QoS.AtMostOnce ? QoS.Qos0 : QoS.Qos1,
+                                        Topic = CreateTopic(n.DisplayName),
+                                        Retain = _options.Value.DefaultMessageRetention
+                                            == true ? Retain.Keep : Retain.Never,
+                                        Ttl = (ulong?)_options.Value.DefaultMessageTimeToLive?.TotalSeconds
+                                    }
                                 }
-                            }
-                        ]
+                            ]
+                        }).ToList()
                     }),
                     ManagementGroups = distinctManagementGroups.ConvertAll(d => new DiscoveredAssetManagementGroup
                     {
                         Name = GetAssetResourceName(d.DataSetName),
                         TypeRef = d.DataSetType,
-                        DefaultTimeOutInSeconds = null,
+                        DefaultTimeoutInSeconds = null,
+                        DataSource = d.DataSetRootNodeId,
                         DefaultTopic = null,
-                        ManagementGroupConfiguration = _serializer.SerializeToString(new ManagementGroupConfiguration
-                        {
-                            DataSource = d.DataSetRootNodeId
-                        }),
-                        // TODO: Could have a object id here or in action as "dataSource"
+                        ManagementGroupConfiguration = null,
                         Actions = d.OpcNodes!.Select(n => new DiscoveredAssetManagementGroupAction
                         {
                             Name = n.DisplayName!, // Name of command in schema
                             ActionType = AssetManagementGroupActionType.Call,
                             TargetUri = n.Id!, // Method id of the instance declaration
                             TypeRef = n.TypeDefinitionId, // Method type ref on the object type ref
-                            TimeOutInSeconds = null,
+                            TimeoutInSeconds = null,
                             Topic = CreateTopic(n.DisplayName),
                             ActionConfiguration = ConvertActionConfiguration(n.MethodMetadata!)
                         }).ToList()
@@ -1240,7 +1251,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         }
                     }
                 }
-                if (asset.Asset.Events != null)
+                if (asset.Asset.EventGroups != null)
                 {
                     var eventAdditionalConfiguration = Deserialize(asset.Asset.DefaultEventsConfiguration,
                         () => new PublishedNodesEntryModel { EndpointUrl = string.Empty },
@@ -1248,11 +1259,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     if (eventAdditionalConfiguration != null)
                     {
                         eventAdditionalConfiguration = WithEndpoint(eventAdditionalConfiguration, assetEndpoint);
-                        foreach (var @event in asset.Asset.Events)
+                        foreach (var eventGroup in asset.Asset.EventGroups)
                         {
-                            var eventResource = new EventResource(asset.AssetName, asset.Asset, @event);
-                            await AddEntryForEventAsync(eventAdditionalConfiguration, eventResource,
-                                entries, errors, ct).ConfigureAwait(false);
+                            if (eventGroup?.Events != null)
+                            {
+                                var eventGroupResource = new EventGroupResource(asset.AssetName, asset.Asset, eventGroup);
+                                foreach (var @event in eventGroup.Events)
+                                {
+                                    var eventResource = new EventResource(asset.AssetName, asset.Asset, eventGroup, @event);
+                                    await AddEntryForEventAsync(eventAdditionalConfiguration, eventResource,
+                                        entries, errors, ct).ConfigureAwait(false);
+                                }
+                            }
                         }
                     }
                 }
@@ -1504,7 +1522,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             // Create the single event node here
             var node = new OpcNodeModel
             {
-                Id = resource.Event.EventNotifier,
+                Id = resource.Event.DataSource,
                 DisplayName = resource.Event.Name,
                 DataSetFieldId = resource.Event.Name,
                 TypeDefinitionId = resource.Event.TypeRef,
@@ -1517,33 +1535,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             };
 
             // Map datapoints a filter statement
-            if (resource.Event.DataPoints != null)
-            {
-                var selectClause = new List<EventDataPointConfiguration>();
-                foreach (var datapoint in resource.Event.DataPoints)
-                {
-                    var operand = Deserialize(datapoint.DataPointConfiguration,
-                        () => new EventDataPointConfiguration(), errors, resource);
-                    if (operand == null)
-                    {
-                        continue;
-                    }
-                    try
-                    {
-                        selectClause.Add(operand with
-                        {
-                            BrowsePath = datapoint.DataSource.ToRelativePath(out _).AsString(),
-                            DisplayName = datapoint.Name,
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        errors.OnError(resource, kJsonSerializationErrorCode + "."
-                            + ex.HResult.ToString(CultureInfo.InvariantCulture), ex.Message);
-                    }
-                }
-                var newEventFilter = node.EventFilter with { SelectClauses = selectClause };
-            }
+            // if (resource.Event.DataPoints != null)
+            // {
+            //     var selectClause = new List<EventDataPointConfiguration>();
+            //     foreach (var datapoint in resource.Event.DataPoints)
+            //     {
+            //         var operand = Deserialize(datapoint.DataPointConfiguration,
+            //             () => new EventDataPointConfiguration(), errors, resource);
+            //         if (operand == null)
+            //         {
+            //             continue;
+            //         }
+            //         try
+            //         {
+            //             selectClause.Add(operand with
+            //             {
+            //                 BrowsePath = datapoint.DataSource.ToRelativePath(out _).AsString(),
+            //                 DisplayName = datapoint.Name,
+            //             });
+            //         }
+            //         catch (Exception ex)
+            //         {
+            //             errors.OnError(resource, kJsonSerializationErrorCode + "."
+            //                 + ex.HResult.ToString(CultureInfo.InvariantCulture), ex.Message);
+            //         }
+            //     }
+            //     var newEventFilter = node.EventFilter with { SelectClauses = selectClause };
+            // }
             var entry = CreateEntryForAssetResource(template, additionalConfiguration, [node]);
             entry = AddDestination(entry, resource.Asset.DefaultEventsDestinations,
                 resource.Event.Destinations, errors, resource);
@@ -1551,17 +1569,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 // Dataset writer id maps to name
                 DataSetWriterId = resource.Event.Name,
-                // Dataset name is the source of the event (!= event resource name)
-                DataSetName = additionalConfiguration.SourceName ?? resource.Event.Name,
-                // Root node id is the data source of the event
-                DataSetRootNodeId = additionalConfiguration.DataSource,
+                // Dataset name is the source of the event // TODO: Make subject
+                DataSetName = resource.EventGroup.Name,
+                // Root node id is the data source of the event // TODO: Make subject
+                DataSetRootNodeId = resource.EventGroup.DataSource,
                 // Type ref is the event type
                 DataSetType = resource.Event.TypeRef,
                 // Source is the device uuid and event notifier (emitting the event)
-                DataSetSourceUri = CreateSourceUri(resource.Asset, resource.Event.EventNotifier),
-                // Subject is the asset uuid and dataset name
+                DataSetSourceUri = CreateSourceUri(resource.Asset, resource.Event.DataSource),
+                // Subject is the asset uuid and dataset name // TODO: Change
                 DataSetSubject = CreateSubject(resource.Asset, resource.Event.Name,
-                    additionalConfiguration.DataSource),
+                    resource.EventGroup.DataSource),
 
                 // Event configuration overrides
                 MaxKeepAliveCount = entry.MaxKeepAliveCount ?? 30
@@ -1626,11 +1644,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     // The name as well (target of the actions)
                     DataSetName = resource.ManagementGroup.Name,
                     // Root node id is the data source of the management group
-                    DataSetRootNodeId = additionalConfiguration.DataSource,
+                    DataSetRootNodeId = resource.ManagementGroup.DataSource,
                     // Type ref is the type of the object that has the methods
                     DataSetType = resource.ManagementGroup.TypeRef,
                     // Source is the data set source uri
-                    DataSetSourceUri = CreateSourceUri(resource.Asset, additionalConfiguration.DataSource),
+                    DataSetSourceUri = CreateSourceUri(resource.Asset, resource.ManagementGroup.DataSource),
                     // Subject is the asset uuid and management group name
                     DataSetSubject = CreateSubject(resource.Asset, resource.ManagementGroup.Name),
 
@@ -2513,9 +2531,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         internal record class DataSetResource(string AssetName, Asset Asset,
             AssetDataset DataSet)
             : AssetResource(AssetName, Asset);
-        internal record class EventResource(string AssetName, Asset Asset,
-            AssetEvent Event)
+        internal record class EventGroupResource(string AssetName, Asset Asset,
+            AssetEventGroup EventGroup)
             : AssetResource(AssetName, Asset);
+        internal record class EventResource(string AssetName, Asset Asset,
+            AssetEventGroup EventGroup, AssetEvent Event)
+            : EventGroupResource(AssetName, Asset, EventGroup);
         internal record class StreamResource(string AssetName, Asset Asset,
             AssetStream Stream)
             : AssetResource(AssetName, Asset);
@@ -2563,6 +2584,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         return;
                     case EventResource e:
                         Add(e, code, error);
+                        return;
+                    case EventGroupResource eg:
+                        Add(eg, code, error);
                         return;
                     case StreamResource e:
                         Add(e, code, error);
@@ -2723,6 +2747,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <summary>
+            /// Add error to the management group status based on management group resource
+            /// </summary>
+            /// <param name="resource"></param>
+            /// <param name="code"></param>
+            /// <param name="error"></param>
+            private void Add(EventGroupResource resource, string code, string error)
+            {
+                if (resource.EventGroup.Events == null ||
+                    resource.EventGroup.Events.Count == 0)
+                {
+                    return;
+                }
+                var status = GetAssetStatusResource(resource);
+                status.Status.EventGroups ??= new List<AssetEventGroupStatus>();
+                Debug.Assert(status.Status.ManagementGroups != null);
+                status.Status.EventGroups.Add(new AssetEventGroupStatus
+                {
+                    Name = resource.EventGroup.Name,
+                    Events = resource.EventGroup.Events.ConvertAll(a =>
+                        new AssetDatasetEventStreamStatus
+                        {
+                            Name = a.Name,
+                            Error = new ConfigError
+                            {
+                                Code = code,
+                                Message = error
+                            }
+                        }
+                    )
+                });
+            }
+
+            /// <summary>
             /// Add error to the event status based on event resource
             /// </summary>
             /// <param name="resource"></param>
@@ -2731,15 +2788,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private void Add(EventResource resource, string code, string error)
             {
                 var status = GetAssetStatusResource(resource);
-                status.Status.Events ??= new List<AssetDatasetEventStreamStatus>();
-                Debug.Assert(status.Status.Events != null);
-                status.Status.Events.Add(new AssetDatasetEventStreamStatus
+                status.Status.EventGroups ??= new List<AssetEventGroupStatus>();
+                Debug.Assert(status.Status.EventGroups != null);
+                status.Status.EventGroups.Add(new AssetEventGroupStatus
                 {
-                    Name = resource.Event.Name,
-                    Error = new ConfigError
+                    Name = resource.EventGroup.Name,
+                    Events = new List<AssetDatasetEventStreamStatus>
                     {
-                        Code = code,
-                        Message = error
+                        new AssetDatasetEventStreamStatus
+                        {
+                            Name = resource.Event.Name,
+                            Error = new ConfigError
+                            {
+                                Code = code,
+                                Message = error
+                            }
+                        }
                     }
                 });
             }

@@ -859,7 +859,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             applicationConfiguration.SecurityConfiguration.UserIssuerCertificates
                 .ApplyLocalConfig(securityOptions.UserIssuerCertificates);
 
-            return await options.Create().ConfigureAwait(false);
+            return await options.CreateAsync().ConfigureAwait(false);
         }
 
         /// <summary>

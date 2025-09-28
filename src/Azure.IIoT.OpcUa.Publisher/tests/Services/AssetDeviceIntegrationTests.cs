@@ -500,12 +500,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                     new AssetDatasetDataPointSchemaElement { Name = "dp1", DataSource = "ns=2;s=dp1" }
                 }
             };
-            var @event = new AssetEvent { Name = "ev1", EventNotifier = "ns=2;s=ev1" };
+            var @event = new AssetEvent { Name = "ev1", DataSource = "ns=2;s=ev1" };
+            var eg = new AssetEventGroup { Name = "eg1", Events = new List<AssetEvent> { @event } };
             var asset = new AssetDeviceIntegration.AssetResource("asset1", new AssetModel
             {
                 DeviceRef = new AssetDeviceRef { DeviceName = "dev1", EndpointName = "ep1" },
                 Datasets = new List<AssetDataset> { dataset },
-                Events = new List<AssetEvent> { @event }
+                EventGroups = new List<AssetEventGroup> { eg }
             });
             var errors = new AssetDeviceIntegration.ValidationErrors(sut);
             _serializerMock
@@ -567,7 +568,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                     EndpointName = "ep1"
                 },
                 Datasets = null,
-                Events = null
+                EventGroups = null
             });
             var errors = new AssetDeviceIntegration.ValidationErrors(sut);
 
