@@ -765,6 +765,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public string? PublisherId { get; set; }
 
         /// <summary>
+        /// Pass connection string for the transport layer. This works
+        /// for transports that support connection strings such as
+        /// IoT Hub or Event Hubs. It enables overriding the default
+        /// connection string configured for the publisher. The transport
+        /// must be configured using the command line options first, and
+        /// can be overriden here. If it is not configured on the command
+        /// line first, the setting here is ignored.
+        /// </summary>
+        [DataMember(Name = "WriterGroupTransportConfiguration", Order = 69,
+            EmitDefaultValue = false)]
+        public string? WriterGroupTransportConfiguration { get; set; }
+
+        /// <summary>
         /// Enables detailed server diagnostics logging for the
         /// connection. When enabled, provides additional diagnostic
         /// information useful for troubleshooting connectivity,

@@ -40,6 +40,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         /// <param name="writerGroup"></param>
         /// <param name="eventClients"></param>
+        /// <param name="factories"></param>
         /// <param name="encoder"></param>
         /// <param name="options"></param>
         /// <param name="logger"></param>
@@ -47,9 +48,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="diagnostics"></param>
         /// <param name="timeProvider"></param>
         public NetworkMessageSink(WriterGroupModel writerGroup,
-            IEnumerable<IEventClient> eventClients, IMessageEncoder encoder,
-            IOptions<PublisherOptions> options, ILogger<NetworkMessageSink> logger,
-            IMetricsContext metrics, IWriterGroupDiagnostics? diagnostics = null,
+            IEnumerable<IEventClient> eventClients,
+            IEnumerable<IEventClientFactory> factories,
+            IMessageEncoder encoder, IOptions<PublisherOptions> options,
+            ILogger<NetworkMessageSink> logger, IMetricsContext metrics,
+            IWriterGroupDiagnostics? diagnostics = null,
             TimeProvider? timeProvider = null)
         {
             _metrics = metrics ?? throw new ArgumentNullException(nameof(metrics));
@@ -68,16 +71,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     nameof(eventClients));
             }
 
+            _factories = factories?.ToDictionary(f => f.Name, StringComparer.OrdinalIgnoreCase)
+                ?? throw new ArgumentNullException(nameof(factories));
             _logNotificationsFilter = _options.Value.DebugLogNotificationsFilter == null ?
                 null : new Regex(_options.Value.DebugLogNotificationsFilter);
             _filterNotifications = _options.Value.DebugLogNotificationsWithHeartbeat == true
                 ? Filter : FilterHeartbeat;
             _logNotifications = _options.Value.DebugLogNotifications
                 ?? (_logNotificationsFilter != null);
-            _queue = new NullPublishQueue();
-
-            _transport = new TransportOptions(writerGroup, _eventClients, _options);
-
+            _transport = new TransportOptions(writerGroup, _eventClients,
+                _factories, _options, _logger);
             _queue = _transport.MaxPublishQueuePartitions != 0
                 ? new PublishQueue(this, _transport.MaxPublishQueuePartitions)
                 : new PublishQueuePartition(this, 0, _logger);
@@ -114,7 +117,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async ValueTask UpdateAsync(WriterGroupModel writerGroup)
         {
             // TODO: Call update on sink
-            var options = new TransportOptions(writerGroup, _eventClients, _options);
+            var options = new TransportOptions(writerGroup,
+                _eventClients, _factories, _options, _logger);
             if (options == _transport)
             {
                 // Group change does not effect transport settings
@@ -641,7 +645,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Transport configuration
         /// </summary>
-        internal record class TransportOptions
+        internal record class TransportOptions : IDisposable
         {
             /// <summary>
             /// Event client selected
@@ -688,14 +692,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 EventClient = new NullEventClient();
             }
 
+            /// <inheritdoc/>
+            public void Dispose()
+            {
+                _scope?.Dispose();
+            }
+
             /// <summary>
             /// Create options
             /// </summary>
             /// <param name="writerGroup"></param>
             /// <param name="eventClients"></param>
+            /// <param name="factories"></param>
             /// <param name="options"></param>
+            /// <param name="logger"></param>
             public TransportOptions(WriterGroupModel writerGroup,
-                List<IEventClient> eventClients, IOptions<PublisherOptions> options)
+                List<IEventClient> eventClients,
+                Dictionary<string, IEventClientFactory> factories,
+                IOptions<PublisherOptions> options, ILogger logger)
             {
                 EventClient = eventClients
                         .Find(e => e.Name.Equals(writerGroup.Transport?.ToString(),
@@ -704,6 +718,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .Find(e => e.Name.Equals(options.Value.DefaultTransport?.ToString(),
                             StringComparison.OrdinalIgnoreCase))
                     ?? eventClients[0];
+
+                if (!string.IsNullOrEmpty(writerGroup.TransportConfiguration))
+                {
+                    if (factories.TryGetValue(EventClient.Name, out var factory))
+                    {
+                        _scope = factory.CreateEventClientWithConnectionString(
+                            writerGroup.TransportConfiguration, out var client);
+                        EventClient = client;
+                        logger.UsingTransportWithCustomWriterGroupConfiguration(
+                            EventClient.Name);
+                    }
+                    else
+                    {
+                        logger.CustomWriterGroupConfigurationCouldNotBeApplied(
+                            EventClient.Name);
+                    }
+                }
 
                 MaxNotificationsPerMessage = (int?)writerGroup.NotificationPublishThreshold
                     ?? options.Value.BatchSize ?? 0;
@@ -778,6 +809,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// TODO: Must be related to the actual limit size
             /// </summary>
             private const int kMaxQueueSize = 4096;
+            private readonly IDisposable? _scope;
         }
 
         /// <summary>
@@ -854,6 +886,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly TimeProvider _timeProvider;
         private readonly IWriterGroupDiagnostics? _diagnostics;
         private readonly bool _logNotifications;
+        private readonly Dictionary<string, IEventClientFactory> _factories;
         private readonly Regex? _logNotificationsFilter;
         private readonly Func<IList<MonitoredItemNotificationModel>,
             IEnumerable<MonitoredItemNotificationModel>> _filterNotifications;
@@ -917,9 +950,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             uint seq, string publishSeq, MessageType messageType, string endpoint, string items);
 
         [LoggerMessage(EventId = EventClass + 12, Level = LogLevel.Information,
-            Message = "Writer group {WriterGroup} set up to publish notifications {Interval} {Batching} with {MaxSize} to {Transport} with {HeaderLayout} layout and {MessageType} encoding (queuing at most {MaxQueueSize} subscription notifications)...")]
+            Message = "Writer group {WriterGroup} set up to publish notifications {Interval} {Batching} with {MaxSize} to" +
+            " {Transport} with {HeaderLayout} layout and {MessageType} encoding (queuing at most {MaxQueueSize} subscription" +
+            " notifications)...")]
         public static partial void WriterGroupSetup(this ILogger logger, string writerGroup, string interval,
             string batching, string maxSize, string transport, string headerLayout,
             MessageEncoding messageType, int maxQueueSize);
+
+        [LoggerMessage(EventId = EventClass + 13, Level = LogLevel.Information,
+            Message = "Using transport {Transport} with custom writer group configuration.")]
+        public static partial void UsingTransportWithCustomWriterGroupConfiguration(this ILogger logger,
+            string transport);
+
+        [LoggerMessage(EventId = EventClass + 14, Level = LogLevel.Warning,
+            Message = "Custom writer group configuration could not be applied to transport {Transport} - using default.")]
+        public static partial void CustomWriterGroupConfigurationCouldNotBeApplied(this ILogger logger,
+            string transport);
     }
 }

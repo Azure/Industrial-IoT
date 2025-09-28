@@ -115,6 +115,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 Enum.Parse<MessagingMode>(item.WriterGroup.HeaderLayoutUri), // TODO: Make safe
                             MessageEncoding = item.WriterGroup.MessageType,
                             WriterGroupTransport = item.WriterGroup.Transport,
+                            WriterGroupTransportConfiguration = item.WriterGroup.TransportConfiguration,
                             WriterGroupQualityOfService = item.WriterGroup.Publishing?.RequestedDeliveryGuarantee,
                             WriterGroupMessageTtlTimepan = item.WriterGroup.Publishing?.Ttl,
                             WriterGroupMessageRetention = item.WriterGroup.Publishing?.Retain,
@@ -447,6 +448,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                         Id = group.Id,
                         MessageType = group.Header.MessageEncoding,
                         Transport = group.Header.WriterGroupTransport,
+                        TransportConfiguration = group.Header.WriterGroupTransportConfiguration,
                         Publishing = new PublishingQueueSettingsModel
                         {
                             RequestedDeliveryGuarantee = group.Header.WriterGroupQualityOfService,
