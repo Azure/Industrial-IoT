@@ -37,7 +37,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
-    using static Azure.IIoT.OpcUa.Publisher.Services.AssetDeviceIntegration;
 
     /// <summary>
     /// Asset and device configuration integration with Azure iot operations. Converts asset
@@ -808,13 +807,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         DefaultEventsDestinations = null,
                         Events = d.OpcNodes!.Select(n => new DiscoveredAssetEvent
                         {
-                            Name = GetAssetResourceName(d.DataSetName, n.DisplayName),
+                            Name = n.DisplayName!, // Event name
+                            DataSource = n.Id!, // EventNotifier node id
                             TypeRef = n.TypeDefinitionId,
-                            DataSource = n.Id!,
-                            EventConfiguration = _serializer.SerializeToString(new EventConfiguration
-                            {
-                                EventName = n.DisplayName
-                            }),
+                            EventConfiguration = null,
                             Destinations =
                             [
                                 new EventStreamDestination
@@ -1261,16 +1257,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         eventAdditionalConfiguration = WithEndpoint(eventAdditionalConfiguration, assetEndpoint);
                         foreach (var eventGroup in asset.Asset.EventGroups)
                         {
-                            if (eventGroup?.Events != null)
-                            {
-                                var eventGroupResource = new EventGroupResource(asset.AssetName, asset.Asset, eventGroup);
-                                foreach (var @event in eventGroup.Events)
-                                {
-                                    var eventResource = new EventResource(asset.AssetName, asset.Asset, eventGroup, @event);
-                                    await AddEntryForEventAsync(eventAdditionalConfiguration, eventResource,
-                                        entries, errors, ct).ConfigureAwait(false);
-                                }
-                            }
+                            var eventGroupResource = new EventGroupResource(asset.AssetName, asset.Asset, eventGroup);
+                            await AddEntryForEventGroupAsync(eventAdditionalConfiguration, eventGroupResource,
+                                entries, errors, ct).ConfigureAwait(false);
                         }
                     }
                 }
@@ -1430,6 +1419,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             ct.ThrowIfCancellationRequested();
 
+            if (resource.DataSet.DataPoints == null ||
+                resource.DataSet.DataPoints.Count == 0)
+            {
+                // Nothing to do
+                return ValueTask.CompletedTask;
+            }
+
             // Map dataset configuration on top of entry
             var additionalConfiguration = Deserialize(resource.DataSet.DatasetConfiguration,
                 () => new DataSetConfiguration(), errors, resource);
@@ -1441,27 +1437,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             // TODO: Resolve typeref to ensure it exists
 
             var nodes = new List<OpcNodeModel>();
-            if (resource.DataSet.DataPoints != null)
+            // Map datapoints to OPC nodes
+            foreach (var datapoint in resource.DataSet.DataPoints)
             {
-                // Map datapoints to OPC nodes
-                foreach (var datapoint in resource.DataSet.DataPoints)
+                var nodeFromAdditionalConfiguration = Deserialize(
+                    datapoint.DataPointConfiguration, () => new DataSetDataPointConfiguration(),
+                    errors, resource);
+                if (nodeFromAdditionalConfiguration == null)
                 {
-                    var nodeFromAdditionalConfiguration = Deserialize(
-                        datapoint.DataPointConfiguration, () => new DataSetDataPointConfiguration(),
-                        errors, resource);
-                    if (nodeFromAdditionalConfiguration == null)
-                    {
-                        continue;
-                    }
-                    nodes.Add(nodeFromAdditionalConfiguration with
-                    {
-                        Id = datapoint.DataSource,
-                        DisplayName = datapoint.Name,
-                        DataSetFieldId = datapoint.Name,
-                        FetchDisplayName = false,
-                        TypeDefinitionId = datapoint.TypeRef
-                    });
+                    continue;
                 }
+                nodes.Add(nodeFromAdditionalConfiguration with
+                {
+                    Id = datapoint.DataSource,
+                    DisplayName = datapoint.Name,
+                    DataSetFieldId = datapoint.Name,
+                    FetchDisplayName = false,
+                    TypeDefinitionId = datapoint.TypeRef
+                });
             }
             var entry = CreateEntryForAssetResource(template, additionalConfiguration, nodes);
             entry = AddDestination(entry, resource.Asset.DefaultDatasetsDestinations,
@@ -1499,91 +1492,87 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="errors"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private ValueTask AddEntryForEventAsync(PublishedNodesEntryModel template,
-            EventResource resource, List<PublishedNodesEntryModel> entries,
+        private ValueTask AddEntryForEventGroupAsync(PublishedNodesEntryModel template,
+            EventGroupResource resource, List<PublishedNodesEntryModel> entries,
             ValidationErrors errors, CancellationToken ct)
         {
             ct.ThrowIfCancellationRequested();
 
-            // Map event configuration on top of entry
-            var additionalConfiguration = Deserialize(resource.Event.EventConfiguration,
-                () => new EventConfiguration(), errors, resource);
+            if (resource.EventGroup.Events == null ||
+                resource.EventGroup.Events.Count == 0)
+            {
+                // Nothing to do
+                return ValueTask.CompletedTask;
+            }
+
+            // Map dataset configuration on top of entry
+            var additionalConfiguration = Deserialize(resource.EventGroup.EventGroupConfiguration,
+                () => new EventGroupConfiguration(), errors, resource);
             if (additionalConfiguration == null)
             {
                 return ValueTask.CompletedTask;
             }
 
-            var eventFilter = additionalConfiguration.EventFilter ?? new EventFilterModel();
-            if (!string.IsNullOrEmpty(resource.Event.TypeRef))
+            // TODO: Resolve typeref to ensure it exists
+
+            // Group events by event notifier (data source)
+            foreach (var @event in resource.EventGroup.Events)
             {
-                eventFilter.TypeDefinitionId = resource.Event.TypeRef;
+                var eventResource = new EventResource(resource.AssetName,
+                    resource.Asset, resource.EventGroup, @event);
+                // Map event configuration on top of entry
+                var eventConfiguration = Deserialize(@event.EventConfiguration,
+                    () => new EventConfiguration(), errors, eventResource);
+                if (eventConfiguration == null)
+                {
+                    continue;
+                }
+
+                var eventFilter = eventConfiguration.EventFilter ?? new EventFilterModel();
+                if (!string.IsNullOrEmpty(@event.TypeRef))
+                {
+                    // TODO: Resolve typeref to ensure it exists
+
+                    eventFilter.TypeDefinitionId = @event.TypeRef;
+                }
+
+                var node = new OpcNodeModel
+                {
+                    Id = @event.DataSource, // Event notifier
+                    DisplayName = @event.Name,
+                    DataSetFieldId = @event.Name,
+                    TypeDefinitionId = @event.TypeRef,
+                    FetchDisplayName = false,
+                    EventFilter = eventFilter,
+                    ConditionHandling = eventConfiguration.ConditionHandling,
+                    SkipFirst = eventConfiguration.SkipFirst,
+                    QueueSize = eventConfiguration.QueueSize,
+                    DiscardNew = eventConfiguration.DiscardNew
+                };
+
+                var entry = CreateEntryForAssetResource(template, additionalConfiguration, [node]);
+                entry = AddDestination(entry, resource.Asset.DefaultEventsDestinations,
+                    resource.EventGroup.DefaultEventsDestinations, @event.Destinations,
+                    errors, resource);
+                entries.Add(entry with
+                {
+                    // Dataset writer id maps to event group name, but will be broken down later.
+                    DataSetWriterId = resource.EventGroup.Name,
+                    // Dataset name is the name of the object that is the subject of the event
+                    DataSetName = resource.EventGroup.Name,
+                    // Root node id is the object id that is the subject of the event
+                    DataSetRootNodeId = resource.EventGroup.DataSource,
+                    // Type ref is the typeref of the object that is the subject of the event
+                    DataSetType = resource.EventGroup.TypeRef,
+                    // Source is the device uuid and event notifier (emitting the event)
+                    DataSetSourceUri = CreateSourceUri(resource.Asset, @event.DataSource),
+                    // Subject is the asset uuid and event group name (object)
+                    DataSetSubject = CreateSubject(resource.Asset, resource.EventGroup.Name, @event.Name),
+
+                    // Event configuration overrides
+                    MaxKeepAliveCount = entry.MaxKeepAliveCount ?? 30
+                });
             }
-
-            // Create the single event node here
-            var node = new OpcNodeModel
-            {
-                Id = resource.Event.DataSource,
-                DisplayName = resource.Event.Name,
-                DataSetFieldId = resource.Event.Name,
-                TypeDefinitionId = resource.Event.TypeRef,
-                FetchDisplayName = false,
-                EventFilter = eventFilter,
-                ConditionHandling = additionalConfiguration.ConditionHandling,
-                SkipFirst = additionalConfiguration.SkipFirst,
-                QueueSize = additionalConfiguration.QueueSize,
-                DiscardNew = additionalConfiguration.DiscardNew
-            };
-
-            // Map datapoints a filter statement
-            // if (resource.Event.DataPoints != null)
-            // {
-            //     var selectClause = new List<EventDataPointConfiguration>();
-            //     foreach (var datapoint in resource.Event.DataPoints)
-            //     {
-            //         var operand = Deserialize(datapoint.DataPointConfiguration,
-            //             () => new EventDataPointConfiguration(), errors, resource);
-            //         if (operand == null)
-            //         {
-            //             continue;
-            //         }
-            //         try
-            //         {
-            //             selectClause.Add(operand with
-            //             {
-            //                 BrowsePath = datapoint.DataSource.ToRelativePath(out _).AsString(),
-            //                 DisplayName = datapoint.Name,
-            //             });
-            //         }
-            //         catch (Exception ex)
-            //         {
-            //             errors.OnError(resource, kJsonSerializationErrorCode + "."
-            //                 + ex.HResult.ToString(CultureInfo.InvariantCulture), ex.Message);
-            //         }
-            //     }
-            //     var newEventFilter = node.EventFilter with { SelectClauses = selectClause };
-            // }
-            var entry = CreateEntryForAssetResource(template, additionalConfiguration, [node]);
-            entry = AddDestination(entry, resource.Asset.DefaultEventsDestinations,
-                resource.Event.Destinations, errors, resource);
-            entries.Add(entry with
-            {
-                // Dataset writer id maps to name
-                DataSetWriterId = resource.Event.Name,
-                // Dataset name is the source of the event // TODO: Make subject
-                DataSetName = resource.EventGroup.Name,
-                // Root node id is the data source of the event // TODO: Make subject
-                DataSetRootNodeId = resource.EventGroup.DataSource,
-                // Type ref is the event type
-                DataSetType = resource.Event.TypeRef,
-                // Source is the device uuid and event notifier (emitting the event)
-                DataSetSourceUri = CreateSourceUri(resource.Asset, resource.Event.DataSource),
-                // Subject is the asset uuid and dataset name // TODO: Change
-                DataSetSubject = CreateSubject(resource.Asset, resource.Event.Name,
-                    resource.EventGroup.DataSource),
-
-                // Event configuration overrides
-                MaxKeepAliveCount = entry.MaxKeepAliveCount ?? 30
-            });
             return ValueTask.CompletedTask;
         }
 
@@ -1631,6 +1620,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         Id = a.TargetUri,
                         DisplayName = a.Name,
                         DataSetFieldId = a.Name,
+                        TypeDefinitionId = a.TypeRef,
                         FetchDisplayName = false,
                         MethodMetadata = ConvertActionConfiguration(a.ActionConfiguration, errors,
                             actionResource)
@@ -1752,7 +1742,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="nodes"></param>
         /// <returns></returns>
         private static PublishedNodesEntryModel CreateEntryForAssetResource(
-            PublishedNodesEntryModel endpointTemplate, EventConfiguration additionalConfiguration,
+            PublishedNodesEntryModel endpointTemplate, EventGroupConfiguration additionalConfiguration,
             List<OpcNodeModel> nodes)
         {
             return endpointTemplate with
@@ -1853,9 +1843,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     "More than 1 destination is not allowed for datasets. Using Mqtt");
             }
             var destination = destinations?.FirstOrDefault();
-            destination ??= defaultDestinations?
-                .FirstOrDefault(d => defaultDestinations.Count == 1
-                    || d.Target == DatasetTarget.Mqtt);
+            if (destination == null)
+            {
+                if (defaultDestinations?.Count > 1)
+                {
+                    errors.OnError(resource, kTooManyDestinationsError,
+                        "More than 1 default destination is not allowed for datasets. Using Mqtt");
+                }
+                destination = defaultDestinations?
+                    .FirstOrDefault(d => d.Target == DatasetTarget.Mqtt);
+            }
             if (destination == null)
             {
                 return entry with { WriterGroupTransport = WriterGroupTransport.AioMqtt };
@@ -1915,12 +1912,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         /// <param name="entry"></param>
         /// <param name="defaultDestinations"></param>
+        /// <param name="groupDestinations"></param>
         /// <param name="destinations"></param>
         /// <param name="errors"></param>
         /// <param name="resource"></param>
         private static PublishedNodesEntryModel AddDestination(PublishedNodesEntryModel entry,
-            List<EventStreamDestination>? defaultDestinations, List<EventStreamDestination>? destinations,
-            ValidationErrors errors, Resource resource)
+            List<EventStreamDestination>? defaultDestinations, List<EventStreamDestination>? groupDestinations,
+            List<EventStreamDestination>? destinations, ValidationErrors errors, Resource resource)
         {
             entry = WithoutDestinationConfiguration(entry);
             if (destinations?.Count > 1)
@@ -1928,10 +1926,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 errors.OnError(resource, kTooManyDestinationsError,
                     "More than 1 destination is not allowed for events. Using Mqtt");
             }
-            var destination = destinations?.FirstOrDefault();
-            destination ??= defaultDestinations?
-                .FirstOrDefault(d => defaultDestinations.Count == 1
-                    || d.Target == EventStreamTarget.Mqtt);
+            var destination = destinations?
+                .FirstOrDefault(d => d.Target == EventStreamTarget.Mqtt);
+            if (destination == null)
+            {
+                if (groupDestinations?.Count > 1)
+                {
+                    errors.OnError(resource, kTooManyDestinationsError,
+                        "More than 1 destination is not allowed for event groups. Using Mqtt");
+                }
+                destination = groupDestinations?
+                    .FirstOrDefault(d => d.Target == EventStreamTarget.Mqtt);
+            }
+            if (destination == null)
+            {
+                if (defaultDestinations?.Count > 1)
+                {
+                    errors.OnError(resource, kTooManyDestinationsError,
+                        "More than 1 default destination is not allowed for events. Using Mqtt");
+                }
+                destination = defaultDestinations?
+                    .FirstOrDefault(d => d.Target == EventStreamTarget.Mqtt);
+            }
             if (destination == null)
             {
                 return entry with { WriterGroupTransport = WriterGroupTransport.AioMqtt };
@@ -2292,18 +2308,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Identifies what the event is about.
         /// </summary>
         /// <param name="asset"></param>
-        /// <param name="dataSetName"></param>
-        /// <param name="dataSubject"></param>
+        /// <param name="subjectName"></param>
+        /// <param name="subSubject"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        private string CreateSubject(Asset asset, string dataSetName, string? dataSubject = null)
+        private string CreateSubject(Asset asset, string subjectName, string? subSubject = null)
         {
             var builder = new StringBuilder(asset.ExternalAssetId)
                 .Append('/')
-                .Append(dataSetName);
-            if (!string.IsNullOrEmpty(dataSubject))
+                .Append(subjectName);
+            if (!string.IsNullOrEmpty(subSubject))
             {
-                builder = builder.Append('/').Append(dataSubject.UrlEncode());
+                builder = builder.Append('/').Append(subSubject);
             }
             return builder.ToString();
         }

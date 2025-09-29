@@ -451,6 +451,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
                 }
             }
+
+            /// <summary>
+            /// Create a name for the object that is rooted in a root browse frame,
+            /// e.g. the writer group, structurally. We use . seperator to create
+            /// names that can be reused in topics and paths.
+            /// </summary>
+            /// <param name="root"></param>
+            /// <returns></returns>
+            public string BrowseNameFromRootFrame(BrowseFrame? root)
+            {
+                var cur = this;
+                if (cur.BrowseName?.Name == null || cur == root)
+                {
+                    return "Default";
+                }
+
+                var result = cur.BrowseName.Name;
+                cur = cur.Parent;
+                while (cur != null && cur != root)
+                {
+                    Debug.Assert(cur.BrowseName?.Name != null);
+                    result = cur.BrowseName.Name + "." + result;
+                    cur = cur.Parent;
+                }
+                return result;
+            }
         }
 
         /// <summary>

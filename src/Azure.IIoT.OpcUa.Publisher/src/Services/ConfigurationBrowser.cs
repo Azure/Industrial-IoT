@@ -181,7 +181,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             DataSetWriterId = currentObject.CreateWriterId(), // Unique
                             DataSetWriterGroup = _entry.DataSetWriterGroup ?? root?.BrowseName?.Name,
                             // Name of the dataset with DataSetWriterGroup as root
-                            DataSetName = currentObject.CreateDataSetName(root),
+                            DataSetName = currentObject.ObjectFromBrowse.BrowseNameFromRootFrame(root),
                             DataSetRootNodeId = currentObject.ObjectFromBrowse.NodeId?.AsString(
                                 context.Session.MessageContext, NamespaceFormat.Expanded),
                             // Type of the dataset
@@ -804,7 +804,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     AttributeId = NodeAttribute.Value,
 
                     DataSetFieldId = CreateUniqueIdFromFrame(variableFrame.BrowsePath),
-                    DisplayName = variableFrame.BrowseName?.Name ?? variableFrame.DisplayName,
+                    DisplayName = variableFrame.BrowseName == null ? variableFrame.DisplayName :
+                        variableFrame.BrowseNameFromRootFrame(ObjectFromBrowse),
 
                     // TODO - use browse paths instead:
                     // Id = ObjectFromBrowse.NodeId.AsString(context, NamespaceFormat.Expanded)
@@ -848,7 +849,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         Id = methodFrame.NodeId.AsString(context, NamespaceFormat.Expanded),
                         DataSetFieldId = CreateUniqueIdFromFrame(methodFrame.BrowsePath),
-                        DisplayName = methodFrame.BrowseName?.Name ?? methodFrame.DisplayName,
+                        DisplayName = methodFrame.BrowseName == null ? methodFrame.DisplayName :
+                            methodFrame.BrowseNameFromRootFrame(ObjectFromBrowse),
                         // TODO - use browse paths instead:
                         // Id = ObjectFromBrowse.NodeId.AsString(context, NamespaceFormat.Expanded)
                         // BrowsePath = frame.BrowsePath.ToRelativePath(out var prefix).AsString(prefix),
@@ -898,32 +900,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     sb = sb.Append(OriginalNode.NodeFromConfiguration.DataSetFieldId);
                 }
                 return sb.Append(ObjectFromBrowse.BrowsePath).ToString();
-            }
-
-            /// <summary>
-            /// Create data set name for the object that is rooted in
-            /// the writer group structurally. We use . seperator to
-            /// create names that can be reused in topics and paths.
-            /// </summary>
-            /// <param name="root"></param>
-            /// <returns></returns>
-            public string CreateDataSetName(BrowseFrame? root)
-            {
-                var cur = ObjectFromBrowse;
-                if (cur.BrowseName?.Name == null || cur == root)
-                {
-                    return "Default";
-                }
-
-                var result = cur.BrowseName.Name;
-                cur = cur.Parent;
-                while (cur != null && cur != root)
-                {
-                    Debug.Assert(cur.BrowseName?.Name != null);
-                    result = cur.BrowseName.Name + "." + result;
-                    cur = cur.Parent;
-                }
-                return result;
             }
 
             /// <summary>

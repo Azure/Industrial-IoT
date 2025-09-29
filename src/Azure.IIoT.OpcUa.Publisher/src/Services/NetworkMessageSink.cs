@@ -5,10 +5,10 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
+    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Messaging.Clients;
     using Microsoft.Extensions.Logging;
@@ -19,6 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Diagnostics.Metrics;
     using System.Globalization;
     using System.Linq;
+    using System.Runtime.ConstrainedExecution;
     using System.Security.Authentication;
     using System.Text;
     using System.Text.RegularExpressions;
@@ -117,6 +118,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public async ValueTask UpdateAsync(WriterGroupModel writerGroup)
         {
             // TODO: Call update on sink
+            var cur = _transport;
             var options = new TransportOptions(writerGroup,
                 _eventClients, _factories, _options, _logger);
             if (options == _transport)
@@ -126,6 +128,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             _transport = options;
+            cur.Dispose();
+
             // Todo: only check queue update
 
             await _queue.DisposeAsync().ConfigureAwait(false);
@@ -143,7 +147,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             await _queue.DisposeAsync().ConfigureAwait(false);
 
             _queue = new NullPublishQueue();
+
+            var cur = _transport;
             _transport = new TransportOptions();
+            cur.Dispose();
         }
 
         /// <inheritdoc/>
@@ -721,18 +728,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 if (!string.IsNullOrEmpty(writerGroup.TransportConfiguration))
                 {
-                    if (factories.TryGetValue(EventClient.Name, out var factory))
+                    if (!factories.TryGetValue(EventClient.Name, out var factory))
                     {
-                        _scope = factory.CreateEventClientWithConnectionString(
-                            writerGroup.TransportConfiguration, out var client);
-                        EventClient = client;
-                        logger.UsingTransportWithCustomWriterGroupConfiguration(
+                        logger.CustomWriterGroupConfigurationCouldNotBeApplied(
                             EventClient.Name);
                     }
                     else
                     {
-                        logger.CustomWriterGroupConfigurationCouldNotBeApplied(
-                            EventClient.Name);
+                        // Create event client with configuration from factory.
+                        try
+                        {
+                            _scope = factory.CreateEventClient(writerGroup.Id,
+                                writerGroup.TransportConfiguration, out var client);
+
+                            EventClient = client;
+                            logger.UsingTransportWithCustomWriterGroupConfiguration(
+                                EventClient.Name);
+                        }
+                        catch (Exception e)
+                        {
+                            logger.CustomWriterGroupConfigurationCouldNotBeAppliedWithError(
+                                EventClient.Name, e.Message);
+                        }
                     }
                 }
 
@@ -963,8 +980,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             string transport);
 
         [LoggerMessage(EventId = EventClass + 14, Level = LogLevel.Warning,
-            Message = "Custom writer group configuration could not be applied to transport {Transport} - using default.")]
+            Message = "Custom writer group configuration could not be applied to transport {Transport} " +
+            "- using default.")]
         public static partial void CustomWriterGroupConfigurationCouldNotBeApplied(this ILogger logger,
             string transport);
+
+        [LoggerMessage(EventId = EventClass + 15, Level = LogLevel.Error,
+            Message = "Custom writer group configuration could not be applied to transport {Transport} " +
+            "due to bad configuration (Error: {Error}) - using default.")]
+        public static partial void CustomWriterGroupConfigurationCouldNotBeAppliedWithError(this ILogger logger,
+            string transport, string error);
     }
 }
