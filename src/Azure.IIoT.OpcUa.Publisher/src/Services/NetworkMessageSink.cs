@@ -738,7 +738,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         // Create event client with configuration from factory.
                         try
                         {
-                            _scope = factory.CreateEventClient(writerGroup.Id,
+                            _scope = factory.CreateEventClient(
                                 writerGroup.TransportConfiguration, out var client);
 
                             EventClient = client;

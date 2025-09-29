@@ -1,13 +1,14 @@
 {
-    "aioConnectorMetadataSchemaVersion": "1.0-preview",
+    "$schema": "https://raw.githubusercontent.com/Azure/iot-operations-sdks/refs/heads/main/doc/akri_connector/connector-metadata-schema.json",
+    "aioConnectorMetadataSchemaVersion": "7.0-preview",
     "name": "OpcPublisher",
     "description": "OPC Publisher Connector",
-    "version": "2.9",
+    "version": "2.9.15",
     "maintainer": "iiotadmin@microsoft.com",
     "vendor": "Microsoft",
     "imageConfigurationSettings": {
-        "imageName": "{{ImageName}}",
-        "tag": "1.0.0"
+        "imageName": "mcr.microsoft.com/iotedge/opc-publisher",
+        "tag": "latest"
     },
     "supportedArchitectures": [
         "linux/amd64"
@@ -16,334 +17,416 @@
         "language": ".NET",
         "languageVersion": ".NET 9.0",
         "sdks": {
-            "mqttPackageVersion": "1.0.0",
-            "servicesPackageVersion": "1.0.0",
-            "connectorPackageVersion": "1.0.0"
-        }
-    },
-    "resourceRequirements": {
-        "requests": {
-            "cpu": "500m",
-            "memory": "256Mi"
-        },
-        "limits": {
-            "cpu": "1000m",
-            "memory": "512Mi"
+            "connectorPackageVersion": "0.13.0-preview"
         }
     },
     "aioMetadata": {
-        "minVersion": "1.2.*",
-        "maxVersion": "1.*.*"
-    },
-    "connectorConfigurationSchema": {
-        "schema": {
-            "$schema": "http://json-schema.org/draft-07/schema#",
-            "$id": "https://contoso.com/connectorConfig.schema.json",
-            "title": "Connector Configuration Schema",
-            "description": "The JSON schema for the connector additional configuration field",
-            "type": "object",
-            "properties": {
-                "SomeConnectorConfiguration": {
-                    "description": "Some configurable value that is relevant to the connector as a whole",
-                    "type": "integer"
-                },
-                "SomeOtherConnectorConfiguration": {
-                    "properties": {
-                        "SomeEndpointConfiguration": {
-                            "description": "Some other configurable value that is relevant to the connector as a whole",
-                            "type": "integer"
-                        }
-                    }
-                }
-            }
-        }
+        "aioMinVersion": "1.2.*",
+        "aioMaxVersion": "1.*.*"
     },
     "inboundEndpoints": [
         {
             "endpointType": "Microsoft.OpcPublisher",
+            "description": "Connect to an OPC UA server and publish data to Azure.",
+            "supportedAuthenticationTypes": [
+                "anonymous",
+                "usernamePassword"
+            ],
+            "assetsEnabledByDefault": true,
             "version": "2.9",
-            "asset": {
-                "configurationSchemas": {
-                    "datasetConfigurationSchema": {
-                        "$schema": "http://json-schema.org/draft-07/schema#",
-                        "title": "DataSetEventModel",
-                        "description": "Dataset and event default and resource additional configuration model. Inherits all properties from PublishedNodesEntryModel and adds mapped properties for samplingInterval, publishingInterval, keyFrameCount, and StartInstance.",
-                        "type": "object",
-                        "properties": {
-                            "publishingInterval": {
-                                "type": [
-                                    "integer",
-                                    "null"
-                                ],
-                                "minimum": 0,
-                                "maximum": 4294967295,
-                                "examples": [
-                                    100,
-                                    1000,
-                                    5000
-                                ],
-                                "description": "The publishing interval in milliseconds for this dataset writer. Controls how frequently data is published.",
-                                "errorMessage": {
-                                    "type": "Must be an integer in milliseconds or omitted",
-                                    "minimum": "Must be non-negative",
-                                    "maximum": "Must not exceed maximum supported interval (4294967295ms)"
-                                }
-                            },
-                            "samplingInterval": {
-                                "type": [
-                                    "integer",
-                                    "null"
-                                ],
-                                "minimum": 0,
-                                "maximum": 4294967295,
-                                "examples": [
-                                    100,
-                                    500,
-                                    1000
-                                ],
-                                "description": "Default sampling interval in milliseconds for all data points in the dataset. Controls how frequently data is read from nodes.",
-                                "errorMessage": {
-                                    "type": "Must be an integer in milliseconds or omitted",
-                                    "minimum": "Must be non-negative",
-                                    "maximum": "Must not exceed maximum supported interval (4294967295ms)"
-                                }
-                            },
-                            "MessageEncoding": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ],
-                                "enum": [
-                                    "Json",
-                                    "Avro"
-                                ],
-                                "default": "Json",
-                                "examples": [
-                                    "Json",
-                                    "Avro"
-                                ],
-                                "description": "The encoding format to use for messages. Json (human-readable), Avro (raw format).",
-                                "errorMessage": {
-                                    "enum": "Must be one of: Json, Uadp, Binary"
-                                }
-                            },
-                            "keyFrameCount": {
-                                "type": [
-                                    "integer",
-                                    "null"
-                                ],
-                                "minimum": 1,
-                                "maximum": 1000,
-                                "examples": [
-                                    1,
-                                    10,
-                                    100
-                                ],
-                                "description": "Controls key frame insertion frequency in the message stream. Higher values reduce bandwidth but increase latency for new subscribers.",
-                                "errorMessage": {
-                                    "type": "Must be an integer or omitted",
-                                    "minimum": "Must be at least 1",
-                                    "maximum": "Must not exceed 1000"
-                                }
-                            },
-                            "Priority": {
-                                "type": [
-                                    "integer",
-                                    "null"
-                                ],
-                                "minimum": 0,
-                                "maximum": 255,
-                                "examples": [
-                                    0,
-                                    100,
-                                    255
-                                ],
-                                "description": "Priority of the writer subscription (0-255). Higher values indicate higher priority for resource allocation and processing.",
-                                "errorMessage": {
-                                    "type": "Must be an integer or omitted",
-                                    "minimum": "Must be non-negative",
-                                    "maximum": "Must not exceed 255"
-                                }
-                            },
-                            "DataSetClassId": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ],
-                                "format": "uuid",
-                                "description": "The optional dataset class id as it shall appear in dataset messages and dataset metadata."
-                            },
-                            "DataSetDescription": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ],
-                                "description": "The optional description of the dataset."
-                            },
-                            "DataSetExtensionFields": {
-                                "type": [
-                                    "object",
-                                    "null"
-                                ],
-                                "description": "Optional key-value pairs inserted into key frame and metadata messages in the same data set.",
-                                "additionalProperties": true
-                            },
-                            "DefaultHeartbeatInterval": {
-                                "type": [
-                                    "integer",
-                                    "null"
-                                ],
-                                "minimum": 0,
-                                "maximum": 4294967295,
-                                "examples": [
-                                    60000,
-                                    300000
-                                ],
-                                "description": "The interval in milliseconds at which to publish heartbeat messages.",
-                                "errorMessage": {
-                                    "type": "Must be an integer in milliseconds or omitted",
-                                    "minimum": "Must be non-negative",
-                                    "maximum": "Must not exceed maximum supported interval (4294967295ms)"
-                                }
-                            },
-                            "DefaultHeartbeatBehavior": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ],
-                                "enum": [
-                                    "WatchChange",
-                                    "Periodically",
-                                    "None"
-                                ],
-                                "default": "WatchChange",
-                                "examples": [
-                                    "WatchChange",
-                                    "Periodically",
-                                    "None"
-                                ],
-                                "description": "Configures how heartbeat messages are handled for all nodes. WatchChange (on value changes), Periodically (fixed intervals), or None (disabled).",
-                                "errorMessage": {
-                                    "enum": "Must be one of: WatchChange, Periodically, None"
-                                }
-                            },
-                            "SendKeepAliveDataSetMessages": {
-                                "type": "boolean",
-                                "default": false,
-                                "examples": [
-                                    true,
-                                    false
-                                ],
-                                "description": "Controls whether to send keep alive messages for this dataset. Enable to maintain connection health monitoring.",
-                                "errorMessage": {
-                                    "type": "Must be a boolean value"
-                                }
-                            },
-                            "MaxKeepAliveCount": {
-                                "type": [
-                                    "integer",
-                                    "null"
-                                ],
-                                "minimum": 0,
-                                "maximum": 1000,
-                                "examples": [
-                                    3,
-                                    10,
-                                    20
-                                ],
-                                "description": "Defines how many publishing timer expirations to wait before sending a keep-alive message. Larger values reduce traffic but increase detection time.",
-                                "errorMessage": {
-                                    "type": "Must be an integer or omitted",
-                                    "minimum": "Must be non-negative",
-                                    "maximum": "Must not exceed 1000"
-                                }
-                            },
-                            "DataSetWriterWatchdogBehavior": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ],
-                                "enum": [
-                                    "Restart",
-                                    "Halt",
-                                    "Continue"
-                                ],
-                                "default": "Restart",
-                                "examples": [
-                                    "Restart",
-                                    "Halt",
-                                    "Continue"
-                                ],
-                                "description": "Defines what action to take when the watchdog timer triggers. Restart (reinitialize writer), Halt (stop publishing), or Continue (keep running).",
-                                "errorMessage": {
-                                    "enum": "Must be one of: Restart, Halt, Continue"
-                                }
-                            },
-                            "OpcNodeWatchdogCondition": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ],
-                                "enum": [
-                                    "NoData",
-                                    "Error",
-                                    "Any"
-                                ],
-                                "default": "NoData",
-                                "examples": [
-                                    "NoData",
-                                    "Error",
-                                    "Any"
-                                ],
-                                "description": "Specifies the condition that triggers the watchdog behavior. NoData (no updates received), Error (error occurs), or Any (either condition).",
-                                "errorMessage": {
-                                    "enum": "Must be one of: NoData, Error, Any"
-                                }
-                            },
-                            "DisableSubscriptionTransfer": {
-                                "type": [
-                                    "boolean",
-                                    "null"
-                                ],
-                                "default": false,
-                                "examples": [
-                                    true,
-                                    false
-                                ],
-                                "description": "Controls whether subscription transfer is disabled during reconnect. Enable to prevent subscription state transfer.",
-                                "errorMessage": {
-                                    "type": "Must be a boolean or omitted"
-                                }
-                            },
-                            "RepublishAfterTransfer": {
-                                "type": [
-                                    "boolean",
-                                    "null"
-                                ],
-                                "default": true,
-                                "examples": [
-                                    true,
-                                    false
-                                ],
-                                "description": "Controls whether to republish missed values after a subscription is transferred during reconnect handling. Enable to ensure data consistency.",
-                                "errorMessage": {
-                                    "type": "Must be a boolean or omitted"
-                                }
+            "fields": {
+                "address": {
+                    "input": "required",
+                    "type": "string",
+                    "description": "The endpoint URL of the OPC UA server to connect to.",
+                    "pattern": "^opc.(tcp|http|https)://.+$",
+                    "examples": [
+                        "opc.tcp://localhost:4840",
+                        "opc.tcp://1.0.0.1/myserver",
+                        "opc.https://myserver:48443"
+                    ]
+                }
+            },
+            "additionalConfigurationSchema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "title": "DeviceEndpointModel",
+                "description": "Configuration model for OPC UA endpoint security and connection settings.",
+                "type": "object",
+                "properties": {
+                    "EndpointSecurityPolicy": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 512,
+                        "examples": [
+                            "Basic256Sha256",
+                            "Aes256_Sha256_RsaPss",
+                            "http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256"
+                        ],
+                        "description": "The security policy URI to use for the endpoint connection. Defines the encryption and signing algorithms used for communication.",
+                        "errorMessage": {
+                            "type": "Must be a string or null",
+                            "minLength": "Security policy cannot be empty",
+                            "maxLength": "Security policy cannot exceed 512 characters"
+                        }
+                    },
+                    "EndpointSecurityMode": {
+                        "type": "string",
+                        "enum": [
+                            "None",
+                            "Sign",
+                            "SignAndEncrypt"
+                        ],
+                        "default": "SignAndEncrypt",
+                        "examples": [
+                            "None",
+                            "Sign",
+                            "SignAndEncrypt"
+                        ],
+                        "description": "The security mode to use for the endpoint. None (no security), Sign (messages signed), or SignAndEncrypt (messages signed and encrypted).",
+                        "errorMessage": {
+                            "enum": "Must be one of: None, Sign, SignAndEncrypt"
+                        }
+                    },
+                    "UseReverseConnect": {
+                        "type": "boolean",
+                        "default": false,
+                        "examples": [
+                            true,
+                            false
+                        ],
+                        "description": "Use reverse connect to connect to the endpoint. Enable when the server needs to initiate the connection to the client.",
+                        "errorMessage": {
+                            "type": "Must be a boolean or omitted"
+                        }
+                    },
+                    "RunAssetDiscovery": {
+                        "type": "boolean",
+                        "default": false,
+                        "examples": [
+                            true,
+                            false
+                        ],
+                        "description": "Runs asset discovery on the endpoint. Enable to automatically discover and catalog available assets.",
+                        "errorMessage": {
+                            "type": "Must be a boolean or omitted"
+                        }
+                    },
+                    "AssetTypes": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 256
+                        },
+                        "uniqueItems": true,
+                        "examples": [
+                            [
+                                "ns=1;s=PumpType",
+                                "nsu=https://opcfoundation.org/UA;i=2345"
+                            ]
+                        ],
+                        "description": "List of asset types to discover when RunAssetDiscovery is enabled. Each type must be unique.",
+                        "errorMessage": {
+                            "uniqueItems": "Asset types must be unique",
+                            "items": {
+                                "minLength": "Asset type name cannot be empty",
+                                "maxLength": "Asset type name cannot exceed 256 characters"
+                            }
+                        }
+                    },
+                    "DumpConnectionDiagnostics": {
+                        "type": "boolean",
+                        "default": false,
+                        "examples": [
+                            true,
+                            false
+                        ],
+                        "description": "Enables detailed server diagnostics logging for the connection. Enable for troubleshooting connection issues.",
+                        "errorMessage": {
+                            "type": "Must be a boolean or omitted"
+                        }
+                    }
+                },
+                "additionalProperties": false,
+                "dependencies": {
+                    "AssetTypes": [
+                        "RunAssetDiscovery"
+                    ]
+                }
+            },
+            "datasets": {
+                "limits": {
+                    "minimum": 0
+                },
+                "fields": {
+                    "dataSource": {
+                        "input": "required"
+                    },
+                    "typeRef": {
+                        "input": "optional"
+                    }
+                },
+                "destinations": {
+                    "supportedDestinations": [
+                        "Mqtt",
+                        "BrokerStateStore"
+                    ],
+                    "defaultDestination": {
+                        "destination": "Mqtt",
+                        "topic": "{PublisherId}/{WriterGroupName}/{DataSetWriterName}",
+                        "qos": 1,
+                        "ttl": 0,
+                        "retain": "never"
+                    }
+                },
+                "datasetConfigurationSchema": {
+                    "$schema": "http://json-schema.org/draft-07/schema#",
+                    "title": "DataSetEventModel",
+                    "description": "Dataset and event default and resource additional configuration model. Inherits all properties from PublishedNodesEntryModel and adds mapped properties for samplingInterval, publishingInterval, keyFrameCount, and StartInstance.",
+                    "type": "object",
+                    "properties": {
+                        "publishingInterval": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 4294967295,
+                            "examples": [
+                                100,
+                                1000,
+                                5000
+                            ],
+                            "description": "The publishing interval in milliseconds for this dataset writer. Controls how frequently data is published.",
+                            "errorMessage": {
+                                "type": "Must be an integer in milliseconds or omitted",
+                                "minimum": "Must be non-negative",
+                                "maximum": "Must not exceed maximum supported interval (4294967295ms)"
                             }
                         },
-                        "additionalProperties": true
+                        "samplingInterval": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 4294967295,
+                            "examples": [
+                                100,
+                                500,
+                                1000
+                            ],
+                            "description": "Default sampling interval in milliseconds for all data points in the dataset. Controls how frequently data is read from nodes.",
+                            "errorMessage": {
+                                "type": "Must be an integer in milliseconds or omitted",
+                                "minimum": "Must be non-negative",
+                                "maximum": "Must not exceed maximum supported interval (4294967295ms)"
+                            }
+                        },
+                        "MessageEncoding": {
+                            "type": "string",
+                            "enum": [
+                                "Json",
+                                "Avro"
+                            ],
+                            "default": "Json",
+                            "examples": [
+                                "Json",
+                                "Avro"
+                            ],
+                            "description": "The encoding format to use for messages. Json (human-readable), Avro (raw format).",
+                            "errorMessage": {
+                                "enum": "Must be one of: Json, Uadp, Binary"
+                            }
+                        },
+                        "keyFrameCount": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 1000,
+                            "examples": [
+                                1,
+                                10,
+                                100
+                            ],
+                            "description": "Controls key frame insertion frequency in the message stream. Higher values reduce bandwidth but increase latency for new subscribers.",
+                            "errorMessage": {
+                                "type": "Must be an integer or omitted",
+                                "minimum": "Must be at least 1",
+                                "maximum": "Must not exceed 1000"
+                            }
+                        },
+                        "Priority": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 255,
+                            "examples": [
+                                0,
+                                100,
+                                255
+                            ],
+                            "description": "Priority of the writer subscription (0-255). Higher values indicate higher priority for resource allocation and processing.",
+                            "errorMessage": {
+                                "type": "Must be an integer or omitted",
+                                "minimum": "Must be non-negative",
+                                "maximum": "Must not exceed 255"
+                            }
+                        },
+                        "DataSetClassId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "description": "The optional dataset class id as it shall appear in dataset messages and dataset metadata."
+                        },
+                        "DataSetDescription": {
+                            "type": "string",
+                            "description": "The optional description of the dataset."
+                        },
+                        "DataSetExtensionFields": {
+                            "type": "object",
+                            "description": "Optional key-value pairs inserted into key frame and metadata messages in the same data set.",
+                            "additionalProperties": true
+                        },
+                        "DefaultHeartbeatInterval": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 4294967295,
+                            "examples": [
+                                60000,
+                                300000
+                            ],
+                            "description": "The interval in milliseconds at which to publish heartbeat messages.",
+                            "errorMessage": {
+                                "type": "Must be an integer in milliseconds or omitted",
+                                "minimum": "Must be non-negative",
+                                "maximum": "Must not exceed maximum supported interval (4294967295ms)"
+                            }
+                        },
+                        "DefaultHeartbeatBehavior": {
+                            "type": "string",
+                            "enum": [
+                                "WatchChange",
+                                "Periodically",
+                                "None"
+                            ],
+                            "default": "WatchChange",
+                            "examples": [
+                                "WatchChange",
+                                "Periodically",
+                                "None"
+                            ],
+                            "description": "Configures how heartbeat messages are handled for all nodes. WatchChange (on value changes), Periodically (fixed intervals), or None (disabled).",
+                            "errorMessage": {
+                                "enum": "Must be one of: WatchChange, Periodically, None"
+                            }
+                        },
+                        "SendKeepAliveDataSetMessages": {
+                            "type": "boolean",
+                            "default": false,
+                            "examples": [
+                                true,
+                                false
+                            ],
+                            "description": "Controls whether to send keep alive messages for this dataset. Enable to maintain connection health monitoring.",
+                            "errorMessage": {
+                                "type": "Must be a boolean value"
+                            }
+                        },
+                        "MaxKeepAliveCount": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1000,
+                            "examples": [
+                                3,
+                                10,
+                                20
+                            ],
+                            "description": "Defines how many publishing timer expirations to wait before sending a keep-alive message. Larger values reduce traffic but increase detection time.",
+                            "errorMessage": {
+                                "type": "Must be an integer or omitted",
+                                "minimum": "Must be non-negative",
+                                "maximum": "Must not exceed 1000"
+                            }
+                        },
+                        "DataSetWriterWatchdogBehavior": {
+                            "type": "string",
+                            "enum": [
+                                "Restart",
+                                "Halt",
+                                "Continue"
+                            ],
+                            "default": "Restart",
+                            "examples": [
+                                "Restart",
+                                "Halt",
+                                "Continue"
+                            ],
+                            "description": "Defines what action to take when the watchdog timer triggers. Restart (reinitialize writer), Halt (stop publishing), or Continue (keep running).",
+                            "errorMessage": {
+                                "enum": "Must be one of: Restart, Halt, Continue"
+                            }
+                        },
+                        "OpcNodeWatchdogCondition": {
+                            "type": "string",
+                            "enum": [
+                                "NoData",
+                                "Error",
+                                "Any"
+                            ],
+                            "default": "NoData",
+                            "examples": [
+                                "NoData",
+                                "Error",
+                                "Any"
+                            ],
+                            "description": "Specifies the condition that triggers the watchdog behavior. NoData (no updates received), Error (error occurs), or Any (either condition).",
+                            "errorMessage": {
+                                "enum": "Must be one of: NoData, Error, Any"
+                            }
+                        },
+                        "DisableSubscriptionTransfer": {
+                            "type": "boolean",
+                            "default": false,
+                            "examples": [
+                                true,
+                                false
+                            ],
+                            "description": "Controls whether subscription transfer is disabled during reconnect. Enable to prevent subscription state transfer.",
+                            "errorMessage": {
+                                "type": "Must be a boolean or omitted"
+                            }
+                        },
+                        "RepublishAfterTransfer": {
+                            "type": "boolean",
+                            "default": true,
+                            "examples": [
+                                true,
+                                false
+                            ],
+                            "description": "Controls whether to republish missed values after a subscription is transferred during reconnect handling. Enable to ensure data consistency.",
+                            "errorMessage": {
+                                "type": "Must be a boolean or omitted"
+                            }
+                        }
                     },
-                    "datasetDataPointConfigurationSchema": {
+                    "additionalProperties": true
+                },
+                "alternativeTypeName": {
+                    "singular": "DataSet",
+                    "plural": "DataSets"
+                },
+                "dataPoints": {
+                    "limits": {
+                        "minimum": 1
+                    },
+                    "fields": {
+                        "dataSource": {
+                            "input": "required"
+                        },
+                        "typeRef": {
+                            "input": "optional"
+                        }
+                    },
+                    "dataPointConfigurationSchema": {
                         "$schema": "http://json-schema.org/draft-07/schema#",
                         "title": "Data Set Data point configuration",
                         "description": "Data point additional configuration model.",
                         "type": "object",
                         "properties": {
                             "SamplingInterval": {
-                                "type": [
-                                    "integer",
-                                    "null"
-                                ],
+                                "type": "integer",
                                 "minimum": 0,
                                 "maximum": 4294967295,
                                 "examples": [
@@ -359,10 +442,7 @@
                                 }
                             },
                             "AttributeId": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ],
+                                "type": "string",
                                 "enum": [
                                     "Value",
                                     "DataType",
@@ -389,10 +469,7 @@
                                 }
                             },
                             "DataChangeTrigger": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ],
+                                "type": "string",
                                 "enum": [
                                     "Status",
                                     "StatusValue",
@@ -410,10 +487,7 @@
                                 }
                             },
                             "QueueSize": {
-                                "type": [
-                                    "integer",
-                                    "null"
-                                ],
+                                "type": "integer",
                                 "minimum": 1,
                                 "maximum": 65536,
                                 "examples": [
@@ -429,10 +503,7 @@
                                 }
                             },
                             "DeadbandType": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ],
+                                "type": "string",
                                 "enum": [
                                     "None",
                                     "Absolute",
@@ -467,10 +538,7 @@
                                 }
                             },
                             "DiscardNew": {
-                                "type": [
-                                    "boolean",
-                                    "null"
-                                ],
+                                "type": "boolean",
                                 "default": false,
                                 "examples": [
                                     true,
@@ -478,46 +546,8 @@
                                 ],
                                 "description": "Controls queue overflow behavior for monitored items. If true, new values are discarded when queue is full. If false, oldest values are discarded."
                             },
-                            "DataSetFieldId": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ],
-                                "pattern": "^[a-zA-Z0-9_-]+$",
-                                "minLength": 1,
-                                "maxLength": 256,
-                                "examples": [
-                                    "Temperature_Sensor1",
-                                    "Pressure_Tank2"
-                                ],
-                                "description": "Custom identifier for this node in dataset messages. Must be unique within a dataset writer.",
-                                "errorMessage": {
-                                    "pattern": "Only alphanumeric characters, underscores, and hyphens are allowed",
-                                    "minLength": "Identifier cannot be empty",
-                                    "maxLength": "Identifier cannot exceed 256 characters"
-                                }
-                            },
-                            "DataSetClassFieldId": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ],
-                                "format": "uuid",
-                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
-                                "examples": [
-                                    "550e8400-e29b-41d4-a716-446655440000"
-                                ],
-                                "description": "Unique identifier for correlating fields with dataset class metadata.",
-                                "errorMessage": {
-                                    "format": "Must be a valid UUID",
-                                    "pattern": "Must be in format xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                                }
-                            },
                             "RegisterNode": {
-                                "type": [
-                                    "boolean",
-                                    "null"
-                                ],
+                                "type": "boolean",
                                 "default": false,
                                 "examples": [
                                     true,
@@ -529,10 +559,7 @@
                                 }
                             },
                             "UseCyclicRead": {
-                                "type": [
-                                    "boolean",
-                                    "null"
-                                ],
+                                "type": "boolean",
                                 "default": false,
                                 "examples": [
                                     true,
@@ -544,10 +571,7 @@
                                 }
                             },
                             "CyclicReadMaxAge": {
-                                "type": [
-                                    "integer",
-                                    "null"
-                                ],
+                                "type": "integer",
                                 "minimum": 0,
                                 "maximum": 4294967295,
                                 "examples": [
@@ -564,10 +588,7 @@
                                 }
                             },
                             "HeartbeatInterval": {
-                                "type": [
-                                    "integer",
-                                    "null"
-                                ],
+                                "type": "integer",
                                 "minimum": 0,
                                 "maximum": 4294967295,
                                 "examples": [
@@ -582,10 +603,7 @@
                                 }
                             },
                             "HeartbeatBehavior": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ],
+                                "type": "string",
                                 "enum": [
                                     "WatchChange",
                                     "Periodically",
@@ -603,10 +621,7 @@
                                 }
                             },
                             "SkipFirst": {
-                                "type": [
-                                    "boolean",
-                                    "null"
-                                ],
+                                "type": "boolean",
                                 "default": false,
                                 "examples": [
                                     true,
@@ -618,10 +633,7 @@
                                 }
                             },
                             "IndexRange": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ],
+                                "type": "string",
                                 "pattern": "^\\d+(:?\\d+)?$",
                                 "examples": [
                                     "0",
@@ -651,6 +663,59 @@
                             }
                         }
                     },
+                    "alternativeTypeName": {
+                        "singular": "NodeId",
+                        "plural": "NodeIds"
+                    }
+                }
+            },
+            "eventGroups": {
+                "limits": {
+                    "minimum": 0
+                },
+                "fields": {
+                    "dataSource": {
+                        "input": "optional"
+                    },
+                    "typeRef": {
+                        "input": "optional"
+                    }
+                },
+                "alternativeTypeName": {
+                    "singular": "EventGroup",
+                    "plural": "EventGroups"
+                },
+                "eventGroupConfigurationSchema": {
+                    "$schema": "http://json-schema.org/draft-07/schema#",
+                    "title": "Event group configuration",
+                    "description": "Event group additional configuration model.",
+                    "type": "object",
+                    "properties": {}
+                },
+                "events": {
+                    "limits": {
+                        "minimum": 0
+                    },
+                    "fields": {
+                        "dataSource": {
+                            "input": "required"
+                        },
+                        "typeRef": {
+                            "input": "optional"
+                        }
+                    },
+                    "destinations": {
+                        "supportedDestinations": [
+                            "Mqtt"
+                        ],
+                        "defaultDestination": {
+                            "destination": "Mqtt",
+                            "topic": "{PublisherId}/{WriterGroupName}/{EventGroupName}",
+                            "qos": 1,
+                            "ttl": 0,
+                            "retain": "never"
+                        }
+                    },
                     "eventConfigurationSchema": {
                         "$schema": "http://json-schema.org/draft-07/schema#",
                         "title": "Event configuration model",
@@ -658,10 +723,7 @@
                         "type": "object",
                         "properties": {
                             "QueueSize": {
-                                "type": [
-                                    "integer",
-                                    "null"
-                                ],
+                                "type": "integer",
                                 "minimum": 1,
                                 "maximum": 65536,
                                 "examples": [
@@ -677,10 +739,7 @@
                                 }
                             },
                             "publishingInterval": {
-                                "type": [
-                                    "integer",
-                                    "null"
-                                ],
+                                "type": "integer",
                                 "minimum": 0,
                                 "maximum": 4294967295,
                                 "examples": [
@@ -696,10 +755,7 @@
                                 }
                             },
                             "DiscardNew": {
-                                "type": [
-                                    "boolean",
-                                    "null"
-                                ],
+                                "type": "boolean",
                                 "default": false,
                                 "examples": [
                                     true,
@@ -716,10 +772,7 @@
                                 "description": "Settings for pending condition handling."
                             },
                             "SkipFirst": {
-                                "type": [
-                                    "boolean",
-                                    "null"
-                                ],
+                                "type": "boolean",
                                 "default": false,
                                 "examples": [
                                     true,
@@ -731,10 +784,7 @@
                                 }
                             },
                             "MessageEncoding": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ],
+                                "type": "string",
                                 "enum": [
                                     "Json",
                                     "Avro"
@@ -750,10 +800,7 @@
                                 }
                             },
                             "Priority": {
-                                "type": [
-                                    "integer",
-                                    "null"
-                                ],
+                                "type": "integer",
                                 "minimum": 0,
                                 "maximum": 255,
                                 "examples": [
@@ -769,18 +816,12 @@
                                 }
                             },
                             "DataSetClassId": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ],
+                                "type": "string",
                                 "format": "uuid",
                                 "description": "The optional dataset class id as it shall appear in dataset messages and dataset metadata."
                             },
                             "DataSetDescription": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ],
+                                "type": "string",
                                 "description": "The optional description of the dataset."
                             },
                             "SendKeepAliveDataSetMessages": {
@@ -796,10 +837,7 @@
                                 }
                             },
                             "MaxKeepAliveCount": {
-                                "type": [
-                                    "integer",
-                                    "null"
-                                ],
+                                "type": "integer",
                                 "minimum": 0,
                                 "maximum": 1000,
                                 "examples": [
@@ -815,10 +853,7 @@
                                 }
                             },
                             "DataSetWriterWatchdogBehavior": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ],
+                                "type": "string",
                                 "enum": [
                                     "Restart",
                                     "Halt",
@@ -836,10 +871,7 @@
                                 }
                             },
                             "OpcNodeWatchdogCondition": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ],
+                                "type": "string",
                                 "enum": [
                                     "NoData",
                                     "Error",
@@ -857,10 +889,7 @@
                                 }
                             },
                             "DisableSubscriptionTransfer": {
-                                "type": [
-                                    "boolean",
-                                    "null"
-                                ],
+                                "type": "boolean",
                                 "default": false,
                                 "examples": [
                                     true,
@@ -872,10 +901,7 @@
                                 }
                             },
                             "RepublishAfterTransfer": {
-                                "type": [
-                                    "boolean",
-                                    "null"
-                                ],
+                                "type": "boolean",
                                 "default": true,
                                 "examples": [
                                     true,
@@ -898,10 +924,7 @@
                                         "description": "Where clause for event filtering."
                                     },
                                     "typeDefinitionId": {
-                                        "type": [
-                                            "string",
-                                            "null"
-                                        ],
+                                        "type": "string",
                                         "description": "Simple event Type definition node id."
                                     }
                                 },
@@ -915,21 +938,15 @@
                             },
                             "ConditionHandlingOptionsModel": {
                                 "type": "object",
-                                "description": "Condition handling options model.",
+                                "description": "Condition handling options",
                                 "properties": {
                                     "updateInterval": {
-                                        "type": [
-                                            "integer",
-                                            "null"
-                                        ],
+                                        "type": "integer",
                                         "minimum": 0,
                                         "description": "Time interval for sending pending interval updates in seconds."
                                     },
                                     "snapshotInterval": {
-                                        "type": [
-                                            "integer",
-                                            "null"
-                                        ],
+                                        "type": "integer",
                                         "minimum": 0,
                                         "description": "Time interval for sending pending interval snapshot in seconds."
                                     }
@@ -938,27 +955,74 @@
                             }
                         }
                     },
-                    "eventDataPointConfigurationSchema": null,
-                    "streamConfigurationSchema": null,
-                    "managementGroupConfigurationSchema": null,
-                    "processControlConfigurationSchema": null
-                },
-                "supportedEventDestinations": [
-                    "Mqtt"
-                ],
-                "defaultEventDestinations": [
-                    "Mqtt"
-                ],
-                "supportedDatasetDestinations": [
-                    "Mqtt"
-                ],
-                "defaultDatasetDestinations": [
-                    "Mqtt"
-                ],
-                "supportedStreamDestinations": [],
-                "defaultStreamDestinations": []
+                    "alternativeTypeName": {
+                        "singular": "Event",
+                        "plural": "Events"
+                    }
+                }
             },
-            "isEndpointTlsEnabled": true
+            "managementGroups": {
+                "limits": {
+                    "minimum": 0
+                },
+                "fields": {
+                    "dataSource": {
+                        "input": "optional"
+                    },
+                    "typeRef": {
+                        "input": "optional"
+                    }
+                },
+                "managementGroupConfigurationSchema": {
+                    "$schema": "http://json-schema.org/draft-07/schema#",
+                    "title": "Service configuration",
+                    "description": "Service additional configuration model.",
+                    "type": "object",
+                    "properties": {}
+                },
+                "alternativeTypeName": {
+                    "singular": "Service",
+                    "plural": "Services"
+                },
+                "managementGroupActions": {
+                    "limits": {
+                        "minimum": 0
+                    },
+                    "fields": {
+                        "targetUri": {
+                            "input": "required"
+                        },
+                        "typeRef": {
+                            "input": "optional"
+                        }
+                    },
+                    "actionConfigurationSchema": {
+                        "$schema": "http://json-schema.org/draft-07/schema#",
+                        "title": "Service call configuration model",
+                        "description": "Service call additional configuration model.",
+                        "type": "object",
+                        "properties": {}
+                    },
+                    "alternativeTypeName": {
+                        "singular": "Service Call",
+                        "plural": "Service Calls"
+                    }
+                }
+            }
+        }
+    ],
+    "inboundEndpointAlternativeTypeName": {
+        "singular": "OPC UA Server",
+        "plural": "OPC UA Servers"
+    },
+    "endpointsEnabledByDefault": true,
+    "isPreview": true,
+    "recommendedAllocationPolicy": "bucketized",
+    "recommendedReplicas": 2,
+    "connectorConfigurationKeys": [
+        {
+            "description": "",
+            "key": "PublisherId"
         }
     ]
 }
