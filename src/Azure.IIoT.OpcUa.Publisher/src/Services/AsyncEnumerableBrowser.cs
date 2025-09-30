@@ -469,9 +469,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 var result = cur.BrowseName.Name;
                 cur = cur.Parent;
-                while (cur != null && cur != root)
+                while (cur != root)
                 {
-                    Debug.Assert(cur.BrowseName?.Name != null);
+                    if (cur?.BrowseName?.Name == null)
+                    {
+                        // not rooted in root because we hit a null parent,
+                        // return cur browsename
+                        return BrowseName!.Name;
+                    }
                     result = cur.BrowseName.Name + "." + result;
                     cur = cur.Parent;
                 }

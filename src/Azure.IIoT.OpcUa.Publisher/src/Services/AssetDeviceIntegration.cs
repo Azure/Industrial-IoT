@@ -626,7 +626,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         DiscardErrors = true,
                         IncludeMethods = true,
                         FlattenTypeInstance = false,
-                        NoSubTypesOfTypeNodes = false
+                        NoSubTypesOfTypeNodes = false,
+                        UseBrowseNameAsDisplayName = true
                     }, ct).ConfigureAwait(false))
                 {
                     if (found.ErrorInfo != null)

@@ -195,7 +195,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             OpcNodes = currentObject
                                 .GetOpcNodeModels(
                                     currentObject.OriginalNode.NodeFromConfiguration,
-                                    context.Session.MessageContext, createLongIds: false)
+                                    context.Session.MessageContext,
+                                    _request.UseBrowseNameAsDisplayName, createLongIds: false)
                                 .ToList()
                         }
                     }, context.Ct).ConfigureAwait(false);
@@ -320,7 +321,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             var ids = new HashSet<string?>();
             var goodNodes = _expanded
                 .Where(e => !e.HasErrors)
-                .SelectMany(r => r.GetAllOpcNodeModels(context.Session.MessageContext, ids))
+                .SelectMany(r => r.GetAllOpcNodeModels(context.Session.MessageContext,
+                    _request.UseBrowseNameAsDisplayName, ids))
                 .ToList();
             if (goodNodes.Count > 0)
             {
@@ -340,7 +342,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     .Where(e => e.HasErrors)
                     .SelectMany(e => e.ErrorInfos
                         .Select(error => (error, e
-                            .GetAllOpcNodeModels(context.Session.MessageContext, ids, true)
+                            .GetAllOpcNodeModels(context.Session.MessageContext,
+                                _request.UseBrowseNameAsDisplayName, ids, true)
                             .ToList())))
                     .GroupBy(e => e.error)
                     .SelectMany(r => r.Select(r => r))
@@ -594,11 +597,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// Opc node model configurations over all objects
             /// </summary>
             /// <param name="context"></param>
+            /// <param name="useBrowseNameAsDisplayName"></param>
             /// <param name="ids"></param>
             /// <param name="error"></param>
             /// <returns></returns>
             public IEnumerable<OpcNodeModel> GetAllOpcNodeModels(IServiceMessageContext context,
-                HashSet<string?>? ids = null, bool error = false)
+                bool useBrowseNameAsDisplayName, HashSet<string?>? ids = null, bool error = false)
             {
                 switch (NodeClass)
                 {
@@ -609,7 +613,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             break;
                         }
                         var variables = Variables.GetOpcNodeModels(NodeFromConfiguration,
-                                context, ids, true);
+                                context, useBrowseNameAsDisplayName, ids, true);
                         if ((!error && NodeClass == (uint)Opc.Ua.NodeClass.VariableType) ||
                             ids?.Contains(NodeFromConfiguration.DataSetFieldId) == true)
                         {
@@ -621,8 +625,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     case (uint)Opc.Ua.NodeClass.ObjectType:
                         var objects = _objects
                             .Where(o => !o.EntriesAlreadyReturned)
-                            .SelectMany(o => o.GetOpcNodeModels(
-                                NodeFromConfiguration, context, ids, true));
+                            .SelectMany(o => o.GetOpcNodeModels(NodeFromConfiguration,
+                                context, useBrowseNameAsDisplayName, ids, true));
                         if (!error)
                         {
                             return objects;
@@ -783,12 +787,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// </summary>
             /// <param name="template"></param>
             /// <param name="context"></param>
+            /// <param name="useBrowseNameAsDisplayName"></param>
             /// <param name="ids"></param>
             /// <param name="createLongIds"></param>
             /// <returns></returns>
             public IEnumerable<OpcNodeModel> GetOpcNodeModels(OpcNodeModel template,
-                IServiceMessageContext context, HashSet<string?>? ids = null,
-                bool createLongIds = false)
+                IServiceMessageContext context, bool useBrowseNameAsDisplayName,
+                HashSet<string?>? ids = null, bool createLongIds = false)
             {
                 ids ??= [];
                 if (EntriesAlreadyReturned)
@@ -804,7 +809,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     AttributeId = NodeAttribute.Value,
 
                     DataSetFieldId = CreateUniqueIdFromFrame(variableFrame.BrowsePath),
-                    DisplayName = variableFrame.BrowseName == null ? variableFrame.DisplayName :
+                    DisplayName = !useBrowseNameAsDisplayName || variableFrame.BrowseName == null ?
+                        variableFrame.DisplayName :
                         variableFrame.BrowseNameFromRootFrame(ObjectFromBrowse),
 
                     // TODO - use browse paths instead:
@@ -849,7 +855,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         Id = methodFrame.NodeId.AsString(context, NamespaceFormat.Expanded),
                         DataSetFieldId = CreateUniqueIdFromFrame(methodFrame.BrowsePath),
-                        DisplayName = methodFrame.BrowseName == null ? methodFrame.DisplayName :
+                        DisplayName = !useBrowseNameAsDisplayName || methodFrame.BrowseName == null ?
+                            methodFrame.DisplayName :
                             methodFrame.BrowseNameFromRootFrame(ObjectFromBrowse),
                         // TODO - use browse paths instead:
                         // Id = ObjectFromBrowse.NodeId.AsString(context, NamespaceFormat.Expanded)
