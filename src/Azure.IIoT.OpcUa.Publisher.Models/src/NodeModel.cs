@@ -60,6 +60,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "value", Order = 5,
             EmitDefaultValue = false)]
+        [SkipValidation]
         public VariantValue? Value { get; set; }
 
         /// <summary>
@@ -171,6 +172,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "dataTypeDefinition", Order = 19,
             EmitDefaultValue = false)]
+        [SkipValidation]
         public VariantValue? DataTypeDefinition { get; set; }
 
         /// <summary>
