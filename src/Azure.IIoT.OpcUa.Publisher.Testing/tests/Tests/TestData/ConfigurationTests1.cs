@@ -769,7 +769,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     DiscardErrors = false,
                     ExcludeRootIfInstanceNode = false,
                     NoSubTypesOfTypeNodes = false,
-                    CreateSingleWriter = false
+                    CreateSingleWriter = false,
+                    UseBrowseNameAsDisplayName = true
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
             var result = Assert.Single(results);

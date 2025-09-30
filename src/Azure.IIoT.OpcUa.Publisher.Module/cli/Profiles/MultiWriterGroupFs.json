@@ -1,0 +1,254 @@
+﻿[
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": true,
+        "DataSetWriterGroup": "MES",
+        "WriterGroupTransport": "FileSystem",
+        "WriterGroupTransportConfiguration": "MES",
+        "OpcNodes": [
+            { "Id": "nsu=http://opcfoundation.org/UA/Plc;s=Plc" }
+        ]
+    },
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": true,
+        "DataSetWriterGroup": "MES",
+        "WriterGroupTransport": "FileSystem",
+        "WriterGroupTransportConfiguration": "MES",
+        "OpcNodes": [
+            { "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=StepUp" }
+        ]
+    },
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": true,
+        "DataSetWriterGroup": "MES",
+        "WriterGroupTransport": "FileSystem",
+        "WriterGroupTransportConfiguration": "MES",
+        "OpcNodes": [
+            { "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=AlternatingBoolean" }
+        ]
+    },
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": true,
+        "DataSetWriterGroup": "MES",
+        "WriterGroupTransport": "FileSystem",
+        "WriterGroupTransportConfiguration": "MES",
+        "OpcNodes": [
+            { "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=RandomSignedInt32" }
+        ]
+    },
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": true,
+        "DataSetWriterGroup": "MES",
+        "OpcNodes": [
+            { "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=RandomUnsignedInt32" }
+        ]
+    },
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": true,
+        "DataSetWriterGroup": "MES",
+        "WriterGroupTransport": "FileSystem",
+        "WriterGroupTransportConfiguration": "MES",
+        "OpcNodes": [
+            { "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=DipData" }
+        ]
+    },
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": true,
+        "DataSetWriterGroup": "MES",
+        "WriterGroupTransport": "FileSystem",
+        "WriterGroupTransportConfiguration": "MES",
+        "OpcNodes": [
+            { "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastUIntScalar1" }
+        ]
+    },
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": true,
+        "DataSetWriterGroup": "Test",
+        "WriterGroupTransport": "FileSystem",
+        "WriterGroupTransportConfiguration": "Test",
+        "OpcNodes": [
+            { "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastUIntScalar2" }
+        ]
+    },
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": true,
+        "DataSetWriterGroup": "Test",
+        "WriterGroupTransport": "FileSystem",
+        "WriterGroupTransportConfiguration": "Test",
+        "OpcNodes": [
+            { "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastUIntScalar3" }
+        ]
+    },
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": true,
+        "DataSetWriterGroup": "Test",
+        "WriterGroupTransport": "FileSystem",
+        "WriterGroupTransportConfiguration": "Test",
+        "OpcNodes": [
+            { "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastRandomUIntScalar1" }
+        ]
+    },
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": true,
+        "DataSetWriterGroup": "Test",
+        "WriterGroupTransport": "FileSystem",
+        "WriterGroupTransportConfiguration": "Test",
+        "OpcNodes": [
+            { "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastRandomUIntScalar2" }
+        ]
+    },
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": true,
+        "DataSetWriterGroup": "Test",
+        "WriterGroupTransport": "FileSystem",
+        "WriterGroupTransportConfiguration": "Test",
+        "OpcNodes": [
+            { "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=FastRandomUIntScalar3" }
+        ]
+    },
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": true,
+        "DataSetWriterGroup": "Assembly",
+        "WriterGroupTransport": "FileSystem",
+        "WriterGroupTransportConfiguration": "Assembly1",
+        "OpcNodes": [
+            { "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=NegativeTrendData" }
+        ]
+    },
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": true,
+        "DataSetWriterGroup": "Assembly",
+        "WriterGroupTransport": "FileSystem",
+        "WriterGroupTransportConfiguration": "Assembly1",
+        "OpcNodes": [
+            { "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=PositiveTrendData" }
+        ]
+    },
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": true,
+        "DataSetWriterGroup": "Assembly",
+        "WriterGroupTransport": "FileSystem",
+        "WriterGroupTransportConfiguration": "Assembly2",
+        "OpcNodes": [
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowUIntScalar1",
+                "OpcPublishingInterval": 10000
+            }
+        ]
+    },
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": true,
+        "DataSetWriterGroup": "Assembly",
+        "WriterGroupTransport": "FileSystem",
+        "WriterGroupTransportConfiguration": "Assembly2",
+        "OpcNodes": [
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowUIntScalar2",
+                "OpcPublishingInterval": 10000
+            }
+        ]
+    },
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": true,
+        "DataSetWriterGroup": "Assembly",
+        "WriterGroupTransport": "FileSystem",
+        "WriterGroupTransportConfiguration": "Assembly2",
+        "OpcNodes": [
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowUIntScalar3",
+                "OpcPublishingInterval": 10000
+            }
+        ]
+    },
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": true,
+        "DataSetWriterGroup": "Assembly",
+        "WriterGroupTransport": "FileSystem",
+        "WriterGroupTransportConfiguration": "Assembly2",
+        "OpcNodes": [
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=BadSlowUIntScalar1",
+                "OpcPublishingInterval": 10000
+            }
+        ]
+    },
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": true,
+        "DataSetWriterGroup": "Packaging",
+        "WriterGroupTransport": "FileSystem",
+        "WriterGroupTransportConfiguration": "Packaging1",
+        "OpcNodes": [
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowRandomUIntScalar1",
+                "OpcPublishingInterval": 10000
+            }
+        ]
+    },
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": true,
+        "DataSetWriterGroup": "Packaging",
+        "WriterGroupTransport": "FileSystem",
+        "WriterGroupTransportConfiguration": "Packaging1",
+        "OpcNodes": [
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowRandomUIntScalar2",
+                "OpcPublishingInterval": 10000
+            }
+        ]
+    },
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": true,
+        "DataSetWriterGroup": "Packaging",
+        "WriterGroupTransport": "FileSystem",
+        "WriterGroupTransportConfiguration": "Packaging1",
+        "OpcNodes": [
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SlowRandomUIntScalar3",
+                "OpcPublishingInterval": 10000
+            }
+        ]
+    },
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": true,
+        "DataSetWriterGroup": "Packaging",
+        "WriterGroupTransport": "FileSystem",
+        "WriterGroupTransportConfiguration": "Packaging1",
+        "OpcNodes": [
+            {
+                "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=BadSlowRandomUIntScalar1",
+                "OpcPublishingInterval": 10000
+            }
+        ]
+    },
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": true,
+        "DataSetWriterGroup": "Packaging",
+        "WriterGroupTransport": "FileSystem",
+        "WriterGroupTransportConfiguration": "Packaging2",
+        "OpcNodes": [
+            { "Id": "nsu=http://opcfoundation.org/UA/Plc/Applications;s=SpikeData" }
+        ]
+    }
+]

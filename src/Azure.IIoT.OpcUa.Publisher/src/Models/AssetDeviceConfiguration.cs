@@ -176,18 +176,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     }
 
     /// <summary>
+    /// EventGroup reource additional configuration model.
+    /// </summary>
+    [DataContract]
+    public sealed record class EventGroupConfiguration : DataSetEventConfiguration;
+
+    /// <summary>
     /// Management group reource additional configuration model.
     /// </summary>
     [DataContract]
     public sealed record class ManagementGroupConfiguration
     {
-        /// <summary>
-        /// Node id of the node which the event pertains to
-        /// </summary>
-        [DataMember(Name = "dataSource", Order = 0,
-            EmitDefaultValue = false)]
-        public string? DataSource { get; set; }
-
         /// <summary>
         /// The encoding format to use for messages. Allowed values
         /// include:
@@ -235,28 +234,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     [DataContract]
     public sealed record class EventConfiguration : DataSetEventConfiguration
     {
-        /// <summary>
-        /// Name of the source node
-        /// </summary>
-        [DataMember(Name = "sourceName", Order = 99,
-            EmitDefaultValue = false)]
-        public string? SourceName { get; set; }
-
-        /// <summary>
-        /// Node id of the node which the event pertains to
-        /// </summary>
-        [DataMember(Name = "dataSource", Order = 100,
-            EmitDefaultValue = false)]
-        public string? DataSource { get; set; }
-
-        /// <summary>
-        /// The name of the event which should be the post
-        /// fix of the name of the event resource.
-        /// </summary>
-        [DataMember(Name = "eventName", Order = 101,
-            EmitDefaultValue = false)]
-        public string? EventName { get; set; }
-
         /// <summary>
         /// Size of the server-side queue for this monitored item.
         /// Controls how many values can be buffered during slow

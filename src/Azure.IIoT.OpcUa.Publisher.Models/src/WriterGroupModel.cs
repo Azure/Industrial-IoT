@@ -192,5 +192,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "publisherId", Order = 22,
             EmitDefaultValue = false)]
         public string? PublisherId { get; set; }
+
+        /// <summary>
+        /// Writer group transport configuration (optional)
+        /// </summary>
+        [DataMember(Name = "transportConfiguration", Order = 23,
+            EmitDefaultValue = false)]
+        public string? TransportConfiguration { get; set; }
     }
 }

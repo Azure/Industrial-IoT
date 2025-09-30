@@ -134,5 +134,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "discardErrors", Order = 9,
             EmitDefaultValue = false)]
         public bool DiscardErrors { get; init; }
+
+        /// <summary>
+        /// Use the browse name as display name for nodes. The
+        /// display name is rooted in the parent node from
+        /// which browsing occurs, or just the browse name if
+        /// the browse root is not a parent.
+        /// </summary>
+        [DataMember(Name = "useBrowseNameAsDisplayName", Order = 10,
+            EmitDefaultValue = false)]
+        public bool UseBrowseNameAsDisplayName { get; init; }
     }
 }

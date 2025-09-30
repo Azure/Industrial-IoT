@@ -764,7 +764,7 @@ $errOut = $($cc = & { az connectedk8s show `
     --resource-group $($rg.Name) `
     --subscription $SubscriptionId `
     --only-show-errors --output json } | ConvertFrom-Json) 2>&1
-if ($cc -and !$forceReinstall -and $cc.connectivityStatus -ne "Offline") {
+if ($cc -and !$forceReinstall -and $cc.properties.connectivityStatus -ne "Offline") {
     Write-Host "Cluster $($cc.name) already connected to Arc." -ForegroundColor Green
 }
 else {
@@ -835,6 +835,22 @@ else {
         exit -1
     }
     Write-Host "Workload identity enabled for cluster $script:Name." -ForegroundColor Green
+}
+
+# Validate we have a connected cluster
+while ($true) {
+    $errOut = $($cc = & { az connectedk8s show `
+        --name $script:Name `
+        --resource-group $($rg.Name) `
+        --subscription $SubscriptionId `
+        --only-show-errors --output json } | ConvertFrom-Json) 2>&1
+    if ($cc.properties.connectivityStatus -eq "Connected") {
+        Write-Host "Cluster $($cc.name) connected to Arc." -ForegroundColor Green
+        break
+    }
+    Write-Host "Waiting for cluster $($cc.name) to connect - $($cc.properties.connectivityStatus)..." `
+        -ForegroundColor Yellow
+    Start-Sleep -Seconds 10
 }
 
 #

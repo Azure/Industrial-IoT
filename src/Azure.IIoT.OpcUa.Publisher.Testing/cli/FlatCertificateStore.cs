@@ -98,7 +98,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                 => _innerStore.DeleteAsync(thumbprint, ct);
 
             /// <inheritdoc/>
-            public async Task<X509Certificate2Collection> EnumerateAsybc(CancellationToken ct = default)
+            public async Task<X509Certificate2Collection> EnumerateAsync(CancellationToken ct = default)
             {
                 var certificatesCollection =
                     await _innerStore.EnumerateAsync(ct).ConfigureAwait(false);
@@ -269,52 +269,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                 }
                 return false;
             }
-
-            [Obsolete]
-            public Task<X509Certificate2Collection> Enumerate()
-                => _innerStore.Enumerate();
-
-            public Task<X509Certificate2Collection> EnumerateAsync(CancellationToken ct = default)
-                => _innerStore.EnumerateAsync(ct);
-
-            [Obsolete]
-            public Task Add(X509Certificate2 certificate, string password = null)
-                => _innerStore.Add(certificate, password);
-
-            [Obsolete]
-            public Task AddRejected(X509Certificate2Collection certificates, int maxCertificates)
-                => _innerStore.AddRejected(certificates, maxCertificates);
-
-            [Obsolete]
-            public Task<bool> Delete(string thumbprint)
-                => _innerStore.Delete(thumbprint);
-
-            [Obsolete]
-            public Task<X509Certificate2Collection> FindByThumbprint(string thumbprint)
-                => _innerStore.FindByThumbprint(thumbprint);
-
-            [Obsolete]
-            public Task<X509Certificate2> LoadPrivateKey(string thumbprint, string subjectName, string applicationUri,
-                NodeId certificateType, string password)
-                => _innerStore.LoadPrivateKey(thumbprint, subjectName, applicationUri, certificateType, password);
-
-            [Obsolete]
-            public Task<StatusCode> IsRevoked(X509Certificate2 issuer, X509Certificate2 certificate)
-                => _innerStore.IsRevoked(issuer, certificate);
-
-            [Obsolete]
-            public Task<X509CRLCollection> EnumerateCRLs()
-                => _innerStore.EnumerateCRLs();
-
-            [Obsolete]
-            public Task<X509CRLCollection> EnumerateCRLs(X509Certificate2 issuer, bool validateUpdateTime = true)
-                => _innerStore.EnumerateCRLs(issuer, validateUpdateTime);
-
-            [Obsolete]
-            public Task AddCRL(X509CRL crl) => _innerStore.AddCRL(crl);
-
-            [Obsolete]
-            public Task<bool> DeleteCRL(X509CRL crl) => _innerStore.DeleteCRL(crl);
         }
     }
 }

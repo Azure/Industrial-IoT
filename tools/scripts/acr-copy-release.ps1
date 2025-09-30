@@ -83,7 +83,7 @@ if (![string]::IsNullOrEmpty($script:ResourceGroupName)) {
             if ($LastExitCode -ne 0) {
                 throw "az $($argumentList) failed with $($LastExitCode)."
             }
-            Write-Host "Created new Resource group $ResourceGroupName."
+            Write-Host "Created new Resource group $ResourceGroupName." -ForegroundColor Green
         }
         if ([string]::IsNullOrEmpty($script:ResourceGroupLocation)) {
             $script:ResourceGroupLocation = $group.location
@@ -97,7 +97,8 @@ if (![string]::IsNullOrEmpty($script:ResourceGroupName)) {
         if ($LastExitCode -ne 0) {
             throw "az $($argumentList) failed with $($LastExitCode)."
         }
-Write-Host "Created container registry $($registry.name) in $script:ResourceGroupName."
+Write-Host "Created container registry $($registry.name) in $script:ResourceGroupName." `
+    -ForegroundColor Green
     }
 }
 
@@ -121,6 +122,113 @@ if ($LastExitCode -ne 0) {
     throw "az $($argumentList) failed with $($LastExitCode)."
 }
 $BuildRepositories = $result | ConvertFrom-Json
+
+$ReleaseTags = @()
+if ($script:PreviewVersion) {
+    if ($script:IsMajorUpdate.IsPresent -or $script:IsLatest.IsPresent) {
+        throw "IsMajorUpdate and IsLatest is not allowed when PreviewVersion is specified."
+    }
+    $versionTag = "$($script:ReleaseVersion)-preview$($script:PreviewVersion)"
+    $ReleaseTags += $versionTag
+}
+else {
+    if ($script:IsLatest.IsPresent) {
+        $ReleaseTags += "latest"
+    }
+
+    # Example: if release version is 2.8.1, then base image tags are "2", "2.8", "2.8.1"
+    $versionParts = $script:ReleaseVersion.Split('-')[0].Split('.')
+    if ($versionParts.Count -gt 0) {
+        $versionTag = $versionParts[0]
+        if ($script:IsMajorUpdate.IsPresent -or $script:IsLatest.IsPresent) {
+            $ReleaseTags += $versionTag
+        }
+        for ($i = 1; $i -lt ($versionParts.Count); $i++) {
+            $versionTag = ("$($versionTag).{0}" -f $versionParts[$i])
+            $ReleaseTags += $versionTag
+        }
+    }
+}
+
+# Check oras tool is installed
+& "oras" version 2>$null
+if ($LastExitCode -ne 0) {
+    Write-Host "The 'oras' tool is not installed." -ForegroundColor Yellow
+    Write-Host "Install it from https://github.com/oras-project/oras." -ForegroundColor Yellow
+    Write-Host "Skipping publishing connector metadata." -ForegroundColor Yellow
+}
+else {
+    # Find the root path which contains the .git folder
+    $script:ScriptPath = $MyInvocation.MyCommand.Path
+    $script:ScriptDir = Split-Path -Path $script:ScriptPath -Parent
+    $RootDir = $script:ScriptDir
+    while (!(Test-Path -Path (Join-Path -Path $RootDir -ChildPath ".git"))) {
+        $parent = Split-Path -Path $RootDir -Parent
+        if ($parent -eq $RootDir) {
+            throw "Could not find .git folder in any parent folder of $($script:ScriptDir)."
+        }
+        $RootDir = $parent
+    }
+    $connectorMetadataFilePath = "$($RootDir)/deploy/kubernetes/iotops/opc-publisher-connector-metadata.json"
+    if (!Test-Path $connectorMetadataFilePath) {
+        Write-Host "Connector metadata file $connectorMetadataFilePath not found." -ForegroundColor Yellow
+        Write-Host "Skipping publishing." -ForegroundColor Yellow
+    }
+    else {
+        # get build registry credentials
+        $argumentList = @("acr", "credential", "show", "--name", $script:ReleaseRegistry, "-ojson")
+        $result = (& "az" @argumentList 2>&1 | ForEach-Object { "$_" })
+        if ($LastExitCode -ne 0) {
+            throw "az $($argumentList) failed with $($LastExitCode)."
+        }
+        $dockerCredentials = $result | ConvertFrom-Json
+
+        $dockerUser = $dockerCredentials.username
+        $dockerPassword = $dockerCredentials.passwords[0].value
+        $dockerServer = "$($script:ReleaseRegistry).azurecr.io"
+
+        # login to release registry
+        $argumentList = @("login", $dockerServer,
+            "--username", $dockerUser, "--password", $dockerPassword)
+        $result = (& "oras" @argumentList 2>&1 | ForEach-Object { "$_" })
+        if ($LastExitCode -ne 0) {
+            throw "oras $($argumentList) failed with $($LastExitCode)."
+        }
+        # Publish the connector manifest along side publisher image
+        foreach ($ReleaseTag in $ReleaseTags) {
+            # Create a temp file and copy the metadata file to it with the word "latest" replaced
+            # with the actual release tag. This ensures that the metadata always points to the correct
+            # publisher image tag.
+            $tempFile = [System.IO.Path]::GetTempFileName()
+            (Get-Content $connectorMetadataFilePath) `
+                | ForEach-Object { $_ -replace '"tag": "latest"', '"tag": "' + $ReleaseTag + '"' } `
+                | Set-Content $tempFile
+
+            # Show file content
+            Get-Content $tempFile | ForEach-Object { Write-Host "$_" }
+
+            # Push the metadata file as a config file to the publisher image with suffix -metadata
+            $FullImageName = "$($script:ReleaseRegistry).azurecr.io/opc-publisher:$($ReleaseTag)-metadata"
+            $argumentList = @(
+                "push",
+                "--config",
+                "/dev/null:application/vnd.microsoft.akri-connector.v1+json",
+                $FullImageName,
+                $tempFile
+            )
+
+            # Remove the temp file
+            Remove-Item $tempFile -Force
+
+            $result = (& "oras" @argumentList 2>&1 | ForEach-Object { "$_" })
+            if ($LastExitCode -ne 0) {
+                throw "oras $($argumentList) failed with $($LastExitCode)."
+            }
+            Write-Host "Published connector metadata for opc-publisher to $($FullImageName)." `
+                -ForegroundColor Green
+        }
+    }
+}
 
 # In each repo - check whether a release tag exists
 $jobs = @()
@@ -150,40 +258,13 @@ foreach ($Repository in $BuildRepositories) {
     )
     $result = (& "az" @argumentList 2>&1 | ForEach-Object { "$_" })
     if ($LastExitCode -ne 0) {
-        Write-Host "Image $BuildTag not found..."
+        Write-Host "Image $BuildTag not found..." -ForegroundColor Yellow
         continue
     }
     $Image = $result | ConvertFrom-Json
     if ([string]::IsNullOrEmpty($Image.digest)) {
-        Write-Host "Image $BuildTag not found..."
+        Write-Host "Image $BuildTag not found..." -ForegroundColor Yellow
         continue
-    }
-
-    $ReleaseTags = @()
-    if ($script:PreviewVersion) {
-        if ($script:IsMajorUpdate.IsPresent -or $script:IsLatest.IsPresent) {
-            throw "IsMajorUpdate and IsLatest is not allowed when PreviewVersion is specified."
-        }
-        $versionTag = "$($script:ReleaseVersion)-preview$($script:PreviewVersion)"
-        $ReleaseTags += $versionTag
-    }
-    else {
-        if ($script:IsLatest.IsPresent) {
-            $ReleaseTags += "latest"
-        }
-
-        # Example: if release version is 2.8.1, then base image tags are "2", "2.8", "2.8.1"
-        $versionParts = $script:ReleaseVersion.Split('-')[0].Split('.')
-        if ($versionParts.Count -gt 0) {
-            $versionTag = $versionParts[0]
-            if ($script:IsMajorUpdate.IsPresent -or $script:IsLatest.IsPresent) {
-                $ReleaseTags += $versionTag
-            }
-            for ($i = 1; $i -lt ($versionParts.Count); $i++) {
-                $versionTag = ("$($versionTag).{0}" -f $versionParts[$i])
-                $ReleaseTags += $versionTag
-            }
-        }
     }
 
     # Create acr command line
@@ -219,26 +300,26 @@ foreach ($Repository in $BuildRepositories) {
 
     $FullImageName = "$($script:BuildRegistry).azurecr.io/$($BuildTag)"
     $ConsoleOutput = "Copying $FullImageName $($Image.digest) with tags '$($ReleaseTags -join ", ")' to release $script:ReleaseRegistry"
-    Write-Host "Starting Job $ConsoleOutput..."
+    Write-Host "Starting Job $ConsoleOutput..." -ForegroundColor Cyan
     $jobs += Start-Job -Name $FullImageName -ArgumentList @($argumentList, $ConsoleOutput) -ScriptBlock {
         $argumentList = $args[0]
         $ConsoleOutput = $args[1]
-        Write-Host "$($ConsoleOutput)..."
+        Write-Host "$($ConsoleOutput)..."  -ForegroundColor Yellow
         & az @argumentList 2>&1 | ForEach-Object { "$_" }
         if ($LastExitCode -ne 0) {
-            Write-Warning "$($ConsoleOutput) failed with $($LastExitCode) - 2nd attempt..."
+            Write-Warning "$($ConsoleOutput) failed with $($LastExitCode) - 2nd attempt..."  -ForegroundColor Yellow
             & "az" @argumentList 2>&1 | ForEach-Object { "$_" }
             if ($LastExitCode -ne 0) {
                 throw "Error: $($ConsoleOutput) - 2nd attempt failed with $($LastExitCode)."
             }
         }
-        Write-Host "$($ConsoleOutput) completed."
+        Write-Host "$($ConsoleOutput) completed." -ForegroundColor Green
     }
 }
 
 # Wait for copy jobs to finish for this repo.
 if ($jobs.Count -ne 0) {
-    Write-Host "Waiting for copy jobs to finish for $($script:ReleaseRegistry)."
+    Write-Host "Waiting for copy jobs to finish for $($script:ReleaseRegistry)." -ForegroundColor Cyan
     # Wait until all jobs are completed
     Receive-Job -Job $jobs -WriteEvents -Wait | Out-Host
     $jobs | Out-Host
@@ -246,4 +327,4 @@ if ($jobs.Count -ne 0) {
         throw "ERROR: Copying $($_.Name). resulted in $($_.State)."
     }
 }
-Write-Host "All copy jobs completed successfully for $($script:ReleaseRegistry)."
+Write-Host "All copy jobs completed successfully for $($script:ReleaseRegistry)." -ForegroundColor Green

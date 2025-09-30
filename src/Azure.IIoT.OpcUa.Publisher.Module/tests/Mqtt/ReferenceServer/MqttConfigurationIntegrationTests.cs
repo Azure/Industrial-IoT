@@ -5,11 +5,12 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
 {
-    using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using Furly.Extensions.Mqtt;
     using Json.More;
+    using Microsoft.VisualStudio.TestPlatform.Utilities;
     using System;
     using System.Collections.Generic;
     using System.Text.Json;
@@ -109,14 +110,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 var n = Assert.Single(nodes.OpcNodes);
                 Assert.Equal(testInput[0].OpcNodes[0].Id, n.Id);
 
+                _output.WriteLine("Unpublishing nodes...");
                 result = await PublisherApi.UnpublishAllNodesAsync(ct: Ct);
                 Assert.NotNull(result);
 
+                _output.WriteLine("Checking endpoints...");
                 endpoints = await PublisherApi.GetConfiguredEndpointsAsync(ct: Ct);
                 Assert.Empty(endpoints.Endpoints);
             }
             finally
             {
+                _output.WriteLine("Stopping publisher...");
                 await StopPublisherAsync();
             }
         }
@@ -184,19 +188,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 var endpoints = await PublisherApi.GetConfiguredEndpointsAsync(ct: Ct);
                 Assert.Empty(endpoints.Endpoints);
 
+                _output.WriteLine("Publishing 1");
                 await PublisherApi.PublishNodesAsync(testInput1[0], Ct);
+                _output.WriteLine("Publishing 2");
                 await PublisherApi.PublishNodesAsync(testInput2[0], Ct);
+                _output.WriteLine("Publishing 3");
                 await PublisherApi.PublishNodesAsync(testInput3[0], Ct);
 
+                _output.WriteLine("Checking endpoints...");
                 endpoints = await PublisherApi.GetConfiguredEndpointsAsync(ct: Ct);
                 var e = Assert.Single(endpoints.Endpoints);
                 var nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e, Ct);
                 Assert.Equal(3, nodes.OpcNodes.Count);
 
+                _output.WriteLine("Unpublishing all...");
                 await PublisherApi.UnpublishAllNodesAsync(ct: Ct);
                 endpoints = await PublisherApi.GetConfiguredEndpointsAsync();
                 Assert.Empty(endpoints.Endpoints);
 
+                _output.WriteLine("Re-adding with AddOrUpdate...");
                 await PublisherApi.AddOrUpdateEndpointsAsync(new List<PublishedNodesEntryModel>
                 {
                     new() {
@@ -207,6 +217,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                     }
                 }, Ct);
 
+                _output.WriteLine("Checking endpoints...");
                 endpoints = await PublisherApi.GetConfiguredEndpointsAsync(ct: Ct);
                 e = Assert.Single(endpoints.Endpoints);
                 nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e, Ct);

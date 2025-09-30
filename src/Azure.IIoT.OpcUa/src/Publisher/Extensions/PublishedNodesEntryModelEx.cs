@@ -44,6 +44,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 id.Append(model.WriterGroupTransport);
             }
+            if (!string.IsNullOrEmpty(model.WriterGroupTransportConfiguration))
+            {
+                id.Append(model.WriterGroupTransportConfiguration);
+            }
             if (model.WriterGroupQualityOfService != null)
             {
                 id.Append(model.WriterGroupQualityOfService.Value);
@@ -117,6 +121,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 return false;
             }
             if (model.WriterGroupTransport != that.WriterGroupTransport)
+            {
+                return false;
+            }
+            if (!string.Equals(model.WriterGroupTransportConfiguration ?? string.Empty,
+                that.WriterGroupTransportConfiguration ?? string.Empty, StringComparison.Ordinal))
             {
                 return false;
             }

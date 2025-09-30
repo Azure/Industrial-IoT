@@ -19,7 +19,7 @@ Secrets such as `EdgeHubConnectionString`, other connection strings, or the `Api
 ██║   ██║██╔═══╝ ██║         ██╔═══╝ ██║   ██║██╔══██╗██║     ██║╚════██║██╔══██║██╔══╝  ██╔══██╗
 ╚██████╔╝██║     ╚██████╗    ██║     ╚██████╔╝██████╔╝███████╗██║███████║██║  ██║███████╗██║  ██║
  ╚═════╝ ╚═╝      ╚═════╝    ╚═╝      ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-                               2.9.15-rc.19+f5384eb34a (.NET 9.0.7/win-x64/OPC Stack 1.5.376.235)
+                              2.9.15-rc.19+6ad3d509a8 (.NET 9.0.9/linux-x64/OPC Stack 1.5.377.11)
 General
 -------
 
@@ -36,7 +36,7 @@ General
                                publishednodes.json` file is created in the
                                working directory.
                                Default: `publishednodes.json`
-      --cf, --createifnotexist, --CreatePublishFileIfNotExistKey[=VALUE]
+      --cf, --createifnotexist, --CreatePublishFileIfNotExist[=VALUE]
                              Permit publisher to create the the specified
                                publish file if it does not exist. The new file
                                will be created under the access rights of the
@@ -416,15 +416,15 @@ Transport settings
   -p, --httpserverport, --HttpServerPort=VALUE
                              The port on which the http server of OPC Publisher
                                is listening.
-                               Default: `9072` if no value is provided.
+                               Default: `443` if no value is provided.
       --unsecurehttp, --UnsecureHttpServerPort[=VALUE]
                              Allow unsecure access to the REST api of OPC
                                Publisher. A port can be specified if the
-                               default port 9071 is not desired.
+                               default port 80 is not desired.
                                Do not enable this in production as it exposes
                                the Api Key on the network.
                                Default: `disabled`, if specified without a port
-                               `9071` port is used.
+                               `80` port is used.
       --rtc, --renewtlscert, --RenewTlsCertificateOnStartup[=VALUE]
                              If set a new tls certificate is created during
                                startup updating any previously created ones.
@@ -769,6 +769,20 @@ Subscription settings
                                configured to a subscription.
                                Set to 0 to disable retrying.
                                Default: `300` seconds.
+      --bmd, --badnoderetrymaxdelay, --BadMonitoredItemRetryDelayMaxSeconds=VALUE
+                             The max delay in seconds between retrying nodes
+                               that were rejected by the server while added or
+                               updating a subscription or while publishing.
+                               When set an exponential retry policy is used
+                               with the `--bmr` value as the starting delay.
+                               Default: `not set`.
+      --imd, --invalidnoderetrymaxdelay, --InvalidMonitoredItemRetryDelayMaxSeconds=VALUE
+                             The max  delay in seconds between retrying nodes
+                               that were incorrectly configured in the a
+                               subscription.
+                               When set an exponential retry policy is used
+                               with the `--inr` value as the starting delay.
+                               Default: `not set`.
       --ser, --subscriptionerrorretrydelay, --SubscriptionErrorRetryDelaySeconds=VALUE
                              The delay in seconds between attempts to create a
                                subscription in a session.
@@ -890,6 +904,15 @@ OPC UA Client configuration
                                batching browse operations or the server limit
                                if less.
                                Default: `0` (using server limit).
+      --ncc, --nodecachecapacity, --NodeCacheCapacity=VALUE
+                             The max size of the node caches used in the
+                               complex type system.
+                               There are caches (values, nodes, references).
+                               Default: `4096`.
+      --nct, --nodecachetimeout, --NodeCacheTimeout=VALUE
+                             The timeout of a node cache entries if not used in
+                               milliseconds.
+                               Default: `3600`.
       --mpr, --minpublishrequests, --MinPublishRequests=VALUE
                              Minimum number of publish requests to queue once
                                subscriptions are created in the session.
@@ -1155,6 +1178,14 @@ Diagnostic options
       --oc, --otlpcollector, --OtlpCollectorEndpoint=VALUE
                              Specifiy the OpenTelemetry collector grpc endpoint
                                url to export diagnostics to.
+                               Default: `disabled`.
+      --eol, --enableotellogging, --EnableOtelLogging[=VALUE]
+                             Enable logging over open telemetry endpoint.
+                               By default only metrics are enabled.
+                               Default: `disabled`.
+      --eot, --enableoteltraces, --EnableOtelTraces[=VALUE]
+                             Enable traces over open telemetry endpoint.
+                               By default only metrics are emitted.
                                Default: `disabled`.
       --oxi, --otlpexportinterval, --OtlpExportIntervalMilliseconds=VALUE
                              The interval in milliseconds when OpenTelemetry is
