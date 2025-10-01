@@ -150,82 +150,90 @@ else {
     }
 }
 
-# Check oras tool is installed
-& "oras" version 2>$null
-if ($LastExitCode -ne 0) {
-    Write-Host "The 'oras' tool is not installed." -ForegroundColor Yellow
-    Write-Host "Install it from https://github.com/oras-project/oras." -ForegroundColor Yellow
-    Write-Host "Skipping publishing connector metadata." -ForegroundColor Yellow
+# Only publish metadata to industialiotprod releaseRegistry
+if ($script:ReleaseRegistry -ne "industrialiotprod") {
+    Write-Host "Skipping publishing connector metadata to $($script:ReleaseRegistry)." `
+        -ForegroundColor Yellow
 }
 else {
-    # Find the root path which contains the .git folder
-    $script:ScriptPath = $MyInvocation.MyCommand.Path
-    $script:ScriptDir = Split-Path -Path $script:ScriptPath -Parent
-    $RootDir = $script:ScriptDir
-    while (!(Test-Path -Path (Join-Path -Path $RootDir -ChildPath ".git"))) {
-        $parent = Split-Path -Path $RootDir -Parent
-        if ($parent -eq $RootDir) {
-            throw "Could not find .git folder in any parent folder of $($script:ScriptDir)."
-        }
-        $RootDir = $parent
-    }
-    $connectorMetadataFilePath = "$($RootDir)/deploy/kubernetes/iotops/opc-publisher-connector-metadata.json"
-    if (!Test-Path $connectorMetadataFilePath) {
-        Write-Host "Connector metadata file $connectorMetadataFilePath not found." -ForegroundColor Yellow
-        Write-Host "Skipping publishing." -ForegroundColor Yellow
+    # Check oras tool is installed
+    & "oras" version 2>$null
+    if ($LastExitCode -ne 0) {
+        Write-Host "The 'oras' tool is not installed." -ForegroundColor Yellow
+        Write-Host "Install it from https://github.com/oras-project/oras." -ForegroundColor Yellow
+        Write-Host "Skipping publishing connector metadata." -ForegroundColor Yellow
     }
     else {
-        # get build registry credentials
-        $argumentList = @("acr", "credential", "show", "--name", $script:ReleaseRegistry, "-ojson")
-        $result = (& "az" @argumentList 2>&1 | ForEach-Object { "$_" })
-        if ($LastExitCode -ne 0) {
-            throw "az $($argumentList) failed with $($LastExitCode)."
+        # Find the root path which contains the .git folder
+        $script:ScriptPath = $MyInvocation.MyCommand.Path
+        $script:ScriptDir = Split-Path -Path $script:ScriptPath -Parent
+        $RootDir = $script:ScriptDir
+        while (!(Test-Path -Path (Join-Path -Path $RootDir -ChildPath ".git"))) {
+            $parent = Split-Path -Path $RootDir -Parent
+            if ($parent -eq $RootDir) {
+                throw "Could not find .git folder in any parent folder of $($script:ScriptDir)."
+            }
+            $RootDir = $parent
         }
-        $dockerCredentials = $result | ConvertFrom-Json
-
-        $dockerUser = $dockerCredentials.username
-        $dockerPassword = $dockerCredentials.passwords[0].value
-        $dockerServer = "$($script:ReleaseRegistry).azurecr.io"
-
-        # login to release registry
-        $argumentList = @("login", $dockerServer,
-            "--username", $dockerUser, "--password", $dockerPassword)
-        $result = (& "oras" @argumentList 2>&1 | ForEach-Object { "$_" })
-        if ($LastExitCode -ne 0) {
-            throw "oras $($argumentList) failed with $($LastExitCode)."
+        $connectorMetadataFilePath = "$($RootDir)/deploy/kubernetes/iotops/opc-publisher-connector-metadata.json"
+        if (!(Test-Path -Path $connectorMetadataFilePath)) {
+            Write-Host "Connector metadata file $connectorMetadataFilePath not found." -ForegroundColor Yellow
+            Write-Host "Skipping publishing." -ForegroundColor Yellow
         }
-        # Publish the connector manifest along side publisher image
-        foreach ($ReleaseTag in $ReleaseTags) {
-            # Create a temp file and copy the metadata file to it with the word "latest" replaced
-            # with the actual release tag. This ensures that the metadata always points to the correct
-            # publisher image tag.
-            $tempFile = [System.IO.Path]::GetTempFileName()
-            (Get-Content $connectorMetadataFilePath) `
-                | ForEach-Object { $_ -replace '"tag": "latest"', '"tag": "' + $ReleaseTag + '"' } `
-                | Set-Content $tempFile
+        else {
+            # get build registry credentials
+            $argumentList = @("acr", "credential", "show", "--name", $script:ReleaseRegistry, "-ojson")
+            $result = (& "az" @argumentList 2>&1 | ForEach-Object { "$_" })
+            if ($LastExitCode -ne 0) {
+                throw "az $($argumentList) failed with $($LastExitCode)."
+            }
+            $dockerCredentials = $result | ConvertFrom-Json
 
-            # Show file content
-            Get-Content $tempFile | ForEach-Object { Write-Host "$_" }
+            $dockerUser = $dockerCredentials.username
+            $dockerPassword = $dockerCredentials.passwords[0].value
+            $dockerServer = "$($script:ReleaseRegistry).azurecr.io"
 
-            # Push the metadata file as a config file to the publisher image with suffix -metadata
-            $FullImageName = "$($script:ReleaseRegistry).azurecr.io/opc-publisher:$($ReleaseTag)-metadata"
-            $argumentList = @(
-                "push",
-                "--config",
-                "/dev/null:application/vnd.microsoft.akri-connector.v1+json",
-                $FullImageName,
-                $tempFile
-            )
-
-            # Remove the temp file
-            Remove-Item $tempFile -Force
-
+            # login to release registry
+            $argumentList = @("login", $dockerServer,
+                "--username", $dockerUser, "--password", $dockerPassword)
             $result = (& "oras" @argumentList 2>&1 | ForEach-Object { "$_" })
             if ($LastExitCode -ne 0) {
                 throw "oras $($argumentList) failed with $($LastExitCode)."
             }
-            Write-Host "Published connector metadata for opc-publisher to $($FullImageName)." `
-                -ForegroundColor Green
+            # Publish the connector manifest along side publisher image
+            foreach ($ReleaseTag in $ReleaseTags) {
+                # Create a temp file and copy the metadata file to it with the word "latest" replaced
+                # with the actual release tag. This ensures that the metadata always points to the correct
+                # publisher image tag.  Also replace the ""version": "2.9.0" with the actual release version.
+                # This ensures that the metadata always points to the correct publisher image version."
+                $tempFile = [System.IO.Path]::GetTempFileName()
+                $tag = '"tag": "' + $ReleaseTag + '"'
+                $version = '"version": "' + $script:ReleaseVersion + '"'
+                Write-Host "Creating temp file $tempFile with tag $tag and version $version."
+                # Replace tag and version in the metadata file
+                (Get-Content $connectorMetadataFilePath) `
+                    | ForEach-Object { $_ -replace '"tag": "latest"', $tag } `
+                    | ForEach-Object { $_ -replace '"version": "2.9.0"', $version } `
+                    | Set-Content $tempFile
+
+                # Push the metadata file as a config file to the publisher image with suffix -metadata
+                $FullImageName = "$($dockerServer)/public/iotedge/opc-publisher:$($ReleaseTag)-metadata"
+                $argumentList = @(
+                    "push",
+                    "--disable-path-validation",
+                    $FullImageName,
+                    "$($tempFile):application/vnd.microsoft.akri-connector.v1+json"
+                )
+                $result = (& "oras" @argumentList 2>&1 | ForEach-Object { "$_" })
+
+                if ($LastExitCode -ne 0) {
+                    throw "oras $($argumentList) failed with $($LastExitCode)."
+                }
+                # Remove the temp file
+                Remove-Item $tempFile -Force
+                Write-Host "Published connector metadata for opc-publisher to $($FullImageName)." `
+                    -ForegroundColor Green
+            }
         }
     }
 }
