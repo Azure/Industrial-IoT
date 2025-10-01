@@ -332,8 +332,7 @@ elseif ($script:ClusterType -eq "microk8s") {
     @(
         "dns",
         "hostpath-storage",
-        "ingress",
-        "cert-manager"
+        "ingress"
     )
     foreach ($f in $features) {
         $errOut = $($stdOut = & { microk8s enable $f }) 2>&1
