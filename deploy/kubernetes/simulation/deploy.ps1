@@ -114,7 +114,7 @@ $adrNsResource = "$($adrNsResource)/resourceGroups/$($ResourceGroup)"
 $adrNsResource = "$($adrNsResource)/providers/Microsoft.DeviceRegistry"
 $adrNsResource = "$($adrNsResource)/namespaces/$($AdrNamespaceName)"
 $errOut = $($ns = & { az rest --method get `
-    --url "$($adrNsResource)?api-version=2025-07-01-preview" `
+    --url "$($adrNsResource)?api-version=2025-10-01" `
     --headers "Content-Type=application/json" } | ConvertFrom-Json) 2>&1
 if (!$ns -or !$ns.id) {
     Write-Host "ADR namespace $($adrNsResource) not found - $($errOut)." `
@@ -254,7 +254,7 @@ for ($i = 0; $i -lt $script:Count; $i++) {
     $deviceName = "$($script:SimulationName)-$($suffix)"
     $deviceResource = "$($ns.id)/devices/$($deviceName)"
     $errOut = $($device = & { az rest --method get `
-        --url "$($deviceResource)?api-version=2025-07-01-preview" `
+        --url "$($deviceResource)?api-version=2025-10-01" `
         --headers "Content-Type=application/json" } | ConvertFrom-Json) 2>&1
     if (!$device -or !$device.id -or $script:Force.IsPresent) {
         if ($script:SimulationName -eq "umati-public") { 
@@ -296,7 +296,7 @@ for ($i = 0; $i -lt $script:Count; $i++) {
         $body | Out-File -FilePath $tempFile -Encoding utf8 -Force
         Write-Host "Creating ADR namespaced device $deviceResource..." -ForegroundColor Cyan
         $errOut = $($device = & { az rest --method put `
-            --url "$($deviceResource)?api-version=2025-07-01-preview" `
+            --url "$($deviceResource)?api-version=2025-10-01" `
             --headers "Content-Type=application/json" `
             --body @$tempFile } | ConvertFrom-Json) 2>&1
         if (-not $? -or !$device -or !$device.id) {

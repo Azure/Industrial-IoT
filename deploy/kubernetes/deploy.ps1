@@ -169,7 +169,7 @@ $adrNsResource = "$($adrNsResource)/resourceGroups/$($script:ResourceGroup)"
 $adrNsResource = "$($adrNsResource)/providers/Microsoft.DeviceRegistry"
 $adrNsResource = "$($adrNsResource)/namespaces/$($script:AdrNamespaceName)"
 $errOut = $($ns = & { az rest --method get `
-    --url "$($adrNsResource)?api-version=2025-07-01-preview" `
+    --url "$($adrNsResource)?api-version=2025-10-01" `
     --headers "Content-Type=application/json" } | ConvertFrom-Json) 2>&1
 if (!$ns -or !$ns.id) {
     Write-Host "ADR namespace $($script:AdrNamespaceName) not found - $($errOut)." `
