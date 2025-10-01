@@ -38,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// into arrays.  (Mandatory)
         /// </summary>
         [DataMember(Name = "value", Order = 2)]
-        [Required]
+        [SkipValidation]
         public required VariantValue Value { get; set; }
 
         /// <summary>

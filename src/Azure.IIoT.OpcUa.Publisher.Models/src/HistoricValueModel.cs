@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using Furly.Extensions.Serializers;
     using System;
+    using System.ComponentModel.DataAnnotations;
     using System.Runtime.Serialization;
 
     /// <summary>
@@ -19,6 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// The value of data value.
         /// </summary>
         [DataMember(Name = "value", Order = 0)]
+        [SkipValidation]
         public VariantValue? Value { get; set; }
 
         /// <summary>

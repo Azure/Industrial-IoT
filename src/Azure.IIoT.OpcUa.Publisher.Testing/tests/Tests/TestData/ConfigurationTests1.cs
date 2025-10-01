@@ -544,7 +544,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     ExcludeRootIfInstanceNode = false,
                     NoSubTypesOfTypeNodes = false,
                     FlattenTypeInstance = false,
-                    CreateSingleWriter = false
+                    CreateSingleWriter = false,
+                    UseBrowseNameAsDisplayName = true
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
             Assert.Equal(16, results.Count);
@@ -581,7 +582,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     ExcludeRootIfInstanceNode = false,
                     NoSubTypesOfTypeNodes = false,
                     FlattenTypeInstance = false,
-                    CreateSingleWriter = false
+                    CreateSingleWriter = false,
+                    UseBrowseNameAsDisplayName = true
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
             Assert.Equal(2, results.Count);
@@ -618,7 +620,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     ExcludeRootIfInstanceNode = false,
                     NoSubTypesOfTypeNodes = false,
                     FlattenTypeInstance = false,
-                    CreateSingleWriter = false
+                    CreateSingleWriter = false,
+                    UseBrowseNameAsDisplayName = true
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
             Assert.Equal(2, results.Count);
