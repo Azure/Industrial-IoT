@@ -1019,7 +1019,7 @@
     "endpointsEnabledByDefault": true,
     "isPreview": true,
     "recommendedAllocationPolicy": "bucketized",
-    "recommendedReplicas": 2,
+    "recommendedReplicas": 1,
     "connectorConfigurationKeys": [
         {
             "key": "UseFileChangePolling",

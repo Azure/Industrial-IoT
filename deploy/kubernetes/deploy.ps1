@@ -215,6 +215,7 @@ if ($script:ConnectorType -eq "Official") {
     }
     $containerTag = "2.9.15-preview6" # TODO: Remove
     $containerImage = "mcr.microsoft.com/$($containerName):$($containerTag)"
+    $connectorMetadataRef = "mcr.microsoft.com/$($containerName):$($containerTag)-metadata"
 }
 else {
     $projFile = "Azure.IIoT.OpcUa.Publisher.Module"
@@ -225,6 +226,7 @@ else {
     }
     $containerTag = Get-Date -Format "MMddHHmmss"
     $containerImage = "$($containerName):$($containerTag)"
+    $connectorMetadataRef = $null
     Write-Host "Publishing $configuration OPC Publisher as $containerImage..." `
         -ForegroundColor Cyan
     dotnet restore $projFile -s https://api.nuget.org/v3/index.json
@@ -249,68 +251,6 @@ else {
             }
         }
     }
-}
-
-#
-# Create connector template
-#
-$connectorSchemas =
-@(
-    @{
-        Name = "opc-publisher-endpoint-schema"
-        Description = "OPC Publisher Endpoint Schema"
-    },
-    @{
-        Name = "opc-publisher-dataset-schema"
-        Description = "OPC Publisher Dataset Schema"
-    },
-    @{
-        Name = "opc-publisher-event-schema"
-        Description = "OPC Publisher Event Schema"
-    },
-    @{
-        Name = "opc-publisher-dataset-datapoint-schema"
-        Description = "OPC Publisher ConnectorType Template"
-    }
-)
-# Upload schemas
-$schemaIds = @()
-foreach ($s in $connectorSchemas) {
-    $errOut = $($schema = & { az iot ops schema show `
-        --resource-group $rg.Name `
-        --registry $sr.name `
-        --name $($s.Name -replace "-", "") `
-        --subscription $script:SubscriptionId `
-        --only-show-errors --output json } | ConvertFrom-Json) 2>&1
-    if (!$schema -or $script:Force.IsPresent) {
-        Write-Host "Creating schema $($s.Name) in registry $($sr.name)..." `
-            -ForegroundColor Cyan
-        $schemaPath = Join-Path "iotops" "$($s.Name).json"
-        $errOut = $($schema = & { az iot ops schema create `
-            --resource-group $rg.Name `
-            --registry $sr.name `
-            --name $($s.Name -replace "-", "") `
-            --display-name $s.Name `
-            --version-content @$schemaPath `
-            --version "1" `
-            --desc $s.Description `
-            --version-desc "$($s.Name) (v1)" `
-            --format json `
-            --type message `
-            --subscription $script:SubscriptionId `
-            --only-show-errors --output json } | ConvertFrom-Json) 2>&1
-        if (-not $? -or !$schema) {
-            $stdOut | Out-Host
-            Write-Host "Error creating schema $($s.Name) : $errOut" `
-                -ForegroundColor Red
-            exit -1
-        }
-        Write-Host "Schema $($schema.id) created." -ForegroundColor Green
-    }
-    else {
-        Write-Host "Schema $($schema.id) exists." -ForegroundColor Green
-    }
-    $schemaIds += $schema.id
 }
 
 # Deploy connector template
@@ -361,12 +301,7 @@ $template = @{
             @{
                 endpointType = "Microsoft.OpcPublisher"
                 version = "2.9"
-                description = "OPC Publisher managed OPC UA server"
-                configurationSchemaRefs = @{
-                    additionalConfigSchemaRef = $schemaIds[0]
-                    defaultDatasetConfigSchemaRef = $schemaIds[1]
-                    defaultEventsConfigSchemaRef = $schemaIds[2]
-                }
+                displayName = "OPC Publisher"
             }
         )
         diagnostics = @{
@@ -374,6 +309,7 @@ $template = @{
                 level = "info"
             }
         }
+        connectorMetadataRef = $connectorMetadataRef
         mqttConnectionConfiguration = @{
             host = "aio-broker:18883"
             authentication = @{
@@ -412,7 +348,7 @@ $ctResource = "$($ctResource)/instances/$($iotOps.name)"
 $ctResource = "$($ctResource)/akriConnectorTemplates/$($ctName)"
 Write-Host "Deploying connector template $($ctName)..." -ForegroundColor Cyan
 az rest --method put `
-    --url "$($ctResource)?api-version=2025-07-01-preview" `
+    --url "$($ctResource)?api-version=2025-09-01-preview" `
     --headers "Content-Type=application/json" `
     --body @$tempFile
 if (-not $?) {
@@ -464,6 +400,7 @@ if ($script:NetworkDiscoveryMode -ne "Off") {
                     level = "info"
                 }
             }
+            connectorMetadataRef = $connectorMetadataRef
             mqttConnectionConfiguration = @{
                 host = "aio-broker:18883"
                 authentication = @{
@@ -489,7 +426,7 @@ if ($script:NetworkDiscoveryMode -ne "Off") {
     $dhResource = "$($dhResource)/akriDiscoveryHandlers/$($dhName)"
     Write-Host "Deploying discovery handler template $($dhName)..." -ForegroundColor Cyan
     az rest --method put `
-        --url "$($dhResource)?api-version=2025-07-01-preview" `
+        --url "$($dhResource)?api-version=2025-09-01-preview" `
         --headers "Content-Type=application/json" `
         --body @$tempFile
     if (-not $?) {

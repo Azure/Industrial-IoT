@@ -106,7 +106,7 @@ $adrNsResource = "$($adrNsResource)/resourceGroups/$($script:ResourceGroup)"
 $adrNsResource = "$($adrNsResource)/providers/Microsoft.DeviceRegistry"
 $adrNsResource = "$($adrNsResource)/namespaces/$($AdrNamespaceName)"
 $errOut = $($ns = & { az rest --method get `
-    --url "$($adrNsResource)?api-version=2025-07-01-preview" `
+    --url "$($adrNsResource)?api-version=2025-08-01-preview" `
     --headers "Content-Type=application/json" } | ConvertFrom-Json) 2>&1
 if (!$ns -or !$ns.id) {
     Write-Host "ADR namespace $($adrNsResource) not found - $($errOut)." `
@@ -166,13 +166,13 @@ if ($script:Action -eq "Cleanup") {
             Write-Host "Deleting all $($resourceType) in ADR namespace $($ns.name)..." `
                 -ForegroundColor Cyan
             $errOut = $($resources = & { az rest --method get `
-                --url "$($ns.id)/$($resourceType)?api-version=2025-07-01-preview" `
+                --url "$($ns.id)/$($resourceType)?api-version=2025-08-01-preview" `
                 --headers "Content-Type=application/json" } | ConvertFrom-Json) 2>&1
             if ($resources -and $resources.value) {
                 foreach ($resource in $resources.value) {
                     $itemsDeleted = $true
                     $errOut = & { az rest --method delete `
-                        --url "$($resource.id)?api-version=2025-07-01-preview" `
+                        --url "$($resource.id)?api-version=2025-08-01-preview" `
                         --headers "Content-Type=application/json" } 2>&1
                     $name = "$($resourceType.TrimEnd('s')) $($resource.name)"
                     if (-not $?) {
@@ -196,7 +196,7 @@ elseif ($script:Action -eq "Onboard") {
         -ForegroundColor Green
     while ($true) {
         $errOut = $($dDevices = & { az rest --method get `
-            --url "$($ns.id)/discoveredDevices?api-version=2025-07-01-preview" `
+            --url "$($ns.id)/discoveredDevices?api-version=2025-08-01-preview" `
             --headers "Content-Type=application/json" } | ConvertFrom-Json) 2>&1
         $onboardComplete = $false
         $needsSync = $false
@@ -204,7 +204,7 @@ elseif ($script:Action -eq "Onboard") {
             foreach ($dDevice in $dDevices.value) {
 
                 $errOut = $($device = & { az rest --method get `
-                    --url "$($ns.id)/devices/$($dDevice.name)?api-version=2025-07-01-preview" `
+                    --url "$($ns.id)/devices/$($dDevice.name)?api-version=2025-08-01-preview" `
                     --headers "Content-Type=application/json" } | ConvertFrom-Json) 2>&1
                 if ($device -and $device.id) {
                     Write-Host "Device $($device.name) exists with version $($device.properties.version)..." `
@@ -238,7 +238,7 @@ elseif ($script:Action -eq "Onboard") {
                 $body | Out-File -FilePath $tempFile -Encoding utf8 -Force
                 Write-Host "Create or update device $($dDevice.name)..." -ForegroundColor Cyan
                 $errOut = $($device = & { az rest --method put `
-                    --url "$($ns.id)/devices/$($dDevice.name)?api-version=2025-07-01-preview" `
+                    --url "$($ns.id)/devices/$($dDevice.name)?api-version=2025-08-01-preview" `
                     --headers "Content-Type=application/json" `
                     --body @$tempFile } | ConvertFrom-Json) 2>&1
                 if (!$device.id) {
@@ -255,12 +255,12 @@ elseif ($script:Action -eq "Onboard") {
             Write-Host "No discovered devices found." -ForegroundColor Yellow
         }
         $errOut = $($dAssets = & { az rest --method get `
-            --url "$($ns.id)/discoveredAssets?api-version=2025-07-01-preview" `
+            --url "$($ns.id)/discoveredAssets?api-version=2025-08-01-preview" `
             --headers "Content-Type=application/json" } | ConvertFrom-Json) 2>&1
         if ($dAssets -and $dAssets.value) {
             foreach ($dAsset in $dAssets.value) {
                 $errOut = $($asset = & { az rest --method get `
-                    --url "$($ns.id)/assets/$($dAsset.name)?api-version=2025-07-01-preview" `
+                    --url "$($ns.id)/assets/$($dAsset.name)?api-version=2025-08-01-preview" `
                     --headers "Content-Type=application/json" } | ConvertFrom-Json) 2>&1
                 if ($asset -and $asset.id) {
                     Write-Host "Asset $($asset.name) exists with version $($asset.properties.version)..." `
@@ -325,7 +325,7 @@ elseif ($script:Action -eq "Onboard") {
                 $body | Out-File -FilePath $tempFile -Encoding utf8 -Force
                 Write-Host "Create or update asset $($dAsset.name)..." -ForegroundColor Cyan
                 $errOut = $($asset = & { az rest --method put `
-                    --url "$($ns.id)/assets/$($dAsset.name)?api-version=2025-07-01-preview" `
+                    --url "$($ns.id)/assets/$($dAsset.name)?api-version=2025-08-01-preview" `
                     --headers "Content-Type=application/json" `
                     --body @$tempFile } | ConvertFrom-Json) 2>&1
                 if (!$asset.id) {

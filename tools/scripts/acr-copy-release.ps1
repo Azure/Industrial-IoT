@@ -175,7 +175,9 @@ else {
             }
             $RootDir = $parent
         }
-        $connectorMetadataFilePath = "$($RootDir)/deploy/kubernetes/iotops/opc-publisher-connector-metadata.json"
+        $metadataFileName = "opc-publisher-connector-metadata.json"
+        $connectorRepositoryName = "public/iotedge/opc-publisher"
+        $connectorMetadataFilePath = "$($RootDir)/deploy/kubernetes/iotops/$($metadataFileName)"
         if (!(Test-Path -Path $connectorMetadataFilePath)) {
             Write-Host "Connector metadata file $connectorMetadataFilePath not found." -ForegroundColor Yellow
             Write-Host "Skipping publishing." -ForegroundColor Yellow
@@ -193,46 +195,65 @@ else {
             $dockerPassword = $dockerCredentials.passwords[0].value
             $dockerServer = "$($script:ReleaseRegistry).azurecr.io"
 
-            # login to release registry
-            $argumentList = @("login", $dockerServer,
-                "--username", $dockerUser, "--password", $dockerPassword)
-            $result = (& "oras" @argumentList 2>&1 | ForEach-Object { "$_" })
-            if ($LastExitCode -ne 0) {
-                throw "oras $($argumentList) failed with $($LastExitCode)."
-            }
-            # Publish the connector manifest along side publisher image
-            foreach ($ReleaseTag in $ReleaseTags) {
-                # Create a temp file and copy the metadata file to it with the word "latest" replaced
-                # with the actual release tag. This ensures that the metadata always points to the correct
-                # publisher image tag.  Also replace the ""version": "2.9.0" with the actual release version.
-                # This ensures that the metadata always points to the correct publisher image version."
-                $tempFile = [System.IO.Path]::GetTempFileName()
-                $tag = '"tag": "' + $ReleaseTag + '"'
-                $version = '"version": "' + $script:ReleaseVersion + '"'
-                Write-Host "Creating temp file $tempFile with tag $tag and version $version."
-                # Replace tag and version in the metadata file
-                (Get-Content $connectorMetadataFilePath) `
-                    | ForEach-Object { $_ -replace '"tag": "latest"', $tag } `
-                    | ForEach-Object { $_ -replace '"version": "2.9.0"', $version } `
-                    | Set-Content $tempFile
+            try {
+                # create an empty file to make sure oras push works even if no config is provided
+                $emptyFile = "null"
+                if (Test-Path -Path $emptyFile) {
+                    Remove-Item $emptyFile -Force
+                }
+                if (Test-Path -Path $metadataFileName) {
+                    Remove-Item $metadataFileName -Force
+                }
+                Set-Content -Path $emptyFile -Value ""
 
-                # Push the metadata file as a config file to the publisher image with suffix -metadata
-                $FullImageName = "$($dockerServer)/public/iotedge/opc-publisher:$($ReleaseTag)-metadata"
-                $argumentList = @(
-                    "push",
-                    "--disable-path-validation",
-                    $FullImageName,
-                    "$($tempFile):application/vnd.microsoft.akri-connector.v1+json"
-                )
+                # login to release registry
+                $argumentList = @("login", $dockerServer,
+                    "--username", $dockerUser, "--password", $dockerPassword)
                 $result = (& "oras" @argumentList 2>&1 | ForEach-Object { "$_" })
-
                 if ($LastExitCode -ne 0) {
                     throw "oras $($argumentList) failed with $($LastExitCode)."
                 }
-                # Remove the temp file
-                Remove-Item $tempFile -Force
-                Write-Host "Published connector metadata for opc-publisher to $($FullImageName)." `
-                    -ForegroundColor Green
+                # Publish the connector manifest along side publisher image
+                foreach ($ReleaseTag in $ReleaseTags) {
+                    # Create a temp file and copy the metadata file to it with the word "latest" replaced
+                    # with the actual release tag. This ensures that the metadata always points to the correct
+                    # publisher image tag.  Also replace the ""version": "2.9.0" with the actual release version.
+                    # This ensures that the metadata always points to the correct publisher image version."
+                    $tag = '"tag": "' + $ReleaseTag + '"'
+                    $version = '"version": "' + $script:ReleaseVersion + '"'
+                    Write-Host "Creating temp file $metadataFileName with tag $tag and version $version."
+                    # Replace tag and version in the metadata file
+                    (Get-Content $connectorMetadataFilePath) `
+                        | ForEach-Object { $_ -replace '"tag": "latest"', $tag } `
+                        | ForEach-Object { $_ -replace '"version": "2.9.0"', $version } `
+                        | Set-Content $metadataFileName
+
+                    # Push the metadata file as a config file to the publisher image with suffix -metadata
+                    $FullImageName = "$($dockerServer)/$($connectorRepositoryName):$($ReleaseTag)-metadata"
+                    $argumentList = @(
+                        "push",
+                        "--config",
+                        "$($emptyFile):application/vnd.microsoft.akri-connector.v1+json"
+                        $FullImageName,
+                        "$($metadataFileName):application/json"
+                    )
+                    $result = (& "oras" @argumentList 2>&1 | ForEach-Object { "$_" })
+
+                    if ($LastExitCode -ne 0) {
+                        throw "oras $($argumentList) failed with $($LastExitCode)."
+                    }
+                    # Remove the temp file
+                    Remove-Item $metadataFileName -Force
+                    Write-Host "Published connector metadata for opc-publisher to $($FullImageName)." `
+                        -ForegroundColor Green
+                }
+            } finally {
+                if (Test-Path -Path $emptyFile) {
+                    Remove-Item $emptyFile -Force
+                }
+                if (Test-Path -Path $metadataFileName) {
+                    Remove-Item $metadataFileName -Force
+                }
             }
         }
     }
