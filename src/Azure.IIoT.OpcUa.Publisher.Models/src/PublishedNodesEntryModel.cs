@@ -222,6 +222,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "DataSetExtensionFields", Order = 17,
             EmitDefaultValue = false)]
+        [SkipValidation]
         public IDictionary<string, VariantValue>? DataSetExtensionFields { get; set; }
 
         /// <summary>
@@ -693,6 +694,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "WriterGroupProperties", Order = 59,
             EmitDefaultValue = false)]
+        [SkipValidation]
         public Dictionary<string, VariantValue>? WriterGroupProperties { get; set; }
 
         /// <summary>
