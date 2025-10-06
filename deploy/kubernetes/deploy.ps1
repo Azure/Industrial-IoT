@@ -287,10 +287,14 @@ $template = @{
                     AioNetworkDiscoveryInterval = $null
                     DisableDataSetMetaData = "True"
                     LogFormat = "syslog"
+                    # Needed because we are not running as "app" user
+                    PkiRootPath = "/var/tmp/pki"
+                    PublishedNodesFile = "/var/tmp/pn.json"
+                    CreatePublishFileIfNotExist = "True"
                 }
                 #persistentVolumeClaims = @(
                 #    @{
-                #        claimName = "OpcPublisherData"
+                #        claimName = "opcpublisherdata"
                 #        mountPath = "/app"
                 #    }
                 #)
@@ -387,11 +391,16 @@ if ($script:NetworkDiscoveryMode -ne "Off") {
                 UseFileChangePolling = "True"
                 LogFormat = "syslog"
                 DisableDataSetMetaData = "True"
+                # Needed because we are not running as "app" user
+                PkiRootPath = "/var/tmp/pki"
+                PublishedNodesFile = "/var/tmp/pn.json"
+                CreatePublishFileIfNotExist = "True"
             }
             discoverableDeviceEndpointTypes = @(
                 @{
                     endpointType = "Microsoft.OpcPublisher"
                     version = "2.9"
+                    #displayName = "OPC Publisher"
                 }
             )
             secrets = @()

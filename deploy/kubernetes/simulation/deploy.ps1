@@ -257,7 +257,7 @@ for ($i = 0; $i -lt $script:Count; $i++) {
         --url "$($deviceResource)?api-version=2025-10-01" `
         --headers "Content-Type=application/json" } | ConvertFrom-Json) 2>&1
     if (!$device -or !$device.id -or $script:Force.IsPresent) {
-        if ($script:SimulationName -eq "umati-public") { 
+        if ($script:SimulationName -eq "umati-public") {
             $address = "opc.tcp://opcua.umati.app:4840"
         }
         else {

@@ -175,9 +175,9 @@ else {
             }
             $RootDir = $parent
         }
-        $metadataFileName = "opc-publisher-connector-metadata.json"
+        $metadataFileName = "connector-metadata.json"
         $connectorRepositoryName = "public/iotedge/opc-publisher"
-        $connectorMetadataFilePath = "$($RootDir)/deploy/kubernetes/iotops/$($metadataFileName)"
+        $connectorMetadataFilePath = "$($RootDir)/deploy/kubernetes/iotops/opc-publisher-connector-metadata.json"
         if (!(Test-Path -Path $connectorMetadataFilePath)) {
             Write-Host "Connector metadata file $connectorMetadataFilePath not found." -ForegroundColor Yellow
             Write-Host "Skipping publishing." -ForegroundColor Yellow

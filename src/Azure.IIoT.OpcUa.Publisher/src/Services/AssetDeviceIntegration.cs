@@ -189,7 +189,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 SchemaRegistryNamespace = registration.Namespace,
                 SchemaVersion = registration.Version
             };
-            var assetResource = _assets.Values.FirstOrDefault(a => a.AssetName == assetName);
+            var assetResource = _assets.Values
+                .FirstOrDefault(a => a.Asset.DisplayName == assetName);
+            if (assetResource == null)
+            {
+                // Fall backs - see below
+                assetResource = _assets.Values.FirstOrDefault(a => a.Asset.Model == assetName)
+                    ?? _assets.Values.FirstOrDefault(a => a.AssetName == assetName);
+            }
             if (assetResource == null)
             {
                 _logger.NoAssetFoundForSchema(assetName, schema.Name);
@@ -736,8 +743,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     },
                     Attributes = new Dictionary<string, string>
                     {
-                        [kAssetIdAttribute] = assetId,
-                        [kAssetNameAttribute] = assetName
+                        [kAssetIdAttribute] = assetId
                     },
                     // AssetName = uniqueAssetName,
                     ExternalAssetId = assetId,
@@ -2964,7 +2970,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         };
 
         private const string kAssetIdAttribute = "AssetId";
-        private const string kAssetNameAttribute = "AssetName";
 
         private readonly ConcurrentDictionary<string, AssetResource> _assets = new();
         private readonly ConcurrentDictionary<string, DeviceResource> _devices = new();

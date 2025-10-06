@@ -155,8 +155,8 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const int ScaleTestCountDefault = 1;
         public const bool IgnoreConfiguredPublishingIntervalsDefault = false;
         public const bool DisableSessionPerWriterGroupDefault = false;
-        public static readonly int UnsecureHttpServerPortDefault = IsContainer ? 80 : 9071;
-        public static readonly int HttpServerPortDefault = IsContainer ? 443 : 9072;
+        public static readonly int UnsecureHttpServerPortDefault = IsContainerAndRunningAsRoot ? 80 : 9071;
+        public static readonly int HttpServerPortDefault = IsContainerAndRunningAsRoot ? 443 : 9072;
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <inheritdoc/>
@@ -466,9 +466,19 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <summary>
         /// Running in container
         /// </summary>
-        private static bool IsContainer => StringComparer.OrdinalIgnoreCase.Equals(
-            Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER")
-                ?? string.Empty, "true");
+        private static bool IsContainerAndRunningAsRoot
+        {
+            get
+            {
+                return
+                    StringComparer.OrdinalIgnoreCase.Equals(
+                        Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER"),
+                        "true") &&
+                    StringComparer.OrdinalIgnoreCase.Equals(
+                        Environment.UserName,
+                        "root");
+            }
+        }
 
         /// <summary>
         /// Create configurator
@@ -489,6 +499,8 @@ namespace Azure.IIoT.OpcUa.Publisher
 #if DEBUG
                 .Append(" [DEBUG]")
 #endif
+                .Append(' ')
+                .Append(Environment.UserName)
                 .Append(" (")
                 .Append(RuntimeInformation.FrameworkDescription)
                 .Append('/')

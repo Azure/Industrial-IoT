@@ -316,7 +316,7 @@ elseif ($script:Action -eq "Onboard") {
                         discoveredAssetRefs = @($dAsset.name)
                         assetTypeRefs = [array]$dAsset.properties.assetTypeRefs
                         datasets = [array]$dAsset.properties.datasets
-                        events = [array]$dAsset.properties.events
+                        eventGroups = [array]$dAsset.properties.eventGroups
                         streams = [array]$dAsset.properties.streams
                         managementGroups = [array]$dAsset.properties.managementGroups
                     }
