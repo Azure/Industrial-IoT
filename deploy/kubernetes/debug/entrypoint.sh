@@ -20,6 +20,7 @@ else
     PROCESS="dotnet"
 fi
 CUR=
+U="root"
 while true; do
     # Check if the process is running
     PID=$(pgrep -f $PROCESS)
@@ -37,11 +38,11 @@ while true; do
         fi
         CUR=$PID
         # Update the TMPDIR environment variable for all users in bashrc
-        echo "Setting TMPDIR to /proc/$CUR/root/tmp for the current user..."
+        echo "Setting TMPDIR to /proc/$CUR/$U/tmp for the current user..."
         if grep -q "export TMPDIR=" ~/.bashrc; then
-            sed -i "s|^export TMPDIR=.*|export TMPDIR=/proc/$CUR/root/tmp|" ~/.bashrc
+            sed -i "s|^export TMPDIR=.*|export TMPDIR=/proc/$CUR/$U/tmp|" ~/.bashrc
         else
-            echo "export TMPDIR=/proc/$CUR/root/tmp" >> ~/.bashrc
+            echo "export TMPDIR=/proc/$CUR/$U/tmp" >> ~/.bashrc
         fi
         ARGS=$(ps -o args= -p $CUR)
         ARGS=$(set $ARGS && shift && echo $1)
@@ -49,19 +50,19 @@ while true; do
         echo "Waiting..."
         sleep 3s
         # point to the dotnet runtime in the debugged process
-        echo "Linking /usr/share/dotnet to /proc/$CUR/root/usr/share/dotnet"
-        ln -sf /proc/$CUR/root/usr/share/dotnet /usr/share/dotnet
+        echo "Linking /usr/share/dotnet to /proc/$CUR/$U/usr/share/dotnet"
+        ln -sf /proc/$CUR/$U/usr/share/dotnet /usr/share/dotnet
         # Try to make the dll/pdb files available to the debugger process...
         ARG_PATH=$(dirname "${ARGS}")
         mkdir -p $ARG_PATH
         find $ARG_PATH/ -type l -delete
-        echo "Linking files from /proc/$CUR/root$ARG_PATH/ to $ARG_PATH/"
-        FILES=$(find /proc/$CUR/root$ARG_PATH/ \
+        echo "Linking files from /proc/$CUR/$U$ARG_PATH/ to $ARG_PATH/"
+        FILES=$(find /proc/$CUR/$U$ARG_PATH/ \
             -regextype posix-extended -regex '.*\.(pdb|dll)$' \
-            -exec realpath --relative-to=/proc/$CUR/root/ {} \;)
+            -exec realpath --relative-to=/proc/$CUR/$U/ {} \;)
         for i in $FILES; do
-            echo "Linking /proc/$CUR/root/$i to /$i"
-            ln -sf /proc/$CUR/root/$i /$i
+            echo "Linking /proc/$CUR/$U/$i to /$i"
+            ln -sf /proc/$CUR/$U/$i /$i
         done
     else
         sleep 10s

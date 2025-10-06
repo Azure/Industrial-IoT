@@ -242,14 +242,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _logger.NoResourceFoundInAssetForSchema(resourceName, assetName, schema.Name);
                 return;
             }
-            await _client.UpdateAssetStatusAsync(deviceName, endpoint, assetName, new AssetStatus
+            try
             {
-                Datasets = dataSetStatus != null ? [dataSetStatus] : null,
-                EventGroups = eventGroupStatus != null ? [eventGroupStatus] : null
-            }, ct: ct).ConfigureAwait(false);
+                for (var i = 0; ; i++)
+                {
+                    try
+                    {
+                        await _client.UpdateAssetStatusAsync(deviceName, endpoint, assetName, new AssetStatus
+                        {
+                            Datasets = dataSetStatus != null ? [dataSetStatus] : null,
+                            EventGroups = eventGroupStatus != null ? [eventGroupStatus] : null
+                        }, ct: ct).ConfigureAwait(false);
 
-            _logger.RegisteredSchema(registration.Name, registration.Version, resourceName,
-                assetName, registration.Namespace);
+                        _logger.RegisteredSchema(registration.Name, registration.Version, resourceName,
+                            assetName, registration.Namespace);
+                    }
+                    catch (Exception e) when (i < 3 && !ct.IsCancellationRequested)
+                    {
+                        _logger.RegisteredSchemaErrorDebug(e, registration.Name, registration.Version,
+                            resourceName, assetName, registration.Namespace);
+                    }
+                }
+            }
+            catch (Exception ex) when (!ct.IsCancellationRequested)
+            {
+                _logger.RegisteredSchemaError(ex, registration.Name, registration.Version, resourceName,
+                    assetName, registration.Namespace);
+                throw;
+            }
         }
 
         /// <summary>
@@ -3194,12 +3214,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             Message = "No resource {Resource} found in Asset {Asset} to attach the schema {Schema} to.")]
         internal static partial void NoResourceFoundInAssetForSchema(this ILogger logger, string resource, string asset, string? schema);
 
-        [LoggerMessage(EventId = EventClass + 38, Level = LogLevel.Information,
-            Message = "Registered schema '{Name}' with version '{Version}' for resource '{Resource}' in asset " +
-            "'{Asset}' inside schema namespace '{Namespace}'")]
-        internal static partial void RegisteredSchema(this ILogger logger, string name, string version,
-            string resource, string asset, string @namespace);
-
         [LoggerMessage(EventId = EventClass + 39, Level = LogLevel.Error,
             Message = "Unexpected error during discovery.")]
         internal static partial void UnexpectedErrorDuringDiscovery(this ILogger logger, Exception ex);
@@ -3237,5 +3251,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         [LoggerMessage(EventId = EventClass + 47, Level = LogLevel.Information,
             Message = "Network discovery was configured to only run once - exiting.")]
         internal static partial void NetworkDiscoveryConfiguredToOnlyRunOnce(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 48, Level = LogLevel.Information,
+            Message = "Registered schema '{Name}' with version '{Version}' for resource '{Resource}' in asset " +
+            "'{Asset}' inside schema namespace '{Namespace}'")]
+        internal static partial void RegisteredSchema(this ILogger logger,
+            string name, string version, string resource, string asset, string @namespace);
+
+        [LoggerMessage(EventId = EventClass + 49, Level = LogLevel.Debug,
+            Message = "Error registering schema '{Name}' with version '{Version}' for resource '{Resource}' in asset " +
+            "'{Asset}' inside schema namespace '{Namespace}' - retrying ...")]
+        internal static partial void RegisteredSchemaErrorDebug(this ILogger logger, Exception ex,
+            string name, string version, string resource, string asset, string @namespace);
+
+        [LoggerMessage(EventId = EventClass + 49, Level = LogLevel.Error,
+            Message = "Error registering schema '{Name}' with version '{Version}' for resource '{Resource}' in asset " +
+            "'{Asset}' inside schema namespace '{Namespace}'")]
+        internal static partial void RegisteredSchemaError(this ILogger logger, Exception ex,
+            string name, string version, string resource, string asset, string @namespace);
     }
 }
