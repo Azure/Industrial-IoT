@@ -320,7 +320,7 @@ elseif ($script:ClusterType -eq "microk8s") {
     else {
         Write-Host "Resetting microk8s cluster..." -ForegroundColor Cyan
         microk8s uninstall
-        microk8s install --cpu 4 --mem 8
+        microk8s install --cpu 4 --mem 12
         microk8s start
         if (-not $?) {
             Write-Host "Error starting microk8s cluster - $($errOut)" -ForegroundColor Red
@@ -332,8 +332,7 @@ elseif ($script:ClusterType -eq "microk8s") {
     @(
         "dns",
         "hostpath-storage",
-        "ingress",
-        "cert-manager"
+        "ingress"
     )
     foreach ($f in $features) {
         $errOut = $($stdOut = & { microk8s enable $f }) 2>&1
@@ -860,7 +859,7 @@ $adrNsResource = "/subscriptions/$($SubscriptionId)"
 $adrNsResource = "$($adrNsResource)/resourceGroups/$($rg.Name)"
 $adrNsResource = "$($adrNsResource)/providers/Microsoft.DeviceRegistry/namespaces/$($script:Name)"
 $errOut = $($ns = & { az rest --method get `
-    --url "$($adrNsResource)?api-version=2025-07-01-preview" `
+    --url "$($adrNsResource)?api-version=2025-10-01" `
     --headers "Content-Type=application/json" } | ConvertFrom-Json) 2>&1
 if (!$ns -or !$ns.id) {
     $body = @{
@@ -874,7 +873,7 @@ if (!$ns -or !$ns.id) {
     $body | Out-File -FilePath $tempFile -Encoding utf8 -Force
     Write-Host "Creating ADR namespace $adrNsResource..." -ForegroundColor Cyan
     $errOut = $($ns = & { az rest --method put `
-        --url "$($adrNsResource)?api-version=2025-07-01-preview" `
+        --url "$($adrNsResource)?api-version=2025-10-01" `
         --headers "Content-Type=application/json" `
         --body @$tempFile } | ConvertFrom-Json) 2>&1
     if (-not $?) {

@@ -40,6 +40,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "configuration", Order = 3,
             EmitDefaultValue = false)]
+        [SkipValidation]
         public VariantValue? Configuration { get; set; }
     }
 }

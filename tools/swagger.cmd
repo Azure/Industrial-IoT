@@ -60,12 +60,6 @@ goto :retrieve_retry
 @rem
 :main
 
-rem start publisher service
-pushd %build_root%\src\Azure.IIoT.OpcUa.Publisher.Service.WebApi\src
-start dotnet run --project Azure.IIoT.OpcUa.Publisher.Service.WebApi.csproj
-set _hostname=localhost:9080
-call :retrieve_spec industrial-iot
-
 rem start publisher module
 pushd %build_root%\src\Azure.IIoT.OpcUa.Publisher.Module\src
 start dotnet run --project Azure.IIoT.OpcUa.Publisher.Module.csproj --unsecurehttp=9072

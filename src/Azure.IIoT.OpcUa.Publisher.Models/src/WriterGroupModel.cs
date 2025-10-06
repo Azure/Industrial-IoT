@@ -183,6 +183,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "properties", Order = 21,
             EmitDefaultValue = false)]
+        [SkipValidation]
         public Dictionary<string, VariantValue>? Properties { get; set; }
 
         /// <summary>

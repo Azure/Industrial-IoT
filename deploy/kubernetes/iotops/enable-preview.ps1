@@ -8,7 +8,7 @@ param (
     [string] $SubscriptionId
 )
 
-az feature register --name PrivatePreview2507 --namespace Microsoft.IoTOperations `
+az feature register --name PrivatePreview2509 --namespace Microsoft.IoTOperations `
     --subscription $SubscriptionId `
     --only-show-errors
 

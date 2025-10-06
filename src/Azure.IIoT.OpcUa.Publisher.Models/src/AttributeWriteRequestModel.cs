@@ -33,7 +33,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Value to write (mandatory)
         /// </summary>
         [DataMember(Name = "value", Order = 2)]
-        [Required]
+        [SkipValidation]
         public required VariantValue Value { get; set; }
     }
 }

@@ -10,16 +10,17 @@
   </PropertyGroup>
   <PropertyGroup>
     <ContainerRepository>iotedge/opc-publisher</ContainerRepository>
-    <ContainerUser>root</ContainerUser>
     <ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:9.0-azurelinux3.0-distroless</ContainerBaseImage>
   </PropertyGroup>
   <ItemGroup>
-    <ContainerEnvironmentVariable Include="APP_UID" Value="" />
+    <ContainerEnvironmentVariable Include="ASPNETCORE_HTTP_PORTS" Value="9071,9072" />
     <ContainerEnvironmentVariable Include="DOTNET_ReadyToRun" Value="0" />
     <ContainerEnvironmentVariable Include="DOTNET_TieredPGO" Value="1" />
     <ContainerEnvironmentVariable Include="DOTNET_TC_QuickJitForLoops" Value="1" />
   </ItemGroup>
   <ItemGroup>
+    <ContainerPort Include="9071" Type="tcp" />
+    <ContainerPort Include="9072" Type="tcp" />
     <ContainerPort Include="80" Type="tcp" />
     <ContainerPort Include="443" Type="tcp" />
   </ItemGroup>

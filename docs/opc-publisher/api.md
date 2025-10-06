@@ -6,10 +6,8 @@
 ### Certificates
 This section lists the certificate APi provided by OPC Publisher providing
             all public and private key infrastructure (PKI) related API methods.
-            
 
-
-            The method name for all transports other than HTTP (which uses the shown
+The method name for all transports other than HTTP (which uses the shown
             HTTP methods and resource uris) is the name of the subsection header.
             To use the version specific method append "_V1" or "_V2" to the method
             name.
@@ -381,10 +379,8 @@ Add a certificate revocation list to the specified store. The certificate revoca
 <a name="configuration_resource"></a>
 ### Configuration
 This section contains the API to configure OPC Publisher.
-            
 
-
-            The method name for all transports other than HTTP (which uses the shown
+The method name for all transports other than HTTP (which uses the shown
             HTTP methods and resource uris) is the name of the subsection header.
             To use the version specific method append "_V1" or "_V2" to the method
             name.
@@ -853,10 +849,8 @@ Stop publishing values from a node on the specified server. The group field that
 ### Diagnostics
 This section lists the diagnostics APi provided by OPC Publisher providing
             connection related diagnostics API methods.
-            
 
-
-            The method name for all transports other than HTTP (which uses the shown
+The method name for all transports other than HTTP (which uses the shown
             HTTP methods and resource uris) is the name of the subsection header.
             To use the version specific method append "_V1" or "_V2" to the method
             name.
@@ -992,10 +986,8 @@ Can be used to reset all established connections causing a full reconnect and re
 <a name="discovery_resource"></a>
 ### Discovery
 OPC UA and network discovery related API.
-            
 
-
-            The method name for all transports other than HTTP (which uses the shown
+The method name for all transports other than HTTP (which uses the shown
             HTTP methods and resource uris) is the name of the subsection header.
             To use the version specific method append "_V1" or "_V2" to the method
 
@@ -1165,10 +1157,8 @@ Start server registration. The results of the registration are published as even
 This section lists the file transfer API provided by OPC Publisher providing
             access to file transfer services to move files in and out of a server
             using the File transfer specification.
-            
 
-
-            The method name for all transports other than HTTP (which uses the shown
+The method name for all transports other than HTTP (which uses the shown
             HTTP methods and resource uris) is the name of the subsection header.
             To use the version specific method append "_V1" or "_V2" to the method
             name.
@@ -1612,10 +1602,8 @@ Upload a file to the server.
 ### General
 This section lists the general APi provided by OPC Publisher providing
             all connection, endpoint and address space related API methods.
-            
 
-
-            The method name for all transports other than HTTP (which uses the shown
+The method name for all transports other than HTTP (which uses the shown
             HTTP methods and resource uris) is the name of the subsection header.
             To use the version specific method append "_V1" or "_V2" to the method
             name.
@@ -2425,10 +2413,8 @@ Write any writeable attribute of a specified node on the server. See <a href="ht
 ### History
 This section lists all OPC UA HDA or Historian related API provided by
             OPC Publisher.
-            
 
-
-            The method name for all transports other than HTTP (which uses the shown
+The method name for all transports other than HTTP (which uses the shown
             HTTP methods and resource uris) is the name of the subsection header.
             To use the version specific method append "_V1" or "_V2" to the method
             name.
@@ -3320,10 +3306,8 @@ This section contains the API to configure data set writers and writer
             groups inside OPC Publisher. It supersedes the configuration API.
             Applications should use one or the other, but not both at the same
             time.
-            
 
-
-            The method name for all transports other than HTTP (which uses the shown
+The method name for all transports other than HTTP (which uses the shown
             HTTP methods and resource uris) is the name of the subsection header.
             To use the version specific method append "_V1" or "_V2" to the method
             name.
@@ -3412,12 +3396,53 @@ Create a published nodes entry for a specific writer group and dataset writer. T
 <a name="createorupdateasset"></a>
 #### CreateOrUpdateAsset
 ```
+POST /v2/writer/assets
+```
+
+
+##### Description
+Creates an asset from the entry in the request and the configuration provided in the Web of Things Asset json configuration property. The entry must contain a data set name which will be used as the asset name. The writer can stay empty. It will be set to the asset id on successful return. The server must support the WoT profile per <see href="https://reference.opcfoundation.org/WoT/v100/docs/" />. The asset will be created and the configuration updated to reference it. A wait time can be provided as optional query parameter to wait until the server has settled after uploading the configuration.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Body**|**body**  <br>*required*|The contains the entry and WoT file to configure the server to expose the asset.|[VariantValuePublishedNodeCreateAssetRequestModel](definitions.md#variantvaluepublishednodecreateassetrequestmodel)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|The asset was created|[PublishedNodesEntryModelServiceResponse](definitions.md#publishednodesentrymodelserviceresponse)|
+|**400**|The passed in information is invalid|[ProblemDetails](definitions.md#problemdetails)|
+|**403**|Forbidden|[ProblemDetails](definitions.md#problemdetails)|
+|**408**|The operation timed out.|[ProblemDetails](definitions.md#problemdetails)|
+|**500**|An unexpected error occurred|[ProblemDetails](definitions.md#problemdetails)|
+
+
+##### Consumes
+
+* `application/json`
+* `application/x-msgpack`
+
+
+##### Produces
+
+* `application/json`
+* `application/x-msgpack`
+
+
+<a name="createorupdateasset2"></a>
+#### CreateOrUpdateAsset (With binary configuration)
+```
 POST /v2/writer/assets/create
 ```
 
 
 ##### Description
-Creates an asset from the entry in the request and the configuration provided in the Web of Things Asset configuration file. The entry must contain a data set name which will be used as the asset name. The writer can stay empty. It will be set to the asset id on successful return. The server must support the WoT profile per <see href="https://reference.opcfoundation.org/WoT/v100/docs/" />. The asset will be created and the configuration updated to reference it. A wait time can be provided as optional query parameter to wait until the server has settled after uploading the configuration.
+Creates an asset from the entry in the request and the configuration provided in the Web of Things Asset configuration byte buffer. The entry must contain a data set name which will be used as the asset name. The writer can stay empty. It will be set to the asset id on successful return. The server must support the WoT profile per <see href="https://reference.opcfoundation.org/WoT/v100/docs/" />. The asset will be created and the configuration updated to reference it. A wait time can be provided as optional query parameter to wait until the server has settled after uploading the configuration.
 
 
 ##### Parameters

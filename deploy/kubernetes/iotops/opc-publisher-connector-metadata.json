@@ -1,9 +1,8 @@
 {
     "$schema": "https://raw.githubusercontent.com/Azure/iot-operations-sdks/refs/heads/main/doc/akri_connector/connector-metadata-schema.json",
-    "aioConnectorMetadataSchemaVersion": "7.0-preview",
     "name": "OpcPublisher",
     "description": "OPC Publisher Connector",
-    "version": "2.9.15",
+    "version": "2.9.0",
     "maintainer": "iiotadmin@microsoft.com",
     "vendor": "Microsoft",
     "imageConfigurationSettings": {
@@ -11,7 +10,9 @@
         "tag": "latest"
     },
     "supportedArchitectures": [
-        "linux/amd64"
+        "linux/amd64",
+        "linux/arm64",
+        "linux/arm/v7"
     ],
     "sourceCode": {
         "language": ".NET",
@@ -738,7 +739,7 @@
                                     "maximum": "Must not exceed maximum queue size (65536)"
                                 }
                             },
-                            "publishingInterval": {
+                            "PublishingInterval": {
                                 "type": "integer",
                                 "minimum": 0,
                                 "maximum": 4294967295,
@@ -1018,11 +1019,403 @@
     "endpointsEnabledByDefault": true,
     "isPreview": true,
     "recommendedAllocationPolicy": "bucketized",
-    "recommendedReplicas": 2,
+    "recommendedReplicas": 1,
     "connectorConfigurationKeys": [
         {
-            "description": "",
-            "key": "PublisherId"
+            "key": "UseFileChangePolling",
+            "description": "Poll for file changes instead of using a file system watcher.\nUse this setting when the underlying file system does not support file system notifications such as in some docker container setups.\nDefault: `false`\n"
+        },
+        {
+            "key": "PublisherId",
+            "description": "Sets the publisher id of the publisher.\nDefault: `not set` which results in the IoT edge identity being used \n"
+        },
+        {
+            "key": "SiteId",
+            "description": "Sets the site name of the publisher module.\nDefault: `not set` \n"
+        },
+        {
+            "key": "ApiKey",
+            "description": "Sets the api key that must be used to authenticate calls on the publisher REST endpoint.\nDefault: `not set` (Key will be generated if not available) \n"
+        },
+        {
+            "key": "DisableOpenApiEndpoint",
+            "description": "Disable the OPC Publisher Open API endpoint exposed by the built-in HTTP server.\nDefault: `false` (enabled).\n"
+        },
+        {
+            "key": "UseStandardsCompliantEncoding",
+            "description": "Use strict OPC UA standard compliance. It is recommended to run the publisher in compliant mode for best interoperability.\nBe aware that explicitly specifying other command line options can result in non-comnpliance despite this option being set.\nDefault: `false` for backwards compatibility (2.5.x - 2.8.x)\n"
+        },
+        {
+            "key": "DefaultNamespaceFormat",
+            "description": "The format to use when serializing node ids and qualified names containing a namespace uri into a string.\nAllowed values:\n    `Uri`\n    `Index`\n    `Expanded`\n    `ExpandedWithNamespace0`\nDefault: `Expanded` if `-c` is specified, otherwise `Uri` for backwards compatibility.\n"
+        },
+        {
+            "key": "MessagingMode",
+            "description": "The messaging mode for messages\nAllowed values:\n    `PubSub`\n    `Samples`\n    `FullNetworkMessages`\n    `FullSamples`\n    `DataSetMessages`\n    `SingleDataSetMessage`\n    `DataSets`\n    `SingleDataSet`\n    `RawDataSets`\n    `SingleRawDataSet`\nDefault: `PubSub` if `-c` is specified, otherwise `Samples` for backwards compatibility.\n"
+        },
+        {
+            "key": "WriteValueWhenDataSetHasSingleEntry",
+            "description": "When a data set has a single entry the encoder will write only the value of a data set entry and omit the key.\nThis is not compliant with OPC UA Part 14.\nDefault: `false`.\n"
+        },
+        {
+            "key": "MessageEncoding",
+            "description": "The message encoding for messages\nAllowed values:\n    `Uadp`\n    `Json`\n    `Xml`\n    `Avro`\n    `IsReversible`\n    `JsonReversible`\n    `IsGzipCompressed`\n    `JsonGzip`\n    `AvroGzip`\n    `JsonReversibleGzip`\nDefault: `Json`.\n"
+        },
+        {
+            "key": "BatchTriggerInterval",
+            "description": "The network message publishing interval in milliseconds. Determines the publishing period at which point messages are emitted.\nWhen `--bs` (`BatchSize`) is 1 and `--bi` is set to 0 batching is disabled.\nDefault: `10000` (10 seconds).\nAlso can be set using `BatchTriggerInterval` environment variable in the form of a duration string in the form `[d.]hh:mm:ss[.fffffff]`.\n"
+        },
+        {
+            "key": "BatchSize",
+            "description": "The number of incoming OPC UA subscription notifications to collect until sending a network messages. When `--bs` (`BatchSize`) is set to 1 and `--bi` (`BatchTriggerInterval`) is 0 batching is disabled and messages are sent as soon as notifications arrive.\nDefault: `50`.\n"
+        },
+        {
+            "key": "RemoveDuplicatesFromBatch",
+            "description": "Use this option to remove values with the same node id from batch messages in legacy `Samples` mode. Sends only the latest value as per the value's source timestamp.\nOnly applies to `Samples` mode, otherwise this setting is ignored.\nDefault: `false` (keep all duplicate values).\n"
+        },
+        {
+            "key": "MessageTimestamp",
+            "description": "The value to set as as the timestamp property of messages during encoding (if the encoding supports writing message timestamps).\nAllowed values:\n    `CurrentTimeUtc`\n    `PublishTime`\n    `EncodingTimeUtc`\nDefault: `CurrentTimeUtc` to use the time when the message was created in OPC Publisher.\n"
+        },
+        {
+            "key": "MaxNodesPerDataSet",
+            "description": "Maximum number of nodes within a Subscription. When there are more nodes configured for a data set writer, they will be added to new subscriptions. This also affects metadata message size. \nDefault: `1000`.\n"
+        },
+        {
+            "key": "DefaultKeyFrameCount",
+            "description": "The default number of delta messages to send until a key frame message is sent. If 0, no key frame messages are sent, if 1, every message will be a key frame. \nDefault: `0`.\n"
+        },
+        {
+            "key": "EnableDataSetKeepAlives",
+            "description": "Enables sending keep alive messages triggered by writer subscription's keep alive notifications. This setting can be used to enable the messaging profile's support for keep alive messages.\nIf the chosen messaging profile does not support keep alive messages this setting is ignored.\nDefault: `false` (to save bandwidth).\n"
+        },
+        {
+            "key": "SendDataSetKeepAlivesAsKeyFrame",
+            "description": "When the sending of keep alive messages is enabled determines whether the empty keep alive message will be promoted to a key frame messages\nDefault: `false`.\n"
+        },
+        {
+            "key": "DefaultMetaDataUpdateTime",
+            "description": "Default value in milliseconds for the metadata send interval which determines in which interval metadata is sent.\nEven when disabled, metadata is still sent when the metadata version changes unless `--mm=*Samples` (`MessagingMode)=*Samples`) is set in which case this setting is ignored. Only valid for network message encodings. \nDefault: `0` which means periodic sending of metadata is disabled.\n"
+        },
+        {
+            "key": "DisableDataSetMetaData",
+            "description": "Disables sending any metadata when metadata version changes. This setting can be used to also override the messaging profile's default support for metadata sending.\nIt is recommended to disable sending metadata when too many nodes are part of a data set as this can slow down start up time.\nDefault: `False` if the messaging profile selected supports sending metadata and `--strict` (`UseStandardsCompliantEncoding`) is set but not '--dct' (`DisableComplexTypeSystem`), `True` otherwise.\n"
+        },
+        {
+            "key": "AsyncMetaDataLoadTimeout",
+            "description": "The default duration in seconds a publish request should wait until the meta data is loaded.\nLoaded metadata guarantees a metadata message is sent before the first message is sent but loading of metadata takes time during subscription setup. Set to `0` to block until metadata is loaded.\nOnly used if meta data is supported and enabled.\nDefault: `5000` milliseconds.\n"
+        },
+        {
+            "key": "PreferAvroOverJsonSchema",
+            "description": "Publish Avro schema even for Json encoded messages. Automatically enables publishing schemas as if `--ps` was set.\nDefault: `false`.\n"
+        },
+        {
+            "key": "MaxNetworkMessageSendQueueSize",
+            "description": "The maximum number of messages to buffer on the send path before messages are dropped.\nDefault: `4096`\n"
+        },
+        {
+            "key": "DefaultWriterGroupPartitionCount",
+            "description": "The number of partitions to split the writer group into. Each partition represents a data flow to the transport sink. The partition is selected by topic hash.\nDefault: `0` (partitioning is disabled)\n"
+        },
+        {
+            "key": "HttpServerPort",
+            "description": "The port on which the http server of OPC Publisher is listening.\nDefault: `9072` if no value is provided.\n"
+        },
+        {
+            "key": "UnsecureHttpServerPort",
+            "description": "Allow unsecure access to the REST api of OPC Publisher. A port can be specified if the default port 9071 is not desired.\nDo not enable this in production as it exposes the Api Key on the network.\nDefault: `disabled`, if specified without a port `9071` port is used.\n"
+        },
+        {
+            "key": "RenewTlsCertificateOnStartup",
+            "description": "If set a new tls certificate is created during startup updating any previously created ones.\nDefault: `false`.\n"
+        },
+        {
+            "key": "DefaultSamplingInterval",
+            "description": "Default value in milliseconds to request the servers to sample values. This value is used if an explicit sampling interval for a node was not configured. \nDefault: `1000`.\nAlso can be set using `DefaultSamplingInterval` environment variable in the form of a duration string in the form `[d.]hh:mm:ss[.fffffff]`.\n"
+        },
+        {
+            "key": "DefaultPublishingInterval",
+            "description": "Default value in milliseconds for the publishing interval setting of a subscription created with an OPC UA server. This value is used if an explicit publishing interval was not configured.\nWhen setting to `0` the server decides the lowest publishing interval it can support.\nDefault: `1000`.\nAlso can be set using `DefaultPublishingInterval` environment variable in the form of a duration string in the form `[d.]hh:mm:ss[.fffffff]`.\n"
+        },
+        {
+            "key": "EnableImmediatePublishing",
+            "description": "By default OPC Publisher will create a subscription with publishing disabled and only enable it after it has filled it with all configured monitored items. Use this setting to create the subscription with publishing already enabled.\nDefault: `false`.\n"
+        },
+        {
+            "key": "DefaultKeepAliveCount",
+            "description": "Specifies the default number of publishing intervals before a keep alive is returned with the next queued publishing response.\nDefault: `auto set based on publishing interval`.\n"
+        },
+        {
+            "key": "DefaultLifetimeCount",
+            "description": "Default subscription lifetime count which is a multiple of the keep alive counter and when reached instructs the server to declare the subscription invalid.\nDefault: `auto set based on publishing interval`.\n"
+        },
+        {
+            "key": "DefaultQueueSize",
+            "description": "Default queue size for all monitored items if queue size was not specified in the configuration.\nDefault: `1` (for backwards compatibility).\n"
+        },
+        {
+            "key": "AutoSetQueueSizes",
+            "description": "(Experimental) Automatically calculate queue sizes for monitored items using the subscription publishing interval and the item's sampling rate as max(configured queue size, roundup(publishinginterval / samplinginterval)).\nNote that the server might revise the queue size down if it cannot handle the calculated size.\nDefault: `false` (disabled).\n"
+        },
+        {
+            "key": "DiscardNew",
+            "description": "The publisher is using this as default value for the discard old setting of monitored item queue configuration. Setting to true will ensure that new values are dropped before older ones are drained. \nDefault: `false` (which is the OPC UA default).\n"
+        },
+        {
+            "key": "DefaultDataChangeTrigger",
+            "description": "Default data change trigger for all monitored items configured in the published nodes configuration unless explicitly overridden.\nAllowed values:\n    `Status`\n    `StatusValue`\n    `StatusValueTimestamp`\nDefault: `StatusValue` (which is the OPC UA default).\n"
+        },
+        {
+            "key": "DefaultMonitoredItemWatchdogSeconds",
+            "description": "The subscription and monitored item watchdog timeout in seconds the subscription uses to check on late reporting monitored items unless overridden in the published nodes configuration explicitly.\nDefault: `not set` (watchdog disabled).\n"
+        },
+        {
+            "key": "DefaultMonitoredItemWatchdogCondition",
+            "description": "The default condition when to run the action configured as the watchdog behavior. The condition can be overridden in the published nodes configuration.\nAllowed values:\n    `WhenAllAreLate`\n    `WhenAnyIsLate`\nDefault: `WhenAllAreLate` (if enabled).\n"
+        },
+        {
+            "key": "DefaultWatchdogBehavior",
+            "description": "Default behavior of the subscription and monitored item watchdog mechanism unless overridden in the published nodes configuration explicitly.\nAllowed values:\n    `Diagnostic`\n    `Reset`\n    `FailFast`\n    `ExitProcess`\nDefault: `Diagnostic` (if enabled).\n"
+        },
+        {
+            "key": "DefaultSkipFirst",
+            "description": "The publisher is using this as default value for the skip first setting of nodes configured without a skip first setting. A value of True will skip sending the first notification received when the monitored item is added to the subscription.\nDefault: `False` (disabled).\n"
+        },
+        {
+            "key": "RepublishAfterTransfer",
+            "description": "Configure whether publisher republishes missed subscription notifications still in the server queue after transferring a subscription during reconnect handling.\nThis can result in out of order notifications after a reconnect but minimizes data loss.\nDefault: `False` (disabled).\n"
+        },
+        {
+            "key": "DefaultSamplingUsingCyclicRead",
+            "description": "All nodes should be sampled using periodical client reads instead of subscriptions services, unless otherwise configured.\nDefault: `false`.\n"
+        },
+        {
+            "key": "MaxMonitoredItemPerSubscription",
+            "description": "Max monitored items per subscription until the subscription is split.\nThis is used if the server does not provide limits in its server capabilities.\nDefault: `not set`.\n"
+        },
+        {
+            "key": "EnableSequentialPublishing",
+            "description": "Set to false to disable sequential publishing in the protocol stack.\nDefault: `True` (enabled).\n"
+        },
+        {
+            "key": "SubscriptionManagementIntervalSeconds",
+            "description": "The interval in seconds after which the publisher re-applies the desired state of the subscription to a session.\nDefault: `0` (only on configuration change).\n"
+        },
+        {
+            "key": "BadMonitoredItemRetryDelaySeconds",
+            "description": "The delay in seconds after which nodes that were rejected by the server while added or updating a subscription or while publishing, are re-applied to a subscription.\nSet to 0 to disable retrying.\nDefault: `1800` seconds.\n"
+        },
+        {
+            "key": "InvalidMonitoredItemRetryDelaySeconds",
+            "description": "The delay in seconds after which the publisher attempts to re-apply nodes that were incorrectly configured to a subscription.\nSet to 0 to disable retrying.\nDefault: `300` seconds.\n"
+        },
+        {
+            "key": "BadMonitoredItemRetryDelayMaxSeconds",
+            "description": "The max delay in seconds between retrying nodes that were rejected by the server while added or updating a subscription or while publishing.\nWhen set an exponential retry policy is used with the `--bmr` (`BadMonitoredItemRetryDelaySeconds`) value as the starting delay.\nDefault: `not set`.\n"
+        },
+        {
+            "key": "InvalidMonitoredItemRetryDelayMaxSeconds",
+            "description": "The max  delay in seconds between retrying nodes that were incorrectly configured in the a subscription.\nWhen set an exponential retry policy is used with the `--inr` (`InvalidMonitoredItemRetryDelaySeconds`) value as the starting delay.\nDefault: `not set`.\n"
+        },
+        {
+            "key": "SubscriptionErrorRetryDelaySeconds",
+            "description": "The delay in seconds between attempts to create a subscription in a session.\nSet to 0 to disable retrying.\nDefault: `2` seconds.\n"
+        },
+        {
+            "key": "DefaultUseReverseConnect",
+            "description": "(Experimental) Use reverse connect for all endpoints in the published nodes configuration unless otherwise configured.\nDefault: `false`.\n"
+        },
+        {
+            "key": "DisableSubscriptionTransfer",
+            "description": "Do not attempt to transfer subscriptions when reconnecting but re-establish the subscription.\nDefault: `false`.\n"
+        },
+        {
+            "key": "DisableComplexTypeSystem",
+            "description": "Never load the complex type system for any connections that are required for subscriptions.\nThis setting not just disables meta data messages but also prevents transcoding of unknown complex types in outgoing messages.\nDefault: `false`.\n"
+        },
+        {
+            "key": "DisableSessionPerWriterGroup",
+            "description": "Disable creating a separate session per writer group. Instead sessions are re-used across writer groups.\nDefault: `False`.\n"
+        },
+        {
+            "key": "IgnoreConfiguredPublishingIntervals",
+            "description": "Always use the publishing interval provided via `--op` (DefaultPublishingInterval) and ignore all publishing interval settings in the configuration.\nCombine with `--op=0` ((DefaultPublishingInterval)=0) to let the server use the lowest publishing interval it can support.\nDefault: `False` (disabled).\n"
+        },
+        {
+            "key": "AutoAcceptUntrustedCertificates",
+            "description": "The publisher accepts untrusted certificates presented by a server it connects to.\nThis does not include servers presenting bad certificates or certificates that fail chain validation. These errors cannot be suppressed and connection will always be rejected.\nWARNING: This setting should never be used in production environments!\n"
+        },
+        {
+            "key": "RejectUnknownRevocationStatus",
+            "description": "Set this to `False` to accept certificates presented by a server that have an unknown revocation status.\nWARNING: This setting should never be used in production environments!\nDefault: `True`.\n"
+        },
+        {
+            "key": "CreateSessionTimeout",
+            "description": "Amount of time in seconds to wait until a session is connected.\nDefault: `5` seconds.\n"
+        },
+        {
+            "key": "MinReconnectDelay",
+            "description": "The minimum amount of time in milliseconds to wait reconnection of session is attempted again.\nDefault: `1000` milliseconds.\n"
+        },
+        {
+            "key": "MaxReconnectDelay",
+            "description": "The maximum amount of time in millseconds to wait between reconnection attempts of the session.\nDefault: `60000` milliseconds.\n"
+        },
+        {
+            "key": "DefaultSessionTimeout",
+            "description": "Maximum amount of time in seconds that a session should remain open by the OPC server without any activity (session timeout). Requested from the OPC server at session creation.\nDefault: `60` seconds.\n"
+        },
+        {
+            "key": "KeepAliveInterval",
+            "description": "The interval in seconds the publisher is sending keep alive messages to the OPC servers on the endpoints it is connected to.\nDefault: `10` seconds.\n"
+        },
+        {
+            "key": "DefaultServiceCallTimeout",
+            "description": "Maximum amount of time in seconds that a service call should take before it is being cancelled.\nThis value can be overridden in the request header.\nDefault: `180` seconds.\n"
+        },
+        {
+            "key": "DefaultConnectTimeout",
+            "description": "Maximum amount of time in seconds that a service call should wait for a connected session to be used.\nThis value can be overridden in the request header.\nDefault: `not set` (in this case the default service call timeout value is used).\n"
+        },
+        {
+            "key": "OperationTimeout",
+            "description": "The operation service call timeout of individual service requests to the server in milliseconds. As opposed to the `--sct` (DefaultServiceCallTimeout) timeout, this is the timeout hint provided to the server in every request.\nThis value can be overridden in the request header.\nDefault: `120000` milliseconds.\n"
+        },
+        {
+            "key": "LingerTimeoutSeconds",
+            "description": "Amount of time in seconds to delay closing a client and underlying session after the a last service call.\nUse this setting to speed up multiple subsequent calls.\nDefault: `0` sec (no linger).\n"
+        },
+        {
+            "key": "ReverseConnectPort",
+            "description": "The port to use when accepting inbound reverse connect requests from servers.\nDefault: `4840`.\n"
+        },
+        {
+            "key": "MaxNodesPerReadOverride",
+            "description": "Limit max number of nodes to read in a single read request when batching reads or the server limit if less.\nDefault: `0` (using server limit).\n"
+        },
+        {
+            "key": "MaxNodesPerBrowseOverride",
+            "description": "Limit max number of nodes per browse request when batching browse operations or the server limit if less.\nDefault: `0` (using server limit).\n"
+        },
+        {
+            "key": "NodeCacheCapacity",
+            "description": "The max size of the node caches used in the complex type system.\nThere are caches (values, nodes, references).\nDefault: `4096`.\n"
+        },
+        {
+            "key": "NodeCacheTimeout",
+            "description": "The timeout of a node cache entries if not used in milliseconds.\nDefault: `3600`.\n"
+        },
+        {
+            "key": "MinPublishRequests",
+            "description": "Minimum number of publish requests to queue once subscriptions are created in the session.\nDefault: `2`.\n"
+        },
+        {
+            "key": "PublishRequestsPerSubscriptionPercent",
+            "description": "Percentage ratio of publish requests per subscriptions in the session in percent up to the number configured using `--xpr` (MaxPublishRequests).\nDefault: `100`% (1 request per subscription).\n"
+        },
+        {
+            "key": "MaxPublishRequests",
+            "description": "Maximum number of publish requests to every queue once subscriptions are created in the session.\nDefault: `10`.\n"
+        },
+        {
+            "key": "DisableComplexTypePreloading",
+            "description": "Complex types (structures, enumerations) a server exposes are preloaded from the server after the session is connected. In some cases this can cause problems either on the client or server itself. Use this setting to disable pre-loading support.\nNote that since the complex type system is used for meta data messages it will still be loaded at the time the subscription is created, therefore also disable meta data support if you want to ensure the complex types are never loaded for an endpoint.\nDefault: `false`.\n"
+        },
+        {
+            "key": "SecurityTokenLifetime",
+            "description": "OPC UA Stack Transport Secure Channel - Security token lifetime in milliseconds.\nDefault: `3600000` (1h).\n"
+        },
+        {
+            "key": "ChannelLifetime",
+            "description": "OPC UA Stack Transport Secure Channel - Channel lifetime in milliseconds.\nDefault: `300000` (5 min).\n"
+        },
+        {
+            "key": "MaxBufferSize",
+            "description": "OPC UA Stack Transport Secure Channel - Max buffer size.\nDefault: `65535` (64KB -1).\n"
+        },
+        {
+            "key": "MaxMessageSize",
+            "description": "OPC UA Stack Transport Secure Channel - Max message size.\nDefault: `4194304` (4 MB).\n"
+        },
+        {
+            "key": "MaxArrayLength",
+            "description": "OPC UA Stack Transport Secure Channel - Max array length.\nDefault: `65535` (64KB - 1).\n"
+        },
+        {
+            "key": "MaxStringLength",
+            "description": "The max length of a string opc can transmit/receive over the OPC UA secure channel.\nDefault: `130816` (128KB - 256).\n"
+        },
+        {
+            "key": "MaxByteStringLength",
+            "description": "OPC UA Stack Transport Secure Channel - Max byte string length.\nDefault: `1048576` (1MB).\n"
+        },
+        {
+            "key": "ApplicationUri",
+            "description": "Application URI as per OPC UA definition inside the OPC UA client application configuration presented to the server.\nDefault: `not set`.\n"
+        },
+        {
+            "key": "ProductUri",
+            "description": "The Product URI as per OPC UA definition insde the OPC UA client application configuration presented to the server.\nDefault: `not set`.\n"
+        },
+        {
+            "key": "RejectSha1SignedCertificates",
+            "description": "If set to `False` OPC Publisher will accept SHA1 certificates which have been officially deprecated and are unsafe to use.\nNote: Set this to `False` to support older equipment that uses Sha1 signed certificates rather than using no security.\nDefault: `True`.\n"
+        },
+        {
+            "key": "MinimumCertificateKeySize",
+            "description": "Minimum accepted certificate size.\nNote: It is recommended to this value to the highest certificate key size possible based on the connected OPC UA servers.\nDefault: 1024.\n"
+        },
+        {
+            "key": "AddAppCertToTrustedStore",
+            "description": "Set to `False` to disable adding the publisher's own certificate to the trusted store automatically.\nDefault: `True`.\n"
+        },
+        {
+            "key": "ApplicationCertificateSubjectName",
+            "description": "The subject name for the app cert.\nDefault: `CN=<the value of --an|--appname|ApplicationName>, C=DE, S=Bav, O=Microsoft, DC=localhost`.\n"
+        },
+        {
+            "key": "ApplicationName",
+            "description": "The name for the app (used during OPC UA authentication).\nDefault: `Microsoft.Azure.IIoT`\n"
+        },
+        {
+            "key": "TryConfigureFromExistingAppCert",
+            "description": "Automatically set the application subject name, host name and application uri from the first valid application certificate found in the application certificate store path.\nIf the chosen certificate is valid, it will be used, otherwise a new, self-signed certificate with the information will be created.\nDefault: `false`.\n"
+        },
+        {
+            "key": "LogLevel",
+            "description": "The loglevel to use.\nAllowed values:\n    `Trace`\n    `Debug`\n    `Information`\n    `Warning`\n    `Error`\n    `Critical`\n    `None`\nDefault: `Information`.\n"
+        },
+        {
+            "key": "DiagnosticsInterval",
+            "description": "Produce publisher diagnostic information at this specified interval in seconds.\nBy default diagnostics are written to the OPC Publisher logger (which requires at least --loglevel or environment variable `LogLevel` =`information`) unless configured differently using `--pd` (DiagnosticsTarget).\n`0` disables diagnostic output.\nDefault:60000 (60 seconds).\nAlso can be set using `DiagnosticsInterval` environment variable in the form of a duration string in the form `[d.]hh:mm:ss[.fffffff]`\".\n"
+        },
+        {
+            "key": "DiagnosticsTarget",
+            "description": "Configures how to emit diagnostics information at the `--di` (DiagnosticsInterval) configured interval.\nUse this to for example emit diagnostics as events to the event topic template instead of the console.\nAllowed values:\n    `Logger`\n    `Events`\nDefault: `Logger`.\n"
+        },
+        {
+            "key": "DisableResourceMonitoring",
+            "description": "Disable resource monitoring as part of the diagnostics output and metrics.\nDefault: `false` (enabled).\n"
+        },
+        {
+            "key": "DebugLogNotifications",
+            "description": "Log ingress subscription notifications at Informational level to aid debugging.\nDefault: `disabled`.\n"
+        },
+        {
+            "key": "DebugLogNotificationsWithHeartbeat",
+            "description": "Include heartbeats in notifications log.\nIf set also implicitly enables debug logging via `--ln` (DebugLogNotifications).\nDefault: `disabled`.\n"
+        },
+        {
+            "key": "DebugLogNotificationsFilter",
+            "description": "Only log notifications where the data set field name, subscription name, or data set name match the provided regular expression pattern.\nIf set implicitly enables debug logging via `--ln`  (DebugLogNotifications).\nDefault: `null` (matches all).\n"
+        },
+        {
+            "key": "DebugLogEncodedNotifications",
+            "description": "Log encoded subscription and monitored item notifications at Informational level to aid debugging.\nDefault: `disabled`.\n"
+        },
+        {
+            "key": "OpcUaKeySetLogFolderName",
+            "description": "Writes negotiated symmetric keys for all running client connection to this file.\nThe file can be loaded by Wireshark 4.3 and used to decrypt encrypted channels when analyzing network traffic captures.\nNote that enabling this feature presents a security risk!\nDefault: `disabled`.\n"
         }
     ]
 }

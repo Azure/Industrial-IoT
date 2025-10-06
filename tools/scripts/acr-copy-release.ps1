@@ -150,82 +150,111 @@ else {
     }
 }
 
-# Check oras tool is installed
-& "oras" version 2>$null
-if ($LastExitCode -ne 0) {
-    Write-Host "The 'oras' tool is not installed." -ForegroundColor Yellow
-    Write-Host "Install it from https://github.com/oras-project/oras." -ForegroundColor Yellow
-    Write-Host "Skipping publishing connector metadata." -ForegroundColor Yellow
+# Only publish metadata to industialiotprod releaseRegistry
+if ($script:ReleaseRegistry -ne "industrialiotprod") {
+    Write-Host "Skipping publishing connector metadata to $($script:ReleaseRegistry)." `
+        -ForegroundColor Yellow
 }
 else {
-    # Find the root path which contains the .git folder
-    $script:ScriptPath = $MyInvocation.MyCommand.Path
-    $script:ScriptDir = Split-Path -Path $script:ScriptPath -Parent
-    $RootDir = $script:ScriptDir
-    while (!(Test-Path -Path (Join-Path -Path $RootDir -ChildPath ".git"))) {
-        $parent = Split-Path -Path $RootDir -Parent
-        if ($parent -eq $RootDir) {
-            throw "Could not find .git folder in any parent folder of $($script:ScriptDir)."
-        }
-        $RootDir = $parent
-    }
-    $connectorMetadataFilePath = "$($RootDir)/deploy/kubernetes/iotops/opc-publisher-connector-metadata.json"
-    if (!Test-Path $connectorMetadataFilePath) {
-        Write-Host "Connector metadata file $connectorMetadataFilePath not found." -ForegroundColor Yellow
-        Write-Host "Skipping publishing." -ForegroundColor Yellow
+    # Check oras tool is installed
+    & "oras" version 2>$null
+    if ($LastExitCode -ne 0) {
+        Write-Host "The 'oras' tool is not installed." -ForegroundColor Yellow
+        Write-Host "Install it from https://github.com/oras-project/oras." -ForegroundColor Yellow
+        Write-Host "Skipping publishing connector metadata." -ForegroundColor Yellow
     }
     else {
-        # get build registry credentials
-        $argumentList = @("acr", "credential", "show", "--name", $script:ReleaseRegistry, "-ojson")
-        $result = (& "az" @argumentList 2>&1 | ForEach-Object { "$_" })
-        if ($LastExitCode -ne 0) {
-            throw "az $($argumentList) failed with $($LastExitCode)."
-        }
-        $dockerCredentials = $result | ConvertFrom-Json
-
-        $dockerUser = $dockerCredentials.username
-        $dockerPassword = $dockerCredentials.passwords[0].value
-        $dockerServer = "$($script:ReleaseRegistry).azurecr.io"
-
-        # login to release registry
-        $argumentList = @("login", $dockerServer,
-            "--username", $dockerUser, "--password", $dockerPassword)
-        $result = (& "oras" @argumentList 2>&1 | ForEach-Object { "$_" })
-        if ($LastExitCode -ne 0) {
-            throw "oras $($argumentList) failed with $($LastExitCode)."
-        }
-        # Publish the connector manifest along side publisher image
-        foreach ($ReleaseTag in $ReleaseTags) {
-            # Create a temp file and copy the metadata file to it with the word "latest" replaced
-            # with the actual release tag. This ensures that the metadata always points to the correct
-            # publisher image tag.
-            $tempFile = [System.IO.Path]::GetTempFileName()
-            (Get-Content $connectorMetadataFilePath) `
-                | ForEach-Object { $_ -replace '"tag": "latest"', '"tag": "' + $ReleaseTag + '"' } `
-                | Set-Content $tempFile
-
-            # Show file content
-            Get-Content $tempFile | ForEach-Object { Write-Host "$_" }
-
-            # Push the metadata file as a config file to the publisher image with suffix -metadata
-            $FullImageName = "$($script:ReleaseRegistry).azurecr.io/opc-publisher:$($ReleaseTag)-metadata"
-            $argumentList = @(
-                "push",
-                "--config",
-                "/dev/null:application/vnd.microsoft.akri-connector.v1+json",
-                $FullImageName,
-                $tempFile
-            )
-
-            # Remove the temp file
-            Remove-Item $tempFile -Force
-
-            $result = (& "oras" @argumentList 2>&1 | ForEach-Object { "$_" })
-            if ($LastExitCode -ne 0) {
-                throw "oras $($argumentList) failed with $($LastExitCode)."
+        # Find the root path which contains the .git folder
+        $script:ScriptPath = $MyInvocation.MyCommand.Path
+        $script:ScriptDir = Split-Path -Path $script:ScriptPath -Parent
+        $RootDir = $script:ScriptDir
+        while (!(Test-Path -Path (Join-Path -Path $RootDir -ChildPath ".git"))) {
+            $parent = Split-Path -Path $RootDir -Parent
+            if ($parent -eq $RootDir) {
+                throw "Could not find .git folder in any parent folder of $($script:ScriptDir)."
             }
-            Write-Host "Published connector metadata for opc-publisher to $($FullImageName)." `
-                -ForegroundColor Green
+            $RootDir = $parent
+        }
+        $metadataFileName = "connector-metadata.json"
+        $connectorRepositoryName = "public/iotedge/opc-publisher"
+        $connectorMetadataFilePath = "$($RootDir)/deploy/kubernetes/iotops/opc-publisher-connector-metadata.json"
+        if (!(Test-Path -Path $connectorMetadataFilePath)) {
+            Write-Host "Connector metadata file $connectorMetadataFilePath not found." -ForegroundColor Yellow
+            Write-Host "Skipping publishing." -ForegroundColor Yellow
+        }
+        else {
+            # get build registry credentials
+            $argumentList = @("acr", "credential", "show", "--name", $script:ReleaseRegistry, "-ojson")
+            $result = (& "az" @argumentList 2>&1 | ForEach-Object { "$_" })
+            if ($LastExitCode -ne 0) {
+                throw "az $($argumentList) failed with $($LastExitCode)."
+            }
+            $dockerCredentials = $result | ConvertFrom-Json
+
+            $dockerUser = $dockerCredentials.username
+            $dockerPassword = $dockerCredentials.passwords[0].value
+            $dockerServer = "$($script:ReleaseRegistry).azurecr.io"
+
+            try {
+                # create an empty file to make sure oras push works even if no config is provided
+                $emptyFile = "null"
+                if (Test-Path -Path $emptyFile) {
+                    Remove-Item $emptyFile -Force
+                }
+                if (Test-Path -Path $metadataFileName) {
+                    Remove-Item $metadataFileName -Force
+                }
+                Set-Content -Path $emptyFile -Value ""
+
+                # login to release registry
+                $argumentList = @("login", $dockerServer,
+                    "--username", $dockerUser, "--password", $dockerPassword)
+                $result = (& "oras" @argumentList 2>&1 | ForEach-Object { "$_" })
+                if ($LastExitCode -ne 0) {
+                    throw "oras $($argumentList) failed with $($LastExitCode)."
+                }
+                # Publish the connector manifest along side publisher image
+                foreach ($ReleaseTag in $ReleaseTags) {
+                    # Create a temp file and copy the metadata file to it with the word "latest" replaced
+                    # with the actual release tag. This ensures that the metadata always points to the correct
+                    # publisher image tag.  Also replace the ""version": "2.9.0" with the actual release version.
+                    # This ensures that the metadata always points to the correct publisher image version."
+                    $tag = '"tag": "' + $ReleaseTag + '"'
+                    $version = '"version": "' + $script:ReleaseVersion + '"'
+                    Write-Host "Creating temp file $metadataFileName with tag $tag and version $version."
+                    # Replace tag and version in the metadata file
+                    (Get-Content $connectorMetadataFilePath) `
+                        | ForEach-Object { $_ -replace '"tag": "latest"', $tag } `
+                        | ForEach-Object { $_ -replace '"version": "2.9.0"', $version } `
+                        | Set-Content $metadataFileName
+
+                    # Push the metadata file as a config file to the publisher image with suffix -metadata
+                    $FullImageName = "$($dockerServer)/$($connectorRepositoryName):$($ReleaseTag)-metadata"
+                    $argumentList = @(
+                        "push",
+                        "--config",
+                        "$($emptyFile):application/vnd.microsoft.akri-connector.v1+json"
+                        $FullImageName,
+                        "$($metadataFileName):application/json"
+                    )
+                    $result = (& "oras" @argumentList 2>&1 | ForEach-Object { "$_" })
+
+                    if ($LastExitCode -ne 0) {
+                        throw "oras $($argumentList) failed with $($LastExitCode)."
+                    }
+                    # Remove the temp file
+                    Remove-Item $metadataFileName -Force
+                    Write-Host "Published connector metadata for opc-publisher to $($FullImageName)." `
+                        -ForegroundColor Green
+                }
+            } finally {
+                if (Test-Path -Path $emptyFile) {
+                    Remove-Item $emptyFile -Force
+                }
+                if (Test-Path -Path $metadataFileName) {
+                    Remove-Item $metadataFileName -Force
+                }
+            }
         }
     }
 }

@@ -200,7 +200,6 @@ if ($script:Fork.IsPresent) {
         kubectl -n $Namespace debug $script:PodName -n $($Namespace) `
             -it --attach=false `
             --image=docker.io/library/debugger:$($containerTag) `
-            --profile=general `
             --container=debugger `
             --keep-annotations=true `
             --keep-labels=true `
@@ -212,13 +211,14 @@ if ($script:Fork.IsPresent) {
             --set-image="$($ContainerName)=$($Image)" `
             --image-pull-policy=IfNotPresent `
             --share-processes=true `
+            --profile=sysadmin `
+            --custom=debug.json `
             --copy-to=$($debugPod) `
     }
     else {
         kubectl -n $Namespace debug $script:PodName -n $($Namespace) `
             -it --attach=false `
             --image=docker.io/library/debugger:$($containerTag) `
-            --profile=general `
             --container=debugger `
             --keep-annotations=true `
             --keep-labels=true `
@@ -229,6 +229,8 @@ if ($script:Fork.IsPresent) {
             --same-node=true `
             --image-pull-policy=IfNotPresent `
             --share-processes=true `
+            --profile=sysadmin `
+            --custom=debug.json `
             --copy-to=$($debugPod) `
     }
     if (-not $?) {
@@ -308,10 +310,11 @@ if (-not $script:Fork.IsPresent) {
     kubectl -n $Namespace debug $script:PodName -n $($Namespace) `
         --image=docker.io/library/debugger:$($containerTag) `
         --target=$ContainerName `
-        --profile=general `
         --container=debugger `
         --image-pull-policy=IfNotPresent `
         --share-processes=true `
+        --profile=sysadmin `
+        --custom=debug.json `
         -it --attach=false
 
     Write-Host "Debugging pod '$script:PodName' and container '$ContainerName'." `
