@@ -46,8 +46,8 @@
     <!--<TreatWarningsAsErrors>true</TreatWarningsAsErrors>-->
   </PropertyGroup>
   <ItemGroup Condition="$(NO_RCS) == ''">
-    <PackageReference Include="Roslynator.Analyzers" Version="4.14.0" PrivateAssets="All"/>
-    <PackageReference Include="Roslynator.Formatting.Analyzers" Version="4.14.0" PrivateAssets="All"/>
+    <PackageReference Include="Roslynator.Analyzers" Version="4.14.1" PrivateAssets="All"/>
+    <PackageReference Include="Roslynator.Formatting.Analyzers" Version="4.14.1" PrivateAssets="All"/>
   </ItemGroup>
   <!-- only create the SARIF files for the SDL build step in cloud builds -->
   <PropertyGroup Condition="'$(NBGV_NugetPackageVersion)' != ''">

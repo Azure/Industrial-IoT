@@ -13,7 +13,7 @@
     <ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:9.0-azurelinux3.0-distroless</ContainerBaseImage>
   </PropertyGroup>
   <ItemGroup>
-    <ContainerEnvironmentVariable Include="ASPNETCORE_HTTP_PORTS" Value="9071,9072" />
+    <ContainerEnvironmentVariable Include="ASPNETCORE_HTTP_PORTS" Value="" />
     <ContainerEnvironmentVariable Include="DOTNET_ReadyToRun" Value="0" />
     <ContainerEnvironmentVariable Include="DOTNET_TieredPGO" Value="1" />
     <ContainerEnvironmentVariable Include="DOTNET_TC_QuickJitForLoops" Value="1" />
@@ -43,10 +43,10 @@
     <PackageReference Include="Azure.Core" Version="1.49.0" />
     <PackageReference Include="Furly.Tunnel" Version="1.1.53" />
     <PackageReference Include="Mono.Options" Version="6.12.0.148" />
-    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.12.0" />
-    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.12.0" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.13.0" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.13.0" />
     <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="1.12.0-beta.1" />
-    <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.12.0" />
+    <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.13.0" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.12.0" />
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.12.0" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.12.0" />

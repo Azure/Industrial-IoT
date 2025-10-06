@@ -205,8 +205,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="serializer"></param>
         /// <param name="loggerFactory"></param>
         /// <param name="timeProvider"></param>
-        /// <param name="meter"></param>
         /// <param name="metrics"></param>
+        /// <param name="onClose"></param>
         /// <param name="notifier"></param>
         /// <param name="reverseConnectManager"></param>
         /// <param name="diagnosticsCallback"></param>
@@ -217,7 +217,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public OpcUaClient(ApplicationConfiguration configuration,
             ConnectionIdentifier connection, IJsonSerializer serializer,
             ILoggerFactory loggerFactory, TimeProvider timeProvider,
-            Meter meter, IMetricsContext metrics,
+            IMetricsContext metrics, Func<Task> onClose,
             EventHandler<EndpointConnectivityStateEventArgs>? notifier,
             ReverseConnectManager? reverseConnectManager,
             Action<ChannelDiagnosticModel> diagnosticsCallback,
@@ -232,6 +232,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             _options = options;
+            _onClose = onClose;
             _subscriptionOptions = subscriptionOptions;
             _connection = connection.Connection;
             _diagnosticsCb = diagnosticsCallback;
@@ -243,8 +244,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Debug.Assert(_connection.GetEndpointUrls().Any());
             _reverseConnectManager = reverseConnectManager;
 
-            _meter = meter ??
-                throw new ArgumentNullException(nameof(meter));
             _metrics = metrics ??
                 throw new ArgumentNullException(nameof(metrics));
             _configuration = configuration ??
@@ -547,6 +546,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _resyncTimer.Dispose();
                 _cts.Dispose();
                 _subscriptionLock.Dispose();
+                _meter.Dispose();
             }
         }
 
@@ -887,6 +887,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var currentSessionState = SessionState.Disconnected;
 
             var reconnectPeriod = 0;
+            var cleanup = false;
             var reconnectTimer = _timeProvider.CreateTimer(
                 _ => TriggerConnectionEvent(ConnectionEvent.ConnectRetry), null,
                 Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
@@ -922,6 +923,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     if (currentSessionState == SessionState.Disconnected)
                                     {
                                         // Start connecting
+                                        cleanup = false;
                                         reconnectTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
                                         currentSessionState = SessionState.Connecting;
                                         reconnectPeriod = GetMinReconnectPeriod();
@@ -961,8 +963,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                             NotifySubscriptions(_session, false);
                                             break;
                                         case SessionState.Disconnected:
+                                            // the client is disconnected and we scheduled it for cleanup
+                                            if (cleanup)
+                                            {
+                                                return;
+                                            }
+                                            // Nothing to do, wait for connect
+                                            break;
                                         case SessionState.Connected:
-                                            // Nothing to do, already disconnected or connected
+                                            // Nothing to do, already connected
                                             break;
                                         case SessionState.Reconnecting:
                                             Debug.Fail("Should not be connecting during reconnecting.");
@@ -1011,8 +1020,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                             NotifySubscriptions(_reconnectingSession, true);
                                             (context as TaskCompletionSource)?.TrySetResult();
                                             break;
-                                        case SessionState.Connecting:
                                         case SessionState.Disconnected:
+                                        case SessionState.Connecting:
                                         case SessionState.Reconnecting:
                                             // Nothing to do in this state
                                             break;
@@ -1091,6 +1100,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     {
                                         await HandleDisconnectEvent(ct).ConfigureAwait(false);
                                         currentSessionState = SessionState.Disconnected;
+
+                                        // Set trigger to close in 1 minute if not reconnected
+                                        cleanup = true;
+                                        reconnectTimer.Change(TimeSpan.FromMinutes(1), Timeout.InfiniteTimeSpan);
                                     }
                                     break;
                             }
@@ -1124,6 +1137,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     currentSessionState = SessionState.Disconnected;
                 }
                 _logger.ExitingManagementLoop(this);
+
+                await _onClose().ConfigureAwait(false);
             }
 
             async ValueTask HandleDisconnectEvent(CancellationToken cancellationToken)
@@ -2240,9 +2255,9 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
         private readonly ApplicationConfiguration _configuration;
         private readonly IJsonSerializer _serializer;
         private readonly ILoggerFactory _loggerFactory;
-        private readonly Meter _meter;
         private readonly string _sessionName;
         private readonly IOptions<OpcUaClientOptions> _options;
+        private readonly Func<Task> _onClose;
         private readonly ConnectionModel _connection;
         private readonly IMetricsContext _metrics;
         private readonly ILogger _logger;
@@ -2262,6 +2277,7 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
         private readonly Dictionary<(string, TimeSpan, TimeSpan), Sampler> _samplers = [];
         private readonly Dictionary<(string, TimeSpan), Browser> _browsers = [];
         private readonly Dictionary<string, CancellationTokenSource> _tokens;
+        private readonly Meter _meter = Diagnostics.NewMeter();
         private static readonly TimeSpan kDefaultServiceCallTimeout = TimeSpan.FromMinutes(5);
         private static readonly TimeSpan kDefaultConnectTimeout = TimeSpan.FromMinutes(1);
     }

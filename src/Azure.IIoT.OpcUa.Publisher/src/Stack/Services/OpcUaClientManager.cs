@@ -5,9 +5,10 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Azure.IIoT.OpcUa.Publisher.Models;
+    using BitFaster.Caching.Lru;
     using Furly.Exceptions;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Utils;
@@ -75,6 +76,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 throw new ArgumentNullException(nameof(configuration));
 
             _logger = _loggerFactory.CreateLogger<OpcUaClientManager>();
+
             _reverseConnectManager = new ReverseConnectManager();
             _reverseConnectStartException = new Lazy<Exception?>(
                 StartReverseConnectManager, isThreadSafe: true);
@@ -593,14 +595,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 throw _reverseConnectStartException.Value;
             }
 
-            // Find kv and if not exists create
+            // Find client and if not exists create
             var id = new ConnectionIdentifier(connection);
-            // try to get an existing kv
+            // try to get an existing client
             var client = _clients.GetOrAdd(id, id =>
             {
                 var client = new OpcUaClient(_configuration.Value, id, _serializer,
-                    _loggerFactory, _timeProvider, _meter, _metrics, OnConnectionStateChange,
-                    reverseConnect ? _reverseConnectManager : null,
+                    _loggerFactory, _timeProvider, _metrics, () => OnClientClosedAsync(id),
+                    OnConnectionStateChange, reverseConnect ? _reverseConnectManager : null,
                     OnClientConnectionDiagnosticChange, _clientOptions, _subscriptionOptions);
                 _logger.CreatedNewClient(client);
                 return client;
@@ -608,6 +610,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             client.AddRef();
             return client;
+        }
+
+        /// <summary>
+        /// Called when the client closes
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        private async Task OnClientClosedAsync(ConnectionIdentifier id)
+        {
+            if (_clients.TryRemove(id, out var client))
+            {
+                try
+                {
+                    await client.CloseAsync(false).ConfigureAwait(false);
+                    _logger.ClosedClient(client);
+                }
+                catch (OperationCanceledException) { }
+                catch (Exception ex)
+                {
+                    _logger.DisposeClientFailed(ex, id);
+                }
+            }
         }
 
         /// <summary>
@@ -764,5 +788,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         [LoggerMessage(EventId = EventClass + 17, Level = LogLevel.Information,
             Message = "{Client}: Created new client.")]
         public static partial void CreatedNewClient(this ILogger logger, OpcUaClient client);
+
+        [LoggerMessage(EventId = EventClass + 18, Level = LogLevel.Information,
+            Message = "{Client}: Closed client.")]
+        public static partial void ClosedClient(this ILogger logger, OpcUaClient client);
     }
 }
