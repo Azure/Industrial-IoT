@@ -499,8 +499,6 @@ namespace Azure.IIoT.OpcUa.Publisher
 #if DEBUG
                 .Append(" [DEBUG]")
 #endif
-                .Append(' ')
-                .Append(Environment.UserName)
                 .Append(" (")
                 .Append(RuntimeInformation.FrameworkDescription)
                 .Append('/')
