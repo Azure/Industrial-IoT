@@ -153,14 +153,14 @@ if ($aciNamesToCreate.Length -gt 0) {
         Start-Sleep -Seconds 1
     }
 
-    Write-Host "Deployment finished."
-
     Wait-Job -Job $jobs | Out-Null
+
+    Write-Host "Deployment finished."
 
     foreach ($job in $jobs) {
         if ($job.JobStateInfo.State -ne 'Completed') {
+            Write-Host "Error while deploying ACI: $($job.JobStateInfo.State)."
             Receive-Job -Job $job
-            Write-Error "Error while deploying ACI."
         }
     }
 }
