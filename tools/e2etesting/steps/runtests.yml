@@ -61,7 +61,7 @@ steps:
 - task: AzurePowerShell@5
   displayName: 'Select Image to test'
   inputs:
-    azureSubscription: '$(AzureSubscription)'
+    azureSubscription: 'd355e77f-e625-4931-b133-445d3dcf12cb'
     azurePowerShellVersion: 'latestVersion'
     workingDirectory: '$(BasePath)'
     scriptType: filePath
@@ -72,6 +72,8 @@ steps:
       -Region "$(Region)"
       -ImageTag "$(PlatformVersion)"
       -ContainerRegistryServer "$(ContainerRegistryServer)"
+      -SubscriptionId "d355e77f-e625-4931-b133-445d3dcf12cb"
+      -ResourceGroupName "mcr-iot-industrial-do-not-delete"
 - task: UseDotNet@2
   displayName: 'Install .NET Core SDK'
   inputs:

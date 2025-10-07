@@ -2,7 +2,9 @@
     [string] $BranchName,
     [string] $Region,
     [string] $ImageTag,
-    [string] $ContainerRegistryServer
+    [string] $ContainerRegistryServer,
+    [string] $ResourceGroupName,
+    [string] $SubscriptionId
 )
 
 # Stop execution when an error occurs.
@@ -16,47 +18,31 @@ if ([string]::IsNullOrWhiteSpace($registry))
     $registry = "industrialiotdev"
 }
 
-function Get-ContainerRegistrySecret
-{
-    param(
-        [Parameter(Mandatory=$true)]
-        [string] $keyVaultName,
+Write-Host "Looking up credentials for $($registry) registry in KV $KeyVaultName."
 
-        [Parameter(Mandatory=$true)]
-        [string] $secret
-    )
-    $secretValueSec = Get-AzKeyVaultSecret -VaultName $keyVaultName -Name $secret
-    $ssPtr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secretValueSec.SecretValue)
-    try
-    {
-        $secretValueText = [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($ssPtr)
-    }
-    finally
-    {
-        [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ssPtr)
-    }
-    Write-Host "##vso[task.setvariable variable=$($secret)]$($secretValueText)"
+if ($registry -eq "mcr.microsoft.com") {
+    Write-Host "##vso[task.setvariable variable=ContainerRegistryServer]$($registry)"
 }
+else {
+    if ([string]::IsNullOrWhiteSpace($ResourceGroupName))
+    {
+        throw "ResourceGroupName not provided."
+    }
 
-$KeyVaultName = $null
-if ($registry -eq "industrialiot")
-{
-    $KeyVaultName = "kv-industrialiot"
-}
-if ($registry -eq "industrialiotdev")
-{
-    $KeyVaultName = "kv-industrialiotdev"
-}
-if ($registry -eq "industrialiotprod")
-{
-   # $KeyVaultName = "kv-industrialiotprod" #todo
-}
-if ($KeyVaultName)
-{
-    Write-Host "Looking up credentials for $($registry) registry in KV $KeyVaultName."
-    Get-ContainerRegistrySecret -keyVaultName $KeyVaultName -secret "ContainerRegistryPassword"
-    Get-ContainerRegistrySecret -keyVaultName $KeyVaultName -secret "ContainerRegistryServer"
-    Get-ContainerRegistrySecret -keyVaultName $KeyVaultName -secret "ContainerRegistryUsername"
+    if ([string]::IsNullOrWhiteSpace($SubscriptionId))
+    {
+        throw "SubscriptionId not provided."
+    }
+
+    # Get the ACR credentials
+    $acrCredentials = Get-AzContainerRegistryCredential `
+        -ResourceGroupName $ResourceGroupName `
+        -RegistryName $registry `
+        -SubscriptionId $SubscriptionId
+
+    Write-Host "##vso[task.setvariable variable=ContainerRegistryPassword]$($acrCredentials.Password)"
+    Write-Host "##vso[task.setvariable variable=ContainerRegistryServer]$($registry).azurecr.io"
+    Write-Host "##vso[task.setvariable variable=ContainerRegistryUsername]$($acrCredentials.Username)"
 }
 
 if ([string]::IsNullOrWhiteSpace($script:ImageTag))
@@ -129,7 +115,7 @@ elseif ($registry -eq "mcr.microsoft.com")
 {
     $imageNamespace = ""
 }
-else 
+else
 {
     $imageNamespace = "public"
 }
