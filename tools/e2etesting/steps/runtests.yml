@@ -61,7 +61,7 @@ steps:
 - task: AzurePowerShell@5
   displayName: 'Select Image to test'
   inputs:
-    azureSubscription: 'd355e77f-e625-4931-b133-445d3dcf12cb'
+    azureSubscription: '$(AzureSubscription)'
     azurePowerShellVersion: 'latestVersion'
     workingDirectory: '$(BasePath)'
     scriptType: filePath
