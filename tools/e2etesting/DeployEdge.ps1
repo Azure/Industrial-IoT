@@ -65,19 +65,10 @@ Write-Host "Using suffix for testing resources: $($testSuffix)"
 $iotHub = Get-AzIotHub -ResourceGroupName $ResourceGroupName
 
 if ($iotHub.Count -ne 1) {
-    Write-Error "IotHub could not be automatically selected in Resource Group '$($ResourceGroupName)'."    
+    Write-Error "IotHub could not be automatically selected in Resource Group '$($ResourceGroupName)'."
 }
 
 Write-Host "IoT Hub Name: $($iotHub.Name)"
-
-## Check if KeyVault exists
-$keyVault = Get-AzKeyVault -ResourceGroupName $ResourceGroupName
-
-if ($keyVault.Count -ne 1) {
-    Write-Error "keyVault could not be automatically selected in Resource Group '$($ResourceGroupName)'."    
-} 
-
-Write-Host "Key Vault Name: $($keyVault.VaultName)"
 
 ## Ensure that Edge Device exists
 
@@ -95,11 +86,6 @@ if (!$edgeIdentity) {
 if (!$edgeIdentity.Capabilities.IotEdge) {
     Write-Error "Device '$($edgeIdentity.Id)' Iot Hub: '$($iotHub.Name)') is not edge-enabled."
 }
-
-Write-Host "Adding/Updating KeyVault-Secret 'iot-edge-device-id' with value '$($edgeIdentity.Id)'..."
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
-$secret = ConvertTo-SecureString $edgeIdentity.Id -AsPlainText -Force
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-device-id' -SecretValue $secret | Out-Null
 
 Write-Host "Updating 'os' and '__type__'-Tags in Device Twin..."
 Update-AzIotHubDeviceTwin -ResourceGroupName $ResourceGroupName -IotHubName $iotHub.Name -DeviceId $edgeIdentity.Id -Tag @{ "os" = "Linux"; "__type__" = "iiotedge"; } | Out-Null
@@ -158,24 +144,10 @@ if ([string]::IsNullOrEmpty($sshUrl)) {
 }
 $fqdn = $sshUrl.Split("@")[1]
 
-Write-Host "Adding/Updating KeVault-Secret 'iot-edge-vm-username' with value '$($edgeVmUsername)'..."
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
-$secret = ConvertTo-SecureString $edgeVmUsername -AsPlainText -Force
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-vm-username' -SecretValue $secret | Out-Null
-
-Write-Host "Adding/Updating KeVault-Certificate 'iot-edge-vm-privatekey'..."
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
-$secret = ConvertTo-SecureString $sshPrivateKey -AsPlainText -Force
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-vm-privatekey' -SecretValue $secret | Out-Null
-
-Write-Host "Adding/Updating KeVault-Certificate 'iot-edge-vm-publickey'..."
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
-$secret = ConvertTo-SecureString $sshPublicKey -AsPlainText -Force
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-vm-publickey' -SecretValue $secret | Out-Null
-
-Write-Host "Adding/Updating KeyVault-Secret 'iot-edge-device-dnsname' with value '$($fqdn)'..."
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
-$secret = ConvertTo-SecureString $fqdn -AsPlainText -Force
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'iot-edge-device-dnsname' -SecretValue $secret | Out-Null
+Write-Host "##vso[task.setvariable variable=EdgeIdentity]$($edgeIdentity.Id)"
+Write-Host "##vso[task.setvariable variable=EdgeVmUsername]$($edgeVmUsername)"
+Write-Host "##vso[task.setvariable variable=SshPrivateKey]$($sshPrivateKey)"
+Write-Host "##vso[task.setvariable variable=SshPublicKey]$($sshPublicKey)"
+Write-Host "##vso[task.setvariable variable=Fqdn]$($fqdn)"
 
 Write-Host "Deployment finished."

@@ -38,3 +38,22 @@ steps:
     scriptArguments: >
       -ResourceGroupName "$(ResourceGroupName)"
       -KeysPath "$(Agent.TempDirectory)"
+
+- task: AzureCLI@2
+  displayName: "Write test resource variables to Keyvault"
+  inputs:
+    azureSubscription: '$(AzureSubscription)'
+    azurePowerShellVersion: 'latestVersion'
+    workingDirectory: '$(BasePath)'
+    scriptType: 'pscore'
+    scriptPath: '$(BasePath)\tools\e2etesting\SetTestVariables.ps1'
+    arguments: >
+      -ResourceGroupName "$(ResourceGroupName)"
+      -OpcPlcSimulationUrls "$(OpcPlcSimulationUrls)"
+      -OpcPlcSimulationIps "$(OpcPlcSimulationIps)"
+      -Fqdn "$(Fqdn)"
+      -EdgeIdentity "$(EdgeIdentity)"
+      -EdgeVmUsername "$(EdgeVmUsername)"
+      -SshPrivateKey "$(SshPrivateKey)"
+      -SshPublicKey "$(SshPublicKey)"
+

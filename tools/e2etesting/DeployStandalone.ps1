@@ -6,7 +6,9 @@ Param(
     [string]
     $Region = "EastUS",
     [string]
-    $ServicePrincipalId
+    $ServicePrincipalId,
+    [string]
+    $OpcPlcAddresses
 )
 
 # Stop execution when an error occurs.
