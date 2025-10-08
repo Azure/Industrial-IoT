@@ -15,7 +15,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="1.1.53" />
+    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="1.1.54" />
     <PackageReference Include="JsonSchema.Net" Version="7.4.0" />
     <PackageReference Include="Microsoft.Json.Schema" Version="2.3.0" />
   </ItemGroup>

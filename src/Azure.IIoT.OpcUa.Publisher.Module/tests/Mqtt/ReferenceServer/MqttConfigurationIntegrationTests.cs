@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using Furly.Extensions.Mqtt;
     using Json.More;
-    using Microsoft.VisualStudio.TestPlatform.Utilities;
     using System;
     using System.Collections.Generic;
     using System.Text.Json;
@@ -154,6 +153,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 Assert.True(sev.TryGetProperty("Value", out sev));
                 Assert.True(sev.GetInt32() >= 100);
 
+                _output.WriteLine("GetConfigured 1");
                 endpoints = await PublisherApi.GetConfiguredEndpointsAsync(ct: Ct);
                 var e = Assert.Single(endpoints.Endpoints);
 
@@ -161,9 +161,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 var n = Assert.Single(nodes.OpcNodes);
                 Assert.Equal(testInput[0].OpcNodes[0].Id, n.Id);
 
+                _output.WriteLine("Unpublish");
                 result = await PublisherApi.UnpublishNodesAsync(testInput[0], Ct);
                 Assert.NotNull(result);
 
+                _output.WriteLine("GetConfigured 2");
                 endpoints = await PublisherApi.GetConfiguredEndpointsAsync(ct: Ct);
                 Assert.Empty(endpoints.Endpoints);
             }
