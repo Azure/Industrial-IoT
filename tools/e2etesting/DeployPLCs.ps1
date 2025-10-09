@@ -59,17 +59,6 @@ if (!$testSuffix) {
     az group update --name $resourceGroup --tags TestingResourcesSuffix=$testSuffix
 }
 
-## Check if KeyVault exists
-$keyVault = "e2etestingkeyVault" + $testSuffix
-$keyVaultList = az keyvault list --resource-group $ResourceGroupName | ConvertFrom-Json
-if ($keyVaultList.Count -ne 1){
-    Write-Error "keyVault could not be automatically selected in Resource Group '$($ResourceGroupName)'."  
-}
-
-$keyVault = $keyVaultList.name
-
-Write-Host "The following Key Vault has been selected: $keyVault"
-
 ## Ensure Azure Container Instances ##
 
 $allAciNames = @()
@@ -164,19 +153,19 @@ if ($aciNamesToCreate.Length -gt 0) {
         Start-Sleep -Seconds 1
     }
 
-    Write-Host "Deployment finished."
-
     Wait-Job -Job $jobs | Out-Null
+
+    Write-Host "Deployment finished."
 
     foreach ($job in $jobs) {
         if ($job.JobStateInfo.State -ne 'Completed') {
+            Write-Host "Error while deploying ACI: $($job.JobStateInfo.State)."
             Receive-Job -Job $job
-            Write-Error "Error while deploying ACI."
         }
     }
 }
 
-## Write ACI FQDNs and ips to KeyVault ##
+## Write ACI FQDNs and ips ##
 Write-Host
 Write-Host "Getting IPs of ACIs for simulated PLCs..."
 $fqdnList = az container list --resource-group $ResourceGroupName  --query "[?starts_with(name,'$ResourcesPrefix') ].ipAddress.fqdn"  | ConvertFrom-Json
@@ -194,9 +183,6 @@ foreach ($fqdn in $fqdnList) {
     Write-Host $ip
     $plcSimNames += $fqdn + ";"
 }
-Write-Host "Adding/Updating KeyVault-Secret 'plc-simulation-urls' with value '$($plcSimNames)'..."
-az keyvault secret set --vault-name $keyVault --name "plc-simulation-urls" --value $plcSimNames > $null
-Write-Host "Adding/Updating KeyVault-Secret 'plc-simulation-ips' with value '$($plcSimIps)'..."
-az keyvault secret set --vault-name $keyVault --name "plc-simulation-ips" --value $plcSimIps > $null
 
-Write-Host "Deployment finished."
+Write-Host "##vso[task.setvariable variable=OpcPlcSimulationUrls]$($plcSimNames)"
+Write-Host "##vso[task.setvariable variable=OpcPlcSimulationIps]$($plcSimIps)"

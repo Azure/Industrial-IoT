@@ -13,6 +13,8 @@ steps:
       -Region "$(Region)"
       -ImageTag "$(PlatformVersion)"
       -ContainerRegistryServer "$(ContainerRegistryServer)"
+      -SubscriptionId "d355e77f-e625-4931-b133-445d3dcf12cb"
+      -ResourceGroupName "mcr-iot-industrial-do-not-delete"
 
 # Need to do this so we can update the permissions in key vault for this
 # service principal in the next scripts

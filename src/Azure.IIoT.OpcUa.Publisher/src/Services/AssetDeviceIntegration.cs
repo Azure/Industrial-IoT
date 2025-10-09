@@ -3264,7 +3264,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         internal static partial void RegisteredSchemaErrorDebug(this ILogger logger, Exception ex,
             string name, string version, string resource, string asset, string @namespace);
 
-        [LoggerMessage(EventId = EventClass + 49, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 50, Level = LogLevel.Error,
             Message = "Error registering schema '{Name}' with version '{Version}' for resource '{Resource}' in asset " +
             "'{Asset}' inside schema namespace '{Namespace}'")]
         internal static partial void RegisteredSchemaError(this ILogger logger, Exception ex,

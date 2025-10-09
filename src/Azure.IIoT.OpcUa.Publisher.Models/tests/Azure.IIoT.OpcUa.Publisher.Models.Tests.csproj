@@ -6,7 +6,7 @@
   <ItemGroup>
     <PackageReference Include="AutoFixture" Version="4.18.1" />
     <PackageReference Include="FluentAssertions" Version="[7.2.0]" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
     <PackageReference Include="coverlet.msbuild" Version="6.0.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -18,9 +18,9 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Furly.Extensions.Json" Version="1.1.53" />
-    <PackageReference Include="Furly.Extensions.MessagePack" Version="1.1.53" />
-    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="1.1.53" />
+    <PackageReference Include="Furly.Extensions.Json" Version="1.1.54" />
+    <PackageReference Include="Furly.Extensions.MessagePack" Version="1.1.54" />
+    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="1.1.54" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Publisher.Models.csproj" />

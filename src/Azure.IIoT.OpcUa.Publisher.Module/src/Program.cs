@@ -27,7 +27,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         /// <summary>
         /// Log logo
         /// </summary>
-        private static void LogLogo()
+        /// <param name="userString"></param>
+        private static void LogLogo(string userString)
         {
             Console.WriteLine($@"
  ██████╗ ██████╗  ██████╗    ██████╗ ██╗   ██╗██████╗ ██╗     ██╗███████╗██╗  ██╗███████╗██████╗
@@ -37,6 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
 ╚██████╔╝██║     ╚██████╗    ██║     ╚██████╔╝██████╔╝███████╗██║███████║██║  ██║███████╗██║  ██║
  ╚═════╝ ╚═╝      ╚═════╝    ╚═╝      ╚═════╝ ╚═════╝ ╚══════╝╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
 {PublisherConfig.Version,97}
+{userString,97}
 ");
         }
 
@@ -72,7 +74,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         /// <returns></returns>
         public static async Task RunAsync(string[] args, CancellationToken ct)
         {
-            LogLogo();
+            var userString = string.Empty;
+
+            if (PublisherConfig.IsContainer)
+            {
+                var currentDir = Environment.CurrentDirectory;
+                var currentUser = Environment.UserName;
+                if (!IsWriteable(currentDir))
+                {
+                    currentDir = "/home" +
+                        (string.IsNullOrEmpty(currentUser) ? currentDir : $"/{currentUser}");
+                    // Rootless containers have read-only filesystem except /home
+                    Environment.CurrentDirectory = currentDir;
+                }
+                userString =  $"Running as [{currentUser}] in {currentDir}";
+            }
+
+            LogLogo(userString);
             await CreateHostBuilder(args).RunAsync(ct).ConfigureAwait(false);
         }
 
@@ -99,5 +117,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                     .UseKestrel(o => o.AddServerHeader = false))
                 ;
         }
+
+
+        /// <summary>
+        /// Tests whether the path is writeable
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        private static bool IsWriteable(string path)
+        {
+            try
+            {
+                string tempFilePath = Path.Combine(path, Path.GetRandomFileName());
+                using (FileStream fs = File.Create(tempFilePath))
+                {
+                    // File created successfully, directory is writable
+                }
+                // Delete the temporary file
+                File.Delete(tempFilePath);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+
     }
 }

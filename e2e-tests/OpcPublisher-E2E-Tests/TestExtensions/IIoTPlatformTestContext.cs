@@ -34,21 +34,6 @@ namespace OpcPublisherAEE2ETests.TestExtensions
         }
 
         /// <summary>
-        /// Save the identifier of OPC server endpoints
-        /// </summary>
-        public string OpcUaEndpointId { get; set; }
-
-        /// <summary>
-        /// Save the identfier of the opc ua application
-        /// </summary>
-        public string ApplicationId { get; set; }
-
-        /// <summary>
-        /// Folder path where PublishedNodes file is saved during the test
-        /// </summary>
-        public string PublishedNodesFileInternalFolder { get; set; }
-
-        /// <summary>
         /// Helper to write output, need to be set from constructor of test class
         /// </summary>
         public ITestOutputHelper OutputHelper => _outputHelper;
@@ -77,11 +62,6 @@ namespace OpcPublisherAEE2ETests.TestExtensions
             public void WriteLine(string message) { Console.WriteLine(message); }
             public void WriteLine(string format, params object[] args) { Console.WriteLine(format, args); }
         }
-
-        /// <summary>
-        /// Gets or sets the OPC server url
-        /// </summary>
-        public string OpcServerUrl { get; set; }
 
         /// <summary>
         /// IoT Device Configuration

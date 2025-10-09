@@ -213,7 +213,7 @@ if ($script:ConnectorType -eq "Official") {
             registry = "mcr.microsoft.com"
         }
     }
-    $containerTag = "2.9.15-preview6" # TODO: Remove
+    $containerTag = "2.9.15-preview7" # TODO: Remove
     $containerImage = "mcr.microsoft.com/$($containerName):$($containerTag)"
     $connectorMetadataRef = "mcr.microsoft.com/$($containerName):$($containerTag)-metadata"
 }
