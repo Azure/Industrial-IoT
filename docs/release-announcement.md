@@ -2,6 +2,11 @@
 
 ## Table Of Contents <!-- omit in toc -->
 
+- [Azure Industrial IoT OPC Publisher 2.9.15](#azure-industrial-iot-opc-publisher-2915)
+  - [Breaking changes](#breaking-changes)
+  - [Changes in 2.9.15](#changes-in-2915)
+- [Azure Industrial IoT OPC Publisher 2.9.14](#azure-industrial-iot-opc-publisher-2914)
+  - [Changes in 2.9.14](#changes-in-2914)
 - [Azure Industrial IoT OPC Publisher 2.9.13](#azure-industrial-iot-opc-publisher-2913)
   - [Changes in 2.9.13](#changes-in-2913)
 - [Azure Industrial IoT OPC Publisher 2.9.12](#azure-industrial-iot-opc-publisher-2912)
@@ -59,6 +64,30 @@
   - [Backwards Compatibility Notes for release 2.8.2](#backwards-compatibility-notes-for-release-282)
 - [Azure Industrial IoT Platform Release 2.8.1](#azure-industrial-iot-platform-release-281)
 - [Azure Industrial IoT Platform Release 2.8](#azure-industrial-iot-platform-release-28)
+
+## Azure Industrial IoT OPC Publisher 2.9.15
+
+We are pleased to announce the release of version 2.9.15 of OPC Publisher. This monthly patch release comes with several bug and security fixes and is the latest supported release. Older releases below are no longer supported.
+
+### Breaking changes
+
+- The companion web app and API are no longer supported or included (#2370)
+- OPC Publisher container by default runs root-less (non-root user). To run as root, start the OPC Publisher using the --user root command line option. (#2428)
+
+### Changes in 2.9.15
+
+- call of ISA95 JobOrderReceiver "Store" method fails decoding "JobOrderParameters" "ISA95ParameterDataType" (2424)
+- OPC Publisher does not re-establish connection to OPC UA server, if the OPC UA server is restarted. (#2416)
+- Updates to all dependencies (.net and OPC UA stack)
+
+## Azure Industrial IoT OPC Publisher 2.9.14
+
+We are pleased to announce the release of version 2.9.14 This monthly patch release updates dependencies to fix security vulnerabilities and bugs in them and is the latest supported release. Older releases below are no longer supported.
+
+### Changes in 2.9.14
+
+- Updates to all dependencies (.net 9.0.5 and OPC UA stack)
+- Additional diagnostic instruments to monitor session keep alive counters 
 
 ## Azure Industrial IoT OPC Publisher 2.9.13
 
