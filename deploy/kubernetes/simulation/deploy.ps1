@@ -13,7 +13,7 @@
 
     .PARAMETER SimulationName
         The type of simulation to deploy. Currently supports "opc-plc"
-        and "opc-test". Default is "opc-plc".
+        "umati", "umati-public" and "opc-test". Default is "opc-plc".
     .PARAMETER Count
         Number of simulation servers to deploy.
     .PARAMETER AdrNamespaceName

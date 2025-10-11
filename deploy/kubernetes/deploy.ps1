@@ -18,9 +18,6 @@
     .PARAMETER AdrNamespaceName
         The name of the ADR namespace to create or use. Default is the same
         as the cluster name.
-    .PARAMETER SchemaRegistryName
-        The name of the schema registry to create or use. Default is the
-        cluster name in lower case with "sr" suffix.
     .PARAMETER ResourceGroup
         The resource group to create or use for the cluster.
         Default is the same as the cluster name.
@@ -51,7 +48,6 @@ param(
     [string] [Parameter(Mandatory = $true)] $Name,
     [string] $OpsInstanceName,
     [string] $AdrNamespaceName,
-    [string] $SchemaRegistryName,
     [string] $ResourceGroup,
     [string] $TenantId,
     [string] $SubscriptionId,
@@ -100,10 +96,6 @@ if ([string]::IsNullOrWhiteSpace($script:OpsInstanceName)) {
 if ([string]::IsNullOrWhiteSpace($script:AdrNamespaceName)) {
     $script:AdrNamespaceName = $Name
     Write-Host "Using ADR namespace name $($script:AdrNamespaceName)..." -ForegroundColor Cyan
-}
-if ([string]::IsNullOrWhiteSpace($script:SchemaRegistryName)) {
-    $script:SchemaRegistryName = "$($Name.ToLowerInvariant())sr"
-    Write-Host "Using schema registry name $($script:SchemaRegistryName)..." -ForegroundColor Cyan
 }
 
 # check if docker and az cli are installed
@@ -186,16 +178,6 @@ if (!$iotOps) {
         -ForegroundColor Red
     exit -1
 }
-$errOut = $($sr = & { az iot ops schema registry show `
-    --name $script:SchemaRegistryName `
-    --resource-group $($rg.Name) `
-    --subscription $script:SubscriptionId `
-    --only-show-errors --output json } | ConvertFrom-Json) 2>&1
-if (!$sr) {
-    Write-Host "Schema registry $($script:SchemaRegistryName) not found. $($errOut)." `
-        -ForegroundColor Red
-    exit -1
-}
 
 #
 # Deploy publisher as connector
@@ -213,7 +195,6 @@ if ($script:ConnectorType -eq "Official") {
             registry = "mcr.microsoft.com"
         }
     }
-    $containerTag = "2.9.15-preview7" # TODO: Remove
     $containerImage = "mcr.microsoft.com/$($containerName):$($containerTag)"
     $connectorMetadataRef = "mcr.microsoft.com/$($containerName):$($containerTag)-metadata"
 }
