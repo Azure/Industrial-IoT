@@ -202,6 +202,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _logger.NoAssetFoundForSchema(assetName, schema.Name);
                 return;
             }
+
+            assetName = assetResource.AssetName; // Set known asset name;
             var deviceName = assetResource.Asset.DeviceRef.DeviceName;
             var endpoint = assetResource.Asset.DeviceRef.EndpointName;
             Debug.Assert(deviceName != null);
