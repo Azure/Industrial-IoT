@@ -41,6 +41,9 @@
     .PARAMETER SkipLogin
         If specified, the script will skip the login step and use
         the current session.
+    .PARAMETER RequestLogFile
+        If specified, the script will log all requests to the specified
+        file.
 #>
 
 param(
@@ -55,7 +58,8 @@ param(
     [string] $TenantId,
     [switch] $RunOnce,
     [switch] $Force,
-    [switch] $SkipLogin
+    [switch] $SkipLogin,
+    [string] $RequestLogFile
 )
 
 $ErrorActionPreference = 'Continue'
@@ -234,7 +238,9 @@ elseif ($script:Action -eq "Onboard") {
                         endpoints = $dDevice.properties.endpoints
                     }
                 } | ConvertTo-Json -Depth 100
-                #$body | Out-Host
+                if ($script:RequestLogFile) {
+                    $body | Out-File -FilePath $script:RequestLogFile -Encoding utf8 -Append
+                }
                 $body | Out-File -FilePath $tempFile -Encoding utf8 -Force
                 Write-Host "Create or update device $($dDevice.name)..." -ForegroundColor Cyan
                 $errOut = $($device = & { az rest --method put `
@@ -321,7 +327,9 @@ elseif ($script:Action -eq "Onboard") {
                         managementGroups = [array]$dAsset.properties.managementGroups
                     }
                 } | ConvertTo-Json -Depth 100
-                #$body | Out-Host
+                if ($script:RequestLogFile) {
+                    $body | Out-File -FilePath $script:RequestLogFile -Encoding utf8 -Append
+                }
                 $body | Out-File -FilePath $tempFile -Encoding utf8 -Force
                 Write-Host "Create or update asset $($dAsset.name)..." -ForegroundColor Cyan
                 $errOut = $($asset = & { az rest --method put `

@@ -40,12 +40,11 @@
                     "input": "required",
                     "type": "string",
                     "description": "The endpoint URL of the OPC UA server to connect to.",
-                    "pattern": "^opc.(tcp|http|https)://.+$",
-                    "examples": [
-                        "opc.tcp://localhost:4840",
-                        "opc.tcp://1.0.0.1/myserver",
-                        "opc.https://myserver:48443"
-                    ]
+                    "regex":
+                    [
+                         "^opc.(tcp|http|https)://.+$"
+                    ],
+                    "exampleValue": "opc.tcp://localhost:4840"
                 }
             },
             "additionalConfigurationSchema": {
@@ -1259,7 +1258,7 @@
         },
         {
             "key": "MaxReconnectDelay",
-            "description": "The maximum amount of time in millseconds to wait between reconnection attempts of the session.\nDefault: `60000` milliseconds.\n"
+            "description": "The maximum amount of time in milliseconds to wait between reconnection attempts of the session.\nDefault: `60000` milliseconds.\n"
         },
         {
             "key": "DefaultSessionTimeout",
@@ -1355,7 +1354,7 @@
         },
         {
             "key": "ProductUri",
-            "description": "The Product URI as per OPC UA definition insde the OPC UA client application configuration presented to the server.\nDefault: `not set`.\n"
+            "description": "The Product URI as per OPC UA definition inside the OPC UA client application configuration presented to the server.\nDefault: `not set`.\n"
         },
         {
             "key": "RejectSha1SignedCertificates",
