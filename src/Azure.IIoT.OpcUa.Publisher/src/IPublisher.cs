@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -44,5 +45,14 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <param name="writerGroups"></param>
         /// <returns></returns>
         Task UpdateAsync(IEnumerable<WriterGroupModel> writerGroups);
+
+        /// <summary>
+        /// Get current state of a writer group by identifier
+        /// </summary>
+        /// <param name="writerGroupId"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        ValueTask<WriterGroupStateDiagnosticModel> GetStateAsync(
+            string writerGroupId, CancellationToken ct);
     }
 }

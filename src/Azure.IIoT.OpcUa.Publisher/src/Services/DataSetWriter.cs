@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Microsoft.Extensions.Logging;
     using Nito.AsyncEx;
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Globalization;
@@ -106,6 +107,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// Data set source
             /// </summary>
             public PublishedDataSetSourceModel Source => DataSet.DataSetSource!;
+
+            /// <summary>
+            /// Last errors in the writer
+            /// </summary>
+            public ConcurrentDictionary<string, ServiceResultModel> LastErrors { get; } = [];
 
             /// <summary>
             /// Split the writer in the group in its writer partitions depending on the publish
@@ -328,6 +334,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     };
                     return (metadata, publishing);
                 }
+            }
+
+            /// <summary>
+            /// Get data set writer diagnostic information
+            /// </summary>
+            /// <returns></returns>
+            public DataSetWriterStateDiagnosticModel GetState()
+            {
+                return new DataSetWriterStateDiagnosticModel
+                {
+                    Id = Writer.Id,
+                    DataSetWriterName = Writer.DataSetWriterName,
+                    Source = new PublishedDataSetSourceDiagnosticModel
+                    {
+                        Errors = LastErrors
+                            .Select(e => new MonitoredItemNodeErrorModel
+                            {
+                                NodeId = e.Key, // TODO
+                                ErrorInfo = e.Value
+                            })
+                            .ToList()
+                    }
+                };
             }
 
             /// <summary>
@@ -612,6 +641,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         await _metaDataLoader.Value.BlockUntilLoadedAsync(timeout, ct).ConfigureAwait(false);
                     }
+                }
+            }
+
+            /// <inheritdoc/>
+            public void OnMonitoredItemUpdate(BaseMonitoredItemModel monitoredItem,
+                ServiceResultModel? serviceResult)
+            {
+                if (serviceResult == null)
+                {
+                    _writer.LastErrors.TryRemove(monitoredItem.Id, out _);
+                }
+                else
+                {
+                    _writer.LastErrors.AddOrUpdate(monitoredItem.Id, serviceResult);
                 }
             }
 

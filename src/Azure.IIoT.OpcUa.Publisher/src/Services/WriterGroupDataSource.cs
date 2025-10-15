@@ -116,6 +116,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
+        public async ValueTask<WriterGroupStateDiagnosticModel> GetStateAsync(
+            CancellationToken ct)
+        {
+            await _lock.WaitAsync(ct).ConfigureAwait(false);
+            try
+            {
+                return new WriterGroupStateDiagnosticModel
+                {
+                    Id = _writerGroup.Id,
+                    WriterGroupName = _writerGroup.Name,
+                    DataSetWriters = _writers.Keys
+                        .Select(w => w.GetState())
+                        .Where(d => d != null)
+                        .ToList()!
+                };
+            }
+            finally
+            {
+                _lock.Release();
+            }
+        }
+
+        /// <inheritdoc/>
         public async ValueTask UpdateAsync(WriterGroupModel writerGroup, CancellationToken ct)
         {
             await _lock.WaitAsync(ct).ConfigureAwait(false);

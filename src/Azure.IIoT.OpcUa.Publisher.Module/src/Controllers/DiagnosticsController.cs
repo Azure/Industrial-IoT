@@ -47,10 +47,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// Create controller with service
         /// </summary>
         /// <param name="diagnostics"></param>
-        public DiagnosticsController(IClientDiagnostics diagnostics)
+        /// <param name="publisher"></param>
+        public DiagnosticsController(IClientDiagnostics diagnostics, IPublisher publisher)
         {
             _diagnostics = diagnostics ??
                 throw new ArgumentNullException(nameof(diagnostics));
+            _publisher = publisher ??
+                throw new ArgumentNullException(nameof(publisher));
         }
 
         /// <summary>
@@ -90,6 +93,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         {
             ct.ThrowIfCancellationRequested();
             return Task.FromResult(_diagnostics.ActiveConnections);
+        }
+
+        /// <summary>
+        /// GetWriterGroupState
+        /// </summary>
+        /// <remarks>
+        /// Get the current state of the specific writer group and its data set writers.
+        /// Dedicated errors are returned if no, or no unique entry could be found.
+        /// </remarks>
+        /// <param name="dataSetWriterGroup">The writer group name of the entry</param>
+        /// <param name="ct"></param>
+        /// <returns>The entry selected without nodes</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="dataSetWriterGroup"/>
+        /// is <c>null</c>.</exception>
+        /// <response code="200">The item was found</response>
+        /// <response code="400">The passed in information is invalid</response>
+        /// <response code="404">The item was not found</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [HttpGet("diagnostics/writergroups/{dataSetWriterGroup}")]
+        public async Task<WriterGroupStateDiagnosticModel> GetWriterGroupStateAsync(
+            string dataSetWriterGroup, CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(dataSetWriterGroup);
+            return await _publisher.GetStateAsync(dataSetWriterGroup, ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -153,5 +183,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         private readonly IClientDiagnostics _diagnostics;
+        private readonly IPublisher _publisher;
     }
 }

@@ -160,6 +160,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public bool ErrorReported { get; set; }
 
         /// <summary>
+        /// Status as ServiceResult
+        /// </summary>
+        /// <returns></returns>
+        protected ServiceResultModel? ErrorInfo
+        {
+            get
+            {
+                if (!Valid || // To clear error on invalid items
+                    Status.Error == null ||
+                    StatusCode.IsGood(Status.Error.StatusCode))
+                {
+                    return null;
+                }
+                return Status.Error.ToServiceResultModel();
+            }
+        }
+
+        /// <summary>
         /// Create item
         /// </summary>
         /// <param name="owner"></param>
@@ -329,6 +347,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             if (disposing && Valid)
             {
                 Valid = false;
+                ReportStatusToSubscriber();
             }
         }
 
@@ -603,6 +622,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <returns></returns>
         protected abstract bool TryGetErrorMonitoredItemNotifications(
             StatusCode statusCode, MonitoredItemNotifications notifications);
+
+        /// <summary>
+        /// Report current monitored item status to subscriber
+        /// </summary>
+        public abstract void ReportStatusToSubscriber();
 
         /// <summary>
         /// Notify queue size or sampling interval changed
