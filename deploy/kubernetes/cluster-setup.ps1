@@ -1138,7 +1138,6 @@ if ($script:Connector -ne "None") {
         -ClusterType $script:ClusterType `
         -ConnectorType $script:Connector `
         -OpsInstanceName $iotOps.Name `
-        -SchemaRegistryName $sr.Name `
         -AdrNamespaceName $ns.Name `
         -SubscriptionId $SubscriptionId `
         -TenantId $TenantId `

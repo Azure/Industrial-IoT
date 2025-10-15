@@ -63,8 +63,8 @@ Operations cluster on Windows targeting K3D, MicroK8s, Minikube and Kind.
 # Development setup with specific version and train
 .\cluster-setup.ps1 `
     -Name "devCluster" `
-    -OpsVersion "1.2.31" `
-    -OpsTrain "integration" `
+    -OpsVersion "1.2.96" `
+    -OpsTrain "dev" `
     -Connector "Debug" `
     -Force
 

@@ -156,8 +156,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
-        public async ValueTask OnSchemaRegisteredAsync(Furly.Extensions.Messaging.IEventSchema schema,
-            Schema registration, CancellationToken ct)
+        public async ValueTask OnSchemaRegisteredAsync(
+            Furly.Extensions.Messaging.IEventSchema schema, Schema registration,
+            CancellationToken ct)
         {
             if (registration.Name == null ||
                 registration.Namespace == null ||
@@ -258,6 +259,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                         _logger.RegisteredSchema(registration.Name, registration.Version, resourceName,
                             assetName, registration.Namespace);
+                        break;
                     }
                     catch (Exception e) when (i < 3 && !ct.IsCancellationRequested)
                     {
