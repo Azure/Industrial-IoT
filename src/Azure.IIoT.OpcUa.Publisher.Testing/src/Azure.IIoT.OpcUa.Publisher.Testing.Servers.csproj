@@ -61,10 +61,10 @@
     <EmbeddedResource Include="Generated\Isa95Jobs\Design\UAModel.ISA95_JOBCONTROL_V2.Types.xsd" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Extensions" Version="1.1.54" />
-    <PackageReference Include="System.IO.Pipelines" Version="9.0.9" />
+    <PackageReference Include="Furly.Extensions" Version="1.1.56" />
+    <PackageReference Include="System.IO.Pipelines" Version="9.0.10" />
     <PackageReference Include="System.Linq.Async" Version="6.0.3" />
-    <PackageReference Include="System.Text.Json" Version="9.0.9" />
+    <PackageReference Include="System.Text.Json" Version="9.0.10" />
     <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Server" Version="1.5.377.21" />
   </ItemGroup>
 </Project>
