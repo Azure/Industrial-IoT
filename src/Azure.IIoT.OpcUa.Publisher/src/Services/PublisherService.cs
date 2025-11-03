@@ -19,6 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
+    using System.Collections.Concurrent;
 
     /// <summary>
     /// Publisher host. Manages updates to the state of the publisher through
@@ -64,7 +65,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _logger = logger;
             _timeProvider = timeProvider ?? TimeProvider.System;
             LastChange = _timeProvider.GetUtcNow();
-
             _currentJobs = [];
 
             TagList = new TagList(
@@ -102,6 +102,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 return tcs.Task;
             }
             return Task.FromException(new ResourceExhaustionException("Change feed full"));
+        }
+
+        /// <inheritdoc/>
+        public ValueTask<WriterGroupStateDiagnosticModel> GetStateAsync(string writerGroupId,
+            CancellationToken ct)
+        {
+            if (_currentJobs.TryGetValue(writerGroupId, out var job))
+            {
+                return job.GetStateAsync(ct);
+            }
+            throw new ResourceNotFoundException($"Writer group {writerGroupId} not found.");
         }
 
         /// <inheritdoc/>
@@ -215,6 +226,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     try
                     {
+                        // Update existing or create new writer group job
                         if (_currentJobs.TryGetValue(jobId, out var currentJob))
                         {
                             await currentJob.UpdateAsync(Version, writerGroup, ct).ConfigureAwait(false);
@@ -224,7 +236,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             // Create new writer group job
                             currentJob = await WriterGroupJob.CreateAsync(this, jobId, Version,
                                 writerGroup, ct).ConfigureAwait(false);
-                            _currentJobs.Add(currentJob.Id, currentJob);
+                            _currentJobs.TryAdd(currentJob.Id, currentJob);
                         }
                     }
                     catch (Exception ex) when (ex is not OperationCanceledException)
@@ -247,7 +259,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     exceptions.Add(ex);
                     _logger.FailedToDisposeWriterGroupJobBeforeRemoval(ex);
                 }
-                _currentJobs.Remove(delete.Id);
+                _currentJobs.TryRemove(delete.Id, out _);
             }
 
             if (exceptions.Count == 0)
@@ -343,6 +355,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <summary>
+            /// Get writer group job state
+            /// </summary>
+            /// <param name="ct"></param>
+            /// <returns></returns>
+            public async ValueTask<WriterGroupStateDiagnosticModel> GetStateAsync(
+                CancellationToken ct)
+            {
+                try
+                {
+                    var state = await Controller.GetStateAsync(ct).ConfigureAwait(false);
+                    return state with { Version = Version };
+                }
+                catch (Exception ex)
+                {
+                    _outer._logger.FailedToGetWriterGroupJobState(ex, Id);
+                    throw;
+                }
+            }
+
+            /// <summary>
             /// Update writer group job
             /// </summary>
             /// <param name="version"></param>
@@ -387,7 +419,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly ILogger _logger;
         private readonly TimeProvider _timeProvider;
         private readonly Task _processor;
-        private readonly Dictionary<string, WriterGroupJob> _currentJobs;
+        private readonly ConcurrentDictionary<string, WriterGroupJob> _currentJobs;
         private readonly TaskCompletionSource _completedTask;
         private readonly CancellationTokenSource _cts;
         private readonly Channel<(TaskCompletionSource, List<WriterGroupModel>)> _changeFeed;
@@ -435,5 +467,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         [LoggerMessage(EventId = EventClass + 9, Level = LogLevel.Error,
             Message = "Failed to update writer group job {Name}")]
         public static partial void FailedToUpdateWriterGroupJob(this ILogger logger, Exception ex, string name);
+
+        [LoggerMessage(EventId = EventClass + 10, Level = LogLevel.Error,
+            Message = "Failed to get writer group job {Name} status.")]
+        public static partial void FailedToGetWriterGroupJobState(this ILogger logger, Exception ex, string name);
     }
 }

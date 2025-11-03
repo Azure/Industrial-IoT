@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using System.Collections.Generic;
     using System.Threading;
@@ -88,5 +89,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="modelChanges"></param>
         void OnSubscriptionEventDiagnosticsChange(bool liveData,
             int events, int overflow, int modelChanges);
+
+        /// <summary>
+        /// Notification of success or errors processing the monitored item
+        /// Service result is null if the item was successfully applied.
+        /// </summary>
+        /// <param name="monitoredItem"></param>
+        /// <param name="serviceResult"></param>
+        void OnMonitoredItemUpdate(BaseMonitoredItemModel monitoredItem,
+            ServiceResultModel? serviceResult);
     }
 }

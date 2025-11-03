@@ -18,7 +18,7 @@
         "language": ".NET",
         "languageVersion": ".NET 9.0",
         "sdks": {
-            "connectorPackageVersion": "0.13.0-preview"
+            "connectorPackageVersion": "0.13.0"
         }
     },
     "aioMetadata": {
@@ -62,6 +62,7 @@
                             "Aes256_Sha256_RsaPss",
                             "http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256"
                         ],
+                        "default": "http://opcfoundation.org/UA/SecurityPolicy#None",
                         "description": "The security policy URI to use for the endpoint connection. Defines the encryption and signing algorithms used for communication.",
                         "errorMessage": {
                             "type": "Must be a string or null",
@@ -76,7 +77,7 @@
                             "Sign",
                             "SignAndEncrypt"
                         ],
-                        "default": "SignAndEncrypt",
+                        "default": "None",
                         "examples": [
                             "None",
                             "Sign",

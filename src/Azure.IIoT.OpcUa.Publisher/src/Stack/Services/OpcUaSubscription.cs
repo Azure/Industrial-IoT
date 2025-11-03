@@ -1434,6 +1434,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             set.ForEach(item => item.LogRevisedSamplingRateAndQueueSize());
+            set.ForEach(item => item.ReportStatusToSubscriber());
 
             var goodMonitoredItems =
                 Math.Max(set.Count - badMonitoredItems, 0);

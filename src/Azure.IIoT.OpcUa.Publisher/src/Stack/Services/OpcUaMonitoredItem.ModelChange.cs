@@ -68,6 +68,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <inheritdoc/>
+            public override void ReportStatusToSubscriber()
+            {
+                Owner?.OnMonitoredItemUpdate(Template, ErrorInfo);
+            }
+
+            /// <inheritdoc/>
             public override MonitoredItem CloneMonitoredItem(
                 bool copyEventHandlers, bool copyClientHandle)
             {

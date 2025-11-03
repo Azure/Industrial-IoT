@@ -9,7 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     using System.Runtime.Serialization;
 
     /// <summary>
-    /// Model for a diagnostic info.
+    /// Model for writer group diagnostic info.
     /// </summary>
     [DataContract]
     public record class WriterGroupDiagnosticModel

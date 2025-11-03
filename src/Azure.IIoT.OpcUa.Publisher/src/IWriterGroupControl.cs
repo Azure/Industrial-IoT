@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher
     /// </summary>
     public interface IWriterGroupControl
     {
+
         /// <summary>
         /// Start group
         /// </summary>
@@ -28,6 +29,14 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <param name="ct"></param>
         /// <returns></returns>
         ValueTask UpdateAsync(WriterGroupModel writerGroup,
+            CancellationToken ct);
+
+        /// <summary>
+        /// Get state diagnostic information
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        ValueTask<WriterGroupStateDiagnosticModel> GetStateAsync(
             CancellationToken ct);
     }
 }
