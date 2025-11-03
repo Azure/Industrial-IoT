@@ -187,6 +187,7 @@ $containerTag = "latest"
 $containerRegistry = $null
 $containerName = "iotedge/opc-publisher"
 if ($script:ConnectorType -eq "Official") {
+    $containerTag = "2.9.16-preview1"
     Write-Host "Using official OPC Publisher image as connector..." -ForegroundColor Cyan
     $containerPull = "Always"
     $containerRegistry = @{
@@ -333,7 +334,7 @@ $ctResource = "$($ctResource)/instances/$($iotOps.name)"
 $ctResource = "$($ctResource)/akriConnectorTemplates/$($ctName)"
 Write-Host "Deploying connector template $($ctName)..." -ForegroundColor Cyan
 az rest --method put `
-    --url "$($ctResource)?api-version=2025-09-01-preview" `
+    --url "$($ctResource)?api-version=2025-10-01" `
     --headers "Content-Type=application/json" `
     --body @$tempFile
 if (-not $?) {
@@ -416,7 +417,7 @@ if ($script:NetworkDiscoveryMode -ne "Off") {
     $dhResource = "$($dhResource)/akriDiscoveryHandlers/$($dhName)"
     Write-Host "Deploying discovery handler template $($dhName)..." -ForegroundColor Cyan
     az rest --method put `
-        --url "$($dhResource)?api-version=2025-09-01-preview" `
+        --url "$($dhResource)?api-version=2025-10-01" `
         --headers "Content-Type=application/json" `
         --body @$tempFile
     if (-not $?) {
