@@ -226,11 +226,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var @event = assetResource.Asset.EventGroups?
                     .Select(eg => (eg, eg.Events?.Find(e => e.Name == resourceName)!))
                     .FirstOrDefault(t => t.Item2 != null);
-                if (@event != null)
+                if (@event.HasValue && @event.Value.Item2 != null)
                 {
                     eventGroupStatus = new AssetEventGroupStatus
                     {
-                        Events = [
+                        Events =
+                        [
                             new AssetDatasetEventStreamStatus
                             {
                                 Name = @event.Value.Item2.Name,
