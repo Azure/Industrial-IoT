@@ -699,32 +699,6 @@ else {
     Write-Host "Key vault $($kv.id) exists." -ForegroundColor Green
 }
 
-#
-# Assign roles to the managed identity
-#
-$roleAssignments =
-@(
-    @("Contributor", $stg.id, $mi.principalId),
-    @("Storage Blob Data Owner", $stg.id, $mi.principalId),
-    @("Contributor", $ehNs.id, $mi.principalId),
-    @("Contributor", $rg.id, $mi.principalId),
-    @("Key Vault Administrator", $kv.id, $mi.principalId)
-)
-foreach ($ra in $roleAssignments) {
-    Write-Host "Assigning $($ra[0]) role to $($ra[2])..." -ForegroundColor Cyan
-    $errOut = $($obj = & { az role assignment create `
-        --role $ra[0] `
-        --assignee-object-id $ra[2] `
-        --assignee-principal-type ServicePrincipal `
-        --scope $ra[1] | ConvertFrom-Json }) 2>&1
-    if (-not $?) {
-        Write-Host "Error assigning role $($ra[0]) to $($ra[2]) : $errOut" `
-            -ForegroundColor Red
-        #exit -1
-    }
-    Write-Host "Role $($ra[0]) assigned to $($ra[2])." -ForegroundColor Green
-}
-
 # Azure IoT Operations schema registry
 $srName = "$($script:Name.ToLowerInvariant())sr"
 $errOut = $($sr = & { az iot ops schema registry show `
@@ -753,6 +727,71 @@ if (!$sr) {
 else {
     Write-Host "Azure IoT Operations schema registry $($sr.id) exists." `
         -ForegroundColor Green
+}
+
+#
+# Create adr namespace
+#
+$adrNsResource = "/subscriptions/$($SubscriptionId)"
+$adrNsResource = "$($adrNsResource)/resourceGroups/$($rg.Name)"
+$adrNsResource = "$($adrNsResource)/providers/Microsoft.DeviceRegistry/namespaces/$($script:Name)"
+$errOut = $($ns = & { az rest --method get `
+    --url "$($adrNsResource)?api-version=2025-10-01" `
+    --headers "Content-Type=application/json" } | ConvertFrom-Json) 2>&1
+if (!$ns -or !$ns.id) {
+    $body = @{
+        location = $Location
+        identity = @{
+            type = "SystemAssigned"
+        }
+        properties = @{}
+    } | ConvertTo-Json -Depth 100
+    $tempFile = New-TemporaryFile
+    $body | Out-File -FilePath $tempFile -Encoding utf8 -Force
+    Write-Host "Creating ADR namespace $adrNsResource..." -ForegroundColor Cyan
+    $errOut = $($ns = & { az rest --method put `
+        --url "$($adrNsResource)?api-version=2025-10-01" `
+        --headers "Content-Type=application/json" `
+        --body @$tempFile } | ConvertFrom-Json) 2>&1
+    if (-not $?) {
+        Write-Host "Error: Failed to create ADR namespace $($adrNsResource) - $($errOut)." `
+            -ForegroundColor Red
+        Remove-Item $tempFile -Force
+        exit -1
+    }
+    Remove-Item $tempFile -Force
+    Write-Host "ADR namespace $($ns.id) created." -ForegroundColor Green
+}
+else {
+    Write-Host "ADR namespace $($ns.id) exists." -ForegroundColor Green
+}
+
+#
+# Assign roles to the managed identity
+#
+$roleAssignments =
+@(
+    @("Contributor", $stg.id, $mi.principalId),
+    @("Storage Blob Data Owner", $stg.id, $mi.principalId),
+    @("Contributor", $ehNs.id, $mi.principalId),
+    @("Contributor", $ns.id, $mi.principalId),
+    @("Contributor", $sr.id, $mi.principalId),
+    @("Contributor", $rg.id, $mi.principalId),
+    @("Key Vault Administrator", $kv.id, $mi.principalId)
+)
+foreach ($ra in $roleAssignments) {
+    Write-Host "Assigning $($ra[0]) role to $($ra[2])..." -ForegroundColor Cyan
+    $errOut = $($obj = & { az role assignment create `
+        --role $ra[0] `
+        --assignee-object-id $ra[2] `
+        --assignee-principal-type ServicePrincipal `
+        --scope $ra[1] | ConvertFrom-Json }) 2>&1
+    if (-not $?) {
+        Write-Host "Error assigning role $($ra[0]) to $($ra[2]) : $errOut" `
+            -ForegroundColor Red
+        #exit -1
+    }
+    Write-Host "Role $($ra[0]) assigned to $($ra[2])." -ForegroundColor Green
 }
 
 #
@@ -853,43 +892,6 @@ while ($true) {
 }
 
 #
-# Create adr namespace
-#
-$adrNsResource = "/subscriptions/$($SubscriptionId)"
-$adrNsResource = "$($adrNsResource)/resourceGroups/$($rg.Name)"
-$adrNsResource = "$($adrNsResource)/providers/Microsoft.DeviceRegistry/namespaces/$($script:Name)"
-$errOut = $($ns = & { az rest --method get `
-    --url "$($adrNsResource)?api-version=2025-10-01" `
-    --headers "Content-Type=application/json" } | ConvertFrom-Json) 2>&1
-if (!$ns -or !$ns.id) {
-    $body = @{
-        location = $Location
-        identity = @{
-            type = "SystemAssigned"
-        }
-        properties = @{}
-    } | ConvertTo-Json -Depth 100
-    $tempFile = New-TemporaryFile
-    $body | Out-File -FilePath $tempFile -Encoding utf8 -Force
-    Write-Host "Creating ADR namespace $adrNsResource..." -ForegroundColor Cyan
-    $errOut = $($ns = & { az rest --method put `
-        --url "$($adrNsResource)?api-version=2025-10-01" `
-        --headers "Content-Type=application/json" `
-        --body @$tempFile } | ConvertFrom-Json) 2>&1
-    if (-not $?) {
-        Write-Host "Error: Failed to create ADR namespace $($adrNsResource) - $($errOut)." `
-            -ForegroundColor Red
-        Remove-Item $tempFile -Force
-        exit -1
-    }
-    Remove-Item $tempFile -Force
-    Write-Host "ADR namespace $($ns.id) created." -ForegroundColor Green
-}
-else {
-    Write-Host "ADR namespace $($ns.id) exists." -ForegroundColor Green
-}
-
-#
 # Create Azure IoT Operations instance
 #
 $errOut = $($iotOps = & { az iot ops show `
@@ -975,9 +977,9 @@ if (!$iotOps) {
     }
     Write-Host "Enabling Azure IoT Operations resource sync..." `
         -ForegroundColor Cyan
-    $errOut = $(az iot ops rsync enable `
+    $errOut = $(az iot ops enable-rsync `
         --resource-group $($rg.Name) `
-        --instance $script:OpsInstanceName `
+        --name $script:OpsInstanceName `
         --subscription $SubscriptionId `
         --only-show-errors) 2>&1
     if (-not $?) {
