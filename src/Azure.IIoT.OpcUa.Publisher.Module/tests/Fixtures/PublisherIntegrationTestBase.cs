@@ -384,6 +384,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         protected IPublisherApi PublisherApi => _publisher?.ClientContainer?.Resolve<IPublisherApi>();
 
         /// <summary>
+        /// Get discovery api
+        /// </summary>
+        protected IDiscoveryApi DiscoveryApi => _publisher?.ClientContainer?.Resolve<IDiscoveryApi>();
+
+        /// <summary>
         /// Stop publisher
         /// </summary>
         protected async Task StopPublisherAsync()

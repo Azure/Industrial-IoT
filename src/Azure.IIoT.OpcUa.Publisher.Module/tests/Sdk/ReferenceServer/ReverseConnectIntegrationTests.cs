@@ -110,5 +110,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 return default;
             }
         }
+
+        [Fact]
+        public async Task GetReverseConnectEndpointsTestAsync()
+        {
+#pragma warning disable CA2000 // Dispose objects before losing scope
+            var server = ReferenceServer.Create(LogFactory.Create(_output, Logging.Config), useReverseConnect: true);
+#pragma warning restore CA2000 // Dispose objects before losing scope
+            EndpointUrl = server.EndpointUrl;
+
+            var name = nameof(GetReverseConnectEndpointsTestAsync);
+            StartPublisher(name, "./Resources/RegisteredRead.json", arguments: ["--mm=PubSub", "--dm=false"],
+                reverseConnectPort: server.ReverseConnectPort);
+            try
+            {
+                // Arrange - Wait for connection to be established
+                await WaitForMessagesAndMetadataAsync(TimeSpan.FromMinutes(2), 1, messageType: "ua-data");
+
+                // Act - Get reverse connect endpoints
+                var endpoints = await DiscoveryApi.GetReverseConnectEndpointsAsync();
+
+                // Assert
+                Assert.NotNull(endpoints);
+                Assert.NotEmpty(endpoints);
+                var endpoint = Assert.Single(endpoints);
+                Assert.NotNull(endpoint.EndpointUrl);
+                Assert.Contains("opc.tcp://", endpoint.EndpointUrl);
+                Assert.NotNull(endpoint.SessionId);
+                Assert.NotNull(endpoint.RemoteIpAddress);
+                Assert.NotNull(endpoint.RemotePort);
+            }
+            finally
+            {
+                server.Dispose();
+                await StopPublisherAsync();
+            }
+        }
     }
 }
