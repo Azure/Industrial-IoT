@@ -50,16 +50,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             get
             {
-                var reverseConnectEndpoints = new List<ReverseConnectEndpointModel>();
-                foreach (var kvp in _clients)
-                {
-                    var connection = kvp.Key.Connection;
-                    var diagnostics = kvp.Value.LastDiagnostics;
-
-                    // Check if this connection is using reverse connect
-                    if ((connection.Options & ConnectionOptions.UseReverseConnect) != 0)
+                return _clients
+                    .Where(kvp => (kvp.Key.Connection.Options & ConnectionOptions.UseReverseConnect) != 0)
+                    .Select(kvp =>
                     {
-                        reverseConnectEndpoints.Add(new ReverseConnectEndpointModel
+                        var connection = kvp.Key.Connection;
+                        var diagnostics = kvp.Value.LastDiagnostics;
+                        return new ReverseConnectEndpointModel
                         {
                             EndpointUrl = connection.Endpoint.Url,
                             RemoteIpAddress = diagnostics.RemoteIpAddress,
@@ -67,10 +64,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             SessionId = diagnostics.SessionId,
                             SessionCreated = diagnostics.SessionCreated,
                             TimeStamp = diagnostics.TimeStamp
-                        });
-                    }
-                }
-                return reverseConnectEndpoints;
+                        };
+                    })
+                    .ToList();
             }
         }
 
