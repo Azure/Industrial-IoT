@@ -5381,6 +5381,38 @@
           }
         }
       }
+    },
+    "/v2/discovery/reverseconnect": {
+      "get": {
+        "tags": [
+          "Discovery"
+        ],
+        "summary": "GetReverseConnectEndpoints",
+        "description": "Get all OPC UA servers that have established reverse connections. This includes servers that sent ReverseHello messages and are currently connected or were recently connected.",
+        "operationId": "GetReverseConnectEndpoints",
+        "produces": [
+          "application/json",
+          "application/x-msgpack"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The operation was successful or the response payload contains relevant error information.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ReverseConnectEndpointModel"
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          }
+        }
+      }
     }
   },
   "definitions": {
@@ -8535,7 +8567,7 @@
           "type": "string"
         }
       },
-      "additionalProperties": { }
+      "additionalProperties": {}
     },
     "PublishBulkRequestModel": {
       "description": "Publish in bulk request",
@@ -10975,6 +11007,44 @@
         "name": "X509ChainStatus",
         "modelAsString": false
       }
+    },
+    "ReverseConnectEndpointModel": {
+      "description": "Reverse connect endpoint information",
+      "required": [
+        "endpointUrl",
+        "timeStamp"
+      ],
+      "type": "object",
+      "properties": {
+        "endpointUrl": {
+          "description": "Endpoint URL of the reverse connected client",
+          "type": "string"
+        },
+        "remoteIpAddress": {
+          "description": "Remote IP address of the reverse connected client",
+          "type": "string"
+        },
+        "remotePort": {
+          "description": "Remote port of the reverse connected client",
+          "type": "integer",
+          "format": "int32"
+        },
+        "sessionId": {
+          "description": "Session ID if currently connected",
+          "type": "string"
+        },
+        "sessionCreated": {
+          "description": "Timestamp when the reverse connection was established",
+          "type": "string",
+          "format": "date-time"
+        },
+        "timeStamp": {
+          "description": "Connection state timestamp",
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false
     }
   },
   "tags": [
