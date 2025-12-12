@@ -109,6 +109,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
             return _serializer.DeserializeResponse<ApplicationRegistrationModel>(response);
         }
 
+        /// <inheritdoc/>
+        public async Task<System.Collections.Generic.IReadOnlyList<ReverseConnectEndpointModel>> GetReverseConnectEndpointsAsync(
+            CancellationToken ct)
+        {
+            var response = await _methodClient.CallMethodAsync(_target,
+                "GetReverseConnectEndpoints_V2", null,
+                ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
+            return _serializer.DeserializeResponse<System.Collections.Generic.IReadOnlyList<ReverseConnectEndpointModel>>(response);
+        }
+
         private readonly IJsonSerializer _serializer;
         private readonly IMethodClient _methodClient;
         private readonly string _target;

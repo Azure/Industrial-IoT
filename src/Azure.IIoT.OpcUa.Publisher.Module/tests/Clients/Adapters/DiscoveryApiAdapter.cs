@@ -54,6 +54,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients.Adapters
             return await _client.FindServerAsync(query, ct).ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// Get all reverse connect endpoints
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public async Task<System.Collections.Generic.IReadOnlyList<ReverseConnectEndpointModel>> GetReverseConnectEndpointsAsync(
+            CancellationToken ct = default)
+        {
+            return await _client.GetReverseConnectEndpointsAsync(ct).ConfigureAwait(false);
+        }
+
         private readonly IDiscoveryApi _client;
     }
 }

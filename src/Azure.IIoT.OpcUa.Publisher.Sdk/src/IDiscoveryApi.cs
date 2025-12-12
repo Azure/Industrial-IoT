@@ -61,5 +61,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk
         /// <returns></returns>
         Task<X509CertificateChainModel> GetEndpointCertificateAsync(
             EndpointModel endpoint, CancellationToken ct = default);
+
+        /// <summary>
+        /// Get all reverse connect endpoints
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<System.Collections.Generic.IReadOnlyList<ReverseConnectEndpointModel>> GetReverseConnectEndpointsAsync(
+            CancellationToken ct = default);
     }
 }
