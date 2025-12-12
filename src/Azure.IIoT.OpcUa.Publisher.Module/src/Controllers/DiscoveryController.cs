@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using System;
+    using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
     using System.Threading;
     using System.Threading.Tasks;
@@ -46,11 +47,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// </summary>
         /// <param name="discover"></param>
         /// <param name="servers"></param>
+        /// <param name="diagnostics"></param>
         public DiscoveryController(INetworkDiscovery discover,
-            IServerDiscovery servers)
+            IServerDiscovery servers, IClientDiagnostics diagnostics)
         {
             _discover = discover ?? throw new ArgumentNullException(nameof(discover));
             _servers = servers ?? throw new ArgumentNullException(nameof(servers));
+            _diagnostics = diagnostics ?? throw new ArgumentNullException(nameof(diagnostics));
         }
 
         /// <summary>
@@ -186,7 +189,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             return true;
         }
 
+        /// <summary>
+        /// GetReverseConnectEndpoints
+        /// </summary>
+        /// <remarks>
+        /// Get all OPC UA servers that have established reverse connections.
+        /// This includes servers that sent ReverseHello messages and are
+        /// currently connected or were recently connected.
+        /// </remarks>
+        /// <param name="ct"></param>
+        /// <returns>List of reverse connected endpoints with their connection
+        /// information including endpoint URL, remote IP address and port.
+        /// </returns>
+        /// <response code="200">The operation was successful or the response payload
+        /// contains relevant error information.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        [HttpGet("reverseconnect")]
+        public Task<IReadOnlyList<ReverseConnectEndpointModel>> GetReverseConnectEndpointsAsync(
+            CancellationToken ct = default)
+        {
+            ct.ThrowIfCancellationRequested();
+            return Task.FromResult(_diagnostics.ReverseConnectEndpoints);
+        }
+
         private readonly INetworkDiscovery _discover;
         private readonly IServerDiscovery _servers;
+        private readonly IClientDiagnostics _diagnostics;
     }
 }

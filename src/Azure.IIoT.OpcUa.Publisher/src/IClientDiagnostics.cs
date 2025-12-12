@@ -49,5 +49,11 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <returns></returns>
         IAsyncEnumerable<ConnectionDiagnosticsModel> GetConnectionDiagnosticsAsync(
             CancellationToken ct = default);
+
+        /// <summary>
+        /// Get all reverse connect endpoints
+        /// </summary>
+        /// <returns></returns>
+        IReadOnlyList<ReverseConnectEndpointModel> ReverseConnectEndpoints { get; }
     }
 }

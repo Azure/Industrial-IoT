@@ -45,6 +45,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public IReadOnlyList<ConnectionModel> ActiveConnections
             => _clients.Keys.Select(c => c.Connection).ToList();
 
+        /// <inheritdoc/>
+        IReadOnlyList<ReverseConnectEndpointModel> IClientDiagnostics.ReverseConnectEndpoints
+        {
+            get
+            {
+                var reverseConnectEndpoints = new List<ReverseConnectEndpointModel>();
+                foreach (var kvp in _clients)
+                {
+                    var connection = kvp.Key.Connection;
+                    var diagnostics = kvp.Value.LastDiagnostics;
+
+                    // Check if this connection is using reverse connect
+                    if ((connection.Options & ConnectionOptions.UseReverseConnect) != 0)
+                    {
+                        reverseConnectEndpoints.Add(new ReverseConnectEndpointModel
+                        {
+                            EndpointUrl = connection.Endpoint.Url,
+                            RemoteIpAddress = diagnostics.RemoteIpAddress,
+                            RemotePort = diagnostics.RemotePort,
+                            SessionId = diagnostics.SessionId,
+                            SessionCreated = diagnostics.SessionCreated,
+                            TimeStamp = diagnostics.TimeStamp
+                        });
+                    }
+                }
+                return reverseConnectEndpoints;
+            }
+        }
+
         /// <summary>
         /// Create kv manager
         /// </summary>
