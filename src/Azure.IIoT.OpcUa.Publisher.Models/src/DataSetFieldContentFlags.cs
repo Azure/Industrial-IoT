@@ -91,6 +91,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// Extension fields included
         /// </summary>
         [EnumMember(Value = "ExtensionFields")]
-        ExtensionFields = 0x200000
+        ExtensionFields = 0x200000,
+
+        /// <summary>
+        /// Heartbeat indicator
+        /// </summary>
+        [EnumMember(Value = "Heartbeat")]
+        Heartbeat = 0x400000
     }
 }

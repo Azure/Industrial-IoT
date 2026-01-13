@@ -69,6 +69,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// </summary>
         public string? ApplicationUri { get; set; }
 
+        /// <summary>
+        /// Message is a heartbeat
+        /// </summary>
+        public bool Heartbeat { get; set; }
+
         /// <inheritdoc/>
         public override bool Equals(object? obj)
         {
@@ -82,6 +87,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             }
             if (!Opc.Ua.Utils.IsEqual(wrapper.DataSetWriterId, DataSetWriterId) ||
                 !Opc.Ua.Utils.IsEqual(wrapper.SequenceNumber, SequenceNumber) ||
+                !Opc.Ua.Utils.IsEqual(wrapper.Heartbeat, Heartbeat) ||
                 !Opc.Ua.Utils.IsEqual(wrapper.Status ?? Opc.Ua.StatusCodes.Good, Status ?? Opc.Ua.StatusCodes.Good) ||
                 !Opc.Ua.Utils.IsEqual(wrapper.Timestamp, Timestamp) ||
                 !Opc.Ua.Utils.IsEqual(wrapper.MessageType, MessageType) ||
@@ -104,6 +110,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var hash = new HashCode();
             hash.Add(MessageType);
             hash.Add(DataSetWriterId);
+            hash.Add(Heartbeat);
             hash.Add(SequenceNumber);
             hash.Add(MetaDataVersion);
             hash.Add(Timestamp);
