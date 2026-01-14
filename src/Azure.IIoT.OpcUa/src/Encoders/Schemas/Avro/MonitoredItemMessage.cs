@@ -110,6 +110,12 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Avro
                     new(encoding.GetSchemaForBuiltInType(Opc.Ua.BuiltInType.DateTime).AsNullable(),
                         nameof(PubSub.MonitoredItemMessage.Timestamp), pos++));
             }
+            if (_dataSetFieldContentMask.HasFlag(DataSetFieldContentFlags.Heartbeat))
+            {
+                fields.Add(
+                    new(encoding.GetSchemaForBuiltInType(Opc.Ua.BuiltInType.Boolean).AsNullable(),
+                        nameof(PubSub.MonitoredItemMessage.Heartbeat), pos++));
+            }
             if (dataSetMessageContentFlags.HasFlag(DataSetMessageContentFlags.Status))
             {
                 fields.Add(

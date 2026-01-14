@@ -507,6 +507,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                                 dataSetFieldContentMask),
                                                             notification.NodeId, Notification.EndpointUrl, Notification.ApplicationUri,
                                                             standardsCompliant, Context.Writer.DataSet?.ExtensionFields,
+                                                            (notification.Flags & MonitoredItemSourceFlags.Heartbeat) != 0,
                                                             out var dataSetMessage))
                                                         {
                                                             LogNotification(notification, true);

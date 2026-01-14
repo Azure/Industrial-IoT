@@ -79,6 +79,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             // Assert
             Assert.True(messages.Count > 1);
             var timestamps = new HashSet<DateTime>();
+            var heartbeats = 0;
             for (var i = 0; i < messages.Count; i++)
             {
                 var message = messages[i].Message;
@@ -89,6 +90,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                     Assert.NotEmpty(message.GetProperty("ApplicationUri").GetString());
                     Assert.True(message.GetProperty("SequenceNumber").GetUInt32() > 0);
                     Assert.Equal("en-US", message.GetProperty("Value").GetProperty("Value").EnumerateArray().First().GetString());
+                }
+
+                if (message.TryGetProperty("Heartbeat", out var hb))
+                {
+                    Assert.True(hb.GetBoolean());
+                    heartbeats++;
                 }
 
                 if (message.TryGetProperty("Timestamp", out _))
@@ -105,6 +112,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             {
                 Assert.Equal(messages.Count, timestamps.Count);
             }
+            Assert.True(heartbeats > 1, "No heartbeats were sent");
         }
 
         [Theory]
@@ -129,6 +137,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             Assert.True(message.GetProperty("SequenceNumber").GetUInt32() > 0);
             Assert.Equal("BadNodeIdUnknown", message.GetProperty("Value")
                 .GetProperty("StatusCode").GetProperty("Symbol").GetString());
+            Assert.True(message.GetProperty("Heartbeat").GetBoolean());
         }
 
         [Fact]

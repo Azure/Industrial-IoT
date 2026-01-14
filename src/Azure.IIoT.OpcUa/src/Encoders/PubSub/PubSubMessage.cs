@@ -270,6 +270,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="applicationUri"></param>
         /// <param name="standardsCompliant"></param>
         /// <param name="extensionFields"></param>
+        /// <param name="heartbeat"></param>
         /// <param name="message"></param>
         /// <returns></returns>
         public static bool TryCreateMonitoredItemMessage(MessageEncoding encoding,
@@ -277,7 +278,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             MessageType messageType, DateTimeOffset? timestamp, uint sequenceNumber,
             DataSet payload, string? nodeId, string? endpointUrl, string? applicationUri,
             bool standardsCompliant, IReadOnlyList<ExtensionFieldModel>? extensionFields,
-            [NotNullWhen(true)] out BaseDataSetMessage? message)
+            bool heartbeat, [NotNullWhen(true)] out BaseDataSetMessage? message)
         {
             if (encoding.HasFlag(MessageEncoding.Json))
             {
@@ -285,6 +286,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 {
                     UseCompatibilityMode = !standardsCompliant,
                     ApplicationUri = applicationUri,
+                    Heartbeat = heartbeat,
                     EndpointUrl = endpointUrl,
                     NodeId = nodeId,
                     ExtensionFields = extensionFields,

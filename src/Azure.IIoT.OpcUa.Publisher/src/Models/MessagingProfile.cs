@@ -435,6 +435,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 (fullFeaturedMessage ?
                      (DataSetFieldContentFlags.ServerTimestamp |
                       DataSetFieldContentFlags.ApplicationUri |
+                      DataSetFieldContentFlags.Heartbeat |
                       DataSetFieldContentFlags.EndpointUrl |
                       DataSetFieldContentFlags.ExtensionFields) : 0) |
                 (isSampleMessage ?

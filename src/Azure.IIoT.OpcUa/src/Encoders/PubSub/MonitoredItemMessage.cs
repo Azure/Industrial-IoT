@@ -116,7 +116,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 encoder.WriteDateTime(nameof(Timestamp), Timestamp?.UtcDateTime ?? default);
             }
-
+            if (Heartbeat && Payload.DataSetFieldContentMask.HasFlag(DataSetFieldContentFlags.Heartbeat))
+            {
+                encoder.WriteBoolean(nameof(Payload.DataSetFieldContentMask.Heartbeat), Heartbeat);
+            }
             var valuePayload = Value;
             if (DataSetMessageContentMask.HasFlag(DataSetMessageContentFlags.Status))
             {
@@ -267,6 +270,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 Timestamp = timestamp;
                 DataSetMessageContentMask |= DataSetMessageContentFlags.Timestamp;
+            }
+            Heartbeat = decoder.ReadBoolean(nameof(Payload.DataSetFieldContentMask.Heartbeat));
+            if (Heartbeat)
+            {
+                dataSetFieldContentMask |= DataSetFieldContentFlags.Heartbeat;
             }
             var status = decoder.ReadString(nameof(Status));
             if (status != null)

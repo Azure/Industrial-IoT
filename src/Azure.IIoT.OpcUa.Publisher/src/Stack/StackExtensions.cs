@@ -18,6 +18,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public const JsonDataSetMessageContentMask ExtensionFields = (JsonDataSetMessageContentMask)0x02000000;
 
         /// <summary>
+        /// Heartbeat included
+        /// </summary>
+        public const JsonDataSetMessageContentMask Heartbeat = (JsonDataSetMessageContentMask)0x04000000;
+
+        /// <summary>
         /// Node id included
         /// </summary>
         public const JsonDataSetMessageContentMask NodeId = (JsonDataSetMessageContentMask)0x10000000;

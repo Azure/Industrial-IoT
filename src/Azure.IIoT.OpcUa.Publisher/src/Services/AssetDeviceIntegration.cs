@@ -1246,7 +1246,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     // We map asset name to writer group as it contains writers for each of its
                     // entities. This will be split per destination, but this is ok as the name
                     // is retained and the Id property receives the unique group name.
-                    DataSetWriterGroup = asset.Asset.DisplayName ?? asset.Asset.Model ?? asset.AssetName,
+                    DataSetWriterGroup = asset.AssetName,
                     PublisherId = deviceResource.DeviceName,
                     WriterGroupType = asset.Asset.AssetTypeRefs?.Count == 1 ?
                         asset.Asset.AssetTypeRefs[0] : null,
@@ -2289,9 +2289,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <returns></returns>
         private static string CreateTopic(string? extra = null)
         {
-            // /opcua/{Encoding}/{MessageType}");
+            // opcua/{Encoding}/{MessageType}");
             var builder = new StringBuilder()
-                .Append('/')
                 .Append('{').Append(PublisherConfig.RootTopicVariableName).Append('}')
                 .Append('/')
                 .Append('{').Append(PublisherConfig.WriterGroupVariableName).Append('}')

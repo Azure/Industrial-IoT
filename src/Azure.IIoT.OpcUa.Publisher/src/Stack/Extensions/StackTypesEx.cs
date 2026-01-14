@@ -665,6 +665,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                 {
                     result |= JsonDataSetMessageContentMaskEx.EndpointUrl;
                 }
+                if ((fieldMask & DataSetFieldContentFlags.Heartbeat) != 0)
+                {
+                    result |= JsonDataSetMessageContentMaskEx.Heartbeat;
+                }
                 if ((fieldMask & DataSetFieldContentFlags.ApplicationUri) != 0)
                 {
                     result |= JsonDataSetMessageContentMaskEx.ApplicationUri;

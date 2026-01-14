@@ -155,6 +155,11 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
                 properties.Add(nameof(PubSub.MonitoredItemMessage.Timestamp),
                     encoding.GetSchemaForBuiltInType(Opc.Ua.BuiltInType.DateTime));
             }
+            if (_dataSetFieldContentMask.HasFlag(DataSetFieldContentFlags.Heartbeat))
+            {
+                properties.Add(nameof(PubSub.MonitoredItemMessage.Heartbeat),
+                    encoding.GetSchemaForBuiltInType(Opc.Ua.BuiltInType.Boolean));
+            }
             if (dataSetMessageContentMask.HasFlag(DataSetMessageContentFlags.Status))
             {
                 properties.Add(nameof(PubSub.MonitoredItemMessage.Status),

@@ -4,7 +4,7 @@
     <ParallelAlgorithm>aggressive</ParallelAlgorithm>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <PackageReference Include="coverlet.msbuild" Version="6.0.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -16,7 +16,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Furly.Extensions.Newtonsoft" Version="1.1.56" />
-    <PackageReference Include="JsonSchema.Net" Version="7.4.0" />
+    <PackageReference Include="JsonSchema.Net" Version="8.0.5" />
     <PackageReference Include="Microsoft.Json.Schema" Version="2.3.0" />
   </ItemGroup>
   <ItemGroup>
