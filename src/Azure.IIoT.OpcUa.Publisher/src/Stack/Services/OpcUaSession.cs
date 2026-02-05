@@ -1297,14 +1297,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (Connected)
                 {
                     var complexTypeSystem = new ComplexTypeSystem(new NodeCacheResolver(LruNodeCache));
-                    await complexTypeSystem.LoadAsync(ct: _cts.Token).ConfigureAwait(false);
+                    var success = await complexTypeSystem.LoadAsync(
+                        throwOnError: false, ct: _cts.Token).ConfigureAwait(false);
 
                     if (Connected)
                     {
-                        _logger.ComplexTypeSystemLoaded(this);
+                        if (success)
+                        {
+                            _logger.ComplexTypeSystemLoaded(this);
+                        }
+                        else
+                        {
+                            _logger.ComplexTypeSystemPartiallyLoaded(this);
+                        }
 
-                        // Clear cache to release memory.
-                        // TODO: we should have a real node cache here
                         return complexTypeSystem;
                     }
                 }
@@ -1494,5 +1500,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         [LoggerMessage(EventId = EventClass + 9, Level = LogLevel.Information,
             Message = "{Session}: Complex type system loaded into client.")]
         public static partial void ComplexTypeSystemLoaded(this ILogger logger, OpcUaSession session);
+
+        [LoggerMessage(EventId = EventClass + 10, Level = LogLevel.Warning,
+            Message = "{Session}: Complex type system partially loaded into client.")]
+        public static partial void ComplexTypeSystemPartiallyLoaded(this ILogger logger, OpcUaSession session);
     }
 }
