@@ -75,6 +75,13 @@ steps:
       -SubscriptionId "d355e77f-e625-4931-b133-445d3dcf12cb"
       -ResourceGroupName "mcr-iot-industrial-do-not-delete"
 - task: UseDotNet@2
+  displayName: 'Install .NET 8 SDK (for nbgv)'
+  inputs:
+    packageType: sdk
+    version: 8.0.x
+    includePreviewVersions: false
+    installationPath: $(Agent.ToolsDirectory)/dotnet
+- task: UseDotNet@2
   displayName: 'Install .NET Core SDK'
   inputs:
     packageType: sdk
