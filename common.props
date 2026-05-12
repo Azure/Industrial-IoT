@@ -37,7 +37,6 @@
     <PackageReference Include="Nerdbank.GitVersioning" Version="3.9.50" PrivateAssets="All"/>
   </ItemGroup>
   <PropertyGroup>
-    <IncludeOpenAPIAnalyzers>true</IncludeOpenAPIAnalyzers>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisMode>All</AnalysisMode>
     <AnalysisLevel>preview</AnalysisLevel>

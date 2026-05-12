@@ -19,7 +19,6 @@
     <PackageReference Include="FluentAssertions" Version="[7.2.0]" />
     <PackageReference Include="Azure.ResourceManager" Version="1.13.2" />
     <PackageReference Include="Neovolve.Logging.Xunit" Version="6.3.0" />
-    <PackageReference Include="System.Text.Json" Version="10.0.7" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <PackageReference Include="Microsoft.Azure.Devices" Version="1.41.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.7" />
