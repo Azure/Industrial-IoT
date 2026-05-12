@@ -4,10 +4,15 @@ on:
     branches: [ "latest", "main" ]
   pull_request:
     branches: [ "latest", "main" ]
+concurrency:
+  group: build-and-test-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   build:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
     steps:
@@ -25,4 +30,4 @@ jobs:
     - name: Build
       run: dotnet build --no-restore
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet test --no-build --verbosity normal --blame-hang-timeout 10m --blame-hang-dump-type none
