@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Description>Contains fixtures and tests executing against test servers</Description>
     <Nullable>enable</Nullable>
   </PropertyGroup>
