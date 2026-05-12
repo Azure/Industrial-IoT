@@ -30,4 +30,12 @@ jobs:
     - name: Build
       run: dotnet build --no-restore
     - name: Test
-      run: dotnet test --no-build --verbosity normal --blame-hang-timeout 10m --blame-hang-dump-type none
+      # Run test projects serially to avoid OPC UA server port and PKI
+      # directory contention between parallel test hosts (which causes
+      # intermittent test-host crashes on Windows).
+      run: |
+        dotnet test src/Azure.IIoT.OpcUa.Publisher.Models/tests/Azure.IIoT.OpcUa.Publisher.Models.Tests.csproj --no-build --verbosity normal --blame-hang-timeout 10m --blame-hang-dump-type none
+        dotnet test src/Azure.IIoT.OpcUa/tests/Azure.IIoT.OpcUa.Tests.csproj                                  --no-build --verbosity normal --blame-hang-timeout 10m --blame-hang-dump-type none
+        dotnet test src/Azure.IIoT.OpcUa.Publisher/tests/Azure.IIoT.OpcUa.Publisher.Tests.csproj              --no-build --verbosity normal --blame-hang-timeout 10m --blame-hang-dump-type none
+        dotnet test src/Azure.IIoT.OpcUa.Publisher.Module/tests/Azure.IIoT.OpcUa.Publisher.Module.Tests.csproj --no-build --verbosity normal --blame-hang-timeout 10m --blame-hang-dump-type none
+      shell: bash
