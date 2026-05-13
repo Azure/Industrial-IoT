@@ -1,15 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Description>Azure OPC Publisher shared code</Description>
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Apache.Avro" Version="1.12.1" />
-    <PackageReference Include="System.Text.Json" Version="9.0.11" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="3.0.1" />
-    <PackageReference Include="Furly.Extensions" Version="1.1.56" />
+    <PackageReference Include="Furly.Extensions" Version="1.2.1" />
     <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Core" Version="1.5.377.22" />
   </ItemGroup>
   <ItemGroup>

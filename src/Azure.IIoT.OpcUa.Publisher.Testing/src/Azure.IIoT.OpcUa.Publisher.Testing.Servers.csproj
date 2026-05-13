@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Description>Contains several test servers to run tests against</Description>
     <IsPackable>true</IsPackable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -61,10 +61,8 @@
     <EmbeddedResource Include="Generated\Isa95Jobs\Design\UAModel.ISA95_JOBCONTROL_V2.Types.xsd" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Extensions" Version="1.1.56" />
-    <PackageReference Include="System.IO.Pipelines" Version="9.0.11" />
+    <PackageReference Include="Furly.Extensions" Version="1.2.1" />
     <PackageReference Include="System.Linq.Async" Version="7.0.0" />
-    <PackageReference Include="System.Text.Json" Version="9.0.11" />
     <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Server" Version="1.5.377.22" />
   </ItemGroup>
 </Project>

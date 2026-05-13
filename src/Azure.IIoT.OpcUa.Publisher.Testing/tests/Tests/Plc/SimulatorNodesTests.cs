@@ -392,7 +392,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             const int invocations = 1;
             const int cycles = 15;
             var values = await AsyncEnumerable.Range(0, cycles)
-                .SelectAwait(async i =>
+                .Select(async (int i, CancellationToken _) =>
                 {
                     _server.FireTimersWithPeriod(TimeSpan.FromMilliseconds(periodInMilliseconds), invocations);
                     var value = await services.ValueReadAsync(_connection, new ValueReadRequestModel
