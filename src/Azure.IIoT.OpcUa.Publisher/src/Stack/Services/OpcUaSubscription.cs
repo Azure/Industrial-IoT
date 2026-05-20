@@ -710,8 +710,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             var maxMonitoredItems = maxMonitoredItemsPerSubscription ?? 0u;
-            if (maxMonitoredItems <= 0)
+            if (maxMonitoredItems == 0 || maxMonitoredItems == uint.MaxValue)
             {
+                // 0 means no limit was reported, uint.MaxValue means unlimited - use configured limit
                 maxMonitoredItems = _options.Value.MaxMonitoredItemPerSubscription
                     ?? kMaxMonitoredItemPerSubscriptionDefault;
             }
