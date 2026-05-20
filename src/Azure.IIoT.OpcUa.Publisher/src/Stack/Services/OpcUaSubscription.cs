@@ -710,8 +710,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             var maxMonitoredItems = maxMonitoredItemsPerSubscription ?? 0u;
-            if (maxMonitoredItems <= 0)
+            if (maxMonitoredItems == 0 || maxMonitoredItems == uint.MaxValue)
             {
+                // Treat 0 or uint.MaxValue (no server limit) as a signal to use
+                // the configured default to avoid integer overflow in batch sizing.
                 maxMonitoredItems = _options.Value.MaxMonitoredItemPerSubscription
                     ?? kMaxMonitoredItemPerSubscriptionDefault;
             }
@@ -2685,7 +2687,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     {
                         // Break items into batches of max here and add partition each
                         foreach (var batch in subscriberItems.Batch(
-                            (int)maxMonitoredItemsInPartition))
+                            (int)Math.Min(maxMonitoredItemsInPartition, (uint)int.MaxValue)))
                         {
                             var newPartition = new Partition();
                             newPartition.Items.AddRange(batch);
