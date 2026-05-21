@@ -30,17 +30,17 @@
   </ItemGroup>
 
   <ItemGroup Label="Azure SDK">
-    <PackageVersion Include="Azure.Core" Version="1.50.0" />
-    <PackageVersion Include="Azure.Identity" Version="1.17.1" />
+    <PackageVersion Include="Azure.Core" Version="1.56.0" />
+    <PackageVersion Include="Azure.Identity" Version="1.21.0" />
     <PackageVersion Include="Azure.Messaging.EventHubs" Version="5.12.2" />
-    <PackageVersion Include="Azure.ResourceManager" Version="1.13.2" />
+    <PackageVersion Include="Azure.ResourceManager" Version="1.14.0" />
     <PackageVersion Include="Azure.ResourceManager.ContainerInstance" Version="1.3.0" />
-    <PackageVersion Include="Azure.ResourceManager.ContainerRegistry" Version="1.3.1" />
+    <PackageVersion Include="Azure.ResourceManager.ContainerRegistry" Version="1.4.0" />
     <PackageVersion Include="Azure.ResourceManager.IotHub" Version="1.1.1" />
-    <PackageVersion Include="Azure.ResourceManager.Storage" Version="1.6.0" />
-    <PackageVersion Include="Azure.Storage.Blobs" Version="12.26.0" />
-    <PackageVersion Include="Azure.Storage.Files.Shares" Version="12.25.0" />
-    <PackageVersion Include="Azure.Storage.Queues" Version="12.24.0" />
+    <PackageVersion Include="Azure.ResourceManager.Storage" Version="1.6.2" />
+    <PackageVersion Include="Azure.Storage.Blobs" Version="12.28.0" />
+    <PackageVersion Include="Azure.Storage.Files.Shares" Version="12.26.0" />
+    <PackageVersion Include="Azure.Storage.Queues" Version="12.26.0" />
     <PackageVersion Include="Microsoft.Azure.Devices" Version="1.41.0" />
     <PackageVersion Include="Microsoft.Azure.Devices.Client" Version="1.42.3" />
   </ItemGroup>
