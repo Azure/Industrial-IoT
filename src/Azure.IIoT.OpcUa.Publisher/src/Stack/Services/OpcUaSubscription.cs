@@ -691,6 +691,59 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
+        /// Compute the effective maximum monitored items allowed in a single
+        /// subscription partition by combining the server-reported limit and
+        /// the publisher-side configured override (see
+        /// <see cref="OpcUaSubscriptionOptions.MaxMonitoredItemPerSubscription"/>).
+        ///
+        /// Per the option docstring ("If the server supports less, this value
+        /// takes no effect.") the configured value caps the server-reported
+        /// value when both are present.
+        ///
+        /// A value of <c>null</c>, <c>0</c>, or one larger than
+        /// <see cref="int.MaxValue"/> is treated as "no usable limit" — both
+        /// because <c>0</c> historically means "unknown" and because values
+        /// larger than <see cref="int.MaxValue"/> cannot be used as a batch
+        /// size for downstream partitioning logic (see issue #2445 where a
+        /// server reporting <see cref="uint.MaxValue"/> caused a crash).
+        /// </summary>
+        /// <param name="serverLimit">Server-reported max items per subscription.</param>
+        /// <param name="configuredLimit">Publisher-side override.</param>
+        /// <param name="defaultLimit">Default limit used when neither side provides a usable limit.</param>
+        /// <returns>A positive value in the range <c>[1, int.MaxValue]</c>.</returns>
+        internal static int ComputeMaxMonitoredItemsPerSubscription(
+            uint? serverLimit, uint? configuredLimit, int defaultLimit)
+        {
+            Debug.Assert(defaultLimit > 0);
+
+            static int? Normalize(uint? value) =>
+                value is null or 0u or > int.MaxValue ? null : (int)value.Value;
+
+            var server = Normalize(serverLimit);
+            var configured = Normalize(configuredLimit);
+
+            int result;
+            if (server.HasValue && configured.HasValue)
+            {
+                result = Math.Min(server.Value, configured.Value);
+            }
+            else if (server.HasValue)
+            {
+                result = server.Value;
+            }
+            else if (configured.HasValue)
+            {
+                result = configured.Value;
+            }
+            else
+            {
+                result = defaultLimit;
+            }
+
+            return Math.Max(1, result);
+        }
+
+        /// <summary>
         /// Create or update the subscription now using the currently configured
         /// subscription configuration template.
         /// </summary>
@@ -709,12 +762,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     "Subscription was disposed.");
             }
 
-            var maxMonitoredItems = maxMonitoredItemsPerSubscription ?? 0u;
-            if (maxMonitoredItems <= 0)
-            {
-                maxMonitoredItems = _options.Value.MaxMonitoredItemPerSubscription
-                    ?? kMaxMonitoredItemPerSubscriptionDefault;
-            }
+            var maxMonitoredItems = ComputeMaxMonitoredItemsPerSubscription(
+                maxMonitoredItemsPerSubscription,
+                _options.Value.MaxMonitoredItemPerSubscription,
+                kMaxMonitoredItemPerSubscriptionDefault);
 
             Debug.Assert(Session != null);
             if (Session is not OpcUaSession session)
@@ -2662,8 +2713,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="options"></param>
             /// <returns></returns>
             public static List<Partition> Create(IEnumerable<ISubscriber> subscribers,
-                uint maxMonitoredItemsInPartition, OpcUaSubscriptionOptions options)
+                int maxMonitoredItemsInPartition, OpcUaSubscriptionOptions options)
             {
+                Debug.Assert(maxMonitoredItemsInPartition > 0,
+                    "Partition size must be positive");
                 var partitions = new List<Partition>();
                 foreach (var subscriberItems in subscribers
                     .Select(s => s.MonitoredItems
@@ -2686,7 +2739,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     {
                         // Break items into batches of max here and add partition each
                         foreach (var batch in subscriberItems.Batch(
-                            (int)maxMonitoredItemsInPartition))
+                            maxMonitoredItemsInPartition))
                         {
                             var newPartition = new Partition();
                             newPartition.Items.AddRange(batch);
