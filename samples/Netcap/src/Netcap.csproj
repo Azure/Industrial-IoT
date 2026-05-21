@@ -15,19 +15,19 @@
     <ProjectCapability Include="AzureIoTEdgeModule" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Azure.ResourceManager.ContainerRegistry" Version="1.3.1" />
-    <PackageReference Include="Azure.ResourceManager.IotHub" Version="1.1.1" />
-    <PackageReference Include="Azure.ResourceManager.Storage" Version="1.6.0" />
-    <PackageReference Include="Azure.Storage.Blobs" Version="12.26.0" />
-    <PackageReference Include="Azure.Storage.Queues" Version="12.24.0" />
-    <PackageReference Include="CommandLineParser" Version="2.9.1" />
-    <PackageReference Include="Azure.Identity" Version="1.17.0" />
-    <PackageReference Include="Azure.Core" Version="1.49.0" />
-    <PackageReference Include="Microsoft.Azure.Devices" Version="1.40.0" />
-    <PackageReference Include="Microsoft.Azure.Devices.Client" Version="1.42.3" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.7" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.23.0" />
-    <PackageReference Include="SharpPcap" Version="6.3.1" />
-    <PackageReference Include="System.Linq.Async" Version="7.0.0" />
+    <PackageReference Include="Azure.ResourceManager.ContainerRegistry" />
+    <PackageReference Include="Azure.ResourceManager.IotHub" />
+    <PackageReference Include="Azure.ResourceManager.Storage" />
+    <PackageReference Include="Azure.Storage.Blobs" />
+    <PackageReference Include="Azure.Storage.Queues" />
+    <PackageReference Include="CommandLineParser" />
+    <PackageReference Include="Azure.Identity" />
+    <PackageReference Include="Azure.Core" />
+    <PackageReference Include="Microsoft.Azure.Devices" />
+    <PackageReference Include="Microsoft.Azure.Devices.Client" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
+    <PackageReference Include="SharpPcap" />
+    <PackageReference Include="System.Linq.Async" />
   </ItemGroup>
 </Project>

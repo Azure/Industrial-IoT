@@ -7,7 +7,7 @@
     <TieredPGO>true</TieredPGO>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Azure.IoT" Version="1.2.1" />
+    <PackageReference Include="Furly.Azure.IoT" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Publisher.Testing\src\Azure.IIoT.OpcUa.Publisher.Testing.Servers.csproj" />

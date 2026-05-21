@@ -5,14 +5,14 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Extensions.Newtonsoft" Version="1.2.1" />
-    <PackageReference Include="Furly.Extensions.Json" Version="1.2.1" />
-    <PackageReference Include="Furly.Extensions.Autofac" Version="1.2.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.7" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.7" />
-    <PackageReference Include="FluentAssertions" Version="[7.2.0]" />
-    <PackageReference Include="Moq" Version="[4.20.2]" />
-    <PackageReference Include="xunit.assert" Version="2.9.3" />
+    <PackageReference Include="Furly.Extensions.Newtonsoft" />
+    <PackageReference Include="Furly.Extensions.Json" />
+    <PackageReference Include="Furly.Extensions.Autofac" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="Moq" />
+    <PackageReference Include="xunit.assert" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Publisher\src\Azure.IIoT.OpcUa.Publisher.csproj" />

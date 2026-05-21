@@ -6,8 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Azure.Messaging.EventHubs" Version="5.11.6" />
-    <PackageReference Include="Microsoft.Azure.Devices" Version="1.40.0" />
-    <PackageReference Include="CommandLineParser" Version="2.9.1" />
+    <PackageReference Include="Azure.Messaging.EventHubs" />
+    <PackageReference Include="Microsoft.Azure.Devices" />
+    <PackageReference Include="CommandLineParser" />
   </ItemGroup>
 </Project>
