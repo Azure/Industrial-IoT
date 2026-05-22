@@ -102,15 +102,18 @@ $keyVault = Get-AzKeyVault -ResourceGroupName $ResourceGroupName -VaultName $key
 
 if (!$keyVault) {
     Write-Host "Creating Key Vault $($keyVaultName)"
-    $keyVault = New-AzKeyVault -ResourceGroupName $ResourceGroupName -VaultName $keyVaultName -Location $resourceGroup.Location -DisableRbacAuthorization
+    $keyVault = New-AzKeyVault -ResourceGroupName $ResourceGroupName -VaultName $keyVaultName -Location $resourceGroup.Location -EnableRbacAuthorization
 }
 else {
-    $keyVault | Update-AzKeyVault -DisableRbacAuthorization
+    $keyVault | Update-AzKeyVault -EnableRbacAuthorization
 }
 
 if ($ServicePrincipalId) {
-    Write-Host "Setting Key Vault Permissions for Service Principal $($ServicePrincipalId)..."
-    Set-AzKeyVaultAccessPolicy -VaultName $KeyVaultName -ResourceGroupName $ResourceGroupName -ServicePrincipalName $ServicePrincipalId -PermissionsToSecrets get,list,set
+    Write-Host "Granting 'Key Vault Secrets Officer' role on Key Vault to Service Principal $($ServicePrincipalId)..."
+    $existing = Get-AzRoleAssignment -ObjectId $ServicePrincipalId -RoleDefinitionName "Key Vault Secrets Officer" -Scope $keyVault.ResourceId -ErrorAction SilentlyContinue
+    if (!$existing) {
+        New-AzRoleAssignment -ObjectId $ServicePrincipalId -RoleDefinitionName "Key Vault Secrets Officer" -Scope $keyVault.ResourceId | Out-Null
+    }
 }
 
 $connectionString = Get-AzIotHubConnectionString $ResourceGroupName -Name $iothub.Name -KeyName "iothubowner"
