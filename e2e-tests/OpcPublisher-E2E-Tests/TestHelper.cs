@@ -495,7 +495,8 @@ namespace OpcPublisherAEE2ETests
 
             context.OutputHelper.WriteLine($"Get storage keys from {rg}");
             var storageAccount = await rg.GetStorageAccountAsync(context.AzureStorageName, cancellationToken: cancellationToken).ConfigureAwait(false);
-            var keys = await Validate(context, storageAccount).GetKeysAsync(cancellationToken: cancellationToken).ToListAsync(cancellationToken);
+            var keysResponse = await Validate(context, storageAccount).GetKeysAsync(cancellationToken: cancellationToken);
+            var keys = keysResponse.Value.Keys;
             if (keys.Count == 0)
             {
                 throw new InvalidOperationException($"No keys found for storage account {context.AzureStorageName}");

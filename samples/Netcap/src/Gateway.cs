@@ -788,8 +788,9 @@ internal sealed record class Gateway
             var storageName = storageResponse.Value.Data.Name;
             var endpoints = storageResponse.Value.Data.PrimaryEndpoints;
 
-            var keys = await storageResponse.Value.GetKeysAsync(
-                cancellationToken: ct).ToListAsync(ct).ConfigureAwait(false);
+            var keysResponse = await storageResponse.Value.GetKeysAsync(
+                cancellationToken: ct).ConfigureAwait(false);
+            var keys = keysResponse.Value.Keys;
             if (keys.Count == 0)
             {
                 throw new NetcapException(
