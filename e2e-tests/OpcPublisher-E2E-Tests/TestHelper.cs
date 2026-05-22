@@ -516,6 +516,37 @@ namespace OpcPublisherAEE2ETests
         }
 
         /// <summary>
+        /// Build a federated <see cref="TokenCredential"/> for Azure data-plane and ARM
+        /// operations. Tries (in order): AzurePipelinesCredential (Azure DevOps OIDC),
+        /// DefaultAzureCredential (env / managed identity / Visual Studio), and
+        /// AzureCliCredential (developer's az login). Does NOT use ClientSecretCredential —
+        /// the federated SP has no client secret. Shared by ARM client construction and
+        /// the AAD-based Event Hub consumer client.
+        /// </summary>
+        internal static TokenCredential BuildTokenCredential(IIoTPlatformTestContext context)
+        {
+            var systemAccessToken = Environment.GetEnvironmentVariable("SYSTEM_ACCESSTOKEN");
+            var serviceConnection = Environment.GetEnvironmentVariable("AzureSubscription");
+            var clientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID");
+            if (!string.IsNullOrEmpty(systemAccessToken) && !string.IsNullOrEmpty(serviceConnection))
+            {
+                return new AzurePipelinesCredential(
+                    context.OpcPlcConfig.TenantId, clientId, serviceConnection, systemAccessToken);
+            }
+            try
+            {
+                return new DefaultAzureCredential(new DefaultAzureCredentialOptions
+                {
+                    TenantId = context?.OpcPlcConfig?.TenantId
+                });
+            }
+            catch
+            {
+                return new AzureCliCredential();
+            }
+        }
+
+        /// <summary>
         /// Get an arm client
         /// </summary>
         /// <param name="context"></param>
@@ -549,7 +580,6 @@ namespace OpcPublisherAEE2ETests
             {
                 context.OutputHelper.WriteLine($"AZURE_CLIENT_ID: {Environment.GetEnvironmentVariable("AZURE_CLIENT_ID")}");
                 context.OutputHelper.WriteLine($"AZURE_TENANT_ID: {Environment.GetEnvironmentVariable("AZURE_TENANT_ID")}");
-                context.OutputHelper.WriteLine($"AZURE_CLIENT_SECRET: {Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET")}");
                 var options = new DefaultAzureCredentialOptions
                 {
                     TenantId = context.OpcPlcConfig.TenantId
@@ -611,15 +641,20 @@ namespace OpcPublisherAEE2ETests
         }
 
         /// <summary>
-        /// Get an Event Hub consumer
+        /// Get an Event Hub consumer client authenticated via AAD (TokenCredential)
+        /// against the IoT Hub's built-in Event Hub-compatible endpoint. The required
+        /// data-plane role on the IoT Hub is "Azure Event Hubs Data Receiver" (granted
+        /// to the federated SP at deployment time).
         /// </summary>
-        /// <param name="config">Configuration for IoT Hub</param>
-        /// <param name="consumerGroup"></param>
-        public static EventHubConsumerClient GetEventHubConsumerClient(this IIoTHubConfig config, string consumerGroup = null)
+        /// <param name="context">The test context (provides config + federated credential).</param>
+        /// <param name="consumerGroup">Override consumer group; defaults to the test consumer group.</param>
+        public static EventHubConsumerClient GetEventHubConsumerClient(this IIoTPlatformTestContext context, string consumerGroup = null)
         {
             return new EventHubConsumerClient(
                 consumerGroup ?? TestConstants.TestConsumerGroupName,
-                config.IoTHubEventHubConnectionString);
+                context.IoTHubConfig.IoTHubEventHubFullyQualifiedNamespace,
+                context.IoTHubConfig.IoTHubEventHubName,
+                BuildTokenCredential(context));
         }
 
         /// <summary>
