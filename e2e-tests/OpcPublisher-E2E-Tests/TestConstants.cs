@@ -78,16 +78,6 @@ namespace OpcPublisherAEE2ETests
             public const string PublishedNodesFile = "pn.json";
 
             /// <summary>
-            /// The share that is created in the pipeline
-            /// </summary>
-            public const string FileShareName = "acishare";
-
-            /// <summary>
-            /// This is the first part of the Azure Storage name that is created in pipeline
-            /// </summary>
-            public const string AzureStorageNameWithoutSuffix = "e2etestingstorage";
-
-            /// <summary>
             /// Name of Tag in Resource Group
             /// </summary>
             public const string TestingResourcesSuffixName = "TestingResourcesSuffix";

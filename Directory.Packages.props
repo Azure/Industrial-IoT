@@ -39,7 +39,6 @@
     <PackageVersion Include="Azure.ResourceManager.IotHub" Version="1.1.1" />
     <PackageVersion Include="Azure.ResourceManager.Storage" Version="1.6.2" />
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.28.0" />
-    <PackageVersion Include="Azure.Storage.Files.Shares" Version="12.26.0" />
     <PackageVersion Include="Azure.Storage.Queues" Version="12.26.0" />
     <PackageVersion Include="Microsoft.Azure.Devices" Version="1.41.0" />
     <PackageVersion Include="Microsoft.Azure.Devices.Client" Version="1.42.3" />

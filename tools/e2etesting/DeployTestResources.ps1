@@ -1,9 +1,7 @@
 Param(
     $ResourceGroupName,
-    $StorageAccountName,
     $IoTHubName,
-    $TenantId,
-    $StorageFileShareName = "acishare"
+    $TenantId
 )
 
 # Stop execution when an error occurs.
@@ -58,7 +56,6 @@ Write-Host "Subscription Name: $($context.Subscription.Name)"
 Write-Host "Tenant Id: $($context.Tenant.Id)"
 Write-Host "Resource Group: $($ResourceGroupName)"
 Write-Host "=============================================="
-Write-Host "Storage Account: $($StorageAccountName)"
 Write-Host "KeyVault: $($keyVault.VaultName)"
 Write-Host "IoTHub: $($IoTHubName)"
 Write-Host "=============================================="
@@ -103,23 +100,10 @@ if (!$iotHubCg) {
     $iotHubCg = Add-AzIotHubEventHubConsumerGroup -ResourceGroupName $ResourceGroupName -Name $IoTHubName -EventHubConsumerGroupName $cgName
 }
 
-## Ensure Storage Account ##
-
-if (!$StorageAccountName) {
-    $StorageAccountName = "e2etestingstorage" + $suffix
-}
-
-$storageAccount = Get-AzStorageAccount -ResourceGroupName $resourceGroup.ResourceGroupName -Name $StorageAccountName -ErrorAction SilentlyContinue
-if (!$storageAccount) {
-    Write-Host "Storage Account '$($StorageAccountName)' does not exist, creating..."
-    $storageAccount = New-AzStorageAccount -AllowCrossTenantReplication $True -ResourceGroupName $resourceGroup.ResourceGroupName -Name $StorageAccountName -SkuName Standard_LRS -Location $resourceGroup.Location
-}
-
-$storageContext = $storageAccount.Context
-## Ensure file share for ACI mount and files to be able to support dynamic ACI:s in test
-$storageShare = Get-AzStorageShare -Context $storageContext.Context -Name $StorageFileShareName -ErrorAction SilentlyContinue
-
-if (!$storageShare) {
-    Write-Host "Creating storage share '$($StorageFileShareName)' in storage account '$($storageAccount.StorageAccountName)'..."
-    $storageShare = New-AzStorageShare -Context $storageContext.Context -Name $StorageFileShareName | Out-Null
-}
+# NOTE: Storage account + Azure Files share `acishare` were previously created here to
+# deliver PLC simulation configs into ACI containers via an Azure Files volume mount.
+# That mount required a storage account key (Azure Files SMB mount on ACI does not
+# support managed identity per docs/Limitations), and the key was the last local-auth
+# surface in the test resource group. The PLC config is now delivered inline as a
+# secure environment variable on the container group (see TestHelper.cs
+# CreatePlcContainerGroupAsync). No storage account is created here anymore.

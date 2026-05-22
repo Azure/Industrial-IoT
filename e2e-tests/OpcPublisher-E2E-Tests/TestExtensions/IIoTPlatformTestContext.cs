@@ -109,16 +109,6 @@ namespace OpcPublisherAEE2ETests.TestExtensions
         public IReadOnlyList<string> PlcAciDynamicUrls { get; set; }
 
         /// <summary>
-        /// Azure Storage Name
-        /// </summary>
-        public string AzureStorageName { get; set; }
-
-        /// <summary>
-        /// Azure Storage Key
-        /// </summary>
-        public string AzureStorageKey { get; set; }
-
-        /// <summary>
         /// Image that are used for PLC ACI
         /// </summary>
         public string PLCImage { get; set; }
