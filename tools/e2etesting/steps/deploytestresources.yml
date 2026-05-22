@@ -54,6 +54,8 @@ steps:
       -Fqdn "$(Fqdn)"
       -EdgeIdentity "$(EdgeIdentity)"
       -EdgeVmUsername "$(EdgeVmUsername)"
-      -SshPrivateKey "$(SshPrivateKey)"
-      -SshPublicKey "$(SshPublicKey)"
+# NOTE: SshPrivateKey / SshPublicKey are intentionally NOT passed to SetTestVariables.ps1.
+# They live only as pipeline-secret variables (set by DeployEdge.ps1 with issecret=true)
+# and are consumed directly by runtests.yml as IOT_EDGE_VM_PRIVATEKEY / IOT_EDGE_VM_PUBLICKEY
+# env vars on the test process — never persisted to Key Vault (Phase 1.8 Option A).
 
