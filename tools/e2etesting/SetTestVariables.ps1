@@ -5,8 +5,6 @@ Param(
     [string] $OpcPlcSimulationIps,
     [string] $EdgeIdentity,
     [string] $EdgeVmUsername,
-    [string] $SshPrivateKey,
-    [string] $SshPublicKey,
     [string] $Fqdn
 )
 
@@ -36,11 +34,12 @@ Write-Host "Adding/Updating KeyVault-Secret 'iot-edge-device-id' with value '$($
 az keyvault secret set --vault-name $keyVault --name 'iot-edge-device-id' --value $EdgeIdentity > $null
 Write-Host "Adding/Updating KeVault-Secret 'iot-edge-vm-username' with value '$($EdgeVmUsername)'..."
 az keyvault secret set --vault-name $keyVault --name 'iot-edge-vm-username' --value $EdgeVmUsername > $null
-Write-Host "Adding/Updating KeVault-Certificate 'iot-edge-vm-privatekey'..."
-az keyvault secret set --vault-name $keyVault --name 'iot-edge-vm-privatekey' --value $SshPrivateKey > $null
-Write-Host "Adding/Updating KeVault-Certificate 'iot-edge-vm-publickey'..."
-az keyvault secret set --vault-name $keyVault --name 'iot-edge-vm-publickey' --value $SshPublicKey > $null
 Write-Host "Adding/Updating KeyVault-Secret 'iot-edge-device-dnsname' with value '$($Fqdn)'..."
 az keyvault secret set --vault-name $keyVault --name 'iot-edge-device-dnsname' --value $Fqdn > $null
+
+# NOTE: SshPrivateKey / SshPublicKey are intentionally NOT stored in Key Vault.
+# They are pipeline-secret variables produced by DeployEdge.ps1 (with issecret=true)
+# and consumed directly by runtests.yml as IOT_EDGE_VM_PRIVATEKEY env var on the
+# test process. The key never persists at rest in our infra (Phase 1.8 Option A).
 
 Write-Host "Deployment finished."
