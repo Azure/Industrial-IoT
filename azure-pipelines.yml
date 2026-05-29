@@ -28,26 +28,30 @@ jobs:
   steps:
   - task: PowerShell@2
     displayName: 'Determine pipeline and parameters'
+    env:
+      SOURCE_MESSAGE: $(Build.SourceVersionMessage)
+      SOURCE_BRANCH: $(Build.SourceBranch)
+      BUILD_REASON: $(Build.Reason)
     inputs:
       targetType: 'inline'
       pwsh: true
       script: |
-        $message = '$(Build.SourceVersionMessage)'
+        $message = $env:SOURCE_MESSAGE
         if ([string]::IsNullOrWhiteSpace($message)) {
           $message = 'No message'
         }
         $message = $message -replace "[^a-zA-Z0-9\s]", ""
         $message = $message.Trim()
         $message = $message.substring(0, [System.Math]::Min(100, $message.Length))
-        $branchName = '$(Build.SourceBranch)'
-        $branchName = $branchName -replace "refs/heads/", ""
-        if ('$(Build.Reason)' -eq 'PullRequest')
+        $sourceBranch = $env:SOURCE_BRANCH
+        $branchName = $sourceBranch -replace "refs/heads/", ""
+        if ($env:BUILD_REASON -eq 'PullRequest')
         {
           $pipelineDefinition = 'Industrial-IoT-PullRequest'
-          $templateParameters = "ref: $(Build.SourceBranch), buildInfo: '$message'"
-          Write-Host "Triggering Pull Request build for $(Build.SourceBranch)..."
+          $templateParameters = "ref: $sourceBranch, buildInfo: '$message'"
+          Write-Host "Triggering Pull Request build for $sourceBranch..."
         }
-        elseif ('$(Build.SourceBranch)' -like 'refs/heads/release/*')
+        elseif ($sourceBranch -like 'refs/heads/release/*')
         {
           $pipelineDefinition = 'Industrial-IoT-Official'
           $templateParameters = "branch: $branchName, buildInfo: '$message'"
@@ -59,7 +63,7 @@ jobs:
           $templateParameters = "branch: $branchName, buildInfo: '$message'"
           Write-Host "Triggering buddy build for branch $branchName ..."
         }
-        Write-Host "$(Build.Reason): Trigger $pipelineDefinition with '$templateParameters'..."
+        Write-Host "$($env:BUILD_REASON): Trigger $pipelineDefinition with '$templateParameters'..."
         Write-Host "##vso[task.setvariable variable=pipelineDefinition]$pipelineDefinition"
         Write-Host "##vso[task.setvariable variable=templateParameters]$templateParameters"
   - task: TriggerBuild@4
