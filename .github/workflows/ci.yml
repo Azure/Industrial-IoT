@@ -151,20 +151,19 @@ jobs:
         # directories; --blame-hang-timeout protects against the
         # intermittent test-host hangs that historically affected Windows.
         #
-        # CoverletOutput ends with a `/` so coverlet treats it as a
-        # directory and writes one file per assembly+TFM. That avoids the
-        # `Unable to read beyond the end of the stream` failure observed on
-        # the Publisher project when multiple parallel test threads write
-        # to the same coverage file.
+        # Coverage uses the `XPlat Code Coverage` data collector backed by
+        # coverlet.collector (registered as a PackageReference in each test
+        # csproj). The data-collector model is more robust on .NET 10 than
+        # coverlet.msbuild, which crashes the Publisher project run with
+        # "Unable to read beyond the end of the stream" during result
+        # serialization.
         shell: pwsh
         run: |
           dotnet test "${{ matrix.project.path }}" --no-build -c Release `
             --blame-hang-timeout 10m --blame-hang-dump-type none `
             --logger "trx;LogFileName=test-results.trx" `
             --results-directory ./testresults/${{ matrix.project.name }} `
-            /p:CollectCoverage=true `
-            /p:CoverletOutputFormat=cobertura `
-            /p:CoverletOutput=./testresults/${{ matrix.project.name }}/
+            --collect:"XPlat Code Coverage;Format=cobertura"
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
