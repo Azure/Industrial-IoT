@@ -1,0 +1,538 @@
+name: CI
+
+# ----------------------------------------------------------------------------
+# Mirrors the internal Azure DevOps OneBranch pipeline in a GitHub Actions
+# native form. Complements (does not replace) the internal pipeline.
+#
+# Stages (mirrors templates in the internal Industrial-IoT repo):
+#   version         -> compute nbgv version, share via job outputs
+#   build_test      -> matrix (Linux + Windows) x (4 unit test projects)
+#                      with coverlet.msbuild Cobertura coverage
+#   coverage_report -> merge with ReportGenerator -> $GITHUB_STEP_SUMMARY
+#   images_build    -> matrix arch (x64/arm/arm64), produces image tarballs
+#   images_push     -> multi-arch buildx push to ghcr.io/azure/<repo>,
+#                      cosign keyless signing of the index digest
+#   nuget_pack      -> dotnet pack (3 IsPackable projects only)
+#   nuget_publish   -> push to GitHub Packages NuGet feed (main/release/* push)
+#   e2e             -> calls reusable e2e-standalone.yml after images_push
+#
+# Required repository variables for E2E (federated OIDC, no client secret):
+#   AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID
+# ----------------------------------------------------------------------------
+
+on:
+  pull_request:
+    branches: [main, release/*]
+  push:
+    branches: [main, release/*]
+  workflow_dispatch:
+    inputs:
+      run_e2e:
+        description: 'Run the E2E standalone tests after images are pushed'
+        type: boolean
+        default: true
+      e2e_region:
+        description: 'Azure region for E2E resources'
+        type: string
+        default: northeurope
+      e2e_cleanup:
+        description: 'Delete the E2E resource group after the run completes'
+        type: boolean
+        default: true
+  schedule:
+    # Nightly build of main at 10:00 UTC (matches the internal Industrial-IoT-E2E-Standalone schedule)
+    - cron: '0 10 * * *'
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  # Cancel duplicate PR runs but never cancel push/schedule runs (they may be
+  # partway through pushing images or running E2E and would leak GHCR or
+  # Azure resources).
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  # --------------------------------------------------------------------------
+  # version: compute nbgv version once and share across jobs.
+  # NBGV_SimpleVersion is the Docker-safe tag (no '+' build metadata).
+  # NBGV_NuGetPackageVersion is the full SemVer 2.0 string used for NuGet.
+  # --------------------------------------------------------------------------
+  version:
+    name: Version
+    runs-on: ubuntu-latest
+    outputs:
+      simple_version: ${{ steps.nbgv.outputs.simple_version }}
+      nuget_version: ${{ steps.nbgv.outputs.nuget_version }}
+      prerelease: ${{ steps.nbgv.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+      - name: Install nbgv
+        # The repo Nuget.Config points only at the internal Azure Artifacts
+        # feed which the runner cannot read unauthenticated. Install the
+        # tool from a directory outside the repo so the repo's nuget.config
+        # is ignored.
+        working-directory: ${{ runner.temp }}
+        run: dotnet tool install --global nbgv --add-source https://api.nuget.org/v3/index.json
+        shell: bash
+      - name: Compute version
+        id: nbgv
+        run: |
+          set -euo pipefail
+          json=$(nbgv get-version -f json)
+          simple=$(echo "$json" | python3 -c "import json,sys;d=json.load(sys.stdin);print(d['CloudBuildAllVars']['NBGV_SimpleVersion'])")
+          nuget=$(echo "$json" | python3 -c "import json,sys;d=json.load(sys.stdin);print(d['CloudBuildAllVars']['NBGV_NuGetPackageVersion'])")
+          prerelease=$(echo "$json" | python3 -c "import json,sys;d=json.load(sys.stdin);print(d['CloudBuildAllVars'].get('NBGV_PrereleaseVersion',''))")
+          echo "simple_version=$simple" >> "$GITHUB_OUTPUT"
+          echo "nuget_version=$nuget" >> "$GITHUB_OUTPUT"
+          echo "prerelease=$prerelease" >> "$GITHUB_OUTPUT"
+          echo "## Version" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Simple: \`$simple\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- NuGet:  \`$nuget\`" >> "$GITHUB_STEP_SUMMARY"
+        shell: bash
+
+  # --------------------------------------------------------------------------
+  # build_test: 8-way matrix (2 OS x 4 test projects). Each project is run
+  # in its own job so the OPC UA per-project port and PKI contention only
+  # has to be tolerated within a single project (matches the existing
+  # serial-per-project pattern in the deleted test.yml). Coverage is
+  # collected with coverlet.msbuild (the only coverlet package referenced
+  # by the test csproj files) using MSBuild integration -- same as the
+  # internal templates/test.yml.
+  # --------------------------------------------------------------------------
+  build_test:
+    name: Build & Test (${{ matrix.os }} / ${{ matrix.project.name }})
+    needs: version
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        project:
+          - name: Models
+            path: src/Azure.IIoT.OpcUa.Publisher.Models/tests/Azure.IIoT.OpcUa.Publisher.Models.Tests.csproj
+          - name: OpcUa
+            path: src/Azure.IIoT.OpcUa/tests/Azure.IIoT.OpcUa.Tests.csproj
+          - name: Publisher
+            path: src/Azure.IIoT.OpcUa.Publisher/tests/Azure.IIoT.OpcUa.Publisher.Tests.csproj
+          - name: Publisher.Module
+            path: src/Azure.IIoT.OpcUa.Publisher.Module/tests/Azure.IIoT.OpcUa.Publisher.Module.Tests.csproj
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+      - name: Restore
+        # Restore against nuget.org explicitly; the repo Nuget.Config points
+        # only at the internal Azure Artifacts feed.
+        run: dotnet restore "${{ matrix.project.path }}" -s https://api.nuget.org/v3/index.json
+        shell: bash
+      - name: Build
+        run: dotnet build "${{ matrix.project.path }}" -c Release --no-restore
+        shell: bash
+      - name: Test
+        # OPC UA tests within a project contend on local ports and PKI
+        # directories; --blame-hang-timeout protects against the
+        # intermittent test-host hangs that historically affected Windows.
+        run: |
+          dotnet test "${{ matrix.project.path }}" --no-build -c Release \
+            --blame-hang-timeout 10m --blame-hang-dump-type none \
+            --logger "trx;LogFileName=test-results.trx" \
+            --results-directory ./testresults/${{ matrix.project.name }} \
+            /p:CollectCoverage=true \
+            /p:CoverletOutputFormat=cobertura \
+            /p:CoverletOutput=${{ github.workspace }}/testresults/${{ matrix.project.name }}/coverage.cobertura.xml
+        shell: bash
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testresults-${{ matrix.os }}-${{ matrix.project.name }}
+          path: ./testresults
+          if-no-files-found: warn
+          retention-days: 14
+
+  # --------------------------------------------------------------------------
+  # coverage_report: merge all per-shard cobertura files into a single
+  # report, render a markdown summary into $GITHUB_STEP_SUMMARY, and
+  # upload the merged HTML report as an artifact.
+  # --------------------------------------------------------------------------
+  coverage_report:
+    name: Coverage Report
+    needs: build_test
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Download all test results
+        uses: actions/download-artifact@v4
+        with:
+          path: ./all-testresults
+          pattern: testresults-*
+      - name: Install ReportGenerator
+        working-directory: ${{ runner.temp }}
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool --add-source https://api.nuget.org/v3/index.json
+        shell: bash
+      - name: Merge coverage
+        run: |
+          set -euo pipefail
+          shopt -s globstar
+          reports=$(find ./all-testresults -name 'coverage.cobertura.xml' | paste -sd ';' -)
+          if [ -z "$reports" ]; then
+            echo "## Coverage" >> "$GITHUB_STEP_SUMMARY"
+            echo "_No coverage files were produced by the matrix jobs._" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          echo "Merging: $reports"
+          reportgenerator \
+            "-reports:$reports" \
+            "-targetdir:./coverage" \
+            "-reporttypes:Cobertura;MarkdownSummary;Html" \
+            "-title:Industrial-IoT Test Coverage" \
+            "-assemblyfilters:+*;-*.Tests;-*tests"
+          if [ -f ./coverage/Summary.md ]; then
+            echo "## Coverage" >> "$GITHUB_STEP_SUMMARY"
+            cat ./coverage/Summary.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+        shell: bash
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: ./coverage
+          if-no-files-found: warn
+          retention-days: 14
+
+  # --------------------------------------------------------------------------
+  # images_build: build a tarball per linux architecture using the existing
+  # tools/scripts/build.ps1 in tar-only mode (no -ContainerRegistry, just
+  # -TarFileOutput). Skipped on pull_request because pushing/signing images
+  # requires repo secrets and packages:write -- which we never grant to
+  # PRs from forks. The single-arch iot/opc-ua-test-server csproj is
+  # auto-skipped by build.ps1 for arm/arm64 thanks to the
+  # ContainerRuntimeIdentifier check added in this change.
+  # --------------------------------------------------------------------------
+  images_build:
+    name: Build image tarballs (linux/${{ matrix.arch }})
+    needs: [version, build_test]
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x64, arm, arm64]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Build container tarballs
+        # No -ContainerRegistry; build.ps1 will only produce tar.gz files
+        # under $TARBALL_OUT (one per container csproj that matches the
+        # requested arch). -PackageSource pins restore to nuget.org so the
+        # internal-only Nuget.Config does not break the runner.
+        env:
+          TARBALL_OUT: ${{ runner.temp }}/tarballs
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path $env:TARBALL_OUT -Force | Out-Null
+          ./tools/scripts/build.ps1 `
+            -Os linux `
+            -Arch ${{ matrix.arch }} `
+            -TarFileOutput $env:TARBALL_OUT `
+            -PackageSource https://api.nuget.org/v3/index.json `
+            -BranchName "${{ github.ref_name }}"
+          Write-Host "Produced tarballs:"
+          Get-ChildItem -Recurse -Filter '*.tar.gz' -Path $env:TARBALL_OUT |
+            ForEach-Object { Write-Host "  $($_.FullName) ($([math]::Round($_.Length / 1MB, 2)) MB)" }
+      - name: Upload tarballs
+        uses: actions/upload-artifact@v4
+        with:
+          # IMPORTANT: per-arch artifact name (not merged) because
+          # build.ps1 strips the runtime ID from tar filenames, so tarballs
+          # from different arches share the same basename and would
+          # overwrite each other if downloaded into one directory.
+          name: images-linux-${{ matrix.arch }}
+          path: ${{ runner.temp }}/tarballs
+          if-no-files-found: error
+          retention-days: 7
+
+  # --------------------------------------------------------------------------
+  # images_push: download all per-arch tarballs into arch-specific subdirs,
+  # run dockerize.ps1 to produce one Dockerfile + build context per image
+  # (with a `FROM scratch as linux_<arch>` target per arch), then
+  # docker buildx build --push the multi-arch image to GHCR and cosign
+  # sign the resulting manifest index digest with GitHub OIDC.
+  # --------------------------------------------------------------------------
+  images_push:
+    name: Push multi-arch images to GHCR
+    needs: [version, images_build]
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      packages: write
+      id-token: write  # required for cosign keyless signing via GH OIDC
+    outputs:
+      images: ${{ steps.dockerize.outputs.images }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download all image tarballs
+        uses: actions/download-artifact@v4
+        with:
+          # NOTE: do NOT set merge-multiple here -- artifacts must land in
+          # arch-specific subdirectories so dockerize.ps1 can find both
+          # arch variants of an image with the same basename.
+          pattern: images-linux-*
+          path: ${{ runner.temp }}/tarballs
+      - name: Inventory downloaded tarballs
+        shell: bash
+        run: |
+          echo "Downloaded artifacts:"
+          find "${{ runner.temp }}/tarballs" -name '*.tar.gz' -printf '  %p (%s bytes)\n'
+      - name: Prepare multi-arch Dockerfiles
+        id: dockerize
+        # Enhanced dockerize.ps1 writes <MatrixName>=<compactJson> to
+        # $GITHUB_OUTPUT alongside the existing ##vso[...] output.
+        shell: pwsh
+        run: |
+          ./tools/scripts/dockerize.ps1 `
+            -TarFileInput "${{ runner.temp }}/tarballs" `
+            -OutputFolder "${{ runner.temp }}/build-ctx" `
+            -MatrixName images
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: sigstore/cosign-installer@v3
+      - name: Build, push, and sign multi-arch images
+        env:
+          IMAGES_JSON: ${{ steps.dockerize.outputs.images }}
+          REGISTRY: ghcr.io
+          # The Azure org is the GHCR namespace owner; image repositories are
+          # nested under it (e.g. ghcr.io/azure/iotedge/opc-publisher).
+          NAMESPACE: azure
+          SIMPLE_VERSION: ${{ needs.version.outputs.simple_version }}
+          NUGET_VERSION: ${{ needs.version.outputs.nuget_version }}
+          BUILD_CTX_ROOT: ${{ runner.temp }}/build-ctx
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Iterate each entry in the matrix object emitted by dockerize.ps1.
+          # Each entry contains: RepositoryName, BuildTag, BuildContextRel, Platforms.
+          echo "$IMAGES_JSON" | python3 -c "
+          import json, sys
+          for name, entry in json.load(sys.stdin).items():
+              print(f'{name}\t{entry[\"RepositoryName\"]}\t{entry[\"BuildContextRel\"]}\t{entry[\"Platforms\"]}')
+          " | while IFS=$'\t' read -r name repo ctx platforms; do
+              image="${REGISTRY}/${NAMESPACE}/${repo}"
+              echo "::group::Building ${image}  platforms=${platforms}"
+
+              # Tags:
+              #   - :<simple_version>  always
+              #   - :<nuget_version>   always (if differs from simple)
+              #   - :latest            only when pushing from main
+              tag_args=( -t "${image}:${SIMPLE_VERSION}" )
+              if [ "${SIMPLE_VERSION}" != "${NUGET_VERSION}" ]; then
+                # Docker tags cannot contain '+'; nbgv NBGV_NuGetPackageVersion
+                # uses '-rc.N' style for prereleases (no '+'), so it is safe.
+                tag_args+=( -t "${image}:${NUGET_VERSION}" )
+              fi
+              if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+                tag_args+=( -t "${image}:latest" )
+              fi
+
+              metadata_file="${RUNNER_TEMP}/metadata-${name}.json"
+              docker buildx build \
+                  --platform "${platforms}" \
+                  --push \
+                  --provenance=true --sbom=true \
+                  --metadata-file "${metadata_file}" \
+                  --label "org.opencontainers.image.source=https://github.com/${GITHUB_REPOSITORY}" \
+                  --label "org.opencontainers.image.revision=${GITHUB_SHA}" \
+                  --label "org.opencontainers.image.version=${SIMPLE_VERSION}" \
+                  --label "org.opencontainers.image.created=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+                  "${tag_args[@]}" \
+                  "${BUILD_CTX_ROOT}/${ctx}"
+
+              # cosign sign the multi-arch manifest index digest. Consumers
+              # that 'docker pull' resolve to this digest, so signing the
+              # index is the right level.
+              digest=$(python3 -c "import json,sys;print(json.load(open(sys.argv[1]))['containerimage.digest'])" "${metadata_file}")
+              echo "Signing ${image}@${digest}"
+              cosign sign --yes "${image}@${digest}"
+
+              # Add to the job summary for human readability.
+              {
+                echo "### ${image}"
+                echo ""
+                for t in "${tag_args[@]:1:99}"; do
+                  if [ "${t}" != "-t" ]; then echo "- \`${t}\`"; fi
+                done
+                echo ""
+                echo "- platforms: \`${platforms}\`"
+                echo "- digest:    \`${digest}\`"
+                echo "- signed:    cosign keyless (GH OIDC)"
+              } >> "$GITHUB_STEP_SUMMARY"
+
+              echo "::endgroup::"
+          done
+
+  # --------------------------------------------------------------------------
+  # nuget_pack: build NuGet packages. common.props sets IsPackable=false as
+  # the default; only three csproj override it (Models, Sdk, Testing.Servers).
+  # We assert exactly that set is produced so any future drift fails loudly.
+  # --------------------------------------------------------------------------
+  nuget_pack:
+    name: Pack NuGet packages
+    needs: [version, build_test]
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+      - name: Pack solution
+        # Pin restore + pack to nuget.org because the repo Nuget.Config only
+        # configures the internal Azure Artifacts feed.
+        shell: bash
+        run: |
+          dotnet pack Industrial-IoT.slnx \
+            -c Release \
+            -o ./nupkgs \
+            -s https://api.nuget.org/v3/index.json \
+            /p:ContinuousIntegrationBuild=true
+      - name: Validate produced packages
+        shell: bash
+        # The three projects that override common.props IsPackable=false:
+        #   - Azure.IIoT.OpcUa.Publisher.Models
+        #   - Azure.IIoT.OpcUa.Publisher.Sdk
+        #   - Azure.IIoT.OpcUa.Publisher.Testing.Servers
+        run: |
+          set -euo pipefail
+          expected=(
+            'Azure.IIoT.OpcUa.Publisher.Models'
+            'Azure.IIoT.OpcUa.Publisher.Sdk'
+            'Azure.IIoT.OpcUa.Publisher.Testing.Servers'
+          )
+          echo "Produced packages:"
+          ls -la ./nupkgs
+          for pkg in "${expected[@]}"; do
+            if ! ls "./nupkgs/${pkg}."*.nupkg >/dev/null 2>&1; then
+              echo "::error::Expected package ${pkg}.*.nupkg not produced"
+              exit 1
+            fi
+            echo "  ok: ${pkg}"
+          done
+          actual=$(find ./nupkgs -maxdepth 1 -name '*.nupkg' ! -name '*.symbols.nupkg' | wc -l)
+          if [ "${actual}" -ne "${#expected[@]}" ]; then
+            echo "::warning::Expected ${#expected[@]} .nupkg file(s) but found ${actual}. The IsPackable set may have drifted."
+          fi
+      - name: Upload nupkgs
+        uses: actions/upload-artifact@v4
+        with:
+          name: nupkgs
+          path: ./nupkgs
+          if-no-files-found: error
+          retention-days: 14
+
+  # --------------------------------------------------------------------------
+  # nuget_publish: push to the Azure org NuGet feed on GitHub Packages.
+  # Only runs on push to main or release/* (not on PR, not on dispatch, not
+  # on schedule). --skip-duplicate makes re-runs idempotent across reruns
+  # and against the existing internal pipeline (which may have already
+  # published the same version).
+  # --------------------------------------------------------------------------
+  nuget_publish:
+    name: Push packages to GitHub Packages
+    needs: nuget_pack
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - uses: actions/download-artifact@v4
+        with:
+          name: nupkgs
+          path: ./nupkgs
+      - name: Push to GitHub Packages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet nuget push './nupkgs/*.nupkg' \
+            --source 'https://nuget.pkg.github.com/Azure/index.json' \
+            --api-key "${GITHUB_TOKEN}" \
+            --skip-duplicate
+
+  # --------------------------------------------------------------------------
+  # e2e: invoke the reusable E2E standalone workflow with the image tag we
+  # just pushed. Gated to push (main/release/*), manual dispatch (opt-in via
+  # run_e2e input), and the nightly schedule -- never PRs.
+  # --------------------------------------------------------------------------
+  e2e:
+    name: E2E standalone tests
+    needs: [version, images_push]
+    # Reusable workflows inherit at most the caller's permissions. Without
+    # this block the e2e job's GITHUB_TOKEN would not have id-token: write
+    # and azure/login@v2 OIDC federation would fail.
+    permissions:
+      id-token: write
+      contents: read
+      actions: read
+    if: |
+      github.event_name == 'schedule' ||
+      (github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/'))) ||
+      (github.event_name == 'workflow_dispatch' && inputs.run_e2e)
+    uses: ./.github/workflows/e2e-standalone.yml
+    with:
+      image_tag: ${{ needs.version.outputs.simple_version }}
+      image_registry: ghcr.io
+      image_namespace: azure
+      region: ${{ github.event_name == 'workflow_dispatch' && inputs.e2e_region || 'northeurope' }}
+      resource_group_name: '<generated>'
+      cleanup: ${{ github.event_name != 'workflow_dispatch' || inputs.e2e_cleanup }}
+      head_sha: ${{ github.sha }}
+    secrets: inherit
+
+

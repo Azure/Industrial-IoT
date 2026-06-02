@@ -1,6 +1,6 @@
 # Microsoft OPC Publisher Edge Module
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Build Status](https://msazure.visualstudio.com/One/_apis/build/status%2FOneBranch%2FIndustrial-IoT%2FIndustrial-IoT-Buddy?repoName=Industrial-IoT&branchName=main)](https://msazure.visualstudio.com/One/_build/latest?definitionId=364946&repoName=Industrial-IoT&branchName=main)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Build Status](https://msazure.visualstudio.com/One/_apis/build/status%2FOneBranch%2FIndustrial-IoT%2FIndustrial-IoT-Buddy?repoName=Industrial-IoT&branchName=main)](https://msazure.visualstudio.com/One/_build/latest?definitionId=364946&repoName=Industrial-IoT&branchName=main) [![CI](https://github.com/Azure/Industrial-IoT/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Azure/Industrial-IoT/actions/workflows/ci.yml)
 
 ## Discover, register and manage your OPC UA enabled Assets with Azure
 

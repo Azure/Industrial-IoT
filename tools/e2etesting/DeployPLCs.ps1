@@ -184,5 +184,9 @@ foreach ($fqdn in $fqdnList) {
     $plcSimNames += $fqdn + ";"
 }
 
-Write-Host "##vso[task.setvariable variable=OpcPlcSimulationUrls]$($plcSimNames)"
-Write-Host "##vso[task.setvariable variable=OpcPlcSimulationIps]$($plcSimIps)"
+# Emit CI variables via the shared helper -- writes both the ADO
+# ##vso[task.setvariable ...] command and the GitHub Actions $GITHUB_OUTPUT /
+# $GITHUB_ENV entries.
+. (Join-Path $PSScriptRoot '_ci.ps1')
+Set-CIVariable -Name 'OpcPlcSimulationUrls' -Value $plcSimNames
+Set-CIVariable -Name 'OpcPlcSimulationIps'  -Value $plcSimIps

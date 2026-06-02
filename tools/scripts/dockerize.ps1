@@ -129,3 +129,8 @@ Get-ChildItem -Path $TarFileInput -Filter '*.tar.gz' -Recurse `
 $matrix | ConvertTo-Json | Out-Host
 $matrixJson = $matrix | ConvertTo-Json -Compress
 Write-Host "##vso[task.setVariable variable=$($script:MatrixName);isOutput=true]$matrixJson"
+# Also emit a GitHub Actions step output when running under GitHub Actions
+# (additive; ADO behavior is unchanged).
+if (![string]::IsNullOrWhiteSpace($env:GITHUB_OUTPUT)) {
+    "$($script:MatrixName)=$matrixJson" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+}
