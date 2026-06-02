@@ -138,24 +138,33 @@ jobs:
       - name: Restore
         # Restore against nuget.org explicitly; the repo Nuget.Config points
         # only at the internal Azure Artifacts feed.
+        # Use pwsh on both OSes -- on Windows, Git Bash (MSYS) corrupts
+        # MSBuild `/p:` args (strips the leading `/` thinking it's a Unix
+        # path) and escapes backslashes in Windows paths like `D:\a\...`.
         run: dotnet restore "${{ matrix.project.path }}" -s https://api.nuget.org/v3/index.json
-        shell: bash
+        shell: pwsh
       - name: Build
         run: dotnet build "${{ matrix.project.path }}" -c Release --no-restore
-        shell: bash
+        shell: pwsh
       - name: Test
         # OPC UA tests within a project contend on local ports and PKI
         # directories; --blame-hang-timeout protects against the
         # intermittent test-host hangs that historically affected Windows.
+        #
+        # CoverletOutput ends with a `/` so coverlet treats it as a
+        # directory and writes one file per assembly+TFM. That avoids the
+        # `Unable to read beyond the end of the stream` failure observed on
+        # the Publisher project when multiple parallel test threads write
+        # to the same coverage file.
+        shell: pwsh
         run: |
-          dotnet test "${{ matrix.project.path }}" --no-build -c Release \
-            --blame-hang-timeout 10m --blame-hang-dump-type none \
-            --logger "trx;LogFileName=test-results.trx" \
-            --results-directory ./testresults/${{ matrix.project.name }} \
-            /p:CollectCoverage=true \
-            /p:CoverletOutputFormat=cobertura \
-            /p:CoverletOutput=${{ github.workspace }}/testresults/${{ matrix.project.name }}/coverage.cobertura.xml
-        shell: bash
+          dotnet test "${{ matrix.project.path }}" --no-build -c Release `
+            --blame-hang-timeout 10m --blame-hang-dump-type none `
+            --logger "trx;LogFileName=test-results.trx" `
+            --results-directory ./testresults/${{ matrix.project.name }} `
+            /p:CollectCoverage=true `
+            /p:CoverletOutputFormat=cobertura `
+            /p:CoverletOutput=./testresults/${{ matrix.project.name }}/
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -195,7 +204,7 @@ jobs:
         run: |
           set -euo pipefail
           shopt -s globstar
-          reports=$(find ./all-testresults -name 'coverage.cobertura.xml' | paste -sd ';' -)
+          reports=$(find ./all-testresults -name 'coverage*.cobertura.xml' | paste -sd ';' -)
           if [ -z "$reports" ]; then
             echo "## Coverage" >> "$GITHUB_STEP_SUMMARY"
             echo "_No coverage files were produced by the matrix jobs._" >> "$GITHUB_STEP_SUMMARY"
