@@ -91,6 +91,15 @@ Get-ChildItem $Path -Filter *.csproj -Recurse | ForEach-Object {
 	        $runtimeId = "$($script:Os)-musl-$($script:Arch)"
 	    }
 
+        # Skip projects that pin a single ContainerRuntimeIdentifier that
+        # does not match the requested -Os/-Arch (e.g. the linux-x64-only
+        # opc-ua-test-server should not be built for arm/arm64).
+        $pinnedRid = $properties.ContainerRuntimeIdentifier
+        if (![string]::IsNullOrWhiteSpace($pinnedRid) -and $pinnedRid -ne $runtimeId) {
+            Write-Host "Skip $($projFile.Name): pinned ContainerRuntimeIdentifier='$pinnedRid' does not match requested '$runtimeId'."
+            return
+        }
+
         if (!$script:NoBuild.IsPresent) {
             Write-Host "Build $($projFile.FullName) ..."
 

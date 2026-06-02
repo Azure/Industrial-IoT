@@ -1,0 +1,170 @@
+name: E2E Run Tests
+
+# ----------------------------------------------------------------------------
+# Reusable helper workflow that runs the IIoTPlatform-E2E-Tests xUnit suite
+# against a previously-deployed standalone resource group. Invoked twice by
+# e2e-standalone.yml -- once with PublisherMode=AE, once with
+# PublisherMode=standalone -- to keep the test logic in one place.
+#
+# Required repository variables (federated OIDC):
+#   AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID
+# ----------------------------------------------------------------------------
+
+on:
+  workflow_call:
+    inputs:
+      resource_group_name:
+        required: true
+        type: string
+      key_vault_name:
+        required: true
+        type: string
+      filter_name:
+        description: 'xUnit trait name (e.g. PublisherMode)'
+        required: true
+        type: string
+      filter_value:
+        description: 'xUnit trait value (e.g. AE or standalone)'
+        required: true
+        type: string
+      timeout_minutes:
+        description: 'Job timeout, in minutes'
+        required: false
+        type: number
+        default: 90
+      result_label:
+        description: 'Short label appended to artifact name'
+        required: true
+        type: string
+      image_registry:
+        required: false
+        type: string
+        default: ghcr.io
+      image_namespace:
+        required: false
+        type: string
+        default: azure
+      image_tag:
+        required: true
+        type: string
+      edge_version:
+        required: false
+        type: string
+        default: '1.4'
+
+permissions:
+  id-token: write
+  contents: read
+  actions: read
+
+jobs:
+  run:
+    name: ${{ inputs.filter_name }}=${{ inputs.filter_value }}
+    runs-on: windows-latest
+    timeout-minutes: ${{ inputs.timeout_minutes }}
+    env:
+      ResourceGroupName: ${{ inputs.resource_group_name }}
+      KeyVaultName: ${{ inputs.key_vault_name }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
+      - name: Grant KeyVault access to the federated SP
+        shell: pwsh
+        # Mirrors templates/steps/runtests.yml; the script iterates KVs in
+        # the RG and sets get/list/set on secrets. We pass the App
+        # Registration client id as the service principal name -- which
+        # Set-AzKeyVaultAccessPolicy accepts as an alias for the app id.
+        run: |
+          ./tools/e2etesting/SetKeyVaultPermissions.ps1 `
+            -ResourceGroupName "${{ env.ResourceGroupName }}" `
+            -ServicePrincipalName "${{ vars.AZURE_CLIENT_ID }}"
+      - name: Fetch KeyVault secrets and mask them in logs
+        shell: bash
+        # Replicates the AzureKeyVault@2 task: each secret is exposed to the
+        # test step via $GITHUB_ENV and masked from logs via ::add-mask::.
+        # Names mirror the AzureKeyVault@2 SecretsFilter from runtests.yml.
+        run: |
+          set -euo pipefail
+          fetch() {
+            local name="$1"
+            local env_name="$2"
+            local val
+            val=$(az keyvault secret show --vault-name "$KeyVaultName" --name "$name" --query value -o tsv 2>/dev/null || true)
+            if [ -z "$val" ]; then
+              echo "::warning::KeyVault secret '$name' is missing or empty"
+              return
+            fi
+            echo "::add-mask::$val"
+            # Use the heredoc form to be safe with newlines (SSH keys).
+            delim="EOF_$(uuidgen | tr -d '-')"
+            {
+              echo "${env_name}<<${delim}"
+              echo "${val}"
+              echo "${delim}"
+            } >> "$GITHUB_ENV"
+          }
+          fetch 'PCS-IOTHUB-CONNSTRING'            'PCS_IOTHUB_CONNSTRING'
+          fetch 'plc-simulation-urls'              'PLC_SIMULATION_URLS'
+          fetch 'plc-simulation-ips'               'PLC_SIMULATION_IPS'
+          fetch 'iot-edge-vm-username'             'IOT_EDGE_VM_USERNAME'
+          fetch 'iot-edge-vm-publickey'            'IOT_EDGE_VM_PUBLICKEY'
+          fetch 'iot-edge-vm-privatekey'           'IOT_EDGE_VM_PRIVATEKEY'
+          fetch 'iot-edge-device-id'               'IOT_EDGE_DEVICE_ID'
+          fetch 'iot-edge-device-dnsname'          'IOT_EDGE_DEVICE_DNSNAME'
+          fetch 'iothub-eventhub-connectionstring' 'IOTHUB_EVENTHUB_CONNECTIONSTRING'
+          fetch 'PCS-SUBSCRIPTION-ID'              'PCS_SUBSCRIPTION_ID'
+      - name: Restore E2E test solution
+        shell: bash
+        # Pin to nuget.org -- repo's Nuget.Config points to an internal feed
+        # the runner cannot read.
+        run: |
+          dotnet restore e2e-tests/IIoTPlatform-E2E-Tests.slnx \
+            -s https://api.nuget.org/v3/index.json
+      - name: Build E2E test solution
+        shell: bash
+        run: |
+          dotnet build e2e-tests/IIoTPlatform-E2E-Tests.slnx \
+            -c Release --no-restore
+      - name: Execute xUnit tests (${{ inputs.filter_name }}=${{ inputs.filter_value }})
+        id: test
+        shell: bash
+        env:
+          # Mirrors templates/steps/runtests.yml env block. PCS_DOCKER_*,
+          # PCS_IMAGES_* override what's in KV so the test deployment uses
+          # the GHCR image just pushed by ci.yml.
+          PCS_DOCKER_SERVER: ${{ inputs.image_registry }}
+          PCS_DOCKER_USER: ${{ secrets.GHCR_USERNAME }}
+          PCS_DOCKER_PASSWORD: ${{ secrets.GHCR_TOKEN }}
+          PCS_IMAGES_NAMESPACE: ${{ inputs.image_namespace }}
+          PCS_IMAGES_TAG: ${{ inputs.image_tag }}
+          PCS_RESOURCE_GROUP: ${{ env.ResourceGroupName }}
+          AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+          IOT_EDGE_VERSION: ${{ inputs.edge_version }}
+        run: |
+          set -euo pipefail
+          mkdir -p e2e-tests/results
+          dotnet test e2e-tests/IIoTPlatform-E2E-Tests.slnx \
+            --configuration Release --no-build \
+            --filter "${{ inputs.filter_name }}=${{ inputs.filter_value }}" \
+            --logger "trx;LogFileName=${{ inputs.result_label }}.trx" \
+            --logger "console;verbosity=detailed" \
+            --results-directory e2e-tests/results
+      - name: Upload TRX results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-results-${{ inputs.result_label }}
+          path: e2e-tests/results
+          if-no-files-found: warn
+          retention-days: 14

@@ -1,0 +1,344 @@
+name: E2E Standalone
+
+# ----------------------------------------------------------------------------
+# End-to-end standalone test pipeline. Mirrors the internal Azure DevOps
+# pipeline Industrial-IoT-E2E-Standalone.yml using the same PowerShell
+# scripts under tools/e2etesting/, but invoked through GitHub Actions with
+# federated OIDC auth to Azure (no client secret).
+#
+# Triggers:
+#   - workflow_call  : invoked from ci.yml after images_push so the exact
+#                      tag/sha is passed explicitly. Safer than workflow_run.
+#   - workflow_dispatch : operator override (mirrors the internal pipeline
+#                      parameters: version, region, RG name, cleanup).
+#   - schedule       : nightly run against the latest pushed `main` image.
+#
+# Required repository variables (OIDC federated credential on Entra ID App):
+#   AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID
+# Optional secrets (only when GHCR packages are private and IoT Edge needs
+# to pull at runtime):
+#   GHCR_USERNAME, GHCR_TOKEN
+# ----------------------------------------------------------------------------
+
+on:
+  workflow_call:
+    inputs:
+      image_tag:
+        description: 'Image tag to deploy (e.g. 2.9.17 or latest)'
+        required: true
+        type: string
+      image_registry:
+        description: 'Container registry server (default ghcr.io)'
+        required: false
+        type: string
+        default: ghcr.io
+      image_namespace:
+        description: 'Image namespace inside the registry (default azure)'
+        required: false
+        type: string
+        default: azure
+      region:
+        description: 'Azure region for E2E resources'
+        required: false
+        type: string
+        default: northeurope
+      resource_group_name:
+        description: 'Resource group (use <generated> for an auto-named per-run RG)'
+        required: false
+        type: string
+        default: '<generated>'
+      cleanup:
+        description: 'Delete the resource group after the run'
+        required: false
+        type: boolean
+        default: true
+      head_sha:
+        description: 'Source SHA being validated (informational only)'
+        required: false
+        type: string
+        default: ''
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Image tag to deploy (e.g. 2.9.17 or latest)'
+        required: true
+        type: string
+        default: latest
+      image_registry:
+        description: 'Container registry server'
+        required: false
+        type: string
+        default: ghcr.io
+      image_namespace:
+        description: 'Image namespace inside the registry'
+        required: false
+        type: string
+        default: azure
+      region:
+        description: 'Azure region for E2E resources'
+        required: false
+        type: string
+        default: northeurope
+      resource_group_name:
+        description: 'Resource group (use <generated> for an auto-named per-run RG)'
+        required: false
+        type: string
+        default: '<generated>'
+      cleanup:
+        description: 'Delete the resource group after the run'
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  id-token: write   # OIDC federation to Azure
+  contents: read
+  actions: read
+
+concurrency:
+  # Serialize per-RG so a new run doesn't kill an in-flight deploy and leak
+  # Azure resources. RG name is unique-per-run when the input is <generated>,
+  # so concurrent CI runs do not collide.
+  group: e2e-${{ inputs.resource_group_name || 'nightly' }}
+  cancel-in-progress: false
+
+env:
+  # Versions of the image and tools must be consistent across all jobs in this
+  # workflow run. workflow_call / workflow_dispatch always provide inputs; the
+  # schedule trigger does not, so we fall back to `latest` (the floating tag
+  # that ci.yml's images_push refreshes from main).
+  IMAGE_TAG: ${{ inputs.image_tag || 'latest' }}
+  IMAGE_REGISTRY: ${{ inputs.image_registry || 'ghcr.io' }}
+  IMAGE_NAMESPACE: ${{ inputs.image_namespace || 'azure' }}
+  E2E_REGION: ${{ inputs.region || 'northeurope' }}
+  EDGE_VERSION: '1.4'
+  BRANCH_NAME: ${{ github.ref_name }}
+
+jobs:
+  # --------------------------------------------------------------------------
+  # init: compute the resource group name once so every other job uses the
+  # same value. <generated> mirrors the internal pipeline's date+counter
+  # pattern: e2etesting<YYYYMMDD><run_number>.
+  # --------------------------------------------------------------------------
+  init:
+    name: Compute run variables
+    runs-on: ubuntu-latest
+    outputs:
+      resource_group_name: ${{ steps.compute.outputs.rg }}
+    steps:
+      - id: compute
+        shell: bash
+        run: |
+          # Use github.run_id (globally unique per workflow run) -- not
+          # github.run_number which is per-workflow and could collide with
+          # other workflows generating RGs the same day.
+          if [ "${{ inputs.resource_group_name || '<generated>' }}" = "<generated>" ]; then
+            rg="e2etesting$(date -u +%Y%m%d)${{ github.run_id }}"
+          else
+            rg="${{ inputs.resource_group_name }}"
+          fi
+          echo "rg=${rg}" >> "$GITHUB_OUTPUT"
+          echo "Resource group: ${rg}"
+
+  # --------------------------------------------------------------------------
+  # deploy_standalone: deploys the standalone IIoT infrastructure (KeyVault,
+  # IoT Hub, ResourceGroup tags) and writes the GHCR registry secrets into
+  # KeyVault so the test runs and the IoT Edge module config can pull the
+  # right image.
+  # --------------------------------------------------------------------------
+  deploy_standalone:
+    name: Deploy standalone resources
+    needs: init
+    runs-on: windows-latest
+    timeout-minutes: 60
+    outputs:
+      key_vault_name: ${{ steps.kv.outputs.KeyVaultName }}
+      resource_group_name: ${{ needs.init.outputs.resource_group_name }}
+    env:
+      ResourceGroupName: ${{ needs.init.outputs.resource_group_name }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Azure login (OIDC, with PowerShell session)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
+      - name: Deploy standalone resources
+        shell: pwsh
+        run: |
+          ./tools/e2etesting/DeployStandalone.ps1 `
+            -ResourceGroupName "${{ env.ResourceGroupName }}" `
+            -Region "${{ env.E2E_REGION }}" `
+            -ServicePrincipalId "${{ vars.AZURE_CLIENT_ID }}"
+      - name: Determine KeyVault name
+        id: kv
+        shell: pwsh
+        # DetermineKeyVaultName.ps1 calls Set-CIVariable, which writes
+        # KeyVaultName=<value> to $GITHUB_OUTPUT (and $GITHUB_ENV) thanks to
+        # the additive enhancement in tools/e2etesting/_ci.ps1.
+        run: |
+          ./tools/e2etesting/DetermineKeyVaultName.ps1 `
+            -ResourceGroupName "${{ env.ResourceGroupName }}"
+      - name: Write registry credentials to KeyVault
+        shell: pwsh
+        # ImageNamespace is required by SetKeyVaultSecrets.ps1; we pass the
+        # GHCR namespace ("azure" by default). Username/password default to
+        # empty when packages are public; provide them via repo secrets only
+        # if you switched the GHCR packages to private visibility.
+        env:
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+        run: |
+          ./tools/e2etesting/SetKeyVaultSecrets.ps1 `
+            -KeyVaultName "${{ env.KeyVaultName }}" `
+            -ImageTag "${{ env.IMAGE_TAG }}" `
+            -ImageNamespace "${{ env.IMAGE_NAMESPACE }}" `
+            -ContainerRegistryServer "${{ env.IMAGE_REGISTRY }}" `
+            -ContainerRegistryUsername "$env:GHCR_USERNAME" `
+            -ContainerRegistryPassword "$env:GHCR_TOKEN"
+
+  # --------------------------------------------------------------------------
+  # deploy_test_resources: deploys IoT Hub event hub config, OPC PLC ACI
+  # containers, and the IoT Edge VM, then writes connection variables into
+  # KeyVault for the test run jobs to consume.
+  # --------------------------------------------------------------------------
+  deploy_test_resources:
+    name: Deploy test resources (PLCs + IoT Edge VM)
+    needs: [init, deploy_standalone]
+    runs-on: windows-latest
+    timeout-minutes: 90
+    outputs:
+      fqdn: ${{ steps.deploy_edge.outputs.Fqdn }}
+      edge_identity: ${{ steps.deploy_edge.outputs.EdgeIdentity }}
+      edge_vm_username: ${{ steps.deploy_edge.outputs.EdgeVmUsername }}
+      plc_urls: ${{ steps.deploy_plcs.outputs.OpcPlcSimulationUrls }}
+      plc_ips: ${{ steps.deploy_plcs.outputs.OpcPlcSimulationIps }}
+    env:
+      ResourceGroupName: ${{ needs.init.outputs.resource_group_name }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
+      - name: Deploy IoT Hub event hub + storage
+        shell: pwsh
+        run: |
+          ./tools/e2etesting/DeployTestResources.ps1 `
+            -ResourceGroupName "${{ env.ResourceGroupName }}"
+      - name: Deploy OPC PLC simulators
+        id: deploy_plcs
+        shell: pwsh
+        run: |
+          ./tools/e2etesting/DeployPLCs.ps1 `
+            -ResourceGroupName "${{ env.ResourceGroupName }}" `
+            -UsePrivateIp $false
+      - name: Deploy IoT Edge VM
+        id: deploy_edge
+        shell: pwsh
+        # Note: SshPrivateKey is written with -Secret in DeployEdge.ps1 so it
+        # is masked from job logs and the output is treated as a secret.
+        env:
+          KEYS_PATH: ${{ runner.temp }}/keys
+        run: |
+          ./tools/e2etesting/DeployEdge.ps1 `
+            -ResourceGroupName "${{ env.ResourceGroupName }}" `
+            -KeysPath "$env:KEYS_PATH"
+      - name: Write test variables to KeyVault
+        shell: pwsh
+        # We re-determine KeyVaultName in this job because $GITHUB_ENV does
+        # not flow across jobs; using the deploy_standalone output would
+        # require plumbing an extra needs link. Both runs return the same KV.
+        run: |
+          ./tools/e2etesting/SetTestVariables.ps1 `
+            -ResourceGroupName "${{ env.ResourceGroupName }}" `
+            -OpcPlcSimulationUrls "${{ env.OpcPlcSimulationUrls }}" `
+            -OpcPlcSimulationIps "${{ env.OpcPlcSimulationIps }}" `
+            -Fqdn "${{ env.Fqdn }}" `
+            -EdgeIdentity "${{ env.EdgeIdentity }}" `
+            -EdgeVmUsername "${{ env.EdgeVmUsername }}" `
+            -SshPrivateKey "${{ env.SshPrivateKey }}" `
+            -SshPublicKey "${{ env.SshPublicKey }}"
+
+  # --------------------------------------------------------------------------
+  # run_tests_ae: A&E filter (PublisherMode=AE). Runs first because the
+  # internal pipeline ordered it before the basic run.
+  # --------------------------------------------------------------------------
+  run_tests_ae:
+    name: Run A&E tests (PublisherMode=AE)
+    needs: [init, deploy_standalone, deploy_test_resources]
+    uses: ./.github/workflows/e2e-run-tests.yml
+    with:
+      resource_group_name: ${{ needs.init.outputs.resource_group_name }}
+      key_vault_name: ${{ needs.deploy_standalone.outputs.key_vault_name }}
+      filter_name: PublisherMode
+      filter_value: AE
+      timeout_minutes: 90
+      result_label: ae
+      image_registry: ${{ inputs.image_registry || 'ghcr.io' }}
+      image_namespace: ${{ inputs.image_namespace || 'azure' }}
+      image_tag: ${{ inputs.image_tag || 'latest' }}
+      edge_version: '1.4'
+    secrets: inherit
+
+  # --------------------------------------------------------------------------
+  # run_tests_basic: standalone filter, depends on AE so they don't run in
+  # parallel against the same IoT Edge deployment. Always runs even if AE
+  # failed -- the internal pipeline uses succeededOrFailed() for the same
+  # reason.
+  # --------------------------------------------------------------------------
+  run_tests_basic:
+    name: Run basic tests (PublisherMode=standalone)
+    needs: [init, deploy_standalone, deploy_test_resources, run_tests_ae]
+    if: always() && needs.deploy_test_resources.result == 'success'
+    uses: ./.github/workflows/e2e-run-tests.yml
+    with:
+      resource_group_name: ${{ needs.init.outputs.resource_group_name }}
+      key_vault_name: ${{ needs.deploy_standalone.outputs.key_vault_name }}
+      filter_name: PublisherMode
+      filter_value: standalone
+      timeout_minutes: 240
+      result_label: basic
+      image_registry: ${{ inputs.image_registry || 'ghcr.io' }}
+      image_namespace: ${{ inputs.image_namespace || 'azure' }}
+      image_tag: ${{ inputs.image_tag || 'latest' }}
+      edge_version: '1.4'
+    secrets: inherit
+
+  # --------------------------------------------------------------------------
+  # cleanup: always-on resource group teardown. Skip when the operator opts
+  # out via the cleanup=false input (for triage of a failed run).
+  # --------------------------------------------------------------------------
+  cleanup:
+    name: Delete resource group
+    needs: [init, deploy_standalone, deploy_test_resources, run_tests_ae, run_tests_basic]
+    if: always() && (inputs.cleanup == null || inputs.cleanup == true) && !cancelled()
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      ResourceGroupName: ${{ needs.init.outputs.resource_group_name }}
+    steps:
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
+      - name: Remove resource group
+        shell: bash
+        # Use `az group delete --no-wait` so the deletion runs server-side
+        # and isn't tied to the runner. The PowerShell `-AsJob` background
+        # job would die with the runner before deletion completes.
+        env:
+          RG: ${{ env.ResourceGroupName }}
+        run: |
+          if az group show --name "$RG" >/dev/null 2>&1; then
+            echo "Submitting async delete for resource group '$RG'..."
+            az group delete --name "$RG" --yes --no-wait
+          else
+            echo "Resource group '$RG' not found; nothing to clean up."
+          fi

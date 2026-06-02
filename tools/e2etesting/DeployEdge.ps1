@@ -144,10 +144,17 @@ if ([string]::IsNullOrEmpty($sshUrl)) {
 }
 $fqdn = $sshUrl.Split("@")[1]
 
-Write-Host "##vso[task.setvariable variable=EdgeIdentity]$($edgeIdentity.Id)"
-Write-Host "##vso[task.setvariable variable=EdgeVmUsername]$($edgeVmUsername)"
-Write-Host "##vso[task.setvariable variable=SshPrivateKey]$($sshPrivateKey)"
-Write-Host "##vso[task.setvariable variable=SshPublicKey]$($sshPublicKey)"
-Write-Host "##vso[task.setvariable variable=Fqdn]$($fqdn)"
+# Emit CI variables via the shared helper. This writes the ADO
+# ##vso[task.setvariable ...] command AND the GitHub Actions
+# $GITHUB_OUTPUT / $GITHUB_ENV entries. SshPrivateKey is marked -Secret so
+# it is masked from logs on both systems (the helper registers the GH mask
+# BEFORE the ADO command line is written to stdout, which is the only place
+# the raw value would otherwise appear in GH logs).
+. (Join-Path $PSScriptRoot '_ci.ps1')
+Set-CIVariable -Name 'EdgeIdentity'   -Value $edgeIdentity.Id
+Set-CIVariable -Name 'EdgeVmUsername' -Value $edgeVmUsername
+Set-CIVariable -Name 'SshPrivateKey'  -Value $sshPrivateKey -Secret
+Set-CIVariable -Name 'SshPublicKey'   -Value $sshPublicKey
+Set-CIVariable -Name 'Fqdn'           -Value $fqdn
 
 Write-Host "Deployment finished."
