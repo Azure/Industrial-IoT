@@ -150,6 +150,9 @@ jobs:
         # OPC UA tests within a project contend on local ports and PKI
         # directories; --blame-hang-timeout protects against the
         # intermittent test-host hangs that historically affected Windows.
+        # 30m allows the coverlet.collector finalizer enough headroom on
+        # Linux (instrumentation flush on the Publisher.Module assembly
+        # can sit idle >10m after the last test completes).
         #
         # Coverage uses the `XPlat Code Coverage` data collector backed by
         # coverlet.collector (registered as a PackageReference in each test
@@ -160,7 +163,7 @@ jobs:
         shell: pwsh
         run: |
           dotnet test "${{ matrix.project.path }}" --no-build -c Release `
-            --blame-hang-timeout 10m --blame-hang-dump-type none `
+            --blame-hang-timeout 30m --blame-hang-dump-type none `
             --logger "trx;LogFileName=test-results.trx" `
             --results-directory ./testresults/${{ matrix.project.name }} `
             --collect:"XPlat Code Coverage;Format=cobertura"
