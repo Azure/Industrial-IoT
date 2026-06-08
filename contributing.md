@@ -78,7 +78,7 @@ On the Azure side, the App Registration must have federated credentials for thes
 The federated identity needs:
 
 * **Contributor** on the target subscription (creates resource groups, IoT Hub, KeyVault, VMs, ACI).
-* A KeyVault **access policy** with `get,list,set` on secrets in the deployment-created vaults (the deployment scripts create KeyVaults with access-policy mode, not RBAC; `SetKeyVaultPermissions.ps1` grants the policy automatically).
+* **Key Vault Secrets Officer** on secrets in the deployment-created vaults (the deployment scripts create new KeyVaults in RBAC mode and migrate any pre-existing access-policy vaults; `SetKeyVaultPermissions.ps1` assigns the role automatically).
 
 ### Restoring NuGet packages from runners
 

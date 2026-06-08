@@ -110,9 +110,42 @@ else {
 
 if ($ServicePrincipalId) {
     Write-Host "Granting 'Key Vault Secrets Officer' role on Key Vault to Service Principal $($ServicePrincipalId)..."
-    $existing = Get-AzRoleAssignment -ObjectId $ServicePrincipalId -RoleDefinitionName "Key Vault Secrets Officer" -Scope $keyVault.ResourceId -ErrorAction SilentlyContinue
+    # $ServicePrincipalId may be either an App (client) ID or an SP Object ID
+    # depending on caller. The ADO `addSpnToEnvironment: true` task exposes the
+    # App ID via $env:servicePrincipalId, so resolve to the SP Object ID before
+    # calling New-AzRoleAssignment -ObjectId.
+    $spObjectId = $ServicePrincipalId
+    $sp = Get-AzADServicePrincipal -ApplicationId $ServicePrincipalId -ErrorAction SilentlyContinue
+    if (!$sp) {
+        $sp = Get-AzADServicePrincipal -ObjectId $ServicePrincipalId -ErrorAction SilentlyContinue
+    }
+    if ($sp) { $spObjectId = $sp.Id }
+    $existing = Get-AzRoleAssignment -ObjectId $spObjectId -RoleDefinitionName "Key Vault Secrets Officer" -Scope $keyVault.ResourceId -ErrorAction SilentlyContinue
     if (!$existing) {
-        New-AzRoleAssignment -ObjectId $ServicePrincipalId -RoleDefinitionName "Key Vault Secrets Officer" -Scope $keyVault.ResourceId | Out-Null
+        New-AzRoleAssignment -ObjectId $spObjectId -RoleDefinitionName "Key Vault Secrets Officer" -Scope $keyVault.ResourceId | Out-Null
+    }
+}
+
+# Wait briefly for RBAC role propagation before writing secrets. New role
+# assignments typically take 10-60s before the KV data plane accepts the
+# principal; this helper retries the secret write to absorb that delay.
+function Set-KvSecretWithRetry {
+    param(
+        [Parameter(Mandatory)] [string] $VaultName,
+        [Parameter(Mandatory)] [string] $Name,
+        [Parameter(Mandatory)] [System.Security.SecureString] $SecretValue,
+        [int] $MaxAttempts = 12,
+        [int] $DelaySeconds = 10
+    )
+    for ($i = 1; $i -le $MaxAttempts; $i++) {
+        try {
+            Set-AzKeyVaultSecret -VaultName $VaultName -Name $Name -SecretValue $SecretValue -ErrorAction Stop | Out-Null
+            return
+        } catch {
+            if ($i -eq $MaxAttempts) { throw }
+            Write-Host "Set-AzKeyVaultSecret '$Name' attempt $i failed: $($_.Exception.Message). Retrying in ${DelaySeconds}s..."
+            Start-Sleep -Seconds $DelaySeconds
+        }
     }
 }
 
@@ -122,15 +155,15 @@ $SubscriptionId = $context.Subscription.Id
 Write-Host "Adding/Updating KeyVault-Secret 'PCS-IOTHUB-CONNSTRING' with value '***'..."
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
 $secret = ConvertTo-SecureString $connectionString.PrimaryConnectionString -AsPlainText -Force
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS-IOTHUB-CONNSTRING' -SecretValue $secret | Out-Null
+Set-KvSecretWithRetry -VaultName $keyVault.VaultName -Name 'PCS-IOTHUB-CONNSTRING' -SecretValue $secret
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
 $secret = ConvertTo-SecureString $TenantId -AsPlainText -Force
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS-AUTH-TENANT' -SecretValue $secret | Out-Null
+Set-KvSecretWithRetry -VaultName $keyVault.VaultName -Name 'PCS-AUTH-TENANT' -SecretValue $secret
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
 $secret = ConvertTo-SecureString $SubscriptionId -AsPlainText -Force
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS-SUBSCRIPTION-ID' -SecretValue $secret | Out-Null
+Set-KvSecretWithRetry -VaultName $keyVault.VaultName -Name 'PCS-SUBSCRIPTION-ID' -SecretValue $secret
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
 $secret = ConvertTo-SecureString $ResourceGroupName -AsPlainText -Force
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS-RESOURCE-GROUP' -SecretValue $secret | Out-Null
+Set-KvSecretWithRetry -VaultName $keyVault.VaultName -Name 'PCS-RESOURCE-GROUP' -SecretValue $secret
 
 Write-Host "Deployment finished."
