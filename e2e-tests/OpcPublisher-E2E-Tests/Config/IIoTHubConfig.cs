@@ -11,13 +11,26 @@ namespace OpcPublisherAEE2ETests.Config
     public interface IIoTHubConfig
     {
         /// <summary>
-        /// IoT Hub connection string
+        /// IoT Hub connection string. Still used by IoT Hub service operations (registry
+        /// and service client) until the v2 IoT Hub SDK GA's and we can migrate to
+        /// IotHubServiceClient(hostname, TokenCredential). See plan Phase 1.3.
         /// </summary>
         string IoTHubConnectionString { get; }
 
         /// <summary>
-        /// The connection string of the EventHub-compatible endpoint of the IoTHub
+        /// Fully-qualified namespace of the IoT Hub's built-in Event Hub-compatible endpoint
+        /// (e.g. "iothub-ns-myhub-12345-abc123.servicebus.windows.net"). When provided, the
+        /// test process authenticates to this endpoint via AAD (TokenCredential) instead of
+        /// a shared access key.
         /// </summary>
-        string IoTHubEventHubConnectionString { get; }
+        string IoTHubEventHubFullyQualifiedNamespace { get; }
+
+        /// <summary>
+        /// Event Hub "entity path" for the IoT Hub's built-in endpoint. Equals the IoT Hub
+        /// name. When IoTHubEventHubFullyQualifiedNamespace is also provided, the test
+        /// process uses these two values + a TokenCredential to construct the Event Hub
+        /// consumer client (AAD auth, no shared key).
+        /// </summary>
+        string IoTHubEventHubName { get; }
     }
 }

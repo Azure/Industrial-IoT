@@ -49,7 +49,7 @@ steps:
   inputs:
     azureSubscription: '$(AzureSubscription)'
     KeyVaultName: '$(KeyVaultName)'
-    SecretsFilter: 'PCS-IOTHUB-CONNSTRING,plc-simulation-urls,plc-simulation-ips,iot-edge-vm-username,iot-edge-vm-publickey,iot-edge-vm-privatekey,iot-edge-device-id,iot-edge-device-dnsname,iothub-eventhub-connectionstring,PCS-SUBSCRIPTION-ID'
+    SecretsFilter: 'PCS-IOTHUB-CONNSTRING,plc-simulation-urls,plc-simulation-ips,iot-edge-vm-username,iot-edge-device-id,iot-edge-device-dnsname,iothub-eventhub-connectionstring,PCS-SUBSCRIPTION-ID'
 - task: AzureKeyVault@2
   displayName: 'Retrieve KeyVault secrets for API tests'
   condition: notIn( '${{ parameters.ModeValue }}', 'standalone', 'AE')
@@ -113,8 +113,10 @@ steps:
     ApplicationName: '$(ApplicationName)'
     AzureSubscription: '$(AzureSubscription)'
     SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+    # AZURE_CLIENT_ID + the SYSTEM_ACCESSTOKEN above feed AzurePipelinesCredential in the
+    # test process for federated token acquisition. There is no AZURE_CLIENT_SECRET — the
+    # service principal is workload-identity-federation-only.
     AZURE_CLIENT_ID: "$(ServicePrincipalId)"
-    AZURE_CLIENT_SECRET: "$(ServicePrincipalKey)"
     AZURE_TENANT_ID: "$(pcs-auth-tenant)"
     PCS_IMAGES_TAG: '$(ImageTag)'
     PCS_DOCKER_SERVER: "$(ContainerRegistryServer)"
@@ -135,8 +137,10 @@ steps:
     IOT_EDGE_DEVICE_ID: '$(iot-edge-device-id)'
     IOT_EDGE_DEVICE_DNSNAME: '$(iot-edge-device-dnsname)'
     IOT_EDGE_VM_USERNAME: '$(iot-edge-vm-username)'
-    IOT_EDGE_VM_PUBLICKEY: '$(iot-edge-vm-publickey)'
-    IOT_EDGE_VM_PRIVATEKEY: '$(iot-edge-vm-privatekey)'
+    # SSH keys come directly from DeployEdge.ps1 pipeline secret variables (set with
+    # issecret=true), not via KV. They never persist at rest in our infra.
+    IOT_EDGE_VM_PUBLICKEY: '$(SshPublicKey)'
+    IOT_EDGE_VM_PRIVATEKEY: '$(SshPrivateKey)'
     IOTHUB_EVENTHUB_CONNECTIONSTRING: '$(iothub-eventhub-connectionstring)'
 - task: PublishTestResults@2
   displayName: 'Publish test results'

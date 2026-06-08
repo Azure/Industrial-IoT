@@ -14,8 +14,6 @@
     <PackageReference Include="Azure.Core" />
     <PackageReference Include="Azure.Messaging.EventHubs" />
     <PackageReference Include="Azure.ResourceManager.ContainerInstance" />
-    <PackageReference Include="Azure.ResourceManager.Storage" />
-    <PackageReference Include="Azure.Storage.Files.Shares" />
     <PackageReference Include="FluentAssertions" />
     <PackageReference Include="Azure.ResourceManager" />
     <PackageReference Include="Neovolve.Logging.Xunit" />

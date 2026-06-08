@@ -109,16 +109,6 @@ namespace OpcPublisherAEE2ETests.TestExtensions
         public IReadOnlyList<string> PlcAciDynamicUrls { get; set; }
 
         /// <summary>
-        /// Azure Storage Name
-        /// </summary>
-        public string AzureStorageName { get; set; }
-
-        /// <summary>
-        /// Azure Storage Key
-        /// </summary>
-        public string AzureStorageKey { get; set; }
-
-        /// <summary>
         /// Image that are used for PLC ACI
         /// </summary>
         public string PLCImage { get; set; }
@@ -185,8 +175,62 @@ namespace OpcPublisherAEE2ETests.TestExtensions
         public string IoTHubConnectionString => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.PCS_IOTHUB_CONNSTRING,
             () => throw new InvalidOperationException("IoT Hub connection string is not provided."));
 
-        public string IoTHubEventHubConnectionString => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOTHUB_EVENTHUB_CONNECTIONSTRING,
-            () => throw new InvalidOperationException("IoT Hub EventHub connection string is not provided."));
+        // Tests now authenticate to the IoT Hub built-in Event Hubs endpoint via AAD
+        // (TokenCredential + namespace + entity-path). The SAS-key-embedded connection
+        // string env var is no longer consulted.
+        public string IoTHubEventHubFullyQualifiedNamespace =>
+            GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOTHUB_EVENTHUB_NAMESPACE,
+                () => ParseEventHubFromConnString(propertyName: "Endpoint", fallback: () =>
+                    throw new InvalidOperationException(
+                        "IOTHUB_EVENTHUB_NAMESPACE is not provided and could not be parsed from " +
+                        TestConstants.EnvironmentVariablesNames.IOTHUB_EVENTHUB_CONNECTIONSTRING)));
+
+        public string IoTHubEventHubName =>
+            GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOTHUB_EVENTHUB_NAME,
+                () => ParseEventHubFromConnString(propertyName: "EntityPath", fallback: () =>
+                    throw new InvalidOperationException(
+                        "IOTHUB_EVENTHUB_NAME is not provided and could not be parsed from " +
+                        TestConstants.EnvironmentVariablesNames.IOTHUB_EVENTHUB_CONNECTIONSTRING)));
+
+        // Best-effort fallback so existing pipelines that only set the legacy conn string
+        // still work. Once the deployment script is updated to set the two AAD-friendly
+        // env vars directly, this fallback (and the legacy env var) can be removed.
+        private string ParseEventHubFromConnString(string propertyName, Func<string> fallback)
+        {
+            var cs = GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOTHUB_EVENTHUB_CONNECTIONSTRING,
+                () => string.Empty);
+            if (string.IsNullOrEmpty(cs))
+            {
+                return fallback();
+            }
+            try
+            {
+                // Connection strings are of the form
+                //   Endpoint=sb://<ns>.servicebus.windows.net/;SharedAccessKeyName=...;SharedAccessKey=...;EntityPath=<name>
+                var parts = cs.Split(';', StringSplitOptions.RemoveEmptyEntries);
+                foreach (var p in parts)
+                {
+                    var eq = p.IndexOf('=', StringComparison.Ordinal);
+                    if (eq <= 0) continue;
+                    var key = p.Substring(0, eq);
+                    var value = p.Substring(eq + 1);
+                    if (string.Equals(key, propertyName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (string.Equals(propertyName, "Endpoint", StringComparison.OrdinalIgnoreCase))
+                        {
+                            // strip sb:// and trailing slash
+                            return new Uri(value).Host;
+                        }
+                        return value;
+                    }
+                }
+            }
+            catch
+            {
+                // fall through
+            }
+            return fallback();
+        }
 
         public string EdgeVersion => GetStringOrDefault(TestConstants.EnvironmentVariablesNames.IOT_EDGE_VERSION,
             () => "1.4");
@@ -255,6 +299,8 @@ namespace OpcPublisherAEE2ETests.TestExtensions
             Log("IOT_EDGE_VM_USERNAME");
             Log("PCS_IOTHUB_CONNSTRING");
             Log("IOTHUB_EVENTHUB_CONNECTIONSTRING");
+            Log("IOTHUB_EVENTHUB_NAMESPACE");
+            Log("IOTHUB_EVENTHUB_NAME");
             void Log(string envVar) => output.WriteLine($"{envVar}: '{Environment.GetEnvironmentVariable(envVar)}'");
         }
         private bool _logged;
