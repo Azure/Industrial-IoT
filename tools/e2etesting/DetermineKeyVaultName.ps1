@@ -50,4 +50,5 @@ if (!$applicationKeyVault) {
 }
 
 Write-Host "Setting variable '$($keyVaultVariableName)' to '$($applicationKeyVault)'."
-Write-Host "##vso[task.setvariable variable=$($keyVaultVariableName)]$($applicationKeyVault)"
+. (Join-Path $PSScriptRoot '_ci.ps1')
+Set-CIVariable -Name $keyVaultVariableName -Value $applicationKeyVault

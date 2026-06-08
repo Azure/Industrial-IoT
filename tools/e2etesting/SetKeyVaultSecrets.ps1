@@ -49,20 +49,23 @@ if (!$context) {
 $resourceGroup = (Get-AzResource -Name $KeyVaultName).ResourceGroupName
 $keyVault = Get-AzKeyVault -ResourceGroupName $resourceGroup -VaultName $KeyVaultName
 
+# Helper: Set-AzKeyVaultSecret -SecretValue with -AsPlainText "" throws
+# "Cannot bind argument to parameter 'String' because it is an empty string".
+# For GHCR public packages the username/password are intentionally empty.
+# We store a single space placeholder so secret-presence checks downstream
+# still succeed and SetTestVariables won't see a missing secret.
+function Set-OrPlaceholder([string]$Name, [string]$Value) {
+    $emit = if ([string]::IsNullOrEmpty($Value)) { ' ' } else { $Value }
+    Write-Host "Setting KeyVault secret '$Name'."
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
+    $secure = ConvertTo-SecureString $emit -AsPlainText -Force
+    Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name $Name -SecretValue $secure | Out-Null
+}
+
 Write-Host "Adding/Updating KeyVault-Secrets..."
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
-$secret = ConvertTo-SecureString $ContainerRegistryServer -AsPlainText -Force
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS-DOCKER-SERVER' -SecretValue (ConvertTo-SecureString $ContainerRegistryServer -AsPlainText -Force) | Out-Null
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
-$secret = ConvertTo-SecureString $ContainerRegistryUsername -AsPlainText -Force
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS-DOCKER-USER' -SecretValue (ConvertTo-SecureString $ContainerRegistryUsername -AsPlainText -Force) | Out-Null
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
-$secret = ConvertTo-SecureString $ContainerRegistryPassword -AsPlainText -Force
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS-DOCKER-PASSWORD' -SecretValue (ConvertTo-SecureString $ContainerRegistryPassword -AsPlainText -Force) | Out-Null
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
-$secret = ConvertTo-SecureString $ImageNamespace -AsPlainText -Force
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS-IMAGES-NAMESPACE' -SecretValue (ConvertTo-SecureString $ImageNamespace -AsPlainText -Force) | Out-Null
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "")]
-$secret = ConvertTo-SecureString $ImageTag -AsPlainText -Force
-Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name 'PCS-IMAGES-TAG' -SecretValue (ConvertTo-SecureString $ImageTag -AsPlainText -Force) | Out-Null
+Set-OrPlaceholder -Name 'PCS-DOCKER-SERVER'     -Value $ContainerRegistryServer
+Set-OrPlaceholder -Name 'PCS-DOCKER-USER'       -Value $ContainerRegistryUsername
+Set-OrPlaceholder -Name 'PCS-DOCKER-PASSWORD'   -Value $ContainerRegistryPassword
+Set-OrPlaceholder -Name 'PCS-IMAGES-NAMESPACE'  -Value $ImageNamespace
+Set-OrPlaceholder -Name 'PCS-IMAGES-TAG'        -Value $ImageTag
 
