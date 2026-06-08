@@ -60,8 +60,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             }
             finally
             {
-                server.Dispose();
                 await StopPublisherAsync();
+                server.Dispose();
             }
         }
 
@@ -100,8 +100,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             }
             finally
             {
-                server.Dispose();
                 await StopPublisherAsync();
+                server.Dispose();
             }
         }
 
@@ -136,8 +136,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             }
             finally
             {
-                server.Dispose();
                 await StopPublisherAsync();
+                server.Dispose();
             }
         }
 
@@ -201,8 +201,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             }
             finally
             {
-                server.Dispose();
                 await StopPublisherAsync();
+                server.Dispose();
             }
         }
 
@@ -410,8 +410,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             }
             finally
             {
-                server.Dispose();
                 await StopPublisherAsync();
+                server.Dispose();
             }
         }
 
@@ -467,8 +467,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             }
             finally
             {
-                server.Dispose();
                 await StopPublisherAsync();
+                server.Dispose();
             }
         }
 
