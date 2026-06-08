@@ -14,9 +14,6 @@ namespace OpcPublisherAEE2ETests
     using Azure.ResourceManager.ContainerInstance;
     using Azure.ResourceManager.ContainerInstance.Models;
     using Azure.ResourceManager.Resources;
-    using Azure.ResourceManager.Storage;
-    using Azure.Storage;
-    using Azure.Storage.Files.Shares;
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.Devices.Common.Exceptions;
     using Newtonsoft.Json;
@@ -327,16 +324,30 @@ namespace OpcPublisherAEE2ETests
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
         /// <param name="commandLine">Command line for container</param>
         /// <param name="cancellationToken">Cancellation token</param>
-        /// <param name="fileToUpload">File to upload to the container</param>
+        /// <param name="fileToUpload">
+        /// Optional path (relative to the test binary directory) to a config file to make
+        /// available to the OPC PLC container. The file content is base64-encoded and passed
+        /// as a secure environment variable, then materialized inside the container at
+        /// <c>/app/files/&lt;basename&gt;</c> before the original command line is executed.
+        /// This replaces the previous Azure Files share mount, which required a storage
+        /// account key (which we no longer mint anywhere).
+        /// </param>
         /// <param name="numInstances">Number of instances</param>
         public static async Task CreateSimulationContainerAsync(IIoTPlatformTestContext context,
             List<string> commandLine, CancellationToken cancellationToken, string fileToUpload = null, int numInstances = 1)
         {
             var resourceGroup = await GetResourceGroupAsync(context, cancellationToken).ConfigureAwait(false);
 
+            string configFileName = null;
+            string configFileB64 = null;
             if (fileToUpload != null)
             {
-                await UploadFileToStorageAccountAsync(context, fileToUpload, cancellationToken).ConfigureAwait(false);
+                Assert.False(fileToUpload.Contains('\\', StringComparison.Ordinal), "\\ can't be used for file path");
+                configFileName = fileToUpload.Contains('/', StringComparison.Ordinal)
+                    ? fileToUpload[(fileToUpload.LastIndexOf('/') + 1)..]
+                    : fileToUpload;
+                configFileB64 = Convert.ToBase64String(await File.ReadAllBytesAsync(fileToUpload, cancellationToken)
+                    .ConfigureAwait(false));
             }
 
             context.PlcAciDynamicUrls = await Task.WhenAll(
@@ -347,51 +358,9 @@ namespace OpcPublisherAEE2ETests
                             context,
                             commandLine[0],
                             commandLine.GetRange(1, commandLine.Count - 1).ToArray(),
-                            TestConstants.OpcSimulation.FileShareName,
+                            configFileName,
+                            configFileB64,
                             cancellationToken))).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Upload a file to a storage account
-        /// </summary>
-        /// <param name="context"></param>
-        /// <param name="fileName">File name</param>
-        /// <param name="ct"></param>
-        private async static Task UploadFileToStorageAccountAsync(IIoTPlatformTestContext context,
-            string fileName, CancellationToken ct = default)
-        {
-            var share = new ShareClient(
-                new Uri($"https://{context.AzureStorageName}.file.core.windows.net/{TestConstants.OpcSimulation.FileShareName}"),
-                new StorageSharedKeyCredential(context.AzureStorageName, context.AzureStorageKey));
-            var directory = share.GetRootDirectoryClient();
-
-            Assert.False(fileName.Contains('\\', StringComparison.Ordinal), "\\ can't be used for file path");
-
-            // if fileName contains '/' we will extract the filename
-            string onlyFileName;
-            if (fileName.Contains('/', StringComparison.Ordinal))
-            {
-                onlyFileName = fileName[(fileName.LastIndexOf('/') + 1)..];
-            }
-            else
-            {
-                onlyFileName = fileName;
-            }
-
-            var cf = directory.GetFileClient(onlyFileName);
-            try
-            {
-                await cf.DeleteIfExistsAsync(cancellationToken: ct);
-                await using var stream = new FileStream(fileName, FileMode.Open);
-                await cf.CreateAsync(stream.Length, cancellationToken: ct);
-                await cf.UploadAsync(stream, cancellationToken: ct);
-            }
-            catch (Exception ex)
-            {
-                context.OutputHelper.WriteLine($"Failed to upload file {fileName} to storage " +
-                    $"account {context.AzureStorageName} as {onlyFileName} ({ex.Message})");
-                throw;
-            }
         }
 
         /// <summary>
@@ -402,18 +371,51 @@ namespace OpcPublisherAEE2ETests
         /// <param name="context"></param>
         /// <param name="executable">Starting command line</param>
         /// <param name="commandLine">Additional command line options</param>
-        /// <param name="fileShareName">File share name</param>
+        /// <param name="configFileName">
+        /// Optional file name (no path) to materialize at <c>/app/files/&lt;name&gt;</c> from the
+        /// <c>PLC_CONFIG_B64</c> secure environment variable before exec-ing the OPC PLC
+        /// process. When this is supplied, <paramref name="executable"/> + <paramref name="commandLine"/>
+        /// is expected to be a shell invocation (e.g. <c>/bin/sh -c "./opcplc ..."</c>) whose
+        /// final argument is the actual shell command — the decode step is prepended to that
+        /// argument. When null, the command runs as-is and no env var is added.
+        /// </param>
+        /// <param name="configFileB64">Base64-encoded contents of the config file, or null.</param>
         /// <param name="cancellationToken"></param>
         private static async Task<string> CreatePlcContainerGroupAsync(ResourceGroupResource resGroup,
             string containerGroupName, IIoTPlatformTestContext context, string executable,
-            string[] commandLine, string fileShareName, CancellationToken cancellationToken)
+            string[] commandLine, string configFileName, string configFileB64, CancellationToken cancellationToken)
         {
             var container = new ContainerInstanceContainer(containerGroupName, context.PLCImage,
                 new ContainerResourceRequirements(new ContainerResourceRequestsContent(0.5, 0.5)));
             container.Command.Add(executable);
-            container.Command.AddRange(commandLine);
+            if (configFileB64 != null)
+            {
+                // Prepend the decode-then-exec step to the last argument of the shell invocation.
+                // The original command line is preserved verbatim so caller intent is unchanged.
+                if (commandLine.Length == 0)
+                {
+                    throw new InvalidOperationException(
+                        "When configFileName is provided, the command line must contain at least " +
+                        "one shell-arg element to wrap (e.g. /bin/sh -c '<shell-cmd>').");
+                }
+                var prepended = new string[commandLine.Length];
+                Array.Copy(commandLine, prepended, commandLine.Length);
+                var last = prepended[^1];
+                prepended[^1] =
+                    "mkdir -p /app/files && " +
+                    "echo \"$PLC_CONFIG_B64\" | base64 -d > /app/files/" + configFileName + " && " +
+                    "exec sh -c " + ShellQuote(last);
+                container.Command.AddRange(prepended);
+                container.EnvironmentVariables.Add(new ContainerEnvironmentVariable("PLC_CONFIG_B64")
+                {
+                    SecureValue = configFileB64
+                });
+            }
+            else
+            {
+                container.Command.AddRange(commandLine);
+            }
             container.Ports.Add(new ContainerPort(50000));
-            container.VolumeMounts.Add(new ContainerVolumeMount("share", "/app/files"));
 
             var containerGroup = new ContainerGroupData(resGroup.Data.Location, container.YieldReturn(),
                 ContainerInstanceOperatingSystemType.Linux)
@@ -424,18 +426,20 @@ namespace OpcPublisherAEE2ETests
                     DnsNameLabel = containerGroupName
                 }
             };
-            containerGroup.Volumes.Add(new ContainerVolume("share")
-            {
-                AzureFile = new ContainerInstanceAzureFileVolume(fileShareName, context.AzureStorageName)
-                {
-                    StorageAccountKey = context.AzureStorageKey,
-                    IsReadOnly = false
-                }
-            });
 
             var operation = await resGroup.GetContainerGroups().CreateOrUpdateAsync(WaitUntil.Completed,
                 containerGroupName, containerGroup, cancellationToken);
             return Validate(context, operation).Data.IPAddress.Fqdn;
+        }
+
+        /// <summary>
+        /// Wrap a string in single quotes for safe use as a single shell argument.
+        /// Escapes embedded single quotes by closing-the-quote, inserting an escaped
+        /// quote, and reopening.
+        /// </summary>
+        private static string ShellQuote(string s)
+        {
+            return "'" + s.Replace("'", "'\\''", StringComparison.Ordinal) + "'";
         }
 
         /// <summary>
@@ -491,17 +495,6 @@ namespace OpcPublisherAEE2ETests
             context.OutputHelper.WriteLine($"Get tag from tags {tags}");
             var testingSuffix = Validate(context, tags).Data.TagValues[TestConstants.OpcSimulation.TestingResourcesSuffixName];
             context.TestingSuffix = testingSuffix;
-            context.AzureStorageName = TestConstants.OpcSimulation.AzureStorageNameWithoutSuffix + testingSuffix;
-
-            context.OutputHelper.WriteLine($"Get storage keys from {rg}");
-            var storageAccount = await rg.GetStorageAccountAsync(context.AzureStorageName, cancellationToken: cancellationToken).ConfigureAwait(false);
-            var keysResponse = await Validate(context, storageAccount).GetKeysAsync(cancellationToken: cancellationToken);
-            var keys = keysResponse.Value.Keys;
-            if (keys.Count == 0)
-            {
-                throw new InvalidOperationException($"No keys found for storage account {context.AzureStorageName}");
-            }
-            context.AzureStorageKey = keys[0].Value;
 
             context.OutputHelper.WriteLine($"Get container groups from {rg}");
             var firstAciIpAddress = context.OpcPlcConfig.Ips.Split(";")[0];
@@ -520,6 +513,37 @@ namespace OpcPublisherAEE2ETests
             context.PLCImage = containerGroup.Data.Containers[0].Image;
             context.ResourceGroup = rg;
             return rg;
+        }
+
+        /// <summary>
+        /// Build a federated <see cref="TokenCredential"/> for Azure data-plane and ARM
+        /// operations. Tries (in order): AzurePipelinesCredential (Azure DevOps OIDC),
+        /// DefaultAzureCredential (env / managed identity / Visual Studio), and
+        /// AzureCliCredential (developer's az login). Does NOT use ClientSecretCredential —
+        /// the federated SP has no client secret. Shared by ARM client construction and
+        /// the AAD-based Event Hub consumer client.
+        /// </summary>
+        internal static TokenCredential BuildTokenCredential(IIoTPlatformTestContext context)
+        {
+            var systemAccessToken = Environment.GetEnvironmentVariable("SYSTEM_ACCESSTOKEN");
+            var serviceConnection = Environment.GetEnvironmentVariable("AzureSubscription");
+            var clientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID");
+            if (!string.IsNullOrEmpty(systemAccessToken) && !string.IsNullOrEmpty(serviceConnection))
+            {
+                return new AzurePipelinesCredential(
+                    context.OpcPlcConfig.TenantId, clientId, serviceConnection, systemAccessToken);
+            }
+            try
+            {
+                return new DefaultAzureCredential(new DefaultAzureCredentialOptions
+                {
+                    TenantId = context?.OpcPlcConfig?.TenantId
+                });
+            }
+            catch
+            {
+                return new AzureCliCredential();
+            }
         }
 
         /// <summary>
@@ -556,7 +580,6 @@ namespace OpcPublisherAEE2ETests
             {
                 context.OutputHelper.WriteLine($"AZURE_CLIENT_ID: {Environment.GetEnvironmentVariable("AZURE_CLIENT_ID")}");
                 context.OutputHelper.WriteLine($"AZURE_TENANT_ID: {Environment.GetEnvironmentVariable("AZURE_TENANT_ID")}");
-                context.OutputHelper.WriteLine($"AZURE_CLIENT_SECRET: {Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET")}");
                 var options = new DefaultAzureCredentialOptions
                 {
                     TenantId = context.OpcPlcConfig.TenantId
@@ -618,15 +641,20 @@ namespace OpcPublisherAEE2ETests
         }
 
         /// <summary>
-        /// Get an Event Hub consumer
+        /// Get an Event Hub consumer client authenticated via AAD (TokenCredential)
+        /// against the IoT Hub's built-in Event Hub-compatible endpoint. The required
+        /// data-plane role on the IoT Hub is "Azure Event Hubs Data Receiver" (granted
+        /// to the federated SP at deployment time).
         /// </summary>
-        /// <param name="config">Configuration for IoT Hub</param>
-        /// <param name="consumerGroup"></param>
-        public static EventHubConsumerClient GetEventHubConsumerClient(this IIoTHubConfig config, string consumerGroup = null)
+        /// <param name="context">The test context (provides config + federated credential).</param>
+        /// <param name="consumerGroup">Override consumer group; defaults to the test consumer group.</param>
+        public static EventHubConsumerClient GetEventHubConsumerClient(this IIoTPlatformTestContext context, string consumerGroup = null)
         {
             return new EventHubConsumerClient(
                 consumerGroup ?? TestConstants.TestConsumerGroupName,
-                config.IoTHubEventHubConnectionString);
+                context.IoTHubConfig.IoTHubEventHubFullyQualifiedNamespace,
+                context.IoTHubConfig.IoTHubEventHubName,
+                BuildTokenCredential(context));
         }
 
         /// <summary>

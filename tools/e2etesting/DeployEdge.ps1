@@ -91,6 +91,10 @@ Write-Host "Updating 'os' and '__type__'-Tags in Device Twin..."
 Update-AzIotHubDeviceTwin -ResourceGroupName $ResourceGroupName -IotHubName $iotHub.Name -DeviceId $edgeIdentity.Id -Tag @{ "os" = "Linux"; "__type__" = "iiotedge"; } | Out-Null
 
 ## Generate SSH keys
+## The keys live only in-memory for the duration of the pipeline run: generated here,
+## emitted to pipeline variables (marked as secret) for direct test-runtime injection,
+## and the on-disk files are deleted immediately. The private key is intentionally
+## NOT written to Key Vault — secret rotation/revocation on a per-run key is moot.
 $privateKeyFilePath = Join-Path $KeysPath "id_rsa_iotedge"
 $publicKeyFilePath = $privateKeyFilePath + ".pub"
 $keypassphrase = '"$($testSuffix)"'
@@ -103,6 +107,13 @@ Remove-Item -Path $privateKeyFilePath | Out-Null
 Remove-Item -Path $publicKeyFilePath | Out-Null
 
 ## Deploy Edge VM
+## NOTE: $edgeDeviceConnectionString is consumed only in-memory by the ARM template's
+## cloud-init parameter below. It is intentionally never written to Key Vault or emitted
+## as a pipeline variable. The IoT Edge device fundamentally needs a symmetric key (or
+## X.509 cert) to authenticate to IoT Hub — that's inherent to IoT Edge and unavoidable.
+## We minimize blast radius by generating the connection string just-in-time per
+## deployment and never persisting it. The pipeline variable below is the device *Id*
+## only (not the connection string), which is not sensitive.
 Write-Host "Getting Device Connection String for IoT Edge Deployment..."
 $edgeDeviceConnectionString = Get-AzIotHubDeviceConnectionString -ResourceGroupName $ResourceGroupName -IotHubName $iotHub.Name -DeviceId $edgeIdentity.Id -KeyType primary
 $edgeDeviceConnectionString = $edgeDeviceConnectionString.ConnectionString
@@ -154,7 +165,7 @@ $fqdn = $sshUrl.Split("@")[1]
 Set-CIVariable -Name 'EdgeIdentity'   -Value $edgeIdentity.Id
 Set-CIVariable -Name 'EdgeVmUsername' -Value $edgeVmUsername
 Set-CIVariable -Name 'SshPrivateKey'  -Value $sshPrivateKey -Secret
-Set-CIVariable -Name 'SshPublicKey'   -Value $sshPublicKey
+Set-CIVariable -Name 'SshPublicKey'   -Value $sshPublicKey -Secret
 Set-CIVariable -Name 'Fqdn'           -Value $fqdn
 
 Write-Host "Deployment finished."

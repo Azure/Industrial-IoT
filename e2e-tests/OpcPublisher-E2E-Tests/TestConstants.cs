@@ -78,16 +78,6 @@ namespace OpcPublisherAEE2ETests
             public const string PublishedNodesFile = "pn.json";
 
             /// <summary>
-            /// The share that is created in the pipeline
-            /// </summary>
-            public const string FileShareName = "acishare";
-
-            /// <summary>
-            /// This is the first part of the Azure Storage name that is created in pipeline
-            /// </summary>
-            public const string AzureStorageNameWithoutSuffix = "e2etestingstorage";
-
-            /// <summary>
             /// Name of Tag in Resource Group
             /// </summary>
             public const string TestingResourcesSuffixName = "TestingResourcesSuffix";
@@ -160,8 +150,25 @@ namespace OpcPublisherAEE2ETests
 
             /// <summary>
             /// The connection string of the event-hub compatible endpoint of IoT Hub.
+            /// Deprecated: tests now use IOTHUB_EVENTHUB_NAMESPACE + IOTHUB_EVENTHUB_NAME with
+            /// AAD (TokenCredential) instead of the SAS-key-embedded connection string. This
+            /// env var is still set by the deployment pipeline for backward compatibility
+            /// and may be removed in a future iteration.
             /// </summary>
             public const string IOTHUB_EVENTHUB_CONNECTIONSTRING = "IOTHUB_EVENTHUB_CONNECTIONSTRING";
+
+            /// <summary>
+            /// Fully-qualified namespace of the IoT Hub's built-in Event Hub-compatible
+            /// endpoint (e.g. "iothub-ns-myhub-12345-abc123.servicebus.windows.net"). Used
+            /// with AAD auth.
+            /// </summary>
+            public const string IOTHUB_EVENTHUB_NAMESPACE = "IOTHUB_EVENTHUB_NAMESPACE";
+
+            /// <summary>
+            /// Event Hub "entity path" for the IoT Hub's built-in endpoint. Equals the IoT
+            /// Hub name. Used with AAD auth.
+            /// </summary>
+            public const string IOTHUB_EVENTHUB_NAME = "IOTHUB_EVENTHUB_NAME";
 
             /// <summary>
             /// Container Registry server
