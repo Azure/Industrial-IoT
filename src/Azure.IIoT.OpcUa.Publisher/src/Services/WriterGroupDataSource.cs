@@ -187,6 +187,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         if (_writers.Remove(key, out var s))
                         {
+                            // Release the writer name so it can be reused by a
+                            // newly added writer below.
+                            writerNames.Remove(s.Name);
                             await s.DisposeAsync().ConfigureAwait(false);
                         }
                     }
