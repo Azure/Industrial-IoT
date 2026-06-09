@@ -17,25 +17,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
     using Xunit;
     using Xunit.Abstractions;
 
-    public class MqttPubSubIntegrationTests : PublisherIntegrationTestBase
+    public class MqttPubSubIntegrationTests : PublisherIntegrationTestBase, IClassFixture<ReferenceServer>
     {
         private readonly ReferenceServer _fixture;
         private readonly ITestOutputHelper _output;
 
-        public MqttPubSubIntegrationTests(ITestOutputHelper output) : base(output)
+        public MqttPubSubIntegrationTests(ReferenceServer fixture, ITestOutputHelper output) : base(output)
         {
             _output = output;
-            _fixture = new ReferenceServer();
+            _fixture = fixture;
             EndpointUrl = _fixture.EndpointUrl;
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-            if (disposing)
-            {
-                _fixture.Dispose();
-            }
         }
 
         [Fact]
