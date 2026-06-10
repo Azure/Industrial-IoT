@@ -14,7 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Isa95Jobs
     using Xunit;
     using Xunit.Abstractions;
 
-    public class BasicPubSubIntegrationTests : PublisherIntegrationTestBase
+    public class BasicPubSubIntegrationTests : PublisherIntegrationTestBase, IClassFixture<Isa95JobsServer>
     {
         internal const string EventId = "EventId";
         internal const string Message = "Message";
@@ -25,21 +25,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Isa95Jobs
         private readonly ITestOutputHelper _output;
         private readonly Isa95JobsServer _fixture;
 
-        public BasicPubSubIntegrationTests(ITestOutputHelper output)
+        public BasicPubSubIntegrationTests(Isa95JobsServer fixture, ITestOutputHelper output)
             : base(output)
         {
             _output = output;
-            _fixture = new Isa95JobsServer();
+            _fixture = fixture;
             EndpointUrl = _fixture.EndpointUrl;
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-            if (disposing)
-            {
-                _fixture.Dispose();
-            }
         }
 
         [Fact]
