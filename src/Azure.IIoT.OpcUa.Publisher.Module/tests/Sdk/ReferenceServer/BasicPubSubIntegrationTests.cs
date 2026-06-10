@@ -18,7 +18,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
     using Xunit;
     using Xunit.Abstractions;
 
-    public class BasicPubSubIntegrationTests : PublisherIntegrationTestBase
+    public class BasicPubSubIntegrationTests : PublisherIntegrationTestBase, IClassFixture<ReferenceServer>
     {
         internal const string EventId = "EventId";
         internal const string Message = "Message";
@@ -29,21 +29,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         private readonly ITestOutputHelper _output;
         private readonly ReferenceServer _fixture;
 
-        public BasicPubSubIntegrationTests(ITestOutputHelper output)
+        public BasicPubSubIntegrationTests(ReferenceServer fixture, ITestOutputHelper output)
             : base(output)
         {
             _output = output;
-            _fixture = new ReferenceServer();
+            _fixture = fixture;
             EndpointUrl = _fixture.EndpointUrl;
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-            if (disposing)
-            {
-                _fixture.Dispose();
-            }
         }
 
         [Fact]
