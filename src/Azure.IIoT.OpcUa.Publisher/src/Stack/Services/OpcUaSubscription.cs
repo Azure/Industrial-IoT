@@ -2717,6 +2717,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 Debug.Assert(maxMonitoredItemsInPartition > 0,
                     "Partition size must be positive");
+                //
+                // Defense in depth at the crash site reported in issues #2445
+                // and #2459: the batch size handed to LinqEx.Batch must always
+                // be positive or it throws "Cannot create 0 or negative size
+                // batches". Callers compute this value via
+                // ComputeMaxMonitoredItemsPerSubscription which already clamps
+                // to [1, int.MaxValue], but the Debug.Assert above is stripped
+                // from Release builds, so guard here as well to ensure a
+                // non-positive value can never reach the batching logic.
+                //
+                maxMonitoredItemsInPartition = Math.Max(1, maxMonitoredItemsInPartition);
                 var partitions = new List<Partition>();
                 foreach (var subscriberItems in subscribers
                     .Select(s => s.MonitoredItems
