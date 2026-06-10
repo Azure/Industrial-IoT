@@ -87,3 +87,5 @@ The repo's `Nuget.Config` points at an internal Azure Artifacts feed that GitHub
 ### Running E2E manually
 
 Use the **Run workflow** button on `e2e-standalone.yml` and provide an `image_tag` already pushed to GHCR. Set `cleanup: false` to keep the resource group after the run for debugging.
+
+PR commits do **not** push images to GHCR and therefore do not auto-run E2E. To validate an unmerged PR's runtime behaviour, dispatch `e2e-standalone.yml` manually against a published `image_tag` (e.g. `latest`) or merge to a release branch first. The full chain (`ci.yml` → `images_push` → `e2e:` → `e2e-standalone.yml`) runs automatically on every push to `main`/`release/*` and nightly at 10:00 UTC.

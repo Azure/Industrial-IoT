@@ -1,7 +1,8 @@
 name: E2E GC
-# Daily garbage collector for stale e2e test resource groups. The e2e workflow
-# (e2e.yml) deletes its RG on success, but a hard crash, OOM, or a network blip
-# during cleanup can leave the RG orphaned and burning money. This catches those.
+# Daily garbage collector for stale e2e test resource groups. The E2E chain
+# (ci.yml -> images_push -> e2e-standalone.yml) deletes its RG on success, but a
+# hard crash, OOM, or a network blip during cleanup can leave the RG orphaned and
+# burning money. This catches those.
 #
 # Heuristic: delete any RG whose name starts with `rg-iiot-e2e-` AND that was created
 # more than 24 hours ago AND that doesn't have the DoNotDelete=true tag.
