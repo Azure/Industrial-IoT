@@ -60,12 +60,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             get
             {
-                lock (SyncRoot)
-                {
-                    return Subscriptions
-                        .OfType<OpcUaSubscription>()
-                        .ToDictionary(k => k.SubscriptionId);
-                }
+                return Subscriptions
+                    .OfType<OpcUaSubscription>()
+                    .ToDictionary(k => k.SubscriptionId);
             }
         }
 
@@ -98,13 +95,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             EndpointDescriptionCollection? availableEndpoints = null,
             StringCollection? discoveryProfileUris = null)
             : base(channel, configuration, endpoint, clientCertificate,
+                  clientCertificateChain: null,
                   availableEndpoints, discoveryProfileUris)
         {
             _logger = logger;
             _client = client;
             _serializer = serializer;
             _timeProvider = timeProvider;
-            LruNodeCache = new LruNodeCache(this,
+            LruNodeCache = new LruNodeCache(new NodeCacheContext(this), client.Telemetry,
                 client.NodeCacheTimeout, client.NodeCacheCapacity, true);
             CreatedAt = _timeProvider.GetUtcNow();
 
@@ -739,7 +737,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             if (!_diagnosticsEnabled.HasValue)
             {
                 // Check whether enabled and if not enabled enable it
-                var diagnosticsEnabled = await ReadValueAsync(
+                var diagnosticsEnabled = await this.ReadValueAsync(
                     VariableIds.Server_ServerDiagnostics_EnabledFlag, ct).ConfigureAwait(false);
                 _diagnosticsEnabled = diagnosticsEnabled.Value as bool?;
                 if (_diagnosticsEnabled == false)
@@ -1296,7 +1294,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 if (Connected)
                 {
-                    var complexTypeSystem = new ComplexTypeSystem(new NodeCacheResolver(LruNodeCache));
+                    var complexTypeSystem = new ComplexTypeSystem(new NodeCacheResolver(this, LruNodeCache, _client.Telemetry));
                     var success = await complexTypeSystem.LoadAsync(
                         throwOnError: false, ct: _cts.Token).ConfigureAwait(false);
 

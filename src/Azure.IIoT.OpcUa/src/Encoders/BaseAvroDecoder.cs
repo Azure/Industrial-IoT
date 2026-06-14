@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.Extensions.Logging.Abstractions;
     using Opc.Ua;
     using System;
     using System.Buffers.Binary;
@@ -723,7 +724,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var dimensions = ReadInt32Array(null);
             if (dimensions?.Count > 0)
             {
-                Matrix.ValidateDimensions(false, dimensions, Context.MaxArrayLength);
+                _ = Matrix.ValidateDimensions(false, dimensions, Context.MaxArrayLength, NullLogger.Instance);
                 return new Matrix(array, builtInType, [.. dimensions]).ToArray();
             }
             throw new DecodingException(

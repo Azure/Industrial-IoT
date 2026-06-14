@@ -9,20 +9,11 @@
       * Moq [4.20.2]: later versions added the SponsorLink dependency that
         caused supply-chain concerns; the project has elected to stay at
         the last clean version.
-      * OPCFoundation.NetStandard.Opc.Ua.* [1.5.377.22]: 1.5.378.x
-        introduces breaking interface changes (INodeManager.CreateMonitoredItems,
-        IDataChangeMonitoredItem.Publish, BaseAvroDecoder.ReadInt32Array,
-        removed ServerBase.ValidateRequest). Adapting the publisher and
-        test-server stubs is a dedicated work item.
     Do not upgrade these without explicit team approval.
   -->
   <ItemGroup Label="Pinned (do not upgrade)">
     <PackageVersion Include="FluentAssertions" Version="[7.2.0]" />
     <PackageVersion Include="Moq" Version="[4.20.2]" />
-    <PackageVersion Include="OPCFoundation.NetStandard.Opc.Ua.Client" Version="[1.5.377.22]" />
-    <PackageVersion Include="OPCFoundation.NetStandard.Opc.Ua.Client.ComplexTypes" Version="[1.5.377.22]" />
-    <PackageVersion Include="OPCFoundation.NetStandard.Opc.Ua.Core" Version="[1.5.377.22]" />
-    <PackageVersion Include="OPCFoundation.NetStandard.Opc.Ua.Server" Version="[1.5.377.22]" />
   </ItemGroup>
 
   <ItemGroup Label="Microsoft.Extensions and ASP.NET Core">
@@ -54,7 +45,10 @@
   </ItemGroup>
 
   <ItemGroup Label="OPC Foundation">
-    <!-- See pinned group above; 1.5.378.x has breaking interface changes. -->
+    <PackageVersion Include="OPCFoundation.NetStandard.Opc.Ua.Client" Version="1.5.378.145" />
+    <PackageVersion Include="OPCFoundation.NetStandard.Opc.Ua.Client.ComplexTypes" Version="1.5.378.145" />
+    <PackageVersion Include="OPCFoundation.NetStandard.Opc.Ua.Core" Version="1.5.378.145" />
+    <PackageVersion Include="OPCFoundation.NetStandard.Opc.Ua.Server" Version="1.5.378.145" />
   </ItemGroup>
 
   <ItemGroup Label="Furly (keep all in lock-step)">

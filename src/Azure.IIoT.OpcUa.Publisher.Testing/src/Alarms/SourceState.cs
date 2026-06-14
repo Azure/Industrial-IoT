@@ -759,9 +759,10 @@ namespace Alarms
         /// <param name="context"></param>
         private string GetUserName(ISystemContext context)
         {
-            if (context.UserIdentity != null)
+            var sessionContext = context as ISessionSystemContext;
+            if (sessionContext?.UserIdentity != null)
             {
-                return context.UserIdentity.DisplayName;
+                return sessionContext.UserIdentity.DisplayName;
             }
 
             return null;

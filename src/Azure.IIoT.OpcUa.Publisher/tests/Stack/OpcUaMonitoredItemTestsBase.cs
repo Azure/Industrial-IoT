@@ -39,10 +39,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                 .Returns((NodeId x, CancellationToken _)
                 => Task.FromResult(new ReferenceDescriptionCollection(GetReferences(x))));
 
-            var nodeCache = new LruNodeCache(s.Object);
+            var nodeCache = new LruNodeCache(new NodeCacheContext(s.Object), telemetry: null);
 
             var session = mock.Mock<IOpcUaSession>();
-            var messageContext = new ServiceMessageContext
+            var messageContext = new ServiceMessageContext(telemetry: null)
             {
                 NamespaceUris = namespaceTable
             };
