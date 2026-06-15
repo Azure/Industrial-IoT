@@ -97,6 +97,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                         default, GetType().Assembly.GetReleaseVersion().ToString()))
                 .WithTracing(Configuration, builder => builder
                     .SetSampler(new AlwaysOnSampler())
+                    .AddSource(Diagnostics.Namespace)
                     .AddHttpClientInstrumentation()
                     .AddAspNetCoreInstrumentation())
                 .WithMetrics(Configuration, builder => builder
