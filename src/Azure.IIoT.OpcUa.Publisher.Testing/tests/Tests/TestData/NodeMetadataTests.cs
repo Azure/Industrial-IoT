@@ -57,7 +57,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal(65535u, results.OperationLimits.MaxArrayLength);
             Assert.Equal(130816u, results.OperationLimits.MaxStringLength);
             Assert.Equal(1048576u, results.OperationLimits.MaxByteStringLength);
-            Assert.Null(results.ModellingRules);
+            Assert.NotNull(results.ModellingRules);
+            Assert.Equal(5, results.ModellingRules.Count);
+            Assert.Equal("i=78", results.ModellingRules["Mandatory"]);
+            Assert.Equal("i=80", results.ModellingRules["Optional"]);
+            Assert.Equal("i=83", results.ModellingRules["ExposesItsArray"]);
+            Assert.Equal("i=11508", results.ModellingRules["OptionalPlaceholder"]);
+            Assert.Equal("i=11510", results.ModellingRules["MandatoryPlaceholder"]);
         }
 
         public async Task HistoryGetServerCapabilitiesTestAsync(CancellationToken ct = default)

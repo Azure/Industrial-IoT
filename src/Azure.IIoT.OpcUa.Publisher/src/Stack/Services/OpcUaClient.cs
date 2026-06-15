@@ -376,16 +376,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public override Session Create(ISessionChannel channel, ApplicationConfiguration configuration,
-            ConfiguredEndpoint endpoint)
-        {
-            return new OpcUaSession(this, _serializer, _loggerFactory.CreateLogger<OpcUaSession>(),
-                _timeProvider, (ITransportChannel)channel, configuration, endpoint);
-        }
-
-        /// <inheritdoc/>
-        public override Session Create(ITransportChannel channel, ApplicationConfiguration configuration,
+        public override ISession Create(ITransportChannel channel, ApplicationConfiguration configuration,
             ConfiguredEndpoint endpoint, X509Certificate2? clientCertificate,
+            X509Certificate2Collection? clientCertificateChain,
             EndpointDescriptionCollection? availableEndpoints,
             StringCollection? discoveryProfileUris)
         {
@@ -410,9 +403,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             string sessionName, uint sessionTimeout, IUserIdentity identity, IList<string> preferredLocales,
             CancellationToken ct)
         {
-            return await Session.CreateAsync(this, configuration, (ITransportWaitingConnection?)null, endpoint,
-                updateBeforeConnect, checkDomain, sessionName, sessionTimeout,
-                identity, preferredLocales, ct).ConfigureAwait(false);
+            return await base.CreateAsync(configuration, endpoint, updateBeforeConnect,
+                checkDomain, sessionName, sessionTimeout, identity, preferredLocales, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -421,7 +413,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             bool checkDomain, string sessionName, uint sessionTimeout, IUserIdentity identity,
             IList<string> preferredLocales, CancellationToken ct)
         {
-            return await Session.CreateAsync(this, configuration, connection, endpoint, updateBeforeConnect,
+            return await base.CreateAsync(configuration, connection, endpoint, updateBeforeConnect,
                 checkDomain, sessionName, sessionTimeout, identity, preferredLocales, ct).ConfigureAwait(false);
         }
 
@@ -1628,7 +1620,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // Called under lock
 
             var channel = session.TransportChannel;
-            var token = channel?.CurrentToken;
+            var token = (channel as ISecureChannel)?.CurrentToken;
 
             var now = _timeProvider.GetUtcNow();
 

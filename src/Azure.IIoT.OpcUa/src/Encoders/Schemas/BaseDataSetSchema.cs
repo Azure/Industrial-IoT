@@ -52,7 +52,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
         {
             _dataSetFieldContentMask = dataSetFieldContentMask ?? default;
             _options = options ?? new SchemaOptions();
-            Context = new ServiceMessageContext
+            Context = new ServiceMessageContext(telemetry: null)
             {
                 NamespaceUris = new NamespaceTable()
             };

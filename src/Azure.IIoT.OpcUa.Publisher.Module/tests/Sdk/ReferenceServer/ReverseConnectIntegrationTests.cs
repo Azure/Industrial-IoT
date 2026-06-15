@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
-    using Neovolve.Logging.Xunit;
     using System;
     using System.Linq;
     using System.Text.Json;
@@ -15,13 +14,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
     using Xunit;
     using Xunit.Abstractions;
 
-    public class ReverseConnectIntegrationTests : PublisherIntegrationTestBase
+    /// <summary>
+    /// Owns one direct and one reverse-connect <see cref="ReferenceServer"/>
+    /// shared by the parameterized tests in this file. Sharing the servers
+    /// via <see cref="IClassFixture{TFixture}"/> avoids cumulative
+    /// ServerConsoleHost / PKI / cert teardown churn that surfaced as a
+    /// testhost SEH crash on the Windows pipeline (see PRs #2456 and #2458).
+    /// </summary>
+    public sealed class ReverseConnectServerFixture : IDisposable
     {
-        private readonly ITestOutputHelper _output;
+        public ReferenceServer Direct { get; } = new ReferenceServer();
+        public ReferenceServer ReverseConnect { get; } = ReferenceServer.WithReverseConnect();
 
-        public ReverseConnectIntegrationTests(ITestOutputHelper output) : base(output)
+        public ReferenceServer Get(bool useReverseConnect)
+            => useReverseConnect ? ReverseConnect : Direct;
+
+        public void Dispose()
         {
-            _output = output;
+            Direct.Dispose();
+            ReverseConnect.Dispose();
+        }
+    }
+
+    public class ReverseConnectIntegrationTests : PublisherIntegrationTestBase,
+        IClassFixture<ReverseConnectServerFixture>
+    {
+        private readonly ReverseConnectServerFixture _fixture;
+
+        public ReverseConnectIntegrationTests(ReverseConnectServerFixture fixture,
+            ITestOutputHelper output) : base(output)
+        {
+            _fixture = fixture;
         }
 
         [Theory]
@@ -29,7 +52,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         [InlineData(false)]
         public async Task RegisteredReadTestAsync(bool useReverseConnect)
         {
-            using var server = ReferenceServer.Create(LogFactory.Create(_output, Logging.Config), useReverseConnect);
+            var server = _fixture.Get(useReverseConnect);
             EndpointUrl = server.EndpointUrl;
 
             var name = nameof(RegisteredReadTestAsync) + (useReverseConnect ? "WithReverseConnect" : "NoReverseConnect");
@@ -64,9 +87,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         [InlineData(false)]
         public async Task KeepAliveTestAsync(bool useReverseConnect)
         {
-#pragma warning disable CA2000 // Dispose objects before losing scope
-            using var server = ReferenceServer.Create(LogFactory.Create(_output, Logging.Config), useReverseConnect);
-#pragma warning restore CA2000 // Dispose objects before losing scope
+            var server = _fixture.Get(useReverseConnect);
             EndpointUrl = server.EndpointUrl;
 
             var name = nameof(KeepAliveTestAsync) + (useReverseConnect ? "WithReverseConnect" : "NoReverseConnect");
