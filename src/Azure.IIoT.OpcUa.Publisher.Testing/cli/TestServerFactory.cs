@@ -482,7 +482,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                     if (policy.TokenType == UserTokenType.IssuedToken)
                     {
                         // the name of the element in the configuration file.
-                        var qname = new XmlQualifiedName(policy.PolicyId, Namespaces.OpcUa);
+                        var qname = new XmlQualifiedName(policy.PolicyId, Opc.Ua.Namespaces.OpcUa);
 
                         // find the id for the issuer certificate.
                         var id = configuration.ParseExtension<CertificateIdentifier>(qname);
@@ -502,7 +502,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                     if (policy.TokenType == UserTokenType.Certificate)
                     {
                         // the name of the element in the configuration file.
-                        var qname = new XmlQualifiedName(policy.PolicyId, Namespaces.OpcUa);
+                        var qname = new XmlQualifiedName(policy.PolicyId, Opc.Ua.Namespaces.OpcUa);
 
                         // find the location of the trusted issuers.
                         var trustedIssuers = configuration.ParseExtension<CertificateTrustList>(qname);
@@ -545,7 +545,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                 // check for a user name token.
                 if (args.NewIdentity is UserNameIdentityToken userNameToken)
                 {
-                    var admin = VerifyPassword(userNameToken.UserName, userNameToken.DecryptedPassword);
+                    var password = userNameToken.DecryptedPassword == null
+                        ? null
+                        : System.Text.Encoding.UTF8.GetString(userNameToken.DecryptedPassword);
+                    var admin = VerifyPassword(userNameToken.UserName, password);
                     args.Identity = new UserIdentity(userNameToken);
                     if (admin)
                     {
@@ -586,8 +589,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                     "Specified token is not valid.");
                 // create an exception with a vendor defined sub-code.
                 throw new ServiceResultException(new ServiceResult(
-                    StatusCodes.BadIdentityTokenRejected, "Bad token",
-                    kServerNamespaceUri, new LocalizedText(info)));
+                    kServerNamespaceUri,
+                    new StatusCode(StatusCodes.BadIdentityTokenRejected, "Bad token"),
+                    new LocalizedText(info)));
             }
 
             /// <summary>
@@ -603,8 +607,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                         "Specified token is empty.");
                     // create an exception with a vendor defined sub-code.
                     throw new ServiceResultException(new ServiceResult(
-                        StatusCodes.BadIdentityTokenRejected, "Bad token",
-                        kServerNamespaceUri, new LocalizedText(info)));
+                        kServerNamespaceUri,
+                        new StatusCode(StatusCodes.BadIdentityTokenRejected, "Bad token"),
+                        new LocalizedText(info)));
                 }
                 return false;
             }
@@ -626,8 +631,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                         userName);
                     // create an exception with a vendor defined sub-code.
                     throw new ServiceResultException(new ServiceResult(
-                        StatusCodes.BadIdentityTokenRejected, "InvalidPassword",
-                        kServerNamespaceUri, new LocalizedText(info)));
+                        kServerNamespaceUri,
+                        new StatusCode(StatusCodes.BadIdentityTokenRejected, "InvalidPassword"),
+                        new LocalizedText(info)));
                 }
 
                 if (userName.Equals("test", StringComparison.OrdinalIgnoreCase) &&
@@ -695,7 +701,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
 
                     // create an exception with a vendor defined sub-code.
                     throw new ServiceResultException(new ServiceResult(
-                        result, info.Key, kServerNamespaceUri, new LocalizedText(info)));
+                        kServerNamespaceUri,
+                        new StatusCode(result.Code, info.Key),
+                        new LocalizedText(info)));
                 }
             }
 

@@ -172,7 +172,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             goto default;
                         }
                         var certificateType = DetermineCertificateType(cert);
-                        var withPrivateKey = await certStore.LoadPrivateKeyAsync(cert.Thumbprint, cert.Subject, null, certificateType, Password, ct).ConfigureAwait(false);
+                        var withPrivateKey = await certStore.LoadPrivateKeyAsync(cert.Thumbprint, cert.Subject, null, certificateType, Password.ToCharArray(), ct).ConfigureAwait(false);
                         if (withPrivateKey == null)
                         {
                             goto default;
@@ -216,8 +216,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     await certStore.DeleteAsync(cert.Thumbprint, ct).ConfigureAwait(false);
                 }
 
-                await certStore.AddAsync(cert, store == CertificateStoreName.Application ?
-                    Password : password, ct).ConfigureAwait(false);
+                await certStore.AddAsync(cert, (store == CertificateStoreName.Application ?
+                    Password : password)?.ToCharArray(), ct).ConfigureAwait(false);
 
                 if (store == CertificateStoreName.Application)
                 {
@@ -476,9 +476,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
-        public string GetPassword(CertificateIdentifier certificateIdentifier)
+        public char[] GetPassword(CertificateIdentifier certificateIdentifier)
         {
-            return Password;
+            return Password.ToCharArray();
         }
 
         /// <summary>
@@ -597,7 +597,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         options.ApplicationCertificates.StoreType != null)
                     {
                         using var certStore = CertificateStoreIdentifier.CreateStore(
-                            options.ApplicationCertificates.StoreType);
+                            options.ApplicationCertificates.StoreType, Value.CreateMessageContext().Telemetry);
                         certStore.Open(options.ApplicationCertificates.StorePath, false);
                         var certs = await certStore.EnumerateAsync().ConfigureAwait(false);
                         var subjects = new List<string>();
@@ -957,9 +957,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private class TrustedUserCertificateStore : CertificateTrustList
         {
             /// <inheritdoc/>
-            public override ICertificateStore OpenStore()
+            public override ICertificateStore OpenStore(ITelemetryContext telemetry)
             {
-                var store = CreateStore(StoreType);
+                var store = CreateStore(StoreType, telemetry);
                 store.Open(StorePath, false); // Allow private keys
                 return store;
             }

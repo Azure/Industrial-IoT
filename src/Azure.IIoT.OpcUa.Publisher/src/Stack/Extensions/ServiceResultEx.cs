@@ -21,11 +21,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <returns></returns>
         public static ServiceResultModel ToServiceResultModel(this ServiceResult sr)
         {
+            // The reference server in OPC Foundation 1.5.378.x no longer
+            // auto-populates Locale on default LocalizedText translations of
+            // status codes. Preserve the historical "en-US" default to keep
+            // the publisher's external contract stable.
+            var localizedText = sr.LocalizedText;
+            var locale = localizedText?.Locale;
+            if (locale == null && !string.IsNullOrEmpty(localizedText?.Text))
+            {
+                locale = "en-US";
+            }
             return new ServiceResultModel
             {
                 StatusCode = sr.Code,
-                ErrorMessage = sr.LocalizedText?.Text,
-                Locale = sr.LocalizedText?.Locale,
+                ErrorMessage = localizedText?.Text,
+                Locale = locale,
                 AdditionalInfo = sr.AdditionalInfo,
                 NamespaceUri = sr.NamespaceUri,
                 SymbolicId = sr.SymbolicId ?? sr.StatusCode.AsString(),
@@ -80,15 +90,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public static ServiceResultModel CreateResultModel(this StatusCode statusCode,
             DiagnosticInfo? diagnostics = null, StringCollection? stringTable = null)
         {
+            // The reference server in OPC Foundation 1.5.378.x no longer
+            // populates LocalizedText / Locale entries in the per-operation
+            // diagnostics for default status-code translations. When the
+            // client asked for diagnostics (i.e. diagnostics != null) but the
+            // server omitted the localized text, fall back to the symbolic
+            // status name and the historical "en-US" default to preserve the
+            // publisher's external contract.
+            var errorMessage = stringTable?.GetStringFromTable(diagnostics?.LocalizedText);
+            var locale = stringTable?.GetStringFromTable(diagnostics?.Locale);
+            if (diagnostics != null && errorMessage == null && StatusCode.IsBad(statusCode.Code))
+            {
+                errorMessage = statusCode.AsString();
+                locale ??= "en-US";
+            }
+            else if (locale == null && !string.IsNullOrEmpty(errorMessage))
+            {
+                locale = "en-US";
+            }
             return new ServiceResultModel
             {
                 // The last operation result is the one that caused the service to fail.
                 StatusCode = statusCode.Code,
                 SymbolicId = stringTable?.GetStringFromTable(diagnostics?.SymbolicId) ??
                     statusCode.AsString(),
-                ErrorMessage = stringTable?.GetStringFromTable(diagnostics?.LocalizedText),
+                ErrorMessage = errorMessage,
                 NamespaceUri = stringTable?.GetStringFromTable(diagnostics?.NamespaceUri),
-                Locale = stringTable?.GetStringFromTable(diagnostics?.Locale),
+                Locale = locale,
                 AdditionalInfo = diagnostics?.AdditionalInfo,
                 Inner = diagnostics?.InnerStatusCode == null ||
                     diagnostics.InnerStatusCode == StatusCodes.Good ? null :

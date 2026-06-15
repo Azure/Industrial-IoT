@@ -113,7 +113,7 @@ namespace Boiler
         /// </summary>
         /// <param name="context">The context to use.</param>
         /// <param name="unitNumber">The unit number for the boiler.</param>
-        private void CreateBoiler(SystemContext context, int unitNumber)
+        private void CreateBoiler(ISystemContext context, int unitNumber)
         {
             var boiler = new BoilerState(null);
 
@@ -309,7 +309,7 @@ namespace Boiler
         }
 
         private readonly ushort _namespaceIndex;
-        private long _lastUsedId;
+        private uint _lastUsedId;
         private List<BoilerState> _boilers;
     }
 }

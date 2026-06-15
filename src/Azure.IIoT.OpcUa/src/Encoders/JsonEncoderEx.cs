@@ -132,7 +132,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             JsonEncoding encoding = JsonEncoding.StartObject, bool ownedWriter = false)
         {
             _namespaces = new Stack<string>();
-            Context = context ?? new ServiceMessageContext();
+            Context = context ?? new ServiceMessageContext(telemetry: null);
             _ownedWriter = ownedWriter;
             _writer = writer ?? throw new ArgumentNullException(nameof(writer));
             _encoding = encoding;

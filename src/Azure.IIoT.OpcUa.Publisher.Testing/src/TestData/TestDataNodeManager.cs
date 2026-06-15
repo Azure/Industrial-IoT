@@ -552,7 +552,7 @@ namespace TestData
         private ushort _namespaceIndex;
         private ushort _typeNamespaceIndex;
         private TestDataSystem _system;
-        private long _lastUsedId;
+        private uint _lastUsedId;
         private Timer _systemStatusTimer;
         private TestSystemConditionState _systemStatusCondition;
 
