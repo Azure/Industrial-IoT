@@ -28,21 +28,45 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             using var mock = Autofac.Extras.Moq.AutoMock.GetLoose();
             namespaceTable ??= new NamespaceTable();
 
-            var s = new Mock<ISession>();
-            s.Setup(x => x.ReadNodeAsync(It.IsAny<NodeId>(), It.IsAny<CancellationToken>()))
-                .Returns((NodeId x, CancellationToken _)
-                => Task.FromResult(GetNode(x)));
-            s.Setup(x => x.ReadNodesAsync(It.IsAny<IList<NodeId>>(), It.IsAny<NodeClass>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-                .Returns((IList<NodeId> nodeIds, NodeClass nodeClass, bool includeReferences, CancellationToken cancellationToken)
-                => Task.FromResult(GetNodes(nodeIds, nodeClass, includeReferences)));
-            s.Setup(x => x.FetchReferencesAsync(It.IsAny<NodeId>(), It.IsAny<CancellationToken>()))
-                .Returns((NodeId x, CancellationToken _)
-                => Task.FromResult(new ReferenceDescriptionCollection(GetReferences(x))));
+            var ctx = new Mock<INodeCacheContext>();
+            ctx.SetupGet(x => x.NamespaceUris).Returns(namespaceTable);
+            ctx.SetupGet(x => x.ServerUris).Returns(new StringTable());
+            ctx.Setup(x => x.FetchNodeAsync(It.IsAny<RequestHeader>(), It.IsAny<NodeId>(),
+                    It.IsAny<NodeClass>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .Returns((RequestHeader _, NodeId nodeId, NodeClass _, bool _, CancellationToken _)
+                    => ValueTask.FromResult(GetNode(nodeId)));
+            ctx.Setup(x => x.FetchNodesAsync(It.IsAny<RequestHeader>(), It.IsAny<IReadOnlyList<NodeId>>(),
+                    It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .Returns((RequestHeader _, IReadOnlyList<NodeId> nodeIds, bool _, CancellationToken _) =>
+                {
+                    var (nodes, errors) = GetNodes(nodeIds.ToList(), NodeClass.Unspecified, false);
+                    return ValueTask.FromResult(new ResultSet<Node>(nodes.ToArray(), errors.ToArray()));
+                });
+            ctx.Setup(x => x.FetchNodesAsync(It.IsAny<RequestHeader>(), It.IsAny<IReadOnlyList<NodeId>>(),
+                    It.IsAny<NodeClass>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .Returns((RequestHeader _, IReadOnlyList<NodeId> nodeIds, NodeClass nodeClass, bool _, CancellationToken _) =>
+                {
+                    var (nodes, errors) = GetNodes(nodeIds.ToList(), nodeClass, false);
+                    return ValueTask.FromResult(new ResultSet<Node>(nodes.ToArray(), errors.ToArray()));
+                });
+            ctx.Setup(x => x.FetchReferencesAsync(It.IsAny<RequestHeader>(), It.IsAny<NodeId>(),
+                    It.IsAny<CancellationToken>()))
+                .Returns((RequestHeader _, NodeId nodeId, CancellationToken _)
+                    => ValueTask.FromResult(new ReferenceDescriptionCollection(GetReferences(nodeId))));
+            ctx.Setup(x => x.FetchReferencesAsync(It.IsAny<RequestHeader>(),
+                    It.IsAny<IReadOnlyList<NodeId>>(), It.IsAny<CancellationToken>()))
+                .Returns((RequestHeader _, IReadOnlyList<NodeId> nodeIds, CancellationToken _) =>
+                {
+                    var lists = nodeIds.Select(n => new ReferenceDescriptionCollection(GetReferences(n))).ToList();
+                    var errors = nodeIds.Select(_ => ServiceResult.Good).ToList();
+                    return ValueTask.FromResult(
+                        new ResultSet<ReferenceDescriptionCollection>(lists, errors));
+                });
 
-            var nodeCache = new LruNodeCache(s.Object);
+            var nodeCache = new LruNodeCache(ctx.Object, telemetry: null);
 
             var session = mock.Mock<IOpcUaSession>();
-            var messageContext = new ServiceMessageContext
+            var messageContext = new ServiceMessageContext(telemetry: null)
             {
                 NamespaceUris = namespaceTable
             };

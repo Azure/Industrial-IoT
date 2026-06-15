@@ -17,62 +17,62 @@
   </ItemGroup>
 
   <ItemGroup Label="Microsoft.Extensions and ASP.NET Core">
-    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.Diagnostics.ResourceMonitoring" Version="10.6.0" />
-    <PackageVersion Include="Microsoft.Extensions.FileProviders.Physical" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.8" />
-    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.8" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.Diagnostics.ResourceMonitoring" Version="10.7.0" />
+    <PackageVersion Include="Microsoft.Extensions.FileProviders.Physical" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.9" />
   </ItemGroup>
 
   <ItemGroup Label="Azure SDK">
-    <PackageVersion Include="Azure.Core" Version="1.56.0" />
+    <PackageVersion Include="Azure.Core" Version="1.59.0" />
     <PackageVersion Include="Azure.Identity" Version="1.21.0" />
     <PackageVersion Include="Azure.Messaging.EventHubs" Version="5.12.2" />
     <PackageVersion Include="Azure.ResourceManager" Version="1.14.0" />
-    <PackageVersion Include="Azure.ResourceManager.ContainerInstance" Version="1.3.0" />
+    <PackageVersion Include="Azure.ResourceManager.ContainerInstance" Version="1.3.1" />
     <PackageVersion Include="Azure.ResourceManager.ContainerRegistry" Version="1.4.0" />
     <PackageVersion Include="Azure.ResourceManager.IotHub" Version="1.1.1" />
-    <PackageVersion Include="Azure.ResourceManager.Storage" Version="1.6.2" />
-    <PackageVersion Include="Azure.Storage.Blobs" Version="12.28.0" />
-    <PackageVersion Include="Azure.Storage.Queues" Version="12.26.0" />
+    <PackageVersion Include="Azure.ResourceManager.Storage" Version="1.7.0" />
+    <PackageVersion Include="Azure.Storage.Blobs" Version="12.29.0" />
+    <PackageVersion Include="Azure.Storage.Queues" Version="12.27.0" />
     <PackageVersion Include="Microsoft.Azure.Devices" Version="1.41.0" />
     <PackageVersion Include="Microsoft.Azure.Devices.Client" Version="1.42.3" />
   </ItemGroup>
 
   <ItemGroup Label="OPC Foundation">
-    <PackageVersion Include="OPCFoundation.NetStandard.Opc.Ua.Client" Version="1.5.377.22" />
-    <PackageVersion Include="OPCFoundation.NetStandard.Opc.Ua.Client.ComplexTypes" Version="1.5.377.22" />
-    <PackageVersion Include="OPCFoundation.NetStandard.Opc.Ua.Core" Version="1.5.377.22" />
-    <PackageVersion Include="OPCFoundation.NetStandard.Opc.Ua.Server" Version="1.5.377.22" />
+    <PackageVersion Include="OPCFoundation.NetStandard.Opc.Ua.Client" Version="1.5.378.145" />
+    <PackageVersion Include="OPCFoundation.NetStandard.Opc.Ua.Client.ComplexTypes" Version="1.5.378.145" />
+    <PackageVersion Include="OPCFoundation.NetStandard.Opc.Ua.Core" Version="1.5.378.145" />
+    <PackageVersion Include="OPCFoundation.NetStandard.Opc.Ua.Server" Version="1.5.378.145" />
   </ItemGroup>
 
   <ItemGroup Label="Furly (keep all in lock-step)">
-    <PackageVersion Include="Furly.Azure.EventHubs" Version="1.2.1" />
-    <PackageVersion Include="Furly.Azure.IoT" Version="1.2.1" />
-    <PackageVersion Include="Furly.Azure.IoT.Edge" Version="1.2.1" />
-    <PackageVersion Include="Furly.Azure.IoT.Operations" Version="1.2.1" />
-    <PackageVersion Include="Furly.Extensions" Version="1.2.1" />
-    <PackageVersion Include="Furly.Extensions.Abstractions" Version="1.2.1" />
-    <PackageVersion Include="Furly.Extensions.AspNetCore" Version="1.2.1" />
-    <PackageVersion Include="Furly.Extensions.Autofac" Version="1.2.1" />
-    <PackageVersion Include="Furly.Extensions.Dapr" Version="1.2.1" />
-    <PackageVersion Include="Furly.Extensions.Json" Version="1.2.1" />
-    <PackageVersion Include="Furly.Extensions.MessagePack" Version="1.2.1" />
-    <PackageVersion Include="Furly.Extensions.Mqtt" Version="1.2.1" />
-    <PackageVersion Include="Furly.Extensions.Newtonsoft" Version="1.2.1" />
-    <PackageVersion Include="Furly.Tunnel" Version="1.2.1" />
+    <PackageVersion Include="Furly.Azure.EventHubs" Version="1.2.2" />
+    <PackageVersion Include="Furly.Azure.IoT" Version="1.2.2" />
+    <PackageVersion Include="Furly.Azure.IoT.Edge" Version="1.2.2" />
+    <PackageVersion Include="Furly.Azure.IoT.Operations" Version="1.2.2" />
+    <PackageVersion Include="Furly.Extensions" Version="1.2.2" />
+    <PackageVersion Include="Furly.Extensions.Abstractions" Version="1.2.2" />
+    <PackageVersion Include="Furly.Extensions.AspNetCore" Version="1.2.2" />
+    <PackageVersion Include="Furly.Extensions.Autofac" Version="1.2.2" />
+    <PackageVersion Include="Furly.Extensions.Dapr" Version="1.2.2" />
+    <PackageVersion Include="Furly.Extensions.Json" Version="1.2.2" />
+    <PackageVersion Include="Furly.Extensions.MessagePack" Version="1.2.2" />
+    <PackageVersion Include="Furly.Extensions.Mqtt" Version="1.2.2" />
+    <PackageVersion Include="Furly.Extensions.Newtonsoft" Version="1.2.2" />
+    <PackageVersion Include="Furly.Tunnel" Version="1.2.2" />
   </ItemGroup>
 
   <ItemGroup Label="OpenTelemetry">
-    <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="1.15.3" />
-    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.3" />
-    <PackageVersion Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="1.15.3-beta.1" />
-    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.15.3" />
+    <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="1.16.0" />
+    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.16.0" />
+    <PackageVersion Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="1.16.0-beta.1" />
+    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.16.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.15.2" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.15.1" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.15.1" />
@@ -83,7 +83,7 @@
     <PackageVersion Include="AutoFixture" Version="4.18.1" />
     <PackageVersion Include="coverlet.collector" Version="10.0.1" />
     <PackageVersion Include="coverlet.msbuild" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.5.1" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.6.0" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.300" />
     <PackageVersion Include="Nerdbank.GitVersioning" Version="3.9.50" />
     <PackageVersion Include="Neovolve.Logging.Xunit" Version="6.3.0" />
@@ -100,7 +100,7 @@
     <PackageVersion Include="CommandLineParser" Version="2.9.1" />
     <PackageVersion Include="Irony" Version="1.5.3" />
     <PackageVersion Include="Json.More.Net" Version="3.0.1" />
-    <PackageVersion Include="JsonSchema.Net" Version="9.2.1" />
+    <PackageVersion Include="JsonSchema.Net" Version="9.2.2" />
     <PackageVersion Include="KubernetesClient" Version="19.0.2" />
     <PackageVersion Include="Microsoft.IO.RecyclableMemoryStream" Version="3.0.1" />
     <PackageVersion Include="Microsoft.Json.Schema" Version="2.3.0" />

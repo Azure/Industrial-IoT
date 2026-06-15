@@ -54,7 +54,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         internal JsonDecoderEx(JsonReader reader, IServiceMessageContext? context,
             bool useJsonLoader = true)
         {
-            Context = context ?? new ServiceMessageContext();
+            Context = context ?? new ServiceMessageContext(telemetry: null);
             _reader = !useJsonLoader ? reader : new JsonLoader(
                 reader ?? throw new ArgumentNullException(nameof(reader)));
         }

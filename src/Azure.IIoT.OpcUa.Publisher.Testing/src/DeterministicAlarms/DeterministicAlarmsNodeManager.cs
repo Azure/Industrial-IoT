@@ -264,7 +264,7 @@ namespace DeterministicAlarms
         /// <param name="filterErrors"></param>
         /// <param name="monitoredItems"></param>
         /// <param name="createDurable"></param>
-        /// <param name="globalIdCounter"></param>
+        /// <param name="monitoredItemIdFactory"></param>
         /// <remarks>
         /// This method only handles data change subscriptions. Event subscriptions are created by the SDK.
         /// </remarks>
@@ -278,7 +278,7 @@ namespace DeterministicAlarms
             IList<MonitoringFilterResult> filterErrors,
             IList<IMonitoredItem> monitoredItems,
             bool createDurable,
-            ref long globalIdCounter)
+            MonitoredItemIdFactory monitoredItemIdFactory)
         {
             var systemContext = _defaultSystemContext.Copy(context);
             IDictionary<NodeId, NodeState> operationCache = new NodeIdDictionary<NodeState>();
@@ -354,7 +354,7 @@ namespace DeterministicAlarms
                         timestampsToReturn,
                         itemToCreate,
                         createDurable,
-                        ref globalIdCounter,
+                        monitoredItemIdFactory,
                         out filterResult,
                         out monitoredItem);
                 }

@@ -899,7 +899,7 @@ $"{type.Assembly.GetName().Name}.Generated.{type.Namespace}.Design.{type.Namespa
         private readonly Dictionary<NodeId, FileManager> _fileManagers = [];
         private readonly ILogger _logger;
         private readonly string _folder;
-        private long _lastUsedId;
+        private uint _lastUsedId;
     }
 
     /// <summary>

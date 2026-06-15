@@ -318,7 +318,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             switch (credential.Type)
             {
                 case CredentialType.UserName:
-                    return new UserIdentity(identity.User, identity.Password);
+                    return new UserIdentity(identity.User,
+                        identity.Password == null ? null : System.Text.Encoding.UTF8.GetBytes(identity.Password));
                 case CredentialType.X509Certificate:
                     var subjectName = identity.User;
                     var thumbprint = identity.Thumbprint;
@@ -326,9 +327,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                     if (thumbprint != null || subjectName != null)
                     {
                         using var users = configuration.SecurityConfiguration
-                            .TrustedUserCertificates.OpenStore();
+                            .TrustedUserCertificates.OpenStore(configuration.CreateMessageContext().Telemetry);
                         var userCertWithPrivateKey = await users.LoadPrivateKeyAsync(thumbprint, subjectName,
-                            null, null /* TODO add rsa/ecc*/, passCode, ct).ConfigureAwait(false);
+                            null, null /* TODO add rsa/ecc*/, passCode?.ToCharArray(), ct).ConfigureAwait(false);
                         if (userCertWithPrivateKey == null)
                         {
                             throw new ServiceResultException(StatusCodes.BadCertificateInvalid,

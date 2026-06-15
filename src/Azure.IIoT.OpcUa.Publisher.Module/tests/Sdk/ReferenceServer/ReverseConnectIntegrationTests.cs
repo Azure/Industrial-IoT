@@ -24,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
     public sealed class ReverseConnectServerFixture : IDisposable
     {
         public ReferenceServer Direct { get; } = new ReferenceServer();
-        public ReferenceServer ReverseConnect { get; } = new ReferenceServer(useReverseConnect: true);
+        public ReferenceServer ReverseConnect { get; } = ReferenceServer.WithReverseConnect();
 
         public ReferenceServer Get(bool useReverseConnect)
             => useReverseConnect ? ReverseConnect : Direct;

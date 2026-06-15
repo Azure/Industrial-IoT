@@ -100,7 +100,7 @@ namespace Asset
                         StatusCodes.BadInvalidArgument);
                 }
 
-                if (handle.SessionId != _context.SessionId)
+                if (handle.SessionId != GetSessionId(_context))
                 {
                     throw new ServiceResultException(
                         StatusCodes.BadUserAccessDenied);
@@ -108,6 +108,9 @@ namespace Asset
                 return handle;
             }
         }
+
+        private static NodeId? GetSessionId(ISystemContext context)
+            => (context as ISessionSystemContext)?.SessionId;
 
         private ServiceResult OnOpen(ISystemContext _context, MethodState _method,
             NodeId _objectId, byte mode, ref uint fileHandle)
@@ -135,14 +138,14 @@ namespace Asset
                     if (mode == 6)
                     {
                         // Writing
-                        handle = new Handle(_context.SessionId);
+                        handle = new Handle(GetSessionId(_context));
                         _writing = true;
                     }
                     else if (mode == 1)
                     {
                         // Reading
                         var path = Path.Combine(_folder, _file.Parent.DisplayName.Text + ".jsonld");
-                        handle = new Handle(_context.SessionId, File.Open(path, FileMode.Open));
+                        handle = new Handle(GetSessionId(_context), File.Open(path, FileMode.Open));
                     }
                     else
                     {
@@ -238,7 +241,7 @@ namespace Asset
                         "Bad file handle");
                 }
 
-                if (handle.SessionId != _context.SessionId)
+                if (handle.SessionId != GetSessionId(_context))
                 {
                     return ServiceResult.Create(StatusCodes.BadUserAccessDenied,
                         "Bad sessionid");
@@ -300,7 +303,7 @@ namespace Asset
                         return false;
                     }
 
-                    if (handle.SessionId != _context.SessionId)
+                    if (handle.SessionId != GetSessionId(_context))
                     {
                         sr = StatusCodes.BadUserAccessDenied;
                         return false;
@@ -330,18 +333,18 @@ namespace Asset
 
         private sealed record class Handle : IDisposable
         {
-            public NodeId SessionId { get; }
+            public NodeId? SessionId { get; }
             public Stream Stream { get; }
             public bool Writing { get; }
 
-            public Handle(NodeId sessionId)
+            public Handle(NodeId? sessionId)
             {
                 SessionId = sessionId;
                 Writing = true;
                 Stream = new MemoryStream();
             }
 
-            public Handle(NodeId sessionId, Stream stream)
+            public Handle(NodeId? sessionId, Stream stream)
             {
                 SessionId = sessionId;
                 Stream = stream;

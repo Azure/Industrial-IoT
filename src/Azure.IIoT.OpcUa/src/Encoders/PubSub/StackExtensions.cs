@@ -88,7 +88,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 return null;
             }
-            var localContext = new ServiceMessageContext();
+            var localContext = new ServiceMessageContext(telemetry: null);
             if (model.Namespaces != null)
             {
                 foreach (var ns in model.Namespaces)

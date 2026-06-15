@@ -905,7 +905,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             // Assert
             Assert.NotNull(result);
             Assert.NotNull(result.SourceTimestamp);
-            Assert.NotNull(result.ServerTimestamp);
+            // ServerTimestamp is no longer set by the OPC Foundation 1.5.378.x
+            // reference DataAccess measurement source.
             AssertEqualValue(expected, result.Value);
             Assert.Equal("Float", result.DataType);
         }

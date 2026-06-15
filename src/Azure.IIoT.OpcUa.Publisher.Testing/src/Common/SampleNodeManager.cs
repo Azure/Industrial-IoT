@@ -2283,7 +2283,7 @@ namespace Opc.Ua.Sample
         /// <param name="filterErrors"></param>
         /// <param name="monitoredItems"></param>
         /// <param name="createDurable"></param>
-        /// <param name="globalIdCounter"></param>
+        /// <param name="monitoredItemIdFactory"></param>
         /// <remarks>
         /// This method only handles data change subscriptions. Event subscriptions are created by the SDK.
         /// </remarks>
@@ -2297,7 +2297,7 @@ namespace Opc.Ua.Sample
             IList<MonitoringFilterResult> filterErrors,
             IList<IMonitoredItem> monitoredItems,
             bool createDurable,
-            ref long globalIdCounter)
+            MonitoredItemIdFactory monitoredItemIdFactory)
         {
             ServerSystemContext systemContext = SystemContext.Copy(context);
             IDictionary<NodeId, NodeState> operationCache = new NodeIdDictionary<NodeState>();
@@ -2351,7 +2351,7 @@ namespace Opc.Ua.Sample
                         timestampsToReturn,
                         itemToCreate,
                         createDurable,
-                        ref globalIdCounter,
+                        monitoredItemIdFactory,
                         out MonitoringFilterResult filterError,
                         out IMonitoredItem monitoredItem);
 
@@ -2395,7 +2395,7 @@ namespace Opc.Ua.Sample
                         timestampsToReturn,
                         itemToCreate,
                         createDurable,
-                        ref globalIdCounter,
+                        monitoredItemIdFactory,
                         out MonitoringFilterResult filterError,
                         out IMonitoredItem monitoredItem);
 
@@ -2704,7 +2704,7 @@ namespace Opc.Ua.Sample
         /// <param name="timestampsToReturn"></param>
         /// <param name="itemToCreate"></param>
         /// <param name="createDurable"></param>
-        /// <param name="globalIdCounter"></param>
+        /// <param name="monitoredItemIdFactory"></param>
         /// <param name="filterError"></param>
         /// <param name="monitoredItem"></param>
         /// <remarks>
@@ -2719,7 +2719,7 @@ namespace Opc.Ua.Sample
             TimestampsToReturn timestampsToReturn,
             MonitoredItemCreateRequest itemToCreate,
             bool createDurable,
-            ref long globalIdCounter,
+            MonitoredItemIdFactory monitoredItemIdFactory,
             out MonitoringFilterResult filterError,
             out IMonitoredItem monitoredItem)
         {
@@ -2787,7 +2787,7 @@ namespace Opc.Ua.Sample
             }
 
             // create a globally unique identifier.
-            uint monitoredItemId = Utils.IncrementIdentifier(ref globalIdCounter);
+            uint monitoredItemId = monitoredItemIdFactory.GetNextId();
 
             // determine the sampling interval.
             double samplingInterval = itemToCreate.RequestedParameters.SamplingInterval;

@@ -39,9 +39,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                 (factory ?? Log.ConsoleFactory()).CreateLogger<Plc.PlcServer>(), 0);
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Default fixture instance used by xUnit IClassFixture.
+        /// </summary>
         public ReferenceServer()
-            : base(Reference)
+            : this(useReverseConnect: false)
+        {
+        }
+
+        /// <inheritdoc/>
+        private ReferenceServer(bool useReverseConnect)
+            : base(Reference, null, useReverseConnect)
         {
         }
 
@@ -59,6 +67,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
             bool useReverseConnect)
             : base(Reference, loggerFactory, useReverseConnect)
         {
+        }
+
+        /// <summary>
+        /// Create a reference server with reverse connect enabled.
+        /// </summary>
+        public static ReferenceServer WithReverseConnect()
+        {
+            return new ReferenceServer(useReverseConnect: true);
         }
 
         /// <inheritdoc/>

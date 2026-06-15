@@ -113,7 +113,7 @@ namespace HistoricalAccess
         /// Loads the configuration.
         /// </summary>
         /// <param name="context"></param>
-        public void LoadConfiguration(SystemContext context)
+        public void LoadConfiguration(ISystemContext context)
         {
             var reader = new DataFileReader(_timeService);
 
@@ -139,7 +139,7 @@ namespace HistoricalAccess
         /// Loads the data.
         /// </summary>
         /// <param name="context"></param>
-        public void ReloadFromSource(SystemContext context)
+        public void ReloadFromSource(ISystemContext context)
         {
             LoadConfiguration(context);
 
@@ -179,7 +179,7 @@ namespace HistoricalAccess
         /// Creates a new sample.
         /// </summary>
         /// <param name="context"></param>
-        public IList<DataValue> NewSamples(SystemContext context)
+        public IList<DataValue> NewSamples(ISystemContext context)
         {
             System.Diagnostics.Contracts.Contract.Assume(context is not null);
             var newSamples = new List<DataValue>();
@@ -218,7 +218,7 @@ namespace HistoricalAccess
         /// <param name="context"></param>
         /// <param name="value"></param>
         /// <param name="performUpdateType"></param>
-        public uint UpdateHistory(SystemContext context, DataValue value, PerformUpdateType performUpdateType)
+        public uint UpdateHistory(ISystemContext context, DataValue value, PerformUpdateType performUpdateType)
         {
             var replaced = false;
 
@@ -340,7 +340,7 @@ namespace HistoricalAccess
         /// <param name="annotation"></param>
         /// <param name="value"></param>
         /// <param name="performUpdateType"></param>
-        public uint UpdateAnnotations(SystemContext context, Annotation annotation, DataValue value, PerformUpdateType performUpdateType)
+        public uint UpdateAnnotations(ISystemContext context, Annotation annotation, DataValue value, PerformUpdateType performUpdateType)
         {
             System.Diagnostics.Contracts.Contract.Assume(context is not null);
             var replaced = false;
@@ -417,7 +417,7 @@ namespace HistoricalAccess
         /// </summary>
         /// <param name="context"></param>
         /// <param name="sourceTimestamp"></param>
-        public uint DeleteHistory(SystemContext context, DateTime sourceTimestamp)
+        public uint DeleteHistory(ISystemContext context, DateTime sourceTimestamp)
         {
             var deleted = false;
 
@@ -463,7 +463,7 @@ namespace HistoricalAccess
         /// <param name="startTime"></param>
         /// <param name="endTime"></param>
         /// <param name="isModified"></param>
-        public uint DeleteHistory(SystemContext context, DateTime startTime, DateTime endTime, bool isModified)
+        public uint DeleteHistory(ISystemContext context, DateTime startTime, DateTime endTime, bool isModified)
         {
             // ensure time goes up.
             if (endTime < startTime)
@@ -531,7 +531,7 @@ namespace HistoricalAccess
         /// </summary>
         /// <param name="context"></param>
         /// <param name="updateType"></param>
-        private ModificationInfo GetModificationInfo(SystemContext context, HistoryUpdateType updateType)
+        private ModificationInfo GetModificationInfo(ISystemContext context, HistoryUpdateType updateType)
         {
             var info = new ModificationInfo
             {
@@ -539,9 +539,10 @@ namespace HistoricalAccess
                 ModificationTime = _timeService.UtcNow
             };
 
-            if (context.OperationContext?.UserIdentity != null)
+            var userIdentity = (context as ISessionSystemContext)?.UserIdentity;
+            if (userIdentity != null)
             {
-                info.UserName = context.OperationContext.UserIdentity.DisplayName;
+                info.UserName = userIdentity.DisplayName;
             }
 
             return info;
