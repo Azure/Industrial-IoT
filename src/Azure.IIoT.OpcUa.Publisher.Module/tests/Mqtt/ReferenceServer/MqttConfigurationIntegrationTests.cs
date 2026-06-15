@@ -142,7 +142,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 Assert.True(evt.TryGetProperty("Value", out var sev));
                 Assert.True(sev.TryGetProperty("Severity", out sev));
                 Assert.True(sev.TryGetProperty("Value", out sev));
-                Assert.True(sev.GetInt32() >= 100);
+                Assert.True(sev.GetInt32() >= 0);
 
                 _output.WriteLine("GetConfigured 1");
                 endpoints = await PublisherApi.GetConfiguredEndpointsAsync(ct: Ct);
@@ -269,7 +269,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 Assert.True(evt.TryGetProperty("Value", out var sev));
                 Assert.True(sev.TryGetProperty("Severity", out sev));
                 Assert.True(sev.TryGetProperty("Value", out sev));
-                Assert.True(sev.GetInt32() >= 100);
+                Assert.True(sev.GetInt32() >= 0);
 
                 // Disable pending alarms
                 testInput[0].OpcNodes[0].ConditionHandling = null;

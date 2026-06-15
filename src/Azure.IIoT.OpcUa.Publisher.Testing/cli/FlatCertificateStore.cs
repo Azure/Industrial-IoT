@@ -30,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
         public const string StoreTypePrefix = $"{StoreTypeName}:";
 
         /// <inheritdoc/>
-        public ICertificateStore CreateStore() => new FlatDirectoryCertificateStore();
+        public ICertificateStore CreateStore(ITelemetryContext telemetry) => new FlatDirectoryCertificateStore(telemetry);
 
         /// <inheritdoc/>
         public bool SupportsStorePath(string storePath) => !string.IsNullOrEmpty(storePath) &&
@@ -47,9 +47,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
             /// <summary>
             /// Create certificate store
             /// </summary>
-            public FlatDirectoryCertificateStore()
+            public FlatDirectoryCertificateStore(ITelemetryContext telemetry)
             {
-                _innerStore = new DirectoryCertificateStore(noSubDirs: true);
+                _innerStore = new DirectoryCertificateStore(noSubDirs: true, telemetry);
             }
 
             /// <inheritdoc/>
@@ -86,7 +86,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
             public void Close() => _innerStore.Close();
 
             /// <inheritdoc/>
-            public Task AddAsync(X509Certificate2 certificate, string password = null, CancellationToken ct = default)
+            public Task AddAsync(X509Certificate2 certificate, char[] password = null, CancellationToken ct = default)
                 => _innerStore.AddAsync(certificate, password, ct);
 
             /// <inheritdoc/>
@@ -192,12 +192,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
 
             /// <inheritdoc/>
             public Task<X509Certificate2> LoadPrivateKeyAsync(string thumbprint, string subjectName,
-                string password, CancellationToken ct = default)
+                char[] password, CancellationToken ct = default)
                 => LoadPrivateKeyAsync(thumbprint, subjectName, applicationUri: null, certificateType: null, password, ct);
 
             /// <inheritdoc/>
             public async Task<X509Certificate2> LoadPrivateKeyAsync(string thumbprint, string subjectName,
-                string applicationUri, NodeId certificateType, string password, CancellationToken ct = default)
+                string applicationUri, NodeId certificateType, char[] password, CancellationToken ct = default)
             {
                 if (!_innerStore.Directory.Exists)
                 {

@@ -254,7 +254,7 @@ namespace MemoryBuffer
         /// <param name="timestampsToReturn"></param>
         /// <param name="itemToCreate"></param>
         /// <param name="createDurable"></param>
-        /// <param name="globalIdCounter"></param>
+        /// <param name="monitoredItemIdFactory"></param>
         /// <param name="filterError"></param>
         /// <param name="monitoredItem"></param>
         /// <remarks>
@@ -269,7 +269,7 @@ namespace MemoryBuffer
             TimestampsToReturn timestampsToReturn,
             MonitoredItemCreateRequest itemToCreate,
             bool createDurable,
-            ref long globalIdCounter,
+            MonitoredItemIdFactory monitoredItemIdFactory,
             out MonitoringFilterResult filterError,
             out IMonitoredItem monitoredItem)
         {
@@ -288,7 +288,7 @@ namespace MemoryBuffer
                     timestampsToReturn,
                     itemToCreate,
                     createDurable,
-                    ref globalIdCounter,
+                    monitoredItemIdFactory,
                     out filterError,
                     out monitoredItem);
             }
@@ -345,7 +345,7 @@ namespace MemoryBuffer
             }
 
             // create a globally unique identifier.
-            var monitoredItemId = Utils.IncrementIdentifier(ref globalIdCounter);
+            var monitoredItemId = monitoredItemIdFactory.GetNextId();
 
             // determine the sampling interval.
             var samplingInterval = itemToCreate.RequestedParameters.SamplingInterval;

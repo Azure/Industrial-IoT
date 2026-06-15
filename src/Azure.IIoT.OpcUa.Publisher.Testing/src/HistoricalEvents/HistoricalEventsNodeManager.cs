@@ -148,7 +148,7 @@ namespace HistoricalEvents
         /// <param name="context"></param>
         /// <param name="platforms"></param>
         /// <param name="areaName"></param>
-        private FolderState CreateArea(SystemContext context, BaseObjectState platforms, string areaName)
+        private FolderState CreateArea(ISystemContext context, BaseObjectState platforms, string areaName)
         {
             System.Diagnostics.Contracts.Contract.Assume(context != null);
             var area = new FolderState(null)
@@ -175,7 +175,7 @@ namespace HistoricalEvents
         /// <param name="area"></param>
         /// <param name="wellId"></param>
         /// <param name="wellName"></param>
-        private void CreateWell(SystemContext context, FolderState area, string wellId, string wellName)
+        private void CreateWell(ISystemContext context, FolderState area, string wellId, string wellName)
         {
             System.Diagnostics.Contracts.Contract.Assume(context != null);
 #pragma warning disable CA2000 // Dispose objects before losing scope

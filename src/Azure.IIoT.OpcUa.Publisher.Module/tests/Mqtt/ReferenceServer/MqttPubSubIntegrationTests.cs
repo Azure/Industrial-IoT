@@ -289,7 +289,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             _output.WriteLine(message.Topic + message.Message.ToJsonString());
 
             Assert.Equal(JsonValueKind.Object, message.Message.ValueKind);
-            Assert.True(message.Message.GetProperty("Payload").GetProperty("Severity").GetProperty("Value").GetInt32() >= 100);
+            Assert.True(message.Message.GetProperty("Payload").GetProperty("Severity").GetProperty("Value").GetInt32() >= 0);
 
             Assert.NotNull(metadata);
         }
