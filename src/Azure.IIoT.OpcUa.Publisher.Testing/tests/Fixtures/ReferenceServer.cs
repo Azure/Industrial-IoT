@@ -45,6 +45,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         {
         }
 
+        /// <summary>
+        /// Create reference server with the default logger factory.
+        /// </summary>
+        /// <param name="useReverseConnect"></param>
+        public ReferenceServer(bool useReverseConnect)
+            : base(Reference, null, useReverseConnect)
+        {
+        }
+
         /// <inheritdoc/>
         private ReferenceServer(ILoggerFactory loggerFactory,
             bool useReverseConnect)
