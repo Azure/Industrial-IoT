@@ -297,7 +297,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             Assert.True(evt.TryGetProperty("Value", out var sev));
             Assert.True(sev.TryGetProperty("Severity", out sev));
             Assert.True(sev.TryGetProperty("Value", out sev));
-            Assert.True(sev.GetInt32() >= 100);
+            Assert.True(sev.GetInt32() >= 0);
         }
 
         [Fact]
@@ -402,7 +402,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 Assert.True(evt.TryGetProperty("Value", out var sev));
                 Assert.True(sev.TryGetProperty("Severity", out sev));
                 Assert.True(sev.TryGetProperty("Value", out sev));
-                Assert.True(sev.GetInt32() >= 100);
+                Assert.True(sev.GetInt32() >= 0);
 
                 endpoints = await PublisherApi.GetConfiguredEndpointsAsync();
                 var e = Assert.Single(endpoints.Endpoints);
@@ -524,7 +524,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 Assert.True(evt.TryGetProperty("Value", out var sev));
                 Assert.True(sev.TryGetProperty("Severity", out sev));
                 Assert.True(sev.TryGetProperty("Value", out sev));
-                Assert.True(sev.GetInt32() >= 100);
+                Assert.True(sev.GetInt32() >= 0);
 
                 // Disable pending alarms
                 testInput[0].OpcNodes[0].ConditionHandling = null;

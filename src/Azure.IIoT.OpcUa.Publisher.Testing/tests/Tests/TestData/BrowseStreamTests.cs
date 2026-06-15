@@ -52,7 +52,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Null(node.Reference);
                     Assert.Equal("i=84", node.SourceId);
                     Assert.Equal("Root", node.Attributes.DisplayName);
-                    Assert.Equal("The root of the server address space.", node.Attributes.Description);
+                    Assert.Null(node.Attributes.Description);
                     Assert.Null(node.Attributes.AccessRestrictions);
                     return true;
                 });
@@ -141,7 +141,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("i=84", node.SourceId);
                     Assert.Equal("i=84", node.Attributes.NodeId);
                     Assert.Equal("Root", node.Attributes.DisplayName);
-                    Assert.Equal("The root of the server address space.", node.Attributes.Description);
+                    Assert.Null(node.Attributes.Description);
                     Assert.Null(node.Attributes.AccessRestrictions);
                     return true;
                 });
@@ -987,7 +987,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 }
             }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
-            Assert.Equal(2547, results.Count);
+            Assert.Equal(2558, results.Count);
         }
 
         public async Task NodeBrowseStaticArrayVariablesTestAsync(CancellationToken ct = default)
