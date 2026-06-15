@@ -292,6 +292,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                     {
                         Try.Op(() => Directory.Delete(TempPath, true));
                     }
+
+                    // The OPC UA stack creates several CertificateValidator /
+                    // X509Certificate2 instances wrapping native CertContext and
+                    // CNG SafeHandle objects whose Release runs on the finalizer
+                    // queue. AdvancedPubSubIntegrationTests builds and tears
+                    // down 12 ReferenceServer instances per slice (each holding
+                    // 12 inner node managers), so cumulative finalizer pressure
+                    // is enough to exhaust process-wide native handles on the
+                    // Windows test-host and surface as the SEH crash family
+                    // addressed in #2456, #2458 and #2464. Drain the finalizer
+                    // queue here so each fixture starts from a clean baseline.
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                    GC.Collect();
                 }
                 _disposedValue = true;
             }
