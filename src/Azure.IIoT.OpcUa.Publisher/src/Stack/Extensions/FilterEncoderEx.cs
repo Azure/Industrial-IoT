@@ -215,20 +215,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             }
             if (model.Value != null)
             {
-                var typeInfo = new TypeInfo(BuiltInType.NodeId, ValueRanks.Scalar);
-                try
+                // Decode using the optional data type hint. When no data type
+                // is provided, the encoder infers the natural type from the
+                // value so that string/number/bool literals are not silently
+                // coerced to NodeId. Callers that need a NodeId literal must
+                // either specify DataType (e.g. "NodeId") or pass a value
+                // formatted as an OPC UA NodeId string.
+                var variant = encoder.Decode(model.Value, model.DataType);
+                if (model.DataType == null &&
+                    variant.TypeInfo?.BuiltInType == BuiltInType.String &&
+                    variant.Value is string s && LooksLikeNodeId(s))
                 {
-                    // assume it's a node and try to parse it into correct namespace index
-                    // if it fails, it's ok it will go to the default route
-                    var nodeId = encoder.Decode(model.Value, null);
-                    var typeDefinitionId = nodeId.ToString().ToNodeId(encoder.Context);
-                    if (typeDefinitionId != null)
+                    // Backwards-compatible promotion: a value that follows
+                    // the OPC UA NodeId textual format is treated as a
+                    // NodeId literal so operators such as OfType keep
+                    // working without requiring an explicit data type.
+                    var nodeId = s.ToNodeId(encoder.Context);
+                    if (!NodeId.IsNull(nodeId))
                     {
-                        return new LiteralOperand(TypeInfo.Cast(typeDefinitionId, typeInfo.BuiltInType));
+                        return new LiteralOperand(new Variant(nodeId));
                     }
                 }
-                catch { }
-                return new LiteralOperand(TypeInfo.Cast(encoder.Decode(model.Value, null), typeInfo.BuiltInType));
+                return new LiteralOperand(variant);
             }
             if (model.Alias != null && !onlySimpleAttributeOperands)
             {
@@ -302,6 +310,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                 default:
                     throw new NotSupportedException("Operand not supported");
             }
+        }
+
+        /// <summary>
+        /// Determines whether a string looks like an OPC UA NodeId in
+        /// textual form (contains a namespace marker or a known
+        /// identifier prefix). Used to preserve backwards compatibility
+        /// for literal operands that omit the data type hint.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        private static bool LooksLikeNodeId(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return false;
+            }
+            var parts = value.Split(';');
+            foreach (var part in parts)
+            {
+                if (part.StartsWith("ns=", StringComparison.Ordinal) ||
+                    part.StartsWith("nsu=", StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+            return value.StartsWith("i=", StringComparison.Ordinal) ||
+                value.StartsWith("s=", StringComparison.Ordinal) ||
+                value.StartsWith("g=", StringComparison.Ordinal) ||
+                value.StartsWith("b=", StringComparison.Ordinal);
         }
     }
 }
