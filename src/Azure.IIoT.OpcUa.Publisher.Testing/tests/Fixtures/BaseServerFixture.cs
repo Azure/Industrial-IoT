@@ -31,6 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
     using System.Net;
     using System.Net.Sockets;
     using System.Security.Cryptography.X509Certificates;
+    using System.Threading;
     using System.Threading.Tasks;
     using System.Timers;
 
@@ -306,6 +307,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                     GC.Collect();
                     GC.WaitForPendingFinalizers();
                     GC.Collect();
+                    Thread.Sleep(100);
                 }
                 _disposedValue = true;
             }
