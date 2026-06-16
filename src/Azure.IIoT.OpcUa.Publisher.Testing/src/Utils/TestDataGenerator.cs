@@ -98,7 +98,7 @@ namespace Opc.Ua.Test
             MaxDateTimeValue = new DateTime(2100, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             NamespaceUris = new NamespaceTable();
             ServerUris = new StringTable();
-            _random = random ?? new RandomSource();
+            _random = new ThreadSafeRandomSource(random ?? new RandomSource());
             _boundaryValues = [];
             for (var i = 0; i < kAvailableBoundaryValues.Length; i++)
             {
@@ -958,6 +958,44 @@ namespace Opc.Ua.Test
             new BoundaryValues(typeof(byte[]), Array.Empty<byte>()),
             new BoundaryValues(typeof(StatusCode), 0u, 1073741824u, 2147483648u)
         ];
+
+        /// <summary>
+        /// The OPC UA SDK <see cref="RandomSource"/> wraps a non thread-safe
+        /// <see cref="System.Random"/>. Test servers build their address spaces
+        /// concurrently (one server per xUnit class fixture), so several
+        /// generators end up driving the same underlying random source in
+        /// parallel. Concurrent use corrupts its internal state, after which
+        /// NextInt32 keeps returning 0 and the array-length loop in
+        /// <see cref="GetRandom(NodeId, int, IList{uint}, ITypeTable)"/> spins
+        /// forever, hanging the test host. Serialize every access on a
+        /// process-wide lock to keep the generator state consistent.
+        /// </summary>
+        private sealed class ThreadSafeRandomSource : IRandomSource
+        {
+            public ThreadSafeRandomSource(IRandomSource source)
+            {
+                _source = source;
+            }
+
+            public void NextBytes(byte[] bytes, int offset, int count)
+            {
+                lock (kLock)
+                {
+                    _source.NextBytes(bytes, offset, count);
+                }
+            }
+
+            public int NextInt32(int max)
+            {
+                lock (kLock)
+                {
+                    return _source.NextInt32(max);
+                }
+            }
+
+            private static readonly object kLock = new();
+            private readonly IRandomSource _source;
+        }
 
         private readonly IRandomSource _random;
         private readonly SortedDictionary<string, object[]> _boundaryValues;
