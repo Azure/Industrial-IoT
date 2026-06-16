@@ -34,6 +34,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
     using System.Threading;
     using System.Threading.Tasks;
     using System.Timers;
+    using ITimer = Opc.Ua.Test.ITimer;
 
     /// <summary>
     /// Adds sample server as fixture to unit tests
