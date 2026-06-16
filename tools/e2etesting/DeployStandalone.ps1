@@ -102,10 +102,14 @@ $keyVault = Get-AzKeyVault -ResourceGroupName $ResourceGroupName -VaultName $key
 
 if (!$keyVault) {
     Write-Host "Creating Key Vault $($keyVaultName)"
-    $keyVault = New-AzKeyVault -ResourceGroupName $ResourceGroupName -VaultName $keyVaultName -Location $resourceGroup.Location -EnableRbacAuthorization
+    # Az.KeyVault 6.x removed -EnableRbacAuthorization; new vaults are
+    # RBAC-enabled by default, so the switch is simply omitted here.
+    $keyVault = New-AzKeyVault -ResourceGroupName $ResourceGroupName -VaultName $keyVaultName -Location $resourceGroup.Location
 }
 else {
-    $keyVault | Update-AzKeyVault -EnableRbacAuthorization
+    # Enable RBAC on a pre-existing vault. Az.KeyVault 6.x exposes only
+    # -DisableRbacAuthorization, so :$false turns RBAC authorization on.
+    $keyVault | Update-AzKeyVault -DisableRbacAuthorization:$false
 }
 
 if ($ServicePrincipalId) {
