@@ -8,7 +8,10 @@ Param(
     [string]
     $EdgeVmLocation,
     [string]
-    $KeysPath
+    $KeysPath,
+    [ValidateSet("1.4", "1.5")]
+    [string]
+    $EdgeTemplateVersion = "1.4"
 )
 
 # Stop execution when an error occurs.
@@ -136,11 +139,19 @@ if ($EdgeVmLocation) {
     $edgeParameters["location"] = [string]$EdgeVmLocation
 }
 
-$edgeTemplateUri = "https://raw.githubusercontent.com/Azure/iotedge-vm-deploy/1.4/edgeDeploy.json"
+# Use a vendored copy of the Azure/iotedge-vm-deploy template, selected by
+# $EdgeTemplateVersion. Each edgeDeploy.<version>.json is identical to
+# https://raw.githubusercontent.com/Azure/iotedge-vm-deploy/<version>/edgeDeploy.json
+# except the VNet subnet sets "defaultOutboundAccess": false, which the
+# "Deny Virtual Network Subnet Default Outbound Access" Azure Policy requires.
+# The VM keeps outbound connectivity through its instance-level public IP.
+# We use 1.4 today; 1.5 (Ubuntu 22.04 / IoT Edge 1.5 LTS) is vendored and ready
+# to switch to by setting -EdgeTemplateVersion 1.5.
+$edgeTemplateFile = Join-Path $PSScriptRoot "edgeDeploy.$($EdgeTemplateVersion).json"
 
-Write-Host "Running IoT Edge VM Deployment..."
+Write-Host "Running IoT Edge VM Deployment (template version $($EdgeTemplateVersion))..."
 
-$edgeDeployment = New-AzResourceGroupDeployment -ResourceGroupName $ResourceGroupName -TemplateUri $edgeTemplateUri -TemplateParameterObject $edgeParameters
+$edgeDeployment = New-AzResourceGroupDeployment -ResourceGroupName $ResourceGroupName -TemplateFile $edgeTemplateFile -TemplateParameterObject $edgeParameters
 
 $edgeDeployment | ConvertTo-Json | Out-Host
 
