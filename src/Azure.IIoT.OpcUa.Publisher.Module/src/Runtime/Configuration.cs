@@ -543,6 +543,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             public const int OtlpMaxMetricDefault = 4000;
             public const bool OtlpRuntimeInstrumentationDefault = false;
             public const bool OtlpTotalNameSuffixForCountersDefault = false;
+            public const bool EnableMetricsDefault = true;
 
             /// <summary>
             /// Add runtime instrumentation
@@ -575,19 +576,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// Enable otel or prometheus metrics
             /// </summary>
             public bool EnableMetrics
-                => GetBoolOrDefault(EnableMetricsKey);
+                => GetBoolOrDefault(EnableMetricsKey, EnableMetricsDefault);
 
             /// <summary>
             /// Use prometheus
             /// </summary>
             public bool AddPrometheusEndpoint
-                => GetBoolOrDefault(EnableMetricsKey) && string.IsNullOrEmpty(OTlpMetricsEndpoint);
+                => GetBoolOrDefault(EnableMetricsKey, EnableMetricsDefault) && string.IsNullOrEmpty(OTlpMetricsEndpoint);
 
             /// <summary>
             /// Use otel metrics exporter
             /// </summary>
             public bool EnableOtelMetrics
-                => GetBoolOrDefault(EnableMetricsKey) && !string.IsNullOrEmpty(OTlpMetricsEndpoint);
+                => GetBoolOrDefault(EnableMetricsKey, EnableMetricsDefault) && !string.IsNullOrEmpty(OTlpMetricsEndpoint);
 
             /// <summary>
             /// Logging over otel enabled and endpoint configured
