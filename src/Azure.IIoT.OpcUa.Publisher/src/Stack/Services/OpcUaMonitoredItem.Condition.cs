@@ -104,7 +104,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _updateInterval = item._updateInterval;
                 _conditionHandlingState = item._conditionHandlingState;
                 _lastSentPendingConditions = item._lastSentPendingConditions;
-                _conditionRefreshSent = item._conditionRefreshSent;
+                // Intentionally do not copy _conditionRefreshSent: a cloned item
+                // (for example after a subscription transfer) should re-issue a
+                // condition refresh once it is good again to re-establish state.
                 if (item.TimerEnabled)
                 {
                     EnableConditionTimer();

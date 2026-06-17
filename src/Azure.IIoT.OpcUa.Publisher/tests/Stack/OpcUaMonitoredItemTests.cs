@@ -278,8 +278,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         private static void SetCreateResult(OpcUaMonitoredItem item, StatusCode statusCode)
         {
             var method = typeof(Opc.Ua.Client.MonitoredItem).GetMethod(
-                "SetCreateResult", BindingFlags.Instance | BindingFlags.NonPublic |
-                BindingFlags.Public);
+                "SetCreateResult", BindingFlags.Instance | BindingFlags.NonPublic);
             Assert.NotNull(method);
             var request = new MonitoredItemCreateRequest();
             var result = new MonitoredItemCreateResult
