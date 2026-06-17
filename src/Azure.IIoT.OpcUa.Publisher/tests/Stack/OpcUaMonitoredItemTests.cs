@@ -249,11 +249,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             Assert.True(condition.IsGood);
             Assert.True(condition.IsConditionRefreshRequired);
 
-            // Still required until the refresh was actually completed.
+            // Reading the property again must not change the result while good
+            // (the getter only resets pending state when the item is bad).
             Assert.True(condition.IsConditionRefreshRequired);
 
             // After the refresh completed no more refresh is required while
-            // the item stays good (this is the resync / idle server case).
+            // the item stays good (this is the resync / idle server case), and
+            // repeated reads remain stable.
             condition.OnConditionRefreshCompleted();
             Assert.False(condition.IsConditionRefreshRequired);
             Assert.False(condition.IsConditionRefreshRequired);
