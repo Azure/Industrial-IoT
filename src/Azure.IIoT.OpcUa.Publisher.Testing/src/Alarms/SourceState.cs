@@ -94,62 +94,70 @@ namespace Alarms
         /// <param name="includeChildren">Whether to recursively report events for the children.</param>
         public override void ConditionRefresh(ISystemContext context, List<IFilterTarget> events, bool includeChildren)
         {
-            // need to check if this source has already been processed during this refresh operation.
-            for (var ii = 0; ii < events.Count; ii++)
+            // The condition refresh worker can run on a background thread that does
+            // not hold the node manager lock, while OnAlarmChanged (driven by the
+            // simulation) concurrently mutates _alarms/_branches under that lock.
+            // Enumerating these dictionaries without synchronization races with those
+            // mutations and corrupts the heap. Take the same lock to serialize access.
+            lock (_nodeManager.Lock)
             {
-                if (events[ii] is InstanceStateSnapshot e && ReferenceEquals(e.Handle, this))
+                // need to check if this source has already been processed during this refresh operation.
+                for (var ii = 0; ii < events.Count; ii++)
                 {
-                    return;
+                    if (events[ii] is InstanceStateSnapshot e && ReferenceEquals(e.Handle, this))
+                    {
+                        return;
+                    }
                 }
-            }
 
-            // report the dialog.
-            if (_dialog != null)
-            {
-                // do not refresh dialogs that are not active.
-                if (_dialog.Retain.Value)
+                // report the dialog.
+                if (_dialog != null)
                 {
+                    // do not refresh dialogs that are not active.
+                    if (_dialog.Retain.Value)
+                    {
+                        // create a snapshot.
+                        var e = new InstanceStateSnapshot();
+                        e.Initialize(context, _dialog);
+
+                        // set the handle of the snapshot to check for duplicates.
+                        e.Handle = this;
+
+                        events.Add(e);
+                    }
+                }
+
+                // the alarm objects act as a cache for the last known state and are used to generate refresh events.
+                foreach (var alarm in _alarms.Values)
+                {
+                    // do not refresh alarms that are not in an interesting state.
+                    if (!alarm.Retain.Value)
+                    {
+                        continue;
+                    }
+
                     // create a snapshot.
                     var e = new InstanceStateSnapshot();
-                    e.Initialize(context, _dialog);
+                    e.Initialize(context, alarm);
 
                     // set the handle of the snapshot to check for duplicates.
                     e.Handle = this;
 
                     events.Add(e);
                 }
-            }
 
-            // the alarm objects act as a cache for the last known state and are used to generate refresh events.
-            foreach (var alarm in _alarms.Values)
-            {
-                // do not refresh alarms that are not in an interesting state.
-                if (!alarm.Retain.Value)
+                // report any active branches.
+                foreach (var alarm in _branches.Values)
                 {
-                    continue;
+                    // create a snapshot.
+                    var e = new InstanceStateSnapshot();
+                    e.Initialize(context, alarm);
+
+                    // set the handle of the snapshot to check for duplicates.
+                    e.Handle = this;
+
+                    events.Add(e);
                 }
-
-                // create a snapshot.
-                var e = new InstanceStateSnapshot();
-                e.Initialize(context, alarm);
-
-                // set the handle of the snapshot to check for duplicates.
-                e.Handle = this;
-
-                events.Add(e);
-            }
-
-            // report any active branches.
-            foreach (var alarm in _branches.Values)
-            {
-                // create a snapshot.
-                var e = new InstanceStateSnapshot();
-                e.Initialize(context, alarm);
-
-                // set the handle of the snapshot to check for duplicates.
-                e.Handle = this;
-
-                events.Add(e);
             }
         }
         protected override void Dispose(bool disposing)
@@ -303,7 +311,7 @@ namespace Alarms
             {
                 case "HighAlarm":
                     {
-                        var node2 = new ExclusiveDeviationAlarmState(this);
+                        var node2 = new GuardedExclusiveDeviationAlarmState(this, _nodeManager.Lock);
                         node = node2;
                         node2.HighLimit = new PropertyState<double>(node2);
                         break;
@@ -311,7 +319,7 @@ namespace Alarms
 
                 case "HighLowAlarm":
                     {
-                        var node2 = new NonExclusiveLevelAlarmState(this);
+                        var node2 = new GuardedNonExclusiveLevelAlarmState(this, _nodeManager.Lock);
                         node = node2;
 
                         node2.HighHighLimit = new PropertyState<double>(node2);
@@ -329,13 +337,13 @@ namespace Alarms
 
                 case "TripAlarm":
                     {
-                        node = new TripAlarmState(this);
+                        node = new GuardedTripAlarmState(this, _nodeManager.Lock);
                         break;
                     }
 
                 default:
                     {
-                        node = new AlarmConditionState(this);
+                        node = new GuardedAlarmConditionState(this, _nodeManager.Lock);
                         break;
                     }
             }
