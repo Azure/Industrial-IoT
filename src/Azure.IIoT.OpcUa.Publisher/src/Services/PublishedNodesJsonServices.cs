@@ -625,9 +625,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             //
             // when no endpoint is specified remove all the configuration
             // purge content feature is implemented to ensure the backwards compatibility
-            // with V2.5.x of the publisher
+            // with V2.5.x of the publisher. A null, empty, or whitespace endpoint url
+            // is treated as "purge all" to robustly honor the caller's intent.
             //
-            var purge = request?.EndpointUrl == null;
+            var purge = string.IsNullOrWhiteSpace(request?.EndpointUrl);
             request?.PropagatePublishingIntervalToNodes();
             await _api.WaitAsync(ct).ConfigureAwait(false);
             try
