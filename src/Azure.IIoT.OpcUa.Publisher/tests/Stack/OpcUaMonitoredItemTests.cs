@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Reflection;
     using System.Threading.Tasks;
     using Xunit;
 
@@ -221,6 +222,77 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             Assert.Equal(Attributes.Value, eventFilter.SelectClauses[10].AttributeId);
             Assert.Equal(ObjectTypeIds.ConditionType, eventFilter.SelectClauses[10].TypeDefinitionId);
             Assert.Equal("Retain", eventFilter.SelectClauses[10].BrowsePath.FirstOrDefault());
+        }
+
+        [Fact]
+        public async Task ConditionRefreshIsOnlyRequiredWhenItemTransitionsFromBadToGoodAsync()
+        {
+            var template = new EventMonitoredItemModel
+            {
+                StartNodeId = "i=2258",
+                EventFilter = new EventFilterModel(),
+                ConditionHandling = new ConditionHandlingOptionsModel
+                {
+                    SnapshotInterval = 10,
+                    UpdateInterval = 20
+                }
+            };
+            var condition = await GetMonitoredItemAsync(template) as OpcUaMonitoredItem.Condition;
+            Assert.NotNull(condition);
+
+            // Not yet created (bad) -> no refresh required.
+            Assert.True(condition.IsBad);
+            Assert.False(condition.IsConditionRefreshRequired);
+
+            // Item becomes good -> a refresh is required once.
+            SetCreateResult(condition, StatusCodes.Good);
+            Assert.True(condition.IsGood);
+            Assert.True(condition.IsConditionRefreshRequired);
+
+            // Still required until the refresh was actually completed.
+            Assert.True(condition.IsConditionRefreshRequired);
+
+            // After the refresh completed no more refresh is required while
+            // the item stays good (this is the resync / idle server case).
+            condition.OnConditionRefreshCompleted();
+            Assert.False(condition.IsConditionRefreshRequired);
+            Assert.False(condition.IsConditionRefreshRequired);
+
+            // Item goes bad -> still no refresh required.
+            SetCreateResult(condition, StatusCodes.BadNodeIdUnknown);
+            Assert.True(condition.IsBad);
+            Assert.False(condition.IsConditionRefreshRequired);
+
+            // Item transitions from bad back to good -> refresh required again.
+            SetCreateResult(condition, StatusCodes.Good);
+            Assert.True(condition.IsGood);
+            Assert.True(condition.IsConditionRefreshRequired);
+        }
+
+        /// <summary>
+        /// Drive the underlying stack monitored item status to a created/good
+        /// or bad state by invoking the internal SetCreateResult method.
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="statusCode"></param>
+        private static void SetCreateResult(OpcUaMonitoredItem item, StatusCode statusCode)
+        {
+            var method = typeof(Opc.Ua.Client.MonitoredItem).GetMethod(
+                "SetCreateResult", BindingFlags.Instance | BindingFlags.NonPublic |
+                BindingFlags.Public);
+            Assert.NotNull(method);
+            var request = new MonitoredItemCreateRequest();
+            var result = new MonitoredItemCreateResult
+            {
+                StatusCode = statusCode,
+                MonitoredItemId = 1,
+                RevisedSamplingInterval = item.SamplingInterval,
+                RevisedQueueSize = item.QueueSize
+            };
+            method.Invoke(item, new object[]
+            {
+                request, result, 0, new DiagnosticInfoCollection(), new ResponseHeader()
+            });
         }
 
         [Fact]
