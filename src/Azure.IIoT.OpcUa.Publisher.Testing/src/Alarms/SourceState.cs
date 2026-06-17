@@ -303,7 +303,7 @@ namespace Alarms
             {
                 case "HighAlarm":
                     {
-                        var node2 = new ExclusiveDeviationAlarmState(this);
+                        var node2 = new GuardedExclusiveDeviationAlarmState(this, _nodeManager.Lock);
                         node = node2;
                         node2.HighLimit = new PropertyState<double>(node2);
                         break;
@@ -311,7 +311,7 @@ namespace Alarms
 
                 case "HighLowAlarm":
                     {
-                        var node2 = new NonExclusiveLevelAlarmState(this);
+                        var node2 = new GuardedNonExclusiveLevelAlarmState(this, _nodeManager.Lock);
                         node = node2;
 
                         node2.HighHighLimit = new PropertyState<double>(node2);
@@ -329,13 +329,13 @@ namespace Alarms
 
                 case "TripAlarm":
                     {
-                        node = new TripAlarmState(this);
+                        node = new GuardedTripAlarmState(this, _nodeManager.Lock);
                         break;
                     }
 
                 default:
                     {
-                        node = new AlarmConditionState(this);
+                        node = new GuardedAlarmConditionState(this, _nodeManager.Lock);
                         break;
                     }
             }
