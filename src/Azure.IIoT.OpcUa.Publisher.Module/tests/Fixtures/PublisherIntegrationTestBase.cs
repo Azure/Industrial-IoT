@@ -335,10 +335,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 },
             ];
 
-            if (OperatingSystem.IsLinux())
-            {
-                arguments = [.. arguments, "--pol"];
-            }
+            // Use the polling file-change watcher on all platforms in tests.
+            // The native FileSystemWatcher's change-notification callback can
+            // hit an access violation under the heavy create/modify/delete and
+            // publisher-dispose churn of the integration suite, crashing the
+            // test host (root-caused from a Windows WER dump; Linux already
+            // forced polling). Production is unaffected - it watches a single
+            // long-lived file - so this stays a test-only setting.
+            arguments = [.. arguments, "--pol"];
 
             if (reverseConnectPort != null)
             {
