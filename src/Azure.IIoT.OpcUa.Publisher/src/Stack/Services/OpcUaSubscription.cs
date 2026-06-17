@@ -1469,12 +1469,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             // Refresh condition
-            if (set.OfType<OpcUaMonitoredItem.Condition>().Any())
+            //
+            // Only issue a subscription wide condition refresh when there is at
+            // least one condition item that (re-)entered a good state since the
+            // last refresh. This avoids cyclically refreshing conditions on every
+            // resync (for example when an unrelated data item is in a bad state
+            // and triggers periodic retries) which would otherwise emit a pair of
+            // RefreshStartEvent/RefreshEndEvent for every subscribed condition.
+            //
+            var conditionsToRefresh = set
+                .OfType<OpcUaMonitoredItem.Condition>()
+                .Where(c => c.IsConditionRefreshRequired)
+                .ToList();
+            if (conditionsToRefresh.Count > 0)
             {
                 _logger.IssuingConditionRefresh(this);
                 try
                 {
                     await ConditionRefreshAsync(ct).ConfigureAwait(false);
+                    conditionsToRefresh.ForEach(c => c.OnConditionRefreshCompleted());
                     _logger.ConditionRefreshCompleted(this);
                 }
                 catch (Exception e)

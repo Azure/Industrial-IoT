@@ -37,6 +37,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public bool TimerEnabled { get; set; }
 
             /// <summary>
+            /// Whether a subscription wide condition refresh is required for
+            /// this item. A refresh is only required when the item (re-)entered
+            /// a good state since the last refresh was sent. While the item is
+            /// in a bad state the pending flag is reset so that a subsequent
+            /// transition from bad to good triggers a new refresh. This avoids
+            /// cyclically refreshing conditions on every resync when nothing
+            /// about the condition item itself changed.
+            /// </summary>
+            public bool IsConditionRefreshRequired
+            {
+                get
+                {
+                    if (IsBad)
+                    {
+                        // Reset so a future bad to good transition refreshes.
+                        _conditionRefreshSent = false;
+                        return false;
+                    }
+                    return !_conditionRefreshSent;
+                }
+            }
+
+            /// <summary>
+            /// Mark that a subscription wide condition refresh has been
+            /// completed for this item while it was in a good state.
+            /// </summary>
+            public void OnConditionRefreshCompleted()
+            {
+                if (IsGood)
+                {
+                    _conditionRefreshSent = true;
+                }
+            }
+
+            /// <summary>
             /// Create condition item
             /// </summary>
             /// <param name="owner"></param>
@@ -69,6 +104,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _updateInterval = item._updateInterval;
                 _conditionHandlingState = item._conditionHandlingState;
                 _lastSentPendingConditions = item._lastSentPendingConditions;
+                _conditionRefreshSent = item._conditionRefreshSent;
                 if (item.TimerEnabled)
                 {
                     EnableConditionTimer();
@@ -494,6 +530,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private TimerEx? _conditionTimer;
             private readonly object _timerLock = new();
             private bool _disposed;
+            private bool _conditionRefreshSent;
         }
     }
 
