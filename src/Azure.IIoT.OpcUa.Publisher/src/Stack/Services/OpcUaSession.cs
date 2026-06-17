@@ -148,6 +148,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             if (disposing)
             {
+                // Cancel and drain in-flight session work (notably the complex
+                // type system load, which browses the address space through the
+                // node cache) BEFORE tearing the session down. Otherwise a
+                // background LruNodeCache reference fetch can construct an
+                // Opc.Ua.Client.Browser against the now-disposed session and
+                // crash the process with a native access violation.
+                _cts.Cancel();
+                if (_complexTypeSystem != null)
+                {
+                    Try.Op(() => _complexTypeSystem.Wait(TimeSpan.FromSeconds(5)));
+                }
+
                 NodeCache?.Clear();
                 LruNodeCache.Clear();
 
@@ -174,11 +186,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 try
                 {
-                    _cts.Cancel();
-                    if (_complexTypeSystem != null)
-                    {
-                        Try.Op(() => _complexTypeSystem.Wait(TimeSpan.FromSeconds(5)));
-                    }
                     _logger.SessionDisposed(sessionName);
                 }
                 finally
