@@ -1121,6 +1121,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             results.Should().BeEmpty();
         }
 
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("   ")]
+        public async Task UnpublishAllNodesPurgesWhenEndpointUrlBlankAsync(string? endpointUrl)
+        {
+            await using var configService = InitPublisherConfigService();
+            var opcNodes = Enumerable.Range(0, 101)
+                .Select(i => new OpcNodeModel
+                {
+                    Id = $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{i}",
+                    DataSetFieldId = "alwaysthesameid"
+                })
+                .ToList();
+            var items = Enumerable.Range(1, 100).Select(i => GenerateEndpoint(i, opcNodes, false)).ToList();
+            await configService.SetConfiguredEndpointsAsync(items);
+
+            var results = await configService.GetConfiguredEndpointsAsync(false);
+            results.Count.Should().Be(100);
+
+            // A null, empty, or whitespace endpoint url must purge the whole configuration.
+            await configService.UnpublishAllNodesAsync(
+                new PublishedNodesEntryModel { EndpointUrl = endpointUrl! });
+            results = await configService.GetConfiguredEndpointsAsync(false);
+            results.Should().BeEmpty();
+        }
+
         [Fact]
         public async Task Legacy25PublishedNodesFileErrorAsync()
         {

@@ -160,17 +160,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
             {
                 try
                 {
-                    serverHost = new ServerConsoleHost(new ServerFactory(
-                        _container.Resolve<ILogger<ServerFactory>>(), TempPath, nodes)
+                    // Serialize server construction/startup: it loads predefined nodes
+                    // and registers types into process-global stack state that is not
+                    // safe to mutate from multiple fixtures concurrently.
+                    lock (kServerStartupLock)
                     {
-                        LogStatus = false
-                    }, _container.Resolve<ILogger<ServerConsoleHost>>())
-                    {
-                        PkiRootPath = options.Value.Security.PkiRootPath,
-                        AutoAccept = true
-                    };
-                    logger.StartingServerHost(serverHost, _port);
-                    serverHost.StartAsync(new int[] { _port }).Wait();
+                        serverHost = new ServerConsoleHost(new ServerFactory(
+                            _container.Resolve<ILogger<ServerFactory>>(), TempPath, nodes)
+                        {
+                            LogStatus = false
+                        }, _container.Resolve<ILogger<ServerConsoleHost>>())
+                        {
+                            PkiRootPath = options.Value.Security.PkiRootPath,
+                            AutoAccept = true
+                        };
+                        logger.StartingServerHost(serverHost, _port);
+                        serverHost.StartAsync(new int[] { _port }).Wait();
+                    }
 
                     //
                     // Test server connection. Sometimes the server has not
@@ -453,6 +459,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         private readonly ConcurrentBag<(ITimer timer,
             EventHandler<FastTimerElapsedEventArgs> handler)> _fastTimers = [];
         private static readonly ConcurrentDictionary<int, bool> kPorts = new();
+        // Serializes OPC UA server bring-up. Constructing/starting a server loads the
+        // predefined node set and registers types, which mutates process-global stack
+        // state (e.g. the shared encodeable type factory). Two fixtures constructing
+        // concurrently race on that shared state and corrupt the managed heap, which
+        // surfaces as a native access violation on an unrelated thread.
+        private static readonly object kServerStartupLock = new();
         private bool _disposedValue;
         private readonly int _port;
         private readonly IContainer _container;
