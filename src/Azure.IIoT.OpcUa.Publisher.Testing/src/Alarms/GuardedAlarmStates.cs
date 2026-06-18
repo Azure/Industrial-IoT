@@ -30,6 +30,27 @@ namespace Alarms
     }
 
     /// <summary>
+    /// Helpers for the guarded alarm states.
+    /// </summary>
+    internal static class BranchGuard
+    {
+        /// <summary>
+        /// The stack's retain-state evaluation dereferences BranchId (via IsBranch)
+        /// and EnabledState. Under heavy CI load these have been observed to be null
+        /// on a condition that is otherwise in use, which crashes the test host with
+        /// a native access violation. Skip the evaluation in that case - an
+        /// uninitialized condition is treated as not retained - rather than crash.
+        /// In normal operation BranchId/EnabledState are always present, so behavior
+        /// is unchanged.
+        /// </summary>
+        /// <param name="condition"></param>
+        public static bool IsInitialized(ConditionState condition)
+        {
+            return condition.BranchId != null && condition.EnabledState?.Id != null;
+        }
+    }
+
+    /// <summary>
     /// Guarded <see cref="AlarmConditionState"/>.
     /// </summary>
     internal sealed class GuardedAlarmConditionState : AlarmConditionState, IBranchGuarded
@@ -60,7 +81,7 @@ namespace Alarms
         {
             lock (BranchLock)
             {
-                return base.GetRetainState();
+                return BranchGuard.IsInitialized(this) && base.GetRetainState();
             }
         }
 
@@ -105,7 +126,7 @@ namespace Alarms
         {
             lock (BranchLock)
             {
-                return base.GetRetainState();
+                return BranchGuard.IsInitialized(this) && base.GetRetainState();
             }
         }
 
@@ -150,7 +171,7 @@ namespace Alarms
         {
             lock (BranchLock)
             {
-                return base.GetRetainState();
+                return BranchGuard.IsInitialized(this) && base.GetRetainState();
             }
         }
 
@@ -195,7 +216,7 @@ namespace Alarms
         {
             lock (BranchLock)
             {
-                return base.GetRetainState();
+                return BranchGuard.IsInitialized(this) && base.GetRetainState();
             }
         }
 
