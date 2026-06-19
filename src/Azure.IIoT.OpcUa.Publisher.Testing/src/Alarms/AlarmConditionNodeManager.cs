@@ -34,7 +34,7 @@ namespace Alarms
     using Opc.Ua.Test;
     using System;
     using System.Collections.Generic;
-    using System.Threading;
+    using System.Timers;
 
     /// <summary>
     /// A node manager for a simple server that exposes several Areas, Sources and Conditions.
@@ -204,11 +204,11 @@ namespace Alarms
 
                 // start the simulation.
                 _system.StartSimulation();
-                _simulationTimer = new Timer(OnRaiseSystemEvents, null, 1000, 1000);
+                _simulationTimer = _timeservice.NewTimer(OnRaiseSystemEvents, 1000);
             }
         }
 
-        private void OnRaiseSystemEvents(object state)
+        private void OnRaiseSystemEvents(object state, ElapsedEventArgs elapsedEventArgs)
         {
             try
             {
@@ -475,6 +475,6 @@ namespace Alarms
         private readonly Dictionary<string, AreaState> _areas;
         private readonly Dictionary<string, SourceState> _sources;
         private readonly TimeService _timeservice;
-        private Timer _simulationTimer;
+        private ITimer _simulationTimer;
     }
 }
