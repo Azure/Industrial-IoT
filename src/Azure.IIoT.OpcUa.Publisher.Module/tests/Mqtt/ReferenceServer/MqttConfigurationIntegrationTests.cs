@@ -33,7 +33,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public async Task CanSendDataItemToTopicConfiguredWithMethodAsync(bool useMqtt5)
+        public Task CanSendDataItemToTopicConfiguredWithMethodAsync(bool useMqtt5) => ExecuteWithMqttRetryAsync(async () =>
         {
             var name = nameof(CanSendDataItemToTopicConfiguredWithMethodAsync) + (useMqtt5 ? "v5" : "v311");
             var testInput = GetEndpointsFromFile(name, "./Resources/DataItems.json");
@@ -70,12 +70,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             {
                 await StopPublisherAsync();
             }
-        }
+        });
 
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public async Task CanSendEventToTopicConfiguredWithMethodAsync(bool useMqtt5)
+        public Task CanSendEventToTopicConfiguredWithMethodAsync(bool useMqtt5) => ExecuteWithMqttRetryAsync(async () =>
         {
             var name = nameof(CanSendEventToTopicConfiguredWithMethodAsync) + (useMqtt5 ? "v5" : "v311");
             var testInput = GetEndpointsFromFile(name, "./Resources/SimpleEvents.json");
@@ -113,12 +113,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 _output.WriteLine("Stopping publisher...");
                 await StopPublisherAsync();
             }
-        }
+        });
 
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public async Task CanSendPendingConditionsToTopicConfiguredWithMethodAsync(bool useMqtt5)
+        public Task CanSendPendingConditionsToTopicConfiguredWithMethodAsync(bool useMqtt5) => ExecuteWithMqttRetryAsync(async () =>
         {
             var name = nameof(CanSendPendingConditionsToTopicConfiguredWithMethodAsync) + (useMqtt5 ? "v5" : "v311");
             var testInput = GetEndpointsFromFile(name, "./Resources/PendingAlarms.json");
@@ -164,12 +164,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             {
                 await StopPublisherAsync();
             }
-        }
+        });
 
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public async Task CanSendDataItemToTopicConfiguredWithMethod2Async(bool useMqtt5)
+        public Task CanSendDataItemToTopicConfiguredWithMethod2Async(bool useMqtt5) => ExecuteWithMqttRetryAsync(async () =>
         {
             var name = nameof(CanSendDataItemToTopicConfiguredWithMethod2Async) + (useMqtt5 ? "v5" : "v311");
             var testInput1 = GetEndpointsFromFile(name, "./Resources/DataItems.json");
@@ -239,12 +239,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             {
                 await StopPublisherAsync();
             }
-        }
+        });
 
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public async Task CanSendPendingConditionsToTopicConfiguredWithMethod2Async(bool useMqtt5)
+        public Task CanSendPendingConditionsToTopicConfiguredWithMethod2Async(bool useMqtt5) => ExecuteWithMqttRetryAsync(async () =>
         {
             var name = nameof(CanSendPendingConditionsToTopicConfiguredWithMethod2Async) + (useMqtt5 ? "v5" : "v311");
             var testInput = GetEndpointsFromFile(name, "./Resources/PendingAlarms.json");
@@ -312,7 +312,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             {
                 await StopPublisherAsync();
             }
-        }
+        });
 
         private JsonElement GetDataFrame(JsonElement jsonElement)
         {

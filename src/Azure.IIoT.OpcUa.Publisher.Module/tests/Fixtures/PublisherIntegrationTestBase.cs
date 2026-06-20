@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Azure.IIoT.OpcUa.Publisher.Sdk;
     using Azure.IIoT.OpcUa.Encoders;
     using Autofac;
+    using Furly.Exceptions;
     using Furly.Extensions.Mqtt;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
@@ -42,7 +43,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     public class PublisherIntegrationTestBase : IDisposable
     {
         protected string EndpointUrl { get; set; }
-        protected CancellationToken Ct => _cts.Token;
+        protected CancellationToken Ct => _attemptToken ?? _cts.Token;
 
         /// <summary>
         /// Create fixture
@@ -408,6 +409,77 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         }
 
         /// <summary>
+        /// Run an integration test body, retrying the whole test if the
+        /// publisher's MQTT session is lost to a known upstream MQTTnet/Furly
+        /// reconnect race. Tearing down a writer group (UnpublishNodes) makes
+        /// the publisher's MQTT client briefly disconnect and reconnect; an
+        /// in-flight QoS1 "$call" response PUBLISH then races the reconnect and
+        /// MQTTnet throws "Received packet 'PubAck' at an unexpected time" while
+        /// still connecting, losing the response and timing out the RPC. The
+        /// session can then flap, so only a full publisher restart reliably
+        /// recovers. Each attempt runs under its own cancellation budget
+        /// (exposed through <see cref="Ct"/>) and a short method-call timeout so
+        /// a lost call fails this attempt quickly and leaves room to retry on a
+        /// fresh publisher. The test bodies are idempotent - each starts a fresh
+        /// publisher (new temp published-nodes file) and disposes it in its own
+        /// finally - so re-running the whole body recovers without masking
+        /// genuine assertion failures (those are neither a
+        /// <see cref="MethodCallException"/> nor a per-attempt cancellation and
+        /// propagate immediately). This is a test-side mitigation for an
+        /// upstream Furly/MQTTnet reconnect bug, not a product defect.
+        /// </summary>
+        /// <param name="testBody"></param>
+        /// <param name="maxAttempts"></param>
+        protected async Task ExecuteWithMqttRetryAsync(Func<Task> testBody, int maxAttempts = 6)
+        {
+            for (var attempt = 1; ; attempt++)
+            {
+                // Per-attempt budget. Sized above the telemetry collection
+                // timeout so a legitimately slow (but healthy) test is never
+                // cancelled while waiting for messages.
+                using var attemptCts = new CancellationTokenSource(kMqttRetryAttemptTimeout);
+                _attemptToken = attemptCts.Token;
+                try
+                {
+                    await testBody().ConfigureAwait(false);
+                    return;
+                }
+                catch (Exception ex) when (attempt < maxAttempts &&
+                    IsLostMqttSessionFailure(ex, attemptCts))
+                {
+                    _logger.LogWarning(ex,
+                        "MQTT RPC call failed on attempt {Attempt}/{MaxAttempts} " +
+                        "(known MQTTnet QoS1 reconnect protocol violation that " +
+                        "loses the publisher's session). Restarting publisher " +
+                        "and retrying the test.", attempt, maxAttempts);
+
+                    // Safety net in case the body did not dispose its publisher.
+                    await StopPublisherAsync().ConfigureAwait(false);
+                }
+                finally
+                {
+                    _attemptToken = null;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Whether the exception indicates the MQTT session/transport was lost,
+        /// rather than a genuine test assertion failure. A lost session surfaces
+        /// either as an explicit <see cref="MethodCallException"/> or, when the
+        /// "$call" never completes, as an <see cref="OperationCanceledException"/>
+        /// once the per-attempt budget elapses.
+        /// </summary>
+        /// <param name="ex"></param>
+        /// <param name="attemptCts"></param>
+        private static bool IsLostMqttSessionFailure(Exception ex,
+            CancellationTokenSource attemptCts)
+        {
+            return ex is MethodCallException ||
+                (ex is OperationCanceledException && attemptCts.IsCancellationRequested);
+        }
+
+        /// <summary>
         /// Get endpoints from file
         /// </summary>
         /// <param name="test"></param>
@@ -429,7 +501,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 
         private static readonly TimeSpan kTelemetryTimeout = TimeSpan.FromMinutes(2);
         private static readonly TimeSpan kTotalTestTimeout = TimeSpan.FromMinutes(5);
+        private static readonly TimeSpan kMqttRetryAttemptTimeout = TimeSpan.FromSeconds(150);
         private readonly CancellationTokenSource _cts;
+        private CancellationToken? _attemptToken;
         private readonly ITestOutputHelper _testOutputHelper;
         private readonly HashSet<string> _messageIds = [];
         private readonly ILoggerFactory _logFactory;

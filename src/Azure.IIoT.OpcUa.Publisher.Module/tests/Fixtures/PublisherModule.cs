@@ -479,6 +479,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 options.UseTls = false;
                 options.Protocol = mqttVersion ?? MqttVersion.v5;
                 options.KeepAlivePeriod = TimeSpan.Zero;
+                // Fail "$call" RPCs fast when the publisher's MQTT session is
+                // lost to the known MQTTnet reconnect race (see
+                // ExecuteWithMqttRetryAsync), so the whole-test retry can
+                // recover on a fresh publisher quickly instead of waiting out
+                // a long default method-call timeout. Healthy calls complete in
+                // well under a second, so this does not affect passing tests.
+                options.DefaultMethodCallTimeout = TimeSpan.FromSeconds(30);
+                options.MethodCallTimeoutRetries = 1;
                 options.NumberOfClientPartitions = 1;
                 options.Port = Interlocked.Increment(ref _mqttPort);
             });
