@@ -29,6 +29,7 @@
 
 namespace DeterministicAlarms.Model
 {
+    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using DeterministicAlarms.Configuration;
     using DeterministicAlarms.SimBackend;
     using Opc.Ua;
@@ -69,26 +70,34 @@ namespace DeterministicAlarms.Model
 
         public override void ConditionRefresh(ISystemContext context, List<IFilterTarget> events, bool includeChildren)
         {
-            foreach (var @event in events)
+            // Serialize against any other server's startup, which mutates the same
+            // process-global stack state this condition refresh resolves against
+            // (see ServerStateLock). Without this, refreshing one server's conditions
+            // can race another server's address-space construction and tear a read
+            // in Opc.Ua.ConditionState, crashing the test host.
+            lock (ServerStateLock.Sync)
             {
-                if (@event is InstanceStateSnapshot instanceSnapShotForExistingEvent &&
-                    ReferenceEquals(instanceSnapShotForExistingEvent.Handle, this))
+                foreach (var @event in events)
                 {
-                    return;
-                }
-            }
-
-            foreach (var alarm in _alarmNodes.Values)
-            {
-                if (!alarm.Retain.Value)
-                {
-                    continue;
+                    if (@event is InstanceStateSnapshot instanceSnapShotForExistingEvent &&
+                        ReferenceEquals(instanceSnapShotForExistingEvent.Handle, this))
+                    {
+                        return;
+                    }
                 }
 
-                var instanceStateSnapshotNewAlarm = new InstanceStateSnapshot();
-                instanceStateSnapshotNewAlarm.Initialize(context, alarm);
-                instanceStateSnapshotNewAlarm.Handle = this;
-                events.Add(instanceStateSnapshotNewAlarm);
+                foreach (var alarm in _alarmNodes.Values)
+                {
+                    if (!alarm.Retain.Value)
+                    {
+                        continue;
+                    }
+
+                    var instanceStateSnapshotNewAlarm = new InstanceStateSnapshot();
+                    instanceStateSnapshotNewAlarm.Initialize(context, alarm);
+                    instanceStateSnapshotNewAlarm.Handle = this;
+                    events.Add(instanceStateSnapshotNewAlarm);
+                }
             }
         }
 
