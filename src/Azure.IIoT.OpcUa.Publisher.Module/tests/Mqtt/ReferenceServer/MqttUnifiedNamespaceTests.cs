@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
     using Xunit;
     using Xunit.Abstractions;
 
+    [Collection(MqttReferenceServerCollection.Name)]
     public class MqttUnifiedNamespaceTests : PublisherIntegrationTestBase, IClassFixture<ReferenceServer>
     {
         private readonly ReferenceServer _fixture;
