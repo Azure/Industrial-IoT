@@ -151,13 +151,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 // Cancel and drain in-flight session work (notably the complex
                 // type system load, which browses the address space through the
                 // node cache) BEFORE tearing the session down. Otherwise a
-                // background LruNodeCache reference fetch can construct an
-                // Opc.Ua.Client.Browser against the now-disposed session and
-                // crash the process with a native access violation.
+                // background LruNodeCache reference fetch / type-system browse can
+                // still be running and, once base.Dispose closes the transport
+                // channel below, process its response against the torn channel and
+                // crash the process with a native access violation while
+                // accumulating results in Opc.Ua.Client.SessionClientExtensions.
                 _cts.Cancel();
                 if (_complexTypeSystem != null)
                 {
-                    Try.Op(() => _complexTypeSystem.Wait(TimeSpan.FromSeconds(5)));
+                    // A cancelled browse only unwinds once its pending request
+                    // returns, so wait long enough for that in-flight request to
+                    // complete (bounded by the operation timeout) instead of a
+                    // short fixed window that lets the channel close out from
+                    // under it. Capped so disposal still makes progress.
+                    var drainTimeout = TimeSpan.FromMilliseconds(
+                        Math.Clamp(_defaultOperationTimeout, 5000, 30000));
+                    Try.Op(() => _complexTypeSystem.Wait(drainTimeout));
                 }
 
                 NodeCache?.Clear();
