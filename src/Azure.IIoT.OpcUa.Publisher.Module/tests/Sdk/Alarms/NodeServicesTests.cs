@@ -31,43 +31,43 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Alarms
         private readonly AlarmsServer _server;
         private readonly PublisherModuleFixture _module;
 
-        [Fact(Skip = "Temporarily disabled to isolate newer-Windows (2022/2025) test-host native crash in alarms ConditionState")]
+        [Fact]
         public Task BrowseAreaPathTestAsync()
         {
             return GetTests().BrowseAreaPathTestAsync();
         }
 
-        [Fact(Skip = "Temporarily disabled to isolate newer-Windows (2022/2025) test-host native crash in alarms ConditionState")]
+        [Fact]
         public Task BrowseMetalsSouthMotorTestAsync()
         {
             return GetTests().BrowseMetalsSouthMotorTestAsync();
         }
 
-        [Fact(Skip = "Temporarily disabled to isolate newer-Windows (2022/2025) test-host native crash in alarms ConditionState")]
+        [Fact]
         public Task BrowseColoursEastTankTestAsync()
         {
             return GetTests().BrowseColoursEastTankTestAsync();
         }
 
-        [Fact(Skip = "Temporarily disabled to isolate newer-Windows (2022/2025) test-host native crash in alarms ConditionState")]
+        [Fact]
         public Task CompileAlarmQueryTest1Async()
         {
             return GetTests().CompileAlarmQueryTest1Async();
         }
 
-        [Fact(Skip = "Temporarily disabled to isolate newer-Windows (2022/2025) test-host native crash in alarms ConditionState")]
+        [Fact]
         public Task CompileAlarmQueryTest2Async()
         {
             return GetTests().CompileAlarmQueryTest2Async();
         }
 
-        [Fact(Skip = "Temporarily disabled to isolate newer-Windows (2022/2025) test-host native crash in alarms ConditionState")]
+        [Fact]
         public Task CompileSimpleBaseEventQueryTestAsync()
         {
             return GetTests().CompileSimpleBaseEventQueryTestAsync();
         }
 
-        [Fact(Skip = "Temporarily disabled to isolate newer-Windows (2022/2025) test-host native crash in alarms ConditionState")]
+        [Fact]
         public Task CompileSimpleTripAlarmQueryTestAsync()
         {
             return GetTests().CompileSimpleTripAlarmQueryTestAsync();
