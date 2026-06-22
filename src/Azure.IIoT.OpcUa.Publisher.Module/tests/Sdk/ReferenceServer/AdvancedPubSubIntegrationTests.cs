@@ -48,8 +48,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 await server.RestartAsync(WaitUntilDisconnectedAsync);
                 _output.WriteLine("Restarted server");
 
-                (metadata, messages) = await WaitForMessagesAndMetadataAsync(TimeSpan.FromMinutes(2), 1,
-                    messageType: "ua-data");
+                // After a restart the re-sent ua-metadata message and the first ua-data message
+                // can be observed in any order. Keep reading until both have been seen so the
+                // metadata assertion below does not race metadata delivery
+                // (WaitForMessagesAndMetadataAsync returns as soon as the requested data messages
+                // arrive, which may be before the metadata message is enumerated).
+                metadata = null;
+                messages = [];
+                var deadline = DateTime.UtcNow + TimeSpan.FromMinutes(2);
+                while (metadata == null || messages.Count == 0)
+                {
+                    var (m, msgs) = await WaitForMessagesAndMetadataAsync(TimeSpan.FromSeconds(20), 1,
+                        messageType: "ua-data");
+                    metadata ??= m;
+                    if (msgs.Count > 0)
+                    {
+                        messages = msgs;
+                    }
+                    if (DateTime.UtcNow >= deadline)
+                    {
+                        break;
+                    }
+                }
 
                 message = Assert.Single(messages).Message;
                 AssertFixedValueMessage(message);

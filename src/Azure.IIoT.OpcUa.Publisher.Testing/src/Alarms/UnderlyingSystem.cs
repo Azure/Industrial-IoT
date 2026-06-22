@@ -34,6 +34,8 @@ namespace Alarms
     using System;
     using System.Collections.Generic;
     using System.Threading;
+    using System.Timers;
+    using ITimer = Opc.Ua.Test.ITimer;
 
     /// <summary>
     /// An object that provides access to the underlying system.
@@ -169,7 +171,7 @@ namespace Alarms
                     _simulationTimer = null;
                 }
 
-                _simulationTimer = new Timer(DoSimulation, null, 1000, 1000);
+                _simulationTimer = _timeService.NewTimer(DoSimulation, 1000);
             }
         }
 
@@ -192,7 +194,7 @@ namespace Alarms
         /// Simulates a source by updating the state of the alarms belonging to the condition.
         /// </summary>
         /// <param name="state"></param>
-        private void DoSimulation(object state)
+        private void DoSimulation(object state, ElapsedEventArgs elapsedEventArgs)
         {
             try
             {
@@ -220,7 +222,7 @@ namespace Alarms
         private readonly Lock _lock = new();
         private readonly Dictionary<string, UnderlyingSystemSource> _sources;
         private readonly TimeService _timeService;
-        private Timer _simulationTimer;
+        private ITimer _simulationTimer;
         private long _simulationCounter;
     }
 }

@@ -29,6 +29,7 @@
 
 namespace Alarms
 {
+    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Opc.Ua;
     using Opc.Ua.Server;
     using Opc.Ua.Test;
@@ -99,64 +100,70 @@ namespace Alarms
             // simulation) concurrently mutates _alarms/_branches under that lock.
             // Enumerating these dictionaries without synchronization races with those
             // mutations and corrupts the heap. Take the same lock to serialize access.
-            lock (_nodeManager.Lock)
+            // Also serialize against any other server's startup, which mutates the
+            // same process-global stack state this refresh resolves branch/condition
+            // state against (see ServerStateLock); acquire it first for consistent order.
+            lock (ServerStateLock.Sync)
             {
-                // need to check if this source has already been processed during this refresh operation.
-                for (var ii = 0; ii < events.Count; ii++)
+                lock (_nodeManager.Lock)
                 {
-                    if (events[ii] is InstanceStateSnapshot e && ReferenceEquals(e.Handle, this))
+                    // need to check if this source has already been processed during this refresh operation.
+                    for (var ii = 0; ii < events.Count; ii++)
                     {
-                        return;
+                        if (events[ii] is InstanceStateSnapshot e && ReferenceEquals(e.Handle, this))
+                        {
+                            return;
+                        }
                     }
-                }
 
-                // report the dialog.
-                if (_dialog != null)
-                {
-                    // do not refresh dialogs that are not active.
-                    if (_dialog.Retain.Value)
+                    // report the dialog.
+                    if (_dialog != null)
                     {
+                        // do not refresh dialogs that are not active.
+                        if (_dialog.Retain.Value)
+                        {
+                            // create a snapshot.
+                            var e = new InstanceStateSnapshot();
+                            e.Initialize(context, _dialog);
+
+                            // set the handle of the snapshot to check for duplicates.
+                            e.Handle = this;
+
+                            events.Add(e);
+                        }
+                    }
+
+                    // the alarm objects act as a cache for the last known state and are used to generate refresh events.
+                    foreach (var alarm in _alarms.Values)
+                    {
+                        // do not refresh alarms that are not in an interesting state.
+                        if (!alarm.Retain.Value)
+                        {
+                            continue;
+                        }
+
                         // create a snapshot.
                         var e = new InstanceStateSnapshot();
-                        e.Initialize(context, _dialog);
+                        e.Initialize(context, alarm);
 
                         // set the handle of the snapshot to check for duplicates.
                         e.Handle = this;
 
                         events.Add(e);
                     }
-                }
 
-                // the alarm objects act as a cache for the last known state and are used to generate refresh events.
-                foreach (var alarm in _alarms.Values)
-                {
-                    // do not refresh alarms that are not in an interesting state.
-                    if (!alarm.Retain.Value)
+                    // report any active branches.
+                    foreach (var alarm in _branches.Values)
                     {
-                        continue;
+                        // create a snapshot.
+                        var e = new InstanceStateSnapshot();
+                        e.Initialize(context, alarm);
+
+                        // set the handle of the snapshot to check for duplicates.
+                        e.Handle = this;
+
+                        events.Add(e);
                     }
-
-                    // create a snapshot.
-                    var e = new InstanceStateSnapshot();
-                    e.Initialize(context, alarm);
-
-                    // set the handle of the snapshot to check for duplicates.
-                    e.Handle = this;
-
-                    events.Add(e);
-                }
-
-                // report any active branches.
-                foreach (var alarm in _branches.Values)
-                {
-                    // create a snapshot.
-                    var e = new InstanceStateSnapshot();
-                    e.Initialize(context, alarm);
-
-                    // set the handle of the snapshot to check for duplicates.
-                    e.Handle = this;
-
-                    events.Add(e);
                 }
             }
         }
