@@ -285,8 +285,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                         pkiPath = options.Value.Security.PkiRootPath;
                     }
 
-                    _container.Dispose();
-                    _serverHost.Dispose();
+                    // Serialize server teardown against other servers' startup
+                    // and condition refresh. Disposing the host unregisters node
+                    // managers / types from the same process-global OPC UA stack
+                    // state that startup mutates; a teardown running concurrently
+                    // with another server's startup corrupts that shared state and
+                    // crashes the test host with a native access violation in
+                    // Opc.Ua.ConditionState. See ServerStateLock. The GC drain
+                    // below is deliberately left outside the lock.
+                    lock (ServerStateLock.Sync)
+                    {
+                        _container.Dispose();
+                        _serverHost.Dispose();
+                    }
                     kPorts.TryRemove(_port, out _);
 
                     logger.ServerHostDisposed(_serverHost, pkiPath, sw.Elapsed);
