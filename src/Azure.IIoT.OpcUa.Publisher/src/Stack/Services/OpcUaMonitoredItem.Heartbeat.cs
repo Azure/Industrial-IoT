@@ -200,7 +200,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     else
                     {
                         Debug.Assert(AttachedToSubscription);
-                        EnableHeartbeatTimer();
+                        //
+                        // Ensure the timer is armed but do not restart a
+                        // running countdown: TryCompleteChanges is invoked
+                        // for every item on every subscription
+                        // synchronization, and subscriptions that contain
+                        // permanently failing items re-synchronize every
+                        // InvalidMonitoredItemRetryDelay (default 5 minutes).
+                        // Restarting the countdown here starves heartbeats
+                        // with intervals longer than the resync period (#2357).
+                        //
+                        EnableHeartbeatTimer(restart: false);
                     }
                 }
                 return result;
@@ -355,9 +365,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <summary>
-            /// Enable timer
+            /// Enable timer. When <paramref name="restart"/> is false and
+            /// the timer is already running with the same interval, the
+            /// current countdown is left untouched so that periodic
+            /// heartbeats can elapse regardless of how often the owning
+            /// subscription synchronizes. Restart semantics are only
+            /// intended for the watchdog data path, which re-arms the
+            /// watchdog whenever a value arrives. Note that re-assigning
+            /// <see cref="TimerEx.Interval"/> always restarts the countdown,
+            /// even when the value did not change.
             /// </summary>
-            private void EnableHeartbeatTimer()
+            /// <param name="restart"></param>
+            private void EnableHeartbeatTimer(bool restart = true)
             {
                 lock (_timerLock)
                 {
@@ -373,6 +392,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         };
                         _heartbeatTimer.Elapsed += SendHeartbeatNotifications;
                         _logger.HeartbeatTimerEnabled();
+                    }
+                    else if (!restart && TimerEnabled &&
+                        _heartbeatTimer.Interval == _heartbeatInterval)
+                    {
+                        // Already armed with the desired interval - keep
+                        // the running countdown.
+                        return;
                     }
                     _heartbeatTimer.Interval = _heartbeatInterval;
                     _heartbeatTimer.Enabled = true;
