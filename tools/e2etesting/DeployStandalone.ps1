@@ -42,6 +42,24 @@ if (!$TenantId) {
     Write-Host "Using TenantId $($TenantId)."
 }
 
+## Ensure resource providers used later in the E2E deployment are registered.
+## Fresh subscriptions may not have these registered; registration is an
+## idempotent, subscription-level operation fired early here (in the first
+## deployment script) so it propagates before the later jobs create the OPC PLC
+## container instances (Microsoft.ContainerInstance) and the IoT Edge VM
+## (Microsoft.Compute / Microsoft.Network). The Contributor role includes
+## provider registration; if the principal cannot register a provider we warn
+## and continue, assuming a subscription admin has pre-registered it.
+foreach ($providerNamespace in @('Microsoft.ContainerInstance', 'Microsoft.Compute', 'Microsoft.Network')) {
+    try {
+        Write-Host "Ensuring resource provider '$providerNamespace' is registered..."
+        Register-AzResourceProvider -ProviderNamespace $providerNamespace -ErrorAction Stop | Out-Null
+    }
+    catch {
+        Write-Warning "Could not register resource provider '$providerNamespace': $($_.Exception.Message). Continuing; a subscription admin may need to register it."
+    }
+}
+
 ## Check if resource group exists
 
 $resourceGroup = Get-AzResourceGroup -Name $resourceGroupName -ErrorAction SilentlyContinue

@@ -82,6 +82,8 @@ The federated identity needs two role assignments, both at the **subscription sc
 
 Assigning **Key Vault Secrets Officer** at the subscription scope (rather than relying on the scripts to grant it per-vault) keeps the principal least-privileged: it does **not** need `Microsoft.Authorization/roleAssignments/write`, so no Owner / User Access Administrator / Role Based Access Control Administrator is required. `DeployStandalone.ps1` and `SetKeyVaultPermissions.ps1` still attempt a per-vault self-grant, but it is best-effort — when the principal already has the role via the subscription-scope assignment the forbidden self-grant is logged as a warning and the run continues.
 
+The target subscription must also have the **Microsoft.ContainerInstance**, **Microsoft.Compute**, and **Microsoft.Network** resource providers registered — for the OPC PLC container instances and the IoT Edge VM respectively. `DeployStandalone.ps1` registers these automatically early in the run (the **Contributor** role includes provider registration), so a fresh subscription self-provisions; if your principal cannot register providers, ask a subscription admin to run `az provider register --namespace <namespace>` for each once. `Microsoft.Devices`, `Microsoft.KeyVault`, and `Microsoft.Storage` are also required and are normally already registered.
+
 ### Restoring NuGet packages from runners
 
 The repo's `Nuget.Config` points at an internal Azure Artifacts feed that GitHub-hosted runners cannot reach. Every workflow `dotnet restore`/`pack`/tool install command pins to nuget.org explicitly (`-s https://api.nuget.org/v3/index.json`). When adding new workflow steps, follow the same pattern.
