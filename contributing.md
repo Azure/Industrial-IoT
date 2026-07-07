@@ -84,6 +84,8 @@ Assigning **Key Vault Secrets Officer** at the subscription scope (rather than r
 
 The target subscription must also have the **Microsoft.ContainerInstance**, **Microsoft.Compute**, and **Microsoft.Network** resource providers registered — for the OPC PLC container instances and the IoT Edge VM respectively. `DeployStandalone.ps1` registers these automatically early in the run (the **Contributor** role includes provider registration), so a fresh subscription self-provisions; if your principal cannot register providers, ask a subscription admin to run `az provider register --namespace <namespace>` for each once. `Microsoft.Devices`, `Microsoft.KeyVault`, and `Microsoft.Storage` are also required and are normally already registered.
 
+Region selection: all E2E resources deploy in `E2E_REGION` (default `northeurope`), except the IoT Edge VM, which deploys in `EDGE_VM_REGION` (default `swedencentral`). This split exists because the E2E subscription's regions have mutually exclusive capacity — IoT Hub is not offered in `swedencentral`, while `northeurope` cannot allocate standard VM SKUs for this subscription (only confidential-compute SKUs). The Edge VM reaches IoT Hub and the OPC PLC containers over their public endpoints, so the cross-region split is functionally transparent. If you run E2E in a subscription where a single region offers both IoT Hub and standard VMs, set `EDGE_VM_REGION` equal to `E2E_REGION`.
+
 ### Restoring NuGet packages from runners
 
 The repo's `Nuget.Config` points at an internal Azure Artifacts feed that GitHub-hosted runners cannot reach. Every workflow `dotnet restore`/`pack`/tool install command pins to nuget.org explicitly (`-s https://api.nuget.org/v3/index.json`). When adding new workflow steps, follow the same pattern.

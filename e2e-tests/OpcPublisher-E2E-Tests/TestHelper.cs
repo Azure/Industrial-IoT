@@ -246,7 +246,22 @@ namespace OpcPublisherAEE2ETests
         /// <returns></returns>
         private static PrivateKeyFile GetPrivateSshKey(IIoTPlatformTestContext context)
         {
-            var buffer = Encoding.Default.GetBytes(context.SshConfig.PrivateKey);
+            var privateKey = context.SshConfig.PrivateKey;
+
+            // The E2E pipeline stores the key base64-encoded (single line) so the
+            // multi-line PEM survives the Key Vault -> environment variable
+            // transport without corrupting adjacent variables. Fall back to
+            // treating the value as a raw PEM (e.g. a locally provided key).
+            byte[] buffer;
+            try
+            {
+                buffer = Convert.FromBase64String(privateKey.Trim());
+            }
+            catch (FormatException)
+            {
+                buffer = Encoding.UTF8.GetBytes(privateKey);
+            }
+
             var privateKeyStream = new MemoryStream(buffer);
 
             return new PrivateKeyFile(privateKeyStream);

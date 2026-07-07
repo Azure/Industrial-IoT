@@ -94,14 +94,15 @@ Write-Host "Updating 'os' and '__type__'-Tags in Device Twin..."
 Update-AzIotHubDeviceTwin -ResourceGroupName $ResourceGroupName -IotHubName $iotHub.Name -DeviceId $edgeIdentity.Id -Tag @{ "os" = "Linux"; "__type__" = "iiotedge"; } | Out-Null
 
 ## Generate SSH keys
-## The keys live only in-memory for the duration of the pipeline run: generated here,
-## emitted to pipeline variables (marked as secret) for direct test-runtime injection,
-## and the on-disk files are deleted immediately. The private key is intentionally
-## NOT written to Key Vault — secret rotation/revocation on a per-run key is moot.
+## The keys are generated here, emitted to pipeline variables (marked as secret)
+## and staged in the per-run Key Vault by SetTestVariables.ps1; the on-disk files
+## are deleted immediately. The key is passphrase-less because the E2E tests load
+## it with SSH.NET's PrivateKeyFile(stream) constructor, which cannot decrypt an
+## encrypted key. The args are splatted so the empty -N value is passed reliably.
 $privateKeyFilePath = Join-Path $KeysPath "id_rsa_iotedge"
 $publicKeyFilePath = $privateKeyFilePath + ".pub"
-$keypassphrase = '"$($testSuffix)"'
-Write-Output "y" | ssh-keygen -q -m PEM -b 4096 -t rsa -f $privateKeyFilePath -N $keypassphrase
+$sshKeygenArgs = @('-q', '-m', 'PEM', '-b', '4096', '-t', 'rsa', '-f', $privateKeyFilePath, '-N', '')
+Write-Output "y" | & ssh-keygen @sshKeygenArgs
 $sshPrivateKey = Get-Content $privateKeyFilePath -Raw
 $sshPublicKey = Get-Content $publicKeyFilePath -Raw
 
@@ -151,7 +152,28 @@ $edgeTemplateFile = Join-Path $PSScriptRoot "edgeDeploy.$($EdgeTemplateVersion).
 
 Write-Host "Running IoT Edge VM Deployment (template version $($EdgeTemplateVersion))..."
 
-$edgeDeployment = New-AzResourceGroupDeployment -ResourceGroupName $ResourceGroupName -TemplateFile $edgeTemplateFile -TemplateParameterObject $edgeParameters
+try {
+    $edgeDeployment = New-AzResourceGroupDeployment -ResourceGroupName $ResourceGroupName -TemplateFile $edgeTemplateFile -TemplateParameterObject $edgeParameters -ErrorAction Stop
+}
+catch {
+    # New-AzResourceGroupDeployment surfaces only the opaque top-level
+    # 'InvalidTemplateDeployment' summary on a preflight failure. Re-run the
+    # validation to print the inner errors (e.g. SkuNotAvailable / capacity,
+    # vCPU quota, Azure Policy) so the real cause is visible in the CI log.
+    Write-Warning "Edge VM deployment failed: $($_.Exception.Message)"
+    Write-Host "Surfacing inner validation errors via Test-AzResourceGroupDeployment..."
+    $validationErrors = Test-AzResourceGroupDeployment -ResourceGroupName $ResourceGroupName -TemplateFile $edgeTemplateFile -TemplateParameterObject $edgeParameters -ErrorAction SilentlyContinue
+    foreach ($validationError in $validationErrors) {
+        Write-Host "Validation error: Code=$($validationError.Code); Message=$($validationError.Message)"
+        foreach ($detail in $validationError.Details) {
+            Write-Host "  Detail: Code=$($detail.Code); Message=$($detail.Message)"
+            foreach ($innerDetail in $detail.Details) {
+                Write-Host "    Inner: Code=$($innerDetail.Code); Message=$($innerDetail.Message)"
+            }
+        }
+    }
+    throw
+}
 
 $edgeDeployment | ConvertTo-Json | Out-Host
 
