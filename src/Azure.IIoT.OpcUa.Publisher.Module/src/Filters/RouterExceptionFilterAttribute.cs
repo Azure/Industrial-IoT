@@ -20,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
     /// Convert all the exceptions returned by the module controllers to a
     /// status code.
     /// </summary>
-    public sealed partial class RouterExceptionFilterAttribute : ExceptionFilterAttribute
+    public sealed class RouterExceptionFilterAttribute : ExceptionFilterAttribute
     {
         /// <summary>
         /// Configure the logger used to surface direct method call failures.
@@ -168,14 +168,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
                     or (int)HttpStatusCode.TooManyRequests
                     or (int)HttpStatusCode.PreconditionFailed ? LogLevel.Warning
                 : LogLevel.Debug;
-            MethodCallFailed(logger, level, status, exception.GetType().Name, exception);
+            logger.MethodCallFailed(level, status, exception.GetType().Name, exception);
         }
 
-        [LoggerMessage(EventId = 1,
-            Message = "Direct method call failed with status {Status} ({ExceptionType}).")]
-        static partial void MethodCallFailed(ILogger logger, LogLevel level,
-            int status, string exceptionType, Exception exception);
-
         private static ILogger? _logger;
+    }
+
+    /// <summary>
+    /// Source-generated logging extensions for RouterExceptionFilterAttribute
+    /// </summary>
+    internal static partial class RouterExceptionFilterAttributeLogging
+    {
+        private const int EventClass = 0;
+
+        [LoggerMessage(EventId = EventClass + 1,
+            Message = "Direct method call failed with status {Status} ({ExceptionType}).")]
+        public static partial void MethodCallFailed(this ILogger logger, LogLevel level,
+            int status, string exceptionType, Exception exception);
     }
 }

@@ -29,7 +29,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
     /// for an easier parsing.
     /// @see https://docs.microsoft.com/en-us/aspnet/core/mvc/controllers/filters
     /// </summary>
-    public sealed partial class ControllerExceptionFilterAttribute : ExceptionFilterAttribute
+    public sealed class ControllerExceptionFilterAttribute : ExceptionFilterAttribute
     {
         /// <inheritdoc />
         public override void OnException(ExceptionContext context)
@@ -209,12 +209,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
                     or (int)HttpStatusCode.TooManyRequests
                     or (int)HttpStatusCode.PreconditionFailed ? LogLevel.Warning
                 : LogLevel.Debug;
-            RequestFailed(logger, level, status, exception.GetType().Name, exception);
+            logger.RequestFailed(level, status, exception.GetType().Name, exception);
         }
+    }
 
-        [LoggerMessage(EventId = 1,
+    /// <summary>
+    /// Source-generated logging extensions for ControllerExceptionFilterAttribute
+    /// </summary>
+    internal static partial class ControllerExceptionFilterAttributeLogging
+    {
+        private const int EventClass = 10;
+
+        [LoggerMessage(EventId = EventClass + 1,
             Message = "API request failed with status {Status} ({ExceptionType}).")]
-        static partial void RequestFailed(ILogger logger, LogLevel level,
+        public static partial void RequestFailed(this ILogger logger, LogLevel level,
             int status, string exceptionType, Exception exception);
     }
 }

@@ -42,7 +42,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     [Authorize]
     [Produces(ContentMimeType.Json, ContentMimeType.MsgPack)]
     [Consumes(ContentMimeType.Json, ContentMimeType.MsgPack)]
-    public partial class ConfigurationController : ControllerBase, IMethodController
+    public class ConfigurationController : ControllerBase, IMethodController
     {
         /// <summary>
         /// Create publisher methods controller
@@ -293,11 +293,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
-            if (_logger != null)
-            {
-                ConfigurationOperationInvoked(_logger, nameof(AddOrUpdateEndpointsAsync),
-                    "<multiple>", request.Count);
-            }
+            _logger?.ConfigurationOperationInvoked(nameof(AddOrUpdateEndpointsAsync),
+                "<multiple>", request.Count);
             await _configServices.AddOrUpdateEndpointsAsync(request, ct).ConfigureAwait(false);
             return new PublishedNodesResponseModel();
         }
@@ -440,20 +437,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <param name="request"></param>
         private void LogEntryOperation(string operation, PublishedNodesEntryModel? request)
         {
-            if (_logger != null)
-            {
-                ConfigurationOperationInvoked(_logger, operation,
-                    request?.EndpointUrl ?? "<none>", request?.OpcNodes?.Count ?? 0);
-            }
+            _logger?.ConfigurationOperationInvoked(operation,
+                request?.EndpointUrl ?? "<none>", request?.OpcNodes?.Count ?? 0);
         }
-
-        [LoggerMessage(EventId = 1, Level = LogLevel.Information,
-            Message = "Configuration operation {Operation} invoked for endpoint " +
-                "{EndpointUrl} with {NodeCount} node(s).")]
-        static partial void ConfigurationOperationInvoked(ILogger logger,
-            string operation, string endpointUrl, int nodeCount);
 
         private readonly IPublishedNodesServices _configServices;
         private readonly ILogger<ConfigurationController>? _logger;
+    }
+
+    /// <summary>
+    /// Source-generated logging extensions for ConfigurationController
+    /// </summary>
+    internal static partial class ConfigurationControllerLogging
+    {
+        private const int EventClass = 20;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
+            Message = "Configuration operation {Operation} invoked for endpoint " +
+                "{EndpointUrl} with {NodeCount} node(s).")]
+        public static partial void ConfigurationOperationInvoked(this ILogger logger,
+            string operation, string endpointUrl, int nodeCount);
     }
 }
