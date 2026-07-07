@@ -41,7 +41,7 @@ on:
         description: 'Azure region for E2E resources'
         required: false
         type: string
-        default: swedencentral
+        default: northeurope
       resource_group_name:
         description: 'Resource group (use <generated> for an auto-named per-run RG)'
         required: false
@@ -78,7 +78,7 @@ on:
         description: 'Azure region for E2E resources'
         required: false
         type: string
-        default: swedencentral
+        default: northeurope
       resource_group_name:
         description: 'Resource group (use <generated> for an auto-named per-run RG)'
         required: false
@@ -110,7 +110,12 @@ env:
   IMAGE_TAG: ${{ inputs.image_tag || 'latest' }}
   IMAGE_REGISTRY: ${{ inputs.image_registry || 'ghcr.io' }}
   IMAGE_NAMESPACE: ${{ inputs.image_namespace || 'azure' }}
-  E2E_REGION: ${{ inputs.region || 'swedencentral' }}
+  E2E_REGION: ${{ inputs.region || 'northeurope' }}
+  # This E2E subscription can only allocate standard VM SKUs in swedencentral,
+  # but IoT Hub is not offered there. So every resource deploys in E2E_REGION
+  # (northeurope) while the IoT Edge VM alone deploys in EDGE_VM_REGION; the VM
+  # reaches IoT Hub and the OPC PLC containers over their public endpoints.
+  EDGE_VM_REGION: swedencentral
   EDGE_VERSION: '1.4'
   BRANCH_NAME: ${{ github.ref_name }}
 
@@ -247,6 +252,7 @@ jobs:
         run: |
           ./tools/e2etesting/DeployEdge.ps1 `
             -ResourceGroupName "${{ env.ResourceGroupName }}" `
+            -EdgeVmLocation "${{ env.EDGE_VM_REGION }}" `
             -KeysPath "$env:KEYS_PATH"
       - name: Write test variables to KeyVault
         shell: pwsh
