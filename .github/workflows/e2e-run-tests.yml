@@ -105,8 +105,10 @@ jobs:
               return
             fi
             echo "::add-mask::$val"
-            # Use the heredoc form to be safe with newlines (SSH keys).
-            delim="EOF_$(uuidgen | tr -d '-')"
+            # Use the heredoc form to be safe with newlines (SSH keys). The
+            # delimiter is generated with bash's built-in $RANDOM rather than
+            # uuidgen, which is not available in Git Bash on Windows runners.
+            delim="EOF_${RANDOM}${RANDOM}${RANDOM}${RANDOM}"
             {
               echo "${env_name}<<${delim}"
               echo "${val}"
