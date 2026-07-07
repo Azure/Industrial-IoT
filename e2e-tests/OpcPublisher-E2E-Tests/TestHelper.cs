@@ -719,6 +719,19 @@ namespace OpcPublisherAEE2ETests
         /// <param name="consumerGroup">Override consumer group; defaults to the test consumer group.</param>
         public static EventHubConsumerClient GetEventHubConsumerClient(this IIoTPlatformTestContext context, string consumerGroup = null)
         {
+            // The IoT Hub built-in Event Hub-compatible endpoint rejects AAD tokens
+            // ("InvalidIssuer: Token issuer is invalid"); authenticate with the SAS
+            // connection string instead (it carries the Endpoint and EntityPath),
+            // which is the supported method for the built-in endpoint. Fall back to
+            // AAD (namespace + name + credential) only when no connection string is set.
+            var connectionString = Environment.GetEnvironmentVariable(
+                TestConstants.EnvironmentVariablesNames.IOTHUB_EVENTHUB_CONNECTIONSTRING);
+            if (!string.IsNullOrEmpty(connectionString))
+            {
+                return new EventHubConsumerClient(
+                    consumerGroup ?? TestConstants.TestConsumerGroupName,
+                    connectionString);
+            }
             return new EventHubConsumerClient(
                 consumerGroup ?? TestConstants.TestConsumerGroupName,
                 context.IoTHubConfig.IoTHubEventHubFullyQualifiedNamespace,
