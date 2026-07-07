@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
@@ -41,15 +42,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     [Authorize]
     [Produces(ContentMimeType.Json, ContentMimeType.MsgPack)]
     [Consumes(ContentMimeType.Json, ContentMimeType.MsgPack)]
-    public class ConfigurationController : ControllerBase, IMethodController
+    public partial class ConfigurationController : ControllerBase, IMethodController
     {
         /// <summary>
         /// Create publisher methods controller
         /// </summary>
         /// <param name="configServices"></param>
-        public ConfigurationController(IPublishedNodesServices configServices)
+        /// <param name="logger"></param>
+        public ConfigurationController(IPublishedNodesServices configServices,
+            ILogger<ConfigurationController>? logger = null)
         {
             _configServices = configServices;
+            _logger = logger;
         }
 
         /// <summary>
@@ -196,6 +200,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             [FromBody][Required] PublishedNodesEntryModel request, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
+            LogEntryOperation(nameof(PublishNodesAsync), request);
             await _configServices.PublishNodesAsync(request, ct).ConfigureAwait(false);
             return new PublishedNodesResponseModel();
         }
@@ -227,6 +232,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             [FromBody][Required] PublishedNodesEntryModel request, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
+            LogEntryOperation(nameof(UnpublishNodesAsync), request);
             await _configServices.UnpublishNodesAsync(request, ct).ConfigureAwait(false);
             return new PublishedNodesResponseModel();
         }
@@ -255,6 +261,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         public async Task<PublishedNodesResponseModel> UnpublishAllNodesAsync(
             [FromBody] PublishedNodesEntryModel? request, CancellationToken ct = default)
         {
+            LogEntryOperation(nameof(UnpublishAllNodesAsync), request);
             await _configServices.UnpublishAllNodesAsync(request, ct).ConfigureAwait(false);
             return new PublishedNodesResponseModel();
         }
@@ -286,6 +293,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
+            if (_logger != null)
+            {
+                ConfigurationOperationInvoked(_logger, nameof(AddOrUpdateEndpointsAsync),
+                    "<multiple>", request.Count);
+            }
             await _configServices.AddOrUpdateEndpointsAsync(request, ct).ConfigureAwait(false);
             return new PublishedNodesResponseModel();
         }
@@ -418,6 +430,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             return await _configServices.GetDiagnosticInfoAsync(ct).ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// Log the invocation of a configuration operation together with the
+        /// endpoint and node count so that control-plane activity (and the
+        /// context of any subsequent failure) is captured in the module logs
+        /// and support bundles.
+        /// </summary>
+        /// <param name="operation"></param>
+        /// <param name="request"></param>
+        private void LogEntryOperation(string operation, PublishedNodesEntryModel? request)
+        {
+            if (_logger != null)
+            {
+                ConfigurationOperationInvoked(_logger, operation,
+                    request?.EndpointUrl ?? "<none>", request?.OpcNodes?.Count ?? 0);
+            }
+        }
+
+        [LoggerMessage(EventId = 1, Level = LogLevel.Information,
+            Message = "Configuration operation {Operation} invoked for endpoint " +
+                "{EndpointUrl} with {NodeCount} node(s).")]
+        static partial void ConfigurationOperationInvoked(ILogger logger,
+            string operation, string endpointUrl, int nodeCount);
+
         private readonly IPublishedNodesServices _configServices;
+        private readonly ILogger<ConfigurationController>? _logger;
     }
 }

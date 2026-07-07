@@ -122,6 +122,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         public void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifetime)
 #pragma warning restore CA1822 // Mark members as static
         {
+            // Surface direct method call failures (which bypass the ASP.NET
+            // request pipeline) into the module logs and support bundles.
+            Filters.RouterExceptionFilterAttribute.SetLogger(
+                app.ApplicationServices.GetRequiredService<ILoggerFactory>());
+
             app.UseRouting();
 
             // app.UseHsts();
