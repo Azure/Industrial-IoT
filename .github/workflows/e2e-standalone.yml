@@ -254,6 +254,18 @@ jobs:
             -ResourceGroupName "${{ env.ResourceGroupName }}" `
             -EdgeVmLocation "${{ env.EDGE_VM_REGION }}" `
             -KeysPath "$env:KEYS_PATH"
+      - name: Refresh Azure login
+        # The IoT Edge VM deploy can run longer than the GitHub OIDC assertion's
+        # ~5 minute lifetime, after which az CLI calls against a new scope (Key
+        # Vault) fail with AADSTS700024 ("Client assertion is not within its
+        # valid time range"). Re-login to obtain a fresh federated token before
+        # the Key Vault writes below.
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
       - name: Write test variables to KeyVault
         shell: pwsh
         # We re-determine KeyVaultName in this job because $GITHUB_ENV does
