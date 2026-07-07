@@ -40,21 +40,18 @@ Write-Host "Adding/Updating KeyVault-Secret 'iot-edge-device-dnsname' with value
 az keyvault secret set --vault-name $keyVault --name 'iot-edge-device-dnsname' --value $Fqdn > $null
 
 # Persist the SSH key pair in the per-run Key Vault so the reusable test
-# workflow (e2e-run-tests.yml) can read them as 'iot-edge-vm-privatekey' /
-# 'iot-edge-vm-publickey' and inject them into the test process. The Key Vault
-# is created per run and deleted during cleanup, so the throwaway VM key never
-# persists beyond the run. The private key is written via --file so the
-# multi-line PEM survives the az CLI argument boundary on Windows runners.
+# workflow (e2e-run-tests.yml) can read them and inject them into the test
+# process. The Key Vault is created per run and deleted during cleanup, so the
+# throwaway VM key never persists beyond the run.
+#
+# The private key is stored base64-encoded (single line). A raw multi-line PEM
+# does not survive the Key Vault -> az tsv -> $GITHUB_ENV -> environment
+# variable transport intact -- it corrupts adjacent environment variables and
+# leaks unmasked in logs. TestHelper.GetPrivateSshKey base64-decodes it.
 if ($SshPrivateKey) {
-    $privateKeyFile = Join-Path ([System.IO.Path]::GetTempPath()) ([System.IO.Path]::GetRandomFileName())
-    try {
-        [System.IO.File]::WriteAllText($privateKeyFile, $SshPrivateKey)
-        Write-Host "Adding/Updating KeyVault-Secret 'iot-edge-vm-privatekey' (value hidden)..."
-        az keyvault secret set --vault-name $keyVault --name 'iot-edge-vm-privatekey' --file $privateKeyFile > $null
-    }
-    finally {
-        Remove-Item -Path $privateKeyFile -Force -ErrorAction SilentlyContinue
-    }
+    $privateKeyB64 = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($SshPrivateKey))
+    Write-Host "Adding/Updating KeyVault-Secret 'iot-edge-vm-privatekey' (base64, value hidden)..."
+    az keyvault secret set --vault-name $keyVault --name 'iot-edge-vm-privatekey' --value $privateKeyB64 > $null
 }
 else {
     Write-Warning "SshPrivateKey not provided; 'iot-edge-vm-privatekey' will not be set."
