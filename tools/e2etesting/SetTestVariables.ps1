@@ -5,7 +5,9 @@ Param(
     [string] $OpcPlcSimulationIps,
     [string] $EdgeIdentity,
     [string] $EdgeVmUsername,
-    [string] $Fqdn
+    [string] $Fqdn,
+    [string] $SshPrivateKey,
+    [string] $SshPublicKey
 )
 
 # Stop execution when an error occurs.
@@ -37,9 +39,33 @@ az keyvault secret set --vault-name $keyVault --name 'iot-edge-vm-username' --va
 Write-Host "Adding/Updating KeyVault-Secret 'iot-edge-device-dnsname' with value '$($Fqdn)'..."
 az keyvault secret set --vault-name $keyVault --name 'iot-edge-device-dnsname' --value $Fqdn > $null
 
-# NOTE: SshPrivateKey / SshPublicKey are intentionally NOT stored in Key Vault.
-# They are pipeline-secret variables produced by DeployEdge.ps1 (with issecret=true)
-# and consumed directly by runtests.yml as IOT_EDGE_VM_PRIVATEKEY env var on the
-# test process. The key never persists at rest in our infra (Phase 1.8 Option A).
+# Persist the SSH key pair in the per-run Key Vault so the reusable test
+# workflow (e2e-run-tests.yml) can read them as 'iot-edge-vm-privatekey' /
+# 'iot-edge-vm-publickey' and inject them into the test process. The Key Vault
+# is created per run and deleted during cleanup, so the throwaway VM key never
+# persists beyond the run. The private key is written via --file so the
+# multi-line PEM survives the az CLI argument boundary on Windows runners.
+if ($SshPrivateKey) {
+    $privateKeyFile = Join-Path ([System.IO.Path]::GetTempPath()) ([System.IO.Path]::GetRandomFileName())
+    try {
+        [System.IO.File]::WriteAllText($privateKeyFile, $SshPrivateKey)
+        Write-Host "Adding/Updating KeyVault-Secret 'iot-edge-vm-privatekey' (value hidden)..."
+        az keyvault secret set --vault-name $keyVault --name 'iot-edge-vm-privatekey' --file $privateKeyFile > $null
+    }
+    finally {
+        Remove-Item -Path $privateKeyFile -Force -ErrorAction SilentlyContinue
+    }
+}
+else {
+    Write-Warning "SshPrivateKey not provided; 'iot-edge-vm-privatekey' will not be set."
+}
+
+if ($SshPublicKey) {
+    Write-Host "Adding/Updating KeyVault-Secret 'iot-edge-vm-publickey'..."
+    az keyvault secret set --vault-name $keyVault --name 'iot-edge-vm-publickey' --value $SshPublicKey > $null
+}
+else {
+    Write-Warning "SshPublicKey not provided; 'iot-edge-vm-publickey' will not be set."
+}
 
 Write-Host "Deployment finished."
