@@ -89,7 +89,7 @@
     "addressPrefix": "10.0.0.0/16",
     "subnet1Name": "[format('subnet-{0}', uniqueString(parameters('dnsLabelPrefix')))]",
     "subnet1Prefix": "10.0.0.0/24",
-    "publicIPAddressType": "Dynamic",
+    "publicIPAddressType": "Static",
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetName'))]",
     "subnet1Ref": "[format('{0}/subnets/{1}', variables('vnetID'), variables('subnet1Name'))]",
     "linuxConfiguration": {
@@ -128,6 +128,9 @@
       "apiVersion": "2021-08-01",
       "name": "[variables('pipName')]",
       "location": "[parameters('location')]",
+      "sku": {
+        "name": "Standard"
+      },
       "properties": {
         "publicIPAllocationMethod": "[variables('publicIPAddressType')]",
         "dnsSettings": {
