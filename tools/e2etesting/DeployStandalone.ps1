@@ -126,7 +126,19 @@ if ($ServicePrincipalId) {
     if ($sp) { $spObjectId = $sp.Id }
     $existing = Get-AzRoleAssignment -ObjectId $spObjectId -RoleDefinitionName "Key Vault Secrets Officer" -Scope $keyVault.ResourceId -ErrorAction SilentlyContinue
     if (!$existing) {
-        New-AzRoleAssignment -ObjectId $spObjectId -RoleDefinitionName "Key Vault Secrets Officer" -Scope $keyVault.ResourceId | Out-Null
+        try {
+            New-AzRoleAssignment -ObjectId $spObjectId -RoleDefinitionName "Key Vault Secrets Officer" -Scope $keyVault.ResourceId | Out-Null
+        }
+        catch {
+            # A least-privilege E2E principal may lack
+            # Microsoft.Authorization/roleAssignments/write (e.g. Contributor plus a
+            # 'Key Vault Secrets Officer' assignment pre-granted at the subscription
+            # scope). Don't hard-fail on the per-vault self-grant: if the role is
+            # already effective via inheritance the secret writes below
+            # (Set-KvSecretWithRetry) succeed; otherwise they surface a clear
+            # data-plane error after the retry window.
+            Write-Warning "Could not self-assign 'Key Vault Secrets Officer' on '$($keyVault.VaultName)': $($_.Exception.Message). Continuing; relying on inherited/pre-assigned access."
+        }
     }
 }
 

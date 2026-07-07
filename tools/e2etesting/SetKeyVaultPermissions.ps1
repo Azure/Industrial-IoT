@@ -26,7 +26,18 @@ function Grant-KvRole {
     Param([Parameter(Mandatory=$true)][string]$VaultScope, [Parameter(Mandatory=$true)][string]$PrincipalObjectId, [Parameter(Mandatory=$true)][string]$Role)
     $existing = Get-AzRoleAssignment -ObjectId $PrincipalObjectId -RoleDefinitionName $Role -Scope $VaultScope -ErrorAction SilentlyContinue
     if (!$existing) {
-        New-AzRoleAssignment -ObjectId $PrincipalObjectId -RoleDefinitionName $Role -Scope $VaultScope | Out-Null
+        try {
+            New-AzRoleAssignment -ObjectId $PrincipalObjectId -RoleDefinitionName $Role -Scope $VaultScope | Out-Null
+        }
+        catch {
+            # A least-privilege principal may lack
+            # Microsoft.Authorization/roleAssignments/write when the role is
+            # pre-assigned at a parent (subscription) scope. Tolerate the self-grant
+            # failure: if access is already effective via inheritance the test run
+            # still reads the vault; otherwise the missing-secret warnings downstream
+            # make the gap obvious.
+            Write-Warning "Could not assign '$Role' on '$VaultScope': $($_.Exception.Message). Continuing; relying on inherited/pre-assigned access."
+        }
     }
 }
 

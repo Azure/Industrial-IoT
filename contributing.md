@@ -75,10 +75,12 @@ On the Azure side, the App Registration must have federated credentials for thes
 * `repo:Azure/Industrial-IoT:ref:refs/heads/main`
 * `repo:Azure/Industrial-IoT:ref:refs/heads/release/*` (one per release branch)
 
-The federated identity needs:
+The federated identity needs two role assignments, both at the **subscription scope** so they apply to the per-run resource groups the pipeline creates:
 
-* **Contributor** on the target subscription (creates resource groups, IoT Hub, KeyVault, VMs, ACI).
-* **Key Vault Secrets Officer** on secrets in the deployment-created vaults (the deployment scripts create new KeyVaults in RBAC mode and migrate any pre-existing access-policy vaults; `SetKeyVaultPermissions.ps1` assigns the role automatically).
+* **Contributor** — creates the resource groups, IoT Hub, Key Vault, VMs, and ACI containers.
+* **Key Vault Secrets Officer** — reads and writes the secrets the deployment scripts stage in the RBAC-enabled vaults they create.
+
+Assigning **Key Vault Secrets Officer** at the subscription scope (rather than relying on the scripts to grant it per-vault) keeps the principal least-privileged: it does **not** need `Microsoft.Authorization/roleAssignments/write`, so no Owner / User Access Administrator / Role Based Access Control Administrator is required. `DeployStandalone.ps1` and `SetKeyVaultPermissions.ps1` still attempt a per-vault self-grant, but it is best-effort — when the principal already has the role via the subscription-scope assignment the forbidden self-grant is logged as a warning and the run continues.
 
 ### Restoring NuGet packages from runners
 
