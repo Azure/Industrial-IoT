@@ -548,6 +548,11 @@ namespace OpcPublisherAEE2ETests
                 return new AzurePipelinesCredential(
                     context.OpcPlcConfig.TenantId, clientId, serviceConnection, systemAccessToken);
             }
+            var githubCredential = TryBuildGitHubActionsCredential(context);
+            if (githubCredential != null)
+            {
+                return githubCredential;
+            }
             try
             {
                 return new DefaultAzureCredential(new DefaultAzureCredentialOptions
@@ -559,6 +564,40 @@ namespace OpcPublisherAEE2ETests
             {
                 return new AzureCliCredential();
             }
+        }
+
+        /// <summary>
+        /// Build a credential that authenticates via the GitHub Actions OIDC provider,
+        /// re-fetching a fresh id-token on every token request so it does not expire
+        /// during a long-running test suite. The az CLI federated session's ~5 minute
+        /// assertion otherwise causes AADSTS700024 ("Client assertion is not within its
+        /// valid time range") partway through the run. Returns null when the workflow is
+        /// not running under GitHub Actions with id-token: write.
+        /// </summary>
+        private static TokenCredential TryBuildGitHubActionsCredential(IIoTPlatformTestContext context)
+        {
+            var requestUrl = Environment.GetEnvironmentVariable("ACTIONS_ID_TOKEN_REQUEST_URL");
+            var requestToken = Environment.GetEnvironmentVariable("ACTIONS_ID_TOKEN_REQUEST_TOKEN");
+            var clientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID");
+            var tenantId = context?.OpcPlcConfig?.TenantId
+                ?? Environment.GetEnvironmentVariable("AZURE_TENANT_ID");
+            if (string.IsNullOrEmpty(requestUrl) || string.IsNullOrEmpty(requestToken)
+                || string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(tenantId))
+            {
+                return null;
+            }
+            return new ClientAssertionCredential(tenantId, clientId, async ct =>
+            {
+                using var client = new System.Net.Http.HttpClient();
+                client.DefaultRequestHeaders.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", requestToken);
+                using var response = await client
+                    .GetAsync($"{requestUrl}&audience=api://AzureADTokenExchange", ct)
+                    .ConfigureAwait(false);
+                response.EnsureSuccessStatusCode();
+                var json = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
+                return JObject.Parse(json)["value"].Value<string>();
+            });
         }
 
         /// <summary>
@@ -590,6 +629,21 @@ namespace OpcPublisherAEE2ETests
             catch (Exception ex)
             {
                 context.OutputHelper.WriteLine($"Failed to access resource manager using pipeline service connection: {ex.Message}");
+            }
+            try
+            {
+                var githubCredential = TryBuildGitHubActionsCredential(context);
+                if (githubCredential != null)
+                {
+                    context.OutputHelper.WriteLine("Using GitHub Actions OIDC federated credential...");
+                    var armClient = new ArmClient(githubCredential);
+                    await armClient.GetDefaultSubscriptionAsync(cancellationToken);
+                    return armClient;
+                }
+            }
+            catch (Exception ex)
+            {
+                context.OutputHelper.WriteLine($"Failed to access resource manager using GitHub Actions OIDC: {ex.Message}");
             }
             try
             {
