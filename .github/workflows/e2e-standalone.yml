@@ -41,7 +41,7 @@ on:
         description: 'Azure region for E2E resources'
         required: false
         type: string
-        default: northeurope
+        default: swedencentral
       resource_group_name:
         description: 'Resource group (use <generated> for an auto-named per-run RG)'
         required: false
@@ -78,7 +78,7 @@ on:
         description: 'Azure region for E2E resources'
         required: false
         type: string
-        default: northeurope
+        default: swedencentral
       resource_group_name:
         description: 'Resource group (use <generated> for an auto-named per-run RG)'
         required: false
@@ -110,7 +110,7 @@ env:
   IMAGE_TAG: ${{ inputs.image_tag || 'latest' }}
   IMAGE_REGISTRY: ${{ inputs.image_registry || 'ghcr.io' }}
   IMAGE_NAMESPACE: ${{ inputs.image_namespace || 'azure' }}
-  E2E_REGION: ${{ inputs.region || 'northeurope' }}
+  E2E_REGION: ${{ inputs.region || 'swedencentral' }}
   EDGE_VERSION: '1.4'
   BRANCH_NAME: ${{ github.ref_name }}
 

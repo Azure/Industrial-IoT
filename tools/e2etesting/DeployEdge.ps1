@@ -151,7 +151,28 @@ $edgeTemplateFile = Join-Path $PSScriptRoot "edgeDeploy.$($EdgeTemplateVersion).
 
 Write-Host "Running IoT Edge VM Deployment (template version $($EdgeTemplateVersion))..."
 
-$edgeDeployment = New-AzResourceGroupDeployment -ResourceGroupName $ResourceGroupName -TemplateFile $edgeTemplateFile -TemplateParameterObject $edgeParameters
+try {
+    $edgeDeployment = New-AzResourceGroupDeployment -ResourceGroupName $ResourceGroupName -TemplateFile $edgeTemplateFile -TemplateParameterObject $edgeParameters -ErrorAction Stop
+}
+catch {
+    # New-AzResourceGroupDeployment surfaces only the opaque top-level
+    # 'InvalidTemplateDeployment' summary on a preflight failure. Re-run the
+    # validation to print the inner errors (e.g. SkuNotAvailable / capacity,
+    # vCPU quota, Azure Policy) so the real cause is visible in the CI log.
+    Write-Warning "Edge VM deployment failed: $($_.Exception.Message)"
+    Write-Host "Surfacing inner validation errors via Test-AzResourceGroupDeployment..."
+    $validationErrors = Test-AzResourceGroupDeployment -ResourceGroupName $ResourceGroupName -TemplateFile $edgeTemplateFile -TemplateParameterObject $edgeParameters -ErrorAction SilentlyContinue
+    foreach ($validationError in $validationErrors) {
+        Write-Host "Validation error: Code=$($validationError.Code); Message=$($validationError.Message)"
+        foreach ($detail in $validationError.Details) {
+            Write-Host "  Detail: Code=$($detail.Code); Message=$($detail.Message)"
+            foreach ($innerDetail in $detail.Details) {
+                Write-Host "    Inner: Code=$($innerDetail.Code); Message=$($innerDetail.Message)"
+            }
+        }
+    }
+    throw
+}
 
 $edgeDeployment | ConvertTo-Json | Out-Host
 

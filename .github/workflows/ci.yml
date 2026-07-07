@@ -34,7 +34,7 @@ on:
       e2e_region:
         description: 'Azure region for E2E resources'
         type: string
-        default: northeurope
+        default: swedencentral
       e2e_cleanup:
         description: 'Delete the E2E resource group after the run completes'
         type: boolean
@@ -540,7 +540,7 @@ jobs:
       image_tag: ${{ needs.version.outputs.simple_version }}
       image_registry: ghcr.io
       image_namespace: azure
-      region: ${{ github.event_name == 'workflow_dispatch' && inputs.e2e_region || 'northeurope' }}
+      region: ${{ github.event_name == 'workflow_dispatch' && inputs.e2e_region || 'swedencentral' }}
       resource_group_name: '<generated>'
       cleanup: ${{ github.event_name != 'workflow_dispatch' || inputs.e2e_cleanup }}
       head_sha: ${{ github.sha }}
