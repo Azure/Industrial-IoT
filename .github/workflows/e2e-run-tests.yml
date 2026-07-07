@@ -67,6 +67,11 @@ jobs:
       KeyVaultName: ${{ inputs.key_vault_name }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history is required so Nerdbank.GitVersioning can compute the
+          # version height when the E2E test solution builds; a shallow clone
+          # fails with "Shallow clone lacks the objects required...".
+          fetch-depth: 0
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
