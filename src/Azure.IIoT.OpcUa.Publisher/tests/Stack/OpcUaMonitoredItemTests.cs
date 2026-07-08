@@ -123,6 +123,50 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
         }
 
         [Fact]
+        public async Task MergeWithAppliesChangedSamplingIntervalAsync()
+        {
+            var template = new DataMonitoredItemModel
+            {
+                StartNodeId = "i=2258",
+                SamplingInterval = TimeSpan.FromMilliseconds(1000)
+            };
+            var session = SetupMockedSession().Object;
+            var monitoredItem = await GetMonitoredItemAsync(template) as OpcUaMonitoredItem.DataChange;
+            Assert.NotNull(monitoredItem);
+            Assert.Equal(1000, monitoredItem.SamplingInterval);
+
+            var desired = await GetMonitoredItemAsync(template with
+            {
+                SamplingInterval = TimeSpan.FromMilliseconds(2000)
+            });
+
+            var changed = monitoredItem.MergeWith(desired, session, out _);
+
+            Assert.True(changed);
+            Assert.Equal(2000, monitoredItem.SamplingInterval);
+        }
+
+        [Fact]
+        public async Task MergeWithDoesNotChangeUnchangedSamplingIntervalAsync()
+        {
+            var template = new DataMonitoredItemModel
+            {
+                StartNodeId = "i=2258",
+                SamplingInterval = TimeSpan.FromMilliseconds(1000)
+            };
+            var session = SetupMockedSession().Object;
+            var monitoredItem = await GetMonitoredItemAsync(template) as OpcUaMonitoredItem.DataChange;
+            Assert.NotNull(monitoredItem);
+            Assert.Equal(1000, monitoredItem.SamplingInterval);
+
+            var desired = await GetMonitoredItemAsync(template with { });
+
+            monitoredItem.MergeWith(desired, session, out _);
+
+            Assert.Equal(1000, monitoredItem.SamplingInterval);
+        }
+
+        [Fact]
         public async Task SetDataChangeFilterWhenBaseTemplateIsDataTemplateAsync()
         {
             var template = new DataMonitoredItemModel
