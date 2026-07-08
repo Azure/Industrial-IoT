@@ -152,7 +152,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     return false;
                 }
-                return true;
+                return base.Equals(eventItem);
             }
 
             /// <inheritdoc/>
