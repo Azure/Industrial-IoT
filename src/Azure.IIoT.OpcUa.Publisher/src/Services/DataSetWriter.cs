@@ -713,6 +713,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
             }
 
+            /// <summary>
+            /// Force sending a key frame message immediately. A key frame
+            /// contains a snapshot of all currently cached values of the
+            /// writer's monitored items. This is used to serve late joining
+            /// consumers with the current state on demand without having to
+            /// wait for the next value change or the configured key frame
+            /// interval.
+            /// </summary>
+            public void SendKeyFrame()
+            {
+                var notification = Subscription?.CreateKeepAlive();
+                if (notification == null)
+                {
+                    return;
+                }
+                if (notification.TryUpgradeToKeyFrame(this))
+                {
+                    CallMessageReceiverDelegates(notification);
+                }
+                else
+                {
+                    // No values cached yet, nothing to send
+                    notification.Dispose();
+                }
+            }
+
             /// <inheritdoc/>
             public void OnSubscriptionCyclicReadCompleted(OpcUaSubscriptionNotification notification)
             {

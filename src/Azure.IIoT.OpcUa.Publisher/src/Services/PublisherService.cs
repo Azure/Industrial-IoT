@@ -105,6 +105,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
+        public ValueTask SendKeyFrameAsync(string writerGroupId,
+            string? dataSetWriterId, CancellationToken ct)
+        {
+            if (_currentJobs.TryGetValue(writerGroupId, out var job))
+            {
+                return job.SendKeyFrameAsync(dataSetWriterId, ct);
+            }
+            throw new ResourceNotFoundException($"Writer group {writerGroupId} not found.");
+        }
+
+        /// <inheritdoc/>
         public ValueTask<WriterGroupStateDiagnosticModel> GetStateAsync(string writerGroupId,
             CancellationToken ct)
         {
@@ -368,6 +379,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             /// <summary>
+            /// Force sending a key frame for the writer group job
+            /// </summary>
+            /// <param name="dataSetWriterId"></param>
+            /// <param name="ct"></param>
+            /// <returns></returns>
+            public async ValueTask SendKeyFrameAsync(string? dataSetWriterId,
+                CancellationToken ct)
+            {
+                try
+                {
+                    await Controller.SendKeyFrameAsync(dataSetWriterId, ct)
+                        .ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    _outer._logger.FailedToSendWriterGroupKeyFrame(ex, Id);
+                    throw;
+                }
+            }
+
+            /// <summary>
             /// Get writer group job state
             /// </summary>
             /// <param name="ct"></param>
@@ -484,5 +516,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         [LoggerMessage(EventId = EventClass + 10, Level = LogLevel.Error,
             Message = "Failed to get writer group job {Name} status.")]
         public static partial void FailedToGetWriterGroupJobState(this ILogger logger, Exception ex, string name);
+
+        [LoggerMessage(EventId = EventClass + 11, Level = LogLevel.Error,
+            Message = "Failed to send key frame for writer group job {Name}.")]
+        public static partial void FailedToSendWriterGroupKeyFrame(this ILogger logger, Exception ex, string name);
     }
 }

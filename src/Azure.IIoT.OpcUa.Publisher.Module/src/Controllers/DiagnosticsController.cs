@@ -145,6 +145,69 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
+        /// SendWriterGroupKeyFrame
+        /// </summary>
+        /// <remarks>
+        /// Force sending a key frame message immediately for the specified
+        /// writer group. A key frame contains a snapshot of all currently
+        /// cached values of every data set writer in the group. This allows
+        /// late joining consumers to obtain the current state on demand
+        /// without having to wait for the next value change or the configured
+        /// key frame interval. Values are read from the publisher's cache, no
+        /// server round trip is performed.
+        /// </remarks>
+        /// <param name="dataSetWriterGroup">The writer group name of the entry</param>
+        /// <param name="ct"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="dataSetWriterGroup"/>
+        /// is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="404">The writer group was not found</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        [HttpPost("diagnostics/writergroups/{dataSetWriterGroup}/keyframe")]
+        public async Task SendWriterGroupKeyFrameAsync(string dataSetWriterGroup,
+            CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(dataSetWriterGroup);
+            await _publisher.SendKeyFrameAsync(dataSetWriterGroup, null, ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// SendDataSetWriterKeyFrame
+        /// </summary>
+        /// <remarks>
+        /// Force sending a key frame message immediately for a specific data
+        /// set writer inside the specified writer group. A key frame contains
+        /// a snapshot of all currently cached values of the data set writer.
+        /// This allows late joining consumers to obtain the current state on
+        /// demand without having to wait for the next value change or the
+        /// configured key frame interval. Values are read from the publisher's
+        /// cache, no server round trip is performed.
+        /// </remarks>
+        /// <param name="dataSetWriterGroup">The writer group name of the entry</param>
+        /// <param name="dataSetWriterId">The data set writer identifier</param>
+        /// <param name="ct"></param>
+        /// <exception cref="ArgumentNullException"><paramref name="dataSetWriterGroup"/>
+        /// or <paramref name="dataSetWriterId"/> is <c>null</c>.</exception>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="404">The writer group or data set writer was not found</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        [HttpPost("diagnostics/writergroups/{dataSetWriterGroup}/writers/{dataSetWriterId}/keyframe")]
+        public async Task SendDataSetWriterKeyFrameAsync(string dataSetWriterGroup,
+            string dataSetWriterId, CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(dataSetWriterGroup);
+            ArgumentNullException.ThrowIfNull(dataSetWriterId);
+            await _publisher.SendKeyFrameAsync(dataSetWriterGroup, dataSetWriterId, ct)
+                .ConfigureAwait(false);
+        }
+
+        /// <summary>
         /// GetConnectionDiagnostics
         /// </summary>
         /// <remarks>

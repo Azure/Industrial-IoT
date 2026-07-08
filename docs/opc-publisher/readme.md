@@ -712,6 +712,8 @@ Values are formatted using the extended OPC UA Variant [JSON format](#json-encod
 
 > IMPORTANT: Extension fields are only sent as part of key frame messages when using Pub Sub encoding. You must configure a key frame count for key frames to be sent as the default key frame count value is 0 and therefore key frames are disabled.
 
+In addition to the periodic key frames controlled by `DataSetKeyFrameCount`, a key frame can be requested on demand through the diagnostics API. This is useful to serve a late joining consumer with the current state of all values without having to wait for the next value change or the configured key frame interval. The key frame is produced from the values already cached inside OPC Publisher, so no additional round trip to the OPC UA server is performed. Use `POST /v2/diagnostics/writergroups/{dataSetWriterGroup}/keyframe` to trigger a key frame for every data set writer in a writer group, or `POST /v2/diagnostics/writergroups/{dataSetWriterGroup}/writers/{dataSetWriterId}/keyframe` to trigger it for a single data set writer.
+
 #### Status codes
 
 The status code `value` is the integer received over the wire from the server (full one including all bits).

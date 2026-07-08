@@ -47,6 +47,23 @@ namespace Azure.IIoT.OpcUa.Publisher
         Task UpdateAsync(IEnumerable<WriterGroupModel> writerGroups);
 
         /// <summary>
+        /// Force sending a key frame message immediately for a writer group,
+        /// or for a specific data set writer within the group. A key frame
+        /// contains a snapshot of all currently cached values which allows
+        /// late joining consumers to obtain the current state on demand
+        /// without waiting for the next value change or the configured key
+        /// frame interval.
+        /// </summary>
+        /// <param name="writerGroupId">The writer group to send key frames
+        /// for.</param>
+        /// <param name="dataSetWriterId">The data set writer to send the key
+        /// frame for, or <c>null</c> for all writers in the group.</param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        ValueTask SendKeyFrameAsync(string writerGroupId,
+            string? dataSetWriterId, CancellationToken ct);
+
+        /// <summary>
         /// Get current state of a writer group by identifier
         /// </summary>
         /// <param name="writerGroupId"></param>
