@@ -48,10 +48,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         internal DateTimeOffset CreatedAt { get; }
 
         /// <summary>
-        /// Type system has loaded
+        /// Type system has loaded. This is only true when the complex type
+        /// system loaded fully. A partial load (e.g., because the server was
+        /// not ready yet) is not considered loaded so that it can be re-tried
+        /// and missing types picked up without restarting the publisher.
         /// </summary>
         internal bool IsTypeSystemLoaded
-            => _complexTypeSystem?.IsCompletedSuccessfully ?? false;
+            => (_complexTypeSystem?.IsCompletedSuccessfully ?? false) &&
+                _complexTypeSystemFullyLoaded;
 
         /// <summary>
         /// Get list of subscription handles registered in the session
@@ -129,6 +133,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             CreatedAt = _timeProvider.GetUtcNow();
 
             _complexTypeSystem = session._complexTypeSystem;
+            _complexTypeSystemFullyLoaded = session._complexTypeSystemFullyLoaded;
+            _complexTypeSystemLoadedAt = session._complexTypeSystemLoadedAt;
             _history = session._history;
             _limits = session._limits;
             _server = session._server;
@@ -301,8 +307,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 try
                 {
-                    Debug.Assert(_complexTypeSystem != null);
-                    return await _complexTypeSystem.WaitAsync(ct).ConfigureAwait(false);
+                    // The type system might not have been preloaded (e.g., when
+                    // preloading is disabled). Kick off the load in that case.
+                    _complexTypeSystem ??= LoadComplexTypeSystemAsync();
+                    var complexTypeSystem = await _complexTypeSystem.WaitAsync(
+                        ct).ConfigureAwait(false);
+
+                    // If the type system only loaded partially (e.g., because the
+                    // server was not ready yet), re-attempt loading throttled so
+                    // that types which failed to load initially are picked up
+                    // without restarting the publisher.
+                    if (!_complexTypeSystemFullyLoaded &&
+                        _timeProvider.GetUtcNow() - _complexTypeSystemLoadedAt
+                            >= kComplexTypeSystemReloadInterval)
+                    {
+                        // Push the timestamp forward before starting the reload
+                        // so concurrent callers do not each kick off a redundant
+                        // load while this one is in flight.
+                        _complexTypeSystemLoadedAt = _timeProvider.GetUtcNow();
+                        _complexTypeSystem = LoadComplexTypeSystemAsync();
+                        complexTypeSystem = await _complexTypeSystem.WaitAsync(
+                            ct).ConfigureAwait(false);
+                    }
+                    return complexTypeSystem;
                 }
                 catch (OperationCanceledException) when (ct.IsCancellationRequested)
                 {
@@ -1316,6 +1343,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                     if (Connected)
                     {
+                        // Record the outcome so that a partial load can be
+                        // re-attempted later (throttled) and missing types
+                        // picked up without restarting the publisher.
+                        _complexTypeSystemFullyLoaded = success;
+                        _complexTypeSystemLoadedAt = _timeProvider.GetUtcNow();
+
                         if (success)
                         {
                             _logger.ComplexTypeSystemLoaded(this);
@@ -1458,6 +1491,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private SessionDiagnosticsModel? _lastDiagnostics;
         private HistoryServerCapabilitiesModel? _history;
         private Task<ComplexTypeSystem>? _complexTypeSystem;
+        private bool _complexTypeSystemFullyLoaded;
+        private DateTimeOffset _complexTypeSystemLoadedAt;
         private bool _disposed;
         private bool? _diagnosticsEnabled;
         private int _defaultOperationTimeout;
@@ -1467,6 +1502,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly IJsonSerializer _serializer;
         private readonly TimeProvider _timeProvider;
         private readonly ActivitySource _activitySource = Diagnostics.NewActivitySource();
+        private static readonly TimeSpan kComplexTypeSystemReloadInterval = TimeSpan.FromMinutes(5);
         private static readonly TimeSpan kDefaultOperationTimeout = TimeSpan.FromMinutes(1);
         private static readonly TimeSpan kDefaultKeepAliveInterval = TimeSpan.FromSeconds(30);
         private static readonly TimeSpan kMaxOperationTimeout = TimeSpan.FromMinutes(30);

@@ -397,8 +397,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             {
                 var sw = Stopwatch.StartNew();
 
-                await _publisher.DisposeAsync();
+                var publisher = _publisher;
                 _publisher = null;
+
+                // Bound the publisher disposal. The same upstream MQTTnet/Furly
+                // reconnect race that ExecuteWithMqttRetryAsync retries can also
+                // leave the MQTT client stuck while disconnecting, so the host
+                // shutdown awaited by PublisherModule.DisposeAsync never
+                // completes. Because this teardown runs from the test body's
+                // finally (and the retry safety net), an unbounded wait hangs the
+                // whole test host until the 30 minute inactivity timeout aborts
+                // the run. Cap the wait so teardown always makes progress and
+                // leave any abandoned dispose to finish in the background.
+                try
+                {
+                    await publisher.DisposeAsync().AsTask()
+                        .WaitAsync(kPublisherStopTimeout).ConfigureAwait(false);
+                }
+                catch (TimeoutException)
+                {
+                    _logger.PublisherStopTimedOut(kPublisherStopTimeout);
+                }
 
                 if (File.Exists(_publishedNodesFilePath))
                 {
@@ -502,6 +521,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         private static readonly TimeSpan kTelemetryTimeout = TimeSpan.FromMinutes(2);
         private static readonly TimeSpan kTotalTestTimeout = TimeSpan.FromMinutes(5);
         private static readonly TimeSpan kMqttRetryAttemptTimeout = TimeSpan.FromSeconds(150);
+        private static readonly TimeSpan kPublisherStopTimeout = TimeSpan.FromMinutes(2);
         private readonly CancellationTokenSource _cts;
         private CancellationToken? _attemptToken;
         private readonly ITestOutputHelper _testOutputHelper;
@@ -535,5 +555,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Information,
             Message = "Publisher stopped in {Elapsed}.")]
         public static partial void PublisherStopped(this ILogger logger, TimeSpan elapsed);
+
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Warning,
+            Message = "Publisher disposal did not complete within {Timeout}; " +
+                "abandoning it to finish in the background.")]
+        public static partial void PublisherStopTimedOut(this ILogger logger, TimeSpan timeout);
     }
 }
