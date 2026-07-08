@@ -6,8 +6,11 @@
 namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
+    using Furly.Extensions.Logging;
+    using Moq;
     using Opc.Ua;
     using DeadbandType = Publisher.Models.DeadbandType;
     using MonitoringMode = Publisher.Models.MonitoringMode;
@@ -396,6 +399,45 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             Assert.Equal(((EventFilter)eventItem.Filter).SelectClauses.Count, eventItem.Fields.Count);
             Assert.Equal("http://opcfoundation.org/Quickstarts/SimpleEvents#CycleId", eventItem.Fields[0].Name);
             Assert.Equal("http://opcfoundation.org/Quickstarts/SimpleEvents#CurrentStep", eventItem.Fields[1].Name);
+        }
+
+        [Fact]
+        public void DataChangeItemsWithDifferentOwnersAreNotEqual()
+        {
+            // Two data change items referencing the same node id but owned by
+            // different subscribers (dataset writers) must be distinct so they
+            // are not collapsed when placed into a hash set (see issue #2408).
+            var template = new DataMonitoredItemModel
+            {
+                StartNodeId = "i=2258"
+            };
+
+            var owner1 = new Mock<ISubscriber>().Object;
+            var owner2 = new Mock<ISubscriber>().Object;
+
+            var item1 = CreateItem(owner1, template);
+            var item2 = CreateItem(owner2, template);
+            var item3 = CreateItem(owner1, template);
+
+            // Same node id but different owners are not equal.
+            Assert.NotEqual(item1, item2);
+
+            // Same node id and same owner are equal with a matching hash code.
+            Assert.Equal(item1, item3);
+            Assert.Equal(item1.GetHashCode(), item3.GetHashCode());
+
+            // Both owners survive in a hash set, the duplicate owner does not.
+            var set = new HashSet<OpcUaMonitoredItem> { item1, item2 };
+            Assert.Equal(2, set.Count);
+            Assert.False(set.Add(item3));
+        }
+
+        private static OpcUaMonitoredItem CreateItem(ISubscriber owner,
+            BaseMonitoredItemModel template)
+        {
+            return OpcUaMonitoredItem.Create(null!,
+                new[] { (owner, template) },
+                Log.ConsoleFactory(), TimeProvider.System).Single();
         }
     }
 }
