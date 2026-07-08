@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Encoders
 {
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Utils;
     using Opc.Ua;
@@ -35,13 +36,14 @@ namespace Azure.IIoT.OpcUa.Encoders
 
         /// <inheritdoc/>
         public VariantValue Encode(Variant? value, out BuiltInType builtinType,
-            bool useReversibleEncoding = true)
+            ValueEncoding encoding = ValueEncoding.Reversible)
         {
             if (value == null || value == Variant.Null)
             {
                 builtinType = BuiltInType.Null;
                 return VariantValue.Null;
             }
+            var useReversibleEncoding = encoding != ValueEncoding.NonReversible;
             using var stream = new MemoryStream();
             using (var encoder = new JsonEncoderEx(stream, Context)
             {

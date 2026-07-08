@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Encoders
 {
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
     using Opc.Ua;
@@ -361,8 +362,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
             var value = new Variant(42);
 
-            var reversible = codec.Encode(value, out var reversibleType, true);
-            var nonReversible = codec.Encode(value, out var nonReversibleType, false);
+            var reversible = codec.Encode(value, out var reversibleType, ValueEncoding.Reversible);
+            var nonReversible = codec.Encode(value, out var nonReversibleType, ValueEncoding.NonReversible);
 
             // For simple scalars the value body is identical in both encodings.
             Assert.Equal(BuiltInType.Int32, reversibleType);
@@ -378,7 +379,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var value = new Variant(42);
 
             var defaulted = codec.Encode(value, out var defaultedType);
-            var reversible = codec.Encode(value, out var reversibleType, true);
+            var reversible = codec.Encode(value, out var reversibleType, ValueEncoding.Reversible);
 
             Assert.Equal(reversibleType, defaultedType);
             Assert.Equal((int)reversible, (int)defaulted);
@@ -394,8 +395,8 @@ namespace Azure.IIoT.OpcUa.Encoders
                 TypeId = DataTypeIds.Range
             });
 
-            var reversible = codec.Encode(value, out var reversibleType, true);
-            var nonReversible = codec.Encode(value, out var nonReversibleType, false);
+            var reversible = codec.Encode(value, out var reversibleType, ValueEncoding.Reversible);
+            var nonReversible = codec.Encode(value, out var nonReversibleType, ValueEncoding.NonReversible);
 
             Assert.Equal(BuiltInType.ExtensionObject, reversibleType);
             Assert.Equal(BuiltInType.ExtensionObject, nonReversibleType);
