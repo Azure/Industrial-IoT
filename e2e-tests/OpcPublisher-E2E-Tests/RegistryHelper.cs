@@ -201,10 +201,10 @@ namespace OpcPublisherAEE2ETests
         }
 
         /// <summary>
-        /// Create a second, non-conflicting publisher deployment (distinct module identity)
-        /// and wait for it to connect. Used to test features - such as a per writer group
-        /// IoT Hub device connection string - without disturbing the default standalone
-        /// publisher module deployed for the other tests.
+        /// Deploy a standalone publisher module with the provided deployment configuration
+        /// and wait for it to connect. Used to deploy an additional publisher identity - such
+        /// as one exercising a per writer group IoT Hub device connection string - without
+        /// disturbing the default standalone publisher used by the other tests.
         /// </summary>
         /// <param name="publisher"> The publisher deployment describing the second identity </param>
         /// <param name="ct"></param>
@@ -306,6 +306,12 @@ namespace OpcPublisherAEE2ETests
         {
             var edgeDevice = await RegistryManager
                 .GetDeviceAsync(_context.DeviceConfig.DeviceId, ct).ConfigureAwait(false);
+            if (string.IsNullOrEmpty(edgeDevice?.Scope))
+            {
+                _context.OutputHelper.WriteLine(
+                    $"Edge device {_context.DeviceConfig.DeviceId} has no device scope - " +
+                    "child device will be created without a parent scope.");
+            }
             return edgeDevice?.Scope;
         }
 

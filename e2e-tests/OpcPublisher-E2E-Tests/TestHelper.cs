@@ -955,7 +955,7 @@ namespace OpcPublisherAEE2ETests
         /// <param name="dataSetWriterId"></param>
         /// <param name="context"></param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> instance to signal the request to cancel the operation.</param>
-        /// <returns>The IoT Hub connection device id of the first matching message.</returns>
+        /// <returns>The IoT Hub connection device id of the first matching message, or null if none was found.</returns>
         public static async Task<string> ReadConnectionDeviceIdForWriterIdAsync(this EventHubConsumerClient consumer,
             string dataSetWriterId, IIoTPlatformTestContext context, CancellationToken cancellationToken)
         {
@@ -963,18 +963,18 @@ namespace OpcPublisherAEE2ETests
             await foreach (var partitionEvent in events.WithCancellation(cancellationToken))
             {
                 if (!partitionEvent.Data.SystemProperties.TryGetValue(
-                    MessageSystemPropertyNames.ConnectionDeviceId, out var deviceIdObj))
+                    MessageSystemPropertyNames.ConnectionDeviceId, out var deviceIdObj) ||
+                    deviceIdObj is not string deviceId)
                 {
                     continue;
                 }
-                var deviceId = deviceIdObj as string;
 
                 if (!partitionEvent.Data.Properties.TryGetValue("$$ContentType", out var contentType))
                 {
                     continue;
                 }
                 JToken json;
-                var isPayloadCompressed = (string)contentType == "application/json+gzip";
+                var isPayloadCompressed = contentType is string ct && ct == "application/json+gzip";
                 if (isPayloadCompressed)
                 {
                     var compressedPayload = Convert.FromBase64String(partitionEvent.Data.EventBody.ToString());
