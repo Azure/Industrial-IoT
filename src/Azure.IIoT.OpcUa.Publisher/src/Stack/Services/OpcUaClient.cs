@@ -489,10 +489,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Close client
         /// </summary>
         /// <param name="shutdown"></param>
+        /// <param name="fromManagementLoop">
+        /// Set to <c>true</c> when the close is initiated from within the
+        /// management loop itself (through the on-close callback). In that
+        /// case we must not await the session manager task as that would be
+        /// awaiting the very task we are currently running on and deadlock,
+        /// leaking all client resources.
+        /// </param>
         /// <returns></returns>
-        internal async ValueTask CloseAsync(bool shutdown = false)
+        internal async ValueTask CloseAsync(bool shutdown = false,
+            bool fromManagementLoop = false)
         {
-            ObjectDisposedException.ThrowIf(_disposed, this);
+            if (Interlocked.Exchange(ref _closeGate, 1) != 0)
+            {
+                // Already closing/closed - closing is idempotent
+                return;
+            }
             try
             {
                 _disposed = true;
@@ -500,7 +512,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _logger.Closing(this);
                 await _cts.CancelAsync().ConfigureAwait(false);
 
-                await _sessionManager.ConfigureAwait(false);
+                if (!fromManagementLoop)
+                {
+                    await _sessionManager.ConfigureAwait(false);
+                }
                 _reconnectHandler.Dispose();
 
                 foreach (var sampler in _samplers.Values)
@@ -2236,6 +2251,7 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
         private int _numberOfConnectionRetries;
         private int _numberofSuccessfulConnections;
         private bool _disposed;
+        private int _closeGate;
         private int _refCount;
         private int _publishTimeoutCounter;
         private int _keepAliveCounter;

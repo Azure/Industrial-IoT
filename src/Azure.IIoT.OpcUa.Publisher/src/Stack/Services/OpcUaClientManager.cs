@@ -623,7 +623,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 try
                 {
-                    await client.CloseAsync(false).ConfigureAwait(false);
+                    // Called from within the client's management loop, so we
+                    // must not await the management loop task (deadlock).
+                    await client.CloseAsync(false,
+                        fromManagementLoop: true).ConfigureAwait(false);
                     _logger.ClosedClient(client);
                 }
                 catch (OperationCanceledException) { }
