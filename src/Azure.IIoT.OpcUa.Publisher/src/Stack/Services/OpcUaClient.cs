@@ -2250,7 +2250,7 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
         private EndpointConnectivityState _lastState;
         private int _numberOfConnectionRetries;
         private int _numberofSuccessfulConnections;
-        private bool _disposed;
+        private volatile bool _disposed;
         private int _closeGate;
         private int _refCount;
         private int _publishTimeoutCounter;
