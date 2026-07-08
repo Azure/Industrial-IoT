@@ -2503,6 +2503,7 @@ Request node value read
 |**maxAge**  <br>*optional*|Maximum age of the value to be read in milliseconds.<br>The age of the value is based on the difference<br>between the ServerTimestamp and the time when<br>the Server starts processing the request.<br>If not supplied, the Server shall attempt to read<br>a new value from the data source.|string (date-span)|
 |**nodeId**  <br>*optional*|Node to read from (mandatory)|string|
 |**timestampsToReturn**  <br>*optional*||[TimestampsToReturn](definitions.md#timestampstoreturn)|
+|**useReversibleEncoding**  <br>*optional*|Whether to use reversible JSON encoding when<br>serializing the value in the response. Reversible<br>encoding (the default) preserves all OPC UA type<br>information, while non-reversible encoding produces<br>a more compact representation matching the format<br>used by non-reversible PubSub messages.|boolean|
 
 
 <a name="valuereadrequestmodelrequestenvelope"></a>

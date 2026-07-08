@@ -355,6 +355,62 @@ namespace Azure.IIoT.OpcUa.Encoders
             Assert.Equal(expected, variant);
         }
 
+        [Fact]
+        public void EncodeScalarReversibleAndNonReversibleAreEquivalent()
+        {
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
+            var value = new Variant(42);
+
+            var reversible = codec.Encode(value, out var reversibleType, true);
+            var nonReversible = codec.Encode(value, out var nonReversibleType, false);
+
+            // For simple scalars the value body is identical in both encodings.
+            Assert.Equal(BuiltInType.Int32, reversibleType);
+            Assert.Equal(BuiltInType.Int32, nonReversibleType);
+            Assert.Equal(42, (int)reversible);
+            Assert.Equal(42, (int)nonReversible);
+        }
+
+        [Fact]
+        public void EncodeDefaultsToReversibleEncoding()
+        {
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
+            var value = new Variant(42);
+
+            var defaulted = codec.Encode(value, out var defaultedType);
+            var reversible = codec.Encode(value, out var reversibleType, true);
+
+            Assert.Equal(reversibleType, defaultedType);
+            Assert.Equal((int)reversible, (int)defaulted);
+        }
+
+        [Fact]
+        public void EncodeExtensionObjectReversibleAndNonReversibleDiffer()
+        {
+            var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
+            var value = new Variant(new ExtensionObject
+            {
+                Body = new Opc.Ua.Range(10.0, 1.0),
+                TypeId = DataTypeIds.Range
+            });
+
+            var reversible = codec.Encode(value, out var reversibleType, true);
+            var nonReversible = codec.Encode(value, out var nonReversibleType, false);
+
+            Assert.Equal(BuiltInType.ExtensionObject, reversibleType);
+            Assert.Equal(BuiltInType.ExtensionObject, nonReversibleType);
+
+            // Reversible encoding wraps the body with type information.
+            Assert.True(reversible.IsObject);
+            Assert.False(reversible.GetByPath("TypeId").IsNull());
+
+            // Non-reversible encoding emits the structure body directly.
+            Assert.True(nonReversible.IsObject);
+            Assert.True(nonReversible.GetByPath("TypeId").IsNull());
+            Assert.Equal(10.0, (double)nonReversible.GetByPath("High"));
+            Assert.Equal(1.0, (double)nonReversible.GetByPath("Low"));
+        }
+
         private readonly IJsonSerializer _serializer = new NewtonsoftJsonSerializer();
     }
 }

@@ -23,8 +23,13 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// </summary>
         /// <param name="value"></param>
         /// <param name="builtinType"></param>
+        /// <param name="useReversibleEncoding">Whether to use the reversible
+        /// OPC UA JSON encoding (the default) which preserves all type
+        /// information, or the non-reversible encoding which produces a more
+        /// compact representation.</param>
         /// <returns></returns>
-        VariantValue Encode(Variant? value, out BuiltInType builtinType);
+        VariantValue Encode(Variant? value, out BuiltInType builtinType,
+            bool useReversibleEncoding = true);
 
         /// <summary>
         /// Parse token to variant

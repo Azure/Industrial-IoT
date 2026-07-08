@@ -65,5 +65,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "timestampsToReturn", Order = 5,
             EmitDefaultValue = false)]
         public TimestampsToReturn? TimestampsToReturn { get; set; }
+
+        /// <summary>
+        /// Whether to use reversible JSON encoding when
+        /// serializing the value in the response. Reversible
+        /// encoding (the default) preserves all OPC UA type
+        /// information, while non-reversible encoding produces
+        /// a more compact representation matching the format
+        /// used by non-reversible PubSub messages.
+        /// </summary>
+        [DataMember(Name = "useReversibleEncoding", Order = 6,
+            EmitDefaultValue = false)]
+        public bool? UseReversibleEncoding { get; set; }
     }
 }
