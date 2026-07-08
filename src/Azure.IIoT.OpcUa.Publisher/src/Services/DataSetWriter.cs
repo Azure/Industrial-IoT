@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Publisher;
+    using Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
@@ -342,10 +343,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <returns></returns>
             public DataSetWriterStateDiagnosticModel GetState()
             {
+                var entry = Source.Connection?.ToPublishedNodesEntry();
                 return new DataSetWriterStateDiagnosticModel
                 {
                     Id = Writer.Id,
                     DataSetWriterName = Writer.DataSetWriterName,
+                    EndpointUrl = entry?.EndpointUrl,
+                    UseSecurity = entry?.UseSecurity,
+                    OpcAuthenticationMode = entry?.OpcAuthenticationMode
+                        ?? OpcAuthenticationMode.Anonymous,
+                    OpcAuthenticationUsername = entry?.OpcAuthenticationUsername,
                     Source = new PublishedDataSetSourceDiagnosticModel
                     {
                         Errors = LastErrors

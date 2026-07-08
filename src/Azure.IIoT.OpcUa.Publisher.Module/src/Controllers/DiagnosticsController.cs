@@ -123,6 +123,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         }
 
         /// <summary>
+        /// GetAllWriterGroupStates
+        /// </summary>
+        /// <remarks>
+        /// Get the current state of all writer groups and their data set
+        /// writers. This includes the errors for all nodes that could not
+        /// be created as monitored items across all configured endpoints
+        /// which allows monitoring nodes flagged as failed
+        /// (monitoredOpcNodesFailedCount) on demand.
+        /// </remarks>
+        /// <param name="ct"></param>
+        /// <response code="200">The operation was successful.</response>
+        /// <response code="500">An unexpected error occurred</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        [HttpGet("diagnostics/writergroups")]
+        public async Task<IReadOnlyList<WriterGroupStateDiagnosticModel>> GetAllWriterGroupStatesAsync(
+            CancellationToken ct = default)
+        {
+            return await _publisher.GetStateAsync(ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
         /// GetConnectionDiagnostics
         /// </summary>
         /// <remarks>

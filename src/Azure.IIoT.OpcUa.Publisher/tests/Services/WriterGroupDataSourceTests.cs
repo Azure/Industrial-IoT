@@ -88,6 +88,63 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             Assert.Equal("expected", EmitAndGetWriterName(subscribers, captured));
         }
 
+        [Fact]
+        public async Task GetStateReturnsEndpointInfoAndFailedNodeErrorsAsync()
+        {
+            // Arrange - a single writer with security disabled and user name
+            // authentication so we can verify the endpoint identification info
+            // that is returned alongside the failed node errors.
+            var group = ToWriterGroupWithUserAuth("Asset1", "opc.tcp://opcplc:50000",
+                "Usr", "ns=2;s=0");
+
+            var subscribers = new List<ISubscriber>();
+            var subscriptionMock = new Mock<ISubscription>();
+            var clientsMock = new Mock<IOpcUaClientManager<ConnectionModel>>();
+            clientsMock
+                .Setup(c => c.CreateSubscriptionAsync(It.IsAny<ConnectionModel>(),
+                    It.IsAny<SubscriptionModel>(), It.IsAny<ISubscriber>(),
+                    It.IsAny<CancellationToken>()))
+                .Returns((ConnectionModel _, SubscriptionModel _, ISubscriber cb,
+                    CancellationToken _) =>
+                {
+                    subscribers.Add(cb);
+                    return new ValueTask<ISubscription>(subscriptionMock.Object);
+                });
+
+            var sinkMock = new Mock<IMessageSink>();
+
+            await using var sut = new WriterGroupDataSource(clientsMock.Object, group,
+                sinkMock.Object, _serializer, _options, null, _loggerFactory);
+            await sut.StartAsync(default);
+
+            // Act - report an error for the configured node as the server would
+            // when the node cannot be added as a monitored item.
+            var subscriber = Assert.Single(subscribers);
+            subscriber.OnMonitoredItemUpdate(
+                new DataMonitoredItemModel { StartNodeId = "ns=2;s=0" },
+                new ServiceResultModel
+                {
+                    StatusCode = 2150891520,
+                    SymbolicId = "BadNodeIdUnknown"
+                });
+
+            var state = await sut.GetStateAsync(default);
+
+            // Assert - endpoint identification info and failed node errors are
+            // both surfaced and no password leaks into the diagnostics.
+            var writer = Assert.Single(state.DataSetWriters);
+            Assert.Equal("opc.tcp://opcplc:50000", writer.EndpointUrl);
+            Assert.False(writer.UseSecurity);
+            Assert.Equal(OpcAuthenticationMode.UsernamePassword,
+                writer.OpcAuthenticationMode);
+            Assert.Equal("Usr", writer.OpcAuthenticationUsername);
+
+            var error = Assert.Single(writer.Source!.Errors!);
+            Assert.Equal("ns=2;s=0", error.NodeId);
+            Assert.Equal(2150891520u, error.ErrorInfo.StatusCode);
+            Assert.Equal("BadNodeIdUnknown", error.ErrorInfo.SymbolicId);
+        }
+
         /// <summary>
         /// Emit a data change on the most recently created subscriber and return
         /// the writer name carried by the produced message context.
@@ -259,6 +316,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         "DataSetWriterGroup": "group",
         "QueueName": "{{queueName}}",
         "OpcNodes": [ { "Id": "i=2258" } ]
+    }
+]
+""";
+            var entries = _converter.Read(pn);
+            return Assert.Single(_converter.ToWriterGroups(entries));
+        }
+
+        private WriterGroupModel ToWriterGroupWithUserAuth(string writerGroup, string endpointUrl,
+            string userName, string nodeId)
+        {
+            var pn = $$"""
+[
+    {
+        "EndpointUrl": "{{endpointUrl}}",
+        "DataSetWriterGroup": "{{writerGroup}}",
+        "UseSecurity": false,
+        "OpcAuthenticationMode": "UsernamePassword",
+        "OpcAuthenticationUsername": "{{userName}}",
+        "OpcAuthenticationPassword": "secret",
+        "OpcNodes": [ { "Id": "{{nodeId}}" } ]
     }
 ]
 """;

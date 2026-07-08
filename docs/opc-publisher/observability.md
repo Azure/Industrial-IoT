@@ -76,6 +76,8 @@ The following table describes the instruments that are collected per writer grou
 
 (*) Not exposed through the API
 
+The `monitoredOpcNodesFailedCount` in the table above only provides a count of the nodes that could not be created as monitored items. To retrieve the actual list of failed nodes together with the error information reported by the server on demand — across all configured endpoints and writer groups — use the [GetAllWriterGroupStates](./api.md) diagnostics API (`GET /v2/diagnostics/writergroups`). The returned state contains, per data set writer, the endpoint information (endpoint url, whether security is used, the authentication mode and user name) as well as the list of nodes that failed to be created as monitored items and the associated error information (`errorInfo`). This avoids having to parse the logs to find the outdated node configuration of an endpoint.
+
 ## Available metrics
 
 By convention, all instrument names start with _"iiot"_, e.g., `iiot_<component>_<metric>`. Metrics are collected through the .net Observability infrastructure. For backwards compatibility and to support IoT Edge metrics collector, metrics from OPC Publisher are exposed in Prometheus format on path _/metrics_ on the default HTTP server port (see `-p` [command line argument](./commandline.md). When binding the HTTPS port to 9072 on the host machine, the URL becomes <https://localhost:9072/metrics>.
