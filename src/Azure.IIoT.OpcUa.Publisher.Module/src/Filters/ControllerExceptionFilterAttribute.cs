@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
     using Microsoft.AspNetCore.Mvc.Filters;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Diagnostics.ExceptionSummarization;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.IO;
     using System.Net;
@@ -54,8 +55,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
                 }
             }
 
-            var summarizer = context.HttpContext?.RequestServices?
-                .GetService<IExceptionSummarizer>();
+            var services = context.HttpContext?.RequestServices;
+            var summarizer = services?.GetService<IExceptionSummarizer>();
+            var logger = services?.GetService<ILoggerFactory>()?.CreateLogger(
+                "Azure.IIoT.OpcUa.Publisher.Module.MethodCalls");
             switch (context.Exception)
             {
                 case ResourceNotFoundException:
@@ -138,6 +141,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
                         context.Exception, summarizer);
                     break;
             }
+            LogFailure(logger, context.Result, context.Exception);
         }
 
         /// <inheritdoc />
@@ -178,5 +182,55 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
                 StatusCode = (int)code
             };
         }
+
+        /// <summary>
+        /// Surface the failure so it is captured in logs and support bundles.
+        /// Server side (5xx) failures are logged as errors, throttling and
+        /// timeouts as warnings and expected client (4xx) failures at debug.
+        /// </summary>
+        /// <param name="logger"></param>
+        /// <param name="result"></param>
+        /// <param name="exception"></param>
+        private static void LogFailure(ILogger? logger, IActionResult? result,
+            Exception exception)
+        {
+            if (logger == null)
+            {
+                return;
+            }
+            var status = result switch
+            {
+                ObjectResult { StatusCode: { } code } => code,
+                ObjectResult { Value: ProblemDetails { Status: { } s } } => s,
+                _ => (int)HttpStatusCode.InternalServerError
+            };
+            var level = status >= 500 ? LogLevel.Error
+                : status is (int)HttpStatusCode.RequestTimeout
+                    or (int)HttpStatusCode.TooManyRequests
+                    or (int)HttpStatusCode.PreconditionFailed ? LogLevel.Warning
+                : LogLevel.Debug;
+            try
+            {
+                logger.RequestFailed(level, status, exception.GetType().Name, exception);
+            }
+            catch
+            {
+                // Diagnostics must never break exception-to-status mapping, e.g.
+                // if a logging provider throws or has already been disposed.
+            }
+        }
+    }
+
+    /// <summary>
+    /// Source-generated logging extensions for ControllerExceptionFilterAttribute
+    /// </summary>
+    internal static partial class ControllerExceptionFilterAttributeLogging
+    {
+        private const int EventClass = 10;
+
+        [LoggerMessage(EventId = EventClass + 1,
+            Message = "API request failed with status {Status} ({ExceptionType}).")]
+        public static partial void RequestFailed(this ILogger logger, LogLevel level,
+            int status, string exceptionType, Exception exception);
     }
 }

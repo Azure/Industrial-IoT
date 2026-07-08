@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
     using Azure.IIoT.OpcUa.Exceptions;
     using Furly.Exceptions;
     using Furly.Tunnel.Router;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.IO;
     using System.Net;
@@ -21,8 +22,36 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
     /// </summary>
     public sealed class RouterExceptionFilterAttribute : ExceptionFilterAttribute
     {
+        /// <summary>
+        /// Configure the logger used to surface direct method call failures.
+        /// Direct method invocations do not flow through the ASP.NET request
+        /// pipeline, so this filter is the single choke point through which all
+        /// their exceptions pass. The filter is instantiated by the router via
+        /// reflection and therefore cannot receive a logger by dependency
+        /// injection; the module host wires one up once during startup instead.
+        /// </summary>
+        /// <param name="loggerFactory"></param>
+        public static void SetLogger(ILoggerFactory loggerFactory)
+        {
+            ArgumentNullException.ThrowIfNull(loggerFactory);
+            _logger = loggerFactory.CreateLogger(
+                "Azure.IIoT.OpcUa.Publisher.Module.MethodCalls");
+        }
+
         /// <inheritdoc />
         public override Exception Filter(Exception exception, out int status)
+        {
+            var result = Map(exception, out status);
+            Log(status, result);
+            return result;
+        }
+
+        /// <summary>
+        /// Map an exception to the status code returned to the caller.
+        /// </summary>
+        /// <param name="exception"></param>
+        /// <param name="status"></param>
+        private static Exception Map(Exception exception, out int status)
         {
             switch (exception)
             {
@@ -30,13 +59,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
                     var root = ae.GetBaseException();
                     if (root is not AggregateException ae2)
                     {
-                        return Filter(root, out status);
+                        return Map(root, out status);
                     }
                     status = (int)HttpStatusCode.InternalServerError;
                     Exception? result = null;
                     foreach (var ex in ae2.InnerExceptions)
                     {
-                        result = Filter(ex, out status);
+                        result = Map(ex, out status);
                         if (status != (int)HttpStatusCode.InternalServerError)
                         {
                             break;
@@ -119,5 +148,50 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
             }
             return exception;
         }
+
+        /// <summary>
+        /// Surface the failure so it is captured in logs and support bundles.
+        /// Server side (5xx) failures are logged as errors, throttling and
+        /// timeouts as warnings and expected client (4xx) failures at debug.
+        /// </summary>
+        /// <param name="status"></param>
+        /// <param name="exception"></param>
+        private static void Log(int status, Exception exception)
+        {
+            var logger = _logger;
+            if (logger == null)
+            {
+                return;
+            }
+            var level = status >= 500 ? LogLevel.Error
+                : status is (int)HttpStatusCode.RequestTimeout
+                    or (int)HttpStatusCode.TooManyRequests
+                    or (int)HttpStatusCode.PreconditionFailed ? LogLevel.Warning
+                : LogLevel.Debug;
+            try
+            {
+                logger.MethodCallFailed(level, status, exception.GetType().Name, exception);
+            }
+            catch
+            {
+                // Diagnostics must never break exception-to-status mapping, e.g.
+                // if a logging provider throws or has already been disposed.
+            }
+        }
+
+        private static ILogger? _logger;
+    }
+
+    /// <summary>
+    /// Source-generated logging extensions for RouterExceptionFilterAttribute
+    /// </summary>
+    internal static partial class RouterExceptionFilterAttributeLogging
+    {
+        private const int EventClass = 0;
+
+        [LoggerMessage(EventId = EventClass + 1,
+            Message = "Direct method call failed with status {Status} ({ExceptionType}).")]
+        public static partial void MethodCallFailed(this ILogger logger, LogLevel level,
+            int status, string exceptionType, Exception exception);
     }
 }
