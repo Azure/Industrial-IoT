@@ -321,6 +321,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         _timeProvider.GetUtcNow() - _complexTypeSystemLoadedAt
                             >= kComplexTypeSystemReloadInterval)
                     {
+                        // Push the timestamp forward before starting the reload
+                        // so concurrent callers do not each kick off a redundant
+                        // load while this one is in flight.
+                        _complexTypeSystemLoadedAt = _timeProvider.GetUtcNow();
                         _complexTypeSystem = LoadComplexTypeSystemAsync();
                         complexTypeSystem = await _complexTypeSystem.WaitAsync(
                             ct).ConfigureAwait(false);
