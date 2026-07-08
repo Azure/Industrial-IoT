@@ -159,10 +159,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             Assert.NotNull(monitoredItem);
             Assert.Equal(1000, monitoredItem.SamplingInterval);
 
-            var desired = await GetMonitoredItemAsync(template with { });
+            var desired = await GetMonitoredItemAsync(template);
 
-            monitoredItem.MergeWith(desired, session, out _);
+            var changed = monitoredItem.MergeWith(desired, session, out _);
 
+            Assert.False(changed);
             Assert.Equal(1000, monitoredItem.SamplingInterval);
         }
 
