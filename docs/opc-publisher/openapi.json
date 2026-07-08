@@ -10437,6 +10437,18 @@
       },
       "additionalProperties": false
     },
+    "ValueEncoding": {
+      "description": "The OPC UA JSON encoding to use when serializing a value in\r\na response.",
+      "enum": [
+        "Reversible",
+        "NonReversible"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "ValueEncoding",
+        "modelAsString": false
+      }
+    },
     "ValueReadRequestModel": {
       "description": "Request node value read",
       "type": "object",
@@ -10466,6 +10478,9 @@
         },
         "timestampsToReturn": {
           "$ref": "#/definitions/TimestampsToReturn"
+        },
+        "encoding": {
+          "$ref": "#/definitions/ValueEncoding"
         }
       },
       "additionalProperties": false

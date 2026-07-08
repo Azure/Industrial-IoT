@@ -867,7 +867,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         values[0].Result.SourcePicoseconds : null,
                     SourceTimestamp = values[0].Result.SourceTimestamp != DateTime.MinValue ?
                         values[0].Result.SourceTimestamp : null,
-                    Value = context.Session.Codec.Encode(values[0].Result.WrappedValue, out var type),
+                    Value = context.Session.Codec.Encode(values[0].Result.WrappedValue, out var type,
+                        request.Encoding ?? ValueEncoding.Reversible),
                     DataType = type == BuiltInType.Null ? null : type.ToString(),
                     ErrorInfo = values[0].ErrorInfo
                 };

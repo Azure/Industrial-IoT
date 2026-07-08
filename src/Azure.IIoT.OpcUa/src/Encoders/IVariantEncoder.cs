@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Encoders
 {
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Serializers;
     using Opc.Ua;
 
@@ -23,8 +24,13 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// </summary>
         /// <param name="value"></param>
         /// <param name="builtinType"></param>
+        /// <param name="encoding">The OPC UA JSON encoding to use. The
+        /// reversible encoding (the default) preserves all type information,
+        /// while the non-reversible encoding produces a more compact
+        /// representation.</param>
         /// <returns></returns>
-        VariantValue Encode(Variant? value, out BuiltInType builtinType);
+        VariantValue Encode(Variant? value, out BuiltInType builtinType,
+            ValueEncoding encoding = ValueEncoding.Reversible);
 
         /// <summary>
         /// Parse token to variant

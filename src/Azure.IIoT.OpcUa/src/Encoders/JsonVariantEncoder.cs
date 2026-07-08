@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Encoders
 {
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Utils;
     using Opc.Ua;
@@ -34,25 +35,39 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         /// <inheritdoc/>
-        public VariantValue Encode(Variant? value, out BuiltInType builtinType)
+        public VariantValue Encode(Variant? value, out BuiltInType builtinType,
+            ValueEncoding encoding = ValueEncoding.Reversible)
         {
             if (value == null || value == Variant.Null)
             {
                 builtinType = BuiltInType.Null;
                 return VariantValue.Null;
             }
+            var useReversibleEncoding = encoding != ValueEncoding.NonReversible;
             using var stream = new MemoryStream();
             using (var encoder = new JsonEncoderEx(stream, Context)
             {
-                UseAdvancedEncoding = true
+                UseAdvancedEncoding = true,
+                UseReversibleEncoding = useReversibleEncoding
             })
             {
                 encoder.WriteVariant(nameof(value), value.Value);
             }
             var token = _serializer.Parse(stream.ToArray());
-            Enum.TryParse((string?)token.GetByPath("value.Type"),
-                true, out builtinType);
-            return token.GetByPath("value.Body");
+            if (useReversibleEncoding)
+            {
+                Enum.TryParse((string?)token.GetByPath("value.Type"),
+                    true, out builtinType);
+                return token.GetByPath("value.Body");
+            }
+
+            //
+            // The non-reversible encoding writes the value contents directly
+            // without the Type/Body envelope, so derive the built in type
+            // from the variant type information instead.
+            //
+            builtinType = value.Value.TypeInfo?.BuiltInType ?? BuiltInType.Null;
+            return token.GetByPath("value");
         }
 
         /// <inheritdoc/>
