@@ -26,6 +26,38 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public string? DataSetWriterName { get; set; }
 
         /// <summary>
+        /// The endpoint url of the server the writer is
+        /// connecting to.
+        /// </summary>
+        [DataMember(Name = "endpointUrl", Order = 6,
+            EmitDefaultValue = false)]
+        public string? EndpointUrl { get; set; }
+
+        /// <summary>
+        /// Whether the connection to the endpoint uses
+        /// a secure channel.
+        /// </summary>
+        [DataMember(Name = "useSecurity", Order = 7,
+            EmitDefaultValue = false)]
+        public bool? UseSecurity { get; set; }
+
+        /// <summary>
+        /// The authentication mode used to connect to the
+        /// endpoint.
+        /// </summary>
+        [DataMember(Name = "opcAuthenticationMode", Order = 8,
+            EmitDefaultValue = false)]
+        public OpcAuthenticationMode OpcAuthenticationMode { get; set; }
+
+        /// <summary>
+        /// The user name used to connect to the endpoint in
+        /// case of user name and password authentication.
+        /// </summary>
+        [DataMember(Name = "opcAuthenticationUsername", Order = 9,
+            EmitDefaultValue = false)]
+        public string? OpcAuthenticationUsername { get; set; }
+
+        /// <summary>
         /// Diagnostics for the source of the dataset
         /// </summary>
         [DataMember(Name = "source", Order = 3,

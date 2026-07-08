@@ -8,7 +8,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
+    using Furly.Extensions.Serializers;
     using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Mvc.ModelBinding;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
@@ -105,6 +107,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                 ;
 
             services.AddControllers()
+                .AddMvcOptions(options =>
+                    // VariantValue exposes a recursive value graph (e.g. a
+                    // ByteString surfaces every byte as a child element), which
+                    // makes the default recursive model validation extremely
+                    // expensive for large payloads such as method call arguments.
+                    // Suppress validation of its children since there is nothing
+                    // to validate on the opaque value tree anyway.
+                    options.ModelMetadataDetailsProviders.Add(
+                        new SuppressChildValidationMetadataProvider(typeof(VariantValue))))
                 .AddJsonSerializer()
                 .AddMessagePackSerializer()
                 ;

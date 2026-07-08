@@ -116,6 +116,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
+        public async ValueTask<IReadOnlyList<WriterGroupStateDiagnosticModel>> GetStateAsync(
+            CancellationToken ct)
+        {
+            var states = new List<WriterGroupStateDiagnosticModel>();
+            foreach (var job in _currentJobs.Values)
+            {
+                ct.ThrowIfCancellationRequested();
+                states.Add(await job.GetStateAsync(ct).ConfigureAwait(false));
+            }
+            return states;
+        }
+
+        /// <inheritdoc/>
         public async ValueTask DisposeAsync()
         {
             if (_isDisposed)

@@ -493,6 +493,73 @@ $"md_{DateTimeOffset.UtcNow.ToBinary()}_{writerGroup.Id}_{_metadataChanges}.json
             .Sum(s => s.ConditionsEnabled);
 
         /// <summary>
+        /// Value changes per second reported per endpoint url of the writers
+        /// in the group.
+        /// </summary>
+        private IEnumerable<Measurement<double>> ValueChangesPerEndpoint()
+        {
+            var upTime = UpTime;
+            return _writers.Values
+                .GroupBy(s => s.EndpointUrl)
+                .Select(g => new Measurement<double>(
+                    g.Sum(s => s.ValueChangeCount) / upTime,
+                    CreateEndpointTagList(g.Key)));
+        }
+
+        /// <summary>
+        /// Connection retries reported per endpoint url of the writers in
+        /// the group.
+        /// </summary>
+        private IEnumerable<Measurement<long>> ConnectionRetriesPerEndpoint()
+        {
+            return ClientsByEndpoint()
+                .Select(g => new Measurement<long>(
+                    g.Clients.Sum(c => c.ReconnectCount),
+                    CreateEndpointTagList(g.EndpointUrl)));
+        }
+
+        /// <summary>
+        /// Connectivity state reported per endpoint url of the writers in
+        /// the group. Reports the number of connections to the endpoint that
+        /// are currently in a ready (connected) state.
+        /// </summary>
+        private IEnumerable<Measurement<int>> IsConnectionOkPerEndpoint()
+        {
+            return ClientsByEndpoint()
+                .Select(g => new Measurement<int>(
+                    g.Clients.Count(c => c.State == EndpointConnectivityState.Ready),
+                    CreateEndpointTagList(g.EndpointUrl)));
+        }
+
+        /// <summary>
+        /// Group the distinct clients used by the writers in the group by the
+        /// endpoint url they are connected to.
+        /// </summary>
+        private IEnumerable<(string EndpointUrl, IReadOnlyCollection<IOpcUaClientDiagnostics> Clients)>
+            ClientsByEndpoint()
+        {
+            return _writers.Values
+                .Where(s => s.Subscription?.ClientDiagnostics != null)
+                .GroupBy(s => s.EndpointUrl)
+                .Select(g => (g.Key, (IReadOnlyCollection<IOpcUaClientDiagnostics>)g
+                    .Select(s => s.Subscription!.ClientDiagnostics)
+                    .Distinct()
+                    .ToList()));
+        }
+
+        /// <summary>
+        /// Create a tag list for the writer group extended with the endpoint
+        /// url of an individual endpoint.
+        /// </summary>
+        /// <param name="endpointUrl"></param>
+        private TagList CreateEndpointTagList(string endpointUrl)
+        {
+            var tags = _metrics.TagList;
+            tags.Add("endpointUrl", endpointUrl);
+            return tags;
+        }
+
+        /// <summary>
         /// Create observable metrics
         /// </summary>
         private void InitializeMetrics()
@@ -548,6 +615,9 @@ $"md_{DateTimeOffset.UtcNow.ToBinary()}_{writerGroup.Id}_{_metadataChanges}.json
             _meter.CreateObservableGauge("iiot_edge_publisher_value_changes_per_second",
                 () => new Measurement<double>(_valueChanges.Count / UpTime, _metrics.TagList),
                 description: "Opc Value changes/second delivered for processing.");
+            _meter.CreateObservableGauge("iiot_edge_publisher_endpoint_value_changes_per_second",
+                () => ValueChangesPerEndpoint(),
+                description: "Opc Value changes/second delivered for processing per endpoint.");
             _meter.CreateObservableGauge("iiot_edge_publisher_value_changes_per_second_last_min",
                 () => new Measurement<long>(_valueChanges.LastMinute, _metrics.TagList),
                 description: "Opc Value changes/second delivered for processing in last 60s.");
@@ -609,6 +679,9 @@ $"md_{DateTimeOffset.UtcNow.ToBinary()}_{writerGroup.Id}_{_metadataChanges}.json
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_connection_retries",
                 () => new Measurement<long>(ReconnectCount, _metrics.TagList),
                 description: "OPC UA total connect retries.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_endpoint_connection_retries",
+                () => ConnectionRetriesPerEndpoint(),
+                description: "OPC UA connect retries per endpoint.");
             _meter.CreateObservableGauge("iiot_edge_publisher_connection_reconnecting",
                 () => new Measurement<int>(ReconnectTriggered, _metrics.TagList),
                 description: "OPC UA total connections reconnecting right now.");
@@ -624,6 +697,9 @@ $"md_{DateTimeOffset.UtcNow.ToBinary()}_{writerGroup.Id}_{_metadataChanges}.json
             _meter.CreateObservableGauge("iiot_edge_publisher_is_connection_ok",
                 () => new Measurement<int>(ConnectedClients, _metrics.TagList),
                 description: "OPC UA endpoints that are successfully connected.");
+            _meter.CreateObservableGauge("iiot_edge_publisher_endpoint_is_connection_ok",
+                () => IsConnectionOkPerEndpoint(),
+                description: "OPC UA endpoints that are successfully connected per endpoint.");
             _meter.CreateObservableGauge("iiot_edge_publisher_is_disconnected",
                 () => new Measurement<int>(DisconnectedClients, _metrics.TagList),
                 description: "OPC UA endpoints that are disconnected.");

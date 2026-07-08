@@ -54,5 +54,15 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// <returns></returns>
         ValueTask<WriterGroupStateDiagnosticModel> GetStateAsync(
             string writerGroupId, CancellationToken ct);
+
+        /// <summary>
+        /// Get the current state of all writer groups managed by the
+        /// publisher. This includes the errors for all nodes that could
+        /// not be created as monitored items across all endpoints.
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        ValueTask<IReadOnlyList<WriterGroupStateDiagnosticModel>> GetStateAsync(
+            CancellationToken ct);
     }
 }

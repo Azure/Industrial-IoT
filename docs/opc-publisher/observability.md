@@ -76,6 +76,8 @@ The following table describes the instruments that are collected per writer grou
 
 (*) Not exposed through the API
 
+The `monitoredOpcNodesFailedCount` in the table above only provides a count of the nodes that could not be created as monitored items. To retrieve the actual list of failed nodes together with the error information reported by the server on demand — across all configured endpoints and writer groups — use the [GetAllWriterGroupStates](./api.md) diagnostics API (`GET /v2/diagnostics/writergroups`). The returned state contains, per data set writer, the endpoint information (endpoint url, whether security is used, the authentication mode and user name) as well as the list of nodes that failed to be created as monitored items and the associated error information (`errorInfo`). This avoids having to parse the logs to find the outdated node configuration of an endpoint.
+
 ## Available metrics
 
 By convention, all instrument names start with _"iiot"_, e.g., `iiot_<component>_<metric>`. Metrics are collected through the .net Observability infrastructure. For backwards compatibility and to support IoT Edge metrics collector, metrics from OPC Publisher are exposed in Prometheus format on path _/metrics_ on the default HTTP server port (see `-p` [command line argument](./commandline.md). When binding the HTTPS port to 9072 on the host machine, the URL becomes <https://localhost:9072/metrics>.
@@ -93,6 +95,7 @@ One can combine information from multiple metrics to understand and paint a bigg
 | iiot_edge_publisher_messages_duration                  | Time taken to send messages from publisher. Used to calculate P50, P90, P95, P99, P99.9 | histogram |
 | iiot_edge_publisher_value_changes                                             | OPC UA server ValuesChanges delivered for processing                                    | counter     |
 | iiot_edge_publisher_value_changes_per_second                                | OPC UA server ValuesChanges delivered for processing per second                         | gauge     |
+| iiot_edge_publisher_endpoint_value_changes_per_second                       | OPC UA server ValuesChanges delivered for processing per second, tagged per `endpointUrl`   | gauge     |
 | iiot_edge_publisher_heartbeats                                             | OPC Publisher heartbeats delivered for processing and included in the value changes. | counter     |
 | iiot_edge_publisher_cyclicreads                                             | OPC Publisher cyclic reads delivered for processing and included in the value changes. | counter     |
 | iiot_edge_publisher_data_changes                                              | OPC UA server DataChanges delivered for processing                                      | counter     |
@@ -102,6 +105,7 @@ One can combine information from multiple metrics to understand and paint a bigg
 | iiot_edge_publisher_messages                                        | Messages sent to IoTHub                                                                 | counter     |
 | iiot_edge_publisher_messages_per_second                           | Messages sent to IoTHub per second                                                      | gauge     |
 | iiot_edge_publisher_connection_retries                                        | Connection retries to OPC UA server                                                     | gauge     |
+| iiot_edge_publisher_endpoint_connection_retries                               | Connection retries to OPC UA server, tagged per `endpointUrl`                            | gauge     |
 | iiot_edge_publisher_encoded_notifications                                     | Encoded OPC UA server notifications count                                               | counter     |
 | iiot_edge_publisher_dropped_notifications                                     | Dropped OPC UA server notifications count                                               | counter     |
 | iiot_edge_publisher_processed_messages                                        | Processed IoT messages count                                                            | counter     |
@@ -110,10 +114,21 @@ One can combine information from multiple metrics to understand and paint a bigg
 | iiot_edge_publisher_chunk_size_average                                       | IoT Hub chunk size average                                                              | gauge     |
 | iiot_edge_publisher_estimated_message_chunks_per_day                       | Estimated IoT Hub chunks charged per day                                                | gauge     |
 | iiot_edge_publisher_is_connection_ok                                       | Is the endpoint connection ok?                                                          | gauge     |
+| iiot_edge_publisher_endpoint_is_connection_ok                              | Number of connections to the endpoint that are ok, tagged per `endpointUrl`              | gauge     |
 | iiot_edge_publisher_good_nodes                                             | How many nodes are receiving data for this endpoint?                                    | gauge     |
 | iiot_edge_publisher_bad_nodes                                              | How many nodes are misconfigured for this endpoint?                                     | gauge     |
 
 You can use the IoT Edge [Metrics Collector](#iot-edge-metrics-collector) module to collect the metrics.
+
+Most metrics are tagged with the `writer_group` of the writer group they originate from. Because a single writer group can subscribe to multiple OPC UA server endpoints, the group level metrics such as `iiot_edge_publisher_value_changes_per_second`, `iiot_edge_publisher_connection_retries` and `iiot_edge_publisher_is_connection_ok` aggregate across all endpoints of the group and cannot be used to monitor individual endpoint connections.
+
+For this reason there are additional `iiot_edge_publisher_endpoint_*` variants that are also tagged with the `endpointUrl` of the individual endpoint. They allow connectivity and data flow to be monitored per endpoint even when endpoints share a writer group:
+
+- `iiot_edge_publisher_endpoint_value_changes_per_second`
+- `iiot_edge_publisher_endpoint_connection_retries`
+- `iiot_edge_publisher_endpoint_is_connection_ok`
+
+This complements the subscription scoped metrics such as `iiot_edge_publisher_monitored_items` and `iiot_edge_publisher_good_nodes` which are always tagged with the `endpointUrl`.
 
 Edge modules would be instrumented with [Prometheus](https://github.com/prometheus-net/prometheus-net) metrics. Each module would expose the metrics on a pre-defined port.  The `metricscollector` module would use the configuration settings to scrape metrics in a defined interval. It would then push the scraped metrics to Log Analytics Workspace. Using Azure Data Explorer (ADX), we can then query our metrics from workspace. We are creating and deploying an Azure Workbook which would provide insights into the edge modules. This would act as our primary monitoring system for edge modules.
 

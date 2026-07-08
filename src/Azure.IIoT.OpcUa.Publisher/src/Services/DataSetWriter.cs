@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Publisher;
+    using Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
@@ -342,10 +343,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// <returns></returns>
             public DataSetWriterStateDiagnosticModel GetState()
             {
+                var entry = Source.Connection?.ToPublishedNodesEntry();
                 return new DataSetWriterStateDiagnosticModel
                 {
                     Id = Writer.Id,
                     DataSetWriterName = Writer.DataSetWriterName,
+                    EndpointUrl = entry?.EndpointUrl,
+                    UseSecurity = entry?.UseSecurity,
+                    OpcAuthenticationMode = entry?.OpcAuthenticationMode
+                        ?? OpcAuthenticationMode.Anonymous,
+                    OpcAuthenticationUsername = entry?.OpcAuthenticationUsername,
                     Source = new PublishedDataSetSourceDiagnosticModel
                     {
                         Errors = LastErrors
@@ -471,6 +478,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// Active subscription
             /// </summary>
             public ISubscription? Subscription { get; private set; }
+
+            /// <summary>
+            /// Endpoint url of the writer connection. Used to tag
+            /// per endpoint metrics of the writer group.
+            /// </summary>
+            public string EndpointUrl =>
+                _connection.Connection.Endpoint?.Url ?? string.Empty;
+
+            /// <summary>
+            /// Total number of value changes delivered by this writer's
+            /// subscription. Used to compute per endpoint value change rate.
+            /// </summary>
+            public long ValueChangeCount => Interlocked.Read(ref _valueChangeCount);
 
             /// <summary>
             /// Create subscription from a DataSetWriterModel template
@@ -723,10 +743,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             _group._valueChanges.Count = 0;
                             _group._heartbeats.Count = 0;
                             _group._sink.OnCounterReset();
+                            Interlocked.Exchange(ref _valueChangeCount, 0);
                         }
 
                         _group._valueChanges.Count += valueChanges;
                         _group._dataChanges.Count++;
+                        Interlocked.Add(ref _valueChangeCount, valueChanges);
                     }
                 }
             }
@@ -1471,6 +1493,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private readonly Lazy<MetaDataLoader> _metaDataLoader;
             private uint _dataSetSequenceNumber;
             private uint _metadataSequenceNumber;
+            private long _valueChangeCount;
             private bool _sendKeepAlives;
             private bool _sendKeepAliveAsKeyFrame;
             private bool _disposed;

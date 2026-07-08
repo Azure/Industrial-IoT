@@ -226,6 +226,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <inheritdoc/>
+        public override bool Equals(object? obj)
+        {
+            //
+            // The owning subscriber (virtual dataset writer) is part of the
+            // monitored item identity. It must be compared here and honored by
+            // every derived Equals override so that it stays consistent with
+            // GetHashCode which incorporates the owner. Otherwise items that
+            // reference the same node id but belong to different dataset
+            // writers are treated as equal and are dropped when they collide
+            // in a hash set bucket (see issue #2408).
+            //
+            return obj is OpcUaMonitoredItem item && Owner.Equals(item.Owner);
+        }
+
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             return Owner.GetHashCode();

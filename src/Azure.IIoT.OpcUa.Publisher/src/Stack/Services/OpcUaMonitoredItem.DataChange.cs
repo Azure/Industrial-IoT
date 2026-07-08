@@ -176,7 +176,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     return false;
                 }
-                return true;
+                return base.Equals(dataItem);
             }
 
             /// <inheritdoc/>
@@ -325,7 +325,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
 
                 if ((Template.SamplingInterval ?? TimeSpan.FromSeconds(1)) !=
-                    (Template.SamplingInterval ?? TimeSpan.FromSeconds(1)))
+                    (model.Template.SamplingInterval ?? TimeSpan.FromSeconds(1)))
                 {
                     _logger.SamplingIntervalChanged(this,
                         Template.SamplingInterval.GetValueOrDefault(
