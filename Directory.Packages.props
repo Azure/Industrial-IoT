@@ -30,7 +30,7 @@
   </ItemGroup>
 
   <ItemGroup Label="Azure SDK">
-    <PackageVersion Include="Azure.Core" Version="1.59.0" />
+    <PackageVersion Include="Azure.Core" Version="1.60.0" />
     <PackageVersion Include="Azure.Identity" Version="1.21.0" />
     <PackageVersion Include="Azure.Messaging.EventHubs" Version="5.12.2" />
     <PackageVersion Include="Azure.ResourceManager" Version="1.14.0" />
@@ -52,20 +52,20 @@
   </ItemGroup>
 
   <ItemGroup Label="Furly (keep all in lock-step)">
-    <PackageVersion Include="Furly.Azure.EventHubs" Version="1.2.2" />
-    <PackageVersion Include="Furly.Azure.IoT" Version="1.2.2" />
-    <PackageVersion Include="Furly.Azure.IoT.Edge" Version="1.2.2" />
-    <PackageVersion Include="Furly.Azure.IoT.Operations" Version="1.2.2" />
-    <PackageVersion Include="Furly.Extensions" Version="1.2.2" />
-    <PackageVersion Include="Furly.Extensions.Abstractions" Version="1.2.2" />
-    <PackageVersion Include="Furly.Extensions.AspNetCore" Version="1.2.2" />
-    <PackageVersion Include="Furly.Extensions.Autofac" Version="1.2.2" />
-    <PackageVersion Include="Furly.Extensions.Dapr" Version="1.2.2" />
-    <PackageVersion Include="Furly.Extensions.Json" Version="1.2.2" />
-    <PackageVersion Include="Furly.Extensions.MessagePack" Version="1.2.2" />
-    <PackageVersion Include="Furly.Extensions.Mqtt" Version="1.2.2" />
-    <PackageVersion Include="Furly.Extensions.Newtonsoft" Version="1.2.2" />
-    <PackageVersion Include="Furly.Tunnel" Version="1.2.2" />
+    <PackageVersion Include="Furly.Azure.EventHubs" Version="1.2.6" />
+    <PackageVersion Include="Furly.Azure.IoT" Version="1.2.6" />
+    <PackageVersion Include="Furly.Azure.IoT.Edge" Version="1.2.6" />
+    <PackageVersion Include="Furly.Azure.IoT.Operations" Version="1.2.6" />
+    <PackageVersion Include="Furly.Extensions" Version="1.2.6" />
+    <PackageVersion Include="Furly.Extensions.Abstractions" Version="1.2.6" />
+    <PackageVersion Include="Furly.Extensions.AspNetCore" Version="1.2.6" />
+    <PackageVersion Include="Furly.Extensions.Autofac" Version="1.2.6" />
+    <PackageVersion Include="Furly.Extensions.Dapr" Version="1.2.6" />
+    <PackageVersion Include="Furly.Extensions.Json" Version="1.2.6" />
+    <PackageVersion Include="Furly.Extensions.MessagePack" Version="1.2.6" />
+    <PackageVersion Include="Furly.Extensions.Mqtt" Version="1.2.6" />
+    <PackageVersion Include="Furly.Extensions.Newtonsoft" Version="1.2.6" />
+    <PackageVersion Include="Furly.Tunnel" Version="1.2.6" />
   </ItemGroup>
 
   <ItemGroup Label="OpenTelemetry">
