@@ -3,6 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
+#nullable enable
+
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Filters
 {
     using Azure.IIoT.OpcUa.Exceptions;

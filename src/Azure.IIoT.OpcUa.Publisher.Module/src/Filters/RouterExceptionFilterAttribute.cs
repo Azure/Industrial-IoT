@@ -168,7 +168,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
                     or (int)HttpStatusCode.TooManyRequests
                     or (int)HttpStatusCode.PreconditionFailed ? LogLevel.Warning
                 : LogLevel.Debug;
-            logger.MethodCallFailed(level, status, exception.GetType().Name, exception);
+            try
+            {
+                logger.MethodCallFailed(level, status, exception.GetType().Name, exception);
+            }
+            catch
+            {
+                // Diagnostics must never break exception-to-status mapping, e.g.
+                // if a logging provider throws or has already been disposed.
+            }
         }
 
         private static ILogger? _logger;
