@@ -105,6 +105,12 @@ jobs:
             local env_name="$2"
             local val
             val=$(az keyvault secret show --vault-name "$KeyVaultName" --name "$name" --query value -o tsv 2>/dev/null || true)
+            # The az CLI on Windows runners emits values with CRLF line
+            # endings; command substitution strips the trailing LF but leaves
+            # a CR, which corrupts single-line secrets such as the IoT Hub
+            # connection string (its base64 SharedAccessKey then fails to
+            # parse). Strip all CRs so values are used verbatim.
+            val="${val//$'\r'/}"
             if [ -z "$val" ]; then
               echo "::warning::KeyVault secret '$name' is missing or empty"
               return
