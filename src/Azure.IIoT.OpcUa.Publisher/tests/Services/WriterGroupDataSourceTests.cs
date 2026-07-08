@@ -157,19 +157,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var measurements = CollectMeasurements();
 
             // Assert - connection retries reported per endpoint url.
-            var retries = measurements["iiot_edge_publisher_connection_retries"];
+            var retries = measurements["iiot_edge_publisher_endpoint_connection_retries"];
             Assert.Equal(3, GetForEndpoint(retries, "opc.tcp://server-a:50000"));
             Assert.Equal(7, GetForEndpoint(retries, "opc.tcp://server-b:50000"));
 
             // Connectivity reported per endpoint url (server-a ready, server-b not).
-            var connected = measurements["iiot_edge_publisher_is_connection_ok"];
+            var connected = measurements["iiot_edge_publisher_endpoint_is_connection_ok"];
             Assert.Equal(1, GetForEndpoint(connected, "opc.tcp://server-a:50000"));
             Assert.Equal(0, GetForEndpoint(connected, "opc.tcp://server-b:50000"));
 
             // Value changes/second reported per endpoint url (only server-a saw data).
-            var valueChanges = measurements["iiot_edge_publisher_value_changes_per_second"];
+            var valueChanges = measurements["iiot_edge_publisher_endpoint_value_changes_per_second"];
             Assert.True(GetForEndpoint(valueChanges, "opc.tcp://server-a:50000") > 0.0);
             Assert.Equal(0.0, GetForEndpoint(valueChanges, "opc.tcp://server-b:50000"));
+
+            // The group level metrics remain unchanged (single, endpoint-agnostic
+            // measurement aggregating across the whole writer group).
+            Assert.Equal(10, GetForEndpoint(
+                measurements["iiot_edge_publisher_connection_retries"], string.Empty));
+            Assert.Equal(1, GetForEndpoint(
+                measurements["iiot_edge_publisher_is_connection_ok"], string.Empty));
         }
 
         /// <summary>

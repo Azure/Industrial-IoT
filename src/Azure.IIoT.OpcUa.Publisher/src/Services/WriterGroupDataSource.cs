@@ -459,6 +459,8 @@ $"md_{DateTimeOffset.UtcNow.ToBinary()}_{writerGroup.Id}_{_metadataChanges}.json
 
         private int TotalItems => _writers.Values
             .SelectMany(s => s.MonitoredItems).Count();
+        private int ReconnectCount => UsedClients
+            .Sum(s => s.ReconnectCount);
         private int ReconnectTriggered => UsedClients
             .Count(s => s.ReconnectTriggered);
         private int KeepAliveTotal => UsedClients
@@ -475,6 +477,8 @@ $"md_{DateTimeOffset.UtcNow.ToBinary()}_{writerGroup.Id}_{_metadataChanges}.json
             .Sum(s => s.BadPublishRequestCount);
         private int MinPublishRequestCount => UsedClients
             .Sum(s => s.MinPublishRequestCount);
+        private int ConnectedClients => UsedClients
+            .Count(s => s.State == EndpointConnectivityState.Ready);
         private int DisconnectedClients => UsedClients
             .Count(s => s.State != EndpointConnectivityState.Ready);
         private int GoodMonitoredItems => UsedSubscriptions
@@ -609,6 +613,9 @@ $"md_{DateTimeOffset.UtcNow.ToBinary()}_{writerGroup.Id}_{_metadataChanges}.json
                 () => new Measurement<long>(_valueChanges.Count, _metrics.TagList),
                 description: "Total Opc Value changes delivered for processing.");
             _meter.CreateObservableGauge("iiot_edge_publisher_value_changes_per_second",
+                () => new Measurement<double>(_valueChanges.Count / UpTime, _metrics.TagList),
+                description: "Opc Value changes/second delivered for processing.");
+            _meter.CreateObservableGauge("iiot_edge_publisher_endpoint_value_changes_per_second",
                 () => ValueChangesPerEndpoint(),
                 description: "Opc Value changes/second delivered for processing per endpoint.");
             _meter.CreateObservableGauge("iiot_edge_publisher_value_changes_per_second_last_min",
@@ -670,6 +677,9 @@ $"md_{DateTimeOffset.UtcNow.ToBinary()}_{writerGroup.Id}_{_metadataChanges}.json
                 description: "Total Opc keep alive notifications delivered for processing.");
 
             _meter.CreateObservableUpDownCounter("iiot_edge_publisher_connection_retries",
+                () => new Measurement<long>(ReconnectCount, _metrics.TagList),
+                description: "OPC UA total connect retries.");
+            _meter.CreateObservableUpDownCounter("iiot_edge_publisher_endpoint_connection_retries",
                 () => ConnectionRetriesPerEndpoint(),
                 description: "OPC UA connect retries per endpoint.");
             _meter.CreateObservableGauge("iiot_edge_publisher_connection_reconnecting",
@@ -685,6 +695,9 @@ $"md_{DateTimeOffset.UtcNow.ToBinary()}_{writerGroup.Id}_{_metadataChanges}.json
                 () => new Measurement<long>(ConnectCount, _metrics.TagList),
                 description: "OPC UA total connection success count.");
             _meter.CreateObservableGauge("iiot_edge_publisher_is_connection_ok",
+                () => new Measurement<int>(ConnectedClients, _metrics.TagList),
+                description: "OPC UA endpoints that are successfully connected.");
+            _meter.CreateObservableGauge("iiot_edge_publisher_endpoint_is_connection_ok",
                 () => IsConnectionOkPerEndpoint(),
                 description: "OPC UA endpoints that are successfully connected per endpoint.");
             _meter.CreateObservableGauge("iiot_edge_publisher_is_disconnected",
