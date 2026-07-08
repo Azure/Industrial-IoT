@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -836,7 +836,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         TypeRef = d.DataSetType,
                         DataSource = d.DataSetRootNodeId,
                         EventGroupConfiguration = null,
-                        DefaultEventsDestinations = null,
+                        DefaultDestinations = null,
                         Events = d.OpcNodes!.Select(n => new DiscoveredAssetEvent
                         {
                             Name = n.DisplayName!, // Event name
@@ -1584,7 +1584,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 var entry = CreateEntryForAssetResource(template, additionalConfiguration, [node]);
                 entry = AddDestination(entry, resource.Asset.DefaultEventsDestinations,
-                    resource.EventGroup.DefaultEventsDestinations, @event.Destinations,
+                    resource.EventGroup.DefaultDestinations, @event.Destinations,
                     errors, resource);
                 entries.Add(entry with
                 {
@@ -2891,13 +2891,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     return;
                 }
                 var status = GetAssetStatusResource(resource);
-                status.Status.ManagementGroups ??= new List<AssetManagementGroupStatusSchemaElement>();
+                status.Status.ManagementGroups ??= new List<AssetManagementGroupStatus>();
                 Debug.Assert(status.Status.ManagementGroups != null);
-                status.Status.ManagementGroups.Add(new AssetManagementGroupStatusSchemaElement
+                status.Status.ManagementGroups.Add(new AssetManagementGroupStatus
                 {
                     Name = resource.ManagementGroup.Name,
                     Actions = resource.ManagementGroup.Actions.ConvertAll(a =>
-                        new AssetManagementGroupActionStatusSchemaElement
+                        new AssetManagementGroupActionStatus
                         {
                             Name = a.Name,
                             Error = new ConfigError
@@ -2919,14 +2919,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private void Add(ManagementActionResource resource, string code, string error)
             {
                 var status = GetAssetStatusResource(resource);
-                status.Status.ManagementGroups ??= new List<AssetManagementGroupStatusSchemaElement>();
+                status.Status.ManagementGroups ??= new List<AssetManagementGroupStatus>();
                 Debug.Assert(status.Status.ManagementGroups != null);
-                status.Status.ManagementGroups.Add(new AssetManagementGroupStatusSchemaElement
+                status.Status.ManagementGroups.Add(new AssetManagementGroupStatus
                 {
                     Name = resource.ManagementGroup.Name,
-                    Actions = new List<AssetManagementGroupActionStatusSchemaElement>
+                    Actions = new List<AssetManagementGroupActionStatus>
                     {
-                        new AssetManagementGroupActionStatusSchemaElement
+                        new AssetManagementGroupActionStatus
                         {
                             Name = resource.Action.Name,
                             Error = new ConfigError

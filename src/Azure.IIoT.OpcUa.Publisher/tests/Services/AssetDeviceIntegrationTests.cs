@@ -495,9 +495,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var dataset = new AssetDataset
             {
                 Name = "ds1",
-                DataPoints = new List<AssetDatasetDataPointSchemaElement>
+                DataPoints = new List<AssetDatasetDataPoint>
                 {
-                    new AssetDatasetDataPointSchemaElement { Name = "dp1", DataSource = "ns=2;s=dp1" }
+                    new AssetDatasetDataPoint { Name = "dp1", DataSource = "ns=2;s=dp1" }
                 }
             };
             var @event = new AssetEvent { Name = "ev1", DataSource = "ns=2;s=ev1" };
