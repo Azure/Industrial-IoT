@@ -118,7 +118,15 @@ One can combine information from multiple metrics to understand and paint a bigg
 
 You can use the IoT Edge [Metrics Collector](#iot-edge-metrics-collector) module to collect the metrics.
 
-Most metrics are tagged with the `writer_group` of the writer group they originate from. Because a single writer group can subscribe to multiple OPC UA server endpoints, the group level metrics such as `iiot_edge_publisher_value_changes_per_second`, `iiot_edge_publisher_connection_retries` and `iiot_edge_publisher_is_connection_ok` aggregate across all endpoints of the group and cannot be used to monitor individual endpoint connections. For this reason there are additional `iiot_edge_publisher_endpoint_*` variants (`iiot_edge_publisher_endpoint_value_changes_per_second`, `iiot_edge_publisher_endpoint_connection_retries` and `iiot_edge_publisher_endpoint_is_connection_ok`) that are additionally tagged with the `endpointUrl` of the individual endpoint, so that connectivity and data flow can be monitored per endpoint even when endpoints share a writer group. This complements the subscription scoped metrics such as `iiot_edge_publisher_monitored_items` and `iiot_edge_publisher_good_nodes` which are always tagged with the `endpointUrl`.
+Most metrics are tagged with the `writer_group` of the writer group they originate from. Because a single writer group can subscribe to multiple OPC UA server endpoints, the group level metrics such as `iiot_edge_publisher_value_changes_per_second`, `iiot_edge_publisher_connection_retries` and `iiot_edge_publisher_is_connection_ok` aggregate across all endpoints of the group and cannot be used to monitor individual endpoint connections.
+
+For this reason there are additional `iiot_edge_publisher_endpoint_*` variants that are also tagged with the `endpointUrl` of the individual endpoint. They allow connectivity and data flow to be monitored per endpoint even when endpoints share a writer group:
+
+- `iiot_edge_publisher_endpoint_value_changes_per_second`
+- `iiot_edge_publisher_endpoint_connection_retries`
+- `iiot_edge_publisher_endpoint_is_connection_ok`
+
+This complements the subscription scoped metrics such as `iiot_edge_publisher_monitored_items` and `iiot_edge_publisher_good_nodes` which are always tagged with the `endpointUrl`.
 
 Edge modules would be instrumented with [Prometheus](https://github.com/prometheus-net/prometheus-net) metrics. Each module would expose the metrics on a pre-defined port.  The `metricscollector` module would use the configuration settings to scrape metrics in a defined interval. It would then push the scraped metrics to Log Analytics Workspace. Using Azure Data Explorer (ADX), we can then query our metrics from workspace. We are creating and deploying an Azure Workbook which would provide insights into the edge modules. This would act as our primary monitoring system for edge modules.
 
