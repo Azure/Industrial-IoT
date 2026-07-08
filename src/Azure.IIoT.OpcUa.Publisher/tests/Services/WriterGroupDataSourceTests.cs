@@ -11,6 +11,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Storage;
+    using Azure.IIoT.OpcUa.Encoders.PubSub;
+    using Furly.Exceptions;
     using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
@@ -234,6 +236,110 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 measurements["iiot_edge_publisher_connection_retries"], string.Empty));
             Assert.Equal(1, GetForEndpoint(
                 measurements["iiot_edge_publisher_is_connection_ok"], string.Empty));
+        }
+
+        [Fact]
+        public async Task SendKeyFrameForGroupEmitsKeyFrameForEachWriterAsync()
+        {
+            // Arrange - a writer group with two data set writers. The mocked
+            // subscription serves a cached key frame snapshot on demand.
+            var group = ToTwoEndpointWriterGroup(
+                "opc.tcp://server-a:50000", "opc.tcp://server-b:50000");
+
+            var captured = new List<OpcUaSubscriptionNotification>();
+            var (clientsMock, sinkMock) = SetupKeyFrameSubscription(captured);
+
+            await using var sut = new WriterGroupDataSource(clientsMock.Object, group,
+                sinkMock.Object, _serializer, _options, null, _loggerFactory);
+            await sut.StartAsync(default);
+
+            // Act - request a key frame for the whole group.
+            await sut.SendKeyFrameAsync(null, default);
+
+            // Assert - one key frame message was produced per data set writer.
+            Assert.Equal(2, captured.Count);
+            Assert.All(captured, n => Assert.Equal(MessageType.KeyFrame, n.MessageType));
+        }
+
+        [Fact]
+        public async Task SendKeyFrameForSpecificWriterEmitsSingleKeyFrameAsync()
+        {
+            // Arrange - a writer group with two data set writers.
+            var group = ToTwoEndpointWriterGroup(
+                "opc.tcp://server-a:50000", "opc.tcp://server-b:50000");
+
+            var captured = new List<OpcUaSubscriptionNotification>();
+            var (clientsMock, sinkMock) = SetupKeyFrameSubscription(captured);
+
+            await using var sut = new WriterGroupDataSource(clientsMock.Object, group,
+                sinkMock.Object, _serializer, _options, null, _loggerFactory);
+            await sut.StartAsync(default);
+
+            // Discover the identifier of one of the writers via the state.
+            var state = await sut.GetStateAsync(default);
+            var writerId = state.DataSetWriters[0].Id;
+
+            // Act - request a key frame for a single writer only.
+            await sut.SendKeyFrameAsync(writerId, default);
+
+            // Assert - exactly one key frame message was produced.
+            var notification = Assert.Single(captured);
+            Assert.Equal(MessageType.KeyFrame, notification.MessageType);
+        }
+
+        [Fact]
+        public async Task SendKeyFrameForUnknownWriterThrowsAsync()
+        {
+            // Arrange - a writer group with two data set writers.
+            var group = ToTwoEndpointWriterGroup(
+                "opc.tcp://server-a:50000", "opc.tcp://server-b:50000");
+
+            var captured = new List<OpcUaSubscriptionNotification>();
+            var (clientsMock, sinkMock) = SetupKeyFrameSubscription(captured);
+
+            await using var sut = new WriterGroupDataSource(clientsMock.Object, group,
+                sinkMock.Object, _serializer, _options, null, _loggerFactory);
+            await sut.StartAsync(default);
+
+            // Act / Assert - an unknown writer id is reported as not found and no
+            // message is emitted.
+            await Assert.ThrowsAsync<ResourceNotFoundException>(
+                () => sut.SendKeyFrameAsync("does-not-exist", default).AsTask());
+            Assert.Empty(captured);
+        }
+
+        /// <summary>
+        /// Create a client manager whose subscriptions serve a cached key frame
+        /// snapshot when a keep alive is requested, and a sink that records every
+        /// produced message.
+        /// </summary>
+        private (Mock<IOpcUaClientManager<ConnectionModel>>, Mock<IMessageSink>)
+            SetupKeyFrameSubscription(List<OpcUaSubscriptionNotification> captured)
+        {
+            var subscriptionMock = new Mock<ISubscription>();
+            subscriptionMock
+                .Setup(s => s.CreateKeepAlive())
+                .Returns(() => new OpcUaSubscriptionNotification(DateTimeOffset.UtcNow)
+                {
+                    // A real subscription upgrades a keep alive into a key frame
+                    // from its value cache. Emulate an already upgraded snapshot.
+                    MessageType = MessageType.KeyFrame
+                });
+
+            var clientsMock = new Mock<IOpcUaClientManager<ConnectionModel>>();
+            clientsMock
+                .Setup(c => c.CreateSubscriptionAsync(It.IsAny<ConnectionModel>(),
+                    It.IsAny<SubscriptionModel>(), It.IsAny<ISubscriber>(),
+                    It.IsAny<CancellationToken>()))
+                .Returns((ConnectionModel _, SubscriptionModel _, ISubscriber _,
+                    CancellationToken _) =>
+                    new ValueTask<ISubscription>(subscriptionMock.Object));
+
+            var sinkMock = new Mock<IMessageSink>();
+            sinkMock
+                .Setup(s => s.OnMessage(It.IsAny<OpcUaSubscriptionNotification>()))
+                .Callback<OpcUaSubscriptionNotification>(n => captured.Add(n));
+            return (clientsMock, sinkMock);
         }
 
         /// <summary>

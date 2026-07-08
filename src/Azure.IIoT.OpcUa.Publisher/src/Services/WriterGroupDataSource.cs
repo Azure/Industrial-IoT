@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
+    using Furly.Exceptions;
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
@@ -131,6 +132,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         .Where(d => d != null)
                         .ToList()!
                 };
+            }
+            finally
+            {
+                _lock.Release();
+            }
+        }
+
+        /// <inheritdoc/>
+        public async ValueTask SendKeyFrameAsync(string? dataSetWriterId,
+            CancellationToken ct)
+        {
+            await _lock.WaitAsync(ct).ConfigureAwait(false);
+            try
+            {
+                var found = false;
+                foreach (var writer in _writers.Values)
+                {
+                    if (dataSetWriterId != null && writer.Id != dataSetWriterId)
+                    {
+                        continue;
+                    }
+                    found = true;
+                    writer.SendKeyFrame();
+                }
+                if (dataSetWriterId != null && !found)
+                {
+                    throw new ResourceNotFoundException(
+                        $"Data set writer {dataSetWriterId} not found in group {Id}.");
+                }
             }
             finally
             {
