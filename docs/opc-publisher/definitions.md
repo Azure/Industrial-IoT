@@ -2490,6 +2490,14 @@ User identity model
 |**user**  <br>*optional*|For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.UserName authentication<br>            this is the name of the user.<br><br>For Azure.IIoT.OpcUa.Publisher.Models.CredentialType.X509Certificate authentication<br>            this is the subject name of the certificate that has been<br>            configured.<br>            Either Azure.IIoT.OpcUa.Publisher.Models.UserIdentityModel.User or Azure.IIoT.OpcUa.Publisher.Models.UserIdentityModel.Thumbprint must be<br>            used to select the certificate in the user certificate store.<br><br>Not used for the other authentication types.|string|
 
 
+<a name="valueencoding"></a>
+### ValueEncoding
+The OPC UA JSON encoding to use when serializing a value in
+a response.
+
+*Type* : enum (Reversible, NonReversible)
+
+
 <a name="valuereadrequestmodel"></a>
 ### ValueReadRequestModel
 Request node value read
@@ -2498,12 +2506,12 @@ Request node value read
 |Name|Description|Schema|
 |---|---|---|
 |**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>an actual node.|< string > array|
+|**encoding**  <br>*optional*|The JSON encoding to use when serializing the value in<br>the response. Reversible encoding (the default) preserves<br>all OPC UA type information, while non-reversible encoding<br>produces a more compact representation matching the format<br>used by non-reversible PubSub messages.|[ValueEncoding](definitions.md#valueencoding)|
 |**header**  <br>*optional*||[RequestHeaderModel](definitions.md#requestheadermodel)|
 |**indexRange**  <br>*optional*|Index range to read, e.g. 1:2,0:1 for 2 slices<br>out of a matrix or 0:1 for the first item in<br>an array, string or bytestring.<br>See 7.22 of part 4: NumericRange.|string|
 |**maxAge**  <br>*optional*|Maximum age of the value to be read in milliseconds.<br>The age of the value is based on the difference<br>between the ServerTimestamp and the time when<br>the Server starts processing the request.<br>If not supplied, the Server shall attempt to read<br>a new value from the data source.|string (date-span)|
 |**nodeId**  <br>*optional*|Node to read from (mandatory)|string|
 |**timestampsToReturn**  <br>*optional*||[TimestampsToReturn](definitions.md#timestampstoreturn)|
-|**useReversibleEncoding**  <br>*optional*|Whether to use reversible JSON encoding when<br>serializing the value in the response. Reversible<br>encoding (the default) preserves all OPC UA type<br>information, while non-reversible encoding produces<br>a more compact representation matching the format<br>used by non-reversible PubSub messages.|boolean|
 
 
 <a name="valuereadrequestmodelrequestenvelope"></a>

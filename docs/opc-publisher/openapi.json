@@ -10437,6 +10437,18 @@
       },
       "additionalProperties": false
     },
+    "ValueEncoding": {
+      "description": "The OPC UA JSON encoding to use when serializing a value in\r\na response.",
+      "enum": [
+        "Reversible",
+        "NonReversible"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "ValueEncoding",
+        "modelAsString": false
+      }
+    },
     "ValueReadRequestModel": {
       "description": "Request node value read",
       "type": "object",
@@ -10467,9 +10479,8 @@
         "timestampsToReturn": {
           "$ref": "#/definitions/TimestampsToReturn"
         },
-        "useReversibleEncoding": {
-          "description": "Whether to use reversible JSON encoding when\r\nserializing the value in the response. Reversible\r\nencoding (the default) preserves all OPC UA type\r\ninformation, while non-reversible encoding produces\r\na more compact representation matching the format\r\nused by non-reversible PubSub messages.",
-          "type": "boolean"
+        "encoding": {
+          "$ref": "#/definitions/ValueEncoding"
         }
       },
       "additionalProperties": false
