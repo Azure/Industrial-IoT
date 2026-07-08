@@ -334,6 +334,33 @@ namespace OpcPublisherAEE2ETests
         }
 
         /// <summary>
+        /// Serialize a published nodes json file whose writer group publishes to IoT Hub
+        /// under a dedicated device connection string (child device identity). This is used
+        /// to exercise the per writer group IoT Hub device connection string feature.
+        /// </summary>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="port">Port of OPC UA server</param>
+        /// <param name="writerId">DataSetWriterId to set</param>
+        /// <param name="writerGroup">DataSetWriterGroup to set</param>
+        /// <param name="connectionString">Device connection string for the writer group</param>
+        /// <param name="opcNodes">OPC UA nodes</param>
+        public static string PublishedNodesWithConnectionStringJson(this IIoTStandaloneTestContext context,
+            uint port, string writerId, string writerGroup, string connectionString, JArray opcNodes)
+        {
+            return JsonConvert.SerializeObject(
+                new JArray(
+                    context.PlcAciDynamicUrls.Select(host => new JObject(
+                        new JProperty("EndpointUrl", $"opc.tcp://{host}:{port}"),
+                        new JProperty("UseSecurity", true),
+                        new JProperty("DataSetWriterGroup", writerGroup),
+                        new JProperty("DataSetWriterId", writerId),
+                        new JProperty("WriterGroupTransport", "IoTHub"),
+                        new JProperty("WriterGroupTransportConfiguration", connectionString),
+                        new JProperty("OpcNodes", opcNodes)))
+                ), Formatting.Indented);
+        }
+
+        /// <summary>
         /// Create an ACI
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
@@ -910,6 +937,89 @@ namespace OpcPublisherAEE2ETests
                     break;
                 }
             }
+        }
+
+        /// <summary>
+        /// <para>
+        ///   Reads events from all partitions of the IoT Hub Event Hubs endpoint and returns the
+        ///   IoT Hub connection device id (the device identity that sent the message) for the
+        ///   first message that carries the provided DataSetWriterId.
+        /// </para>
+        /// <para>
+        ///   This is used to assert that a writer group configured with a device connection
+        ///   string publishes to IoT Hub under that (child) device identity rather than the
+        ///   edge/module identity.
+        /// </para>
+        /// </summary>
+        /// <param name="consumer">The Event Hubs consumer.</param>
+        /// <param name="dataSetWriterId"></param>
+        /// <param name="context"></param>
+        /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> instance to signal the request to cancel the operation.</param>
+        /// <returns>The IoT Hub connection device id of the first matching message.</returns>
+        public static async Task<string> ReadConnectionDeviceIdForWriterIdAsync(this EventHubConsumerClient consumer,
+            string dataSetWriterId, IIoTPlatformTestContext context, CancellationToken cancellationToken)
+        {
+            var events = consumer.ReadEventsAsync(false, cancellationToken: cancellationToken);
+            await foreach (var partitionEvent in events.WithCancellation(cancellationToken))
+            {
+                if (!partitionEvent.Data.SystemProperties.TryGetValue(
+                    MessageSystemPropertyNames.ConnectionDeviceId, out var deviceIdObj))
+                {
+                    continue;
+                }
+                var deviceId = deviceIdObj as string;
+
+                if (!partitionEvent.Data.Properties.TryGetValue("$$ContentType", out var contentType))
+                {
+                    continue;
+                }
+                JToken json;
+                var isPayloadCompressed = (string)contentType == "application/json+gzip";
+                if (isPayloadCompressed)
+                {
+                    var compressedPayload = Convert.FromBase64String(partitionEvent.Data.EventBody.ToString());
+                    await using var input = new MemoryStream(compressedPayload);
+                    await using var gs = new GZipStream(input, CompressionMode.Decompress);
+                    using var textReader = new StreamReader(gs);
+                    json = JsonConvert.DeserializeObject<JToken>(
+                        await textReader.ReadToEndAsync(cancellationToken).ConfigureAwait(false));
+                }
+                else
+                {
+                    json = partitionEvent.DeserializeJson<JToken>();
+                }
+
+                List<dynamic> batchedMessages;
+                if (json is JArray array)
+                {
+                    batchedMessages = array.Cast<dynamic>().ToList();
+                }
+                else
+                {
+                    batchedMessages = new List<dynamic> { json };
+                }
+
+                foreach (var message in batchedMessages)
+                {
+                    var innerMessages = message.Messages as JArray;
+                    if (innerMessages == null)
+                    {
+                        continue;
+                    }
+                    foreach (dynamic innerMessage in innerMessages)
+                    {
+                        var messageWriterId = (string)innerMessage.DataSetWriterId?.Value;
+                        if (messageWriterId != null &&
+                            messageWriterId.StartsWith(dataSetWriterId, StringComparison.Ordinal))
+                        {
+                            context?.OutputHelper?.WriteLine(
+                                $"Writer {dataSetWriterId} message received from device {deviceId}.");
+                            return deviceId;
+                        }
+                    }
+                }
+            }
+            return null;
         }
 
         /// <summary>

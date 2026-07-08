@@ -23,10 +23,33 @@ namespace OpcPublisherAEE2ETests.Deploy
         /// </summary>
         /// <param name="context"></param>
         /// <param name="messagingMode"></param>
-        public IoTHubPublisherDeployment(IIoTPlatformTestContext context, MessagingMode messagingMode) : base(context)
+        /// <param name="moduleName">
+        /// Optional module name. Defaults to the standard standalone publisher module.
+        /// Supply a distinct name to deploy a second, non-conflicting publisher identity.
+        /// </param>
+        /// <param name="deploymentName">
+        /// Optional layered deployment name. Defaults to the standard standalone deployment.
+        /// Must be distinct when <paramref name="moduleName"/> is customized.
+        /// </param>
+        /// <param name="publishedNodesFile">
+        /// Optional published nodes configuration file path (the --pf argument). Defaults to
+        /// the shared standalone file. Supply a distinct path so a second publisher module
+        /// does not clobber the configuration of the default one.
+        /// </param>
+        /// <param name="pkiPath">
+        /// Optional pki folder path (the --pki argument). Defaults to the shared standalone
+        /// pki folder. Supply a distinct path so a second publisher module does not share
+        /// the certificate store of the default one.
+        /// </param>
+        public IoTHubPublisherDeployment(IIoTPlatformTestContext context, MessagingMode messagingMode,
+            string moduleName = kModuleName, string deploymentName = kDeploymentName,
+            string publishedNodesFile = null, string pkiPath = null) : base(context)
         {
             MessagingMode = messagingMode;
-            DeploymentName = kDeploymentName;
+            DeploymentName = deploymentName;
+            ModuleName = moduleName;
+            _publishedNodesFile = publishedNodesFile ?? TestConstants.PublishedNodesFullName;
+            _pkiPath = pkiPath ?? (TestConstants.PublishedNodesFolder + "/pki");
         }
 
         /// <inheritdoc />
@@ -38,7 +61,7 @@ namespace OpcPublisherAEE2ETests.Deploy
         protected override string TargetCondition => kTargetCondition;
 
         /// <inheritdoc />
-        public override string ModuleName => kModuleName;
+        public override string ModuleName { get; }
 
         /// <inheritdoc />
         protected override IDictionary<string, IDictionary<string, object>> CreateDeploymentModules()
@@ -77,10 +100,10 @@ namespace OpcPublisherAEE2ETests.Deploy
                 Hostname = ModuleName,
                 User = "root",
                 Cmd = new[] {
-                    "--pki=" + TestConstants.PublishedNodesFolder + "/pki",
+                    "--pki=" + _pkiPath,
                     "--dm", // Disable metadata support
                     "--aa",
-                    "--pf=" + TestConstants.PublishedNodesFullName,
+                    "--pf=" + _publishedNodesFile,
                     "--mm=" + MessagingMode.ToString(),
                     "--fm=true",
                     "--RuntimeStateReporting=true"
@@ -145,6 +168,8 @@ namespace OpcPublisherAEE2ETests.Deploy
             return JsonConvert.DeserializeObject<IDictionary<string, IDictionary<string, object>>>(content);
         }
 
+        private readonly string _publishedNodesFile;
+        private readonly string _pkiPath;
         private const string kModuleName = "publisher_standalone";
         private const string kDeploymentName = "__default-opcpublisher-standalone";
         private const string kTargetCondition = "(tags.__type__ = 'iiotedge' AND IS_DEFINED(tags.unmanaged))";

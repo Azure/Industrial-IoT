@@ -201,8 +201,115 @@ namespace OpcPublisherAEE2ETests
         }
 
         /// <summary>
-        /// Wait until one successful deployment is reported.
+        /// Create a second, non-conflicting publisher deployment (distinct module identity)
+        /// and wait for it to connect. Used to test features - such as a per writer group
+        /// IoT Hub device connection string - without disturbing the default standalone
+        /// publisher module deployed for the other tests.
         /// </summary>
+        /// <param name="publisher"> The publisher deployment describing the second identity </param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public async Task<string> DeployStandalonePublisherAsync(
+            IoTHubPublisherDeployment publisher,
+            CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(publisher);
+
+            // Create base edge deployment (idempotent - shared with the default publisher).
+            var edgeBase = new IoTHubEdgeBaseDeployment(_context);
+            var baseDeploymentResult = await edgeBase.CreateOrUpdateLayeredDeploymentAsync(ct);
+            Assert.True(baseDeploymentResult, "Failed to create/update new edge base deployment.");
+            _context.OutputHelper.WriteLine("Created/Updated new edge base deployment.");
+
+            await TestHelper.SwitchToStandaloneModeAsync(_context, ct);
+
+            // Create new layered edge deployment for the second publisher identity.
+            var layeredDeploymentResult = await publisher.CreateOrUpdateLayeredDeploymentAsync(ct);
+            Assert.True(layeredDeploymentResult,
+                $"Failed to create/update layered deployment for module {publisher.ModuleName}.");
+            _context.OutputHelper.WriteLine(
+                $"Created/Updated layered deployment for module {publisher.ModuleName}.");
+
+            // We will wait for module to be deployed.
+            await WaitForSuccessfulDeploymentAsync(publisher.GetDeploymentConfiguration(), ct);
+            await WaitForIIoTModulesConnectedAsync(_context.DeviceConfig.DeviceId, ct,
+                new string[] { publisher.ModuleName });
+
+            _context.OutputHelper.WriteLine(
+                $"OPC Publisher module {publisher.ModuleName} is up and running.");
+
+            return publisher.ModuleName;
+        }
+
+        /// <summary>
+        /// Register (if necessary) an IoT Hub device identity that acts as a child device
+        /// of the edge device and return a device connection string for it. The connection
+        /// string can be handed to a writer group via WriterGroupTransportConfiguration so
+        /// that the writer group publishes to IoT Hub under this child device identity.
+        /// </summary>
+        /// <param name="childDeviceId"> Identifier of the child device to create </param>
+        /// <param name="ct"></param>
+        /// <returns> A device connection string for the child device </returns>
+        public async Task<string> GetOrCreateChildDeviceConnectionStringAsync(
+            string childDeviceId,
+            CancellationToken ct = default)
+        {
+            ArgumentException.ThrowIfNullOrEmpty(childDeviceId);
+
+            var device = await RegistryManager.GetDeviceAsync(childDeviceId, ct).ConfigureAwait(false);
+            if (device == null)
+            {
+                device = await RegistryManager.AddDeviceAsync(new Device(childDeviceId)
+                {
+                    // Scope the device under the edge device so it is a child device.
+                    Scope = await GetEdgeDeviceScopeAsync(ct).ConfigureAwait(false)
+                }, ct).ConfigureAwait(false);
+                _context.OutputHelper.WriteLine($"Created child device {childDeviceId}.");
+            }
+
+            var hostName = IotHubConnectionStringBuilder
+                .Create(_context.IoTHubConfig.IoTHubConnectionString).HostName;
+            var key = device.Authentication.SymmetricKey.PrimaryKey;
+            return $"HostName={hostName};DeviceId={childDeviceId};SharedAccessKey={key}";
+        }
+
+        /// <summary>
+        /// Remove a device identity (best effort). Used to clean up child devices.
+        /// </summary>
+        /// <param name="deviceId"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public async Task RemoveDeviceAsync(string deviceId, CancellationToken ct = default)
+        {
+            try
+            {
+                await RegistryManager.RemoveDeviceAsync(deviceId, ct).ConfigureAwait(false);
+                _context.OutputHelper.WriteLine($"Removed device {deviceId}.");
+            }
+            catch (DeviceNotFoundException)
+            {
+                // Already removed - nothing to do.
+            }
+            catch (Exception e)
+            {
+                _context.OutputHelper.WriteLine($"Failed to remove device {deviceId}: {e.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Get the device scope of the edge device so that child devices can be scoped
+        /// underneath it.
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        private async Task<string> GetEdgeDeviceScopeAsync(CancellationToken ct)
+        {
+            var edgeDevice = await RegistryManager
+                .GetDeviceAsync(_context.DeviceConfig.DeviceId, ct).ConfigureAwait(false);
+            return edgeDevice?.Scope;
+        }
+
+
         /// <param name="deploymentConfiguration"></param>
         /// <param name="ct"></param>
         public async Task WaitForSuccessfulDeploymentAsync(
