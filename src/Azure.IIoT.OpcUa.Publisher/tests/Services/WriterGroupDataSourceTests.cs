@@ -94,7 +94,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             // Arrange - a single writer with security disabled and user name
             // authentication so we can verify the endpoint identification info
             // that is returned alongside the failed node errors.
-            var group = ToSecuredWriterGroup("Asset1", "opc.tcp://opcplc:50000",
+            var group = ToWriterGroupWithUserAuth("Asset1", "opc.tcp://opcplc:50000",
                 "Usr", "ns=2;s=0");
 
             var subscribers = new List<ISubscriber>();
@@ -176,7 +176,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             return Assert.Single(_converter.ToWriterGroups(entries));
         }
 
-        private WriterGroupModel ToSecuredWriterGroup(string writerGroup, string endpointUrl,
+        private WriterGroupModel ToWriterGroupWithUserAuth(string writerGroup, string endpointUrl,
             string userName, string nodeId)
         {
             var pn = $$"""
