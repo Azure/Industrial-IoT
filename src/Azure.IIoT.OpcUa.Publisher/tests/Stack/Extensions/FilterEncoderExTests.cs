@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly.Extensions.Serializers.Newtonsoft;
     using Opc.Ua;
     using Xunit;
 
@@ -15,8 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     {
         private static IVariantEncoder CreateEncoder()
         {
-            return new JsonVariantEncoder(new ServiceMessageContext(),
-                new NewtonsoftJsonSerializer());
+            return new JsonVariantEncoder(new ServiceMessageContext());
         }
 
         [Fact]

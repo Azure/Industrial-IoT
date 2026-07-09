@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Encoders
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly.Extensions.Serializers;
     using Furly.Extensions.Utils;
     using Opc.Ua;
     using System;
@@ -28,11 +27,9 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// Create encoder
         /// </summary>
         /// <param name="context"></param>
-        /// <param name="serializer"></param>
-        public JsonVariantEncoder(IServiceMessageContext context, IJsonSerializer serializer)
+        public JsonVariantEncoder(IServiceMessageContext context)
         {
             Context = context;
-            _ = serializer;
         }
 
         /// <inheritdoc/>

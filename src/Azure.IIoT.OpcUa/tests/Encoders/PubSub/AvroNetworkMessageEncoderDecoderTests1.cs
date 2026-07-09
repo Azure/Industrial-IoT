@@ -5,14 +5,14 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
+    using Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Encoders.Schemas.Avro;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Avro;
-    using Furly.Extensions.Serializers;
-    using Furly.Extensions.Serializers.Newtonsoft;
     using Opc.Ua;
     using System;
+    using System.Text.Json.Nodes;
     using System.Collections.Generic;
     using System.Linq;
     using Xunit;
@@ -294,12 +294,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 .SelectMany(buffer => ((BaseNetworkMessage)PubSubMessage
                     .Decode(buffer, networkMessage.ContentType, context, messageSchema: json)).Messages)
                 .SelectMany(m => m.Payload.DataSetFields)
-                .Select(v => (v.Name, v.Value?.Value))
+                .Select(v => new { v.Name, Value = v.Value?.Value })
                 .ToList();
-            var serializer = new NewtonsoftJsonSerializer();
-            var expected = serializer.Parse(serializer.SerializeToString(messages
+            var expected = Json.Parse(Json.SerializeToString(messages
                 .SelectMany(m => m.Payload.DataSetFields)
-                .Select(v => (v.Name, v.Value?.Value))
+                .Select(v => new { v.Name, Value = v.Value?.Value })
                 .ToList()));
         }
 
@@ -406,13 +405,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 .SelectMany(buffer => ((BaseNetworkMessage)PubSubMessage
                     .Decode(buffer, networkMessage.ContentType, context, messageSchema: json)).Messages)
                 .SelectMany(m => m.Payload.DataSetFields)
-                .Select(v => (v.Name, v.Value?.Value))
+                .Select(v => new { v.Name, Value = v.Value?.Value })
                 .ToList();
-            var serializer = new NewtonsoftJsonSerializer();
 
-            var expected = serializer.Parse(serializer.SerializeToString(messages
+            var expected = Json.Parse(Json.SerializeToString(messages
                 .SelectMany(m => m.Payload.DataSetFields)
-                .Select(v => (v.Name, v.Value?.Value))
+                .Select(v => new { v.Name, Value = v.Value?.Value })
                 .ToList()));
         }
 
@@ -515,19 +513,18 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             ConvertToOpcUaUniversalTime(networkMessage);
 
             // Compare payload as raw data equivalent
-            var serializer = new NewtonsoftJsonSerializer();
-            var result = serializer.Parse(serializer.SerializeToString(buffers
+            var result = Json.Parse(Json.SerializeToString(buffers
                 .SelectMany(buffer => ((BaseNetworkMessage)PubSubMessage
                     .Decode(buffer, networkMessage.ContentType, context, messageSchema: json)).Messages)
                 .SelectMany(m => m.Payload.DataSetFields)
-                .Select(v => (v.Name, v.Value?.Value))
+                .Select(v => new { v.Name, Value = v.Value?.Value })
                 .ToList()));
-            var expected = serializer.Parse(serializer.SerializeToString(messages
+            var expected = Json.Parse(Json.SerializeToString(messages
                 .SelectMany(m => m.Payload.DataSetFields)
-                .Select(v => (v.Name, v.Value?.Value))
+                .Select(v => new { v.Name, Value = v.Value?.Value })
                 .ToList()));
 
-            Assert.Equal(expected, result);
+            Assert.True(JsonNode.DeepEquals(expected, result));
         }
 
         [Theory]
@@ -565,19 +562,18 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             ConvertToOpcUaUniversalTime(networkMessage);
 
             // Compare payload as raw data equivalent
-            var serializer = new NewtonsoftJsonSerializer();
-            var result = serializer.Parse(serializer.SerializeToString(buffers
+            var result = Json.Parse(Json.SerializeToString(buffers
                 .SelectMany(buffer => ((BaseNetworkMessage)PubSubMessage
                     .Decode(buffer, networkMessage.ContentType, context, messageSchema: json)).Messages)
                 .SelectMany(m => m.Payload.DataSetFields)
-                .Select(v => (v.Name, v.Value?.Value))
+                .Select(v => new { v.Name, Value = v.Value?.Value })
                 .ToList()));
-            var expected = serializer.Parse(serializer.SerializeToString(messages
+            var expected = Json.Parse(Json.SerializeToString(messages
                 .SelectMany(m => m.Payload.DataSetFields)
-                .Select(v => (v.Name, v.Value?.Value))
+                .Select(v => new { v.Name, Value = v.Value?.Value })
                 .ToList()));
 
-            Assert.Equal(expected, result);
+            Assert.True(JsonNode.DeepEquals(expected, result));
         }
 
         [Theory]
@@ -615,20 +611,19 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             ConvertToOpcUaUniversalTime(networkMessage);
 
             // Compare payload as raw data equivalent
-            var serializer = new NewtonsoftJsonSerializer();
-            var result = serializer.Parse(serializer.SerializeToString(buffers
+            var result = Json.Parse(Json.SerializeToString(buffers
                 .SelectMany(buffer => ((BaseNetworkMessage)PubSubMessage
                     .Decode(buffer, networkMessage.ContentType, context, messageSchema: json)).Messages)
                 .SelectMany(m => m.Payload.DataSetFields)
                 .Where(m => m.Name != "6")
-                .Select(v => (v.Name, v.Value?.Value))
+                .Select(v => new { v.Name, Value = v.Value?.Value })
                 .ToList()));
-            var expected = serializer.Parse(serializer.SerializeToString(messages
+            var expected = Json.Parse(Json.SerializeToString(messages
                 .SelectMany(m => m.Payload.DataSetFields)
-                .Select(v => (v.Name, v.Value?.Value))
+                .Select(v => new { v.Name, Value = v.Value?.Value })
                 .ToList()));
 
-            Assert.Equal(expected, result);
+            Assert.True(JsonNode.DeepEquals(expected, result));
         }
 
         /// <summary>

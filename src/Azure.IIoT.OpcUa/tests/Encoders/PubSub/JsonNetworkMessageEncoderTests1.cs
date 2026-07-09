@@ -5,12 +5,13 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
+    using Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
-    using Furly.Extensions.Serializers;
-    using Furly.Extensions.Serializers.Newtonsoft;
     using Opc.Ua;
     using System;
+    using System.Buffers;
+    using System.Text.Json.Nodes;
     using System.Collections.Generic;
     using System.Globalization;
     using Xunit;
@@ -26,17 +27,17 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             simple.UseArrayEnvelope = useArrayEnvelope;
             var buffers = simple.Encode(new ServiceMessageContext(), 1024);
             var buffer = Assert.Single(buffers);
-            Assert.Equal(new NewtonsoftJsonSerializer().Parse("""
+            Assert.True(JsonNode.DeepEquals(Json.Parse("""
 
 [
   {
     "Temperature":25,
     "Pressure":1013,
-    "Humidity":42
+    "Humidiy":42
   }
 ]
 
-"""), new NewtonsoftJsonSerializer().Parse(buffer));
+"""), Json.Parse(buffer.ToArray())));
         }
 
         [Theory]
@@ -53,17 +54,17 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             // the value is encoded as variant using reversible encoding
             // Even if the datatset mask flag is not set. This is not logical.
             // The pub sub formatter behaves differently, it uses raw encoding.
-            Assert.Equal(new NewtonsoftJsonSerializer().Parse("""
+            Assert.True(JsonNode.DeepEquals(Json.Parse("""
 
 [
   {
     "Temperature":{"Type":6,"Body":25},
     "Pressure":{"Type":6,"Body":1013},
-    "Humidity":{"Type":6,"Body":42}
+    "Humidiy":{"Type":6,"Body":42}
   }
 ]
 
-"""), new NewtonsoftJsonSerializer().Parse(buffer));
+"""), Json.Parse(buffer.ToArray())));
         }
 
         [Theory]
@@ -75,17 +76,17 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             simple.UseArrayEnvelope = useArrayEnvelope;
             var buffers = simple.Encode(new ServiceMessageContext(), 1024);
             var buffer = Assert.Single(buffers);
-            Assert.Equal(new NewtonsoftJsonSerializer().Parse("""
+            Assert.True(JsonNode.DeepEquals(Json.Parse("""
 
 [
   {
     "Temperature":{"Value":25,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
     "Pressure":{"Value":1013,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
-    "Humidity":{"Value":42,"StatusCode":{"Code":1073741824,"Symbol":"Uncertain"},"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"}
+    "Humidiy":{"Value":42,"StatusCode":{"Code":1073741824,"Symbol":"Uncertain"},"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"}
   }
 ]
 
-"""), new NewtonsoftJsonSerializer().Parse(buffer));
+"""), Json.Parse(buffer.ToArray())));
         }
 
         [Theory]
@@ -97,7 +98,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             simple.UseArrayEnvelope = useArrayEnvelope;
             var buffers = simple.Encode(new ServiceMessageContext(), 1024);
             var buffer = Assert.Single(buffers);
-            Assert.Equal(new NewtonsoftJsonSerializer().Parse("""
+            Assert.True(JsonNode.DeepEquals(Json.Parse("""
 
 [
   {
@@ -108,12 +109,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     {
       "Temperature":{"Value":25,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
       "Pressure":{"Value":1013,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
-      "Humidity":{"Value":42,"StatusCode":{"Code":1073741824,"Symbol":"Uncertain"},"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"}
+      "Humidiy":{"Value":42,"StatusCode":{"Code":1073741824,"Symbol":"Uncertain"},"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"}
     }
   }
 ]
 
-"""), new NewtonsoftJsonSerializer().Parse(buffer));
+"""), Json.Parse(buffer.ToArray())));
         }
 
         [Fact]
@@ -122,7 +123,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var simple = CreateMessage(0x1b, 0xff, 0x1f);
             var buffers = simple.Encode(new ServiceMessageContext(), 1024);
             var buffer = Assert.Single(buffers);
-            Assert.Equal(new NewtonsoftJsonSerializer().Parse("""
+            Assert.True(JsonNode.DeepEquals(Json.Parse("""
 
 {
   "MessageId":"9279C0B3-DA88-45A4-AF74-451CEBF82DB0",
@@ -143,13 +144,13 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
       {
         "Temperature":{"Value":{"Type":6,"Body":25},"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
         "Pressure":{"Value":{"Type":6,"Body":1013},"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
-        "Humidity":{"Value":{"Type":6,"Body":42},"StatusCode":1073741824,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"}
+        "Humidiy":{"Value":{"Type":6,"Body":42},"StatusCode":1073741824,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"}
       }
     }
   ]
 }
 
-"""), new NewtonsoftJsonSerializer().Parse(buffer));
+"""), Json.Parse(buffer.ToArray())));
         }
 
         [Fact]
@@ -159,7 +160,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             simple.UseArrayEnvelope = true;
             var buffers = simple.Encode(new ServiceMessageContext(), 1024);
             var buffer = Assert.Single(buffers);
-            Assert.Equal(new NewtonsoftJsonSerializer().Parse("""
+            Assert.True(JsonNode.DeepEquals(Json.Parse("""
 
 [
   {
@@ -181,14 +182,14 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         {
           "Temperature":{"Value":{"Type":6,"Body":25},"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
           "Pressure":{"Value":{"Type":6,"Body":1013},"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
-          "Humidity":{"Value":{"Type":6,"Body":42},"StatusCode":1073741824,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"}
+          "Humidiy":{"Value":{"Type":6,"Body":42},"StatusCode":1073741824,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"}
         }
       }
     ]
   }
 ]
 
-"""), new NewtonsoftJsonSerializer().Parse(buffer));
+"""), Json.Parse(buffer.ToArray())));
         }
 
         [Fact]
@@ -197,7 +198,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var simple = CreateMessage(0x1b, 0x7f, 0x1f);
             var buffers = simple.Encode(new ServiceMessageContext(), 1024);
             var buffer = Assert.Single(buffers);
-            Assert.Equal(new NewtonsoftJsonSerializer().Parse("""
+            Assert.True(JsonNode.DeepEquals(Json.Parse("""
 
 {
   "MessageId":"9279C0B3-DA88-45A4-AF74-451CEBF82DB0",
@@ -218,13 +219,13 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
       {
         "Temperature":{"Value":25,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
         "Pressure":{"Value":1013,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
-        "Humidity":{"Value":42,"StatusCode":{"Code":1073741824,"Symbol":"Uncertain"},"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"}
+        "Humidiy":{"Value":42,"StatusCode":{"Code":1073741824,"Symbol":"Uncertain"},"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"}
       }
     }
   ]
 }
 
-"""), new NewtonsoftJsonSerializer().Parse(buffer));
+"""), Json.Parse(buffer.ToArray())));
         }
 
         [Fact]
@@ -233,15 +234,15 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var simple = CreateMessage(0x1c, 0x62, 0x1f);
             var buffers = simple.Encode(new ServiceMessageContext(), 1024);
             var buffer = Assert.Single(buffers);
-            Assert.Equal(new NewtonsoftJsonSerializer().Parse("""
+            Assert.True(JsonNode.DeepEquals(Json.Parse("""
 
 {
   "Temperature":{"Value":25,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
   "Pressure":{"Value":1013,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
-  "Humidity":{"Value":42,"StatusCode":{"Code":1073741824,"Symbol":"Uncertain"},"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"}
+  "Humidiy":{"Value":42,"StatusCode":{"Code":1073741824,"Symbol":"Uncertain"},"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"}
 }
 
-"""), new NewtonsoftJsonSerializer().Parse(buffer));
+"""), Json.Parse(buffer.ToArray())));
         }
 
         [Fact]
@@ -250,7 +251,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var simple = CreateMessage(0x1e, 0x62, 0x1f);
             var buffers = simple.Encode(new ServiceMessageContext(), 1024);
             var buffer = Assert.Single(buffers);
-            Assert.Equal(new NewtonsoftJsonSerializer().Parse("""
+            Assert.True(JsonNode.DeepEquals(Json.Parse("""
 
 {
   "MetaDataVersion":{"MajorVersion":672338910,"MinorVersion":672341762},
@@ -260,11 +261,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
   {
     "Temperature":{"Value":25,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
     "Pressure":{"Value":1013,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
-    "Humidity":{"Value":42,"StatusCode":{"Code":1073741824,"Symbol":"Uncertain"},"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"}
+    "Humidiy":{"Value":42,"StatusCode":{"Code":1073741824,"Symbol":"Uncertain"},"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"}
   }
 }
 
-"""), new NewtonsoftJsonSerializer().Parse(buffer));
+"""), Json.Parse(buffer.ToArray())));
         }
 
         [Fact]
@@ -273,7 +274,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var simple = CreateMessage(0x1f, 0xff, 0x1f);
             var buffers = simple.Encode(new ServiceMessageContext(), 1024);
             var buffer = Assert.Single(buffers);
-            Assert.Equal(new NewtonsoftJsonSerializer().Parse("""
+            Assert.True(JsonNode.DeepEquals(Json.Parse("""
 
 {
   "MessageId":"9279C0B3-DA88-45A4-AF74-451CEBF82DB0",
@@ -293,12 +294,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     {
       "Temperature":{"Value":{"Type":6,"Body":25},"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
       "Pressure":{"Value":{"Type":6,"Body":1013},"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
-      "Humidity":{"Value":{"Type":6,"Body":42},"StatusCode":1073741824,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"}
+      "Humidiy":{"Value":{"Type":6,"Body":42},"StatusCode":1073741824,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"}
     }
   }
 }
 
-"""), new NewtonsoftJsonSerializer().Parse(buffer));
+"""), Json.Parse(buffer.ToArray())));
         }
 
         [Fact]
@@ -307,7 +308,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var simple = CreateMessage(0x1f, 0x7f, 0x1f);
             var buffers = simple.Encode(new ServiceMessageContext(), 1024);
             var buffer = Assert.Single(buffers);
-            Assert.Equal(new NewtonsoftJsonSerializer().Parse("""
+            Assert.True(JsonNode.DeepEquals(Json.Parse("""
 
 {
   "MessageId":"9279C0B3-DA88-45A4-AF74-451CEBF82DB0",
@@ -327,12 +328,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     {
       "Temperature":{"Value":25,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
       "Pressure":{"Value":1013,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
-      "Humidity":{"Value":42,"StatusCode":{"Code":1073741824,"Symbol":"Uncertain"},"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"}
+      "Humidiy":{"Value":42,"StatusCode":{"Code":1073741824,"Symbol":"Uncertain"},"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"}
     }
   }
 }
 
-"""), new NewtonsoftJsonSerializer().Parse(buffer));
+"""), Json.Parse(buffer.ToArray())));
         }
 
         [Fact]
@@ -341,7 +342,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             var simple = CreateMessage(0x1f, 0x7f, 0x3f);
             var buffers = simple.Encode(new ServiceMessageContext(), 1024);
             var buffer = Assert.Single(buffers);
-            Assert.Equal(new NewtonsoftJsonSerializer().Parse("""
+            Assert.True(JsonNode.DeepEquals(Json.Parse("""
 
 {
   "MessageId":"9279C0B3-DA88-45A4-AF74-451CEBF82DB0",
@@ -361,12 +362,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     {
       "Temperature":25,
       "Pressure":1013,
-      "Humidity":42
+      "Humidiy":42
     }
   }
 }
 
-"""), new NewtonsoftJsonSerializer().Parse(buffer));
+"""), Json.Parse(buffer.ToArray())));
         }
 
         [Fact]
@@ -376,7 +377,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             simple.UseArrayEnvelope = true;
             var buffers = simple.Encode(new ServiceMessageContext(), 1024);
             var buffer = Assert.Single(buffers);
-            Assert.Equal(new NewtonsoftJsonSerializer().Parse("""
+            Assert.True(JsonNode.DeepEquals(Json.Parse("""
 
 [
   {
@@ -397,13 +398,13 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
       {
         "Temperature":{"Value":25},
         "Pressure":{"Value":1013},
-        "Humidity":{"Value":42,"StatusCode":{"Code":1073741824,"Symbol":"Uncertain"}}
+        "Humidiy":{"Value":42,"StatusCode":{"Code":1073741824,"Symbol":"Uncertain"}}
       }
     }
   }
 ]
 
-"""), new NewtonsoftJsonSerializer().Parse(buffer));
+"""), Json.Parse(buffer.ToArray())));
         }
 
         [Fact]
@@ -413,7 +414,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             simple.UseArrayEnvelope = true;
             var buffers = simple.Encode(new ServiceMessageContext(), 1024);
             var buffer = Assert.Single(buffers);
-            Assert.Equal(new NewtonsoftJsonSerializer().Parse("""
+            Assert.True(JsonNode.DeepEquals(Json.Parse("""
 
 [
   {
@@ -434,12 +435,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
       {
         "Temperature":{"Value":25,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
         "Pressure":{"Value":1013,"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"},
-        "Humidity":{"Value":42,"StatusCode":{"Code":1073741824,"Symbol":"Uncertain"},"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"}
+        "Humidiy":{"Value":42,"StatusCode":{"Code":1073741824,"Symbol":"Uncertain"},"SourceTimestamp":"2021-09-27T18:45:19.555Z","ServerTimestamp":"2021-09-27T18:45:19.555Z"}
       }
     }
   }
 ]
-"""), new NewtonsoftJsonSerializer().Parse(buffer));
+"""), Json.Parse(buffer.ToArray())));
         }
 
         private static JsonNetworkMessage CreateMessage(uint messageMask, uint datasetMask, uint fieldMask)

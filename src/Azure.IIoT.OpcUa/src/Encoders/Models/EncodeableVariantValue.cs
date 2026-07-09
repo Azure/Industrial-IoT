@@ -5,9 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.Models
 {
-    using Furly.Extensions.Serializers;
     using Opc.Ua;
-    using System;
     using System.Text.Json.Nodes;
 
     /// <summary>
@@ -23,11 +21,9 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         /// <summary>
         /// Create encodeable token
         /// </summary>
-        /// <param name="serializer"></param>
         /// <param name="value"></param>
-        public EncodeableVariantValue(IJsonSerializer serializer, JsonNode? value = null)
+        public EncodeableVariantValue(JsonNode? value = null)
         {
-            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             Value = value;
         }
 
@@ -72,9 +68,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         /// <inheritdoc/>
         public object Clone()
         {
-            return new EncodeableVariantValue(_serializer, Value?.DeepClone());
+            return new EncodeableVariantValue(Value?.DeepClone());
         }
-
-        private readonly IJsonSerializer _serializer;
     }
 }

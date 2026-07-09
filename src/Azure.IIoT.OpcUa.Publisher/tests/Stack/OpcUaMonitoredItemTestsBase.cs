@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Furly.Extensions.Logging;
-    using Furly.Extensions.Serializers.Newtonsoft;
     using Moq;
     using Opc.Ua;
     using Opc.Ua.Client;
@@ -69,7 +68,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             {
                 NamespaceUris = namespaceTable
             };
-            var codec = new JsonVariantEncoder(messageContext, new NewtonsoftJsonSerializer());
+            var codec = new JsonVariantEncoder(messageContext);
             session.SetupGet(x => x.Codec).Returns(codec);
             session.SetupGet(x => x.LruNodeCache).Returns(nodeCache);
             session.SetupGet(x => x.MessageContext).Returns(messageContext);

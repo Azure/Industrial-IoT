@@ -1467,8 +1467,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         return Array.Empty<(string, Opc.Ua.DataValue?)>();
                     }
                     var extensions = new List<(string, Opc.Ua.DataValue?)>();
-                    var encoder = new JsonVariantEncoder(new Opc.Ua.ServiceMessageContext(),
-                        _serializer);
+                    var encoder = new JsonVariantEncoder(new Opc.Ua.ServiceMessageContext());
                     foreach (var field in extensionFields)
                     {
                         extensions.Add((field.DataSetFieldName,

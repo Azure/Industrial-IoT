@@ -5,12 +5,12 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
+    using Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly.Extensions.Serializers;
-    using Furly.Extensions.Serializers.Newtonsoft;
     using Opc.Ua;
     using System;
+    using System.Text.Json.Nodes;
     using System.Buffers;
     using System.Collections.Generic;
     using System.Linq;
@@ -313,7 +313,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             ConvertToOpcUaUniversalTime(networkMessage);
 
             // Compare payload as raw data equivalent
-            var serializer = new NewtonsoftJsonSerializer();
 
             var decodedMessages = PubSubMessage
                 .Decode(CreateReader(buffers), networkMessage.ContentType, context, this)
@@ -321,16 +320,16 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 .SelectMany(m => m.Messages)
                 .ToList();
 
-            var result = serializer.Parse(serializer.SerializeToString(decodedMessages
+            var result = Json.Parse(Json.SerializeToString(decodedMessages
                 .SelectMany(m => m.Payload.DataSetFields)
-                .Select(v => (v.Name, v.Value.Value))
+                .Select(v => new { v.Name, Value = v.Value.Value })
                 .ToList()));
-            var expected = serializer.Parse(serializer.SerializeToString(messages
+            var expected = Json.Parse(Json.SerializeToString(messages
                 .SelectMany(m => m.Payload.DataSetFields)
-                .Select(v => (v.Name, v.Value.Value))
+                .Select(v => new { v.Name, Value = v.Value.Value })
                 .ToList()));
 
-            Assert.Equal(expected, result);
+            Assert.True(JsonNode.DeepEquals(expected, result));
         }
 
         /// <summary>

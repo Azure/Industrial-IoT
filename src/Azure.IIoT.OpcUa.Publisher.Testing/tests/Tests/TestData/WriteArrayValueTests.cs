@@ -682,7 +682,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10321";
 
-            var encoder = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
+            var encoder = new JsonVariantEncoder(new ServiceMessageContext());
             var values = _generator.GetRandomArray<string>();
             var expected = JsonNodeValueExtensions.FromObject(_serializer, values
                 .Select((object v) =>

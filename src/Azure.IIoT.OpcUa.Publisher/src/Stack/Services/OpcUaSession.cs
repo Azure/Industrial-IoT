@@ -111,7 +111,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             CreatedAt = _timeProvider.GetUtcNow();
 
             Initialize();
-            Codec = new JsonVariantEncoder(MessageContext, serializer);
+            Codec = new JsonVariantEncoder(MessageContext);
         }
 
         /// <summary>
@@ -140,7 +140,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _server = session._server;
 
             Initialize();
-            Codec = new JsonVariantEncoder(MessageContext, _serializer);
+            Codec = new JsonVariantEncoder(MessageContext);
         }
 
         /// <inheritdoc/>
