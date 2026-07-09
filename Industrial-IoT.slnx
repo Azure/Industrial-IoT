@@ -7,6 +7,7 @@
     <File Path=".editorconfig" />
   </Folder>
   <Folder Name="/src/">
+    <Project Path="src/Azure.IIoT.OpcUa.Core/src/Azure.IIoT.OpcUa.Core.csproj" />
     <Project Path="src/Azure.IIoT.OpcUa.Publisher.Models/src/Azure.IIoT.OpcUa.Publisher.Models.csproj" />
     <Project Path="src/Azure.IIoT.OpcUa.Publisher.Module/src/Azure.IIoT.OpcUa.Publisher.Module.csproj" />
     <Project Path="src/Azure.IIoT.OpcUa.Publisher.Sdk/src/Azure.IIoT.OpcUa.Publisher.Sdk.csproj" />
@@ -16,6 +17,7 @@
     <Project Path="src/Azure.IIoT.OpcUa/src/Azure.IIoT.OpcUa.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="src/Azure.IIoT.OpcUa.Core/tests/Azure.IIoT.OpcUa.Core.Tests.csproj" />
     <Project Path="src/Azure.IIoT.OpcUa.Publisher.Models/tests/Azure.IIoT.OpcUa.Publisher.Models.Tests.csproj" />
     <Project Path="src/Azure.IIoT.OpcUa.Publisher.Module/tests/Azure.IIoT.OpcUa.Publisher.Module.Tests.csproj" />
     <Project Path="src/Azure.IIoT.OpcUa.Publisher/tests/Azure.IIoT.OpcUa.Publisher.Tests.csproj" />

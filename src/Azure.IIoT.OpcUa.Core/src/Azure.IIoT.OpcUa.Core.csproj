@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Nullable>enable</Nullable>
+    <!--
+      OPC Publisher 3.0 core: the single owned foundation project that replaces
+      the Furly NuGet dependencies (serializers, messaging, storage, IoT Edge +
+      tunnel, AspNetCore helpers). System.Text.Json only; Native-AOT + trim clean.
+    -->
+    <IIoTNativeAot>true</IIoTNativeAot>
+  </PropertyGroup>
+</Project>
