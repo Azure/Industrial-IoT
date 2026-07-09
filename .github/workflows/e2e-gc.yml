@@ -4,8 +4,9 @@ name: E2E GC
 # hard crash, OOM, or a network blip during cleanup can leave the RG orphaned and
 # burning money. This catches those.
 #
-# Heuristic: delete any RG whose name starts with `rg-iiot-e2e-` AND that was created
-# more than 24 hours ago AND that doesn't have the DoNotDelete=true tag.
+# Heuristic: delete any RG whose name starts with `e2etesting` (the auto-generated
+# `e2etesting<YYYYMMDD><run_id>` pattern created by e2e-standalone.yml) whose
+# embedded date is older than a 24h cutoff, unless it carries a DoNotDelete=true tag.
 
 on:
   schedule:
@@ -32,33 +33,35 @@ jobs:
         shell: bash
         run: |
           set -eu
-          CUTOFF=$(date -u -d '24 hours ago' +%Y-%m-%dT%H:%M:%SZ)
-          echo "Looking for rg-iiot-e2e-* RGs created before $CUTOFF without DoNotDelete=true tag..."
+          # RGs are named e2etesting<YYYYMMDD><run_id> by e2e-standalone.yml's init
+          # job and are tagged only with TestingResourcesSuffix (no CreatedAt tag),
+          # so derive age from the date embedded in the name. Delete anything whose
+          # date is older than the 24h cutoff unless it carries DoNotDelete=true.
+          CUTOFF=$(date -u -d '24 hours ago' +%Y%m%d)
+          echo "Deleting e2etesting* RGs whose embedded date is before $CUTOFF (unless DoNotDelete=true)..."
 
-          # az resource list does not directly support RG-level creation time filtering,
-          # so we list and filter client-side.
           RGS=$(az group list \
-            --query "[?starts_with(name, 'rg-iiot-e2e-')].{name:name, tags:tags}" \
+            --query "[?starts_with(name, 'e2etesting')].{name:name, tags:tags}" \
             -o json)
 
           echo "$RGS" | jq -c '.[]' | while read -r rg; do
             NAME=$(echo "$rg" | jq -r .name)
             DND=$(echo "$rg" | jq -r '.tags.DoNotDelete // ""')
-            CREATED=$(echo "$rg" | jq -r '.tags.CreatedAt // ""')
             if [ "$DND" = "true" ]; then
               echo "SKIP: $NAME (DoNotDelete=true)"
               continue
             fi
-            if [ -z "$CREATED" ]; then
-              # No CreatedAt tag — be conservative, skip. This avoids deleting RGs
-              # created out-of-band.
-              echo "SKIP: $NAME (no CreatedAt tag)"
+            # Extract the 8-digit date that follows the 'e2etesting' prefix.
+            REST=${NAME#e2etesting}
+            RGDATE=${REST:0:8}
+            if ! printf '%s' "$RGDATE" | grep -Eq '^[0-9]{8}$'; then
+              echo "SKIP: $NAME (no parseable date in name)"
               continue
             fi
-            if [[ "$CREATED" < "$CUTOFF" ]]; then
-              echo "DELETE: $NAME (created $CREATED, cutoff $CUTOFF)"
+            if [ "$RGDATE" -lt "$CUTOFF" ]; then
+              echo "DELETE: $NAME (date $RGDATE < cutoff $CUTOFF)"
               az group delete -n "$NAME" --yes --no-wait || true
             else
-              echo "KEEP: $NAME (created $CREATED is newer than cutoff)"
+              echo "KEEP: $NAME (date $RGDATE >= cutoff $CUTOFF)"
             fi
           done

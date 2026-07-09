@@ -200,6 +200,37 @@ namespace OpcPublisherAEE2ETests
         }
 
         /// <summary>
+        /// Retrieve the recent logs of an IoT Edge module from the edge VM. Best
+        /// effort - intended for surfacing the cause of a failed direct method call
+        /// (which the module logs at Error) into the test output, since the module
+        /// container logs are otherwise not collected by the E2E pipeline.
+        /// </summary>
+        /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
+        /// <param name="moduleName">The IoT Edge module whose logs to fetch</param>
+        /// <param name="tail">Number of trailing log lines to fetch</param>
+        /// <param name="ct"></param>
+        public static async Task<string> GetModuleLogsAsync(IIoTPlatformTestContext context,
+            string moduleName, int tail = 1000, CancellationToken ct = default)
+        {
+            try
+            {
+                using var client = await CreateSshClientAndConnectAsync(context, ct).ConfigureAwait(false);
+                var command = client.RunCommand(
+                    $"sudo iotedge logs {moduleName} --tail {tail} 2>&1");
+                var output = command.Result;
+                if (string.IsNullOrWhiteSpace(output) && !string.IsNullOrWhiteSpace(command.Error))
+                {
+                    output = command.Error;
+                }
+                return output;
+            }
+            catch (Exception ex)
+            {
+                return $"Failed to read logs for module {moduleName}: {ex.Message}";
+            }
+        }
+
+        /// <summary>
         /// Create a new ScpClient based on SshConfig and directly connects to host
         /// </summary>
         /// <param name="context">Shared Context for E2E testing Industrial IoT Platform</param>
