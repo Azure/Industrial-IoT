@@ -744,6 +744,45 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
+        /// Decide whether the max monitored items per subscription partition
+        /// should be reduced and the subscriptions repartitioned in response to
+        /// the server reporting <c>Bad_TooManyMonitoredItems</c> for one or more
+        /// items.
+        ///
+        /// When the server rejects items with that status, the number of items
+        /// it did create successfully (<paramref name="revisedMaxMonitoredItems"/>)
+        /// is a better, lower estimate of the actual per-subscription limit than
+        /// the value used to partition. Repartitioning is only useful when this
+        /// new estimate is a positive number strictly smaller than the current
+        /// limit (guaranteeing the limit shrinks on each attempt so the retry
+        /// loop terminates) and the attempt count has not exceeded
+        /// <paramref name="maxAttempts"/>.
+        /// </summary>
+        /// <param name="revisedMaxMonitoredItems">Number of successfully created
+        /// items, or <c>null</c> when the server did not report
+        /// <c>Bad_TooManyMonitoredItems</c>.</param>
+        /// <param name="currentMax">The current max monitored items per partition.</param>
+        /// <param name="attempt">Zero-based repartition attempt counter.</param>
+        /// <param name="maxAttempts">Maximum number of repartition attempts.</param>
+        /// <param name="newMax">The reduced max to repartition with when the
+        /// method returns <c>true</c>; otherwise <paramref name="currentMax"/>.</param>
+        /// <returns><c>true</c> when the caller should repartition using
+        /// <paramref name="newMax"/>.</returns>
+        internal static bool ShouldReducePartitionSize(int? revisedMaxMonitoredItems,
+            int currentMax, int attempt, int maxAttempts, out int newMax)
+        {
+            if (revisedMaxMonitoredItems is > 0 &&
+                revisedMaxMonitoredItems.Value < currentMax &&
+                attempt < maxAttempts)
+            {
+                newMax = revisedMaxMonitoredItems.Value;
+                return true;
+            }
+            newMax = currentMax;
+            return false;
+        }
+
+        /// <summary>
         /// Create or update the subscription now using the currently configured
         /// subscription configuration template.
         /// </summary>
@@ -779,38 +818,80 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // Force recreate all subscriptions in the chain if needed
             await ForceRecreateIfNeededAsync(session).ConfigureAwait(false);
 
-            // Parition the monitored items across subscriptions
-            var partitions = Partition.Create(_client.GetSubscribers(Template),
-                maxMonitoredItems, _options.Value);
+            OpcUaSubscription subscriptionPartition;
 
-            var subscriptionPartition = this; // The root is the default
-            for (var partitionIdx = 0; partitionIdx < partitions.Count; partitionIdx++)
+            //
+            // Partition the monitored items across subscriptions and synchronize.
+            //
+            // If the server reports Bad_TooManyMonitoredItems for any item in a
+            // partition, the number of successfully created items in that
+            // partition is a better (lower) estimate of the actual per
+            // subscription limit than the value we used to partition. We reduce
+            // the max monitored items per subscription to that number and
+            // repartition the root and all child subscriptions with it. The
+            // limit is guaranteed to strictly decrease on every repartition so
+            // the loop always terminates, and we additionally cap the number of
+            // attempts as a defense in depth.
+            //
+            for (var attempt = 0; ; attempt++)
             {
-                // Synchronize the subscription of this partition
-                await subscriptionPartition.SynchronizeSubscriptionAsync(
-                    ct).ConfigureAwait(false);
+                retryDelay = TimeSpan.MaxValue;
 
-                // Add partitioned items
-                var partition = partitions[partitionIdx];
-                var delay = await subscriptionPartition.SynchronizeMonitoredItemsAsync(
-                    partition, limits, ct).ConfigureAwait(false);
-                if (retryDelay > delay)
+                // Partition the monitored items across subscriptions
+                var partitions = Partition.Create(_client.GetSubscribers(Template),
+                    maxMonitoredItems, _options.Value);
+
+                subscriptionPartition = this; // The root is the default
+                int? revisedMax = null;
+                for (var partitionIdx = 0; partitionIdx < partitions.Count; partitionIdx++)
                 {
-                    retryDelay = delay;
+                    // Synchronize the subscription of this partition
+                    await subscriptionPartition.SynchronizeSubscriptionAsync(
+                        ct).ConfigureAwait(false);
+
+                    // Add partitioned items
+                    var partition = partitions[partitionIdx];
+                    var (delay, partitionRevisedMax) =
+                        await subscriptionPartition.SynchronizeMonitoredItemsAsync(
+                            partition, limits, ct).ConfigureAwait(false);
+                    if (retryDelay > delay)
+                    {
+                        retryDelay = delay;
+                    }
+                    if (partitionRevisedMax is > 0 &&
+                        (!revisedMax.HasValue || partitionRevisedMax.Value < revisedMax.Value))
+                    {
+                        revisedMax = partitionRevisedMax;
+                    }
+
+                    if (partitionIdx == partitions.Count - 1)
+                    {
+                        break;
+                    }
+
+                    // Get or create a child subscription
+                    subscriptionPartition = subscriptionPartition.GetChildSubscription(true);
+                    if (subscriptionPartition == null)
+                    {
+                        throw ServiceResultException.Create(StatusCodes.BadUnexpectedError,
+                            "Failed to create child subscription.");
+                    }
                 }
 
-                if (partitionIdx == partitions.Count - 1)
+                //
+                // Repartition with the reduced limit if the server signalled
+                // Bad_TooManyMonitoredItems and we can make progress (the new
+                // limit is a positive number smaller than the current one).
+                //
+                if (ShouldReducePartitionSize(revisedMax, maxMonitoredItems,
+                    attempt, kMaxRepartitionAttempts, out var reducedMax))
                 {
-                    break;
+                    _logger.RepartitioningDueToTooManyMonitoredItems(this,
+                        maxMonitoredItems, reducedMax);
+                    maxMonitoredItems = reducedMax;
+                    continue;
                 }
-
-                // Get or create a child subscription
-                subscriptionPartition = subscriptionPartition.GetChildSubscription(true);
-                if (subscriptionPartition == null)
-                {
-                    throw ServiceResultException.Create(StatusCodes.BadUnexpectedError,
-                        "Failed to create child subscription.");
-                }
+                break;
             }
 
             //
@@ -1020,8 +1101,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="operationLimits"></param>
         /// <param name="ct"></param>
         /// <exception cref="ServiceResultException"></exception>
-        private async ValueTask<TimeSpan> SynchronizeMonitoredItemsAsync(
-            Partition partition, OperationLimitsModel operationLimits, CancellationToken ct)
+        private async ValueTask<(TimeSpan Delay, int? RevisedMaxMonitoredItems)>
+            SynchronizeMonitoredItemsAsync(Partition partition,
+            OperationLimitsModel operationLimits, CancellationToken ct)
         {
             if (Session is not OpcUaSession session)
             {
@@ -1527,29 +1609,54 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 heartbeatsEnabled, conditionItems, conditionsEnabled, samplingItems,
                 dispose.Count, resyncCounter, resyncTotal);
 
+            //
+            // If the server rejected any item with Bad_TooManyMonitoredItems,
+            // the number of items it did create successfully is a better (lower)
+            // estimate of the actual per subscription limit. Report it back to
+            // the caller so it can reduce the partition size and repartition.
+            //
+            int? revisedMaxMonitoredItems = null;
+            var tooManyMonitoredItems = false;
+            var goodItems = 0;
+            foreach (var item in set)
+            {
+                if (item.IsGood)
+                {
+                    goodItems++;
+                }
+                if (item.StatusCode.Code == StatusCodes.BadTooManyMonitoredItems)
+                {
+                    tooManyMonitoredItems = true;
+                }
+            }
+            if (tooManyMonitoredItems)
+            {
+                revisedMaxMonitoredItems = goodItems;
+            }
+
             // Set up subscription management trigger
             if (badMonitoredItems != 0 || errorsDuringSync != 0)
             {
                 // There were items that could not be added to subscription
-                return Delay(_options.Value.InvalidMonitoredItemRetryDelayDuration,
+                return (Delay(_options.Value.InvalidMonitoredItemRetryDelayDuration,
                     TimeSpan.FromMinutes(5),
                     _options.Value.InvalidMonitoredItemRetryDelayDurationMax,
-                    resyncCounter);
+                    resyncCounter), revisedMaxMonitoredItems);
             }
             else if (desiredMonitoredItems.Count != set.Count)
             {
                 // There were items !Valid but desired.
-                return Delay(_options.Value.BadMonitoredItemRetryDelayDuration,
+                return (Delay(_options.Value.BadMonitoredItemRetryDelayDuration,
                     TimeSpan.FromMinutes(30),
                     _options.Value.InvalidMonitoredItemRetryDelayDurationMax,
-                    resyncCounter);
+                    resyncCounter), revisedMaxMonitoredItems);
             }
             else
             {
                 // Nothing to do
                 resyncCounter = 0;
-                return Delay(_options.Value.SubscriptionManagementIntervalDuration,
-                    TimeSpan.MaxValue);
+                return (Delay(_options.Value.SubscriptionManagementIntervalDuration,
+                    TimeSpan.MaxValue), revisedMaxMonitoredItems);
             }
         }
 
@@ -2904,6 +3011,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         private static readonly TimeSpan kMaxExponentialRetryDelayDefault = TimeSpan.FromSeconds(10);
         private const int kMaxMonitoredItemPerSubscriptionDefault = 64 * 1024;
+        private const int kMaxRepartitionAttempts = 10;
         private uint _previousSequenceNumber;
         private uint _sequenceNumber;
         private uint _currentSequenceNumber;
@@ -3453,5 +3561,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Message = "Resync timer set to {RetryDelay} for {Subscription}.")]
         public static partial void ResyncTimerArmed(this ILogger logger, TimeSpan retryDelay,
             OpcUaSubscription subscription);
+
+        [LoggerMessage(EventId = EventClass + 106, Level = LogLevel.Information,
+            Message = "Server reported Bad_TooManyMonitoredItems in {Subscription}. " +
+                "Reducing max monitored items per subscription from {Previous} to {Revised} " +
+                "and repartitioning.")]
+        public static partial void RepartitioningDueToTooManyMonitoredItems(this ILogger logger,
+            OpcUaSubscription subscription, int previous, int revised);
     }
 }
