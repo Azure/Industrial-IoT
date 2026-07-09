@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Sample;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
-    using Autofac;
     using Furly.Extensions.Logging;
     using Furly.Extensions.Utils;
     using Microsoft.Extensions.Configuration;
@@ -65,7 +64,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         /// Client
         /// </summary>
         public IOpcUaClientManager<ConnectionModel> Client
-            => _container.Resolve<IOpcUaClientManager<ConnectionModel>>();
+            => _container.GetRequiredService<IOpcUaClientManager<ConnectionModel>>();
 
         /// <summary>
         /// Now
@@ -86,7 +85,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         /// <summary>
         /// Filter parser
         /// </summary>
-        public IFilterParser Parser => _container.Resolve<IFilterParser>();
+        public IFilterParser Parser => _container.GetRequiredService<IFilterParser>();
 
         /// <summary>
         /// EndpointUrl
@@ -152,9 +151,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
             _timeService = CreateTimeServiceMock(Now);
 
             _port = NextPort();
-            var logger = _container.Resolve<ILogger<BaseServerFixture>>();
-            var options = _container.Resolve<IOptions<OpcUaClientOptions>>();
-            var nodes = nodesFactory(_container.Resolve<ILoggerFactory>(), TimeService);
+            var logger = _container.GetRequiredService<ILogger<BaseServerFixture>>();
+            var options = _container.GetRequiredService<IOptions<OpcUaClientOptions>>();
+            var nodes = nodesFactory(_container.GetRequiredService<ILoggerFactory>(), TimeService);
             ServerConsoleHost? serverHost = null;
             while (true)
             {
@@ -168,10 +167,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                     lock (ServerStateLock.Sync)
                     {
                         serverHost = new ServerConsoleHost(new ServerFactory(
-                            _container.Resolve<ILogger<ServerFactory>>(), TempPath, nodes)
+                            _container.GetRequiredService<ILogger<ServerFactory>>(), TempPath, nodes)
                         {
                             LogStatus = false
-                        }, _container.Resolve<ILogger<ServerConsoleHost>>())
+                        }, _container.GetRequiredService<ILogger<ServerConsoleHost>>())
                         {
                             PkiRootPath = options.Value.Security.PkiRootPath,
                             AutoAccept = true
@@ -186,7 +185,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                     // should ensure the server has started up correctly.
                     //
                     var endpoint =
-                        _container.Resolve<IConnectionServices<ConnectionModel>>();
+                        _container.GetRequiredService<IConnectionServices<ConnectionModel>>();
                     var result = endpoint.TestConnectionAsync(new ConnectionModel
                     {
                         Endpoint = new EndpointModel
@@ -275,11 +274,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                 if (disposing)
                 {
                     var sw = Stopwatch.StartNew();
-                    var logger = _container.Resolve<ILogger<BaseServerFixture>>();
+                    var logger = _container.GetRequiredService<ILogger<BaseServerFixture>>();
                     logger.DisposingServerHost(_serverHost);
 
                     string? pkiPath = null;
-                    if (_container.TryResolve<IOptions<OpcUaClientOptions>>(out var options) &&
+                    var options = _container.GetService<IOptions<OpcUaClientOptions>>();
+                    if (options != null &&
                         Directory.Exists(options.Value.Security.PkiRootPath))
                     {
                         pkiPath = options.Value.Security.PkiRootPath;
@@ -333,22 +333,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
             }
         }
 
-        private static IContainer CreateContainer(ILoggerFactory loggerFactory)
+        private static ServiceProvider CreateContainer(ILoggerFactory loggerFactory)
         {
-            var builder = new ContainerBuilder();
-            builder.ConfigureServices(services => services.AddLogging());
-            builder.RegisterInstance(new ConfigurationBuilder().Build())
-                .AsImplementedInterfaces();
-            builder.RegisterInstance(loggerFactory)
-                .AsImplementedInterfaces();
+            var services = new ServiceCollection();
+            services.AddLogging();
+            var configuration = new ConfigurationBuilder().Build();
+            services.AddSingleton<IConfiguration>(configuration);
+            services.AddSingleton<IConfigurationRoot>(configuration);
+            services.AddSingleton(loggerFactory);
 
-            builder.AddDefaultJsonSerializer();
-            // builder.AddNewtonsoftJsonSerializer();
-            builder.RegisterType<TestClientConfig>()
-                .AsImplementedInterfaces();
+            services.AddDefaultJsonSerializer();
+            // services.AddDNewtonsoftJsonSerializer();
+            services.AddTransientAsImplementedInterfaces<TestClientConfig>();
 
-            builder.AddOpcUaStack();
-            return builder.Build();
+            services.AddOpcUaStack();
+            return services.BuildServiceProvider();
         }
 
         /// <summary>
@@ -474,7 +473,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         private static readonly ConcurrentDictionary<int, bool> kPorts = new();
         private bool _disposedValue;
         private readonly int _port;
-        private readonly IContainer _container;
+        private readonly ServiceProvider _container;
         private readonly ServerConsoleHost _serverHost;
         private readonly Mock<TimeService> _timeService;
         private const string kSampleServerPath = "UA/SampleServer";

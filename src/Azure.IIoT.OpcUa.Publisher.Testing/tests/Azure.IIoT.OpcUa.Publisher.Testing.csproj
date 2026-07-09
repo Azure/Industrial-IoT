@@ -7,7 +7,6 @@
   <ItemGroup>
     <PackageReference Include="Furly.Extensions.Newtonsoft" />
     <PackageReference Include="Furly.Extensions.Json" />
-    <PackageReference Include="Furly.Extensions.Autofac" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
     <PackageReference Include="FluentAssertions" />

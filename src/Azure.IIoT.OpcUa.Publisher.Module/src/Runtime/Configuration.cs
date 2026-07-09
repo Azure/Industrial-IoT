@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
-    using Autofac;
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Publisher.Module.Controllers;
@@ -53,54 +52,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// <summary>
         /// Add all publisher dependencies minus connectivity components.
         /// </summary>
-        /// <param name="builder"></param>
-        public static void AddPublisherServices(this ContainerBuilder builder)
+        /// <param name="services"></param>
+        public static void AddPublisherServices(this IServiceCollection services)
         {
-            builder.AddDefaultJsonSerializer();
-            builder.AddNewtonsoftJsonSerializer();
-            builder.AddPublisherCore();
+            FurlyServiceCollectionEx.AddDefaultJsonSerializer(services);
+            FurlyServiceCollectionEx.AddNewtonsoftJsonSerializer(services);
+            services.AddPublisherCore();
 
-            builder.RegisterType<HealthCheckRegistrar>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<CommandLine>()
-                .AsImplementedInterfaces().AsSelf().SingleInstance();
-            builder.RegisterType<LoggingLevel>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<ConsoleLogging<ConsoleFormatterOptions>>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<ConsoleLogging<SimpleConsoleFormatterOptions>>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<ConsoleLogging<JsonConsoleFormatterOptions>>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<Syslog>()
-                .AsImplementedInterfaces().AsSelf().SingleInstance();
-            builder.RegisterType<Kestrel>()
-                .AsImplementedInterfaces();
+            services.AddSingletonAsImplementedInterfaces<HealthCheckRegistrar>();
+            services.AddSingletonAsImplementedInterfaces<CommandLine>();
+            services.AddTransientAsImplementedInterfaces<LoggingLevel>();
+            services.AddTransientAsImplementedInterfaces<ConsoleLogging<ConsoleFormatterOptions>>();
+            services.AddTransientAsImplementedInterfaces<ConsoleLogging<SimpleConsoleFormatterOptions>>();
+            services.AddTransientAsImplementedInterfaces<ConsoleLogging<JsonConsoleFormatterOptions>>();
+            services.AddSingletonAsImplementedInterfaces<Syslog>();
+            services.AddTransientAsImplementedInterfaces<Kestrel>();
 
             // Register and configure controllers
-            builder.RegisterType<MethodRouter>()
-                .AsImplementedInterfaces().SingleInstance()
-                .PropertiesAutowired(
-                    PropertyWiringOptions.AllowCircularDependencies);
-            builder.RegisterType<Router>()
-                .AsImplementedInterfaces();
+            FurlyServiceCollectionEx.AddMethodRouter(services);
+            services.AddTransientAsImplementedInterfaces<Router>();
 
-            builder.RegisterType<PublisherController>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<ConfigurationController>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<WriterController>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<GeneralController>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<HistoryController>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<DiscoveryController>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<CertificatesController>()
-                .AsImplementedInterfaces();
-            builder.RegisterType<DiagnosticsController>()
-                .AsImplementedInterfaces();
+            services.AddTransientAsImplementedInterfaces<PublisherController>();
+            services.AddTransientAsImplementedInterfaces<ConfigurationController>();
+            services.AddTransientAsImplementedInterfaces<WriterController>();
+            services.AddTransientAsImplementedInterfaces<GeneralController>();
+            services.AddTransientAsImplementedInterfaces<HistoryController>();
+            services.AddTransientAsImplementedInterfaces<DiscoveryController>();
+            services.AddTransientAsImplementedInterfaces<CertificatesController>();
+            services.AddTransientAsImplementedInterfaces<DiagnosticsController>();
         }
 
         /// <summary>
@@ -121,29 +100,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// <summary>
         /// Add mqtt client
         /// </summary>
-        /// <param name="builder"></param>
+        /// <param name="services"></param>
         /// <param name="configuration"></param>
-        public static void AddMqttClient(this ContainerBuilder builder,
+        public static void AddMqttClient(this IServiceCollection services,
             IConfiguration configuration)
         {
             var mqttOptions = new MqttOptions();
             new MqttBroker(configuration).Configure(mqttOptions);
             if (mqttOptions.HostName != null)
             {
-                builder.AddMqttClient();
-                builder.RegisterType<MqttBroker>()
-                    .AsImplementedInterfaces();
-                builder.RegisterType<SchemaTopicBuilder>()
-                    .AsImplementedInterfaces();
+                FurlyServiceCollectionEx.AddMqttClient(services);
+                services.AddTransientAsImplementedInterfaces<MqttBroker>();
+                services.AddTransientAsImplementedInterfaces<SchemaTopicBuilder>();
             }
         }
 
         /// <summary>
         /// Add IoT edge services
         /// </summary>
-        /// <param name="builder"></param>
+        /// <param name="services"></param>
         /// <param name="configuration"></param>
-        public static void AddIoTEdgeServices(this ContainerBuilder builder,
+        public static void AddIoTEdgeServices(this IServiceCollection services,
             IConfiguration configuration)
         {
             // Validate edge configuration
@@ -151,46 +128,43 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             new IoTEdge(configuration).Configure(iotEdgeOptions);
             if (iotEdgeOptions.EdgeHubConnectionString != null)
             {
-                builder.AddIoTEdgeServices();
-                builder.RegisterType<IoTEdge>()
-                    .AsImplementedInterfaces();
+                FurlyServiceCollectionEx.AddIoTEdgeServices(services);
+                services.AddTransientAsImplementedInterfaces<IoTEdge>();
             }
         }
 
         /// <summary>
         /// Add IoT operations services
         /// </summary>
-        /// <param name="builder"></param>
+        /// <param name="services"></param>
         /// <param name="configuration"></param>
-        public static void AddIoTOperationsServices(this ContainerBuilder builder,
+        public static void AddIoTOperationsServices(this IServiceCollection services,
             IConfiguration configuration)
         {
             var publisherOptions = new PublisherOptions();
             new Aio(configuration).Configure(publisherOptions);
             if (publisherOptions.IsAzureIoTOperationsConnector.HasValue)
             {
-                // builder.AddAzureIoTOperations();
-                builder.AddAzureIoTOperationsCore();
-                builder.AddAdrClient();
-                builder.AddTelemetryPublisher();
-                builder.AddSchemaRegistry();
-                // builder.AddLeaderElection();
-                // builder.AddStateStore();
+                // services.AddAzureIoTOperations();
+                services.AddAzureIoTOperationsCore();
+                services.AddAdrClient();
+                services.AddTelemetryPublisher();
+                services.AddSchemaRegistry();
+                // services.AddLeaderElection();
+                // services.AddStateStore();
 
                 if (publisherOptions.UseFileChangePolling == true)
                 {
-                    builder.Configure<AioOptions>(options =>
+                    services.Configure<AioOptions>(options =>
                         options.FileSystemPollingInterval = TimeSpan.FromSeconds(5));
                 }
 
-                builder.RegisterType<Aio>().AsImplementedInterfaces();
+                services.AddTransientAsImplementedInterfaces<Aio>();
                 if (publisherOptions.IsAzureIoTOperationsConnector.Value)
                 {
-                    builder.RegisterInstance(new HybridLogicalClock(
-                        DateTime.UtcNow, 0, publisherOptions.PublisherId))
-                        .AsSelf().SingleInstance();
-                    builder.RegisterType<AssetDeviceIntegration>()
-                        .AsSelf().AsImplementedInterfaces().SingleInstance();
+                    services.AddSingleton(new HybridLogicalClock(
+                        DateTime.UtcNow, 0, publisherOptions.PublisherId));
+                    services.AddSingletonAsImplementedInterfaces<AssetDeviceIntegration>();
                 }
             }
         }
@@ -198,9 +172,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// <summary>
         /// Add Event Hubs client
         /// </summary>
-        /// <param name="builder"></param>
+        /// <param name="services"></param>
         /// <param name="configuration"></param>
-        public static void AddEventHubsClient(this ContainerBuilder builder,
+        public static void AddEventHubsClient(this IServiceCollection services,
             IConfiguration configuration)
         {
             // Validate edge configuration
@@ -208,103 +182,95 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             new EventHubs(configuration).Configure(eventHubsOptions);
             if (eventHubsOptions.ConnectionString != null)
             {
-                builder.AddHubEventClient();
-                builder.RegisterType<EventHubs>()
-                    .AsImplementedInterfaces();
+                FurlyServiceCollectionEx.AddHubEventClient(services);
+                services.AddTransientAsImplementedInterfaces<EventHubs>();
             }
         }
 
         /// <summary>
         /// Add file system client
         /// </summary>
-        /// <param name="builder"></param>
+        /// <param name="services"></param>
         /// <param name="configuration"></param>
-        public static void AddFileSystemEventClient(this ContainerBuilder builder,
+        public static void AddFileSystemEventClient(this IServiceCollection services,
             IConfiguration configuration)
         {
             var fsOptions = new FileSystemEventClientOptions();
             new FileSystem(configuration).Configure(fsOptions);
             if (fsOptions.OutputFolder != null)
             {
-                builder.AddFileSystemEventClient();
-                builder.RegisterType<FileSystem>()
-                    .AsImplementedInterfaces();
-                builder.RegisterType<AvroWriter>()
-                    .AsImplementedInterfaces();
-                builder.RegisterType<ConsoleWriter>()
-                    .AsImplementedInterfaces();
+                FurlyServiceCollectionEx.AddFileSystemEventClient(services);
+                services.AddTransientAsImplementedInterfaces<FileSystem>();
+                services.AddTransientAsImplementedInterfaces<AvroWriter>();
+                services.AddTransientAsImplementedInterfaces<ConsoleWriter>();
             }
         }
 
         /// <summary>
         /// Add file system rpc server
         /// </summary>
-        /// <param name="builder"></param>
+        /// <param name="services"></param>
         /// <param name="configuration"></param>
-        public static void AddFileSystemRpcServer(this ContainerBuilder builder,
+        public static void AddFileSystemRpcServer(this IServiceCollection services,
             IConfiguration configuration)
         {
             var fsOptions = new FileSystemRpcServerOptions();
             new FileSystem(configuration).Configure(fsOptions);
             if (fsOptions.RequestFilePath != null)
             {
-                builder.AddFileSystemRpcServer();
-                builder.RegisterType<FileSystem>()
-                    .AsImplementedInterfaces();
+                FurlyServiceCollectionEx.AddFileSystemRpcServer(services);
+                services.AddTransientAsImplementedInterfaces<FileSystem>();
             }
         }
 
         /// <summary>
         /// Add http event client
         /// </summary>
-        /// <param name="builder"></param>
+        /// <param name="services"></param>
         /// <param name="configuration"></param>
-        public static void AddHttpEventClient(this ContainerBuilder builder,
+        public static void AddHttpEventClient(this IServiceCollection services,
             IConfiguration configuration)
         {
             var httpOptions = new HttpEventClientOptions();
             new Http(configuration).Configure(httpOptions);
             if (httpOptions.HostName != null)
             {
-                builder.AddHttpEventClient();
-                builder.RegisterType<Http>()
-                    .AsImplementedInterfaces();
+                FurlyServiceCollectionEx.AddHttpEventClient(services);
+                services.AddTransientAsImplementedInterfaces<Http>();
             }
         }
 
         /// <summary>
         /// Add dapr client
         /// </summary>
-        /// <param name="builder"></param>
+        /// <param name="services"></param>
         /// <param name="configuration"></param>
-        public static void AddDaprPubSubClient(this ContainerBuilder builder,
+        public static void AddDaprPubSubClient(this IServiceCollection services,
             IConfiguration configuration)
         {
             var daprOptions = new DaprOptions();
             new Dapr(configuration).Configure(daprOptions);
             if (!string.IsNullOrWhiteSpace(daprOptions.PubSubComponent))
             {
-                builder.AddDaprPubSubClient();
-                builder.RegisterType<Dapr>()
-                    .AsImplementedInterfaces();
+                FurlyServiceCollectionEx.AddDaprPubSubClient(services);
+                services.AddTransientAsImplementedInterfaces<Dapr>();
             }
         }
 
         /// <summary>
         /// Add dapr client
         /// </summary>
-        /// <param name="builder"></param>
+        /// <param name="services"></param>
         /// <param name="configuration"></param>
-        public static void AddDaprStateStoreClient(this ContainerBuilder builder,
+        public static void AddDaprStateStoreClient(this IServiceCollection services,
             IConfiguration configuration)
         {
             var daprOptions = new DaprOptions();
             new Dapr(configuration).Configure(daprOptions);
             if (!string.IsNullOrWhiteSpace(daprOptions.StateStoreName))
             {
-                builder.AddDaprStateStoreClient();
-                builder.RegisterType<Dapr>()
-                    .AsImplementedInterfaces();
+                FurlyServiceCollectionEx.AddDaprStateStoreClient(services);
+                services.AddTransientAsImplementedInterfaces<Dapr>();
             }
         }
 

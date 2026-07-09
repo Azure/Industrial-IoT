@@ -6,8 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
-    using Autofac;
-    using Autofac.Extensions.DependencyInjection;
     using Furly.Extensions.Serializers;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -121,6 +119,43 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                 ;
 
             services.AddOpenApi();
+
+            // Register configuration interfaces
+            services.AddSingleton<IConfiguration>(Configuration);
+            services.AddSingleton<IConfigurationRoot>(Configuration);
+
+            // Register publisher services and transports (previously registered
+            // through Autofac's ConfigureContainer). This is a separate overridable
+            // method so hosts (e.g. tests) can suppress the production transport
+            // wiring, mirroring the previously empty ConfigureContainer override.
+            ConfigurePublisherServices(services);
+        }
+
+        /// <summary>
+        /// Configure publisher services and connectivity transports. Overridable so
+        /// test hosts can substitute mock transports.
+        /// </summary>
+        /// <param name="services"></param>
+        protected virtual void ConfigurePublisherServices(IServiceCollection services)
+        {
+            services.AddPublisherServices();
+
+            //
+            // Order is important here because we want
+            // to fall back in the reverse order for
+            // sending operational and discovery events!
+            //
+            FurlyServiceCollectionEx.AddMemoryKeyValueStore(services);
+            services.AddDaprStateStoreClient(Configuration);
+            FurlyServiceCollectionEx.AddNullEventClient(services);
+            services.AddFileSystemEventClient(Configuration);
+            services.AddFileSystemRpcServer(Configuration);
+            services.AddHttpEventClient(Configuration);
+            services.AddDaprPubSubClient(Configuration);
+            services.AddEventHubsClient(Configuration);
+            services.AddMqttClient(Configuration);
+            services.AddIoTEdgeServices(Configuration);
+            services.AddIoTOperationsServices(Configuration);
         }
 
         /// <summary>
@@ -130,7 +165,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         /// <param name="app"></param>
         /// <param name="appLifetime"></param>
 #pragma warning disable CA1822 // Mark members as static
-        public void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifetime)
+        public void Configure(IApplicationBuilder app)
 #pragma warning restore CA1822 // Mark members as static
         {
             // Surface direct method call failures (which bypass the ASP.NET
@@ -154,40 +189,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                 endpoints.MapControllers();
                 endpoints.MapHealthChecks("/healthz");
             });
-
-            var applicationContainer = app.ApplicationServices.GetAutofacRoot();
-            appLifetime.ApplicationStopped.Register(applicationContainer.Dispose);
-        }
-
-        /// <summary>
-        /// Autofac configuration.
-        /// </summary>
-        /// <param name="builder"></param>
-        public virtual void ConfigureContainer(ContainerBuilder builder)
-        {
-            // Register publisher services and transports
-            builder.AddPublisherServices();
-
-            //
-            // Order is important here because we want
-            // to fall back in the reverse order for
-            // sending operational and discovery events!
-            //
-            builder.AddMemoryKeyValueStore();
-            builder.AddDaprStateStoreClient(Configuration);
-            builder.AddNullEventClient();
-            builder.AddFileSystemEventClient(Configuration);
-            builder.AddFileSystemRpcServer(Configuration);
-            builder.AddHttpEventClient(Configuration);
-            builder.AddDaprPubSubClient(Configuration);
-            builder.AddEventHubsClient(Configuration);
-            builder.AddMqttClient(Configuration);
-            builder.AddIoTEdgeServices(Configuration);
-            builder.AddIoTOperationsServices(Configuration);
-
-            // Register configuration interfaces
-            builder.RegisterInstance(Configuration)
-                .AsImplementedInterfaces();
         }
     }
 }

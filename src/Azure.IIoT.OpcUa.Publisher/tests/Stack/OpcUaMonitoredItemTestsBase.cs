@@ -25,7 +25,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
     {
         protected virtual Mock<IOpcUaSession> SetupMockedSession(NamespaceTable namespaceTable = null)
         {
-            using var mock = Autofac.Extras.Moq.AutoMock.GetLoose();
             namespaceTable ??= new NamespaceTable();
 
             var ctx = new Mock<INodeCacheContext>();
@@ -65,7 +64,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
 
             var nodeCache = new LruNodeCache(ctx.Object, telemetry: null);
 
-            var session = mock.Mock<IOpcUaSession>();
+            var session = new Mock<IOpcUaSession>();
             var messageContext = new ServiceMessageContext(telemetry: null)
             {
                 NamespaceUris = namespaceTable

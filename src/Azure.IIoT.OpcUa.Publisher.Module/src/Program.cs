@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module
 {
-    using Autofac.Extensions.DependencyInjection;
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
     using Furly.Extensions.Hosting;
     using k8s;
@@ -102,7 +101,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         public static IHostBuilder CreateHostBuilder(string[] args)
         {
             return Host.CreateDefaultBuilder()
-                .UseServiceProviderFactory(new AutofacServiceProviderFactory())
+                .UseDefaultServiceProvider((_, options) =>
+                {
+                    options.ValidateScopes = true;
+                    options.ValidateOnBuild = true;
+                })
                 .ConfigureHostConfiguration(builder => builder
                     .SetBasePath(Directory.GetCurrentDirectory())
                     .AddJsonFile("appsettings.json", true)

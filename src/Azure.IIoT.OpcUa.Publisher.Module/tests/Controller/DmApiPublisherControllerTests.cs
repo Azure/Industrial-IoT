@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
     using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Storage;
     using Azure.IIoT.OpcUa.Publisher.Tests.Utils;
-    using Autofac;
     using FluentAssertions;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;

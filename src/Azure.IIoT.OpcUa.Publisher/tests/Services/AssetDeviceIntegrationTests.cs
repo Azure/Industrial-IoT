@@ -22,14 +22,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     using System.Threading.Tasks;
     using Xunit;
     using Azure.IIoT.OpcUa.Publisher.Stack;
-    using Autofac.Util;
 
     public class AssetDeviceIntegrationTests
     {
         public AssetDeviceIntegrationTests()
         {
             // Initialize mocks
-            _srMock.Setup(x => x.Register(It.IsAny<IAioSrCallbacks>())).Returns(new Disposable());
+            _srMock.Setup(x => x.Register(It.IsAny<IAioSrCallbacks>())).Returns(Mock.Of<IDisposable>());
             _optionsMock.SetupGet(o => o.Value).Returns(new PublisherOptions
             {
                 PublisherId = "aio"

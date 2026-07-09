@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
-    using Autofac;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Stack;
@@ -19,6 +18,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Furly.Extensions.Serializers;
     using Microsoft.AspNetCore.Hosting.Server;
     using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Nito.AsyncEx;
     using System;
@@ -734,16 +734,16 @@ Options:
         private static async Task<ConnectionString> AddOrGetAsync(string connectionString,
             string deviceId, string moduleId, ILogger logger)
         {
-            var builder = new ContainerBuilder();
-            builder.AddIoTHubServiceClient();
-            builder.Configure<IoTHubServiceOptions>(
+            var services = new ServiceCollection();
+            services.AddIoTHubServiceClient();
+            services.Configure<IoTHubServiceOptions>(
                 options => options.ConnectionString = connectionString);
-            builder.AddDefaultJsonSerializer();
-            builder.AddLogging();
-            var container = builder.Build();
+            services.AddDefaultJsonSerializer();
+            services.AddLogging();
+            var container = services.BuildServiceProvider();
             await using (container.ConfigureAwait(false))
             {
-                var registry = container.Resolve<IIoTHubTwinServices>();
+                var registry = container.GetRequiredService<IIoTHubTwinServices>();
 
                 // Create iot edge gateway
                 try

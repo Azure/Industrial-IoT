@@ -7,13 +7,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 {
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Autofac;
+    using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Diagnostics.Metrics;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Collects metrics from the writer groups inside the publisher using the .net Meter listener
@@ -22,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     /// solely on modern OTEL based telemetry collection.
     /// </summary>
     public sealed class PublisherDiagnosticCollector : IDiagnosticCollector,
-        IStartable, IDisposable
+        IHostedService, IDisposable
     {
         /// <summary>
         /// Create collector
@@ -126,9 +128,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
-        public void Start()
+        public Task StartAsync(CancellationToken cancellationToken)
         {
             _meterListener.Start();
+            return Task.CompletedTask;
+        }
+
+        /// <inheritdoc/>
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
         }
 
         /// <inheritdoc/>

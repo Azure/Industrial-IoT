@@ -118,6 +118,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <inheritdoc/>
         public void Dispose()
         {
+            // Dispose can be invoked more than once because the reporter is
+            // registered under multiple service interfaces and the DI container
+            // tracks the shared instance for disposal per forwarded registration.
+            if (Interlocked.Exchange(ref _disposed, 1) != 0)
+            {
+                return;
+            }
             try
             {
                 _runtimeState = RuntimeStateEventType.Stopped;
@@ -800,6 +807,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly Meter _meter = Diagnostics.NewMeter();
         private readonly IMetricsContext _metrics;
         private readonly CancellationTokenSource _cts;
+        private int _disposed;
         private readonly PeriodicTimer _diagnosticsOutputTimer;
         private readonly TimeSpan _diagnosticInterval;
         private readonly PublisherDiagnosticTargetType _diagnostics;

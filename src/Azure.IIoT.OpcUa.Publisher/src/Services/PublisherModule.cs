@@ -5,10 +5,10 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
-    using Autofac;
     using Furly;
     using Furly.Azure.IoT.Edge;
     using Furly.Extensions.Rpc;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using System;
@@ -33,14 +33,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <summary>
         /// Create hosted service for module operation
         /// </summary>
-        /// <param name="scope"></param>
+        /// <param name="services"></param>
         /// <param name="logger"></param>
         /// <param name="timeProvider"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public PublisherModule(ILifetimeScope scope, ILogger<PublisherModule> logger,
+        public PublisherModule(IServiceProvider services, ILogger<PublisherModule> logger,
             TimeProvider? timeProvider = null)
         {
-            _scope = scope ?? throw new ArgumentNullException(nameof(scope));
+            _services = services ?? throw new ArgumentNullException(nameof(services));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _timeProvider = timeProvider ?? TimeProvider.System;
             _exit = new TaskCompletionSource<bool>();
@@ -55,20 +55,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 try
                 {
-                    await _scope.Resolve<IEnumerable<IAwaitable>>().WhenAll().ConfigureAwait(false);
-                    var runtimeStateReporter = _scope.Resolve<IRuntimeStateReporter>();
+                    await _services.GetServices<IAwaitable>().WhenAll().ConfigureAwait(false);
+                    var runtimeStateReporter = _services.GetRequiredService<IRuntimeStateReporter>();
 
                     var version = GetType().Assembly.GetReleaseVersion().ToString();
                     _logger.Starting(version);
 
                     // Start rpc servers
-                    foreach (var server in _scope.Resolve<IEnumerable<IRpcServer>>())
+                    foreach (var server in _services.GetServices<IRpcServer>())
                     {
                         _logger.StartingServer(server.Name);
                         server.Start();
                     }
 
-                    var aioIntegration = _scope.ResolveOptional<AssetDeviceIntegration>();
+                    var aioIntegration = _services.GetService<AssetDeviceIntegration>();
                     if (aioIntegration != null)
                     {
                         _logger.EnabledAioIntegration();
@@ -161,7 +161,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         private readonly TaskCompletionSource<bool> _exit;
-        private readonly ILifetimeScope _scope;
+        private readonly IServiceProvider _services;
         private readonly ILogger<PublisherModule> _logger;
         private readonly TimeProvider _timeProvider;
     }
