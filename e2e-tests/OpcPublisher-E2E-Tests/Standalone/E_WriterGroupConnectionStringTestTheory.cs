@@ -172,6 +172,26 @@ namespace OpcPublisherAEE2ETests.Standalone
             }
         }
 
+        /// <summary>
+        /// Assert that a direct method call to the second publisher returned 200. On any
+        /// other status - in particular the 500/null signature seen when the config
+        /// service throws - dump the module container logs into the test output so the
+        /// actual server-side exception is visible without another (billable) E2E cycle.
+        /// </summary>
+        private async Task AssertMethodStatusOkAsync(MethodResultModel result,
+            string methodName, CancellationToken ct)
+        {
+            if (result?.Status != (int)HttpStatusCode.OK)
+            {
+                var logs = await TestHelper.GetModuleLogsAsync(
+                    _context, _deployment.ModuleName, ct: ct).ConfigureAwait(false);
+                _context.OutputHelper?.WriteLine(
+                    $"{methodName} failed with status {result?.Status}: {result?.JsonPayload}" +
+                    $"{Environment.NewLine}=== {_deployment.ModuleName} module logs ==={Environment.NewLine}{logs}");
+            }
+            Assert.Equal((int)HttpStatusCode.OK, result?.Status);
+        }
+
         private async Task PublishNodesAsync(string json, CancellationToken ct)
         {
             await UnpublishAllNodesAsync(ct).ConfigureAwait(false);
@@ -186,7 +206,7 @@ namespace OpcPublisherAEE2ETests.Standalone
                     },
                     ct).ConfigureAwait(false);
 
-                Assert.Equal((int)HttpStatusCode.OK, result.Status);
+                await AssertMethodStatusOkAsync(result, "PublishNodes", ct).ConfigureAwait(false);
             }
 
             var result1 = await CallMethodAsync(
@@ -196,7 +216,7 @@ namespace OpcPublisherAEE2ETests.Standalone
                 },
                 ct).ConfigureAwait(false);
 
-            Assert.Equal((int)HttpStatusCode.OK, result1.Status);
+            await AssertMethodStatusOkAsync(result1, "GetConfiguredEndpoints", ct).ConfigureAwait(false);
             var response = _serializer.Deserialize<GetConfiguredEndpointsResponseModel>(result1.JsonPayload);
             Assert.Equal(entries.Length, response.Endpoints.Count);
         }
@@ -222,7 +242,7 @@ namespace OpcPublisherAEE2ETests.Standalone
                 }
                 break;
             }
-            Assert.Equal((int)HttpStatusCode.OK, result?.Status);
+            await AssertMethodStatusOkAsync(result, "UnpublishAllNodes", ct).ConfigureAwait(false);
 
             var result1 = await CallMethodAsync(
                 new MethodParameterModel
@@ -231,7 +251,7 @@ namespace OpcPublisherAEE2ETests.Standalone
                 },
                 ct).ConfigureAwait(false);
 
-            Assert.Equal((int)HttpStatusCode.OK, result1.Status);
+            await AssertMethodStatusOkAsync(result1, "GetConfiguredEndpoints", ct).ConfigureAwait(false);
             var response = _serializer.Deserialize<GetConfiguredEndpointsResponseModel>(result1.JsonPayload);
             Assert.Empty(response.Endpoints);
         }
