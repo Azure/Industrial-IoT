@@ -858,7 +858,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     {
                         retryDelay = delay;
                     }
-                    if (partitionRevisedMax.HasValue &&
+                    if (partitionRevisedMax is > 0 &&
                         (!revisedMax.HasValue || partitionRevisedMax.Value < revisedMax.Value))
                     {
                         revisedMax = partitionRevisedMax;
