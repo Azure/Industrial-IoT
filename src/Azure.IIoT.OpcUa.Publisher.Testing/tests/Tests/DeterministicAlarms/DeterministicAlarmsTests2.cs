@@ -86,7 +86,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             Assert.NotEqual(timeForFirstEvent, timeForNextEvent);
 
-            static bool Filter(Dictionary<string, VariantValue> evt)
+            static bool Filter(Dictionary<string, JsonNode?> evt)
             {
                 return ((string?)evt["/SourceNode"])?.StartsWith(
                     Namespaces.DeterministicAlarmsInstance, StringComparison.OrdinalIgnoreCase) == true;

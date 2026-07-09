@@ -242,7 +242,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             await services.NodeShouldHaveStatesAsync(_connection, lightOff2,
                 "Active", "Enabled").ConfigureAwait(false);
 
-            static bool Filter(Dictionary<string, VariantValue> evt)
+            static bool Filter(Dictionary<string, JsonNode?> evt)
             {
                 return ((string?)evt["/SourceNode"])?.StartsWith(
                     Namespaces.DeterministicAlarmsInstance, StringComparison.OrdinalIgnoreCase) == true;

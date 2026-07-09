@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
     using System.Collections.Generic;
     using System.IO;
     using System.Net.Http;
+    using System.Text.Json.Nodes;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -22,7 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
     /// </summary>
     public sealed class ConfigurationServicesRestClient : IConfigurationServices,
         IAssetConfiguration<Stream>, IAssetConfiguration<byte[]>,
-        IAssetConfiguration<VariantValue>
+        IAssetConfiguration<JsonNode>
     {
         /// <summary>
         /// Create service client
@@ -98,7 +99,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
         }
 
         public async Task<ServiceResponse<PublishedNodesEntryModel>> CreateOrUpdateAssetAsync(
-            PublishedNodeCreateAssetRequestModel<VariantValue> request, CancellationToken ct)
+            PublishedNodeCreateAssetRequestModel<JsonNode> request, CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Entry);
