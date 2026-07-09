@@ -437,15 +437,20 @@ jobs:
           dotnet-version: |
             8.0.x
             10.0.x
-      - name: Pack solution
-        # Pin restore + pack to nuget.org because the repo Nuget.Config only
+      - name: Restore solution
+        # Pin restore to nuget.org because the repo Nuget.Config only
         # configures the internal Azure Artifacts feed.
+        shell: bash
+        run: |
+          dotnet restore Industrial-IoT.slnx \
+            -s https://api.nuget.org/v3/index.json
+      - name: Pack solution
         shell: bash
         run: |
           dotnet pack Industrial-IoT.slnx \
             -c Release \
             -o ./nupkgs \
-            -s https://api.nuget.org/v3/index.json \
+            --no-restore \
             /p:ContinuousIntegrationBuild=true
       - name: Validate produced packages
         shell: bash
