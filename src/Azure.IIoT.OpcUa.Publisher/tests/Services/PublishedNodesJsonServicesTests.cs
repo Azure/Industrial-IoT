@@ -1148,6 +1148,97 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             results.Should().BeEmpty();
         }
 
+        /// <summary>
+        /// Builds a config service backed by a published nodes provider that points at
+        /// <paramref name="publishedNodesFile"/>, mirroring how the module wires it up
+        /// from the --pf/--cf command line options. Used to exercise the case where a
+        /// named publish file does not exist yet (as for a freshly deployed module driven
+        /// only through direct methods).
+        /// </summary>
+        private PublishedNodesJsonServices CreateConfigServiceForFile(
+            string publishedNodesFile, bool? createFileIfNotExist)
+        {
+            var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
+            options.Value.PublishedNodesFile = publishedNodesFile;
+            options.Value.CreatePublishFileIfNotExist = createFileIfNotExist;
+            options.Value.UseFileChangePolling = true;
+            options.Value.DefaultTransport = WriterGroupTransport.Mqtt;
+            options.Value.MessagingProfile = MessagingProfile.Get(
+                MessagingMode.PubSub, MessageEncoding.Json);
+
+            var factory = new PhysicalFileProviderFactory(options,
+                _loggerFactory.CreateLogger<PhysicalFileProviderFactory>());
+            var provider = new PublishedNodesProvider(factory, options,
+                _loggerFactory.CreateLogger<PublishedNodesProvider>());
+            var configService = new PublishedNodesJsonServices(
+                _publishedNodesJobConverter,
+                _publisher,
+                _loggerFactory.CreateLogger<PublishedNodesJsonServices>(),
+                provider,
+                _newtonSoftJsonSerializer);
+            configService.GetAwaiter().GetResult();
+            return configService;
+        }
+
+        [Fact]
+        public async Task UnpublishAllNodesCreatesMissingFileWhenPermittedAsync()
+        {
+            // Reproduces the writer-group child-device E2E scenario: a publisher pointed at
+            // a named --pf file that does not exist yet, driven purely through direct
+            // methods. When CreatePublishFileIfNotExist (--cf) is enabled the first persist
+            // (the purge issued by UnpublishAllNodes) must create the file rather than
+            // failing with a FileNotFoundException.
+            var missingFile = Path.Combine(Path.GetTempPath(), $"pn_{Guid.NewGuid():N}.json");
+            File.Exists(missingFile).Should().BeFalse();
+            try
+            {
+                await using var configService = CreateConfigServiceForFile(
+                    missingFile, createFileIfNotExist: true);
+
+                // Act - purge against a fresh, not-yet-existing file must not throw.
+                await configService.UnpublishAllNodesAsync(null);
+
+                // Assert - the file was created and the configuration is empty.
+                File.Exists(missingFile).Should().BeTrue();
+                var results = await configService.GetConfiguredEndpointsAsync(false);
+                results.Should().BeEmpty();
+            }
+            finally
+            {
+                if (File.Exists(missingFile))
+                {
+                    File.Delete(missingFile);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task UnpublishAllNodesFailsWhenFileMissingAndCreateNotPermittedAsync()
+        {
+            // Documents the contract: a named --pf file that does not exist and may not be
+            // created (CreatePublishFileIfNotExist not set) cannot be persisted to. The
+            // operation surfaces the missing-file error instead of silently succeeding.
+            var missingFile = Path.Combine(Path.GetTempPath(), $"pn_{Guid.NewGuid():N}.json");
+            File.Exists(missingFile).Should().BeFalse();
+            try
+            {
+                await using var configService = CreateConfigServiceForFile(
+                    missingFile, createFileIfNotExist: null);
+
+                await Assert.ThrowsAsync<FileNotFoundException>(
+                    () => configService.UnpublishAllNodesAsync(null));
+
+                File.Exists(missingFile).Should().BeFalse();
+            }
+            finally
+            {
+                if (File.Exists(missingFile))
+                {
+                    File.Delete(missingFile);
+                }
+            }
+        }
+
         [Fact]
         public async Task Legacy25PublishedNodesFileErrorAsync()
         {
