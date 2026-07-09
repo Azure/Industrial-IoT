@@ -32,7 +32,7 @@ on:
         type: boolean
         default: true
       e2e_region:
-        description: 'Azure region for E2E resources'
+        description: 'Base region for IoT Hub, OPC PLC ACIs, Key Vault and Storage (northeurope); the IoT Edge VM deploys in swedencentral (EDGE_VM_REGION) because IoT Hub is not offered in swedencentral for this subscription'
         type: string
         default: northeurope
       e2e_cleanup:
