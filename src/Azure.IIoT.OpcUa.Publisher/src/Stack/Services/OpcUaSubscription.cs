@@ -781,6 +781,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             newMax = currentMax;
             return false;
         }
+
+        /// <summary>
+        /// Create or update the subscription now using the currently configured
+        /// subscription configuration template.
         /// </summary>
         /// <param name="maxMonitoredItemsPerSubscription"></param>
         /// <param name="limits"></param>
