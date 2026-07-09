@@ -1,0 +1,4 @@
+[submodule "external/UA-.NETStandard"]
+	path = external/UA-.NETStandard
+	url = https://github.com/OPCFoundation/UA-.NETStandard.git
+	branch = master

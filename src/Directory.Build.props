@@ -1,3 +1,26 @@
 ﻿<Project>
   <Import Project="$([MSBuild]::GetPathOfFileAbove(common.props))" Condition="'$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), common.props))' != ''" />
+
+  <!--
+    OPC Publisher 3.0 scaffolding (Phase 0).
+    Native-AOT / trimming is opt-in per project during the migration: a project
+    sets <IIoTNativeAot>true</IIoTNativeAot> once its phase has made it AOT/trim
+    clean. This surfaces trim/AOT analyzer warnings for migrated projects without
+    flooding the still-Furly/Autofac 2.x projects that are not yet AOT-ready.
+    The whole-app `dotnet publish -p:PublishAot=true` gate (Phase 1A/8) validates
+    the container app + SDK end to end.
+  -->
+  <PropertyGroup>
+    <!-- Source-generated configuration binding (AOT/trim friendly) everywhere. -->
+    <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(IIoTNativeAot)' == 'true'">
+    <IsAotCompatible>true</IsAotCompatible>
+    <IsTrimmable>true</IsTrimmable>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <EnableAotAnalyzer>true</EnableAotAnalyzer>
+    <EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
+  </PropertyGroup>
 </Project>
+
