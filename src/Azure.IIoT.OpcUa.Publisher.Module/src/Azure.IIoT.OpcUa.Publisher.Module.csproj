@@ -36,7 +36,6 @@
     <PackageReference Include="Furly.Extensions.AspNetCore" />
     <PackageReference Include="Furly.Extensions.Mqtt" />
     <PackageReference Include="Furly.Extensions.Dapr" />
-    <PackageReference Include="Furly.Extensions.MessagePack" />
     <PackageReference Include="Furly.Azure.EventHubs" />
     <PackageReference Include="Furly.Azure.IoT" />
     <PackageReference Include="Azure.Identity" />

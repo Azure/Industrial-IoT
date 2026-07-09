@@ -43,8 +43,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     [Route("v{version:apiVersion}/filesystem")]
     [ApiController]
     [Authorize]
-    [Produces(ContentMimeType.Json, ContentMimeType.MsgPack)]
-    [Consumes(ContentMimeType.Json, ContentMimeType.MsgPack)]
+    [Produces(ContentMimeType.Json)]
+    [Consumes(ContentMimeType.Json)]
     public class FileSystemController : ControllerBase, IMethodController
     {
         /// <summary>

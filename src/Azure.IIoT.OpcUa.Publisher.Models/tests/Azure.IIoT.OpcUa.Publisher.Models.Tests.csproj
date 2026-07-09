@@ -17,7 +17,6 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Furly.Extensions.Json" />
-    <PackageReference Include="Furly.Extensions.MessagePack" />
     <PackageReference Include="Furly.Extensions.Newtonsoft" />
   </ItemGroup>
   <ItemGroup>

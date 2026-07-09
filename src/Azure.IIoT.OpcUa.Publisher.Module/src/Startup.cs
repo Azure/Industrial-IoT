@@ -117,7 +117,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                     options.ModelMetadataDetailsProviders.Add(
                         new SuppressChildValidationMetadataProvider(typeof(VariantValue))))
                 .AddJsonSerializer()
-                .AddMessagePackSerializer()
                 ;
 
             services.AddOpenApi();

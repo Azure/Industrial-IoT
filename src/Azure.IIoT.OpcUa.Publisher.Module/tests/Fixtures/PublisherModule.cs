@@ -418,9 +418,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 case TestSerializerType.Json:
                     builder.AddDefaultJsonSerializer();
                     break;
-                case TestSerializerType.MsgPack:
-                    builder.AddMessagePackSerializer();
-                    break;
             }
 
             // Register http client factory
