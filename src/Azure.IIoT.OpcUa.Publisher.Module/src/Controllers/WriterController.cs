@@ -21,6 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using System.ComponentModel.DataAnnotations;
     using System.Globalization;
     using System.Linq;
+    using System.Text.Json.Nodes;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -562,7 +563,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("assets")]
         public async Task<ServiceResponse<PublishedNodesEntryModel>> CreateOrUpdateAssetAsync(
-            [FromBody][Required] PublishedNodeCreateAssetRequestModel<VariantValue> request,
+            [FromBody][Required] PublishedNodeCreateAssetRequestModel<JsonNode> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);

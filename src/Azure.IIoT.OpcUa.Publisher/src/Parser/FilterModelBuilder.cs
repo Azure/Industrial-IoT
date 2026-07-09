@@ -17,6 +17,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
+    using System.Text.Json.Nodes;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -485,7 +486,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser
             return new FilterOperandModel
             {
                 DataType = dataType,
-                Value = _serializer.Parse(str)
+                Value = JsonNode.Parse(str)
             };
         }
 

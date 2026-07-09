@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
-    using Furly.Extensions.Serializers;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
+    using System.Text.Json.Nodes;
 
     /// <summary>
     /// Content filter element extensions
@@ -49,7 +49,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 return false;
             }
-            if (!VariantValue.DeepEquals(model.Value, other.Value))
+            if (!JsonNode.DeepEquals(model.Value, other.Value))
             {
                 return false;
             }

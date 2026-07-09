@@ -199,7 +199,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                             not (nameof(ApplicationUri)) and
                             not (nameof(WriterGroupId)) and
                             not (nameof(JsonNetworkMessage.PublisherId)))
-                        .Select(e => (e.DataSetFieldName, e.Value.Value?.ToString())));
+                        .Select(e => (e.DataSetFieldName, e.Value?.ToString())));
                 }
 
                 // We already wrote application uri and endpoint uri, so do not write again

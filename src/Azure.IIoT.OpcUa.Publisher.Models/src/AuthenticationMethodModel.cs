@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
-    using Furly.Extensions.Serializers;
     using System.ComponentModel.DataAnnotations;
     using System.Runtime.Serialization;
+    using System.Text.Json.Nodes;
 
     /// <summary>
     /// Authentication Method model
@@ -41,6 +41,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "configuration", Order = 3,
             EmitDefaultValue = false)]
         [SkipValidation]
-        public VariantValue? Configuration { get; set; }
+        public JsonNode? Configuration { get; set; }
     }
 }

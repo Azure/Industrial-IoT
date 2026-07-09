@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     using Furly.Extensions.Serializers;
     using Opc.Ua;
     using Opc.Ua.Extensions;
+    using System.Text.Json.Nodes;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -27,7 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="serializer"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public static Task<VariantValue> ReadValueAsync<T>(this IOpcUaClientManager<T> client,
+        public static Task<JsonNode?> ReadValueAsync<T>(this IOpcUaClientManager<T> client,
             T connection, string readNode, IJsonSerializer serializer, CancellationToken ct = default)
         {
             return client.ExecuteAsync(connection, async context =>

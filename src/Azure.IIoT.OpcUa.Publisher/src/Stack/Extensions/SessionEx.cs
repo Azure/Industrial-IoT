@@ -9,7 +9,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Encoders.Utils;
-    using Furly.Extensions.Serializers;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using NodeClass = Publisher.Models.NodeClass;
@@ -17,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
     using System.Collections.Generic;
     using System.Linq;
     using System.Runtime.CompilerServices;
+    using System.Text.Json.Nodes;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -1016,7 +1016,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                         var arg = new MethodMetadataArgumentModel
                         {
                             Name = argument.Name,
-                            DefaultValue = argument.Value == null ? VariantValue.Null :
+                            DefaultValue = argument.Value == null ? null :
                                 session.Codec.Encode(new Variant(argument.Value), out var tmp),
                             ValueRank = argument.ValueRank == ValueRanks.Scalar ?
                                 null : (NodeValueRank)argument.ValueRank,

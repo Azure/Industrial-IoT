@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Sdk;
     using Furly.Extensions.Serializers;
+    using System.Text.Json.Nodes;
     using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Extensions.Options;
     using System;
@@ -242,8 +243,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
         }
 
         /// <inheritdoc/>
-        public async Task<HistoryReadResponseModel<VariantValue>> HistoryReadAsync(
-            ConnectionModel endpoint, HistoryReadRequestModel<VariantValue> request, CancellationToken ct)
+        public async Task<HistoryReadResponseModel<JsonNode>> HistoryReadAsync(
+            ConnectionModel endpoint, HistoryReadRequestModel<JsonNode> request, CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(endpoint);
             ArgumentNullException.ThrowIfNull(request);
@@ -252,12 +253,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
                 throw new ArgumentException("Details missing.", nameof(request));
             }
             var uri = new Uri($"{_serviceUri}/v2/historyread/first");
-            return await _httpClient.PostAsync<HistoryReadResponseModel<VariantValue>>(uri,
+            return await _httpClient.PostAsync<HistoryReadResponseModel<JsonNode>>(uri,
                 RequestBody(endpoint, request), _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task<HistoryReadNextResponseModel<VariantValue>> HistoryReadNextAsync(
+        public async Task<HistoryReadNextResponseModel<JsonNode>> HistoryReadNextAsync(
             ConnectionModel endpoint, HistoryReadNextRequestModel request, CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(endpoint);
@@ -267,13 +268,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
                 throw new ArgumentException("Continuation missing.", nameof(request));
             }
             var uri = new Uri($"{_serviceUri}v2/historyread/next");
-            return await _httpClient.PostAsync<HistoryReadNextResponseModel<VariantValue>>(uri,
+            return await _httpClient.PostAsync<HistoryReadNextResponseModel<JsonNode>>(uri,
                 RequestBody(endpoint, request), _serializer, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryUpdateAsync(
-            ConnectionModel endpoint, HistoryUpdateRequestModel<VariantValue> request, CancellationToken ct)
+            ConnectionModel endpoint, HistoryUpdateRequestModel<JsonNode> request, CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(endpoint);
             ArgumentNullException.ThrowIfNull(request);

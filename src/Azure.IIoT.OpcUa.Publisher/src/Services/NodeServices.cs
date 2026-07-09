@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
-    using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using BrowseDirection = Models.BrowseDirection;
@@ -22,6 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using System.Text.Json.Nodes;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -574,7 +574,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         var arg = new MethodMetadataArgumentModel
                         {
                             Name = argument.Name,
-                            DefaultValue = argument.Value == null ? VariantValue.Null :
+                            DefaultValue = argument.Value == null ? null :
                                 context.Session.Codec.Encode(new Variant(argument.Value), out var type),
                             ValueRank = argument.ValueRank == ValueRanks.Scalar ?
                                 null : (global::Azure.IIoT.OpcUa.Publisher.Models.NodeValueRank)argument.ValueRank,
@@ -751,7 +751,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 context.Ct).ConfigureAwait(false);
                         }
                         requests[0].InputArguments[i] = context.Session.Codec.Decode(
-                            arg.Value ?? VariantValue.Null, builtinType);
+                            arg.Value, builtinType);
                     }
                 }
 
@@ -1009,7 +1009,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         AttributeId = (uint)a.Attribute,
                         NodeId = a.NodeId.ToNodeId(context.Session.MessageContext),
-                        Value = new DataValue(context.Session.Codec.Decode(a.Value ?? VariantValue.Null,
+                        Value = new DataValue(context.Session.Codec.Decode(a.Value,
                             AttributeMap.GetBuiltInType((uint)a.Attribute)))
                     }));
                 var response = await context.Session.Services.WriteAsync(
@@ -1194,8 +1194,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
-        public Task<HistoryReadResponseModel<VariantValue>> HistoryReadAsync(T endpoint,
-            HistoryReadRequestModel<VariantValue> request, CancellationToken ct)
+        public Task<HistoryReadResponseModel<JsonNode>> HistoryReadAsync(T endpoint,
+            HistoryReadRequestModel<JsonNode> request, CancellationToken ct)
         {
             return HistoryReadAsync(endpoint, request, (details, session) =>
             {
@@ -1209,7 +1209,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <inheritdoc/>
-        public Task<HistoryReadNextResponseModel<VariantValue>> HistoryReadNextAsync(
+        public Task<HistoryReadNextResponseModel<JsonNode>> HistoryReadNextAsync(
             T endpoint, HistoryReadNextRequestModel request, CancellationToken ct)
         {
             return HistoryReadNextAsync(endpoint, request,
@@ -1218,7 +1218,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         /// <inheritdoc/>
         public Task<HistoryUpdateResponseModel> HistoryUpdateAsync(T endpoint,
-            HistoryUpdateRequestModel<VariantValue> request, CancellationToken ct)
+            HistoryUpdateRequestModel<JsonNode> request, CancellationToken ct)
         {
             return HistoryUpdateAsync(endpoint, request, (nodeId, details, session) =>
             {

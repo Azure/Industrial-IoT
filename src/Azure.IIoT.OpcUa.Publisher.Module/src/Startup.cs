@@ -21,6 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
     using OpenTelemetry.Resources;
     using OpenTelemetry.Trace;
     using System;
+    using System.Text.Json.Nodes;
 
     /// <summary>
     /// Webservice startup
@@ -108,14 +109,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
 
             services.AddControllers()
                 .AddMvcOptions(options =>
-                    // VariantValue exposes a recursive value graph (e.g. a
+                    // JsonNode exposes a recursive value graph (e.g. a
                     // ByteString surfaces every byte as a child element), which
                     // makes the default recursive model validation extremely
                     // expensive for large payloads such as method call arguments.
                     // Suppress validation of its children since there is nothing
                     // to validate on the opaque value tree anyway.
                     options.ModelMetadataDetailsProviders.Add(
-                        new SuppressChildValidationMetadataProvider(typeof(VariantValue))))
+                        new SuppressChildValidationMetadataProvider(typeof(JsonNode))))
                 .AddJsonSerializer()
                 ;
 

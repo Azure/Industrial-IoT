@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System.Xml;
+    using System.Text.Json.Nodes;
     using Xunit;
 
     public class VariantEncoderMiscTests
@@ -24,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant(123u);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(str, encoded);
+            Assert.True(JsonNode.DeepEquals(JsonNode.Parse(str), encoded));
         }
 
         [Fact]
@@ -36,7 +37,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant(-1);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(str, encoded);
+            Assert.True(JsonNode.DeepEquals(JsonNode.Parse(str), encoded));
         }
 
         [Fact]
@@ -48,7 +49,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant((sbyte)-12);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(str, encoded);
+            Assert.True(JsonNode.DeepEquals(JsonNode.Parse(str), encoded));
         }
 
         [Fact]
@@ -60,7 +61,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant((byte)1);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(str, encoded);
+            Assert.True(JsonNode.DeepEquals(JsonNode.Parse(str), encoded));
         }
 
         [Fact]
@@ -72,7 +73,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant(str);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(str, encoded);
+            Assert.True(JsonNode.DeepEquals(str, encoded));
         }
 
         [Fact]
@@ -84,7 +85,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant(str);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(str, encoded);
+            Assert.True(JsonNode.DeepEquals(str, encoded));
         }
 
         [Fact]
@@ -96,7 +97,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant("fffffffff");
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal("fffffffff", encoded);
+            Assert.True(JsonNode.DeepEquals("fffffffff", encoded));
         }
 
         [Fact]
@@ -144,8 +145,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant(System.Array.Empty<string>());
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.True(encoded.Equals(str));
-            Assert.Equal(str, encoded);
+            Assert.True(JsonNode.DeepEquals(encoded, JsonNode.Parse(str)));
+            Assert.True(JsonNode.DeepEquals(JsonNode.Parse(str), encoded));
         }
 
         [Fact]
@@ -157,8 +158,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant(System.Array.Empty<short>());
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.True(encoded.Equals(str));
-            Assert.Equal(str, encoded);
+            Assert.True(JsonNode.DeepEquals(encoded, JsonNode.Parse(str)));
+            Assert.True(JsonNode.DeepEquals(JsonNode.Parse(str), encoded));
         }
 
         [Fact]
@@ -402,14 +403,14 @@ namespace Azure.IIoT.OpcUa.Encoders
             Assert.Equal(BuiltInType.ExtensionObject, nonReversibleType);
 
             // Reversible encoding wraps the body with type information.
-            Assert.True(reversible.IsObject);
-            Assert.False(reversible.GetByPath("TypeId").IsNull());
+            Assert.True(reversible is JsonObject);
+            Assert.NotNull(reversible?["TypeId"]);
 
             // Non-reversible encoding emits the structure body directly.
-            Assert.True(nonReversible.IsObject);
-            Assert.True(nonReversible.GetByPath("TypeId").IsNull());
-            Assert.Equal(10.0, (double)nonReversible.GetByPath("High"));
-            Assert.Equal(1.0, (double)nonReversible.GetByPath("Low"));
+            Assert.True(nonReversible is JsonObject);
+            Assert.Null(nonReversible?["TypeId"]);
+            Assert.Equal(10.0, (double)nonReversible!["High"]!);
+            Assert.Equal(1.0, (double)nonReversible!["Low"]!);
         }
 
         private readonly IJsonSerializer _serializer = new NewtonsoftJsonSerializer();

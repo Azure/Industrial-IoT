@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Newtonsoft;
     using Opc.Ua;
+    using System.Text.Json.Nodes;
     using Xunit;
 
     public class VariantEncoderDoubleTests
@@ -16,48 +17,48 @@ namespace Azure.IIoT.OpcUa.Encoders
         public void DecodeEncodeDoubleFromJValue()
         {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = _serializer.FromObject(-123.123);
+            var str = TestJson.FromObject(-123.123);
             var variant = codec.Decode(str, BuiltInType.Double);
             var expected = new Variant(-123.123);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(str, encoded);
+            Assert.True(JsonNode.DeepEquals(str, encoded));
         }
 
         [Fact]
         public void DecodeEncodeDoubleArrayFromJArray()
         {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = _serializer.FromArray(-123.123, 124.124, 0.0);
+            var str = TestJson.FromArray(-123.123, 124.124, 0.0);
             var variant = codec.Decode(str, BuiltInType.Double);
             var expected = new Variant([-123.123, 124.124, 0.0]);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(str, encoded);
+            Assert.True(JsonNode.DeepEquals(str, encoded));
         }
 
         [Fact]
         public void DecodeEncodeDoubleFromJValueTypeNullIsDouble()
         {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = _serializer.FromObject(-123.123);
+            var str = TestJson.FromObject(-123.123);
             var variant = codec.Decode(str, BuiltInType.Null);
             var expected = new Variant(-123.123);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(str, encoded);
+            Assert.True(JsonNode.DeepEquals(str, encoded));
         }
 
         [Fact]
         public void DecodeEncodeDoubleArrayFromJArrayTypeNullIsDouble()
         {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = _serializer.FromArray(-123.123, 124.124, 0.0);
+            var str = TestJson.FromArray(-123.123, 124.124, 0.0);
             var variant = codec.Decode(str, BuiltInType.Null);
             var expected = new Variant([-123.123, 124.124, 0.0]);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(str, encoded);
+            Assert.True(JsonNode.DeepEquals(str, encoded));
         }
 
         [Fact]
@@ -69,7 +70,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant(-123.123);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromObject(-123.123), encoded);
+            Assert.True(JsonNode.DeepEquals(TestJson.FromObject(-123.123), encoded));
         }
 
         [Fact]
@@ -81,7 +82,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant(-123.0);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromObject(-123.0), encoded);
+            Assert.True(JsonNode.DeepEquals(TestJson.FromObject(-123.0), encoded));
         }
 
         [Fact]
@@ -93,7 +94,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant([-123.123, 124.124, 0.0]);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromArray(-123.123, 124.124, 0.0), encoded);
+            Assert.True(JsonNode.DeepEquals(TestJson.FromArray(-123.123, 124.124, 0.0), encoded));
         }
 
         [Fact]
@@ -105,7 +106,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant([-123.123, 124.124, 0.0]);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromArray(-123.123, 124.124, 0.0), encoded);
+            Assert.True(JsonNode.DeepEquals(TestJson.FromArray(-123.123, 124.124, 0.0), encoded));
         }
 
         [Fact]
@@ -117,7 +118,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant(System.Array.Empty<double>());
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromArray(), encoded);
+            Assert.True(JsonNode.DeepEquals(TestJson.FromArray(), encoded));
         }
 
         [Fact]
@@ -129,7 +130,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant(-123.123);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromObject(-123.123), encoded);
+            Assert.True(JsonNode.DeepEquals(TestJson.FromObject(-123.123), encoded));
         }
 
         [Fact]
@@ -143,7 +144,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             });
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromArray(-123.123, 124.124, 0.0), encoded);
+            Assert.True(JsonNode.DeepEquals(TestJson.FromArray(-123.123, 124.124, 0.0), encoded));
         }
 
         [Fact]
@@ -155,7 +156,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant(System.Array.Empty<Variant>());
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromArray(), encoded);
+            Assert.True(JsonNode.DeepEquals(TestJson.FromArray(), encoded));
         }
 
         [Fact]
@@ -167,8 +168,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant(-123.123);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromObject(-123.123),
-                encoded);
+            Assert.True(JsonNode.DeepEquals(TestJson.FromObject(-123.123), encoded));
         }
         [Fact]
         public void DecodeEncodeDoubleArrayFromStringTypeNullIsDouble()
@@ -179,7 +179,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant([-123.123, 124.124, 0.0]);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromArray(-123.123, 124.124, 0.0), encoded);
+            Assert.True(JsonNode.DeepEquals(TestJson.FromArray(-123.123, 124.124, 0.0), encoded));
         }
 
         [Fact]
@@ -191,7 +191,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant([-123.123, 124.124, 0.0]);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromArray(-123.123, 124.124, 0.0), encoded);
+            Assert.True(JsonNode.DeepEquals(TestJson.FromArray(-123.123, 124.124, 0.0), encoded));
         }
 
         [Fact]
@@ -202,7 +202,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var variant = codec.Decode(str, BuiltInType.Null);
             var expected = Variant.Null;
             var encoded = codec.Encode(variant);
-            Assert.NotNull(encoded);
+            Assert.Null(encoded);
             Assert.Equal(expected, variant);
         }
 
@@ -215,8 +215,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant(-123.123);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromObject(-123.123),
-                encoded);
+            Assert.True(JsonNode.DeepEquals(TestJson.FromObject(-123.123), encoded));
         }
 
         [Fact]
@@ -228,8 +227,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant(-123.123);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromObject(-123.123),
-                encoded);
+            Assert.True(JsonNode.DeepEquals(TestJson.FromObject(-123.123), encoded));
         }
 
         [Fact]
@@ -241,8 +239,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant([-123.123, 124.124, 0.0]);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromArray(-123.123, 124.124, 0.0),
-                encoded);
+            Assert.True(JsonNode.DeepEquals(TestJson.FromArray(-123.123, 124.124, 0.0), encoded));
         }
 
         [Fact]
@@ -254,15 +251,14 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant([-123.123, 124.124, 0.0]);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromArray(-123.123, 124.124, 0.0),
-                encoded);
+            Assert.True(JsonNode.DeepEquals(TestJson.FromArray(-123.123, 124.124, 0.0), encoded));
         }
 
         [Fact]
         public void DecodeEncodeDoubleFromVariantJsonTokenTypeVariant()
         {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = _serializer.FromObject(new
+            var str = TestJson.FromObject(new
             {
                 Type = "Double",
                 Body = -123.123f
@@ -271,15 +267,14 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant(-123.123);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromObject(-123.123),
-                encoded);
+            Assert.True(JsonNode.DeepEquals(TestJson.FromObject(-123.123), encoded));
         }
 
         [Fact]
         public void DecodeEncodeDoubleArrayFromVariantJsonTokenTypeVariant1()
         {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = _serializer.FromObject(new
+            var str = TestJson.FromObject(new
             {
                 Type = "Double",
                 Body = new double[] { -123.123, 124.124, 0.0 }
@@ -288,15 +283,14 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant([-123.123, 124.124, 0.0]);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromArray(-123.123, 124.124, 0.0),
-                encoded);
+            Assert.True(JsonNode.DeepEquals(TestJson.FromArray(-123.123, 124.124, 0.0), encoded));
         }
 
         [Fact]
         public void DecodeEncodeDoubleArrayFromVariantJsonTokenTypeVariant2()
         {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = _serializer.FromObject(new
+            var str = TestJson.FromObject(new
             {
                 Type = "Double",
                 Body = System.Array.Empty<double>()
@@ -305,7 +299,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant(System.Array.Empty<double>());
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromArray(), encoded);
+            Assert.True(JsonNode.DeepEquals(TestJson.FromArray(), encoded));
         }
 
         [Fact]
@@ -321,8 +315,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant(-123.123);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromObject(-123.123),
-                encoded);
+            Assert.True(JsonNode.DeepEquals(TestJson.FromObject(-123.123), encoded));
         }
 
         [Fact]
@@ -338,15 +331,14 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant([-123.123, 124.124, 0.0]);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromArray(-123.123, 124.124, 0.0),
-                encoded);
+            Assert.True(JsonNode.DeepEquals(TestJson.FromArray(-123.123, 124.124, 0.0), encoded));
         }
 
         [Fact]
         public void DecodeEncodeDoubleFromVariantJsonTokenTypeNull()
         {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = _serializer.FromObject(new
+            var str = TestJson.FromObject(new
             {
                 Type = "Double",
                 Body = -123.123f
@@ -355,15 +347,14 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant(-123.123);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromObject(-123.123),
-                encoded);
+            Assert.True(JsonNode.DeepEquals(TestJson.FromObject(-123.123), encoded));
         }
 
         [Fact]
         public void DecodeEncodeDoubleArrayFromVariantJsonTokenTypeNull1()
         {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = _serializer.FromObject(new
+            var str = TestJson.FromObject(new
             {
                 TYPE = "DOUBLE",
                 BODY = new double[] { -123.123, 124.124, 0.0 }
@@ -372,15 +363,14 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant([-123.123, 124.124, 0.0]);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromArray(-123.123, 124.124, 0.0),
-                encoded);
+            Assert.True(JsonNode.DeepEquals(TestJson.FromArray(-123.123, 124.124, 0.0), encoded));
         }
 
         [Fact]
         public void DecodeEncodeDoubleArrayFromVariantJsonTokenTypeNull2()
         {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = _serializer.FromObject(new
+            var str = TestJson.FromObject(new
             {
                 Type = "Double",
                 Body = System.Array.Empty<double>()
@@ -389,7 +379,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant(System.Array.Empty<double>());
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromArray(), encoded);
+            Assert.True(JsonNode.DeepEquals(TestJson.FromArray(), encoded));
         }
 
         [Fact]
@@ -405,8 +395,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant(-123.123);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromObject(-123.123),
-                encoded);
+            Assert.True(JsonNode.DeepEquals(TestJson.FromObject(-123.123), encoded));
         }
 
         [Fact]
@@ -422,15 +411,14 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant([-123.123, 124.124, 0.0]);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromArray(-123.123, 124.124, 0.0),
-                encoded);
+            Assert.True(JsonNode.DeepEquals(TestJson.FromArray(-123.123, 124.124, 0.0), encoded));
         }
 
         [Fact]
         public void DecodeEncodeDoubleFromVariantJsonTokenTypeNullMsftEncoding()
         {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = _serializer.FromObject(new
+            var str = TestJson.FromObject(new
             {
                 DataType = "Double",
                 Value = -123.123f
@@ -439,8 +427,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant(-123.123);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromObject(-123.123),
-                encoded);
+            Assert.True(JsonNode.DeepEquals(TestJson.FromObject(-123.123), encoded));
         }
 
         [Fact]
@@ -456,15 +443,14 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant(-123.123);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromObject(-123.123),
-                encoded);
+            Assert.True(JsonNode.DeepEquals(TestJson.FromObject(-123.123), encoded));
         }
 
         [Fact]
         public void DecodeEncodeDoubleArrayFromVariantJsonTokenTypeVariantMsftEncoding()
         {
             var codec = new JsonVariantEncoder(new ServiceMessageContext(), _serializer);
-            var str = _serializer.FromObject(new
+            var str = TestJson.FromObject(new
             {
                 dataType = "Double",
                 value = new double[] { -123.123, 124.124, 0.0 }
@@ -473,8 +459,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             var expected = new Variant([-123.123, 124.124, 0.0]);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
-            Assert.Equal(_serializer.FromArray(-123.123, 124.124, 0.0),
-                encoded);
+            Assert.True(JsonNode.DeepEquals(TestJson.FromArray(-123.123, 124.124, 0.0), encoded));
         }
 
 #pragma warning disable CA1814 // Prefer jagged arrays over multidimensional

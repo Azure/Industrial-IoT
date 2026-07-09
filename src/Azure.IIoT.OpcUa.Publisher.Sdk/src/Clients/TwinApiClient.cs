@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
     using Microsoft.Extensions.Options;
     using System;
     using System.Linq;
+    using System.Text.Json.Nodes;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -365,8 +366,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
         }
 
         /// <inheritdoc/>
-        public async Task<HistoryReadResponseModel<VariantValue>> HistoryReadAsync(
-            ConnectionModel connection, HistoryReadRequestModel<VariantValue> request,
+        public async Task<HistoryReadResponseModel<JsonNode>> HistoryReadAsync(
+            ConnectionModel connection, HistoryReadRequestModel<JsonNode> request,
             CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(connection);
@@ -385,11 +386,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                     connection,
                     request
                 }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
-            return _serializer.DeserializeResponse<HistoryReadResponseModel<VariantValue>>(response);
+            return _serializer.DeserializeResponse<HistoryReadResponseModel<JsonNode>>(response);
         }
 
         /// <inheritdoc/>
-        public async Task<HistoryReadNextResponseModel<VariantValue>> HistoryReadNextAsync(
+        public async Task<HistoryReadNextResponseModel<JsonNode>> HistoryReadNextAsync(
             ConnectionModel connection, HistoryReadNextRequestModel request,
             CancellationToken ct)
         {
@@ -409,12 +410,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
                     connection,
                     request
                 }), ContentMimeType.Json, _timeout, ct).ConfigureAwait(false);
-            return _serializer.DeserializeResponse<HistoryReadNextResponseModel<VariantValue>>(response);
+            return _serializer.DeserializeResponse<HistoryReadNextResponseModel<JsonNode>>(response);
         }
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryUpdateAsync(
-            ConnectionModel connection, HistoryUpdateRequestModel<VariantValue> request,
+            ConnectionModel connection, HistoryUpdateRequestModel<JsonNode> request,
             CancellationToken ct)
         {
             ArgumentNullException.ThrowIfNull(connection);

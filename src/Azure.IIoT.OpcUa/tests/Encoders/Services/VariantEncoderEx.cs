@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Encoders
 {
-    using Furly.Extensions.Serializers;
+    using System.Text.Json.Nodes;
     using Opc.Ua;
 
     /// <summary>
@@ -19,9 +19,22 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="encoder"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static VariantValue Encode(this IVariantEncoder encoder, Variant value)
+        public static JsonNode? Encode(this IVariantEncoder encoder, Variant value)
         {
             return encoder.Encode(value, out _);
+        }
+
+        /// <summary>
+        /// Decode a raw string value
+        /// </summary>
+        /// <param name="encoder"></param>
+        /// <param name="value"></param>
+        /// <param name="builtinType"></param>
+        /// <returns></returns>
+        public static Variant Decode(this IVariantEncoder encoder, string value,
+            BuiltInType builtinType)
+        {
+            return encoder.Decode(JsonValue.Create(value), builtinType);
         }
     }
 }

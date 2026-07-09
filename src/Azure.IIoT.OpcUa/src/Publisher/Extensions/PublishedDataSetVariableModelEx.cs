@@ -23,7 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             return model == null ? null : (model with
             {
                 Triggering = model.Triggering.Clone(),
-                SubstituteValue = model.SubstituteValue?.Copy()
+                SubstituteValue = model.SubstituteValue?.DeepClone()
             });
         }
     }

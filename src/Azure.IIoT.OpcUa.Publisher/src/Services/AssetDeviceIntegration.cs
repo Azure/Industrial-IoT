@@ -32,6 +32,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Linq;
     using System.Text;
     using System.Text.Json;
+    using System.Text.Json.Nodes;
     using System.Text.Json.Serialization;
     using System.Text.RegularExpressions;
     using System.Threading;
@@ -1334,15 +1335,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="asset"></param>
         /// <param name="device"></param>
         /// <returns></returns>
-        internal static Dictionary<string, VariantValue>? CollectAssetAndDeviceProperties(
+        internal static Dictionary<string, JsonNode?>? CollectAssetAndDeviceProperties(
             AssetResource asset, DeviceResource device)
         {
-            var fields = new Dictionary<string, VariantValue>();
-            static void Add(Dictionary<string, VariantValue> fields, string key, VariantValue? value)
+            var fields = new Dictionary<string, JsonNode?>();
+            static void Add(Dictionary<string, JsonNode?> fields, string key, string? value)
             {
-                if (!VariantValue.IsNullOrNullValue(value))
+                if (!string.IsNullOrEmpty(value))
                 {
-                    fields.AddOrUpdate(key, value);
+                    fields.AddOrUpdate(key, JsonValue.Create(value));
                 }
             }
 
@@ -1358,7 +1359,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             Add(fields, nameof(Device.Manufacturer), device.Device.Manufacturer);
             Add(fields, nameof(Device.OperatingSystem), device.Device.OperatingSystem);
             Add(fields, nameof(Device.OperatingSystemVersion), device.Device.OperatingSystemVersion);
-            Add(fields, nameof(Device.Version), device.Device.Version);
+            if (device.Device.Version.HasValue)
+            {
+                fields.AddOrUpdate(nameof(Device.Version),
+                    JsonValue.Create(device.Device.Version.Value));
+            }
 
             if (asset.Asset.Attributes != null)
             {
@@ -1376,7 +1381,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             Add(fields, nameof(Asset.ProductCode), asset.Asset.ProductCode);
             Add(fields, nameof(Asset.SerialNumber), asset.Asset.SerialNumber);
             Add(fields, nameof(Asset.SoftwareRevision), asset.Asset.SoftwareRevision);
-            Add(fields, nameof(Asset.Version), asset.Asset.Version);
+            if (asset.Asset.Version.HasValue)
+            {
+                fields.AddOrUpdate(nameof(Asset.Version),
+                    JsonValue.Create(asset.Asset.Version.Value));
+            }
             Add(fields, nameof(Asset.DocumentationUri), asset.Asset.DocumentationUri);
             Add(fields, nameof(Asset.Description), asset.Asset.Description);
 

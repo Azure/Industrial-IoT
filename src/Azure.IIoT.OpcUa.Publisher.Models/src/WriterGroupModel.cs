@@ -1,15 +1,15 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
-    using Furly.Extensions.Serializers;
-    using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
     using System.Runtime.Serialization;
+    using System.Text.Json.Nodes;
+    using System;
 
     /// <summary>
     /// Network message writer group model
@@ -184,7 +184,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "properties", Order = 21,
             EmitDefaultValue = false)]
         [SkipValidation]
-        public Dictionary<string, VariantValue>? Properties { get; set; }
+        public Dictionary<string, JsonNode?>? Properties { get; set; }
 
         /// <summary>
         /// Publisher identifier if different from the global one

@@ -11,9 +11,10 @@ namespace Azure.IIoT.OpcUa.Encoders
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
-    using System.Globalization;
     using System.IO;
     using System.Linq;
+    using System.Text.Json;
+    using System.Text.Json.Nodes;
 
     /// <summary>
     /// Variant encoder implementation
@@ -31,17 +32,17 @@ namespace Azure.IIoT.OpcUa.Encoders
         public JsonVariantEncoder(IServiceMessageContext context, IJsonSerializer serializer)
         {
             Context = context;
-            _serializer = serializer;
+            _ = serializer;
         }
 
         /// <inheritdoc/>
-        public VariantValue Encode(Variant? value, out BuiltInType builtinType,
+        public JsonNode? Encode(Variant? value, out BuiltInType builtinType,
             ValueEncoding encoding = ValueEncoding.Reversible)
         {
             if (value == null || value == Variant.Null)
             {
                 builtinType = BuiltInType.Null;
-                return VariantValue.Null;
+                return null;
             }
             var useReversibleEncoding = encoding != ValueEncoding.NonReversible;
             using var stream = new MemoryStream();
@@ -53,12 +54,12 @@ namespace Azure.IIoT.OpcUa.Encoders
             {
                 encoder.WriteVariant(nameof(value), value.Value);
             }
-            var token = _serializer.Parse(stream.ToArray());
+            var token = JsonNode.Parse(stream.ToArray());
             if (useReversibleEncoding)
             {
-                Enum.TryParse((string?)token.GetByPath("value.Type"),
+                Enum.TryParse(ToStringValue(token?["value"]?["Type"]),
                     true, out builtinType);
-                return token.GetByPath("value.Body");
+                return token?["value"]?["Body"]?.DeepClone();
             }
 
             //
@@ -67,13 +68,13 @@ namespace Azure.IIoT.OpcUa.Encoders
             // from the variant type information instead.
             //
             builtinType = value.Value.TypeInfo?.BuiltInType ?? BuiltInType.Null;
-            return token.GetByPath("value");
+            return token?["value"]?.DeepClone();
         }
 
         /// <inheritdoc/>
-        public Variant Decode(VariantValue value, BuiltInType builtinType)
+        public Variant Decode(JsonNode? value, BuiltInType builtinType)
         {
-            if (value.IsNull())
+            if (value is null)
             {
                 return Variant.Null;
             }
@@ -86,26 +87,29 @@ namespace Azure.IIoT.OpcUa.Encoders
             string json;
             if (builtinType == BuiltInType.Null ||
                 (builtinType == BuiltInType.Variant &&
-                    value.IsObject))
+                    value is JsonObject))
             {
                 //
                 // Let the decoder try and decode the json variant.
                 //
-                json = _serializer.SerializeToString(new { value });
+                json = new JsonObject
+                {
+                    ["value"] = value?.DeepClone()
+                }.ToJsonString();
             }
             else
             {
                 //
                 // Give decoder a hint as to the type to use to decode.
                 //
-                json = _serializer.SerializeToString(new
+                json = new JsonObject
                 {
-                    value = new
+                    ["value"] = new JsonObject
                     {
-                        Body = value,
-                        Type = (byte)builtinType
+                        ["Body"] = value?.DeepClone(),
+                        ["Type"] = (byte)builtinType
                     }
-                });
+                }.ToJsonString();
             }
 
             //
@@ -127,24 +131,29 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <param name="value"></param>
         /// <param name="isString"></param>
         /// <returns></returns>
-        internal VariantValue Sanitize(VariantValue value, bool isString)
+        internal JsonNode? Sanitize(JsonNode? value, bool isString)
         {
-            if (value.IsNull())
+            if (value is null)
             {
                 return value;
             }
 
-            if (!value.TryGetString(out var asString, true, CultureInfo.InvariantCulture))
+            string asString;
+            if (IsJsonString(value))
             {
-                asString = _serializer.SerializeToString(value);
+                asString = value.GetValue<string>();
+            }
+            else
+            {
+                asString = value.ToJsonString();
             }
 
-            if (!value.IsObject && !value.IsListOfValues && !value.IsString)
+            if (value is not JsonObject && value is not JsonArray && !IsJsonString(value))
             {
                 //
                 // If this should be a string - return as such
                 //
-                return isString ? asString : value;
+                return isString ? JsonValue.Create(asString) : value;
             }
 
             if (string.IsNullOrWhiteSpace(asString))
@@ -155,17 +164,17 @@ namespace Azure.IIoT.OpcUa.Encoders
             //
             // Try to parse string as json
             //
-            if (!value.IsString)
+            if (!IsJsonString(value))
             {
                 asString = asString.Replace("\\\"", "\"", StringComparison.Ordinal);
             }
-            var token = Try.Op(() => _serializer.Parse(asString));
+            var token = Try.Op(() => ParseLenient(asString));
             if (token is not null)
             {
                 value = token;
             }
 
-            if (value.IsString)
+            if (IsJsonString(value))
             {
                 //
                 // try to split the string as comma seperated list
@@ -191,7 +200,8 @@ namespace Azure.IIoT.OpcUa.Encoders
                             array.Add(trimmed);
                         }
                         // No need to sanitize contents
-                        return _serializer.FromObject(array);
+                        return new JsonArray(array
+                            .Select(s => (JsonNode?)JsonValue.Create(s)).ToArray());
                     }
                 }
                 else
@@ -207,12 +217,12 @@ namespace Azure.IIoT.OpcUa.Encoders
                         var trimmed = elements.Select(e => e.TrimQuotes()).ToArray();
                         try
                         {
-                            value = _serializer.Parse(
+                            value = ParseLenient(
                                 "[" + trimmed.Aggregate((x, y) => x + "," + y) + "]");
                         }
                         catch
                         {
-                            value = _serializer.Parse(
+                            value = ParseLenient(
                                 "[\"" + trimmed.Aggregate((x, y) => x + "\",\"" + y) + "\"]");
                         }
                     }
@@ -224,23 +234,66 @@ namespace Azure.IIoT.OpcUa.Encoders
                         var trimmed = asString.Trim().TrimQuotes();
                         if (trimmed != asString)
                         {
-                            return Sanitize(trimmed, isString);
+                            return Sanitize(JsonValue.Create(trimmed), isString);
                         }
                     }
                 }
             }
 
-            if (value.IsListOfValues)
+            if (value is JsonArray list)
             {
                 //
                 // Sanitize each element accordingly
                 //
-                return _serializer.FromObject(value.Values
-                    .Select(t => Sanitize(t, isString)));
+                return new JsonArray(list
+                    .Select(t => Sanitize(t, isString)?.DeepClone()).ToArray());
             }
             return value;
         }
 
-        private readonly IJsonSerializer _serializer;
+        /// <summary>
+        /// Value is a json string
+        /// </summary>
+        /// <param name="node"></param>
+        /// <returns></returns>
+        private static bool IsJsonString(JsonNode? node)
+        {
+            return node is JsonValue value &&
+                value.GetValueKind() == JsonValueKind.String;
+        }
+
+        /// <summary>
+        /// Parse a json string leniently. Unlike
+        /// <see cref="JsonNode.Parse(string, JsonNodeOptions?, JsonDocumentOptions)"/>
+        /// this accepts the same relaxed json the previous Newtonsoft based
+        /// implementation did (e.g. single quoted strings) so that user
+        /// provided values continue to sanitize identically. The value is
+        /// reparsed into a <see cref="JsonNode"/> via a strict serialization.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        private static JsonNode? ParseLenient(string value)
+        {
+            var token = Newtonsoft.Json.Linq.JToken.Parse(value);
+            return JsonNode.Parse(token.ToString(Newtonsoft.Json.Formatting.None));
+        }
+
+        /// <summary>
+        /// Coerce a json node to its string representation
+        /// </summary>
+        /// <param name="node"></param>
+        /// <returns></returns>
+        private static string? ToStringValue(JsonNode? node)
+        {
+            if (node is null)
+            {
+                return null;
+            }
+            if (node is JsonValue value && value.TryGetValue<string>(out var s))
+            {
+                return s;
+            }
+            return node.ToJsonString();
+        }
     }
 }

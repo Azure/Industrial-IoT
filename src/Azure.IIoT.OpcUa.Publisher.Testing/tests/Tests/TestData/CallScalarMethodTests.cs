@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Serializers;
+    using System.Text.Json.Nodes;
     using Furly.Extensions.Serializers.Json;
     using MemoryBuffer;
     using Opc.Ua.Extensions;
@@ -1106,11 +1107,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 new() {
                     DataType = "ByteString",
-                    Value = Encoding.UTF32.GetBytes("asdfasdfadsfs")
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, Encoding.UTF32.GetBytes("asdfasdfadsfs"))
                 },
                 new() {
                     DataType = "XmlElement",
-                    Value = _serializer.FromObject(XmlElementEx.SerializeObject(
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, XmlElementEx.SerializeObject(
                         new MemoryBufferInstance{
                             Name = "test",
                             TagCount = 333,
@@ -1131,7 +1132,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 new() {
                     DataType = "LocalizedText",
-                    Value = _serializer.FromObject(new {
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, new {
                         Locale = "de",
                         Text = "Hallo Welt"
                     })
@@ -1194,7 +1195,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 arg =>
                 {
-                    Assert.True(VariantValue.DeepEquals(input[8].Value, arg.Value),
+                    Assert.True(JsonNode.DeepEquals(input[8].Value, arg.Value),
                         $"Expected: {input[8].Value} != Actual: {arg.Value}");
                     Assert.Equal(input[8].DataType, arg.DataType);
                 },
@@ -1286,7 +1287,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var input = new List<MethodCallArgumentModel> {
                 new() {
                     DataType = "Variant",
-                    Value = _serializer.FromObject(new {
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, new {
                         Type = "Uint32",
                         Body = 50
                     })
@@ -1297,7 +1298,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 new() {
                     DataType = "ExtensionObject",
-                    Value = _serializer.FromObject(new {
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, new {
                         Encoding = "Xml",
                         TypeId = "http://test.org/#s=test",
                         Body = new Opc.Ua.Argument("test", Opc.Ua.DataTypes.String, -1, "desc")
@@ -1320,7 +1321,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg => Assert.Equal(8, (int)arg.Value!),
                 arg =>
                 {
-                    Assert.True(VariantValue.DeepEquals(input[2].Value, arg.Value),
+                    Assert.True(JsonNode.DeepEquals(input[2].Value, arg.Value),
                         $"Expected: {input[2].Value} != Actual: {arg.Value}");
                 });
         }
@@ -1342,7 +1343,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 new() {
                     DataType = "ExtensionObject",
-                    Value = _serializer.FromObject(new {
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, new {
                         TypeId = "http://test.org/#s=test2",
                         Body = new Opc.Ua.Argument("test1", Opc.Ua.DataTypes.String, -1, "desc1")
                             .AsBinary(Opc.Ua.ServiceMessageContext.GlobalContext)
@@ -1382,7 +1383,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var input = new List<MethodCallArgumentModel> {
                 new() {
                     DataType = "Variant",
-                    Value = _serializer.FromObject(new {
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, new {
                         Type = "Uint32",
                         Body = 50
                     })
@@ -1393,7 +1394,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 new() {
                     DataType = "ExtensionObject",
-                    Value = _serializer.FromObject(new {
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, new {
                         Encoding = "Xml",
                         TypeId = "http://test.org/#s=test",
                         Body = new Opc.Ua.Argument("test", Opc.Ua.DataTypes.String, -1, "desc")
@@ -1416,7 +1417,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg => Assert.Equal(8, (int)arg.Value!),
                 arg =>
                 {
-                    Assert.True(VariantValue.DeepEquals(input[2].Value, arg.Value),
+                    Assert.True(JsonNode.DeepEquals(input[2].Value, arg.Value),
                         $"Expected: {input[2].Value} != Actual: {arg.Value}");
                 });
         }
@@ -1432,7 +1433,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var input = new List<MethodCallArgumentModel> {
                 new() {
                     DataType = "Variant",
-                    Value = _serializer.FromObject(new {
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, new {
                         Type = "Uint32",
                         Body = 50
                     })
@@ -1443,7 +1444,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 new() {
                     DataType = "ExtensionObject",
-                    Value = _serializer.FromObject(new {
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, new {
                         Encoding = "Xml",
                         TypeId = "http://test.org/#s=test",
                         Body = new Opc.Ua.Argument("test", Opc.Ua.DataTypes.String, -1, "desc")
@@ -1466,7 +1467,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg => Assert.Equal(8, (int)arg.Value!),
                 arg =>
                 {
-                    Assert.True(VariantValue.DeepEquals(input[2].Value, arg.Value),
+                    Assert.True(JsonNode.DeepEquals(input[2].Value, arg.Value),
                         $"Expected: {input[2].Value} != Actual: {arg.Value}");
                 });
         }
@@ -1486,7 +1487,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var input = new List<MethodCallArgumentModel> {
                 new() {
                     DataType = "Variant",
-                    Value = _serializer.FromObject(new {
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, new {
                         Type = "Uint32",
                         Body = 50
                     })
@@ -1497,7 +1498,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 new() {
                     DataType = "ExtensionObject",
-                    Value = _serializer.FromObject(new {
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, new {
                         Encoding = "Xml",
                         TypeId = "http://test.org/#s=test",
                         Body = new Opc.Ua.Argument("test", Opc.Ua.DataTypes.String, -1, "desc")
@@ -1521,7 +1522,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg => Assert.Equal(8, (int)arg.Value!),
                 arg =>
                 {
-                    Assert.True(VariantValue.DeepEquals(input[2].Value, arg.Value),
+                    Assert.True(JsonNode.DeepEquals(input[2].Value, arg.Value),
                         $"Expected: {input[2].Value} != Actual: {arg.Value}");
                 });
         }
@@ -1546,7 +1547,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var input = new List<MethodCallArgumentModel> {
                 new() {
                     DataType = "Variant",
-                    Value = _serializer.FromObject(new {
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, new {
                         Type = "Uint32",
                         Body = 50
                     })
@@ -1557,7 +1558,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 new() {
                     DataType = "ExtensionObject",
-                    Value = _serializer.FromObject(new {
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, new {
                         Encoding = "Xml",
                         TypeId = "http://test.org/#s=test",
                         Body = new Opc.Ua.Argument("test", Opc.Ua.DataTypes.String, -1, "desc")
@@ -1581,7 +1582,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg => Assert.Equal(8, (int)arg.Value!),
                 arg =>
                 {
-                    Assert.True(VariantValue.DeepEquals(input[2].Value, arg.Value),
+                    Assert.True(JsonNode.DeepEquals(input[2].Value, arg.Value),
                         $"Expected: {input[2].Value} != Actual: {arg.Value}");
                 });
         }
@@ -1607,7 +1608,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 new()
                 {
                     DataType = "Variant",
-                    Value = _serializer.FromObject(new
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, new
                     {
                         Type = "Uint32",
                         Body = 50
@@ -1621,7 +1622,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 new()
                 {
                     DataType = "ExtensionObject",
-                    Value = _serializer.FromObject(new {
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, new {
                         Encoding = "Xml",
                         TypeId = "http://test.org/#s=test",
                         Body = new Opc.Ua.Argument("test", Opc.Ua.DataTypes.String, -1, "desc")
@@ -1646,7 +1647,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg => Assert.Equal(8, (int)arg.Value!),
                 arg =>
                 {
-                    Assert.True(VariantValue.DeepEquals(input[2].Value, arg.Value),
+                    Assert.True(JsonNode.DeepEquals(input[2].Value, arg.Value),
                         $"Expected: {input[2].Value} != Actual: {arg.Value}");
                 });
         }

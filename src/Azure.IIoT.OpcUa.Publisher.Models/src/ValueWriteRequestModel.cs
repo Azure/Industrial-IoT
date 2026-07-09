@@ -5,10 +5,10 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
-    using Furly.Extensions.Serializers;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
     using System.Runtime.Serialization;
+    using System.Text.Json.Nodes;
 
     /// <summary>
     /// Value write request model
@@ -39,7 +39,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "value", Order = 2)]
         [SkipValidation]
-        public required VariantValue Value { get; set; }
+        public required JsonNode Value { get; set; }
 
         /// <summary>
         /// A built in datatype for the value. This can

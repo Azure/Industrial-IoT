@@ -9,7 +9,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Asp.Versioning;
     using Furly;
-    using Furly.Extensions.Serializers;
     using Furly.Tunnel.Router;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
@@ -17,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
+    using System.Text.Json.Nodes;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -554,8 +554,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("historyread/first")]
-        public async Task<HistoryReadResponseModel<VariantValue>> HistoryReadAsync(
-            [FromBody][Required] RequestEnvelope<HistoryReadRequestModel<VariantValue>> request,
+        public async Task<HistoryReadResponseModel<JsonNode>> HistoryReadAsync(
+            [FromBody][Required] RequestEnvelope<HistoryReadRequestModel<JsonNode>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -590,7 +590,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("historyread/next")]
-        public async Task<HistoryReadNextResponseModel<VariantValue>> HistoryReadNextAsync(
+        public async Task<HistoryReadNextResponseModel<JsonNode>> HistoryReadNextAsync(
             [FromBody][Required] RequestEnvelope<HistoryReadNextRequestModel> request,
             CancellationToken ct = default)
         {
@@ -627,7 +627,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         [HttpPost("historyupdate")]
         public async Task<HistoryUpdateResponseModel> HistoryUpdateAsync(
-            [FromBody][Required] RequestEnvelope<HistoryUpdateRequestModel<VariantValue>> request,
+            [FromBody][Required] RequestEnvelope<HistoryUpdateRequestModel<JsonNode>> request,
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);

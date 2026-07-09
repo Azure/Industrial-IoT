@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using System.Text.Json.Nodes;
     using System;
     using System.Linq;
     using System.Threading;
@@ -51,7 +52,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 10);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 10));
                     Assert.NotNull(arg.SourceTimestamp);
                     Assert.NotNull(arg.ServerTimestamp);
                     Assert.Null(arg.AdditionalData);
@@ -81,7 +82,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 10);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 10));
                     Assert.NotNull(arg.SourceTimestamp);
                     Assert.NotNull(arg.ServerTimestamp);
                     Assert.Null(arg.AdditionalData);
@@ -111,7 +112,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 10);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 10));
                     Assert.NotNull(arg.SourceTimestamp);
                     Assert.NotNull(arg.ServerTimestamp);
                     Assert.Null(arg.AdditionalData);
@@ -142,7 +143,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 10);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 10));
                     Assert.NotNull(arg.SourceTimestamp);
                     //   Assert.Null(arg.ServerTimestamp);
                     Assert.Null(arg.AdditionalData);
@@ -172,7 +173,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 10);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 10));
                     Assert.Equal(DataLocation.Interpolated, arg.DataLocation);
                 });
         }
@@ -199,7 +200,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 10);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 10));
                     Assert.Equal(DataLocation.Interpolated, arg.DataLocation);
                 });
         }

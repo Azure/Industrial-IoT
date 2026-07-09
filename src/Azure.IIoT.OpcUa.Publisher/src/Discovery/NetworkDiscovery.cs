@@ -713,7 +713,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                         Context = request.Request.Context,
                         RegisterOnly = request.Mode == DiscoveryMode.Off,
                         Diagnostics = diagnostics == null ? null :
-                            _serializer.FromObject(diagnostics)
+                            System.Text.Json.JsonSerializer.SerializeToNode(diagnostics)
                     },
                     TimeStamp = timestamp
                 })

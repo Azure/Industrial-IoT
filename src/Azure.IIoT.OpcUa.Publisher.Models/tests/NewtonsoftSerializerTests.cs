@@ -1,4 +1,4 @@
-﻿//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
     using Furly.Extensions.Serializers.Newtonsoft;
     using Newtonsoft.Json;
     using System;
+    using System.Text.Json.Nodes;
     using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
@@ -60,6 +61,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
             fixture.Behaviors.Add(new OmitOnRecursionBehavior(recursionDepth: 2));
             // Create some random variant value
             fixture.Register(() => _serializer.FromObject(Activator.CreateInstance(type)));
+            // JsonNode dynamic values are not round-tripped by the fixture serializers
+            fixture.Register<JsonNode>(() => null!);
             // Ensure utc datetimes
             fixture.Register(() => DateTimeOffset.UtcNow);
             fixture.Register(() => DateTime.UtcNow);
@@ -87,6 +90,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
             fixture.Behaviors.Add(new OmitOnRecursionBehavior(recursionDepth: 2));
             // Create some random variant value
             fixture.Register(() => _serializer.FromObject(Activator.CreateInstance(type)));
+            // JsonNode dynamic values are not round-tripped by the fixture serializers
+            fixture.Register<JsonNode>(() => null!);
             // Ensure utc datetimes
             fixture.Register(() => DateTimeOffset.UtcNow);
             fixture.Register(() => DateTime.UtcNow);

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients.Adapters
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Sdk;
     using Furly.Extensions.Serializers;
+    using System.Text.Json.Nodes;
     using System;
     using System.Collections.Generic;
     using System.Threading;
@@ -134,15 +135,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients.Adapters
         }
 
         /// <inheritdoc/>
-        public async Task<HistoryReadResponseModel<VariantValue>> HistoryReadAsync(
-            ConnectionModel endpoint, HistoryReadRequestModel<VariantValue> request,
+        public async Task<HistoryReadResponseModel<JsonNode>> HistoryReadAsync(
+            ConnectionModel endpoint, HistoryReadRequestModel<JsonNode> request,
             CancellationToken ct)
         {
             return await _client.HistoryReadAsync(endpoint, request, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public async Task<HistoryReadNextResponseModel<VariantValue>> HistoryReadNextAsync(
+        public async Task<HistoryReadNextResponseModel<JsonNode>> HistoryReadNextAsync(
             ConnectionModel endpoint, HistoryReadNextRequestModel request,
             CancellationToken ct)
         {
@@ -151,7 +152,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients.Adapters
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResponseModel> HistoryUpdateAsync(
-            ConnectionModel endpoint, HistoryUpdateRequestModel<VariantValue> request,
+            ConnectionModel endpoint, HistoryUpdateRequestModel<JsonNode> request,
             CancellationToken ct)
         {
             return await _client.HistoryUpdateAsync(endpoint, request, ct).ConfigureAwait(false);

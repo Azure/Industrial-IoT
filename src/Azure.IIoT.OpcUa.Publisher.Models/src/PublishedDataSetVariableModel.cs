@@ -1,15 +1,15 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
-    using Furly.Extensions.Serializers;
-    using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
     using System.Runtime.Serialization;
+    using System.Text.Json.Nodes;
+    using System;
 
     /// <summary>
     /// A published variable
@@ -95,7 +95,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "substituteValue", Order = 10,
             EmitDefaultValue = false)]
         [SkipValidation]
-        public VariantValue? SubstituteValue { get; set; }
+        public JsonNode? SubstituteValue { get; set; }
 
         /// <summary>
         /// Monitoring mode (Publisher extension)

@@ -5,9 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
-    using Furly.Extensions.Serializers;
     using System.ComponentModel.DataAnnotations;
     using System.Runtime.Serialization;
+    using System.Text.Json.Nodes;
 
     /// <summary>
     /// Attribute value read
@@ -20,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// </summary>
         [DataMember(Name = "value", Order = 0)]
         [SkipValidation]
-        public required VariantValue Value { get; set; }
+        public required JsonNode Value { get; set; }
 
         /// <summary>
         /// Service result in case of error

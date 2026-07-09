@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Serializers;
+    using System.Text.Json.Nodes;
     using Furly.Extensions.Serializers.Json;
     using System;
     using System.Collections.Generic;

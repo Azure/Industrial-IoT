@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Serializers;
+    using System.Text.Json.Nodes;
     using Furly.Extensions.Serializers.Json;
     using Opc.Ua.Extensions;
     using System;
@@ -756,57 +757,57 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var input = new List<MethodCallArgumentModel> {
                 new() {
                     DataType = "boolean",
-                    Value = _serializer.FromObject(
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, 
                         new bool[] { true, false, true, true, false })
                 },
                 new() {
                     DataType = "sbyte",
-                    Value = _serializer.FromObject(
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, 
                         new sbyte[] { 1, 2, 3, 4, 5, -1, -2, -3 })
                 },
                 new() {
                     DataType = "ByteString",
-                    Value = _serializer.FromObject(
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, 
                         Encoding.UTF8.GetBytes("testtesttest"))
                 },
                 new() {
                     DataType = "Int16",
-                    Value = _serializer.FromObject(
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, 
                         new short[] { short.MinValue, short.MaxValue, 0, 2 })
                 },
                 new() {
                     DataType = "UInt16",
-                    Value = _serializer.FromObject(
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, 
                         new ushort[] { ushort.MinValue, ushort.MaxValue, 0, 2 })
                 },
                 new() {
                     DataType = "int32",
-                    Value = _serializer.FromObject(
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, 
                         new int[] { int.MinValue, int.MaxValue, 0, 2 })
                 },
                 new() {
                     DataType = "uInt32",
-                    Value = _serializer.FromObject(
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, 
                         new uint[] { uint.MinValue, uint.MaxValue, 0, 2 })
                 },
                 new() {
                     DataType = "Int64",
-                    Value = _serializer.FromObject(
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, 
                         new long[] { long.MinValue, long.MaxValue, 0, 2 })
                 },
                 new() {
                     DataType = "uint64",
-                    Value = _serializer.FromObject(
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, 
                         new ulong[] { ulong.MinValue, ulong.MaxValue, 0, 2 })
                 },
                 new() {
                     DataType = "float",
-                    Value = _serializer.FromObject(
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, 
                         new float[] { float.MinValue, float.MaxValue, 0.0f, 2.0f })
                 },
                 new() {
                     DataType = "DOUBLE",
-                    Value = _serializer.FromObject(
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, 
                         new double[] { double.MinValue, double.MaxValue, 0.0, 2.0 })
                 }
             };
@@ -827,7 +828,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal(input.Select(arg => arg.Value),
                 result.Results.Select(arg => arg.Value));
             Assert.All(result.Results.Where(arg => arg.DataType != "ByteString"),
-                arg => Assert.True(arg.Value!.IsListOfValues));
+                arg => Assert.True(arg.Value!.IsListOfValues()));
         }
 
         public async Task NodeMethodCallStaticArrayMethod1Test2Async(CancellationToken ct = default)
@@ -839,17 +840,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var input = new List<MethodCallArgumentModel> {
                 new() {
                     DataType = "boolean",
-                    Value = _serializer.FromObject(
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, 
                         new bool[] { true, false, true, true, false })
                 },
                 new() {
                     DataType = "sbyte",
-                    Value = _serializer.FromObject(
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, 
                         new sbyte[] { 1, 2, 3, 4, 5, -1, -2, -3 })
                 },
                 new() {
                     DataType = "ByteString",
-                    Value = _serializer.FromObject(
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, 
                         Encoding.UTF8.GetBytes("testtesttest"))
                 }
             };
@@ -871,16 +872,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg => Assert.Equal(input[0].Value, arg.Value),
                 arg => Assert.Equal(input[1].Value, arg.Value),
                 arg => Assert.Equal(input[2].Value, arg.Value),
-                arg => Assert.Empty(arg.Value!.Values),
-                arg => Assert.Empty(arg.Value!.Values),
-                arg => Assert.Empty(arg.Value!.Values),
-                arg => Assert.Empty(arg.Value!.Values),
-                arg => Assert.Empty(arg.Value!.Values),
-                arg => Assert.Empty(arg.Value!.Values),
-                arg => Assert.Empty(arg.Value!.Values),
-                arg => Assert.Empty(arg.Value!.Values));
+                arg => Assert.Empty(arg.Value!.Values()),
+                arg => Assert.Empty(arg.Value!.Values()),
+                arg => Assert.Empty(arg.Value!.Values()),
+                arg => Assert.Empty(arg.Value!.Values()),
+                arg => Assert.Empty(arg.Value!.Values()),
+                arg => Assert.Empty(arg.Value!.Values()),
+                arg => Assert.Empty(arg.Value!.Values()),
+                arg => Assert.Empty(arg.Value!.Values()));
             Assert.All(result.Results.Where(arg => arg.DataType != "ByteString"),
-                arg => Assert.True(arg.Value!.IsListOfValues));
+                arg => Assert.True(arg.Value!.IsListOfValues()));
         }
 
         public async Task NodeMethodCallStaticArrayMethod1Test3Async(CancellationToken ct = default)
@@ -902,9 +903,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 "Int32", "UInt32", "Int64", "UInt64", "Float", "Double"
             }, result.Results.Select(arg => arg.DataType));
             Assert.All(result.Results.Where(arg => arg.DataType != "ByteString"),
-                arg => Assert.Empty(arg.Value!.Values));
+                arg => Assert.Empty(arg.Value!.Values()));
             Assert.All(result.Results.Where(arg => arg.DataType != "ByteString"),
-                arg => Assert.True(arg.Value!.IsListOfValues));
+                arg => Assert.True(arg.Value!.IsListOfValues()));
         }
 
         public async Task NodeMethodCallStaticArrayMethod1Test4Async(CancellationToken ct = default)
@@ -916,17 +917,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var input = new List<MethodCallArgumentModel?> {
                 new() {
                     DataType = "boolean",
-                    Value = _serializer.FromObject(
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, 
                         new bool[] { true, false, true, true, false })
                 },
                 new() {
                     DataType = "sbyte",
-                    Value = _serializer.FromObject(
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, 
                         new sbyte[] { 1, 2, 3, 4, 5, -1, -2, -3 })
                 },
                 new() {
                     DataType = "byte",
-                    Value = _serializer.FromObject(
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, 
                         new ushort[] { 0, 1, 2, 3, 4, 5, 6, byte.MaxValue })
                 },
                 null,
@@ -938,7 +939,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 null,
                 new() {
                     DataType = "DOUBLE",
-                    Value = _serializer.FromObject(
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, 
                         new double[] { 1234.4567, 23.34, 33 })
                 }
             };
@@ -961,20 +962,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg => Assert.Equal(input[1]!.Value, arg.Value),
                 arg =>
                 {
-                    Assert.Equal(_serializer.FromObject(
+                    Assert.Equal(JsonNodeValueExtensions.FromObject(_serializer, 
                         new byte[] { 0, 1, 2, 3, 4, 5, 6, byte.MaxValue }),
                         arg.Value);
                 },
-                arg => Assert.Empty(arg.Value!.Values),
-                arg => Assert.Empty(arg.Value!.Values),
-                arg => Assert.Empty(arg.Value!.Values),
-                arg => Assert.Empty(arg.Value!.Values),
-                arg => Assert.Empty(arg.Value!.Values),
-                arg => Assert.Empty(arg.Value!.Values),
-                arg => Assert.Empty(arg.Value!.Values),
+                arg => Assert.Empty(arg.Value!.Values()),
+                arg => Assert.Empty(arg.Value!.Values()),
+                arg => Assert.Empty(arg.Value!.Values()),
+                arg => Assert.Empty(arg.Value!.Values()),
+                arg => Assert.Empty(arg.Value!.Values()),
+                arg => Assert.Empty(arg.Value!.Values()),
+                arg => Assert.Empty(arg.Value!.Values()),
                 arg => Assert.Equal(input[10]!.Value, arg.Value));
             Assert.All(result.Results.Where(arg => arg.DataType != "ByteString"),
-                arg => Assert.True(arg.Value!.IsListOfValues));
+                arg => Assert.True(arg.Value!.IsListOfValues()));
         }
 
         public async Task NodeMethodCallStaticArrayMethod1Test5Async(CancellationToken ct = default)
@@ -985,47 +986,47 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var input = new List<MethodCallArgumentModel> {
                 new() {
                     DataType = "boolean",
-                    Value = _serializer.FromObject(Array.Empty<bool>())
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<bool>())
                 },
                 new() {
                     DataType = "sbyte",
-                    Value = _serializer.FromObject(Array.Empty<sbyte>())
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<sbyte>())
                 },
                 new() {
                     DataType = "Byte",
-                    Value = _serializer.FromObject("[]")
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, "[]")
                 },
                 new() {
                     DataType = "Int16",
-                    Value = _serializer.FromObject(Array.Empty<short>())
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<short>())
                 },
                 new() {
                     DataType = "UInt16",
-                    Value = _serializer.FromObject(Array.Empty<ushort>())
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<ushort>())
                 },
                 new() {
                     DataType = "int32",
-                    Value = _serializer.FromObject(Array.Empty<int>())
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<int>())
                 },
                 new() {
                     DataType = "uInt32",
-                    Value = _serializer.FromObject(Array.Empty<uint>())
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<uint>())
                 },
                 new() {
                     DataType = "Int64",
-                    Value = _serializer.FromObject(Array.Empty<long>())
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<long>())
                 },
                 new() {
                     DataType = "uint64",
-                    Value = _serializer.FromObject(Array.Empty<ulong>())
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<ulong>())
                 },
                 new() {
                     DataType = "float",
-                    Value = _serializer.FromObject(Array.Empty<float>())
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<float>())
                 },
                 new() {
                     DataType = "DOUBLE",
-                    Value = _serializer.FromObject(Array.Empty<double>())
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<double>())
                 }
             };
 
@@ -1043,18 +1044,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 "Int32", "UInt32", "Int64", "UInt64", "Float", "Double"
             }, result.Results.Select(arg => arg.DataType));
             Assert.All(result.Results.Where(arg => arg.DataType != "ByteString"),
-                arg => Assert.True(arg.Value!.IsListOfValues));
+                arg => Assert.True(arg.Value!.IsListOfValues()));
             Assert.Collection(result.Results,
-                arg => Assert.Empty(arg.Value!.Values),
-                arg => Assert.Empty(arg.Value!.Values),
+                arg => Assert.Empty(arg.Value!.Values()),
+                arg => Assert.Empty(arg.Value!.Values()),
                 arg => Assert.True(arg.Value.IsNull()),
-                arg => Assert.Empty(arg.Value!.Values),
-                arg => Assert.Empty(arg.Value!.Values),
-                arg => Assert.Empty(arg.Value!.Values),
-                arg => Assert.Empty(arg.Value!.Values),
-                arg => Assert.Empty(arg.Value!.Values),
-                arg => Assert.Empty(arg.Value!.Values),
-                arg => Assert.Empty(arg.Value!.Values),
+                arg => Assert.Empty(arg.Value!.Values()),
+                arg => Assert.Empty(arg.Value!.Values()),
+                arg => Assert.Empty(arg.Value!.Values()),
+                arg => Assert.Empty(arg.Value!.Values()),
+                arg => Assert.Empty(arg.Value!.Values()),
+                arg => Assert.Empty(arg.Value!.Values()),
+                arg => Assert.Empty(arg.Value!.Values()),
                 arg => Assert.Equal(input[10].Value, arg.Value));
         }
 
@@ -1067,7 +1068,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var input = new List<MethodCallArgumentModel> {
                 new() {
                     DataType = "String",
-                    Value = _serializer.FromObject(new string[] {
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, new string[] {
                         "!adfasdfsdf!",
                         "!46!",
                         "!asdf!",
@@ -1078,7 +1079,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 new() {
                     DataType = "DateTime",
-                    Value = _serializer.FromObject(new DateTime[] {
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, new DateTime[] {
                         DateTime.UtcNow,
                         DateTime.UtcNow,
                         DateTime.UtcNow,
@@ -1087,7 +1088,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 new() {
                     DataType = "Guid",
-                    Value = _serializer.FromObject(new Guid[] {
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, new Guid[] {
                         Guid.NewGuid(),
                         Guid.NewGuid(),
                         Guid.NewGuid(),
@@ -1098,7 +1099,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 new() {
                     DataType = "ByteString",
-                    Value = _serializer.FromObject(new byte[][] {
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, new byte[][] {
                         Encoding.UTF8.GetBytes("!adfasdfsdf!"),
                         Encoding.UTF8.GetBytes("!46!"),
                         Encoding.UTF8.GetBytes("!asdf!"),
@@ -1109,11 +1110,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 new() {
                     DataType = "XmlElement",
-                    Value = _serializer.FromObject(Array.Empty<System.Xml.XmlElement>())
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<System.Xml.XmlElement>())
                 },
                 new() {
                     DataType = "NodeId",
-                    Value = _serializer.FromObject(new string[]{
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, new string[]{
                         "byte",
                         "http://test.org/#i=23534",
                         "http://muh.test/#s=35645",
@@ -1122,7 +1123,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 new() {
                     DataType = "ExpandedNodeId",
-                    Value = _serializer.FromObject(new string[] {
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, new string[] {
                         "byte",
                         "http://test.org/#i=23534",
                         "http://muh.test/#s=35645",
@@ -1131,7 +1132,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 new() {
                     DataType = "QualifiedName",
-                    Value = _serializer.FromObject(new string[] {
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, new string[] {
                         "http://test.org/#qn1",
                         "http://test.org/#qn2",
                         "http://test.org/#qn3",
@@ -1140,7 +1141,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 new() {
                     DataType = "LocalizedText",
-                    Value = _serializer.FromObject(new object[] {
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, new object[] {
                         new {
                             Text = "Hällö",
                             Locale = "de"
@@ -1156,7 +1157,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 new() {
                     DataType = "StatusCode",
-                    Value = _serializer.FromObject(new object[] {
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, new object[] {
                         new {
                             Symbol = "BadEndOfStream",
                             Code = 0x80B00000
@@ -1198,7 +1199,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg => Assert.Equal(input[7].Value, arg.Value),
                 arg => Assert.Equal(input[8].Value, arg.Value),
                 arg => Assert.Equal(input[9].Value, arg.Value));
-            Assert.All(result.Results, arg => Assert.True(arg.Value!.IsListOfValues));
+            Assert.All(result.Results, arg => Assert.True(arg.Value!.IsListOfValues()));
         }
 
         public async Task NodeMethodCallStaticArrayMethod2Test2Async(CancellationToken ct = default)
@@ -1220,8 +1221,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 "XmlElement", "NodeId", "ExpandedNodeId",
                 "QualifiedName","LocalizedText","StatusCode" },
                 result.Results.Select(arg => arg.DataType));
-            Assert.All(result.Results, arg => Assert.True(arg.Value!.IsListOfValues));
-            Assert.All(result.Results, arg => Assert.Empty(arg.Value!.Values));
+            Assert.All(result.Results, arg => Assert.True(arg.Value!.IsListOfValues()));
+            Assert.All(result.Results, arg => Assert.Empty(arg.Value!.Values()));
         }
 
         public async Task NodeMethodCallStaticArrayMethod2Test3Async(CancellationToken ct = default)
@@ -1241,7 +1242,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 null,
                 new() {
                     DataType = "LocalizedText",
-                    Value = _serializer.FromObject(new string[] {
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, new string[] {
                         "unloc1",
                         "unloc2",
                         "unloc3"
@@ -1264,9 +1265,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 "QualifiedName","LocalizedText","StatusCode" },
                 result.Results.Select(arg => arg.DataType));
             Assert.NotNull(result.Results);
-            Assert.All(result.Results, arg => Assert.True(arg.Value!.IsListOfValues));
+            Assert.All(result.Results, arg => Assert.True(arg.Value!.IsListOfValues()));
             Assert.NotNull(result.Results[8].Value);
-            Assert.Equal(3, result.Results[8].Value!.Count);
+            Assert.Equal(3, result.Results[8].Value!.Count());
         }
 
         public async Task NodeMethodCallStaticArrayMethod2Test4Async(CancellationToken ct = default)
@@ -1279,43 +1280,43 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var input = new List<MethodCallArgumentModel> {
                 new() {
                     DataType = "String",
-                    Value = _serializer.FromObject(Array.Empty<string>())
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<string>())
                 },
                 new() {
                     DataType = "DateTime",
-                    Value = _serializer.FromObject(Array.Empty<DateTime>())
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<DateTime>())
                 },
                 new() {
                     DataType = "Guid",
-                    Value = _serializer.FromObject(Array.Empty<Guid>())
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<Guid>())
                 },
                 new() {
                     DataType = "ByteString",
-                    Value = _serializer.FromObject(new byte[0,0])
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, new byte[0,0])
                 },
                 new() {
                     DataType = "XmlElement",
-                    Value = _serializer.FromObject(Array.Empty<System.Xml.XmlElement>())
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<System.Xml.XmlElement>())
                 },
                 new() {
                     DataType = "NodeId",
-                    Value = _serializer.FromObject(Array.Empty<string>())
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<string>())
                 },
                 new() {
                     DataType = "ExpandedNodeId",
-                    Value = _serializer.FromObject(Array.Empty<string>())
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<string>())
                 },
                 new() {
                     DataType = "QualifiedName",
-                    Value = _serializer.FromObject(Array.Empty<string>())
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<string>())
                 },
                 new() {
                     DataType = "LocalizedText",
-                    Value = _serializer.FromObject(Array.Empty<object>())
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<object>())
                 },
                 new() {
                     DataType = "StatusCode",
-                    Value = _serializer.FromObject(Array.Empty<int>())
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<int>())
                 }
             };
 #pragma warning restore CA1814 // Prefer jagged arrays over multidimensional
@@ -1336,8 +1337,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 result.Results.Select(arg => arg.DataType));
             Assert.Equal(input.Select(arg => arg.Value),
                 result.Results.Select(arg => arg.Value));
-            Assert.All(result.Results, arg => Assert.True(arg.Value!.IsListOfValues));
-            Assert.All(result.Results, arg => Assert.Empty(arg.Value!.Values));
+            Assert.All(result.Results, arg => Assert.True(arg.Value!.IsListOfValues()));
+            Assert.All(result.Results, arg => Assert.Empty(arg.Value!.Values()));
         }
 
         public async Task NodeMethodCallStaticArrayMethod3Test1Async(CancellationToken ct = default)
@@ -1349,15 +1350,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var input = new List<MethodCallArgumentModel> {
                 new() {
                     DataType = "Variant",
-                    Value = _serializer.FromArray()
+                    Value = JsonNodeValueExtensions.FromArray(_serializer)
                 },
                 new() {
                     DataType = "Enumeration",
-                    Value = _serializer.FromArray()
+                    Value = JsonNodeValueExtensions.FromArray(_serializer)
                 },
                 new() {
                     DataType = "ExtensionObject",
-                    Value = _serializer.FromArray()
+                    Value = JsonNodeValueExtensions.FromArray(_serializer)
                 }
             };
 
@@ -1375,7 +1376,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             }, result.Results.Select(arg => arg.DataType));
             Assert.Equal(input.Select(arg => arg.Value),
                 result.Results.Select(arg => arg.Value));
-            Assert.All(result.Results, arg => Assert.True(arg.Value!.IsListOfValues));
+            Assert.All(result.Results, arg => Assert.True(arg.Value!.IsListOfValues()));
         }
 
         public async Task NodeMethodCallStaticArrayMethod3Test2Async(CancellationToken ct = default)
@@ -1386,7 +1387,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             var input = new List<MethodCallArgumentModel> {
                 new() {
-                    Value = _serializer.FromObject(new object[] {
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, new object[] {
                         new {
                             Type = "UInt32",
                             Body = 500000
@@ -1407,11 +1408,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 new() {
                     DataType = "int32",
-                    Value = _serializer.FromObject(new int[] { 1, 2, 3, 4, 5, 6 })
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, new int[] { 1, 2, 3, 4, 5, 6 })
                 },
                 new() {
                     DataType = "ExtensionObject",
-                    Value = _serializer.FromObject(new object[] {
+                    Value = JsonNodeValueExtensions.FromObject(_serializer, new object[] {
                         new {
                             TypeId = "http://test.org/#s=test2",
                             Body = new Opc.Ua.Argument("test1", Opc.Ua.DataTypes.String, -1, "desc1")
@@ -1439,7 +1440,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal(new List<string> {
                 "Variant", "Int32", "ExtensionObject"
             }, result.Results.Select(arg => arg.DataType));
-            Assert.All(result.Results, arg => Assert.True(arg.Value!.IsListOfValues));
+            Assert.All(result.Results, arg => Assert.True(arg.Value!.IsListOfValues()));
         }
 
         public async Task NodeMethodCallStaticArrayMethod3Test3Async(CancellationToken ct = default)
@@ -1459,8 +1460,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal(new List<string> {
                 "Variant", "Int32", "ExtensionObject"
             }, result.Results.Select(arg => arg.DataType));
-            Assert.All(result.Results, arg => Assert.True(arg.Value!.IsListOfValues));
-            Assert.All(result.Results, arg => Assert.Empty(arg.Value!.Values));
+            Assert.All(result.Results, arg => Assert.True(arg.Value!.IsListOfValues()));
+            Assert.All(result.Results, arg => Assert.Empty(arg.Value!.Values()));
         }
 
         private readonly bool _newMetadata;

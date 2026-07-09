@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
+    using System.Text.Json.Nodes;
     using System.Threading.Tasks;
     using System.Threading;
 
@@ -248,7 +249,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             {
                 return null;
             }
-            var configuration = VariantValue.Null;
+            JsonNode? configuration = null;
             var credentialType = CredentialType.None;
             switch (policy.TokenType)
             {
@@ -259,7 +260,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                     break;
                 case UserTokenType.Certificate:
                     credentialType = CredentialType.X509Certificate;
-                    configuration = policy.IssuerEndpointUrl;
+                    configuration = JsonValue.Create(policy.IssuerEndpointUrl);
                     break;
                 case UserTokenType.IssuedToken:
                     switch (policy.IssuedTokenType)
@@ -269,12 +270,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                             try
                             {
                                 // See part 6
-                                configuration = serializer.Parse(policy.IssuerEndpointUrl);
+                                configuration = JsonNode.Parse(policy.IssuerEndpointUrl);
                             }
                             catch
                             {
                                 // Store as string
-                                configuration = policy.IssuerEndpointUrl;
+                                configuration = JsonValue.Create(policy.IssuerEndpointUrl);
                             }
                             break;
                         default:

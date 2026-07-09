@@ -9,7 +9,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
     using Azure.IIoT.OpcUa.Encoders;
-    using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Options;
     using Opc.Ua;
     using Opc.Ua.Extensions;
@@ -17,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Collections.Generic;
     using System.Linq;
     using System.Runtime.CompilerServices;
+    using System.Text.Json.Nodes;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -564,7 +564,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 SourceTimestamp = d.SourceTimestamp ?? DateTime.MinValue,
                                 StatusCode = d.Status?.StatusCode ?? StatusCodes.Good,
                                 Value = session.Codec.Decode(
-                                    d.Value ?? VariantValue.Null, builtinType)
+                                    d.Value, builtinType)
                             }))
                     });
                 }, ct);
@@ -585,7 +585,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     EventFields = d.EventFields
                         .Select(v => v == Variant.Null ?
-                            VariantValue.Null : session.Codec.Encode(v, out var builtInType))
+                            null : session.Codec.Encode(v, out var builtInType))
                         .ToList()
                 }).ToArray();
             }

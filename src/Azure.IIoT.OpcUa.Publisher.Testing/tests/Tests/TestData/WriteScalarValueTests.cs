@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Serializers;
+    using System.Text.Json.Nodes;
     using Furly.Extensions.Serializers.Json;
     using MemoryBuffer;
     using System;
@@ -24,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         /// <param name="connection"></param>
         /// <param name="readExpected"></param>
         public WriteScalarValueTests(Func<INodeServices<T>> services, T connection,
-            Func<T, string, IJsonSerializer, Task<VariantValue>> readExpected)
+            Func<T, string, IJsonSerializer, Task<JsonNode?>> readExpected)
         {
             _services = services;
             _connection = connection;
@@ -37,7 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=10216";
 
-            VariantValue expected = false;
+            JsonNode? expected = false;
 
             // Act
             var result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -72,7 +73,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 ".http://test.org/UA/Data/#BooleanValue"
             };
 
-            VariantValue expected = false;
+            JsonNode? expected = false;
 
             // Act
             var result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -109,7 +110,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 "http://test.org/UA/Data/#BooleanValue"
             };
 
-            VariantValue expected = false;
+            JsonNode? expected = false;
 
             // Act
             var result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -149,7 +150,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 "http://test.org/UA/Data/#BooleanValue"
             };
 
-            VariantValue expected = false;
+            JsonNode? expected = false;
 
             // Act
             var result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -181,7 +182,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=10217";
 
-            var expected = _serializer.Parse("-61");
+            var expected = JsonNode.Parse("-61");
 
             // Act
             var result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -200,7 +201,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=10218";
 
-            var expected = _serializer.Parse("216");
+            var expected = JsonNode.Parse("216");
 
             // Act
             var result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -219,7 +220,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=10219";
 
-            var expected = _serializer.Parse("15373");
+            var expected = JsonNode.Parse("15373");
 
             // Act
             var result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -238,7 +239,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=10220";
 
-            var expected = _serializer.Parse("52454");
+            var expected = JsonNode.Parse("52454");
 
             // Act
             var result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -257,7 +258,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=10221";
 
-            var expected = _serializer.Parse(
+            var expected = JsonNode.Parse(
                 "1966214362");
 
             // Act
@@ -277,7 +278,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=10222";
 
-            var expected = _serializer.Parse("2235103439");
+            var expected = JsonNode.Parse("2235103439");
 
             // Act
             var result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -296,7 +297,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=10223";
 
-            var expected = _serializer.Parse("1485146186671575531");
+            var expected = JsonNode.Parse("1485146186671575531");
 
             // Act
             var result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -315,7 +316,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=10224";
 
-            var expected = _serializer.Parse("5415129398295885582");
+            var expected = JsonNode.Parse("5415129398295885582");
 
             // Act
             var result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -334,7 +335,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=10225";
 
-            var expected = _serializer.Parse(
+            var expected = JsonNode.Parse(
                 "1.65278221E-37");
 
             // Act
@@ -354,7 +355,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=10226";
 
-            var expected = _serializer.Parse("103.27073669433594");
+            var expected = JsonNode.Parse("103.27073669433594");
 
             // Act
             var result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -373,7 +374,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=10227";
 
-            var expected = _serializer.Parse(
+            var expected = JsonNode.Parse(
                 "\"Red+ Green] Cow^ Purple Horse~ Elephant^ Horse Lime\"");
 
             // Act
@@ -393,7 +394,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=10228";
 
-            VariantValue expected = DateTime.UtcNow + TimeSpan.FromDays(11);
+            JsonNode? expected = DateTime.UtcNow + TimeSpan.FromDays(11);
 
             // Act
             var result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -412,7 +413,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=10229";
 
-            VariantValue expected = "bdc1d303-2355-6173-9314-1816b7315b96";
+            JsonNode? expected = "bdc1d303-2355-6173-9314-1816b7315b96";
 
             // Act
             var result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -431,7 +432,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=10230";
 
-            var expected = _serializer.Parse(
+            var expected = JsonNode.Parse(
                "\"+1q+tSjpWzavev/hDIb4gk/xHLZGD4VscxJEWo2QzUU145zcKKra6WaGpq" +
                "hzgIeNIJNnQD/gruzUUkIWpQA=\"");
 
@@ -452,7 +453,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=10231";
 
-            var expected = _serializer.FromObject(XmlElementEx.SerializeObject(
+            var expected = JsonNodeValueExtensions.FromObject(_serializer, XmlElementEx.SerializeObject(
                 new MemoryBufferInstance
                 {
                     Name = "test",
@@ -477,7 +478,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=10232";
 
-            VariantValue expected = "http://samples.org/UA/memorybuffer#i=2040578002";
+            JsonNode? expected = "http://samples.org/UA/memorybuffer#i=2040578002";
 
             // Act
             var result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -496,7 +497,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=10233";
 
-            VariantValue expected = "http://opcfoundation.org/UA/Diagnostics#i=1375605653";
+            JsonNode? expected = "http://opcfoundation.org/UA/Diagnostics#i=1375605653";
 
             // Act
             var result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -515,7 +516,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=10234";
 
-            var expected = _serializer.FromObject("http://test.org/UA/Data/#testname");
+            var expected = JsonNodeValueExtensions.FromObject(_serializer, "http://test.org/UA/Data/#testname");
 
             // Act
             var result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -534,7 +535,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=10235";
 
-            var expected = _serializer.Parse(
+            var expected = JsonNode.Parse(
                 "{\"Text\":\"자주색 들쭉) 망고 고양이\",\"Locale\":\"ko\"}");
 
             // Act
@@ -554,7 +555,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=10236";
 
-            var expected = _serializer.Parse("11927552");
+            var expected = JsonNode.Parse("11927552");
 
             // Act
             var result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -573,7 +574,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=10237";
 
-            var expected = _serializer.Parse("-2.5828845095702735E-29");
+            var expected = JsonNode.Parse("-2.5828845095702735E-29");
 
             // Act
             var result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -592,7 +593,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=10238";
 
-            var expected = _serializer.Parse("1137262927");
+            var expected = JsonNode.Parse("1137262927");
 
             // Act
             var result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -612,7 +613,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=10239";
 
-            var expected = _serializer.Parse("""
+            var expected = JsonNode.Parse("""
 
 {
     "TypeId": "http://test.org/UA/Data/#i=9440",
@@ -682,7 +683,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=10240";
 
-            var expected = _serializer.Parse("-44");
+            var expected = JsonNode.Parse("-44");
 
             // Act
             var result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -702,7 +703,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=10241";
 
-            var expected = _serializer.Parse("94903859");
+            var expected = JsonNode.Parse("94903859");
 
             // Act
             var result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -722,7 +723,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=10242";
 
-            var expected = _serializer.Parse("64817");
+            var expected = JsonNode.Parse("64817");
 
             // Act
             var result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -737,7 +738,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
-        private async Task AssertResultAsync(string node, VariantValue expected,
+        private async Task AssertResultAsync(string node, JsonNode? expected,
             ValueWriteResponseModel result)
         {
             var value = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
@@ -750,7 +751,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
         private readonly T _connection;
         private readonly DefaultJsonSerializer _serializer;
-        private readonly Func<T, string, IJsonSerializer, Task<VariantValue>> _readExpected;
+        private readonly Func<T, string, IJsonSerializer, Task<JsonNode?>> _readExpected;
         private readonly Func<INodeServices<T>> _services;
     }
 }

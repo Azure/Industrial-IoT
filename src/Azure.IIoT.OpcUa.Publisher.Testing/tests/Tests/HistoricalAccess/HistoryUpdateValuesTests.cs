@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using System.Text.Json.Nodes;
     using System;
     using System.Linq;
     using System.Threading;
@@ -69,7 +70,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(read2.History);
             Assert.Equal(10, read2.History.Length);
             Assert.All(read2.History,
-               arg => Assert.True(arg.Value == 77));
+               arg => Assert.True(JsonNode.DeepEquals(arg.Value, 77)));
         }
 
         public async Task HistoryInsertUInt32ValuesTest2Async(CancellationToken ct = default)
@@ -159,7 +160,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(read2.History);
             Assert.Equal(10, read2.History.Length);
             Assert.All(read2.History,
-               arg => Assert.True(arg.Value == 5));
+               arg => Assert.True(JsonNode.DeepEquals(arg.Value, 5)));
         }
 
         public async Task HistoryUpsertUInt32ValuesTest2Async(CancellationToken ct = default)
@@ -221,7 +222,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(read2.History);
             Assert.Equal(10, read2.History.Length);
             Assert.All(read2.History,
-               arg => Assert.True(arg.Value == 99));
+               arg => Assert.True(JsonNode.DeepEquals(arg.Value, 99)));
 
             var read3 = await services.HistoryReadModifiedValuesAsync(_connection,
                 new HistoryReadRequestModel<ReadModifiedValuesDetailsModel>
@@ -238,7 +239,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(read3.History);
             Assert.Equal(10, read3.History.Length);
             Assert.All(read3.History,
-               arg => Assert.True(arg.Value == 5));
+               arg => Assert.True(JsonNode.DeepEquals(arg.Value, 5)));
         }
 
         public async Task HistoryReplaceUInt32ValuesTest1Async(CancellationToken ct = default)
@@ -300,7 +301,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(read2.History);
             Assert.Equal(10, read2.History.Length);
             Assert.All(read2.History,
-               arg => Assert.True(arg.Value == 99));
+               arg => Assert.True(JsonNode.DeepEquals(arg.Value, 99)));
 
             var read3 = await services.HistoryReadModifiedValuesAsync(_connection,
                 new HistoryReadRequestModel<ReadModifiedValuesDetailsModel>
@@ -319,7 +320,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.All(read3.History,
                arg =>
                {
-                   Assert.True(arg.Value == 5);
+                   Assert.True(JsonNode.DeepEquals(arg.Value, 5));
                    Assert.NotNull(arg.ModificationInfo);
                });
             Assert.Equal(10, read3.History.Count(
@@ -437,7 +438,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                arg =>
                {
                    Assert.NotNull(arg.ModificationInfo);
-                   Assert.True(arg.Value == 5);
+                   Assert.True(JsonNode.DeepEquals(arg.Value, 5));
                });
             Assert.Equal(10, read3.History.Count(
                 h => h.ModificationInfo?.UpdateType == HistoryUpdateOperation.Insert));
@@ -493,7 +494,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                arg =>
                {
                    Assert.NotNull(arg.ModificationInfo);
-                   Assert.True(arg.Value == 66);
+                   Assert.True(JsonNode.DeepEquals(arg.Value, 66));
                    Assert.Equal(HistoryUpdateOperation.Insert, arg.ModificationInfo?.UpdateType);
                });
 
@@ -574,7 +575,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                arg =>
                {
                    Assert.NotNull(arg.ModificationInfo);
-                   Assert.True(arg.Value == 66);
+                   Assert.True(JsonNode.DeepEquals(arg.Value, 66));
                    Assert.Equal(HistoryUpdateOperation.Insert, arg.ModificationInfo?.UpdateType);
                });
 
@@ -670,7 +671,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                {
                    Assert.NotNull(arg.ModificationInfo);
                    Assert.NotNull(arg.SourceTimestamp);
-                   Assert.True(arg.Value == 88);
+                   Assert.True(JsonNode.DeepEquals(arg.Value, 88));
                    Assert.Equal(HistoryUpdateOperation.Insert, arg.ModificationInfo?.UpdateType);
                });
 
@@ -702,7 +703,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(read4.History);
             Assert.Equal(9, read4.History.Length);
             Assert.All(read4.History,
-               arg => Assert.True(arg.Value == 88));
+               arg => Assert.True(JsonNode.DeepEquals(arg.Value, 88)));
 
             var read3 = await services.HistoryReadModifiedValuesAsync(_connection,
                 new HistoryReadRequestModel<ReadModifiedValuesDetailsModel>
@@ -724,7 +725,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                arg =>
                {
                    Assert.NotNull(arg.ModificationInfo);
-                   Assert.True(arg.Value == 88);
+                   Assert.True(JsonNode.DeepEquals(arg.Value, 88));
                });
             Assert.Equal(10, read3.History.Count(
                 h => h.ModificationInfo?.UpdateType == HistoryUpdateOperation.Insert));

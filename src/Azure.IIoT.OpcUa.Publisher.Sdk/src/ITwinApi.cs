@@ -6,7 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Sdk
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly.Extensions.Serializers;
+    using System.Text.Json.Nodes;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -180,8 +180,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<HistoryReadResponseModel<VariantValue>> HistoryReadAsync(
-            ConnectionModel connection, HistoryReadRequestModel<VariantValue> request,
+        Task<HistoryReadResponseModel<JsonNode>> HistoryReadAsync(
+            ConnectionModel connection, HistoryReadRequestModel<JsonNode> request,
             CancellationToken ct = default);
 
         /// <summary>
@@ -191,7 +191,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<HistoryReadNextResponseModel<VariantValue>> HistoryReadNextAsync(
+        Task<HistoryReadNextResponseModel<JsonNode>> HistoryReadNextAsync(
             ConnectionModel connection, HistoryReadNextRequestModel request,
             CancellationToken ct = default);
 
@@ -203,7 +203,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<HistoryUpdateResponseModel> HistoryUpdateAsync(
-            ConnectionModel connection, HistoryUpdateRequestModel<VariantValue> request,
+            ConnectionModel connection, HistoryUpdateRequestModel<JsonNode> request,
             CancellationToken ct = default);
     }
 }

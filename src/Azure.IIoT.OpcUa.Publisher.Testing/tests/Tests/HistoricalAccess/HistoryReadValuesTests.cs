@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using System.Text.Json.Nodes;
     using System;
     using System.Linq;
     using System.Threading;
@@ -59,22 +60,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 10);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 10));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 20);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 20));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 25);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 25));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 30);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 30));
                 },
                 arg =>
                 {
@@ -84,37 +85,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 40);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 40));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 50);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 50));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 60);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 60));
                 },
                 arg =>
                 {
                     Assert.Equal(1073741824u, arg.Status?.StatusCode);
-                    Assert.True(arg.Value == 70);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 70));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 70);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 70));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 80);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 80));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 90);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 90));
                 },
                 arg =>
                 {
@@ -153,22 +154,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 10);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 10));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 20);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 20));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 25);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 25));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 30);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 30));
                 },
                 arg =>
                 {
@@ -178,27 +179,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 40);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 40));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 50);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 50));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 60);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 60));
                 },
                 arg =>
                 {
                     Assert.Equal(1073741824u, arg.Status?.StatusCode);
-                    Assert.True(arg.Value == 70);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 70));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 70);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 70));
                 });
             Assert.All(results.History,
                 arg =>
@@ -232,22 +233,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 10);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 10));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 20);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 20));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 25);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 25));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 30);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 30));
                 },
                 arg =>
                 {
@@ -257,37 +258,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 40);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 40));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 50);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 50));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 60);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 60));
                 },
                 arg =>
                 {
                     Assert.Equal(1073741824u, arg.Status?.StatusCode);
-                    Assert.True(arg.Value == 70);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 70));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 70);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 70));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 80);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 80));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 90);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 90));
                 });
             Assert.All(results.History,
                 arg =>
@@ -321,37 +322,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 90);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 90));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 80);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 80));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 70);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 70));
                 },
                 arg =>
                 {
                     Assert.Equal(1073741824u, arg.Status?.StatusCode);
-                    Assert.True(arg.Value == 70);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 70));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 60);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 60));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 50);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 50));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 40);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 40));
                 },
                 arg =>
                 {
@@ -361,12 +362,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 30);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 30));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 25);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 25));
                 });
             Assert.All(results.History,
                 arg =>
@@ -406,22 +407,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 10);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 10));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 20);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 20));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 25);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 25));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 30);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 30));
                 },
                 arg =>
                 {
@@ -431,37 +432,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 40);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 40));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 50);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 50));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 60);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 60));
                 },
                 arg =>
                 {
                     Assert.Equal(1073741824u, arg.Status?.StatusCode);
-                    Assert.True(arg.Value == 70);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 70));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 70);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 70));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 80);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 80));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 90);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 90));
                 },
                 arg =>
                 {
@@ -500,22 +501,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 10);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 10));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 20);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 20));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 25);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 25));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 30);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 30));
                 },
                 arg =>
                 {
@@ -525,27 +526,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 40);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 40));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 50);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 50));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 60);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 60));
                 },
                 arg =>
                 {
                     Assert.Equal(1073741824u, arg.Status?.StatusCode);
-                    Assert.True(arg.Value == 70);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 70));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 70);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 70));
                 });
             Assert.All(history,
                 arg =>
@@ -579,22 +580,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 10);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 10));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 20);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 20));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 25);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 25));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 30);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 30));
                 },
                 arg =>
                 {
@@ -604,37 +605,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 40);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 40));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 50);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 50));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 60);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 60));
                 },
                 arg =>
                 {
                     Assert.Equal(1073741824u, arg.Status?.StatusCode);
-                    Assert.True(arg.Value == 70);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 70));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 70);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 70));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 80);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 80));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 90);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 90));
                 });
             Assert.All(history,
                 arg =>
@@ -668,37 +669,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 90);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 90));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 80);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 80));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 70);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 70));
                 },
                 arg =>
                 {
                     Assert.Equal(1073741824u, arg.Status?.StatusCode);
-                    Assert.True(arg.Value == 70);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 70));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 60);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 60));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 50);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 50));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 40);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 40));
                 },
                 arg =>
                 {
@@ -708,12 +709,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 30);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 30));
                 },
                 arg =>
                 {
                     Assert.Null(arg.Status);
-                    Assert.True(arg.Value == 25);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 25));
                 });
             Assert.All(history,
                 arg =>

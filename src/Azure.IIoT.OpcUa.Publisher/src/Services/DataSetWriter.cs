@@ -23,6 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Globalization;
     using System.Linq;
     using System.Text;
+    using System.Text.Json.Nodes;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -1441,7 +1442,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             Name = field.DataSetFieldName,
                             Id = field.DataSetClassFieldId,
                             Description = field.DataSetFieldDescription,
-                            ValueRank = (int)(field.Value.IsArray ?
+                            ValueRank = (int)(field.Value is JsonArray ?
                                  NodeValueRank.OneDimension : NodeValueRank.Scalar),
                             ArrayDimensions = null,
                             MaxStringLength = 0,
@@ -1477,26 +1478,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     return extensions;
                 }
 
-                private static byte GetBuiltInType(VariantValue value)
+                private static byte GetBuiltInType(JsonNode? value)
                 {
-                    return value.GetTypeCode() switch
+                    if (value is JsonArray array)
                     {
-                        TypeCode.Empty => 0,
-                        TypeCode.Boolean => 1,
-                        TypeCode.SByte => 2,
-                        TypeCode.Byte => 3,
-                        TypeCode.Int16 => 4,
-                        TypeCode.UInt16 => 5,
-                        TypeCode.Int32 => 6,
-                        TypeCode.UInt32 => 7,
-                        TypeCode.Int64 => 8,
-                        TypeCode.UInt64 => 9,
-                        TypeCode.Single => 10,
-                        TypeCode.Double => 11,
-                        TypeCode.String or TypeCode.Char => 12,
-                        TypeCode.DateTime => 13,
-                        _ => 24
-                    };
+                        value = array.FirstOrDefault();
+                    }
+                    if (value is null)
+                    {
+                        return 0; // Null
+                    }
+                    if (value is JsonValue jv)
+                    {
+                        switch (jv.GetValueKind())
+                        {
+                            case System.Text.Json.JsonValueKind.True:
+                            case System.Text.Json.JsonValueKind.False:
+                                return 1; // Boolean
+                            case System.Text.Json.JsonValueKind.String:
+                                return 12; // String
+                            case System.Text.Json.JsonValueKind.Number:
+                                // JsonNode does not preserve the exact CLR numeric
+                                // type; map integral values to Int64 and the rest
+                                // to Double.
+                                return jv.TryGetValue<long>(out _) ? (byte)8 : (byte)11;
+                        }
+                    }
+                    return 24; // Fall back to Variant
                 }
 
                 private readonly IJsonSerializer _serializer;

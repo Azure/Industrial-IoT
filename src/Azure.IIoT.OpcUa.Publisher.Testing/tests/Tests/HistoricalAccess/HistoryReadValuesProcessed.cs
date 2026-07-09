@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Furly.Extensions.Serializers;
+    using System.Text.Json.Nodes;
     using System;
     using System.Linq;
     using System.Text.Json;
@@ -51,7 +52,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             }, ct).ConfigureAwait(false);
 
             Assert.NotNull(results.History);
-            Assert.All(results.History.Where(h => VariantValue.IsNullOrNullValue(h.Value)), arg =>
+            Assert.All(results.History.Where(h => (h.Value).IsNull()), arg =>
             {
                 Assert.Equal("BadNoData", arg.Status?.SymbolicId);
                 Assert.NotNull(arg.SourceTimestamp);
@@ -60,14 +61,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 Assert.Null(arg.DataLocation);
                 Assert.Null(arg.AdditionalData);
             });
-            var values = results.History.Where(h => !VariantValue.IsNullOrNullValue(h.Value)).ToList();
+            var values = results.History.Where(h => !(h.Value).IsNull()).ToList();
             Assert.True(values.Count == 2, JsonSerializer.Serialize(values));
             Assert.Equal(2, values.Count);
             Assert.Collection(values,
                 arg =>
                 {
                     Assert.Equal("UncertainDataSubNormal", arg.Status?.SymbolicId);
-                    Assert.True(arg.Value == 50);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 50));
                     Assert.Equal(DataLocation.Calculated, arg.DataLocation);
                     Assert.NotNull(arg.SourceTimestamp);
                     Assert.NotNull(arg.ServerTimestamp);
@@ -76,7 +77,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg =>
                 {
                     Assert.Equal("UncertainDataSubNormal", arg.Status?.SymbolicId);
-                    Assert.True(arg.Value == 90);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 90));
                     Assert.Equal(DataLocation.Calculated, arg.DataLocation);
                     Assert.NotNull(arg.SourceTimestamp);
                     Assert.NotNull(arg.ServerTimestamp);
@@ -104,7 +105,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             }, ct).ConfigureAwait(false);
 
             Assert.NotNull(results.History);
-            Assert.All(results.History.Where(h => VariantValue.IsNullOrNullValue(h.Value)), arg =>
+            Assert.All(results.History.Where(h => (h.Value).IsNull()), arg =>
             {
                 Assert.Equal("BadNoData", arg.Status?.SymbolicId);
                 Assert.NotNull(arg.SourceTimestamp);
@@ -113,14 +114,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 Assert.Null(arg.DataLocation);
                 Assert.Null(arg.AdditionalData);
             });
-            var values = results.History.Where(h => !VariantValue.IsNullOrNullValue(h.Value)).ToList();
+            var values = results.History.Where(h => !(h.Value).IsNull()).ToList();
             Assert.True(values.Count == 2, JsonSerializer.Serialize(values));
             Assert.Equal(2, values.Count);
             Assert.Collection(values,
                 arg =>
                 {
                     Assert.Equal("UncertainDataSubNormal", arg.Status?.SymbolicId);
-                    Assert.True(arg.Value == 6);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 6));
                     Assert.Equal(DataLocation.Calculated, arg.DataLocation);
                     Assert.NotNull(arg.SourceTimestamp);
                     Assert.NotNull(arg.ServerTimestamp);
@@ -129,7 +130,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg =>
                 {
                     Assert.Equal("UncertainDataSubNormal", arg.Status?.SymbolicId);
-                    Assert.True(arg.Value == 4);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 4));
                     Assert.Equal(DataLocation.Calculated, arg.DataLocation);
                     Assert.NotNull(arg.SourceTimestamp);
                     Assert.NotNull(arg.ServerTimestamp);
@@ -157,7 +158,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             }, ct).ConfigureAwait(false);
 
             Assert.NotNull(results.History);
-            Assert.All(results.History.Where(h => VariantValue.IsNullOrNullValue(h.Value)), arg =>
+            Assert.All(results.History.Where(h => (h.Value).IsNull()), arg =>
             {
                 Assert.Equal("BadNoData", arg.Status?.SymbolicId);
                 Assert.NotNull(arg.SourceTimestamp);
@@ -166,10 +167,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 Assert.Null(arg.DataLocation);
                 Assert.Null(arg.AdditionalData);
             });
-            Assert.True(results.History.Count(h => !VariantValue.IsNullOrNullValue(h.Value)) == 1, JsonSerializer.Serialize(results.History));
-            var arg = Assert.Single(results.History.Where(h => !VariantValue.IsNullOrNullValue(h.Value)));
+            Assert.True(results.History.Count(h => !(h.Value).IsNull()) == 1, JsonSerializer.Serialize(results.History));
+            var arg = Assert.Single(results.History.Where(h => !(h.Value).IsNull()));
             Assert.Null(arg.Status);
-            Assert.True(arg.Value == 80, JsonSerializer.Serialize(arg));
+            Assert.True(JsonNode.DeepEquals(arg.Value, 80), JsonSerializer.Serialize(arg));
             Assert.Equal(DataLocation.Calculated, arg.DataLocation);
             Assert.NotNull(arg.SourceTimestamp);
             Assert.NotNull(arg.ServerTimestamp);
@@ -196,7 +197,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
             Assert.NotNull(history);
-            Assert.All(history.Where(h => VariantValue.IsNullOrNullValue(h.Value)), arg =>
+            Assert.All(history.Where(h => (h.Value).IsNull()), arg =>
             {
                 Assert.Equal("BadNoData", arg.Status?.SymbolicId);
                 Assert.NotNull(arg.SourceTimestamp);
@@ -205,14 +206,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 Assert.Null(arg.DataLocation);
                 Assert.Null(arg.AdditionalData);
             });
-            var values = history.Where(h => !VariantValue.IsNullOrNullValue(h.Value)).ToList();
+            var values = history.Where(h => !(h.Value).IsNull()).ToList();
             Assert.True(values.Count == 2, JsonSerializer.Serialize(values));
             Assert.Equal(2, values.Count);
             Assert.Collection(values,
                 arg =>
                 {
                     Assert.Equal("UncertainDataSubNormal", arg.Status?.SymbolicId);
-                    Assert.True(arg.Value == 50);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 50));
                     Assert.Equal(DataLocation.Calculated, arg.DataLocation);
                     Assert.NotNull(arg.SourceTimestamp);
                     Assert.NotNull(arg.ServerTimestamp);
@@ -221,7 +222,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg =>
                 {
                     Assert.Equal("UncertainDataSubNormal", arg.Status?.SymbolicId);
-                    Assert.True(arg.Value == 90);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 90));
                     Assert.Equal(DataLocation.Calculated, arg.DataLocation);
                     Assert.NotNull(arg.SourceTimestamp);
                     Assert.NotNull(arg.ServerTimestamp);
@@ -249,7 +250,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
             Assert.NotNull(history);
-            Assert.All(history.Where(h => VariantValue.IsNullOrNullValue(h.Value)), arg =>
+            Assert.All(history.Where(h => (h.Value).IsNull()), arg =>
             {
                 Assert.Equal("BadNoData", arg.Status?.SymbolicId);
                 Assert.NotNull(arg.SourceTimestamp);
@@ -258,14 +259,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 Assert.Null(arg.DataLocation);
                 Assert.Null(arg.AdditionalData);
             });
-            var values = history.Where(h => !VariantValue.IsNullOrNullValue(h.Value)).ToList();
+            var values = history.Where(h => !(h.Value).IsNull()).ToList();
             Assert.True(values.Count == 2, JsonSerializer.Serialize(values));
             Assert.Equal(2, values.Count);
             Assert.Collection(values,
                 arg =>
                 {
                     Assert.Equal("UncertainDataSubNormal", arg.Status?.SymbolicId);
-                    Assert.True(arg.Value == 6);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 6));
                     Assert.Equal(DataLocation.Calculated, arg.DataLocation);
                     Assert.NotNull(arg.SourceTimestamp);
                     Assert.NotNull(arg.ServerTimestamp);
@@ -274,7 +275,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg =>
                 {
                     Assert.Equal("UncertainDataSubNormal", arg.Status?.SymbolicId);
-                    Assert.True(arg.Value == 4);
+                    Assert.True(JsonNode.DeepEquals(arg.Value, 4));
                     Assert.Equal(DataLocation.Calculated, arg.DataLocation);
                     Assert.NotNull(arg.SourceTimestamp);
                     Assert.NotNull(arg.ServerTimestamp);
@@ -302,7 +303,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
             Assert.NotNull(history);
-            Assert.All(history.Where(h => VariantValue.IsNullOrNullValue(h.Value)), arg =>
+            Assert.All(history.Where(h => (h.Value).IsNull()), arg =>
             {
                 Assert.Equal("BadNoData", arg.Status?.SymbolicId);
                 Assert.NotNull(arg.SourceTimestamp);
@@ -311,10 +312,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 Assert.Null(arg.DataLocation);
                 Assert.Null(arg.AdditionalData);
             });
-            Assert.True(history.Count(h => !VariantValue.IsNullOrNullValue(h.Value)) == 1, JsonSerializer.Serialize(history));
-            var arg = Assert.Single(history.Where(h => !VariantValue.IsNullOrNullValue(h.Value)));
+            Assert.True(history.Count(h => !(h.Value).IsNull()) == 1, JsonSerializer.Serialize(history));
+            var arg = Assert.Single(history.Where(h => !(h.Value).IsNull()));
             Assert.Null(arg.Status);
-            Assert.True(arg.Value == 80);
+            Assert.True(JsonNode.DeepEquals(arg.Value, 80));
             Assert.Equal(DataLocation.Calculated, arg.DataLocation);
             Assert.NotNull(arg.SourceTimestamp);
             Assert.NotNull(arg.ServerTimestamp);
