@@ -1616,9 +1616,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // the caller so it can reduce the partition size and repartition.
             //
             int? revisedMaxMonitoredItems = null;
-            if (set.Any(m => m.StatusCode.Code == StatusCodes.BadTooManyMonitoredItems))
+            var tooManyMonitoredItems = false;
+            var goodItems = 0;
+            foreach (var item in set)
             {
-                revisedMaxMonitoredItems = set.Count(m => m.IsGood);
+                if (item.IsGood)
+                {
+                    goodItems++;
+                }
+                if (item.StatusCode.Code == StatusCodes.BadTooManyMonitoredItems)
+                {
+                    tooManyMonitoredItems = true;
+                }
+            }
+            if (tooManyMonitoredItems)
+            {
+                revisedMaxMonitoredItems = goodItems;
             }
 
             // Set up subscription management trigger
