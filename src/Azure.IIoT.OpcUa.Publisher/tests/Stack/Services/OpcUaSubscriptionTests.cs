@@ -14,7 +14,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// <c>OpcUaSubscriptionOptions.MaxMonitoredItemPerSubscription</c> and
     /// is the root-cause fix for issue #2445 (server reporting
     /// <c>uint.MaxValue</c> caused a "Cannot create 0 or negative size
-    /// batches" failure inside partitioning).
+    /// batches" failure inside partitioning). The static helper
+    /// <see cref="OpcUaSubscription.ShouldReducePartitionSize"/> encodes the
+    /// repartition decision for issue #2339 (reduce the partition size to the
+    /// number of successfully created items when the server reports
+    /// <c>Bad_TooManyMonitoredItems</c>).
     /// </summary>
     public class OpcUaSubscriptionTests
     {
@@ -149,6 +153,64 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 server, configured, kDefault);
             Assert.InRange(result, 1, int.MaxValue);
             Assert.Equal(expected, result);
+        }
+
+        [Fact]
+        public void RepartitionWhenServerCreatedFewerThanCurrentMax()
+        {
+            // Server accepted 100 items before Bad_TooManyMonitoredItems; the
+            // partition size should shrink to that number and repartition.
+            var repartition = OpcUaSubscription.ShouldReducePartitionSize(
+                revisedMaxMonitoredItems: 100, currentMax: 1000, attempt: 0,
+                maxAttempts: 10, out var newMax);
+            Assert.True(repartition);
+            Assert.Equal(100, newMax);
+        }
+
+        [Fact]
+        public void DoNotRepartitionWhenServerDidNotReportTooManyItems()
+        {
+            // No Bad_TooManyMonitoredItems reported (null) -> keep current max.
+            var repartition = OpcUaSubscription.ShouldReducePartitionSize(
+                revisedMaxMonitoredItems: null, currentMax: 1000, attempt: 0,
+                maxAttempts: 10, out var newMax);
+            Assert.False(repartition);
+            Assert.Equal(1000, newMax);
+        }
+
+        [Fact]
+        public void DoNotRepartitionWhenNoItemsSucceeded()
+        {
+            // Zero successful items means repartitioning cannot make progress
+            // (e.g. the limit is session-wide); keep current max and let the
+            // regular retry logic handle it.
+            var repartition = OpcUaSubscription.ShouldReducePartitionSize(
+                revisedMaxMonitoredItems: 0, currentMax: 1000, attempt: 0,
+                maxAttempts: 10, out var newMax);
+            Assert.False(repartition);
+            Assert.Equal(1000, newMax);
+        }
+
+        [Fact]
+        public void DoNotRepartitionWhenRevisedMaxIsNotSmaller()
+        {
+            // Revised value must be strictly smaller to guarantee progress.
+            var repartition = OpcUaSubscription.ShouldReducePartitionSize(
+                revisedMaxMonitoredItems: 1000, currentMax: 1000, attempt: 0,
+                maxAttempts: 10, out var newMax);
+            Assert.False(repartition);
+            Assert.Equal(1000, newMax);
+        }
+
+        [Fact]
+        public void DoNotRepartitionWhenMaxAttemptsReached()
+        {
+            // Defense in depth: stop repartitioning once the attempt cap is hit.
+            var repartition = OpcUaSubscription.ShouldReducePartitionSize(
+                revisedMaxMonitoredItems: 100, currentMax: 1000, attempt: 10,
+                maxAttempts: 10, out var newMax);
+            Assert.False(repartition);
+            Assert.Equal(1000, newMax);
         }
     }
 }

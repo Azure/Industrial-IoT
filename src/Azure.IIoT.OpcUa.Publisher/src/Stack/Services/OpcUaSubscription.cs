@@ -744,8 +744,43 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
-        /// Create or update the subscription now using the currently configured
-        /// subscription configuration template.
+        /// Decide whether the max monitored items per subscription partition
+        /// should be reduced and the subscriptions repartitioned in response to
+        /// the server reporting <c>Bad_TooManyMonitoredItems</c> for one or more
+        /// items.
+        ///
+        /// When the server rejects items with that status, the number of items
+        /// it did create successfully (<paramref name="revisedMaxMonitoredItems"/>)
+        /// is a better, lower estimate of the actual per-subscription limit than
+        /// the value used to partition. Repartitioning is only useful when this
+        /// new estimate is a positive number strictly smaller than the current
+        /// limit (guaranteeing the limit shrinks on each attempt so the retry
+        /// loop terminates) and the attempt count has not exceeded
+        /// <paramref name="maxAttempts"/>.
+        /// </summary>
+        /// <param name="revisedMaxMonitoredItems">Number of successfully created
+        /// items, or <c>null</c> when the server did not report
+        /// <c>Bad_TooManyMonitoredItems</c>.</param>
+        /// <param name="currentMax">The current max monitored items per partition.</param>
+        /// <param name="attempt">Zero-based repartition attempt counter.</param>
+        /// <param name="maxAttempts">Maximum number of repartition attempts.</param>
+        /// <param name="newMax">The reduced max to repartition with when the
+        /// method returns <c>true</c>; otherwise <paramref name="currentMax"/>.</param>
+        /// <returns><c>true</c> when the caller should repartition using
+        /// <paramref name="newMax"/>.</returns>
+        internal static bool ShouldReducePartitionSize(int? revisedMaxMonitoredItems,
+            int currentMax, int attempt, int maxAttempts, out int newMax)
+        {
+            if (revisedMaxMonitoredItems is > 0 &&
+                revisedMaxMonitoredItems.Value < currentMax &&
+                attempt < maxAttempts)
+            {
+                newMax = revisedMaxMonitoredItems.Value;
+                return true;
+            }
+            newMax = currentMax;
+            return false;
+        }
         /// </summary>
         /// <param name="maxMonitoredItemsPerSubscription"></param>
         /// <param name="limits"></param>
@@ -844,12 +879,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 // Bad_TooManyMonitoredItems and we can make progress (the new
                 // limit is a positive number smaller than the current one).
                 //
-                if (revisedMax is > 0 && revisedMax.Value < maxMonitoredItems &&
-                    attempt < kMaxRepartitionAttempts)
+                if (ShouldReducePartitionSize(revisedMax, maxMonitoredItems,
+                    attempt, kMaxRepartitionAttempts, out var reducedMax))
                 {
                     _logger.RepartitioningDueToTooManyMonitoredItems(this,
-                        maxMonitoredItems, revisedMax.Value);
-                    maxMonitoredItems = revisedMax.Value;
+                        maxMonitoredItems, reducedMax);
+                    maxMonitoredItems = reducedMax;
                     continue;
                 }
                 break;
