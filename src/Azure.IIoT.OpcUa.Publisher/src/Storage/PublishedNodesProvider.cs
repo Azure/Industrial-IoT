@@ -121,6 +121,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                     fileStream.SetLength(0);
                     fileStream.Write(Encoding.UTF8.GetBytes(content));
                 }
+                catch (IOException e) when (e is FileNotFoundException or DirectoryNotFoundException)
+                {
+                    // The configured file (or its directory) does not exist and the file
+                    // mode does not permit creating it (a named --pf file was specified
+                    // without CreatePublishFileIfNotExist/--cf). Relaxing share policies
+                    // cannot help here, so fail with an actionable error instead of the
+                    // misleading restricted-share retry below.
+                    _logger.UpdateFileMissing(e, _fileName);
+                    throw;
+                }
                 catch (IOException e)
                 {
                     _logger.UpdateFileRestrictedShare(_fileName);
@@ -211,6 +221,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
         [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Error,
             Message = "Failed to update published nodes file at \"{Path}\"")]
         public static partial void UpdateFileFailed(this ILogger logger, Exception exception, string path);
+
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Error,
+            Message = "Failed to update published nodes file at \"{Path}\": the file or its " +
+            "directory does not exist and the publisher is not permitted to create it. Enable " +
+            "CreatePublishFileIfNotExist (the --cf command line option) so the module can create " +
+            "the configured publish file.")]
+        public static partial void UpdateFileMissing(this ILogger logger, Exception exception, string path);
 
         [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Trace,
             Message = "No raising event while writing ({Changed}).")]

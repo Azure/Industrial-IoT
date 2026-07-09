@@ -64,7 +64,8 @@ namespace OpcPublisherAEE2ETests.Standalone
                 moduleName: kModuleName,
                 deploymentName: kDeploymentName,
                 publishedNodesFile: TestConstants.PublishedNodesFolder + "/published_nodes_cs.json",
-                pkiPath: TestConstants.PublishedNodesFolder + "/pki_cs");
+                pkiPath: TestConstants.PublishedNodesFolder + "/pki_cs",
+                createFileIfNotExist: true);
 
             _iotHubClient = TestHelper.DeviceServiceClient(
                 _context.IoTHubConfig.IoTHubConnectionString,
