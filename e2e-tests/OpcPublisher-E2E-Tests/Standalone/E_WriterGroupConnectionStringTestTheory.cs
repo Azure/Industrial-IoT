@@ -83,6 +83,13 @@ namespace OpcPublisherAEE2ETests.Standalone
         public async Task TestDeploySecondPublisher()
         {
             await _context.RegistryHelper.DeployStandalonePublisherAsync(_deployment, _timeoutToken);
+
+            // Reaching IoT Hub "Connected" state does not guarantee the freshly deployed
+            // module is ready to serve direct methods: its method handlers and configuration
+            // services may still be initializing, during which an invocation transiently
+            // fails (405 while the handler registers, 5xx while the services start). Wait
+            // until a benign read-only method succeeds before any test relies on it.
+            await WaitUntilPublisherReadyAsync(_timeoutToken);
         }
 
         [Fact, PriorityOrder(1)]
@@ -135,6 +142,34 @@ namespace OpcPublisherAEE2ETests.Standalone
                 parameters,
                 _context,
                 ct).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Wait until the freshly deployed publisher module is ready to serve direct
+        /// methods by polling a benign, read-only method until it returns 200. Transient
+        /// 405 (handler not yet registered) and 5xx (services still starting) responses
+        /// are tolerated; the loop is bounded by the test timeout token.
+        /// </summary>
+        private async Task WaitUntilPublisherReadyAsync(CancellationToken ct)
+        {
+            while (true)
+            {
+                var result = await CallMethodAsync(
+                    new MethodParameterModel
+                    {
+                        Name = TestConstants.DirectMethodNames.GetConfiguredEndpoints
+                    },
+                    ct).ConfigureAwait(false);
+
+                if (result.Status == (int)HttpStatusCode.OK)
+                {
+                    return;
+                }
+
+                _context.OutputHelper?.WriteLine(
+                    $"Publisher {_deployment.ModuleName} not ready yet (status {result.Status}), retrying...");
+                await Task.Delay(TestConstants.DefaultDelayMilliseconds, ct).ConfigureAwait(false);
+            }
         }
 
         private async Task PublishNodesAsync(string json, CancellationToken ct)
