@@ -5,13 +5,13 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Testing
 {
+    using Azure.IIoT.OpcUa.Core.Serialization;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text.Json;
     using System.Text.Json.Nodes;
     using System.Xml;
-    using Furly.Extensions.Serializers;
 
     /// <summary>
     /// Test-only compatibility helpers that provide the small subset of the
@@ -27,15 +27,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing
         /// Build a <see cref="JsonNode"/> from an object using the same json
         /// conventions as the former <c>VariantValue</c> based serializer.
         /// </summary>
-        public static JsonNode? FromObject(IJsonSerializer serializer, object? value)
-            => value is null ? null : JsonNode.Parse(serializer.SerializeToString(value));
+        public static JsonNode? FromObject(object? value)
+            => value is null ? null : Json.FromObject(value);
 
         /// <summary>
         /// Build a <see cref="JsonArray"/> from the provided values using the
         /// same json conventions as the former <c>VariantValue</c> serializer.
         /// </summary>
-        public static JsonNode? FromArray(IJsonSerializer serializer, params object?[] values)
-            => JsonNode.Parse(serializer.SerializeToString(values));
+        public static JsonNode? FromArray(params object?[] values)
+            => Json.FromObject(values);
 
         /// <summary>
         /// Whether the node represents a null (missing) json value.
@@ -155,7 +155,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing
                 document.LoadXml(xml);
                 return (T)(object)document.DocumentElement!;
             }
-            return node.Deserialize<T>();
+            return Json.Deserialize<T>(node.ToJsonString());
         }
     }
 }

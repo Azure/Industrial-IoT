@@ -5,10 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
+    using Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly.Extensions.Serializers;
     using System.Text.Json.Nodes;
-    using Furly.Extensions.Serializers.Json;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -27,7 +26,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             _services = services;
             _connection = connection;
-            _serializer = new DefaultJsonSerializer();
         }
 
         public async Task NodeBrowseInRootTest1Async(CancellationToken ct = default)
@@ -1403,7 +1401,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.True(results.Node.Children);
             Assert.NotNull(results.References);
             Assert.True(results.References.Count == 30,
-                _serializer.SerializeToString(
+                Json.SerializeToString(
                     results.References.Select(r => r.Target.DisplayName)) + results.ErrorInfo?.ToString());
             Assert.Collection(results.References,
                 reference =>
@@ -1922,7 +1920,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.True(results.Node.Children);
             Assert.NotNull(results.References);
             Assert.True(results.References.Count == 30,
-                _serializer.SerializeToString(
+                Json.SerializeToString(
                     results.References.Select(r => r.Target.DisplayName)) + results.ErrorInfo?.ToString());
             Assert.Collection(results.References,
                 reference =>
@@ -2558,7 +2556,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         }
 
         private readonly T _connection;
-        private readonly IJsonSerializer _serializer;
         private readonly Func<INodeServices<T>> _services;
     }
 }

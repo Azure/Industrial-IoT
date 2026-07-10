@@ -5,13 +5,12 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 {
+    using Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Sdk;
     using Azure.IIoT.OpcUa.Encoders;
     using Furly.Exceptions;
     using Furly.Extensions.Mqtt;
-    using Furly.Extensions.Serializers;
-    using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Extensions.Logging;
     using Neovolve.Logging.Xunit;
     using System;
@@ -508,13 +507,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         protected PublishedNodesEntryModel[] GetEndpointsFromFile(string test, string publishedNodesFile,
             bool useReverseConnect = false, SecurityMode? securityMode = null)
         {
-            IJsonSerializer serializer = new NewtonsoftJsonSerializer();
             var fileContent = File.ReadAllText(publishedNodesFile)
                 .Replace("\"{{UseReverseConnect}}\"", useReverseConnect ? "true" : "false", StringComparison.Ordinal)
                 .Replace("{{EndpointUrl}}", EndpointUrl, StringComparison.Ordinal)
                 .Replace("{{SecurityMode}}", (securityMode ?? SecurityMode.None).ToString(), StringComparison.Ordinal)
                 .Replace("{{DataSetWriterGroup}}", test, StringComparison.Ordinal);
-            return serializer.Deserialize<PublishedNodesEntryModel[]>(fileContent);
+            return Json.Deserialize<PublishedNodesEntryModel[]>(fileContent) ?? [];
         }
 
         private static readonly TimeSpan kTelemetryTimeout = TimeSpan.FromMinutes(2);

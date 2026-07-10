@@ -5,10 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
+    using Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly.Extensions.Serializers;
     using System.Text.Json.Nodes;
-    using Furly.Extensions.Serializers.Json;
     using System;
     using System.Collections.Generic;
     using System.Threading;
@@ -25,12 +24,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         /// <param name="connection"></param>
         /// <param name="readExpected"></param>
         public ReadArrayValueTests(Func<INodeServices<T>> services, T connection,
-            Func<T, string, IJsonSerializer, Task<JsonNode?>> readExpected)
+            Func<T, string, Task<JsonNode?>> readExpected)
         {
             _services = services;
             _connection = connection;
             _readExpected = readExpected;
-            _serializer = new DefaultJsonSerializer();
         }
 
         public async Task NodeReadAllStaticArrayVariableNodeClassTest1Async(CancellationToken ct = default)
@@ -182,7 +180,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10300";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -211,7 +209,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10301";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -240,7 +238,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10302";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -262,7 +260,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10303";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -291,7 +289,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10304";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -320,7 +318,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10305";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -349,7 +347,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10306";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -378,7 +376,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10307";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -407,7 +405,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10308";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -436,7 +434,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10309";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -465,7 +463,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10310";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -494,7 +492,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10311";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -523,7 +521,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10312";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -552,7 +550,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10313";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -581,7 +579,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10314";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -613,7 +611,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10315";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -644,7 +642,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10316";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -673,7 +671,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10317";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -702,7 +700,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10318";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -731,7 +729,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10319";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -760,7 +758,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10320";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -790,7 +788,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10321";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -812,7 +810,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10322";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -841,7 +839,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10323";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -871,7 +869,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10324";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -899,7 +897,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10325";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -927,7 +925,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10326";
-            var expected = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueReadAsync(_connection, new ValueReadRequestModel
@@ -963,8 +961,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         }
 
         private readonly T _connection;
-        private readonly Func<T, string, IJsonSerializer, Task<JsonNode?>> _readExpected;
-        private readonly DefaultJsonSerializer _serializer;
+        private readonly Func<T, string, Task<JsonNode?>> _readExpected;
         private readonly Func<INodeServices<T>> _services;
     }
 }

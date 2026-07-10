@@ -5,11 +5,11 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
 {
+    using Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Publisher.Module.Filters;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Asp.Versioning;
     using Furly;
-    using Furly.Extensions.Serializers;
     using Furly.Tunnel.Router;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
@@ -51,12 +51,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// Create controller with service
         /// </summary>
         /// <param name="files"></param>
-        /// <param name="serializer"></param>
-        public FileSystemController(IFileSystemServices<ConnectionModel> files,
-            IJsonSerializer serializer)
+        public FileSystemController(IFileSystemServices<ConnectionModel> files)
         {
             _files = files ?? throw new ArgumentNullException(nameof(files));
-            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
         }
 
         /// <summary>
@@ -408,8 +405,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             ArgumentNullException.ThrowIfNullOrWhiteSpace(connectionJson);
             ArgumentNullException.ThrowIfNullOrWhiteSpace(fileObjectJson);
 
-            var connection = _serializer.Deserialize<ConnectionModel>(connectionJson);
-            var fileObject = _serializer.Deserialize<FileSystemObjectModel>(fileObjectJson);
+            var connection = Json.Deserialize<ConnectionModel>(connectionJson);
+            var fileObject = Json.Deserialize<FileSystemObjectModel>(fileObjectJson);
 
             ArgumentNullException.ThrowIfNull(connection);
             ArgumentNullException.ThrowIfNull(fileObject);
@@ -426,7 +423,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             {
                 HttpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
                 HttpContext.Response.Headers.Append("errorInfo",
-                    new StringValues(_serializer.SerializeObjectToString(result)));
+                    new StringValues(Json.SerializeObjectToString(result)));
             }
             await response.CompleteAsync().ConfigureAwait(false);
         }
@@ -474,9 +471,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             ArgumentNullException.ThrowIfNullOrWhiteSpace(fileObjectJson);
             ArgumentNullException.ThrowIfNullOrWhiteSpace(writeOptionsJson);
 
-            var connection = _serializer.Deserialize<ConnectionModel>(connectionJson);
-            var fileObject = _serializer.Deserialize<FileSystemObjectModel>(fileObjectJson);
-            var options = _serializer.Deserialize<FileOpenWriteOptionsModel?>(writeOptionsJson);
+            var connection = Json.Deserialize<ConnectionModel>(connectionJson);
+            var fileObject = Json.Deserialize<FileSystemObjectModel>(fileObjectJson);
+            var options = Json.Deserialize<FileOpenWriteOptionsModel?>(writeOptionsJson);
 
             ArgumentNullException.ThrowIfNull(connection);
             ArgumentNullException.ThrowIfNull(fileObject);
@@ -494,10 +491,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             {
                 HttpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
                 HttpContext.Response.Headers.Append("errorInfo",
-                    new StringValues(_serializer.SerializeObjectToString(result)));
+                    new StringValues(Json.SerializeObjectToString(result)));
             }
         }
         private readonly IFileSystemServices<ConnectionModel> _files;
-        private readonly IJsonSerializer _serializer;
     }
 }

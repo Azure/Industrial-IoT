@@ -5,10 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
+    using Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly.Extensions.Serializers;
     using System.Text.Json.Nodes;
-    using Furly.Extensions.Serializers.Json;
     using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
@@ -30,7 +29,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             _services = services;
             _connection = connection;
-            _serializer = new DefaultJsonSerializer();
             _newMetadata = newMetadata;
         }
 
@@ -757,57 +755,57 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var input = new List<MethodCallArgumentModel> {
                 new() {
                     DataType = "boolean",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, 
+                    Value = JsonNodeValueExtensions.FromObject(
                         new bool[] { true, false, true, true, false })
                 },
                 new() {
                     DataType = "sbyte",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, 
+                    Value = JsonNodeValueExtensions.FromObject(
                         new sbyte[] { 1, 2, 3, 4, 5, -1, -2, -3 })
                 },
                 new() {
                     DataType = "ByteString",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, 
+                    Value = JsonNodeValueExtensions.FromObject(
                         Encoding.UTF8.GetBytes("testtesttest"))
                 },
                 new() {
                     DataType = "Int16",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, 
+                    Value = JsonNodeValueExtensions.FromObject(
                         new short[] { short.MinValue, short.MaxValue, 0, 2 })
                 },
                 new() {
                     DataType = "UInt16",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, 
+                    Value = JsonNodeValueExtensions.FromObject(
                         new ushort[] { ushort.MinValue, ushort.MaxValue, 0, 2 })
                 },
                 new() {
                     DataType = "int32",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, 
+                    Value = JsonNodeValueExtensions.FromObject(
                         new int[] { int.MinValue, int.MaxValue, 0, 2 })
                 },
                 new() {
                     DataType = "uInt32",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, 
+                    Value = JsonNodeValueExtensions.FromObject(
                         new uint[] { uint.MinValue, uint.MaxValue, 0, 2 })
                 },
                 new() {
                     DataType = "Int64",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, 
+                    Value = JsonNodeValueExtensions.FromObject(
                         new long[] { long.MinValue, long.MaxValue, 0, 2 })
                 },
                 new() {
                     DataType = "uint64",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, 
+                    Value = JsonNodeValueExtensions.FromObject(
                         new ulong[] { ulong.MinValue, ulong.MaxValue, 0, 2 })
                 },
                 new() {
                     DataType = "float",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, 
+                    Value = JsonNodeValueExtensions.FromObject(
                         new float[] { float.MinValue, float.MaxValue, 0.0f, 2.0f })
                 },
                 new() {
                     DataType = "DOUBLE",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, 
+                    Value = JsonNodeValueExtensions.FromObject(
                         new double[] { double.MinValue, double.MaxValue, 0.0, 2.0 })
                 }
             };
@@ -840,17 +838,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var input = new List<MethodCallArgumentModel> {
                 new() {
                     DataType = "boolean",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, 
+                    Value = JsonNodeValueExtensions.FromObject(
                         new bool[] { true, false, true, true, false })
                 },
                 new() {
                     DataType = "sbyte",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, 
+                    Value = JsonNodeValueExtensions.FromObject(
                         new sbyte[] { 1, 2, 3, 4, 5, -1, -2, -3 })
                 },
                 new() {
                     DataType = "ByteString",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, 
+                    Value = JsonNodeValueExtensions.FromObject(
                         Encoding.UTF8.GetBytes("testtesttest"))
                 }
             };
@@ -917,17 +915,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var input = new List<MethodCallArgumentModel?> {
                 new() {
                     DataType = "boolean",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, 
+                    Value = JsonNodeValueExtensions.FromObject(
                         new bool[] { true, false, true, true, false })
                 },
                 new() {
                     DataType = "sbyte",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, 
+                    Value = JsonNodeValueExtensions.FromObject(
                         new sbyte[] { 1, 2, 3, 4, 5, -1, -2, -3 })
                 },
                 new() {
                     DataType = "byte",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, 
+                    Value = JsonNodeValueExtensions.FromObject(
                         new ushort[] { 0, 1, 2, 3, 4, 5, 6, byte.MaxValue })
                 },
                 null,
@@ -939,7 +937,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 null,
                 new() {
                     DataType = "DOUBLE",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, 
+                    Value = JsonNodeValueExtensions.FromObject(
                         new double[] { 1234.4567, 23.34, 33 })
                 }
             };
@@ -962,7 +960,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg => Assert.Equal(input[1]!.Value, arg.Value),
                 arg =>
                 {
-                    Assert.Equal(JsonNodeValueExtensions.FromObject(_serializer, 
+                    Assert.Equal(JsonNodeValueExtensions.FromObject(
                         new byte[] { 0, 1, 2, 3, 4, 5, 6, byte.MaxValue }),
                         arg.Value);
                 },
@@ -986,47 +984,47 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var input = new List<MethodCallArgumentModel> {
                 new() {
                     DataType = "boolean",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<bool>())
+                    Value = JsonNodeValueExtensions.FromObject(Array.Empty<bool>())
                 },
                 new() {
                     DataType = "sbyte",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<sbyte>())
+                    Value = JsonNodeValueExtensions.FromObject(Array.Empty<sbyte>())
                 },
                 new() {
                     DataType = "Byte",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, "[]")
+                    Value = JsonNodeValueExtensions.FromObject("[]")
                 },
                 new() {
                     DataType = "Int16",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<short>())
+                    Value = JsonNodeValueExtensions.FromObject(Array.Empty<short>())
                 },
                 new() {
                     DataType = "UInt16",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<ushort>())
+                    Value = JsonNodeValueExtensions.FromObject(Array.Empty<ushort>())
                 },
                 new() {
                     DataType = "int32",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<int>())
+                    Value = JsonNodeValueExtensions.FromObject(Array.Empty<int>())
                 },
                 new() {
                     DataType = "uInt32",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<uint>())
+                    Value = JsonNodeValueExtensions.FromObject(Array.Empty<uint>())
                 },
                 new() {
                     DataType = "Int64",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<long>())
+                    Value = JsonNodeValueExtensions.FromObject(Array.Empty<long>())
                 },
                 new() {
                     DataType = "uint64",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<ulong>())
+                    Value = JsonNodeValueExtensions.FromObject(Array.Empty<ulong>())
                 },
                 new() {
                     DataType = "float",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<float>())
+                    Value = JsonNodeValueExtensions.FromObject(Array.Empty<float>())
                 },
                 new() {
                     DataType = "DOUBLE",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<double>())
+                    Value = JsonNodeValueExtensions.FromObject(Array.Empty<double>())
                 }
             };
 
@@ -1068,7 +1066,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var input = new List<MethodCallArgumentModel> {
                 new() {
                     DataType = "String",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, new string[] {
+                    Value = JsonNodeValueExtensions.FromObject(new string[] {
                         "!adfasdfsdf!",
                         "!46!",
                         "!asdf!",
@@ -1079,7 +1077,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 new() {
                     DataType = "DateTime",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, new DateTime[] {
+                    Value = JsonNodeValueExtensions.FromObject(new DateTime[] {
                         DateTime.UtcNow,
                         DateTime.UtcNow,
                         DateTime.UtcNow,
@@ -1088,7 +1086,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 new() {
                     DataType = "Guid",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, new Guid[] {
+                    Value = JsonNodeValueExtensions.FromObject(new Guid[] {
                         Guid.NewGuid(),
                         Guid.NewGuid(),
                         Guid.NewGuid(),
@@ -1099,7 +1097,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 new() {
                     DataType = "ByteString",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, new byte[][] {
+                    Value = JsonNodeValueExtensions.FromObject(new byte[][] {
                         Encoding.UTF8.GetBytes("!adfasdfsdf!"),
                         Encoding.UTF8.GetBytes("!46!"),
                         Encoding.UTF8.GetBytes("!asdf!"),
@@ -1110,11 +1108,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 new() {
                     DataType = "XmlElement",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<System.Xml.XmlElement>())
+                    Value = JsonNodeValueExtensions.FromObject(Array.Empty<System.Xml.XmlElement>())
                 },
                 new() {
                     DataType = "NodeId",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, new string[]{
+                    Value = JsonNodeValueExtensions.FromObject(new string[]{
                         "byte",
                         "http://test.org/#i=23534",
                         "http://muh.test/#s=35645",
@@ -1123,7 +1121,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 new() {
                     DataType = "ExpandedNodeId",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, new string[] {
+                    Value = JsonNodeValueExtensions.FromObject(new string[] {
                         "byte",
                         "http://test.org/#i=23534",
                         "http://muh.test/#s=35645",
@@ -1132,7 +1130,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 new() {
                     DataType = "QualifiedName",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, new string[] {
+                    Value = JsonNodeValueExtensions.FromObject(new string[] {
                         "http://test.org/#qn1",
                         "http://test.org/#qn2",
                         "http://test.org/#qn3",
@@ -1141,7 +1139,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 new() {
                     DataType = "LocalizedText",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, new object[] {
+                    Value = JsonNodeValueExtensions.FromObject(new object[] {
                         new {
                             Text = "Hällö",
                             Locale = "de"
@@ -1157,7 +1155,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 new() {
                     DataType = "StatusCode",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, new object[] {
+                    Value = JsonNodeValueExtensions.FromObject(new object[] {
                         new {
                             Symbol = "BadEndOfStream",
                             Code = 0x80B00000
@@ -1242,7 +1240,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 null,
                 new() {
                     DataType = "LocalizedText",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, new string[] {
+                    Value = JsonNodeValueExtensions.FromObject(new string[] {
                         "unloc1",
                         "unloc2",
                         "unloc3"
@@ -1280,43 +1278,43 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var input = new List<MethodCallArgumentModel> {
                 new() {
                     DataType = "String",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<string>())
+                    Value = JsonNodeValueExtensions.FromObject(Array.Empty<string>())
                 },
                 new() {
                     DataType = "DateTime",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<DateTime>())
+                    Value = JsonNodeValueExtensions.FromObject(Array.Empty<DateTime>())
                 },
                 new() {
                     DataType = "Guid",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<Guid>())
+                    Value = JsonNodeValueExtensions.FromObject(Array.Empty<Guid>())
                 },
                 new() {
                     DataType = "ByteString",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, new byte[0,0])
+                    Value = JsonNodeValueExtensions.FromObject(new byte[0,0])
                 },
                 new() {
                     DataType = "XmlElement",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<System.Xml.XmlElement>())
+                    Value = JsonNodeValueExtensions.FromObject(Array.Empty<System.Xml.XmlElement>())
                 },
                 new() {
                     DataType = "NodeId",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<string>())
+                    Value = JsonNodeValueExtensions.FromObject(Array.Empty<string>())
                 },
                 new() {
                     DataType = "ExpandedNodeId",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<string>())
+                    Value = JsonNodeValueExtensions.FromObject(Array.Empty<string>())
                 },
                 new() {
                     DataType = "QualifiedName",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<string>())
+                    Value = JsonNodeValueExtensions.FromObject(Array.Empty<string>())
                 },
                 new() {
                     DataType = "LocalizedText",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<object>())
+                    Value = JsonNodeValueExtensions.FromObject(Array.Empty<object>())
                 },
                 new() {
                     DataType = "StatusCode",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, Array.Empty<int>())
+                    Value = JsonNodeValueExtensions.FromObject(Array.Empty<int>())
                 }
             };
 #pragma warning restore CA1814 // Prefer jagged arrays over multidimensional
@@ -1350,15 +1348,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var input = new List<MethodCallArgumentModel> {
                 new() {
                     DataType = "Variant",
-                    Value = JsonNodeValueExtensions.FromArray(_serializer)
+                    Value = JsonNodeValueExtensions.FromArray()
                 },
                 new() {
                     DataType = "Enumeration",
-                    Value = JsonNodeValueExtensions.FromArray(_serializer)
+                    Value = JsonNodeValueExtensions.FromArray()
                 },
                 new() {
                     DataType = "ExtensionObject",
-                    Value = JsonNodeValueExtensions.FromArray(_serializer)
+                    Value = JsonNodeValueExtensions.FromArray()
                 }
             };
 
@@ -1387,7 +1385,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             var input = new List<MethodCallArgumentModel> {
                 new() {
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, new object[] {
+                    Value = JsonNodeValueExtensions.FromObject(new object[] {
                         new {
                             Type = "UInt32",
                             Body = 500000
@@ -1408,11 +1406,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 new() {
                     DataType = "int32",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, new int[] { 1, 2, 3, 4, 5, 6 })
+                    Value = JsonNodeValueExtensions.FromObject(new int[] { 1, 2, 3, 4, 5, 6 })
                 },
                 new() {
                     DataType = "ExtensionObject",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, new object[] {
+                    Value = JsonNodeValueExtensions.FromObject(new object[] {
                         new {
                             TypeId = "http://test.org/#s=test2",
                             Body = new Opc.Ua.Argument("test1", Opc.Ua.DataTypes.String, -1, "desc1")
@@ -1467,6 +1465,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         private readonly bool _newMetadata;
         private readonly T _connection;
         private readonly Func<INodeServices<T>> _services;
-        private readonly DefaultJsonSerializer _serializer;
     }
 }

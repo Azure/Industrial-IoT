@@ -1,17 +1,17 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
 {
+    using Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Publisher.Module.Filters;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Asp.Versioning;
     using Furly;
     using Furly.Extensions.AspNetCore.OpenApi;
     using Furly.Extensions.Http;
-    using Furly.Extensions.Serializers;
     using Furly.Tunnel.Router;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
@@ -58,15 +58,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <param name="publisher"></param>
         /// <param name="configuration"></param>
         /// <param name="assets"></param>
-        /// <param name="serializer"></param>
         public WriterController(IPublishedNodesServices publisher,
-            IConfigurationServices configuration, IAssetConfiguration<byte[]> assets,
-            IJsonSerializer serializer)
+            IConfigurationServices configuration, IAssetConfiguration<byte[]> assets)
         {
             _publisher = publisher;
             _configuration = configuration;
             _assets = assets;
-            _serializer = serializer;
         }
 
         /// <summary>
@@ -572,7 +569,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
                 Entry = request.Entry,
                 WaitTime = request.WaitTime,
                 Header = request.Header,
-                Configuration = _serializer.SerializeObjectToMemory(request.Configuration).ToArray()
+                Configuration = Json.SerializeObjectToMemory(request.Configuration).ToArray()
             }, ct).ConfigureAwait(false);
         }
 
@@ -650,6 +647,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         private readonly IPublishedNodesServices _publisher;
         private readonly IConfigurationServices _configuration;
         private readonly IAssetConfiguration<byte[]> _assets;
-        private readonly IJsonSerializer _serializer;
     }
 }

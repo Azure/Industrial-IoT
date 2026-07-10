@@ -7,8 +7,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Sdk;
-    using Furly.Extensions.Serializers;
-    using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Extensions.Options;
     using System;
     using System.Collections.Generic;
@@ -30,10 +28,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
         /// </summary>
         /// <param name="httpClient"></param>
         /// <param name="options"></param>
-        /// <param name="serializer"></param>
         public ConfigurationServicesRestClient(IHttpClientFactory httpClient,
-            IOptions<SdkOptions> options, ISerializer serializer) :
-            this(httpClient, options?.Value.Target, serializer)
+            IOptions<SdkOptions> options) :
+            this(httpClient, options?.Value.Target)
         {
         }
 
@@ -42,9 +39,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
         /// </summary>
         /// <param name="httpClient"></param>
         /// <param name="serviceUri"></param>
-        /// <param name="serializer"></param>
-        public ConfigurationServicesRestClient(IHttpClientFactory httpClient, string serviceUri,
-            ISerializer serializer = null)
+        public ConfigurationServicesRestClient(IHttpClientFactory httpClient, string serviceUri)
         {
             if (string.IsNullOrWhiteSpace(serviceUri))
             {
@@ -52,7 +47,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
                     "Please configure the Url of the endpoint micro service.");
             }
             _serviceUri = serviceUri.TrimEnd('/');
-            _serializer = serializer ?? new NewtonsoftJsonSerializer();
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         }
 
@@ -63,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(entry);
             var uri = new Uri($"{_serviceUri}/v2/writer/expand");
             return _httpClient.PostStreamAsync<ServiceResponse<PublishedNodesEntryModel>>(uri,
-                RequestBody(entry, request), _serializer, ct: ct);
+                RequestBody(entry, request), ct: ct);
         }
 
         /// <inheritdoc/>
@@ -73,7 +67,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(entry);
             var uri = new Uri($"{_serviceUri}/v2/writer");
             return _httpClient.PostStreamAsync<ServiceResponse<PublishedNodesEntryModel>>(uri,
-                RequestBody(entry, request), _serializer, ct: ct);
+                RequestBody(entry, request), ct: ct);
         }
 
         /// <inheritdoc/>
@@ -95,7 +89,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
                 Configuration = [.. buffer]
             };
             return await _httpClient.PostAsync<ServiceResponse<PublishedNodesEntryModel>>(uri,
-                requestWithBuffer, _serializer, ct: ct).ConfigureAwait(false);
+                requestWithBuffer, ct: ct).ConfigureAwait(false);
         }
 
         public async Task<ServiceResponse<PublishedNodesEntryModel>> CreateOrUpdateAssetAsync(
@@ -107,7 +101,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(request.Entry.DataSetName);
             var uri = new Uri($"{_serviceUri}/v2/writer/assets");
             return await _httpClient.PostAsync<ServiceResponse<PublishedNodesEntryModel>>(uri,
-                request, _serializer, ct: ct).ConfigureAwait(false);
+                request, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -121,7 +115,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(request.Configuration);
             var uri = new Uri($"{_serviceUri}/v2/writer/assets/create");
             return await _httpClient.PostAsync<ServiceResponse<PublishedNodesEntryModel>>(uri,
-                request, _serializer, ct: ct).ConfigureAwait(false);
+                request, ct: ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -131,7 +125,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(entry);
             var uri = new Uri($"{_serviceUri}/v2/writer/assets/list");
             return _httpClient.PostStreamAsync<ServiceResponse<PublishedNodesEntryModel>>(uri,
-                RequestBody(entry, header), _serializer, ct: ct);
+                RequestBody(entry, header), ct: ct);
         }
 
         /// <inheritdoc/>
@@ -144,7 +138,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
             ArgumentNullException.ThrowIfNull(request.Entry.DataSetWriterId);
             var uri = new Uri($"{_serviceUri}/v2/writer/assets/delete");
             return await _httpClient.PostAsync<ServiceResultModel>(uri,
-                request, _serializer, ct: ct).ConfigureAwait(false);
+                request, ct: ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -161,7 +155,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Clients
         }
 
         private readonly IHttpClientFactory _httpClient;
-        private readonly ISerializer _serializer;
         private readonly string _serviceUri;
     }
 }

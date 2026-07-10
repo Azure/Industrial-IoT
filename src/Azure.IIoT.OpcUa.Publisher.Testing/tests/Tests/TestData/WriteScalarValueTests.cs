@@ -5,10 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
+    using Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly.Extensions.Serializers;
     using System.Text.Json.Nodes;
-    using Furly.Extensions.Serializers.Json;
     using MemoryBuffer;
     using System;
     using System.Threading;
@@ -25,12 +24,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         /// <param name="connection"></param>
         /// <param name="readExpected"></param>
         public WriteScalarValueTests(Func<INodeServices<T>> services, T connection,
-            Func<T, string, IJsonSerializer, Task<JsonNode?>> readExpected)
+            Func<T, string, Task<JsonNode?>> readExpected)
         {
             _services = services;
             _connection = connection;
             _readExpected = readExpected;
-            _serializer = new DefaultJsonSerializer();
         }
 
         public async Task NodeWriteStaticScalarBooleanValueVariableTestAsync(CancellationToken ct = default)
@@ -453,7 +451,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=10231";
 
-            var expected = JsonNodeValueExtensions.FromObject(_serializer, XmlElementEx.SerializeObject(
+            var expected = JsonNodeValueExtensions.FromObject(XmlElementEx.SerializeObject(
                 new MemoryBufferInstance
                 {
                     Name = "test",
@@ -516,7 +514,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=10234";
 
-            var expected = JsonNodeValueExtensions.FromObject(_serializer, "http://test.org/UA/Data/#testname");
+            var expected = JsonNodeValueExtensions.FromObject("http://test.org/UA/Data/#testname");
 
             // Act
             var result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -741,7 +739,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         private async Task AssertResultAsync(string node, JsonNode? expected,
             ValueWriteResponseModel result)
         {
-            var value = await _readExpected(_connection, node, _serializer).ConfigureAwait(false);
+            var value = await _readExpected(_connection, node).ConfigureAwait(false);
             Assert.NotNull(value);
             Assert.Null(result.ErrorInfo);
 
@@ -750,8 +748,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         }
 
         private readonly T _connection;
-        private readonly DefaultJsonSerializer _serializer;
-        private readonly Func<T, string, IJsonSerializer, Task<JsonNode?>> _readExpected;
+        private readonly Func<T, string, Task<JsonNode?>> _readExpected;
         private readonly Func<INodeServices<T>> _services;
     }
 }

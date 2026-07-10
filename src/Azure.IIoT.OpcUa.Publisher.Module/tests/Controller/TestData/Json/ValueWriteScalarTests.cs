@@ -33,14 +33,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller.TestData.Json
         {
             return new WriteScalarValueTests<ConnectionModel>(
                 _client.Resolve<INodeServices<ConnectionModel>>,
-                _server.GetConnection(), (ep, n, s) => _server.Client.ReadValueAsync(new ConnectionModel
+                _server.GetConnection(), (ep, n) => _server.Client.ReadValueAsync(new ConnectionModel
                 {
                     Endpoint = new EndpointModel
                     {
                         Url = ep.Endpoint.Url,
                         Certificate = _server.Certificate?.RawData?.ToThumbprint()
                     }
-                }, n, s));
+                }, n));
         }
 
         private readonly TestDataServer _server;

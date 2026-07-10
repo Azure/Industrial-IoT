@@ -5,10 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
+    using Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly.Extensions.Serializers;
     using System.Text.Json.Nodes;
-    using Furly.Extensions.Serializers.Json;
     using MemoryBuffer;
     using Opc.Ua.Extensions;
     using System;
@@ -31,7 +30,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             _services = services;
             _connection = connection;
-            _serializer = new DefaultJsonSerializer();
             _newMetadata = newMetadata;
         }
 
@@ -66,7 +64,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("BooleanIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Boolean", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -77,7 +75,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("SByteIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("SByte", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -88,7 +86,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("ByteIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Byte", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -99,7 +97,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("Int16In", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Int16", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -110,7 +108,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("UInt16In", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("UInt16", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -121,7 +119,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("Int32In", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Int32", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -132,7 +130,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("UInt32In", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("UInt32", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -143,7 +141,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("Int64In", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Int64", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -154,7 +152,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("UInt64In", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("UInt64", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -165,7 +163,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("FloatIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Float", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -176,7 +174,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("DoubleIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Double", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -188,7 +186,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("BooleanOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Boolean", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -199,7 +197,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("SByteOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("SByte", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -210,7 +208,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("ByteOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Byte", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -221,7 +219,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("Int16Out", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Int16", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -232,7 +230,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("UInt16Out", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("UInt16", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -243,7 +241,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("Int32Out", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Int32", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -254,7 +252,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("UInt32Out", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("UInt32", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -265,7 +263,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("Int64Out", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Int64", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -276,7 +274,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("UInt64Out", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("UInt64", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -287,7 +285,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("FloatOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Float", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -298,7 +296,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("DoubleOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Double", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -338,7 +336,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("StringIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("String", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -349,7 +347,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("DateTimeIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("DateTime", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -360,7 +358,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("GuidIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Guid", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -371,7 +369,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("ByteStringIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("ByteString", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -382,7 +380,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("XmlElementIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("XmlElement", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -393,7 +391,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("NodeIdIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("NodeId", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -404,7 +402,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("ExpandedNodeIdIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("ExpandedNodeId", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -415,7 +413,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("QualifiedNameIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("QualifiedName", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -426,7 +424,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("LocalizedTextIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("LocalizedText", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -437,7 +435,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("StatusCodeIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("StatusCode", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -449,7 +447,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("StringOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("String", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -460,7 +458,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("DateTimeOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("DateTime", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -471,7 +469,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("GuidOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Guid", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -482,7 +480,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("ByteStringOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("ByteString", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -493,7 +491,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("XmlElementOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("XmlElement", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -504,7 +502,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("NodeIdOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("NodeId", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -515,7 +513,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("ExpandedNodeIdOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("ExpandedNodeId", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -526,7 +524,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("QualifiedNameOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("QualifiedName", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -537,7 +535,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("LocalizedTextOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("LocalizedText", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -548,7 +546,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("StatusCodeOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("StatusCode", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -588,7 +586,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("VariantIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Variant", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -599,7 +597,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("EnumerationIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Enumeration", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -610,7 +608,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("StructureIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("ExtensionObject", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -622,7 +620,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("VariantOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Variant", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -633,7 +631,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("EnumerationOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Enumeration", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -644,7 +642,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("StructureOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("ExtensionObject", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -688,7 +686,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("VariantIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Variant", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -699,7 +697,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("EnumerationIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Enumeration", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -710,7 +708,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("StructureIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("ExtensionObject", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -722,7 +720,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("VariantOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Variant", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -733,7 +731,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("EnumerationOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Enumeration", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -744,7 +742,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("StructureOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("ExtensionObject", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -789,7 +787,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("VariantIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Variant", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -800,7 +798,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("EnumerationIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Enumeration", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -811,7 +809,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("StructureIn", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("ExtensionObject", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -823,7 +821,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("VariantOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Variant", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -834,7 +832,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("EnumerationOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("Enumeration", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -845,7 +843,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 {
                     Assert.Equal("StructureOut", arg.Name);
                     Assert.Null(arg.ValueRank);
-                    Assert.Equal("[]", _serializer.SerializeToString(arg.ArrayDimensions));
+                    Assert.Equal("[]", Json.SerializeToString(arg.ArrayDimensions));
                     Assert.Equal(NodeClass.DataType, arg.Type.NodeClass);
                     Assert.Equal("ExtensionObject", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
@@ -1107,11 +1105,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 new() {
                     DataType = "ByteString",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, Encoding.UTF32.GetBytes("asdfasdfadsfs"))
+                    Value = JsonNodeValueExtensions.FromObject(Encoding.UTF32.GetBytes("asdfasdfadsfs"))
                 },
                 new() {
                     DataType = "XmlElement",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, XmlElementEx.SerializeObject(
+                    Value = JsonNodeValueExtensions.FromObject(XmlElementEx.SerializeObject(
                         new MemoryBufferInstance{
                             Name = "test",
                             TagCount = 333,
@@ -1132,7 +1130,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 new() {
                     DataType = "LocalizedText",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, new {
+                    Value = JsonNodeValueExtensions.FromObject(new {
                         Locale = "de",
                         Text = "Hallo Welt"
                     })
@@ -1287,7 +1285,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var input = new List<MethodCallArgumentModel> {
                 new() {
                     DataType = "Variant",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, new {
+                    Value = JsonNodeValueExtensions.FromObject(new {
                         Type = "Uint32",
                         Body = 50
                     })
@@ -1298,7 +1296,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 new() {
                     DataType = "ExtensionObject",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, new {
+                    Value = JsonNodeValueExtensions.FromObject(new {
                         Encoding = "Xml",
                         TypeId = "http://test.org/#s=test",
                         Body = new Opc.Ua.Argument("test", Opc.Ua.DataTypes.String, -1, "desc")
@@ -1343,7 +1341,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 new() {
                     DataType = "ExtensionObject",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, new {
+                    Value = JsonNodeValueExtensions.FromObject(new {
                         TypeId = "http://test.org/#s=test2",
                         Body = new Opc.Ua.Argument("test1", Opc.Ua.DataTypes.String, -1, "desc1")
                             .AsBinary(Opc.Ua.ServiceMessageContext.GlobalContext)
@@ -1383,7 +1381,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var input = new List<MethodCallArgumentModel> {
                 new() {
                     DataType = "Variant",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, new {
+                    Value = JsonNodeValueExtensions.FromObject(new {
                         Type = "Uint32",
                         Body = 50
                     })
@@ -1394,7 +1392,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 new() {
                     DataType = "ExtensionObject",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, new {
+                    Value = JsonNodeValueExtensions.FromObject(new {
                         Encoding = "Xml",
                         TypeId = "http://test.org/#s=test",
                         Body = new Opc.Ua.Argument("test", Opc.Ua.DataTypes.String, -1, "desc")
@@ -1433,7 +1431,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var input = new List<MethodCallArgumentModel> {
                 new() {
                     DataType = "Variant",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, new {
+                    Value = JsonNodeValueExtensions.FromObject(new {
                         Type = "Uint32",
                         Body = 50
                     })
@@ -1444,7 +1442,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 new() {
                     DataType = "ExtensionObject",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, new {
+                    Value = JsonNodeValueExtensions.FromObject(new {
                         Encoding = "Xml",
                         TypeId = "http://test.org/#s=test",
                         Body = new Opc.Ua.Argument("test", Opc.Ua.DataTypes.String, -1, "desc")
@@ -1487,7 +1485,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var input = new List<MethodCallArgumentModel> {
                 new() {
                     DataType = "Variant",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, new {
+                    Value = JsonNodeValueExtensions.FromObject(new {
                         Type = "Uint32",
                         Body = 50
                     })
@@ -1498,7 +1496,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 new() {
                     DataType = "ExtensionObject",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, new {
+                    Value = JsonNodeValueExtensions.FromObject(new {
                         Encoding = "Xml",
                         TypeId = "http://test.org/#s=test",
                         Body = new Opc.Ua.Argument("test", Opc.Ua.DataTypes.String, -1, "desc")
@@ -1547,7 +1545,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var input = new List<MethodCallArgumentModel> {
                 new() {
                     DataType = "Variant",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, new {
+                    Value = JsonNodeValueExtensions.FromObject(new {
                         Type = "Uint32",
                         Body = 50
                     })
@@ -1558,7 +1556,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 new() {
                     DataType = "ExtensionObject",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, new {
+                    Value = JsonNodeValueExtensions.FromObject(new {
                         Encoding = "Xml",
                         TypeId = "http://test.org/#s=test",
                         Body = new Opc.Ua.Argument("test", Opc.Ua.DataTypes.String, -1, "desc")
@@ -1608,7 +1606,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 new()
                 {
                     DataType = "Variant",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, new
+                    Value = JsonNodeValueExtensions.FromObject(new
                     {
                         Type = "Uint32",
                         Body = 50
@@ -1622,7 +1620,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 new()
                 {
                     DataType = "ExtensionObject",
-                    Value = JsonNodeValueExtensions.FromObject(_serializer, new {
+                    Value = JsonNodeValueExtensions.FromObject(new {
                         Encoding = "Xml",
                         TypeId = "http://test.org/#s=test",
                         Body = new Opc.Ua.Argument("test", Opc.Ua.DataTypes.String, -1, "desc")
@@ -1692,6 +1690,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         private readonly bool _newMetadata;
         private readonly T _connection;
         private readonly Func<INodeServices<T>> _services;
-        private readonly DefaultJsonSerializer _serializer;
     }
 }

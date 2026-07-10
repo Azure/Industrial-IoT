@@ -26,14 +26,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.TestData
         {
             return new ReadArrayValueTests<ConnectionModel>(
                 _module.SdkContainer.Resolve<INodeServices<ConnectionModel>>,
-                _server.GetConnection(), (ep, n, s) => _server.Client.ReadValueAsync(new ConnectionModel
+                _server.GetConnection(), (ep, n) => _server.Client.ReadValueAsync(new ConnectionModel
                 {
                     Endpoint = new EndpointModel
                     {
                         Url = ep.Endpoint.Url,
                         Certificate = _server.Certificate?.RawData?.ToThumbprint()
                     }
-                }, n, s));
+                }, n));
         }
 
         private readonly TestDataServer _server;

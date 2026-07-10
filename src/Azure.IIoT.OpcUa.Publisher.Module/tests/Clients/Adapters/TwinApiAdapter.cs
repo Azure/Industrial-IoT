@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Service.Clients.Adapters
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Sdk;
-    using Furly.Extensions.Serializers;
     using System.Text.Json.Nodes;
     using System;
     using System.Collections.Generic;

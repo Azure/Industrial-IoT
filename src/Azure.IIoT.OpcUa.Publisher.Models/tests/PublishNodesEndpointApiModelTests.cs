@@ -4,9 +4,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
 {
+    using Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly.Extensions.Serializers;
-    using Furly.Extensions.Serializers.Newtonsoft;
     using System;
     using Xunit;
 
@@ -15,8 +14,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
         [Fact]
         public void UseSecurityDeserializationTest()
         {
-            var newtonSoftJsonSerializer = new NewtonsoftJsonSerializer();
-
             var modelJson = """
 
 {
@@ -27,7 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
 }
 
 """;
-            var model = newtonSoftJsonSerializer.Deserialize<PublishedNodesEntryModel>(modelJson);
+            var model = Json.Deserialize<PublishedNodesEntryModel>(modelJson);
             Assert.Null(model.UseSecurity);
 
             modelJson = """
@@ -42,7 +39,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
 
 """;
 
-            model = newtonSoftJsonSerializer.Deserialize<PublishedNodesEntryModel>(modelJson);
+            model = Json.Deserialize<PublishedNodesEntryModel>(modelJson);
             Assert.False(model.UseSecurity);
 
             modelJson = """
@@ -57,15 +54,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
 
 """;
 
-            model = newtonSoftJsonSerializer.Deserialize<PublishedNodesEntryModel>(modelJson);
+            model = Json.Deserialize<PublishedNodesEntryModel>(modelJson);
             Assert.True(model.UseSecurity);
         }
 
         [Fact]
         public void UseSecuritySerializationTest()
         {
-            var newtonSoftJsonSerializer = new NewtonsoftJsonSerializer();
-
             var model = new PublishedNodesEntryModel
             {
                 EndpointUrl = "opc.tcp://localhost:50000",
@@ -76,7 +71,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
                 ]
             };
 
-            var modeJson = newtonSoftJsonSerializer.SerializeToString(model);
+            var modeJson = Json.SerializeToString(model);
             Assert.DoesNotContain("\"UseSecurity\":false", modeJson, StringComparison.Ordinal);
 
             model = new PublishedNodesEntryModel
@@ -90,7 +85,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
                 ]
             };
 
-            modeJson = newtonSoftJsonSerializer.SerializeToString(model);
+            modeJson = Json.SerializeToString(model);
             Assert.Contains("\"UseSecurity\":false", modeJson, StringComparison.Ordinal);
 
             model = new PublishedNodesEntryModel
@@ -104,15 +99,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
                 ]
             };
 
-            modeJson = newtonSoftJsonSerializer.SerializeToString(model);
+            modeJson = Json.SerializeToString(model);
             Assert.Contains("\"UseSecurity\":true", modeJson, StringComparison.Ordinal);
         }
 
         [Fact]
         public void OpcAuthenticationModeDeserializationTest()
         {
-            var newtonSoftJsonSerializer = new NewtonsoftJsonSerializer();
-
             var modelJson = """
 
 {
@@ -124,7 +117,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
 
 """;
 
-            var model = newtonSoftJsonSerializer.Deserialize<PublishedNodesEntryModel>(modelJson);
+            var model = Json.Deserialize<PublishedNodesEntryModel>(modelJson);
             Assert.Equal(OpcAuthenticationMode.Anonymous, model.OpcAuthenticationMode);
 
             modelJson = """
@@ -139,7 +132,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
 
 """;
 
-            model = newtonSoftJsonSerializer.Deserialize<PublishedNodesEntryModel>(modelJson);
+            model = Json.Deserialize<PublishedNodesEntryModel>(modelJson);
             Assert.Equal(OpcAuthenticationMode.Anonymous, model.OpcAuthenticationMode);
 
             modelJson = """
@@ -154,15 +147,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
 
 """;
 
-            model = newtonSoftJsonSerializer.Deserialize<PublishedNodesEntryModel>(modelJson);
+            model = Json.Deserialize<PublishedNodesEntryModel>(modelJson);
             Assert.Equal(OpcAuthenticationMode.UsernamePassword, model.OpcAuthenticationMode);
         }
 
         [Fact]
         public void OpcAuthenticationModeSerializationTest()
         {
-            var newtonSoftJsonSerializer = new NewtonsoftJsonSerializer();
-
             var model = new PublishedNodesEntryModel
             {
                 EndpointUrl = "opc.tcp://localhost:50000",
@@ -173,7 +164,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
                 ]
             };
 
-            var modeJson = newtonSoftJsonSerializer.SerializeToString(model);
+            var modeJson = Json.SerializeToString(model);
             Assert.Contains("\"OpcAuthenticationMode\":\"Anonymous\"", modeJson, StringComparison.Ordinal);
 
             model = new PublishedNodesEntryModel
@@ -187,7 +178,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
                 ]
             };
 
-            modeJson = newtonSoftJsonSerializer.SerializeToString(model);
+            modeJson = Json.SerializeToString(model);
             Assert.Contains("\"OpcAuthenticationMode\":\"Anonymous\"", modeJson, StringComparison.Ordinal);
 
             model = new PublishedNodesEntryModel
@@ -201,7 +192,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
                 ]
             };
 
-            modeJson = newtonSoftJsonSerializer.SerializeToString(model);
+            modeJson = Json.SerializeToString(model);
             Assert.Contains("\"OpcAuthenticationMode\":\"UsernamePassword\"", modeJson, StringComparison.Ordinal);
         }
     }

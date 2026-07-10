@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ParallelAlgorithm>aggressive</ParallelAlgorithm>
@@ -16,10 +16,9 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Furly.Extensions.Json" />
-    <PackageReference Include="Furly.Extensions.Newtonsoft" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Core\src\Azure.IIoT.OpcUa.Core.csproj" />
     <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Publisher.Models.csproj" />
   </ItemGroup>
   <ItemGroup>

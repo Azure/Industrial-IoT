@@ -4,11 +4,10 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
 {
+    using Azure.IIoT.OpcUa.Core.Serialization;
     using AutoFixture;
     using AutoFixture.Kernel;
     using FluentAssertions;
-    using Furly.Extensions.Serializers;
-    using Furly.Extensions.Serializers.Json;
     using System;
     using System.Text.Json.Nodes;
     using System.Collections;
@@ -25,8 +24,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
         {
             var instance = Activator.CreateInstance(type);
 
-            var buffer = _serializer.SerializeObjectToMemory(instance, type);
-            var result = _serializer.Deserialize(buffer.ToArray(), type);
+            var buffer = Json.SerializeObjectToMemory(instance, type);
+            var result = Json.Deserialize(Json.ContentEncoding.GetString(buffer.Span), type);
 
             result.Should().BeEquivalentTo(instance);
         }
@@ -37,11 +36,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
         {
             var instance = Activator.CreateInstance(type);
 
-            var str = _serializer.SerializeObjectToString(instance);
-            var result = _serializer.Deserialize(str, type);
+            var str = Json.SerializeObjectToString(instance);
+            var result = Json.Deserialize(str, type);
 
             result.Should().BeEquivalentTo(instance);
-            var expectedString = JsonSerializer.Serialize(instance, _serializer.Settings);
+            var expectedString = JsonSerializer.Serialize(instance, Json.Options);
             str.Should().Be(expectedString);
         }
 
@@ -60,7 +59,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
                 .ForEach(b => fixture.Behaviors.Remove(b));
             fixture.Behaviors.Add(new OmitOnRecursionBehavior(recursionDepth: 2));
             // Create some random variant value
-            fixture.Register(() => _serializer.FromObject(Activator.CreateInstance(type)));
+            fixture.Register(() => Json.FromObject(Activator.CreateInstance(type)));
             // JsonNode dynamic values are not round-tripped by the fixture serializers
             fixture.Register<JsonNode>(() => null!);
             // Ensure utc datetimes
@@ -68,8 +67,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
             fixture.Register(() => DateTime.UtcNow);
             var instance = new SpecimenContext(fixture).Resolve(new SeededRequest(type, null));
 
-            var buffer = _serializer.SerializeObjectToMemory(instance, type);
-            var result = _serializer.Deserialize(buffer.ToArray(), type);
+            var buffer = Json.SerializeObjectToMemory(instance, type);
+            var result = Json.Deserialize(Json.ContentEncoding.GetString(buffer.Span), type);
 
             result.Should().BeEquivalentTo(instance, options => options.AllowingInfiniteRecursion());
         }
@@ -89,7 +88,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
                 .ForEach(b => fixture.Behaviors.Remove(b));
             fixture.Behaviors.Add(new OmitOnRecursionBehavior(recursionDepth: 2));
             // Create some random variant value
-            fixture.Register(() => _serializer.FromObject(Activator.CreateInstance(type)));
+            fixture.Register(() => Json.FromObject(Activator.CreateInstance(type)));
             // JsonNode dynamic values are not round-tripped by the fixture serializers
             fixture.Register<JsonNode>(() => null!);
             // Ensure utc datetimes
@@ -99,12 +98,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
             var instance = ((IEnumerable)builder.Resolve(
                 new MultipleRequest(new SeededRequest(type, null)))).Cast<object>().ToArray();
 
-            var buffer = _serializer.SerializeObjectToMemory(instance, instance.GetType());
-            var result = _serializer.Deserialize(buffer.ToArray(), type.MakeArrayType());
+            var buffer = Json.SerializeObjectToMemory(instance, instance.GetType());
+            var result = Json.Deserialize(Json.ContentEncoding.GetString(buffer.Span), type.MakeArrayType());
 
             result.Should().BeEquivalentTo(instance, options => options.AllowingInfiniteRecursion());
         }
 
-        private readonly DefaultJsonSerializer _serializer = new();
     }
 }
