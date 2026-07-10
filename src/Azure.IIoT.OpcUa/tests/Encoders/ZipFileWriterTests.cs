@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Encoders
 {
-    using Furly;
+    using Azure.IIoT.OpcUa.Core;
     using Azure.IIoT.OpcUa.Core.Messaging;
     using System;
     using System.Buffers;

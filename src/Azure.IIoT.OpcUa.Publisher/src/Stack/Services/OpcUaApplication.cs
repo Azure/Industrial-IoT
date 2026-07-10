@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -7,7 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly;
+    using Azure.IIoT.OpcUa.Core;
     using Furly.Exceptions;
     using Furly.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
@@ -152,7 +152,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public IAwaiter<OpcUaApplication> GetAwaiter()
         {
-            return _configuration.AsAwaiter(this);
+            return Azure.IIoT.OpcUa.Core.AwaitableExtensions.AsAwaiter(
+                _configuration, this);
         }
 
         /// <inheritdoc/>

@@ -1,11 +1,11 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
-    using Furly;
+    using Azure.IIoT.OpcUa.Core;
     using Furly.Azure.IoT.Edge;
     using Furly.Extensions.Rpc;
     using Microsoft.Extensions.DependencyInjection;

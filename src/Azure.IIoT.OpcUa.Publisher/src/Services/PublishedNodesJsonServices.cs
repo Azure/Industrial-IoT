@@ -11,7 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Storage;
-    using Furly;
+    using Azure.IIoT.OpcUa.Core;
     using Furly.Exceptions;
     using Microsoft.Extensions.Logging;
     using System;
@@ -918,7 +918,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <inheritdoc/>
         public IAwaiter<PublishedNodesJsonServices> GetAwaiter()
         {
-            return (_started?.Task ?? Task.CompletedTask).AsAwaiter(this);
+            return Azure.IIoT.OpcUa.Core.AwaitableExtensions.AsAwaiter(
+                _started?.Task ?? Task.CompletedTask, this);
         }
 
         /// <inheritdoc/>

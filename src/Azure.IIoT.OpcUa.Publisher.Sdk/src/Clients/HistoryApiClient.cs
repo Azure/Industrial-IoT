@@ -7,7 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Sdk.Clients
 {
     using Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly;
+    using Azure.IIoT.OpcUa.Core;
     using Furly.Tunnel;
     using Microsoft.Extensions.Options;
     using System;

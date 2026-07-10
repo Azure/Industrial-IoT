@@ -6,7 +6,7 @@
 namespace Azure.IIoT.OpcUa.Encoders.Schemas.Uadp
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly;
+    using Azure.IIoT.OpcUa.Core;
     using Azure.IIoT.OpcUa.Core.Messaging;
     using System;
     using System.Linq;

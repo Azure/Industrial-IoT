@@ -8,7 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using Azure.IIoT.OpcUa.Publisher.Module.Filters;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Asp.Versioning;
-    using Furly;
+    using Azure.IIoT.OpcUa.Core;
     using Furly.Tunnel.Router;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
