@@ -15,7 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using Furly.Exceptions;
     using Azure.IIoT.OpcUa.Core.Messaging;
     using global::Azure.IIoT.OpcUa.Core.Serialization;
-    using Furly.Extensions.Utils;
+    using Azure.IIoT.OpcUa.Core.Utils;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;

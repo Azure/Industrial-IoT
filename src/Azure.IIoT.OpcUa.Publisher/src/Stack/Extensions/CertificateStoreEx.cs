@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -6,7 +6,7 @@
 namespace Opc.Ua
 {
     using Azure.IIoT.OpcUa.Publisher.Stack;
-    using Furly.Extensions.Utils;
+    using Azure.IIoT.OpcUa.Core.Utils;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;

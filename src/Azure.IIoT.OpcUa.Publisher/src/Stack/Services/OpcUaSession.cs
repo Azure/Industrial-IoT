@@ -9,7 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Encoders;
-    using Furly.Extensions.Utils;
+    using Azure.IIoT.OpcUa.Core.Utils;
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using Opc.Ua.Client;

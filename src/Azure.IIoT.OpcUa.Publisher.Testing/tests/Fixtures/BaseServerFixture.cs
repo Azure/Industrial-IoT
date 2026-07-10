@@ -12,7 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
     using Azure.IIoT.OpcUa.Publisher.Stack.Sample;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Furly.Extensions.Logging;
-    using Furly.Extensions.Utils;
+    using Azure.IIoT.OpcUa.Core.Utils;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;

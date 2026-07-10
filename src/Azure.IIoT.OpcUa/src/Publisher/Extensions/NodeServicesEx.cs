@@ -6,7 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly.Extensions.Utils;
+    using Azure.IIoT.OpcUa.Core.Utils;
     using System;
     using System.Collections.Generic;
     using System.Threading;

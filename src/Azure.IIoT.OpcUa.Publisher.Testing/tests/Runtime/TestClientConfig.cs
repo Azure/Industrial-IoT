@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -7,7 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Runtime
 {
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Furly.Extensions.Configuration;
-    using Furly.Extensions.Utils;
+    using Azure.IIoT.OpcUa.Core.Utils;
     using Microsoft.Extensions.Configuration;
     using System;
     using System.IO;
