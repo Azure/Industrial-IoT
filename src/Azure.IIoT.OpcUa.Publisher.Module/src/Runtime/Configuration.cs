@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Publisher.Module.Controllers;
     using Azure.IIoT.OpcUa.Publisher.Services;
+    using Azure.IIoT.OpcUa.Core.Rpc.Router;
     using Azure.Iot.Operations.Protocol;
     using Furly.Azure.EventHubs;
     using Furly.Azure.IoT.Edge;
@@ -20,7 +21,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Furly.Extensions.Messaging.Runtime;
     using Furly.Extensions.Mqtt;
     using Furly.Extensions.Rpc.Runtime;
-    using Furly.Tunnel.Router.Services;
     using k8s;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
@@ -69,7 +69,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             services.AddTransientAsImplementedInterfaces<Kestrel>();
 
             // Register and configure controllers
-            FurlyServiceCollectionEx.AddMethodRouter(services);
+            CoreServiceCollectionEx.AddMethodRouter(services);
             services.AddTransientAsImplementedInterfaces<Router>();
 
             services.AddTransientAsImplementedInterfaces<PublisherController>();

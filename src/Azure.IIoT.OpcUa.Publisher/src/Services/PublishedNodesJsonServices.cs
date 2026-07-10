@@ -12,7 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Storage;
     using Azure.IIoT.OpcUa.Core;
-    using Furly.Exceptions;
+    using Azure.IIoT.OpcUa.Core.Exceptions;
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;

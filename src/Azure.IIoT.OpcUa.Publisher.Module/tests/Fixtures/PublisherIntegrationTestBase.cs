@@ -9,7 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Sdk;
     using Azure.IIoT.OpcUa.Encoders;
-    using Furly.Exceptions;
+    using Azure.IIoT.OpcUa.Core.Exceptions;
     using Furly.Extensions.Mqtt;
     using Microsoft.Extensions.Logging;
     using Neovolve.Logging.Xunit;

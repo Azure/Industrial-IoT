@@ -5,11 +5,18 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
+    using Azure.IIoT.OpcUa.Core;
     using Azure.IIoT.OpcUa.Core.Messaging;
     using Azure.IIoT.OpcUa.Core.Messaging.Clients;
+    using Azure.IIoT.OpcUa.Core.Rpc;
+    using Azure.IIoT.OpcUa.Core.Rpc.Router;
     using Azure.IIoT.OpcUa.Core.Storage;
     using Azure.IIoT.OpcUa.Core.Storage.Services;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Diagnostics.ExceptionSummarization;
+    using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
+    using System;
 
     /// <summary>
     /// <see cref="IServiceCollection"/> registrations for the in-repo
@@ -18,6 +25,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     /// </summary>
     public static class CoreServiceCollectionEx
     {
+        /// <summary>
+        /// Add method router (in-repo <c>Azure.IIoT.OpcUa.Core</c> tunnel). The
+        /// IIoT host uses a singleton method router with property injected
+        /// controllers.
+        /// </summary>
+        /// <param name="services"></param>
+        public static IServiceCollection AddMethodRouter(this IServiceCollection services)
+        {
+            services.AddOptions();
+            services.AddSingleton<MethodRouter>(s =>
+                new MethodRouter(s.GetServices<IRpcServer>(),
+                    s.GetRequiredService<ILogger<MethodRouter>>(),
+                    s.GetService<IExceptionSummarizer>(),
+                    s.GetService<IOptions<RouterOptions>>(),
+                    s.GetService<TimeProvider>())
+                {
+                    Controllers = s.GetServices<IMethodController>()
+                });
+            services.AddSingleton<IRpcHandler>(
+                s => s.GetRequiredService<MethodRouter>());
+            services.AddSingleton<IAwaitable<MethodRouter>>(
+                s => s.GetRequiredService<MethodRouter>());
+            services.AddSingleton<IAwaitable>(
+                s => s.GetRequiredService<MethodRouter>());
+            return services;
+        }
+
         /// <summary>
         /// Add the in-memory <see cref="IKeyValueStore"/> fallback.
         /// </summary>

@@ -7,7 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 {
     using Azure.IIoT.OpcUa.Core;
     using Furly.Azure.IoT.Edge;
-    using Furly.Extensions.Rpc;
+    using Azure.IIoT.OpcUa.Core.Rpc;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;

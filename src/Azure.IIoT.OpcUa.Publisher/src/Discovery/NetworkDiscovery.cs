@@ -12,7 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using Azure.IIoT.OpcUa.Publisher.Stack.Transport.Probe;
     using Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner;
     using Azure.IIoT.OpcUa.Encoders;
-    using Furly.Exceptions;
+    using Azure.IIoT.OpcUa.Core.Exceptions;
     using Azure.IIoT.OpcUa.Core.Messaging;
     using global::Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Core.Utils;

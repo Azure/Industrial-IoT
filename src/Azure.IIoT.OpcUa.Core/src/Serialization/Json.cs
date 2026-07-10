@@ -294,6 +294,25 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
         }
 
         /// <summary>
+        /// Deserialize from buffer to a runtime type.
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <param name="type"></param>
+        [RequiresUnreferencedCode(kReflection)]
+        [RequiresDynamicCode(kReflection)]
+        public static object? Deserialize(ReadOnlyMemory<byte> buffer, Type type)
+        {
+            try
+            {
+                return JsonSerializer.Deserialize(buffer.Span, type, Options);
+            }
+            catch (JsonException ex)
+            {
+                throw new SerializerException(ex.Message, ex);
+            }
+        }
+
+        /// <summary>
         /// Deserialize from stream.
         /// </summary>
         /// <typeparam name="T"></typeparam>

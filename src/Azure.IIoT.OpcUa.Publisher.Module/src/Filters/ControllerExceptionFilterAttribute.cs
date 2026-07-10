@@ -6,8 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
 {
     using Azure.IIoT.OpcUa.Exceptions;
-    using Furly.Exceptions;
-    using Furly.Tunnel.Exceptions;
+    using Azure.IIoT.OpcUa.Core.Exceptions;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Filters;

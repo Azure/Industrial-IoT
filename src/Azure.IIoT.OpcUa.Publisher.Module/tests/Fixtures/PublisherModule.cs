@@ -23,7 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Furly.Extensions.Mqtt.Clients;
     using Furly.Extensions.Serializers;
     using Azure.IIoT.OpcUa.Core.Utils;
-    using Furly.Tunnel.Protocol;
+    using Azure.IIoT.OpcUa.Core.Rpc.Protocol;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc.Testing;
     using Microsoft.AspNetCore.TestHost;

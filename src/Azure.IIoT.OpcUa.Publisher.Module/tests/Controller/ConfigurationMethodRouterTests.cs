@@ -12,11 +12,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
     using Azure.IIoT.OpcUa.Publisher.Storage;
     using Azure.IIoT.OpcUa.Publisher.Tests.Utils;
     using FluentAssertions;
-    using Furly.Extensions.Rpc;
+    using Azure.IIoT.OpcUa.Core.Rpc;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Json;
     using Furly.Extensions.Serializers.Newtonsoft;
-    using Furly.Tunnel.Router.Services;
+    using Azure.IIoT.OpcUa.Core.Rpc.Router;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
@@ -173,7 +173,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         private MethodRouter NewRouter(IJsonSerializer serializer, ConfigurationController controller)
         {
             var router = new MethodRouter(Array.Empty<IRpcServer>(),
-                serializer, _loggerFactory.CreateLogger<MethodRouter>())
+                _loggerFactory.CreateLogger<MethodRouter>())
             {
                 Controllers = new[] { controller }
             };

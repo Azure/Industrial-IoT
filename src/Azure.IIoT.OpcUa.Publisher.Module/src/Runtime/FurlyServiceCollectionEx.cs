@@ -27,8 +27,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Furly.Extensions.Serializers.Newtonsoft;
     using Furly.Extensions.Storage;
     using Furly.Extensions.Storage.Services;
-    using Furly.Tunnel.Router;
-    using Furly.Tunnel.Router.Services;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
@@ -92,30 +90,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             services.AddOptions();
             services.TryAddSingletonForwarded<ICredentialProvider, DefaultAzureCredentials>();
             services.AddSingleton<IPostConfigureOptions<CredentialOptions>, CredentialConfig>();
-            return services;
-        }
-
-        /// <summary>
-        /// Add method router (mirror of Furly.Tunnel router). The IIoT host used a
-        /// singleton method router with property injected controllers.
-        /// </summary>
-        /// <param name="services"></param>
-        public static IServiceCollection AddMethodRouter(this IServiceCollection services)
-        {
-            services.AddOptions();
-            services.AddSingleton<MethodRouter>(s =>
-                new MethodRouter(s.GetServices<IRpcServer>(),
-                    s.GetRequiredService<IJsonSerializer>(),
-                    s.GetRequiredService<ILogger<MethodRouter>>())
-                {
-                    Controllers = s.GetServices<IMethodController>()
-                });
-            services.AddSingleton<IRpcHandler>(
-                s => s.GetRequiredService<MethodRouter>());
-            services.AddSingleton<IAwaitable<MethodRouter>>(
-                s => s.GetRequiredService<MethodRouter>());
-            services.AddSingleton<IAwaitable>(
-                s => s.GetRequiredService<MethodRouter>());
             return services;
         }
 
