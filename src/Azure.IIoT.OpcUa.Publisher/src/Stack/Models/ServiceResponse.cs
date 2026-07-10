@@ -45,7 +45,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
             {
                 var diagnostics = _response.ResponseHeader.ServiceDiagnostics;
                 var stringTable = _response.ResponseHeader.StringTable;
-                return StatusCode.CreateResultModel(diagnostics, stringTable);
+                return StatusCode.CreateResultModel(diagnostics,
+                    new StringCollection(stringTable.ToArray() ?? []));
             }
         }
 
@@ -253,7 +254,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
                 get
                 {
                     var stringTable = _outer._response.ResponseHeader.StringTable;
-                    return StatusCode.CreateResultModel(DiagnosticInfo, stringTable);
+                    return StatusCode.CreateResultModel(DiagnosticInfo,
+                        new StringCollection(stringTable.ToArray() ?? []));
                 }
             }
 

@@ -1016,7 +1016,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 dDevice.Attributes.AddOrUpdate(nameof(desc.Server.ApplicationType),
                     desc.Server.ApplicationType.ToString());
-                if (desc.Server.ApplicationName?.Text != null)
+                if (desc.Server.ApplicationName.Text != null)
                 {
                     dDevice.Attributes.AddOrUpdate(nameof(desc.Server.ApplicationName),
                         desc.Server.ApplicationName.Text);
@@ -1036,7 +1036,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     dDevice.Attributes.AddOrUpdate(nameof(desc.Server.DiscoveryProfileUri),
                         desc.Server.DiscoveryProfileUri);
                 }
-                if (desc.Server.DiscoveryUrls?.Count > 0)
+                if (desc.Server.DiscoveryUrls.Count > 0)
                 {
                     dDevice.Attributes.AddOrUpdate(nameof(desc.Server.DiscoveryUrls),
                         string.Join(',', desc.Server.DiscoveryUrls));

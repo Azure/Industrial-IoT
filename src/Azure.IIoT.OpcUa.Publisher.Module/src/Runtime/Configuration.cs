@@ -196,7 +196,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             {
                 CoreServiceCollectionEx.AddFileSystemEventClient(services);
                 services.AddTransientAsImplementedInterfaces<FileSystem>();
-                services.AddTransientAsImplementedInterfaces<AvroWriter>();
                 services.AddTransientAsImplementedInterfaces<ConsoleWriter>();
             }
         }
@@ -1206,28 +1205,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// </summary>
             /// <param name="configuration"></param>
             public MqttBroker(IConfiguration configuration)
-                : base(configuration)
-            {
-            }
-        }
-
-        /// <summary>
-        /// Avro file writer configuration
-        /// </summary>
-        internal sealed class AvroWriter : ConfigureOptionBase<AvroFileWriterOptions>
-        {
-            public const string DisableKey = "DisableAvroFileWriter";
-
-            public override void Configure(string? name, AvroFileWriterOptions options)
-            {
-                options.Disabled = GetBoolOrDefault(DisableKey);
-            }
-
-            /// <summary>
-            /// Transport configuration
-            /// </summary>
-            /// <param name="configuration"></param>
-            public AvroWriter(IConfiguration configuration)
                 : base(configuration)
             {
             }

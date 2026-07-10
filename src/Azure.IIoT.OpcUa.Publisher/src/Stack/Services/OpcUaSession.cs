@@ -568,7 +568,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 RequestHeader = requestHeader,
                 ReleaseContinuationPoint = releaseContinuationPoint,
-                ContinuationPoint = continuationPoint
+                ContinuationPoint = (ByteString)continuationPoint
             };
             var response = await TransportChannel.SendRequestAsync(
                 request, ct).ConfigureAwait(false);
@@ -611,7 +611,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var request = new HistoryReadRequest
             {
                 RequestHeader = requestHeader,
-                HistoryReadDetails = historyReadDetails,
+                HistoryReadDetails = historyReadDetails ?? default,
                 TimestampsToReturn = timestampsToReturn,
                 ReleaseContinuationPoints = releaseContinuationPoints,
                 NodesToRead = nodesToRead
@@ -951,9 +951,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 UnauthorizedRequestCount =
                     sessionDiagnostics.UnauthorizedRequestCount,
                 ConnectTime =
-                    sessionDiagnostics.ClientConnectionTime,
+                    (DateTime)sessionDiagnostics.ClientConnectionTime,
                 LastContactTime =
-                    sessionDiagnostics.ClientLastContactTime,
+                    (DateTime)sessionDiagnostics.ClientLastContactTime,
                 CurrentSubscriptionsCount =
                     sessionDiagnostics.CurrentSubscriptionsCount,
                 CurrentMonitoredItemsCount =
@@ -1020,7 +1020,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var requests = new ReadValueIdCollection(chunk
                     .Select(n => new ReadValueId
                     {
-                        NodeId = n,
+                        NodeId = new NodeId(n),
                         AttributeId = Attributes.Value
                     }));
                 var response = await ReadAsync(header, 0,
@@ -1099,28 +1099,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 new ServerCapabilitiesState(null);
 #pragma warning restore CA2000 // Dispose objects before losing scope
             config.ServerProfileArray =
-                new PropertyState<string[]>(config);
+                PropertyState<ArrayOf<string>>.With<VariantBuilder>(config);
             config.LocaleIdArray =
-                new PropertyState<string[]>(config);
-            config.SoftwareCertificates =
-                new PropertyState<SignedSoftwareCertificate[]>(config);
+                PropertyState<ArrayOf<string>>.With<VariantBuilder>(config);
             config.ModellingRules =
                 new FolderState(config);
             config.AggregateFunctions =
                 new FolderState(config);
-            config.Create(SystemContext, null,
-                BrowseNames.ServerCapabilities, null, false);
+            config.Create(SystemContext, NodeId.Null,
+                new QualifiedName(BrowseNames.ServerCapabilities), LocalizedText.Null, false);
 
-            var relativePath = new RelativePath();
-            relativePath.Elements.Add(new RelativePathElement
+            var relativePath = new RelativePath
             {
-                ReferenceTypeId = ReferenceTypeIds.HasComponent,
-                IsInverse = false,
-                IncludeSubtypes = false,
-                TargetName = BrowseNames.ServerCapabilities
-            });
+                Elements = new List<RelativePathElement>
+                {
+                    new RelativePathElement
+                    {
+                        ReferenceTypeId = ReferenceTypeIds.HasComponent,
+                        IsInverse = false,
+                        IncludeSubtypes = false,
+                        TargetName = new QualifiedName(BrowseNames.ServerCapabilities)
+                    }
+                }
+            };
             var errorInfo = await this.ReadNodeStateAsync(requestHeader, config,
-                Objects.Server, relativePath, ct).ConfigureAwait(false);
+                new NodeId(Objects.Server), relativePath, ct).ConfigureAwait(false);
             if (errorInfo != null)
             {
                 return null;
@@ -1137,8 +1140,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 c => c.BrowseName.AsString(MessageContext, namespaceFormat),
                 c => c.NodeId.AsString(MessageContext, namespaceFormat) ?? string.Empty);
             var conformanceUnits = config.ConformanceUnits.GetValueOrDefaultEx(
-                v => v == null || v.Length == 0 ? null :
-                v.Select(q => q.AsString(MessageContext, namespaceFormat)).ToList());
+                v => v is { Count: > 0 } arr
+                    ? arr.ToArray()!.Select(
+                        q => q.AsString(MessageContext, namespaceFormat)).ToList()
+                    : null);
             return new ServerCapabilitiesModel
             {
                 OperationLimits = _limits ?? new OperationLimitsModel(),
@@ -1146,10 +1151,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     modellingRules.Count == 0 ? null : modellingRules,
                 SupportedLocales =
                     config.LocaleIdArray.GetValueOrDefaultEx(
-                        v => v == null || v.Length == 0 ? null : v),
+                        v => v is { Count: > 0 } arr ? arr.ToArray() : null),
                 ServerProfiles =
                     config.ServerProfileArray.GetValueOrDefaultEx(
-                        v => v == null || v.Length == 0 ? null : v),
+                        v => v is { Count: > 0 } arr ? arr.ToArray() : null),
                 AggregateFunctions =
                     aggregateFunctions.Count == 0 ? null : aggregateFunctions,
                 MaxSessions =
@@ -1189,50 +1194,57 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 new HistoryServerCapabilitiesState(null);
 #pragma warning restore CA2000 // Dispose objects before losing scope
             config.AccessHistoryDataCapability =
-                new PropertyState<bool>(config);
+                PropertyState<bool>.With<VariantBuilder>(config);
             config.AccessHistoryEventsCapability =
-                new PropertyState<bool>(config);
+                PropertyState<bool>.With<VariantBuilder>(config);
             config.MaxReturnDataValues =
-                new PropertyState<uint>(config);
+                PropertyState<uint>.With<VariantBuilder>(config);
             config.MaxReturnEventValues =
-                new PropertyState<uint>(config);
+                PropertyState<uint>.With<VariantBuilder>(config);
             config.InsertDataCapability =
-                new PropertyState<bool>(config);
+                PropertyState<bool>.With<VariantBuilder>(config);
             config.ReplaceDataCapability =
-                new PropertyState<bool>(config);
+                PropertyState<bool>.With<VariantBuilder>(config);
             config.UpdateDataCapability =
-                new PropertyState<bool>(config);
+                PropertyState<bool>.With<VariantBuilder>(config);
             config.DeleteRawCapability =
-                new PropertyState<bool>(config);
+                PropertyState<bool>.With<VariantBuilder>(config);
             config.DeleteAtTimeCapability =
-                new PropertyState<bool>(config);
+                PropertyState<bool>.With<VariantBuilder>(config);
             config.InsertEventCapability =
-                new PropertyState<bool>(config);
+                PropertyState<bool>.With<VariantBuilder>(config);
             config.ReplaceEventCapability =
-                new PropertyState<bool>(config);
+                PropertyState<bool>.With<VariantBuilder>(config);
             config.UpdateEventCapability =
-                new PropertyState<bool>(config);
+                PropertyState<bool>.With<VariantBuilder>(config);
             config.DeleteEventCapability =
-                new PropertyState<bool>(config);
+                PropertyState<bool>.With<VariantBuilder>(config);
             config.InsertAnnotationCapability =
-                new PropertyState<bool>(config);
+                PropertyState<bool>.With<VariantBuilder>(config);
             config.ServerTimestampSupported =
-                new PropertyState<bool>(config);
+                PropertyState<bool>.With<VariantBuilder>(config);
             config.AggregateFunctions =
                 new FolderState(config);
-            config.Create(SystemContext, null,
-                BrowseNames.HistoryServerCapabilities, null, false);
+            config.Create(SystemContext, NodeId.Null,
+                new QualifiedName(BrowseNames.HistoryServerCapabilities),
+                LocalizedText.Null, false);
 
-            var relativePath = new RelativePath();
-            relativePath.Elements.Add(new RelativePathElement
+            var relativePath = new RelativePath
             {
-                ReferenceTypeId = ReferenceTypeIds.HasComponent,
-                IsInverse = false,
-                IncludeSubtypes = false,
-                TargetName = BrowseNames.HistoryServerCapabilities
-            });
+                Elements = new List<RelativePathElement>
+                {
+                    new RelativePathElement
+                    {
+                        ReferenceTypeId = ReferenceTypeIds.HasComponent,
+                        IsInverse = false,
+                        IncludeSubtypes = false,
+                        TargetName = new QualifiedName(
+                            BrowseNames.HistoryServerCapabilities)
+                    }
+                }
+            };
             var errorInfo = await this.ReadNodeStateAsync(requestHeader, config,
-                Objects.Server_ServerCapabilities, relativePath, ct).ConfigureAwait(false);
+                new NodeId(Objects.Server_ServerCapabilities), relativePath, ct).ConfigureAwait(false);
             if (errorInfo != null)
             {
                 return null;
@@ -1377,12 +1389,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var error = new T();
                 error.ResponseHeader.ServiceResult = StatusCodes.BadNotConnected;
                 error.ResponseHeader.Timestamp = _timeProvider.GetUtcNow().UtcDateTime;
-                var text = error.ResponseHeader.StringTable.Count;
-                error.ResponseHeader.StringTable.Add("Session not connected.");
-                var locale = error.ResponseHeader.StringTable.Count;
-                error.ResponseHeader.StringTable.Add("en-US");
-                var symbol = error.ResponseHeader.StringTable.Count;
-                error.ResponseHeader.StringTable.Add("BadNotConnected");
+                const int text = 0;
+                const int locale = 1;
+                const int symbol = 2;
+                error.ResponseHeader.StringTable = new List<string>
+                {
+                    "Session not connected.",
+                    "en-US",
+                    "BadNotConnected"
+                };
                 error.ResponseHeader.ServiceDiagnostics = new DiagnosticInfo
                 {
                     SymbolicId = symbol,
@@ -1435,7 +1450,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     "Session activity {Activity} completed in {Elapsed} with {Status}.",
                     _logScope.name, _logScope.sw.Elapsed,
                         Error?.ResponseHeader?.ServiceResult == null ? "Good" :
-                    StatusCodes.GetBrowseName(Error.ResponseHeader.ServiceResult.CodeBits));
+                    Error.ResponseHeader.ServiceResult.ToString());
             }
 
             /// <summary>

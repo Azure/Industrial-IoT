@@ -37,7 +37,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
                         result.Description.Server.ApplicationUri, type),
                     ProductUri = result.Description.Server.ProductUri,
                     ApplicationUri = result.Description.Server.ApplicationUri,
-                    DiscoveryUrls = new HashSet<string>(result.Description.Server.DiscoveryUrls),
+                    DiscoveryUrls = new HashSet<string>(
+                        result.Description.Server.DiscoveryUrls.ToArray() ?? []),
                     DiscoveryProfileUri = result.Description.Server.DiscoveryProfileUri,
                     HostAddresses = new HashSet<string> { hostAddress },
                     ApplicationName = result.Description.Server.ApplicationName.Text,
@@ -56,7 +57,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
                         DiscovererId = discovererId,
                         Id = string.Empty,
                         SecurityLevel = result.Description.SecurityLevel,
-                        AuthenticationMethods = result.Description.UserIdentityTokens
+                        AuthenticationMethods = new Opc.Ua.UserTokenPolicyCollection(
+                            result.Description.UserIdentityTokens.ToArray() ?? [])
                             .ToServiceModel(),
                         EndpointUrl = result.Description.EndpointUrl, // Reported
                         Endpoint = new EndpointModel {
@@ -65,7 +67,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
                                 result.AccessibleEndpointUrl,
                                 result.Description.EndpointUrl
                             },
-                            Certificate = result.Description.ServerCertificate?.ToThumbprint(),
+                            Certificate = result.Description.ServerCertificate.IsNull ? null :
+                                result.Description.ServerCertificate.ToArray().ToThumbprint(),
                             SecurityMode = result.Description.SecurityMode.ToServiceType() ??
                                 SecurityMode.None,
                             SecurityPolicy = result.Description.SecurityPolicyUri

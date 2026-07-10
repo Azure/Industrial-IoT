@@ -55,7 +55,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     return Task.FromResult(new ExtensionObject(new DeleteEventDetails
                     {
                         NodeId = nodeId,
-                        EventIds = new ByteStringCollection(details.EventIds)
+                        EventIds = new ByteStringCollection(details.EventIds.Select(e => (ByteString)e))
                     }));
                 }, ct);
         }
@@ -75,7 +75,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     return Task.FromResult(new ExtensionObject(new DeleteAtTimeDetails
                     {
                         NodeId = nodeId,
-                        ReqTimes = new DateTimeCollection(details.ReqTimes)
+                        ReqTimes = details.ReqTimes.Select(t => (DateTimeUtc)t).ToList()
                     }));
                 }, ct);
         }
@@ -202,7 +202,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
                 return new ExtensionObject(new ReadAtTimeDetails
                 {
-                    ReqTimes = new DateTimeCollection(details.ReqTimes),
+                    ReqTimes = details.ReqTimes.Select(t => (DateTimeUtc)t).ToList(),
                     UseSimpleBounds = details.UseSimpleBounds ?? false
                 });
             }, DecodeValues, ct);
@@ -238,7 +238,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     EndTime = details.EndTime ?? DateTime.MinValue,
                     StartTime = details.StartTime ?? DateTime.MinValue,
                     AggregateType = aggregateId == null ? null :
-                        new NodeIdCollection(aggregateId.YieldReturn()),
+                        new NodeIdCollection(aggregateId.GetValueOrDefault().YieldReturn()),
                     ProcessingInterval = details.ProcessingInterval == null ? 0 :
                         details.ProcessingInterval.Value.TotalMilliseconds,
                     AggregateConfiguration = details.AggregateConfiguration.ToStackModel()
@@ -519,12 +519,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         NodeId = nodeId,
                         PerformInsertReplace = action,
                         Filter = session.Codec.Decode(details.Filter),
-                        EventData = new HistoryEventFieldListCollection(details.Events
+                        EventData = details.Events
                             .Select(d => new HistoryEventFieldList
                             {
-                                EventFields = new VariantCollection(d.EventFields
-                                    .Select(f => session.Codec.Decode(f, BuiltInType.Variant)))
-                            }))
+                                EventFields = d.EventFields
+                                    .Select(f => session.Codec.Decode(f, BuiltInType.Variant))
+                                    .ToList()
+                            })
+                            .ToList()
                     }));
                 }, ct);
         }
@@ -555,17 +557,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         NodeId = nodeId,
                         PerformInsertReplace = action,
-                        UpdateValues = new DataValueCollection(details.Values
+                        UpdateValues = details.Values
                             .Select(d => new DataValue
-                            {
-                                ServerPicoseconds = d.ServerPicoseconds ?? 0,
-                                SourcePicoseconds = d.SourcePicoseconds ?? 0,
-                                ServerTimestamp = d.ServerTimestamp ?? DateTime.MinValue,
-                                SourceTimestamp = d.SourceTimestamp ?? DateTime.MinValue,
-                                StatusCode = d.Status?.StatusCode ?? StatusCodes.Good,
-                                Value = session.Codec.Decode(
-                                    d.Value, builtinType)
-                            }))
+                            (
+                                session.Codec.Decode(d.Value, builtinType),
+                                d.Status?.StatusCode ?? StatusCodes.Good.Code,
+                                d.SourceTimestamp ?? DateTime.MinValue,
+                                d.ServerTimestamp ?? DateTime.MinValue,
+                                d.SourcePicoseconds ?? 0,
+                                d.ServerPicoseconds ?? 0
+                            ))
+                            .ToList()
                     });
                 }, ct);
         }
@@ -581,9 +583,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             if (extensionObject.Body is HistoryEvent ev)
             {
-                return ev.Events.Select(d => new HistoricEventModel
+                return (ev.Events.ToArray() ?? []).Select(d => new HistoricEventModel
                 {
-                    EventFields = d.EventFields
+                    EventFields = (d.EventFields.ToArray() ?? [])
                         .Select(v => v == Variant.Null ?
                             null : session.Codec.Encode(v, out var builtInType))
                         .ToList()
@@ -627,7 +629,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             if (NodeIdCompat.IsNull(dataTypeId))
             {
                 // Read data type
-                (dataTypeId, _) = await session.ReadAttributeAsync<NodeId?>(
+                (dataTypeId, _) = await session.ReadAttributeAsync<NodeId>(
                     requestHeader.ToRequestHeader(timeProvider), nodeId,
                     Attributes.DataType, ct).ConfigureAwait(false);
                 if (NodeIdCompat.IsNull(dataTypeId))
@@ -660,12 +662,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         throw new FormatException(
                             "Modification infos and data value count is not the same");
                     }
-                    return data.DataValues
-                        .Zip(modified.ModificationInfos)
+                    return (data.DataValues.ToArray() ?? [])
+                        .Zip(modified.ModificationInfos.ToArray() ?? [])
                         .Select(d => EncodeDataValue(session.Codec, d.First, d.Second))
                         .ToArray();
                 }
-                return data.DataValues
+                return (data.DataValues.ToArray() ?? [])
                     .Select(d => EncodeDataValue(session.Codec, d, null))
                     .ToArray();
             }
@@ -681,19 +683,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         dataValue.ServerPicoseconds,
                     SourcePicoseconds = dataValue.SourcePicoseconds == 0 ? null :
                         dataValue.SourcePicoseconds,
-                    ServerTimestamp = dataValue.ServerTimestamp == DateTime.MinValue ? null :
-                        dataValue.ServerTimestamp,
-                    SourceTimestamp = dataValue.SourceTimestamp == DateTime.MinValue ? null :
-                        dataValue.SourceTimestamp,
+                    ServerTimestamp = dataValue.ServerTimestamp == DateTimeUtc.MinValue ? null :
+                        (DateTime)dataValue.ServerTimestamp,
+                    SourceTimestamp = dataValue.SourceTimestamp == DateTimeUtc.MinValue ? null :
+                        (DateTime)dataValue.SourceTimestamp,
                     Status =  // Remove aggregate bits we are testing below.
-                        (dataValue.StatusCode.Code & ~0x041F) == StatusCodes.Good ? null :
+                        (dataValue.StatusCode.Code & ~0x041Fu) == StatusCodes.Good.Code ? null :
                          dataValue.StatusCode.CreateResultModel(),
                     DataLocation = dataValue.StatusCode.AggregateBits.ToDataLocation(),
                     AdditionalData = dataValue.StatusCode.AggregateBits.ToAdditionalData(),
                     ModificationInfo = modification == null ? null : new ModificationInfoModel
                     {
-                        ModificationTime = modification.ModificationTime == DateTime.MinValue ?
-                            null : modification.ModificationTime,
+                        ModificationTime = modification.ModificationTime == DateTimeUtc.MinValue ?
+                            null : (DateTime)modification.ModificationTime,
                         UpdateType = (HistoryUpdateOperation)modification.UpdateType,
                         UserName = modification.UserName
                     },

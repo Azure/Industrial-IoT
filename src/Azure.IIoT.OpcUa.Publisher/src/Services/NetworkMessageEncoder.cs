@@ -468,11 +468,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                                                         var eventNotification = notificationsInGroup[0] with
                                                         {
-                                                            Value = new DataValue
-                                                            {
-                                                                Value = new EncodeableDictionary(notificationsInGroup
-                                                                    .Select(n => new KeyDataValuePair(n.DataSetFieldName!, n.Value)))
-                                                            },
+                                                            Value = new DataValue(new Variant(
+                                                                new EncodeableDictionary(notificationsInGroup
+                                                                    .Select(n => new KeyDataValuePair(
+                                                                        n.DataSetFieldName!, n.Value))))),
                                                             DataSetFieldName = notificationsInGroup[0].DataSetName
                                                         };
                                                         notificationsInGroup = new List<MonitoredItemNotificationModel>

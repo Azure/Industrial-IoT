@@ -32,9 +32,10 @@ namespace Opc.Ua.Extensions
             }
             return new RelativePath
             {
-                Elements = new RelativePathElementCollection(path
+                Elements = path
                     .Where(p => !string.IsNullOrEmpty(p))
-                    .Select(p => ParsePathElement(p, context)))
+                    .Select(p => ParsePathElement(p, context))
+                    .ToArray()
             };
         }
 
@@ -52,7 +53,7 @@ namespace Opc.Ua.Extensions
             {
                 return null;
             }
-            return path.Elements
+            return path.Elements.ToArray()?
                 .Select(p => FormatRelativePathElement(p, context, namespaceFormat))
                 .ToList();
         }
@@ -167,7 +168,7 @@ namespace Opc.Ua.Extensions
                     TypeMaps.ReferenceTypes.Value.TryGetIdentifier(reference,
                         out var id))
                 {
-                    pathElement.ReferenceTypeId = id;
+                    pathElement.ReferenceTypeId = new NodeId(id);
                 }
             }
             var target = element[index..];

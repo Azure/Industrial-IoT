@@ -217,7 +217,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 ComplexTypeSystem? typeSystem, List<PublishedFieldMetaDataModel> fields,
                 NodeIdDictionary<object> dataTypes, CancellationToken ct)
             {
-                var nodeId = NodeId.ToExpandedNodeId(session.MessageContext);
+                var nodeId = NodeId.ToNodeId(session.MessageContext);
                 if (Opc.Ua.NodeIdCompat.IsNull(nodeId))
                 {
                     // Failed.
@@ -419,7 +419,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             protected override bool TryGetErrorMonitoredItemNotifications(
                 StatusCode statusCode, MonitoredItemNotifications notifications)
             {
-                notifications.Add(Owner, ToMonitoredItemNotification(new DataValue(statusCode)));
+                notifications.Add(Owner, ToMonitoredItemNotification(DataValue.FromStatusCode(statusCode)));
                 return true;
             }
 

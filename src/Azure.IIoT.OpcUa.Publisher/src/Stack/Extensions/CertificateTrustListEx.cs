@@ -7,6 +7,7 @@ namespace Opc.Ua
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
@@ -28,12 +29,14 @@ namespace Opc.Ua
             IEnumerable<X509Certificate2> certificates, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(certificates);
-            using var trustedStore = trustList.OpenStore();
+            using var trustedStore = trustList.OpenStore(null!);
             await trustedStore.RemoveAsync(certificates, ct).ConfigureAwait(false);
+            var trustedCertificates = trustList.TrustedCertificates.ToArray()?.ToList() ?? [];
             foreach (var cert in certificates)
             {
-                trustList.TrustedCertificates.Remove(new CertificateIdentifier(cert));
+                trustedCertificates.Remove(new CertificateIdentifier { RawData = cert.RawData });
             }
+            trustList.TrustedCertificates = trustedCertificates;
         }
 
         /// <summary>
@@ -50,15 +53,14 @@ namespace Opc.Ua
             CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(certificates);
-            using var trustedStore = trustList.OpenStore();
+            using var trustedStore = trustList.OpenStore(null!);
             await trustedStore.AddAsync(certificates, noCopy, ct: ct).ConfigureAwait(false);
+            var trustedCertificates = trustList.TrustedCertificates.ToArray()?.ToList() ?? [];
             foreach (var cert in certificates)
             {
-#pragma warning disable CA2000 // Dispose objects before losing scope
-                trustList.TrustedCertificates.Add(new CertificateIdentifier(
-                    noCopy ? cert : new X509Certificate2(cert)));
-#pragma warning restore CA2000 // Dispose objects before losing scope
+                trustedCertificates.Add(new CertificateIdentifier { RawData = cert.RawData });
             }
+            trustList.TrustedCertificates = trustedCertificates;
         }
     }
 }

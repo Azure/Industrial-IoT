@@ -82,6 +82,20 @@ namespace Opc.Ua.Extensions
         }
 
         /// <summary>
+        /// Convert an expanded node id to a node id. Non-nullable struct
+        /// overload so callers with a value-typed <see cref="ExpandedNodeId"/>
+        /// bind here (extension methods do not apply nullable conversions to
+        /// the receiver).
+        /// </summary>
+        /// <param name="nodeId"></param>
+        /// <param name="namespaces"></param>
+        /// <param name="allowUnknownNamespace"></param>
+        /// <returns></returns>
+        public static NodeId ToNodeId(this ExpandedNodeId nodeId, NamespaceTable namespaces,
+            bool allowUnknownNamespace = false)
+            => ToNodeId((ExpandedNodeId?)nodeId, namespaces, allowUnknownNamespace);
+
+        /// <summary>
         /// Returns a uri that identifies the node id uniquely.  If the server
         /// uri information is provided, and the it contains a server name at
         /// index 0, the node id will be formatted as an expanded node id uri

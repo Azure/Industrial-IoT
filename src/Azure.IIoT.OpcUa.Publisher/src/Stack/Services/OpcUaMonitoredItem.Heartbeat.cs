@@ -244,25 +244,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 // should be connected again or we would not have received it.
                 //
                 var lastValue = LastReceivedValue as MonitoredItemNotification;
-                if (lastValue?.Value != null)
+                if (lastValue != null && !lastValue.Value.IsNull)
                 {
                     if (disconnected)
                     {
                         _lastStatusCode = lastValue.Value.StatusCode;
                         if (IsGoodDataValue(lastValue.Value))
                         {
-                            lastValue.Value.StatusCode =
-                                StatusCodes.UncertainNoCommunicationLastUsableValue;
+                            lastValue.Value = WithStatusCode(lastValue.Value,
+                                StatusCodes.UncertainNoCommunicationLastUsableValue);
                         }
                         else
                         {
-                            lastValue.Value.StatusCode =
-                                StatusCodes.BadNoCommunication;
+                            lastValue.Value = WithStatusCode(lastValue.Value,
+                                StatusCodes.BadNoCommunication);
                         }
                     }
                     else if (_lastStatusCode.HasValue)
                     {
-                        lastValue.Value.StatusCode = _lastStatusCode.Value;
+                        lastValue.Value = WithStatusCode(lastValue.Value, _lastStatusCode.Value);
                         _lastStatusCode = null; // This is safe as we are called from the client thread
                     }
                 }
@@ -280,9 +280,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     return false;
                 }
-                return value.StatusCode == StatusCodes.Good ||
-                    (value.WrappedValue != Variant.Null && !StatusCode.IsBad(value.StatusCode));
+                var dataValue = value.GetValueOrDefault();
+                return dataValue.StatusCode == StatusCodes.Good ||
+                    (dataValue.WrappedValue != Variant.Null && !StatusCode.IsBad(dataValue.StatusCode));
             }
+
+            /// <summary>
+            /// Return the data value with the status code replaced.
+            /// </summary>
+            /// <param name="value"></param>
+            /// <param name="statusCode"></param>
+            /// <returns></returns>
+            private static DataValue WithStatusCode(in DataValue value, StatusCode statusCode)
+                => new(value.WrappedValue, statusCode, value.SourceTimestamp,
+                    value.ServerTimestamp, value.SourcePicoseconds, value.ServerPicoseconds);
 
             /// <summary>
             /// Send heartbeat
@@ -316,7 +327,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var lastValue = lastNotification?.Value;
                 if (lastValue == null && ServiceResult.IsNotGood(Status.Error))
                 {
-                    lastValue = new DataValue(Status.Error?.StatusCode ?? StatusCodes.BadNotConnected);
+                    lastValue = DataValue.FromStatusCode(Status.Error?.StatusCode ?? StatusCodes.BadNotConnected);
                 }
 
                 if (lastValue == null)
@@ -333,13 +344,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     var diffTime = LastReceivedTime.HasValue ?
                         e.SignalTime - LastReceivedTime.Value : TimeSpan.Zero;
 
-                    lastValue = new DataValue(lastValue)
-                    {
-                        SourceTimestamp = lastValue.SourceTimestamp == DateTime.MinValue ?
-                            DateTime.MinValue : lastValue.SourceTimestamp.Add(diffTime),
-                        ServerTimestamp = lastValue.ServerTimestamp == DateTime.MinValue ?
-                            DateTime.MinValue : lastValue.ServerTimestamp.Add(diffTime)
-                    };
+                    var value = lastValue.Value;
+                    lastValue = new DataValue(value.WrappedValue, value.StatusCode,
+                        value.SourceTimestamp == DateTimeUtc.MinValue ?
+                            DateTimeUtc.MinValue : value.SourceTimestamp.ToDateTime().Add(diffTime),
+                        value.ServerTimestamp == DateTimeUtc.MinValue ?
+                            DateTimeUtc.MinValue : value.ServerTimestamp.ToDateTime().Add(diffTime),
+                        value.SourcePicoseconds, value.ServerPicoseconds);
                 }
 
                 // If last value is null create a error value.

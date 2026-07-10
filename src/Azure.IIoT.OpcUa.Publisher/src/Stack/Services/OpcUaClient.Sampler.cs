@@ -128,7 +128,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         var session = _client._session;
                         if (session == null)
                         {
-                            NotifyAll(sequenceNumber, nodesToRead, StatusCodes.BadNotConnected,
+                            NotifyAll(sequenceNumber, nodesToRead, (uint)StatusCodes.BadNotConnected,
                                 TimeSpan.Zero);
                             continue;
                         }
@@ -161,7 +161,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     catch (OperationCanceledException) { }
                     catch (ServiceResultException sre)
                     {
-                        NotifyAll(sequenceNumber, nodesToRead, sre.StatusCode, sw.Elapsed);
+                        NotifyAll(sequenceNumber, nodesToRead, (uint)sre.StatusCode, sw.Elapsed);
                     }
                     catch (Exception ex)
                     {
@@ -194,8 +194,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 static DataValue SetOverflow(DataValue result, bool overflowBit)
                 {
-                    result.StatusCode.SetOverflow(overflowBit);
-                    return result;
+                    return result.WithStatus(result.StatusCode.SetOverflow(overflowBit));
                 }
             }
 
@@ -223,9 +222,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 static DataValue SetOverflow(uint statusCode, bool overflowBit)
                 {
-                    var dataValue = new DataValue(statusCode);
-                    dataValue.StatusCode.SetOverflow(overflowBit);
-                    return dataValue;
+                    return DataValue.FromStatusCode(new StatusCode(statusCode).SetOverflow(overflowBit));
                 }
             }
 

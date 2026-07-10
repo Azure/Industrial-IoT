@@ -501,7 +501,7 @@ namespace Azure.IIoT.OpcUa.Publisher
                 .Append(AppContext.GetData("RUNTIME_IDENTIFIER") as string
                     ?? RuntimeInformation.ProcessArchitecture.ToString())
                 .Append("/OPC Stack ")
-                .Append(typeof(SessionChannel).Assembly.GetReleaseVersion().ToString())
+                .Append(typeof(ITransportChannel).Assembly.GetReleaseVersion().ToString())
                 .Append(')')
                 .ToString();
 

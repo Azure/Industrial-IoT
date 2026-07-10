@@ -35,7 +35,8 @@ namespace Opc.Ua.Client
                 result =>
                 {
                     var response = client.EndFindServers(result, out var results);
-                    return NewFindServersResponse(response, results);
+                    return NewFindServersResponse(response,
+                        new ApplicationDescriptionCollection(results.ToArray() ?? []));
                 }, TaskCreationOptions.DenyChildAttach);
 #else
             return Task.Run(() => {
@@ -70,7 +71,8 @@ namespace Opc.Ua.Client
                     var response = client.EndFindServersOnNetwork(result,
                         out var lastCounterResetTime, out var servers);
                     return NewFindServersOnNetworkResponse(response,
-                        lastCounterResetTime, servers);
+                        (DateTime)lastCounterResetTime,
+                        new ServerOnNetworkCollection(servers.ToArray() ?? []));
                 }, TaskCreationOptions.DenyChildAttach);
 #else
             return Task.Run(() => {
@@ -103,7 +105,8 @@ namespace Opc.Ua.Client
                 result =>
                 {
                     var response = client.EndGetEndpoints(result, out var endpoints);
-                    return NewGetEndpointsResponse(response, endpoints);
+                    return NewGetEndpointsResponse(response,
+                        new EndpointDescriptionCollection(endpoints.ToArray() ?? []));
                 }, TaskCreationOptions.DenyChildAttach);
 #else
             return Task.Run(() => {

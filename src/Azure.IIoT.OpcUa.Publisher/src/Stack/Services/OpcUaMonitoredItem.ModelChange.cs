@@ -209,15 +209,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 static MonitoringFilter GetEventFilter()
                 {
                     var eventFilter = new EventFilter();
-                    eventFilter.SelectClauses.Add(new SimpleAttributeOperand()
+                    eventFilter.SelectClauses = eventFilter.SelectClauses.AddItem(new SimpleAttributeOperand()
                     {
-                        BrowsePath = [BrowseNames.EventType],
+                        BrowsePath = [new QualifiedName(BrowseNames.EventType)],
                         TypeDefinitionId = ObjectTypeIds.BaseModelChangeEventType,
                         AttributeId = Attributes.NodeId
                     });
-                    eventFilter.SelectClauses.Add(new SimpleAttributeOperand()
+                    eventFilter.SelectClauses = eventFilter.SelectClauses.AddItem(new SimpleAttributeOperand()
                     {
-                        BrowsePath = [BrowseNames.Changes],
+                        BrowsePath = [new QualifiedName(BrowseNames.Changes)],
                         TypeDefinitionId = ObjectTypeIds.GeneralModelChangeEventType,
                         AttributeId = Attributes.Value
                     });
@@ -246,11 +246,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var eventTypeIndex = evFilter?.SelectClauses.IndexOf(
                     evFilter.SelectClauses
                         .Find(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType
-                            && x.BrowsePath?.FirstOrDefault() == BrowseNames.EventType));
+                            && x.BrowsePath.Count != 0 &&
+                            x.BrowsePath[0] == BrowseNames.EventType));
 
                 if (eventTypeIndex.HasValue && eventTypeIndex.Value != -1)
                 {
-                    var eventType = eventFields.EventFields[eventTypeIndex.Value].Value as NodeId;
+                    _ = eventFields.EventFields[eventTypeIndex.Value].TryGetValue(out NodeId eventType);
                     if (eventType == ObjectTypeIds.GeneralModelChangeEventType)
                     {
                         // Find what changed and refresh only that

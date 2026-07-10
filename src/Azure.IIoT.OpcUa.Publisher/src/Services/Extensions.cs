@@ -88,7 +88,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             Debug.Assert(response != null);
             var results = response.Validate(response.Results, r => r.StatusCode,
                 response.DiagnosticInfos, browsepaths);
-            var count = results[0].Result.Targets?.Count ?? 0;
+            var count = results[0].Result.Targets.Count;
             if (count == 0)
             {
                 throw new ResourceNotFoundException(
@@ -99,8 +99,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 throw new ResourceConflictException(
                     $"{paramName} resolved to {count} nodes.");
             }
-            return results[0].Result.Targets[0].TargetId
-                .ToNodeId(session.MessageContext.NamespaceUris);
+            return ExpandedNodeId.ToNodeId(results[0].Result.Targets[0].TargetId,
+                session.MessageContext.NamespaceUris);
         }
     }
 }

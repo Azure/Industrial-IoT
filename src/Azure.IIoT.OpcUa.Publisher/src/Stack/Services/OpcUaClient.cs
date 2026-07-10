@@ -1416,22 +1416,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 return;
             }
-            switch (e.Status.Code)
+            var code = e.Status.Code;
+            if (code == StatusCodes.BadSessionIdInvalid.Code ||
+                code == StatusCodes.BadSecureChannelClosed.Code ||
+                code == StatusCodes.BadSessionClosed.Code ||
+                code == StatusCodes.BadConnectionClosed.Code ||
+                code == StatusCodes.BadServerHalted.Code ||
+                code == StatusCodes.BadNotConnected.Code ||
+                code == StatusCodes.BadNoCommunication.Code ||
+                code == StatusCodes.BadNoSubscription.Code) // Never sent in current stack version
             {
-                case StatusCodes.BadSessionIdInvalid:
-                case StatusCodes.BadSecureChannelClosed:
-                case StatusCodes.BadSessionClosed:
-                case StatusCodes.BadConnectionClosed:
-                case StatusCodes.BadServerHalted:
-                case StatusCodes.BadNotConnected:
-                case StatusCodes.BadNoCommunication:
-                case StatusCodes.BadNoSubscription: // Never sent in current stack version
-                    TriggerReconnect(e.Status, "Publish");
-                    return;
-                default:
-                    _logger.PublishError(this, e.Status.ToString());
-                    break;
+                TriggerReconnect(e.Status, "Publish");
+                return;
             }
+            _logger.PublishError(this, e.Status.ToString());
         }
 
         /// <summary>
@@ -1482,7 +1480,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     ToString(e.AcknowledgementsToSend),
                     ToString(e.DeferredAcknowledgementsToSend),
                     session.GoodPublishRequestCount);
-                static string ToString(SubscriptionAcknowledgementCollection acks)
+                static string ToString(IReadOnlyList<SubscriptionAcknowledgement> acks)
                 {
                     return acks.Count == 0 ? "no" : acks
                         .OrderBy(a => a.SubscriptionId)
@@ -1683,15 +1681,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
 
-            var sessionId = session.SessionId?.AsString(session.MessageContext,
+            var sessionId = session.SessionId.AsString(session.MessageContext,
                 NamespaceFormat.Index);
 
             // Get effective ip address and port
-            var socket = (channel as UaSCUaBinaryTransportChannel)?.Socket;
-            var remoteIpAddress = socket?.RemoteEndpoint?.GetIPAddress()?.ToString();
-            var remotePort = socket?.RemoteEndpoint?.GetPort();
-            var localIpAddress = socket?.LocalEndpoint?.GetIPAddress()?.ToString();
-            var localPort = socket?.LocalEndpoint?.GetPort();
+            // TODO(Phase 4b): UA-.NETStandard 2.0 no longer exposes the transport
+            // socket; channel IP/port diagnostics are degraded until ManagedSession.
+            string? remoteIpAddress = null;
+            int? remotePort = null;
+            string? localIpAddress = null;
+            int? localPort = null;
 
             if (_lastDiagnostics.SessionCreated == session.CreatedAt &&
                 _lastDiagnostics.SessionId == sessionId &&
@@ -1719,29 +1718,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 CreatedAt = token?.CreatedAt,
                 Lifetime = token == null ? null :
                     TimeSpan.FromMilliseconds(token.Lifetime),
-                Client = ToChannelKey(token?.ClientInitializationVector,
-                    token?.ClientEncryptingKey, token?.ClientSigningKey),
-                Server = ToChannelKey(token?.ServerInitializationVector,
-                    token?.ServerEncryptingKey, token?.ServerSigningKey)
+                // TODO(Phase 4b): channel session keys are internal in the
+                // UA-.NETStandard 2.0 stack and no longer readable here.
+                Client = null,
+                Server = null
             };
             _diagnosticsCb(_lastDiagnostics);
 
             _logger.ChannelDiagnosticsUpdated(sessionId);
-
-            static ChannelKeyModel? ToChannelKey(byte[]? iv, byte[]? key, byte[]? sk)
-            {
-                if (iv == null || key == null || sk == null ||
-                    iv.Length == 0 || key.Length == 0 || sk.Length == 0)
-                {
-                    return null;
-                }
-                return new ChannelKeyModel
-                {
-                    Iv = iv,
-                    Key = key,
-                    SigLen = sk.Length
-                };
-            }
         }
 
         /// <summary>
@@ -1883,7 +1867,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 DiscoveryClient.Create(configuration, connection, endpointConfiguration) :
                 DiscoveryClient.Create(configuration, discoveryUrl, endpointConfiguration);
             var uri = new Uri(endpointUrl ?? client.Endpoint.EndpointUrl);
-            var endpoints = await client.GetEndpointsAsync(null, ct).ConfigureAwait(false);
+            var endpoints = (await client.GetEndpointsAsync(default, ct).ConfigureAwait(false))
+                .ToArray() ?? [];
             discoveryUrl ??= uri;
 
             logger.DiscoveryEndpointReturnedEndpoints(ctx,
@@ -1992,49 +1977,54 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
             switch (ex)
             {
                 case ServiceResultException sre:
-                    switch (sre.StatusCode)
+                    var code = sre.StatusCode.Code;
+                    if (code == StatusCodes.BadNoContinuationPoints.Code ||
+                        code == StatusCodes.BadLicenseLimitsExceeded.Code ||
+                        code == StatusCodes.BadTcpServerTooBusy.Code ||
+                        code == StatusCodes.BadTooManySessions.Code ||
+                        code == StatusCodes.BadTooManyOperations.Code)
                     {
-                        case StatusCodes.BadNoContinuationPoints:
-                        case StatusCodes.BadLicenseLimitsExceeded:
-                        case StatusCodes.BadTcpServerTooBusy:
-                        case StatusCodes.BadTooManySessions:
-                        case StatusCodes.BadTooManyOperations:
-                            state = EndpointConnectivityState.Busy;
-                            break;
-                        case StatusCodes.BadCertificateRevocationUnknown:
-                        case StatusCodes.BadCertificateIssuerRevocationUnknown:
-                        case StatusCodes.BadCertificateRevoked:
-                        case StatusCodes.BadCertificateIssuerRevoked:
-                        case StatusCodes.BadCertificateChainIncomplete:
-                        case StatusCodes.BadCertificateIssuerUseNotAllowed:
-                        case StatusCodes.BadCertificateUseNotAllowed:
-                        case StatusCodes.BadCertificateUriInvalid:
-                        case StatusCodes.BadCertificateTimeInvalid:
-                        case StatusCodes.BadCertificateIssuerTimeInvalid:
-                        case StatusCodes.BadCertificateInvalid:
-                        case StatusCodes.BadCertificateHostNameInvalid:
-                        case StatusCodes.BadNoValidCertificates:
-                            state = EndpointConnectivityState.CertificateInvalid;
-                            break;
-                        case StatusCodes.BadCertificateUntrusted:
-                        case StatusCodes.BadSecurityChecksFailed:
-                            state = EndpointConnectivityState.NoTrust;
-                            break;
-                        case StatusCodes.BadSecureChannelClosed:
-                            state = reconnecting ? EndpointConnectivityState.NoTrust :
-                                EndpointConnectivityState.Error;
-                            break;
-                        case StatusCodes.BadRequestTimeout:
-                        case StatusCodes.BadNotConnected:
-                            state = EndpointConnectivityState.NotReachable;
-                            break;
-                        case StatusCodes.BadUserAccessDenied:
-                        case StatusCodes.BadUserSignatureInvalid:
-                            state = EndpointConnectivityState.Unauthorized;
-                            break;
-                        default:
-                            state = EndpointConnectivityState.Error;
-                            break;
+                        state = EndpointConnectivityState.Busy;
+                    }
+                    else if (code == StatusCodes.BadCertificateRevocationUnknown.Code ||
+                        code == StatusCodes.BadCertificateIssuerRevocationUnknown.Code ||
+                        code == StatusCodes.BadCertificateRevoked.Code ||
+                        code == StatusCodes.BadCertificateIssuerRevoked.Code ||
+                        code == StatusCodes.BadCertificateChainIncomplete.Code ||
+                        code == StatusCodes.BadCertificateIssuerUseNotAllowed.Code ||
+                        code == StatusCodes.BadCertificateUseNotAllowed.Code ||
+                        code == StatusCodes.BadCertificateUriInvalid.Code ||
+                        code == StatusCodes.BadCertificateTimeInvalid.Code ||
+                        code == StatusCodes.BadCertificateIssuerTimeInvalid.Code ||
+                        code == StatusCodes.BadCertificateInvalid.Code ||
+                        code == StatusCodes.BadCertificateHostNameInvalid.Code ||
+                        code == StatusCodes.BadNoValidCertificates.Code)
+                    {
+                        state = EndpointConnectivityState.CertificateInvalid;
+                    }
+                    else if (code == StatusCodes.BadCertificateUntrusted.Code ||
+                        code == StatusCodes.BadSecurityChecksFailed.Code)
+                    {
+                        state = EndpointConnectivityState.NoTrust;
+                    }
+                    else if (code == StatusCodes.BadSecureChannelClosed.Code)
+                    {
+                        state = reconnecting ? EndpointConnectivityState.NoTrust :
+                            EndpointConnectivityState.Error;
+                    }
+                    else if (code == StatusCodes.BadRequestTimeout.Code ||
+                        code == StatusCodes.BadNotConnected.Code)
+                    {
+                        state = EndpointConnectivityState.NotReachable;
+                    }
+                    else if (code == StatusCodes.BadUserAccessDenied.Code ||
+                        code == StatusCodes.BadUserSignatureInvalid.Code)
+                    {
+                        state = EndpointConnectivityState.Unauthorized;
+                    }
+                    else
+                    {
+                        state = EndpointConnectivityState.Error;
                     }
                     _logger.ServiceResultToState(sre.Result, state);
                     break;

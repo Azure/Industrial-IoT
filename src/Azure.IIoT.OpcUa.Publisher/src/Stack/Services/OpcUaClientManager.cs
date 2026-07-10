@@ -120,7 +120,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     updateBeforeConnect: true, // Update endpoint through discovery
                     checkDomain: false, // Domain must match on connect
                     "Test" + Guid.NewGuid().ToString("N"),
-                    10000, userIdentity, null, ct).ConfigureAwait(false);
+                    10000, userIdentity, default, ct).ConfigureAwait(false);
                 try
                 {
                     Debug.Assert(session != null);
@@ -262,14 +262,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 client.Endpoint.EndpointUrl, null, null).ConfigureAwait(false);
 
             // Match to provided endpoint info
-            var ep = endpoints.Endpoints?.FirstOrDefault(e => e.IsSameAs(endpoint));
+            var ep = endpoints.Endpoints.ToArray()?.FirstOrDefault(e => e.IsSameAs(endpoint));
             if (ep == null)
             {
                 _logger.NoEndpoints(discoveryUrl);
                 throw new ResourceNotFoundException("Endpoint not found");
             }
             _logger.FoundEndpoint(discoveryUrl);
-            return ep.ServerCertificate.ToCertificateChain();
+            return ep.ServerCertificate.ToArray().ToCertificateChain();
         }
 
         /// <inheritdoc/>
@@ -399,14 +399,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             //
             var endpoints = await client.GetEndpointsAsync(new RequestHeader(),
                 client.Endpoint.EndpointUrl, localeIds, null).ConfigureAwait(false);
-            if (!(endpoints?.Endpoints?.Any() ?? false))
+            if (endpoints.Endpoints.Count == 0)
             {
                 _logger.NoEndpoints(discoveryUrl);
                 return;
             }
             _logger.FoundEndpoints(discoveryUrl);
 
-            foreach (var ep in endpoints.Endpoints.Where(ep =>
+            foreach (var ep in (endpoints.Endpoints.ToArray() ?? []).Where(ep =>
                 ep.Server.ApplicationType != Opc.Ua.ApplicationType.DiscoveryServer))
             {
                 result.Add(new DiscoveredEndpointModel
@@ -458,7 +458,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 client.Endpoint.EndpointUrl, localeIds, null).ConfigureAwait(false);
             if (found?.Servers != null)
             {
-                foreach (var server in found.Servers.SelectMany(s => s.DiscoveryUrls))
+                foreach (var server in (found.Servers.ToArray() ?? [])
+                    .SelectMany(s => s.DiscoveryUrls.ToArray() ?? []))
                 {
                     var url = CreateDiscoveryUri(server, discoveryUrl.Port);
                     if (!visitedUris.Contains(url))

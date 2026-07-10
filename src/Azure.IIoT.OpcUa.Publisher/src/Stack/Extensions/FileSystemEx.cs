@@ -47,11 +47,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     BrowseNames.LastModifiedTime
                 };
                 var response = await session.Services.TranslateBrowsePathsToNodeIdsAsync(
-                    header, browsePaths.Select(b => new BrowsePath
+                    header, [.. browsePaths.Select(b => new BrowsePath
                     {
                         StartingNode = nodeId,
-                        RelativePath = new RelativePath(b)
-                    }).ToArray(), ct).ConfigureAwait(false);
+                        RelativePath = new RelativePath(new QualifiedName(b))
+                    })], ct).ConfigureAwait(false);
                 Debug.Assert(response != null);
                 var results = response.Validate(response.Results, r => r.StatusCode,
                     response.DiagnosticInfos, browsePaths);
@@ -63,20 +63,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 {
                     return (null, new ServiceResultModel
                     {
-                        StatusCode = StatusCodes.BadNotFound,
+                        StatusCode = (uint)StatusCodes.BadNotFound,
                         ErrorMessage = "File info not found."
                     });
                 }
                 var read = await session.Services.ReadAsync(header, 0.0,
-                    Opc.Ua.TimestampsToReturn.Neither, results
+                    Opc.Ua.TimestampsToReturn.Neither, [.. results
                         .Select(r => r.Result.Targets.Count > 0 ?
                             r.Result.Targets[0].TargetId : ExpandedNodeId.Null)
                         .Select(n => new ReadValueId
                         {
                             AttributeId = Attributes.Value,
-                            NodeId = n.ToNodeId(session.MessageContext.NamespaceUris)
-                        })
-                        .ToArray(), ct).ConfigureAwait(false);
+                            NodeId = ExpandedNodeId.ToNodeId(n, session.MessageContext.NamespaceUris)
+                        })], ct).ConfigureAwait(false);
                 var values = read.Validate(read.Results, r => r.StatusCode, read.DiagnosticInfos,
                     browsePaths);
                 if (values.ErrorInfo != null)
@@ -85,13 +84,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 }
                 return (new FileInfoModel
                 {
-                    Size = values[0].Result?.Value as long? ?? 0,
+                    Size = values[0].Result.Value as long? ?? 0,
                     //
-                    Writable = values[2].Result?.Value as bool? ?? false,
-                    OpenCount = values[3].Result?.Value as ushort? ?? 0,
-                    MimeType = values[4].Result?.Value as string,
-                    MaxBufferSize = values[5].Result?.Value as uint?,
-                    LastModified = values[6].Result?.Value as DateTime?
+                    Writable = values[2].Result.Value as bool? ?? false,
+                    OpenCount = values[3].Result.Value as ushort? ?? 0,
+                    MimeType = values[4].Result.Value as string,
+                    MaxBufferSize = values[5].Result.Value as uint?,
+                    LastModified = values[6].Result.Value as DateTime?
                 }, null);
             }
             catch (Exception ex)

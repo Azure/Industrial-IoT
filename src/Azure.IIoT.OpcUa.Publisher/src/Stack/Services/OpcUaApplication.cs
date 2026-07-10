@@ -200,25 +200,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var certificates = new List<X509CertificateModel>();
             foreach (var cert in await certStore.EnumerateAsync(ct).ConfigureAwait(false))
             {
-                switch (store)
+                if (store == CertificateStoreName.Application &&
+                    includePrivateKey && certStore.SupportsLoadPrivateKey)
                 {
-                    case CertificateStoreName.Application:
-                        if (!includePrivateKey || !certStore.SupportsLoadPrivateKey)
-                        {
-                            goto default;
-                        }
-                        var certificateType = DetermineCertificateType(cert);
-                        var withPrivateKey = await certStore.LoadPrivateKeyAsync(cert.Thumbprint, cert.Subject, null, certificateType, Password.ToCharArray(), ct).ConfigureAwait(false);
-                        if (withPrivateKey == null)
-                        {
-                            goto default;
-                        }
-                        certificates.Add(withPrivateKey.ToServiceModel());
-                        break;
-                    default:
-                        certificates.Add(cert.ToServiceModel());
-                        break;
+                    using var appX509 = cert.AsX509Certificate2();
+                    var certificateType = DetermineCertificateType(appX509);
+                    var withPrivateKey = await certStore.LoadPrivateKeyAsync(
+                        appX509.Thumbprint, appX509.Subject, null,
+                        certificateType ?? NodeId.Null, Password.ToCharArray(),
+                        ct).ConfigureAwait(false);
+                    if (withPrivateKey != null)
+                    {
+                        using var pkX509 = withPrivateKey.AsX509Certificate2();
+                        certificates.Add(pkX509.ToServiceModel());
+                        continue;
+                    }
                 }
+                using var defX509 = cert.AsX509Certificate2();
+                certificates.Add(defX509.ToServiceModel());
             }
             return certificates;
         }
@@ -252,7 +251,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     await certStore.DeleteAsync(cert.Thumbprint, ct).ConfigureAwait(false);
                 }
 
-                await certStore.AddAsync(cert, (store == CertificateStoreName.Application ?
+                using var stackCertificate = Certificate.From(new X509Certificate2(cert));
+                await certStore.AddAsync(stackCertificate, (store == CertificateStoreName.Application ?
                     Password : password)?.ToCharArray(), ct).ConfigureAwait(false);
 
                 if (store == CertificateStoreName.Application)
@@ -262,18 +262,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     // not list of identifiers. Update the list of identifiers here.
                     //
                     var existing = Value.SecurityConfiguration.ApplicationCertificates;
-                    var certId = new CertificateIdentifier(cert);
-                    certId.CertificateType = DetermineCertificateType(cert);
-                    certId.StorePath = certStore.StorePath;
-                    certId.StoreType = certStore.StoreType;
-                    existing.Insert(0, certId);
-                    Value.SecurityConfiguration.ApplicationCertificates = existing;
+                    var certId = new CertificateIdentifier
+                    {
+                        RawData = cert.RawData,
+                        StorePath = certStore.StorePath,
+                        StoreType = certStore.StoreType
+                    };
+                    List<CertificateIdentifier> updated = [.. existing];
+                    updated.Insert(0, certId);
+                    Value.SecurityConfiguration.ApplicationCertificates = updated;
 
                     if (_options.Value.Security.AddAppCertToTrustedStore == true)
                     {
                         using var trustedCert = new X509Certificate2(cert);
                         using var trustedStore = await OpenAsync(CertificateStoreName.Trusted).ConfigureAwait(false);
-                        await trustedStore.AddAsync(trustedCert, ct: ct).ConfigureAwait(false);
+                        await trustedStore.AddAsync(Certificate.From(trustedCert), ct: ct).ConfigureAwait(false);
                     }
                 }
             }
@@ -432,7 +435,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 if (store == CertificateStoreName.Application)
                 {
-                    var existing = Value.SecurityConfiguration.ApplicationCertificates;
+                    List<CertificateIdentifier> existing =
+                        [.. Value.SecurityConfiguration.ApplicationCertificates];
                     existing.RemoveAll(c => c.Thumbprint == thumbprint);
                     Value.SecurityConfiguration.ApplicationCertificates = existing;
                 }
@@ -579,7 +583,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         .ConfigureAwait(false);
 
                     var ownCertificate =
-                        appConfig.SecurityConfiguration.ApplicationCertificate.Certificate;
+                        await LoadOwnCertificateAsync(appConfig).ConfigureAwait(false);
 
                     if (ownCertificate == null)
                     {
@@ -592,20 +596,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                     var hasAppCertificate =
                         await appInstance.CheckApplicationInstanceCertificatesAsync(true).ConfigureAwait(false);
-                    if (!hasAppCertificate ||
-                        appConfig.SecurityConfiguration.ApplicationCertificate.Certificate == null)
+                    ownCertificate ??= await LoadOwnCertificateAsync(appConfig).ConfigureAwait(false);
+                    if (!hasAppCertificate || ownCertificate == null)
                     {
                         _logger.LoadCertificateFailed();
                         throw new InvalidConfigurationException(
                             "OPC UA application own certificate invalid");
                     }
 
-                    if (ownCertificate == null)
-                    {
-                        ownCertificate =
-                            appConfig.SecurityConfiguration.ApplicationCertificate.Certificate;
-                        _logger.OwnCertificateCreated(ownCertificate.Subject, ownCertificate.Thumbprint);
-                    }
+                    _logger.OwnCertificateCreated(ownCertificate.Subject, ownCertificate.Thumbprint);
                     await ShowCertificateStoreInformationAsync(appConfig).ConfigureAwait(false);
                     return appInstance.ApplicationConfiguration;
                 }
@@ -671,17 +670,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
+        /// Load the configured own application certificate (if present).
+        /// </summary>
+        /// <param name="appConfig"></param>
+        private static async Task<Certificate?> LoadOwnCertificateAsync(
+            ApplicationConfiguration appConfig)
+        {
+            var identifier = appConfig.SecurityConfiguration.ApplicationCertificate;
+            if (identifier == null)
+            {
+                return null;
+            }
+            return await CertificateIdentifierResolver.ResolveAsync(
+                identifier,
+                registry: null,
+                needPrivateKey: false,
+                applicationUri: null,
+                telemetry: appConfig.CreateMessageContext().Telemetry).ConfigureAwait(false);
+        }
+
+        /// <summary>
         /// Show all certificates in the certificate stores.
         /// </summary>
         /// <param name="appConfig"></param>
         private async ValueTask ShowCertificateStoreInformationAsync(
             ApplicationConfiguration appConfig)
         {
+            var telemetry = appConfig.CreateMessageContext().Telemetry;
             // show application certs
             try
             {
-                using var certStore =
-                    appConfig.SecurityConfiguration.ApplicationCertificate.OpenStore();
+                var appId = appConfig.SecurityConfiguration.ApplicationCertificate;
+                using var certStore = new CertificateStoreIdentifier(
+                    appId.StorePath ?? string.Empty,
+                    appId.StoreType ?? string.Empty, false).OpenStore(telemetry);
                 var certs = await certStore.EnumerateAsync().ConfigureAwait(false);
                 var certNum = 1;
                 _logger.OwnStoreCount(certs.Count);
@@ -699,7 +721,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             try
             {
                 using var certStore = appConfig.SecurityConfiguration
-                    .TrustedIssuerCertificates.OpenStore();
+                    .TrustedIssuerCertificates.OpenStore(telemetry);
                 var certs = await certStore.EnumerateAsync().ConfigureAwait(false);
                 var certNum = 1;
                 _logger.TrustedIssuerCount(certs.Count);
@@ -727,7 +749,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             try
             {
                 using var certStore = appConfig.SecurityConfiguration
-                    .TrustedPeerCertificates.OpenStore();
+                    .TrustedPeerCertificates.OpenStore(telemetry);
                 var certs = await certStore.EnumerateAsync().ConfigureAwait(false);
                 var certNum = 1;
                 _logger.TrustedPeerCount(certs.Count);
@@ -755,7 +777,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             try
             {
                 using var certStore = appConfig.SecurityConfiguration
-                    .RejectedCertificateStore.OpenStore();
+                    .RejectedCertificateStore.OpenStore(telemetry);
                 var certs = await certStore.EnumerateAsync().ConfigureAwait(false);
                 var certNum = 1;
                 _logger.RejectedStoreCount(certs.Count);
@@ -908,31 +930,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             var configuration = await _configuration.ConfigureAwait(false);
             var security = configuration.SecurityConfiguration;
+            var telemetry = configuration.CreateMessageContext().Telemetry;
             switch (store)
             {
                 case CertificateStoreName.Application:
                     return security.ApplicationCertificates.OpenStore(_options.Value.Security);
                 case CertificateStoreName.Trusted:
                     Debug.Assert(security.TrustedPeerCertificates != null);
-                    return security.TrustedPeerCertificates.OpenStore();
+                    return security.TrustedPeerCertificates.OpenStore(telemetry);
                 case CertificateStoreName.Rejected:
                     Debug.Assert(security.RejectedCertificateStore != null);
-                    return security.RejectedCertificateStore.OpenStore();
+                    return security.RejectedCertificateStore.OpenStore(telemetry);
                 case CertificateStoreName.Issuer:
                     Debug.Assert(security.TrustedIssuerCertificates != null);
-                    return security.TrustedIssuerCertificates.OpenStore();
+                    return security.TrustedIssuerCertificates.OpenStore(telemetry);
                 case CertificateStoreName.User:
                     Debug.Assert(security.TrustedUserCertificates != null);
-                    return security.TrustedUserCertificates.OpenStore();
+                    return security.TrustedUserCertificates.OpenStore(telemetry);
                 case CertificateStoreName.UserIssuer:
                     Debug.Assert(security.UserIssuerCertificates != null);
-                    return security.UserIssuerCertificates.OpenStore();
+                    return security.UserIssuerCertificates.OpenStore(telemetry);
                 case CertificateStoreName.Https:
                     Debug.Assert(security.TrustedHttpsCertificates != null);
-                    return security.TrustedHttpsCertificates.OpenStore();
+                    return security.TrustedHttpsCertificates.OpenStore(telemetry);
                 case CertificateStoreName.HttpsIssuer:
                     Debug.Assert(security.HttpsIssuerCertificates != null);
-                    return security.HttpsIssuerCertificates.OpenStore();
+                    return security.HttpsIssuerCertificates.OpenStore(telemetry);
                 default:
                     throw new ArgumentException(
                         $"Bad unknown certificate store {store} specified.");

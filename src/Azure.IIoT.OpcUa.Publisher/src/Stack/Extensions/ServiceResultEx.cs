@@ -26,15 +26,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             // status codes. Preserve the historical "en-US" default to keep
             // the publisher's external contract stable.
             var localizedText = sr.LocalizedText;
-            var locale = localizedText?.Locale;
-            if (locale == null && !string.IsNullOrEmpty(localizedText?.Text))
+            var locale = localizedText.Locale;
+            if (locale == null && !string.IsNullOrEmpty(localizedText.Text))
             {
                 locale = "en-US";
             }
             return new ServiceResultModel
             {
                 StatusCode = sr.Code,
-                ErrorMessage = localizedText?.Text,
+                ErrorMessage = localizedText.Text,
                 Locale = locale,
                 AdditionalInfo = sr.AdditionalInfo,
                 NamespaceUri = sr.NamespaceUri,
@@ -118,10 +118,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 NamespaceUri = stringTable?.GetStringFromTable(diagnostics?.NamespaceUri),
                 Locale = locale,
                 AdditionalInfo = diagnostics?.AdditionalInfo,
-                Inner = diagnostics?.InnerStatusCode == null ||
+                Inner = diagnostics == null ||
                     diagnostics.InnerStatusCode == StatusCodes.Good ? null :
                     diagnostics.InnerStatusCode.CreateResultModel(
-                        diagnostics?.InnerDiagnosticInfo, stringTable)
+                        diagnostics.InnerDiagnosticInfo, stringTable)
             };
         }
 

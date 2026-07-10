@@ -156,7 +156,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 s => s.StatusCode, response.DiagnosticInfos, itemsToRead);
 
             var errorInfo = results.ErrorInfo ?? results[0].ErrorInfo;
-            var value = results.ErrorInfo != null ? null : results[0].Result;
+            var value = results.ErrorInfo != null ? (DataValue?)null : results[0].Result;
             return (value, errorInfo);
         }
 
@@ -236,12 +236,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 foreach (var result in readResults)
                 {
                     var path = (PathResult)result.Request.Handle;
-                    path.Path.Elements.Add(new RelativePathElement
+                    List<RelativePathElement> elements = [.. path.Path.Elements];
+                    elements.Add(new RelativePathElement
                     {
                         IsInverse = false,
                         IncludeSubtypes = false,
-                        TargetName = result.Result.Value as QualifiedName
+                        TargetName = result.Result.Value is QualifiedName qn
+                            ? qn : QualifiedName.Null
                     });
+                    path.Path.Elements = elements;
                 }
             }
 
@@ -257,7 +260,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                         {
                             ErrorInfo = result.ErrorInfo ?? new ServiceResultModel
                             {
-                                StatusCode = StatusCodes.BadNotFound
+                                StatusCode = StatusCodes.BadNotFound.Code
                             }
                         });
                     }
@@ -306,7 +309,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                         // Wrong path taken see if there are alternatives to get to root
                         // Backtrack the path elements and try to find a new route
                         //
-                        path.Path.Elements.RemoveAt(0);
+                        path.Path.RemoveAt(0);
                         while (pathsFromNode.Count > 0)
                         {
                             var alternativeReferences = pathsFromNode.Peek().Next;
@@ -318,8 +321,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                             }
 
                             // All paths at this level exhausted - backtrack a level.
-                            path.Path.Elements.RemoveAt(0);
-                            path.Path.Elements[0].ReferenceTypeId = null;
+                            path.Path.RemoveAt(0);
+                            path.Path.Elements[0].ReferenceTypeId = NodeId.Null;
                             pathsFromNode.Pop();
                         }
 
@@ -331,7 +334,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                             {
                                 ErrorInfo = result.ErrorInfo ?? new ServiceResultModel
                                 {
-                                    StatusCode = StatusCodes.BadNotFound
+                                    StatusCode = StatusCodes.BadNotFound.Code
                                 }
                             };
                             continue;
@@ -339,7 +342,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     }
 
                     path.Path.Elements[0].ReferenceTypeId = reference.ReferenceTypeId;
-                    path.Path.Elements.Insert(0, new RelativePathElement
+                    path.Path.Insert(0, new RelativePathElement
                     {
                         IsInverse = false,
                         IncludeSubtypes = false,
@@ -409,16 +412,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 return results;
             }
             // Fix up responses based on node class
-            for (var i = 0; i < results.Count; i++)
+            var fixedResults = readResponse.Results.ToArray();
+            if (fixedResults != null)
             {
-                if (results[i].ErrorInfo?.StatusCode ==
-                        StatusCodes.BadAttributeIdInvalid)
+                for (var i = 0; i < fixedResults.Length; i++)
                 {
-                    // Update result with default and set status to good.
-                    readResponse.Results[i].Value = AttributeMap.GetDefaultValue(
-                        nodeClass.Value, results[i].Request, true);
-                    readResponse.Results[i].StatusCode = StatusCodes.Good;
+                    if (results[i].ErrorInfo?.StatusCode ==
+                            StatusCodes.BadAttributeIdInvalid.Code)
+                    {
+                        // Update result with default and set status to good.
+                        fixedResults[i] = new DataValue(
+                            new Variant(AttributeMap.GetDefaultValue(
+                                nodeClass.Value, results[i].Request, true)),
+                            StatusCodes.Good);
+                    }
                 }
+                readResponse.Results = fixedResults;
             }
             return readResponse.Validate(readResponse.Results, s => s.StatusCode,
                 readResponse.DiagnosticInfos, attributes);
@@ -469,8 +478,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     }
                     if (StatusCode.IsBad(result.StatusCode))
                     {
-                        if (result.StatusCode.Code is StatusCodes.BadNodeIdUnknown or
-                            StatusCodes.BadUnexpectedError)
+                        if (result.StatusCode.Code == StatusCodes.BadNodeIdUnknown.Code ||
+                            result.StatusCode.Code == StatusCodes.BadUnexpectedError.Code)
                         {
                             return result.ErrorInfo;
                         }
@@ -605,7 +614,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     {
                         var variable = (BaseVariableState)readResult.Request.Handle;
                         variable.WrappedValue = readResult.Result.WrappedValue;
-                        variable.DataType = TypeInfo.GetDataTypeId(readResult.Result.Value);
+                        variable.DataType = TypeInfo.GetDataTypeId(readResult.Result.WrappedValue);
                         variable.StatusCode = readResult.Result.StatusCode;
                     }
                 }
@@ -750,7 +759,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     map.TryGetValue(relativePath, out var overriden);
 
                     var displayName =
-                        LocalizedText.IsNullOrEmpty(reference.DisplayName?.Text) ?
+                        string.IsNullOrEmpty(reference.DisplayName.Text) ?
                             reference.BrowseName.Name : reference.DisplayName.AsString();
                     var child = new InstanceDeclarationModel
                     {
@@ -897,7 +906,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     .GetValueOrDefaultEx<uint[]>()?.ToList(),
                 DataType = new DataTypeMetadataModel
                 {
-                    DataType = node.Value[Attributes.DataType].GetValueOrDefaultEx<NodeId>()?
+                    DataType = node.Value[Attributes.DataType].GetValueOrDefaultEx<NodeId>()
                         .AsString(session.MessageContext, namespaceFormat)
                 },
                 ValueRank = (NodeValueRank?)node.Value[Attributes.ValueRank]
@@ -974,7 +983,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     return result.ErrorInfo;
                 }
                 var continuationPoint = result.Result.ContinuationPoint;
-                var references = result.Result.References;
+                var references = result.Result.References.ToArray() ?? [];
                 IReadOnlyList<MethodMetadataArgumentModel>? outputArguments = null;
                 IReadOnlyList<MethodMetadataArgumentModel>? inputArguments = null;
                 string? objectId = null;
@@ -1020,8 +1029,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                                 session.Codec.Encode(new Variant(argument.Value), out var tmp),
                             ValueRank = argument.ValueRank == ValueRanks.Scalar ?
                                 null : (NodeValueRank)argument.ValueRank,
-                            ArrayDimensions = argument.ArrayDimensions?.ToList(),
-                            Description = argument.Description?.ToString(),
+                            ArrayDimensions = argument.ArrayDimensions.Count == 0
+                                ? null : argument.ArrayDimensions.ToArray(),
+                            Description = argument.Description.ToString(),
                             Type = dataTypeIdNode
                         };
                         argList.Add(arg);
@@ -1111,26 +1121,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     session.Codec.Encode(
                         value.Item1.WrappedValue, out var type),
                 SourceTimestamp =
-                    value.Item1.SourceTimestamp,
+                    (DateTime?)value.Item1.SourceTimestamp,
                 SourcePicoseconds =
                     value.Item1.SourcePicoseconds,
                 ServerTimestamp =
-                    value.Item1.ServerTimestamp,
+                    (DateTime?)value.Item1.ServerTimestamp,
                 ServerPicoseconds =
                     value.Item1.ServerPicoseconds,
                 ErrorInfo =
                     value.Item2,
                 BrowseName =
                     lookup[Attributes.BrowseName].Item1
-                        .GetValueOrDefaultEx<QualifiedName>()?
+                        .GetValueOrDefaultEx<QualifiedName>()
                         .AsString(session.MessageContext, namespaceFormat),
                 DisplayName =
                     lookup[Attributes.DisplayName].Item1
-                        .GetValueOrDefaultEx<LocalizedText>()?
+                        .GetValueOrDefaultEx<LocalizedText>()
                         .ToString(),
                 Description =
                     lookup[Attributes.Description].Item1
-                        .GetValueOrDefaultEx<LocalizedText>()?
+                        .GetValueOrDefaultEx<LocalizedText>()
                         .ToString(),
                 NodeClass =
                     lookup[Attributes.NodeClass].Item1
@@ -1147,7 +1157,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                         .GetValueOrDefaultEx<uint?>(),
                 DataType =
                     lookup[Attributes.DataType].Item1
-                        .GetValueOrDefaultEx<NodeId>()?
+                        .GetValueOrDefaultEx<NodeId>()
                         .AsString(session.MessageContext, namespaceFormat),
                 ArrayDimensions =
                     lookup[Attributes.ArrayDimensions].Item1
@@ -1185,7 +1195,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                         .GetValueOrDefaultEx<ExtensionObject>(), out _),
                 InverseName =
                     lookup[Attributes.InverseName].Item1
-                        .GetValueOrDefaultEx<LocalizedText>()?
+                        .GetValueOrDefaultEx<LocalizedText>()
                         .ToString(),
                 Symmetric =
                     lookup[Attributes.Symmetric].Item1
@@ -1287,7 +1297,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                         continue;
                     }
                     // check for continuation point.
-                    if (result.Result.ContinuationPoint?.Length > 0)
+                    if (result.Result.ContinuationPoint.Length > 0)
                     {
                         continuationPoints.Add(result.Result.ContinuationPoint);
                     }
@@ -1319,7 +1329,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                             continue;
                         }
                         // check for continuation point.
-                        if (result.Result.ContinuationPoint?.Length > 0)
+                        if (result.Result.ContinuationPoint.Length > 0)
                         {
                             continuationPoints.Add(result.Result.ContinuationPoint);
                         }
@@ -1345,7 +1355,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 }
             }
 
-            static bool Extract(List<FindResult> targetIds, ReferenceDescriptionCollection references)
+            static bool Extract(List<FindResult> targetIds, ArrayOf<ReferenceDescription> references)
             {
                 // get the node ids.
                 foreach (var reference in references)
@@ -1358,7 +1368,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                             new ServiceResultModel { ErrorMessage = "Target node is null or absolute" }));
                         continue;
                     }
-                    targetIds.Add(new FindResult(reference.BrowseName, reference.DisplayName?.Text,
+                    targetIds.Add(new FindResult(reference.BrowseName, reference.DisplayName.Text,
                         (NodeId)reference.NodeId, reference.TypeDefinition, reference.NodeClass));
                 }
                 return true;
@@ -1402,14 +1412,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     yield return new BrowseResult(null, null, firstResults.ErrorInfo);
                 }
                 var continuationPoints = firstResults
-                    .Where(r => r.Result.ContinuationPoint?.Length > 0)
+                    .Where(r => r.Result.ContinuationPoint.Length > 0)
                     .Select(r => (r.Request, r.Result.ContinuationPoint));
                 try
                 {
                     foreach (var result in firstResults)
                     {
                         yield return new BrowseResult(result.Request,
-                            result.Result.References, result.ErrorInfo);
+                            [.. result.Result.References], result.ErrorInfo);
                     }
                     while (true)
                     {
@@ -1432,11 +1442,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                         foreach (var result in nextResults)
                         {
                             yield return new BrowseResult(
-                                result.Request.Request, result.Result.References, result.ErrorInfo);
+                                result.Request.Request,
+                                [.. result.Result.References], result.ErrorInfo);
                         }
 
                         continuationPoints = continuationPoints.Concat(nextResults
-                            .Where(r => r.Result.ContinuationPoint?.Length > 0)
+                            .Where(r => r.Result.ContinuationPoint.Length > 0)
                             .Select(r => (r.Request.Request, r.Result.ContinuationPoint)));
                     }
                 }
@@ -1479,7 +1490,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 };
                 if (parentPath != null)
                 {
-                    browsePath.RelativePath.Elements.AddRange(parentPath.Elements);
+                    browsePath.RelativePath.AddRange(parentPath.Elements);
                 }
                 var element = new RelativePathElement
                 {
@@ -1488,7 +1499,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     IncludeSubtypes = false,
                     TargetName = child.BrowseName
                 };
-                browsePath.RelativePath.Elements.Add(element);
+                browsePath.RelativePath.Add(element);
                 browsePaths.Add(browsePath);
                 browsePaths = session.GetBrowsePathFromNodeState(rootId, child,
                     browsePath.RelativePath, browsePaths);
@@ -1497,3 +1508,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         }
     }
 }
+
+

@@ -182,14 +182,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var eventTypeIndex = evFilter?.SelectClauses.IndexOf(
                     evFilter.SelectClauses
                         .Find(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType
-                            && x.BrowsePath?.FirstOrDefault() == BrowseNames.EventType));
+                            && x.BrowsePath.Count != 0 &&
+                            x.BrowsePath[0] == BrowseNames.EventType));
 
                 var state = _conditionHandlingState;
 
                 // now, is this a regular event or RefreshStartEventType/RefreshEndEventType?
                 if (eventTypeIndex.HasValue && eventTypeIndex.Value != -1)
                 {
-                    var eventType = eventFields.EventFields[eventTypeIndex.Value].Value as NodeId;
+                    _ = eventFields.EventFields[eventTypeIndex.Value].TryGetValue(out NodeId eventType);
                     if (eventType == ObjectTypeIds.RefreshStartEventType)
                     {
                         // stop the timers during condition refresh
@@ -240,8 +241,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     retainIndex < monitoredItemNotifications.Count)
                 {
                     // Cache conditions
-                    var conditionId = monitoredItemNotifications[conditionIdIndex].Value?
-                        .Value?.ToString();
+                    var conditionValue = monitoredItemNotifications[conditionIdIndex].Value;
+                    var conditionId = conditionValue == null ||
+                        conditionValue.Value.WrappedValue == Variant.Null ? null :
+                        conditionValue.Value.WrappedValue.ToString();
                     if (conditionId != null)
                     {
                         var retain = monitoredItemNotifications[retainIndex].Value?
@@ -253,14 +256,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             state.Dirty = true;
                         }
                         else if (retain && !monitoredItemNotifications
-                            .All(m => m.Value?.Value == null))
+                            .All(m => m.Value == null || m.Value.Value.WrappedValue == Variant.Null))
                         {
                             state.Dirty = true;
                             monitoredItemNotifications.ForEach(n =>
                             {
-                                n.Value ??= new DataValue(StatusCodes.GoodNoData);
+                                var value = n.Value ?? DataValue.FromStatusCode(StatusCodes.GoodNoData);
                                 // Set SourceTimestamp to publish time
-                                n.Value.SourceTimestamp = publishTime.UtcDateTime;
+                                n.Value = new DataValue(value.WrappedValue, value.StatusCode,
+                                    publishTime.UtcDateTime, value.ServerTimestamp,
+                                    value.SourcePicoseconds, value.ServerPicoseconds);
                             });
                             state.Active.AddOrUpdate(conditionId, monitoredItemNotifications);
                         }
@@ -371,13 +376,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         TypeDefinitionId = ObjectTypeIds.ConditionType,
                         AttributeId = Attributes.NodeId
                     };
-                    eventFilter.SelectClauses.Add(selectClause);
+                    eventFilter.SelectClauses = eventFilter.SelectClauses.AddItem(selectClause);
                     internalSelectClauses.Add(selectClause);
                 }
 
                 var retainClause = eventFilter.SelectClauses
                     .Find(x => x.TypeDefinitionId == ObjectTypeIds.ConditionType &&
-                        x.BrowsePath?.FirstOrDefault() == BrowseNames.Retain);
+                        x.BrowsePath.Count != 0 && x.BrowsePath[0] == BrowseNames.Retain);
                 if (retainClause != null)
                 {
                     conditionHandlingState.RetainIndex =
@@ -387,8 +392,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     conditionHandlingState.RetainIndex = eventFilter.SelectClauses.Count;
                     var selectClause = new SimpleAttributeOperand(
-                        ObjectTypeIds.ConditionType, BrowseNames.Retain);
-                    eventFilter.SelectClauses.Add(selectClause);
+                        ObjectTypeIds.ConditionType, new QualifiedName(BrowseNames.Retain));
+                    eventFilter.SelectClauses = eventFilter.SelectClauses.AddItem(selectClause);
                     internalSelectClauses.Add(selectClause);
                 }
                 return conditionHandlingState;

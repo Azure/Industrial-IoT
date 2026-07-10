@@ -264,7 +264,8 @@ public sealed class FlatCertificateStore : ICertificateStoreType
                 }
 
                 // skip if not RSA certificate
-                return X509Utils.GetRSAPublicKeySize(certificate) >= 0;
+                using var stackCertificate = Certificate.From(new X509Certificate2(certificate));
+                return X509Utils.GetRSAPublicKeySize(stackCertificate) >= 0;
             }
             return false;
         }

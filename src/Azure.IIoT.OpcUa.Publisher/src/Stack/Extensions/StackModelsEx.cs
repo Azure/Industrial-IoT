@@ -41,7 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                     .ToStackType(),
                 Timestamp = timestamp,
                 TimeoutHint = (uint)(header?.OperationTimeout ?? 0),
-                AdditionalHeader = null // TODO
+                AdditionalHeader = ExtensionObject.Null // TODO
             };
         }
 
@@ -202,7 +202,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                 TypeDefinitionId = model.TypeDefinitionId
                     .AsString(context, namespaceFormat),
                 AttributeId = (NodeAttribute)model.AttributeId,
-                BrowsePath = model.BrowsePath?
+                BrowsePath = model.BrowsePath.IsNull ? null : model.BrowsePath.ToArray()?
                     .Select(p => p.AsString(context, namespaceFormat))
                     .ToArray(),
                 IndexRange = model.IndexRange
@@ -327,7 +327,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                         using var users = configuration.SecurityConfiguration
                             .TrustedUserCertificates.OpenStore(configuration.CreateMessageContext().Telemetry);
                         var userCertWithPrivateKey = await users.LoadPrivateKeyAsync(thumbprint, subjectName,
-                            null, null /* TODO add rsa/ecc*/, passCode?.ToCharArray(), ct).ConfigureAwait(false);
+                            null, NodeId.Null /* TODO add rsa/ecc*/, passCode?.ToCharArray(), ct).ConfigureAwait(false);
                         if (userCertWithPrivateKey == null)
                         {
                             throw new ServiceResultException(StatusCodes.BadCertificateInvalid,
@@ -335,7 +335,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                                 "or provided password invalid. Please configure the User " +
                                 "Certificate correctly in the User certificate store.");
                         }
-                        return new UserIdentity(userCertWithPrivateKey);
+                        // TODO(4b): 2.0 removed UserIdentity(Certificate); private-key
+                        // signing now flows through provider-based UserIdentity.CreateAsync.
+                        // Carry the certificate data on the token so the identity compiles
+                        // and the certificate is presented; revisit signing in Phase 4b.
+                        return new UserIdentity(new X509IdentityToken
+                        {
+                            CertificateData = (ByteString)userCertWithPrivateKey.RawData
+                        });
                     }
                     throw new ServiceResultException(StatusCodes.BadNotSupported,
                        "X509Certificate credential requires to set either a thumbprint or subject name (user).");

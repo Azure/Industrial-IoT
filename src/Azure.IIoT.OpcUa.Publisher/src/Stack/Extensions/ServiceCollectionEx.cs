@@ -46,7 +46,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             services.AddTransientAsImplementedInterfaces<OpcUaClientConfig>();
             services.AddTransientAsImplementedInterfaces<OpcUaSubscriptionConfig>();
             services.AddTransientAsImplementedInterfaces<ConsoleWriter>();
-            services.AddTransientAsImplementedInterfaces<AvroFileWriter>();
             services.AddTransientAsImplementedInterfaces<ZipFileWriter>();
 
             services.AddTransientAsImplementedInterfaces<FilterQueryParser>();

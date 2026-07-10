@@ -62,7 +62,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                     continue;
                 }
                 if (query.Certificate != null &&
-                    query.Certificate != ep.Description.ServerCertificate.ToThumbprint())
+                    query.Certificate != ep.Description.ServerCertificate.ToArray().ToThumbprint())
                 {
                     // no match
                     continue;

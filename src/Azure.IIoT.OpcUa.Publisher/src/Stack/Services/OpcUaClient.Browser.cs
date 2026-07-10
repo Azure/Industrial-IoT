@@ -212,21 +212,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         bool repeatBrowse;
                         var allBrowseResults = new List<(NodeId, RelativePath, BrowseResult)>();
                         var unprocessedOperations = new BrowseDescriptionCollection();
-                        BrowseResultCollection? browseResultCollection = null;
+                        IReadOnlyList<BrowseResult>? browseResultCollection = null;
                         do
                         {
                             var browseCollection = maxNodesPerBrowse == 0
                                 ? browseDescriptionCollection
-                                : browseDescriptionCollection.Take((int)maxNodesPerBrowse).ToArray();
+                                : new BrowseDescriptionCollection(
+                                    browseDescriptionCollection.Take((int)maxNodesPerBrowse));
                             repeatBrowse = false;
                             try
                             {
                                 var browseResponse = await session.BrowseAsync(null, null,
                                     kMaxReferencesPerNode, browseCollection, ct).ConfigureAwait(false);
-                                browseResultCollection = browseResponse.Results;
+                                browseResultCollection = browseResponse.Results.ToArray() ?? [];
                                 ClientBase.ValidateResponse(browseResultCollection, browseCollection);
                                 ClientBase.ValidateDiagnosticInfos(
-                                    browseResponse.DiagnosticInfos, browseCollection);
+                                    browseResponse.DiagnosticInfos.ToArray() ?? [], browseCollection);
 
                                 // seperate unprocessed nodes for later
                                 for (var index = 0; index < browseResultCollection.Count; index++)
@@ -268,6 +269,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                         // Browse next
                         Debug.Assert(browseResultCollection != null);
+                        if (browseResultCollection == null)
+                        {
+                            break;
+                        }
                         var (nodeIds, continuationPoints) = PrepareBrowseNext(
                             new NodeIdCollection(browseDescriptionCollection
                                 .Take(browseResultCollection.Count).Select(r => r.NodeId)),
@@ -276,10 +281,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         {
                             var browseNextResult = await session.BrowseNextAsync(null, false,
                                 continuationPoints, ct).ConfigureAwait(false);
-                            var browseNextResultCollection = browseNextResult.Results;
+                            var browseNextResultCollection = browseNextResult.Results.ToArray() ?? [];
                             ClientBase.ValidateResponse(browseNextResultCollection, continuationPoints);
                             ClientBase.ValidateDiagnosticInfos(
-                                browseNextResult.DiagnosticInfos, continuationPoints);
+                                browseNextResult.DiagnosticInfos.ToArray() ?? [], continuationPoints);
 
                             allBrowseResults.AddRange(browseNextResultCollection
                                 .Select((r, i) => (browseDescriptionCollection[i].NodeId,
@@ -293,20 +298,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         }
                         else
                         {
-                            browseDescriptionCollection = browseDescriptionCollection
-                                .Skip(browseResultCollection.Count)
-                                .ToArray();
+                            browseDescriptionCollection = new BrowseDescriptionCollection(
+                                browseDescriptionCollection.Skip(browseResultCollection.Count));
                         }
 
                         static (NodeIdCollection, ByteStringCollection) PrepareBrowseNext(
-                            NodeIdCollection browseSourceCollection, BrowseResultCollection results)
+                            NodeIdCollection browseSourceCollection, IReadOnlyList<BrowseResult> results)
                         {
                             var continuationPoints = new ByteStringCollection();
                             var nodeIdCollection = new NodeIdCollection();
                             for (var i = 0; i < results.Count; i++)
                             {
                                 var browseResult = results[i];
-                                if (browseResult.ContinuationPoint != null)
+                                if (!browseResult.ContinuationPoint.IsNull &&
+                                    browseResult.ContinuationPoint.Length > 0)
                                 {
                                     nodeIdCollection.Add(browseSourceCollection[i]);
                                     continuationPoints.Add(browseResult.ContinuationPoint);
@@ -320,7 +325,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         foreach (var (source, path, browseResult) in allBrowseResults)
                         {
                             var nodesToRead = new List<NodeId>();
-                            foreach (var reference in browseResult.References)
+                            foreach (var reference in browseResult.References.ToArray() ?? [])
                             {
                                 if (foundReferences.TryAdd(reference, (source, path)))
                                 {
@@ -334,14 +339,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     var targetNodeId = ExpandedNodeId.ToNodeId(reference.NodeId, session.NamespaceUris);
                                     var targetPath = new RelativePath
                                     {
-                                        Elements = new RelativePathElementCollection(path.Elements
+                                        Elements = (path.Elements.ToArray() ?? [])
                                             .Append(new RelativePathElement
                                             {
                                                 TargetName = reference.BrowseName,
                                                 IsInverse = false,
                                                 IncludeSubtypes = false,
                                                 ReferenceTypeId = reference.ReferenceTypeId
-                                            }))
+                                            })
+                                            .ToList()
                                     };
                                     browseTable.Add((targetNodeId, targetPath));
                                     await ReadNodeAsync(session, targetNodeId, targetPath,

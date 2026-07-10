@@ -24,6 +24,47 @@ namespace Opc.Ua
         public static bool IsNull(ExpandedNodeId? nodeId) => nodeId is null || nodeId.Value.IsNull;
     }
 
+    // TODO(Phase 4b/5): In 2.0 RelativePath.Elements is an immutable ArrayOf<T>
+    // with no Add/Insert/RemoveAt. These helpers restore the classic in-place
+    // mutation shape used by the browse-path resolver by rebuilding the list.
+    /// <summary> Compat mutation helpers for RelativePath. </summary>
+    public static class RelativePathCompat
+    {
+        /// <summary> Append an element. </summary>
+        public static void Add(this RelativePath path, RelativePathElement element)
+        {
+            List<RelativePathElement> elements = [.. path.Elements];
+            elements.Add(element);
+            path.Elements = elements;
+        }
+
+        /// <summary> Insert an element. </summary>
+        public static void Insert(this RelativePath path, int index,
+            RelativePathElement element)
+        {
+            List<RelativePathElement> elements = [.. path.Elements];
+            elements.Insert(index, element);
+            path.Elements = elements;
+        }
+
+        /// <summary> Remove an element at index. </summary>
+        public static void RemoveAt(this RelativePath path, int index)
+        {
+            List<RelativePathElement> elements = [.. path.Elements];
+            elements.RemoveAt(index);
+            path.Elements = elements;
+        }
+
+        /// <summary> Append a range of elements. </summary>
+        public static void AddRange(this RelativePath path,
+            ArrayOf<RelativePathElement> range)
+        {
+            List<RelativePathElement> elements = [.. path.Elements];
+            elements.AddRange([.. range]);
+            path.Elements = elements;
+        }
+    }
+
     // TODO(Phase 4b/5): The UA-.NETStandard 2.0 stack removed the generated
     // typed "XxxCollection" classes in favour of ArrayOf<Xxx>. To keep the
     // Publisher stack layer (which constructs and mutates these collections)
@@ -97,6 +138,17 @@ namespace Opc.Ua
         public ExtensionObjectCollection(int capacity) : base(capacity) { }
         /// <summary> Create from collection. </summary>
         public ExtensionObjectCollection(IEnumerable<ExtensionObject> collection) : base(collection) { }
+    }
+
+    /// <summary> Compat collection. </summary>
+    public sealed class StructureFieldCollection : List<StructureField>
+    {
+        /// <summary> Create empty. </summary>
+        public StructureFieldCollection() { }
+        /// <summary> Create with capacity. </summary>
+        public StructureFieldCollection(int capacity) : base(capacity) { }
+        /// <summary> Create from collection. </summary>
+        public StructureFieldCollection(IEnumerable<StructureField> collection) : base(collection) { }
     }
 
     /// <summary> Compat collection. </summary>
@@ -298,4 +350,3 @@ namespace Opc.Ua
     }
 
 }
-

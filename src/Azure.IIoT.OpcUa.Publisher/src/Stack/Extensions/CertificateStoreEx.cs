@@ -14,6 +14,7 @@ namespace Opc.Ua
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
+    using Opc.Ua.Security.Certificates;
 
     /// <summary>
     /// Certificate store extensions
@@ -39,7 +40,8 @@ namespace Opc.Ua
             {
                 await Try.Async(() => store.DeleteAsync(cert.Thumbprint, ct)).ConfigureAwait(false);
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                await store.AddAsync(noCopy ? cert : new X509Certificate2(cert), ct: ct).ConfigureAwait(false);
+                await store.AddAsync(Certificate.From(noCopy ? cert : new X509Certificate2(cert)),
+                    ct: ct).ConfigureAwait(false);
 #pragma warning restore CA2000 // Dispose objects before losing scope
             }
         }
@@ -118,6 +120,31 @@ namespace Opc.Ua
         }
 
         /// <summary>
+        /// Applies the configuration settings to the own app certificate
+        /// identifiers (2.0 immutable ArrayOf collection).
+        /// </summary>
+        /// <param name="certificateIdentifiers"></param>
+        /// <param name="certificateStore"></param>
+        public static void ApplyLocalConfig(
+            this ArrayOf<CertificateIdentifier> certificateIdentifiers,
+            CertificateInfo? certificateStore)
+        {
+            if (certificateStore == null)
+            {
+                return;
+            }
+
+            foreach (var certificateIdentifier in certificateIdentifiers)
+            {
+                if (certificateIdentifier.StorePath != certificateStore.StorePath)
+                {
+                    certificateIdentifier.StoreType = certificateStore.StoreType;
+                    certificateIdentifier.StorePath = certificateStore.StorePath;
+                }
+            }
+        }
+
+        /// <summary>
         /// Applies the configuration settings to the own app certificate.
         /// </summary>
         /// <param name="certificateIdentifiers"></param>
@@ -136,12 +163,37 @@ namespace Opc.Ua
                     .All(x => x.StorePath == certificateIdentifiers[0].StorePath));
                 Debug.Assert(certificateIdentifiers
                     .All(x => x.StoreType == certificateIdentifiers[0].StoreType));
-                return certificateIdentifiers[0].OpenStore();
+                var identifier = certificateIdentifiers[0];
+                return new CertificateStoreIdentifier(identifier.StorePath ?? string.Empty,
+                    identifier.StoreType ?? string.Empty, noPrivateKey).OpenStore(null!);
             }
 
             ArgumentNullException.ThrowIfNull(options.ApplicationCertificates);
             return new CertificateStoreIdentifier(options.ApplicationCertificates.StorePath,
-                options.ApplicationCertificates.StoreType, noPrivateKey).OpenStore();
+                options.ApplicationCertificates.StoreType, noPrivateKey).OpenStore(null!);
+        }
+
+        /// <summary>
+        /// Open store from the 2.0 immutable ArrayOf certificate identifier
+        /// collection.
+        /// </summary>
+        /// <param name="certificateIdentifiers"></param>
+        /// <param name="options"></param>
+        /// <param name="noPrivateKey"></param>
+        public static ICertificateStore OpenStore(
+            this ArrayOf<CertificateIdentifier> certificateIdentifiers,
+            SecurityOptions options, bool noPrivateKey = false)
+        {
+            if (certificateIdentifiers.Count > 0)
+            {
+                var identifier = certificateIdentifiers[0];
+                return new CertificateStoreIdentifier(identifier.StorePath ?? string.Empty,
+                    identifier.StoreType ?? string.Empty, noPrivateKey).OpenStore(null!);
+            }
+
+            ArgumentNullException.ThrowIfNull(options.ApplicationCertificates);
+            return new CertificateStoreIdentifier(options.ApplicationCertificates.StorePath,
+                options.ApplicationCertificates.StoreType, noPrivateKey).OpenStore(null!);
         }
 
         /// <summary>

@@ -35,7 +35,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             {
                 return (null, new ServiceResultModel
                 {
-                    StatusCode = StatusCodes.BadNotSupported,
+                    StatusCode = StatusCodes.BadNotSupported.Code,
                     ErrorMessage = "Namespace not found - asset connectivity not supported."
                 });
             }
@@ -93,7 +93,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             {
                 return (null, new ServiceResultModel
                 {
-                    StatusCode = StatusCodes.BadNotSupported,
+                    StatusCode = StatusCodes.BadNotSupported.Code,
                     ErrorMessage = "Namespace not found - asset connectivity not supported."
                 });
             }
@@ -118,7 +118,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             errorInfo = results.FirstOrDefault(d => d.ErrorInfo != null).ErrorInfo;
             errorInfo ??= new ServiceResultModel
             {
-                StatusCode = StatusCodes.BadNotFound,
+                StatusCode = StatusCodes.BadNotFound.Code,
                 ErrorMessage = "No file found for asset."
             };
             return (null, errorInfo);
@@ -140,7 +140,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             {
                 return new ServiceResultModel
                 {
-                    StatusCode = StatusCodes.BadNotSupported,
+                    StatusCode = StatusCodes.BadNotSupported.Code,
                     ErrorMessage = "Namespace not found - asset connectivity not supported."
                 };
             }
@@ -185,7 +185,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             {
                 return new ServiceResultModel
                 {
-                    StatusCode = StatusCodes.BadNotSupported,
+                    StatusCode = StatusCodes.BadNotSupported.Code,
                     ErrorMessage = "Namespace not found - asset connectivity not supported."
                 };
             }

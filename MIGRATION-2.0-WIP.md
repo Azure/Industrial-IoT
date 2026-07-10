@@ -44,21 +44,36 @@ later stage. Nothing is deleted from disk — only the solution membership chang
 - `src/Azure.IIoT.OpcUa.Publisher.Models/src` + `tests`
 - `src/Azure.IIoT.OpcUa.Publisher.Sdk/src`
 
-## Stage 2 (in progress) — `Azure.IIoT.OpcUa.Publisher` (+ Module.src) on 2.0
+## Stage 2 (this commit) — `Azure.IIoT.OpcUa.Publisher` + `Module.src` + `Sdk` on 2.0
 
-Stage 2 migrates the Publisher engine, Module host, and SDK onto the 2.0 stack.
-The **architectural** 2.0 API deltas have landed on disk (see below), but the
-**body-level value-type ripple** (2.0 turned `NodeId`, `ExpandedNodeId`,
-`QualifiedName`, `LocalizedText`, `DataValue`, `StatusCode`, `ByteString` into
-readonly value types, and replaced every generated `XxxCollection` with the
-`ArrayOf<T>` readonly struct) is **not yet fully resolved** — `Azure.IIoT.OpcUa.Publisher`
-still has a large residual error count. Because it does not yet build green,
-`Azure.IIoT.OpcUa.Publisher/src` and `Azure.IIoT.OpcUa.Publisher.Module/src`
-remain **descoped** from `Industrial-IoT.slnx` so every commit stays green.
-The `Azure.IIoT.OpcUa.Publisher.Sdk` continues to build green (it depends on
-Models, not the Publisher engine) and stays in scope.
+Stage 2 migrates the Publisher engine, Module host, and SDK onto the 2.0 stack and
+lands them **green** in `Industrial-IoT.slnx`. The 2.0 API deltas (2.0 turned
+`NodeId`, `ExpandedNodeId`, `QualifiedName`, `LocalizedText`, `DataValue`,
+`StatusCode`, `ByteString` into readonly value types, and replaced every generated
+`XxxCollection` with the `ArrayOf<T>` readonly struct) are fully resolved for these
+projects. `Azure.IIoT.OpcUa.Publisher/src`, `Azure.IIoT.OpcUa.Publisher.Module/src`,
+and `Azure.IIoT.OpcUa.Publisher.Sdk` now build with **0 errors** in the solution.
 
-**Landed on disk this stage (architectural deltas — reusable, resumable):**
+**In scope this stage (build green in `Industrial-IoT.slnx`):**
+
+- Everything from Stage 1, plus
+- `src/Azure.IIoT.OpcUa.Publisher/src` (Publisher engine)
+- `src/Azure.IIoT.OpcUa.Publisher.Module/src` (ASP.NET Core IoT Edge host)
+- `src/Azure.IIoT.OpcUa.Publisher.Sdk/src`
+
+**Deferred inside the migrated code:**
+
+- **Phase 4b**: X509 challenge-signing for `UserIdentity` (2.0 uses the
+  provider-based `UserIdentity.CreateAsync(CertificateIdentifier, ...)` lazy-signing
+  path). Stage 2 presents the certificate via `new UserIdentity(new X509IdentityToken
+  { CertificateData = ... })` (`StackModelsEx.cs`, tagged `TODO(4b)`) — compiles and
+  presents the cert but does not perform the private-key challenge signature.
+  Classic sessions are kept throughout (no `ManagedSession`).
+- **Phase 5**: JSON PubSub telemetry call paths that route through the
+  `TODO(Phase 5)` stub encoders remain stubbed (Avro command-line options
+  `--daf/--asj` removed with the Avro drop).
+
+**Landed on disk this stage (architectural deltas):**
 
 - `Stack/OpcUaCollectionCompat.cs` (new) — a compat shim declaring the removed
   `XxxCollection : List<Xxx>` types in `namespace Opc.Ua` (exploiting the
@@ -89,33 +104,26 @@ Models, not the Publisher engine) and stays in scope.
   `ArrayOf<T>`, which is not `IEnumerable<T>`).
 - Bulk mechanical: `NodeId.IsNull(x)` → `NodeIdCompat.IsNull(x)` (57 files);
   `.Item1?` → `.Item1` on now-non-null `DataValue` tuples in `SessionEx`.
-
-**Remaining for Stage 2 completion (body-wave, context-sensitive — must be hand-fixed):**
-
-- Value-type `?.` removal on `DataValue` / `NodeId` / `QualifiedName` /
-  `LocalizedText` (CS0023, ~100).
-- `StatusCode` ↔ `uint` (`switch` on `StatusCode`, `(uint)` casts) (CS9135/CS0266, ~160).
-- `ArrayOf<T>` mutation sites (`.Add` / `.Insert` / `.RemoveAt` on
-  `RelativePath.Elements`, `EventFilter.SelectClauses`) → build a `List<T>` and assign (CS1061).
-- `ByteString` explicit casts; `DataValue` readonly-property construction via ctor;
-  `null` → `NodeId.Null` / `QualifiedName.Null`; `ExpandedNodeId.ToNodeId(NamespaceTable)`;
-  `PropertyState<T>` now abstract (NodeServices node construction, CS0144 ~62).
-- The hidden `ComplexTypeSystem` wave (~62 uses) still behind the current errors.
-- `Module.src` (controllers / Startup / runtime) + any remaining `Sdk` deltas.
+- Body-wave resolved: value-type `?.` removal (CS0023), `StatusCode`↔`uint`
+  (CS9135/CS0266), `ArrayOf<T>` mutation via `List<T>` rebuild (CS1061),
+  `ByteString` casts, `DataValue` readonly construction, `PropertyState<T>`
+  abstract construction (CS0144), and the `ComplexTypeSystem` wave, all adapted
+  to the 2.0 API. `LangVersion` raised to 14.0 in `common.props`.
+- `Module.src`: removed the deleted-Avro `AvroWriter` config class + its DI
+  registration (`Runtime/Configuration.cs`) and the `--daf/disableavrofiles`
+  command-line option (`Runtime/CommandLine.cs`).
 
 ## Temporarily descoped from `Industrial-IoT.slnx` (to be migrated in later stages)
 
 | Project | Reason | Target stage |
 | --- | --- | --- |
-| `src/Azure.IIoT.OpcUa.Publisher/src` | Architectural 2.0 deltas landed (certificates/node-cache/session-factory/collection shims — see Stage 2 section); residual body-wave value-type ripple (`ArrayOf<T>`, struct `NodeId`/`DataValue`/`StatusCode`, `PropertyState<T>` abstract, `ComplexTypeSystem`) still to hand-fix | Stage 2 (Publisher) |
-| `src/Azure.IIoT.OpcUa.Publisher/tests` | depends on Publisher.src | Stage 2 |
-| `src/Azure.IIoT.OpcUa.Publisher.Module/src` | depends on Publisher.src; ASP.NET host wiring not yet adapted | Stage 2 |
-| `src/Azure.IIoT.OpcUa.Publisher.Module/tests` | depends on Module.src | Stage 2 |
-| `src/Azure.IIoT.OpcUa.Publisher.Module/cli` | depends on Module.src | Stage 2 |
+| `src/Azure.IIoT.OpcUa.Publisher/tests` | depends on Testing.Servers fixtures; also references deleted forked codecs / Phase-5 stubs | Stage 3 |
+| `src/Azure.IIoT.OpcUa.Publisher.Module/tests` | depends on Testing.Servers + Module integration | Stage 3 |
+| `src/Azure.IIoT.OpcUa.Publisher.Module/cli` | depends on Testing.Servers | Stage 3 |
 | `src/Azure.IIoT.OpcUa.Publisher.Testing/src` (Servers) | ~388 errors against the 2.0 `Opc.Ua.Server` NodeManager API (node-states, `INodeManager3`, clone/read/write) | Stage 3 (Testing.Servers / Phase 9A) |
 | `src/Azure.IIoT.OpcUa.Publisher.Testing/tests` | depends on Testing.Servers | Stage 3 |
 | `src/Azure.IIoT.OpcUa.Publisher.Testing/cli` | depends on Testing.Servers | Stage 3 |
-| `src/Azure.IIoT.OpcUa/tests` | `EncodeableDictionaryTests` / `JsonDataSetTests` reference the deleted forked codecs; JSON PubSub tests exercise the `TODO(Phase 5)` stubs; expected values need rewiring to the 2.0 codec output | Stage 2/5 (test rewiring) |
+| `src/Azure.IIoT.OpcUa/tests` | `EncodeableDictionaryTests` / `JsonDataSetTests` reference the deleted forked codecs; JSON PubSub tests exercise the `TODO(Phase 5)` stubs; expected values need rewiring to the 2.0 codec output | Stage 4/5 (test rewiring) |
 
 ## Constraints (unchanged across stages)
 

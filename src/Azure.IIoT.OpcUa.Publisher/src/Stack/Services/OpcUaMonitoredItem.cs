@@ -777,8 +777,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Id = dataSetClassFieldId,
                 DataType = variable.DataType.AsString(session.MessageContext,
                     NamespaceFormat.Expanded),
-                ArrayDimensions = variable.ArrayDimensions?.Count > 0
-                    ? variable.ArrayDimensions : null,
+                ArrayDimensions = variable.ArrayDimensions.Count > 0
+                    ? variable.ArrayDimensions.ToArray() : null,
                 Description = variable.Description.AsString(),
                 ValueRank = variable.ValueRank,
                 MaxStringLength = 0,
@@ -860,7 +860,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     var dtNode = await session.LruNodeCache.GetNodeAsync(dataTypeId,
                                             ct).ConfigureAwait(false);
                                     if (dtNode is DataTypeNode v &&
-                                        v.DataTypeDefinition?.Body is DataTypeDefinition t)
+                                        v.DataTypeDefinition.Body is DataTypeDefinition t)
                                     {
                                         types ??= [];
                                         types.Add(dataTypeId, t);
@@ -889,7 +889,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                                     DefaultEncodingId = s.DefaultEncodingId.AsString(
                                                         session.MessageContext, NamespaceFormat.Expanded),
                                                     StructureType = s.StructureType.ToServiceType(),
-                                                    Fields = GetFields(s.Fields, typesToResolve,
+                                                    Fields = GetFields(
+                                                        new StructureFieldCollection(s.Fields.ToArray() ?? []),
+                                                        typesToResolve,
                                                         session.MessageContext, NamespaceFormat.Expanded)
                                                         .ToList()
                                                 },
@@ -900,7 +902,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                                     Name = browseName,
                                                     BuiltInType = null,
                                                     IsOptionSet = e.IsOptionSet,
-                                                    Fields = e.Fields
+                                                    Fields = (e.Fields.ToArray() ?? [])
                                                         .Select(f => new EnumFieldDescriptionModel
                                                         {
                                                             Value = f.Value,
@@ -977,7 +979,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             IsOptional = f.IsOptional,
                             MaxStringLength = f.MaxStringLength,
                             ValueRank = f.ValueRank,
-                            ArrayDimensions = f.ArrayDimensions,
+                            ArrayDimensions = [.. f.ArrayDimensions],
                             DataType = f.DataType.AsString(context, namespaceFormat)
                                 ?? string.Empty,
                             Name = f.Name,

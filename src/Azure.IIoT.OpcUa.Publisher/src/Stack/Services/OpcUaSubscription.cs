@@ -1082,7 +1082,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     var resolvedId = NodeId.Null;
                     if (result.ErrorInfo == null && result.Result.Targets.Count == 1)
                     {
-                        resolvedId = result.Result.Targets[0].TargetId.ToNodeId(
+                        resolvedId = ExpandedNodeId.ToNodeId(result.Result.Targets[0].TargetId,
                             session.MessageContext.NamespaceUris);
                         result.Request!.Value.Update(resolvedId, session.MessageContext);
                     }
@@ -1143,7 +1143,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     new RequestHeader(), new NodeIdCollection(registrations
                         .Select(a => a!.Value.NodeId.ToNodeId(session.MessageContext))),
                     ct).ConfigureAwait(false);
-                foreach (var (First, Second) in response.RegisteredNodeIds.Zip(registrations))
+                foreach (var (First, Second) in response.RegisteredNodeIds.ToArray()!.Zip(registrations))
                 {
                     Debug.Assert(Second != null);
                     if (!NodeIdCompat.IsNull(First))
@@ -1316,10 +1316,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         foreach (var result in results)
                         {
                             string? displayName = null;
-                            if (result.Result.Value is not null)
+                            if (result.Result.WrappedValue.TryGetValue(out LocalizedText localizedText))
                             {
-                                displayName =
-                                    (result.Result.Value as LocalizedText)?.ToString();
+                                displayName = localizedText.ToString();
                                 metadataChanged.Add(result.Request.Owner);
                             }
                             else
@@ -1921,12 +1920,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="notification"></param>
         /// <param name="stringTable"></param>
         private void OnSubscriptionEventNotificationList(Subscription subscription,
-            EventNotificationList notification, IList<string>? stringTable)
+            EventNotificationList notification, ArrayOf<string> stringTable)
         {
             Debug.Assert(ReferenceEquals(subscription, this));
             ObjectDisposedException.ThrowIf(_disposed, this);
 
-            if (notification?.Events == null)
+            if (notification?.Events == null || notification.Events.IsNull)
             {
                 _logger.EmptyEventNotification(this);
                 return;
@@ -1951,9 +1950,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             try
             {
                 var sequenceNumber = notification.SequenceNumber;
-                var publishTime = DateTime.SpecifyKind(notification.PublishTime, DateTimeKind.Utc);
+                var publishTime = DateTime.SpecifyKind((DateTime)notification.PublishTime, DateTimeKind.Utc);
 
-                Debug.Assert(notification.Events != null);
+                Debug.Assert(!notification.Events.IsNull);
 
                 if (sequenceNumber == 1)
                 {
@@ -2070,7 +2069,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             try
             {
                 var sequenceNumber = notification.SequenceNumber;
-                var publishTime = DateTime.SpecifyKind(notification.PublishTime, DateTimeKind.Utc);
+                var publishTime = DateTime.SpecifyKind((DateTime)notification.PublishTime, DateTimeKind.Utc);
 
                 // in case of a keepalive,the sequence number is not incremented by the servers
                 _logger.KeepAliveReceived(this, sequenceNumber, publishTime);
@@ -2139,7 +2138,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             try
             {
                 var collector = new OpcUaMonitoredItem.MonitoredItemNotifications();
-                foreach (var cyclicDataChange in values.OrderBy(m => m.Value?.SourceTimestamp))
+                foreach (var cyclicDataChange in values.OrderBy(m => m.Value.SourceTimestamp))
                 {
                     if (TryGetMonitoredItemForNotification(cyclicDataChange.ClientHandle, out var monitoredItem) &&
                         !monitoredItem.TryGetMonitoredItemNotifications(publishTime, cyclicDataChange, collector))
@@ -2194,7 +2193,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="notification"></param>
         /// <param name="stringTable"></param>
         private void OnSubscriptionDataChangeNotification(Subscription subscription,
-            DataChangeNotification notification, IList<string>? stringTable)
+            DataChangeNotification notification, ArrayOf<string> stringTable)
         {
             Debug.Assert(ReferenceEquals(subscription, this));
             ObjectDisposedException.ThrowIf(_disposed, this);
@@ -2215,7 +2214,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             try
             {
                 var sequenceNumber = notification.SequenceNumber;
-                var publishTime = DateTime.SpecifyKind(notification.PublishTime, DateTimeKind.Utc);
+                var publishTime = DateTime.SpecifyKind((DateTime)notification.PublishTime, DateTimeKind.Utc);
 
                 // All notifications have the same message and thus sequence number
                 if (sequenceNumber == 1)
@@ -2268,7 +2267,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             firstDataChangeReceived ? MessageType.DeltaFrame : MessageType.KeyFrame
                     };
 #pragma warning restore CA2000 // Dispose objects before losing scope
-                    Debug.Assert(notification.MonitoredItems != null);
+                    Debug.Assert(!notification.MonitoredItems.IsNull);
 
                     callback.OnSubscriptionDataChangeReceived(message);
                     Debug.Assert(message.Notifications != null);

@@ -55,7 +55,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             TimeProvider = timeProvider ?? TimeProvider.System;
 
             _root = null!;
-            _referenceTypeId = null!;
+            _referenceTypeId = NodeId.Null;
 
             Initialize(maxDepth, root, nodeClass, typeDefinitionId,
                 includeTypeDefinitionSubtypes, referenceTypeId,
@@ -175,9 +175,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 return HandleError(context, results.ErrorInfo);
             }
-            var refs = MatchReferences(frame, context, results[0].Result.References,
+            var refs = MatchReferences(frame, context,
+                new ReferenceDescriptionCollection(results[0].Result.References.ToArray() ?? []),
                 results[0].ErrorInfo);
-            var continuation = results[0].Result.ContinuationPoint ?? [];
+            var continuation = results[0].Result.ContinuationPoint.ToArray();
             if (continuation.Length > 0)
             {
                 Push(context => BrowseNextAsync(context, continuation, frame));
@@ -201,7 +202,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             using var trace = _activitySource.StartActivity("BrowseNext");
 
-            var continuationPoints = new ByteStringCollection { continuationPoint };
+            var continuationPoints = new ByteStringCollection { (ByteString)continuationPoint };
             var response = await context.Session.Services.BrowseNextAsync(
                 Header.ToRequestHeader(TimeProvider), false, continuationPoints,
                 context.Ct).ConfigureAwait(false);
@@ -213,10 +214,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 return HandleError(context, results.ErrorInfo);
             }
 
-            var refs = MatchReferences(frame, context, results[0].Result.References,
+            var refs = MatchReferences(frame, context,
+                new ReferenceDescriptionCollection(results[0].Result.References.ToArray() ?? []),
                 results[0].ErrorInfo);
 
-            var continuation = results[0].Result.ContinuationPoint ?? [];
+            var continuation = results[0].Result.ContinuationPoint.ToArray();
             if (continuation.Length > 0)
             {
                 Push(session => BrowseNextAsync(session, continuation, frame));
@@ -246,10 +248,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             var matching = refs
                 .Where(reference => ((int)reference.NodeClass & (int)_matchClass) != 0
-                    && (reference.NodeId?.ServerIndex ?? 1u) == 0
+                    && !NodeIdCompat.IsNull(reference.NodeId)
+                    && reference.NodeId.ServerIndex == 0
                     && MatchTypeDefinitionId(context.Session, reference.TypeDefinition))
                 .Select(reference => new BrowseFrame((NodeId)reference.NodeId,
-                    reference.BrowseName, reference.DisplayName?.Text,
+                    reference.BrowseName,
+                    reference.DisplayName.IsNullOrEmpty ? null : reference.DisplayName.Text,
                     reference.TypeDefinition, reference.NodeClass, frame,
                     IsChildOf(context.Session, reference, frame)))
                 .ToList();
@@ -260,7 +264,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             foreach (var reference in refs)
             {
                 Push(reference.NodeId, reference.BrowseName,
-                    reference.DisplayName?.Text, reference.TypeDefinition,
+                    reference.DisplayName.IsNullOrEmpty ? null : reference.DisplayName.Text,
+                    reference.TypeDefinition,
                     reference.NodeClass, frame,
                     IsChildOf(context.Session, reference, frame));
             }
@@ -270,7 +275,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 BrowseFrame parent)
             {
                 var referenceTypeId = reference.ReferenceTypeId;
-                var parentTypeDefinitionId = parent.TypeDefinitionId;
+                var parentTypeDefinitionId = parent.TypeDefinitionId.GetValueOrDefault();
 
                 if (NodeIdCompat.IsNull(parentTypeDefinitionId))
                 {
@@ -279,7 +284,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 if (session.LruNodeCache.IsTypeOf(referenceTypeId, ReferenceTypeIds.HasComponent) ||
                     session.LruNodeCache.IsTypeOf(referenceTypeId, ReferenceTypeIds.HasProperty))
                 {
-                    var parentIsFolder = session.LruNodeCache.IsTypeOf(parentTypeDefinitionId,
+                    var parentTypeNodeId = ExpandedNodeId.ToNodeId(parentTypeDefinitionId,
+                        session.MessageContext.NamespaceUris);
+                    var parentIsFolder = session.LruNodeCache.IsTypeOf(parentTypeNodeId,
                         ObjectTypeIds.FolderType);
 #if DEBUG
                     Debug.WriteLine(parent.BrowseName
@@ -294,15 +301,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             // Helper to match type definition to desired type definition id
             bool MatchTypeDefinitionId(IOpcUaSession session, ExpandedNodeId typeDefinition)
             {
-                if (typeDefinition == _typeDefinitionId || _typeDefinitionId == null)
+                if (_typeDefinitionId == null)
                 {
                     return true;
                 }
-                if (_includeTypeDefinitionSubtypes && !NodeIdCompat.IsNull(typeDefinition))
+                if (NodeIdCompat.IsNull(typeDefinition))
                 {
-                    var typeDefinitionId = ExpandedNodeId.ToNodeId(typeDefinition,
-                        session.MessageContext.NamespaceUris);
-                    return session.LruNodeCache.IsTypeOf(typeDefinitionId, _typeDefinitionId);
+                    return false;
+                }
+                var typeDefinitionId = ExpandedNodeId.ToNodeId(typeDefinition,
+                    session.MessageContext.NamespaceUris);
+                var expectedTypeDefinitionId = _typeDefinitionId.GetValueOrDefault();
+                if (typeDefinitionId == expectedTypeDefinitionId)
+                {
+                    return true;
+                }
+                if (_includeTypeDefinitionSubtypes)
+                {
+                    return session.LruNodeCache.IsTypeOf(typeDefinitionId, expectedTypeDefinitionId);
                 }
                 return false;
             }
@@ -333,7 +349,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             ExpandedNodeId typeDefinition, Opc.Ua.NodeClass nodeClass, BrowseFrame? parent,
             bool? isChildOfParent)
         {
-            if ((nodeId?.ServerIndex ?? 1u) != 0)
+            if (NodeIdCompat.IsNull(nodeId) || nodeId.ServerIndex != 0)
             {
                 return;
             }
@@ -467,7 +483,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     return "Default";
                 }
 
-                var result = cur.BrowseName.Name;
+                var result = cur.BrowseName.GetValueOrDefault().Name;
                 cur = cur.Parent;
                 while (cur != root)
                 {
@@ -475,9 +491,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         // not rooted in root because we hit a null parent,
                         // return cur browsename
-                        return BrowseName!.Name;
+                        return BrowseName.GetValueOrDefault().Name;
                     }
-                    result = cur.BrowseName.Name + "." + result;
+                    result = cur.BrowseName.GetValueOrDefault().Name + "." + result;
                     cur = cur.Parent;
                 }
                 return result;
