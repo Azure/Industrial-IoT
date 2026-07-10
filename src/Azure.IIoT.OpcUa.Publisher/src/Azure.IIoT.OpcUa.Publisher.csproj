@@ -13,8 +13,8 @@
     <PackageReference Include="Azure.Iot.Operations.Services" />
     <PackageReference Include="Irony" />
     <PackageReference Include="KubernetesClient" />
-    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client.ComplexTypes" />
-    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client" />
+    <ProjectReference Include="..\..\..\external\UA-.NETStandard\Libraries\Opc.Ua.Client.ComplexTypes\Opc.Ua.Client.ComplexTypes.csproj" />
+    <ProjectReference Include="..\..\..\external\UA-.NETStandard\Libraries\Opc.Ua.Client\Opc.Ua.Client.csproj" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Core\src\Azure.IIoT.OpcUa.Core.csproj" />

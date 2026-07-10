@@ -29,7 +29,7 @@ namespace Opc.Ua.Extensions
         public static ExpandedNodeId ToExpandedNodeId(this NodeId nodeId,
             NamespaceTable? namespaces)
         {
-            if (NodeId.IsNull(nodeId))
+            if (nodeId.IsNull)
             {
                 return ExpandedNodeId.Null;
             }
@@ -58,26 +58,27 @@ namespace Opc.Ua.Extensions
             {
                 return NodeId.Null;
             }
-            if (nodeId.NamespaceIndex > 0 && namespaces == null)
+            var id = nodeId.Value;
+            if (id.NamespaceIndex > 0 && namespaces == null)
             {
                 throw new ArgumentNullException(nameof(namespaces));
             }
-            int index = nodeId.NamespaceIndex;
-            if (!string.IsNullOrEmpty(nodeId.NamespaceUri))
+            int index = id.NamespaceIndex;
+            if (!string.IsNullOrEmpty(id.NamespaceUri))
             {
-                index = namespaces.GetIndex(nodeId.NamespaceUri);
+                index = namespaces.GetIndex(id.NamespaceUri);
                 if (index < 0)
                 {
                     if (!allowUnknownNamespace)
                     {
                         throw new ArgumentException(
-                            $"Namespace '{nodeId.NamespaceUri}' was not found in NamespaceTable.",
+                            $"Namespace '{id.NamespaceUri}' was not found in NamespaceTable.",
                             nameof(nodeId));
                     }
                     index = 0;
                 }
             }
-            return new NodeId(nodeId.Identifier, (ushort)index);
+            return new NodeId(id.Identifier, (ushort)index);
         }
 
         /// <summary>
@@ -94,7 +95,7 @@ namespace Opc.Ua.Extensions
         public static string? AsString(this NodeId nodeId, IServiceMessageContext context,
             NamespaceFormat namespaceFormat)
         {
-            if (NodeId.IsNull(nodeId))
+            if (nodeId.IsNull)
             {
                 return null;
             }
@@ -113,7 +114,7 @@ namespace Opc.Ua.Extensions
         public static string? AsString(this ExpandedNodeId nodeId, IServiceMessageContext context,
             NamespaceFormat namespaceFormat)
         {
-            if (NodeId.IsNull(nodeId))
+            if (nodeId.IsNull)
             {
                 return null;
             }
@@ -176,7 +177,7 @@ namespace Opc.Ua.Extensions
             }
             if (parts.Any(s => s.StartsWith("nsu=", StringComparison.CurrentCulture)))
             {
-                return ExpandedNodeId.Parse(value).ToNodeId(context.NamespaceUris);
+                return ((ExpandedNodeId?)ExpandedNodeId.Parse(value)).ToNodeId(context.NamespaceUris);
             }
             var identifier = ParseNodeIdUri(value, out var nsUri, out var srvUri);
             return new NodeId(identifier, context.NamespaceUris.GetIndexOrAppend(nsUri));

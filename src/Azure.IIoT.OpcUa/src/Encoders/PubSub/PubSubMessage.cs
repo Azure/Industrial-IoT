@@ -220,20 +220,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     Payload = payload
                 };
             }
-            else if (encoding.HasFlag(MessageEncoding.Avro))
-            {
-                message = new AvroDataSetMessage
-                {
-                    DataSetWriterName = dataSetWriterName,
-                    DataSetWriterId = dataSetWriterId,
-                    MessageType = messageType,
-                    MetaDataVersion = version,
-                    DataSetMessageContentMask = dataSetMessageContentFlags.Value,
-                    Timestamp = timestamp,
-                    SequenceNumber = sequenceNumber,
-                    Payload = payload
-                };
-            }
             else if (encoding.HasFlag(MessageEncoding.Uadp))
             {
                 message = new UadpDataSetMessage
@@ -346,21 +332,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     DataSetWriterGroup = writerGroupName
                 };
             }
-            else if (encoding.HasFlag(MessageEncoding.Avro))
-            {
-                message = new AvroNetworkMessage
-                {
-                    Schema = (schema is Schemas.Avro.IAvroSchema s) ? s.Schema :
-                        schema == null ? null : Avro.Schema.Parse(schema.Schema),
-                    UseGzipCompression = encoding.HasFlag(MessageEncoding.IsGzipCompressed),
-                    MessageId = () => Guid.NewGuid().ToString(),
-                    NetworkMessageContentMask = networkMessageContentFlags
-                        ?? DefaultNetworkMessageContentFlags,
-                    PublisherId = publisherId,
-                    DataSetClassId = dataSetClassId,
-                    DataSetWriterGroup = writerGroupName
-                };
-            }
             else if (encoding.HasFlag(MessageEncoding.Uadp))
             {
                 message = new UadpNetworkMessage
@@ -397,17 +368,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             PublishedNetworkMessageSchemaModel networkMessage,
             [NotNullWhen(true)] out IEventSchema? schema, SchemaOptions? options = null)
         {
-            if (encoding.HasFlag(MessageEncoding.Json) && options?.PreferAvroOverJsonSchema == true)
-            {
-                schema = new Schemas.Avro.JsonNetworkMessage(networkMessage, options);
-            }
-            else if (encoding.HasFlag(MessageEncoding.Json))
+            if (encoding.HasFlag(MessageEncoding.Json))
             {
                 schema = new Schemas.Json.JsonNetworkMessage(networkMessage, options);
-            }
-            else if (encoding.HasFlag(MessageEncoding.Avro))
-            {
-                schema = new Schemas.Avro.AvroNetworkMessage(networkMessage, options);
             }
             else if (encoding.HasFlag(MessageEncoding.Uadp))
             {
@@ -544,24 +507,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                         }
                         break;
 
-                    case Encoders.ContentType.Avro:
-                    case Encoders.ContentType.AvroGzip:
-                    case ContentMimeType.AvroBinary:
-                        message = new AvroNetworkMessage
-                        {
-                            Schema = Avro.Schema.Parse(messageSchema),
-                            UseGzipCompression = contentType.Equals(
-                                Encoders.ContentType.AvroGzip, StringComparison.OrdinalIgnoreCase)
-                        };
-                        if (message.TryDecode(context, stream, resolver))
-                        {
-                            yield return message;
-                        }
-                        else
-                        {
-                            yield break;
-                        }
-                        break;
                     default:
                         break;
                 }
@@ -632,25 +577,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     if (message.TryDecode(context, reader, resolver))
                     {
                         return message;
-                    }
-                    break;
-
-                case Encoders.ContentType.Avro:
-                case Encoders.ContentType.AvroGzip:
-                case ContentMimeType.AvroBinary:
-                    message = new AvroNetworkMessage
-                    {
-                        Schema = Avro.Schema.Parse(messageSchema),
-                        UseGzipCompression = contentType.Equals(
-                            Encoders.ContentType.AvroGzip, StringComparison.OrdinalIgnoreCase)
-                    };
-                    if (message.TryDecode(context, reader, resolver))
-                    {
-                        return message;
-                    }
-                    if (reader.Count == 0)
-                    {
-                        return null;
                     }
                     break;
                 default:

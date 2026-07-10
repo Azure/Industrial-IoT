@@ -42,16 +42,16 @@ namespace Azure.IIoT.OpcUa.Encoders
                 return null;
             }
             var useReversibleEncoding = encoding != ValueEncoding.NonReversible;
-            using var stream = new MemoryStream();
-            using (var encoder = new JsonEncoderEx(stream, Context)
-            {
-                UseAdvancedEncoding = true,
-                UseReversibleEncoding = useReversibleEncoding
-            })
+            var options = useReversibleEncoding
+                ? Opc.Ua.JsonEncoderOptions.Compact
+                : Opc.Ua.JsonEncoderOptions.Verbose;
+            string text;
+            using (var encoder = new Opc.Ua.JsonEncoder(Context, options))
             {
                 encoder.WriteVariant(nameof(value), value.Value);
+                text = encoder.CloseAndReturnText();
             }
-            var token = JsonNode.Parse(stream.ToArray());
+            var token = JsonNode.Parse(text);
             if (useReversibleEncoding)
             {
                 Enum.TryParse(ToStringValue(token?["value"]?["Type"]),
@@ -64,7 +64,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             // without the Type/Body envelope, so derive the built in type
             // from the variant type information instead.
             //
-            builtinType = value.Value.TypeInfo?.BuiltInType ?? BuiltInType.Null;
+            builtinType = value.Value.TypeInfo.BuiltInType;
             return token?["value"]?.DeepClone();
         }
 
@@ -112,9 +112,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             //
             // Decode json to a real variant
             //
-            using var text = new StringReader(json);
-            using var reader = new Newtonsoft.Json.JsonTextReader(text);
-            using var decoder = new JsonDecoderEx(reader, Context);
+            using var decoder = new Opc.Ua.JsonDecoder(json, Context);
             return decoder.ReadVariant(nameof(value));
         }
 

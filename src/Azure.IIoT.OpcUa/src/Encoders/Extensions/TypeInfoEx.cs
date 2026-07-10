@@ -29,12 +29,12 @@ namespace Opc.Ua
             if (typeInfo.ValueRank <= 1)
             {
                 return Array.CreateInstance(
-                    TypeInfo.GetSystemType(builtInType, -1) ??
+                    TypeInfo.GetSystemType(builtInType)?.Type ??
                     typeof(object), 0);
             }
             return new Matrix(
                 Array.CreateInstance(
-                    TypeInfo.GetSystemType(builtInType, -1) ??
+                    TypeInfo.GetSystemType(builtInType)?.Type ??
                         typeof(object),
                     new int[typeInfo.ValueRank]),
                 builtInType);
@@ -57,8 +57,10 @@ namespace Opc.Ua
                 {
                     typeInfo = new TypeInfo(BuiltInType.Int32, typeInfo.ValueRank);
                 }
-                var systemType = TypeInfo.GetSystemType(typeInfo.BuiltInType,
-                    typeInfo.ValueRank);
+                var elementType = TypeInfo.GetSystemType(typeInfo.BuiltInType)?.Type ??
+                    typeof(object);
+                var systemType = typeInfo.ValueRank == ValueRanks.Scalar ?
+                    elementType : elementType.MakeArrayType();
                 if (typeInfo.BuiltInType == BuiltInType.Null)
                 {
                     if (typeInfo.ValueRank == 1)
@@ -75,7 +77,8 @@ namespace Opc.Ua
                     try
                     {
                         var unboxed = Array.CreateInstance(
-                            TypeInfo.GetSystemType(typeInfo.BuiltInType, -1), arr.Length);
+                            TypeInfo.GetSystemType(typeInfo.BuiltInType)?.Type ??
+                                typeof(object), arr.Length);
                         Array.Copy(arr, unboxed, arr.Length);
                         value = unboxed;
                     }

@@ -199,8 +199,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 {
                     case UADPDiscoveryAnnouncementType.DataSetMetaData:
                         encoder.WriteUInt16(null, DataSetWriterId);
-                        encoder.WriteEncodeable(null, MetaData.ToStackModel(context),
-                            typeof(Opc.Ua.DataSetMetaDataType));
+                        encoder.WriteEncodeable(null, MetaData.ToStackModel(context));
                         // temporary write StatusCode.Good
                         encoder.WriteStatusCode(null, Opc.Ua.StatusCodes.Good);
                         break;
@@ -248,8 +247,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 {
                     case UADPDiscoveryAnnouncementType.DataSetMetaData:
                         DataSetWriterId = decoder.ReadUInt16(null);
-                        var metaData = (Opc.Ua.DataSetMetaDataType)decoder.ReadEncodeable(null,
-                            typeof(Opc.Ua.DataSetMetaDataType));
+                        var metaData = decoder.ReadEncodeable<Opc.Ua.DataSetMetaDataType>(null);
                         MetaData = metaData.ToServiceModel(context);
                         // temporary read
                         var status = decoder.ReadStatusCode(null);

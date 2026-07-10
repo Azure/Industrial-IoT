@@ -199,11 +199,11 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             {
                 return null;
             }
-            if (string.IsNullOrEmpty(typeId.NamespaceUri))
+            if (string.IsNullOrEmpty(typeId.Value.NamespaceUri))
             {
-                typeId = new ExpandedNodeId(typeId.Identifier, 0, Namespaces.OpcUa, 0);
+                typeId = new ExpandedNodeId(typeId.Value.Identifier, 0, Namespaces.OpcUa, 0);
             }
-            var typeIdString = typeId.AsString(context, NamespaceFormat.Uri);
+            var typeIdString = typeId.Value.AsString(context, NamespaceFormat.Uri);
             var qn = name.ToQualifiedName(context);
             var ns = qn.NamespaceIndex != 0 ?
                 context.NamespaceUris.GetString(qn.NamespaceIndex) :

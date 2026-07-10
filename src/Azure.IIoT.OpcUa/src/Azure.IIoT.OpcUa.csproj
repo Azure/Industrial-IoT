@@ -6,11 +6,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Apache.Avro" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" />
-    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Core" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\external\UA-.NETStandard\Stack\Opc.Ua.Core\Opc.Ua.Core.csproj" />
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Core\src\Azure.IIoT.OpcUa.Core.csproj" />
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Publisher.Models\src\Azure.IIoT.OpcUa.Publisher.Models.csproj" />
   </ItemGroup>

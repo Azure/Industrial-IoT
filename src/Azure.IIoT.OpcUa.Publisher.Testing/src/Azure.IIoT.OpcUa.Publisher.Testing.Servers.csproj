@@ -62,7 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Linq.Async" />
-    <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Server" />
+    <ProjectReference Include="..\..\..\external\UA-.NETStandard\Libraries\Opc.Ua.Server\Opc.Ua.Server.csproj" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Core\src\Azure.IIoT.OpcUa.Core.csproj" />

@@ -367,7 +367,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             }
             if ((DataSetFlags2 & DataSetFlags2EncodingMask.Timestamp) != 0)
             {
-                Timestamp = decoder.ReadDateTime(null);
+                Timestamp = decoder.ReadDateTime(null).ToDateTime();
             }
             if ((DataSetFlags2 & DataSetFlags2EncodingMask.PicoSeconds) != 0)
             {
@@ -534,7 +534,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     binaryEncoder.WriteUInt16(null, (ushort)Payload.DataSetFields.Count);
                     foreach (var (_, Value) in Payload.DataSetFields)
                     {
-                        binaryEncoder.WriteDataValue(null, Value);
+                        binaryEncoder.WriteDataValue(null, Value.GetValueOrDefault());
                     }
                     break;
                 case DataSetFlags1EncodingMask.FieldTypeRawData:
@@ -624,14 +624,14 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 switch (fieldType)
                 {
                     case 0:
-                        binaryEncoder.WriteVariant(null, Value.WrappedValue);
+                        binaryEncoder.WriteVariant(null, Value.GetValueOrDefault().WrappedValue);
                         break;
                     case DataSetFlags1EncodingMask.FieldTypeDataValue:
-                        binaryEncoder.WriteDataValue(null, Value);
+                        binaryEncoder.WriteDataValue(null, Value.GetValueOrDefault());
                         break;
                     case DataSetFlags1EncodingMask.FieldTypeRawData:
                         var fieldMetadata = GetFieldMetadata(metadata, fieldIndex);
-                        WriteFieldAsRawData(binaryEncoder, Value.WrappedValue, fieldMetadata);
+                        WriteFieldAsRawData(binaryEncoder, Value.GetValueOrDefault().WrappedValue, fieldMetadata);
                         break;
                     default:
                         throw new EncodingException($"Reserved field type {fieldType} not allowed.");
@@ -695,9 +695,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             PublishedFieldMetaDataModel? fieldMetaData)
         {
             var builtInType = (BuiltInType?)fieldMetaData?.BuiltInType
-                ?? variant.TypeInfo?.BuiltInType ?? BuiltInType.Null;
+                ?? variant.TypeInfo.BuiltInType;
             var valueRank = fieldMetaData?.ValueRank
-                ?? variant.TypeInfo?.ValueRank ?? 0;
+                ?? variant.TypeInfo.ValueRank;
             if (builtInType == BuiltInType.Null)
             {
                 return;
@@ -769,31 +769,31 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                         binaryEncoder.WriteByteString(null, (byte[])valueToEncode);
                         break;
                     case BuiltInType.QualifiedName:
-                        binaryEncoder.WriteQualifiedName(null, valueToEncode as QualifiedName);
+                        binaryEncoder.WriteQualifiedName(null, (QualifiedName)valueToEncode);
                         break;
                     case BuiltInType.LocalizedText:
-                        binaryEncoder.WriteLocalizedText(null, valueToEncode as LocalizedText);
+                        binaryEncoder.WriteLocalizedText(null, (LocalizedText)valueToEncode);
                         break;
                     case BuiltInType.NodeId:
-                        binaryEncoder.WriteNodeId(null, valueToEncode as NodeId);
+                        binaryEncoder.WriteNodeId(null, (NodeId)valueToEncode);
                         break;
                     case BuiltInType.ExpandedNodeId:
-                        binaryEncoder.WriteExpandedNodeId(null, valueToEncode as ExpandedNodeId);
+                        binaryEncoder.WriteExpandedNodeId(null, (ExpandedNodeId)valueToEncode);
                         break;
                     case BuiltInType.StatusCode:
                         binaryEncoder.WriteStatusCode(null, (StatusCode)valueToEncode);
                         break;
                     case BuiltInType.XmlElement:
-                        binaryEncoder.WriteXmlElement(null, valueToEncode as XmlElement);
+                        binaryEncoder.WriteXmlElement(null, (Opc.Ua.XmlElement)valueToEncode);
                         break;
                     case BuiltInType.ExtensionObject:
-                        binaryEncoder.WriteExtensionObject(null, valueToEncode as ExtensionObject);
+                        binaryEncoder.WriteExtensionObject(null, (ExtensionObject)valueToEncode);
                         break;
                 }
             }
             else if (valueRank >= ValueRanks.OneDimension)
             {
-                binaryEncoder.WriteArray(null, valueToEncode, valueRank, builtInType);
+                binaryEncoder.WriteVariantValue(null, variant);
             }
         }
 
@@ -815,8 +815,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                             return ReadRawScalar(binaryDecoder, fieldMetaData.BuiltInType);
                         case ValueRanks.OneDimension:
                         case ValueRanks.TwoDimensions:
-                            return binaryDecoder.ReadArray(null, fieldMetaData.ValueRank,
-                                (BuiltInType)fieldMetaData.BuiltInType);
+                            return binaryDecoder.ReadVariantValue(null,
+                                new TypeInfo((BuiltInType)fieldMetaData.BuiltInType,
+                                    fieldMetaData.ValueRank)).Value;
 
                         case ValueRanks.OneOrMoreDimensions:
                         case ValueRanks.Any:// Scalar or Array with any number of dimensions

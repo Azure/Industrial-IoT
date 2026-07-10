@@ -56,7 +56,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             return new DataSetMetaDataType
             {
                 Name = model.DataSetMetaData.Name,
-                Description = model.DataSetMetaData.Description,
+                Description = (LocalizedText)model.DataSetMetaData.Description,
                 DataSetClassId = (Uuid)model.DataSetMetaData.DataSetClassId,
                 Namespaces = context.NamespaceUris.ToArray(),
                 StructureDataTypes = model.StructureDataTypes?
@@ -115,13 +115,13 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     MajorVersion = model.ConfigurationVersion.MajorVersion
                 },
                 MinorVersion = model.ConfigurationVersion.MinorVersion,
-                StructureDataTypes = model.StructureDataTypes?
+                StructureDataTypes = model.StructureDataTypes.ToArray()?
                     .Select(s => s.ToServiceModel(context)).ToArray(),
-                EnumDataTypes = model.EnumDataTypes?
+                EnumDataTypes = model.EnumDataTypes.ToArray()?
                     .Select(e => e.ToServiceModel(context)).ToArray(),
-                SimpleDataTypes = model.SimpleDataTypes?
+                SimpleDataTypes = model.SimpleDataTypes.ToArray()?
                     .Select(e => e.ToServiceModel(context)).ToArray(),
-                Fields = model.Fields
+                Fields = model.Fields.ToArray()?
                     .Select(e => e.ToServiceModel(context)).ToArray()
             };
         }
@@ -191,7 +191,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     .AsString(context, NamespaceFormat.Expanded)) ?? string.Empty,
                 Name = model.Name
                     .AsString(context, NamespaceFormat.Expanded),
-                Fields = model.EnumDefinition.Fields
+                Fields = model.EnumDefinition.Fields.ToArray()?
                     .Select(f => f.ToServiceModel()).ToArray(),
                 IsOptionSet = model.EnumDefinition.IsOptionSet
             };
@@ -230,7 +230,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             return new EnumField
             {
                 Name = model.Name,
-                DisplayName = model.DisplayName,
+                DisplayName = (LocalizedText)model.DisplayName,
                 Value = model.Value
             };
         }
@@ -322,7 +322,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     .AsString(context, NamespaceFormat.Expanded),
                 // FirstExplicitFieldIndex = 0,
                 StructureType = model.StructureDefinition.StructureType.ToServiceType(),
-                Fields = model.StructureDefinition.Fields
+                Fields = model.StructureDefinition.Fields.ToArray()?
                     .Select(f => f.ToServiceModel(context)).ToArray()
             };
         }
@@ -371,7 +371,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 IsOptional = model.IsOptional,
                 DataType = model.DataType
                     .ToNodeId(context),
-                Description = model.Description,
+                Description = (LocalizedText)model.Description,
                 MaxStringLength = model.MaxStringLength,
                 ValueRank = model.ValueRank
             };
@@ -389,8 +389,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             return new StructureFieldDescriptionModel
             {
                 Name = model.Name,
-                ArrayDimensions = model.ArrayDimensions?
-                    .ToArray(),
+                ArrayDimensions = model.ArrayDimensions.ToArray(),
                 IsOptional = model.IsOptional,
                 DataType = (model.DataType
                     .AsString(context, NamespaceFormat.Expanded)) ?? string.Empty,
@@ -510,11 +509,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 BuiltInType = field.BuiltInType,
                 DataType = field.DataType
                     .ToNodeId(context),
-                Description = field.Description,
+                Description = (LocalizedText)field.Description,
                 MaxStringLength = field.MaxStringLength,
                 ValueRank = field.ValueRank,
                 FieldFlags = field.Flags,
-                Properties = null // TODO
+                Properties = default // TODO
             };
         }
 
@@ -531,8 +530,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 Name = field.Name,
                 Id = field.DataSetFieldId,
-                ArrayDimensions = field.ArrayDimensions?
-                    .ToArray(),
+                ArrayDimensions = field.ArrayDimensions.ToArray(),
                 BuiltInType = field.BuiltInType,
                 DataType = field.DataType
                     .AsString(context, NamespaceFormat.Expanded),

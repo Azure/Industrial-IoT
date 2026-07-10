@@ -12,7 +12,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
     /// <summary>
     /// Encodable Key DataValue Pair
     /// </summary>
-    public class KeyDataValuePair : IEncodeable, IJsonEncodeable
+    public class KeyDataValuePair : IEncodeable
     {
         /// <summary>
         /// Constructor only to be used when deserializing.
@@ -45,22 +45,22 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         public DataValue? Value { get; set; }
 
         /// <inheritdoc/>
-        public virtual ExpandedNodeId? TypeId { get; }
+        public virtual ExpandedNodeId TypeId { get; }
 
         /// <inheritdoc/>
-        public virtual ExpandedNodeId? BinaryEncodingId { get; }
+        public virtual ExpandedNodeId BinaryEncodingId { get; }
 
         /// <inheritdoc/>
-        public virtual ExpandedNodeId? XmlEncodingId { get; }
+        public virtual ExpandedNodeId XmlEncodingId { get; }
 
         /// <inheritdoc/>
-        public virtual ExpandedNodeId? JsonEncodingId { get; }
+        public virtual ExpandedNodeId JsonEncodingId { get; }
 
         /// <inheritdoc/>
         public virtual void Encode(IEncoder encoder)
         {
             encoder.WriteString("Key", Key);
-            encoder.WriteDataValue(Key, Value);
+            encoder.WriteDataValue(Key, Value.GetValueOrDefault());
         }
 
         /// <inheritdoc/>
@@ -96,8 +96,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         public object Clone()
         {
             var clone = (KeyDataValuePair)MemberwiseClone();
-            clone.Key = Utils.Clone(Key);
-            clone.Value = Utils.Clone(Value);
+            clone.Key = Key;
+            clone.Value = Value;
             return clone;
         }
     }
@@ -162,7 +162,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
             var clone = new KeyDataValuePairCollection(Count);
             for (var ii = 0; ii < Count; ii++)
             {
-                clone.Add((KeyDataValuePair)Utils.Clone(this[ii]));
+                clone.Add((KeyDataValuePair)this[ii].Clone());
             }
             return clone;
         }

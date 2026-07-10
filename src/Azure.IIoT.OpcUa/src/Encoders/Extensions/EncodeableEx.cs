@@ -28,7 +28,7 @@ namespace Opc.Ua.Extensions
 #pragma warning disable CA2000 // Dispose objects before losing scope
             var encoder = new XmlEncoder(context);
 #pragma warning restore CA2000 // Dispose objects before losing scope
-            encoder.WriteExtensionObjectBody(encodeable);
+            encoder.WriteExtensionObjectBody(new ExtensionObject(encodeable));
             var document = new XmlDocument
             {
                 InnerXml = encoder.CloseAndReturnText()
@@ -62,12 +62,9 @@ namespace Opc.Ua.Extensions
         public static string AsJson(this IEncodeable encodeable,
             IServiceMessageContext context)
         {
-            using var stream = new MemoryStream();
-            using (var encoder = new JsonEncoderEx(stream, context, leaveOpen: true))
-            {
-                encodeable.Encode(encoder);
-            }
-            return Encoding.UTF8.GetString(stream.ToArray());
+            using var encoder = new JsonEncoder(context, JsonEncoderOptions.Compact);
+            encodeable.Encode(encoder);
+            return encoder.CloseAndReturnText();
         }
     }
 }

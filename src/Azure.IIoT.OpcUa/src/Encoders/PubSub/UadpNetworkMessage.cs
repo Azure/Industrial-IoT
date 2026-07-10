@@ -950,7 +950,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             // Decode Timestamp
             if ((ExtendedFlags1 & ExtendedFlags1EncodingMask.Timestamp) != 0)
             {
-                Timestamp = decoder.ReadDateTime(null);
+                Timestamp = decoder.ReadDateTime(null).ToDateTime();
             }
             // Decode PicoSeconds
             if ((ExtendedFlags1 & ExtendedFlags1EncodingMask.PicoSeconds) != 0)
@@ -1035,7 +1035,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 var messageSequenceNumber = decoder.ReadUInt16(null);
                 var chunkOffset = decoder.ReadUInt32(null);
                 var totalSize = decoder.ReadUInt32(null);
-                var buffer = decoder.ReadByteString(null);
+                var buffer = decoder.ReadByteString(null).Memory.ToArray();
 
                 var chunk = new Message(buffer, Messages.Count > 0 ? Messages[0].DataSetWriterId : (ushort)0)
                 {
