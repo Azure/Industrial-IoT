@@ -25,5 +25,9 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" />
     <PackageReference Include="Microsoft.Extensions.Options" />
+    <PackageReference Include="Mqtt.Client" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Azure.IIoT.OpcUa.Core.Tests" />
   </ItemGroup>
 </Project>

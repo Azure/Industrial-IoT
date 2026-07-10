@@ -18,8 +18,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Furly.Extensions.Dapr.Clients;
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Messaging.Clients;
-    using Furly.Extensions.Mqtt;
-    using Furly.Extensions.Mqtt.Clients;
     using Furly.Extensions.Rpc;
     using Furly.Extensions.Rpc.Servers;
     using Furly.Extensions.Serializers;
@@ -90,18 +88,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             services.AddOptions();
             services.TryAddSingletonForwarded<ICredentialProvider, DefaultAzureCredentials>();
             services.AddSingleton<IPostConfigureOptions<CredentialOptions>, CredentialConfig>();
-            return services;
-        }
-
-        /// <summary>
-        /// Add mqtt client (mirror of Furly.Extensions.Mqtt).
-        /// </summary>
-        /// <param name="services"></param>
-        public static IServiceCollection AddMqttClient(this IServiceCollection services)
-        {
-            services.AddSingletonAsImplementedInterfaces<MqttClient>();
-            services.AddOptions();
-            services.AddSingleton<IPostConfigureOptions<MqttOptions>, MqttConfig>();
             return services;
         }
 
@@ -225,37 +211,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             services.AddSingleton<TService>(
                 sp => sp.GetRequiredService<TImplementation>());
             return services;
-        }
-    }
-
-    /// <summary>
-    /// Mqtt configuration (copied from internal Furly.Extensions.Mqtt.Runtime.MqttConfig).
-    /// </summary>
-    internal sealed class MqttConfig : PostConfigureOptionBase<MqttOptions>
-    {
-        /// <inheritdoc/>
-        public MqttConfig(IConfiguration configuration) :
-            base(configuration)
-        {
-        }
-
-        /// <inheritdoc/>
-        public override void PostConfigure(string? name, MqttOptions options)
-        {
-            if (string.IsNullOrEmpty(options.HostName))
-            {
-                options.HostName = "localhost";
-            }
-
-            options.Port ??= (options.UseTls == true ? 8883 : 1883);
-            options.QoS ??= QoS.AtMostOnce;
-            options.UseTls ??= options.Port != 1883;
-            options.ClientId ??= Guid.NewGuid().ToString();
-
-            if (options.ReconnectDelay == TimeSpan.Zero)
-            {
-                options.ReconnectDelay = null;
-            }
         }
     }
 

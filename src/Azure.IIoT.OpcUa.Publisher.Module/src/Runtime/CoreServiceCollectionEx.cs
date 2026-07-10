@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Azure.IIoT.OpcUa.Core;
     using Azure.IIoT.OpcUa.Core.Messaging;
     using Azure.IIoT.OpcUa.Core.Messaging.Clients;
+    using Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt;
     using Azure.IIoT.OpcUa.Core.Rpc;
     using Azure.IIoT.OpcUa.Core.Rpc.Router;
     using Azure.IIoT.OpcUa.Core.Storage;
@@ -71,6 +72,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         {
             return services.AddAs<NullEventClient>(ServiceLifetime.Transient,
                 typeof(IEventClient));
+        }
+
+        /// <summary>
+        /// Add the mqtt transport (in-repo <c>Azure.IIoT.OpcUa.Core</c> client
+        /// built on the <c>Mqtt.Client</c> library) implementing the event and
+        /// rpc abstractions. Replaces the former Furly.Extensions.Mqtt client.
+        /// </summary>
+        /// <param name="services"></param>
+        public static IServiceCollection AddMqttClient(
+            this IServiceCollection services)
+        {
+            services.AddOptions();
+            services.AddSingletonAsImplementedInterfaces<MqttClientTransport>();
+            services.AddSingleton<IPostConfigureOptions<MqttOptions>, MqttConfig>();
+            return services;
         }
     }
 }

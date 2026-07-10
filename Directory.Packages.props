@@ -61,6 +61,10 @@
     <PackageVersion Include="Asp.Versioning.Mvc" Version="10.0.0" />
   </ItemGroup>
 
+  <ItemGroup Label="Messaging transports">
+    <PackageVersion Include="Mqtt.Client" Version="1.1.0" />
+  </ItemGroup>
+
   <ItemGroup Label="Furly (keep all in lock-step)">
     <PackageVersion Include="Furly.Azure.EventHubs" Version="1.2.6" />
     <PackageVersion Include="Furly.Azure.IoT" Version="1.2.6" />

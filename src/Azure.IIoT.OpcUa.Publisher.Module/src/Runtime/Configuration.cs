@@ -19,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Furly.Extensions.Dapr;
     using Azure.IIoT.OpcUa.Core.Logging;
     using Furly.Extensions.Messaging.Runtime;
-    using Furly.Extensions.Mqtt;
+    using Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt;
     using Furly.Extensions.Rpc.Runtime;
     using k8s;
     using Microsoft.AspNetCore.Builder;
@@ -109,7 +109,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             new MqttBroker(configuration).Configure(mqttOptions);
             if (mqttOptions.HostName != null)
             {
-                FurlyServiceCollectionEx.AddMqttClient(services);
+                CoreServiceCollectionEx.AddMqttClient(services);
                 services.AddTransientAsImplementedInterfaces<MqttBroker>();
                 services.AddTransientAsImplementedInterfaces<SchemaTopicBuilder>();
             }
