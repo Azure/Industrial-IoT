@@ -13,10 +13,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
     using Azure.IIoT.OpcUa.Publisher.Tests.Utils;
     using FluentAssertions;
     using Azure.IIoT.OpcUa.Core.Rpc;
-    using Furly.Extensions.Serializers;
-    using Furly.Extensions.Serializers.Json;
-    using Furly.Extensions.Serializers.Newtonsoft;
     using Azure.IIoT.OpcUa.Core.Rpc.Router;
+    using Azure.IIoT.OpcUa.Core.Serialization;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
@@ -33,7 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
     using Xunit.Abstractions;
 
     /// <summary>
-    /// Exercises the configuration direct methods through the real Furly
+    /// Exercises the configuration direct methods through the real Legacy
     /// <see cref="MethodRouter"/> dispatch path (the layer that deserializes the
     /// raw IoT Edge method payload and invokes the controller). This guards
     /// against the customer-reported case where invoking UnpublishAllNodes_V1
@@ -42,8 +40,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
     public sealed class ConfigurationMethodRouterTests : TempFileProviderBase
     {
         private readonly ILoggerFactory _loggerFactory;
-        private readonly NewtonsoftJsonSerializer _newtonSoftJsonSerializer;
-        private readonly DefaultJsonSerializer _defaultJsonSerializer;
         private readonly IOptions<PublisherOptions> _options;
         private readonly PublishedNodesConverter _publishedNodesJobConverter;
         private readonly PublishedNodesProvider _publishedNodesProvider;
@@ -53,8 +49,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
 
         public ConfigurationMethodRouterTests(ITestOutputHelper output)
         {
-            _newtonSoftJsonSerializer = new NewtonsoftJsonSerializer();
-            _defaultJsonSerializer = new DefaultJsonSerializer();
             _loggerFactory = LogFactory.Create(output, Logging.Config);
 
             _options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
@@ -109,26 +103,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         [MemberData(nameof(BlankEndpointPayloads))]
         public Task UnpublishAllNodesWithBlankEndpointReturnsResponseNewtonsoftAsync(string payload)
         {
-            return UnpublishAllNodesWithBlankEndpointReturnsResponseAsync(
-                payload, _newtonSoftJsonSerializer);
+            return UnpublishAllNodesWithBlankEndpointReturnsResponseAsync(payload);
         }
 
         [Theory]
         [MemberData(nameof(BlankEndpointPayloads))]
         public Task UnpublishAllNodesWithBlankEndpointReturnsResponseDefaultAsync(string payload)
         {
-            return UnpublishAllNodesWithBlankEndpointReturnsResponseAsync(
-                payload, _defaultJsonSerializer);
+            return UnpublishAllNodesWithBlankEndpointReturnsResponseAsync(payload);
         }
 
         private async Task UnpublishAllNodesWithBlankEndpointReturnsResponseAsync(
-            string payload, IJsonSerializer serializer)
+            string payload)
         {
             CopyContent("Resources/empty_pn.json", _tempFile);
             await using var configService = InitPublisherConfigService();
             var controller = new ConfigurationController(configService);
 
-            await using var router = NewRouter(serializer, controller);
+            await using var router = NewRouter(controller);
 
             // Invoke exactly as the IoT Edge direct method dispatch would.
             var response = await InvokeAsync(router, "UnpublishAllNodes_V1", payload);
@@ -146,10 +138,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             await using var configService = InitPublisherConfigService();
             var controller = new ConfigurationController(configService);
 
-            await using var router = NewRouter(_newtonSoftJsonSerializer, controller);
+            await using var router = NewRouter(controller);
 
             // Publish a node so there is something to purge.
-            var publishPayload = _newtonSoftJsonSerializer.SerializeToString(
+            var publishPayload = Json.SerializeToString(
                 new PublishedNodesEntryModel
                 {
                     EndpointUrl = "opc.tcp://localhost:50000",
@@ -170,7 +162,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             _publisher.WriterGroups.Should().BeEmpty();
         }
 
-        private MethodRouter NewRouter(IJsonSerializer serializer, ConfigurationController controller)
+        private MethodRouter NewRouter(ConfigurationController controller)
         {
             var router = new MethodRouter(Array.Empty<IRpcServer>(),
                 _loggerFactory.CreateLogger<MethodRouter>())

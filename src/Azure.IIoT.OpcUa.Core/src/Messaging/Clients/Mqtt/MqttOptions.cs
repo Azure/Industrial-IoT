@@ -9,7 +9,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt
 
     /// <summary>
     /// Mqtt transport configuration. This is a System.Text.Json / Mqtt.Client
-    /// based subset of the former Furly.Extensions.Mqtt options record - only the
+    /// based subset of the former Legacy.Extensions.Mqtt options record - only the
     /// members bound by the publisher module configuration are retained.
     /// </summary>
     public record class MqttOptions
@@ -125,7 +125,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt
         /// <summary>
         /// Hook to rewrite the message topic when publishing a schema. The
         /// action receives the telemetry message topic and can replace it with
-        /// the schema topic. Mirrors the former Furly ConfigureSchemaMessage.
+        /// the schema topic. Mirrors the former Legacy ConfigureSchemaMessage.
         /// </summary>
         public Action<MqttSchemaMessage>? ConfigureSchemaMessage { get; set; }
     }

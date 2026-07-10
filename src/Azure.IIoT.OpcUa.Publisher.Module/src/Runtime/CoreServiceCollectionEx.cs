@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt;
     using Azure.IIoT.OpcUa.Core.Rpc;
     using Azure.IIoT.OpcUa.Core.Rpc.Router;
+    using Azure.IIoT.OpcUa.Core.Rpc.Servers;
     using Azure.IIoT.OpcUa.Core.Storage;
     using Azure.IIoT.OpcUa.Core.Storage.Services;
     using Microsoft.Extensions.DependencyInjection;
@@ -26,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     /// <summary>
     /// <see cref="IServiceCollection"/> registrations for the in-repo
     /// <c>Azure.IIoT.OpcUa.Core</c> messaging and storage implementations that
-    /// replace the corresponding Furly.Extensions services.
+    /// replace the corresponding Legacy.Extensions services.
     /// </summary>
     public static class CoreServiceCollectionEx
     {
@@ -137,9 +138,47 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         }
 
         /// <summary>
+        /// Add the filesystem event transport.
+        /// </summary>
+        /// <param name="services"></param>
+        public static IServiceCollection AddFileSystemEventClient(
+            this IServiceCollection services)
+        {
+            services.AddOptions();
+            services.AddAs<FileSystemEventClient>(ServiceLifetime.Singleton,
+                typeof(IEventClient));
+            services.AddSingletonAsImplementedInterfaces<FileSystemClientFactory>();
+            return services;
+        }
+
+        /// <summary>
+        /// Add the filesystem RPC server.
+        /// </summary>
+        /// <param name="services"></param>
+        public static IServiceCollection AddFileSystemRpcServer(
+            this IServiceCollection services)
+        {
+            services.AddOptions();
+            return services.AddSingletonAsImplementedInterfaces<FileSystemRpcServer>();
+        }
+
+        /// <summary>
+        /// Add the HTTP event transport.
+        /// </summary>
+        /// <param name="services"></param>
+        public static IServiceCollection AddHttpEventClient(
+            this IServiceCollection services)
+        {
+            services.AddOptions();
+            services.AddHttpClient();
+            return services.AddAs<HttpEventClient>(ServiceLifetime.Transient,
+                typeof(IEventClient));
+        }
+
+        /// <summary>
         /// Add the mqtt transport (in-repo <c>Azure.IIoT.OpcUa.Core</c> client
         /// built on the <c>Mqtt.Client</c> library) implementing the event and
-        /// rpc abstractions. Replaces the former Furly.Extensions.Mqtt client.
+        /// rpc abstractions. Replaces the former Legacy.Extensions.Mqtt client.
         /// </summary>
         /// <param name="services"></param>
         public static IServiceCollection AddMqttClient(

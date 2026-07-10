@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -15,11 +15,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge;
     using Azure.IIoT.OpcUa.Publisher.Module.OpenApi;
     using Azure.IIoT.OpcUa.Core.Configuration;
+    using Azure.IIoT.OpcUa.Core.Messaging.Clients;
     using Azure.IIoT.OpcUa.Core.Messaging.Clients.Dapr;
     using Azure.IIoT.OpcUa.Core.Logging;
-    using Furly.Extensions.Messaging.Runtime;
     using Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt;
-    using Furly.Extensions.Rpc.Runtime;
+    using Azure.IIoT.OpcUa.Core.Rpc.Servers;
     using k8s;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
@@ -54,8 +54,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// <param name="services"></param>
         public static void AddPublisherServices(this IServiceCollection services)
         {
-            FurlyServiceCollectionEx.AddDefaultJsonSerializer(services);
-            FurlyServiceCollectionEx.AddNewtonsoftJsonSerializer(services);
             services.AddPublisherCore();
 
             services.AddSingletonAsImplementedInterfaces<HealthCheckRegistrar>();
@@ -196,7 +194,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             new FileSystem(configuration).Configure(fsOptions);
             if (fsOptions.OutputFolder != null)
             {
-                FurlyServiceCollectionEx.AddFileSystemEventClient(services);
+                CoreServiceCollectionEx.AddFileSystemEventClient(services);
                 services.AddTransientAsImplementedInterfaces<FileSystem>();
                 services.AddTransientAsImplementedInterfaces<AvroWriter>();
                 services.AddTransientAsImplementedInterfaces<ConsoleWriter>();
@@ -215,7 +213,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             new FileSystem(configuration).Configure(fsOptions);
             if (fsOptions.RequestFilePath != null)
             {
-                FurlyServiceCollectionEx.AddFileSystemRpcServer(services);
+                CoreServiceCollectionEx.AddFileSystemRpcServer(services);
                 services.AddTransientAsImplementedInterfaces<FileSystem>();
             }
         }
@@ -232,7 +230,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             new Http(configuration).Configure(httpOptions);
             if (httpOptions.HostName != null)
             {
-                FurlyServiceCollectionEx.AddHttpEventClient(services);
+                CoreServiceCollectionEx.AddHttpEventClient(services);
                 services.AddTransientAsImplementedInterfaces<Http>();
             }
         }
@@ -1511,7 +1509,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     }
 
     /// <summary>
-    /// Placeholder AIO options used while the Furly AIO client is stubbed.
+    /// Placeholder AIO options used while the Legacy AIO client is stubbed.
     /// </summary>
     internal sealed class AioOptions
     {

@@ -5,7 +5,7 @@
     made it AOT/trim clean. Applied here (Directory.Build.targets is imported after
     the project body) so a csproj-level <IIoTNativeAot> is honored. This surfaces
     trim/AOT analyzer warnings for migrated projects without flooding the still-
-    Furly/Autofac 2.x projects that are not yet AOT-ready. The whole-app
+    Legacy/Autofac 2.x projects that are not yet AOT-ready. The whole-app
     `dotnet publish -p:PublishAot=true` gate (Phase 1A/8) validates end to end.
   -->
   <PropertyGroup Condition="'$(IIoTNativeAot)' == 'true'">

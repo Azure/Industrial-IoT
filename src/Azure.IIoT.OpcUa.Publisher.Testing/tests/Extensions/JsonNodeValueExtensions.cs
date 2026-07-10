@@ -15,7 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing
 
     /// <summary>
     /// Test-only compatibility helpers that provide the small subset of the
-    /// former Furly <c>VariantValue</c> convenience API on top of
+    /// former Legacy <c>VariantValue</c> convenience API on top of
     /// <see cref="JsonNode"/>. These exist purely so the existing integration
     /// test bodies continue to compile after the migration from
     /// <c>VariantValue</c> to <see cref="JsonNode"/>. They are behaviour

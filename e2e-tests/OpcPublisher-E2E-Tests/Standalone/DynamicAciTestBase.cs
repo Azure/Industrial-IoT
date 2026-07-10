@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -8,9 +8,8 @@ namespace OpcPublisherAEE2ETests.Standalone
     using OpcPublisherAEE2ETests.TestExtensions;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.Messaging.EventHubs.Consumer;
+    using Azure.IIoT.OpcUa.Core.Serialization;
     using FluentAssertions;
-    using Furly.Extensions.Serializers;
-    using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Azure.Devices;
     using Newtonsoft.Json.Linq;
     using System;
@@ -33,7 +32,6 @@ namespace OpcPublisherAEE2ETests.Standalone
         protected readonly CancellationToken _timeoutToken;
         protected readonly EventHubConsumerClient _consumer;
         protected readonly string _writerId;
-        private readonly ISerializer _serializer;
         private readonly ServiceClient _iotHubClient;
         private readonly CancellationTokenSource _timeoutTokenSource;
         private readonly string _iotHubPublisherDeviceName;
@@ -49,8 +47,6 @@ namespace OpcPublisherAEE2ETests.Standalone
             _iotHubPublisherModuleName = _context.IoTHubPublisherDeployment.ModuleName;
             _consumer = _context.GetEventHubConsumerClient();
             _writerId = Guid.NewGuid().ToString();
-            _serializer = new NewtonsoftJsonSerializer();
-
             // Initialize DeviceServiceClient from IoT Hub connection string.
             _iotHubClient = TestHelper.DeviceServiceClient(
                 _context.IoTHubConfig.IoTHubConnectionString,
@@ -123,7 +119,7 @@ namespace OpcPublisherAEE2ETests.Standalone
         protected async Task PublishNodesAsync(string json, CancellationToken ct)
         {
             await UnpublishAllNodesAsync(ct).ConfigureAwait(false);
-            var entries = _serializer.Deserialize<PublishedNodesEntryModel[]>(json);
+            var entries = Json.Deserialize<PublishedNodesEntryModel[]>(json);
             foreach (var entry in entries)
             {
                 // Call PublishNodes direct method
@@ -131,7 +127,7 @@ namespace OpcPublisherAEE2ETests.Standalone
                     new MethodParameterModel
                     {
                         Name = TestConstants.DirectMethodNames.PublishNodes,
-                        JsonPayload = _serializer.SerializeToString(entry)
+                        JsonPayload = Json.SerializeToString(entry)
                     },
                     ct
                 ).ConfigureAwait(false);
@@ -148,7 +144,7 @@ namespace OpcPublisherAEE2ETests.Standalone
             ).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, result1.Status);
-            var response = _serializer.Deserialize<GetConfiguredEndpointsResponseModel>(result1.JsonPayload);
+            var response = Json.Deserialize<GetConfiguredEndpointsResponseModel>(result1.JsonPayload);
             Assert.Equal(entries.Length, response.Endpoints.Count);
         }
 
@@ -188,7 +184,7 @@ namespace OpcPublisherAEE2ETests.Standalone
             ).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, result1.Status);
-            var response = _serializer.Deserialize<GetConfiguredEndpointsResponseModel>(result1.JsonPayload);
+            var response = Json.Deserialize<GetConfiguredEndpointsResponseModel>(result1.JsonPayload);
             Assert.Empty(response.Endpoints);
         }
 

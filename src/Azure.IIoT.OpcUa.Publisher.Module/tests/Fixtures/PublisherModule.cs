@@ -11,18 +11,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Azure.IIoT.OpcUa.Publisher.Sdk.Clients;
     using Azure.IIoT.OpcUa.Publisher.Service.Clients.Adapters;
     using Azure.IIoT.OpcUa.Publisher.Testing.Runtime;
-    using Furly.Azure;
-    using Furly.Azure.IoT;
-    using Furly.Azure.IoT.Mock;
-    using Furly.Azure.IoT.Mock.Services;
-    using Furly.Azure.IoT.Models;
+    using Azure.IIoT.OpcUa.Core.AzureSdk;
     using Azure.IIoT.OpcUa.Core.IoTEdge;
-    using Furly.Extensions.Hosting;
+    using Azure.IIoT.OpcUa.Core.Hosting;
     using Azure.IIoT.OpcUa.Core.Messaging;
-    using Furly.Extensions.Mqtt;
-    using Furly.Extensions.Mqtt.Clients;
-    using Furly.Extensions.Serializers;
-    using Azure.IIoT.OpcUa.Core.Utils;
+    using Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt;
+    using CoreUtils = Azure.IIoT.OpcUa.Core.Utils.Utils;
+    using Try = Azure.IIoT.OpcUa.Core.Utils.Try;
     using Azure.IIoT.OpcUa.Core.Rpc.Protocol;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc.Testing;
@@ -110,7 +105,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             ClientContainer = CreateIoTHubSdkClientContainer(messageSink, testOutputHelper, devices, version);
 
             // Create module identitity
-            deviceId ??= Utils.GetHostName();
+            deviceId ??= CoreUtils.GetHostName();
             moduleId ??= Guid.NewGuid().ToString();
             arguments ??= [];
 
@@ -209,7 +204,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 var register = ClientContainer.Resolve<IEventRegistration<IIoTHubTelemetryHandler>>();
                 _telemetry = new IoTHubTelemetryHandler();
                 _handler1 = register.Register(_telemetry);
-                Target = Furly.Azure.HubResource.Format(null, device.Id, device.ModuleId);
+                Target = HubResource.Format(null, device.Id, device.ModuleId);
             }
             else
             {
@@ -258,7 +253,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <inheritdoc/>
         protected override void ConfigureClient(HttpClient client)
         {
-            var apiKey = _connection.Twin.State[Constants.TwinPropertyApiKeyKey].ConvertTo<string>();
+            var apiKey = _connection.Twin.State[Constants.TwinPropertyApiKeyKey]?.GetValue<string>();
             base.ConfigureClient(client);
             client.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("ApiKey", apiKey);
@@ -381,6 +376,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         public TestContainer CreateClientScope(ITestOutputHelper output,
             TestSerializerType serializerType)
         {
+            _ = serializerType;
             var services = new ServiceCollection();
 
             services.AddLogging();
@@ -396,16 +392,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             services.AddTransientAsImplementedInterfaces<HistoryServicesRestClient>();
             services.AddTransientAsImplementedInterfaces<FileSystemServicesRestClient>();
             services.AddTransientAsImplementedInterfaces<ConfigurationServicesRestClient>();
-
-            switch (serializerType)
-            {
-                case TestSerializerType.NewtonsoftJson:
-                    FurlyServiceCollectionEx.AddNewtonsoftJsonSerializer(services);
-                    break;
-                case TestSerializerType.Json:
-                    FurlyServiceCollectionEx.AddDefaultJsonSerializer(services);
-                    break;
-            }
 
             // Register http client factory (owned by the fixture, do not dispose)
             services.AddSingleton<IHttpClientFactory>(this);
@@ -426,7 +412,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         {
             var services = new ServiceCollection();
 
-            FurlyServiceCollectionEx.AddNewtonsoftJsonSerializer(services);
             services.Configure<SdkOptions>(options => options.Target = Target);
             services.AddHttpClient();
             services.AddLogging(logging =>
@@ -443,13 +428,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 {
                     logging.AddConsole();
                 }
-            });
-
-            services.Configure<IoTHubServiceOptions>(option =>
-            {
-                option.ConnectionString = ConnectionString.CreateServiceConnectionString(
-                    "test.test.org", "iothubowner", Convert.ToBase64String(
-                        Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()))).ToString();
             });
 
             // Configure mqtt
@@ -473,8 +451,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 
             if (devices != null)
             {
-                services.AddSingletonAsImplementedInterfaces(sp =>
-                    IoTHubMock.Create(devices, sp.GetRequiredService<IJsonSerializer>()));
+                services.AddSingletonAsImplementedInterfaces(_ =>
+                    IoTHubMock.Create(devices));
             }
             else
             {

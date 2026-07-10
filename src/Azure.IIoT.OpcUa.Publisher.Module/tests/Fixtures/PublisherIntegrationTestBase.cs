@@ -10,7 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Azure.IIoT.OpcUa.Publisher.Sdk;
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Core.Exceptions;
-    using Furly.Extensions.Mqtt;
+    using Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt;
     using Microsoft.Extensions.Logging;
     using Neovolve.Logging.Xunit;
     using System;
@@ -398,7 +398,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 var publisher = _publisher;
                 _publisher = null;
 
-                // Bound the publisher disposal. The same upstream MQTTnet/Furly
+                // Bound the publisher disposal. The same upstream MQTTnet/Legacy
                 // reconnect race that ExecuteWithMqttRetryAsync retries can also
                 // leave the MQTT client stuck while disconnecting, so the host
                 // shutdown awaited by PublisherModule.DisposeAsync never
@@ -427,7 +427,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 
         /// <summary>
         /// Run an integration test body, retrying the whole test if the
-        /// publisher's MQTT session is lost to a known upstream MQTTnet/Furly
+        /// publisher's MQTT session is lost to a known upstream MQTTnet/Legacy
         /// reconnect race. Tearing down a writer group (UnpublishNodes) makes
         /// the publisher's MQTT client briefly disconnect and reconnect; an
         /// in-flight QoS1 "$call" response PUBLISH then races the reconnect and
@@ -443,7 +443,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// genuine assertion failures (those are neither a
         /// <see cref="MethodCallException"/> nor a per-attempt cancellation and
         /// propagate immediately). This is a test-side mitigation for an
-        /// upstream Furly/MQTTnet reconnect bug, not a product defect.
+        /// upstream Legacy/MQTTnet reconnect bug, not a product defect.
         /// </summary>
         /// <param name="testBody"></param>
         /// <param name="maxAttempts"></param>

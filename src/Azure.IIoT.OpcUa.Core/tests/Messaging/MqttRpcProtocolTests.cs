@@ -13,7 +13,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt
     /// <summary>
     /// Locks the MQTT direct-method (rpc) request/response wire protocol - topic
     /// strings, correlation scheme and status envelope - that must remain
-    /// byte-for-byte compatible with the former Furly.Extensions.Mqtt client.
+    /// byte-for-byte compatible with the former Legacy.Extensions.Mqtt client.
     /// </summary>
     public sealed class MqttRpcProtocolTests
     {

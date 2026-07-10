@@ -6,7 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
     using Azure.IIoT.OpcUa.Publisher.Stack;
-    using Furly.Exceptions;
+    using Azure.IIoT.OpcUa.Core.Exceptions;
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using Opc.Ua.Configuration;

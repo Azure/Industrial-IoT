@@ -25,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
 #pragma warning disable CA1852
 
     /// <summary>
-    /// System.Text.Json converters ported from the former Furly default json
+    /// System.Text.Json converters ported from the former Legacy default json
     /// serializer so that the wire format (in particular <see cref="DataContractAttribute"/>
     /// / <see cref="DataMemberAttribute"/> based property naming and ordering used by the
     /// API models) is preserved. These converters are reflection based and therefore
@@ -36,7 +36,7 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
     internal static class JsonConverters
     {
         /// <summary>
-        /// Get generic interface (ported from Furly TypeEx).
+        /// Get generic interface (ported from Legacy TypeEx).
         /// </summary>
         /// <param name="type"></param>
         /// <param name="genericItfType"></param>

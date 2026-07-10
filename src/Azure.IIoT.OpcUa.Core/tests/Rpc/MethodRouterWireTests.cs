@@ -22,7 +22,7 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Router
 
     /// <summary>
     /// Wire-format regression tests for the tunnel <see cref="MethodRouter"/> and
-    /// the direct-method chunking protocol ported from Furly. These assert the
+    /// the direct-method chunking protocol ported from Legacy. These assert the
     /// exact JSON shape of the <see cref="MethodChunkModel"/> envelope, a full
     /// request/response round-trip through <see cref="ChunkMethodClient"/> and the
     /// server side reassembly, and the exception -> status-code propagation.
@@ -30,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Router
     public sealed class MethodRouterWireTests
     {
         [Fact]
-        public void MethodChunkModelSerializesWithFurlyCompatibleShape()
+        public void MethodChunkModelSerializesWithLegacyCompatibleShape()
         {
             var model = new MethodChunkModel
             {

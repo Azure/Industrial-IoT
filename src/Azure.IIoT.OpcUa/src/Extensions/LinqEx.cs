@@ -5,6 +5,7 @@
 
 namespace System.Linq
 {
+    using System;
     using System.Collections;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
@@ -14,6 +15,26 @@ namespace System.Linq
     /// </summary>
     public static class LinqEx2
     {
+        /// <summary>
+        /// Create batches of enumerables.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="items"></param>
+        /// <param name="count"></param>
+        /// <exception cref="ArgumentException"></exception>
+        public static IEnumerable<IEnumerable<T>> Batch<T>(this IEnumerable<T> items,
+            int count)
+        {
+            if (count <= 0)
+            {
+                throw new ArgumentException("Cannot create 0 or negative size batches");
+            }
+            return items
+                .Select((x, i) => Tuple.Create(x, i))
+                .GroupBy(x => x.Item2 / count)
+                .Select(g => g.Select(x => x.Item1));
+        }
+
         /// <summary>
         /// Merge enumerable b into set a.
         /// </summary>
@@ -50,6 +71,17 @@ namespace System.Linq
                 return null;
             }
             return new HashSet<T>(enumerable);
+        }
+
+        /// <summary>
+        /// Return object as an enumerable with one element.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static IEnumerable<T> YieldReturn<T>(this T value)
+        {
+            yield return value;
         }
 
         /// <summary>

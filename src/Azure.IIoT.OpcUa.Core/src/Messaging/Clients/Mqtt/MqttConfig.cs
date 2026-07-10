@@ -10,7 +10,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt
 
     /// <summary>
     /// Fills default mqtt option values. Mirror of the former internal
-    /// Furly.Extensions.Mqtt.Runtime.MqttConfig defaults.
+    /// Legacy.Extensions.Mqtt.Runtime.MqttConfig defaults.
     /// </summary>
     public sealed class MqttConfig : IPostConfigureOptions<MqttOptions>
     {

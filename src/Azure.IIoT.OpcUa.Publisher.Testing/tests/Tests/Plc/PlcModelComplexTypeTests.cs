@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
+    using Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
@@ -134,8 +135,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 Assert.True(value.Value.TryGetProperty("Body", out var body));
 
                 // TODO: workaround decoder shortfall.  Need to look into this.
-                var serializer = new NewtonsoftJsonSerializer();
-                return serializer.Deserialize<PlcDataType>(serializer.SerializeToString(body));
+                return Json.Deserialize<PlcDataType>(Json.SerializeToString(body));
             }
 #endif
         }

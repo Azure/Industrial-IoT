@@ -9,7 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Core;
     using Azure.IIoT.OpcUa.Core.Exceptions;
-    using Furly.Extensions.Hosting;
+    using Azure.IIoT.OpcUa.Core.Hosting;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Opc.Ua;

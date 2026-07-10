@@ -16,7 +16,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt
     /// <summary>
     /// Mqtt event. Assembles an application message and publishes one message per
     /// added buffer. Behavior (user property names, v3.11 restrictions, topic
-    /// length check) matches the former Furly.Extensions.Mqtt implementation.
+    /// length check) matches the former Legacy.Extensions.Mqtt implementation.
     /// </summary>
     internal sealed class MqttEvent : IEvent
     {

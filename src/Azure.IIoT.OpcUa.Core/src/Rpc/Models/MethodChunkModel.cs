@@ -12,7 +12,7 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Models
 
     /// <summary>
     /// Method invocation messaging model. The wire property names below match the
-    /// former Furly <c>MethodChunkModel</c> exactly so that the direct-method
+    /// former Legacy <c>MethodChunkModel</c> exactly so that the direct-method
     /// chunking protocol stays wire compatible with existing SDK clients and the
     /// service side.
     /// </summary>

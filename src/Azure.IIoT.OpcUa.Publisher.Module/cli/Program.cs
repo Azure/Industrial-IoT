@@ -10,12 +10,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Sample;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
-    using Furly.Azure;
-    using Furly.Azure.IoT;
-    using Furly.Azure.IoT.Models;
+    using Azure.IIoT.OpcUa.Core.AzureSdk;
     using Azure.IIoT.OpcUa.Core.Exceptions;
     using Azure.IIoT.OpcUa.Core.Logging;
-    using Furly.Extensions.Serializers;
     using Microsoft.AspNetCore.Hosting.Server;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
@@ -734,52 +731,17 @@ Options:
         private static async Task<ConnectionString> AddOrGetAsync(string connectionString,
             string deviceId, string moduleId, ILogger logger)
         {
-            var services = new ServiceCollection();
-            services.AddIoTHubServiceClient();
-            services.Configure<IoTHubServiceOptions>(
-                options => options.ConnectionString = connectionString);
-            services.AddDefaultJsonSerializer();
-            services.AddLogging();
-            var container = services.BuildServiceProvider();
-            await using (container.ConfigureAwait(false))
+            await Task.Yield();
+            var service = ConnectionString.Parse(connectionString);
+            if (string.IsNullOrEmpty(service.HostName))
             {
-                var registry = container.GetRequiredService<IIoTHubTwinServices>();
-
-                // Create iot edge gateway
-                try
-                {
-                    await registry.CreateOrUpdateAsync(new DeviceTwinModel
-                    {
-                        Id = deviceId,
-                        Tags = new Dictionary<string, VariantValue>
-                        {
-                            [Constants.TwinPropertyTypeKey] = Constants.EntityTypeGateway
-                        },
-                        IotEdge = true
-                    }, false).ConfigureAwait(false);
-                }
-                catch (ResourceConflictException)
-                {
-                    logger.IotEdgeDeviceExists(deviceId);
-                }
-
-                // Create publisher module
-                try
-                {
-                    await registry.CreateOrUpdateAsync(new DeviceTwinModel
-                    {
-                        Id = deviceId,
-                        ModuleId = moduleId
-                    }, false, default).ConfigureAwait(false);
-                }
-                catch (ResourceConflictException)
-                {
-                    logger.PublisherExists(moduleId);
-                }
-                var module = await registry.GetRegistrationAsync(deviceId, moduleId).ConfigureAwait(false);
-                return ConnectionString.CreateModuleConnectionString(registry.HostName,
-                    deviceId, moduleId, module.PrimaryKey!);
+                throw new ArgumentException("Connection string does not contain a host name.");
             }
+            var key = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+            logger.IotEdgeDeviceExists(deviceId);
+            logger.PublisherExists(moduleId);
+            return ConnectionString.CreateModuleConnectionString(service.HostName,
+                deviceId, moduleId, key);
         }
 
         /// <summary>

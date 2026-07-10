@@ -73,19 +73,6 @@
     <PackageVersion Include="Mqtt.Client" Version="1.1.0" />
   </ItemGroup>
 
-  <ItemGroup Label="Furly (keep all in lock-step)">
-    <PackageVersion Include="Furly.Azure.EventHubs" Version="1.2.6" />
-    <PackageVersion Include="Furly.Azure.IoT" Version="1.2.6" />
-    <PackageVersion Include="Furly.Extensions" Version="1.2.6" />
-    <PackageVersion Include="Furly.Extensions.Abstractions" Version="1.2.6" />
-    <PackageVersion Include="Furly.Extensions.AspNetCore" Version="1.2.6" />
-    <PackageVersion Include="Furly.Extensions.Dapr" Version="1.2.6" />
-    <PackageVersion Include="Furly.Extensions.Json" Version="1.2.6" />
-    <PackageVersion Include="Furly.Extensions.Mqtt" Version="1.2.6" />
-    <PackageVersion Include="Furly.Extensions.Newtonsoft" Version="1.2.6" />
-    <PackageVersion Include="Furly.Tunnel" Version="1.2.6" />
-  </ItemGroup>
-
   <ItemGroup Label="OpenTelemetry">
     <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="1.16.0" />
     <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.16.0" />

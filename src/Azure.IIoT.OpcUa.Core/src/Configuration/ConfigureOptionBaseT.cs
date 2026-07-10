@@ -10,7 +10,7 @@ namespace Azure.IIoT.OpcUa.Core.Configuration
 
     /// <summary>
     /// Configuration base helper class that binds a strongly typed options
-    /// instance. Ported from the former Furly.Extensions.Configuration helper of
+    /// instance. Ported from the former Legacy.Extensions.Configuration helper of
     /// the same shape.
     /// </summary>
     /// <typeparam name="T"></typeparam>

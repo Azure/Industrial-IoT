@@ -12,7 +12,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt
     /// Pure (broker independent) helpers implementing the mqtt request/response
     /// wire protocol used for direct method invocation. The exact topic strings,
     /// correlation scheme and status envelope match the former
-    /// Furly.Extensions.Mqtt implementation for backwards compatibility.
+    /// Legacy.Extensions.Mqtt implementation for backwards compatibility.
     /// </summary>
     internal static class MqttRpcProtocol
     {
@@ -113,7 +113,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt
 
         /// <summary>
         /// Classify an inbound message into a request or response and extract the
-        /// request id, method name and topic root. Mirror of the former Furly
+        /// request id, method name and topic root. Mirror of the former Legacy
         /// <c>ParseMessage</c> logic (v5 by correlation data / response topic,
         /// v3.11 by the request id topic query parameter).
         /// </summary>

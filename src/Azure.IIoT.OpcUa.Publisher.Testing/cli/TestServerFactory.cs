@@ -6,7 +6,8 @@
 namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
 {
     using Azure.IIoT.OpcUa.Publisher.Stack;
-    using Furly.Extensions.Utils;
+    using CoreUtils = Azure.IIoT.OpcUa.Core.Utils.Utils;
+    using Try = Azure.IIoT.OpcUa.Core.Utils.Try;
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using Opc.Ua.Server;
@@ -200,7 +201,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                 {
                     ApplicationName = "UA Core Sample Server",
                     ApplicationType = ApplicationType.Server,
-                    ApplicationUri = $"urn:{hostName ?? Utils.GetHostName()}:OPCFoundation:CoreSampleServer",
+                    ApplicationUri = $"urn:{hostName ?? CoreUtils.GetHostName()}:OPCFoundation:CoreSampleServer",
                     Extensions = new XmlElementCollection(
                         extensions.Select(XmlElementEx.SerializeObject)),
 
@@ -336,9 +337,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                     ManufacturerName = "OPC Foundation",
                     ProductName = "OPC UA Sample Servers",
                     ProductUri = "http://opcfoundation.org/UA/Samples/v1.0",
-                    SoftwareVersion = Utils.GetAssemblySoftwareVersion(),
-                    BuildNumber = Utils.GetAssemblyBuildNumber(),
-                    BuildDate = Utils.GetAssemblyTimestamp()
+                    SoftwareVersion = CoreUtils.GetAssemblySoftwareVersion(),
+                    BuildNumber = CoreUtils.GetAssemblyBuildNumber(),
+                    BuildDate = CoreUtils.GetAssemblyTimestamp()
                 };
             }
 

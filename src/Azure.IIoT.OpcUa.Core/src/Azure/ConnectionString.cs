@@ -149,6 +149,42 @@ namespace Azure.IIoT.OpcUa.Core.AzureSdk
             }
         }
 
+        /// <summary>
+        /// Create service connection string.
+        /// </summary>
+        /// <param name="hostName"></param>
+        /// <param name="keyName"></param>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public static ConnectionString CreateServiceConnectionString(string hostName,
+            string keyName, string key)
+        {
+            var connectionString = new ConnectionString();
+            connectionString._items[Id.HostName] = hostName;
+            connectionString._items[Id.SharedAccessKeyName] = keyName;
+            connectionString._items[Id.SharedAccessKey] = key;
+            return connectionString;
+        }
+
+        /// <summary>
+        /// Create module connection string.
+        /// </summary>
+        /// <param name="hostName"></param>
+        /// <param name="deviceId"></param>
+        /// <param name="moduleId"></param>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public static ConnectionString CreateModuleConnectionString(string hostName,
+            string deviceId, string moduleId, string key)
+        {
+            var connectionString = new ConnectionString();
+            connectionString._items[Id.HostName] = hostName;
+            connectionString._items[Id.DeviceId] = deviceId;
+            connectionString._items[Id.ModuleId] = moduleId;
+            connectionString._items[Id.SharedAccessKey] = key;
+            return connectionString;
+        }
+
         /// <inheritdoc/>
         public override string ToString()
         {

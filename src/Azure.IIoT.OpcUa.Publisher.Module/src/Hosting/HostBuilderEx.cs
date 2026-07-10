@@ -11,7 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Hosting
 
     /// <summary>
     /// Hosting extensions. Replaces the former
-    /// <c>Furly.Extensions.Hosting.HostingExtensions</c> helper of the same name.
+    /// <c>Legacy.Extensions.Hosting.HostingExtensions</c> helper of the same name.
     /// The publisher module does not wire a leader election service (see the
     /// commented out <c>AddLeaderElection()</c> in <c>Configuration</c>), so the
     /// host is simply built and run to completion.

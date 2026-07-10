@@ -32,8 +32,8 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
 
     /// <summary>
     /// Owned System.Text.Json serialization helper that replaces the former
-    /// Furly default json serializer. The configured <see cref="Options"/> mirror
-    /// the Furly settings (camel case naming, case insensitive, lenient number
+    /// Legacy default json serializer. The configured <see cref="Options"/> mirror
+    /// the Legacy settings (camel case naming, case insensitive, lenient number
     /// handling and the data contract aware converters) so that the produced wire
     /// format stays compatible with the API models that are annotated with
     /// <see cref="System.Runtime.Serialization.DataMemberAttribute"/>.
@@ -108,7 +108,7 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
         /// Apply the configured <see cref="Options"/> (naming policy, number
         /// handling and the data contract aware converters) onto an existing
         /// <see cref="JsonSerializerOptions"/> instance, such as the one owned by
-        /// the ASP.NET Core MVC <c>JsonOptions</c>. This replaces the former Furly
+        /// the ASP.NET Core MVC <c>JsonOptions</c>. This replaces the former Legacy
         /// <c>AddJsonSerializer()</c> MVC formatter so controller (de)serialization
         /// uses the same settings as the rest of the pipeline.
         /// </summary>

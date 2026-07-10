@@ -6,7 +6,7 @@
 namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt
 {
     /// <summary>
-    /// Mqtt versions (mirror of the former Furly.Extensions.Mqtt.MqttVersion so
+    /// Mqtt versions (mirror of the former MqttVersion so
     /// that <c>MqttProtocolVersion</c> parsing from configuration keeps working).
     /// </summary>
     public enum MqttVersion

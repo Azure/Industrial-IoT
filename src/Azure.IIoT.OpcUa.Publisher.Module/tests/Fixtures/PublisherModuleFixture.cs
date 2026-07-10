@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 {
+    using Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt;
     using System;
     using Xunit.Abstractions;
 
@@ -18,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <param name="messageSink"></param>
         public PublisherModuleMqttv5Fixture(IMessageSink messageSink)
         {
-            _publisher = new PublisherModule(messageSink, version: Furly.Extensions.Mqtt.MqttVersion.v5);
+            _publisher = new PublisherModule(messageSink, version: MqttVersion.v5);
         }
 
         /// <inheritdoc/>
@@ -40,7 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <param name="messageSink"></param>
         public PublisherModuleMqttv311Fixture(IMessageSink messageSink)
         {
-            _publisher = new PublisherModule(messageSink, version: Furly.Extensions.Mqtt.MqttVersion.v311);
+            _publisher = new PublisherModule(messageSink, version: MqttVersion.v311);
         }
 
         /// <inheritdoc/>

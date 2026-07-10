@@ -9,8 +9,7 @@ namespace OpcPublisherAEE2ETests.Standalone
     using OpcPublisherAEE2ETests.TestExtensions;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.Messaging.EventHubs.Consumer;
-    using Furly.Extensions.Serializers;
-    using Furly.Extensions.Serializers.Newtonsoft;
+    using Azure.IIoT.OpcUa.Core.Serialization;
     using Microsoft.Azure.Devices;
     using Newtonsoft.Json.Linq;
     using System;
@@ -41,7 +40,6 @@ namespace OpcPublisherAEE2ETests.Standalone
         private readonly EventHubConsumerClient _consumer;
         private readonly IoTHubPublisherDeployment _deployment;
         private readonly ServiceClient _iotHubClient;
-        private readonly ISerializer _serializer;
         private readonly CancellationTokenSource _timeoutTokenSource;
         private readonly string _writerId;
         private readonly string _writerGroup;
@@ -54,7 +52,6 @@ namespace OpcPublisherAEE2ETests.Standalone
             _timeoutTokenSource = new CancellationTokenSource(TestConstants.MaxTestTimeoutMilliseconds);
             _timeoutToken = _timeoutTokenSource.Token;
             _consumer = _context.GetEventHubConsumerClient();
-            _serializer = new NewtonsoftJsonSerializer();
             _writerId = Guid.NewGuid().ToString();
             _writerGroup = Guid.NewGuid().ToString();
             _childDeviceId = "e2e-writergroup-cs-" + _context.TestingSuffix;
@@ -175,14 +172,14 @@ namespace OpcPublisherAEE2ETests.Standalone
         private async Task PublishNodesAsync(string json, CancellationToken ct)
         {
             await UnpublishAllNodesAsync(ct).ConfigureAwait(false);
-            var entries = _serializer.Deserialize<PublishedNodesEntryModel[]>(json);
+            var entries = Json.Deserialize<PublishedNodesEntryModel[]>(json);
             foreach (var entry in entries)
             {
                 var result = await CallMethodAsync(
                     new MethodParameterModel
                     {
                         Name = TestConstants.DirectMethodNames.PublishNodes,
-                        JsonPayload = _serializer.SerializeToString(entry)
+                        JsonPayload = Json.SerializeToString(entry)
                     },
                     ct).ConfigureAwait(false);
 
@@ -197,7 +194,7 @@ namespace OpcPublisherAEE2ETests.Standalone
                 ct).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, result1.Status);
-            var response = _serializer.Deserialize<GetConfiguredEndpointsResponseModel>(result1.JsonPayload);
+            var response = Json.Deserialize<GetConfiguredEndpointsResponseModel>(result1.JsonPayload);
             Assert.Equal(entries.Length, response.Endpoints.Count);
         }
 
@@ -232,7 +229,7 @@ namespace OpcPublisherAEE2ETests.Standalone
                 ct).ConfigureAwait(false);
 
             Assert.Equal((int)HttpStatusCode.OK, result1.Status);
-            var response = _serializer.Deserialize<GetConfiguredEndpointsResponseModel>(result1.JsonPayload);
+            var response = Json.Deserialize<GetConfiguredEndpointsResponseModel>(result1.JsonPayload);
             Assert.Empty(response.Endpoints);
         }
 

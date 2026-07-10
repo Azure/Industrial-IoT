@@ -26,7 +26,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt
 
     /// <summary>
     /// Mqtt transport built on the <c>Mqtt.Client</c> library implementing the
-    /// core event and rpc abstractions. Replaces the former Furly.Extensions.Mqtt
+    /// core event and rpc abstractions. Replaces the former Legacy.Extensions.Mqtt
     /// client. The topic strings, quality of service and request/response wire
     /// protocol are preserved (see <see cref="MqttRpcProtocol"/>).
     /// </summary>

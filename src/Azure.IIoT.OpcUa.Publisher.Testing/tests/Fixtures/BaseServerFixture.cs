@@ -12,7 +12,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
     using Azure.IIoT.OpcUa.Publisher.Stack.Sample;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Azure.IIoT.OpcUa.Core.Logging;
-    using Azure.IIoT.OpcUa.Core.Utils;
+    using CoreUtils = Azure.IIoT.OpcUa.Core.Utils.Utils;
+    using Try = Azure.IIoT.OpcUa.Core.Utils.Try;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
@@ -108,7 +109,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         /// </para>
         /// </summary>
         private string HostName
-            => (UseReverseConnect ? Utils.GetHostName() : Host?.HostName) ?? "localhost";
+            => (UseReverseConnect ? CoreUtils.GetHostName() : Host?.HostName) ?? "localhost";
 
         /// <summary>
         /// Get server connection
@@ -143,7 +144,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
             ILoggerFactory? loggerFactory = null, bool useReverseConnect = false)
         {
             var sw = Stopwatch.StartNew();
-            Host = Try.Op(() => Dns.GetHostEntry(Utils.GetHostName()))
+            Host = Try.Op(() => Dns.GetHostEntry(CoreUtils.GetHostName()))
                 ?? Try.Op(() => Dns.GetHostEntry("localhost"));
             _container = CreateContainer(loggerFactory ?? Log.ConsoleFactory(LogLevel.Debug));
 
@@ -342,8 +343,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
             services.AddSingleton<IConfigurationRoot>(configuration);
             services.AddSingleton(loggerFactory);
 
-            services.AddDefaultJsonSerializer();
-            // services.AddDNewtonsoftJsonSerializer();
             services.AddTransientAsImplementedInterfaces<TestClientConfig>();
 
             services.AddOpcUaStack();

@@ -6,7 +6,8 @@
 namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
 {
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
-    using Furly.Extensions.Logging;
+    using Azure.IIoT.OpcUa.Core.Logging;
+    using CoreUtils = Azure.IIoT.OpcUa.Core.Utils.Utils;
     using k8s;
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
@@ -47,7 +48,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
 #endif
             AppDomain.CurrentDomain.UnhandledException +=
                 (s, e) => Console.WriteLine("unhandled: " + e.ExceptionObject);
-            var host = Utils.GetHostName();
+            var host = CoreUtils.GetHostName();
             var runsInKubenetes = KubernetesClientConfiguration.IsInCluster();
             var ports = new List<int>();
             var server = "sample";

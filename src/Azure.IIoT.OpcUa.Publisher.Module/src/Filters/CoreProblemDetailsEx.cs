@@ -14,7 +14,7 @@ namespace Microsoft.AspNetCore.Http
     /// <summary>
     /// Convert the in-repo <c>Azure.IIoT.OpcUa.Core</c> error envelope
     /// (<see cref="ErrorDetails"/>) to an ASP.NET <see cref="ProblemDetails"/>.
-    /// Replaces the former <c>Furly.Extensions.AspNetCore</c> helper of the same
+    /// Replaces the former <c>Legacy.Extensions.AspNetCore</c> helper of the same
     /// shape. The <see cref="ErrorDetails.Extensions"/> values are kept as
     /// <see cref="System.Text.Json.JsonElement"/> and are boxed into the
     /// <see cref="ProblemDetails.Extensions"/> dictionary.

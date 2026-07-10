@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.Plc
 {
+    using Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt;
     using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
@@ -20,7 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.Plc
         {
             _server = server;
             _module = new PublisherModule(null, testOutputHelper: output,
-                version: Furly.Extensions.Mqtt.MqttVersion.v5);
+                version: MqttVersion.v5);
         }
 
         private PlcModelComplexTypeTests<ConnectionModel> GetTests()

@@ -411,7 +411,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             services.AddSingleton<IConfiguration>(
                 new ConfigurationBuilder().Build());
             services.AddOpcUaStack();
-            services.AddDNewtonsoftJsonSerializer();
             return services.BuildServiceProvider();
         }
     }

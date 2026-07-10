@@ -8,7 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Core.Configuration;
-    using Furly.Extensions.Hosting;
+    using Azure.IIoT.OpcUa.Core.Hosting;
     using Azure.IIoT.OpcUa.Core.Messaging;
     using Microsoft.Extensions.Configuration;
     using Opc.Ua;

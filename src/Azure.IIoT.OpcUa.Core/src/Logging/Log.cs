@@ -8,7 +8,7 @@ namespace Azure.IIoT.OpcUa.Core.Logging
     using Microsoft.Extensions.Logging;
 
     /// <summary>
-    /// Console logging helpers ported from the former Furly.Extensions.Logging
+    /// Console logging helpers ported from the former Legacy.Extensions.Logging
     /// <c>Log</c> helper used to bootstrap loggers outside of the host DI
     /// container (cli programs and test fixtures).
     /// </summary>

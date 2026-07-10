@@ -10,7 +10,7 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Protocol
 
     /// <summary>
     /// Gzip helpers used by the direct-method chunking protocol. The chunk
-    /// payloads are gzip compressed on the wire (matching the former Furly
+    /// payloads are gzip compressed on the wire (matching the former Legacy
     /// implementation) so both ends must agree on the algorithm.
     /// </summary>
     internal static class Compression

@@ -15,7 +15,7 @@ namespace Azure.IIoT.OpcUa.Core.Storage
     /// </summary>
     /// <remarks>
     /// Values are <see cref="JsonNode"/> instances (the OPC Publisher 3.0
-    /// System.Text.Json replacement for the former Furly VariantValue),
+    /// System.Text.Json replacement for the former Legacy VariantValue),
     /// which are mutable and indexable and keep the store AOT/trim safe.
     /// </remarks>
     public interface IKeyValueStore
