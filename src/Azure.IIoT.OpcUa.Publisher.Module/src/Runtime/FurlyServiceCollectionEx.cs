@@ -6,11 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
     using Furly;
-    using Furly.Azure;
-    using Furly.Azure.IoT.Edge;
-    using Furly.Azure.IoT.Edge.Services;
-    using Furly.Azure.Runtime;
-    using Azure.IIoT.OpcUa.Core.Configuration;
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Messaging.Clients;
     using Furly.Extensions.Rpc;
@@ -20,10 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Furly.Extensions.Serializers.Newtonsoft;
     using Furly.Extensions.Storage;
     using Furly.Extensions.Storage.Services;
-    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Options;
     using System;
 
     /// <summary>
@@ -71,22 +63,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         }
 
         /// <summary>
-        /// Add default azure credentials (mirror of Furly.Azure). The Autofac
-        /// version registered the credential provider per lifetime scope; it is
-        /// registered as a singleton here so it can be resolved from the root
-        /// provider (it is stateless and shared across the app).
-        /// </summary>
-        /// <param name="services"></param>
-        public static IServiceCollection AddDefaultAzureCredentials(
-            this IServiceCollection services)
-        {
-            services.AddOptions();
-            services.TryAddSingletonForwarded<ICredentialProvider, DefaultAzureCredentials>();
-            services.AddSingleton<IPostConfigureOptions<CredentialOptions>, CredentialConfig>();
-            return services;
-        }
-
-        /// <summary>
         /// Add file system event client (mirror of Furly.Extensions).
         /// </summary>
         /// <param name="services"></param>
@@ -120,27 +96,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         }
 
         /// <summary>
-        /// Add IoT edge services (mirror of Furly.Azure.IoT.Edge).
-        /// </summary>
-        /// <param name="services"></param>
-        public static IServiceCollection AddIoTEdgeServices(this IServiceCollection services)
-        {
-            services.AddSingleton<IPostConfigureOptions<IoTEdgeClientOptions>,
-                IoTEdgeClientConfig>();
-
-            services.AddSingletonAsImplementedInterfaces<IoTEdgeIdentity>();
-            services.AddSingletonAsImplementedInterfaces<IoTEdgeHubSdkClient>();
-            services.AddTransientAsImplementedInterfaces<IoTEdgeWorkloadApi>();
-
-            services.AddSingletonAsImplementedInterfaces<IoTEdgeEventClient>();
-            services.AddSingletonAsImplementedInterfaces<IoTEdgeClientFactory>();
-            services.AddSingletonAsImplementedInterfaces<IoTEdgeTwinClient>();
-            services.AddSingletonAsImplementedInterfaces<IoTEdgeRpcClient>();
-            services.AddSingletonAsImplementedInterfaces<IoTEdgeRpcServer>();
-            return services;
-        }
-
-        /// <summary>
         /// Register the implementation type as singleton and forward the service
         /// type to it only if the service type was not already registered (mirror of
         /// Autofac IfNotRegistered).
@@ -167,32 +122,4 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         }
     }
 
-    /// <summary>
-    /// IoT Edge client configuration (copied from internal
-    /// Furly.Azure.IoT.Edge.Runtime.IoTEdgeClientConfig).
-    /// </summary>
-    internal sealed class IoTEdgeClientConfig : PostConfigureOptionBase<IoTEdgeClientOptions>
-    {
-        /// <inheritdoc/>
-        public IoTEdgeClientConfig(IConfiguration configuration) :
-            base(configuration)
-        {
-        }
-
-        /// <inheritdoc/>
-        public override void PostConfigure(string? name, IoTEdgeClientOptions options)
-        {
-            if (string.IsNullOrEmpty(options.EdgeHubConnectionString))
-            {
-                options.EdgeHubConnectionString =
-                    GetStringOrDefault(nameof(options.EdgeHubConnectionString));
-            }
-            if (options.Transport == 0)
-            {
-                options.Transport = Enum.Parse<TransportOption>(
-                    GetStringOrDefault(nameof(options.Transport),
-                        nameof(TransportOption.MqttOverTcp)), true);
-            }
-        }
-    }
 }

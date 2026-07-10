@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.Iot.Operations.Services.AssetAndDeviceRegistry.Models;
-    using Furly.Azure.IoT.Operations.Services;
     using AssetModel = Iot.Operations.Services.AssetAndDeviceRegistry.Models.Asset;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;

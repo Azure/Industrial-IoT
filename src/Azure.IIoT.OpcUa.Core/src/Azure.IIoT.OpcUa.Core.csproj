@@ -22,6 +22,8 @@
     <PackageReference Include="Azure.Messaging.EventHubs" />
     <PackageReference Include="Dapr.Client" />
     <PackageReference Include="Grpc.Net.Client" />
+    <PackageReference Include="IoTHubby" />
+    <PackageReference Include="IoTHubby.Edge" />
     <PackageReference Include="Microsoft.Azure.Data.SchemaRegistry.ApacheAvro" />
     <PackageReference Include="Microsoft.Extensions.Configuration" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />

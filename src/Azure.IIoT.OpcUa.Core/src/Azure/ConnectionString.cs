@@ -50,13 +50,30 @@ namespace Azure.IIoT.OpcUa.Core.AzureSdk
             /// <summary>Default endpoints protocol.</summary>
             DefaultEndpointsProtocol,
             /// <summary>Entity path.</summary>
-            EntityPath
+            EntityPath,
+            /// <summary>Gateway host name.</summary>
+            GatewayHostName
         }
 
         /// <summary>
         /// Entity path.
         /// </summary>
         public string? EntityPath => this[Id.EntityPath];
+
+        /// <summary>
+        /// Device id.
+        /// </summary>
+        public string? DeviceId => this[Id.DeviceId];
+
+        /// <summary>
+        /// Module id.
+        /// </summary>
+        public string? ModuleId => this[Id.ModuleId];
+
+        /// <summary>
+        /// Gateway host name.
+        /// </summary>
+        public string? GatewayHostName => this[Id.GatewayHostName];
 
         /// <summary>
         /// Host name.
@@ -154,4 +171,3 @@ namespace Azure.IIoT.OpcUa.Core.AzureSdk
         private readonly Dictionary<Id, string> _items = [];
     }
 }
-

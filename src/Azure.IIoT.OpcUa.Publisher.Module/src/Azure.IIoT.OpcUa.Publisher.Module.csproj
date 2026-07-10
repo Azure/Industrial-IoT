@@ -37,12 +37,14 @@
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" />
     <PackageReference Include="Swashbuckle.AspNetCore.Annotations" />
     <PackageReference Include="Asp.Versioning.Mvc" />
+    <PackageReference Include="Azure.Iot.Operations.Connector" />
+    <PackageReference Include="Azure.Iot.Operations.Protocol" />
     <PackageReference Include="Furly.Extensions.Newtonsoft" />
     <PackageReference Include="Furly.Extensions.Mqtt" />
-    <PackageReference Include="Furly.Azure.IoT" />
     <PackageReference Include="Azure.Identity" />
     <PackageReference Include="Azure.Core" />
     <PackageReference Include="Furly.Tunnel" />
+    <PackageReference Include="KubernetesClient" />
     <PackageReference Include="Mono.Options" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />

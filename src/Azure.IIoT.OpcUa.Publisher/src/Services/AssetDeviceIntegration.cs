@@ -15,7 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.Iot.Operations.Connector.Files;
     using Azure.Iot.Operations.Services.AssetAndDeviceRegistry.Models;
     using Azure.Iot.Operations.Services.SchemaRegistry.SchemaRegistry;
-    using Furly.Azure.IoT.Operations.Services;
+    using IEventSchema = Azure.IIoT.OpcUa.Core.Messaging.IEventSchema;
     using global::Azure.IIoT.OpcUa.Core.Serialization;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
@@ -156,7 +156,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
         /// <inheritdoc/>
         public async ValueTask OnSchemaRegisteredAsync(
-            Furly.Extensions.Messaging.IEventSchema schema, Schema registration,
+            IEventSchema schema, Schema registration,
             CancellationToken ct)
         {
             if (registration.Name == null ||

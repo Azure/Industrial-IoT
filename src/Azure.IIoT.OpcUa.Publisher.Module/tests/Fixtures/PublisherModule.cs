@@ -13,10 +13,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Azure.IIoT.OpcUa.Publisher.Testing.Runtime;
     using Furly.Azure;
     using Furly.Azure.IoT;
-    using Furly.Azure.IoT.Edge;
     using Furly.Azure.IoT.Mock;
     using Furly.Azure.IoT.Mock.Services;
     using Furly.Azure.IoT.Models;
+    using Azure.IIoT.OpcUa.Core.IoTEdge;
     using Furly.Extensions.Hosting;
     using Azure.IIoT.OpcUa.Core.Messaging;
     using Furly.Extensions.Mqtt;

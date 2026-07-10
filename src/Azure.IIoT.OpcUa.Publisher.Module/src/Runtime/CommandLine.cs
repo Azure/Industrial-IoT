@@ -8,7 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
-    using Furly.Azure.IoT.Edge;
+    using Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge;
     using Azure.IIoT.OpcUa.Core.Messaging;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;

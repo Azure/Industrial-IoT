@@ -10,7 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly.Azure.IoT.Edge.Services;
+    using Azure.IIoT.OpcUa.Core.IoTEdge.Services;
     using Azure.IIoT.OpcUa.Core.Exceptions;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;

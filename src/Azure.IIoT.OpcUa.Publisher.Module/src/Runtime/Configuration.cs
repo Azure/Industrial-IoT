@@ -1,4 +1,4 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -12,8 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Azure.IIoT.OpcUa.Core.Rpc.Router;
     using Azure.Iot.Operations.Protocol;
     using Azure.IIoT.OpcUa.Core.Messaging.Clients.EventHubs;
-    using Furly.Azure.IoT.Edge;
-    using Furly.Azure.IoT.Operations.Runtime;
+    using Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge;
     using Azure.IIoT.OpcUa.Publisher.Module.OpenApi;
     using Azure.IIoT.OpcUa.Core.Configuration;
     using Azure.IIoT.OpcUa.Core.Messaging.Clients.Dapr;
@@ -95,6 +94,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             {
                 services.AddResourceMonitoring();
             }
+
         }
 
         /// <summary>
@@ -128,7 +128,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             new IoTEdge(configuration).Configure(iotEdgeOptions);
             if (iotEdgeOptions.EdgeHubConnectionString != null)
             {
-                FurlyServiceCollectionEx.AddIoTEdgeServices(services);
+                CoreServiceCollectionEx.AddIoTEdgeServices(services);
                 services.AddTransientAsImplementedInterfaces<IoTEdge>();
             }
         }
@@ -145,13 +145,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             new Aio(configuration).Configure(publisherOptions);
             if (publisherOptions.IsAzureIoTOperationsConnector.HasValue)
             {
-                // services.AddAzureIoTOperations();
-                services.AddAzureIoTOperationsCore();
-                services.AddAdrClient();
-                services.AddTelemetryPublisher();
-                services.AddSchemaRegistry();
-                // services.AddLeaderElection();
-                // services.AddStateStore();
+                // TODO(Phase 6): IoTHubby does not cover AIO/ADR yet. Register
+                // stubs that preserve the AssetDeviceIntegration DI shape.
+                services.AddSingleton<IAioAdrClient, AioAdrStubClient>();
+                services.AddSingleton<IAioSrClient, AioSrStubClient>();
 
                 if (publisherOptions.UseFileChangePolling == true)
                 {
@@ -1322,16 +1319,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 {
                     options.EdgeHubConnectionString = string.Empty;
                 }
-                if (options.Transport == TransportOption.None)
-                {
-                    if (Enum.TryParse<TransportOption>(GetStringOrDefault(HubTransport),
-                            out var transport) ||
-                        Enum.TryParse(GetStringOrDefault(UpstreamProtocol),
-                            out transport))
-                    {
-                        options.Transport = transport;
-                    }
-                }
+                // IoTHubby/IoTHubby.Edge is MQTT-only. Legacy transport selectors
+                // (HubTransport/UpstreamProtocol) are accepted but ignored here.
                 options.Product = $"OpcPublisher_{GetType().Assembly.GetReleaseVersion()}";
             }
 
@@ -1520,4 +1509,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             return parts.ToDictionary(kvp => kvp[0], (kvp) => kvp[1], StringComparer.OrdinalIgnoreCase);
         }
     }
+
+    /// <summary>
+    /// Placeholder AIO options used while the Furly AIO client is stubbed.
+    /// </summary>
+    internal sealed class AioOptions
+    {
+        /// <summary>
+        /// File system polling interval.
+        /// </summary>
+        public TimeSpan FileSystemPollingInterval { get; set; }
+    }
+
 }

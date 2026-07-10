@@ -43,6 +43,9 @@
     <PackageVersion Include="Azure.ResourceManager.Storage" Version="1.7.0" />
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.29.0" />
     <PackageVersion Include="Azure.Storage.Queues" Version="12.27.0" />
+    <PackageVersion Include="Azure.Iot.Operations.Connector" Version="1.2.0" />
+    <PackageVersion Include="Azure.Iot.Operations.Protocol" Version="1.2.1" />
+    <PackageVersion Include="Azure.Iot.Operations.Services" Version="1.2.2" />
     <PackageVersion Include="Microsoft.Azure.Devices" Version="1.41.0" />
     <PackageVersion Include="Microsoft.Azure.Devices.Client" Version="1.42.3" />
   </ItemGroup>
@@ -64,6 +67,8 @@
   <ItemGroup Label="Messaging transports">
     <PackageVersion Include="Dapr.Client" Version="1.18.4" />
     <PackageVersion Include="Grpc.Net.Client" Version="2.80.0" />
+    <PackageVersion Include="IoTHubby" Version="0.9.0" />
+    <PackageVersion Include="IoTHubby.Edge" Version="0.9.0" />
     <PackageVersion Include="Microsoft.Azure.Data.SchemaRegistry.ApacheAvro" Version="1.0.1" />
     <PackageVersion Include="Mqtt.Client" Version="1.1.0" />
   </ItemGroup>
@@ -71,8 +76,6 @@
   <ItemGroup Label="Furly (keep all in lock-step)">
     <PackageVersion Include="Furly.Azure.EventHubs" Version="1.2.6" />
     <PackageVersion Include="Furly.Azure.IoT" Version="1.2.6" />
-    <PackageVersion Include="Furly.Azure.IoT.Edge" Version="1.2.6" />
-    <PackageVersion Include="Furly.Azure.IoT.Operations" Version="1.2.6" />
     <PackageVersion Include="Furly.Extensions" Version="1.2.6" />
     <PackageVersion Include="Furly.Extensions.Abstractions" Version="1.2.6" />
     <PackageVersion Include="Furly.Extensions.AspNetCore" Version="1.2.6" />

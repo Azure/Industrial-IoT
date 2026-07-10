@@ -7,7 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Storage;
-    using Furly.Azure.IoT.Edge.Services;
+    using Azure.IIoT.OpcUa.Core.IoTEdge.Services;
     using Azure.IIoT.OpcUa.Core.Logging;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Options;

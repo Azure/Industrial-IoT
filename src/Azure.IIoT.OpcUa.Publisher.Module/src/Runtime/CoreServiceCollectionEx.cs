@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Azure.IIoT.OpcUa.Core.Messaging.Clients;
     using Azure.IIoT.OpcUa.Core.Messaging.Clients.Dapr;
     using Azure.IIoT.OpcUa.Core.Messaging.Clients.EventHubs;
+    using Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge;
     using Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt;
     using Azure.IIoT.OpcUa.Core.Rpc;
     using Azure.IIoT.OpcUa.Core.Rpc.Router;
@@ -149,6 +150,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             services.AddSingleton<IPostConfigureOptions<MqttOptions>, MqttConfig>();
             return services;
         }
+
+        /// <summary>
+        /// Add the IoT Edge transport backed by IoTHubby/IoTHubby.Edge.
+        /// </summary>
+        /// <param name="services"></param>
+        public static IServiceCollection AddIoTEdgeServices(
+            this IServiceCollection services)
+        {
+            services.AddOptions();
+            services.AddSingletonAsImplementedInterfaces<IoTEdgeIdentity>();
+            services.AddSingleton<IoTEdgeModuleClient>();
+            services.AddSingletonAsImplementedInterfaces<IoTEdgeTransport>();
+            services.AddSingletonAsImplementedInterfaces<IoTEdgeTwinStore>();
+            services.AddTransientAsImplementedInterfaces<IoTEdgeWorkloadApi>();
+            return services;
+        }
     }
 }
-
