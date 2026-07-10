@@ -9,7 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Services;
-    using Furly.Extensions.Logging;
+    using Azure.IIoT.OpcUa.Core.Logging;
     using Azure.IIoT.OpcUa.Core.Messaging;
     using Moq;
     using Opc.Ua;

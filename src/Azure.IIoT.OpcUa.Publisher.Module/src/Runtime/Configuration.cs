@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -15,9 +15,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Furly.Azure.IoT.Edge;
     using Furly.Azure.IoT.Operations.Runtime;
     using Furly.Extensions.AspNetCore.OpenApi;
-    using Furly.Extensions.Configuration;
+    using Azure.IIoT.OpcUa.Core.Configuration;
     using Furly.Extensions.Dapr;
-    using Furly.Extensions.Logging;
+    using Azure.IIoT.OpcUa.Core.Logging;
     using Furly.Extensions.Messaging.Runtime;
     using Furly.Extensions.Mqtt;
     using Furly.Extensions.Rpc.Runtime;

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -8,7 +8,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     using Azure.IIoT.OpcUa.Encoders.Models;
     using Azure.IIoT.OpcUa.Encoders.Schemas.Avro;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly.Extensions.Logging;
+    using Azure.IIoT.OpcUa.Core.Logging;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;

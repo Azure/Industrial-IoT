@@ -8,7 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     using Azure.IIoT.OpcUa.Publisher.Services;
     using FluentAssertions;
     using Azure.IIoT.OpcUa.Core;
-    using Furly.Extensions.Logging;
+    using Azure.IIoT.OpcUa.Core.Logging;
     using Azure.IIoT.OpcUa.Core.Messaging;
     using Azure.IIoT.OpcUa.Core.Storage.Services;
     using Microsoft.Extensions.Configuration;

@@ -14,7 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Furly.Azure.IoT;
     using Furly.Azure.IoT.Models;
     using Azure.IIoT.OpcUa.Core.Exceptions;
-    using Furly.Extensions.Logging;
+    using Azure.IIoT.OpcUa.Core.Logging;
     using Furly.Extensions.Serializers;
     using Microsoft.AspNetCore.Hosting.Server;
     using Microsoft.Extensions.Configuration;

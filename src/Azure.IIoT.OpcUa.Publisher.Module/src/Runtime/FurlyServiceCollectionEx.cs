@@ -13,7 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Furly.Azure.IoT.Edge;
     using Furly.Azure.IoT.Edge.Services;
     using Furly.Azure.Runtime;
-    using Furly.Extensions.Configuration;
+    using Azure.IIoT.OpcUa.Core.Configuration;
     using Furly.Extensions.Dapr;
     using Furly.Extensions.Dapr.Clients;
     using Furly.Extensions.Messaging;

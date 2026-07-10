@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
 {
-    using Furly.Extensions.Logging;
+    using Azure.IIoT.OpcUa.Core.Logging;
     using Microsoft.Extensions.Logging;
     using Opc.Ua.Server;
     using Opc.Ua.Test;

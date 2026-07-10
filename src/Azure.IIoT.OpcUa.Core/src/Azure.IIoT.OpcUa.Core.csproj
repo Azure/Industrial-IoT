@@ -23,6 +23,7 @@
     <PackageReference Include="Microsoft.Extensions.Diagnostics.ExceptionSummarization" />
     <PackageReference Include="Microsoft.Extensions.FileProviders.Physical" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" />
     <PackageReference Include="Microsoft.Extensions.Options" />
   </ItemGroup>
 </Project>
