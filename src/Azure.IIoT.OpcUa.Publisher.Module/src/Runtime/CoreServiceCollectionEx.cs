@@ -6,8 +6,11 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
     using Azure.IIoT.OpcUa.Core;
+    using Azure.IIoT.OpcUa.Core.AzureSdk;
     using Azure.IIoT.OpcUa.Core.Messaging;
     using Azure.IIoT.OpcUa.Core.Messaging.Clients;
+    using Azure.IIoT.OpcUa.Core.Messaging.Clients.Dapr;
+    using Azure.IIoT.OpcUa.Core.Messaging.Clients.EventHubs;
     using Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt;
     using Azure.IIoT.OpcUa.Core.Rpc;
     using Azure.IIoT.OpcUa.Core.Rpc.Router;
@@ -75,6 +78,64 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         }
 
         /// <summary>
+        /// Add default Azure credentials for owned Azure transports.
+        /// </summary>
+        /// <param name="services"></param>
+        public static IServiceCollection AddDefaultAzureCredentials(
+            this IServiceCollection services)
+        {
+            services.AddOptions();
+            services.AddSingletonAsImplementedInterfaces<DefaultAzureCredentials>();
+            services.AddSingleton<IPostConfigureOptions<CredentialOptions>, CredentialConfig>();
+            return services;
+        }
+
+        /// <summary>
+        /// Add the Event Hubs event transport.
+        /// </summary>
+        /// <param name="services"></param>
+        public static IServiceCollection AddHubEventClient(
+            this IServiceCollection services)
+        {
+            services.AddOptions();
+            AddDefaultAzureCredentials(services);
+            services.AddTransientAsImplementedInterfaces<EventHubsClient>();
+            services.AddTransientAsImplementedInterfaces<EventHubsClientFactory>();
+            services.AddSingleton<IPostConfigureOptions<EventHubsClientOptions>,
+                EventHubsClientConfig>();
+            return services;
+        }
+
+        /// <summary>
+        /// Add the Dapr pub/sub event transport.
+        /// </summary>
+        /// <param name="services"></param>
+        public static IServiceCollection AddDaprPubSubClient(
+            this IServiceCollection services)
+        {
+            services.AddAs<DaprPubSubClient>(ServiceLifetime.Transient,
+                typeof(IEventClient));
+            services.AddOptions();
+            services.AddSingleton<IPostConfigureOptions<DaprOptions>, DaprConfig>();
+            return services;
+        }
+
+        /// <summary>
+        /// Add the Dapr state store.
+        /// </summary>
+        /// <param name="services"></param>
+        public static IServiceCollection AddDaprStateStoreClient(
+            this IServiceCollection services)
+        {
+            services.AddAs<DaprStateStoreClient>(ServiceLifetime.Singleton,
+                typeof(IKeyValueStore), typeof(IAwaitable),
+                typeof(IAwaitable<IKeyValueStore>));
+            services.AddOptions();
+            services.AddSingleton<IPostConfigureOptions<DaprOptions>, DaprConfig>();
+            return services;
+        }
+
+        /// <summary>
         /// Add the mqtt transport (in-repo <c>Azure.IIoT.OpcUa.Core</c> client
         /// built on the <c>Mqtt.Client</c> library) implementing the event and
         /// rpc abstractions. Replaces the former Furly.Extensions.Mqtt client.
@@ -90,3 +151,4 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         }
     }
 }
+

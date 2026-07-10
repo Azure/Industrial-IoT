@@ -7,15 +7,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
     using Furly;
     using Furly.Azure;
-    using Furly.Azure.EventHubs;
-    using Furly.Azure.EventHubs.Clients;
-    using Furly.Azure.EventHubs.Runtime;
     using Furly.Azure.IoT.Edge;
     using Furly.Azure.IoT.Edge.Services;
     using Furly.Azure.Runtime;
     using Azure.IIoT.OpcUa.Core.Configuration;
-    using Furly.Extensions.Dapr;
-    using Furly.Extensions.Dapr.Clients;
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Messaging.Clients;
     using Furly.Extensions.Rpc;
@@ -88,48 +83,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             services.AddOptions();
             services.TryAddSingletonForwarded<ICredentialProvider, DefaultAzureCredentials>();
             services.AddSingleton<IPostConfigureOptions<CredentialOptions>, CredentialConfig>();
-            return services;
-        }
-
-        /// <summary>
-        /// Add dapr pub sub client (mirror of Furly.Extensions.Dapr).
-        /// </summary>
-        /// <param name="services"></param>
-        public static IServiceCollection AddDaprPubSubClient(this IServiceCollection services)
-        {
-            services.AddAs<DaprPubSubClient>(ServiceLifetime.Transient, typeof(IEventClient));
-            services.AddOptions();
-            services.AddSingleton<IPostConfigureOptions<DaprOptions>, DaprConfig>();
-            return services;
-        }
-
-        /// <summary>
-        /// Add dapr state store client (mirror of Furly.Extensions.Dapr).
-        /// </summary>
-        /// <param name="services"></param>
-        public static IServiceCollection AddDaprStateStoreClient(
-            this IServiceCollection services)
-        {
-            services.AddAs<DaprStateStoreClient>(ServiceLifetime.Singleton,
-                typeof(IKeyValueStore), typeof(IAwaitable), typeof(IAwaitable<IKeyValueStore>));
-            AddDefaultJsonSerializer(services);
-            services.AddOptions();
-            services.AddSingleton<IPostConfigureOptions<DaprOptions>, DaprConfig>();
-            return services;
-        }
-
-        /// <summary>
-        /// Add event hubs client (mirror of Furly.Azure.EventHubs).
-        /// </summary>
-        /// <param name="services"></param>
-        public static IServiceCollection AddHubEventClient(this IServiceCollection services)
-        {
-            services.AddOptions();
-            AddDefaultAzureCredentials(services);
-            services.AddTransientAsImplementedInterfaces<EventHubsClient>();
-            services.AddTransientAsImplementedInterfaces<EventHubsClientFactory>();
-            services.AddSingleton<IPostConfigureOptions<EventHubsClientOptions>,
-                EventHubsClientConfig>();
             return services;
         }
 
@@ -211,41 +164,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             services.AddSingleton<TService>(
                 sp => sp.GetRequiredService<TImplementation>());
             return services;
-        }
-    }
-
-    /// <summary>
-    /// Dapr configuration (copied from internal Furly.Extensions.Dapr.Runtime.DaprConfig).
-    /// </summary>
-    internal sealed class DaprConfig : PostConfigureOptionBase<DaprOptions>
-    {
-        private const string kDaprApiToken = "DAPR_API_TOKEN";
-        private const string kDaprGrpcEndpoint = "DAPR_GRPC_ENDPOINT";
-        private const string kDaprHttpEndpoint = "DAPR_HTTP_ENDPOINT";
-
-        /// <inheritdoc/>
-        public DaprConfig(IConfiguration configuration) :
-            base(configuration)
-        {
-        }
-
-        /// <inheritdoc/>
-        public override void PostConfigure(string? name, DaprOptions options)
-        {
-            if (string.IsNullOrEmpty(options.ApiToken))
-            {
-                options.ApiToken = GetStringOrDefault(kDaprApiToken);
-            }
-            if (string.IsNullOrEmpty(options.GrpcEndpoint))
-            {
-                options.GrpcEndpoint = GetStringOrDefault(kDaprGrpcEndpoint);
-            }
-            if (string.IsNullOrEmpty(options.HttpEndpoint))
-            {
-                options.HttpEndpoint = GetStringOrDefault(kDaprHttpEndpoint);
-            }
-
-            options.GrpcChannelOptions.ThrowOperationCanceledOnCancellation = true;
         }
     }
 

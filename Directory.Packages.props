@@ -62,6 +62,9 @@
   </ItemGroup>
 
   <ItemGroup Label="Messaging transports">
+    <PackageVersion Include="Dapr.Client" Version="1.18.4" />
+    <PackageVersion Include="Grpc.Net.Client" Version="2.80.0" />
+    <PackageVersion Include="Microsoft.Azure.Data.SchemaRegistry.ApacheAvro" Version="1.0.1" />
     <PackageVersion Include="Mqtt.Client" Version="1.1.0" />
   </ItemGroup>
 

@@ -11,12 +11,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Core.Rpc.Router;
     using Azure.Iot.Operations.Protocol;
-    using Furly.Azure.EventHubs;
+    using Azure.IIoT.OpcUa.Core.Messaging.Clients.EventHubs;
     using Furly.Azure.IoT.Edge;
     using Furly.Azure.IoT.Operations.Runtime;
     using Azure.IIoT.OpcUa.Publisher.Module.OpenApi;
     using Azure.IIoT.OpcUa.Core.Configuration;
-    using Furly.Extensions.Dapr;
+    using Azure.IIoT.OpcUa.Core.Messaging.Clients.Dapr;
     using Azure.IIoT.OpcUa.Core.Logging;
     using Furly.Extensions.Messaging.Runtime;
     using Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt;
@@ -182,7 +182,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             new EventHubs(configuration).Configure(eventHubsOptions);
             if (eventHubsOptions.ConnectionString != null)
             {
-                FurlyServiceCollectionEx.AddHubEventClient(services);
+                CoreServiceCollectionEx.AddHubEventClient(services);
                 services.AddTransientAsImplementedInterfaces<EventHubs>();
             }
         }
@@ -252,7 +252,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             new Dapr(configuration).Configure(daprOptions);
             if (!string.IsNullOrWhiteSpace(daprOptions.PubSubComponent))
             {
-                FurlyServiceCollectionEx.AddDaprPubSubClient(services);
+                CoreServiceCollectionEx.AddDaprPubSubClient(services);
                 services.AddTransientAsImplementedInterfaces<Dapr>();
             }
         }
@@ -269,7 +269,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             new Dapr(configuration).Configure(daprOptions);
             if (!string.IsNullOrWhiteSpace(daprOptions.StateStoreName))
             {
-                FurlyServiceCollectionEx.AddDaprStateStoreClient(services);
+                CoreServiceCollectionEx.AddDaprStateStoreClient(services);
                 services.AddTransientAsImplementedInterfaces<Dapr>();
             }
         }
