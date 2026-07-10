@@ -54,6 +54,13 @@
     <PackageVersion Include="OPCFoundation.NetStandard.Opc.Ua.Server" Version="1.5.378.145" />
   </ItemGroup>
 
+  <ItemGroup Label="OpenApi / Swagger">
+    <PackageVersion Include="Swashbuckle.AspNetCore.Swagger" Version="10.2.3" />
+    <PackageVersion Include="Swashbuckle.AspNetCore.SwaggerGen" Version="10.2.3" />
+    <PackageVersion Include="Swashbuckle.AspNetCore.Annotations" Version="10.2.3" />
+    <PackageVersion Include="Asp.Versioning.Mvc" Version="10.0.0" />
+  </ItemGroup>
+
   <ItemGroup Label="Furly (keep all in lock-step)">
     <PackageVersion Include="Furly.Azure.EventHubs" Version="1.2.6" />
     <PackageVersion Include="Furly.Azure.IoT" Version="1.2.6" />

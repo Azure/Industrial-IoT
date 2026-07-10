@@ -6,7 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
-    using Furly.Extensions.Serializers;
+    using Azure.IIoT.OpcUa.Core.Serialization;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Mvc.ModelBinding;
     using Microsoft.Extensions.Configuration;
@@ -115,7 +115,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                     // to validate on the opaque value tree anyway.
                     options.ModelMetadataDetailsProviders.Add(
                         new SuppressChildValidationMetadataProvider(typeof(JsonNode))))
-                .AddJsonSerializer()
+                .AddJsonOptions(options => Json.ApplyTo(options.JsonSerializerOptions))
                 ;
 
             services.AddOpenApi();

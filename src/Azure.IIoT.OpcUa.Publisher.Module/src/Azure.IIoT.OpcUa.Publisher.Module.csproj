@@ -33,7 +33,11 @@
     <None Remove="pki\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Furly.Extensions.AspNetCore" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Swagger" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Annotations" />
+    <PackageReference Include="Asp.Versioning.Mvc" />
+    <PackageReference Include="Furly.Extensions.Newtonsoft" />
     <PackageReference Include="Furly.Extensions.Mqtt" />
     <PackageReference Include="Furly.Extensions.Dapr" />
     <PackageReference Include="Furly.Azure.EventHubs" />

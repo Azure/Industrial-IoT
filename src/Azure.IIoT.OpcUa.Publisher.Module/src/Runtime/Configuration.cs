@@ -14,7 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Furly.Azure.EventHubs;
     using Furly.Azure.IoT.Edge;
     using Furly.Azure.IoT.Operations.Runtime;
-    using Furly.Extensions.AspNetCore.OpenApi;
+    using Azure.IIoT.OpcUa.Publisher.Module.OpenApi;
     using Azure.IIoT.OpcUa.Core.Configuration;
     using Furly.Extensions.Dapr;
     using Azure.IIoT.OpcUa.Core.Logging;

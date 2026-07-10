@@ -6,7 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
-    using Furly.Extensions.Hosting;
+    using Azure.IIoT.OpcUa.Publisher.Module.Hosting;
     using k8s;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;

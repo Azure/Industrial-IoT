@@ -105,6 +105,37 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
         }
 
         /// <summary>
+        /// Apply the configured <see cref="Options"/> (naming policy, number
+        /// handling and the data contract aware converters) onto an existing
+        /// <see cref="JsonSerializerOptions"/> instance, such as the one owned by
+        /// the ASP.NET Core MVC <c>JsonOptions</c>. This replaces the former Furly
+        /// <c>AddJsonSerializer()</c> MVC formatter so controller (de)serialization
+        /// uses the same settings as the rest of the pipeline.
+        /// </summary>
+        /// <param name="target"></param>
+        public static void ApplyTo(JsonSerializerOptions target)
+        {
+            ArgumentNullException.ThrowIfNull(target);
+            target.NumberHandling = Options.NumberHandling;
+            target.DefaultIgnoreCondition = Options.DefaultIgnoreCondition;
+            target.DefaultBufferSize = Options.DefaultBufferSize;
+            target.PropertyNamingPolicy = Options.PropertyNamingPolicy;
+            target.PropertyNameCaseInsensitive = Options.PropertyNameCaseInsensitive;
+            target.IncludeFields = Options.IncludeFields;
+            target.UnknownTypeHandling = Options.UnknownTypeHandling;
+            target.WriteIndented = Options.WriteIndented;
+            target.DictionaryKeyPolicy = Options.DictionaryKeyPolicy;
+            target.IgnoreReadOnlyProperties = Options.IgnoreReadOnlyProperties;
+            target.AllowTrailingCommas = Options.AllowTrailingCommas;
+            target.MaxDepth = Options.MaxDepth;
+            target.Converters.Clear();
+            foreach (var converter in Options.Converters)
+            {
+                target.Converters.Add(converter);
+            }
+        }
+
+        /// <summary>
         /// Serialize to string.
         /// </summary>
         /// <typeparam name="T"></typeparam>
