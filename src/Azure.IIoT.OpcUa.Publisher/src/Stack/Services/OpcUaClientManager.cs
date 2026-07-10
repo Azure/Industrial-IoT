@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Nito.AsyncEx;
     using Opc.Ua;
     using Opc.Ua.Client;
+    using OpcUaClientOptions = Azure.IIoT.OpcUa.Publisher.Stack.OpcUaClientOptions;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -522,7 +523,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="sender"></param>
         /// <param name="e"></param>
         /// <returns></returns>
-        private void OnValidate(CertificateValidator sender, CertificateValidationEventArgs e)
+        private void OnValidate(object? sender, CertificateValidationEventArgs e)
         {
             if (e.Accept || e.AcceptAll)
             {

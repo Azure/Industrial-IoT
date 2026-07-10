@@ -90,11 +90,11 @@ public sealed class FlatCertificateStore : ICertificateStoreType
         public void Close() => _innerStore.Close();
 
         /// <inheritdoc/>
-        public Task AddAsync(X509Certificate2 certificate, char[]? password = null, CancellationToken ct = default)
+        public Task AddAsync(Certificate certificate, char[]? password = null, CancellationToken ct = default)
             => _innerStore.AddAsync(certificate, password, ct);
 
         /// <inheritdoc/>
-        public Task AddRejectedAsync(X509Certificate2Collection certificates, int maxCertificates, CancellationToken ct = default)
+        public Task AddRejectedAsync(CertificateCollection certificates, int maxCertificates, CancellationToken ct = default)
             => _innerStore.AddRejectedAsync(certificates, maxCertificates, ct);
 
         /// <inheritdoc/>
@@ -102,11 +102,11 @@ public sealed class FlatCertificateStore : ICertificateStoreType
             => _innerStore.DeleteAsync(thumbprint, ct);
 
         /// <inheritdoc/>
-        public async Task<X509Certificate2Collection> EnumerateAsync(CancellationToken ct = default)
+        public async Task<CertificateCollection> EnumerateAsync(CancellationToken ct = default)
         {
             var certificatesCollection =
                 await _innerStore.EnumerateAsync(ct).ConfigureAwait(false);
-            if (!_innerStore.Directory.Exists)
+            if (_innerStore.Directory?.Exists != true)
             {
                 return certificatesCollection;
             }
@@ -117,9 +117,9 @@ public sealed class FlatCertificateStore : ICertificateStoreType
                 {
                     var certificates = new X509Certificate2Collection();
                     certificates.ImportFromPemFile(file.FullName);
-                    certificatesCollection.AddRange(certificates);
                     foreach (var certificate in certificates)
                     {
+                        certificatesCollection.Add(Certificate.From(certificate));
                         Utils.LogInfo("Enumerate certificates - certificate added {thumbprint}",
                             certificate.Thumbprint);
                     }
@@ -147,18 +147,18 @@ public sealed class FlatCertificateStore : ICertificateStoreType
             => _innerStore.EnumerateCRLsAsync(ct);
 
         /// <inheritdoc/>
-        public Task<X509CRLCollection> EnumerateCRLsAsync(X509Certificate2 issuer,
+        public Task<X509CRLCollection> EnumerateCRLsAsync(Certificate issuer,
             bool validateUpdateTime = true, CancellationToken ct = default)
             => _innerStore.EnumerateCRLsAsync(issuer, validateUpdateTime, ct);
 
         /// <inheritdoc/>
-        public async Task<X509Certificate2Collection> FindByThumbprintAsync(
+        public async Task<CertificateCollection> FindByThumbprintAsync(
             string thumbprint, CancellationToken ct = default)
         {
             var certificatesCollection =
                 await _innerStore.FindByThumbprintAsync(thumbprint, ct).ConfigureAwait(false);
 
-            if (!_innerStore.Directory.Exists)
+            if (_innerStore.Directory?.Exists != true)
             {
                 return certificatesCollection;
             }
@@ -175,7 +175,7 @@ public sealed class FlatCertificateStore : ICertificateStoreType
                             StringComparison.OrdinalIgnoreCase))
                         {
                             Utils.LogInfo("Find by thumbprint: {thumbprint} - found", thumbprint);
-                            certificatesCollection.Add(certificate);
+                            certificatesCollection.Add(Certificate.From(certificate));
                         }
                     }
                 }
@@ -190,20 +190,15 @@ public sealed class FlatCertificateStore : ICertificateStoreType
         }
 
         /// <inheritdoc/>
-        public Task<StatusCode> IsRevokedAsync(X509Certificate2 issuer, X509Certificate2 certificate,
+        public Task<StatusCode> IsRevokedAsync(Certificate issuer, Certificate certificate,
             CancellationToken ct = default)
             => _innerStore.IsRevokedAsync(issuer, certificate, ct);
 
         /// <inheritdoc/>
-        public Task<X509Certificate2> LoadPrivateKeyAsync(string thumbprint, string subjectName,
-            char[] password, CancellationToken ct = default)
-            => LoadPrivateKeyAsync(thumbprint, subjectName, applicationUri: null, certificateType: null, password, ct);
-
-        /// <inheritdoc/>
-        public async Task<X509Certificate2> LoadPrivateKeyAsync(string thumbprint, string subjectName,
-            string? applicationUri, NodeId? certificateType, char[] password, CancellationToken ct = default)
+        public async Task<Certificate?> LoadPrivateKeyAsync(string thumbprint, string? subjectName,
+            string? applicationUri, NodeId certificateType, char[]? password, CancellationToken ct = default)
         {
-            if (!_innerStore.Directory.Exists)
+            if (_innerStore.Directory?.Exists != true)
             {
                 return await _innerStore.LoadPrivateKeyAsync(thumbprint, subjectName, applicationUri,
                     certificateType, password, ct).ConfigureAwait(false);
@@ -230,7 +225,7 @@ public sealed class FlatCertificateStore : ICertificateStoreType
 
                         Utils.LogInfo("Loading private key succeeded for {thumbprint} - {subjectName}",
                             thumbprint, subjectName);
-                        return privateKeyCertificate;
+                        return Certificate.From(privateKeyCertificate);
                     }
                 }
                 catch (Exception e)
@@ -245,7 +240,7 @@ public sealed class FlatCertificateStore : ICertificateStoreType
         }
 
         private static bool MatchCertificate(X509Certificate2 certificate, string thumbprint,
-            string subjectName, string? applicationUri, NodeId? certificateType)
+            string? subjectName, string? applicationUri, NodeId? certificateType)
         {
             if (certificateType == null ||
                 certificateType == ObjectTypeIds.RsaSha256ApplicationCertificateType ||

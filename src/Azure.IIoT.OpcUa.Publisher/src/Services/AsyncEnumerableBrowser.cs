@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -272,7 +272,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var referenceTypeId = reference.ReferenceTypeId;
                 var parentTypeDefinitionId = parent.TypeDefinitionId;
 
-                if (NodeId.IsNull(parentTypeDefinitionId))
+                if (NodeIdCompat.IsNull(parentTypeDefinitionId))
                 {
                     return null;
                 }
@@ -298,7 +298,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     return true;
                 }
-                if (_includeTypeDefinitionSubtypes && !NodeId.IsNull(typeDefinition))
+                if (_includeTypeDefinitionSubtypes && !NodeIdCompat.IsNull(typeDefinition))
                 {
                     var typeDefinitionId = ExpandedNodeId.ToNodeId(typeDefinition,
                         session.MessageContext.NamespaceUris);
@@ -338,7 +338,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 return;
             }
             var local = (NodeId)nodeId;
-            if (!NodeId.IsNull(local) && !_visited.Contains(local))
+            if (!NodeIdCompat.IsNull(local) && !_visited.Contains(local))
             {
                 var frame = new BrowseFrame(local, browseName, displayName,
                     typeDefinition, nodeClass, parent, isChildOfParent);
@@ -358,7 +358,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             while (_browseStack.TryPop(out var frame))
             {
-                if (!NodeId.IsNull(frame.NodeId) && !_visited.Contains(frame.NodeId))
+                if (!NodeIdCompat.IsNull(frame.NodeId) && !_visited.Contains(frame.NodeId))
                 {
                     return frame;
                 }

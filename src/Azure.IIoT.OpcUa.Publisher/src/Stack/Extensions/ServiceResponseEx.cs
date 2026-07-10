@@ -32,6 +32,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         }
 
         /// <summary>
+        /// Validate response (2.0 ArrayOf overload). The 2.0 stack returns
+        /// results and diagnostics as <see cref="ArrayOf{T}"/> which is not an
+        /// <see cref="IEnumerable{T}"/>; materialize it here.
+        /// </summary>
+        /// <typeparam name="TRequest"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="response"></param>
+        /// <param name="results"></param>
+        /// <param name="statusCode"></param>
+        /// <param name="diagnostics"></param>
+        /// <param name="requested"></param>
+        public static ServiceResponse<TRequest, TResult> Validate<TRequest, TResult>(
+            this IServiceResponse response, ArrayOf<TResult> results,
+            Func<TResult, StatusCode> statusCode, ArrayOf<DiagnosticInfo> diagnostics,
+            IEnumerable<TRequest>? requested)
+        {
+            return new ServiceResponse<TRequest, TResult>(response, results.ToArray(),
+                statusCode, ToDiagnostics(diagnostics), requested);
+        }
+
+        /// <summary>
         /// Validate response
         /// </summary>
         /// <typeparam name="TResult"></typeparam>
@@ -45,6 +66,36 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         {
             return new ServiceResponse<object?, TResult>(response, results,
                 statusCode, diagnostics, null);
+        }
+
+        /// <summary>
+        /// Validate response (2.0 ArrayOf overload).
+        /// </summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="response"></param>
+        /// <param name="results"></param>
+        /// <param name="statusCode"></param>
+        /// <param name="diagnostics"></param>
+        public static ServiceResponse<object?, TResult> Validate<TResult>(
+            this IServiceResponse response, ArrayOf<TResult> results,
+            Func<TResult, StatusCode> statusCode, ArrayOf<DiagnosticInfo> diagnostics)
+        {
+            return new ServiceResponse<object?, TResult>(response, results.ToArray(),
+                statusCode, ToDiagnostics(diagnostics), null);
+        }
+
+        /// <summary>
+        /// Materialize an ArrayOf diagnostics into the classic collection type.
+        /// </summary>
+        /// <param name="diagnostics"></param>
+        private static DiagnosticInfoCollection? ToDiagnostics(ArrayOf<DiagnosticInfo> diagnostics)
+        {
+            if (diagnostics.IsNull)
+            {
+                return null;
+            }
+            var array = diagnostics.ToArray();
+            return array == null ? null : new DiagnosticInfoCollection(array);
         }
 
         /// <summary>

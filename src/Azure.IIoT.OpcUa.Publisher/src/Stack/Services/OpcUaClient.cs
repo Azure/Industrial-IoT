@@ -15,6 +15,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Opc.Ua;
     using Opc.Ua.Bindings;
     using Opc.Ua.Client;
+    using Opc.Ua.Security.Certificates;
+    using OpcUaClientOptions = Azure.IIoT.OpcUa.Publisher.Stack.OpcUaClientOptions;
     using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
@@ -372,10 +374,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public override ISession Create(ITransportChannel channel, ApplicationConfiguration configuration,
-            ConfiguredEndpoint endpoint, X509Certificate2? clientCertificate,
-            X509Certificate2Collection? clientCertificateChain,
-            EndpointDescriptionCollection? availableEndpoints,
-            StringCollection? discoveryProfileUris)
+            ConfiguredEndpoint endpoint, Certificate? clientCertificate = null,
+            CertificateCollection? clientCertificateChain = null,
+            ArrayOf<EndpointDescription> availableEndpoints = default,
+            ArrayOf<string> discoveryProfileUris = default)
         {
             return new OpcUaSession(this, _loggerFactory.CreateLogger<OpcUaSession>(),
                 _timeProvider, channel, configuration, endpoint,
@@ -385,8 +387,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public override Task<ISession> CreateAsync(ApplicationConfiguration configuration,
             ConfiguredEndpoint endpoint, bool updateBeforeConnect, string sessionName,
-            uint sessionTimeout, IUserIdentity identity, IList<string> preferredLocales,
-            CancellationToken ct)
+            uint sessionTimeout, IUserIdentity? identity, ArrayOf<string> preferredLocales,
+            CancellationToken ct = default)
         {
             return CreateAsync(configuration, endpoint, updateBeforeConnect, false,
                 sessionName, sessionTimeout, identity, preferredLocales, ct);
@@ -395,8 +397,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public async override Task<ISession> CreateAsync(ApplicationConfiguration configuration,
             ConfiguredEndpoint endpoint, bool updateBeforeConnect, bool checkDomain,
-            string sessionName, uint sessionTimeout, IUserIdentity identity, IList<string> preferredLocales,
-            CancellationToken ct)
+            string sessionName, uint sessionTimeout, IUserIdentity? identity, ArrayOf<string> preferredLocales,
+            CancellationToken ct = default)
         {
             return await base.CreateAsync(configuration, endpoint, updateBeforeConnect,
                 checkDomain, sessionName, sessionTimeout, identity, preferredLocales, ct).ConfigureAwait(false);
@@ -405,8 +407,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public async override Task<ISession> CreateAsync(ApplicationConfiguration configuration,
             ITransportWaitingConnection connection, ConfiguredEndpoint endpoint, bool updateBeforeConnect,
-            bool checkDomain, string sessionName, uint sessionTimeout, IUserIdentity identity,
-            IList<string> preferredLocales, CancellationToken ct)
+            bool checkDomain, string sessionName, uint sessionTimeout, IUserIdentity? identity,
+            ArrayOf<string> preferredLocales, CancellationToken ct = default)
         {
             return await base.CreateAsync(configuration, connection, endpoint, updateBeforeConnect,
                 checkDomain, sessionName, sessionTimeout, identity, preferredLocales, ct).ConfigureAwait(false);
@@ -414,9 +416,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public async override Task<ISession> CreateAsync(ApplicationConfiguration configuration,
-            ReverseConnectManager? reverseConnectManager, ConfiguredEndpoint endpoint, bool updateBeforeConnect,
-            bool checkDomain, string sessionName, uint sessionTimeout, IUserIdentity userIdentity,
-            IList<string> preferredLocales, CancellationToken ct)
+            ReverseConnectManager reverseConnectManager, ConfiguredEndpoint endpoint, bool updateBeforeConnect,
+            bool checkDomain, string sessionName, uint sessionTimeout, IUserIdentity? userIdentity,
+            ArrayOf<string> preferredLocales, CancellationToken ct = default)
         {
             if (reverseConnectManager == null)
             {

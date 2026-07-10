@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -377,7 +377,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     case (uint)Opc.Ua.NodeClass.Object:
                         // Resolve all objects under this object
-                        Debug.Assert(!NodeId.IsNull(CurrentNode.NodeId));
+                        Debug.Assert(!NodeIdCompat.IsNull(CurrentNode.NodeId));
                         if (!_request.ExcludeRootIfInstanceNode)
                         {
                             // Add root
@@ -398,7 +398,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     case (uint)Opc.Ua.NodeClass.VariableType:
                     case (uint)Opc.Ua.NodeClass.ObjectType:
                         // Resolve all objects of this type
-                        Debug.Assert(!NodeId.IsNull(CurrentNode.NodeId));
+                        Debug.Assert(!NodeIdCompat.IsNull(CurrentNode.NodeId));
                         var instanceClass =
                             CurrentNode.NodeClass == (uint)Opc.Ua.NodeClass.ObjectType ?
                                 Opc.Ua.NodeClass.Object : Opc.Ua.NodeClass.Variable;
@@ -650,7 +650,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         break;
                     default:
                         _objects.AddRange(frames
-                            .Where(f => !NodeId.IsNull(f.NodeId) && _knownIds.Add(f.NodeId))
+                            .Where(f => !NodeIdCompat.IsNull(f.NodeId) && _knownIds.Add(f.NodeId))
                             .Select(f => new ObjectToExpand(f, this)));
                         break;
                 }
@@ -743,7 +743,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var duplicates = false;
                 foreach (var frame in frames)
                 {
-                    if (NodeId.IsNull(frame.NodeId))
+                    if (NodeIdCompat.IsNull(frame.NodeId))
                     {
                         continue;
                     }
@@ -927,7 +927,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     var browseDescriptions = _variables
                         .Concat(_methods)
                         .Append(ObjectFromBrowse)
-                        .Where(t => !NodeId.IsNull(t.TypeDefinitionId))
+                        .Where(t => !NodeIdCompat.IsNull(t.TypeDefinitionId))
                         .Select(t => new BrowseDescription
                         {
                             Handle = t,
@@ -973,7 +973,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         // Find the event notifier. This should use HasEventSource if possible, but we just
                         // try and find it in the objects to the root here
                         var readValueIds = ObjectFromBrowse.AllFramesToRoot
-                            .Where(f => f.NodeClass == Opc.Ua.NodeClass.Object && !NodeId.IsNull(f.NodeId))
+                            .Where(f => f.NodeClass == Opc.Ua.NodeClass.Object && !NodeIdCompat.IsNull(f.NodeId))
                             .Select(f => new ReadValueId
                             {
                                 Handle = f,

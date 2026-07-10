@@ -70,7 +70,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 return rootId;
             }
-            if (NodeId.IsNull(rootId))
+            if (NodeIdCompat.IsNull(rootId))
             {
                 rootId = ObjectIds.RootFolder;
             }

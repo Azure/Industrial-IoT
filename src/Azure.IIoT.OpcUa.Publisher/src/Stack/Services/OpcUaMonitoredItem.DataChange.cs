@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -218,7 +218,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 NodeIdDictionary<object> dataTypes, CancellationToken ct)
             {
                 var nodeId = NodeId.ToExpandedNodeId(session.MessageContext);
-                if (Opc.Ua.NodeId.IsNull(nodeId))
+                if (Opc.Ua.NodeIdCompat.IsNull(nodeId))
                 {
                     // Failed.
                     return;
@@ -243,7 +243,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 out bool metadataChanged)
             {
                 var nodeId = NodeId.ToNodeId(session.MessageContext);
-                if (Opc.Ua.NodeId.IsNull(nodeId))
+                if (Opc.Ua.NodeIdCompat.IsNull(nodeId))
                 {
                     metadataChanged = false;
                     return false;

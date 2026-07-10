@@ -111,7 +111,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     f.ErrorInfo == null &&
                     f.TypeDefinition.NamespaceIndex == nsIndex &&
                     f.TypeDefinition.Identifier.Equals(kAssetFileType));
-            if (!NodeId.IsNull(fileNodeId.Node))
+            if (!NodeIdCompat.IsNull(fileNodeId.Node))
             {
                 return (fileNodeId.Node, null);
             }

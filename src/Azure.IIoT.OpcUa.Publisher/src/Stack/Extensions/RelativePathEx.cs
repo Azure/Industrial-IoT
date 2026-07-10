@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -163,7 +163,7 @@ namespace Opc.Ua.Extensions
                 // TODO: Deescape &<, &>, &/, &., &:, &&
                 index = to + 1;
                 pathElement.ReferenceTypeId = reference.ToNodeId(context);
-                if (NodeId.IsNull(pathElement.ReferenceTypeId) &&
+                if (NodeIdCompat.IsNull(pathElement.ReferenceTypeId) &&
                     TypeMaps.ReferenceTypes.Value.TryGetIdentifier(reference,
                         out var id))
                 {

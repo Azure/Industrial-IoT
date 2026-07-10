@@ -76,12 +76,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             return await _client.ExecuteAsync(endpoint, async context =>
             {
                 var rootId = request.NodeId.ToNodeId(context.Session.MessageContext);
-                if (NodeId.IsNull(rootId))
+                if (NodeIdCompat.IsNull(rootId))
                 {
                     rootId = ObjectIds.RootFolder;
                 }
                 var typeId = request.ReferenceTypeId.ToNodeId(context.Session.MessageContext);
-                if (NodeId.IsNull(typeId))
+                if (NodeIdCompat.IsNull(typeId))
                 {
                     typeId = ReferenceTypeIds.HierarchicalReferences;
                 }
@@ -217,7 +217,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             return await _client.ExecuteAsync(endpoint, async context =>
             {
                 var rootId = request.NodeId.ToNodeId(context.Session.MessageContext);
-                if (NodeId.IsNull(rootId))
+                if (NodeIdCompat.IsNull(rootId))
                 {
                     rootId = ObjectIds.RootFolder;
                 }
@@ -270,7 +270,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var nodeId = await context.Session.ResolveNodeIdAsync(request.Header, request.NodeId,
                     request.BrowsePath, nameof(request.BrowsePath), _timeProvider,
                     context.Ct).ConfigureAwait(false);
-                if (NodeId.IsNull(nodeId))
+                if (NodeIdCompat.IsNull(nodeId))
                 {
                     throw new ArgumentException("Node id missing", nameof(request));
                 }
@@ -313,7 +313,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         request.Header.ToRequestHeader(_timeProvider), nodeId.YieldReturn(),
                         ReferenceTypeIds.HasTypeDefinition, maxResults: 1, ct: context.Ct).ConfigureAwait(false);
                     typeId = references.FirstOrDefault(r => r.ErrorInfo == null).Node;
-                    if (NodeId.IsNull(typeId))
+                    if (NodeIdCompat.IsNull(typeId))
                     {
                         typeId = nodeId;
                     }
@@ -495,7 +495,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     request.MethodBrowsePath, nameof(request.MethodBrowsePath), _timeProvider,
                     context.Ct).ConfigureAwait(false);
 
-                if (NodeId.IsNull(methodId))
+                if (NodeIdCompat.IsNull(methodId))
                 {
                     throw new ArgumentException(nameof(request.MethodId));
                 }
@@ -625,7 +625,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var objectId = await context.Session.ResolveNodeIdAsync(request.Header, request.ObjectId,
                     request.ObjectBrowsePath, nameof(request.ObjectBrowsePath), _timeProvider,
                     context.Ct).ConfigureAwait(false);
-                if (NodeId.IsNull(objectId))
+                if (NodeIdCompat.IsNull(objectId))
                 {
                     throw new ArgumentException("Object id missing", nameof(request));
                 }
@@ -633,7 +633,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var methodId = request.MethodId.ToNodeId(context.Session.MessageContext);
                 if (request.MethodBrowsePath?.Count > 0)
                 {
-                    if (NodeId.IsNull(methodId))
+                    if (NodeIdCompat.IsNull(methodId))
                     {
                         // Browse from object id to method if possible
                         methodId = objectId ??
@@ -644,7 +644,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         methodId, [.. request.MethodBrowsePath], nameof(request.MethodBrowsePath),
                         _timeProvider, context.Ct).ConfigureAwait(false);
                 }
-                else if (NodeId.IsNull(methodId))
+                else if (NodeIdCompat.IsNull(methodId))
                 {
                     // Method is null and cannot browse to method from object
                     throw new ArgumentException("Method id missing", nameof(request));
@@ -821,7 +821,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var readNode = await context.Session.ResolveNodeIdAsync(request.Header, request.NodeId,
                     request.BrowsePath, nameof(request.BrowsePath), _timeProvider,
                     context.Ct).ConfigureAwait(false);
-                if (NodeId.IsNull(readNode))
+                if (NodeIdCompat.IsNull(readNode))
                 {
                     throw new ArgumentException("Node id missing", nameof(request));
                 }
@@ -895,18 +895,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var writeNode = await context.Session.ResolveNodeIdAsync(request.Header, request.NodeId,
                     request.BrowsePath, nameof(request.BrowsePath), _timeProvider,
                     context.Ct).ConfigureAwait(false);
-                if (NodeId.IsNull(writeNode))
+                if (NodeIdCompat.IsNull(writeNode))
                 {
                     throw new ArgumentException("Node id missing", nameof(request));
                 }
                 var dataTypeId = request.DataType.ToNodeId(context.Session.MessageContext);
-                if (NodeId.IsNull(dataTypeId))
+                if (NodeIdCompat.IsNull(dataTypeId))
                 {
                     // Read data type
                     (dataTypeId, _) = await context.Session.ReadAttributeAsync<NodeId?>(
                         request.Header.ToRequestHeader(_timeProvider), writeNode,
                         Attributes.DataType, context.Ct).ConfigureAwait(false);
-                    if (NodeId.IsNull(dataTypeId))
+                    if (NodeIdCompat.IsNull(dataTypeId))
                     {
                         throw new ArgumentException("Data type missing", nameof(request));
                     }
@@ -1063,7 +1063,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             return await _client.ExecuteAsync(endpoint, async context =>
             {
                 var nodeId = request.NodeId.ToNodeId(context.Session.MessageContext);
-                if (NodeId.IsNull(nodeId))
+                if (NodeIdCompat.IsNull(nodeId))
                 {
                     throw new ArgumentException("Bad node id", nameof(request));
                 }
@@ -1259,7 +1259,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var nodeId = await context.Session.ResolveNodeIdAsync(request.Header, request.NodeId,
                     request.BrowsePath, nameof(request.BrowsePath), _timeProvider,
                     context.Ct).ConfigureAwait(false);
-                if (NodeId.IsNull(nodeId))
+                if (NodeIdCompat.IsNull(nodeId))
                 {
                     throw new ArgumentException("Bad node id", nameof(request));
                 }
@@ -1383,7 +1383,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     request.NodeId, request.BrowsePath, nameof(request.BrowsePath),
                     _timeProvider, context.Ct).ConfigureAwait(false);
                 // Update the node id to target based on the request
-                if (NodeId.IsNull(nodeId))
+                if (NodeIdCompat.IsNull(nodeId))
                 {
                     throw new ArgumentException("Missing node id", nameof(request));
                 }
@@ -1686,7 +1686,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     // Initialize
                     _nodeIds = _request.NodeIds == null ? [] : _request.NodeIds
                         .Select(n => n.ToNodeId(context.Session.MessageContext))
-                        .Where(n => !NodeId.IsNull(n))
+                        .Where(n => !NodeIdCompat.IsNull(n))
                         .ToArray();
                     if (_nodeIds.Length == 0)
                     {
@@ -1755,7 +1755,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 if (_typeId == null)
                 {
                     _typeId = _request.ReferenceTypeId.ToNodeId(context.Session.MessageContext);
-                    if (NodeId.IsNull(_typeId))
+                    if (NodeIdCompat.IsNull(_typeId))
                     {
                         _typeId = ReferenceTypeIds.HierarchicalReferences;
                     }
@@ -1864,7 +1864,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     return;
                 }
                 var local = (NodeId)nodeId;
-                if (!NodeId.IsNull(local) && !_visited.Contains(local))
+                if (!NodeIdCompat.IsNull(local) && !_visited.Contains(local))
                 {
                     _browseStack.Push(local);
                 }
@@ -1878,7 +1878,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 while (_browseStack.TryPop(out var nodeId))
                 {
-                    if (!NodeId.IsNull(nodeId) && !_visited.Contains(nodeId))
+                    if (!NodeIdCompat.IsNull(nodeId) && !_visited.Contains(nodeId))
                     {
                         return nodeId;
                     }

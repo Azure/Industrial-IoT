@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -814,7 +814,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             while (typesToResolve.Count > 0)
             {
                 var baseType = typesToResolve.Dequeue();
-                while (!Opc.Ua.NodeId.IsNull(baseType))
+                while (!Opc.Ua.NodeIdCompat.IsNull(baseType))
                 {
                     try
                     {
@@ -827,7 +827,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         }
 
                         dataTypeId = ExpandedNodeId.ToNodeId(dataType.NodeId, session.MessageContext.NamespaceUris);
-                        Debug.Assert(!Opc.Ua.NodeId.IsNull(dataTypeId));
+                        Debug.Assert(!Opc.Ua.NodeIdCompat.IsNull(dataTypeId));
                         if (IsBuiltInType(dataTypeId))
                         {
                             // Do not add builtin types - we are done here now

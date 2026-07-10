@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Opc.Ua;
     using Opc.Ua.Client;
     using Opc.Ua.Client.ComplexTypes;
+    using Opc.Ua.Security.Certificates;
     using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
@@ -93,9 +94,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public OpcUaSession(OpcUaClient client,
             ILogger<OpcUaSession> logger, TimeProvider timeProvider,
             ITransportChannel channel, ApplicationConfiguration configuration,
-            ConfiguredEndpoint endpoint, X509Certificate2? clientCertificate = null,
-            EndpointDescriptionCollection? availableEndpoints = null,
-            StringCollection? discoveryProfileUris = null)
+            ConfiguredEndpoint endpoint, Certificate? clientCertificate = null,
+            ArrayOf<EndpointDescription> availableEndpoints = default,
+            ArrayOf<string> discoveryProfileUris = default)
             : base(channel, configuration, endpoint, clientCertificate,
                   clientCertificateChain: null,
                   availableEndpoints, discoveryProfileUris)
@@ -686,13 +687,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public override void SessionCreated(NodeId sessionId, NodeId sessionCookie)
         {
             base.SessionCreated(sessionId, sessionCookie);
-            if (NodeId.IsNull(sessionId))
+            if (NodeIdCompat.IsNull(sessionId))
             {
                 // Also called when session closes
                 return;
             }
 
-            Debug.Assert(!NodeId.IsNull(sessionCookie));
+            Debug.Assert(!NodeIdCompat.IsNull(sessionCookie));
 
             // Update operation limits with configuration provided overrides
             OperationLimits.Override(_client.LimitOverrides);
@@ -1333,7 +1334,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 if (Connected)
                 {
-                    var complexTypeSystem = new ComplexTypeSystem(new NodeCacheResolver(this, LruNodeCache, _client.Telemetry));
+                    var complexTypeSystem = new ComplexTypeSystem(new NodeCacheResolver(this, LruNodeCache.Inner, _client.Telemetry));
                     var success = await complexTypeSystem.LoadAsync(
                         throwOnError: false, ct: _cts.Token).ConfigureAwait(false);
 

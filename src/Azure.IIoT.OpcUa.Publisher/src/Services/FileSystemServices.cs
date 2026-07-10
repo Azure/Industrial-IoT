@@ -309,7 +309,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
                 var result = parents.Count > 0 ? parents[0] : default;
                 nodeId = result.Node;
-                if (NodeId.IsNull(nodeId) ||
+                if (NodeIdCompat.IsNull(nodeId) ||
                     result.TypeDefinition != Opc.Ua.ObjectTypeIds.FileDirectoryType)
                 {
                     return new ServiceResponse<FileSystemObjectModel>
@@ -371,7 +371,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
                     var result = parents.Count > 0 ? parents[0] : default;
                     nodeId = result.Node;
-                    if (NodeId.IsNull(nodeId) ||
+                    if (NodeIdCompat.IsNull(nodeId) ||
                         result.TypeDefinition != Opc.Ua.ObjectTypeIds.FileDirectoryType)
                     {
                         return new ServiceResultModel
@@ -452,7 +452,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     return (NodeId.Null, ex.ToServiceResultModel());
                 }
             }
-            if (NodeId.IsNull(nodeId))
+            if (NodeIdCompat.IsNull(nodeId))
             {
                 return (NodeId.Null, new ServiceResultModel
                 {

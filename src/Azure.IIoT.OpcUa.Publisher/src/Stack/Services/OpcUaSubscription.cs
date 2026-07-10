@@ -1146,7 +1146,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 foreach (var (First, Second) in response.RegisteredNodeIds.Zip(registrations))
                 {
                     Debug.Assert(Second != null);
-                    if (!NodeId.IsNull(First))
+                    if (!NodeIdCompat.IsNull(First))
                     {
                         Second.Value.Update(First, session.MessageContext);
                     }

@@ -159,7 +159,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var (nodeId, errorInfo) = await context.Session.CreateAssetAsync(
                     request.Header.ToRequestHeader(_timeProvider),
                     request.Entry.DataSetName, context.Ct).ConfigureAwait(false); // Asset name
-                if (errorInfo != null || nodeId is null || NodeId.IsNull(nodeId))
+                if (errorInfo != null || nodeId is null || NodeIdCompat.IsNull(nodeId))
                 {
                     // TOOD errorInfo?.StatusCode ==
                     //  Opc.Ua.StatusCodes.BadBrowseNameDuplicated
@@ -190,7 +190,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 (nodeId, errorInfo) = await context.Session.GetAssetFileAsync(
                     request.Header.ToRequestHeader(_timeProvider), nodeId!,
                     context.Ct).ConfigureAwait(false);
-                if (errorInfo != null || nodeId is null || NodeId.IsNull(nodeId))
+                if (errorInfo != null || nodeId is null || NodeIdCompat.IsNull(nodeId))
                 {
                     errorInfo ??= new ServiceResultModel
                     {
@@ -207,7 +207,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var (fileHandle, openError) = await context.Session.OpenAsync(
                     request.Header.ToRequestHeader(_timeProvider), nodeId, 0x2 | 0x4,
                     context.Ct).ConfigureAwait(false);
-                if (openError != null || !fileHandle.HasValue || NodeId.IsNull(nodeId))
+                if (openError != null || !fileHandle.HasValue || NodeIdCompat.IsNull(nodeId))
                 {
                     openError ??= new ServiceResultModel
                     {
@@ -376,7 +376,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             return await _client.ExecuteAsync(entry.ToConnectionModel(), async context =>
             {
                 var assetId = entry.DataSetWriterId.ToNodeId(context.Session.MessageContext);
-                if (NodeId.IsNull(assetId))
+                if (NodeIdCompat.IsNull(assetId))
                 {
                     return new ServiceResultModel
                     {

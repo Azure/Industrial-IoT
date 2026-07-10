@@ -40,8 +40,43 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public event CertificateValidationEventHandler Validate
         {
-            add => Value.CertificateValidator.CertificateValidation += value;
-            remove => Value.CertificateValidator.CertificateValidation -= value;
+            add
+            {
+                _validate += value;
+                EnsureAcceptErrorHook();
+            }
+            remove => _validate -= value;
+        }
+
+        /// <summary>
+        /// Install the 2.0 certificate manager accept-error hook once so that
+        /// the classic <see cref="Validate"/> event continues to work.
+        /// </summary>
+        private void EnsureAcceptErrorHook()
+        {
+            if (Interlocked.Exchange(ref _acceptErrorHooked, 1) == 0)
+            {
+                Value.CertificateManager.AcceptError = OnAcceptError;
+            }
+        }
+
+        /// <summary>
+        /// Bridge the 2.0 accept-error callback onto the classic multicast
+        /// validation event. Returns true when the certificate should be
+        /// accepted for this validation.
+        /// </summary>
+        /// <param name="certificate"></param>
+        /// <param name="error"></param>
+        private bool OnAcceptError(Certificate certificate, ServiceResult error)
+        {
+            var handler = _validate;
+            if (handler == null)
+            {
+                return false;
+            }
+            var args = new CertificateValidationEventArgs(error, certificate);
+            handler(this, args);
+            return args.Accept || args.AcceptAll;
         }
 
         private string Password =>
@@ -973,6 +1008,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly TimeProvider _timeProvider;
         private readonly string? _identity;
         private bool _disposed;
+        private CertificateValidationEventHandler? _validate;
+        private int _acceptErrorHooked;
     }
 
     /// <summary>

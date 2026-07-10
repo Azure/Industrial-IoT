@@ -624,13 +624,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 #endif
             var dataTypeId = dataType.ToNodeId(session.MessageContext);
-            if (NodeId.IsNull(dataTypeId))
+            if (NodeIdCompat.IsNull(dataTypeId))
             {
                 // Read data type
                 (dataTypeId, _) = await session.ReadAttributeAsync<NodeId?>(
                     requestHeader.ToRequestHeader(timeProvider), nodeId,
                     Attributes.DataType, ct).ConfigureAwait(false);
-                if (NodeId.IsNull(dataTypeId))
+                if (NodeIdCompat.IsNull(dataTypeId))
                 {
                     throw new ArgumentException(
                         $"{nodeId} does not have a data type to fall back on.");

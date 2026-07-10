@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -231,7 +231,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                     // NodeId literal so operators such as OfType keep
                     // working without requiring an explicit data type.
                     var nodeId = s.ToNodeId(encoder.Context);
-                    if (!NodeId.IsNull(nodeId))
+                    if (!NodeIdCompat.IsNull(nodeId))
                     {
                         return new LiteralOperand(new Variant(nodeId));
                     }

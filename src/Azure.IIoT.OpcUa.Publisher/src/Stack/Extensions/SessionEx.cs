@@ -739,7 +739,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     var relativePath = ImmutableRelativePath.Create(parent?.BrowsePath,
                         "/" + browseName);
                     var nodeClass = reference.NodeClass.ToServiceType();
-                    if (NodeId.IsNull(modellingRule.Node) || nodeClass == null)
+                    if (NodeIdCompat.IsNull(modellingRule.Node) || nodeClass == null)
                     {
                         // if the modelling rule is null then the instance is not part
                         // of the type declaration.
@@ -1107,106 +1107,106 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             {
                 Children = children,
                 NodeId = id,
-                Value = value.Item1 == null ? null :
+                Value = 
                     session.Codec.Encode(
                         value.Item1.WrappedValue, out var type),
                 SourceTimestamp =
-                    value.Item1?.SourceTimestamp,
+                    value.Item1.SourceTimestamp,
                 SourcePicoseconds =
-                    value.Item1?.SourcePicoseconds,
+                    value.Item1.SourcePicoseconds,
                 ServerTimestamp =
-                    value.Item1?.ServerTimestamp,
+                    value.Item1.ServerTimestamp,
                 ServerPicoseconds =
-                    value.Item1?.ServerPicoseconds,
+                    value.Item1.ServerPicoseconds,
                 ErrorInfo =
                     value.Item2,
                 BrowseName =
-                    lookup[Attributes.BrowseName].Item1?
+                    lookup[Attributes.BrowseName].Item1
                         .GetValueOrDefaultEx<QualifiedName>()?
                         .AsString(session.MessageContext, namespaceFormat),
                 DisplayName =
-                    lookup[Attributes.DisplayName].Item1?
+                    lookup[Attributes.DisplayName].Item1
                         .GetValueOrDefaultEx<LocalizedText>()?
                         .ToString(),
                 Description =
-                    lookup[Attributes.Description].Item1?
+                    lookup[Attributes.Description].Item1
                         .GetValueOrDefaultEx<LocalizedText>()?
                         .ToString(),
                 NodeClass =
-                    lookup[Attributes.NodeClass].Item1?
+                    lookup[Attributes.NodeClass].Item1
                         .GetValueOrDefaultEx<Opc.Ua.NodeClass>()
                         .ToServiceType(),
                 AccessRestrictions = (NodeAccessRestrictions?)
-                    lookup[Attributes.AccessRestrictions].Item1?
+                    lookup[Attributes.AccessRestrictions].Item1
                         .GetValueOrDefaultEx<ushort?>(v => v == 0 ? null : v),
                 UserWriteMask =
-                    lookup[Attributes.UserWriteMask].Item1?
+                    lookup[Attributes.UserWriteMask].Item1
                         .GetValueOrDefaultEx<uint?>(),
                 WriteMask =
-                    lookup[Attributes.WriteMask].Item1?
+                    lookup[Attributes.WriteMask].Item1
                         .GetValueOrDefaultEx<uint?>(),
                 DataType =
-                    lookup[Attributes.DataType].Item1?
+                    lookup[Attributes.DataType].Item1
                         .GetValueOrDefaultEx<NodeId>()?
                         .AsString(session.MessageContext, namespaceFormat),
                 ArrayDimensions =
-                    lookup[Attributes.ArrayDimensions].Item1?
+                    lookup[Attributes.ArrayDimensions].Item1
                         .GetValueOrDefaultEx<uint[]?>(),
                 ValueRank = (NodeValueRank?)
-                    lookup[Attributes.ValueRank].Item1?
+                    lookup[Attributes.ValueRank].Item1
                         .GetValueOrDefaultEx<int?>(),
                 AccessLevel = (NodeAccessLevel?)
-                    lookup[Attributes.AccessLevelEx].Item1?
+                    lookup[Attributes.AccessLevelEx].Item1
                         .GetValueOrDefaultEx<uint?>(l =>
                         {
                             // Or both if available
                             var v = (l ?? 0) |
-                            lookup[Attributes.AccessLevel].Item1?
+                            lookup[Attributes.AccessLevel].Item1
                                 .GetValueOrDefaultEx<byte?>(b => b ?? 0);
                             return v == 0 ? null : v;
                         }),
                 UserAccessLevel = (NodeAccessLevel?)
-                    lookup[Attributes.UserAccessLevel].Item1?
+                    lookup[Attributes.UserAccessLevel].Item1
                         .GetValueOrDefaultEx<byte?>(),
                 Historizing =
-                    lookup[Attributes.Historizing].Item1?
+                    lookup[Attributes.Historizing].Item1
                         .GetValueOrDefaultEx<bool?>(),
                 MinimumSamplingInterval =
-                    lookup[Attributes.MinimumSamplingInterval].Item1?
+                    lookup[Attributes.MinimumSamplingInterval].Item1
                         .GetValueOrDefaultEx<double?>(),
                 IsAbstract =
-                    lookup[Attributes.IsAbstract].Item1?
+                    lookup[Attributes.IsAbstract].Item1
                         .GetValueOrDefaultEx<bool?>(),
                 EventNotifier = (NodeEventNotifier?)
-                    lookup[Attributes.EventNotifier].Item1?
+                    lookup[Attributes.EventNotifier].Item1
                         .GetValueOrDefaultEx<byte?>(v => v == 0 ? null : v),
                 DataTypeDefinition = session.Codec.Encode(
-                    lookup[Attributes.DataTypeDefinition].Item1?
+                    lookup[Attributes.DataTypeDefinition].Item1
                         .GetValueOrDefaultEx<ExtensionObject>(), out _),
                 InverseName =
-                    lookup[Attributes.InverseName].Item1?
+                    lookup[Attributes.InverseName].Item1
                         .GetValueOrDefaultEx<LocalizedText>()?
                         .ToString(),
                 Symmetric =
-                    lookup[Attributes.Symmetric].Item1?
+                    lookup[Attributes.Symmetric].Item1
                         .GetValueOrDefaultEx<bool?>(),
                 ContainsNoLoops =
-                    lookup[Attributes.ContainsNoLoops].Item1?
+                    lookup[Attributes.ContainsNoLoops].Item1
                         .GetValueOrDefaultEx<bool?>(),
                 Executable =
-                    lookup[Attributes.Executable].Item1?
+                    lookup[Attributes.Executable].Item1
                         .GetValueOrDefaultEx<bool?>(),
                 UserExecutable =
-                    lookup[Attributes.UserExecutable].Item1?
+                    lookup[Attributes.UserExecutable].Item1
                         .GetValueOrDefaultEx<bool?>(),
                 UserRolePermissions =
-                    lookup[Attributes.UserRolePermissions].Item1?
+                    lookup[Attributes.UserRolePermissions].Item1
                         .GetValueOrDefaultEx<ExtensionObject[]>()?
                         .Select(ex => ex.Body)
                         .OfType<RolePermissionType>()
                         .Select(p => p.ToServiceModel(session.MessageContext, namespaceFormat)).ToList(),
                 RolePermissions =
-                    lookup[Attributes.RolePermissions].Item1?
+                    lookup[Attributes.RolePermissions].Item1
                         .GetValueOrDefaultEx<ExtensionObject[]>()?
                         .Select(ex => ex.Body)
                         .OfType<RolePermissionType>()
@@ -1350,7 +1350,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 // get the node ids.
                 foreach (var reference in references)
                 {
-                    if (NodeId.IsNull(reference.NodeId) ||
+                    if (NodeIdCompat.IsNull(reference.NodeId) ||
                         reference.NodeId.IsAbsolute)
                     {
                         targetIds.Add(new FindResult(QualifiedName.Null, null, NodeId.Null,

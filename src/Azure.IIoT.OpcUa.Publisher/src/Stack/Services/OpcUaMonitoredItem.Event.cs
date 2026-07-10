@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -246,7 +246,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 IOpcUaSession session, out bool metadataChanged)
             {
                 var nodeId = NodeId.ToNodeId(session.MessageContext);
-                if (Opc.Ua.NodeId.IsNull(nodeId))
+                if (Opc.Ua.NodeIdCompat.IsNull(nodeId))
                 {
                     metadataChanged = false;
                     return false;
@@ -555,7 +555,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     superType = await session.LruNodeCache.GetSuperTypeAsync(nodes[0].NodeId, ct)
                         .ConfigureAwait(false);
-                    if (Opc.Ua.NodeId.IsNull(superType))
+                    if (Opc.Ua.NodeIdCompat.IsNull(superType))
                     {
                         break;
                     }
@@ -643,7 +643,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         {
                             // Try super type
                             nodeId = await session.LruNodeCache.GetSuperTypeAsync(nodeId, ct).ConfigureAwait(false);
-                            if (Opc.Ua.NodeId.IsNull(nodeId))
+                            if (Opc.Ua.NodeIdCompat.IsNull(nodeId))
                             {
                                 // Nothing can be found since there is no more super type
                                 return null;
