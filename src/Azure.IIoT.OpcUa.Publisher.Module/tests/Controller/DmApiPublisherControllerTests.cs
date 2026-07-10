@@ -50,7 +50,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 MessagingMode.PubSub, MessageEncoding.Json);
 
             _publishedNodesJobConverter = new PublishedNodesConverter(
-                _loggerFactory.CreateLogger<PublishedNodesConverter>(), _newtonSoftJsonSerializer, _options);
+                _loggerFactory.CreateLogger<PublishedNodesConverter>(), _options);
 
             // Note that each test is responsible for setting content of _tempFile;
             CopyContent("Resources/empty_pn.json", _tempFile);
@@ -93,7 +93,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 _publisher,
                 _loggerFactory.CreateLogger<PublishedNodesJsonServices>(),
                 _publishedNodesProvider,
-                _newtonSoftJsonSerializer,
                 _diagnostic.Object
             );
             configService.GetAwaiter().GetResult();

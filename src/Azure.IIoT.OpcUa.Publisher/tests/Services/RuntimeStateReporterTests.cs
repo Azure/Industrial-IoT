@@ -10,8 +10,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     using Furly;
     using Furly.Extensions.Logging;
     using Furly.Extensions.Messaging;
-    using Furly.Extensions.Serializers;
-    using Furly.Extensions.Serializers.Newtonsoft;
     using Furly.Extensions.Storage.Services;
     using Microsoft.Extensions.Configuration;
     using Moq;
@@ -33,7 +31,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var client = new Mock<IEventClient>();
             var collector = new Mock<IDiagnosticCollector>();
 
-            IJsonSerializer _serializer = new NewtonsoftJsonSerializer();
             var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
             // This will disable state reporting.
             options.Value.EnableRuntimeStateReporting = false;
@@ -42,7 +39,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 
             using var runtimeStateReporter = new RuntimeStateReporter(
                 client.Object.YieldReturn(),
-                _serializer,
                 new MemoryKVStore().YieldReturn(),
                 options,
                 collector.Object,
@@ -63,7 +59,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var collector = new Mock<IDiagnosticCollector>();
             client.Setup(m => m.CreateEvent()).Throws<IOException>();
 
-            IJsonSerializer _serializer = new NewtonsoftJsonSerializer();
             var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
             options.Value.EnableRuntimeStateReporting = true;
 
@@ -71,7 +66,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 
             using var runtimeStateReporter = new RuntimeStateReporter(
                 client.Object.YieldReturn(),
-                _serializer,
                 new MemoryKVStore().YieldReturn(),
                 options,
                 collector.Object,
@@ -128,7 +122,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             _message.Setup(c => c.SetTopic(It.IsAny<string>()))
                 .Returns(_message.Object);
 
-            IJsonSerializer _serializer = new NewtonsoftJsonSerializer();
             var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
             options.Value.EnableRuntimeStateReporting = true;
             options.Value.RuntimeStateRoutingInfo = "runtimeinfo";
@@ -137,7 +130,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 
             using var runtimeStateReporter = new RuntimeStateReporter(
                 _client.Object.YieldReturn(),
-                _serializer,
                 new MemoryKVStore().YieldReturn(),
                 options,
                 collector.Object,

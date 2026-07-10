@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly.Extensions.Serializers;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Options;
     using System.Collections.Generic;
@@ -28,15 +27,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Create job scope factory
         /// </summary>
         /// <param name="scopeFactory"></param>
-        /// <param name="serializer"></param>
         /// <param name="options"></param>
         /// <param name="collector"></param>
         public WriterGroupScopeFactory(IServiceScopeFactory scopeFactory,
-            IJsonSerializer serializer, IOptions<PublisherOptions>? options = null,
+            IOptions<PublisherOptions>? options = null,
             IDiagnosticCollector? collector = null)
         {
             _scopeFactory = scopeFactory;
-            _serializer = serializer;
             _collector = collector;
             _options = options;
         }
@@ -46,7 +43,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             var scope = _scopeFactory.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<WriterGroupScopeContext>();
-            context.Initialize(writerGroup, _serializer, _options, _collector);
+            context.Initialize(writerGroup, _options, _collector);
             return new WriterGroupScope(scope, context);
         }
 
@@ -82,14 +79,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         private readonly IServiceScopeFactory _scopeFactory;
-        private readonly IJsonSerializer _serializer;
         private readonly IDiagnosticCollector? _collector;
         private readonly IOptions<PublisherOptions>? _options;
     }
 
     /// <summary>
-    /// Holds the per writer group scoped state (writer group model, serializer,
-    /// diagnostics and metrics tag list) that the data flow services depend on.
+    /// Holds the per writer group scoped state (writer group model, diagnostics
+    /// and metrics tag list) that the data flow services depend on.
     /// Registered as a scoped service and initialized by the
     /// <see cref="WriterGroupScopeFactory"/> right after the scope is created.
     /// </summary>
@@ -104,22 +100,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         public WriterGroupModel WriterGroup { get; private set; } = null!;
 
         /// <summary>
-        /// The serializer for this scope (externally owned root singleton)
-        /// </summary>
-        public IJsonSerializer Serializer { get; private set; } = null!;
-
-        /// <summary>
         /// Initialize the scope context
         /// </summary>
         /// <param name="writerGroup"></param>
-        /// <param name="serializer"></param>
         /// <param name="options"></param>
         /// <param name="collector"></param>
-        public void Initialize(WriterGroupModel writerGroup, IJsonSerializer serializer,
+        public void Initialize(WriterGroupModel writerGroup,
             IOptions<PublisherOptions>? options, IDiagnosticCollector? collector)
         {
             WriterGroup = writerGroup;
-            Serializer = serializer;
             _collector = collector;
             _writerGroupId = writerGroup.Id;
 

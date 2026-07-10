@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using BitFaster.Caching.Lru;
     using Furly.Exceptions;
-    using Furly.Extensions.Serializers;
     using Furly.Extensions.Utils;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
@@ -49,13 +48,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Create kv manager
         /// </summary>
         /// <param name="loggerFactory"></param>
-        /// <param name="serializer"></param>
         /// <param name="configuration"></param>
         /// <param name="clientOptions"></param>
         /// <param name="subscriptionOptions"></param>
         /// <param name="timeProvider"></param>
         /// <param name="metrics"></param>
-        public OpcUaClientManager(ILoggerFactory loggerFactory, IJsonSerializer serializer,
+        public OpcUaClientManager(ILoggerFactory loggerFactory,
             IOpcUaConfiguration configuration, IOptions<OpcUaClientOptions> clientOptions,
             IOptions<OpcUaSubscriptionOptions> subscriptionOptions,
             TimeProvider? timeProvider = null, IMetricsContext? metrics = null)
@@ -68,8 +66,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 throw new ArgumentNullException(nameof(clientOptions));
             _subscriptionOptions = subscriptionOptions ??
                 throw new ArgumentNullException(nameof(subscriptionOptions));
-            _serializer = serializer ??
-                throw new ArgumentNullException(nameof(serializer));
             _loggerFactory = loggerFactory ??
                 throw new ArgumentNullException(nameof(loggerFactory));
             _configuration = configuration ??
@@ -600,7 +596,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // try to get an existing client
             var client = _clients.GetOrAdd(id, id =>
             {
-                var client = new OpcUaClient(_configuration.Value, id, _serializer,
+                var client = new OpcUaClient(_configuration.Value, id,
                     _loggerFactory, _timeProvider, _metrics, () => OnClientClosedAsync(id),
                     OnConnectionStateChange, reverseConnect ? _reverseConnectManager : null,
                     OnClientConnectionDiagnosticChange, _clientOptions, _subscriptionOptions);
@@ -696,7 +692,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly IOpcUaConfiguration _configuration;
         private readonly IOptions<OpcUaClientOptions> _clientOptions;
         private readonly IOptions<OpcUaSubscriptionOptions> _subscriptionOptions;
-        private readonly IJsonSerializer _serializer;
         private readonly ReverseConnectManager _reverseConnectManager;
         private readonly Lazy<Exception?> _reverseConnectStartException;
         private readonly ConcurrentDictionary<

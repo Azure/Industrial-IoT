@@ -5,13 +5,14 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
+    using SerializerException = global::Azure.IIoT.OpcUa.Core.Exceptions.SerializerException;
+    using global::Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Storage;
     using Furly;
     using Furly.Exceptions;
-    using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
@@ -38,18 +39,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="publisherHost"></param>
         /// <param name="logger"></param>
         /// <param name="publishedNodesProvider"></param>
-        /// <param name="jsonSerializer"></param>
         /// <param name="diagnostics"></param>
         /// <param name="timeProvider"></param>
         public PublishedNodesJsonServices(PublishedNodesConverter publishedNodesJobConverter,
             IPublisher publisherHost, ILogger<PublishedNodesJsonServices> logger,
-            IStorageProvider publishedNodesProvider, IJsonSerializer jsonSerializer,
+            IStorageProvider publishedNodesProvider,
             IDiagnosticCollector? diagnostics = null, TimeProvider? timeProvider = null)
         {
             _publishedNodesJobConverter = publishedNodesJobConverter;
             _logger = logger;
             _publishedNodesProvider = publishedNodesProvider;
-            _jsonSerializer = jsonSerializer;
             _publisherHost = publisherHost;
             _timeProvider = timeProvider ?? TimeProvider.System;
             _diagnostics = diagnostics; // Optional
@@ -557,7 +556,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 if (nodesToRemoveSet.Count != 0)
                 {
                     request.OpcNodes = [.. nodesToRemoveSet];
-                    var entriesNotFoundJson = _jsonSerializer.SerializeToString(request);
+                    var entriesNotFoundJson = Json.SerializeToString(request);
                     throw new ResourceNotFoundException($"Nodes not found: \n{entriesNotFoundJson}");
                 }
 
@@ -889,7 +888,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             try
             {
                 var currentNodes = GetCurrentPublishedNodes(preferTimespan: false);
-                var updatedContent = _jsonSerializer.SerializeToString(
+                var updatedContent = Json.SerializeToString(
                     currentNodes, SerializeOption.Indented) ?? string.Empty;
 
                 _publishedNodesProvider.WriteContent(updatedContent, true);
@@ -1272,7 +1271,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly TimeProvider _timeProvider;
         private readonly PublishedNodesConverter _publishedNodesJobConverter;
         private readonly IStorageProvider _publishedNodesProvider;
-        private readonly IJsonSerializer _jsonSerializer;
         private readonly IDiagnosticCollector? _diagnostics;
         private readonly IPublisher _publisherHost;
         private string _lastKnownFileHash = string.Empty;

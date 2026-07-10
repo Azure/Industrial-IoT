@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Furly.Extensions.Messaging;
-    using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
     using Nito.AsyncEx;
     using System;
@@ -518,7 +517,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     _group._options.Value.DefaultNamespaceFormat ??
                     NamespaceFormat.Uri;
                 MonitoredItems = _writer.Source.ToMonitoredItems(namespaceFormat);
-                _extensionFields = new ExtensionFields(_group._serializer,
+                _extensionFields = new ExtensionFields(
                     _writer.DataSet.ExtensionFields, _writer.Writer.DataSetFieldContentMask);
                 _template = _writer.Source.SubscriptionSettings.ToSubscriptionModel(
                     _writer.Routing != DataSetRoutingMode.None,
@@ -579,7 +578,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     _group._options.Value.DefaultNamespaceFormat ??
                     NamespaceFormat.Uri;
                 MonitoredItems = _writer.Source.ToMonitoredItems(namespaceFormat);
-                _extensionFields = new ExtensionFields(_group._serializer,
+                _extensionFields = new ExtensionFields(
                     _writer.DataSet.ExtensionFields, _writer.Writer.DataSetFieldContentMask);
                 var template = _writer.Source.SubscriptionSettings.ToSubscriptionModel(
                     _writer.Routing != DataSetRoutingMode.None,
@@ -1381,14 +1380,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 /// <summary>
                 /// Create extension fields
                 /// </summary>
-                /// <param name="serializer"></param>
-                /// <param name="extensionFields"></param>
+                        /// <param name="extensionFields"></param>
                 /// <param name="dataSetFieldContentMask"></param>
-                public ExtensionFields(IJsonSerializer serializer,
+                public ExtensionFields(
                     IReadOnlyList<ExtensionFieldModel>? extensionFields,
                     DataSetFieldContentFlags? dataSetFieldContentMask)
                 {
-                    _serializer = serializer;
                     _fieldMask = dataSetFieldContentMask ?? 0;
                     _extensionFields = extensionFields;
                     _data = GenerateExtensionFieldData();
@@ -1506,7 +1503,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     return 24; // Fall back to Variant
                 }
 
-                private readonly IJsonSerializer _serializer;
                 private readonly DataSetFieldContentFlags _fieldMask;
                 private readonly IReadOnlyList<ExtensionFieldModel>? _extensionFields;
                 private readonly IReadOnlyList<(string, Opc.Ua.DataValue?)> _data;

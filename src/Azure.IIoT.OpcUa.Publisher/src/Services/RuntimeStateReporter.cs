@@ -5,14 +5,15 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
+    using global::Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Encoders;
     using Furly.Azure.IoT.Edge;
     using Furly.Azure.IoT.Edge.Services;
     using Furly.Extensions.Messaging;
-    using Furly.Extensions.Serializers;
     using Furly.Extensions.Storage;
+    using VariantValue = Furly.Extensions.Serializers.VariantValue;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
@@ -47,7 +48,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// Constructor for runtime state reporter.
         /// </summary>
         /// <param name="events"></param>
-        /// <param name="serializer"></param>
         /// <param name="stores"></param>
         /// <param name="options"></param>
         /// <param name="collector"></param>
@@ -57,14 +57,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="identity"></param>
         /// <param name="workload"></param>
         public RuntimeStateReporter(IEnumerable<IEventClient> events,
-            IJsonSerializer serializer, IEnumerable<IKeyValueStore> stores,
+            IEnumerable<IKeyValueStore> stores,
             IOptions<PublisherOptions> options, IDiagnosticCollector collector,
             ILogger<RuntimeStateReporter> logger, IMetricsContext? metrics = null,
             TimeProvider? timeProvider = null, IIoTEdgeDeviceIdentity? identity = null,
             IIoTEdgeWorkloadApi? workload = null)
         {
-            _serializer = serializer ??
-                throw new ArgumentNullException(nameof(serializer));
             _options = options ??
                 throw new ArgumentNullException(nameof(options));
             _logger = logger ??
@@ -420,7 +418,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 try
                 {
                     await events.SendEventAsync(eventsTopic,
-                        _serializer.SerializeToMemory(runtimeStateEvent), _serializer.MimeType,
+                        Json.SerializeToMemory(runtimeStateEvent), Json.MimeType,
                         Encoding.UTF8.WebName, configure: eventMessage =>
                         {
                             eventMessage.SetRetain(true);
@@ -525,7 +523,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     try
                     {
                         await events.SendEventAsync(diagnosticsTopic,
-                            _serializer.SerializeToMemory(info), _serializer.MimeType,
+                            Json.SerializeToMemory(info), Json.MimeType,
                             Encoding.UTF8.WebName, configure: eventMessage =>
                             {
                                 eventMessage
@@ -800,7 +798,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly IIoTEdgeWorkloadApi? _workload;
         private readonly ITimer _renewalTimer;
         private readonly TimeProvider _timeProvider;
-        private readonly IJsonSerializer _serializer;
         private readonly IOptions<PublisherOptions> _options;
         private readonly List<IEventClient> _events;
         private readonly List<IKeyValueStore> _stores;

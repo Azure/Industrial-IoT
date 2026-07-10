@@ -12,6 +12,7 @@
     <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Core" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Core\src\Azure.IIoT.OpcUa.Core.csproj" />
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Publisher.Models\src\Azure.IIoT.OpcUa.Publisher.Models.csproj" />
   </ItemGroup>
 </Project>

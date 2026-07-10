@@ -16,7 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.Iot.Operations.Services.AssetAndDeviceRegistry.Models;
     using Azure.Iot.Operations.Services.SchemaRegistry.SchemaRegistry;
     using Furly.Azure.IoT.Operations.Services;
-    using Furly.Extensions.Serializers;
+    using global::Azure.IIoT.OpcUa.Core.Serialization;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Nito.AsyncEx;
@@ -65,13 +65,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="configurationServices"></param>
         /// <param name="connections"></param>
         /// <param name="discovery"></param>
-        /// <param name="serializer"></param>
         /// <param name="options"></param>
         /// <param name="logger"></param>
         public AssetDeviceIntegration(IAioAdrClient client, IAioSrClient schemaRegistry,
             IPublishedNodesServices publishedNodes, IConfigurationServices configurationServices,
             IConnectionServices<ConnectionModel> connections, IDiscoveryServices discovery,
-            IJsonSerializer serializer, IOptions<PublisherOptions> options,
+            IOptions<PublisherOptions> options,
             ILogger<AssetDeviceIntegration> logger)
         {
             _client = client;
@@ -79,7 +78,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             _configurationServices = configurationServices;
             _connections = connections;
             _discovery = discovery;
-            _serializer = serializer;
             _options = options;
             _logger = logger;
             _cts = new CancellationTokenSource();
@@ -584,7 +582,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             if (_logger.IsDebugLogConfigurationEnabled())
                             {
                                 _logger.NewConfigurationApplied(
-                                    _serializer.SerializeToString(entries, SerializeOption.Indented));
+                                    Json.SerializeToString(entries, SerializeOption.Indented));
                             }
                             _logger.AssetsAndDevicesUpdated(assets.Count, devices.Count);
                         }
@@ -678,7 +676,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         if (_logger.IsDebugLogConfigurationEnabled())
                         {
                             _logger.DroppingResultWithoutRequiredInformation(
-                                _serializer.SerializeToString(found.Result));
+                                Json.SerializeToString(found.Result));
                         }
                         else
                         {
@@ -1125,7 +1123,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     continue;
 #endif
                 }
-                var additionalConfiguration = _serializer.SerializeToString(epModel);
+                var additionalConfiguration = Json.SerializeToString(epModel);
                 if (additionalConfiguration.Length > 512)
                 {
                     _logger.EndpointConfigurationTooLong(uniqueName, deviceName,
@@ -2381,7 +2379,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 T? result = default;
                 if (configuration != null)
                 {
-                    result = _serializer.Deserialize<T>(configuration);
+                    result = Json.Deserialize<T>(configuration);
                 }
                 return result ??= createDefault();
             }
@@ -2412,7 +2410,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             byte[] compressed;
             using (var input = new MemoryStream(
-                _serializer.SerializeToMemory(methodMetadata).ToArray()))
+                Json.SerializeToMemory(methodMetadata).ToArray()))
             using (var result = new MemoryStream())
             {
                 using (var gs = new GZipStream(result, CompressionMode.Compress))
@@ -2483,7 +2481,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
                     decompressed = output.ToArray();
                 }
-                return _serializer.Deserialize<MethodMetadataModel>(decompressed)
+                return Json.Deserialize<MethodMetadataModel>(decompressed)
                     ?? new MethodMetadataModel();
             }
             catch (Exception ex)
@@ -3014,7 +3012,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly IDiscoveryServices _discovery;
         private readonly IAioAdrClient _client;
         private readonly IPublishedNodesServices _publishedNodes;
-        private readonly IJsonSerializer _serializer;
         private readonly IOptions<PublisherOptions> _options;
         private readonly ILogger _logger;
         private readonly CancellationTokenSource _cts;

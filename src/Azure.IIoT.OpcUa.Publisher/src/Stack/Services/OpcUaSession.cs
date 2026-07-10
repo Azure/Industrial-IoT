@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Encoders;
     using Furly.Extensions.Utils;
-    using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using Opc.Ua.Client;
@@ -83,7 +82,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Create session
         /// </summary>
         /// <param name="client"></param>
-        /// <param name="serializer"></param>
         /// <param name="logger"></param>
         /// <param name="timeProvider"></param>
         /// <param name="channel"></param>
@@ -92,7 +90,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="clientCertificate"></param>
         /// <param name="availableEndpoints"></param>
         /// <param name="discoveryProfileUris"></param>
-        public OpcUaSession(OpcUaClient client, IJsonSerializer serializer,
+        public OpcUaSession(OpcUaClient client,
             ILogger<OpcUaSession> logger, TimeProvider timeProvider,
             ITransportChannel channel, ApplicationConfiguration configuration,
             ConfiguredEndpoint endpoint, X509Certificate2? clientCertificate = null,
@@ -104,7 +102,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             _logger = logger;
             _client = client;
-            _serializer = serializer;
             _timeProvider = timeProvider;
             LruNodeCache = new LruNodeCache(new NodeCacheContext(this), client.Telemetry,
                 client.NodeCacheTimeout, client.NodeCacheCapacity, true);
@@ -127,7 +124,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             _logger = session._logger;
             _client = session._client;
-            _serializer = session._serializer;
             _timeProvider = session._timeProvider;
             LruNodeCache = session.LruNodeCache;
             CreatedAt = _timeProvider.GetUtcNow();
@@ -1499,7 +1495,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly CancellationTokenSource _cts = new();
         private readonly ILogger _logger;
         private readonly OpcUaClient _client;
-        private readonly IJsonSerializer _serializer;
         private readonly TimeProvider _timeProvider;
         private readonly ActivitySource _activitySource = Diagnostics.NewActivitySource();
         private static readonly TimeSpan kComplexTypeSystemReloadInterval = TimeSpan.FromMinutes(5);

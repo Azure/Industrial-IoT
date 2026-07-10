@@ -9,7 +9,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Exceptions;
-    using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Nito.AsyncEx;
@@ -202,7 +201,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="configuration"></param>
         /// <param name="connection"></param>
-        /// <param name="serializer"></param>
         /// <param name="loggerFactory"></param>
         /// <param name="timeProvider"></param>
         /// <param name="metrics"></param>
@@ -215,8 +213,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="sessionName"></param>
         /// <exception cref="ArgumentNullException"></exception>
         public OpcUaClient(ApplicationConfiguration configuration,
-            ConnectionIdentifier connection, IJsonSerializer serializer,
-            ILoggerFactory loggerFactory, TimeProvider timeProvider,
+            ConnectionIdentifier connection, ILoggerFactory loggerFactory, TimeProvider timeProvider,
             IMetricsContext metrics, Func<Task> onClose,
             EventHandler<EndpointConnectivityStateEventArgs>? notifier,
             ReverseConnectManager? reverseConnectManager,
@@ -248,8 +245,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 throw new ArgumentNullException(nameof(metrics));
             _configuration = configuration ??
                 throw new ArgumentNullException(nameof(configuration));
-            _serializer = serializer ??
-                throw new ArgumentNullException(nameof(serializer));
             _loggerFactory = loggerFactory ??
                 throw new ArgumentNullException(nameof(loggerFactory));
             _notifier = notifier;
@@ -382,7 +377,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             EndpointDescriptionCollection? availableEndpoints,
             StringCollection? discoveryProfileUris)
         {
-            return new OpcUaSession(this, _serializer, _loggerFactory.CreateLogger<OpcUaSession>(),
+            return new OpcUaSession(this, _loggerFactory.CreateLogger<OpcUaSession>(),
                 _timeProvider, channel, configuration, endpoint,
                 clientCertificate, availableEndpoints, discoveryProfileUris);
         }
@@ -2261,7 +2256,6 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
         private readonly ReverseConnectManager? _reverseConnectManager;
         private readonly AsyncReaderWriterLock _lock = new();
         private readonly ApplicationConfiguration _configuration;
-        private readonly IJsonSerializer _serializer;
         private readonly ILoggerFactory _loggerFactory;
         private readonly string _sessionName;
         private readonly IOptions<OpcUaClientOptions> _options;

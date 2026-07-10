@@ -21,7 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
 {
     "EndpointUrl": "opc.tcp://localhost:50002",
     "OpcNodes": [
-        { "Id": "ns=0;i=2261" }
+        { "Identifier": "ns=0;i=2261" }
     ]
 }
 
@@ -36,7 +36,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
     "EndpointUrl": "opc.tcp://localhost:50002",
     "UseSecurity": false,
     "OpcNodes": [
-        { "Id": "ns=0;i=2261" }
+        { "Identifier": "ns=0;i=2261" }
     ]
 }
 
@@ -51,7 +51,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
     "EndpointUrl": "opc.tcp://localhost:50002",
     "UseSecurity": true,
     "OpcNodes": [
-        { "Id": "ns=0;i=2261" }
+        { "Identifier": "ns=0;i=2261" }
     ]
 }
 
@@ -122,7 +122,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
 {
     "EndpointUrl": "opc.tcp://localhost:50002",
     "OpcNodes": [
-        { "Id": "ns=0;i=2261" }
+        { "Identifier": "ns=0;i=2261" }
     ]
 }
 
@@ -137,7 +137,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
     "EndpointUrl": "opc.tcp://localhost:50002",
     "OpcAuthenticationMode": "anonymous",
     "OpcNodes": [
-        { "Id": "ns=0;i=2261" }
+        { "Identifier": "ns=0;i=2261" }
     ]
 }
 
@@ -152,7 +152,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
     "EndpointUrl": "opc.tcp://localhost:50002",
     "OpcAuthenticationMode": "usernamePassword",
     "OpcNodes": [
-        { "Id": "ns=0;i=2261" }
+        { "Identifier": "ns=0;i=2261" }
     ]
 }
 

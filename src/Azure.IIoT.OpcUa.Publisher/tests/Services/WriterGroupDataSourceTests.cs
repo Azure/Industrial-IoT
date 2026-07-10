@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     using Azure.IIoT.OpcUa.Publisher.Storage;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Furly.Exceptions;
-    using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
@@ -42,7 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             _options.Value.DisableDataSetMetaData = true;
 
             _converter = new PublishedNodesConverter(
-                _loggerFactory.CreateLogger<PublishedNodesConverter>(), _serializer, _options);
+                _loggerFactory.CreateLogger<PublishedNodesConverter>(), _options);
         }
 
         [Fact]
@@ -77,7 +76,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 .Callback<OpcUaSubscriptionNotification>(n => captured.Add(n));
 
             await using var sut = new WriterGroupDataSource(clientsMock.Object, group1,
-                sinkMock.Object, _serializer, _options, null, _loggerFactory);
+                sinkMock.Object, _options, null, _loggerFactory);
 
             // Act / Assert - initial configuration uses the configured name.
             await sut.StartAsync(default);
@@ -116,7 +115,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var sinkMock = new Mock<IMessageSink>();
 
             await using var sut = new WriterGroupDataSource(clientsMock.Object, group,
-                sinkMock.Object, _serializer, _options, null, _loggerFactory);
+                sinkMock.Object, _options, null, _loggerFactory);
             await sut.StartAsync(default);
 
             // Act - report an error for the configured node as the server would
@@ -204,7 +203,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var sinkMock = new Mock<IMessageSink>();
 
             await using var sut = new WriterGroupDataSource(clientsMock.Object, group,
-                sinkMock.Object, _serializer, _options, null, _loggerFactory);
+                sinkMock.Object, _options, null, _loggerFactory);
             await sut.StartAsync(default);
 
             // Report a handful of value changes for the server-a subscription only.
@@ -250,7 +249,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var (clientsMock, sinkMock) = SetupKeyFrameSubscription(captured);
 
             await using var sut = new WriterGroupDataSource(clientsMock.Object, group,
-                sinkMock.Object, _serializer, _options, null, _loggerFactory);
+                sinkMock.Object, _options, null, _loggerFactory);
             await sut.StartAsync(default);
 
             // Act - request a key frame for the whole group.
@@ -272,7 +271,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var (clientsMock, sinkMock) = SetupKeyFrameSubscription(captured);
 
             await using var sut = new WriterGroupDataSource(clientsMock.Object, group,
-                sinkMock.Object, _serializer, _options, null, _loggerFactory);
+                sinkMock.Object, _options, null, _loggerFactory);
             await sut.StartAsync(default);
 
             // Discover the identifier of one of the writers via the state.
@@ -298,7 +297,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var (clientsMock, sinkMock) = SetupKeyFrameSubscription(captured);
 
             await using var sut = new WriterGroupDataSource(clientsMock.Object, group,
-                sinkMock.Object, _serializer, _options, null, _loggerFactory);
+                sinkMock.Object, _options, null, _loggerFactory);
             await sut.StartAsync(default);
 
             // Act / Assert - an unknown writer id is reported as not found and no
@@ -449,7 +448,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             return Assert.Single(_converter.ToWriterGroups(entries));
         }
 
-        private readonly NewtonsoftJsonSerializer _serializer = new();
         private readonly ILoggerFactory _loggerFactory;
         private readonly IOptions<PublisherOptions> _options;
         private readonly PublishedNodesConverter _converter;

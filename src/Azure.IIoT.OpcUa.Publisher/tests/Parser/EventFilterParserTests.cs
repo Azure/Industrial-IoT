@@ -5,16 +5,14 @@
 #nullable enable
 namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
 {
+    using global::Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly.Extensions.Serializers;
-    using Furly.Extensions.Serializers.Json;
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
 
     public sealed class EventFilterParserTests
     {
-        private readonly IJsonSerializer _serializer = new DefaultJsonSerializer();
         private readonly ITestOutputHelper _output;
 
         public EventFilterParserTests(ITestOutputHelper output)
@@ -28,7 +26,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
         [InlineData("SELECT * FROM ns0:BaseEventType")]
         public async Task SimpleStatementParsingNoPrefixNoWhereTestsAsync(string query)
         {
-            var parser = new FilterQueryParser(_serializer);
+            var parser = new FilterQueryParser();
             var context = new TestParserContext
             {
                 new IdentifierMetaData(Opc.Ua.ObjectTypeIds.BaseEventType.ToString(),
@@ -46,7 +44,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
             Assert.NotNull(eventFilter.SelectClauses);
             Assert.NotEmpty(eventFilter.SelectClauses);
             Assert.Null(eventFilter.WhereClause);
-            _output.WriteLine(_serializer.SerializeToString(eventFilter, SerializeOption.Indented));
+            _output.WriteLine(Json.SerializeToString(eventFilter, SerializeOption.Indented));
         }
 
         [Theory]
@@ -72,7 +70,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
             "WHERE NOT (E/0:Severity <= 5 OR E/0:SourceName == 'SouthMotor')")]
         public async Task SimpleStatementParsingNoPrefixTestsAsync(string query)
         {
-            var parser = new FilterQueryParser(_serializer);
+            var parser = new FilterQueryParser();
             var context = new TestParserContext
             {
                 new IdentifierMetaData(Opc.Ua.ObjectTypeIds.BaseEventType.ToString(),
@@ -93,7 +91,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
             var where = eventFilter.WhereClause!.Elements;
             Assert.NotNull(where);
             Assert.NotEmpty(where);
-            _output.WriteLine(_serializer.SerializeToString(eventFilter, SerializeOption.Indented));
+            _output.WriteLine(Json.SerializeToString(eventFilter, SerializeOption.Indented));
         }
 
         [Theory]
@@ -111,7 +109,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
             "WHERE !(E/ua:Severity <= 5 OR E/ua:SourceName == 'SouthMotor')")]
         public async Task SimpleStatementParsingTestsAsync(string query)
         {
-            var parser = new FilterQueryParser(_serializer);
+            var parser = new FilterQueryParser();
             var context = new TestParserContext
             {
                 new IdentifierMetaData("http://microsoft/ua#BaseEventType",
@@ -132,7 +130,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
             var where = eventFilter.WhereClause!.Elements;
             Assert.NotNull(where);
             Assert.NotEmpty(where);
-            _output.WriteLine(_serializer.SerializeToString(eventFilter, SerializeOption.Indented));
+            _output.WriteLine(Json.SerializeToString(eventFilter, SerializeOption.Indented));
         }
 
         [Theory]
@@ -145,7 +143,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
             "   OR ´E/[http://microsoft/ua#SourceName]´ == 'SouthMotor')")]
         public async Task SimpleStatementParsingTestsInlineNamespacesAsync(string query)
         {
-            var parser = new FilterQueryParser(_serializer);
+            var parser = new FilterQueryParser();
             var context = new TestParserContext
             {
                 new IdentifierMetaData("http://microsoft/ua#BaseEventType",
@@ -166,7 +164,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
             var where = eventFilter.WhereClause!.Elements;
             Assert.NotNull(where);
             Assert.NotEmpty(where);
-            _output.WriteLine(_serializer.SerializeToString(eventFilter, SerializeOption.Indented));
+            _output.WriteLine(Json.SerializeToString(eventFilter, SerializeOption.Indented));
         }
 
         [Theory]
@@ -183,7 +181,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
             "WHERE /Severity > 5 NAND /SourceName = 'SouthMotor'")]
         public async Task SimpleStatementParsingFailsTestsAsync(string query)
         {
-            var parser = new FilterQueryParser(_serializer);
+            var parser = new FilterQueryParser();
             var context = new TestParserContext
             {
                 new IdentifierMetaData(Opc.Ua.ObjectTypeIds.BaseEventType.ToString(),
@@ -204,7 +202,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
         {
             const string query = "SELECT * FROM BaseEventType WHERE /Severity > 5 AND /SourceName = 'SouthMotor'";
 
-            var parser = new FilterQueryParser(_serializer);
+            var parser = new FilterQueryParser();
             var context = new TestParserContext
             {
                 new IdentifierMetaData(Opc.Ua.ObjectTypeIds.BaseEventType.ToString(),
@@ -225,7 +223,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
             var where = eventFilter.WhereClause!.Elements;
             Assert.NotNull(where);
             Assert.NotEmpty(where);
-            _output.WriteLine(_serializer.SerializeToString(eventFilter, SerializeOption.Indented));
+            _output.WriteLine(Json.SerializeToString(eventFilter, SerializeOption.Indented));
         }
 
         [Fact]
@@ -233,7 +231,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
         {
             const string query = "SELECT * FROM BaseEventType WHERE /Severity > 5 AND /SourceName = 'SouthMotor'";
 
-            var parser = new FilterQueryParser(_serializer);
+            var parser = new FilterQueryParser();
             var context = new TestParserContext
             {
                 new IdentifierMetaData(Opc.Ua.ObjectTypeIds.BaseEventType.ToString(),
@@ -254,7 +252,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Parser.Tests
             var where = eventFilter.WhereClause!.Elements;
             Assert.NotNull(where);
             Assert.NotEmpty(where);
-            _output.WriteLine(_serializer.SerializeToString(eventFilter, SerializeOption.Indented));
+            _output.WriteLine(Json.SerializeToString(eventFilter, SerializeOption.Indented));
         }
 
         [Fact]
@@ -269,7 +267,7 @@ WHERE
     (/Severity > 5 AND /Severity < 10)
   OR /SourceNode IN('t:i=1544'^^NodeId, 't:i=1545'^^NodeId)";
 
-            var parser = new FilterQueryParser(_serializer);
+            var parser = new FilterQueryParser();
             var context = new TestParserContext
             {
                 new IdentifierMetaData(Opc.Ua.ObjectTypeIds.BaseEventType.ToString(),
@@ -290,13 +288,13 @@ WHERE
             var where = eventFilter.WhereClause!.Elements;
             Assert.NotNull(where);
             Assert.NotEmpty(where);
-            _output.WriteLine(_serializer.SerializeToString(eventFilter, SerializeOption.Indented));
+            _output.WriteLine(Json.SerializeToString(eventFilter, SerializeOption.Indented));
         }
 
         [Fact]
         public async Task AlarmsTestFilterTestAsync()
         {
-            var parser = new FilterQueryParser(_serializer);
+            var parser = new FilterQueryParser();
             var context = new TestParserContext
             {
                 new IdentifierMetaData("i=2041",
@@ -387,12 +385,12 @@ WHERE
             Assert.Equal(3, filter1.SelectClauses!.Count);
             Assert.NotNull(filter1.WhereClause);
 
-            var f1 = _serializer.SerializeToString(filter1);
-            var f2 = _serializer.SerializeToString(filter2);
+            var f1 = Json.SerializeToString(filter1);
+            var f2 = Json.SerializeToString(filter2);
             Assert.Equal(f1, f2);
 
-            var evtFilter = _serializer.SerializeToString(filter1.WhereClause);
-            var expFilter = _serializer.SerializeToString(whereExpected);
+            var evtFilter = Json.SerializeToString(filter1.WhereClause);
+            var expFilter = Json.SerializeToString(whereExpected);
             Assert.Equal(expFilter, evtFilter);
         }
     }

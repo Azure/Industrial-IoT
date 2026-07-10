@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly.Extensions.Serializers;
     using System.Collections.Generic;
 
     /// <summary>
@@ -21,10 +20,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <param name="hostAddress"></param>
         /// <param name="siteId"></param>
         /// <param name="discovererId"></param>
-        /// <param name="serializer"></param>
         /// <returns></returns>
         public static ApplicationRegistrationModel ToServiceModel(this DiscoveredEndpointModel result,
-            string hostAddress, string? siteId, string discovererId, IJsonSerializer serializer)
+            string hostAddress, string? siteId, string discovererId)
         {
             var type = result.Description.Server.ApplicationType.ToServiceType() ??
                 ApplicationType.Server;
@@ -59,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
                         Id = string.Empty,
                         SecurityLevel = result.Description.SecurityLevel,
                         AuthenticationMethods = result.Description.UserIdentityTokens
-                            .ToServiceModel(serializer),
+                            .ToServiceModel(),
                         EndpointUrl = result.Description.EndpointUrl, // Reported
                         Endpoint = new EndpointModel {
                             Url = result.AccessibleEndpointUrl, // Accessible

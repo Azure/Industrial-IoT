@@ -9,7 +9,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.Iot.Operations.Services.AssetAndDeviceRegistry.Models;
     using Furly.Azure.IoT.Operations.Services;
-    using Furly.Extensions.Serializers;
     using AssetModel = Iot.Operations.Services.AssetAndDeviceRegistry.Models.Asset;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
@@ -508,10 +507,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 EventGroups = new List<AssetEventGroup> { eg }
             });
             var errors = new AssetDeviceIntegration.ValidationErrors(sut);
-            _serializerMock
-                .Setup(s => s.Deserialize(It.IsAny<ReadOnlySequence<byte>>(), It.IsAny<Type>()))
-                .Returns((object)null);
-
             // Act
             var result = await sut.ToPublishedNodesAsync(
                 new[] { device }, new[] { asset }, errors, default);
@@ -606,8 +601,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal("X", result[nameof(Device.Model)]);
-            Assert.Equal("B", result[nameof(AssetModel.Manufacturer)]);
+            Assert.Equal("X", (string?)result[nameof(Device.Model)]);
+            Assert.Equal("B", (string?)result[nameof(AssetModel.Manufacturer)]);
         }
 
         [Fact]
@@ -699,7 +694,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         private AssetDeviceIntegration CreateSut()
         {
             return new(_clientMock.Object, _srMock.Object, _publishedNodesMock.Object, _configurationServicesMock.Object,
-                _connectionsMock.Object, _discoveryMock.Object, _serializerMock.Object,
+                _connectionsMock.Object, _discoveryMock.Object,
                 _optionsMock.Object, _loggerMock.Object);
         }
 
@@ -709,7 +704,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         private readonly Mock<IAioAdrClient> _clientMock = new();
         private readonly Mock<IAioSrClient> _srMock = new();
         private readonly Mock<IPublishedNodesServices> _publishedNodesMock = new();
-        private readonly Mock<IJsonSerializer> _serializerMock = new();
         private readonly Mock<IConfigurationServices> _configurationServicesMock = new();
         private readonly Mock<ILogger<AssetDeviceIntegration>> _loggerMock = new();
     }

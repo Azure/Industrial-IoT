@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 {
+    using global::Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Publisher.Tests.Utils;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
@@ -13,8 +14,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     using Azure.IIoT.OpcUa.Publisher.Storage;
     using FluentAssertions;
     using Furly.Exceptions;
-    using Furly.Extensions.Serializers;
-    using Furly.Extensions.Serializers.Newtonsoft;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
@@ -41,7 +40,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         /// <param name="output"></param>
         public PublishedNodesJsonServicesTests(ITestOutputHelper output)
         {
-            _newtonSoftJsonSerializer = new NewtonsoftJsonSerializer();
             _loggerFactory = LogFactory.Create(output, Logging.Config);
 
             var clientConfigMock = new OpcUaClientConfig(new ConfigurationBuilder().Build()).ToOptions();
@@ -54,7 +52,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 MessagingMode.PubSub, MessageEncoding.Json);
 
             _publishedNodesJobConverter = new PublishedNodesConverter(
-                _loggerFactory.CreateLogger<PublishedNodesConverter>(), _newtonSoftJsonSerializer, _options);
+                _loggerFactory.CreateLogger<PublishedNodesConverter>(), _options);
 
             // Note that each test is responsible for setting content of _tempFile;
             Utils.CopyContent("Publisher/empty_pn.json", _tempFile);
@@ -93,8 +91,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 _publishedNodesJobConverter,
                 _publisher,
                 _loggerFactory.CreateLogger<PublishedNodesJsonServices>(),
-                _publishedNodesProvider,
-                _newtonSoftJsonSerializer
+                _publishedNodesProvider
             );
             configService.GetAwaiter().GetResult();
             return configService;
@@ -1444,7 +1441,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             await using var configService = InitPublisherConfigService();
 
             var payload = Utils.GetFileContent(publishedNodesFile);
-            var payloadRequests = _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload);
+            var payloadRequests = Json.Deserialize<List<PublishedNodesEntryModel>>(payload);
 
             var index = 0;
             foreach (var request in payloadRequests)
@@ -1696,7 +1693,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             await using var configService = InitPublisherConfigService();
 
             var payload = Utils.GetFileContent(publishedNodesFile);
-            foreach (var request in _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload))
+            foreach (var request in Json.Deserialize<List<PublishedNodesEntryModel>>(payload))
             {
                 await FluentActions
                     .Invoking(async () => await configService.PublishNodesAsync(request))
@@ -1721,7 +1718,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             await using var configService = InitPublisherConfigService();
 
             var payload = Utils.GetFileContent(newConfig);
-            foreach (var request in _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload))
+            foreach (var request in Json.Deserialize<List<PublishedNodesEntryModel>>(payload))
             {
                 await FluentActions
                     .Invoking(async () => await configService.PublishNodesAsync(request))
@@ -1745,7 +1742,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             await using var configService = InitPublisherConfigService();
 
             var payload = Utils.GetFileContent(newConfig);
-            foreach (var request in _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload))
+            foreach (var request in Json.Deserialize<List<PublishedNodesEntryModel>>(payload))
             {
                 await FluentActions
                     .Invoking(async () => await configService.PublishNodesAsync(request))
@@ -1769,7 +1766,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             await using var configService = InitPublisherConfigService();
 
             var payload = Utils.GetFileContent(publishedNodesFile);
-            foreach (var request in _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload))
+            foreach (var request in Json.Deserialize<List<PublishedNodesEntryModel>>(payload))
             {
                 await FluentActions
                     .Invoking(async () => await configService.UnpublishNodesAsync(request))
@@ -1793,7 +1790,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             await using var configService = InitPublisherConfigService();
 
             var payload = Utils.GetFileContent(newConfig);
-            foreach (var request in _newtonSoftJsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(payload))
+            foreach (var request in Json.Deserialize<List<PublishedNodesEntryModel>>(payload))
             {
                 await FluentActions
                     .Invoking(async () => await configService.UnpublishNodesAsync(request))
@@ -1927,7 +1924,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             Assert.True(endpoint.OpcNodes.SetEqualsSafe(nodes, (a, b) => a.IsSame(b)));
         }
 
-        private readonly NewtonsoftJsonSerializer _newtonSoftJsonSerializer;
         private readonly ILoggerFactory _loggerFactory;
         private readonly PublishedNodesConverter _publishedNodesJobConverter;
         private readonly IOptions<PublisherOptions> _options;

@@ -112,7 +112,6 @@ namespace Azure.IIoT.OpcUa.Publisher
                     sp.GetRequiredService<Stack.IOpcUaClientManager<ConnectionModel>>(),
                     context.WriterGroup,
                     sp.GetRequiredService<IMessageSink>(),
-                    context.Serializer,
                     sp.GetRequiredService<IOptions<PublisherOptions>>(),
                     context,
                     sp.GetRequiredService<ILoggerFactory>(),

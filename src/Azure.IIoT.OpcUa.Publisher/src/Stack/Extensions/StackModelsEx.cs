@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Furly.Extensions.Serializers;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using DiagnosticsLevel = Publisher.Models.DiagnosticsLevel;
@@ -214,10 +213,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// Convert user token policies to service model
         /// </summary>
         /// <param name="policies"></param>
-        /// <param name="serializer"></param>
         /// <returns></returns>
         public static IReadOnlyList<AuthenticationMethodModel> ToServiceModel(
-            this UserTokenPolicyCollection policies, IJsonSerializer serializer)
+            this UserTokenPolicyCollection policies)
         {
             if (policies == null || policies.Count == 0)
             {
@@ -230,7 +228,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                 };
             }
             return policies
-                .Select(p => p.ToServiceModel(serializer)!)
+                .Select(p => p.ToServiceModel()!)
                 .Where(p => p != null)
                 .Distinct()
                 .ToList();
@@ -240,10 +238,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// Convert user token policy to service model
         /// </summary>
         /// <param name="policy"></param>
-        /// <param name="serializer"></param>
         /// <returns></returns>
         public static AuthenticationMethodModel? ToServiceModel(
-            this UserTokenPolicy? policy, IJsonSerializer serializer)
+            this UserTokenPolicy? policy)
         {
             if (policy == null)
             {

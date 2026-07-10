@@ -11,7 +11,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Furly.Exceptions;
     using Furly.Extensions.Messaging;
-    using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
@@ -40,20 +39,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="clients"></param>
         /// <param name="writerGroup"></param>
         /// <param name="sink"></param>
-        /// <param name="serializer"></param>
         /// <param name="options"></param>
         /// <param name="metrics"></param>
         /// <param name="loggerFactory"></param>
         /// <param name="timeProvider"></param>
         public WriterGroupDataSource(IOpcUaClientManager<ConnectionModel> clients,
-            WriterGroupModel writerGroup, IMessageSink sink, IJsonSerializer serializer,
+            WriterGroupModel writerGroup, IMessageSink sink,
             IOptions<PublisherOptions> options, IMetricsContext? metrics,
             ILoggerFactory loggerFactory, TimeProvider? timeProvider = null)
         {
             ArgumentNullException.ThrowIfNull(writerGroup, nameof(writerGroup));
 
             _loggerFactory = loggerFactory;
-            _serializer = serializer;
             _sink = sink;
             _options = options;
             _logger = loggerFactory.CreateLogger<WriterGroupDataSource>();
@@ -775,7 +772,6 @@ $"md_{DateTimeOffset.UtcNow.ToBinary()}_{writerGroup.Id}_{_metadataChanges}.json
         private readonly ConcurrentDictionary<string, SchemaGroup> _schemaGroups = new();
         private readonly Meter _meter = Diagnostics.NewMeter();
         private readonly ILoggerFactory _loggerFactory;
-        private readonly IJsonSerializer _serializer;
         private readonly IMessageSink _sink;
         private readonly ILogger _logger;
         private readonly TimeProvider _timeProvider;

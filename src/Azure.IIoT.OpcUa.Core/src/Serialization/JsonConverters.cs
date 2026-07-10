@@ -164,13 +164,18 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
                             if (!kReadersInsensitive.TryGetValue(
                                 propertyName.ToUpperInvariant(), out setter))
                             {
-                                throw new JsonException(
-                                   $"No case insensitive reader for {propertyName}");
+                                // Ignore unknown properties (matches Newtonsoft
+                                // MissingMemberHandling.Ignore for wire compat).
+                                reader.Skip();
+                                continue;
                             }
                         }
                         else if (!kReaders.TryGetValue(propertyName, out setter))
                         {
-                            throw new JsonException($"No reader for {propertyName}");
+                            // Ignore unknown properties (matches Newtonsoft
+                            // MissingMemberHandling.Ignore for wire compat).
+                            reader.Skip();
+                            continue;
                         }
                         setter(ref reader, o, options);
                     }

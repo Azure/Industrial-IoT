@@ -16,6 +16,7 @@
     <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Core\src\Azure.IIoT.OpcUa.Core.csproj" />
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa\src\Azure.IIoT.OpcUa.csproj" />
   </ItemGroup>
 </Project>
