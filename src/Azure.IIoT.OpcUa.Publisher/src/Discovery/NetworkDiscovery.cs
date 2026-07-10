@@ -13,7 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using Azure.IIoT.OpcUa.Publisher.Stack.Transport.Scanner;
     using Azure.IIoT.OpcUa.Encoders;
     using Furly.Exceptions;
-    using Furly.Extensions.Messaging;
+    using Azure.IIoT.OpcUa.Core.Messaging;
     using global::Azure.IIoT.OpcUa.Core.Serialization;
     using Furly.Extensions.Utils;
     using Microsoft.Extensions.Logging;

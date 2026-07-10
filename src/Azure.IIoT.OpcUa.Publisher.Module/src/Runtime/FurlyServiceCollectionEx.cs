@@ -207,26 +207,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         }
 
         /// <summary>
-        /// Add null event client (mirror of Furly.Extensions).
-        /// </summary>
-        /// <param name="services"></param>
-        public static IServiceCollection AddNullEventClient(this IServiceCollection services)
-        {
-            return services.AddAs<NullEventClient>(ServiceLifetime.Transient,
-                typeof(IEventClient));
-        }
-
-        /// <summary>
-        /// Add memory key value store (mirror of Furly.Extensions).
-        /// </summary>
-        /// <param name="services"></param>
-        public static IServiceCollection AddMemoryKeyValueStore(
-            this IServiceCollection services)
-        {
-            return services.AddSingletonAsImplementedInterfaces<MemoryKVStore>();
-        }
-
-        /// <summary>
         /// Add IoT edge services (mirror of Furly.Azure.IoT.Edge).
         /// </summary>
         /// <param name="services"></param>

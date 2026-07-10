@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -18,7 +18,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Furly.Azure.IoT.Mock.Services;
     using Furly.Azure.IoT.Models;
     using Furly.Extensions.Hosting;
-    using Furly.Extensions.Messaging;
+    using Azure.IIoT.OpcUa.Core.Messaging;
     using Furly.Extensions.Mqtt;
     using Furly.Extensions.Mqtt.Clients;
     using Furly.Extensions.Serializers;

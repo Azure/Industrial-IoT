@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -11,9 +11,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Encoders;
     using Furly.Azure.IoT.Edge;
     using Furly.Azure.IoT.Edge.Services;
-    using Furly.Extensions.Messaging;
-    using Furly.Extensions.Storage;
-    using VariantValue = Furly.Extensions.Serializers.VariantValue;
+    using Azure.IIoT.OpcUa.Core.Messaging;
+    using Azure.IIoT.OpcUa.Core.Storage;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
@@ -28,6 +27,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Security.Cryptography;
     using System.Security.Cryptography.X509Certificates;
     using System.Text;
+    using System.Text.Json;
+    using System.Text.Json.Nodes;
     using System.Threading;
     using System.Threading.Tasks;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
@@ -171,11 +172,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 else
                 {
                     store.State[OpcUa.Constants.TwinPropertySchemeKey] =
-                        VariantValue.Null;
+                        null;
                     store.State[OpcUa.Constants.TwinPropertyHostnameKey] =
-                        VariantValue.Null;
+                        null;
                     store.State[OpcUa.Constants.TwinPropertyPortKey] =
-                        VariantValue.Null;
+                        null;
                 }
             }
 
@@ -208,7 +209,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async Task<VariantValue> GetHostAddressesAsync(CancellationToken ct)
+        private async Task<JsonNode?> GetHostAddressesAsync(CancellationToken ct)
         {
             try
             {
@@ -220,7 +221,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             catch (Exception ex)
             {
                 _logger.HostnameResolveFailed(ex);
-                return VariantValue.Null;
+                return null;
             }
         }
 
@@ -230,7 +231,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private async Task UpdateApiKeyAndCertificateAsync()
         {
             var apiKeyStore = _stores.Find(s => s.State.TryGetValue(
-                OpcUa.Constants.TwinPropertyApiKeyKey, out var key) && key.IsString);
+                OpcUa.Constants.TwinPropertyApiKeyKey, out var key) &&
+                key?.GetValueKind() == JsonValueKind.String);
             if (apiKeyStore != null)
             {
                 ApiKey = (string?)apiKeyStore.State[OpcUa.Constants.TwinPropertyApiKeyKey];
@@ -262,13 +264,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             if (!(_options.Value.RenewTlsCertificateOnStartup ?? false) &&
                 apiKeyStore != null &&
                 apiKeyStore.State.TryGetValue(OpcUa.Constants.TwinPropertyCertificateKey,
-                    out var cert) && cert.IsBytes)
+                    out var cert) && cert is JsonValue certValue &&
+                    certValue.TryGetValue<byte[]>(out _))
             {
                 try
                 {
                     // Load certificate
                     Certificate?.Dispose();
-                    Certificate = X509CertificateLoader.LoadPkcs12((byte[])cert!, ApiKey);
+                    Certificate = X509CertificateLoader.LoadPkcs12(cert!.GetValue<byte[]>(), ApiKey);
                     var now = _timeProvider.GetUtcNow().AddDays(1);
                     if (now < Certificate.NotAfter && Certificate.HasPrivateKey &&
                         Certificate.SubjectName.EnumerateRelativeDistinguishedNames()
@@ -361,7 +364,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             apiKeyStore ??= _stores[0];
 
             var pfxCertificate = Certificate.Export(X509ContentType.Pfx, ApiKey);
-            apiKeyStore.State.AddOrUpdate(OpcUa.Constants.TwinPropertyCertificateKey, pfxCertificate);
+            apiKeyStore.State[OpcUa.Constants.TwinPropertyCertificateKey] =
+                JsonValue.Create(pfxCertificate);
 
             var renewalDuration = Certificate.NotAfter - nowOffset.Date - TimeSpan.FromDays(1);
             _renewalTimer.Change(renewalDuration, Timeout.InfiniteTimeSpan);

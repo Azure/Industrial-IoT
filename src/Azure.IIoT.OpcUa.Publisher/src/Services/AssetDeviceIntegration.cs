@@ -783,7 +783,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             Configuration = new DestinationConfiguration
                             {
                                 Qos = _options.Value.DefaultQualityOfService
-                                    == Furly.Extensions.Messaging.QoS.AtMostOnce ? QoS.Qos0 : QoS.Qos1,
+                                    == Azure.IIoT.OpcUa.Core.Messaging.QoS.AtMostOnce ? QoS.Qos0 : QoS.Qos1,
                                 Topic = CreateTopic(),
                                 Retain = _options.Value.DefaultMessageRetention
                                     == true ? Retain.Keep : Retain.Never,
@@ -819,7 +819,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 Configuration = new DestinationConfiguration
                                 {
                                     Qos = _options.Value.DefaultQualityOfService
-                                        == Furly.Extensions.Messaging.QoS.AtMostOnce ? QoS.Qos0 : QoS.Qos1,
+                                        == Azure.IIoT.OpcUa.Core.Messaging.QoS.AtMostOnce ? QoS.Qos0 : QoS.Qos1,
                                     Topic = CreateTopic(),
                                     Retain = _options.Value.DefaultMessageRetention
                                         == true ? Retain.Keep : Retain.Never,
@@ -850,7 +850,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                     Configuration = new DestinationConfiguration
                                     {
                                         Qos = _options.Value.DefaultQualityOfService
-                                            == Furly.Extensions.Messaging.QoS.AtMostOnce ? QoS.Qos0 : QoS.Qos1,
+                                            == Azure.IIoT.OpcUa.Core.Messaging.QoS.AtMostOnce ? QoS.Qos0 : QoS.Qos1,
                                         Topic = CreateTopic(n.DisplayName),
                                         Retain = _options.Value.DefaultMessageRetention
                                             == true ? Retain.Keep : Retain.Never,
@@ -1913,8 +1913,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         WriterGroupTransport = WriterGroupTransport.AioMqtt,
                         QualityOfService = configuration.Qos switch
                         {
-                            QoS.Qos0 => Furly.Extensions.Messaging.QoS.AtMostOnce,
-                            QoS.Qos1 => Furly.Extensions.Messaging.QoS.AtLeastOnce,
+                            QoS.Qos0 => Azure.IIoT.OpcUa.Core.Messaging.QoS.AtMostOnce,
+                            QoS.Qos1 => Azure.IIoT.OpcUa.Core.Messaging.QoS.AtLeastOnce,
                             _ => null
                         },
                         MessageRetention = configuration.Retain switch
@@ -2000,8 +2000,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         WriterGroupTransport = WriterGroupTransport.AioMqtt,
                         QualityOfService = configuration.Qos switch
                         {
-                            QoS.Qos0 => Furly.Extensions.Messaging.QoS.AtMostOnce,
-                            QoS.Qos1 => Furly.Extensions.Messaging.QoS.AtLeastOnce,
+                            QoS.Qos0 => Azure.IIoT.OpcUa.Core.Messaging.QoS.AtMostOnce,
+                            QoS.Qos1 => Azure.IIoT.OpcUa.Core.Messaging.QoS.AtLeastOnce,
                             _ => null
                         },
                         MessageRetention = configuration.Retain switch
@@ -2306,7 +2306,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             if (!string.IsNullOrEmpty(extra))
             {
-                builder = builder.Append('/').Append(Furly.Extensions.Messaging.TopicFilter.Escape(extra));
+                builder = builder.Append('/').Append(Azure.IIoT.OpcUa.Core.Messaging.TopicFilter.Escape(extra));
             }
             if (builder.Length > 128) // Topic length limit in adr is 128
             {

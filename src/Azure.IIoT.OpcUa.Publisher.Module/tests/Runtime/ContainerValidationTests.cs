@@ -8,9 +8,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
-    using Furly.Extensions.Messaging;
+    using Azure.IIoT.OpcUa.Core.Messaging;
     using Furly.Extensions.Rpc;
-    using Furly.Extensions.Storage;
+    using Azure.IIoT.OpcUa.Core.Storage;
     using Furly.Tunnel.Router;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;

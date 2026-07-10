@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -9,8 +9,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     using FluentAssertions;
     using Furly;
     using Furly.Extensions.Logging;
-    using Furly.Extensions.Messaging;
-    using Furly.Extensions.Storage.Services;
+    using Azure.IIoT.OpcUa.Core.Messaging;
+    using Azure.IIoT.OpcUa.Core.Storage.Services;
     using Microsoft.Extensions.Configuration;
     using Moq;
     using System;

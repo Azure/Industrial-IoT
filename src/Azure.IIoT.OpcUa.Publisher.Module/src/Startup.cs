@@ -145,9 +145,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
             // to fall back in the reverse order for
             // sending operational and discovery events!
             //
-            FurlyServiceCollectionEx.AddMemoryKeyValueStore(services);
+            CoreServiceCollectionEx.AddMemoryKeyValueStore(services);
             services.AddDaprStateStoreClient(Configuration);
-            FurlyServiceCollectionEx.AddNullEventClient(services);
+            CoreServiceCollectionEx.AddNullEventClient(services);
             services.AddFileSystemEventClient(Configuration);
             services.AddFileSystemRpcServer(Configuration);
             services.AddHttpEventClient(Configuration);
