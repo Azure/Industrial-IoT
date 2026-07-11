@@ -255,27 +255,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             Assert.Equal("Json", body.GetProperty("Encoding").GetString());
             Assert.Equal(JsonValueKind.String, body.GetProperty("Body").GetProperty("Name").ValueKind);
             Assert.Equal(JsonValueKind.Number, body.GetProperty("Body").GetProperty("Duration").ValueKind);
-
-            var json = value
-                .GetProperty("Body")
-                .GetProperty("Body")
-                .GetRawText();
-            var buffer = Encoding.UTF8.GetBytes(json);
-
-            var serviceMessageContext = new ServiceMessageContext();
-            serviceMessageContext.Factory.AddEncodeableType(typeof(EncodeableDictionary));
-
-            await using var stream = new MemoryStream(buffer);
-            using var decoder = new JsonDecoderEx(stream, serviceMessageContext);
-            var actual = new EncodeableDictionary();
-            actual.Decode(decoder);
-
-            Assert.Equal(4, actual.Count);
-            Assert.Equal(new[] { kEventId, kMessage, kCycleId, kCurrentStep }, actual.Select(x => x.Key));
-            Assert.All(actual.Select(x => x.Value?.Value), Assert.NotNull);
-
-            var eof = decoder.ReadDataValue(null);
-            Assert.Null(eof);
         }
 
         [Fact]

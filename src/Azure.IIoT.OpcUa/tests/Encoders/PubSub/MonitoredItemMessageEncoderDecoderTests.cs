@@ -222,10 +222,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             // convert DataSet Payload DataValue timestamps to OpcUa Utc
             foreach (var dataSetMessage in networkMessage.Messages)
             {
-                var expectedPayload = new Dictionary<string, DataValue>();
+                var expectedPayload = new Dictionary<string, DataValue?>();
                 foreach (var (Name, Value) in dataSetMessage.Payload.DataSetFields)
                 {
-                    expectedPayload[Name] = new DataValue(Value).ToOpcUaUniversalTime();
+                    expectedPayload[Name] = (Value ?? DataValue.Null).ToOpcUaUniversalTime();
                 }
                 dataSetMessage.Payload = new DataSet(expectedPayload,
                     DataSetFieldContentFlags.ApplicationUri | // Important
@@ -287,7 +287,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="dataSetFieldContentMask"></param>
         private static DataSet CreateDataSet(DataSetFieldContentFlags dataSetFieldContentMask = DataSetFieldContentFlagsDefault)
         {
-            return new DataSet(new Dictionary<string, DataValue>
+            return new DataSet(new Dictionary<string, DataValue?>
             {
                 { "1", new DataValue(new Variant("test"), StatusCodes.Good, DateTime.Now, DateTime.UtcNow) }
             }, dataSetFieldContentMask);

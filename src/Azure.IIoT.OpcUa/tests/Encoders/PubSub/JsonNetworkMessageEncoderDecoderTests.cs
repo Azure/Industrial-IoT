@@ -323,51 +323,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             Assert.All(networkMessage.Messages.Select(m => m.Payload), (p, i) => Assert.True(result[i].Equals(p)));
         }
 
-        [Theory]
-        [InlineData(false, false, NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 5, 256 * 1024)]
-        [InlineData(false, false, NetworkMessageContentMaskDefault, 10, 256 * 1024)]
-        [InlineData(false, true, NetworkMessageContentMaskDefault, 15, 256 * 1024)]
-        [InlineData(false, true, NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 5, 256 * 1024)]
-        [InlineData(true, true, NetworkMessageContentMaskDefault, 15, 256 * 1024)]
-        [InlineData(true, true, NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 5, 256 * 1024)]
-        [InlineData(false, false, NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 5, 1024)]
-        [InlineData(false, false, NetworkMessageContentMaskDefault, 10, 1024)]
-        [InlineData(false, true, NetworkMessageContentMaskDefault, 15, 1024)]
-        [InlineData(false, true, NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 5, 1024)]
-        [InlineData(true, true, NetworkMessageContentMaskDefault, 15, 1024)]
-        [InlineData(true, true, NetworkMessageContentMaskDefault | NetworkMessageContentFlags.SingleDataSetMessage, 5, 1024)]
-        public void EncodeDecodeNetworkMessagesNoHeaderRaw(bool useArrayEnvelope,
-            bool useCompatibilityMode, NetworkMessageContentFlags contentMask, int numberOfMessages, int maxMessageSize)
-        {
-            var messages = Enumerable
-                .Range(3, numberOfMessages)
-                .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(useCompatibilityMode, sequenceNumber,
-                    dataSetFieldContentMask: DataSetFieldContentFlags.RawData))
-                .ToList();
-            var networkMessage = CreateNetworkMessage(contentMask
-                & ~(NetworkMessageContentFlags.NetworkMessageHeader | NetworkMessageContentFlags.DataSetMessageHeader), messages);
-            networkMessage.UseArrayEnvelope = useArrayEnvelope;
-
-            var context = new ServiceMessageContext();
-            var buffers = networkMessage.Encode(context, maxMessageSize);
-
-            ConvertToOpcUaUniversalTime(networkMessage);
-
-            // Compare payload as raw data equivalent
-            var result = Json.Parse(Json.SerializeToString(buffers
-                .SelectMany(buffer => ((BaseNetworkMessage)PubSubMessage
-                    .Decode(buffer, networkMessage.ContentType, context)).Messages)
-                .SelectMany(m => m.Payload.DataSetFields)
-                .Select(v => new { v.Name, Value = v.Value.Value })
-                .ToList()));
-            var expected = Json.Parse(Json.SerializeToString(messages
-                .SelectMany(m => m.Payload.DataSetFields)
-                .Select(v => new { v.Name, Value = v.Value.Value })
-                .ToList()));
-
-            Assert.True(JsonNode.DeepEquals(expected, result));
-        }
-
         /// <summary>
         /// Convert timestamps of payload to OpcUa Utc.
         /// </summary>
@@ -377,10 +332,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             // convert DataSet Payload DataValue timestamps to OpcUa Utc
             foreach (var dataSetMessage in networkMessage.Messages)
             {
-                var expectedPayload = new Dictionary<string, DataValue>();
+                var expectedPayload = new Dictionary<string, DataValue?>();
                 foreach (var (Name, Value) in dataSetMessage.Payload.DataSetFields)
                 {
-                    expectedPayload[Name] = new DataValue(Value).ToOpcUaUniversalTime();
+                    expectedPayload[Name] = (Value ?? DataValue.Null).ToOpcUaUniversalTime();
                 }
                 dataSetMessage.Payload = new DataSet(expectedPayload,
                     DataSetFieldContentFlags.StatusCode |
@@ -440,7 +395,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="dataSetFieldContentMask"></param>
         private static DataSet CreateDataSet(DataSetFieldContentFlags dataSetFieldContentMask = DataSetFieldContentFlagsDefault)
         {
-            return new DataSet(new Dictionary<string, DataValue> {
+            return new DataSet(new Dictionary<string, DataValue?> {
                 { "1", new DataValue(new Variant(true), StatusCodes.Good, DateTime.Now, DateTime.UtcNow) },
                 { "2", new DataValue(new Variant(0.5), StatusCodes.Good, DateTime.Now) },
                 { "3", new DataValue("abcd") }

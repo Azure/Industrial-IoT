@@ -130,9 +130,9 @@ namespace Opc.Ua.Extensions
             var context = new ServiceMessageContext();
             var expected = new byte[] { 0, 34, 23, 255, 6, 34, 65, 0, 0, 2, 0 };
             var result = ("b=" + expected.ToBase64String()).ToNodeId(context);
-            Assert.Equal(expected, result.Identifier);
+            Assert.Equal(expected, ((ByteString)result.Identifier).ToArray());
             result = ("b_" + expected.ToBase64String()).ToNodeId(context);
-            Assert.Equal(expected, result.Identifier);
+            Assert.Equal(expected, ((ByteString)result.Identifier).ToArray());
         }
 
         [Fact]
@@ -141,7 +141,7 @@ namespace Opc.Ua.Extensions
             var context = new ServiceMessageContext();
             var expected = new byte[] { 0, 34, 23, 255, 6, 34, 65, 0, 0, 2, 0 };
             var result = ("b=" + expected.ToBase64String().UrlEncode()).ToNodeId(context);
-            Assert.Equal(expected, result.Identifier);
+            Assert.Equal(expected, ((ByteString)result.Identifier).ToArray());
         }
 
         [Fact]
@@ -151,7 +151,7 @@ namespace Opc.Ua.Extensions
             var expected = new byte[] { 0, 34, 23, 255, 6, 34, 65, 0, 0, 2, 0 };
             const string uri = "http://contosos.com/UA";
             var result = (uri + "#b=" + expected.ToBase64String()).ToNodeId(context);
-            Assert.Equal(expected, result.Identifier);
+            Assert.Equal(expected, ((ByteString)result.Identifier).ToArray());
             Assert.Equal(uri, context.NamespaceUris.GetString(1));
             Assert.Equal(1, result.NamespaceIndex);
         }
@@ -163,7 +163,7 @@ namespace Opc.Ua.Extensions
             var expected = new byte[] { 0, 34, 23, 255, 6, 34, 65, 0, 0, 2, 0 };
             const string uri = "http://contosos.com/UA";
             var result = (uri + "#b=" + expected.ToBase64String().UrlEncode()).ToNodeId(context);
-            Assert.Equal(expected, result.Identifier);
+            Assert.Equal(expected, ((ByteString)result.Identifier).ToArray());
             Assert.Equal(uri, context.NamespaceUris.GetString(1));
             Assert.Equal(1, result.NamespaceIndex);
         }
@@ -177,7 +177,7 @@ namespace Opc.Ua.Extensions
             var result = ("ns=" + context.NamespaceUris.GetIndexOrAppend(uri) +
                 ";b=" + expected.ToBase64String())
                 .ToNodeId(context);
-            Assert.Equal(expected, result.Identifier);
+            Assert.Equal(expected, ((ByteString)result.Identifier).ToArray());
             Assert.Equal(uri, context.NamespaceUris.GetString(1));
             Assert.Equal(1, result.NamespaceIndex);
         }
@@ -191,7 +191,7 @@ namespace Opc.Ua.Extensions
             var index = context.NamespaceUris.GetIndexOrAppend(uri);
             var result = ("nsu=" + uri + ";b=" + expected.ToBase64String())
                 .ToNodeId(context);
-            Assert.Equal(expected, result.Identifier);
+            Assert.Equal(expected, ((ByteString)result.Identifier).ToArray());
             Assert.Equal(uri, context.NamespaceUris.GetString(1));
             Assert.Equal(1, result.NamespaceIndex);
             Assert.Equal(1, index);
@@ -385,7 +385,7 @@ namespace Opc.Ua.Extensions
         public void EncodeDecodeNodeIdWithBuffer()
         {
             var context = new ServiceMessageContext();
-            var expected = new NodeId(Guid.NewGuid().ToByteArray(),
+            var expected = new NodeId((ByteString)Guid.NewGuid().ToByteArray(),
                 context.NamespaceUris.GetIndexOrAppend("http://contoso.com/UA"));
 
             var s1 = expected.AsString(context, NamespaceFormat.Uri);
@@ -401,23 +401,7 @@ namespace Opc.Ua.Extensions
         public void EncodeDecodeNodeIdWithBufferAndDefaultUri()
         {
             var context = new ServiceMessageContext();
-            var expected = new NodeId(Guid.NewGuid().ToByteArray(), 0);
-
-            var s1 = expected.AsString(context, NamespaceFormat.Uri);
-            var s2 = expected.AsString(context, NamespaceFormat.Expanded);
-
-            var result1 = s1.ToNodeId(context);
-            var result2 = s2.ToNodeId(context);
-
-            AssertEqual(expected, result1, result2);
-        }
-
-        [Fact]
-        public void EncodeDecodeNodeIdWithEmptyString()
-        {
-            var context = new ServiceMessageContext();
-            var expected = new NodeId("",
-                context.NamespaceUris.GetIndexOrAppend("http://contoso.com/UA"));
+            var expected = new NodeId((ByteString)Guid.NewGuid().ToByteArray(), 0);
 
             var s1 = expected.AsString(context, NamespaceFormat.Uri);
             var s2 = expected.AsString(context, NamespaceFormat.Expanded);

@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Text.Json;
@@ -54,9 +55,10 @@ namespace Azure.IIoT.OpcUa.Encoders
             var token = JsonNode.Parse(text);
             if (useReversibleEncoding)
             {
-                Enum.TryParse(ToStringValue(token?["value"]?["Type"]),
+                Enum.TryParse(ToStringValue(token?["value"]?["UaType"]),
                     true, out builtinType);
-                return token?["value"]?["Body"]?.DeepClone();
+                return NumberizeWideIntegers(
+                    token?["value"]?["Value"]?.DeepClone(), builtinType);
             }
 
             //
@@ -65,7 +67,65 @@ namespace Azure.IIoT.OpcUa.Encoders
             // from the variant type information instead.
             //
             builtinType = value.Value.TypeInfo.BuiltInType;
-            return token?["value"]?.DeepClone();
+            return NumberizeWideIntegers(
+                token?["value"]?.DeepClone(), builtinType);
+        }
+
+        /// <summary>
+        /// The 2.0 OPC UA JSON encoding represents 64 bit integers as strings.
+        /// The REST value api historically surfaced them as json numbers, so
+        /// convert them back to numbers here to keep that contract (and to
+        /// round-trip with <see cref="Decode"/> which accepts numeric input).
+        /// </summary>
+        /// <param name="node"></param>
+        /// <param name="builtinType"></param>
+        /// <returns></returns>
+        private static JsonNode? NumberizeWideIntegers(JsonNode? node,
+            BuiltInType builtinType)
+        {
+            if (node is null ||
+                builtinType is not (BuiltInType.Int64 or BuiltInType.UInt64))
+            {
+                return node;
+            }
+            if (node is JsonArray array)
+            {
+                return new JsonArray(array
+                    .Select(e => NumberizeWideInteger(e, builtinType)).ToArray());
+            }
+            return NumberizeWideInteger(node, builtinType);
+        }
+
+        /// <summary>
+        /// Convert a single 64 bit integer value rendered as a json string
+        /// back to a json number.
+        /// </summary>
+        /// <param name="node"></param>
+        /// <param name="builtinType"></param>
+        /// <returns></returns>
+        private static JsonNode? NumberizeWideInteger(JsonNode? node,
+            BuiltInType builtinType)
+        {
+            if (node is not JsonValue value ||
+                value.GetValueKind() != JsonValueKind.String)
+            {
+                return node?.DeepClone();
+            }
+            var text = value.GetValue<string>();
+            if (builtinType == BuiltInType.UInt64)
+            {
+                if (ulong.TryParse(text, NumberStyles.Integer,
+                    CultureInfo.InvariantCulture, out var u))
+                {
+                    return JsonValue.Create(u);
+                }
+            }
+            else if (long.TryParse(text, NumberStyles.Integer,
+                CultureInfo.InvariantCulture, out var l))
+            {
+                return JsonValue.Create(l);
+            }
+            return node.DeepClone();
         }
 
         /// <inheritdoc/>
@@ -81,14 +141,34 @@ namespace Azure.IIoT.OpcUa.Encoders
             //
             value = Sanitize(value, builtinType == BuiltInType.String);
 
+            //
+            // Normalize a variant shaped object into the shape the 2.0
+            // decoder understands. Accepts the historical envelope shapes
+            // ({ Type, Body }, { DataType, Value }, case insensitive, type
+            // as a name or number) and remaps them onto the 2.0
+            // { UaType, Value } envelope.
+            //
+            if (value is JsonObject obj &&
+                TryNormalizeVariantObject(obj, out var normalized))
+            {
+                value = normalized;
+                builtinType = BuiltInType.Variant;
+            }
+
             string json;
-            if (builtinType == BuiltInType.Null ||
-                (builtinType == BuiltInType.Variant &&
-                    value is JsonObject))
+            if (builtinType is BuiltInType.Null or BuiltInType.Variant
+                or BuiltInType.Integer or BuiltInType.UInteger
+                or BuiltInType.Number or BuiltInType.Enumeration)
             {
                 //
-                // Let the decoder try and decode the json variant.
+                // No concrete type hint - either the value already carries
+                // its own { UaType, Value } envelope, or we default type a
+                // bare value the same way the previous implementation did.
                 //
+                if (value is not JsonObject)
+                {
+                    value = ApplyDefaultTyping(value);
+                }
                 json = new JsonObject
                 {
                     ["value"] = value?.DeepClone()
@@ -103,8 +183,8 @@ namespace Azure.IIoT.OpcUa.Encoders
                 {
                     ["value"] = new JsonObject
                     {
-                        ["Body"] = value?.DeepClone(),
-                        ["Type"] = (byte)builtinType
+                        ["Value"] = CoerceForWire(value?.DeepClone(), builtinType),
+                        ["UaType"] = (byte)builtinType
                     }
                 }.ToJsonString();
             }
@@ -114,6 +194,227 @@ namespace Azure.IIoT.OpcUa.Encoders
             //
             using var decoder = new Opc.Ua.JsonDecoder(json, Context);
             return decoder.ReadVariant(nameof(value));
+        }
+
+        /// <summary>
+        /// Try to normalize a variant shaped object that carries its type
+        /// alongside its value (e.g. { Type, Body } or { DataType, Value })
+        /// into the 2.0 decoder's { UaType, Value } envelope. Returns false
+        /// when the object is not a recognizable variant envelope so that
+        /// the caller leaves it untouched.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="normalized"></param>
+        /// <returns></returns>
+        private static bool TryNormalizeVariantObject(JsonObject obj,
+            out JsonObject? normalized)
+        {
+            normalized = null;
+            JsonNode? typeNode = null;
+            JsonNode? valueNode = null;
+            var hasValue = false;
+            var alreadyNormalized = false;
+            foreach (var (key, node) in obj)
+            {
+                switch (key.ToUpperInvariant())
+                {
+                    case "UATYPE":
+                        typeNode = node;
+                        alreadyNormalized = true;
+                        break;
+                    case "TYPE":
+                    case "DATATYPE":
+                        typeNode = node;
+                        break;
+                    case "VALUE":
+                    case "BODY":
+                        valueNode = node;
+                        hasValue = true;
+                        break;
+                }
+            }
+            if (typeNode is null || !hasValue || alreadyNormalized)
+            {
+                //
+                // Not a legacy envelope (or already in 2.0 shape) - leave as
+                // is and let the decoder deal with it.
+                //
+                return false;
+            }
+            if (!TryResolveBuiltInType(typeNode, out var uaType))
+            {
+                return false;
+            }
+            normalized = new JsonObject
+            {
+                ["UaType"] = (byte)uaType,
+                ["Value"] = CoerceForWire(valueNode?.DeepClone(), uaType)
+            };
+            return true;
+        }
+
+        /// <summary>
+        /// Resolve a built in type from either its numeric value or its
+        /// (case insensitive) name.
+        /// </summary>
+        /// <param name="node"></param>
+        /// <param name="builtInType"></param>
+        /// <returns></returns>
+        private static bool TryResolveBuiltInType(JsonNode? node,
+            out BuiltInType builtInType)
+        {
+            builtInType = BuiltInType.Null;
+            if (node is not JsonValue value)
+            {
+                return false;
+            }
+            if (value.GetValueKind() == JsonValueKind.String)
+            {
+                var name = value.GetValue<string>();
+                if (Enum.TryParse(name, true, out builtInType))
+                {
+                    return true;
+                }
+                return byte.TryParse(name, out var raw) &&
+                    ResolveNumericBuiltInType(raw, out builtInType);
+            }
+            return value.TryGetValue<byte>(out var numeric) &&
+                ResolveNumericBuiltInType(numeric, out builtInType);
+        }
+
+        /// <summary>
+        /// Resolve a numeric built in type value.
+        /// </summary>
+        /// <param name="raw"></param>
+        /// <param name="builtInType"></param>
+        /// <returns></returns>
+        private static bool ResolveNumericBuiltInType(byte raw,
+            out BuiltInType builtInType)
+        {
+            if (Enum.IsDefined(typeof(BuiltInType), (int)raw))
+            {
+                builtInType = (BuiltInType)raw;
+                return true;
+            }
+            builtInType = BuiltInType.Null;
+            return false;
+        }
+
+        /// <summary>
+        /// Default type a bare value (one that does not carry an explicit
+        /// type) so that the strict 2.0 decoder can decode it. Mirrors the
+        /// previous implementation's behavior of promoting integral numbers
+        /// to Int64, real numbers to Double, and defaulting empty arrays to
+        /// a null variant.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        private static JsonNode? ApplyDefaultTyping(JsonNode? value)
+        {
+            switch (value)
+            {
+                case null:
+                    return null;
+                case JsonArray array:
+                    if (array.Count == 0)
+                    {
+                        return null;
+                    }
+                    if (!TryDefaultElementType(array[0], out var elementType))
+                    {
+                        return null;
+                    }
+                    return new JsonObject
+                    {
+                        ["UaType"] = (byte)elementType,
+                        ["Value"] = CoerceForWire(array.DeepClone(), elementType)
+                    };
+                case JsonValue jsonValue:
+                    if (!TryDefaultElementType(jsonValue, out var scalarType))
+                    {
+                        return null;
+                    }
+                    return new JsonObject
+                    {
+                        ["UaType"] = (byte)scalarType,
+                        ["Value"] = CoerceForWire(jsonValue.DeepClone(), scalarType)
+                    };
+                default:
+                    return value;
+            }
+        }
+
+        /// <summary>
+        /// Determine the default built in type for a bare json value.
+        /// </summary>
+        /// <param name="node"></param>
+        /// <param name="builtInType"></param>
+        /// <returns></returns>
+        private static bool TryDefaultElementType(JsonNode? node,
+            out BuiltInType builtInType)
+        {
+            builtInType = BuiltInType.Null;
+            if (node is not JsonValue value)
+            {
+                return false;
+            }
+            switch (value.GetValueKind())
+            {
+                case JsonValueKind.True:
+                case JsonValueKind.False:
+                    builtInType = BuiltInType.Boolean;
+                    return true;
+                case JsonValueKind.String:
+                    builtInType = BuiltInType.String;
+                    return true;
+                case JsonValueKind.Number:
+                    builtInType = value.TryGetValue<long>(out _)
+                        ? BuiltInType.Int64
+                        : BuiltInType.Double;
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// Coerce a value into the on the wire shape the 2.0 decoder expects
+        /// for the given type. In the OPC UA JSON encoding 64 bit integers
+        /// are represented as strings, so a numeric value (scalar or array
+        /// element) is converted to its string form.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        private static JsonNode? CoerceForWire(JsonNode? value, BuiltInType type)
+        {
+            if (value is null ||
+                type is not (BuiltInType.Int64 or BuiltInType.UInt64))
+            {
+                return value;
+            }
+            if (value is JsonArray array)
+            {
+                return new JsonArray(array
+                    .Select(e => StringifyNumber(e)).ToArray());
+            }
+            return StringifyNumber(value);
+        }
+
+        /// <summary>
+        /// Represent a numeric json value as its string form (leaving
+        /// non numeric values untouched).
+        /// </summary>
+        /// <param name="node"></param>
+        /// <returns></returns>
+        private static JsonNode? StringifyNumber(JsonNode? node)
+        {
+            if (node is JsonValue value &&
+                value.GetValueKind() == JsonValueKind.Number)
+            {
+                return JsonValue.Create(value.ToJsonString());
+            }
+            return node?.DeepClone();
         }
 
         /// <summary>

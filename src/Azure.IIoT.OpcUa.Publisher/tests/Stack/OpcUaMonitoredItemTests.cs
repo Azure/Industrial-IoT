@@ -117,7 +117,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             Assert.Equal((uint)NodeAttribute.Value, monitoredItem.AttributeId);
             Assert.Equal("5:20", monitoredItem.IndexRange);
             Assert.Equal(Opc.Ua.MonitoringMode.Sampling, monitoredItem.MonitoringMode);
-            Assert.Equal("i=2258", monitoredItem.StartNodeId);
+            Assert.Equal("i=2258", monitoredItem.StartNodeId.ToString());
             Assert.Equal(10u, monitoredItem.QueueSize);
             Assert.Equal(10000, monitoredItem.SamplingInterval);
             Assert.False(monitoredItem.DiscardOldest);
@@ -230,13 +230,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             Assert.IsType<EventFilter>(monitoredItem.Filter);
 
             var eventFilter = (EventFilter)monitoredItem.Filter;
-            Assert.NotEmpty(eventFilter.SelectClauses);
+            Assert.NotEmpty(eventFilter.SelectClauses.AsEnumerable());
             Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[0].TypeDefinitionId);
-            Assert.Equal("EventId", eventFilter.SelectClauses[0].BrowsePath.ElementAtOrDefault(0));
+            Assert.Equal("EventId", eventFilter.SelectClauses[0].BrowsePath.ElementAtOrDefault(0).Name);
             Assert.NotNull(eventFilter.WhereClause);
-            Assert.Single(eventFilter.WhereClause.Elements);
+            Assert.Single(eventFilter.WhereClause.Elements.AsEnumerable());
             Assert.Equal(FilterOperator.OfType, eventFilter.WhereClause.Elements[0].FilterOperator);
-            Assert.Single(eventFilter.WhereClause.Elements[0].FilterOperands);
+            Assert.Single(eventFilter.WhereClause.Elements[0].FilterOperands.AsEnumerable());
             Assert.IsType<LiteralOperand>(eventFilter.WhereClause.Elements[0].FilterOperands[0].Body);
 
             var literalOperand = (LiteralOperand)eventFilter.WhereClause.Elements[0].FilterOperands[0].Body;
@@ -266,10 +266,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             Assert.Equal(11, eventFilter.SelectClauses.Count);
             Assert.Equal(Attributes.NodeId, eventFilter.SelectClauses[9].AttributeId);
             Assert.Equal(ObjectTypeIds.ConditionType, eventFilter.SelectClauses[9].TypeDefinitionId);
-            Assert.Empty(eventFilter.SelectClauses[9].BrowsePath);
+            Assert.Empty(eventFilter.SelectClauses[9].BrowsePath.AsEnumerable());
             Assert.Equal(Attributes.Value, eventFilter.SelectClauses[10].AttributeId);
             Assert.Equal(ObjectTypeIds.ConditionType, eventFilter.SelectClauses[10].TypeDefinitionId);
-            Assert.Equal("Retain", eventFilter.SelectClauses[10].BrowsePath.FirstOrDefault());
+            Assert.Equal("Retain", eventFilter.SelectClauses[10].BrowsePath.AsEnumerable().FirstOrDefault().Name);
         }
 
         [Fact]
@@ -340,7 +340,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             };
             method.Invoke(item, new object[]
             {
-                request, result, 0, new DiagnosticInfoCollection(), new ResponseHeader()
+                request, result, 0, new ArrayOf<DiagnosticInfo>(), new ResponseHeader()
             });
         }
 

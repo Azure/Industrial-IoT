@@ -1413,13 +1413,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Value = JsonNodeValueExtensions.FromObject(new object[] {
                         new {
                             TypeId = "http://test.org/#s=test2",
-                            Body = new Opc.Ua.Argument("test1", Opc.Ua.DataTypes.String, -1, "desc1")
+                            Body = new Opc.Ua.Argument("test1", new Opc.Ua.NodeId(Opc.Ua.DataTypes.String), -1, "desc1")
                                 .AsBinary(Opc.Ua.ServiceMessageContext.GlobalContext)
                         },
                         new {
                             TypeId = "http://test.org/#s=test55",
                             Encoding = "Xml",
-                            Body = new Opc.Ua.Argument("test2", Opc.Ua.DataTypes.String, -2, "desc1")
+                            Body = new Opc.Ua.Argument("test2", new Opc.Ua.NodeId(Opc.Ua.DataTypes.String), -2, "desc1")
                                 .AsXmlElement(Opc.Ua.ServiceMessageContext.GlobalContext)
                         }
                     })

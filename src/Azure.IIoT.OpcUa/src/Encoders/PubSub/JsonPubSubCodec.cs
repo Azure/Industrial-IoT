@@ -102,6 +102,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         public static Variant DecodeVariant(IServiceMessageContext context,
             JsonNode? node)
         {
+            // In the raw data encoding fields are written as bare values
+            // without a { UaType, Value } envelope. The strict 2.0 decoder
+            // cannot infer the type from such a value, so default type it
+            // the same way the value api does before decoding.
+            node = ApplyDefaultTyping(node);
             using var decoder = DecoderFor(node, context);
             return decoder.ReadVariant(kField);
         }
@@ -283,6 +288,114 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 [kField] = node?.DeepClone()
             }.ToJsonString();
             return new Opc.Ua.JsonDecoder(json, context);
+        }
+
+        /// <summary>
+        /// Default type a bare value (one written without a { UaType, Value }
+        /// envelope, as happens in the raw data encoding) so that the strict
+        /// 2.0 decoder can decode it. Objects (already carrying an envelope)
+        /// are returned unchanged. Mirrors the value api behavior of promoting
+        /// integral numbers to Int64 and real numbers to Double.
+        /// </summary>
+        /// <param name="value"></param>
+        private static JsonNode? ApplyDefaultTyping(JsonNode? value)
+        {
+            switch (value)
+            {
+                case JsonArray array:
+                    if (array.Count == 0)
+                    {
+                        return null;
+                    }
+                    if (!TryDefaultElementType(array[0], out var elementType))
+                    {
+                        return value;
+                    }
+                    return new JsonObject
+                    {
+                        ["UaType"] = (byte)elementType,
+                        ["Value"] = CoerceForWire(array.DeepClone(), elementType)
+                    };
+                case JsonValue jsonValue:
+                    if (!TryDefaultElementType(jsonValue, out var scalarType))
+                    {
+                        return value;
+                    }
+                    return new JsonObject
+                    {
+                        ["UaType"] = (byte)scalarType,
+                        ["Value"] = CoerceForWire(jsonValue.DeepClone(), scalarType)
+                    };
+                default:
+                    return value;
+            }
+        }
+
+        /// <summary>
+        /// Determine the default built in type for a bare json value.
+        /// </summary>
+        /// <param name="node"></param>
+        /// <param name="builtInType"></param>
+        private static bool TryDefaultElementType(JsonNode? node,
+            out BuiltInType builtInType)
+        {
+            builtInType = BuiltInType.Null;
+            if (node is not JsonValue value)
+            {
+                return false;
+            }
+            switch (value.GetValueKind())
+            {
+                case System.Text.Json.JsonValueKind.True:
+                case System.Text.Json.JsonValueKind.False:
+                    builtInType = BuiltInType.Boolean;
+                    return true;
+                case System.Text.Json.JsonValueKind.String:
+                    builtInType = BuiltInType.String;
+                    return true;
+                case System.Text.Json.JsonValueKind.Number:
+                    builtInType = value.TryGetValue<long>(out _)
+                        ? BuiltInType.Int64
+                        : BuiltInType.Double;
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// Coerce 64 bit integers into their on the wire string form which is
+        /// what the OPC UA JSON encoding (and hence the 2.0 decoder) expects.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="type"></param>
+        private static JsonNode? CoerceForWire(JsonNode? value, BuiltInType type)
+        {
+            if (value is null ||
+                type is not (BuiltInType.Int64 or BuiltInType.UInt64))
+            {
+                return value;
+            }
+            if (value is JsonArray array)
+            {
+                return new JsonArray(System.Linq.Enumerable.ToArray(
+                    System.Linq.Enumerable.Select(array, StringifyNumber)));
+            }
+            return StringifyNumber(value);
+        }
+
+        /// <summary>
+        /// Represent a numeric json value as its string form.
+        /// </summary>
+        /// <param name="node"></param>
+        private static JsonNode? StringifyNumber(JsonNode? node)
+        {
+            if (node is JsonValue value &&
+                value.GetValueKind() == System.Text.Json.JsonValueKind.Number)
+            {
+                return JsonValue.Create(value.ToJsonString());
+            }
+            return node?.DeepClone();
         }
 
         private const string kField = "f";

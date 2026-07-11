@@ -1299,7 +1299,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Value = JsonNodeValueExtensions.FromObject(new {
                         Encoding = "Xml",
                         TypeId = "http://test.org/#s=test",
-                        Body = new Opc.Ua.Argument("test", Opc.Ua.DataTypes.String, -1, "desc")
+                        Body = new Opc.Ua.Argument("test", new Opc.Ua.NodeId(Opc.Ua.DataTypes.String), -1, "desc")
                             .AsXmlElement(Opc.Ua.ServiceMessageContext.GlobalContext)
                     })
                 }
@@ -1343,7 +1343,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     DataType = "ExtensionObject",
                     Value = JsonNodeValueExtensions.FromObject(new {
                         TypeId = "http://test.org/#s=test2",
-                        Body = new Opc.Ua.Argument("test1", Opc.Ua.DataTypes.String, -1, "desc1")
+                        Body = new Opc.Ua.Argument("test1", new Opc.Ua.NodeId(Opc.Ua.DataTypes.String), -1, "desc1")
                             .AsBinary(Opc.Ua.ServiceMessageContext.GlobalContext)
                     })
                 }
@@ -1395,7 +1395,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Value = JsonNodeValueExtensions.FromObject(new {
                         Encoding = "Xml",
                         TypeId = "http://test.org/#s=test",
-                        Body = new Opc.Ua.Argument("test", Opc.Ua.DataTypes.String, -1, "desc")
+                        Body = new Opc.Ua.Argument("test", new Opc.Ua.NodeId(Opc.Ua.DataTypes.String), -1, "desc")
                             .AsXmlElement(Opc.Ua.ServiceMessageContext.GlobalContext)
                     })
                 }
@@ -1445,7 +1445,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Value = JsonNodeValueExtensions.FromObject(new {
                         Encoding = "Xml",
                         TypeId = "http://test.org/#s=test",
-                        Body = new Opc.Ua.Argument("test", Opc.Ua.DataTypes.String, -1, "desc")
+                        Body = new Opc.Ua.Argument("test", new Opc.Ua.NodeId(Opc.Ua.DataTypes.String), -1, "desc")
                             .AsXmlElement(Opc.Ua.ServiceMessageContext.GlobalContext)
                     })
                 }
@@ -1499,7 +1499,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Value = JsonNodeValueExtensions.FromObject(new {
                         Encoding = "Xml",
                         TypeId = "http://test.org/#s=test",
-                        Body = new Opc.Ua.Argument("test", Opc.Ua.DataTypes.String, -1, "desc")
+                        Body = new Opc.Ua.Argument("test", new Opc.Ua.NodeId(Opc.Ua.DataTypes.String), -1, "desc")
                             .AsXmlElement(Opc.Ua.ServiceMessageContext.GlobalContext)
                     })
                 }
@@ -1559,7 +1559,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Value = JsonNodeValueExtensions.FromObject(new {
                         Encoding = "Xml",
                         TypeId = "http://test.org/#s=test",
-                        Body = new Opc.Ua.Argument("test", Opc.Ua.DataTypes.String, -1, "desc")
+                        Body = new Opc.Ua.Argument("test", new Opc.Ua.NodeId(Opc.Ua.DataTypes.String), -1, "desc")
                             .AsXmlElement(Opc.Ua.ServiceMessageContext.GlobalContext)
                     })
                 }
@@ -1623,7 +1623,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Value = JsonNodeValueExtensions.FromObject(new {
                         Encoding = "Xml",
                         TypeId = "http://test.org/#s=test",
-                        Body = new Opc.Ua.Argument("test", Opc.Ua.DataTypes.String, -1, "desc")
+                        Body = new Opc.Ua.Argument("test", new Opc.Ua.NodeId(Opc.Ua.DataTypes.String), -1, "desc")
                             .AsXmlElement(Opc.Ua.ServiceMessageContext.GlobalContext)
                     })
                 }

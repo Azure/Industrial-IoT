@@ -194,10 +194,14 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             using var decoder = new Opc.Ua.JsonDecoder(json, context);
             if (decoder.HasField(nameof(DataSetWriterId)))
             {
-                DataSetWriterId = decoder.ReadUInt16(nameof(DataSetWriterId));
-                if (DataSetWriterId == 0)
+                // Up to version 2.8 we wrote the string id as id which is not
+                // per standard. The strict 2.0 decoder throws instead of
+                // returning a default when a numeric read hits a string, so
+                // inspect the json value kind before reading.
+                if (obj[nameof(DataSetWriterId)] is JsonValue writerId &&
+                    writerId.GetValueKind() ==
+                        System.Text.Json.JsonValueKind.String)
                 {
-                    // Up to version 2.8 we wrote the string id as id which is not per standard
                     DataSetWriterName = decoder.ReadString(nameof(DataSetWriterId));
                     if (DataSetWriterName != null)
                     {
@@ -208,6 +212,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 }
                 else
                 {
+                    DataSetWriterId = decoder.ReadUInt16(nameof(DataSetWriterId));
                     dataSetMessageContentMask |= DataSetMessageContentFlags.DataSetWriterId;
                 }
             }

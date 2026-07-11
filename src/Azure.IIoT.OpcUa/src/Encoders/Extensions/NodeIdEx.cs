@@ -289,7 +289,7 @@ namespace Opc.Ua.Extensions
                         break; // null
                     }
                     buffer = buffer.AppendFormat(CultureInfo.InvariantCulture,
-                        "{0}", ((byte[])identifier).ToBase64String().UrlEncode());
+                        "{0}", ((ByteString)identifier).ToArray().ToBase64String().UrlEncode());
                     break;
                 default:
                     throw new FormatException($"Node id type {idType} is unknown!");
@@ -336,7 +336,7 @@ namespace Opc.Ua.Extensions
                 case IdType.Opaque:
                     buffer = buffer.Append("b=")
                         .Append(identifier == null ? string.Empty :
-                        Convert.ToBase64String((byte[])identifier));
+                        Convert.ToBase64String(((ByteString)identifier).ToArray()));
                     break;
                 default:
                     buffer = buffer.Append("s=")
@@ -464,11 +464,11 @@ namespace Opc.Ua.Extensions
                 case 'b':
                     try
                     {
-                        return Convert.FromBase64String(text.UrlDecode());
+                        return (ByteString)Convert.FromBase64String(text.UrlDecode());
                     }
                     catch
                     {
-                        return Convert.FromBase64String(text);
+                        return (ByteString)Convert.FromBase64String(text);
                     }
                 case 'g':
                     if (!Guid.TryParse(text.UrlDecode(), out var guid))

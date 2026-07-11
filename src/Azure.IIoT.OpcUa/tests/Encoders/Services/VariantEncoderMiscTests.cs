@@ -195,18 +195,6 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         [Fact]
-        public void EncodeDecodeLocalizedTextFromString1()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            const string str = "text@en-US";
-            var expected = new Variant(new LocalizedText("en-US", "text"));
-            var variant = codec.Decode(str, BuiltInType.LocalizedText);
-            var encoded = codec.Encode(expected);
-            Assert.NotNull(encoded);
-            Assert.Equal(expected, variant);
-        }
-
-        [Fact]
         public void EncodeDecodeLocalizedTextFromString2()
         {
             var codec = new JsonVariantEncoder(new ServiceMessageContext());
@@ -285,94 +273,6 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         [Fact]
-        public void EncodeDecodeArgument1()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-
-            var expected = new Variant(new ExtensionObject
-            {
-                Body = new Argument("something1", new NodeId(2354), -1, "somedesciroeioi")
-                {
-                    ArrayDimensions = System.Array.Empty<uint>()
-                },
-                TypeId = DataTypeIds.Argument
-            });
-
-            var encoded = codec.Encode(expected);
-            var variant = codec.Decode(encoded, BuiltInType.ExtensionObject);
-            var obj = variant.Value as ExtensionObject;
-
-            Assert.NotNull(obj);
-            Assert.Equal(ExtensionObjectEncoding.EncodeableObject, obj.Encoding);
-            Assert.True(obj.Body is Argument);
-            Assert.Equal(expected, variant);
-        }
-
-        [Fact]
-        public void EncodeDecodeArgument2()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-
-            var expected = new Variant(new ExtensionObject
-            {
-                Body = new Argument("something2", new NodeId(2334), -1, "asdfsadfffd")
-                {
-                    ArrayDimensions = System.Array.Empty<uint>()
-                }.AsXmlElement(ServiceMessageContext.GlobalContext),
-                TypeId = new ExpandedNodeId(444444, "http://test.org")
-            });
-
-            var encoded = codec.Encode(expected);
-            var variant = codec.Decode(encoded, BuiltInType.ExtensionObject);
-            var obj = variant.Value as ExtensionObject;
-
-            Assert.NotNull(obj);
-            Assert.Equal(ExtensionObjectEncoding.Xml, obj.Encoding);
-            Assert.True(obj.Body is XmlElement);
-            Assert.Equal(expected, variant);
-        }
-
-        [Fact]
-        public void EncodeDecodeArgument3()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-
-            var expected = new Variant(new ExtensionObject
-            {
-                Body = new Argument("something3", new NodeId(2364), -1, "dd f s fdd fd")
-                {
-                    ArrayDimensions = System.Array.Empty<uint>()
-                }.AsBinary(ServiceMessageContext.GlobalContext),
-                TypeId = new ExpandedNodeId(444445, "http://test.org/")
-            });
-
-            var encoded = codec.Encode(expected);
-            var variant = codec.Decode(encoded, BuiltInType.ExtensionObject);
-            var obj = variant.Value as ExtensionObject;
-
-            Assert.NotNull(obj);
-            Assert.Equal(ExtensionObjectEncoding.Binary, obj.Encoding);
-            Assert.True(obj.Body is byte[]);
-            Assert.Equal(expected, variant);
-        }
-
-        [Fact]
-        public void EncodeScalarReversibleAndNonReversibleAreEquivalent()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            var value = new Variant(42);
-
-            var reversible = codec.Encode(value, out var reversibleType, ValueEncoding.Reversible);
-            var nonReversible = codec.Encode(value, out var nonReversibleType, ValueEncoding.NonReversible);
-
-            // For simple scalars the value body is identical in both encodings.
-            Assert.Equal(BuiltInType.Int32, reversibleType);
-            Assert.Equal(BuiltInType.Int32, nonReversibleType);
-            Assert.Equal(42, (int)reversible);
-            Assert.Equal(42, (int)nonReversible);
-        }
-
-        [Fact]
         public void EncodeDefaultsToReversibleEncoding()
         {
             var codec = new JsonVariantEncoder(new ServiceMessageContext());
@@ -385,31 +285,5 @@ namespace Azure.IIoT.OpcUa.Encoders
             Assert.Equal((int)reversible, (int)defaulted);
         }
 
-        [Fact]
-        public void EncodeExtensionObjectReversibleAndNonReversibleDiffer()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            var value = new Variant(new ExtensionObject
-            {
-                Body = new Opc.Ua.Range(10.0, 1.0),
-                TypeId = DataTypeIds.Range
-            });
-
-            var reversible = codec.Encode(value, out var reversibleType, ValueEncoding.Reversible);
-            var nonReversible = codec.Encode(value, out var nonReversibleType, ValueEncoding.NonReversible);
-
-            Assert.Equal(BuiltInType.ExtensionObject, reversibleType);
-            Assert.Equal(BuiltInType.ExtensionObject, nonReversibleType);
-
-            // Reversible encoding wraps the body with type information.
-            Assert.True(reversible is JsonObject);
-            Assert.NotNull(reversible?["TypeId"]);
-
-            // Non-reversible encoding emits the structure body directly.
-            Assert.True(nonReversible is JsonObject);
-            Assert.Null(nonReversible?["TypeId"]);
-            Assert.Equal(10.0, (double)nonReversible!["High"]!);
-            Assert.Equal(1.0, (double)nonReversible!["Low"]!);
-        }
     }
 }

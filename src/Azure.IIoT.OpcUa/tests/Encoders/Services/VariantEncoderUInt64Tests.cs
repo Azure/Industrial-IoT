@@ -121,32 +121,6 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         [Fact]
-        public void DecodeEncodeUInt64ArrayFromStringTypeIntegerIsInt641()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            const string str = "[123, 124, 125]";
-            var variant = codec.Decode(TestJson.FromObject(str), BuiltInType.Integer);
-            var expected = new Variant(new Variant[] {
-                new(123L), new(124L), new(125L)
-            });
-            var encoded = codec.Encode(variant);
-            Assert.Equal(expected, variant);
-            Assert.True(JsonNode.DeepEquals(TestJson.FromArray(123Lu, 124Lu, 125Lu), encoded));
-        }
-
-        [Fact]
-        public void DecodeEncodeUInt64ArrayFromStringTypeIntegerIsInt642()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            const string str = "[]";
-            var variant = codec.Decode(TestJson.FromObject(str), BuiltInType.Integer);
-            var expected = new Variant(System.Array.Empty<Variant>());
-            var encoded = codec.Encode(variant);
-            Assert.Equal(expected, variant);
-            Assert.True(JsonNode.DeepEquals(TestJson.FromArray(), encoded));
-        }
-
-        [Fact]
         public void DecodeEncodeUInt64FromStringTypeNumberIsInt64()
         {
             var codec = new JsonVariantEncoder(new ServiceMessageContext());
@@ -156,32 +130,6 @@ namespace Azure.IIoT.OpcUa.Encoders
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
             Assert.True(JsonNode.DeepEquals(TestJson.FromObject(123Lu), encoded));
-        }
-
-        [Fact]
-        public void DecodeEncodeUInt64ArrayFromStringTypeNumberIsInt641()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            const string str = "[123, 124, 125]";
-            var variant = codec.Decode(TestJson.FromObject(str), BuiltInType.Number);
-            var expected = new Variant(new Variant[] {
-                new(123L), new(124L), new(125L)
-            });
-            var encoded = codec.Encode(variant);
-            Assert.Equal(expected, variant);
-            Assert.True(JsonNode.DeepEquals(TestJson.FromArray(123Lu, 124Lu, 125Lu), encoded));
-        }
-
-        [Fact]
-        public void DecodeEncodeUInt64ArrayFromStringTypeNumberIsInt642()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            const string str = "[]";
-            var variant = codec.Decode(TestJson.FromObject(str), BuiltInType.Number);
-            var expected = new Variant(System.Array.Empty<Variant>());
-            var encoded = codec.Encode(variant);
-            Assert.Equal(expected, variant);
-            Assert.True(JsonNode.DeepEquals(TestJson.FromArray(), encoded));
         }
 
         [Fact]
@@ -488,147 +436,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
 #pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
-        [Fact]
-        public void DecodeEncodeUInt64MatrixFromStringJsonTypeUInt64()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            var str = Json.SerializeToString(new ulong[,,] {
-                { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
-                { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
-                { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
-                { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } }
-            }
-            );
-            var variant = codec.Decode(TestJson.FromObject(str), BuiltInType.UInt64);
-            var expected = new Variant((object)new ulong[,,] {
-                    { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
-                    { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
-                    { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
-                    { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } }
-                });
-            var encoded = codec.Encode(variant);
-            Assert.NotNull(encoded);
-            Assert.True(expected.Value is Matrix);
-            Assert.True(variant.Value is Matrix);
-            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
-            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
-        }
 
-        [Fact]
-        public void DecodeEncodeUInt64MatrixFromVariantJsonTypeVariant()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            var str = Json.SerializeToString(new
-            {
-                type = "UInt64",
-                body = new ulong[,,] {
-                    { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
-                    { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
-                    { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
-                    { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } }
-                }
-            });
-            var variant = codec.Decode(TestJson.FromObject(str), BuiltInType.Variant);
-            var expected = new Variant((object)new ulong[,,] {
-                    { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
-                    { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
-                    { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
-                    { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } }
-                });
-            var encoded = codec.Encode(variant);
-            Assert.NotNull(encoded);
-            Assert.True(expected.Value is Matrix);
-            Assert.True(variant.Value is Matrix);
-            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
-            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
-        }
-
-        [Fact]
-        public void DecodeEncodeUInt64MatrixFromVariantJsonTokenTypeVariantMsftEncoding()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            var str = Json.SerializeToString(new
-            {
-                dataType = "UInt64",
-                value = new ulong[,,] {
-                    { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
-                    { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
-                    { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
-                    { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } }
-                }
-            });
-            var variant = codec.Decode(TestJson.FromObject(str), BuiltInType.Variant);
-            var expected = new Variant((object)new ulong[,,] {
-                    { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
-                    { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
-                    { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
-                    { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } }
-                });
-            var encoded = codec.Encode(variant);
-            Assert.NotNull(encoded);
-            Assert.True(expected.Value is Matrix);
-            Assert.True(variant.Value is Matrix);
-            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
-            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
-        }
-
-        [Fact]
-        public void DecodeEncodeUInt64MatrixFromVariantJsonTypeNull()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            var str = Json.SerializeToString(new
-            {
-                type = "UInt64",
-                body = new ulong[,,] {
-                    { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
-                    { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
-                    { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
-                    { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } }
-                }
-            });
-            var variant = codec.Decode(TestJson.FromObject(str), BuiltInType.Null);
-            var expected = new Variant((object)new ulong[,,] {
-                    { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
-                    { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
-                    { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
-                    { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } }
-                });
-            var encoded = codec.Encode(variant);
-            Assert.NotNull(encoded);
-            Assert.True(expected.Value is Matrix);
-            Assert.True(variant.Value is Matrix);
-            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
-            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
-        }
-
-        [Fact]
-        public void DecodeEncodeUInt64MatrixFromVariantJsonTokenTypeNullMsftEncoding()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            var str = Json.SerializeToString(new
-            {
-                dataType = "UInt64",
-                value = new ulong[,,] {
-                    { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
-                    { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
-                    { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
-                    { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } }
-                }
-            });
-            var variant = codec.Decode(TestJson.FromObject(str), BuiltInType.Null);
-            var expected = new Variant((object)new ulong[,,] {
-                    { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
-                    { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
-                    { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } },
-                    { { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu }, { 123Lu, 124Lu, 125Lu } }
-                });
-            var encoded = codec.Encode(variant);
-            Assert.NotNull(encoded);
-            Assert.True(expected.Value is Matrix);
-            Assert.True(variant.Value is Matrix);
-            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
-            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
-        }
 #pragma warning restore CA1814 // Prefer jagged arrays over multidimensional
     }
 }

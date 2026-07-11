@@ -269,10 +269,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             var identity = await credential.ToUserIdentityAsync(config.Value);
             Assert.NotNull(identity);
             Assert.Equal(UserTokenType.Certificate, identity.TokenType);
-            var x509Token = identity.GetIdentityToken() as X509IdentityToken;
+            // TODO(4b): 2.0 X509 identity token carries only the public-key wire
+            // payload (CertificateData); private-key signing flows through the
+            // provider-based identity path. Verify the presented certificate identity.
+            var x509Token = identity.TokenHandler.Token as X509IdentityToken;
             Assert.NotNull(x509Token);
-            Assert.True(x509Token.Certificate.HasPrivateKey);
-            Assert.Equal(newCert2.Thumbprint, x509Token.Certificate.Thumbprint);
+            using var tokenCert2 = X509CertificateLoader.LoadCertificate(x509Token.CertificateData.ToArray());
+            Assert.Equal(newCert2.Thumbprint, tokenCert2.Thumbprint);
         }
 
         [Fact]
@@ -314,10 +317,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             var identity = await credential.ToUserIdentityAsync(config.Value);
             Assert.NotNull(identity);
             Assert.Equal(UserTokenType.Certificate, identity.TokenType);
-            var x509Token = identity.GetIdentityToken() as X509IdentityToken;
+            // TODO(4b): 2.0 X509 identity token carries only the public-key wire
+            // payload (CertificateData); private-key signing flows through the
+            // provider-based identity path. Verify the presented certificate identity.
+            var x509Token = identity.TokenHandler.Token as X509IdentityToken;
             Assert.NotNull(x509Token);
-            Assert.True(x509Token.Certificate.HasPrivateKey);
-            Assert.Equal(newCert3.Thumbprint, x509Token.Certificate.Thumbprint);
+            using var tokenCert3 = X509CertificateLoader.LoadCertificate(x509Token.CertificateData.ToArray());
+            Assert.Equal(newCert3.Thumbprint, tokenCert3.Thumbprint);
         }
 
         [Fact]

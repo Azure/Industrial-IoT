@@ -89,8 +89,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             // yield return new Variant((decimal)1234567);
             // yield return new Variant(decimal.MaxValue);
             // yield return new Variant(decimal.MinValue);
-            yield return new Variant(Guid.NewGuid());
-            yield return new Variant(Guid.Empty);
+            yield return new Variant((Uuid)Guid.NewGuid());
+            yield return new Variant((Uuid)Guid.Empty);
             yield return new Variant(DateTime.UtcNow);
             yield return new Variant(DateTime.MaxValue);
             yield return new Variant(DateTime.MinValue);
@@ -108,7 +108,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             yield return new Variant(new NodeId(1u, 0));
             yield return new Variant(new NodeId(Guid.NewGuid(), 0));
             yield return new Variant(NodeId.Null);
-            yield return new Variant((NodeId)null);
+            yield return new Variant(NodeId.Null);
             yield return new Variant(new ExpandedNodeId([1, 2, 3, 4, 5, 6, 7, 8], 0));
             yield return new Variant(new ExpandedNodeId("test", 0));
             yield return new Variant(new ExpandedNodeId(1u, 0));
@@ -125,10 +125,10 @@ namespace Azure.IIoT.OpcUa.Encoders
             yield return new Variant((StatusCode)StatusCodes.UncertainDependentValueChanged);
             yield return new Variant(new DataValue(StatusCodes.BadNoCommunication));
             yield return new Variant(new DataValue(new Variant(123)));
-            yield return new Variant(XmlElement);
+            yield return new Variant((Opc.Ua.XmlElement)XmlElement);
         }
 
-        public static XmlElement XmlElement
+        public static System.Xml.XmlElement XmlElement
         {
             get
             {
@@ -190,7 +190,7 @@ namespace Azure.IIoT.OpcUa.Encoders
                 ],
             LastMethodReturnStatus =
                     StatusCodes.BadAggregateConfigurationRejected,
-            LastMethodSessionId = new NodeId(RandomNumberGenerator.GetBytes(32)),
+            LastMethodSessionId = new NodeId((ByteString)RandomNumberGenerator.GetBytes(32)),
             LastTransitionTime = DateTime.UtcNow - TimeSpan.FromDays(23)
         };
     }

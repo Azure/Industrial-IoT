@@ -33,38 +33,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
                     It.IsAny<NodeClass>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .Returns((RequestHeader _, NodeId nodeId, NodeClass _, bool _, CancellationToken _)
                     => ValueTask.FromResult(GetNode(nodeId)));
-            ctx.Setup(x => x.FetchNodesAsync(It.IsAny<RequestHeader>(), It.IsAny<IReadOnlyList<NodeId>>(),
+            ctx.Setup(x => x.FetchNodesAsync(It.IsAny<RequestHeader>(), It.IsAny<ArrayOf<NodeId>>(),
                     It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-                .Returns((RequestHeader _, IReadOnlyList<NodeId> nodeIds, bool _, CancellationToken _) =>
+                .Returns((RequestHeader _, ArrayOf<NodeId> nodeIds, bool _, CancellationToken _) =>
                 {
-                    var (nodes, errors) = GetNodes(nodeIds.ToList(), NodeClass.Unspecified, false);
+                    var (nodes, errors) = GetNodes(nodeIds.AsEnumerable().ToList(), NodeClass.Unspecified, false);
                     return ValueTask.FromResult(new ResultSet<Node>(nodes.ToArray(), errors.ToArray()));
                 });
-            ctx.Setup(x => x.FetchNodesAsync(It.IsAny<RequestHeader>(), It.IsAny<IReadOnlyList<NodeId>>(),
+            ctx.Setup(x => x.FetchNodesAsync(It.IsAny<RequestHeader>(), It.IsAny<ArrayOf<NodeId>>(),
                     It.IsAny<NodeClass>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-                .Returns((RequestHeader _, IReadOnlyList<NodeId> nodeIds, NodeClass nodeClass, bool _, CancellationToken _) =>
+                .Returns((RequestHeader _, ArrayOf<NodeId> nodeIds, NodeClass nodeClass, bool _, CancellationToken _) =>
                 {
-                    var (nodes, errors) = GetNodes(nodeIds.ToList(), nodeClass, false);
+                    var (nodes, errors) = GetNodes(nodeIds.AsEnumerable().ToList(), nodeClass, false);
                     return ValueTask.FromResult(new ResultSet<Node>(nodes.ToArray(), errors.ToArray()));
                 });
             ctx.Setup(x => x.FetchReferencesAsync(It.IsAny<RequestHeader>(), It.IsAny<NodeId>(),
                     It.IsAny<CancellationToken>()))
                 .Returns((RequestHeader _, NodeId nodeId, CancellationToken _)
-                    => ValueTask.FromResult(new ReferenceDescriptionCollection(GetReferences(nodeId))));
+                    => ValueTask.FromResult<ArrayOf<ReferenceDescription>>(GetReferences(nodeId).ToArray()));
             ctx.Setup(x => x.FetchReferencesAsync(It.IsAny<RequestHeader>(),
-                    It.IsAny<IReadOnlyList<NodeId>>(), It.IsAny<CancellationToken>()))
-                .Returns((RequestHeader _, IReadOnlyList<NodeId> nodeIds, CancellationToken _) =>
+                    It.IsAny<ArrayOf<NodeId>>(), It.IsAny<CancellationToken>()))
+                .Returns((RequestHeader _, ArrayOf<NodeId> nodeIds, CancellationToken _) =>
                 {
-                    var lists = nodeIds.Select(n => new ReferenceDescriptionCollection(GetReferences(n))).ToList();
-                    var errors = nodeIds.Select(_ => ServiceResult.Good).ToList();
+                    var lists = nodeIds.AsEnumerable()
+                        .Select(n => (ArrayOf<ReferenceDescription>)GetReferences(n).ToArray()).ToArray();
+                    var errors = nodeIds.AsEnumerable().Select(_ => ServiceResult.Good).ToArray();
                     return ValueTask.FromResult(
-                        new ResultSet<ReferenceDescriptionCollection>(lists, errors));
+                        new ResultSet<ArrayOf<ReferenceDescription>>(lists, errors));
                 });
 
-            var nodeCache = new LruNodeCache(ctx.Object, telemetry: null);
+            var telemetry = DefaultTelemetry.Create(_ => { });
+            var nodeCache = new LruNodeCache(ctx.Object, telemetry,
+                cacheExpiry: TimeSpan.FromMinutes(1), capacity: 1000);
 
             var session = new Mock<IOpcUaSession>();
-            var messageContext = new ServiceMessageContext(telemetry: null)
+            var messageContext = new ServiceMessageContext(telemetry)
             {
                 NamespaceUris = namespaceTable
             };
@@ -82,9 +85,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             return node == null ? Array.Empty<ReferenceDescription>() :
                 node.ReferenceTable.Select(r => new ReferenceDescription
                 {
-                    ReferenceTypeId = new NodeId(r.ReferenceTypeId),
+                    ReferenceTypeId = r.ReferenceTypeId,
                     IsForward = !r.IsInverse,
-                    NodeId = new ExpandedNodeId(r.TargetId)
+                    NodeId = r.TargetId
                 });
         }
 

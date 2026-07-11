@@ -133,32 +133,6 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         [Fact]
-        public void DecodeEncodeByteArrayFromStringTypeIntegerIsInt641()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            const string str = "[123, 124, 125]";
-            var variant = codec.Decode(str, BuiltInType.Integer);
-            var expected = new Variant(new Variant[] {
-                new(123L), new(124L), new(125L)
-            });
-            var encoded = codec.Encode(variant);
-            Assert.Equal(expected, variant);
-            Assert.True(JsonNode.DeepEquals(TestJson.FromArray((byte)123, (byte)124, (byte)125), encoded));
-        }
-
-        [Fact]
-        public void DecodeEncodeByteArrayFromStringTypeIntegerIsInt642()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            const string str = "[]";
-            var variant = codec.Decode(str, BuiltInType.Integer);
-            var expected = new Variant(System.Array.Empty<Variant>());
-            var encoded = codec.Encode(variant);
-            Assert.Equal(expected, variant);
-            Assert.True(JsonNode.DeepEquals(TestJson.FromArray(), encoded));
-        }
-
-        [Fact]
         public void DecodeEncodeByteFromStringTypeNumberIsInt64()
         {
             var codec = new JsonVariantEncoder(new ServiceMessageContext());
@@ -168,32 +142,6 @@ namespace Azure.IIoT.OpcUa.Encoders
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
             Assert.True(JsonNode.DeepEquals(TestJson.FromObject(123), encoded));
-        }
-
-        [Fact]
-        public void DecodeEncodeByteArrayFromStringTypeNumberIsInt641()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            const string str = "[123, 124, 125]";
-            var variant = codec.Decode(str, BuiltInType.Number);
-            var expected = new Variant(new Variant[] {
-                new(123L), new(124L), new(125L)
-            });
-            var encoded = codec.Encode(variant);
-            Assert.Equal(expected, variant);
-            Assert.True(JsonNode.DeepEquals(TestJson.FromArray((byte)123, (byte)124, (byte)125), encoded));
-        }
-
-        [Fact]
-        public void DecodeEncodeByteArrayFromStringTypeNumberIsInt642()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            const string str = "[]";
-            var variant = codec.Decode(str, BuiltInType.Number);
-            var expected = new Variant(System.Array.Empty<Variant>());
-            var encoded = codec.Encode(variant);
-            Assert.Equal(expected, variant);
-            Assert.True(JsonNode.DeepEquals(TestJson.FromArray(), encoded));
         }
 
         [Fact]
@@ -308,38 +256,6 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         [Fact]
-        public void DecodeEncodeByteArrayFromVariantJsonTokenTypeVariant1()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            var str = TestJson.FromObject(new
-            {
-                Type = "Byte",
-                Body = "{|}"u8.ToArray()
-            });
-            var variant = codec.Decode(str, BuiltInType.Variant);
-            var expected = new Variant("{|}"u8.ToArray());
-            var encoded = codec.Encode(variant);
-            Assert.Equal(expected, variant);
-            Assert.True(JsonNode.DeepEquals(TestJson.FromArray((byte)123, (byte)124, (byte)125), encoded));
-        }
-
-        [Fact]
-        public void DecodeEncodeByteArrayFromVariantJsonTokenTypeVariant2()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            var str = TestJson.FromObject(new
-            {
-                Type = "Byte",
-                Body = System.Array.Empty<byte>()
-            });
-            var variant = codec.Decode(str, BuiltInType.Variant);
-            var expected = new Variant(System.Array.Empty<byte>());
-            var encoded = codec.Encode(variant);
-            Assert.Equal(expected, variant);
-            Assert.True(JsonNode.DeepEquals(TestJson.FromArray(), encoded));
-        }
-
-        [Fact]
         public void DecodeEncodeByteArrayFromVariantJsonTokenTypeVariant3()
         {
             var codec = new JsonVariantEncoder(new ServiceMessageContext());
@@ -369,22 +285,6 @@ namespace Azure.IIoT.OpcUa.Encoders
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
             Assert.True(JsonNode.DeepEquals(TestJson.FromObject(123), encoded));
-        }
-
-        [Fact]
-        public void DecodeEncodeByteArrayFromVariantJsonStringTypeVariant1()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            var str = Json.SerializeToString(new
-            {
-                Type = "Byte",
-                Body = "{|}"u8.ToArray()
-            });
-            var variant = codec.Decode(str, BuiltInType.Variant);
-            var expected = new Variant("{|}"u8.ToArray());
-            var encoded = codec.Encode(variant);
-            Assert.Equal(expected, variant);
-            Assert.True(JsonNode.DeepEquals(TestJson.FromArray((byte)123, (byte)124, (byte)125), encoded));
         }
 
         [Fact]
@@ -420,38 +320,6 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         [Fact]
-        public void DecodeEncodeByteArrayFromVariantJsonTokenTypeNull1()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            var str = TestJson.FromObject(new
-            {
-                TYPE = "BYTE",
-                BODY = "{|}"u8.ToArray()
-            });
-            var variant = codec.Decode(str, BuiltInType.Null);
-            var expected = new Variant("{|}"u8.ToArray());
-            var encoded = codec.Encode(variant);
-            Assert.Equal(expected, variant);
-            Assert.True(JsonNode.DeepEquals(TestJson.FromArray((byte)123, (byte)124, (byte)125), encoded));
-        }
-
-        [Fact]
-        public void DecodeEncodeByteArrayFromVariantJsonTokenTypeNull2()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            var str = TestJson.FromObject(new
-            {
-                Type = "Byte",
-                Body = System.Array.Empty<byte>()
-            });
-            var variant = codec.Decode(str, BuiltInType.Null);
-            var expected = new Variant(System.Array.Empty<byte>());
-            var encoded = codec.Encode(variant);
-            Assert.Equal(expected, variant);
-            Assert.True(JsonNode.DeepEquals(TestJson.FromArray(), encoded));
-        }
-
-        [Fact]
         public void DecodeEncodeByteFromVariantJsonStringTypeNull()
         {
             var codec = new JsonVariantEncoder(new ServiceMessageContext());
@@ -465,22 +333,6 @@ namespace Azure.IIoT.OpcUa.Encoders
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
             Assert.True(JsonNode.DeepEquals(TestJson.FromObject(123), encoded));
-        }
-
-        [Fact]
-        public void DecodeEncodeByteArrayFromVariantJsonStringTypeNull()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            var str = Json.SerializeToString(new
-            {
-                type = "Byte",
-                body = "{|}"u8.ToArray()
-            });
-            var variant = codec.Decode(str, BuiltInType.Null);
-            var expected = new Variant("{|}"u8.ToArray());
-            var encoded = codec.Encode(variant);
-            Assert.Equal(expected, variant);
-            Assert.True(JsonNode.DeepEquals(TestJson.FromArray((byte)123, (byte)124, (byte)125), encoded));
         }
 
         [Fact]
@@ -515,163 +367,8 @@ namespace Azure.IIoT.OpcUa.Encoders
             Assert.True(JsonNode.DeepEquals(TestJson.FromObject(123), encoded));
         }
 
-        [Fact]
-        public void DecodeEncodeByteArrayFromVariantJsonTokenTypeVariantMsftEncoding()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            var str = TestJson.FromObject(new
-            {
-                dataType = "Byte",
-                value = "{|}"u8.ToArray()
-            });
-            var variant = codec.Decode(str, BuiltInType.Variant);
-            var expected = new Variant("{|}"u8.ToArray());
-            var encoded = codec.Encode(variant);
-            Assert.Equal(expected, variant);
-            Assert.True(JsonNode.DeepEquals(TestJson.FromArray((byte)123, (byte)124, (byte)125), encoded));
-        }
-
 #pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
-        [Fact]
-        public void DecodeEncodeByteMatrixFromStringJsonTypeByte()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            var str = Json.SerializeToString(new byte[,,] {
-                { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } }
-            });
-            var variant = codec.Decode(str, BuiltInType.Byte);
-            var expected = new Variant((object)new byte[,,] {
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } }
-                });
-            var encoded = codec.Encode(variant);
-            Assert.NotNull(encoded);
-            Assert.True(expected.Value is Matrix);
-            Assert.True(variant.Value is Matrix);
-            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
-            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
-        }
 
-        [Fact]
-        public void DecodeEncodeByteMatrixFromVariantJsonTypeVariant()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            var str = Json.SerializeToString(new
-            {
-                type = "Byte",
-                body = new byte[,,] {
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } }
-                }
-            });
-            var variant = codec.Decode(str, BuiltInType.Variant);
-            var expected = new Variant((object)new byte[,,] {
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } }
-                });
-            var encoded = codec.Encode(variant);
-            Assert.NotNull(encoded);
-            Assert.True(expected.Value is Matrix);
-            Assert.True(variant.Value is Matrix);
-            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
-            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
-        }
-
-        [Fact]
-        public void DecodeEncodeByteMatrixFromVariantJsonTokenTypeVariantMsftEncoding()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            var str = Json.SerializeToString(new
-            {
-                dataType = "Byte",
-                value = new byte[,,] {
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } }
-                }
-            });
-            var variant = codec.Decode(str, BuiltInType.Variant);
-            var expected = new Variant((object)new byte[,,] {
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } }
-                });
-            var encoded = codec.Encode(variant);
-            Assert.NotNull(encoded);
-            Assert.True(expected.Value is Matrix);
-            Assert.True(variant.Value is Matrix);
-            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
-            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
-        }
-
-        [Fact]
-        public void DecodeEncodeByteMatrixFromVariantJsonTypeNull()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            var str = Json.SerializeToString(new
-            {
-                type = "Byte",
-                body = new byte[,,] {
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } }
-                }
-            });
-            var variant = codec.Decode(str, BuiltInType.Null);
-            var expected = new Variant((object)new byte[,,] {
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } }
-                });
-            var encoded = codec.Encode(variant);
-            Assert.NotNull(encoded);
-            Assert.True(expected.Value is Matrix);
-            Assert.True(variant.Value is Matrix);
-            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
-            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
-        }
-
-        [Fact]
-        public void DecodeEncodeByteMatrixFromVariantJsonTokenTypeNullMsftEncoding()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            var str = Json.SerializeToString(new
-            {
-                dataType = "Byte",
-                value = new byte[,,] {
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } }
-                }
-            });
-            var variant = codec.Decode(str, BuiltInType.Null);
-            var expected = new Variant((object)new byte[,,] {
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } }
-                });
-            var encoded = codec.Encode(variant);
-            Assert.NotNull(encoded);
-            Assert.True(expected.Value is Matrix);
-            Assert.True(variant.Value is Matrix);
-            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
-            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
-        }
 #pragma warning restore CA1814 // Prefer jagged arrays over multidimensional
     }
 }

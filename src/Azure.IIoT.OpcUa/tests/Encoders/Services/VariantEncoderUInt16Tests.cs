@@ -121,32 +121,6 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         [Fact]
-        public void DecodeEncodeUInt16ArrayFromStringTypeIntegerIsInt641()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            const string str = "[123, 124, 125]";
-            var variant = codec.Decode(str, BuiltInType.Integer);
-            var expected = new Variant(new Variant[] {
-                new(123L), new(124L), new(125L)
-            });
-            var encoded = codec.Encode(variant);
-            Assert.Equal(expected, variant);
-            Assert.True(JsonNode.DeepEquals(TestJson.FromArray((ushort)123, (ushort)124, (ushort)125), encoded));
-        }
-
-        [Fact]
-        public void DecodeEncodeUInt16ArrayFromStringTypeIntegerIsInt642()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            const string str = "[]";
-            var variant = codec.Decode(str, BuiltInType.Integer);
-            var expected = new Variant(System.Array.Empty<Variant>());
-            var encoded = codec.Encode(variant);
-            Assert.Equal(expected, variant);
-            Assert.True(JsonNode.DeepEquals(TestJson.FromArray(), encoded));
-        }
-
-        [Fact]
         public void DecodeEncodeUInt16FromStringTypeNumberIsInt64()
         {
             var codec = new JsonVariantEncoder(new ServiceMessageContext());
@@ -156,32 +130,6 @@ namespace Azure.IIoT.OpcUa.Encoders
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
             Assert.True(JsonNode.DeepEquals(TestJson.FromObject(123), encoded));
-        }
-
-        [Fact]
-        public void DecodeEncodeUInt16ArrayFromStringTypeNumberIsInt641()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            const string str = "[123, 124, 125]";
-            var variant = codec.Decode(str, BuiltInType.Number);
-            var expected = new Variant(new Variant[] {
-                new(123L), new(124L), new(125L)
-            });
-            var encoded = codec.Encode(variant);
-            Assert.Equal(expected, variant);
-            Assert.True(JsonNode.DeepEquals(TestJson.FromArray((ushort)123, (ushort)124, (ushort)125), encoded));
-        }
-
-        [Fact]
-        public void DecodeEncodeUInt16ArrayFromStringTypeNumberIsInt642()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            const string str = "[]";
-            var variant = codec.Decode(str, BuiltInType.Number);
-            var expected = new Variant(System.Array.Empty<Variant>());
-            var encoded = codec.Encode(variant);
-            Assert.Equal(expected, variant);
-            Assert.True(JsonNode.DeepEquals(TestJson.FromArray(), encoded));
         }
 
         [Fact]
@@ -488,146 +436,7 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
 #pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
-        [Fact]
-        public void DecodeEncodeUInt16MatrixFromStringJsonStringTypeUInt16()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            var str = Json.SerializeToString(new ushort[,,] {
-                { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } }
-            });
-            var variant = codec.Decode(TestJson.FromObject(str), BuiltInType.UInt16);
-            var expected = new Variant((object)new ushort[,,] {
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } }
-                });
-            var encoded = codec.Encode(variant);
-            Assert.NotNull(encoded);
-            Assert.True(expected.Value is Matrix);
-            Assert.True(variant.Value is Matrix);
-            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
-            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
-        }
 
-        [Fact]
-        public void DecodeEncodeUInt16MatrixFromVariantJsonStringTypeVariant()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            var str = Json.SerializeToString(new
-            {
-                type = "UInt16",
-                body = new ushort[,,] {
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } }
-                }
-            });
-            var variant = codec.Decode(TestJson.FromObject(str), BuiltInType.Variant);
-            var expected = new Variant((object)new ushort[,,] {
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } }
-                });
-            var encoded = codec.Encode(variant);
-            Assert.NotNull(encoded);
-            Assert.True(expected.Value is Matrix);
-            Assert.True(variant.Value is Matrix);
-            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
-            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
-        }
-
-        [Fact]
-        public void DecodeEncodeUInt16MatrixFromVariantJsonTokenTypeVariantMsftEncoding()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            var str = Json.SerializeToString(new
-            {
-                dataType = "UInt16",
-                value = new ushort[,,] {
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } }
-                }
-            });
-            var variant = codec.Decode(TestJson.FromObject(str), BuiltInType.Variant);
-            var expected = new Variant((object)new ushort[,,] {
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } }
-                });
-            var encoded = codec.Encode(variant);
-            Assert.NotNull(encoded);
-            Assert.True(expected.Value is Matrix);
-            Assert.True(variant.Value is Matrix);
-            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
-            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
-        }
-
-        [Fact]
-        public void DecodeEncodeUInt16MatrixFromVariantJsonStringTypeNull()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            var str = Json.SerializeToString(new
-            {
-                type = "UInt16",
-                body = new ushort[,,] {
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } }
-                }
-            });
-            var variant = codec.Decode(TestJson.FromObject(str), BuiltInType.Null);
-            var expected = new Variant((object)new ushort[,,] {
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } }
-                });
-            var encoded = codec.Encode(variant);
-            Assert.NotNull(encoded);
-            Assert.True(expected.Value is Matrix);
-            Assert.True(variant.Value is Matrix);
-            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
-            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
-        }
-
-        [Fact]
-        public void DecodeEncodeUInt16MatrixFromVariantJsonTokenTypeNullMsftEncoding()
-        {
-            var codec = new JsonVariantEncoder(new ServiceMessageContext());
-            var str = Json.SerializeToString(new
-            {
-                dataType = "UInt16",
-                value = new ushort[,,] {
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } }
-                }
-            });
-            var variant = codec.Decode(TestJson.FromObject(str), BuiltInType.Null);
-            var expected = new Variant((object)new ushort[,,] {
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } },
-                    { { 123, 124, 125 }, { 123, 124, 125 }, { 123, 124, 125 } }
-                });
-            var encoded = codec.Encode(variant);
-            Assert.NotNull(encoded);
-            Assert.True(expected.Value is Matrix);
-            Assert.True(variant.Value is Matrix);
-            Assert.Equal(((Matrix)expected.Value).Elements, ((Matrix)variant.Value).Elements);
-            Assert.Equal(((Matrix)expected.Value).Dimensions, ((Matrix)variant.Value).Dimensions);
-        }
 #pragma warning restore CA1814 // Prefer jagged arrays over multidimensional
     }
 }

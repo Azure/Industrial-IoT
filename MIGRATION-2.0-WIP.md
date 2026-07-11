@@ -170,19 +170,23 @@ integration tests. The submodule's already-2.0 Quickstart servers
 - Everything from Stages 1–2, plus
 - `src/Azure.IIoT.OpcUa.Publisher.Testing/src` (Testing.Servers, minus `ISA95Jobs`)
 
-## Temporarily descoped from `Industrial-IoT.slnx` (to be migrated in later stages)
+## Temporarily descoped from `Industrial-IoT.slnx` (RESOLVED in the final stage)
 
-| Project | Reason | Target stage |
-| --- | --- | --- |
-| `src/Azure.IIoT.OpcUa.Publisher/tests` | depends on Testing.Servers fixtures; also references deleted forked codecs / Phase-5 stubs | Final stage |
-| `src/Azure.IIoT.OpcUa.Publisher.Module/tests` | depends on Testing.Servers + Module integration | Final stage |
-| `src/Azure.IIoT.OpcUa.Publisher.Module/cli` | depends on Testing.Servers | Final stage |
-| `src/Azure.IIoT.OpcUa.Publisher.Testing/tests` | depends on Testing.Servers | Final stage |
-| `src/Azure.IIoT.OpcUa.Publisher.Testing/cli` | depends on Testing.Servers; has an unfixed cert-validation pattern in `TestServerFactory.cs` | Final stage |
-| `src/Azure.IIoT.OpcUa/tests` | `EncodeableDictionaryTests` / `JsonDataSetTests` reference the deleted forked codecs; JSON PubSub tests exercise the `TODO(Phase 5)` stubs; expected values need rewiring to the 2.0 codec output | Final stage (test rewiring) |
+All six projects below were re-added to `Industrial-IoT.slnx` and migrated to the 2.0
+stack in the final stage (see below). The whole solution now builds green with **all
+projects re-added**.
 
-Note: `Testing.Servers` is now **in scope and green** (was Stage 3 target), except the
-descoped `ISA95Jobs` server (see Stage 3 above).
+| Project | Status |
+| --- | --- |
+| `src/Azure.IIoT.OpcUa.Publisher/tests` | **re-added + green** (2.0 node-cache mock, `ArrayOf<T>` LINQ helper, 2.0 identity-token API) |
+| `src/Azure.IIoT.OpcUa.Publisher.Module/tests` | **re-added + compiles**; ContainerValidation/Startup fast tests green |
+| `src/Azure.IIoT.OpcUa.Publisher.Module/cli` | **re-added + green** |
+| `src/Azure.IIoT.OpcUa.Publisher.Testing/tests` | **re-added + compiles** |
+| `src/Azure.IIoT.OpcUa.Publisher.Testing/cli` | **re-added + green** (`TestServerFactory.cs` migrated to 2.0) |
+| `src/Azure.IIoT.OpcUa/tests` | **re-added + green** (856 pass; forked-codec tests deleted, JSON expected values rewired to 2.0/`JsonPubSubCodec` output) |
+
+Note: `Testing.Servers` is **in scope and green** (Stage 3), except the descoped
+`ISA95Jobs` server (see Stage 3 above).
 
 ## Phase 5 (this commit) — JSON PubSub telemetry on the 2.0 stack
 
@@ -244,3 +248,62 @@ the samples message. Whole-solution build = 0 errors; `Core.Tests` (60) and `Mod
   `Session`/`Subscription`/`MonitoredItem` APIs.
 - Accept the 2.0 stack codec output as-is (behavioral compat bar; do not re-fork to
   match the old byte-for-byte output).
+
+## Final stage (this commit) — re-add + migrate all test/cli projects to 2.0
+
+All six previously-descoped projects are re-added to `Industrial-IoT.slnx` and migrated
+so the **whole solution builds green (0 errors) with every project in scope**. The fast
+unit suites pass; the slow Module integration suite (boots OPC UA servers) is not run but
+**compiles**.
+
+**Done:**
+
+- `src/Azure.IIoT.OpcUa/tests` — re-added; **856 pass**. Deleted the obsolete
+  forked-codec tests (`EncodeableDictionaryTests`, `JsonDataSetTests`, lingering Avro
+  tests, ~148 fork-specific methods). Rewired the kept JSON PubSub / value / UADP tests to
+  the 2.0 codec / Phase-5 `JsonPubSubCodec` output. Buffer round-trip tests fixed.
+- `src/Azure.IIoT.OpcUa.Publisher/tests` — re-added; compiles; Stack unit tests
+  (`OpcUaMonitoredItemTests`, `GetSimpleEventFilterTests`, `GetBrowsePathsFromRootTests`)
+  **17 pass**. Node-cache mock rewired to 2.0 (`ArrayOf<NodeId>` /
+  `ArrayOf<ReferenceDescription>` / `ResultSet<>`); `ArrayOfTestExtensions` LINQ helper
+  added (the 2.0 `ArrayOf<T>` readonly struct does not implement `IEnumerable<T>`); 2.0
+  identity-token API adopted (`TokenHandler.Token`, `X509IdentityToken.CertificateData`).
+- `src/Azure.IIoT.OpcUa.Publisher.Module/tests` — re-added; compiles;
+  ContainerValidation/Startup fast tests **8 pass**. Removed the fork-specific
+  `JsonDecoderEx`/`EncodeableDictionary` re-decode block; `Compile Remove` on `ISA95Jobs`.
+- `src/Azure.IIoT.OpcUa.Publisher.Testing/tests` — re-added; compiles.
+- `src/Azure.IIoT.OpcUa.Publisher.Module/cli` — re-added; green (no changes).
+- `src/Azure.IIoT.OpcUa.Publisher.Testing/cli` — re-added; green. `TestServerFactory.cs`
+  + `FlatCertificateStore.cs` migrated to the 2.0 server/certificate API (mirroring the
+  migrated `src/ServerFactory.cs`): telemetry-carrying `ReverseConnectServer` ctor,
+  collection-expression `XmlElement` extensions, 2.0 identity-token accessors, stubbed
+  `VerifyCertificate(X509IdentityToken)`, `ISA95Jobs` removed.
+
+**Production fixes made to reach green:**
+
+- `Encoders/Extensions/NodeIdEx.cs` — opaque `NodeId`/`ExpandedNodeId` identifiers are
+  `ByteString` (not `byte[]`) in 2.0; the obsolete `NodeId(object, ushort)` ctor rejects
+  `byte[]`. Fixed the URI format + parse paths.
+- `Stack/Services/OpcUaApplication.cs` + new `Stack/LoggerTelemetryContext.cs` — the 2.0
+  `ApplicationInstance` must be constructed with an `ITelemetryContext` or the resulting
+  `ApplicationConfiguration` has a null telemetry and certificate-store creation throws
+  `ArgumentNullException(telemetry)`. `OpcUaApplication` now adapts the host
+  `ILoggerFactory` (via `LoggerTelemetryContext`, a `TelemetryContextBase` subclass) into
+  the stack telemetry, falling back to `DefaultTelemetry` when no factory is injected.
+  This surfaced only once the Module ContainerValidation tests were re-added.
+
+**Still deferred (unchanged):**
+
+- **Phase 4b**: `ManagedSession` + X509 challenge-signing (`TODO(4b)`). Classic sessions
+  kept. `OpcUaApplicationTests` X509 asserts reduced to thumbprint checks (the 2.0 X509
+  user token carries only public-key wire data).
+- **`ISA95Jobs`** server: the single documented permanent descope (NodeSet2-generated, no
+  source-gen path) — `Compile Remove`d from the Servers, Testing.tests and Module.tests
+  projects and unreferenced in the cli `TestServerFactory`.
+- `EncodeableDictionary.Decode(IDecoder)` and the `JsonMetadataMessage` `Stream` decode
+  overload keep their pre-existing `NotSupportedException`/`NotImplementedException` (not
+  on the live JSON telemetry path).
+
+The 2.0-Types migration (Phase 4a + Phase 5 + Phase 9A) is now **essentially complete**:
+the whole solution builds green with every project re-added, and the fast unit suites
+pass. Only `ISA95Jobs` and the `TODO(4b)` / residual `TODO(Phase 5)` items remain.

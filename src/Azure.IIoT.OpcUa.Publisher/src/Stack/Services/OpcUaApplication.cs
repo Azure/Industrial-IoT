@@ -91,7 +91,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="identity"></param>
         public OpcUaApplication(IOptions<OpcUaClientOptions> options,
             ILogger<OpcUaApplication> logger, TimeProvider? timeProvider = null,
-            IProcessIdentity? identity = null)
+            IProcessIdentity? identity = null, ILoggerFactory? loggerFactory = null)
         {
             if (options.Value.Security == null)
             {
@@ -174,6 +174,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _options = options;
             _timeProvider = timeProvider ?? TimeProvider.System;
             _identity = identity?.Identity;
+            // The 2.0 stack threads an ITelemetryContext through the application
+            // configuration so certificate stores, message contexts and the
+            // session stack can log/meter. Adapt the host's ILoggerFactory (when
+            // available) so the stack logs through the configured pipeline; fall
+            // back to a self-owned default context otherwise.
+            _telemetry = loggerFactory != null
+                ? new LoggerTelemetryContext(loggerFactory)
+                : DefaultTelemetry.Create(_ => { });
             _configuration = BuildAsync();
         }
 
@@ -354,7 +362,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
             var chain = Utils.ParseCertificateChainBlob(certificateChain)?
-                .Cast<X509Certificate2>()
+                .Select(c => c.AsX509Certificate2())
                 .Reverse()
                 .ToList();
             if (chain == null || chain.Count == 0)
@@ -531,7 +539,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(_options.Value.ApplicationName));
 
-            var appInstance = new ApplicationInstance
+            var appInstance = new ApplicationInstance(_telemetry)
             {
                 ApplicationName = _options.Value.ApplicationName,
                 ApplicationType = Opc.Ua.ApplicationType.Client
@@ -1027,6 +1035,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private const int kMaxThumbprintLength = 64;
         private readonly Task<ApplicationConfiguration> _configuration;
         private readonly ILogger<OpcUaApplication> _logger;
+        private readonly ITelemetryContext _telemetry;
         private readonly IOptions<OpcUaClientOptions> _options;
         private readonly TimeProvider _timeProvider;
         private readonly string? _identity;

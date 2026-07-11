@@ -490,7 +490,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=10315";
 
-            var expected = JsonNodeValueExtensions.FromObject(_generator.GetRandomArray<XmlElement>());
+            var expected = JsonNodeValueExtensions.FromObject(_generator.GetRandomArray<System.Xml.XmlElement>());
 
             // Act
             var result = await browser.ValueWriteAsync(_connection, new ValueWriteRequestModel

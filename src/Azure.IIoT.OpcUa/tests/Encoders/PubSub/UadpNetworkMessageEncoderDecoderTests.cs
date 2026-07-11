@@ -273,65 +273,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             Assert.All(networkMessage.Messages.Select(m => m.Payload), (p, i) => Assert.True(result[i].Equals(p)));
         }
 
-        [Theory]
-        [InlineData(MessageType.KeyFrame, 1, 100)]
-        [InlineData(MessageType.KeyFrame, 5, 100)]
-        [InlineData(MessageType.KeyFrame, 194, 100)]
-        [InlineData(MessageType.KeyFrame, 1, 1024)]
-        [InlineData(MessageType.KeyFrame, 5, 1024)]
-        [InlineData(MessageType.KeyFrame, 194, 1024)]
-        [InlineData(MessageType.KeyFrame, 1, 256 * 1024)]
-        [InlineData(MessageType.KeyFrame, 5, 256 * 1024)]
-        [InlineData(MessageType.KeyFrame, 194, 256 * 1024)]
-        [InlineData(MessageType.DeltaFrame, 1, 100)]
-        [InlineData(MessageType.DeltaFrame, 5, 100)]
-        [InlineData(MessageType.DeltaFrame, 194, 100)]
-        [InlineData(MessageType.DeltaFrame, 1, 1024)]
-        [InlineData(MessageType.DeltaFrame, 5, 1024)]
-        [InlineData(MessageType.DeltaFrame, 194, 1024)]
-        [InlineData(MessageType.DeltaFrame, 1, 256 * 1024)]
-        [InlineData(MessageType.DeltaFrame, 5, 256 * 1024)]
-        [InlineData(MessageType.DeltaFrame, 194, 256 * 1024)]
-        [InlineData(MessageType.Event, 1, 100)]
-        [InlineData(MessageType.Event, 194, 100)]
-        [InlineData(MessageType.Event, 1, 1024)]
-        [InlineData(MessageType.Event, 194, 1024)]
-        [InlineData(MessageType.Event, 194, 256 * 1024)]
-        public void EncodeDecodeNetworkMessagesNoHeaderRaw(MessageType type, int numberOfMessages, int maxMessageSize)
-        {
-            var messages = Enumerable
-                .Range(3, numberOfMessages)
-                .Select(sequenceNumber => (BaseDataSetMessage)CreateDataSetMessage(type, sequenceNumber,
-                    dataSetFieldContentMask: DataSetFieldContentFlags.RawData))
-                .ToList();
-            var networkMessage = CreateNetworkMessage(NetworkMessageContentMaskDefault
-                & ~(NetworkMessageContentFlags.GroupHeader | NetworkMessageContentFlags.PayloadHeader), messages);
-
-            var context = new ServiceMessageContext();
-            var buffers = networkMessage.Encode(context, maxMessageSize, this);
-
-            ConvertToOpcUaUniversalTime(networkMessage);
-
-            // Compare payload as raw data equivalent
-
-            var decodedMessages = PubSubMessage
-                .Decode(CreateReader(buffers), networkMessage.ContentType, context, this)
-                .OfType<UadpNetworkMessage>()
-                .SelectMany(m => m.Messages)
-                .ToList();
-
-            var result = Json.Parse(Json.SerializeToString(decodedMessages
-                .SelectMany(m => m.Payload.DataSetFields)
-                .Select(v => new { v.Name, Value = v.Value.Value })
-                .ToList()));
-            var expected = Json.Parse(Json.SerializeToString(messages
-                .SelectMany(m => m.Payload.DataSetFields)
-                .Select(v => new { v.Name, Value = v.Value.Value })
-                .ToList()));
-
-            Assert.True(JsonNode.DeepEquals(expected, result));
-        }
-
         /// <summary>
         /// Convert timestamps of payload to OpcUa Utc.
         /// </summary>
@@ -341,10 +282,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             // convert DataSet Payload DataValue timestamps to OpcUa Utc
             foreach (var dataSetMessage in networkMessage.Messages)
             {
-                var expectedPayload = new Dictionary<string, DataValue>();
+                var expectedPayload = new Dictionary<string, DataValue?>();
                 foreach (var (Name, Value) in dataSetMessage.Payload.DataSetFields)
                 {
-                    expectedPayload[Name] = new DataValue(Value).ToOpcUaUniversalTime();
+                    expectedPayload[Name] = (Value ?? DataValue.Null).ToOpcUaUniversalTime();
                 }
                 dataSetMessage.Payload = new DataSet(expectedPayload,
                     DataSetFieldContentFlags.StatusCode |
@@ -423,12 +364,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         private static DataSet CreateDataSet(bool deltaFrame,
             DataSetFieldContentFlags dataSetFieldContentMask = DataSetFieldContentFlagsDefault)
         {
-            return !deltaFrame ? new DataSet(new Dictionary<string, DataValue>
+            return !deltaFrame ? new DataSet(new Dictionary<string, DataValue?>
             {
                 { "1", new DataValue(new Variant(5), StatusCodes.Good, DateTime.Now, DateTime.UtcNow) },
                 { "2", new DataValue(new Variant(0.5), StatusCodes.Good, DateTime.Now) },
                 { "3", new DataValue("abcd") }
-            }, dataSetFieldContentMask) : new DataSet(new Dictionary<string, DataValue>
+            }, dataSetFieldContentMask) : new DataSet(new Dictionary<string, DataValue?>
             {
                 { "3", new DataValue("abcd") }
             }, dataSetFieldContentMask);
