@@ -220,7 +220,7 @@ namespace Model
             bool createOrReplace,
             BaseInstanceState replacement)
         {
-            if (QualifiedName.IsNull(browseName))
+            if ((browseName).IsNull)
             {
                 return null;
             }
@@ -237,7 +237,7 @@ namespace Model
                             {
                                 if (replacement == null)
                                 {
-                                    SerialNumber = new PropertyState<string>(this);
+                                    SerialNumber = new PropertyState<string>.Implementation<VariantBuilder>(this);
                                 }
                                 else
                                 {
@@ -258,7 +258,7 @@ namespace Model
                             {
                                 if (replacement == null)
                                 {
-                                    Manufacturer = new PropertyState<string>(this);
+                                    Manufacturer = new PropertyState<string>.Implementation<VariantBuilder>(this);
                                 }
                                 else
                                 {
@@ -279,7 +279,7 @@ namespace Model
                             {
                                 if (replacement == null)
                                 {
-                                    SetPoint = new AnalogItemState<double>(this);
+                                    SetPoint = new AnalogItemState<double>.Implementation<VariantBuilder>(this);
                                 }
                                 else
                                 {
@@ -300,7 +300,7 @@ namespace Model
                             {
                                 if (replacement == null)
                                 {
-                                    Measurement = new AnalogItemState<double>(this);
+                                    Measurement = new AnalogItemState<double>.Implementation<VariantBuilder>(this);
                                 }
                                 else
                                 {
@@ -668,7 +668,7 @@ namespace Model
             bool createOrReplace,
             BaseInstanceState replacement)
         {
-            if (QualifiedName.IsNull(browseName))
+            if ((browseName).IsNull)
             {
                 return null;
             }

@@ -108,10 +108,10 @@ namespace FileSystem
         /// </summary>
         private NodeStateReference NextChild()
         {
-            NodeId targetId = null;
+            NodeId targetId = default;
 
             // check if a specific browse name is requested.
-            if (!QualifiedName.IsNull(BrowseName))
+            if (!(BrowseName).IsNull)
             {
                 // browse name must be qualified by the correct namespace.
                 if (_source.BrowseName.NamespaceIndex != BrowseName.NamespaceIndex)

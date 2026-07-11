@@ -34,16 +34,16 @@ namespace Boiler
     using System.Collections.Generic;
     using System.Threading;
 
-    public partial class BoilerState
+    public partial class BoilerState : System.IDisposable
     {
         /// <summary>
         /// Initializes the object as a collection of counters which change value on read.
         /// </summary>
         /// <param name="context"></param>
         /// <param name="node"></param>
-        protected override void OnAfterCreate(ISystemContext context, NodeState node)
+        protected override void OnAfterCreate(ISystemContext context, NodeState node, System.Threading.CancellationToken ct = default)
         {
-            base.OnAfterCreate(context, node);
+            base.OnAfterCreate(context, node, ct);
 
             Simulation.OnAfterTransition = OnControlSimulation;
             _random = new Random();
@@ -53,14 +53,14 @@ namespace Boiler
         /// Cleans up when the object is disposed.
         /// </summary>
         /// <param name="disposing"></param>
-        protected override void Dispose(bool disposing)
+        public void Dispose()
         {
-            if (disposing && _simulationTimer != null)
+            if (_simulationTimer != null)
             {
                 _simulationTimer.Dispose();
                 _simulationTimer = null;
             }
-            base.Dispose(disposing);
+            System.GC.SuppressFinalize(this);
         }
 
         /// <summary>
@@ -77,8 +77,8 @@ namespace Boiler
             StateMachineState machine,
             uint transitionId,
             uint causeId,
-            IList<object> inputArguments,
-            IList<object> outputArguments)
+            ArrayOf<Variant> inputArguments,
+            List<Variant>? outputArguments)
         {
             switch (causeId)
             {

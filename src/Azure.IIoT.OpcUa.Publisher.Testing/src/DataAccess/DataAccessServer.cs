@@ -36,7 +36,7 @@ namespace DataAccess
     public class DataAccessServer : INodeManagerFactory
     {
         /// <inheritdoc/>
-        public StringCollection NamespacesUris
+        public ArrayOf<string> NamespacesUris
         {
             get
             {

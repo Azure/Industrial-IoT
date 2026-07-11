@@ -58,8 +58,7 @@ namespace SimpleEvents
 
             // get the configuration for the node manager.
             // use suitable defaults if no configuration exists.
-            _configuration = configuration.ParseExtension<SimpleEventsServerConfiguration>()
-                ?? new SimpleEventsServerConfiguration();
+            _configuration = new SimpleEventsServerConfiguration();
         }
 
         /// <summary>
@@ -70,7 +69,7 @@ namespace SimpleEvents
         {
             if (disposing && _simulationTimer != null)
             {
-                Utils.SilentDispose(_simulationTimer);
+                ((_simulationTimer) as System.IDisposable)?.Dispose();
                 _simulationTimer = null;
             }
             base.Dispose(disposing);
@@ -227,7 +226,8 @@ namespace SimpleEvents
                     };
 
                     e.SetChildValue(SystemContext, new QualifiedName(BrowseNames.CurrentStep, NamespaceIndex), step, false);
-                    e.SetChildValue(SystemContext, new QualifiedName(BrowseNames.Steps, NamespaceIndex), new CycleStepDataType[] { step, step }, false);
+                    ArrayOf<CycleStepDataType> steps = [step, step];
+                    e.SetChildValue(SystemContext, new QualifiedName(BrowseNames.Steps, NamespaceIndex), steps, false);
 
                     Server.ReportEvent(e);
                 }

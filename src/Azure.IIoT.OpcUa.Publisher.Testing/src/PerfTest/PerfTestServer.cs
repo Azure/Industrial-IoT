@@ -36,7 +36,7 @@ namespace PerfTest
     public class PerfTestServer : INodeManagerFactory
     {
         /// <inheritdoc/>
-        public StringCollection NamespacesUris
+        public ArrayOf<string> NamespacesUris
         {
             get
             {

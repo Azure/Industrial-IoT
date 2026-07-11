@@ -71,24 +71,24 @@ namespace TestData
 
                 for (var ii = 1000; ii >= 0; ii--)
                 {
-                    var entry = new HistoryEntry
-                    {
-                        Value = new DataValue
-                        {
-                            ServerTimestamp = now.AddSeconds(-(ii * 10))
-                        }
-                    };
-                    entry.Value.SourceTimestamp = entry.Value.ServerTimestamp.AddMilliseconds(1234);
-                    entry.IsModified = false;
+                    var serverTimestamp = now.AddSeconds(-(ii * 10));
+                    var sourceTimestamp = serverTimestamp.AddMilliseconds(1234);
+                    var wrappedValue = Variant.Null;
 
                     switch (dataType)
                     {
                         case BuiltInType.Int32:
                             {
-                                entry.Value.Value = ii;
+                                wrappedValue = new Variant(ii);
                                 break;
                             }
                     }
+
+                    var entry = new HistoryEntry
+                    {
+                        Value = new DataValue(wrappedValue, StatusCodes.Good, sourceTimestamp, serverTimestamp),
+                        IsModified = false
+                    };
 
                     record.RawData.Add(entry);
                 }
@@ -120,25 +120,27 @@ namespace TestData
                             continue;
                         }
 
-                        var entry = new HistoryEntry
-                        {
-                            Value = new DataValue
-                            {
-                                ServerTimestamp = now
-                            }
-                        };
-                        entry.Value.SourceTimestamp = entry.Value.ServerTimestamp.AddMilliseconds(-4567);
-                        entry.IsModified = false;
+                        var sourceTimestamp = now.AddMilliseconds(-4567);
+                        var wrappedValue = Variant.Null;
 
                         switch (record.DataType)
                         {
                             case BuiltInType.Int32:
                                 {
-                                    var lastValue = (int)record.RawData[^1].Value.Value;
-                                    entry.Value.Value = lastValue + 1;
+                                    if (!record.RawData[^1].Value.WrappedValue.TryGetValue(out int lastValue))
+                                    {
+                                        lastValue = 0;
+                                    }
+                                    wrappedValue = new Variant(lastValue + 1);
                                     break;
                                 }
                         }
+
+                        var entry = new HistoryEntry
+                        {
+                            Value = new DataValue(wrappedValue, StatusCodes.Good, sourceTimestamp, now),
+                            IsModified = false
+                        };
 
                         record.RawData.Add(entry);
                     }

@@ -60,11 +60,8 @@ namespace Alarms
             SystemContext.SystemHandle = _system = new UnderlyingSystem(timeservice);
             SystemContext.NodeIdFactory = this;
 
-            // get the configuration for the node manager.
-            _configuration = configuration.ParseExtension<AlarmConditionServerConfiguration>();
-
             // use suitable defaults if no configuration exists.
-            _configuration ??= new AlarmConditionServerConfiguration
+            _configuration = new AlarmConditionServerConfiguration
             {
                 Areas = [
                         new AreaConfiguration {

@@ -187,7 +187,7 @@ namespace DataAccess
         /// <param name="tagName">Name of the tag.</param>
         /// <param name="value">The value.</param>
         /// <returns>The status code for the operation.</returns>
-        public uint WriteTagValue(string tagName, object value)
+        public StatusCode WriteTagValue(string tagName, Variant value)
         {
             UnderlyingSystemTag tag = null;
             TagsChangedEventHandler onTagsChanged = null;
@@ -211,31 +211,51 @@ namespace DataAccess
                     {
                         case UnderlyingSystemDataType.Integer1:
                             {
-                                tag.Value = (sbyte)value;
+                                if (!value.TryGetValue(out sbyte sbyteValue))
+                                {
+                                    return StatusCodes.BadTypeMismatch;
+                                }
+                                tag.Value = sbyteValue;
                                 break;
                             }
 
                         case UnderlyingSystemDataType.Integer2:
                             {
-                                tag.Value = (short)value;
+                                if (!value.TryGetValue(out short int16Value))
+                                {
+                                    return StatusCodes.BadTypeMismatch;
+                                }
+                                tag.Value = int16Value;
                                 break;
                             }
 
                         case UnderlyingSystemDataType.Integer4:
                             {
-                                tag.Value = (int)value;
+                                if (!value.TryGetValue(out int int32Value))
+                                {
+                                    return StatusCodes.BadTypeMismatch;
+                                }
+                                tag.Value = int32Value;
                                 break;
                             }
 
                         case UnderlyingSystemDataType.Real4:
                             {
-                                tag.Value = (float)value;
+                                if (!value.TryGetValue(out float floatValue))
+                                {
+                                    return StatusCodes.BadTypeMismatch;
+                                }
+                                tag.Value = floatValue;
                                 break;
                             }
 
                         case UnderlyingSystemDataType.String:
                             {
-                                tag.Value = (string)value;
+                                if (!value.TryGetValue(out string stringValue))
+                                {
+                                    return StatusCodes.BadTypeMismatch;
+                                }
+                                tag.Value = stringValue;
                                 break;
                             }
                     }
@@ -297,13 +317,6 @@ namespace DataAccess
                     {
                         var tag = _tags[ii];
                         UpdateTagValue(tag, generator);
-
-                        var value = new DataValue
-                        {
-                            Value = tag.Value,
-                            StatusCode = StatusCodes.Good,
-                            SourceTimestamp = tag.Timestamp
-                        };
 
                         if (counter % (8 + (index % 4)) == 0)
                         {

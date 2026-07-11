@@ -404,14 +404,14 @@ namespace Opc.Ua.Sample
             var value = new DataValue();
 
             ServiceResult error = _source.Node
-                .ReadAttribute(context, AttributeId, NumericRange.Empty, null, value);
+                .ReadAttribute(context, AttributeId, default, default, ref value);
 
             if (ServiceResult.IsBad(error))
             {
                 value = new DataValue(error.StatusCode);
             }
 
-            value.ServerTimestamp = DateTime.UtcNow;
+            value = value.WithServerTimestamp(DateTimeUtc.Now);
 
             QueueValue(value, error, false);
         }
@@ -419,7 +419,7 @@ namespace Opc.Ua.Sample
         /// <summary>
         /// The node manager for the monitored item.
         /// </summary>
-        public INodeManager NodeManager => _source.NodeManager;
+        public IAsyncNodeManager NodeManager => _source.NodeManager.ToAsyncNodeManager();
 
         /// <summary>
         /// The session for the monitored item.
@@ -576,7 +576,7 @@ namespace Opc.Ua.Sample
                     StatusCode = StatusCodes.Good,
                     RevisedSamplingInterval = _samplingInterval,
                     RevisedQueueSize = 0,
-                    FilterResult = null
+                    FilterResult = default
                 };
 
                 if (_queue != null)
@@ -601,7 +601,7 @@ namespace Opc.Ua.Sample
                     StatusCode = StatusCodes.Good,
                     RevisedSamplingInterval = _samplingInterval,
                     RevisedQueueSize = 0,
-                    FilterResult = null
+                    FilterResult = default
                 };
 
                 if (_queue != null)
@@ -653,13 +653,13 @@ namespace Opc.Ua.Sample
         }
 
         /// <inheritdoc/>
-        public void QueueValue(DataValue value, ServiceResult error)
+        public void QueueValue(in DataValue value, ServiceResult error)
         {
             QueueValue(value, error, false);
         }
 
         /// <inheritdoc/>
-        public void QueueValue(DataValue value, ServiceResult error, bool ignoreFilters)
+        public void QueueValue(in DataValue value, ServiceResult error, bool ignoreFilters)
         {
             lock (_lock)
             {
@@ -677,31 +677,31 @@ namespace Opc.Ua.Sample
                     return;
                 }
 
+                DataValue current = value;
+
                 // make a shallow copy of the value.
-                if (value != null)
+                if (!current.IsNull)
                 {
-                    value = new DataValue
-                    {
-                        WrappedValue = value.WrappedValue,
-                        StatusCode = value.StatusCode,
-                        SourceTimestamp = value.SourceTimestamp,
-                        SourcePicoseconds = value.SourcePicoseconds,
-                        ServerTimestamp = value.ServerTimestamp,
-                        ServerPicoseconds = value.ServerPicoseconds
-                    };
+                    current = new DataValue(
+                        current.WrappedValue,
+                        current.StatusCode,
+                        current.SourceTimestamp,
+                        current.ServerTimestamp,
+                        current.SourcePicoseconds,
+                        current.ServerPicoseconds);
 
                     // ensure the data value matches the error status code.
                     if (error != null && error.StatusCode.Code != 0)
                     {
-                        value.StatusCode = error.StatusCode;
+                        current = current.WithStatus(error.StatusCode);
                     }
                 }
 
-                _lastValue = value;
+                _lastValue = current;
                 _lastError = error;
 
                 // queue value.
-                _queue?.QueueValue(value, error);
+                _queue?.QueueValue(current, error);
 
                 // flag the item as ready to publish.
                 _readyToPublish = true;
@@ -756,7 +756,7 @@ namespace Opc.Ua.Sample
                 {
                     _nextSampleTime = DateTime.UtcNow.Ticks;
                     _lastError = null;
-                    _lastValue = null;
+                    _lastValue = default;
                 }
 
                 MonitoringMode = monitoringMode;
@@ -891,7 +891,7 @@ namespace Opc.Ua.Sample
             {
                 if (value != null)
                 {
-                    value.StatusCode = value.StatusCode.SetSemanticsChanged(true);
+                    value = value.WithStatus(value.StatusCode.SetSemanticsChanged(true));
                 }
 
                 _semanticsChanged = false;
@@ -902,7 +902,7 @@ namespace Opc.Ua.Sample
             {
                 if (value != null)
                 {
-                    value.StatusCode = value.StatusCode.SetStructureChanged(true);
+                    value = value.WithStatus(value.StatusCode.SetStructureChanged(true));
                 }
 
                 _structureChanged = false;
@@ -914,12 +914,12 @@ namespace Opc.Ua.Sample
             // apply timestamp filter.
             if (_timestampsToReturn is not TimestampsToReturn.Server and not TimestampsToReturn.Both)
             {
-                item.Value.ServerTimestamp = DateTime.MinValue;
+                item.Value = item.Value.WithServerTimestamp(default);
             }
 
             if (_timestampsToReturn is not TimestampsToReturn.Source and not TimestampsToReturn.Both)
             {
-                item.Value.SourceTimestamp = DateTime.MinValue;
+                item.Value = item.Value.WithSourceTimestamp(default);
             }
 
             notifications.Enqueue(item);

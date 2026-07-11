@@ -41,8 +41,8 @@ namespace DeterministicAlarms.Model
             SymbolicName = name;
             NodeId = nodeId;
             BrowseName = new QualifiedName(name, nodeId.NamespaceIndex);
-            DisplayName = BrowseName.Name;
-            Description = null;
+            DisplayName = (LocalizedText)BrowseName.Name;
+            Description = default;
             ReferenceTypeId = ReferenceTypeIds.HasNotifier;
             TypeDefinitionId = ObjectTypeIds.FolderType;
             EventNotifier = EventNotifiers.SubscribeToEvents;

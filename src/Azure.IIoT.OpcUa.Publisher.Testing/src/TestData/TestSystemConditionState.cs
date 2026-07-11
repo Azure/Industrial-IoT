@@ -38,9 +38,9 @@ namespace TestData
         /// </summary>
         /// <param name="context"></param>
         /// <param name="node"></param>
-        protected override void OnAfterCreate(ISystemContext context, NodeState node)
+        protected override void OnAfterCreate(ISystemContext context, NodeState node, System.Threading.CancellationToken ct = default)
         {
-            base.OnAfterCreate(context, node);
+            base.OnAfterCreate(context, node, ct);
 
             MonitoredNodeCount.OnSimpleReadValue = OnReadMonitoredNodeCount;
         }
@@ -54,14 +54,14 @@ namespace TestData
         protected virtual ServiceResult OnReadMonitoredNodeCount(
             ISystemContext context,
             NodeState node,
-            ref object value)
+            ref Variant value)
         {
             if (context.SystemHandle is not TestDataSystem system)
             {
                 return StatusCodes.BadOutOfService;
             }
 
-            value = system.MonitoredNodeCount;
+            value = new Variant(system.MonitoredNodeCount);
             return ServiceResult.Good;
         }
     }

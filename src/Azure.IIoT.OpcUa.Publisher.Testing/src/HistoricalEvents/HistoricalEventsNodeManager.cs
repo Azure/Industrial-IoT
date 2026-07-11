@@ -62,8 +62,7 @@ namespace HistoricalEvents
 
             // get the configuration for the node manager.
             // use suitable defaults if no configuration exists.
-            _configuration = configuration.ParseExtension<HistoricalEventsServerConfiguration>()
-                ?? new HistoricalEventsServerConfiguration();
+            _configuration = new HistoricalEventsServerConfiguration();
 
             // initilize the report generator.
             _generator = new ReportGenerator(timeService);
@@ -78,7 +77,7 @@ namespace HistoricalEvents
         {
             if (disposing && _simulationTimer != null)
             {
-                Utils.SilentDispose(_simulationTimer);
+                ((_simulationTimer) as System.IDisposable)?.Dispose();
                 _simulationTimer = null;
             }
             base.Dispose(disposing);
@@ -156,7 +155,7 @@ namespace HistoricalEvents
                 NodeId = new NodeId(areaName, NamespaceIndex),
                 BrowseName = new QualifiedName(areaName, NamespaceIndex)
             };
-            area.DisplayName = area.BrowseName.Name;
+            area.DisplayName = (LocalizedText)area.BrowseName.Name;
             area.EventNotifier = EventNotifiers.SubscribeToEvents | EventNotifiers.HistoryRead | EventNotifiers.HistoryWrite;
             area.TypeDefinitionId = Opc.Ua.ObjectTypeIds.FolderType;
 
@@ -183,7 +182,7 @@ namespace HistoricalEvents
             {
                 NodeId = new NodeId(wellId, NamespaceIndex),
                 BrowseName = new QualifiedName(wellName, NamespaceIndex),
-                DisplayName = wellName,
+                DisplayName = (LocalizedText)wellName,
                 EventNotifier = EventNotifiers.SubscribeToEvents | EventNotifiers.HistoryRead | EventNotifiers.HistoryWrite,
                 TypeDefinitionId = new NodeId(ObjectTypes.WellType, NamespaceIndex)
             };
@@ -280,7 +279,7 @@ namespace HistoricalEvents
             ServerSystemContext context,
             ReadEventDetails details,
             TimestampsToReturn timestampsToReturn,
-            IList<HistoryReadValueId> nodesToRead,
+            ArrayOf<HistoryReadValueId> nodesToRead,
             IList<HistoryReadResult> results,
             IList<ServiceResult> errors,
             List<NodeHandle> nodesToProcess,
@@ -295,7 +294,7 @@ namespace HistoricalEvents
                 HistoryReadRequest request;
 
                 // load an exising request.
-                if (nodeToRead.ContinuationPoint != null)
+                if (!nodeToRead.ContinuationPoint.IsNull)
                 {
                     request = LoadContinuationPoint(context, nodeToRead.ContinuationPoint);
 
@@ -318,8 +317,9 @@ namespace HistoricalEvents
 
                 // process events until the max is reached.
                 var events = new HistoryEvent();
+                var eventFields = new List<HistoryEventFieldList>();
 
-                while (request.NumValuesPerNode == 0 || events.Events.Count < request.NumValuesPerNode)
+                while (request.NumValuesPerNode == 0 || eventFields.Count < request.NumValuesPerNode)
                 {
                     if (request.Events.Count == 0)
                     {
@@ -338,8 +338,10 @@ namespace HistoricalEvents
                         request.Events.RemoveFirst();
                     }
 
-                    events.Events.Add(GetEventFields(request, e));
+                    eventFields.Add(GetEventFields(request, e));
                 }
+
+                events.Events = eventFields;
 
                 errors[handle.Index] = ServiceResult.Good;
 
@@ -349,7 +351,7 @@ namespace HistoricalEvents
                     // only set if both end time and start time are specified.
                     if (details.StartTime != DateTime.MinValue && details.EndTime != DateTime.MinValue)
                     {
-                        result.ContinuationPoint = SaveContinuationPoint(context, request);
+                        result.ContinuationPoint = (ByteString)SaveContinuationPoint(context, request);
                     }
                 }
 
@@ -375,7 +377,7 @@ namespace HistoricalEvents
         /// <param name="cache"></param>
         protected override void HistoryUpdateEvents(
             ServerSystemContext context,
-            IList<UpdateEventDetails> nodesToUpdate,
+            ArrayOf<UpdateEventDetails> nodesToUpdate,
             IList<HistoryUpdateResult> results,
             IList<ServiceResult> errors,
             List<NodeHandle> nodesToProcess,
@@ -412,7 +414,7 @@ namespace HistoricalEvents
         /// <param name="cache"></param>
         protected override void HistoryDeleteEvents(
             ServerSystemContext context,
-            IList<DeleteEventDetails> nodesToUpdate,
+            ArrayOf<DeleteEventDetails> nodesToUpdate,
             IList<HistoryUpdateResult> results,
             IList<ServiceResult> errors,
             List<NodeHandle> nodesToProcess,
@@ -426,25 +428,27 @@ namespace HistoricalEvents
 
                 // delete events.
                 var failed = false;
+                var operationResults = new List<StatusCode>();
+                var diagnosticInfos = new List<DiagnosticInfo>();
 
                 for (var jj = 0; jj < nodeToUpdate.EventIds.Count; jj++)
                 {
                     try
                     {
-                        var eventId = new Guid(nodeToUpdate.EventIds[jj]).ToString();
+                        var eventId = new Guid(nodeToUpdate.EventIds[jj].Memory.Span).ToString();
 
                         if (!_generator.DeleteEvent(eventId))
                         {
-                            result.OperationResults.Add(StatusCodes.BadEventIdUnknown);
+                            operationResults.Add(StatusCodes.BadEventIdUnknown);
                             failed = true;
                             continue;
                         }
 
-                        result.OperationResults.Add(StatusCodes.Good);
+                        operationResults.Add(StatusCodes.Good);
                     }
                     catch
                     {
-                        result.OperationResults.Add(StatusCodes.BadEventIdUnknown);
+                        operationResults.Add(StatusCodes.BadEventIdUnknown);
                         failed = true;
                     }
                 }
@@ -456,9 +460,12 @@ namespace HistoricalEvents
                     {
                         for (var jj = 0; jj < nodeToUpdate.EventIds.Count; jj++)
                         {
-                            if (StatusCode.IsBad(result.OperationResults[jj]))
+                            if (StatusCode.IsBad(operationResults[jj]))
                             {
-                                result.DiagnosticInfos.Add(ServerUtils.CreateDiagnosticInfo(Server, context.OperationContext, result.OperationResults[jj]));
+                                diagnosticInfos.Add(ServerUtils.CreateDiagnosticInfo(
+                                    Server,
+                                    context.OperationContext,
+                                    operationResults[jj]));
                             }
                         }
                     }
@@ -467,8 +474,11 @@ namespace HistoricalEvents
                 // clear operation results if all good.
                 else
                 {
-                    result.OperationResults.Clear();
+                    operationResults.Clear();
                 }
+
+                result.OperationResults = operationResults;
+                result.DiagnosticInfos = diagnosticInfos;
 
                 // all done.
                 errors[handle.Index] = ServiceResult.Good;
@@ -484,6 +494,7 @@ namespace HistoricalEvents
         {
             // fetch the event fields.
             var fields = new HistoryEventFieldList();
+            var eventFields = new List<Variant>();
 
             foreach (var clause in request.Filter.SelectClauses)
             {
@@ -496,26 +507,26 @@ namespace HistoricalEvents
                     clause.ParsedIndexRange);
 
                 // add the value to the list of event fields.
-                if (value != null)
+                if (!value.IsNull)
                 {
                     // translate any localized text.
-                    var text = value as LocalizedText;
-
-                    if (text != null)
+                    if (value.TryGetValue(out LocalizedText text))
                     {
                         value = Server.ResourceManager.Translate(request.FilterContext.PreferredLocales, text);
                     }
 
                     // add value.
-                    fields.EventFields.Add(new Variant(value));
+                    eventFields.Add(value);
                 }
 
                 // add a dummy entry for missing values.
                 else
                 {
-                    fields.EventFields.Add(Variant.Null);
+                    eventFields.Add(Variant.Null);
                 }
             }
+
+            fields.EventFields = eventFields;
 
             return fields;
         }
@@ -545,16 +556,16 @@ namespace HistoricalEvents
                     view = _generator.ReadHistoryForWellId(
                         ii,
                         (string)handle.Node.NodeId.Identifier,
-                        details.StartTime,
-                        details.EndTime);
+                        (System.DateTime)details.StartTime,
+                        (System.DateTime)details.EndTime);
                 }
                 else
                 {
                     view = _generator.ReadHistoryForArea(
                         ii,
                         handle.Node.NodeId.Identifier as string,
-                        details.StartTime,
-                        details.EndTime);
+                        (System.DateTime)details.StartTime,
+                        (System.DateTime)details.EndTime);
                 }
 
                 var pos = events.First;
@@ -629,7 +640,7 @@ namespace HistoricalEvents
         /// <param name="cache"></param>
         protected override void HistoryReleaseContinuationPoints(
             ServerSystemContext context,
-            IList<HistoryReadValueId> nodesToRead,
+            ArrayOf<HistoryReadValueId> nodesToRead,
             IList<ServiceResult> errors,
             List<NodeHandle> nodesToProcess,
             IDictionary<NodeId, NodeState> cache)
@@ -660,7 +671,7 @@ namespace HistoricalEvents
         /// <param name="continuationPoint"></param>
         private static HistoryReadRequest LoadContinuationPoint(
             ServerSystemContext context,
-            byte[] continuationPoint)
+            ByteString continuationPoint)
         {
             var session = context.OperationContext.Session;
 

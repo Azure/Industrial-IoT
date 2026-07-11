@@ -402,7 +402,7 @@ namespace HistoricalEvents
                 new LocalizedText(info));
 
             // override event id and time.
-            e.EventId.Value = new Guid((string)row[Opc.Ua.BrowseNames.EventId]).ToByteArray();
+            e.EventId.Value = (ByteString)new Guid((string)row[Opc.Ua.BrowseNames.EventId]).ToByteArray();
             e.Time.Value = (DateTime)row[Opc.Ua.BrowseNames.Time];
 
             var nameWell = (string)row[BrowseNames.NameWell];
@@ -414,11 +414,33 @@ namespace HistoricalEvents
 
             e.SetChildValue(SystemContext, new QualifiedName(BrowseNames.NameWell, namespaceIndex), nameWell, false);
             e.SetChildValue(SystemContext, new QualifiedName(BrowseNames.UidWell, namespaceIndex), uidWell, false);
-            e.SetChildValue(SystemContext, new QualifiedName(BrowseNames.TestDate, namespaceIndex), row[BrowseNames.TestDate], false);
-            e.SetChildValue(SystemContext, new QualifiedName(BrowseNames.TestReason, namespaceIndex), row[BrowseNames.TestReason], false);
-            e.SetChildValue(SystemContext, new QualifiedName(BrowseNames.TestedBy, namespaceIndex), row[BrowseNames.TestedBy], false);
-            e.SetChildValue(SystemContext, new QualifiedName(BrowseNames.FluidLevel, namespaceIndex), row[BrowseNames.FluidLevel], false);
-            e.FluidLevel.SetChildValue(SystemContext, Opc.Ua.BrowseNames.EngineeringUnits, new EUInformation((string)row[Opc.Ua.BrowseNames.EngineeringUnits], Namespaces.HistoricalEvents), false);
+            e.SetChildValue(
+                SystemContext,
+                new QualifiedName(BrowseNames.TestDate, namespaceIndex),
+                new Variant(row[BrowseNames.TestDate]),
+                false);
+            e.SetChildValue(
+                SystemContext,
+                new QualifiedName(BrowseNames.TestReason, namespaceIndex),
+                new Variant(row[BrowseNames.TestReason]),
+                false);
+            e.SetChildValue(
+                SystemContext,
+                new QualifiedName(BrowseNames.TestedBy, namespaceIndex),
+                new Variant(row[BrowseNames.TestedBy]),
+                false);
+            e.SetChildValue(
+                SystemContext,
+                new QualifiedName(BrowseNames.FluidLevel, namespaceIndex),
+                new Variant(row[BrowseNames.FluidLevel]),
+                false);
+            e.FluidLevel.SetChildValue(
+                SystemContext,
+                Opc.Ua.BrowseNames.EngineeringUnits,
+                new EUInformation(
+                    (string)row[Opc.Ua.BrowseNames.EngineeringUnits],
+                    Namespaces.HistoricalEvents),
+                false);
 
             return e;
         }
@@ -467,7 +489,7 @@ namespace HistoricalEvents
                 new LocalizedText(info));
 
             // override event id and time.
-            e.EventId.Value = new Guid((string)row[Opc.Ua.BrowseNames.EventId]).ToByteArray();
+            e.EventId.Value = (ByteString)new Guid((string)row[Opc.Ua.BrowseNames.EventId]).ToByteArray();
             e.Time.Value = (DateTime)row[Opc.Ua.BrowseNames.Time];
 
             var nameWell = (string)row[BrowseNames.NameWell];
@@ -479,11 +501,33 @@ namespace HistoricalEvents
 
             e.SetChildValue(SystemContext, new QualifiedName(BrowseNames.NameWell, namespaceIndex), nameWell, false);
             e.SetChildValue(SystemContext, new QualifiedName(BrowseNames.UidWell, namespaceIndex), uidWell, false);
-            e.SetChildValue(SystemContext, new QualifiedName(BrowseNames.TestDate, namespaceIndex), row[BrowseNames.TestDate], false);
-            e.SetChildValue(SystemContext, new QualifiedName(BrowseNames.TestReason, namespaceIndex), row[BrowseNames.TestReason], false);
-            e.SetChildValue(SystemContext, new QualifiedName(BrowseNames.InjectedFluid, namespaceIndex), row[BrowseNames.InjectedFluid], false);
-            e.SetChildValue(SystemContext, new QualifiedName(BrowseNames.TestDuration, namespaceIndex), row[BrowseNames.TestDuration], false);
-            e.TestDuration.SetChildValue(SystemContext, Opc.Ua.BrowseNames.EngineeringUnits, new EUInformation((string)row[Opc.Ua.BrowseNames.EngineeringUnits], Namespaces.HistoricalEvents), false);
+            e.SetChildValue(
+                SystemContext,
+                new QualifiedName(BrowseNames.TestDate, namespaceIndex),
+                new Variant(row[BrowseNames.TestDate]),
+                false);
+            e.SetChildValue(
+                SystemContext,
+                new QualifiedName(BrowseNames.TestReason, namespaceIndex),
+                new Variant(row[BrowseNames.TestReason]),
+                false);
+            e.SetChildValue(
+                SystemContext,
+                new QualifiedName(BrowseNames.InjectedFluid, namespaceIndex),
+                new Variant(row[BrowseNames.InjectedFluid]),
+                false);
+            e.SetChildValue(
+                SystemContext,
+                new QualifiedName(BrowseNames.TestDuration, namespaceIndex),
+                new Variant(row[BrowseNames.TestDuration]),
+                false);
+            e.TestDuration.SetChildValue(
+                SystemContext,
+                Opc.Ua.BrowseNames.EngineeringUnits,
+                new EUInformation(
+                    (string)row[Opc.Ua.BrowseNames.EngineeringUnits],
+                    Namespaces.HistoricalEvents),
+                false);
 
             return e;
         }

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -153,7 +153,7 @@ namespace Plc.PluginNodes
         /// <param name="method"></param>
         /// <param name="inputArguments"></param>
         /// <param name="outputArguments"></param>
-        private ServiceResult OnStopUpdateSlowNodes(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments)
+        private ServiceResult OnStopUpdateSlowNodes(ISystemContext context, MethodState method, ArrayOf<Variant> inputArguments, List<Variant> outputArguments)
         {
             _updateNodes = false;
             Logger.LogDebug("StopUpdateSlowNodes method called");
@@ -167,7 +167,7 @@ namespace Plc.PluginNodes
         /// <param name="method"></param>
         /// <param name="inputArguments"></param>
         /// <param name="outputArguments"></param>
-        private ServiceResult OnStartUpdateSlowNodes(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments)
+        private ServiceResult OnStartUpdateSlowNodes(ISystemContext context, MethodState method, ArrayOf<Variant> inputArguments, List<Variant> outputArguments)
         {
             _updateNodes = true;
             Logger.LogDebug("StartUpdateSlowNodes method called");

@@ -39,9 +39,9 @@ namespace Boiler
         /// </summary>
         /// <param name="context"></param>
         /// <param name="node"></param>
-        protected override void OnAfterCreate(ISystemContext context, NodeState node)
+        protected override void OnAfterCreate(ISystemContext context, NodeState node, System.Threading.CancellationToken ct = default)
         {
-            base.OnAfterCreate(context, node);
+            base.OnAfterCreate(context, node, ct);
 
             Start.OnCallMethod = OnStart;
             Start.OnReadExecutable = IsStartExecutable;
@@ -67,7 +67,7 @@ namespace Boiler
         // The following were added to make the existing integration tests pass
 
         private ServiceResult OnResetOverride(ISystemContext context, MethodState method,
-            IList<object> inputArguments, IList<object> outputArguments)
+            ArrayOf<Variant> inputArguments, List<Variant> outputArguments)
         {
             return ServiceResult.Good;
         }

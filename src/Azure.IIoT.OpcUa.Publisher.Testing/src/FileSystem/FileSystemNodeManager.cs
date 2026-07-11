@@ -35,8 +35,7 @@ namespace FileSystem
             _namespaceIndex = Server.NamespaceUris.GetIndexOrAppend(namespaceUris[0]);
             // get the configuration for the node manager.
             // use suitable defaults if no configuration exists.
-            _configuration = configuration.ParseExtension<FileSystemServerConfiguration>() ??
-                new FileSystemServerConfiguration();
+            _configuration = new FileSystemServerConfiguration();
         }
 
         /// <summary>

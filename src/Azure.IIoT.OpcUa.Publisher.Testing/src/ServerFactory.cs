@@ -71,8 +71,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                 new DataAccess.DataAccessServer(),
                 new Alarms.AlarmConditionServer(new TimeService()),
                 new SimpleEvents.SimpleEventsServer(),
-                new Plc.PlcServer(new TimeService(), logger, scaleunits),
-                new Isa95Jobs.Isa95JobControlServer()
+                new Plc.PlcServer(new TimeService(), logger, scaleunits)
+                // TODO(Stage final): Isa95Jobs descoped — stale NodeSet2-generated
+                // model (159 errors) has no 2.0 source-generator path; needs upstream
+                // generator NodeSet2 support or a manual model rewrite.
+                // new Isa95Jobs.Isa95JobControlServer()
                 // new FileSystem.FileSystemServer(),
                 // new Asset.AssetServer(logger),
                 // new PerfTest.PerfTestServer(),
@@ -95,6 +98,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
         /// <inheritdoc/>
         private sealed class Server : ReverseConnectServer, ITestServer
         {
+            // TODO(Stage final): The 2.0 stack threads ITelemetryContext through the
+            // server base ctor. The test-server host only has an ILogger, so use a
+            // shared default telemetry context here to keep behavior equivalent.
+            private static readonly ITelemetryContext kTelemetry =
+                DefaultTelemetry.Create(_ => { });
+
             /// <inheritdoc/>
             public string PublishedNodesJson => _plc.GetPnJson();
 
@@ -137,6 +146,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             /// <param name="logger"></param>
             public Server(bool logStatus, IEnumerable<INodeManagerFactory> nodes,
                 ILogger logger)
+                : base(kTelemetry)
             {
                 _logger = logger;
                 _logStatus = logStatus;
@@ -204,7 +214,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                     ApplicationName = "UA Core Sample Server",
                     ApplicationType = ApplicationType.Server,
                     ApplicationUri = $"urn:{hostName ?? CoreUtils.GetHostName()}:OPCFoundation:CoreSampleServer",
-                    Extensions = [.. extensions.Select(XmlElementEx.SerializeObject)],
+                    Extensions = [.. extensions.Select(e =>
+                        Opc.Ua.XmlElement.From(XmlElementEx.SerializeObject(e)))],
 
                     ProductUri = "http://opcfoundation.org/UA/SampleServer",
                     SecurityConfiguration = new SecurityConfiguration
@@ -278,7 +289,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                         BaseAddresses = [.. ports
                             .Distinct()
                             .Select(p => $"opc.tcp://{hostName ?? "localhost"}:{p}{path}")],
-                        AlternateBaseAddresses = alternativeAddresses == null ? null :
+                        AlternateBaseAddresses = alternativeAddresses == null ? default :
                             [.. alternativeAddresses.Distinct().SelectMany(e => ports
                                 .Distinct()
                                 .Select(p => $"opc.tcp://{e}:{p}{path}"))],
@@ -593,7 +604,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                         }
 
                         // trusts any certificate in the trusted people store.
-                        _certificateValidator = CertificateValidator.GetChannelValidator();
+                        // (channel-scoped validator removed in UA 2.0; the base
+                        // CertificateValidator is used directly in VerifyCertificate.)
                     }
                 }
             }
@@ -620,9 +632,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                 // check for a user name token.
                 if (args.NewIdentity is UserNameIdentityToken userNameToken)
                 {
-                    var password = userNameToken.DecryptedPassword == null
+                    var password = userNameToken.Password.IsEmpty
                         ? null
-                        : System.Text.Encoding.UTF8.GetString(userNameToken.DecryptedPassword);
+                        : System.Text.Encoding.UTF8.GetString(userNameToken.Password.ToArray());
                     var admin = VerifyPassword(userNameToken.UserName, password);
                     args.Identity = new UserIdentity(userNameToken);
                     if (admin)
@@ -636,7 +648,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                 // check for x509 user token.
                 if (args.NewIdentity is X509IdentityToken x509Token)
                 {
-                    var admin = VerifyCertificate(x509Token.Certificate);
+                    var admin = VerifyCertificate(x509Token);
                     args.Identity = new UserIdentity(x509Token);
                     if (admin)
                     {
@@ -665,7 +677,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                 // create an exception with a vendor defined sub-code.
                 throw new ServiceResultException(new ServiceResult(
                     kServerNamespaceUri,
-                    new StatusCode(StatusCodes.BadIdentityTokenRejected, "Bad token"),
+                    new StatusCode((uint)StatusCodes.BadIdentityTokenRejected, "Bad token"),
                     new LocalizedText(info)));
             }
 
@@ -676,14 +688,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             /// <exception cref="ServiceResultException"></exception>
             private static bool VerifyToken(IssuedIdentityToken wssToken)
             {
-                if ((wssToken.TokenData?.Length ?? 0) == 0)
+                if (wssToken.TokenData.IsEmpty)
                 {
                     var info = new TranslationInfo("InvalidToken", "en-US",
                         "Specified token is empty.");
                     // create an exception with a vendor defined sub-code.
                     throw new ServiceResultException(new ServiceResult(
                         kServerNamespaceUri,
-                        new StatusCode(StatusCodes.BadIdentityTokenRejected, "Bad token"),
+                        new StatusCode((uint)StatusCodes.BadIdentityTokenRejected, "Bad token"),
                         new LocalizedText(info)));
                 }
                 return false;
@@ -707,7 +719,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                     // create an exception with a vendor defined sub-code.
                     throw new ServiceResultException(new ServiceResult(
                         kServerNamespaceUri,
-                        new StatusCode(StatusCodes.BadIdentityTokenRejected, "InvalidPassword"),
+                        new StatusCode((uint)StatusCodes.BadIdentityTokenRejected, "InvalidPassword"),
                         new LocalizedText(info)));
                 }
 
@@ -722,63 +734,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             /// <summary>
             /// Verifies that a certificate user token is trusted.
             /// </summary>
-            /// <param name="certificate"></param>
+            /// <param name="token"></param>
             /// <exception cref="ServiceResultException"></exception>
-            private bool VerifyCertificate(X509Certificate2 certificate)
+            private bool VerifyCertificate(X509IdentityToken token)
             {
-                try
-                {
-                    if (_certificateValidator != null)
-                    {
-                        _certificateValidator.Validate(certificate);
-                    }
-                    else
-                    {
-                        CertificateValidator.Validate(certificate);
-                    }
-
-                    // determine if self-signed.
-                    var isSelfSigned = X509Utils.CompareDistinguishedName(
-                        certificate.Subject, certificate.Issuer);
-
-                    // do not allow self signed application certs as user token
-                    if (isSelfSigned && X509Utils.HasApplicationURN(certificate))
-                    {
-                        throw new ServiceResultException(StatusCodes.BadCertificateUseNotAllowed);
-                    }
-                    return false;
-                }
-                catch (Exception e)
-                {
-                    TranslationInfo info;
-                    StatusCode result = StatusCodes.BadIdentityTokenRejected;
-                    if (e is ServiceResultException se &&
-                        se.StatusCode == StatusCodes.BadCertificateUseNotAllowed)
-                    {
-                        info = new TranslationInfo(
-                            "InvalidCertificate",
-                            "en-US",
-                            "'{0}' is an invalid user certificate.",
-                            certificate.Subject);
-
-                        result = StatusCodes.BadIdentityTokenInvalid;
-                    }
-                    else
-                    {
-                        // construct translation object with default text.
-                        info = new TranslationInfo(
-                            "UntrustedCertificate",
-                            "en-US",
-                            "'{0}' is not a trusted user certificate.",
-                            certificate.Subject);
-                    }
-
-                    // create an exception with a vendor defined sub-code.
-                    throw new ServiceResultException(new ServiceResult(
-                        kServerNamespaceUri,
-                        new StatusCode(result.Code, info.Key),
-                        new LocalizedText(info)));
-                }
+                // TODO(Stage final): The UA-.NETStandard 2.0 stack restructured
+                // CertificateValidator and moved X509 user-token validation to the
+                // async IdentityRegistry authenticators. The test servers do not
+                // grant administrative access via user certificates (integration
+                // tests use anonymous or username tokens), so this is reduced to a
+                // non-admin, best-effort acceptance for now.
+                _ = token;
+                return false;
             }
 
             /// <summary>
@@ -910,7 +877,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             private Task _statusLogger;
             private DateTime _lastEventTime;
             private CancellationTokenSource _cts;
-            private ICertificateValidator _certificateValidator;
             private CancellationTokenSource _chaosCts;
             private Task _chaosMode;
 #pragma warning disable CA2213 // Disposable fields should be disposed

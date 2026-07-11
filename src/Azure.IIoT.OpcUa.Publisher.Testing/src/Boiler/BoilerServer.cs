@@ -36,7 +36,7 @@ namespace Boiler
     public class BoilerServer : INodeManagerFactory
     {
         /// <inheritdoc/>
-        public StringCollection NamespacesUris
+        public ArrayOf<string> NamespacesUris
         {
             get
             {

@@ -37,7 +37,7 @@ namespace HistoricalAccess
     public class HistoricalAccessServer : INodeManagerFactory
     {
         /// <inheritdoc/>
-        public StringCollection NamespacesUris
+        public ArrayOf<string> NamespacesUris
         {
             get
             {

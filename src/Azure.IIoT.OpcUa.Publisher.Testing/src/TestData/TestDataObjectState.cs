@@ -31,6 +31,7 @@ namespace TestData
 {
     using Opc.Ua;
     using System;
+    using System.Collections.Generic;
 
     public partial class TestDataObjectState
     {
@@ -39,9 +40,9 @@ namespace TestData
         /// </summary>
         /// <param name="context"></param>
         /// <param name="node"></param>
-        protected override void OnAfterCreate(ISystemContext context, NodeState node)
+        protected override void OnAfterCreate(ISystemContext context, NodeState node, System.Threading.CancellationToken ct = default)
         {
-            base.OnAfterCreate(context, node);
+            base.OnAfterCreate(context, node, ct);
 
             GenerateValues.OnCall = OnGenerateValues;
         }
@@ -77,15 +78,15 @@ namespace TestData
 
             // set the EU range.
 
-            if (variable.FindChild(context, Opc.Ua.BrowseNames.EURange) is BaseVariableState euRange)
+            if (variable.FindChild(context, (QualifiedName)Opc.Ua.BrowseNames.EURange) is BaseVariableState euRange)
             {
                 if (context.TypeTable.IsTypeOf(variable.DataType, Opc.Ua.DataTypeIds.UInteger))
                 {
-                    euRange.Value = new Opc.Ua.Range(250, 50);
+                    euRange.Value = Variant.FromStructure(new Opc.Ua.Range(250, 50));
                 }
                 else
                 {
-                    euRange.Value = new Opc.Ua.Range(100, -100);
+                    euRange.Value = Variant.FromStructure(new Opc.Ua.Range(100, -100));
                 }
             }
 
@@ -101,41 +102,24 @@ namespace TestData
         public ServiceResult OnWriteAnalogValue(
             ISystemContext context,
             NodeState node,
-            ref object value)
+            ref Variant value)
         {
-            if (node.FindChild(context, Opc.Ua.BrowseNames.EURange) is not BaseVariableState euRange)
+            if (node.FindChild(context, (QualifiedName)Opc.Ua.BrowseNames.EURange) is not BaseVariableState euRange)
             {
                 return ServiceResult.Good;
             }
 
-            if (euRange.Value is not Opc.Ua.Range range)
+            if (!euRange.Value.TryGetStructure<Opc.Ua.Range>(out Opc.Ua.Range range))
             {
                 return ServiceResult.Good;
             }
 
-            if (value is Array array)
+            if (TryValidateNumberArray(value, range, out var arrayResult))
             {
-                for (var ii = 0; ii < array.Length; ii++)
-                {
-                    var element = array.GetValue(ii);
-
-                    if (typeof(Variant).IsInstanceOfType(element))
-                    {
-                        element = ((Variant)element).Value;
-                    }
-
-                    var elementNumber = Convert.ToDouble(element);
-
-                    if (elementNumber > range.High || elementNumber < range.Low)
-                    {
-                        return StatusCodes.BadOutOfRange;
-                    }
-                }
-
-                return ServiceResult.Good;
+                return arrayResult;
             }
 
-            var number = Convert.ToDouble(value);
+            var number = value.GetDouble();
 
             if (number > range.High || number < range.Low)
             {
@@ -152,7 +136,7 @@ namespace TestData
         /// <param name="variable"></param>
         protected void GenerateValue(TestDataSystem system, BaseVariableState variable)
         {
-            variable.Value = system.ReadValue(variable);
+            variable.Value = new Variant(system.ReadValue(variable));
             variable.Timestamp = DateTime.UtcNow;
             variable.StatusCode = StatusCodes.Good;
         }
@@ -188,12 +172,12 @@ namespace TestData
                     EventSeverity.MediumLow,
                     new LocalizedText(message));
 
-                e.Iterations = new PropertyState<uint>(e)
+                e.Iterations = new PropertyState<uint>.Implementation<VariantBuilder>(e)
                 {
                     Value = count
                 };
 
-                e.NewValueCount = new PropertyState<uint>(e)
+                e.NewValueCount = new PropertyState<uint>.Implementation<VariantBuilder>(e)
                 {
                     Value = 10
                 };
@@ -223,9 +207,9 @@ namespace TestData
             NodeState node,
             NumericRange indexRange,
             QualifiedName dataEncoding,
-            ref object value,
+            ref Variant value,
             ref StatusCode statusCode,
-            ref DateTime timestamp)
+            ref DateTimeUtc timestamp)
         {
             if (node is not BaseVariableState variable)
             {
@@ -244,10 +228,10 @@ namespace TestData
 
             try
             {
-                value = system.ReadValue(variable);
+                value = new Variant(system.ReadValue(variable));
 
                 statusCode = StatusCodes.Good;
-                timestamp = DateTime.UtcNow;
+                timestamp = DateTimeUtc.Now;
 
                 var error = BaseVariableState.ApplyIndexRangeAndDataEncoding(
                     context,
@@ -266,6 +250,83 @@ namespace TestData
             {
                 return new ServiceResult(e);
             }
+        }
+
+        private static bool TryValidateNumberArray(
+            Variant value,
+            Opc.Ua.Range range,
+            out ServiceResult result)
+        {
+            if (value.TryGetValue(out ArrayOf<sbyte> sbyteValues))
+            {
+                result = ValidateNumberArray(sbyteValues.ToArray(), range);
+                return true;
+            }
+            if (value.TryGetValue(out ArrayOf<byte> byteValues))
+            {
+                result = ValidateNumberArray(byteValues.ToArray(), range);
+                return true;
+            }
+            if (value.TryGetValue(out ArrayOf<short> int16Values))
+            {
+                result = ValidateNumberArray(int16Values.ToArray(), range);
+                return true;
+            }
+            if (value.TryGetValue(out ArrayOf<ushort> uint16Values))
+            {
+                result = ValidateNumberArray(uint16Values.ToArray(), range);
+                return true;
+            }
+            if (value.TryGetValue(out ArrayOf<int> int32Values))
+            {
+                result = ValidateNumberArray(int32Values.ToArray(), range);
+                return true;
+            }
+            if (value.TryGetValue(out ArrayOf<uint> uint32Values))
+            {
+                result = ValidateNumberArray(uint32Values.ToArray(), range);
+                return true;
+            }
+            if (value.TryGetValue(out ArrayOf<long> int64Values))
+            {
+                result = ValidateNumberArray(int64Values.ToArray(), range);
+                return true;
+            }
+            if (value.TryGetValue(out ArrayOf<ulong> uint64Values))
+            {
+                result = ValidateNumberArray(uint64Values.ToArray(), range);
+                return true;
+            }
+            if (value.TryGetValue(out ArrayOf<float> floatValues))
+            {
+                result = ValidateNumberArray(floatValues.ToArray(), range);
+                return true;
+            }
+            if (value.TryGetValue(out ArrayOf<double> doubleValues))
+            {
+                result = ValidateNumberArray(doubleValues.ToArray(), range);
+                return true;
+            }
+
+            result = ServiceResult.Good;
+            return false;
+        }
+
+        private static ServiceResult ValidateNumberArray<T>(
+            IEnumerable<T> values,
+            Opc.Ua.Range range) where T : IConvertible
+        {
+            foreach (var value in values)
+            {
+                var number = Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture);
+
+                if (number > range.High || number < range.Low)
+                {
+                    return StatusCodes.BadOutOfRange;
+                }
+            }
+
+            return ServiceResult.Good;
         }
     }
 }

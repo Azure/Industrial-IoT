@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -121,7 +121,7 @@ namespace Plc.PluginNodes
         /// <param name="method"></param>
         /// <param name="inputArguments"></param>
         /// <param name="outputArguments"></param>
-        private ServiceResult OnResetTrendCall(ISystemContext context, MethodState method, IList<object> inputArguments, IList<object> outputArguments)
+        private ServiceResult OnResetTrendCall(ISystemContext context, MethodState method, ArrayOf<Variant> inputArguments, List<Variant> outputArguments)
         {
             ResetTrendData();
             Logger.LogDebug("ResetPosTrend method called");

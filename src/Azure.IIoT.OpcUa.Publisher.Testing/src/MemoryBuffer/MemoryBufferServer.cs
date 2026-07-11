@@ -36,7 +36,7 @@ namespace MemoryBuffer
     public class MemoryBufferServer : INodeManagerFactory
     {
         /// <inheritdoc/>
-        public StringCollection NamespacesUris
+        public ArrayOf<string> NamespacesUris
         {
             get
             {

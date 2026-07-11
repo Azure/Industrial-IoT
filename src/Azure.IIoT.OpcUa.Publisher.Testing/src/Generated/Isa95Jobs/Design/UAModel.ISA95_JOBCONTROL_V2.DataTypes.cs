@@ -57,7 +57,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
     [DataContract(Namespace = UAModel.ISA95_JOBCONTROL_V2.Namespaces.ISA95_JOBCONTROL_V2)]
-    public partial class ISA95EquipmentDataType : IEncodeable, IJsonEncodeable
+    public partial class ISA95EquipmentDataType : IEncodeable
     {
         #region Constructors
         /// <remarks />
@@ -184,7 +184,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         /// <summary cref="IEncodeable.XmlEncodingId" />
         public virtual ExpandedNodeId XmlEncodingId => ObjectIds.ISA95EquipmentDataType_Encoding_DefaultXml;
 
-        /// <summary cref="IJsonEncodeable.JsonEncodingId" />
+        /// <summary>The JSON encoding id.</summary>
         public virtual ExpandedNodeId JsonEncodingId => ObjectIds.ISA95EquipmentDataType_Encoding_DefaultJson;
 
         /// <summary cref="IEncodeable.Encode(IEncoder)" />
@@ -354,7 +354,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
     [DataContract(Namespace = UAModel.ISA95_JOBCONTROL_V2.Namespaces.ISA95_JOBCONTROL_V2)]
-    public partial class ISA95JobOrderAndStateDataType : IEncodeable, IJsonEncodeable
+    public partial class ISA95JobOrderAndStateDataType : IEncodeable
     {
         #region Constructors
         /// <remarks />
@@ -428,7 +428,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         /// <summary cref="IEncodeable.XmlEncodingId" />
         public virtual ExpandedNodeId XmlEncodingId => ObjectIds.ISA95JobOrderAndStateDataType_Encoding_DefaultXml;
 
-        /// <summary cref="IJsonEncodeable.JsonEncodingId" />
+        /// <summary>The JSON encoding id.</summary>
         public virtual ExpandedNodeId JsonEncodingId => ObjectIds.ISA95JobOrderAndStateDataType_Encoding_DefaultJson;
 
         /// <summary cref="IEncodeable.Encode(IEncoder)" />
@@ -598,7 +598,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
     [DataContract(Namespace = UAModel.ISA95_JOBCONTROL_V2.Namespaces.ISA95_JOBCONTROL_V2)]
-    public partial class ISA95JobOrderDataType : IEncodeable, IJsonEncodeable
+    public partial class ISA95JobOrderDataType : IEncodeable
     {
         #region Constructors
         /// <remarks />
@@ -818,7 +818,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         /// <summary cref="IEncodeable.XmlEncodingId" />
         public virtual ExpandedNodeId XmlEncodingId => ObjectIds.ISA95JobOrderDataType_Encoding_DefaultXml;
 
-        /// <summary cref="IJsonEncodeable.JsonEncodingId" />
+        /// <summary>The JSON encoding id.</summary>
         public virtual ExpandedNodeId JsonEncodingId => ObjectIds.ISA95JobOrderDataType_Encoding_DefaultJson;
 
         /// <summary cref="IEncodeable.Encode(IEncoder)" />
@@ -852,8 +852,8 @@ namespace UAModel.ISA95_JOBCONTROL_V2
             JobOrderID = decoder.ReadString("JobOrderID");
             if ((EncodingMask & ISA95JobOrderDataTypeFields.Description) != 0) Description = decoder.ReadLocalizedTextArray("Description");
             if ((EncodingMask & ISA95JobOrderDataTypeFields.WorkMasterID) != 0) WorkMasterID = (ISA95WorkMasterDataTypeCollection)decoder.ReadEncodeableArray("WorkMasterID", typeof(ISA95WorkMasterDataType));
-            if ((EncodingMask & ISA95JobOrderDataTypeFields.StartTime) != 0) StartTime = decoder.ReadDateTime("StartTime");
-            if ((EncodingMask & ISA95JobOrderDataTypeFields.EndTime) != 0) EndTime = decoder.ReadDateTime("EndTime");
+            if ((EncodingMask & ISA95JobOrderDataTypeFields.StartTime) != 0) StartTime = (DateTime)decoder.ReadDateTime("StartTime");
+            if ((EncodingMask & ISA95JobOrderDataTypeFields.EndTime) != 0) EndTime = (DateTime)decoder.ReadDateTime("EndTime");
             if ((EncodingMask & ISA95JobOrderDataTypeFields.Priority) != 0) Priority = decoder.ReadInt16("Priority");
             if ((EncodingMask & ISA95JobOrderDataTypeFields.JobOrderParameters) != 0) JobOrderParameters = (ISA95ParameterDataTypeCollection)decoder.ReadEncodeableArray("JobOrderParameters", typeof(ISA95ParameterDataType));
             if ((EncodingMask & ISA95JobOrderDataTypeFields.PersonnelRequirements) != 0) PersonnelRequirements = (ISA95PersonnelDataTypeCollection)decoder.ReadEncodeableArray("PersonnelRequirements", typeof(ISA95PersonnelDataType));
@@ -1036,7 +1036,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
     [DataContract(Namespace = UAModel.ISA95_JOBCONTROL_V2.Namespaces.ISA95_JOBCONTROL_V2)]
-    public partial class ISA95JobResponseDataType : IEncodeable, IJsonEncodeable
+    public partial class ISA95JobResponseDataType : IEncodeable
     {
         #region Constructors
         /// <remarks />
@@ -1055,7 +1055,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         {
             EncodingMask = ISA95JobResponseDataTypeFields.None;
             m_jobResponseID = null;
-            m_description = null;
+            m_description = default;
             m_jobOrderID = null;
             m_startTime = DateTime.MinValue;
             m_endTime = DateTime.MinValue;
@@ -1244,7 +1244,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         /// <summary cref="IEncodeable.XmlEncodingId" />
         public virtual ExpandedNodeId XmlEncodingId => ObjectIds.ISA95JobResponseDataType_Encoding_DefaultXml;
 
-        /// <summary cref="IJsonEncodeable.JsonEncodingId" />
+        /// <summary>The JSON encoding id.</summary>
         public virtual ExpandedNodeId JsonEncodingId => ObjectIds.ISA95JobResponseDataType_Encoding_DefaultJson;
 
         /// <summary cref="IEncodeable.Encode(IEncoder)" />
@@ -1278,8 +1278,8 @@ namespace UAModel.ISA95_JOBCONTROL_V2
             JobResponseID = decoder.ReadString("JobResponseID");
             if ((EncodingMask & ISA95JobResponseDataTypeFields.Description) != 0) Description = decoder.ReadLocalizedText("Description");
             JobOrderID = decoder.ReadString("JobOrderID");
-            if ((EncodingMask & ISA95JobResponseDataTypeFields.StartTime) != 0) StartTime = decoder.ReadDateTime("StartTime");
-            if ((EncodingMask & ISA95JobResponseDataTypeFields.EndTime) != 0) EndTime = decoder.ReadDateTime("EndTime");
+            if ((EncodingMask & ISA95JobResponseDataTypeFields.StartTime) != 0) StartTime = (DateTime)decoder.ReadDateTime("StartTime");
+            if ((EncodingMask & ISA95JobResponseDataTypeFields.EndTime) != 0) EndTime = (DateTime)decoder.ReadDateTime("EndTime");
             JobState = (ISA95StateDataTypeCollection)decoder.ReadEncodeableArray("JobState", typeof(ISA95StateDataType));
             if ((EncodingMask & ISA95JobResponseDataTypeFields.JobResponseData) != 0) JobResponseData = (ISA95ParameterDataTypeCollection)decoder.ReadEncodeableArray("JobResponseData", typeof(ISA95ParameterDataType));
             if ((EncodingMask & ISA95JobResponseDataTypeFields.PersonnelActuals) != 0) PersonnelActuals = (ISA95PersonnelDataTypeCollection)decoder.ReadEncodeableArray("PersonnelActuals", typeof(ISA95PersonnelDataType));
@@ -1464,7 +1464,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
     [DataContract(Namespace = UAModel.ISA95_JOBCONTROL_V2.Namespaces.ISA95_JOBCONTROL_V2)]
-    public partial class ISA95MaterialDataType : IEncodeable, IJsonEncodeable
+    public partial class ISA95MaterialDataType : IEncodeable
     {
         #region Constructors
         /// <remarks />
@@ -1618,7 +1618,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         /// <summary cref="IEncodeable.XmlEncodingId" />
         public virtual ExpandedNodeId XmlEncodingId => ObjectIds.ISA95MaterialDataType_Encoding_DefaultXml;
 
-        /// <summary cref="IJsonEncodeable.JsonEncodingId" />
+        /// <summary>The JSON encoding id.</summary>
         public virtual ExpandedNodeId JsonEncodingId => ObjectIds.ISA95MaterialDataType_Encoding_DefaultJson;
 
         /// <summary cref="IEncodeable.Encode(IEncoder)" />
@@ -1816,7 +1816,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
     [DataContract(Namespace = UAModel.ISA95_JOBCONTROL_V2.Namespaces.ISA95_JOBCONTROL_V2)]
-    public partial class ISA95ParameterDataType : IEncodeable, IJsonEncodeable
+    public partial class ISA95ParameterDataType : IEncodeable
     {
         #region Constructors
         /// <remarks />
@@ -1934,7 +1934,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         /// <summary cref="IEncodeable.XmlEncodingId" />
         public virtual ExpandedNodeId XmlEncodingId => ObjectIds.ISA95ParameterDataType_Encoding_DefaultXml;
 
-        /// <summary cref="IJsonEncodeable.JsonEncodingId" />
+        /// <summary>The JSON encoding id.</summary>
         public virtual ExpandedNodeId JsonEncodingId => ObjectIds.ISA95ParameterDataType_Encoding_DefaultJson;
 
         /// <summary cref="IEncodeable.Encode(IEncoder)" />
@@ -2116,7 +2116,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
     [DataContract(Namespace = UAModel.ISA95_JOBCONTROL_V2.Namespaces.ISA95_JOBCONTROL_V2)]
-    public partial class ISA95PersonnelDataType : IEncodeable, IJsonEncodeable
+    public partial class ISA95PersonnelDataType : IEncodeable
     {
         #region Constructors
         /// <remarks />
@@ -2243,7 +2243,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         /// <summary cref="IEncodeable.XmlEncodingId" />
         public virtual ExpandedNodeId XmlEncodingId => ObjectIds.ISA95PersonnelDataType_Encoding_DefaultXml;
 
-        /// <summary cref="IJsonEncodeable.JsonEncodingId" />
+        /// <summary>The JSON encoding id.</summary>
         public virtual ExpandedNodeId JsonEncodingId => ObjectIds.ISA95PersonnelDataType_Encoding_DefaultJson;
 
         /// <summary cref="IEncodeable.Encode(IEncoder)" />
@@ -2430,7 +2430,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
     [DataContract(Namespace = UAModel.ISA95_JOBCONTROL_V2.Namespaces.ISA95_JOBCONTROL_V2)]
-    public partial class ISA95PhysicalAssetDataType : IEncodeable, IJsonEncodeable
+    public partial class ISA95PhysicalAssetDataType : IEncodeable
     {
         #region Constructors
         /// <remarks />
@@ -2557,7 +2557,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         /// <summary cref="IEncodeable.XmlEncodingId" />
         public virtual ExpandedNodeId XmlEncodingId => ObjectIds.ISA95PhysicalAssetDataType_Encoding_DefaultXml;
 
-        /// <summary cref="IJsonEncodeable.JsonEncodingId" />
+        /// <summary>The JSON encoding id.</summary>
         public virtual ExpandedNodeId JsonEncodingId => ObjectIds.ISA95PhysicalAssetDataType_Encoding_DefaultJson;
 
         /// <summary cref="IEncodeable.Encode(IEncoder)" />
@@ -2740,7 +2740,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
     [DataContract(Namespace = UAModel.ISA95_JOBCONTROL_V2.Namespaces.ISA95_JOBCONTROL_V2)]
-    public partial class ISA95PropertyDataType : IEncodeable, IJsonEncodeable
+    public partial class ISA95PropertyDataType : IEncodeable
     {
         #region Constructors
         /// <remarks />
@@ -2858,7 +2858,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         /// <summary cref="IEncodeable.XmlEncodingId" />
         public virtual ExpandedNodeId XmlEncodingId => ObjectIds.ISA95PropertyDataType_Encoding_DefaultXml;
 
-        /// <summary cref="IJsonEncodeable.JsonEncodingId" />
+        /// <summary>The JSON encoding id.</summary>
         public virtual ExpandedNodeId JsonEncodingId => ObjectIds.ISA95PropertyDataType_Encoding_DefaultJson;
 
         /// <summary cref="IEncodeable.Encode(IEncoder)" />
@@ -3023,7 +3023,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
     [DataContract(Namespace = UAModel.ISA95_JOBCONTROL_V2.Namespaces.ISA95_JOBCONTROL_V2)]
-    public partial class ISA95StateDataType : IEncodeable, IJsonEncodeable
+    public partial class ISA95StateDataType : IEncodeable
     {
         #region Constructors
         /// <remarks />
@@ -3041,7 +3041,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         private void Initialize()
         {
             m_browsePath = new Opc.Ua.RelativePath();
-            m_stateText = null;
+            m_stateText = default;
             m_stateNumber = (uint)0;
         }
         #endregion
@@ -3094,7 +3094,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         /// <summary cref="IEncodeable.XmlEncodingId" />
         public virtual ExpandedNodeId XmlEncodingId => ObjectIds.ISA95StateDataType_Encoding_DefaultXml;
 
-        /// <summary cref="IJsonEncodeable.JsonEncodingId" />
+        /// <summary>The JSON encoding id.</summary>
         public virtual ExpandedNodeId JsonEncodingId => ObjectIds.ISA95StateDataType_Encoding_DefaultJson;
 
         /// <summary cref="IEncodeable.Encode(IEncoder)" />
@@ -3253,7 +3253,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
     /// <exclude />
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Opc.Ua.ModelCompiler", "1.0.0.0")]
     [DataContract(Namespace = UAModel.ISA95_JOBCONTROL_V2.Namespaces.ISA95_JOBCONTROL_V2)]
-    public partial class ISA95WorkMasterDataType : IEncodeable, IJsonEncodeable
+    public partial class ISA95WorkMasterDataType : IEncodeable
     {
         #region Constructors
         /// <remarks />
@@ -3272,7 +3272,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         {
             EncodingMask = ISA95WorkMasterDataTypeFields.None;
             m_iD = null;
-            m_description = null;
+            m_description = default;
             m_parameters = new ISA95ParameterDataTypeCollection();
         }
         #endregion
@@ -3329,7 +3329,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         /// <summary cref="IEncodeable.XmlEncodingId" />
         public virtual ExpandedNodeId XmlEncodingId => ObjectIds.ISA95WorkMasterDataType_Encoding_DefaultXml;
 
-        /// <summary cref="IJsonEncodeable.JsonEncodingId" />
+        /// <summary>The JSON encoding id.</summary>
         public virtual ExpandedNodeId JsonEncodingId => ObjectIds.ISA95WorkMasterDataType_Encoding_DefaultJson;
 
         /// <summary cref="IEncodeable.Encode(IEncoder)" />

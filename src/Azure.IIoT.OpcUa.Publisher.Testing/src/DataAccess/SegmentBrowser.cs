@@ -150,10 +150,10 @@ namespace DataAccess
         {
             var system = (UnderlyingSystem)SystemContext.SystemHandle;
 
-            NodeId targetId = null;
+            NodeId targetId = default;
 
             // check if a specific browse name is requested.
-            if (!QualifiedName.IsNull(BrowseName))
+            if (!(BrowseName).IsNull)
             {
                 // check if match found previously.
                 if (_position == int.MaxValue)

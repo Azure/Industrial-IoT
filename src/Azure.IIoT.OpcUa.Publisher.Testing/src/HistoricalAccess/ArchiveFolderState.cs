@@ -53,7 +53,7 @@ namespace HistoricalAccess
             NodeId = ConstructId(folder.UniquePath, namespaceIndex);
             BrowseName = new QualifiedName(folder.Name, namespaceIndex);
             DisplayName = new LocalizedText(BrowseName.Name);
-            Description = null;
+            Description = default;
             WriteMask = 0;
             UserWriteMask = 0;
             EventNotifier = EventNotifiers.None;

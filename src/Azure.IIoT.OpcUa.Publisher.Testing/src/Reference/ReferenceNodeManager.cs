@@ -153,8 +153,8 @@ namespace Reference
                 }
 
                 var root = CreateFolder(null, "CTT", "CTT");
-                root.AddReference(ReferenceTypes.Organizes, true, ObjectIds.ObjectsFolder);
-                references.Add(new NodeStateReference(ReferenceTypes.Organizes, false, root.NodeId));
+                root.AddReference(ReferenceTypeIds.Organizes, true, ObjectIds.ObjectsFolder);
+                references.Add(new NodeStateReference(ReferenceTypeIds.Organizes, false, root.NodeId));
                 root.EventNotifier = EventNotifiers.SubscribeToEvents;
                 AddRootNotifier(root);
 
@@ -202,11 +202,11 @@ namespace Reference
                     var decimalVariable = CreateVariable(staticFolder, scalarStatic + "Decimal", "Decimal", DataTypeIds.DecimalDataType, ValueRanks.Scalar);
                     // Set an arbitrary precision decimal value.
                     var largeInteger = BigInteger.Parse("1234567890123546789012345678901234567890123456789012345", CultureInfo.InvariantCulture);
-                    decimalVariable.Value = new DecimalDataType
+                    decimalVariable.Value = Variant.FromStructure(new DecimalDataType
                     {
                         Scale = 100,
-                        Value = largeInteger.ToByteArray()
-                    };
+                        Value = (ByteString)largeInteger.ToByteArray()
+                    });
                     variables.Add(decimalVariable);
 
                     // Scalar_Static_Arrays
@@ -221,22 +221,32 @@ namespace Reference
 
                     var doubleArrayVar = CreateVariable(arraysFolder, staticArrays + "Double", "Double", DataTypeIds.Double, ValueRanks.OneDimension);
                     // Set the first elements of the array to a smaller value.
-                    var doubleArrayVal = doubleArrayVar.Value as double[];
-                    doubleArrayVal[0] %= 10E+10;
-                    doubleArrayVal[1] %= 10E+10;
-                    doubleArrayVal[2] %= 10E+10;
-                    doubleArrayVal[3] %= 10E+10;
+                    if (doubleArrayVar.Value.TryGetValue(out ArrayOf<double> doubleArrayValue))
+                    {
+                        double[] doubleArrayVal = [.. doubleArrayValue];
+                        doubleArrayVal[0] %= 10E+10;
+                        doubleArrayVal[1] %= 10E+10;
+                        doubleArrayVal[2] %= 10E+10;
+                        doubleArrayVal[3] %= 10E+10;
+                        VariantHelper.TryCastFrom(doubleArrayVal, out var doubleVariant);
+                        doubleArrayVar.Value = doubleVariant;
+                    }
                     variables.Add(doubleArrayVar);
 
                     variables.Add(CreateVariable(arraysFolder, staticArrays + "Duration", "Duration", DataTypeIds.Duration, ValueRanks.OneDimension));
 
                     var floatArrayVar = CreateVariable(arraysFolder, staticArrays + "Float", "Float", DataTypeIds.Float, ValueRanks.OneDimension);
                     // Set the first elements of the array to a smaller value.
-                    var floatArrayVal = floatArrayVar.Value as float[];
-                    floatArrayVal[0] %= 0xf10E + 4;
-                    floatArrayVal[1] %= 0xf10E + 4;
-                    floatArrayVal[2] %= 0xf10E + 4;
-                    floatArrayVal[3] %= 0xf10E + 4;
+                    if (floatArrayVar.Value.TryGetValue(out ArrayOf<float> floatArrayValue))
+                    {
+                        float[] floatArrayVal = [.. floatArrayValue];
+                        floatArrayVal[0] %= 0xf10E + 4;
+                        floatArrayVal[1] %= 0xf10E + 4;
+                        floatArrayVal[2] %= 0xf10E + 4;
+                        floatArrayVal[3] %= 0xf10E + 4;
+                        VariantHelper.TryCastFrom(floatArrayVal, out var floatVariant);
+                        floatArrayVar.Value = floatVariant;
+                    }
                     variables.Add(floatArrayVar);
 
                     variables.Add(CreateVariable(arraysFolder, staticArrays + "Guid", "Guid", DataTypeIds.Guid, ValueRanks.OneDimension));
@@ -252,7 +262,7 @@ namespace Reference
                     variables.Add(CreateVariable(arraysFolder, staticArrays + "SByte", "SByte", DataTypeIds.SByte, ValueRanks.OneDimension));
 
                     var stringArrayVar = CreateVariable(arraysFolder, staticArrays + "String", "String", DataTypeIds.String, ValueRanks.OneDimension);
-                    stringArrayVar.Value = new string[] {
+                    VariantHelper.TryCastFrom(new string[] {
                         "Лошадь_ Пурпурово( Змейка( Слон",
                         "猪 绿色 绵羊 大象~ 狗 菠萝 猪鼠",
                         "Лошадь Овцы Голубика Овцы Змейка",
@@ -262,7 +272,8 @@ namespace Reference
                         "레몬} 빨간% 자주색 쥐 백색; 들" ,
                         "Yellow Sheep Peach Elephant Cow",
                         "Крыса Корова Свинья Собака Кот",
-                        "龙_ 绵羊 大象 芒果; 猫'" };
+                        "龙_ 绵羊 大象 芒果; 猫'" }, out var stringArrayValue);
+                    stringArrayVar.Value = stringArrayValue;
                     variables.Add(stringArrayVar);
 
                     variables.Add(CreateVariable(arraysFolder, staticArrays + "TimeString", "TimeString", DataTypeIds.TimeString, ValueRanks.OneDimension));
@@ -559,7 +570,7 @@ namespace Reference
                     CreateAnalogItemVariable(analogArrayFolder, daAnalogArray + "UtcTime", "UtcTime", DataTypeIds.UtcTime, ValueRanks.OneDimension, new DateTime[] { DateTime.MinValue.ToUniversalTime(), DateTime.MaxValue.ToUniversalTime(), DateTime.MinValue.ToUniversalTime(), DateTime.MaxValue.ToUniversalTime(), DateTime.MinValue.ToUniversalTime(), DateTime.MaxValue.ToUniversalTime(), DateTime.MinValue.ToUniversalTime(), DateTime.MaxValue.ToUniversalTime(), DateTime.MinValue.ToUniversalTime() }, null);
                     CreateAnalogItemVariable(analogArrayFolder, daAnalogArray + "Variant", "Variant", BuiltInType.Variant, ValueRanks.OneDimension, new Variant[] { 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 });
                     var doc1 = new XmlDocument();
-                    CreateAnalogItemVariable(analogArrayFolder, daAnalogArray + "XmlElement", "XmlElement", BuiltInType.XmlElement, ValueRanks.OneDimension, new XmlElement[] { doc1.CreateElement("tag1"), doc1.CreateElement("tag2"), doc1.CreateElement("tag3"), doc1.CreateElement("tag4"), doc1.CreateElement("tag5"), doc1.CreateElement("tag6"), doc1.CreateElement("tag7"), doc1.CreateElement("tag8"), doc1.CreateElement("tag9"), doc1.CreateElement("tag10") });
+                    CreateAnalogItemVariable(analogArrayFolder, daAnalogArray + "XmlElement", "XmlElement", BuiltInType.XmlElement, ValueRanks.OneDimension, new Opc.Ua.XmlElement[] { Opc.Ua.XmlElement.From(doc1.CreateElement("tag1")), Opc.Ua.XmlElement.From(doc1.CreateElement("tag2")), Opc.Ua.XmlElement.From(doc1.CreateElement("tag3")), Opc.Ua.XmlElement.From(doc1.CreateElement("tag4")), Opc.Ua.XmlElement.From(doc1.CreateElement("tag5")), Opc.Ua.XmlElement.From(doc1.CreateElement("tag6")), Opc.Ua.XmlElement.From(doc1.CreateElement("tag7")), Opc.Ua.XmlElement.From(doc1.CreateElement("tag8")), Opc.Ua.XmlElement.From(doc1.CreateElement("tag9")), Opc.Ua.XmlElement.From(doc1.CreateElement("tag10")) });
 
                     // DataAccess_DiscreteType
                     ResetRandomGenerator(12);
@@ -617,11 +628,11 @@ namespace Reference
 
                     // create variable nodes with specific references
                     var hasForwardReference = CreateMeshVariable(referencesFolder, referencesPrefix + "HasForwardReference", "HasForwardReference");
-                    hasForwardReference.AddReference(ReferenceTypes.HasCause, false, variables[0].NodeId);
+                    hasForwardReference.AddReference(ReferenceTypeIds.HasCause, false, variables[0].NodeId);
                     variables.Add(hasForwardReference);
 
                     var hasInverseReference = CreateMeshVariable(referencesFolder, referencesPrefix + "HasInverseReference", "HasInverseReference");
-                    hasInverseReference.AddReference(ReferenceTypes.HasCause, true, variables[0].NodeId);
+                    hasInverseReference.AddReference(ReferenceTypeIds.HasCause, true, variables[0].NodeId);
                     variables.Add(hasInverseReference);
 
                     BaseDataVariableState has3InverseReference = null;
@@ -633,9 +644,9 @@ namespace Reference
                             referenceString += i.ToString(CultureInfo.InvariantCulture);
                         }
                         var has3ForwardReferences = CreateMeshVariable(referencesFolder, referencesPrefix + referenceString, referenceString);
-                        has3ForwardReferences.AddReference(ReferenceTypes.HasCause, false, variables[0].NodeId);
-                        has3ForwardReferences.AddReference(ReferenceTypes.HasCause, false, variables[1].NodeId);
-                        has3ForwardReferences.AddReference(ReferenceTypes.HasCause, false, variables[2].NodeId);
+                        has3ForwardReferences.AddReference(ReferenceTypeIds.HasCause, false, variables[0].NodeId);
+                        has3ForwardReferences.AddReference(ReferenceTypeIds.HasCause, false, variables[1].NodeId);
+                        has3ForwardReferences.AddReference(ReferenceTypeIds.HasCause, false, variables[2].NodeId);
                         if (i == 1)
                         {
                             has3InverseReference = has3ForwardReferences;
@@ -644,9 +655,9 @@ namespace Reference
                     }
 
                     var has3InverseReferences = CreateMeshVariable(referencesFolder, referencesPrefix + "Has3InverseReferences", "Has3InverseReferences");
-                    has3InverseReferences.AddReference(ReferenceTypes.HasEffect, true, variables[0].NodeId);
-                    has3InverseReferences.AddReference(ReferenceTypes.HasEffect, true, variables[1].NodeId);
-                    has3InverseReferences.AddReference(ReferenceTypes.HasEffect, true, variables[2].NodeId);
+                    has3InverseReferences.AddReference(ReferenceTypeIds.HasEffect, true, variables[0].NodeId);
+                    has3InverseReferences.AddReference(ReferenceTypeIds.HasEffect, true, variables[1].NodeId);
+                    has3InverseReferences.AddReference(ReferenceTypeIds.HasEffect, true, variables[2].NodeId);
                     variables.Add(has3InverseReferences);
 
                     var hasForwardAndInverseReferences = CreateMeshVariable(referencesFolder, referencesPrefix + "HasForwardAndInverseReference", "HasForwardAndInverseReference", hasForwardReference, hasInverseReference, has3InverseReference, has3InverseReferences, variables[0]);
@@ -737,7 +748,7 @@ namespace Reference
                     const string rolePermissions = "AccessRights_RolePermissions_";
 
                     var rpAnonymous = CreateVariable(folderRolePermissions, rolePermissions + "AnonymousAccess", "AnonymousAccess", BuiltInType.Int16, ValueRanks.Scalar);
-                    rpAnonymous.Description = "This node can be accessed by users that have Anonymous Role";
+                    rpAnonymous.Description = (LocalizedText)"This node can be accessed by users that have Anonymous Role";
                     rpAnonymous.RolePermissions =
                     [
                         // allow access to users with Anonymous role
@@ -750,7 +761,7 @@ namespace Reference
                     variables.Add(rpAnonymous);
 
                     var rpAuthenticatedUser = CreateVariable(folderRolePermissions, rolePermissions + "AuthenticatedUser", "AuthenticatedUser", BuiltInType.Int16, ValueRanks.Scalar);
-                    rpAuthenticatedUser.Description = "This node can be accessed by users that have AuthenticatedUser Role";
+                    rpAuthenticatedUser.Description = (LocalizedText)"This node can be accessed by users that have AuthenticatedUser Role";
                     rpAuthenticatedUser.RolePermissions =
                     [
                         // allow access to users with AuthenticatedUser role
@@ -763,7 +774,7 @@ namespace Reference
                     variables.Add(rpAuthenticatedUser);
 
                     var rpAdminUser = CreateVariable(folderRolePermissions, rolePermissions + "AdminUser", "AdminUser", BuiltInType.Int16, ValueRanks.Scalar);
-                    rpAdminUser.Description = "This node can be accessed by users that have SecurityAdmin Role over an encrypted connection";
+                    rpAdminUser.Description = (LocalizedText)"This node can be accessed by users that have SecurityAdmin Role over an encrypted connection";
                     rpAdminUser.AccessRestrictions = AccessRestrictionType.EncryptionRequired;
                     rpAdminUser.RolePermissions =
                     [
@@ -842,12 +853,12 @@ namespace Reference
                     // Add Method
                     var addMethod = CreateMethod(methodsFolder, methods + "Add", "Add");
                     // set input arguments
-                    addMethod.InputArguments = new PropertyState<Argument[]>(addMethod)
+                    addMethod.InputArguments = new PropertyState<ArrayOf<Argument>>.Implementation<StructureBuilder<Argument>>(addMethod)
                     {
                         NodeId = new NodeId(addMethod.BrowseName.Name + "InArgs", NamespaceIndex),
-                        BrowseName = BrowseNames.InputArguments
+                        BrowseName = (QualifiedName)BrowseNames.InputArguments
                     };
-                    addMethod.InputArguments.DisplayName = addMethod.InputArguments.BrowseName.Name;
+                    addMethod.InputArguments.DisplayName = (LocalizedText)addMethod.InputArguments.BrowseName.Name;
                     addMethod.InputArguments.TypeDefinitionId = VariableTypeIds.PropertyType;
                     addMethod.InputArguments.ReferenceTypeId = ReferenceTypeIds.HasProperty;
                     addMethod.InputArguments.DataType = DataTypeIds.Argument;
@@ -855,17 +866,17 @@ namespace Reference
 
                     addMethod.InputArguments.Value =
                     [
-                        new() { Name = "Float value", Description = "Float value",  DataType = DataTypeIds.Float, ValueRank = ValueRanks.Scalar },
-                        new() { Name = "UInt32 value", Description = "UInt32 value",  DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
+                        new() { Name = "Float value", Description = (LocalizedText)"Float value",  DataType = DataTypeIds.Float, ValueRank = ValueRanks.Scalar },
+                        new() { Name = "UInt32 value", Description = (LocalizedText)"UInt32 value",  DataType = DataTypeIds.UInt32, ValueRank = ValueRanks.Scalar }
                     ];
 
                     // set output arguments
-                    addMethod.OutputArguments = new PropertyState<Argument[]>(addMethod)
+                    addMethod.OutputArguments = new PropertyState<ArrayOf<Argument>>.Implementation<StructureBuilder<Argument>>(addMethod)
                     {
                         NodeId = new NodeId(addMethod.BrowseName.Name + "OutArgs", NamespaceIndex),
-                        BrowseName = BrowseNames.OutputArguments
+                        BrowseName = (QualifiedName)BrowseNames.OutputArguments
                     };
-                    addMethod.OutputArguments.DisplayName = addMethod.OutputArguments.BrowseName.Name;
+                    addMethod.OutputArguments.DisplayName = (LocalizedText)addMethod.OutputArguments.BrowseName.Name;
                     addMethod.OutputArguments.TypeDefinitionId = VariableTypeIds.PropertyType;
                     addMethod.OutputArguments.ReferenceTypeId = ReferenceTypeIds.HasProperty;
                     addMethod.OutputArguments.DataType = DataTypeIds.Argument;
@@ -873,7 +884,7 @@ namespace Reference
 
                     addMethod.OutputArguments.Value =
                     [
-                        new() { Name = "Add Result", Description = "Add Result",  DataType = DataTypeIds.Float, ValueRank = ValueRanks.Scalar }
+                        new() { Name = "Add Result", Description = (LocalizedText)"Add Result",  DataType = DataTypeIds.Float, ValueRank = ValueRanks.Scalar }
                     ];
 
                     addMethod.OnCallMethod = new GenericMethodCalledEventHandler(OnAddCall);
@@ -881,12 +892,12 @@ namespace Reference
                     // Multiply Method
                     var multiplyMethod = CreateMethod(methodsFolder, methods + "Multiply", "Multiply");
                     // set input arguments
-                    multiplyMethod.InputArguments = new PropertyState<Argument[]>(multiplyMethod)
+                    multiplyMethod.InputArguments = new PropertyState<ArrayOf<Argument>>.Implementation<StructureBuilder<Argument>>(multiplyMethod)
                     {
                         NodeId = new NodeId(multiplyMethod.BrowseName.Name + "InArgs", NamespaceIndex),
-                        BrowseName = BrowseNames.InputArguments
+                        BrowseName = (QualifiedName)BrowseNames.InputArguments
                     };
-                    multiplyMethod.InputArguments.DisplayName = multiplyMethod.InputArguments.BrowseName.Name;
+                    multiplyMethod.InputArguments.DisplayName = (LocalizedText)multiplyMethod.InputArguments.BrowseName.Name;
                     multiplyMethod.InputArguments.TypeDefinitionId = VariableTypeIds.PropertyType;
                     multiplyMethod.InputArguments.ReferenceTypeId = ReferenceTypeIds.HasProperty;
                     multiplyMethod.InputArguments.DataType = DataTypeIds.Argument;
@@ -894,17 +905,17 @@ namespace Reference
 
                     multiplyMethod.InputArguments.Value =
                     [
-                        new() { Name = "Int16 value", Description = "Int16 value",  DataType = DataTypeIds.Int16, ValueRank = ValueRanks.Scalar },
-                        new() { Name = "UInt16 value", Description = "UInt16 value",  DataType = DataTypeIds.UInt16, ValueRank = ValueRanks.Scalar }
+                        new() { Name = "Int16 value", Description = (LocalizedText)"Int16 value",  DataType = DataTypeIds.Int16, ValueRank = ValueRanks.Scalar },
+                        new() { Name = "UInt16 value", Description = (LocalizedText)"UInt16 value",  DataType = DataTypeIds.UInt16, ValueRank = ValueRanks.Scalar }
                     ];
 
                     // set output arguments
-                    multiplyMethod.OutputArguments = new PropertyState<Argument[]>(multiplyMethod)
+                    multiplyMethod.OutputArguments = new PropertyState<ArrayOf<Argument>>.Implementation<StructureBuilder<Argument>>(multiplyMethod)
                     {
                         NodeId = new NodeId(multiplyMethod.BrowseName.Name + "OutArgs", NamespaceIndex),
-                        BrowseName = BrowseNames.OutputArguments
+                        BrowseName = (QualifiedName)BrowseNames.OutputArguments
                     };
-                    multiplyMethod.OutputArguments.DisplayName = multiplyMethod.OutputArguments.BrowseName.Name;
+                    multiplyMethod.OutputArguments.DisplayName = (LocalizedText)multiplyMethod.OutputArguments.BrowseName.Name;
                     multiplyMethod.OutputArguments.TypeDefinitionId = VariableTypeIds.PropertyType;
                     multiplyMethod.OutputArguments.ReferenceTypeId = ReferenceTypeIds.HasProperty;
                     multiplyMethod.OutputArguments.DataType = DataTypeIds.Argument;
@@ -912,7 +923,7 @@ namespace Reference
 
                     multiplyMethod.OutputArguments.Value =
                     [
-                        new() { Name = "Multiply Result", Description = "Multiply Result",  DataType = DataTypeIds.Int32, ValueRank = ValueRanks.Scalar }
+                        new() { Name = "Multiply Result", Description = (LocalizedText)"Multiply Result",  DataType = DataTypeIds.Int32, ValueRank = ValueRanks.Scalar }
                     ];
 
                     multiplyMethod.OnCallMethod = new GenericMethodCalledEventHandler(OnMultiplyCall);
@@ -920,12 +931,12 @@ namespace Reference
                     // Divide Method
                     var divideMethod = CreateMethod(methodsFolder, methods + "Divide", "Divide");
                     // set input arguments
-                    divideMethod.InputArguments = new PropertyState<Argument[]>(divideMethod)
+                    divideMethod.InputArguments = new PropertyState<ArrayOf<Argument>>.Implementation<StructureBuilder<Argument>>(divideMethod)
                     {
                         NodeId = new NodeId(divideMethod.BrowseName.Name + "InArgs", NamespaceIndex),
-                        BrowseName = BrowseNames.InputArguments
+                        BrowseName = (QualifiedName)BrowseNames.InputArguments
                     };
-                    divideMethod.InputArguments.DisplayName = divideMethod.InputArguments.BrowseName.Name;
+                    divideMethod.InputArguments.DisplayName = (LocalizedText)divideMethod.InputArguments.BrowseName.Name;
                     divideMethod.InputArguments.TypeDefinitionId = VariableTypeIds.PropertyType;
                     divideMethod.InputArguments.ReferenceTypeId = ReferenceTypeIds.HasProperty;
                     divideMethod.InputArguments.DataType = DataTypeIds.Argument;
@@ -933,17 +944,17 @@ namespace Reference
 
                     divideMethod.InputArguments.Value =
                     [
-                        new() { Name = "Int32 value", Description = "Int32 value",  DataType = DataTypeIds.Int32, ValueRank = ValueRanks.Scalar },
-                        new() { Name = "UInt16 value", Description = "UInt16 value",  DataType = DataTypeIds.UInt16, ValueRank = ValueRanks.Scalar }
+                        new() { Name = "Int32 value", Description = (LocalizedText)"Int32 value",  DataType = DataTypeIds.Int32, ValueRank = ValueRanks.Scalar },
+                        new() { Name = "UInt16 value", Description = (LocalizedText)"UInt16 value",  DataType = DataTypeIds.UInt16, ValueRank = ValueRanks.Scalar }
                     ];
 
                     // set output arguments
-                    divideMethod.OutputArguments = new PropertyState<Argument[]>(divideMethod)
+                    divideMethod.OutputArguments = new PropertyState<ArrayOf<Argument>>.Implementation<StructureBuilder<Argument>>(divideMethod)
                     {
                         NodeId = new NodeId(divideMethod.BrowseName.Name + "OutArgs", NamespaceIndex),
-                        BrowseName = BrowseNames.OutputArguments
+                        BrowseName = (QualifiedName)BrowseNames.OutputArguments
                     };
-                    divideMethod.OutputArguments.DisplayName = divideMethod.OutputArguments.BrowseName.Name;
+                    divideMethod.OutputArguments.DisplayName = (LocalizedText)divideMethod.OutputArguments.BrowseName.Name;
                     divideMethod.OutputArguments.TypeDefinitionId = VariableTypeIds.PropertyType;
                     divideMethod.OutputArguments.ReferenceTypeId = ReferenceTypeIds.HasProperty;
                     divideMethod.OutputArguments.DataType = DataTypeIds.Argument;
@@ -951,7 +962,7 @@ namespace Reference
 
                     divideMethod.OutputArguments.Value =
                     [
-                        new() { Name = "Divide Result", Description = "Divide Result",  DataType = DataTypeIds.Float, ValueRank = ValueRanks.Scalar }
+                        new() { Name = "Divide Result", Description = (LocalizedText)"Divide Result",  DataType = DataTypeIds.Float, ValueRank = ValueRanks.Scalar }
                     ];
 
                     divideMethod.OnCallMethod = new GenericMethodCalledEventHandler(OnDivideCall);
@@ -959,12 +970,12 @@ namespace Reference
                     // Substract Method
                     var substractMethod = CreateMethod(methodsFolder, methods + "Substract", "Substract");
                     // set input arguments
-                    substractMethod.InputArguments = new PropertyState<Argument[]>(substractMethod)
+                    substractMethod.InputArguments = new PropertyState<ArrayOf<Argument>>.Implementation<StructureBuilder<Argument>>(substractMethod)
                     {
                         NodeId = new NodeId(substractMethod.BrowseName.Name + "InArgs", NamespaceIndex),
-                        BrowseName = BrowseNames.InputArguments
+                        BrowseName = (QualifiedName)BrowseNames.InputArguments
                     };
-                    substractMethod.InputArguments.DisplayName = substractMethod.InputArguments.BrowseName.Name;
+                    substractMethod.InputArguments.DisplayName = (LocalizedText)substractMethod.InputArguments.BrowseName.Name;
                     substractMethod.InputArguments.TypeDefinitionId = VariableTypeIds.PropertyType;
                     substractMethod.InputArguments.ReferenceTypeId = ReferenceTypeIds.HasProperty;
                     substractMethod.InputArguments.DataType = DataTypeIds.Argument;
@@ -972,17 +983,17 @@ namespace Reference
 
                     substractMethod.InputArguments.Value =
                     [
-                        new() { Name = "Int16 value", Description = "Int16 value",  DataType = DataTypeIds.Int16, ValueRank = ValueRanks.Scalar },
-                        new() { Name = "Byte value", Description = "Byte value",  DataType = DataTypeIds.Byte, ValueRank = ValueRanks.Scalar }
+                        new() { Name = "Int16 value", Description = (LocalizedText)"Int16 value",  DataType = DataTypeIds.Int16, ValueRank = ValueRanks.Scalar },
+                        new() { Name = "Byte value", Description = (LocalizedText)"Byte value",  DataType = DataTypeIds.Byte, ValueRank = ValueRanks.Scalar }
                     ];
 
                     // set output arguments
-                    substractMethod.OutputArguments = new PropertyState<Argument[]>(substractMethod)
+                    substractMethod.OutputArguments = new PropertyState<ArrayOf<Argument>>.Implementation<StructureBuilder<Argument>>(substractMethod)
                     {
                         NodeId = new NodeId(substractMethod.BrowseName.Name + "OutArgs", NamespaceIndex),
-                        BrowseName = BrowseNames.OutputArguments
+                        BrowseName = (QualifiedName)BrowseNames.OutputArguments
                     };
-                    substractMethod.OutputArguments.DisplayName = substractMethod.OutputArguments.BrowseName.Name;
+                    substractMethod.OutputArguments.DisplayName = (LocalizedText)substractMethod.OutputArguments.BrowseName.Name;
                     substractMethod.OutputArguments.TypeDefinitionId = VariableTypeIds.PropertyType;
                     substractMethod.OutputArguments.ReferenceTypeId = ReferenceTypeIds.HasProperty;
                     substractMethod.OutputArguments.DataType = DataTypeIds.Argument;
@@ -990,7 +1001,7 @@ namespace Reference
 
                     substractMethod.OutputArguments.Value =
                     [
-                        new() { Name = "Substract Result", Description = "Substract Result",  DataType = DataTypeIds.Int16, ValueRank = ValueRanks.Scalar }
+                        new() { Name = "Substract Result", Description = (LocalizedText)"Substract Result",  DataType = DataTypeIds.Int16, ValueRank = ValueRanks.Scalar }
                     ];
 
                     substractMethod.OnCallMethod = new GenericMethodCalledEventHandler(OnSubstractCall);
@@ -998,12 +1009,12 @@ namespace Reference
                     // Hello Method
                     var helloMethod = CreateMethod(methodsFolder, methods + "Hello", "Hello");
                     // set input arguments
-                    helloMethod.InputArguments = new PropertyState<Argument[]>(helloMethod)
+                    helloMethod.InputArguments = new PropertyState<ArrayOf<Argument>>.Implementation<StructureBuilder<Argument>>(helloMethod)
                     {
                         NodeId = new NodeId(helloMethod.BrowseName.Name + "InArgs", NamespaceIndex),
-                        BrowseName = BrowseNames.InputArguments
+                        BrowseName = (QualifiedName)BrowseNames.InputArguments
                     };
-                    helloMethod.InputArguments.DisplayName = helloMethod.InputArguments.BrowseName.Name;
+                    helloMethod.InputArguments.DisplayName = (LocalizedText)helloMethod.InputArguments.BrowseName.Name;
                     helloMethod.InputArguments.TypeDefinitionId = VariableTypeIds.PropertyType;
                     helloMethod.InputArguments.ReferenceTypeId = ReferenceTypeIds.HasProperty;
                     helloMethod.InputArguments.DataType = DataTypeIds.Argument;
@@ -1011,16 +1022,16 @@ namespace Reference
 
                     helloMethod.InputArguments.Value =
                     [
-                        new() { Name = "String value", Description = "String value",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
+                        new() { Name = "String value", Description = (LocalizedText)"String value",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
                     ];
 
                     // set output arguments
-                    helloMethod.OutputArguments = new PropertyState<Argument[]>(helloMethod)
+                    helloMethod.OutputArguments = new PropertyState<ArrayOf<Argument>>.Implementation<StructureBuilder<Argument>>(helloMethod)
                     {
                         NodeId = new NodeId(helloMethod.BrowseName.Name + "OutArgs", NamespaceIndex),
-                        BrowseName = BrowseNames.OutputArguments
+                        BrowseName = (QualifiedName)BrowseNames.OutputArguments
                     };
-                    helloMethod.OutputArguments.DisplayName = helloMethod.OutputArguments.BrowseName.Name;
+                    helloMethod.OutputArguments.DisplayName = (LocalizedText)helloMethod.OutputArguments.BrowseName.Name;
                     helloMethod.OutputArguments.TypeDefinitionId = VariableTypeIds.PropertyType;
                     helloMethod.OutputArguments.ReferenceTypeId = ReferenceTypeIds.HasProperty;
                     helloMethod.OutputArguments.DataType = DataTypeIds.Argument;
@@ -1028,7 +1039,7 @@ namespace Reference
 
                     helloMethod.OutputArguments.Value =
                     [
-                        new() { Name = "Hello Result", Description = "Hello Result",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
+                        new() { Name = "Hello Result", Description = (LocalizedText)"Hello Result",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
                     ];
 
                     helloMethod.OnCallMethod = new GenericMethodCalledEventHandler(OnHelloCall);
@@ -1036,12 +1047,12 @@ namespace Reference
                     // Input Method
                     var inputMethod = CreateMethod(methodsFolder, methods + "Input", "Input");
                     // set input arguments
-                    inputMethod.InputArguments = new PropertyState<Argument[]>(inputMethod)
+                    inputMethod.InputArguments = new PropertyState<ArrayOf<Argument>>.Implementation<StructureBuilder<Argument>>(inputMethod)
                     {
                         NodeId = new NodeId(inputMethod.BrowseName.Name + "InArgs", NamespaceIndex),
-                        BrowseName = BrowseNames.InputArguments
+                        BrowseName = (QualifiedName)BrowseNames.InputArguments
                     };
-                    inputMethod.InputArguments.DisplayName = inputMethod.InputArguments.BrowseName.Name;
+                    inputMethod.InputArguments.DisplayName = (LocalizedText)inputMethod.InputArguments.BrowseName.Name;
                     inputMethod.InputArguments.TypeDefinitionId = VariableTypeIds.PropertyType;
                     inputMethod.InputArguments.ReferenceTypeId = ReferenceTypeIds.HasProperty;
                     inputMethod.InputArguments.DataType = DataTypeIds.Argument;
@@ -1049,7 +1060,7 @@ namespace Reference
 
                     inputMethod.InputArguments.Value =
                     [
-                        new() { Name = "String value", Description = "String value",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
+                        new() { Name = "String value", Description = (LocalizedText)"String value",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
                     ];
 
                     inputMethod.OnCallMethod = new GenericMethodCalledEventHandler(OnInputCall);
@@ -1058,12 +1069,12 @@ namespace Reference
                     var outputMethod = CreateMethod(methodsFolder, methods + "Output", "Output");
 
                     // set output arguments
-                    outputMethod.OutputArguments = new PropertyState<Argument[]>(helloMethod)
+                    outputMethod.OutputArguments = new PropertyState<ArrayOf<Argument>>.Implementation<StructureBuilder<Argument>>(helloMethod)
                     {
                         NodeId = new NodeId(helloMethod.BrowseName.Name + "OutArgs", NamespaceIndex),
-                        BrowseName = BrowseNames.OutputArguments
+                        BrowseName = (QualifiedName)BrowseNames.OutputArguments
                     };
-                    outputMethod.OutputArguments.DisplayName = helloMethod.OutputArguments.BrowseName.Name;
+                    outputMethod.OutputArguments.DisplayName = (LocalizedText)helloMethod.OutputArguments.BrowseName.Name;
                     outputMethod.OutputArguments.TypeDefinitionId = VariableTypeIds.PropertyType;
                     outputMethod.OutputArguments.ReferenceTypeId = ReferenceTypeIds.HasProperty;
                     outputMethod.OutputArguments.DataType = DataTypeIds.Argument;
@@ -1071,7 +1082,7 @@ namespace Reference
 
                     outputMethod.OutputArguments.Value =
                     [
-                        new() { Name = "Output Result", Description = "Output Result",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
+                        new() { Name = "Output Result", Description = (LocalizedText)"Output Result",  DataType = DataTypeIds.String, ValueRank = ValueRanks.Scalar }
                     ];
 
                     outputMethod.OnCallMethod = new GenericMethodCalledEventHandler(OnOutputCall);
@@ -1081,12 +1092,12 @@ namespace Reference
                     var viewsFolder = CreateFolder(root, "Views", "Views");
                     const string views = "Views_";
                     var viewStateOperations = CreateView(viewsFolder, externalReferences, views + "Operations", "Operations");
-                    viewStateOperations.AddReference(ReferenceTypes.Organizes, false, massFolder.NodeId);
-                    massFolder.AddReference(ReferenceTypes.Organizes, true, viewStateOperations.NodeId);
+                    viewStateOperations.AddReference(ReferenceTypeIds.Organizes, false, massFolder.NodeId);
+                    massFolder.AddReference(ReferenceTypeIds.Organizes, true, viewStateOperations.NodeId);
 
                     var viewStateEngineering = CreateView(viewsFolder, externalReferences, views + "Engineering", "Engineering");
-                    viewStateEngineering.AddReference(ReferenceTypes.Organizes, false, simulationFolder.NodeId);
-                    simulationFolder.AddReference(ReferenceTypes.Organizes, true, viewStateEngineering.NodeId);
+                    viewStateEngineering.AddReference(ReferenceTypeIds.Organizes, false, simulationFolder.NodeId);
+                    simulationFolder.AddReference(ReferenceTypeIds.Organizes, true, viewStateEngineering.NodeId);
 
                     // Locales
                     ResetRandomGenerator(19);
@@ -1430,7 +1441,7 @@ namespace Reference
             }
         }
 
-        private ServiceResult OnWriteInterval(ISystemContext context, NodeState node, ref object value)
+        private ServiceResult OnWriteInterval(ISystemContext context, NodeState node, ref Variant value)
         {
             try
             {
@@ -1450,7 +1461,7 @@ namespace Reference
             }
         }
 
-        private ServiceResult OnWriteEnabled(ISystemContext context, NodeState node, ref object value)
+        private ServiceResult OnWriteEnabled(ISystemContext context, NodeState node, ref Variant value)
         {
             try
             {
@@ -1474,6 +1485,69 @@ namespace Reference
             }
         }
 
+        private Variant ToVariantOrDefault(object value, NodeId dataType, int valueRank)
+        {
+            if (value is DateTime dateTime)
+            {
+                return Variant.From((DateTimeUtc)dateTime);
+            }
+
+            if (value is byte[] bytes &&
+                valueRank == ValueRanks.Scalar &&
+                TypeInfo.GetBuiltInType(dataType, Server.TypeTree) == BuiltInType.ByteString)
+            {
+                return Variant.From((ByteString)bytes);
+            }
+
+            if (value is System.Xml.XmlElement xmlElement)
+            {
+                return Variant.From(Opc.Ua.XmlElement.From(xmlElement));
+            }
+
+            if (value is System.Xml.XmlElement[] xmlElements)
+            {
+                var converted = new Opc.Ua.XmlElement[xmlElements.Length];
+                for (var ii = 0; ii < xmlElements.Length; ii++)
+                {
+                    converted[ii] = Opc.Ua.XmlElement.From(xmlElements[ii]);
+                }
+
+                VariantHelper.TryCastFrom(converted, out var xmlElementVariant);
+                return xmlElementVariant;
+            }
+
+            if (value is DateTime[] dateTimes)
+            {
+                var converted = new DateTimeUtc[dateTimes.Length];
+                for (var ii = 0; ii < dateTimes.Length; ii++)
+                {
+                    converted[ii] = dateTimes[ii];
+                }
+
+                VariantHelper.TryCastFrom(converted, out var dateTimeVariant);
+                return dateTimeVariant;
+            }
+
+            if (value is byte[][] byteStrings)
+            {
+                var converted = new ByteString[byteStrings.Length];
+                for (var ii = 0; ii < byteStrings.Length; ii++)
+                {
+                    converted[ii] = (ByteString)byteStrings[ii];
+                }
+
+                VariantHelper.TryCastFrom(converted, out var byteStringVariant);
+                return byteStringVariant;
+            }
+
+            if (VariantHelper.TryCastFrom(value, out var variant) && !variant.IsNull)
+            {
+                return variant;
+            }
+
+            return TypeInfo.GetDefaultVariantValue(dataType, valueRank, Server.TypeTree);
+        }
+
         /// <summary>
         /// Creates a new folder.
         /// </summary>
@@ -1485,7 +1559,7 @@ namespace Reference
             var folder = new FolderState(parent)
             {
                 SymbolicName = name,
-                ReferenceTypeId = ReferenceTypes.Organizes,
+                ReferenceTypeId = (NodeId)ReferenceTypeIds.Organizes,
                 TypeDefinitionId = ObjectTypeIds.FolderType,
                 NodeId = new NodeId(path, NamespaceIndex),
                 BrowseName = new QualifiedName(path, NamespaceIndex),
@@ -1515,10 +1589,10 @@ namespace Reference
             {
                 foreach (var peer in peers)
                 {
-                    peer.AddReference(ReferenceTypes.HasCause, false, variable.NodeId);
-                    variable.AddReference(ReferenceTypes.HasCause, true, peer.NodeId);
-                    peer.AddReference(ReferenceTypes.HasEffect, true, variable.NodeId);
-                    variable.AddReference(ReferenceTypes.HasEffect, false, peer.NodeId);
+                    peer.AddReference(ReferenceTypeIds.HasCause, false, variable.NodeId);
+                    variable.AddReference(ReferenceTypeIds.HasCause, true, peer.NodeId);
+                    peer.AddReference(ReferenceTypeIds.HasEffect, true, variable.NodeId);
+                    variable.AddReference(ReferenceTypeIds.HasEffect, false, peer.NodeId);
                 }
             }
 
@@ -1536,39 +1610,39 @@ namespace Reference
         private DataItemState CreateDataItemVariable(NodeState parent, string path, string name, BuiltInType dataType, int valueRank)
         {
             var variable = new DataItemState(parent);
-            variable.ValuePrecision = new PropertyState<double>(variable);
-            variable.Definition = new PropertyState<string>(variable);
+            variable.ValuePrecision = new PropertyState<double>.Implementation<VariantBuilder>(variable);
+            variable.Definition = new PropertyState<string>.Implementation<VariantBuilder>(variable);
 
             variable.Create(
                 SystemContext,
-                null,
+                default,
                 variable.BrowseName,
-                null,
+                default,
                 true);
 
             variable.SymbolicName = name;
-            variable.ReferenceTypeId = ReferenceTypes.Organizes;
+            variable.ReferenceTypeId = (NodeId)ReferenceTypeIds.Organizes;
             variable.NodeId = new NodeId(path, NamespaceIndex);
             variable.BrowseName = new QualifiedName(path, NamespaceIndex);
             variable.DisplayName = new LocalizedText("en", name);
             variable.WriteMask = AttributeWriteMask.None;
             variable.UserWriteMask = AttributeWriteMask.None;
-            variable.DataType = (uint)dataType;
+            variable.DataType = (NodeId)(uint)dataType;
             variable.ValueRank = valueRank;
             variable.AccessLevel = AccessLevels.CurrentReadOrWrite;
             variable.UserAccessLevel = AccessLevels.CurrentReadOrWrite;
             variable.Historizing = false;
-            variable.Value = TypeInfo.GetDefaultValue((uint)dataType, valueRank, Server.TypeTree);
+            variable.Value = TypeInfo.GetDefaultVariantValue((NodeId)(uint)dataType, valueRank, Server.TypeTree);
             variable.StatusCode = StatusCodes.Good;
             variable.Timestamp = DateTime.UtcNow;
 
             if (valueRank == ValueRanks.OneDimension)
             {
-                variable.ArrayDimensions = new ReadOnlyList<uint>([0]);
+                variable.ArrayDimensions = [0];
             }
             else if (valueRank == ValueRanks.TwoDimensions)
             {
-                variable.ArrayDimensions = new ReadOnlyList<uint>([0, 0]);
+                variable.ArrayDimensions = [0, 0];
             }
 
             variable.ValuePrecision.Value = 2;
@@ -1603,7 +1677,7 @@ namespace Reference
 
         private AnalogItemState CreateAnalogItemVariable(NodeState parent, string path, string name, BuiltInType dataType, int valueRank, object initialValues, Opc.Ua.Range customRange)
         {
-            return CreateAnalogItemVariable(parent, path, name, (uint)dataType, valueRank, initialValues, customRange);
+            return CreateAnalogItemVariable(parent, path, name, (NodeId)(uint)dataType, valueRank, initialValues, customRange);
         }
 
         private AnalogItemState CreateAnalogItemVariable(NodeState parent, string path, string name, NodeId dataType, int valueRank, object initialValues, Opc.Ua.Range customRange)
@@ -1612,14 +1686,14 @@ namespace Reference
             {
                 BrowseName = new QualifiedName(path, NamespaceIndex)
             };
-            variable.EngineeringUnits = new PropertyState<EUInformation>(variable);
-            variable.InstrumentRange = new PropertyState<Opc.Ua.Range>(variable);
+            variable.EngineeringUnits = new PropertyState<EUInformation>.Implementation<StructureBuilder<EUInformation>>(variable);
+            variable.InstrumentRange = new PropertyState<Opc.Ua.Range>.Implementation<StructureBuilder<Opc.Ua.Range>>(variable);
 
             variable.Create(
                 SystemContext,
                 new NodeId(path, NamespaceIndex),
                 variable.BrowseName,
-                null,
+                default,
                 true);
 
             variable.NodeId = new NodeId(path, NamespaceIndex);
@@ -1627,7 +1701,7 @@ namespace Reference
             variable.DisplayName = new LocalizedText("en", name);
             variable.WriteMask = AttributeWriteMask.None;
             variable.UserWriteMask = AttributeWriteMask.None;
-            variable.ReferenceTypeId = ReferenceTypes.Organizes;
+            variable.ReferenceTypeId = (NodeId)ReferenceTypeIds.Organizes;
             variable.DataType = dataType;
             variable.ValueRank = valueRank;
             variable.AccessLevel = AccessLevels.CurrentReadOrWrite;
@@ -1636,11 +1710,11 @@ namespace Reference
 
             if (valueRank == ValueRanks.OneDimension)
             {
-                variable.ArrayDimensions = new ReadOnlyList<uint>([0]);
+                variable.ArrayDimensions = [0];
             }
             else if (valueRank == ValueRanks.TwoDimensions)
             {
-                variable.ArrayDimensions = new ReadOnlyList<uint>([0, 0]);
+                variable.ArrayDimensions = [0, 0];
             }
 
             var builtInType = TypeInfo.GetBuiltInType(dataType, Server.TypeTree);
@@ -1654,7 +1728,7 @@ namespace Reference
 
             variable.EURange.Value = customRange ?? new Opc.Ua.Range(100, 0);
 
-            variable.Value = initialValues ?? TypeInfo.GetDefaultValue(dataType, valueRank, Server.TypeTree);
+            variable.Value = ToVariantOrDefault(initialValues, dataType, valueRank);
 
             variable.StatusCode = StatusCodes.Good;
             variable.Timestamp = DateTime.UtcNow;
@@ -1702,27 +1776,27 @@ namespace Reference
 
             variable.Create(
                 SystemContext,
-                null,
+                default,
                 variable.BrowseName,
-                null,
+                default,
                 true);
 
             variable.SymbolicName = name;
-            variable.ReferenceTypeId = ReferenceTypes.Organizes;
+            variable.ReferenceTypeId = (NodeId)ReferenceTypeIds.Organizes;
             variable.DataType = DataTypeIds.Boolean;
             variable.ValueRank = ValueRanks.Scalar;
             variable.AccessLevel = AccessLevels.CurrentReadOrWrite;
             variable.UserAccessLevel = AccessLevels.CurrentReadOrWrite;
             variable.Historizing = false;
-            variable.Value = (bool)GetNewValue(variable);
+            variable.Value = GetNewValue(variable).GetBoolean();
             variable.StatusCode = StatusCodes.Good;
             variable.Timestamp = DateTime.UtcNow;
 
-            variable.TrueState.Value = trueState;
+            variable.TrueState.Value = (LocalizedText)trueState;
             variable.TrueState.AccessLevel = AccessLevels.CurrentReadOrWrite;
             variable.TrueState.UserAccessLevel = AccessLevels.CurrentReadOrWrite;
 
-            variable.FalseState.Value = falseState;
+            variable.FalseState.Value = (LocalizedText)falseState;
             variable.FalseState.AccessLevel = AccessLevels.CurrentReadOrWrite;
             variable.FalseState.UserAccessLevel = AccessLevels.CurrentReadOrWrite;
 
@@ -1751,13 +1825,13 @@ namespace Reference
 
             variable.Create(
                 SystemContext,
-                null,
+                default,
                 variable.BrowseName,
-                null,
+                default,
                 true);
 
             variable.SymbolicName = name;
-            variable.ReferenceTypeId = ReferenceTypes.Organizes;
+            variable.ReferenceTypeId = (NodeId)ReferenceTypeIds.Organizes;
             variable.DataType = DataTypeIds.UInt32;
             variable.ValueRank = ValueRanks.Scalar;
             variable.AccessLevel = AccessLevels.CurrentReadOrWrite;
@@ -1772,7 +1846,7 @@ namespace Reference
 
             for (var ii = 0; ii < strings.Length; ii++)
             {
-                strings[ii] = values[ii];
+                strings[ii] = (LocalizedText)values[ii];
             }
 
             variable.EnumStrings.Value = strings;
@@ -1793,7 +1867,7 @@ namespace Reference
         /// <param name="enumNames"></param>
         private MultiStateValueDiscreteState CreateMultiStateValueDiscreteItemVariable(NodeState parent, string path, string name, params string[] enumNames)
         {
-            return CreateMultiStateValueDiscreteItemVariable(parent, path, name, null, enumNames);
+            return CreateMultiStateValueDiscreteItemVariable(parent, path, name, default, enumNames);
         }
 
         /// <summary>
@@ -1817,14 +1891,14 @@ namespace Reference
 
             variable.Create(
                 SystemContext,
-                null,
+                default,
                 variable.BrowseName,
-                null,
+                default,
                 true);
 
             variable.SymbolicName = name;
-            variable.ReferenceTypeId = ReferenceTypes.Organizes;
-            variable.DataType = nodeId ?? DataTypeIds.UInt32;
+            variable.ReferenceTypeId = (NodeId)ReferenceTypeIds.Organizes;
+            variable.DataType = nodeId.IsNull ? DataTypeIds.UInt32 : nodeId;
             variable.ValueRank = ValueRanks.Scalar;
             variable.AccessLevel = AccessLevels.CurrentReadOrWrite;
             variable.UserAccessLevel = AccessLevels.CurrentReadOrWrite;
@@ -1842,7 +1916,7 @@ namespace Reference
             var strings = new LocalizedText[enumNames.Length];
             for (var ii = 0; ii < strings.Length; ii++)
             {
-                strings[ii] = enumNames[ii];
+                strings[ii] = (LocalizedText)enumNames[ii];
             }
 
             // set the enumerated values
@@ -1871,9 +1945,9 @@ namespace Reference
             NodeState node,
             NumericRange indexRange,
             QualifiedName dataEncoding,
-            ref object value,
+            ref Variant value,
             ref StatusCode statusCode,
-            ref DateTime timestamp)
+            ref DateTimeUtc timestamp)
         {
             var variable = node as MultiStateDiscreteState;
 
@@ -1885,19 +1959,19 @@ namespace Reference
                 context.NamespaceUris,
                 context.TypeTable);
 
-            if (typeInfo == null || typeInfo == TypeInfo.Unknown)
+            if (typeInfo.IsUnknown)
             {
                 return StatusCodes.BadTypeMismatch;
             }
 
-            if (indexRange != NumericRange.Empty)
+            if (!indexRange.IsNull)
             {
                 return StatusCodes.BadIndexRangeInvalid;
             }
 
-            var number = Convert.ToDouble(value, CultureInfo.InvariantCulture);
+            var number = value.GetDouble();
 
-            if (number >= variable.EnumStrings.Value.Length || number < 0)
+            if (number >= variable.EnumStrings.Value.Count || number < 0)
             {
                 return StatusCodes.BadOutOfRange;
             }
@@ -1910,27 +1984,26 @@ namespace Reference
             NodeState node,
             NumericRange indexRange,
             QualifiedName dataEncoding,
-            ref object value,
+            ref Variant value,
             ref StatusCode statusCode,
-            ref DateTime timestamp)
+            ref DateTimeUtc timestamp)
         {
-            var typeInfo = TypeInfo.Construct(value);
+            var typeInfo = value.TypeInfo;
 
             if (node is not MultiStateValueDiscreteState variable ||
-                typeInfo == null ||
-                typeInfo == TypeInfo.Unknown ||
+                typeInfo.IsUnknown ||
                 !TypeInfo.IsNumericType(typeInfo.BuiltInType))
             {
                 return StatusCodes.BadTypeMismatch;
             }
 
-            if (indexRange != NumericRange.Empty)
+            if (!indexRange.IsNull)
             {
                 return StatusCodes.BadIndexRangeInvalid;
             }
 
-            var number = Convert.ToInt32(value, CultureInfo.InvariantCulture);
-            if (number >= variable.EnumValues.Value.Length || number < 0)
+            var number = (int)value.GetUInt32();
+            if (number >= variable.EnumValues.Value.Count || number < 0)
             {
                 return StatusCodes.BadOutOfRange;
             }
@@ -1950,9 +2023,9 @@ namespace Reference
             NodeState node,
             NumericRange indexRange,
             QualifiedName dataEncoding,
-            ref object value,
+            ref Variant value,
             ref StatusCode statusCode,
-            ref DateTime timestamp)
+            ref DateTimeUtc timestamp)
         {
             var variable = node as AnalogItemState;
 
@@ -1964,7 +2037,7 @@ namespace Reference
                 context.NamespaceUris,
                 context.TypeTable);
 
-            if (typeInfo == null || typeInfo == TypeInfo.Unknown)
+            if (typeInfo.IsUnknown)
             {
                 return StatusCodes.BadTypeMismatch;
             }
@@ -1972,7 +2045,7 @@ namespace Reference
             // check index range.
             if (variable.ValueRank >= 0)
             {
-                if (indexRange != NumericRange.Empty)
+                if (!indexRange.IsNull)
                 {
                     var target = variable.Value;
                     ServiceResult result = indexRange.UpdateRange(ref target, value);
@@ -1989,12 +2062,12 @@ namespace Reference
             // check instrument range.
             else
             {
-                if (indexRange != NumericRange.Empty)
+                if (!indexRange.IsNull)
                 {
                     return StatusCodes.BadIndexRangeInvalid;
                 }
 
-                var number = Convert.ToDouble(value, CultureInfo.InvariantCulture);
+                var number = value.GetDouble();
 
                 if (variable.InstrumentRange != null && (number < variable.InstrumentRange.Value.Low || number > variable.InstrumentRange.Value.High))
                 {
@@ -2010,32 +2083,31 @@ namespace Reference
             NodeState node,
             NumericRange indexRange,
             QualifiedName dataEncoding,
-            ref object value,
+            ref Variant value,
             ref StatusCode statusCode,
-            ref DateTime timestamp)
+            ref DateTimeUtc timestamp)
         {
-            var typeInfo = TypeInfo.Construct(value);
+            var typeInfo = value.TypeInfo;
 
             if (node is not PropertyState<Opc.Ua.Range> variable ||
-                value is not ExtensionObject extensionObject ||
-                typeInfo == null ||
-                typeInfo == TypeInfo.Unknown)
+                !value.TryGetValue(out ExtensionObject extensionObject) ||
+                typeInfo.IsUnknown)
             {
                 return StatusCodes.BadTypeMismatch;
             }
 
-            if (extensionObject.Body is not Opc.Ua.Range newRange ||
+            if (!extensionObject.TryGetValue(out Opc.Ua.Range newRange) ||
                 variable.Parent is not AnalogItemState parent)
             {
                 return StatusCodes.BadTypeMismatch;
             }
 
-            if (indexRange != NumericRange.Empty)
+            if (!indexRange.IsNull)
             {
                 return StatusCodes.BadIndexRangeInvalid;
             }
 
-            var parentTypeInfo = TypeInfo.Construct(parent.Value);
+            var parentTypeInfo = parent.Value.TypeInfo;
             var parentRange = GetAnalogRange(parentTypeInfo.BuiltInType);
             if (parentRange.High < newRange.High ||
                 parentRange.Low > newRange.Low)
@@ -2043,7 +2115,7 @@ namespace Reference
                 return StatusCodes.BadOutOfRange;
             }
 
-            value = newRange;
+            value = Variant.FromStructure(newRange);
 
             return ServiceResult.Good;
         }
@@ -2058,7 +2130,7 @@ namespace Reference
         /// <param name="valueRank"></param>
         private BaseDataVariableState CreateVariable(NodeState parent, string path, string name, BuiltInType dataType, int valueRank)
         {
-            return CreateVariable(parent, path, name, (uint)dataType, valueRank);
+            return CreateVariable(parent, path, name, (NodeId)(uint)dataType, valueRank);
         }
 
         /// <summary>
@@ -2074,7 +2146,7 @@ namespace Reference
             var variable = new BaseDataVariableState(parent)
             {
                 SymbolicName = name,
-                ReferenceTypeId = ReferenceTypes.Organizes,
+                ReferenceTypeId = (NodeId)ReferenceTypeIds.Organizes,
                 TypeDefinitionId = VariableTypeIds.BaseDataVariableType,
                 NodeId = new NodeId(path, NamespaceIndex),
                 BrowseName = new QualifiedName(path, NamespaceIndex),
@@ -2093,11 +2165,11 @@ namespace Reference
 
             if (valueRank == ValueRanks.OneDimension)
             {
-                variable.ArrayDimensions = new ReadOnlyList<uint>([0]);
+                variable.ArrayDimensions = [0];
             }
             else if (valueRank == ValueRanks.TwoDimensions)
             {
-                variable.ArrayDimensions = new ReadOnlyList<uint>([0, 0]);
+                variable.ArrayDimensions = [0, 0];
             }
 
             parent?.AddChild(variable);
@@ -2107,7 +2179,7 @@ namespace Reference
 
         private BaseDataVariableState[] CreateVariables(NodeState parent, string path, string name, BuiltInType dataType, int valueRank, ushort numVariables)
         {
-            return CreateVariables(parent, path, name, (uint)dataType, valueRank, numVariables);
+            return CreateVariables(parent, path, name, (NodeId)(uint)dataType, valueRank, numVariables);
         }
 
         private BaseDataVariableState[] CreateVariables(NodeState parent, string path, string name, NodeId dataType, int valueRank, ushort numVariables)
@@ -2136,7 +2208,7 @@ namespace Reference
         /// <param name="valueRank"></param>
         private BaseDataVariableState CreateDynamicVariable(NodeState parent, string path, string name, BuiltInType dataType, int valueRank)
         {
-            return CreateDynamicVariable(parent, path, name, (uint)dataType, valueRank);
+            return CreateDynamicVariable(parent, path, name, (NodeId)(uint)dataType, valueRank);
         }
 
         /// <summary>
@@ -2156,7 +2228,7 @@ namespace Reference
 
         private BaseDataVariableState[] CreateDynamicVariables(NodeState parent, string path, string name, BuiltInType dataType, int valueRank, uint numVariables)
         {
-            return CreateDynamicVariables(parent, path, name, (uint)dataType, valueRank, numVariables);
+            return CreateDynamicVariables(parent, path, name, (NodeId)(uint)dataType, valueRank, numVariables);
         }
 
         private BaseDataVariableState[] CreateDynamicVariables(NodeState parent, string path, string name, NodeId dataType, int valueRank, uint numVariables)
@@ -2190,7 +2262,7 @@ namespace Reference
                 NodeId = new NodeId(path, NamespaceIndex),
                 BrowseName = new QualifiedName(name, NamespaceIndex)
             };
-            type.DisplayName = type.BrowseName.Name;
+            type.DisplayName = (LocalizedText)type.BrowseName.Name;
             type.WriteMask = AttributeWriteMask.None;
             type.UserWriteMask = AttributeWriteMask.None;
             type.ContainsNoLoops = true;
@@ -2205,8 +2277,8 @@ namespace Reference
 
             if (parent != null)
             {
-                parent.AddReference(ReferenceTypes.Organizes, false, type.NodeId);
-                type.AddReference(ReferenceTypes.Organizes, true, parent.NodeId);
+                parent.AddReference(ReferenceTypeIds.Organizes, false, type.NodeId);
+                type.AddReference(ReferenceTypeIds.Organizes, true, parent.NodeId);
             }
 
             AddPredefinedNode(SystemContext, type);
@@ -2242,8 +2314,8 @@ namespace Reference
         private ServiceResult OnVoidCall(
             ISystemContext context,
             MethodState method,
-            IList<object> inputArguments,
-            IList<object> outputArguments)
+            ArrayOf<Variant> inputArguments,
+            List<Variant> outputArguments)
         {
             return ServiceResult.Good;
         }
@@ -2251,8 +2323,8 @@ namespace Reference
         private ServiceResult OnAddCall(
             ISystemContext context,
             MethodState method,
-            IList<object> inputArguments,
-            IList<object> outputArguments)
+            ArrayOf<Variant> inputArguments,
+            List<Variant> outputArguments)
         {
             // all arguments must be provided.
             if (inputArguments.Count < 2)
@@ -2278,8 +2350,8 @@ namespace Reference
         private ServiceResult OnMultiplyCall(
             ISystemContext context,
             MethodState method,
-            IList<object> inputArguments,
-            IList<object> outputArguments)
+            ArrayOf<Variant> inputArguments,
+            List<Variant> outputArguments)
         {
             // all arguments must be provided.
             if (inputArguments.Count < 2)
@@ -2305,8 +2377,8 @@ namespace Reference
         private ServiceResult OnDivideCall(
             ISystemContext context,
             MethodState method,
-            IList<object> inputArguments,
-            IList<object> outputArguments)
+            ArrayOf<Variant> inputArguments,
+            List<Variant> outputArguments)
         {
             // all arguments must be provided.
             if (inputArguments.Count < 2)
@@ -2332,8 +2404,8 @@ namespace Reference
         private ServiceResult OnSubstractCall(
             ISystemContext context,
             MethodState method,
-            IList<object> inputArguments,
-            IList<object> outputArguments)
+            ArrayOf<Variant> inputArguments,
+            List<Variant> outputArguments)
         {
             // all arguments must be provided.
             if (inputArguments.Count < 2)
@@ -2359,8 +2431,8 @@ namespace Reference
         private ServiceResult OnHelloCall(
             ISystemContext context,
             MethodState method,
-            IList<object> inputArguments,
-            IList<object> outputArguments)
+            ArrayOf<Variant> inputArguments,
+            List<Variant> outputArguments)
         {
             // all arguments must be provided.
             if (inputArguments.Count < 1)
@@ -2385,8 +2457,8 @@ namespace Reference
         private ServiceResult OnInputCall(
             ISystemContext context,
             MethodState method,
-            IList<object> inputArguments,
-            IList<object> outputArguments)
+            ArrayOf<Variant> inputArguments,
+            List<Variant> outputArguments)
         {
             // all arguments must be provided.
             if (inputArguments.Count < 1)
@@ -2400,8 +2472,8 @@ namespace Reference
         private ServiceResult OnOutputCall(
             ISystemContext context,
             MethodState method,
-            IList<object> inputArguments,
-            IList<object> outputArguments)
+            ArrayOf<Variant> inputArguments,
+            List<Variant> outputArguments)
         {
             // all arguments must be provided.
             try
@@ -2425,19 +2497,17 @@ namespace Reference
             };
         }
 
-        private object GetNewValue(BaseVariableState variable)
+        private Variant GetNewValue(BaseVariableState variable)
         {
             Debug.Assert(_generator != null, "Need a random generator!");
 
-            object value = null;
-            for (var retryCount = 0; value == null && retryCount < 10; retryCount++)
+            Variant value = default;
+            for (var retryCount = 0; value.IsNull && retryCount < 10; retryCount++)
             {
-                value = _generator.GetRandom(variable.DataType, variable.ValueRank,
-                    new uint[] { 10 }, Server.TypeTree);
-                if (value is Variant variant && variant.Value == null)
-                {
-                    value = null;
-                }
+                value = ToVariantOrDefault(
+                    _generator.GetRandom(variable.DataType, variable.ValueRank, [10], Server.TypeTree),
+                    variable.DataType,
+                    variable.ValueRank);
             }
             return value;
         }

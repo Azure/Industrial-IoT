@@ -56,7 +56,7 @@ namespace DataAccess
             NodeId = nodeId;
             BrowseName = new QualifiedName(block.Name, nodeId.NamespaceIndex);
             DisplayName = new LocalizedText(block.Name);
-            Description = null;
+            Description = default;
             WriteMask = 0;
             UserWriteMask = 0;
             EventNotifier = EventNotifiers.None;
@@ -117,7 +117,7 @@ namespace DataAccess
         public ServiceResult OnWriteTagValue(
             ISystemContext context,
             NodeState node,
-            ref object value)
+            ref Variant value)
         {
             if (context.SystemHandle is not UnderlyingSystem system)
             {
@@ -207,12 +207,12 @@ namespace DataAccess
 
                         if (tag.EngineeringUnits != null)
                         {
-                            node.EngineeringUnits = new PropertyState<EUInformation>(node);
+                            node.EngineeringUnits = new PropertyState<EUInformation>.Implementation<StructureBuilder<EUInformation>>(node);
                         }
 
                         if (tag.EuRange.Length >= 4)
                         {
-                            node.InstrumentRange = new PropertyState<Range>(node);
+                            node.InstrumentRange = new PropertyState<Range>.Implementation<StructureBuilder<Range>>(node);
                         }
 
                         variable = node;
@@ -231,7 +231,7 @@ namespace DataAccess
 
                         if (tag.Labels != null)
                         {
-                            node.EnumStrings = new PropertyState<LocalizedText[]>(node);
+                            node.EnumStrings = new PropertyState<ArrayOf<LocalizedText>>.Implementation<VariantBuilder>(node);
                         }
 
                         variable = node;
@@ -252,9 +252,9 @@ namespace DataAccess
             // initialize the variable from the type model.
             variable.Create(
                 context,
-                null,
+                default,
                 new QualifiedName(tag.Name, BrowseName.NamespaceIndex),
-                null,
+                default,
                 true);
 
             // update the variable values.
@@ -272,21 +272,21 @@ namespace DataAccess
         private void UpdateVariable(ISystemContext context, UnderlyingSystemTag tag, BaseVariableState variable)
         {
             System.Diagnostics.Contracts.Contract.Assume(context != null);
-            variable.Description = tag.Description;
-            variable.Value = tag.Value;
+            variable.Description = (LocalizedText)tag.Description;
+            variable.Value = (Variant)tag.Value;
             variable.Timestamp = tag.Timestamp;
 
             switch (tag.DataType)
             {
-                case UnderlyingSystemDataType.Integer1: { variable.DataType = DataTypes.SByte; break; }
-                case UnderlyingSystemDataType.Integer2: { variable.DataType = DataTypes.Int16; break; }
-                case UnderlyingSystemDataType.Integer4: { variable.DataType = DataTypes.Int32; break; }
-                case UnderlyingSystemDataType.Real4: { variable.DataType = DataTypes.Float; break; }
-                case UnderlyingSystemDataType.String: { variable.DataType = DataTypes.String; break; }
+                case UnderlyingSystemDataType.Integer1: { variable.DataType = (NodeId)DataTypes.SByte; break; }
+                case UnderlyingSystemDataType.Integer2: { variable.DataType = (NodeId)DataTypes.Int16; break; }
+                case UnderlyingSystemDataType.Integer4: { variable.DataType = (NodeId)DataTypes.Int32; break; }
+                case UnderlyingSystemDataType.Real4: { variable.DataType = (NodeId)DataTypes.Float; break; }
+                case UnderlyingSystemDataType.String: { variable.DataType = (NodeId)DataTypes.String; break; }
             }
 
             variable.ValueRank = ValueRanks.Scalar;
-            variable.ArrayDimensions = null;
+            variable.ArrayDimensions = default;
 
             if (tag.IsWriteable)
             {
@@ -327,7 +327,7 @@ namespace DataAccess
                         {
                             node.EngineeringUnits.Value = new EUInformation
                             {
-                                DisplayName = tag.EngineeringUnits,
+                                DisplayName = (LocalizedText)tag.EngineeringUnits,
                                 NamespaceUri = Namespaces.DataAccess
                             };
                             node.EngineeringUnits.Timestamp = tag.Block.Timestamp;

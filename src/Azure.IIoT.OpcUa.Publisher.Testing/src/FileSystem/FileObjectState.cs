@@ -38,48 +38,48 @@ namespace FileSystem
             BrowseName = new QualifiedName(Path.GetFileName(path),
                 nodeId.NamespaceIndex);
             DisplayName = new LocalizedText(Path.GetFileName(path));
-            Description = null;
+            Description = default;
             WriteMask = 0;
             UserWriteMask = 0;
             EventNotifier = EventNotifiers.None;
 
-            OpenCount = new PropertyState<ushort>(this);
+            OpenCount = new PropertyState<ushort>.Implementation<VariantBuilder>(this);
             OpenCount.OnReadValue += OnOpenCount;
             OpenCount.AccessLevel = AccessLevels.CurrentRead;
             OpenCount.UserAccessLevel = AccessLevels.CurrentRead;
             OpenCount.Create(context, VariableIds.FileType_OpenCount,
-                BrowseNames.OpenCount, BrowseNames.OpenCount, true);
+                (QualifiedName)BrowseNames.OpenCount, (LocalizedText)BrowseNames.OpenCount, true);
 
-            Writable = new PropertyState<bool>(this);
+            Writable = new PropertyState<bool>.Implementation<VariantBuilder>(this);
             Writable.OnReadValue += OnWritable;
             Writable.AccessLevel = AccessLevels.CurrentRead;
             Writable.UserAccessLevel = AccessLevels.CurrentRead;
             Writable.Create(context, VariableIds.FileType_Writable,
-                BrowseNames.Writable, BrowseNames.Writable, true);
+                (QualifiedName)BrowseNames.Writable, (LocalizedText)BrowseNames.Writable, true);
 
-            UserWritable = new PropertyState<bool>(this);
+            UserWritable = new PropertyState<bool>.Implementation<VariantBuilder>(this);
             UserWritable.OnReadValue += OnWritable;
             UserWritable.AccessLevel = AccessLevels.CurrentRead;
             UserWritable.UserAccessLevel = AccessLevels.CurrentRead;
             UserWritable.Create(context, VariableIds.FileType_UserWritable,
-                BrowseNames.UserWritable, BrowseNames.UserWritable, true);
+                (QualifiedName)BrowseNames.UserWritable, (LocalizedText)BrowseNames.UserWritable, true);
 
-            Size = new PropertyState<ulong>(this);
+            Size = new PropertyState<ulong>.Implementation<VariantBuilder>(this);
             Size.OnReadValue += OnSize;
             Size.AccessLevel = AccessLevels.CurrentRead;
             Size.UserAccessLevel = AccessLevels.CurrentRead;
             Size.Create(context, VariableIds.FileType_Size,
-                BrowseNames.Size, BrowseNames.Size, true);
+                (QualifiedName)BrowseNames.Size, (LocalizedText)BrowseNames.Size, true);
 
-            MimeType = new PropertyState<string>(this);
+            MimeType = new PropertyState<string>.Implementation<VariantBuilder>(this);
             MimeType.OnReadValue += OnMimeType;
             MimeType.AccessLevel = AccessLevels.CurrentRead;
             MimeType.UserAccessLevel = AccessLevels.CurrentRead;
             MimeType.Create(context, VariableIds.FileType_MimeType,
-                BrowseNames.MimeType, BrowseNames.MimeType, true);
+                (QualifiedName)BrowseNames.MimeType, (LocalizedText)BrowseNames.MimeType, true);
 
 #if OPTIONAL_MAX_BYTE_STRING
-            MaxByteStringLength = new PropertyState<uint>(this);
+            MaxByteStringLength = new PropertyState<uint>.Implementation<VariantBuilder>(this);
             MaxByteStringLength.OnReadValue += OnMaxByteStringLength;
             MaxByteStringLength.AccessLevel = AccessLevels.CurrentRead;
             MaxByteStringLength.UserAccessLevel = AccessLevels.CurrentRead;
@@ -87,12 +87,12 @@ namespace FileSystem
                 BrowseNames.MaxByteStringLength, BrowseNames.MaxByteStringLength, true);
 #endif
 
-            LastModifiedTime = new PropertyState<DateTime>(this);
+            LastModifiedTime = new PropertyState<DateTimeUtc>.Implementation<VariantBuilder>(this);
             LastModifiedTime.OnReadValue += OnLastModifiedTime;
             LastModifiedTime.AccessLevel = AccessLevels.CurrentRead;
             LastModifiedTime.UserAccessLevel = AccessLevels.CurrentRead;
             LastModifiedTime.Create(context, VariableIds.FileType_LastModifiedTime,
-                BrowseNames.LastModifiedTime, BrowseNames.LastModifiedTime, true);
+                (QualifiedName)BrowseNames.LastModifiedTime, (LocalizedText)BrowseNames.LastModifiedTime, true);
 
             Open = new OpenMethodState(this)
             {
@@ -101,7 +101,7 @@ namespace FileSystem
                 UserExecutable = true
             };
             Open.Create(context, MethodIds.FileType_Open,
-                BrowseNames.Open, BrowseNames.Open, false);
+                (QualifiedName)BrowseNames.Open, (LocalizedText)BrowseNames.Open, false);
 
             Write = new WriteMethodState(this)
             {
@@ -110,7 +110,7 @@ namespace FileSystem
                 UserExecutable = true
             };
             Write.Create(context, MethodIds.FileType_Write,
-                BrowseNames.Write, BrowseNames.Write, false);
+                (QualifiedName)BrowseNames.Write, (LocalizedText)BrowseNames.Write, false);
 
             Read = new ReadMethodState(this)
             {
@@ -119,7 +119,7 @@ namespace FileSystem
                 UserExecutable = true
             };
             Read.Create(context, MethodIds.FileType_Read,
-                BrowseNames.Read, BrowseNames.Read, false);
+                (QualifiedName)BrowseNames.Read, (LocalizedText)BrowseNames.Read, false);
 
             Close = new CloseMethodState(this)
             {
@@ -128,7 +128,7 @@ namespace FileSystem
                 UserExecutable = true
             };
             Close.Create(context, MethodIds.FileType_Close,
-                BrowseNames.Close, BrowseNames.Close, false);
+                (QualifiedName)BrowseNames.Close, (LocalizedText)BrowseNames.Close, false);
 
             GetPosition = new GetPositionMethodState(this)
             {
@@ -137,7 +137,7 @@ namespace FileSystem
                 UserExecutable = true
             };
             GetPosition.Create(context, MethodIds.FileType_GetPosition,
-                BrowseNames.GetPosition, BrowseNames.GetPosition, false);
+                (QualifiedName)BrowseNames.GetPosition, (LocalizedText)BrowseNames.GetPosition, false);
 
             SetPosition = new SetPositionMethodState(this)
             {
@@ -146,17 +146,17 @@ namespace FileSystem
                 UserExecutable = true
             };
             SetPosition.Create(context, MethodIds.FileType_SetPosition,
-                BrowseNames.SetPosition, BrowseNames.SetPosition, false);
+                (QualifiedName)BrowseNames.SetPosition, (LocalizedText)BrowseNames.SetPosition, false);
         }
 
 #if OPTIONAL_MAX_BYTE_STRING
         private ServiceResult OnMaxByteStringLength(ISystemContext context,
             NodeState node, NumericRange indexRange, QualifiedName dataEncoding,
-            ref object value, ref StatusCode statusCode, ref DateTime timestamp)
+            ref Variant value, ref StatusCode statusCode, ref DateTimeUtc timestamp)
         {
             if (GetFileHandle(context, NodeId, out var handle, out var result))
             {
-                value = handle.MaxByteStringLength;
+                value = new Variant(handle.MaxByteStringLength);
                 timestamp = DateTime.UtcNow;
                 statusCode = StatusCodes.Good;
             }
@@ -164,12 +164,12 @@ namespace FileSystem
         }
 #endif
         private ServiceResult OnMimeType(ISystemContext context, NodeState node,
-            NumericRange indexRange, QualifiedName dataEncoding, ref object value,
-            ref StatusCode statusCode, ref DateTime timestamp)
+            NumericRange indexRange, QualifiedName dataEncoding, ref Variant value,
+            ref StatusCode statusCode, ref DateTimeUtc timestamp)
         {
             if (GetFileHandle(context, NodeId, out var handle, out var result))
             {
-                value = handle.MimeType;
+                value = new Variant(handle.MimeType);
                 timestamp = DateTime.UtcNow;
                 statusCode = StatusCodes.Uncertain;
             }
@@ -178,11 +178,11 @@ namespace FileSystem
 
         private ServiceResult OnLastModifiedTime(ISystemContext context,
             NodeState node, NumericRange indexRange, QualifiedName dataEncoding,
-            ref object value, ref StatusCode statusCode, ref DateTime timestamp)
+            ref Variant value, ref StatusCode statusCode, ref DateTimeUtc timestamp)
         {
             if (GetFileHandle(context, NodeId, out var handle, out var result))
             {
-                value = handle.LastModifiedTime;
+                value = new Variant((DateTimeUtc)handle.LastModifiedTime);
                 timestamp = DateTime.UtcNow;
                 statusCode = StatusCodes.Good;
             }
@@ -190,12 +190,12 @@ namespace FileSystem
         }
 
         private ServiceResult OnWritable(ISystemContext context, NodeState node,
-            NumericRange indexRange, QualifiedName dataEncoding, ref object value,
-            ref StatusCode statusCode, ref DateTime timestamp)
+            NumericRange indexRange, QualifiedName dataEncoding, ref Variant value,
+            ref StatusCode statusCode, ref DateTimeUtc timestamp)
         {
             if (GetFileHandle(context, NodeId, out var handle, out var result))
             {
-                value = handle.IsWriteable;
+                value = new Variant(handle.IsWriteable);
                 timestamp = DateTime.UtcNow;
                 statusCode = StatusCodes.Good;
             }
@@ -203,12 +203,12 @@ namespace FileSystem
         }
 
         private ServiceResult OnSize(ISystemContext context, NodeState node,
-            NumericRange indexRange, QualifiedName dataEncoding, ref object value,
-            ref StatusCode statusCode, ref DateTime timestamp)
+            NumericRange indexRange, QualifiedName dataEncoding, ref Variant value,
+            ref StatusCode statusCode, ref DateTimeUtc timestamp)
         {
             if (GetFileHandle(context, NodeId, out var handle, out var result))
             {
-                value = handle.Length;
+                value = new Variant(handle.Length);
                 timestamp = DateTime.UtcNow;
                 statusCode = StatusCodes.Good;
             }
@@ -216,12 +216,12 @@ namespace FileSystem
         }
 
         private ServiceResult OnOpenCount(ISystemContext context, NodeState node,
-            NumericRange indexRange, QualifiedName dataEncoding, ref object value,
-            ref StatusCode statusCode, ref DateTime timestamp)
+            NumericRange indexRange, QualifiedName dataEncoding, ref Variant value,
+            ref StatusCode statusCode, ref DateTimeUtc timestamp)
         {
             if (GetFileHandle(context, NodeId, out var handle, out var result))
             {
-                value = handle.OpenCount;
+                value = new Variant(handle.OpenCount);
                 timestamp = DateTime.UtcNow;
                 statusCode = StatusCodes.Good;
             }
@@ -283,7 +283,7 @@ namespace FileSystem
         }
 
         private ServiceResult OnRead(ISystemContext _context, MethodState _method,
-            NodeId _objectId, uint fileHandle, int length, ref byte[] data)
+            NodeId _objectId, uint fileHandle, int length, ref ByteString data)
         {
             if (GetFileHandle(_context, _objectId, out var handle, out var result))
             {
@@ -295,13 +295,13 @@ namespace FileSystem
                 }
                 var buffer = new Span<byte>(new byte[length]);
                 var read = stream.Read(buffer);
-                data = buffer[..read].ToArray();
+                data = ByteString.From(buffer[..read]);
             }
             return result;
         }
 
         private ServiceResult OnWrite(ISystemContext _context, MethodState _method,
-            NodeId _objectId, uint fileHandle, byte[] data)
+            NodeId _objectId, uint fileHandle, ByteString data)
         {
             if (GetFileHandle(_context, _objectId, out var handle, out var result))
             {
@@ -310,7 +310,10 @@ namespace FileSystem
                 {
                     return StatusCodes.BadInvalidState;
                 }
-                stream.Write(data.AsSpan());
+                if (!data.IsNull)
+                {
+                    stream.Write(data.Span);
+                }
             }
             return result;
         }

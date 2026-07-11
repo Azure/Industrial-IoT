@@ -781,7 +781,7 @@ namespace Opc.Ua.Test
         public ExtensionObject GetRandomExtensionObject()
         {
             var randomNodeId = GetRandomNodeId();
-            if (!NodeId.IsNull(randomNodeId))
+            if (!(randomNodeId).IsNull)
             {
                 return new ExtensionObject(randomNodeId, (_random.NextInt32(1) == 0) ?
                     GetRandomXmlElement() : GetRandomByteString());

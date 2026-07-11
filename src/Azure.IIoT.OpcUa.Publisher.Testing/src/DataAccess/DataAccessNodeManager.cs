@@ -53,8 +53,7 @@ namespace DataAccess
 
             // get the configuration for the node manager.
             // use suitable defaults if no configuration exists.
-            _configuration = configuration.ParseExtension<DataAccessServerConfiguration>() ??
-                new DataAccessServerConfiguration();
+            _configuration = new DataAccessServerConfiguration();
 
             // create the table to store the cached blocks.
             _blocks = [];

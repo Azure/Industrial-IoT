@@ -94,7 +94,7 @@ namespace Alarms
         {
             if (component == null)
             {
-                return null;
+                return default;
             }
 
             // components must be instances with a parent.
@@ -108,7 +108,7 @@ namespace Alarms
 
             if (instance.Parent.NodeId.Identifier is not string parentId)
             {
-                return null;
+                return default;
             }
 
             var buffer = new StringBuilder();

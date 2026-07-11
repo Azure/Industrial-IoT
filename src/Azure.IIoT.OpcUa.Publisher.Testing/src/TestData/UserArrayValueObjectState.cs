@@ -38,9 +38,9 @@ namespace TestData
         /// </summary>
         /// <param name="context"></param>
         /// <param name="node"></param>
-        protected override void OnAfterCreate(ISystemContext context, NodeState node)
+        protected override void OnAfterCreate(ISystemContext context, NodeState node, System.Threading.CancellationToken ct = default)
         {
-            base.OnAfterCreate(context, node);
+            base.OnAfterCreate(context, node, ct);
 
             InitializeVariable(context, BooleanValue, Variables.UserArrayValueObjectType_BooleanValue);
             InitializeVariable(context, SByteValue, Variables.UserArrayValueObjectType_SByteValue);

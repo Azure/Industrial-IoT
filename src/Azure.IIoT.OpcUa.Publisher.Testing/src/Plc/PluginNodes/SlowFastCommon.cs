@@ -83,8 +83,8 @@ namespace Plc.PluginNodes
             variable.ValueRank = ValueRanks.Scalar;
             variable.AccessLevel = AccessLevels.CurrentReadOrWrite;
             variable.UserAccessLevel = AccessLevels.CurrentReadOrWrite;
-            variable.BrowseName = name;
-            variable.DisplayName = name;
+            variable.BrowseName = (QualifiedName)name;
+            variable.DisplayName = (LocalizedText)name;
             variable.Description = new LocalizedText(
                 "The number of times to update the {name} nodes. Set to -1 to update indefinitely.");
             simulatorFolder.AddChild(variable);
@@ -162,7 +162,9 @@ namespace Plc.PluginNodes
                         case NodeType.DoubleScalar:
                             var minDoubleValue = (double)extendedNode.MinValue;
                             var maxDoubleValue = (double)extendedNode.MaxValue;
-                            var extendedDoubleNodeValue = (double)(extendedNode.Value ?? minDoubleValue);
+                            var extendedDoubleNodeValue = extendedNode.Value.TryGetValue(out double doubleNodeValue)
+                                ? doubleNodeValue
+                                : minDoubleValue;
 
                             if (extendedNode.Randomize)
                             {
@@ -232,11 +234,13 @@ namespace Plc.PluginNodes
                             break;
 
                         case NodeType.BoolScalar:
-                            value = extendedNode.Value == null || !(bool)extendedNode.Value;
+                            value = !extendedNode.Value.TryGetValue(out bool boolNodeValue) || !boolNodeValue;
                             break;
 
                         case NodeType.UIntArray:
-                            var arrayValue = (uint[])extendedNode.Value;
+                            var arrayValue = extendedNode.Value.TryGetValue(out ArrayOf<uint> uintArrayValue)
+                                ? uintArrayValue.ToArray()
+                                : null;
                             if (arrayValue != null)
                             {
                                 for (var arrayIndex = 0; arrayIndex < arrayValue.Length; arrayIndex++)
@@ -254,7 +258,9 @@ namespace Plc.PluginNodes
                         case NodeType.UIntScalar:
                             var minUIntValue = (uint)extendedNode.MinValue;
                             var maxUIntValue = (uint)extendedNode.MaxValue;
-                            var extendedUIntNodeValue = (uint)(extendedNode.Value ?? minUIntValue);
+                            var extendedUIntNodeValue = extendedNode.Value.TryGetValue(out uint uintNodeValue)
+                                ? uintNodeValue
+                                : minUIntValue;
 
                             if (extendedNode.Randomize)
                             {
@@ -296,9 +302,24 @@ namespace Plc.PluginNodes
 
         private void SetValue<T>(BaseVariableState variable, T value)
         {
-            variable.Value = value;
+            variable.Value = ToVariant(value);
             variable.Timestamp = _timeService.Now;
             variable.ClearChangeMasks(_plcNodeManager.SystemContext, false);
+        }
+
+        private static Variant ToVariant<T>(T value)
+        {
+            return value switch
+            {
+                bool boolValue => new Variant(boolValue),
+                int intValue => new Variant(intValue),
+                uint uintValue => new Variant(uintValue),
+                double doubleValue => new Variant(doubleValue),
+                uint[] values => new Variant((ArrayOf<uint>)values),
+                null => Variant.Null,
+                Variant variant => variant,
+                _ => throw new NotSupportedException($"Cannot convert {typeof(T)} to an OPC UA Variant.")
+            };
         }
 
         /// <summary>

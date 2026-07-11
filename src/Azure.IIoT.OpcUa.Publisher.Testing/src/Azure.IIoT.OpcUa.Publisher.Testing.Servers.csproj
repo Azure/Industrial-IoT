@@ -65,7 +65,37 @@
     <ProjectReference Include="..\..\..\external\UA-.NETStandard\Libraries\Opc.Ua.Server\Opc.Ua.Server.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\external\UA-.NETStandard\Tools\Opc.Ua.SourceGeneration\Opc.Ua.SourceGeneration.csproj">
+      <OutputItemType>Analyzer</OutputItemType>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="..\..\..\external\UA-.NETStandard\Tools\Opc.Ua.SourceGeneration\OPCFoundation.Opc.Ua.SourceGeneration.props" />
+  <ItemGroup>
+    <AdditionalFiles Include="Generated\TestData\Design\TestDataDesign.csv" />
+    <AdditionalFiles Include="Generated\TestData\Design\TestDataDesign.xml" />
+    <AdditionalFiles Include="Generated\Boiler\Design\BoilerDesign.csv" />
+    <AdditionalFiles Include="Generated\Boiler\Design\BoilerDesign.xml" />
+    <AdditionalFiles Include="Generated\MemoryBuffer\Design\MemoryBufferDesign.csv" />
+    <AdditionalFiles Include="Generated\MemoryBuffer\Design\MemoryBufferDesign.xml" />
+    <AdditionalFiles Include="Generated\HistoricalEvents\Design\ModelDesign.csv" />
+    <AdditionalFiles Include="Generated\HistoricalEvents\Design\ModelDesign.xml" />
+    <AdditionalFiles Include="Generated\Plc\Design\ModelDesign.csv" />
+    <AdditionalFiles Include="Generated\Plc\Design\ModelDesign.xml" />
+    <AdditionalFiles Include="Generated\SimpleEvents\Design\ModelDesign.csv" />
+    <AdditionalFiles Include="Generated\SimpleEvents\Design\ModelDesign.xml" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Core\src\Azure.IIoT.OpcUa.Core.csproj" />
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa\src\Azure.IIoT.OpcUa.csproj" />
+  </ItemGroup>
+  <!-- TODO(Stage final): Isa95Jobs server descoped from compilation. Its model was
+       generated from NodeSet2 (not ModelDesign) and the 2.0 Opc.Ua source generator
+       cannot consume that input; the stale generated code has ~159 unmigrated errors
+       against the redesigned value-type stack. Re-enable once the upstream generator
+       supports NodeSet2 or the model is rewritten. -->
+  <ItemGroup>
+    <Compile Remove="Isa95Jobs\**\*.cs" />
+    <Compile Remove="Generated\Isa95Jobs\**\*.cs" />
   </ItemGroup>
 </Project>

@@ -37,7 +37,7 @@ namespace Alarms
     public class AlarmConditionServer : INodeManagerFactory
     {
         /// <inheritdoc/>
-        public StringCollection NamespacesUris
+        public ArrayOf<string> NamespacesUris
         {
             get
             {

@@ -53,7 +53,7 @@ namespace DataAccess
             NodeId = nodeId;
             BrowseName = new QualifiedName(segment.Name, nodeId.NamespaceIndex);
             DisplayName = new LocalizedText(segment.Name);
-            Description = null;
+            Description = default;
             WriteMask = 0;
             UserWriteMask = 0;
             EventNotifier = EventNotifiers.None;

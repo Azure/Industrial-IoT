@@ -83,12 +83,12 @@ namespace Opc.Ua.Sample
             {
                 lock (Lock)
                 {
-                    Utils.SilentDispose(_samplingTimer);
+                    ((_samplingTimer) as System.IDisposable)?.Dispose();
                     _samplingTimer = null;
 
                     foreach (NodeState node in PredefinedNodes.Values)
                     {
-                        Utils.SilentDispose(node);
+                        ((node) as System.IDisposable)?.Dispose();
                     }
                 }
             }
@@ -137,7 +137,7 @@ namespace Opc.Ua.Sample
         /// <returns>True if the namespace is one of the nodes.</returns>
         protected virtual bool IsNodeIdInNamespace(NodeId nodeId)
         {
-            if (NodeId.IsNull(nodeId))
+            if ((nodeId).IsNull)
             {
                 return false;
             }
@@ -229,7 +229,7 @@ namespace Opc.Ua.Sample
                     parent.AddChild(instance);
                 }
 
-                instance.Create(contextToUse, null, browseName, null, true);
+                instance.Create(contextToUse, default, browseName, default, true);
                 AddPredefinedNode(contextToUse, instance);
 
                 return instance.NodeId;
@@ -562,9 +562,9 @@ namespace Opc.Ua.Sample
             {
                 // assign a default value to any variable value.
 
-                if (source is BaseVariableState variable && variable.Value == null)
+                if (source is BaseVariableState variable && variable.Value.IsNull)
                 {
-                    variable.Value = TypeInfo.GetDefaultValue(
+                    variable.Value = TypeInfo.GetDefaultVariantValue(
                         variable.DataType,
                         variable.ValueRank,
                         Server.TypeTree);
@@ -574,7 +574,7 @@ namespace Opc.Ua.Sample
                 /*
                 BaseTypeState type = source as BaseTypeState;
 
-                if (type != null && !NodeId.IsNull(type.SuperTypeId))
+                if (type != null && !(type.SuperTypeId).IsNull)
                 {
                     if (!IsNodeIdInNamespace(type.SuperTypeId))
                     {
@@ -596,7 +596,7 @@ namespace Opc.Ua.Sample
                     IReference reference = references[ii];
 
                     // nothing to do with external nodes.
-                    if (reference.TargetId?.IsAbsolute != false)
+                    if (reference.TargetId.IsNull || reference.TargetId.IsAbsolute)
                     {
                         continue;
                     }
@@ -682,7 +682,7 @@ namespace Opc.Ua.Sample
         /// <param name="type"></param>
         protected void AddTypesToTypeTree(BaseTypeState type)
         {
-            if (!NodeId.IsNull(type.SuperTypeId) && !Server.TypeTree.IsKnown(type.SuperTypeId))
+            if (!(type.SuperTypeId).IsNull && !Server.TypeTree.IsKnown(type.SuperTypeId))
             {
                 AddTypesToTypeTree(type.SuperTypeId);
             }
@@ -909,7 +909,7 @@ namespace Opc.Ua.Sample
                 }
 
                 // read the attributes.
-                List<object> values = target.ReadAttributes(
+                ArrayOf<Variant> values = target.ReadAttributes(
                     systemContext,
                     Attributes.WriteMask,
                     Attributes.UserWriteMask,
@@ -931,34 +931,42 @@ namespace Opc.Ua.Sample
                     DisplayName = target.DisplayName
                 };
 
-                if (values[0] != null && values[1] != null)
+                if (values[0].TryGetValue(out uint writeMask) &&
+                    values[1].TryGetValue(out uint userWriteMask))
                 {
-                    metadata.WriteMask = (AttributeWriteMask)(((uint)values[0]) &
-                        ((uint)values[1]));
+                    metadata.WriteMask = (AttributeWriteMask)(writeMask & userWriteMask);
                 }
 
-                metadata.DataType = (NodeId)values[2];
-
-                if (values[3] != null)
+                if (values[2].TryGetValue(out NodeId dataType))
                 {
-                    metadata.ValueRank = (int)values[3];
+                    metadata.DataType = dataType;
                 }
 
-                metadata.ArrayDimensions = (IList<uint>)values[4];
-
-                if (values[5] != null && values[6] != null)
+                if (values[3].TryGetValue(out int valueRank))
                 {
-                    metadata.AccessLevel = (byte)(((byte)values[5]) & ((byte)values[6]));
+                    metadata.ValueRank = valueRank;
                 }
 
-                if (values[7] != null)
+                if (values[4].TryGetValue(out ArrayOf<uint> arrayDimensions))
                 {
-                    metadata.EventNotifier = (byte)values[7];
+                    metadata.ArrayDimensions = arrayDimensions;
                 }
 
-                if (values[8] != null && values[9] != null)
+                if (values[5].TryGetValue(out byte accessLevel) &&
+                    values[6].TryGetValue(out byte userAccessLevel))
                 {
-                    metadata.Executable = ((bool)values[8]) && ((bool)values[9]);
+                    metadata.AccessLevel = (byte)(accessLevel & userAccessLevel);
+                }
+
+                if (values[7].TryGetValue(out byte eventNotifier))
+                {
+                    metadata.EventNotifier = eventNotifier;
+                }
+
+                if (values[8].TryGetValue(out bool executable) &&
+                    values[9].TryGetValue(out bool userExecutable))
+                {
+                    metadata.Executable = executable && userExecutable;
                 }
 
                 // get instance references.
@@ -1024,7 +1032,7 @@ namespace Opc.Ua.Sample
                         continuationPoint.ReferenceTypeId,
                         continuationPoint.IncludeSubtypes,
                         continuationPoint.BrowseDirection,
-                        null,
+                        default,
                         null,
                         false);
 
@@ -1129,7 +1137,7 @@ namespace Opc.Ua.Sample
                 return null;
             }
 
-            NodeId typeDefinition = null;
+            NodeId typeDefinition = default;
 
             if (target is BaseInstanceState instance)
             {
@@ -1271,7 +1279,7 @@ namespace Opc.Ua.Sample
         public virtual void Read(
             OperationContext context,
             double maxAge,
-            IList<ReadValueId> nodesToRead,
+            ArrayOf<ReadValueId> nodesToRead,
             IList<DataValue> values,
             IList<ServiceResult> errors)
         {
@@ -1303,13 +1311,9 @@ namespace Opc.Ua.Sample
                     // owned by this node manager.
                     nodeToRead.Processed = true;
 
-                    // create an initial value.
-                    DataValue value = values[ii] = new DataValue();
-
-                    value.Value = null;
-                    value.ServerTimestamp = DateTime.UtcNow;
-                    value.SourceTimestamp = DateTime.MinValue;
-                    value.StatusCode = StatusCodes.Good;
+                    // create an initial value with the current server timestamp.
+                    DataValue value = values[ii] = DataValue.Null
+                        .WithServerTimestamp(DateTimeUtc.Now);
 
                     // check if the node is ready for reading.
                     if (source.ValidationRequired)
@@ -1330,7 +1334,8 @@ namespace Opc.Ua.Sample
                         nodeToRead.AttributeId,
                         nodeToRead.ParsedIndexRange,
                         nodeToRead.DataEncoding,
-                        value);
+                        ref value);
+                    values[ii] = value;
                 }
 
                 // check for nothing to do.
@@ -1358,7 +1363,8 @@ namespace Opc.Ua.Sample
                         nodeToRead.AttributeId,
                         nodeToRead.ParsedIndexRange,
                         nodeToRead.DataEncoding,
-                        value);
+                        ref value);
+                    values[operation.Index] = value;
                 }
             }
         }
@@ -1403,7 +1409,7 @@ namespace Opc.Ua.Sample
             HistoryReadDetails details,
             TimestampsToReturn timestampsToReturn,
             bool releaseContinuationPoints,
-            IList<HistoryReadValueId> nodesToRead,
+            ArrayOf<HistoryReadValueId> nodesToRead,
             IList<HistoryReadResult> results,
             IList<ServiceResult> errors)
         {
@@ -1642,7 +1648,7 @@ namespace Opc.Ua.Sample
         /// <param name="errors"></param>
         public virtual void Write(
             OperationContext context,
-            IList<WriteValue> nodesToWrite,
+            ArrayOf<WriteValue> nodesToWrite,
             IList<ServiceResult> errors)
         {
             ServerSystemContext systemContext = SystemContext.Copy(context);
@@ -1746,7 +1752,7 @@ namespace Opc.Ua.Sample
         public virtual void HistoryUpdate(
             OperationContext context,
             Type detailsType,
-            IList<HistoryUpdateDetails> nodesToUpdate,
+            ArrayOf<HistoryUpdateDetails> nodesToUpdate,
             IList<HistoryUpdateResult> results,
             IList<ServiceResult> errors)
         {
@@ -1826,7 +1832,7 @@ namespace Opc.Ua.Sample
         /// <param name="errors"></param>
         public virtual void Call(
             OperationContext context,
-            IList<CallMethodRequest> methodsToCall,
+            ArrayOf<CallMethodRequest> methodsToCall,
             IList<CallMethodResult> results,
             IList<ServiceResult> errors)
         {
@@ -1962,7 +1968,7 @@ namespace Opc.Ua.Sample
         {
             var systemContext = context as ServerSystemContext;
             var argumentErrors = new List<ServiceResult>();
-            var outputArguments = new VariantCollection();
+            var outputArguments = new List<Variant>();
 
             ServiceResult error = method.Call(
                 context,
@@ -1978,6 +1984,8 @@ namespace Opc.Ua.Sample
 
             // check for argument errors.
             bool argumentsValid = true;
+            var inputArgumentResults = new List<StatusCode>();
+            var inputArgumentDiagnosticInfos = new List<DiagnosticInfo>();
 
             for (int jj = 0; jj < argumentErrors.Count; jj++)
             {
@@ -1985,7 +1993,7 @@ namespace Opc.Ua.Sample
 
                 if (argumentError != null)
                 {
-                    result.InputArgumentResults.Add(argumentError.StatusCode);
+                    inputArgumentResults.Add(argumentError.StatusCode);
 
                     if (ServiceResult.IsBad(argumentError))
                     {
@@ -1994,7 +2002,7 @@ namespace Opc.Ua.Sample
                 }
                 else
                 {
-                    result.InputArgumentResults.Add(StatusCodes.Good);
+                    inputArgumentResults.Add(StatusCodes.Good);
                 }
 
                 // only fill in diagnostic info if it is requested.
@@ -2004,7 +2012,7 @@ namespace Opc.Ua.Sample
                     if (ServiceResult.IsBad(argumentError))
                     {
                         argumentsValid = false;
-                        result.InputArgumentDiagnosticInfos.Add(
+                        inputArgumentDiagnosticInfos.Add(
                             new DiagnosticInfo(
                                 argumentError,
                                 systemContext.OperationContext.DiagnosticsMask,
@@ -2013,7 +2021,7 @@ namespace Opc.Ua.Sample
                     }
                     else
                     {
-                        result.InputArgumentDiagnosticInfos.Add(null);
+                        inputArgumentDiagnosticInfos.Add(null);
                     }
                 }
             }
@@ -2021,12 +2029,11 @@ namespace Opc.Ua.Sample
             // check for validation errors.
             if (!argumentsValid)
             {
+                result.InputArgumentResults = inputArgumentResults;
+                result.InputArgumentDiagnosticInfos = inputArgumentDiagnosticInfos;
                 result.StatusCode = StatusCodes.BadInvalidArgument;
                 return result.StatusCode;
             }
-
-            // do not return diagnostics if there are no errors.
-            result.InputArgumentDiagnosticInfos.Clear();
 
             // return output arguments.
             result.OutputArguments = outputArguments;
@@ -2292,7 +2299,7 @@ namespace Opc.Ua.Sample
             uint subscriptionId,
             double publishingInterval,
             TimestampsToReturn timestampsToReturn,
-            IList<MonitoredItemCreateRequest> itemsToCreate,
+            ArrayOf<MonitoredItemCreateRequest> itemsToCreate,
             IList<ServiceResult> errors,
             IList<MonitoringFilterResult> filterErrors,
             IList<IMonitoredItem> monitoredItems,
@@ -2539,20 +2546,18 @@ namespace Opc.Ua.Sample
             IDataChangeMonitoredItem2 monitoredItem,
             bool ignoreFilters)
         {
-            var initialValue = new DataValue
-            {
-                Value = null,
-                ServerTimestamp = DateTime.UtcNow,
-                SourceTimestamp = DateTime.MinValue,
-                StatusCode = StatusCodes.BadWaitingForInitialData
-            };
+            var initialValue = new DataValue(
+                Variant.Null,
+                StatusCodes.BadWaitingForInitialData,
+                DateTime.MinValue,
+                DateTime.UtcNow);
 
             ServiceResult error = node.Node.ReadAttribute(
                 context,
                 monitoredItem.AttributeId,
                 monitoredItem.IndexRange,
                 monitoredItem.DataEncoding,
-                initialValue);
+                ref initialValue);
 
             monitoredItem.QueueValue(initialValue, error, ignoreFilters);
 
@@ -2624,14 +2629,12 @@ namespace Opc.Ua.Sample
             {
                 if (variable.FindChild(
                     context,
-                    BrowseNames.EURange) is not BaseVariableState euRange)
+                    (QualifiedName)BrowseNames.EURange) is not BaseVariableState euRange)
                 {
                     return StatusCodes.BadMonitoredItemFilterUnsupported;
                 }
 
-                range = euRange.Value as Range;
-
-                if (range == null)
+                if (!euRange.Value.TryGetStructure<Range>(out range))
                 {
                     return StatusCodes.BadMonitoredItemFilterUnsupported;
                 }
@@ -2727,32 +2730,29 @@ namespace Opc.Ua.Sample
             monitoredItem = null;
 
             // read initial value.
-            var initialValue = new DataValue
-            {
-                Value = null,
-                ServerTimestamp = DateTime.UtcNow,
-                SourceTimestamp = DateTime.MinValue,
-                StatusCode = StatusCodes.BadWaitingForInitialData
-            };
+            var initialValue = new DataValue(
+                Variant.Null,
+                StatusCodes.BadWaitingForInitialData,
+                DateTime.MinValue,
+                DateTime.UtcNow);
 
             ServiceResult error = source.ReadAttribute(
                 context,
                 itemToCreate.ItemToMonitor.AttributeId,
                 itemToCreate.ItemToMonitor.ParsedIndexRange,
                 itemToCreate.ItemToMonitor.DataEncoding,
-                initialValue);
+                ref initialValue);
 
             if (ServiceResult.IsBad(error))
             {
-                if (error.StatusCode.Code
-                    is StatusCodes.BadAttributeIdInvalid
-                    or StatusCodes.BadDataEncodingInvalid
-                    or StatusCodes.BadDataEncodingUnsupported)
+                if (error.StatusCode == StatusCodes.BadAttributeIdInvalid ||
+                    error.StatusCode == StatusCodes.BadDataEncodingInvalid ||
+                    error.StatusCode == StatusCodes.BadDataEncodingUnsupported)
                 {
                     return error;
                 }
 
-                initialValue.StatusCode = error.StatusCode;
+                initialValue = initialValue.WithStatus(error.StatusCode);
                 _ = ServiceResult.Good;
             }
 
@@ -2763,7 +2763,7 @@ namespace Opc.Ua.Sample
             DataChangeFilter filter = null;
             Range range = null;
 
-            if (!ExtensionObject.IsNull(parameters.Filter))
+            if (!parameters.Filter.IsNull)
             {
                 error = ValidateDataChangeFilter(
                     context,
@@ -2966,7 +2966,7 @@ namespace Opc.Ua.Sample
             OperationContext context,
             TimestampsToReturn timestampsToReturn,
             IList<IMonitoredItem> monitoredItems,
-            IList<MonitoredItemModifyRequest> itemsToModify,
+            ArrayOf<MonitoredItemModifyRequest> itemsToModify,
             IList<ServiceResult> errors,
             IList<MonitoringFilterResult> filterErrors)
         {
@@ -3044,7 +3044,7 @@ namespace Opc.Ua.Sample
             Range range = null;
 
             ServiceResult error;
-            if (!ExtensionObject.IsNull(parameters.Filter))
+            if (!parameters.Filter.IsNull)
             {
                 error = ValidateDataChangeFilter(
                     context,

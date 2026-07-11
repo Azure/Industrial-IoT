@@ -36,7 +36,7 @@ namespace MemoryBuffer
     using System.Diagnostics;
     using System.Threading;
 
-    public partial class MemoryBufferState
+    public partial class MemoryBufferState : System.IDisposable
     {
         /// <summary>
         /// Initializes the buffer from the configuration.
@@ -82,14 +82,14 @@ namespace MemoryBuffer
             CreateBuffer(elementType, count);
         }
 
-        protected override void Dispose(bool disposing)
+        public void Dispose()
         {
-            if (disposing && _scanTimer != null)
+            if (_scanTimer != null)
             {
                 _scanTimer.Dispose();
                 _scanTimer = null;
             }
-            base.Dispose(disposing);
+            System.GC.SuppressFinalize(this);
         }
 
         /// <summary>
@@ -234,21 +234,21 @@ namespace MemoryBuffer
             NodeState node,
             NumericRange indexRange,
             QualifiedName dataEncoding,
-            ref object value,
+            ref Variant value,
             ref StatusCode statusCode,
-            ref DateTime timestamp)
+            ref DateTimeUtc timestamp)
         {
             if (node is not MemoryTagState tag)
             {
                 return StatusCodes.BadNodeIdUnknown;
             }
 
-            if (NumericRange.Empty != indexRange)
+            if (!indexRange.IsNull)
             {
                 return StatusCodes.BadIndexRangeInvalid;
             }
 
-            if (!QualifiedName.IsNull(dataEncoding))
+            if (!dataEncoding.IsNull)
             {
                 return StatusCodes.BadDataEncodingInvalid;
             }
@@ -267,7 +267,7 @@ namespace MemoryBuffer
                     return StatusCodes.BadOutOfService;
                 }
 
-                value = GetValueAtOffset(offset).Value;
+                value = GetValueAtOffset(offset);
             }
 
             statusCode = StatusCodes.Good;
@@ -295,21 +295,21 @@ namespace MemoryBuffer
             NodeState node,
             NumericRange indexRange,
             QualifiedName dataEncoding,
-            ref object value,
+            ref Variant value,
             ref StatusCode statusCode,
-            ref DateTime timestamp)
+            ref DateTimeUtc timestamp)
         {
             if (node is not MemoryTagState tag)
             {
                 return StatusCodes.BadNodeIdUnknown;
             }
 
-            if (NumericRange.Empty != indexRange)
+            if (!indexRange.IsNull)
             {
                 return StatusCodes.BadIndexRangeInvalid;
             }
 
-            if (!QualifiedName.IsNull(dataEncoding))
+            if (!dataEncoding.IsNull)
             {
                 return StatusCodes.BadDataEncodingInvalid;
             }
@@ -319,7 +319,7 @@ namespace MemoryBuffer
                 return StatusCodes.BadWriteNotSupported;
             }
 
-            if (timestamp != DateTime.MinValue)
+            if (timestamp != DateTimeUtc.MinValue)
             {
                 return StatusCodes.BadWriteNotSupported;
             }
@@ -345,7 +345,7 @@ namespace MemoryBuffer
                 {
                     case BuiltInType.UInt32:
                         {
-                            if (value is not uint valueToWrite)
+                            if (!value.TryGetValue(out uint valueToWrite))
                             {
                                 return StatusCodes.BadTypeMismatch;
                             }
@@ -356,7 +356,7 @@ namespace MemoryBuffer
 
                     case BuiltInType.Double:
                         {
-                            if (value is not double valueToWrite)
+                            if (!value.TryGetValue(out double valueToWrite))
                             {
                                 return StatusCodes.BadTypeMismatch;
                             }
@@ -624,13 +624,11 @@ namespace MemoryBuffer
 
                     if (monitoredItems != null)
                     {
-                        var value = new DataValue
-                        {
-                            WrappedValue = GetValueAtOffset(offset),
-                            StatusCode = StatusCodes.Good,
-                            ServerTimestamp = DateTime.UtcNow,
-                            SourceTimestamp = _lastScanTime
-                        };
+                        var value = new DataValue(
+                            GetValueAtOffset(offset),
+                            StatusCodes.Good,
+                            _lastScanTime,
+                            DateTimeUtc.Now);
 
                         for (var ii = 0; ii < monitoredItems.Length; ii++)
                         {

@@ -652,17 +652,17 @@ namespace Asset
             {
                 switch (errorCode)
                 {
-                    case 1: return new ServiceResult(StatusCodes.Bad, "Illegal function");
-                    case 2: return new ServiceResult(StatusCodes.Bad, "Illegal data address");
-                    case 3: return new ServiceResult(StatusCodes.Bad, "Illegal data value");
-                    case 4: return new ServiceResult(StatusCodes.Bad, "Server failure");
-                    case 5: return new ServiceResult(StatusCodes.Bad, "Acknowledge");
-                    case 6: return new ServiceResult(StatusCodes.Bad, "Server busy");
-                    case 7: return new ServiceResult(StatusCodes.Bad, "Negative acknowledge");
-                    case 8: return new ServiceResult(StatusCodes.Bad, "Memory parity error");
-                    case 10: return new ServiceResult(StatusCodes.Bad, "Gateway path unavailable");
-                    case 11: return new ServiceResult(StatusCodes.Bad, "Target unit failed to respond");
-                    default: return new ServiceResult(StatusCodes.Bad, "Unknown error");
+                    case 1: return ServiceResult.Create(StatusCodes.Bad, "Illegal function");
+                    case 2: return ServiceResult.Create(StatusCodes.Bad, "Illegal data address");
+                    case 3: return ServiceResult.Create(StatusCodes.Bad, "Illegal data value");
+                    case 4: return ServiceResult.Create(StatusCodes.Bad, "Server failure");
+                    case 5: return ServiceResult.Create(StatusCodes.Bad, "Acknowledge");
+                    case 6: return ServiceResult.Create(StatusCodes.Bad, "Server busy");
+                    case 7: return ServiceResult.Create(StatusCodes.Bad, "Negative acknowledge");
+                    case 8: return ServiceResult.Create(StatusCodes.Bad, "Memory parity error");
+                    case 10: return ServiceResult.Create(StatusCodes.Bad, "Gateway path unavailable");
+                    case 11: return ServiceResult.Create(StatusCodes.Bad, "Target unit failed to respond");
+                    default: return ServiceResult.Create(StatusCodes.Bad, "Unknown error");
                 }
             }
         }

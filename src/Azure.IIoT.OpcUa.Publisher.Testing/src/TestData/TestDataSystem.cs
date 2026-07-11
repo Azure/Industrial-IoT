@@ -33,7 +33,6 @@ namespace TestData
     using System;
     using System.Collections.Generic;
     using System.Threading;
-    using System.Xml;
 
     public interface ITestDataSystemCallback
     {
@@ -190,7 +189,7 @@ namespace TestData
                         return _generator.GetRandom<byte[]>();
                     case Variables.ScalarValueObjectType_XmlElementValue:
                     case Variables.UserScalarValueObjectType_XmlElementValue:
-                        return _generator.GetRandom<XmlElement>();
+                        return _generator.GetRandom<Opc.Ua.XmlElement>();
                     case Variables.ScalarValueObjectType_NodeIdValue:
                     case Variables.UserScalarValueObjectType_NodeIdValue:
                         return _generator.GetRandom<NodeId>();
@@ -266,7 +265,7 @@ namespace TestData
                         return _generator.GetRandomArray<byte[]>();
                     case Variables.ArrayValueObjectType_XmlElementValue:
                     case Variables.UserArrayValueObjectType_XmlElementValue:
-                        return _generator.GetRandomArray<XmlElement>();
+                        return _generator.GetRandomArray<Opc.Ua.XmlElement>();
                     case Variables.ArrayValueObjectType_NodeIdValue:
                     case Variables.UserArrayValueObjectType_NodeIdValue:
                         return _generator.GetRandomArray<NodeId>();
@@ -423,8 +422,8 @@ namespace TestData
                     StringValue = _generator.GetRandom<string>(),
                     DateTimeValue = _generator.GetRandom<DateTime>(),
                     GuidValue = _generator.GetRandom<Uuid>(),
-                    ByteStringValue = _generator.GetRandom<byte[]>(),
-                    XmlElementValue = _generator.GetRandom<XmlElement>(),
+                    ByteStringValue = (ByteString)_generator.GetRandom<byte[]>(),
+                    XmlElementValue = _generator.GetRandom<Opc.Ua.XmlElement>(),
                     NodeIdValue = _generator.GetRandom<NodeId>(),
                     ExpandedNodeIdValue = _generator.GetRandom<ExpandedNodeId>(),
                     QualifiedNameValue = _generator.GetRandom<QualifiedName>(),
@@ -448,10 +447,10 @@ namespace TestData
                 FloatValue = _generator.GetRandomArray<float>(10),
                 DoubleValue = _generator.GetRandomArray<double>(10),
                 StringValue = _generator.GetRandomArray<string>(10),
-                DateTimeValue = _generator.GetRandomArray<DateTime>(10),
+                DateTimeValue = Array.ConvertAll(_generator.GetRandomArray<DateTime>(10), value => (DateTimeUtc)value),
                 GuidValue = _generator.GetRandomArray<Uuid>(10),
-                ByteStringValue = _generator.GetRandomArray<byte[]>(10),
-                XmlElementValue = _generator.GetRandomArray<XmlElement>(10),
+                ByteStringValue = Array.ConvertAll(_generator.GetRandomArray<byte[]>(10), value => (ByteString)value),
+                XmlElementValue = _generator.GetRandomArray<Opc.Ua.XmlElement>(10),
                 NodeIdValue = _generator.GetRandomArray<NodeId>(10),
                 ExpandedNodeIdValue = _generator.GetRandomArray<ExpandedNodeId>(10),
                 QualifiedNameValue = _generator.GetRandomArray<QualifiedName>(10),
@@ -460,10 +459,12 @@ namespace TestData
             };
 
             var values = _generator.GetRandomArray<object>(10);
+            var variantValues = new List<Variant>();
             for (var i = 0; values != null && i < values.Length; i++)
             {
-                array.VariantValue.Add(new Variant(values[i]));
+                variantValues.Add(new Variant(values[i]));
             }
+            array.VariantValue = variantValues;
 
             return new ExtensionObject(array.TypeId, array);
         }

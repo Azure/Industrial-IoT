@@ -44,17 +44,17 @@ namespace MemoryBuffer
             // the metadata is derived from the parameters passed to constructors.
             NodeId = new NodeId(Utils.Format("{0}[{1}]", parent.SymbolicName, offet), parent.NodeId.NamespaceIndex);
             BrowseName = new QualifiedName(Utils.Format("{1:X8}", parent.SymbolicName, offet), parent.TypeDefinitionId.NamespaceIndex);
-            DisplayName = BrowseName.Name;
-            Description = null;
+            DisplayName = (LocalizedText)BrowseName.Name;
+            Description = default;
             WriteMask = AttributeWriteMask.None;
             UserWriteMask = AttributeWriteMask.None;
             ReferenceTypeId = ReferenceTypeIds.HasComponent;
             TypeDefinitionId = new NodeId(VariableTypes.MemoryTagType, parent.TypeDefinitionId.NamespaceIndex);
-            ModellingRuleId = null;
+            ModellingRuleId = default;
             NumericId = offet;
             DataType = new NodeId((uint)parent.ElementType);
             ValueRank = ValueRanks.Scalar;
-            ArrayDimensions = null;
+            ArrayDimensions = default;
             AccessLevel = AccessLevels.CurrentReadOrWrite;
             UserAccessLevel = AccessLevels.CurrentReadOrWrite;
             MinimumSamplingInterval = parent.MaximumScanRate;

@@ -252,22 +252,18 @@ namespace HistoricalAccess
             var endTime = startTime.AddHours(1);
             while (currentTime < endTime)
             {
-                var dataValue = new DataValue
-                {
-                    SourceTimestamp = currentTime,
-                    ServerTimestamp = currentTime,
-                    StatusCode = StatusCodes.Good
-                };
-
                 // generate random value.
+                Variant value;
                 if (item.ValueRank < 0)
                 {
-                    dataValue.Value = generator.GetRandom(item.DataType);
+                    value = new Variant(generator.GetRandom(item.DataType));
                 }
                 else
                 {
-                    dataValue.Value = generator.GetRandomArray(item.DataType, 10, false);
+                    value = new Variant(generator.GetRandomArray(item.DataType, 10, false));
                 }
+
+                var dataValue = new DataValue(value, StatusCodes.Good, currentTime, currentTime);
 
                 // add record to table.
                 var row = dataset.Tables[0].NewRow();
@@ -326,20 +322,8 @@ namespace HistoricalAccess
         {
             var dataset = CreateDataSet();
 
-            var messageContext = new ServiceMessageContext();
-
-            if (context != null)
-            {
-                messageContext.NamespaceUris = context.NamespaceUris;
-                messageContext.ServerUris = context.ServerUris;
-                messageContext.Factory = context.EncodeableFactory;
-            }
-            else
-            {
-                messageContext.NamespaceUris = ServiceMessageContext.GlobalContext.NamespaceUris;
-                messageContext.ServerUris = ServiceMessageContext.GlobalContext.ServerUris;
-                messageContext.Factory = ServiceMessageContext.GlobalContext.Factory;
-            }
+            var messageContext = context?.AsMessageContext() ??
+                new ServiceMessageContext(null!, EncodeableFactory.Create());
 
             var valueType = BuiltInType.String;
             var value = Variant.Null;
@@ -447,13 +431,11 @@ namespace HistoricalAccess
                 }
 
                 // add values to data table.
-                var dataValue = new DataValue
-                {
-                    WrappedValue = value,
-                    SourceTimestamp = baseline.AddMilliseconds(sourceTimeOffset),
-                    ServerTimestamp = baseline.AddMilliseconds(serverTimeOffset),
-                    StatusCode = status
-                };
+                var dataValue = new DataValue(
+                    value,
+                    status,
+                    baseline.AddMilliseconds(sourceTimeOffset),
+                    baseline.AddMilliseconds(serverTimeOffset));
 
                 DataRow row;
                 if (recordType == 0)
@@ -498,7 +480,7 @@ namespace HistoricalAccess
                         UserName = annotationUser,
                         Message = annotationMessage
                     };
-                    dataValue.WrappedValue = new ExtensionObject(annotation);
+                    dataValue = dataValue.WithWrappedValue(new ExtensionObject(annotation));
 
                     row[0] = dataValue.SourceTimestamp;
                     row[1] = dataValue.ServerTimestamp;

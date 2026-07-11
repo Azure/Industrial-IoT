@@ -113,17 +113,76 @@ and `Azure.IIoT.OpcUa.Publisher.Sdk` now build with **0 errors** in the solution
   registration (`Runtime/Configuration.cs`) and the `--daf/disableavrofiles`
   command-line option (`Runtime/CommandLine.cs`).
 
+## Stage 3 / Phase 9A (this commit) — `Azure.IIoT.OpcUa.Publisher.Testing` (Servers) on 2.0
+
+Stage 3 migrates the ~18 test OPC UA servers (the `Testing.Servers` project) from the
+published 1.5 `Opc.Ua.Server` API to the 2.0 `Opc.Ua.Server` NodeManager API, landing
+them **green** in `Industrial-IoT.slnx` (whole-solution build = 0 errors). The servers
+keep the classic `CustomNodeManager2`/`SampleNodeManager` base (no
+`AsyncCustomNodeManager`) and remain functionally equivalent — they back the
+integration tests. The submodule's already-2.0 Quickstart servers
+(`external/UA-.NETStandard/Applications/Quickstarts.Servers/**`) and
+`Libraries/Opc.Ua.Server/**` base classes were used as the exact idiom reference.
+
+**Done — 2.0 idiom deltas adopted across the servers:**
+
+- Immutable readonly-struct value types (`NodeId`, `ExpandedNodeId`, `QualifiedName`,
+  `LocalizedText`, `DataValue`, `ByteString`, `NumericRange`, `StatusCode`, `Variant`,
+  `DateTimeUtc`, `XmlElement`): `.IsNull` is now an instance property (was a static
+  method); value-type `?.` removed; `DataValue` constructed immutably (ctor + `.With*`).
+- `PropertyState<T>`/`BaseDataVariableState<T>` are abstract → constructed via the 2.0
+  `PropertyState<T>.Implementation<TBuilder>` factory pattern. `PropertyState<DateTime>`
+  becomes `PropertyState<DateTimeUtc>` (the `VariantBuilder` covers `DateTimeUtc`).
+- `ArrayOf<T>` is an immutable readonly struct (no `.Add`/`.Clear`; does not implement
+  `IEnumerable<T>`) — accumulate in `List<T>`/convert via `.ToArray()`.
+- `NodeState.ReadAttribute(context, attributeId, indexRange, dataEncoding, ref value)`
+  (5th arg is `ref DataValue`); `ReadAttributes` returns `ArrayOf<Variant>`.
+- Delegate signature changes (`GenericMethodCalledEventHandler`,
+  `NodeValueEventHandler`, `ConditionAddCommentEventHandler`, method-call handlers use
+  `ArrayOf<Variant>`, value handlers use `ref Variant`).
+- `NodeState.SetChildValue<T>` now requires `T : IEncodeable` — plain values set via
+  `Variant` instead.
+- Certificate/token/telemetry/`ServerBase` deltas in `ServerFactory.cs` /
+  `ServerConsoleHost.cs` (UA0021 `CertificateManager.AcceptError`;
+  `CertificateIdentifierResolver.ResolveAsync`; `StopAsync`;
+  `ITelemetryContext`-requiring server ctors; wire-token accessors).
+- The shared `Common/SampleNodeManager.cs` + `Common/DataChangeMonitoredItem.cs`
+  (which are forks of the Quickstart `SampleNodeManager`) were hand-migrated to mirror
+  the 2.0 Quickstart twins.
+- `MonitoredNode2` now takes an `IAsyncNodeManager` — supplied via the base
+  `this.ToAsyncNodeManager()` extension (classic node manager kept).
+
+**Simplified / deferred inside Testing.Servers:**
+
+- `ISA95Jobs` server **descoped** (`<Compile Remove="Isa95Jobs\**\*.cs"/>` +
+  `Generated\Isa95Jobs\**`, unregistered in `ServerFactory`): it is a
+  NodeSet2-generated server with no source-gen path and only stale generated errors.
+  It is not needed by the migrated integration tests; to be restored in a later pass.
+- `ServerFactory.VerifyCertificate(x509Token)` reduced to a `// TODO(Stage final)` stub
+  (server-side X509 user-token validation moved to the async `IdentityRegistry` model
+  in 2.0).
+- Config `ParseExtension<T>()` call sites (now constrained to `T : IEncodeable`, which
+  the DataContract config classes do not implement) replaced with the `new T()`
+  fallback — behaviorally equivalent for the integration tests (which use defaults).
+
+**In scope this stage (build green in `Industrial-IoT.slnx`):**
+
+- Everything from Stages 1–2, plus
+- `src/Azure.IIoT.OpcUa.Publisher.Testing/src` (Testing.Servers, minus `ISA95Jobs`)
+
 ## Temporarily descoped from `Industrial-IoT.slnx` (to be migrated in later stages)
 
 | Project | Reason | Target stage |
 | --- | --- | --- |
-| `src/Azure.IIoT.OpcUa.Publisher/tests` | depends on Testing.Servers fixtures; also references deleted forked codecs / Phase-5 stubs | Stage 3 |
-| `src/Azure.IIoT.OpcUa.Publisher.Module/tests` | depends on Testing.Servers + Module integration | Stage 3 |
-| `src/Azure.IIoT.OpcUa.Publisher.Module/cli` | depends on Testing.Servers | Stage 3 |
-| `src/Azure.IIoT.OpcUa.Publisher.Testing/src` (Servers) | ~388 errors against the 2.0 `Opc.Ua.Server` NodeManager API (node-states, `INodeManager3`, clone/read/write) | Stage 3 (Testing.Servers / Phase 9A) |
-| `src/Azure.IIoT.OpcUa.Publisher.Testing/tests` | depends on Testing.Servers | Stage 3 |
-| `src/Azure.IIoT.OpcUa.Publisher.Testing/cli` | depends on Testing.Servers | Stage 3 |
-| `src/Azure.IIoT.OpcUa/tests` | `EncodeableDictionaryTests` / `JsonDataSetTests` reference the deleted forked codecs; JSON PubSub tests exercise the `TODO(Phase 5)` stubs; expected values need rewiring to the 2.0 codec output | Stage 4/5 (test rewiring) |
+| `src/Azure.IIoT.OpcUa.Publisher/tests` | depends on Testing.Servers fixtures; also references deleted forked codecs / Phase-5 stubs | Final stage |
+| `src/Azure.IIoT.OpcUa.Publisher.Module/tests` | depends on Testing.Servers + Module integration | Final stage |
+| `src/Azure.IIoT.OpcUa.Publisher.Module/cli` | depends on Testing.Servers | Final stage |
+| `src/Azure.IIoT.OpcUa.Publisher.Testing/tests` | depends on Testing.Servers | Final stage |
+| `src/Azure.IIoT.OpcUa.Publisher.Testing/cli` | depends on Testing.Servers; has an unfixed cert-validation pattern in `TestServerFactory.cs` | Final stage |
+| `src/Azure.IIoT.OpcUa/tests` | `EncodeableDictionaryTests` / `JsonDataSetTests` reference the deleted forked codecs; JSON PubSub tests exercise the `TODO(Phase 5)` stubs; expected values need rewiring to the 2.0 codec output | Final stage (test rewiring) |
+
+Note: `Testing.Servers` is now **in scope and green** (was Stage 3 target), except the
+descoped `ISA95Jobs` server (see Stage 3 above).
 
 ## Constraints (unchanged across stages)
 

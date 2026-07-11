@@ -70,7 +70,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         _logger.StoppingServer(this);
                         try
                         {
-                            _server.Stop();
+                            await _server.StopAsync().ConfigureAwait(false);
                         }
                         catch (OperationCanceledException) { }
                         catch (Exception se)
@@ -177,7 +177,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 if (_server != null)
                 {
-                    _server.Stop();
+                    await _server.StopAsync().ConfigureAwait(false);
                     _server.Dispose();
 
                     if (predicate != null)
@@ -246,29 +246,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 throw new InvalidConfigurationException("Application instance certificate invalid!");
             }
 
-            config.CertificateValidator.CertificateValidation += (v, e) =>
+            config.CertificateManager.AcceptError = (certificate, error) =>
             {
-                if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted)
+                if (error.StatusCode == StatusCodes.BadCertificateUntrusted)
                 {
-                    e.Accept = AutoAccept;
+                    var accept = AutoAccept;
                     _logger.CertificateAction(this,
-                        e.Accept ? "Accepted" : "Rejected", e.Certificate.Subject);
+                        accept ? "Accepted" : "Rejected", certificate.Subject);
+                    return accept;
                 }
+                return false;
             };
 
-            await config.CertificateValidator.UpdateAsync(config).ConfigureAwait(false);
-
             // Set Certificate
-            try
-            {
-                // just take the public key
-                Certificate = X509CertificateLoader.LoadCertificate(
-                    config.SecurityConfiguration.ApplicationCertificate.Certificate.RawData);
-            }
-            catch
-            {
-                Certificate = config.SecurityConfiguration.ApplicationCertificate.Certificate;
-            }
+            var appCertificate = await CertificateIdentifierResolver.ResolveAsync(
+                config.SecurityConfiguration.ApplicationCertificate,
+                registry: null,
+                needPrivateKey: false,
+                applicationUri: null,
+                telemetry: config.CreateMessageContext().Telemetry).ConfigureAwait(false);
+            Certificate = appCertificate == null
+                ? null
+                : X509CertificateLoader.LoadCertificate(appCertificate.RawData);
 
             _logger.StartingServer();
             // start the server.

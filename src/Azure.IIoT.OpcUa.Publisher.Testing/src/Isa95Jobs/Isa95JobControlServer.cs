@@ -36,7 +36,7 @@ namespace Isa95Jobs
     public class Isa95JobControlServer : INodeManagerFactory
     {
         /// <inheritdoc/>
-        public StringCollection NamespacesUris
+        public ArrayOf<string> NamespacesUris
         {
             get
             {

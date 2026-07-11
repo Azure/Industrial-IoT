@@ -131,7 +131,7 @@ namespace Vehicles.Instances
 
             for (int ii = 0; ii < this.Count; ii++)
             {
-                clone.Add((ParkingLotType)Utils.Clone(this[ii]));
+                clone.Add(this[ii]);
             }
 
             return clone;
@@ -175,7 +175,7 @@ namespace Vehicles.Instances
         private void Initialize()
         {
             m_noOfGears = (uint)0;
-            m_manufacterName = null;
+            m_manufacterName = default;
         }
         #endregion
 
@@ -277,8 +277,8 @@ namespace Vehicles.Instances
         {
             BicycleType clone = (BicycleType)base.MemberwiseClone();
 
-            clone.m_noOfGears = (uint)Utils.Clone(this.m_noOfGears);
-            clone.m_manufacterName = (QualifiedName)Utils.Clone(this.m_manufacterName);
+            clone.m_noOfGears = this.m_noOfGears;
+            clone.m_manufacterName = this.m_manufacterName;
 
             return clone;
         }
@@ -367,7 +367,7 @@ namespace Vehicles.Instances
 
             for (int ii = 0; ii < this.Count; ii++)
             {
-                clone.Add((BicycleType)Utils.Clone(this[ii]));
+                clone.Add(this[ii]);
             }
 
             return clone;

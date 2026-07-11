@@ -58,8 +58,7 @@ namespace TestData
 
             // get the configuration for the node manager.
             // use suitable defaults if no configuration exists.
-            _configuration = configuration.ParseExtension<TestDataNodeManagerConfiguration>()
-                ?? new TestDataNodeManagerConfiguration();
+            _configuration = new TestDataNodeManagerConfiguration();
 
             _lastUsedId = _configuration.NextUnusedId - 1;
 
@@ -99,7 +98,7 @@ namespace TestData
         {
             lock (Lock)
             {
-                variable.Value = value;
+                variable.Value = new Variant(value);
                 variable.StatusCode = statusCode;
                 variable.Timestamp = timestamp;
 
@@ -159,8 +158,8 @@ namespace TestData
                 {
                     if (node is ConditionState condition && !ReferenceEquals(condition.Parent, conditionsFolder))
                     {
-                        condition.AddNotifier(SystemContext, null, true, conditionsFolder);
-                        conditionsFolder.AddNotifier(SystemContext, null, false, condition);
+                        condition.AddNotifier(SystemContext, default, true, conditionsFolder);
+                        conditionsFolder.AddNotifier(SystemContext, default, false, condition);
                     }
                 }
 

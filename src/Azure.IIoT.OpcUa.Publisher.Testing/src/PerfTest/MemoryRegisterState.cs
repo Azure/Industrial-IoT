@@ -58,12 +58,12 @@ namespace PerfTest
                 return null;
             }
 
-            var variable = new BaseDataVariableState<int>(null)
+            var variable = new BaseDataVariableState<int>.Implementation<VariantBuilder>(null)
             {
                 NodeId = GetRegisterVariableId(register, index, namespaceIndex),
                 BrowseName = new QualifiedName(Utils.Format("{0:000000}", index), namespaceIndex)
             };
-            variable.DisplayName = variable.BrowseName.Name;
+            variable.DisplayName = (LocalizedText)variable.BrowseName.Name;
             variable.Value = register.Read(index);
             variable.DataType = DataTypeIds.Int32;
             variable.ValueRank = ValueRanks.Scalar;
@@ -85,7 +85,7 @@ namespace PerfTest
 
             NodeId = new NodeId((uint)register.Id, namespaceIndex);
             BrowseName = new QualifiedName(register.Name, namespaceIndex);
-            DisplayName = BrowseName.Name;
+            DisplayName = (LocalizedText)BrowseName.Name;
 
             AddReference(ReferenceTypeIds.Organizes, true, ObjectIds.ObjectsFolder);
         }
@@ -214,7 +214,7 @@ namespace PerfTest
             NodeId targetId;
 
             // check if a specific browse name is requested.
-            if (!QualifiedName.IsNull(BrowseName))
+            if (!(BrowseName).IsNull)
             {
                 // browse name must be qualified by the correct namespace.
                 if (_parent.BrowseName.NamespaceIndex != BrowseName.NamespaceIndex)

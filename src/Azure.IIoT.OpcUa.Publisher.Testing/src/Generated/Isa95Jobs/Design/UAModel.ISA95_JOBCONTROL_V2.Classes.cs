@@ -2641,8 +2641,8 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         protected override ServiceResult Call(
             ISystemContext _context,
             NodeId _objectId,
-            IList<object> _inputArguments,
-            IList<object> _outputArguments)
+            ArrayOf<Variant> _inputArguments,
+            List<Variant> _outputArguments)
         {
             if (OnCall == null)
             {
@@ -2651,10 +2651,10 @@ namespace UAModel.ISA95_JOBCONTROL_V2
 
             ServiceResult _result = null;
 
-            string jobOrderID = (string)_inputArguments[0];
+            string jobOrderID = (string)_inputArguments[0].Value;
 
-            ISA95JobResponseDataType jobResponse = (ISA95JobResponseDataType)_outputArguments[0];
-            ulong returnStatus = (ulong)_outputArguments[1];
+            ISA95JobResponseDataType jobResponse = (ISA95JobResponseDataType)_outputArguments[0].Value;
+            ulong returnStatus = (ulong)_outputArguments[1].Value;
 
             if (OnCall != null)
             {
@@ -2667,8 +2667,8 @@ namespace UAModel.ISA95_JOBCONTROL_V2
                     ref returnStatus);
             }
 
-            _outputArguments[0] = jobResponse;
-            _outputArguments[1] = returnStatus;
+            _outputArguments[0] = new Variant(jobResponse);
+            _outputArguments[1] = new Variant(returnStatus);
 
             return _result;
         }
@@ -2746,8 +2746,8 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         protected override ServiceResult Call(
             ISystemContext _context,
             NodeId _objectId,
-            IList<object> _inputArguments,
-            IList<object> _outputArguments)
+            ArrayOf<Variant> _inputArguments,
+            List<Variant> _outputArguments)
         {
             if (OnCall == null)
             {
@@ -2756,10 +2756,10 @@ namespace UAModel.ISA95_JOBCONTROL_V2
 
             ServiceResult _result = null;
 
-            ISA95StateDataType[] jobOrderState = (ISA95StateDataType[])ExtensionObject.ToArray(_inputArguments[0], typeof(ISA95StateDataType));
+            ISA95StateDataType[] jobOrderState = (ISA95StateDataType[])ExtensionObject.ToArray(_inputArguments[0].Value, typeof(ISA95StateDataType));
 
-            ISA95JobResponseDataType[] jobResponses = (ISA95JobResponseDataType[])_outputArguments[0];
-            ulong returnStatus = (ulong)_outputArguments[1];
+            ISA95JobResponseDataType[] jobResponses = (ISA95JobResponseDataType[])_outputArguments[0].Value;
+            ulong returnStatus = (ulong)_outputArguments[1].Value;
 
             if (OnCall != null)
             {
@@ -2772,8 +2772,8 @@ namespace UAModel.ISA95_JOBCONTROL_V2
                     ref returnStatus);
             }
 
-            _outputArguments[0] = jobResponses;
-            _outputArguments[1] = returnStatus;
+            _outputArguments[0] = new Variant(jobResponses);
+            _outputArguments[1] = new Variant(returnStatus);
 
             return _result;
         }
@@ -2850,8 +2850,8 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         protected override ServiceResult Call(
             ISystemContext _context,
             NodeId _objectId,
-            IList<object> _inputArguments,
-            IList<object> _outputArguments)
+            ArrayOf<Variant> _inputArguments,
+            List<Variant> _outputArguments)
         {
             if (OnCall == null)
             {
@@ -2860,9 +2860,9 @@ namespace UAModel.ISA95_JOBCONTROL_V2
 
             ServiceResult _result = null;
 
-            ISA95JobResponseDataType jobResponse = (ISA95JobResponseDataType)ExtensionObject.ToEncodeable((ExtensionObject)_inputArguments[0]);
+            ISA95JobResponseDataType jobResponse = (ISA95JobResponseDataType)ExtensionObject.ToEncodeable((ExtensionObject)_inputArguments[0].Value);
 
-            ulong returnStatus = (ulong)_outputArguments[0];
+            ulong returnStatus = (ulong)_outputArguments[0].Value;
 
             if (OnCall != null)
             {
@@ -2874,7 +2874,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
                     ref returnStatus);
             }
 
-            _outputArguments[0] = returnStatus;
+            _outputArguments[0] = new Variant(returnStatus);
 
             return _result;
         }
@@ -2950,8 +2950,8 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         protected override ServiceResult Call(
             ISystemContext _context,
             NodeId _objectId,
-            IList<object> _inputArguments,
-            IList<object> _outputArguments)
+            ArrayOf<Variant> _inputArguments,
+            List<Variant> _outputArguments)
         {
             if (OnCall == null)
             {
@@ -2960,10 +2960,10 @@ namespace UAModel.ISA95_JOBCONTROL_V2
 
             ServiceResult _result = null;
 
-            string jobOrderID = (string)_inputArguments[0];
-            LocalizedText[] comment = (LocalizedText[])_inputArguments[1];
+            string jobOrderID = (string)_inputArguments[0].Value;
+            LocalizedText[] comment = (LocalizedText[])_inputArguments[1].Value;
 
-            ulong returnStatus = (ulong)_outputArguments[0];
+            ulong returnStatus = (ulong)_outputArguments[0].Value;
 
             if (OnCall != null)
             {
@@ -2976,7 +2976,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
                     ref returnStatus);
             }
 
-            _outputArguments[0] = returnStatus;
+            _outputArguments[0] = new Variant(returnStatus);
 
             return _result;
         }
@@ -3053,8 +3053,8 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         protected override ServiceResult Call(
             ISystemContext _context,
             NodeId _objectId,
-            IList<object> _inputArguments,
-            IList<object> _outputArguments)
+            ArrayOf<Variant> _inputArguments,
+            List<Variant> _outputArguments)
         {
             if (OnCall == null)
             {
@@ -3063,10 +3063,10 @@ namespace UAModel.ISA95_JOBCONTROL_V2
 
             ServiceResult _result = null;
 
-            string jobOrderID = (string)_inputArguments[0];
-            LocalizedText[] comment = (LocalizedText[])_inputArguments[1];
+            string jobOrderID = (string)_inputArguments[0].Value;
+            LocalizedText[] comment = (LocalizedText[])_inputArguments[1].Value;
 
-            ulong returnStatus = (ulong)_outputArguments[0];
+            ulong returnStatus = (ulong)_outputArguments[0].Value;
 
             if (OnCall != null)
             {
@@ -3079,7 +3079,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
                     ref returnStatus);
             }
 
-            _outputArguments[0] = returnStatus;
+            _outputArguments[0] = new Variant(returnStatus);
 
             return _result;
         }
@@ -3156,8 +3156,8 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         protected override ServiceResult Call(
             ISystemContext _context,
             NodeId _objectId,
-            IList<object> _inputArguments,
-            IList<object> _outputArguments)
+            ArrayOf<Variant> _inputArguments,
+            List<Variant> _outputArguments)
         {
             if (OnCall == null)
             {
@@ -3166,10 +3166,10 @@ namespace UAModel.ISA95_JOBCONTROL_V2
 
             ServiceResult _result = null;
 
-            string jobOrderID = (string)_inputArguments[0];
-            LocalizedText[] comment = (LocalizedText[])_inputArguments[1];
+            string jobOrderID = (string)_inputArguments[0].Value;
+            LocalizedText[] comment = (LocalizedText[])_inputArguments[1].Value;
 
-            ulong returnStatus = (ulong)_outputArguments[0];
+            ulong returnStatus = (ulong)_outputArguments[0].Value;
 
             if (OnCall != null)
             {
@@ -3182,7 +3182,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
                     ref returnStatus);
             }
 
-            _outputArguments[0] = returnStatus;
+            _outputArguments[0] = new Variant(returnStatus);
 
             return _result;
         }
@@ -3259,8 +3259,8 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         protected override ServiceResult Call(
             ISystemContext _context,
             NodeId _objectId,
-            IList<object> _inputArguments,
-            IList<object> _outputArguments)
+            ArrayOf<Variant> _inputArguments,
+            List<Variant> _outputArguments)
         {
             if (OnCall == null)
             {
@@ -3269,10 +3269,10 @@ namespace UAModel.ISA95_JOBCONTROL_V2
 
             ServiceResult _result = null;
 
-            string jobOrderID = (string)_inputArguments[0];
-            LocalizedText[] comment = (LocalizedText[])_inputArguments[1];
+            string jobOrderID = (string)_inputArguments[0].Value;
+            LocalizedText[] comment = (LocalizedText[])_inputArguments[1].Value;
 
-            ulong returnStatus = (ulong)_outputArguments[0];
+            ulong returnStatus = (ulong)_outputArguments[0].Value;
 
             if (OnCall != null)
             {
@@ -3285,7 +3285,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
                     ref returnStatus);
             }
 
-            _outputArguments[0] = returnStatus;
+            _outputArguments[0] = new Variant(returnStatus);
 
             return _result;
         }
@@ -3362,8 +3362,8 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         protected override ServiceResult Call(
             ISystemContext _context,
             NodeId _objectId,
-            IList<object> _inputArguments,
-            IList<object> _outputArguments)
+            ArrayOf<Variant> _inputArguments,
+            List<Variant> _outputArguments)
         {
             if (OnCall == null)
             {
@@ -3372,10 +3372,10 @@ namespace UAModel.ISA95_JOBCONTROL_V2
 
             ServiceResult _result = null;
 
-            string jobOrderID = (string)_inputArguments[0];
-            LocalizedText[] comment = (LocalizedText[])_inputArguments[1];
+            string jobOrderID = (string)_inputArguments[0].Value;
+            LocalizedText[] comment = (LocalizedText[])_inputArguments[1].Value;
 
-            ulong returnStatus = (ulong)_outputArguments[0];
+            ulong returnStatus = (ulong)_outputArguments[0].Value;
 
             if (OnCall != null)
             {
@@ -3388,7 +3388,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
                     ref returnStatus);
             }
 
-            _outputArguments[0] = returnStatus;
+            _outputArguments[0] = new Variant(returnStatus);
 
             return _result;
         }
@@ -3465,8 +3465,8 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         protected override ServiceResult Call(
             ISystemContext _context,
             NodeId _objectId,
-            IList<object> _inputArguments,
-            IList<object> _outputArguments)
+            ArrayOf<Variant> _inputArguments,
+            List<Variant> _outputArguments)
         {
             if (OnCall == null)
             {
@@ -3475,10 +3475,10 @@ namespace UAModel.ISA95_JOBCONTROL_V2
 
             ServiceResult _result = null;
 
-            string jobOrderID = (string)_inputArguments[0];
-            LocalizedText[] comment = (LocalizedText[])_inputArguments[1];
+            string jobOrderID = (string)_inputArguments[0].Value;
+            LocalizedText[] comment = (LocalizedText[])_inputArguments[1].Value;
 
-            ulong returnStatus = (ulong)_outputArguments[0];
+            ulong returnStatus = (ulong)_outputArguments[0].Value;
 
             if (OnCall != null)
             {
@@ -3491,7 +3491,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
                     ref returnStatus);
             }
 
-            _outputArguments[0] = returnStatus;
+            _outputArguments[0] = new Variant(returnStatus);
 
             return _result;
         }
@@ -3568,8 +3568,8 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         protected override ServiceResult Call(
             ISystemContext _context,
             NodeId _objectId,
-            IList<object> _inputArguments,
-            IList<object> _outputArguments)
+            ArrayOf<Variant> _inputArguments,
+            List<Variant> _outputArguments)
         {
             if (OnCall == null)
             {
@@ -3578,10 +3578,10 @@ namespace UAModel.ISA95_JOBCONTROL_V2
 
             ServiceResult _result = null;
 
-            string jobOrderID = (string)_inputArguments[0];
-            LocalizedText[] comment = (LocalizedText[])_inputArguments[1];
+            string jobOrderID = (string)_inputArguments[0].Value;
+            LocalizedText[] comment = (LocalizedText[])_inputArguments[1].Value;
 
-            ulong returnStatus = (ulong)_outputArguments[0];
+            ulong returnStatus = (ulong)_outputArguments[0].Value;
 
             if (OnCall != null)
             {
@@ -3594,7 +3594,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
                     ref returnStatus);
             }
 
-            _outputArguments[0] = returnStatus;
+            _outputArguments[0] = new Variant(returnStatus);
 
             return _result;
         }
@@ -3671,8 +3671,8 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         protected override ServiceResult Call(
             ISystemContext _context,
             NodeId _objectId,
-            IList<object> _inputArguments,
-            IList<object> _outputArguments)
+            ArrayOf<Variant> _inputArguments,
+            List<Variant> _outputArguments)
         {
             if (OnCall == null)
             {
@@ -3681,10 +3681,10 @@ namespace UAModel.ISA95_JOBCONTROL_V2
 
             ServiceResult _result = null;
 
-            string jobOrderID = (string)_inputArguments[0];
-            LocalizedText[] comment = (LocalizedText[])_inputArguments[1];
+            string jobOrderID = (string)_inputArguments[0].Value;
+            LocalizedText[] comment = (LocalizedText[])_inputArguments[1].Value;
 
-            ulong returnStatus = (ulong)_outputArguments[0];
+            ulong returnStatus = (ulong)_outputArguments[0].Value;
 
             if (OnCall != null)
             {
@@ -3697,7 +3697,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
                     ref returnStatus);
             }
 
-            _outputArguments[0] = returnStatus;
+            _outputArguments[0] = new Variant(returnStatus);
 
             return _result;
         }
@@ -3774,8 +3774,8 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         protected override ServiceResult Call(
             ISystemContext _context,
             NodeId _objectId,
-            IList<object> _inputArguments,
-            IList<object> _outputArguments)
+            ArrayOf<Variant> _inputArguments,
+            List<Variant> _outputArguments)
         {
             if (OnCall == null)
             {
@@ -3784,10 +3784,10 @@ namespace UAModel.ISA95_JOBCONTROL_V2
 
             ServiceResult _result = null;
 
-            ISA95JobOrderDataType jobOrder = (ISA95JobOrderDataType)ExtensionObject.ToEncodeable((ExtensionObject)_inputArguments[0]);
-            LocalizedText[] comment = (LocalizedText[])_inputArguments[1];
+            ISA95JobOrderDataType jobOrder = (ISA95JobOrderDataType)ExtensionObject.ToEncodeable((ExtensionObject)_inputArguments[0].Value);
+            LocalizedText[] comment = (LocalizedText[])_inputArguments[1].Value;
 
-            ulong returnStatus = (ulong)_outputArguments[0];
+            ulong returnStatus = (ulong)_outputArguments[0].Value;
 
             if (OnCall != null)
             {
@@ -3800,7 +3800,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
                     ref returnStatus);
             }
 
-            _outputArguments[0] = returnStatus;
+            _outputArguments[0] = new Variant(returnStatus);
 
             return _result;
         }
@@ -3877,8 +3877,8 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         protected override ServiceResult Call(
             ISystemContext _context,
             NodeId _objectId,
-            IList<object> _inputArguments,
-            IList<object> _outputArguments)
+            ArrayOf<Variant> _inputArguments,
+            List<Variant> _outputArguments)
         {
             if (OnCall == null)
             {
@@ -3887,10 +3887,10 @@ namespace UAModel.ISA95_JOBCONTROL_V2
 
             ServiceResult _result = null;
 
-            ISA95JobOrderDataType jobOrder = (ISA95JobOrderDataType)ExtensionObject.ToEncodeable((ExtensionObject)_inputArguments[0]);
-            LocalizedText[] comment = (LocalizedText[])_inputArguments[1];
+            ISA95JobOrderDataType jobOrder = (ISA95JobOrderDataType)ExtensionObject.ToEncodeable((ExtensionObject)_inputArguments[0].Value);
+            LocalizedText[] comment = (LocalizedText[])_inputArguments[1].Value;
 
-            ulong returnStatus = (ulong)_outputArguments[0];
+            ulong returnStatus = (ulong)_outputArguments[0].Value;
 
             if (OnCall != null)
             {
@@ -3903,7 +3903,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
                     ref returnStatus);
             }
 
-            _outputArguments[0] = returnStatus;
+            _outputArguments[0] = new Variant(returnStatus);
 
             return _result;
         }
@@ -3980,8 +3980,8 @@ namespace UAModel.ISA95_JOBCONTROL_V2
         protected override ServiceResult Call(
             ISystemContext _context,
             NodeId _objectId,
-            IList<object> _inputArguments,
-            IList<object> _outputArguments)
+            ArrayOf<Variant> _inputArguments,
+            List<Variant> _outputArguments)
         {
             if (OnCall == null)
             {
@@ -3990,10 +3990,10 @@ namespace UAModel.ISA95_JOBCONTROL_V2
 
             ServiceResult _result = null;
 
-            ISA95JobOrderDataType jobOrder = (ISA95JobOrderDataType)ExtensionObject.ToEncodeable((ExtensionObject)_inputArguments[0]);
-            LocalizedText[] comment = (LocalizedText[])_inputArguments[1];
+            ISA95JobOrderDataType jobOrder = (ISA95JobOrderDataType)ExtensionObject.ToEncodeable((ExtensionObject)_inputArguments[0].Value);
+            LocalizedText[] comment = (LocalizedText[])_inputArguments[1].Value;
 
-            ulong returnStatus = (ulong)_outputArguments[0];
+            ulong returnStatus = (ulong)_outputArguments[0].Value;
 
             if (OnCall != null)
             {
@@ -4006,7 +4006,7 @@ namespace UAModel.ISA95_JOBCONTROL_V2
                     ref returnStatus);
             }
 
-            _outputArguments[0] = returnStatus;
+            _outputArguments[0] = new Variant(returnStatus);
 
             return _result;
         }

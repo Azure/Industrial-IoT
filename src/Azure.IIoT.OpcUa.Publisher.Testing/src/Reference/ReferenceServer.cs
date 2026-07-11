@@ -36,7 +36,7 @@ namespace Reference
     public class ReferenceServer : INodeManagerFactory
     {
         /// <inheritdoc/>
-        public StringCollection NamespacesUris
+        public ArrayOf<string> NamespacesUris
         {
             get
             {

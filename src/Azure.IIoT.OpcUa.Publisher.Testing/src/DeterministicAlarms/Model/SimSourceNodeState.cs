@@ -1,4 +1,4 @@
-﻿/* ========================================================================
+/* ========================================================================
  * Copyright (c) 2005-2017 The OPC Foundation, Inc. All rights reserved.
  *
  * OPC Foundation MIT License 1.00
@@ -58,9 +58,9 @@ namespace DeterministicAlarms.Model
             SymbolicName = name;
             NodeId = nodeId;
             BrowseName = new QualifiedName(name, nodeId.NamespaceIndex);
-            DisplayName = BrowseName.Name;
-            Description = null;
-            ReferenceTypeId = null;
+            DisplayName = (LocalizedText)BrowseName.Name;
+            Description = default;
+            ReferenceTypeId = default;
             TypeDefinitionId = ObjectTypeIds.BaseObjectType;
             EventNotifier = EventNotifiers.None;
 
@@ -112,7 +112,7 @@ namespace DeterministicAlarms.Model
             {
                 if (!_alarmNodes.TryGetValue(alarm.Name, out var node))
                 {
-                    _alarmNodes[alarm.Name] = node = CreateAlarmOrCondition(alarm, null);
+                    _alarmNodes[alarm.Name] = node = CreateAlarmOrCondition(alarm, default);
                 }
 
                 UpdateAlarm(node, alarm, eventId);
@@ -165,9 +165,9 @@ namespace DeterministicAlarms.Model
             // the INodeIdFactory implementation used here.
             node.Create(
                 context,
-                null,
+                default,
                 new QualifiedName(alarm.Name, BrowseName.NamespaceIndex),
-                null,
+                default,
                 true);
 
             // initialize event information.node
@@ -180,7 +180,7 @@ namespace DeterministicAlarms.Model
             node.BranchId.Value = branchId;
 
             // don't add branches to the address space.
-            if (NodeId.IsNull(branchId))
+            if ((branchId).IsNull)
             {
                 AddChild(node);
             }
@@ -193,16 +193,16 @@ namespace DeterministicAlarms.Model
             node.ConfirmedState = new TwoStateVariableState(node);
             node.Confirm = new AddCommentMethodState(node);
 
-            if (NodeId.IsNull(branchId))
+            if ((branchId).IsNull)
             {
                 node.SuppressedState = new TwoStateVariableState(node);
                 node.ShelvingState = new ShelvedStateMachineState(node);
             }
 
             node.ActiveState = new TwoStateVariableState(node);
-            node.ActiveState.TransitionTime = new PropertyState<DateTime>(node.ActiveState);
-            node.ActiveState.EffectiveDisplayName = new PropertyState<LocalizedText>(node.ActiveState);
-            node.ActiveState.Create(context, null, BrowseNames.ActiveState, null, false);
+            node.ActiveState.TransitionTime = new PropertyState<DateTimeUtc>.Implementation<VariantBuilder>(node.ActiveState);
+            node.ActiveState.EffectiveDisplayName = new PropertyState<LocalizedText>.Implementation<VariantBuilder>(node.ActiveState);
+            node.ActiveState.Create(context, default, (QualifiedName)BrowseNames.ActiveState, default, false);
         }
 
         private static void CreateCommonFieldsForAlarmAndCondition(ISystemContext context,
@@ -211,8 +211,8 @@ namespace DeterministicAlarms.Model
             node.SymbolicName = alarm.Name;
 
             // add optional components.
-            node.Comment = new ConditionVariableState<LocalizedText>(node);
-            node.ClientUserId = new PropertyState<string>(node);
+            node.Comment = new ConditionVariableState<LocalizedText>.Implementation<VariantBuilder>(node);
+            node.ClientUserId = new PropertyState<string>.Implementation<VariantBuilder>(node);
             node.AddComment = new AddCommentMethodState(node);
 
             // adding optional components to children is a little more complicated since the
@@ -221,9 +221,9 @@ namespace DeterministicAlarms.Model
             // and call create without assigning NodeIds. The NodeIds will be assigned when the
             // parent object is created.
             node.EnabledState = new TwoStateVariableState(node);
-            node.EnabledState.TransitionTime = new PropertyState<DateTime>(node.EnabledState);
-            node.EnabledState.EffectiveDisplayName = new PropertyState<LocalizedText>(node.EnabledState);
-            node.EnabledState.Create(context, null, BrowseNames.EnabledState, null, false);
+            node.EnabledState.TransitionTime = new PropertyState<DateTimeUtc>.Implementation<VariantBuilder>(node.EnabledState);
+            node.EnabledState.EffectiveDisplayName = new PropertyState<LocalizedText>.Implementation<VariantBuilder>(node.EnabledState);
+            node.EnabledState.Create(context, default, (QualifiedName)BrowseNames.EnabledState, default, false);
 
             // specify reference type between the source and the alarm.
             node.ReferenceTypeId = ReferenceTypeIds.HasComponent;
@@ -234,17 +234,19 @@ namespace DeterministicAlarms.Model
             ISystemContext context = _nodeManager.SystemContext;
 
             // remove old event.
-            if (node.EventId.Value != null)
+            if (!node.EventId.Value.IsNull)
             {
-                _events.Remove(Utils.ToHexString(node.EventId.Value));
+                _events.Remove(Utils.ToHexString(node.EventId.Value.ToArray()));
             }
 
-            node.EventId.Value = eventId != null ? Encoding.UTF8.GetBytes(eventId) : Guid.NewGuid().ToByteArray();
+            node.EventId.Value = eventId != null
+                ? (ByteString)Encoding.UTF8.GetBytes(eventId)
+                : (ByteString)Guid.NewGuid().ToByteArray();
             node.Time.Value = DateTime.UtcNow;
             node.ReceiveTime.Value = node.Time.Value;
 
             // save the event for later lookup.
-            _events[Utils.ToHexString(node.EventId.Value)] = node;
+            _events[Utils.ToHexString(node.EventId.Value.ToArray())] = node;
 
             // determine the retain state.
             node.Retain.Value = true;

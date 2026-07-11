@@ -57,8 +57,8 @@ namespace Alarms
             SymbolicName = configuration.Name;
             NodeId = nodeId;
             BrowseName = new QualifiedName(Utils.Format("{0}", configuration.Name), nodeId.NamespaceIndex);
-            DisplayName = BrowseName.Name;
-            Description = null;
+            DisplayName = (LocalizedText)BrowseName.Name;
+            Description = default;
             ReferenceTypeId = ReferenceTypeIds.HasNotifier;
             TypeDefinitionId = ObjectTypeIds.FolderType;
             EventNotifier = EventNotifiers.SubscribeToEvents;

@@ -69,9 +69,9 @@ namespace Alarms
             SymbolicName = _source.Name;
             NodeId = nodeId;
             BrowseName = new QualifiedName(Utils.Format("{0}", _source.Name), nodeId.NamespaceIndex);
-            DisplayName = BrowseName.Name;
-            Description = null;
-            ReferenceTypeId = null;
+            DisplayName = (LocalizedText)BrowseName.Name;
+            Description = default;
+            ReferenceTypeId = default;
             TypeDefinitionId = ObjectTypeIds.BaseObjectType;
             EventNotifier = EventNotifiers.None;
 
@@ -167,11 +167,6 @@ namespace Alarms
                 }
             }
         }
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-            _dialog?.Dispose();
-        }
 
         /// <summary>
         /// Called when the state of an alarm for the source has changed.
@@ -210,7 +205,7 @@ namespace Alarms
 
                 if (!_alarms.TryGetValue(alarm.Name, out var node))
                 {
-                    _alarms[alarm.Name] = node = CreateAlarm(alarm, null);
+                    _alarms[alarm.Name] = node = CreateAlarm(alarm, default);
                 }
 
                 // map the system information to the UA defined alarm.
@@ -234,9 +229,9 @@ namespace Alarms
 
             // specify optional fields.
             node.EnabledState = new TwoStateVariableState(node);
-            node.EnabledState.TransitionTime = new PropertyState<DateTime>(node.EnabledState);
-            node.EnabledState.EffectiveDisplayName = new PropertyState<LocalizedText>(node.EnabledState);
-            node.EnabledState.Create(context, null, BrowseNames.EnabledState, null, false);
+            node.EnabledState.TransitionTime = new PropertyState<DateTimeUtc>.Implementation<VariantBuilder>(node.EnabledState);
+            node.EnabledState.EffectiveDisplayName = new PropertyState<LocalizedText>.Implementation<VariantBuilder>(node.EnabledState);
+            node.EnabledState.Create(context, default, (QualifiedName)BrowseNames.EnabledState, default, false);
 
             // specify reference type between the source and the alarm.
             node.ReferenceTypeId = ReferenceTypeIds.HasComponent;
@@ -246,15 +241,15 @@ namespace Alarms
             // incorporated into the class when the class was created.
             node.Create(
                 context,
-                null,
+                default,
                 new QualifiedName(dialogName, BrowseName.NamespaceIndex),
-                null,
+                default,
                 true);
 
             AddChild(node);
 
             // initialize event information.
-            node.EventId.Value = Guid.NewGuid().ToByteArray();
+            node.EventId.Value = (ByteString)Guid.NewGuid().ToByteArray();
             node.EventType.Value = node.TypeDefinitionId;
             node.SourceNode.Value = NodeId;
             node.SourceName.Value = SymbolicName;
@@ -266,14 +261,14 @@ namespace Alarms
                 node.LocalTime.Value = Utils.GetTimeZoneInfo();
             }
 
-            node.Message.Value = "The dialog was activated";
+            node.Message.Value = (LocalizedText)"The dialog was activated";
             node.Retain.Value = true;
 
             node.SetEnableState(context, true);
             node.SetSeverity(context, EventSeverity.Low);
 
             // initialize the dialog information.
-            node.Prompt.Value = "Please specify a new state for the source.";
+            node.Prompt.Value = (LocalizedText)"Please specify a new state for the source.";
             node.ResponseOptionSet.Value = _responseOptions;
             node.DefaultResponse.Value = 2;
             node.CancelResponse.Value = 2;
@@ -296,9 +291,9 @@ namespace Alarms
         /// The responses used with the dialog condition.
         /// </summary>
         private readonly LocalizedText[] _responseOptions = [
-            "Online",
-            "Offline",
-            "No Change"
+            LocalizedText.From("Online"),
+            LocalizedText.From("Offline"),
+            LocalizedText.From("No Change")
         ];
 
         /// <summary>
@@ -320,7 +315,7 @@ namespace Alarms
                     {
                         var node2 = new GuardedExclusiveDeviationAlarmState(this, _nodeManager.Lock);
                         node = node2;
-                        node2.HighLimit = new PropertyState<double>(node2);
+                        node2.HighLimit = new PropertyState<double>.Implementation<VariantBuilder>(node2);
                         break;
                     }
 
@@ -329,10 +324,10 @@ namespace Alarms
                         var node2 = new GuardedNonExclusiveLevelAlarmState(this, _nodeManager.Lock);
                         node = node2;
 
-                        node2.HighHighLimit = new PropertyState<double>(node2);
-                        node2.HighLimit = new PropertyState<double>(node2);
-                        node2.LowLimit = new PropertyState<double>(node2);
-                        node2.LowLowLimit = new PropertyState<double>(node2);
+                        node2.HighHighLimit = new PropertyState<double>.Implementation<VariantBuilder>(node2);
+                        node2.HighLimit = new PropertyState<double>.Implementation<VariantBuilder>(node2);
+                        node2.LowLimit = new PropertyState<double>.Implementation<VariantBuilder>(node2);
+                        node2.LowLowLimit = new PropertyState<double>.Implementation<VariantBuilder>(node2);
 
                         node2.HighHighState = new TwoStateVariableState(node2);
                         node2.HighState = new TwoStateVariableState(node2);
@@ -358,13 +353,13 @@ namespace Alarms
             node.SymbolicName = alarm.Name;
 
             // add optional components.
-            node.Comment = new ConditionVariableState<LocalizedText>(node);
-            node.ClientUserId = new PropertyState<string>(node);
+            node.Comment = new ConditionVariableState<LocalizedText>.Implementation<VariantBuilder>(node);
+            node.ClientUserId = new PropertyState<string>.Implementation<VariantBuilder>(node);
             node.AddComment = new AddCommentMethodState(node);
             node.ConfirmedState = new TwoStateVariableState(node);
             node.Confirm = new AddCommentMethodState(node);
 
-            if (NodeId.IsNull(branchId))
+            if ((branchId).IsNull)
             {
                 node.SuppressedState = new TwoStateVariableState(node);
                 node.ShelvingState = new ShelvedStateMachineState(node);
@@ -376,15 +371,15 @@ namespace Alarms
             // and call create without assigning NodeIds. The NodeIds will be assigned when the
             // parent object is created.
             node.EnabledState = new TwoStateVariableState(node);
-            node.EnabledState.TransitionTime = new PropertyState<DateTime>(node.EnabledState);
-            node.EnabledState.EffectiveDisplayName = new PropertyState<LocalizedText>(node.EnabledState);
-            node.EnabledState.Create(context, null, BrowseNames.EnabledState, null, false);
+            node.EnabledState.TransitionTime = new PropertyState<DateTimeUtc>.Implementation<VariantBuilder>(node.EnabledState);
+            node.EnabledState.EffectiveDisplayName = new PropertyState<LocalizedText>.Implementation<VariantBuilder>(node.EnabledState);
+            node.EnabledState.Create(context, default, (QualifiedName)BrowseNames.EnabledState, default, false);
 
             // same procedure add optional components to the ActiveState component.
             node.ActiveState = new TwoStateVariableState(node);
-            node.ActiveState.TransitionTime = new PropertyState<DateTime>(node.ActiveState);
-            node.ActiveState.EffectiveDisplayName = new PropertyState<LocalizedText>(node.ActiveState);
-            node.ActiveState.Create(context, null, BrowseNames.ActiveState, null, false);
+            node.ActiveState.TransitionTime = new PropertyState<DateTimeUtc>.Implementation<VariantBuilder>(node.ActiveState);
+            node.ActiveState.EffectiveDisplayName = new PropertyState<LocalizedText>.Implementation<VariantBuilder>(node.ActiveState);
+            node.ActiveState.Create(context, default, (QualifiedName)BrowseNames.ActiveState, default, false);
 
             // specify reference type between the source and the alarm.
             node.ReferenceTypeId = ReferenceTypeIds.HasComponent;
@@ -398,13 +393,13 @@ namespace Alarms
             // the INodeIdFactory implementation used here.
             node.Create(
                 context,
-                null,
+                default,
                 new QualifiedName(alarm.Name, BrowseName.NamespaceIndex),
-                null,
+                default,
                 true);
 
             // don't add branches to the address space.
-            if (NodeId.IsNull(branchId))
+            if ((branchId).IsNull)
             {
                 AddChild(node);
             }
@@ -444,18 +439,18 @@ namespace Alarms
             ISystemContext context = _nodeManager.SystemContext;
 
             // remove old event.
-            if (node.EventId.Value != null)
+            if (!node.EventId.Value.IsNull)
             {
-                _events.Remove(Utils.ToHexString(node.EventId.Value));
+                _events.Remove(Utils.ToHexString(node.EventId.Value.ToArray()));
             }
 
             // update the basic event information (include generating a unique id for the event).
-            node.EventId.Value = Guid.NewGuid().ToByteArray();
+            node.EventId.Value = (ByteString)Guid.NewGuid().ToByteArray();
             node.Time.Value = _timeService.UtcNow;
             node.ReceiveTime.Value = node.Time.Value;
 
             // save the event for later lookup.
-            _events[Utils.ToHexString(node.EventId.Value)] = node;
+            _events[Utils.ToHexString(node.EventId.Value.ToArray())] = node;
 
             // determine the retain state.
             node.Retain.Value = true;
@@ -473,7 +468,7 @@ namespace Alarms
                 node.SetSuppressedState(context, (alarm.State & UnderlyingSystemAlarmStates.Suppressed) != 0);
 
                 // update other information.
-                node.SetComment(context, alarm.Comment, alarm.UserName);
+                node.SetComment(context, (LocalizedText)alarm.Comment, alarm.UserName);
                 node.SetSeverity(context, alarm.Severity);
 
                 node.EnabledState.TransitionTime.Value = alarm.EnableTime;
@@ -564,7 +559,7 @@ namespace Alarms
         private ServiceResult OnAddComment(
             ISystemContext context,
             ConditionState condition,
-            byte[] eventId,
+            ByteString eventId,
             LocalizedText comment)
         {
             var alarm = FindAlarmByEventId(eventId);
@@ -589,7 +584,7 @@ namespace Alarms
         private ServiceResult OnAcknowledge(
             ISystemContext context,
             ConditionState condition,
-            byte[] eventId,
+            ByteString eventId,
             LocalizedText comment)
         {
             var alarm = FindAlarmByEventId(eventId);
@@ -614,7 +609,7 @@ namespace Alarms
         private ServiceResult OnConfirm(
             ISystemContext context,
             ConditionState condition,
-            byte[] eventId,
+            ByteString eventId,
             LocalizedText comment)
         {
             var alarm = FindAlarmByEventId(eventId);
@@ -645,7 +640,7 @@ namespace Alarms
             double shelvingTime)
         {
             alarm.SetShelvingState(context, shelving, oneShot, shelvingTime);
-            alarm.Message.Value = "The alarm shelved.";
+            alarm.Message.Value = (LocalizedText)"The alarm shelved.";
 
             UpdateAlarm(alarm, null);
             ReportChanges(alarm);
@@ -664,7 +659,7 @@ namespace Alarms
         {
             // update the alarm state and produce and event.
             alarm.SetShelvingState(context, false, false, 0);
-            alarm.Message.Value = "The timed shelving period expired.";
+            alarm.Message.Value = (LocalizedText)"The timed shelving period expired.";
 
             UpdateAlarm(alarm, null);
             ReportChanges(alarm);
@@ -699,7 +694,7 @@ namespace Alarms
             dialog.SetResponse(context, selectedResponse);
 
             // dialog no longer interesting once it is deactivated.
-            dialog.Message.Value = "The dialog was deactivated";
+            dialog.Message.Value = (LocalizedText)"The dialog was deactivated";
             dialog.Retain.Value = false;
 
             return ServiceResult.Good;
@@ -731,14 +726,14 @@ namespace Alarms
         /// </summary>
         /// <param name="eventId">The event id.</param>
         /// <returns>The alarm. Null if not found.</returns>
-        private AlarmConditionState FindAlarmByEventId(byte[] eventId)
+        private AlarmConditionState FindAlarmByEventId(ByteString eventId)
         {
-            if (eventId == null)
+            if (eventId.IsNull)
             {
                 return null;
             }
 
-            if (!_events.TryGetValue(Utils.ToHexString(eventId), out var alarm))
+            if (!_events.TryGetValue(Utils.ToHexString(eventId.ToArray()), out var alarm))
             {
                 return null;
             }

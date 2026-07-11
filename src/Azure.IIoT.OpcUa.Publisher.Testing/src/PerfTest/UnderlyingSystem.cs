@@ -155,11 +155,7 @@ namespace PerfTest
                     var start = HiResClock.UtcNow;
                     var delta = _values.Length / 2;
 
-                    var value = new DataValue
-                    {
-                        ServerTimestamp = DateTime.UtcNow,
-                        SourceTimestamp = DateTime.UtcNow
-                    };
+                    var timestamp = DateTime.UtcNow;
 
                     for (var ii = _start; ii < delta + _start && ii < _values.Length; ii++)
                     {
@@ -169,7 +165,8 @@ namespace PerfTest
 
                         if (monitoredItems != null)
                         {
-                            value.WrappedValue = new Variant(_values[ii]);
+                            var value = new DataValue(new Variant(_values[ii]),
+                                StatusCodes.Good, timestamp, timestamp);
 
                             for (var jj = 0; jj < monitoredItems.Length; jj++)
                             {

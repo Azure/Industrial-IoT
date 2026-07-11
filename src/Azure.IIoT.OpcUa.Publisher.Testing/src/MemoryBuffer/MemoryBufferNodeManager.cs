@@ -57,8 +57,7 @@ namespace MemoryBuffer
 
             // get the configuration for the node manager.
             // use suitable defaults if no configuration exists.
-            _configuration = configuration.ParseExtension<MemoryBufferConfiguration>()
-                ?? new MemoryBufferConfiguration();
+            _configuration = new MemoryBufferConfiguration();
 
             _buffers = [];
         }
@@ -120,7 +119,7 @@ namespace MemoryBuffer
                             SystemContext,
                             new NodeId(bufferNode.SymbolicName, namespaceIndex),
                             new QualifiedName(bufferNode.SymbolicName, namespaceIndex),
-                            null,
+                            default,
                             true);
 
                         bufferNode.CreateBuffer(instance.DataType, instance.TagCount);
@@ -305,32 +304,30 @@ namespace MemoryBuffer
             }
 
             // index range not supported.
-            if (itemToCreate.ItemToMonitor.ParsedIndexRange != NumericRange.Empty)
+            if (itemToCreate.ItemToMonitor.ParsedIndexRange != default(NumericRange))
             {
                 return StatusCodes.BadIndexRangeInvalid;
             }
 
             // data encoding not supported.
-            if (!QualifiedName.IsNull(itemToCreate.ItemToMonitor.DataEncoding))
+            if (!(itemToCreate.ItemToMonitor.DataEncoding).IsNull)
             {
                 return StatusCodes.BadDataEncodingInvalid;
             }
 
             // read initial value.
-            var initialValue = new DataValue
-            {
-                Value = null,
-                ServerTimestamp = DateTime.UtcNow,
-                SourceTimestamp = DateTime.MinValue,
-                StatusCode = StatusCodes.Good
-            };
+            var initialValue = new DataValue(
+                Variant.Null,
+                StatusCodes.Good,
+                DateTime.MinValue,
+                DateTime.UtcNow);
 
             var error = source.ReadAttribute(
                 context,
                 itemToCreate.ItemToMonitor.AttributeId,
                 itemToCreate.ItemToMonitor.ParsedIndexRange,
                 itemToCreate.ItemToMonitor.DataEncoding,
-                initialValue);
+                ref initialValue);
 
             if (ServiceResult.IsBad(error))
             {
@@ -528,22 +525,20 @@ namespace MemoryBuffer
             // need to provide an immediate update after enabling.
             if (previousMode == MonitoringMode.Disabled && monitoringMode != MonitoringMode.Disabled)
             {
-                var initialValue = new DataValue
-                {
-                    Value = null,
-                    ServerTimestamp = DateTime.UtcNow,
-                    SourceTimestamp = DateTime.MinValue,
-                    StatusCode = StatusCodes.Good
-                };
+                var initialValue = new DataValue(
+                    Variant.Null,
+                    StatusCodes.Good,
+                    DateTime.MinValue,
+                    DateTime.UtcNow);
 
                 var tag = new MemoryTagState(buffer, datachangeItem.Offset);
 
                 var error = tag.ReadAttribute(
                     context,
                     datachangeItem.AttributeId,
-                    NumericRange.Empty,
-                    null,
-                    initialValue);
+                    default,
+                    default,
+                    ref initialValue);
 
                 datachangeItem.QueueValue(initialValue, error);
             }

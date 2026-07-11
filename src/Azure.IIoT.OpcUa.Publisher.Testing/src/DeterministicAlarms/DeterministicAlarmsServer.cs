@@ -38,7 +38,7 @@ namespace DeterministicAlarms
     public class DeterministicAlarmsServer : INodeManagerFactory
     {
         /// <inheritdoc/>
-        public StringCollection NamespacesUris
+        public ArrayOf<string> NamespacesUris
         {
             get
             {
