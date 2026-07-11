@@ -8,6 +8,18 @@
     <Nullable>enable</Nullable>
     <TieredPGO>true</TieredPGO>
   </PropertyGroup>
+  <!--
+    Phase 8 (AOT gate): opt into Native-AOT publish via `-p:IIoTPublishAot=true`
+    instead of `-p:PublishAot=true`. This keeps PublishAot a LOCAL property of the
+    Module so it is never a global property that flows into (and during restore
+    re-evaluates) the multi-TFM UA-.NETStandard submodule projects for net472 etc.,
+    which would fail with NETSDK1207. The submodule assemblies are still trim/AOT
+    analyzed at this root publish.
+      dotnet publish ...Module.csproj -c Release -r linux-x64 -p:IIoTPublishAot=true (self-contained)
+  -->
+  <PropertyGroup Condition="'$(IIoTPublishAot)' == 'true'">
+    <PublishAot>true</PublishAot>
+  </PropertyGroup>
   <PropertyGroup>
     <ContainerRepository>iotedge/opc-publisher</ContainerRepository>
     <ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:10.0-azurelinux3.0-distroless</ContainerBaseImage>

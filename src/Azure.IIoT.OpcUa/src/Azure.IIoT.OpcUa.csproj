@@ -9,7 +9,17 @@
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\external\UA-.NETStandard\Stack\Opc.Ua.Core\Opc.Ua.Core.csproj" />
+    <!--
+      Phase 8 (AOT gate): pin the multi-TFM UA-.NETStandard submodule reference to
+      net10.0 and stop the PublishAot global property from flowing into it (and its
+      transitive analyzer/source-generator projects). Without this a
+      `dotnet publish -p:PublishAot=true` resolves/builds the submodule for net472
+      etc. and fails with NETSDK1207. The submodule assemblies are still trim/AOT
+      analyzed at the root (Module) publish. Do NOT modify the submodule csprojs.
+    -->
+    <ProjectReference Include="..\..\..\external\UA-.NETStandard\Stack\Opc.Ua.Core\Opc.Ua.Core.csproj"
+                      SetTargetFramework="TargetFramework=net10.0"
+                      UndefineProperties="PublishAot" />
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Core\src\Azure.IIoT.OpcUa.Core.csproj" />
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Publisher.Models\src\Azure.IIoT.OpcUa.Publisher.Models.csproj" />
   </ItemGroup>
