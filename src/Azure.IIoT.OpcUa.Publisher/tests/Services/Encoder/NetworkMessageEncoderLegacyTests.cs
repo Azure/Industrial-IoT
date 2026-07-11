@@ -121,9 +121,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var networkMessages = encoder.Encode(NetworkMessage.Create, messages, maxMessageSize, encodeBatchFlag);
 
             var count = networkMessages.Sum(m => ((NetworkMessage)m.Event).Buffers.Count(b => b.Length != 0));
-            Assert.InRange(count, 66, 68);
-            Assert.Equal(95, encoder.NotificationsProcessedCount);
-            Assert.Equal((uint)500 - 95, encoder.NotificationsDroppedCount);
+            // Deterministic counts. The 2.0 stack JsonEncoder emits a slightly larger
+            // Part-14 network-message envelope than the former forked encoder, so with
+            // the 8 KiB budget fewer of the 500 growing notifications fit before the
+            // rest are dropped: NotificationsProcessed 95 -> 83 (was 95 on the fork).
+            // The small InRange band tolerates the batch/no-batch chunk-count delta.
+            Assert.InRange(count, 56, 62);
+            Assert.Equal(83, encoder.NotificationsProcessedCount);
+            Assert.Equal((uint)500 - 83, encoder.NotificationsDroppedCount);
             Assert.Equal((uint)count, encoder.MessagesProcessedCount);
             Assert.Equal(1, Math.Round(encoder.AvgNotificationsPerMessage));
         }
