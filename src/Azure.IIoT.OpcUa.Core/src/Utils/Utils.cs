@@ -53,6 +53,11 @@ namespace Azure.IIoT.OpcUa.Core.Utils
         /// Get assembly timestamp.
         /// </summary>
         /// <returns></returns>
+        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage(
+            "SingleFile", "IL3000",
+            Justification = "Assembly.Location returning empty for a single-file " +
+                "app is expected and handled: the empty/missing path falls back to " +
+                "the process start time below, which is the intended behavior.")]
         public static DateTime GetAssemblyTimestamp()
         {
             var location = Assembly.GetEntryAssembly()?.Location;
