@@ -328,6 +328,11 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Router
             /// <param name="controllerMethod"></param>
             /// <param name="logger"></param>
             /// <param name="summarizer"></param>
+            [UnconditionalSuppressMessage("Trimming", "IL2075",
+                Justification = "Result accessors are resolved on closed framework " +
+                    "generic types (Task<T>, ValueTask<T>, IAsyncEnumerable<T>) whose " +
+                    "members are always preserved; no dynamic code is generated, so " +
+                    "this is Native-AOT safe.")]
             public JsonMethodInvoker(object controller, MethodInfo controllerMethod,
                 ILogger logger, IExceptionSummarizer? summarizer)
             {
@@ -343,31 +348,48 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Router
                 var returnType = _controllerMethod.ReturnParameter.ParameterType;
                 if (!returnType.IsGenericType)
                 {
-                    _valueTask = returnType == typeof(ValueTask);
+                    _resultKind = returnType == typeof(ValueTask)
+                        ? ResultKind.VoidValueTask : ResultKind.VoidTask;
                     return;
                 }
 
-                var returnArgs = returnType.GetGenericArguments();
-                Debug.Assert(returnArgs.Length == 1);
+                Debug.Assert(returnType.GetGenericArguments().Length == 1);
 
-                returnType = returnType.GetGenericTypeDefinition();
-                if (returnType == typeof(IAsyncEnumerable<>))
+                var returnDefinition = returnType.GetGenericTypeDefinition();
+                if (returnDefinition == typeof(IAsyncEnumerable<>))
                 {
-                    _methodTaskContinuation =
-                        kMethodResponseAsContinuation3.MakeGenericMethod(returnArgs[0]);
+                    _resultKind = ResultKind.AsyncEnumerable;
+                    // Closed IAsyncEnumerable<T>.GetAsyncEnumerator(CancellationToken).
+                    // Resolving a member on the closed type needs no MakeGenericMethod
+                    // (no runtime code generation), so it is Native-AOT safe.
+                    _getAsyncEnumerator = returnType.GetMethod("GetAsyncEnumerator")!;
                 }
-                else if (returnType == typeof(ValueTask<>))
+                else if (returnDefinition == typeof(ValueTask<>))
                 {
-                    _valueTask = true;
-                    _methodTaskContinuation =
-                        kMethodResponseAsContinuation2.MakeGenericMethod(returnArgs[0]);
+                    _resultKind = ResultKind.TypedValueTask;
+                    // Closed ValueTask<T>.AsTask() - no MakeGenericMethod / dynamic code.
+                    _asTask = returnType.GetMethod("AsTask")!;
                 }
                 else
                 {
-                    Debug.Assert(returnType == typeof(Task<>));
-                    _methodTaskContinuation =
-                        kMethodResponseAsContinuation1.MakeGenericMethod(returnArgs[0]);
+                    Debug.Assert(returnDefinition == typeof(Task<>));
+                    _resultKind = ResultKind.TypedTask;
+                    // Closed Task<T>.Result - no MakeGenericMethod / dynamic code.
+                    _resultProperty = returnType.GetProperty("Result")!;
                 }
+            }
+
+            /// <summary>
+            /// Shape of the controller method result, resolved once at
+            /// registration so the per-call path needs no MakeGenericMethod.
+            /// </summary>
+            private enum ResultKind
+            {
+                VoidTask,
+                VoidValueTask,
+                TypedTask,
+                TypedValueTask,
+                AsyncEnumerable
             }
 
             /// <inheritdoc/>
@@ -433,90 +455,113 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Router
                 }
                 catch (Exception e)
                 {
-                    task = Task.FromException(e);
+                    // Argument binding / synchronous failure before the async
+                    // method returned its task. Surface it like a faulted task.
+                    ThrowAsMethodCallStatusException(e);
+                    throw; // unreachable, ThrowAsMethodCallStatusException does not return
                 }
 
-                if (_methodTaskContinuation == null)
+                switch (_resultKind)
                 {
-                    // Void method
-                    return _valueTask
-                        ? await VoidValueTaskAsync((ValueTask)task).ConfigureAwait(false)
-                        : await VoidTaskContinuationAsync((Task)task).ConfigureAwait(false);
+                    case ResultKind.VoidTask:
+                        return await VoidTaskContinuationAsync((Task)task)
+                            .ConfigureAwait(false);
+                    case ResultKind.VoidValueTask:
+                        return await VoidValueTaskAsync((ValueTask)task)
+                            .ConfigureAwait(false);
+                    default:
+                        return await ConvertTypedResultAsync(task)
+                            .ConfigureAwait(false);
                 }
-                return await ((Task<ReadOnlyMemory<byte>>)_methodTaskContinuation.Invoke(
-                    this, [task])!).ConfigureAwait(false);
             }
 
             /// <summary>
-            /// Helper to convert a typed response to buffer or throw appropriate
-            /// exception as continuation.
+            /// Convert a typed (Task&lt;T&gt;, ValueTask&lt;T&gt; or
+            /// IAsyncEnumerable&lt;T&gt;) controller result into a serialized
+            /// buffer or throw the appropriate exception. The typed result is
+            /// extracted through member access on the closed return type, which -
+            /// unlike the former MakeGenericMethod continuation - does not require
+            /// runtime code generation and is therefore Native-AOT safe.
             /// </summary>
-            /// <typeparam name="T"></typeparam>
             /// <param name="task"></param>
             /// <returns></returns>
-            public Task<ReadOnlyMemory<byte>> MethodResultConverterTaskContinuation<T>(
-                Task<T> task)
+            [UnconditionalSuppressMessage("Trimming", "IL2075",
+                Justification = "Controllers are rooted via DI so the result " +
+                    "member metadata is preserved; no dynamic code is generated.")]
+            [UnconditionalSuppressMessage("Trimming", "IL2072",
+                Justification = "Controllers are rooted via DI so the result " +
+                    "member metadata is preserved; no dynamic code is generated.")]
+            private async Task<ReadOnlyMemory<byte>> ConvertTypedResultAsync(object task)
             {
-                return task.ContinueWith(tr =>
-                {
-                    if (tr.IsFaulted || tr.IsCanceled)
-                    {
-                        ThrowAsMethodCallStatusException(tr);
-                    }
-                    return Json.SerializeToMemory((object?)tr.Result);
-                }, scheduler: TaskScheduler.Default);
-            }
-
-            /// <summary>
-            /// Helper to convert a typed response to buffer or throw appropriate
-            /// exception as continuation.
-            /// </summary>
-            /// <typeparam name="T"></typeparam>
-            /// <param name="task"></param>
-            /// <returns></returns>
-            public async Task<ReadOnlyMemory<byte>> MethodResultConverterValueTaskAsync<T>(
-                ValueTask<T> task)
-            {
+                object? result;
                 try
                 {
-                    var result = await task.ConfigureAwait(false);
-                    return Json.SerializeToMemory(result);
+                    switch (_resultKind)
+                    {
+                        case ResultKind.TypedTask:
+                            await ((Task)task).ConfigureAwait(false);
+                            result = _resultProperty!.GetValue(task);
+                            break;
+                        case ResultKind.TypedValueTask:
+                            var asTask = (Task)_asTask!.Invoke(task, null)!;
+                            await asTask.ConfigureAwait(false);
+                            result = _asTask.ReturnType.GetProperty("Result")!
+                                .GetValue(asTask);
+                            break;
+                        case ResultKind.AsyncEnumerable:
+                            result = await DrainAsync(task).ConfigureAwait(false);
+                            break;
+                        default:
+                            result = null;
+                            break;
+                    }
                 }
                 catch (Exception ex)
                 {
                     ThrowAsMethodCallStatusException(ex);
-                    throw;
+                    throw; // unreachable
                 }
+                return Json.SerializeToMemory(result);
             }
 
             /// <summary>
-            /// Helper to convert a typed response to buffer or throw appropriate
-            /// exception as continuation.
+            /// Drain an IAsyncEnumerable&lt;T&gt; (boxed as object) into a list
+            /// using member access on the closed enumerator type. No
+            /// MakeGenericType/MakeGenericMethod is used, so the path is
+            /// Native-AOT safe.
             /// </summary>
-            /// <typeparam name="T"></typeparam>
-            /// <param name="enumerable"></param>
+            /// <param name="asyncEnumerable"></param>
             /// <returns></returns>
-            public Task<ReadOnlyMemory<byte>> MethodResultConverterForAsyncEnumerable<T>(
-                IAsyncEnumerable<T> enumerable)
+            [UnconditionalSuppressMessage("Trimming", "IL2075",
+                Justification = "The async enumerator members are preserved; " +
+                    "controllers are rooted via DI. No dynamic code is generated.")]
+            private async Task<List<object?>> DrainAsync(object asyncEnumerable)
             {
-                return ToListAsync(enumerable).ContinueWith(tr =>
+                var enumerator = _getAsyncEnumerator!.Invoke(asyncEnumerable,
+                    [CancellationToken.None])!;
+                // Resolve members on the closed IAsyncEnumerator<T> interface (the
+                // GetAsyncEnumerator return type) rather than the compiler-generated
+                // state machine, where they are explicit interface implementations.
+                var enumeratorType = _getAsyncEnumerator.ReturnType;
+                var moveNextAsync = enumeratorType.GetMethod("MoveNextAsync")!;
+                var current = enumeratorType.GetProperty("Current")!;
+                var list = new List<object?>();
+                try
                 {
-                    if (tr.IsFaulted || tr.IsCanceled)
+                    while (await ((ValueTask<bool>)moveNextAsync.Invoke(
+                        enumerator, null)!).ConfigureAwait(false))
                     {
-                        ThrowAsMethodCallStatusException(tr);
+                        list.Add(current.GetValue(enumerator));
                     }
-                    return Json.SerializeToMemory((object?)tr.Result);
-                }, scheduler: TaskScheduler.Default);
-
-                static async Task<IReadOnlyList<T>> ToListAsync(IAsyncEnumerable<T> e)
-                {
-                    var list = new List<T>();
-                    await foreach (var result in e.ConfigureAwait(false))
-                    {
-                        list.Add(result);
-                    }
-                    return list;
                 }
+                finally
+                {
+                    if (enumerator is IAsyncDisposable disposable)
+                    {
+                        await disposable.DisposeAsync().ConfigureAwait(false);
+                    }
+                }
+                return list;
             }
 
             /// <summary>
@@ -579,23 +624,16 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Router
                 throw ex.AsMethodCallStatusException(status, _summarizer);
             }
 
-            private static readonly MethodInfo kMethodResponseAsContinuation1 =
-                typeof(JsonMethodInvoker).GetMethod(nameof(MethodResultConverterTaskContinuation),
-                    BindingFlags.Public | BindingFlags.Instance)!;
-            private static readonly MethodInfo kMethodResponseAsContinuation2 =
-                typeof(JsonMethodInvoker).GetMethod(nameof(MethodResultConverterValueTaskAsync),
-                    BindingFlags.Public | BindingFlags.Instance)!;
-            private static readonly MethodInfo kMethodResponseAsContinuation3 =
-                typeof(JsonMethodInvoker).GetMethod(nameof(MethodResultConverterForAsyncEnumerable),
-                    BindingFlags.Public | BindingFlags.Instance)!;
             private readonly ILogger _logger;
             private readonly IExceptionSummarizer? _summarizer;
             private readonly object _controller;
             private readonly ParameterInfo[] _methodParams;
             private readonly ExceptionFilterAttribute _ef;
             private readonly MethodInfo _controllerMethod;
-            private readonly MethodInfo? _methodTaskContinuation;
-            private readonly bool _valueTask;
+            private readonly ResultKind _resultKind;
+            private readonly PropertyInfo? _resultProperty;
+            private readonly MethodInfo? _asTask;
+            private readonly MethodInfo? _getAsyncEnumerator;
         }
 
         private readonly ILogger _logger;
