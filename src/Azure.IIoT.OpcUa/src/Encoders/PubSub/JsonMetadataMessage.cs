@@ -120,24 +120,122 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <inheritdoc/>
-        // TODO(Phase 5): Reimplement JSON metadata message decoding on the
-        // UA-.NETStandard 2.0 Opc.Ua.JsonDecoder (Opc.Ua.PubSub).
         public override bool TryDecode(Opc.Ua.IServiceMessageContext context,
             Queue<ReadOnlySequence<byte>> reader, IDataSetMetaDataResolver? resolver)
         {
-            throw new NotSupportedException(
-                "JSON metadata message decoding is deferred to Phase 5.");
+            if (reader.TryPeek(out var buffer))
+            {
+                using var memoryStream = buffer.IsSingleSegment ?
+                    Memory.GetStream(buffer.FirstSpan) :
+                    Memory.GetStream(buffer.ToArray());
+                var compression = UseGzipCompression ?
+                    new GZipStream(memoryStream, CompressionMode.Decompress, leaveOpen: true) : null;
+                try
+                {
+                    using var streamReader = new StreamReader((Stream?)compression ?? memoryStream,
+                        Encoding.UTF8, detectEncodingFromByteOrderMarks: false, leaveOpen: true);
+                    var json = streamReader.ReadToEnd();
+                    if (string.IsNullOrWhiteSpace(json))
+                    {
+                        return false;
+                    }
+                    using var decoder = new Opc.Ua.JsonDecoder(json, context);
+                    if (TryDecode(decoder))
+                    {
+                        reader.Dequeue();
+                        return true;
+                    }
+                }
+                finally
+                {
+                    compression?.Dispose();
+                }
+            }
+            return false;
         }
 
         /// <inheritdoc/>
-        // TODO(Phase 5): Reimplement JSON metadata message encoding on the
-        // UA-.NETStandard 2.0 Opc.Ua.JsonEncoder (Opc.Ua.PubSub).
         public override IReadOnlyList<ReadOnlySequence<byte>> Encode(
             Opc.Ua.IServiceMessageContext context,
             int maxChunkSize, IDataSetMetaDataResolver? resolver)
         {
-            throw new NotSupportedException(
-                "JSON metadata message encoding is deferred to Phase 5.");
+            var chunks = new List<ReadOnlySequence<byte>>();
+            var bytes = Encoding.UTF8.GetBytes(EncodeToText(context));
+            if (UseGzipCompression)
+            {
+                using var memoryStream = new MemoryStream();
+                using (var gzip = new GZipStream(memoryStream, CompressionLevel.Optimal,
+                    leaveOpen: true))
+                {
+                    gzip.Write(bytes, 0, bytes.Length);
+                }
+                bytes = memoryStream.ToArray();
+            }
+            if (bytes.Length < maxChunkSize)
+            {
+                chunks.Add(new ReadOnlySequence<byte>(bytes));
+            }
+            else
+            {
+                chunks.Add(default);
+            }
+            return chunks;
+        }
+
+        /// <summary>
+        /// Encode metadata to a json object text using the 2.0 stack codec.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <exception cref="Azure.IIoT.OpcUa.Encoders.EncodingException"></exception>
+        private string EncodeToText(Opc.Ua.IServiceMessageContext context)
+        {
+            if (MetaData == null)
+            {
+                throw new Azure.IIoT.OpcUa.Encoders.EncodingException("No metadata to encode.");
+            }
+            using var encoder = new Opc.Ua.JsonEncoder(context, Opc.Ua.JsonEncoderOptions.Compact);
+            encoder.WriteString(nameof(MessageId), MessageId);
+            encoder.WriteString(nameof(MessageType), MessageType);
+            if (!string.IsNullOrEmpty(PublisherId))
+            {
+                encoder.WriteString(nameof(PublisherId), PublisherId);
+            }
+            if (DataSetWriterId != 0)
+            {
+                encoder.WriteUInt16(nameof(DataSetWriterId), DataSetWriterId);
+            }
+            if (!string.IsNullOrEmpty(DataSetWriterGroup))
+            {
+                encoder.WriteString(nameof(DataSetWriterGroup), DataSetWriterGroup);
+            }
+            var dataSetMetaData = MetaData.ToStackModel(context);
+            encoder.WriteEncodeable(nameof(MetaData), dataSetMetaData);
+            if (!string.IsNullOrEmpty(DataSetWriterName))
+            {
+                encoder.WriteString(nameof(DataSetWriterName), DataSetWriterName);
+            }
+            return encoder.CloseAndReturnText();
+        }
+
+        /// <summary>
+        /// Decode the metadata message from a json decoder.
+        /// </summary>
+        /// <param name="decoder"></param>
+        private bool TryDecode(Opc.Ua.IDecoder decoder)
+        {
+            MessageId = decoder.ReadString(nameof(MessageId));
+            var messageType = decoder.ReadString(nameof(MessageType));
+            if (messageType == null ||
+                !messageType.Equals(MessageTypeUaMetadata, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+            PublisherId = decoder.ReadString(nameof(PublisherId));
+            DataSetWriterId = decoder.ReadUInt16(nameof(DataSetWriterId));
+            var dataSetMetaData = decoder.ReadEncodeable<Opc.Ua.DataSetMetaDataType>(nameof(MetaData));
+            MetaData = dataSetMetaData.ToServiceModel(decoder.Context);
+            DataSetWriterName = decoder.ReadString(nameof(DataSetWriterName));
+            return true;
         }
     }
 }

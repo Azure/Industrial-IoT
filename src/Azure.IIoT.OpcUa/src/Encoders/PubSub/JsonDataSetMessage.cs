@@ -7,8 +7,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 {
     using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Opc.Ua;
     using System;
     using System.Linq;
+    using System.Text.Json.Nodes;
 
     /// <summary>
     /// Data set message
@@ -57,25 +59,207 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             return hash.ToHashCode();
         }
 
-        /// <inheritdoc/>
-        // TODO(Phase 5): Reimplement JSON PubSub dataset encoding on top of the
-        // UA-.NETStandard 2.0 Opc.Ua.JsonEncoder. The fork-specific JsonEncoderEx
-        // (WriteDataSet / reversible-encoding toggling) was removed in the 2.0 migration.
-        internal virtual void Encode(Opc.Ua.IEncoder encoder, string? publisherId, bool withHeader,
-            string? property)
+        /// <summary>
+        /// Encode the dataset message into a json node. When <paramref name="withHeader"/>
+        /// is set the returned node is an object carrying the DataSetMessage header
+        /// fields plus a Payload property, otherwise the raw dataset payload node is
+        /// returned. See OPC UA Part 14 §7.2.5.4.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="publisherId"></param>
+        /// <param name="withHeader"></param>
+        internal virtual JsonNode? EncodeToNode(IServiceMessageContext context,
+            string? publisherId, bool withHeader)
         {
-            throw new NotSupportedException(
-                "JSON PubSub dataset message encoding is deferred to Phase 5.");
+            var reversible = DataSetMessageContentMask.HasFlag(
+                DataSetMessageContentFlags.ReversibleFieldEncoding);
+            if (!withHeader)
+            {
+                return JsonPubSubCodec.EncodeDataSet(context, Payload, reversible);
+            }
+
+            var message = new JsonObject();
+            if ((DataSetMessageContentMask & DataSetMessageContentFlags.DataSetWriterId) != 0)
+            {
+                if (!UseCompatibilityMode)
+                {
+                    message[nameof(DataSetWriterId)] = DataSetWriterId;
+                }
+                else
+                {
+                    // Up to version 2.8 we wrote the string id as id which is not per standard
+                    message[nameof(DataSetWriterId)] = DataSetWriterName;
+                }
+            }
+            if ((DataSetMessageContentMask & DataSetMessageContentFlags.SequenceNumber) != 0)
+            {
+                message[nameof(SequenceNumber)] = SequenceNumber;
+            }
+            if ((DataSetMessageContentMask & DataSetMessageContentFlags.MetaDataVersion) != 0 &&
+                MetaDataVersion != null)
+            {
+                message[nameof(MetaDataVersion)] =
+                    JsonPubSubCodec.EncodeEncodeable(context, MetaDataVersion);
+            }
+            if ((DataSetMessageContentMask & DataSetMessageContentFlags.Timestamp) != 0)
+            {
+                message[nameof(Timestamp)] = JsonPubSubCodec.EncodeDateTime(context,
+                    Timestamp?.UtcDateTime ?? default);
+            }
+            if ((DataSetMessageContentMask & DataSetMessageContentFlags.Status) != 0)
+            {
+                var status = Status ?? Payload.DataSetFields
+                    .FirstOrDefault(s => Opc.Ua.StatusCode.IsNotGood(s.Value?.StatusCode ??
+                        Opc.Ua.StatusCodes.BadNoData)).Value?.StatusCode ?? Opc.Ua.StatusCodes.Good;
+                message[nameof(Status)] = status.Code;
+            }
+            if ((DataSetMessageContentMask & DataSetMessageContentFlags.MessageType) != 0)
+            {
+                var messageType = MessageType switch
+                {
+                    MessageType.KeyFrame => "ua-keyframe",
+                    MessageType.Event => "ua-event",
+                    MessageType.KeepAlive => "ua-keepalive",
+                    MessageType.Condition => "ua-condition",
+                    MessageType.DeltaFrame => "ua-deltaframe",
+                    _ => null
+                };
+                if (messageType != null)
+                {
+                    message[nameof(MessageType)] = messageType;
+                }
+            }
+            if (!UseCompatibilityMode &&
+                (DataSetMessageContentMask & DataSetMessageContentFlags.DataSetWriterName) != 0)
+            {
+                message[nameof(DataSetWriterName)] = DataSetWriterName;
+            }
+            message[nameof(Payload)] = JsonPubSubCodec.EncodeDataSet(context, Payload, reversible);
+            return message;
         }
 
-        /// <inheritdoc/>
-        // TODO(Phase 5): Reimplement JSON PubSub dataset decoding on top of the
-        // UA-.NETStandard 2.0 Opc.Ua.JsonDecoder.
-        internal virtual bool TryDecode(Opc.Ua.IDecoder jsonDecoder, string? property, ref bool withHeader,
-            ref string? publisherId)
+        /// <summary>
+        /// Decode the dataset message from a json node. See OPC UA Part 14 §7.2.5.4.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="node"></param>
+        /// <param name="withHeader"></param>
+        /// <param name="publisherId"></param>
+        internal virtual bool TryDecodeFromNode(IServiceMessageContext context,
+            JsonNode? node, ref bool withHeader, ref string? publisherId)
         {
-            throw new NotSupportedException(
-                "JSON PubSub dataset message decoding is deferred to Phase 5.");
+            if (node is not JsonObject obj)
+            {
+                return false;
+            }
+            if (TryReadHeader(context, obj, out var dataSetMessageContentMask))
+            {
+                withHeader = true;
+                DataSetMessageContentMask = dataSetMessageContentMask;
+                Payload = JsonPubSubCodec.DecodeDataSet(context, obj[nameof(Payload)]);
+                return true;
+            }
+            if (withHeader)
+            {
+                // Previously we found a header, not now, we fail here
+                return false;
+            }
+            // Reset content and treat the whole object as the payload
+            DataSetMessageContentMask = 0;
+            MessageType = MessageType.KeyFrame;
+            DataSetWriterId = 0;
+            DataSetWriterName = null;
+            SequenceNumber = 0;
+            MetaDataVersion = null;
+            Timestamp = DateTimeOffset.MinValue;
+            Payload = JsonPubSubCodec.DecodeDataSet(context, obj);
+            return true;
+        }
+
+        /// <summary>
+        /// Read the dataset message header.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="obj"></param>
+        /// <param name="dataSetMessageContentMask"></param>
+        private bool TryReadHeader(IServiceMessageContext context, JsonObject obj,
+            out DataSetMessageContentFlags dataSetMessageContentMask)
+        {
+            dataSetMessageContentMask = 0;
+            if (!obj.ContainsKey(nameof(Payload)))
+            {
+                return false;
+            }
+            var json = obj.ToJsonString();
+            using var decoder = new Opc.Ua.JsonDecoder(json, context);
+            if (decoder.HasField(nameof(DataSetWriterId)))
+            {
+                DataSetWriterId = decoder.ReadUInt16(nameof(DataSetWriterId));
+                if (DataSetWriterId == 0)
+                {
+                    // Up to version 2.8 we wrote the string id as id which is not per standard
+                    DataSetWriterName = decoder.ReadString(nameof(DataSetWriterId));
+                    if (DataSetWriterName != null)
+                    {
+                        UseCompatibilityMode = true;
+                        dataSetMessageContentMask |= DataSetMessageContentFlags.DataSetWriterId;
+                        dataSetMessageContentMask |= DataSetMessageContentFlags.DataSetWriterName;
+                    }
+                }
+                else
+                {
+                    dataSetMessageContentMask |= DataSetMessageContentFlags.DataSetWriterId;
+                }
+            }
+            if (decoder.HasField(nameof(MetaDataVersion)))
+            {
+                MetaDataVersion = decoder.ReadEncodeable<Opc.Ua.ConfigurationVersionDataType>(
+                    nameof(MetaDataVersion));
+                dataSetMessageContentMask |= DataSetMessageContentFlags.MetaDataVersion;
+            }
+            if (decoder.HasField(nameof(SequenceNumber)))
+            {
+                SequenceNumber = decoder.ReadUInt32(nameof(SequenceNumber));
+                dataSetMessageContentMask |= DataSetMessageContentFlags.SequenceNumber;
+            }
+            if (decoder.HasField(nameof(Timestamp)))
+            {
+                Timestamp = new DateTimeOffset(
+                    decoder.ReadDateTime(nameof(Timestamp)).ToDateTime(), TimeSpan.Zero);
+                dataSetMessageContentMask |= DataSetMessageContentFlags.Timestamp;
+            }
+            if (decoder.HasField(nameof(Status)))
+            {
+                UseCompatibilityMode = obj[nameof(Status)] is JsonObject;
+                dataSetMessageContentMask |= DataSetMessageContentFlags.Status;
+                if (UseCompatibilityMode)
+                {
+                    Status = decoder.ReadStatusCode(nameof(Status));
+                }
+                else
+                {
+                    Status = decoder.ReadUInt32(nameof(Status));
+                }
+            }
+            if (decoder.HasField(nameof(MessageType)))
+            {
+                var messageType = decoder.ReadString(nameof(MessageType));
+                dataSetMessageContentMask |= DataSetMessageContentFlags.MessageType;
+                MessageType = messageType switch
+                {
+                    "ua-deltaframe" => MessageType.DeltaFrame,
+                    "ua-event" => MessageType.Event,
+                    "ua-keepalive" => MessageType.KeepAlive,
+                    "ua-condition" => MessageType.Condition,
+                    _ => MessageType.KeyFrame
+                };
+            }
+            if (decoder.HasField(nameof(DataSetWriterName)))
+            {
+                DataSetWriterName = decoder.ReadString(nameof(DataSetWriterName));
+                dataSetMessageContentMask |= DataSetMessageContentFlags.DataSetWriterName;
+            }
+            return true;
         }
     }
 }

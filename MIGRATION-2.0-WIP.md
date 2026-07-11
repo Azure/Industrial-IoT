@@ -184,6 +184,59 @@ integration tests. The submodule's already-2.0 Quickstart servers
 Note: `Testing.Servers` is now **in scope and green** (was Stage 3 target), except the
 descoped `ISA95Jobs` server (see Stage 3 above).
 
+## Phase 5 (this commit) — JSON PubSub telemetry on the 2.0 stack
+
+Phase 5 **un-stubs** the JSON PubSub network-message encoders that Stage 1 reduced to
+`NotSupportedException` throwing stubs (`TODO(Phase 5)`). JSON telemetry now encodes and
+decodes again, landing **green** in `Industrial-IoT.slnx`.
+
+**Approach — 2.0 Core `JsonEncoder`/`JsonDecoder` for values + `System.Text.Json` for the
+envelope (NOT the full `Opc.Ua.PubSub` library):**
+
+- The OPC UA Part 14 §7.2.3 JSON network-message envelope (network-message header,
+  `Messages` array, per-`DataSetMessage` header, `Payload`) is assembled with
+  `System.Text.Json.Nodes` (`JsonObject`/`JsonArray`).
+- Every OPC UA typed field value (Variant / DataValue / IEncodeable / DateTime) is
+  encoded field-by-field with the **2.0 stack `Opc.Ua.JsonEncoder`/`JsonDecoder`** — the
+  same codec already used for the value API in Stage 1 — via a new shared helper
+  `Encoders/PubSub/JsonPubSubCodec.cs`. Each value is written under a synthetic field
+  name and the resulting node is spliced into the envelope. `JsonEncoderOptions` profiles
+  map: reversible→`Compact`, non-reversible→`Verbose`, raw-data→`RawData`. Raw single
+  values use `WriteVariantValue` (respects `SuppressArtifacts`) so they degrade to the
+  bare value per Part 14.
+- The full `Opc.Ua.PubSub` library was **not** adopted: it owns its own
+  `IPubSubBuilder`/DI/`UaPubSubApplication` lifecycle that would require re-hosting
+  IIoT's `WriterGroupDataSource`/`NetworkMessageEncoder`/`NetworkMessageSink` onto it — a
+  much larger change than restoring the JSON framing directly on the Core codec. That
+  end-state remains available for a later pass.
+
+**Un-stubbed (now encode/decode via `JsonPubSubCodec`):**
+
+- `JsonNetworkMessage` (`ua-data` envelope: STJ framing + gzip + chunk-splitting).
+- `JsonDataSetMessage` (dataset message header + `Payload`; node-based
+  `EncodeToNode`/`TryDecodeFromNode`).
+- `MonitoredItemMessage` (legacy `ua-samples` flat records).
+- `JsonMetadataMessage` (`ua-metadata`; a single flat Core `JsonEncoder`/`JsonDecoder`).
+
+**Validated:** a throwaway round-trip harness confirmed encode→decode equality for the
+network message (keyframe with typed fields), raw single-value degrade, gzip framing, and
+the samples message. Whole-solution build = 0 errors; `Core.Tests` (60) and `Models.Tests`
+(828) stay green.
+
+**Deferred inside Phase 5:**
+
+- `EncodeableDictionary.Decode(IDecoder)` still throws `NotSupportedException`: the 2.0
+  `JsonDecoder` does not expose the field-enumeration primitive the old
+  `JsonDecoderEx.ReadDataSet(null)` relied on. Not on the live JSON telemetry encode path.
+- `JsonMetadataMessage`'s `Stream`-based decode overload keeps its original
+  `NotImplementedException` (unchanged from pre-migration behavior; the queue-based path
+  is the one used).
+- `src/Azure.IIoT.OpcUa/tests` stays **descoped**: re-adding it costs ~34 residual 2.0
+  test-API compile deltas (readonly `ExtensionObject`, nullable `DataValue` dictionaries,
+  ambiguous `Variant` ctors, `NodeId`/`ExpandedNodeId` value-type deltas) plus open-ended
+  rewiring of hardcoded expected-JSON literals to the 2.0 codec output — this is
+  final-stage test-project migration, not Phase 5 encoder work.
+
 ## Constraints (unchanged across stages)
 
 - Never modify the `external/UA-.NETStandard` submodule.
