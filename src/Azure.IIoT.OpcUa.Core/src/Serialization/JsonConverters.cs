@@ -77,231 +77,6 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
     }
 
     /// <summary>
-    /// Converts objects with <see cref="DataContractAttribute"/> honoring the
-    /// <see cref="DataMemberAttribute"/> name / emit default semantics.
-    /// </summary>
-    internal sealed class DataContractObjectConverter : JsonConverterFactory
-    {
-        /// <inheritdoc/>
-        [UnconditionalSuppressMessage("AotAnalysis", "IL3050",
-            Justification = "Reflection based serializer, hardened in a later phase.")]
-        [UnconditionalSuppressMessage("Trimming", "IL2026",
-            Justification = "Reflection based serializer, hardened in a later phase.")]
-        [UnconditionalSuppressMessage("Trimming", "IL2070",
-            Justification = "Reflection based serializer, hardened in a later phase.")]
-        public override bool CanConvert(Type typeToConvert)
-        {
-            var dca = typeToConvert.GetCustomAttribute<DataContractAttribute>(true);
-            if (dca == null)
-            {
-                return false;
-            }
-            var constructors = typeToConvert.GetConstructors();
-            if (constructors.Length != 0 && !constructors
-                .Any(c => c.GetParameters().Length == 0))
-            {
-                // No support for parameter based construction at this point.
-                return false;
-            }
-            // If data member attribute is being used
-            return typeToConvert.GetProperties()
-                .Any(p => p.CanWrite && !p.IsSpecialName &&
-                    p.GetCustomAttribute<DataMemberAttribute>() != null);
-        }
-
-        /// <inheritdoc/>
-        [UnconditionalSuppressMessage("AotAnalysis", "IL3050",
-            Justification = "Reflection based serializer, hardened in a later phase.")]
-        [UnconditionalSuppressMessage("Trimming", "IL2055",
-            Justification = "Reflection based serializer, hardened in a later phase.")]
-        [UnconditionalSuppressMessage("Trimming", "IL2072",
-            Justification = "Reflection based serializer, hardened in a later phase.")]
-        public override JsonConverter? CreateConverter(Type typeToConvert,
-            JsonSerializerOptions options)
-        {
-            var ct = typeof(DataContractObjectConverterOfT<>)
-                .MakeGenericType(typeToConvert);
-            return (JsonConverter?)Activator.CreateInstance(ct, []);
-        }
-
-        /// <summary>
-        /// Actual converter of T
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        [UnconditionalSuppressMessage("AotAnalysis", "IL3050",
-            Justification = "Reflection based serializer, hardened in a later phase.")]
-        [UnconditionalSuppressMessage("Trimming", "IL2026",
-            Justification = "Reflection based serializer, hardened in a later phase.")]
-        public class DataContractObjectConverterOfT<T> : JsonConverter<T>
-            where T : new()
-        {
-            /// <inheritdoc/>
-            public override T Read(ref Utf8JsonReader reader, Type typeToConvert,
-                JsonSerializerOptions options)
-            {
-                if (reader.TokenType != JsonTokenType.StartObject)
-                {
-                    throw new JsonException();
-                }
-                var o = new T();
-                while (reader.Read())
-                {
-                    if (reader.TokenType == JsonTokenType.EndObject)
-                    {
-                        return o;
-                    }
-                    if (reader.TokenType == JsonTokenType.PropertyName)
-                    {
-                        var propertyName = reader.GetString();
-                        if (propertyName == null)
-                        {
-                            throw new JsonException();
-                        }
-                        reader.Read();
-                        ReadFn? setter;
-                        if (options.PropertyNameCaseInsensitive)
-                        {
-                            if (!kReadersInsensitive.TryGetValue(
-                                propertyName.ToUpperInvariant(), out setter))
-                            {
-                                // Ignore unknown properties (matches Newtonsoft
-                                // MissingMemberHandling.Ignore for wire compat).
-                                reader.Skip();
-                                continue;
-                            }
-                        }
-                        else if (!kReaders.TryGetValue(propertyName, out setter))
-                        {
-                            // Ignore unknown properties (matches Newtonsoft
-                            // MissingMemberHandling.Ignore for wire compat).
-                            reader.Skip();
-                            continue;
-                        }
-                        setter(ref reader, o, options);
-                    }
-                }
-                return o;
-            }
-
-            /// <inheritdoc/>
-            public override void Write(Utf8JsonWriter writer, T value,
-                JsonSerializerOptions options)
-            {
-                writer.WriteStartObject();
-                foreach (var write in kWriters)
-                {
-                    write(value, writer, options);
-                }
-                writer.WriteEndObject();
-            }
-
-            private delegate void WriteFn(object? o, Utf8JsonWriter writer,
-                JsonSerializerOptions options);
-
-            private delegate void ReadFn(ref Utf8JsonReader reader, object? o,
-                JsonSerializerOptions options);
-
-            /// <summary>
-            /// Gather type information
-            /// </summary>
-            [UnconditionalSuppressMessage("AotAnalysis", "IL3050",
-                Justification = "Reflection based serializer, hardened in a later phase.")]
-            [UnconditionalSuppressMessage("Trimming", "IL2026",
-                Justification = "Reflection based serializer, hardened in a later phase.")]
-            [UnconditionalSuppressMessage("Trimming", "IL2075",
-                Justification = "Reflection based serializer, hardened in a later phase.")]
-            static DataContractObjectConverterOfT()
-            {
-                kReaders = typeof(T).GetProperties()
-                    .Where(p => p.CanWrite && !p.IsSpecialName &&
-                        p.GetCustomAttribute<DataMemberAttribute>() != null)
-                    .Select(p =>
-                    {
-                        var dma = p.GetCustomAttribute<DataMemberAttribute>();
-                        var name = dma?.Name ?? p.Name;
-                        void Read(ref Utf8JsonReader reader, object? o,
-                            JsonSerializerOptions options)
-                        {
-                            var typeToRead = p.GetSetMethod()?
-                                .GetParameters()[0].ParameterType;
-                            var v = JsonSerializer.Deserialize(
-                                ref reader, typeToRead ?? typeof(object), options);
-                            try
-                            {
-                                p.SetValue(o, v);
-                            }
-                            catch (Exception ex)
-                            {
-#pragma warning disable CA1065 // Do not raise exceptions in unexpected locations
-                                throw new JsonException(ex.Message, ex);
-#pragma warning restore CA1065 // Do not raise exceptions in unexpected locations
-                            }
-                        }
-                        ReadFn read = Read;
-                        return (name, read);
-                    })
-                    .ToDictionary(p => p.name, v => v.read);
-
-                kReadersInsensitive = kReaders
-                    .ToDictionary(p => p.Key.ToUpperInvariant(), kv => kv.Value);
-
-                kWriters = typeof(T).GetProperties()
-                    .Where(p => p.CanRead && !p.IsSpecialName &&
-                        p.GetCustomAttribute<DataMemberAttribute>() != null)
-                    .Select(p =>
-                    {
-                        var dma = p.GetCustomAttribute<DataMemberAttribute>();
-                        var name = JsonEncodedText.Encode(dma?.Name ?? p.Name);
-                        var emitDefault = dma?.EmitDefaultValue != false;
-                        var typeToWrite = p.GetGetMethod()?.ReturnType;
-                        var defaultValue = typeToWrite?.IsValueType ?? false ?
-                            Activator.CreateInstance(typeToWrite) : null;
-                        void Write(object? o, Utf8JsonWriter writer,
-                            JsonSerializerOptions options)
-                        {
-                            object? v;
-                            try
-                            {
-                                v = p.GetValue(o);
-                            }
-                            catch
-                            {
-                                v = defaultValue;
-                            }
-                            if (emitDefault || !IsEqual(defaultValue, v))
-                            {
-                                writer.WritePropertyName(name);
-                                JsonSerializer.Serialize(writer, v,
-                                    typeToWrite ?? v?.GetType() ?? typeof(object),
-                                    options);
-                            }
-                        }
-                        return (WriteFn)Write;
-                    })
-                    .Where(p => p != null)
-                    .ToList();
-            }
-
-            private static bool IsEqual(object? defaultValue, object? v)
-            {
-                if (v == defaultValue)
-                {
-                    return true;
-                }
-                if (v is null || defaultValue is null)
-                {
-                    return false;
-                }
-                return v.Equals(defaultValue);
-            }
-
-            private static readonly Dictionary<string, ReadFn> kReaders;
-            private static readonly Dictionary<string, ReadFn> kReadersInsensitive;
-            private static readonly List<WriteFn> kWriters;
-        }
-    }
-
-    /// <summary>
     /// Converts enums with <see cref="DataContractAttribute"/> honoring
     /// <see cref="EnumMemberAttribute"/> values.
     /// </summary>
@@ -566,19 +341,39 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
             public override void Write(Utf8JsonWriter writer, T? value,
                 JsonSerializerOptions options)
             {
-                JsonSerializer.Serialize(writer, (IEnumerable<TElement?>?)value, options);
+                if (value is not IEnumerable<TElement?> items)
+                {
+                    writer.WriteNullValue();
+                    return;
+                }
+                var typeInfo = options.GetTypeInfo(typeof(TElement));
+                writer.WriteStartArray();
+                foreach (var item in items)
+                {
+                    JsonSerializer.Serialize(writer, item, typeInfo);
+                }
+                writer.WriteEndArray();
             }
 
             /// <inheritdoc/>
             public override T? Read(ref Utf8JsonReader reader, Type typeToConvert,
                 JsonSerializerOptions options)
             {
-                var set = JsonSerializer.Deserialize<TElement?[]?>(ref reader, options);
-                if (set != null)
+                if (reader.TokenType == JsonTokenType.Null)
                 {
-                    return (T?)(IReadOnlySet<TElement?>?)new HashSet<TElement?>(set);
+                    return default;
                 }
-                return default;
+                if (reader.TokenType != JsonTokenType.StartArray)
+                {
+                    throw new JsonException();
+                }
+                var typeInfo = options.GetTypeInfo(typeof(TElement));
+                var set = new HashSet<TElement?>();
+                while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
+                {
+                    set.Add((TElement?)JsonSerializer.Deserialize(ref reader, typeInfo));
+                }
+                return (T?)(IReadOnlySet<TElement?>?)set;
             }
         }
     }
@@ -598,8 +393,12 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
             }
             if (reader.TokenType == JsonTokenType.StartArray)
             {
-                var list = JsonSerializer.Deserialize<List<byte>>(ref reader, options);
-                return list?.ToArray();
+                var list = new List<byte>();
+                while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
+                {
+                    list.Add(reader.GetByte());
+                }
+                return list.ToArray();
             }
             return reader.GetBytesFromBase64();
         }

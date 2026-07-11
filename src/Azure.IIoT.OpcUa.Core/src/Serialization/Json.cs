@@ -77,7 +77,6 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
             settings.Converters.Add(new ByteArrayConverter());
             settings.Converters.Add(new XmlElementConverter());
             settings.Converters.Add(new BigIntegerConverter());
-            settings.Converters.Add(new DataContractObjectConverter());
             settings.Converters.Add(new DataContractEnumConverter(
                 JsonNamingPolicy.CamelCase, true));
             settings.Converters.Add(new JsonStringEnumConverter(
@@ -91,7 +90,15 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
             settings.AllowTrailingCommas = true;
             settings.WriteIndented = false;
             settings.DefaultBufferSize = 128;
-            settings.TypeInfoResolver = new DefaultJsonTypeInfoResolver();
+            // Reproduce the DataContract wire format (DataMember name / order /
+            // emit-default semantics) as a metadata contract modifier instead of
+            // the former whole-object reflection converter. The modifier works on
+            // reflection and source generated type info alike and does not emit
+            // dynamic code, which is the prerequisite for Native-AOT / trim safe
+            // (source generated) serialization of the API models.
+            var resolver = new DefaultJsonTypeInfoResolver();
+            resolver.Modifiers.Add(DataContractResolver.Modify);
+            settings.TypeInfoResolver = resolver;
             if (settings.MaxDepth > 64)
             {
                 settings.MaxDepth = 64;
