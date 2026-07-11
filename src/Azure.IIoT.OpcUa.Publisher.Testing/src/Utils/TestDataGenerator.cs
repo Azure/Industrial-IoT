@@ -324,7 +324,7 @@ namespace Opc.Ua.Test
                 case BuiltInType.ByteString:
                     return GetRandomArray<byte[]>(length, fixedLength);
                 case BuiltInType.XmlElement:
-                    return GetRandomArray<XmlElement>(length, fixedLength);
+                    return GetRandomArray<Opc.Ua.XmlElement>(length, fixedLength);
                 case BuiltInType.NodeId:
                     return GetRandomArray<NodeId>(length, fixedLength);
                 case BuiltInType.ExpandedNodeId:
@@ -378,7 +378,23 @@ namespace Opc.Ua.Test
                     return (T)boundaryValue;
                 }
             }
-            return (T)GetRandom(typeof(T));
+            var value = GetRandom(typeof(T));
+            // The 2.0 stack models several built-in values as dedicated structs
+            // (Opc.Ua.XmlElement, Opc.Ua.Uuid) whereas this DOM/BCL-based generator
+            // produces the legacy System.Xml.XmlElement / System.Guid. Convert at the
+            // generic boundary so callers requesting either representation work
+            // (e.g. TestData XmlElement variables use Opc.Ua.XmlElement, Guid arrays
+            // in variants use Uuid); System.Xml.XmlElement / System.Guid callers are
+            // unaffected.
+            if (typeof(T) == typeof(Opc.Ua.XmlElement) && value is System.Xml.XmlElement node)
+            {
+                value = Opc.Ua.XmlElement.From(node);
+            }
+            else if (typeof(T) == typeof(Uuid) && value is Guid guid)
+            {
+                value = new Uuid(guid);
+            }
+            return (T)value;
         }
 
         /// <summary>
@@ -621,7 +637,7 @@ namespace Opc.Ua.Test
                 case 2:
                     return new NodeId(GetRandomGuid(), namespaceIndex);
                 case 3:
-                    return new NodeId(GetRandomByteString(), namespaceIndex);
+                    return new NodeId(ByteString.From(GetRandomByteString()), namespaceIndex);
                 default:
                     return new NodeId(GetRandomUInt32(), namespaceIndex);
             }
@@ -756,7 +772,7 @@ namespace Opc.Ua.Test
                     case BuiltInType.ByteString:
                         return new Variant(GetRandomArray<byte[]>(num, true));
                     case BuiltInType.XmlElement:
-                        return new Variant(GetRandomArray<XmlElement>(num, true));
+                        return new Variant(GetRandomArray<Opc.Ua.XmlElement>(num, true));
                     case BuiltInType.NodeId:
                         return new Variant(GetRandomArray<NodeId>(num, true));
                     case BuiltInType.ExpandedNodeId:
@@ -783,8 +799,12 @@ namespace Opc.Ua.Test
             var randomNodeId = GetRandomNodeId();
             if (!(randomNodeId).IsNull)
             {
-                return new ExtensionObject(randomNodeId, (_random.NextInt32(1) == 0) ?
-                    GetRandomXmlElement() : GetRandomByteString());
+                // 2.0 ExtensionObject exposes typed body ctors; the DOM/BCL bodies
+                // must be converted to the stack representations (Opc.Ua.XmlElement /
+                // ByteString) rather than the legacy System.Xml.XmlElement / byte[].
+                return _random.NextInt32(1) == 0
+                    ? new ExtensionObject(randomNodeId, Opc.Ua.XmlElement.From(GetRandomXmlElement()))
+                    : new ExtensionObject(randomNodeId, ByteString.From(GetRandomByteString()));
             }
             return new ExtensionObject();
         }

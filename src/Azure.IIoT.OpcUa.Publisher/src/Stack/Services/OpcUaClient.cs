@@ -223,6 +223,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             IOptions<OpcUaClientOptions> options,
             IOptions<OpcUaSubscriptionOptions> subscriptionOptions,
             string? sessionName = null)
+            : base(new LoggerTelemetryContext(loggerFactory
+                ?? throw new ArgumentNullException(nameof(loggerFactory))))
         {
             _timeProvider = timeProvider;
             if (connection?.Connection?.Endpoint?.Url == null)

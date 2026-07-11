@@ -235,7 +235,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             await config.ValidateAsync(config.ApplicationType).ConfigureAwait(false);
 
             _logger.InitializingCertValidation(this);
-            var application = new ApplicationInstance(config);
+            // The 2.0 stack cert-store/CertificateManager creation requires an
+            // ITelemetryContext; the obsolete ApplicationInstance(config) ctor passes
+            // null telemetry and NREs in CertificateManagerFactory.Create. Supply the
+            // telemetry from the configured message context (also used below).
+            var telemetry = config.CreateMessageContext().Telemetry;
+            var application = new ApplicationInstance(config, telemetry);
 
             // check the application certificate.
             var hasAppCertificate = await application.CheckApplicationInstanceCertificatesAsync(
@@ -264,7 +269,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 registry: null,
                 needPrivateKey: false,
                 applicationUri: null,
-                telemetry: config.CreateMessageContext().Telemetry).ConfigureAwait(false);
+                telemetry: telemetry).ConfigureAwait(false);
             Certificate = appCertificate == null
                 ? null
                 : X509CertificateLoader.LoadCertificate(appCertificate.RawData);

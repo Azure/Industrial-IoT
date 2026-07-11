@@ -209,7 +209,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                 {
                     path = "/" + path;
                 }
-                var configuration = new ApplicationConfiguration
+                var configuration = new ApplicationConfiguration(kTelemetry)
                 {
                     ApplicationName = "UA Core Sample Server",
                     ApplicationType = ApplicationType.Server,
@@ -224,7 +224,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                         {
                             StoreType = certStoreType,
                             StorePath = $"{pkiRootPath}/own",
-                            SubjectName = "UA Core Sample Server"
+                            SubjectName = "CN=UA Core Sample Server"
                         },
                         TrustedPeerCertificates = new CertificateTrustList
                         {
