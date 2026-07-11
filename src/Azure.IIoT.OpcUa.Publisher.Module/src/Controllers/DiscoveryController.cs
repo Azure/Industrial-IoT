@@ -7,7 +7,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Filters;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Asp.Versioning;
     using Azure.IIoT.OpcUa.Core;
     using Azure.IIoT.OpcUa.Core.Rpc.Router;
     using Microsoft.AspNetCore.Authorization;

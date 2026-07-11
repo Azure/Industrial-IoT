@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
     using Microsoft.Extensions.Diagnostics.ExceptionSummarization;
     using Microsoft.Extensions.Logging;
     using System;
+    using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.Net;
     using System.Net.Sockets;
@@ -51,6 +52,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
         /// </summary>
         /// <param name="exception"></param>
         /// <param name="httpContext"></param>
+        [UnconditionalSuppressMessage("Trimming", "IL2026",
+            Justification = "Serializes framework ProblemDetails via the shared " +
+            "reflection-based JSON serializer to preserve the exact MVC error wire " +
+            "format; source generating the error envelope is part of the final AOT step.")]
+        [UnconditionalSuppressMessage("AOT", "IL3050",
+            Justification = "Serializes framework ProblemDetails via the shared " +
+            "reflection-based JSON serializer to preserve the exact MVC error wire " +
+            "format; source generating the error envelope is part of the final AOT step.")]
         private static IResult Map(Exception exception, HttpContext httpContext)
         {
             if (exception is AggregateException ae)
@@ -132,6 +141,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
         /// <param name="code"></param>
         /// <param name="exception"></param>
         /// <param name="summarizer"></param>
+        [UnconditionalSuppressMessage("Trimming", "IL2026",
+            Justification = "Serializes framework ProblemDetails / error strings via the " +
+            "shared reflection-based JSON serializer to preserve the exact MVC error wire " +
+            "format; source generating the error envelope is part of the final AOT step.")]
+        [UnconditionalSuppressMessage("AOT", "IL3050",
+            Justification = "Serializes framework ProblemDetails / error strings via the " +
+            "shared reflection-based JSON serializer to preserve the exact MVC error wire " +
+            "format; source generating the error envelope is part of the final AOT step.")]
         private static (IResult, int) Response(HttpStatusCode code, Exception exception,
             IExceptionSummarizer? summarizer)
         {

@@ -8,10 +8,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Publisher.Module.Filters;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Asp.Versioning;
     using Azure.IIoT.OpcUa.Core;
     using Azure.IIoT.OpcUa.Core.Http;
-    using Azure.IIoT.OpcUa.Publisher.Module.OpenApi;
     using Azure.IIoT.OpcUa.Core.Rpc.Router;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
@@ -19,6 +17,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
+    using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.Linq;
     using System.Text.Json.Nodes;
@@ -484,6 +483,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
+        [UnconditionalSuppressMessage("Trimming", "IL2026",
+            Justification = "The asset configuration is a genuinely dynamic JsonNode " +
+            "payload serialized via the shared reflection-based JSON serializer; this " +
+            "dynamic fallback is accepted by design and does not affect the AOT-safe " +
+            "typed DTO paths.")]
+        [UnconditionalSuppressMessage("AOT", "IL3050",
+            Justification = "The asset configuration is a genuinely dynamic JsonNode " +
+            "payload serialized via the shared reflection-based JSON serializer; this " +
+            "dynamic fallback is accepted by design and does not affect the AOT-safe " +
+            "typed DTO paths.")]
         public async Task<ServiceResponse<PublishedNodesEntryModel>> CreateOrUpdateAssetAsync(
              PublishedNodeCreateAssetRequestModel<JsonNode> request,
             CancellationToken ct = default)

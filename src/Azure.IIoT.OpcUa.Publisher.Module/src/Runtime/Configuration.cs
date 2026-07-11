@@ -13,7 +13,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Azure.Iot.Operations.Protocol;
     using Azure.IIoT.OpcUa.Core.Messaging.Clients.EventHubs;
     using Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge;
-    using Azure.IIoT.OpcUa.Publisher.Module.OpenApi;
     using Azure.IIoT.OpcUa.Core.Configuration;
     using Azure.IIoT.OpcUa.Core.Messaging.Clients;
     using Azure.IIoT.OpcUa.Core.Messaging.Clients.Dapr;
@@ -29,7 +28,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Logging.Console;
     using Microsoft.Extensions.Options;
-    using Microsoft.OpenApi;
     using OpenTelemetry;
     using OpenTelemetry.Exporter;
     using OpenTelemetry.Logs;
@@ -37,6 +35,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using OpenTelemetry.Trace;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.IO;
     using System.Linq;
@@ -90,6 +89,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// </summary>
         /// <param name="services"></param>
         /// <param name="configuration"></param>
+        [UnconditionalSuppressMessage("Trimming", "IL2026",
+            Justification = "PublisherConfig.ToOptions() binds options from configuration " +
+            "via reflection; configuration source generation is out of scope for the " +
+            "module AOT hardening phase.")]
+        [UnconditionalSuppressMessage("AOT", "IL3050",
+            Justification = "PublisherConfig.ToOptions() binds options from configuration " +
+            "via reflection; configuration source generation is out of scope for the " +
+            "module AOT hardening phase.")]
         public static void AddResourceMonitoring(this IServiceCollection services,
             IConfiguration configuration)
         {
@@ -977,32 +984,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         }
 
         /// <summary>
-        /// Open api configuration
+        /// Open api configuration keys. The REST surface now serves its OpenAPI
+        /// document through the built-in <c>Microsoft.AspNetCore.OpenApi</c>
+        /// generator (see <c>Startup</c>), which always emits an OpenAPI 3.x
+        /// document. The legacy <c>useopenapiv3</c> flag is still accepted for
+        /// backwards command line compatibility but no longer toggles the Swagger
+        /// 2.0 document that the removed Swashbuckle pipeline used to produce.
         /// </summary>
-        internal sealed class OpenApi : ConfigureOptionBase<OpenApiOptions>
+        internal static class OpenApi
         {
             public const string UseOpenApiV3Key = "UseOpenApiV3";
-
-            /// <inheritdoc/>
-            public override void Configure(string? name, OpenApiOptions options)
-            {
-                options.SchemaVersion = GetBoolOrDefault(UseOpenApiV3Key) ? 3 : 2;
-                options.ProjectUri = new Uri("https://www.github.com/Azure/Industrial-IoT");
-                options.License = new OpenApiLicense
-                {
-                    Name = "MIT LICENSE",
-                    Url = new Uri("https://opensource.org/licenses/MIT")
-                };
-            }
-
-            /// <summary>
-            /// Create configuration
-            /// </summary>
-            /// <param name="configuration"></param>
-            public OpenApi(IConfiguration configuration)
-                : base(configuration)
-            {
-            }
         }
 
         /// <summary>

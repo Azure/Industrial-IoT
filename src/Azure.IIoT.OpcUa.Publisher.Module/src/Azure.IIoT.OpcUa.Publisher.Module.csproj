@@ -7,6 +7,28 @@
     <EnableSdkContainerSupport>true</EnableSdkContainerSupport>
     <Nullable>enable</Nullable>
     <TieredPGO>true</TieredPGO>
+    <!--
+      Phase 8b: opt the Module into the shared Native-AOT / trim analyzer profile
+      (see src/Directory.Build.targets) via IIoTNativeAot, which turns on
+      IsAotCompatible, IsTrimmable and the trim / AOT / single-file Roslyn
+      analyzers for every build (not just the AOT publish) so trim / AOT
+      incompatibilities in the Module and its reachable dependencies surface as
+      warnings during a normal `dotnet build`. The native publish itself stays
+      gated behind IIoTPublishAot.
+    -->
+    <IIoTNativeAot>true</IIoTNativeAot>
+    <!--
+      Enable the minimal API Request Delegate Generator (interceptor based source
+      generator) for every build so the MapGet/MapPost endpoint registrations in
+      Endpoints/PublisherApiEndpoints.cs are generated at compile time instead of
+      through the reflection based RequestDelegateFactory. This removes the bulk
+      of the minimal-API binding trim/AOT warnings. The JSON body (de)serialization
+      still flows through the shared reflection based serializer (Core Json with the
+      DataContractResolver.Modify contract modifier), whose entry points are
+      RequiresUnreferencedCode/RequiresDynamicCode annotated; moving the REST DTO
+      graph onto a source generated JSON context is the final AOT flip (see 8b).
+    -->
+    <EnableRequestDelegateGenerator>true</EnableRequestDelegateGenerator>
   </PropertyGroup>
   <!--
     Phase 8 (AOT gate): opt into Native-AOT publish via `-p:IIoTPublishAot=true`
@@ -46,10 +68,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
-    <PackageReference Include="Swashbuckle.AspNetCore.Swagger" />
-    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" />
-    <PackageReference Include="Swashbuckle.AspNetCore.Annotations" />
-    <PackageReference Include="Asp.Versioning.Mvc" />
     <PackageReference Include="Azure.Iot.Operations.Connector" />
     <PackageReference Include="Azure.Iot.Operations.Protocol" />
     <PackageReference Include="Azure.Identity" />

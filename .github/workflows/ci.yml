@@ -178,7 +178,50 @@ jobs:
           retention-days: 14
 
   # --------------------------------------------------------------------------
-  # coverage_report: merge all per-shard cobertura files into a single
+  # aot_publish: Native-AOT gate for the Publisher.Module. The ILC toolchain
+  # restore requires the public nuget.org feed and cannot run in the offline
+  # local dev environment, so this is validated here in CI. Publishes the
+  # module self-contained with the Native-AOT toolchain (-p:IIoTPublishAot=true
+  # sets PublishAot as a Module-local property so it does not flow into the
+  # multi-TFM UA-.NETStandard submodule projects). Runs as its own job in
+  # parallel with build_test so a trim/AOT regression is surfaced without
+  # blocking the normal build & test matrix.
+  # --------------------------------------------------------------------------
+  aot_publish:
+    name: AOT publish gate (Publisher.Module / linux-x64)
+    needs: version
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+      - name: Restore
+        # Restore against nuget.org explicitly (the repo Nuget.Config points
+        # only at the internal Azure Artifacts feed) and pass the RID + AOT
+        # flag so the restore also pulls the Native-AOT ILC runtime packages
+        # (Microsoft.DotNet.ILCompiler + runtime.linux-x64.*), letting the
+        # subsequent publish run with --no-restore.
+        run: dotnet restore src/Azure.IIoT.OpcUa.Publisher.Module/src -r linux-x64 -p:IIoTPublishAot=true -s https://api.nuget.org/v3/index.json
+        shell: pwsh
+      - name: AOT publish (self-contained, Native-AOT)
+        # Fails the job if the Native-AOT compiler (ILC) reports a hard
+        # error. Trim/AOT analyzer warnings surface during the ordinary
+        # build (the Module sets IIoTNativeAot=true); this step is the
+        # end-to-end native compilation gate.
+        run: |
+          dotnet publish src/Azure.IIoT.OpcUa.Publisher.Module/src `
+            -c Release -r linux-x64 --self-contained --no-restore `
+            -p:IIoTPublishAot=true
+        shell: pwsh
+
+  # --------------------------------------------------------------------------
   # report, render a markdown summary into $GITHUB_STEP_SUMMARY, and
   # upload the merged HTML report as an artifact.
   # --------------------------------------------------------------------------

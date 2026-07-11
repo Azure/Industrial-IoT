@@ -20,6 +20,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
     using OpenTelemetry.Resources;
     using OpenTelemetry.Trace;
     using System;
+    using System.Diagnostics.CodeAnalysis;
 
     /// <summary>
     /// Webservice startup
@@ -56,6 +57,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
         /// </summary>
         /// <param name="services"></param>
         /// <returns></returns>
+        [UnconditionalSuppressMessage("Trimming", "IL2026",
+            Justification = "AddConsoleFormatter<Syslog, ConsoleFormatterOptions> binds " +
+            "the framework ConsoleFormatterOptions whose members are statically " +
+            "analyzable; the trimming warning is a framework false positive.")]
+        [UnconditionalSuppressMessage("AOT", "IL3050",
+            Justification = "AddConsoleFormatter<Syslog, ConsoleFormatterOptions> binds " +
+            "the framework ConsoleFormatterOptions whose members are statically " +
+            "analyzable; the AOT warning is a framework false positive.")]
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddLogging(options => options
@@ -107,7 +116,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
 
             services.ConfigureHttpJsonOptions(options => Json.ApplyTo(options.SerializerOptions));
 
-            services.AddOpenApi();
+            // The REST surface serves its OpenAPI document through the built-in
+            // Microsoft.AspNetCore.OpenApi generator, which is source generator /
+            // trim friendly (unlike the removed Swashbuckle pipeline). The legacy
+            // "useopenapiv3" command line flag is still honored: when set the
+            // newer OpenAPI 3.1 document is emitted, otherwise the default OpenAPI
+            // 3.0 document. The removed Swashbuckle pipeline previously toggled a
+            // Swagger 2.0 document which the built-in generator does not produce;
+            // the flag therefore only selects between OpenAPI 3.x document versions
+            // now (this affects the generated document only, not the REST API).
+            var useOpenApiV3 = Configuration.GetValue<bool>(
+                Runtime.Configuration.OpenApi.UseOpenApiV3Key);
+            services.AddOpenApi(options => options.OpenApiVersion = useOpenApiV3
+                ? Microsoft.OpenApi.OpenApiSpecVersion.OpenApi3_1
+                : Microsoft.OpenApi.OpenApiSpecVersion.OpenApi3_0);
 
             // Register configuration interfaces
             services.AddSingleton<IConfiguration>(Configuration);

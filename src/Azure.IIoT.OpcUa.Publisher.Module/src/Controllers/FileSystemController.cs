@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Publisher.Module.Filters;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Asp.Versioning;
     using Azure.IIoT.OpcUa.Core;
     using Azure.IIoT.OpcUa.Core.Rpc.Router;
     using Microsoft.AspNetCore.Authorization;
@@ -18,6 +17,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
+    using System.Diagnostics.CodeAnalysis;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -340,6 +340,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
+        [UnconditionalSuppressMessage("Trimming", "IL2026",
+            Justification = "Connection and file object models are (de)serialized via the " +
+            "shared reflection-based JSON serializer that preserves the DataContract wire " +
+            "format; source generating the full REST DTO graph on the HTTP path is the " +
+            "final AOT step, validated against the endpoint integration suite in CI.")]
+        [UnconditionalSuppressMessage("AOT", "IL3050",
+            Justification = "Connection and file object models are (de)serialized via the " +
+            "shared reflection-based JSON serializer that preserves the DataContract wire " +
+            "format; source generating the full REST DTO graph on the HTTP path is the " +
+            "final AOT step, validated against the endpoint integration suite in CI.")]
         public async Task DownloadAsync(
              string connectionJson,
              string fileObjectJson,
@@ -400,6 +410,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
+        [UnconditionalSuppressMessage("Trimming", "IL2026",
+            Justification = "Connection, file object and write option models are " +
+            "(de)serialized via the shared reflection-based JSON serializer that preserves " +
+            "the DataContract wire format; source generating the full REST DTO graph on the " +
+            "HTTP path is the final AOT step, validated against the endpoint integration " +
+            "suite in CI.")]
+        [UnconditionalSuppressMessage("AOT", "IL3050",
+            Justification = "Connection, file object and write option models are " +
+            "(de)serialized via the shared reflection-based JSON serializer that preserves " +
+            "the DataContract wire format; source generating the full REST DTO graph on the " +
+            "HTTP path is the final AOT step, validated against the endpoint integration " +
+            "suite in CI.")]
         public async Task UploadAsync(
              string connectionJson,
              string fileObjectJson,

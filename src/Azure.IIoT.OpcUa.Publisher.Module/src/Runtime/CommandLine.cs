@@ -17,6 +17,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.IO;
     using System.Linq;
@@ -49,6 +50,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// </summary>
         /// <param name="args">The specified command line arguments.</param>
         /// <param name="logger"></param>
+        [UnconditionalSuppressMessage("Trimming", "IL2026",
+            Justification = "PublisherConfig.ToOptions() validates configuration via " +
+            "reflection binding; configuration source generation is out of scope for the " +
+            "module AOT hardening phase.")]
+        [UnconditionalSuppressMessage("AOT", "IL3050",
+            Justification = "PublisherConfig.ToOptions() validates configuration via " +
+            "reflection binding; configuration source generation is out of scope for the " +
+            "module AOT hardening phase.")]
         public CommandLine(string[] args, CommandLineLogger? logger = null)
         {
             _logger = logger ?? new CommandLineLogger();

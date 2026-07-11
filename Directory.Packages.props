@@ -55,12 +55,8 @@
          (external/UA-.NETStandard) instead of published NuGet packages. -->
   </ItemGroup>
 
-  <ItemGroup Label="OpenApi / Swagger">
+  <ItemGroup Label="OpenApi">
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
-    <PackageVersion Include="Swashbuckle.AspNetCore.Swagger" Version="10.2.3" />
-    <PackageVersion Include="Swashbuckle.AspNetCore.SwaggerGen" Version="10.2.3" />
-    <PackageVersion Include="Swashbuckle.AspNetCore.Annotations" Version="10.2.3" />
-    <PackageVersion Include="Asp.Versioning.Mvc" Version="10.0.0" />
   </ItemGroup>
 
   <ItemGroup Label="Messaging transports">
