@@ -7,50 +7,46 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
 {
-    using Azure.IIoT.OpcUa.Publisher.Models;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.AspNetCore.Mvc.ModelBinding;
+    using Microsoft.AspNetCore.Http.Json;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Options;
-    using System.Linq;
-    using System.Text.Json.Nodes;
+    using System.Text.Json;
+    using System.Text.Json.Serialization;
     using Xunit;
 
     /// <summary>
-    /// Verifies the web host startup wiring, in particular that recursive model
-    /// validation is suppressed for <see cref="JsonNode"/>. Validating the
-    /// large recursive value graph of a JsonNode (e.g. a big ByteString
-    /// argument on a method call request) is extremely expensive and adds
-    /// seconds of latency to otherwise trivial API calls.
+    /// Verifies the web host startup wiring, in particular that the minimal API
+    /// JSON options are configured with the shared serializer settings so the
+    /// REST surface keeps the exact same wire format as the rest of the pipeline
+    /// (and the direct method / SDK path).
     /// </summary>
     public sealed class StartupTests
     {
         [Fact]
-        public void ConfigureServicesSuppressesJsonNodeChildValidation()
+        public void ConfigureServicesAppliesSharedJsonOptionsToHttp()
         {
             using var provider = BuildServiceProvider();
-            var options = provider.GetRequiredService<IOptions<MvcOptions>>().Value;
+            var options = provider.GetRequiredService<IOptions<JsonOptions>>().Value;
 
-            Assert.Contains(options.ModelMetadataDetailsProviders
-                .OfType<SuppressChildValidationMetadataProvider>(),
-                p => p.Type == typeof(JsonNode));
+            Assert.Same(JsonNamingPolicy.CamelCase,
+                options.SerializerOptions.PropertyNamingPolicy);
+            Assert.True(options.SerializerOptions.PropertyNameCaseInsensitive);
+            Assert.Equal(
+                JsonNumberHandling.AllowReadingFromString |
+                JsonNumberHandling.AllowNamedFloatingPointLiterals,
+                options.SerializerOptions.NumberHandling);
         }
 
         [Fact]
-        public void JsonNodeChildrenAreNotValidated()
+        public void ConfigureServicesRegistersHttpJsonConverters()
         {
             using var provider = BuildServiceProvider();
-            var metadata = provider.GetRequiredService<IModelMetadataProvider>();
+            var options = provider.GetRequiredService<IOptions<JsonOptions>>().Value;
 
-            // The JsonNode graph must not be walked during validation ...
-            var variant = metadata.GetMetadataForType(typeof(JsonNode));
-            Assert.False(variant.ValidateChildren);
-
-            // ... while regular request models keep their default behaviour.
-            var request = metadata.GetMetadataForType(
-                typeof(RequestEnvelope<MethodCallRequestModel>));
-            Assert.True(request.ValidateChildren);
+            // The shared converter set (matrix, byte array, enum, ...) is applied
+            // so the minimal API endpoints (de)serialize identically to the SDK.
+            Assert.NotEmpty(options.SerializerOptions.Converters);
         }
 
         private static ServiceProvider BuildServiceProvider()

@@ -77,6 +77,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             services.AddTransientAsImplementedInterfaces<DiscoveryController>();
             services.AddTransientAsImplementedInterfaces<CertificatesController>();
             services.AddTransientAsImplementedInterfaces<DiagnosticsController>();
+
+            // FileSystemController is intentionally NOT forwarded as an
+            // IMethodController (its file up/download endpoints are HTTP only and
+            // were never dispatched over the direct method transport). Register
+            // the concrete type so the minimal API endpoints can resolve it.
+            services.AddTransient<FileSystemController>();
         }
 
         /// <summary>
@@ -280,32 +286,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 app.UseOpenTelemetryPrometheusScrapingEndpoint();
             }
             return app;
-        }
-
-        /// <summary>
-        /// Add open api
-        /// </summary>
-        /// <param name="services"></param>
-        public static IServiceCollection AddOpenApi(this IServiceCollection services)
-        {
-            return services
-                .AddSingleton<IConfigureOptions<OpenApiOptions>, OpenApi>()
-                .AddSingleton<IConfigureNamedOptions<OpenApiOptions>, OpenApi>()
-                .AddSwagger(Constants.EntityTypePublisher, string.Empty);
-        }
-
-        /// <summary>
-        /// Use open api
-        /// </summary>
-        /// <param name="builder"></param>
-        public static IApplicationBuilder UseOpenApi(this IApplicationBuilder builder)
-        {
-            var options = builder.ApplicationServices.GetService<IOptions<PublisherOptions>>();
-            if (options?.Value.DisableOpenApiEndpoint != true)
-            {
-                return builder.UseSwagger();
-            }
-            return builder;
         }
 
         /// <summary>

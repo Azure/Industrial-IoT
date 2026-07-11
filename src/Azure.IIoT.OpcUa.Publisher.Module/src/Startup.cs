@@ -6,20 +6,20 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
+    using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Core.Serialization;
     using Microsoft.AspNetCore.Builder;
-    using Microsoft.AspNetCore.Mvc.ModelBinding;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Logging.Console;
+    using Microsoft.Extensions.Options;
     using OpenTelemetry.Logs;
     using OpenTelemetry.Metrics;
     using OpenTelemetry.Resources;
     using OpenTelemetry.Trace;
     using System;
-    using System.Text.Json.Nodes;
 
     /// <summary>
     /// Webservice startup
@@ -105,18 +105,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
                     .AddMeter(Diagnostics.Meter.Name))
                 ;
 
-            services.AddControllers()
-                .AddMvcOptions(options =>
-                    // JsonNode exposes a recursive value graph (e.g. a
-                    // ByteString surfaces every byte as a child element), which
-                    // makes the default recursive model validation extremely
-                    // expensive for large payloads such as method call arguments.
-                    // Suppress validation of its children since there is nothing
-                    // to validate on the opaque value tree anyway.
-                    options.ModelMetadataDetailsProviders.Add(
-                        new SuppressChildValidationMetadataProvider(typeof(JsonNode))))
-                .AddJsonOptions(options => Json.ApplyTo(options.JsonSerializerOptions))
-                ;
+            services.ConfigureHttpJsonOptions(options => Json.ApplyTo(options.SerializerOptions));
 
             services.AddOpenApi();
 
@@ -181,12 +170,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
 
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseOpenApi();
             app.UseOpenTelemetryPrometheusEndpoint();
+
+            // OpenAPI document endpoint is exposed unless disabled via the
+            // "disableopenapi" command line flag (PublisherOptions).
+            var openApiEnabled = app.ApplicationServices
+                .GetService<IOptions<PublisherOptions>>()?.Value
+                .DisableOpenApiEndpoint != true;
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllers();
+                endpoints.MapPublisherApi();
+                if (openApiEnabled)
+                {
+                    endpoints.MapOpenApi();
+                }
                 endpoints.MapHealthChecks("/healthz");
             });
         }

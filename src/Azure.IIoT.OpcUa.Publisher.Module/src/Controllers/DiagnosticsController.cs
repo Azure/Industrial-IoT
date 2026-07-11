@@ -34,14 +34,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     [Version("_V2")]
     [Version("")]
     [RouterExceptionFilter]
-    [ControllerExceptionFilter]
-    [ApiVersion("2")]
-    [Route("v{version:apiVersion}")]
-    [ApiController]
-    [Authorize]
-    [Produces(ContentMimeType.Json)]
-    [Consumes(ContentMimeType.Json)]
-    public class DiagnosticsController : ControllerBase, IMethodController
+    public class DiagnosticsController : IMethodController
     {
         /// <summary>
         /// Create controller with service
@@ -67,10 +60,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="200">The operation was successful.</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpGet("reset")]
         public async Task ResetAllConnectionsAsync(CancellationToken ct = default)
         {
             await _diagnostics.ResetAllConnectionsAsync(ct).ConfigureAwait(false);
@@ -85,9 +74,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <param name="ct"></param>
         /// <response code="200">The operation was successful.</response>
         /// <response code="500">An unexpected error occurred</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpGet("connections")]
         public Task<IReadOnlyList<ConnectionModel>> GetActiveConnectionsAsync(
             CancellationToken ct = default)
         {
@@ -110,11 +96,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="200">The item was found</response>
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="404">The item was not found</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        [HttpGet("diagnostics/writergroups/{dataSetWriterGroup}")]
         public async Task<WriterGroupStateDiagnosticModel> GetWriterGroupStateAsync(
             string dataSetWriterGroup, CancellationToken ct = default)
         {
@@ -135,9 +116,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <param name="ct"></param>
         /// <response code="200">The operation was successful.</response>
         /// <response code="500">An unexpected error occurred</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpGet("diagnostics/writergroups")]
         public async Task<IReadOnlyList<WriterGroupStateDiagnosticModel>> GetAllWriterGroupStatesAsync(
             CancellationToken ct = default)
         {
@@ -163,10 +141,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="200">The operation was successful.</response>
         /// <response code="404">The writer group was not found</response>
         /// <response code="500">An unexpected error occurred</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPost("diagnostics/writergroups/{dataSetWriterGroup}/keyframe")]
         public async Task SendWriterGroupKeyFrameAsync(string dataSetWriterGroup,
             CancellationToken ct = default)
         {
@@ -194,10 +168,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="200">The operation was successful.</response>
         /// <response code="404">The writer group or data set writer was not found</response>
         /// <response code="500">An unexpected error occurred</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpPost("diagnostics/writergroups/{dataSetWriterGroup}/writers/{dataSetWriterId}/keyframe")]
         public async Task SendDataSetWriterKeyFrameAsync(string dataSetWriterGroup,
             string dataSetWriterId, CancellationToken ct = default)
         {
@@ -218,10 +188,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="200">The operation was successful.</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status408RequestTimeout)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpGet("diagnostics/connections")]
         public IAsyncEnumerable<ConnectionDiagnosticsModel> GetConnectionDiagnosticsAsync(
             CancellationToken ct = default)
         {
@@ -237,9 +203,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <param name="ct"></param>
         /// <response code="200">The operation was successful.</response>
         /// <response code="500">An unexpected error occurred</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpGet("diagnostics/channels")]
         public Task<IReadOnlyList<ChannelDiagnosticModel>> GetChannelDiagnosticsAsync(
             CancellationToken ct = default)
         {
@@ -258,9 +221,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <param name="ct"></param>
         /// <response code="200">The operation was successful.</response>
         /// <response code="500">An unexpected error occurred</response>
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
-        [HttpGet("diagnostics/channels/watch")]
         public IAsyncEnumerable<ChannelDiagnosticModel> WatchChannelDiagnosticsAsync(
             CancellationToken ct = default)
         {

@@ -232,10 +232,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 .UseContentRoot(".")
                 .UseStartup<ModuleStartup>()
                 .UseConfiguration(_config)
-                .ConfigureServices(services => services
-                    .AddMvc()
-                        .AddApplicationPart(typeof(Startup).Assembly)
-                        .AddControllersAsServices())
                 .ConfigureTestServices(ConfigureTestServices)
                 ;
             base.ConfigureWebHost(builder);
