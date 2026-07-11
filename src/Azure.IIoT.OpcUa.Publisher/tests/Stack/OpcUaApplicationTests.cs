@@ -269,9 +269,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             var identity = await credential.ToUserIdentityAsync(config.Value);
             Assert.NotNull(identity);
             Assert.Equal(UserTokenType.Certificate, identity.TokenType);
-            // TODO(4b): 2.0 X509 identity token carries only the public-key wire
-            // payload (CertificateData); private-key signing flows through the
-            // provider-based identity path. Verify the presented certificate identity.
+            // Phase 4b: the 2.0 provider-based X509 identity signs the activation
+            // challenge with the private key while eagerly loading the public-key
+            // wire payload (CertificateData). Verify the presented certificate.
             var x509Token = identity.TokenHandler.Token as X509IdentityToken;
             Assert.NotNull(x509Token);
             using var tokenCert2 = X509CertificateLoader.LoadCertificate(x509Token.CertificateData.ToArray());
@@ -317,9 +317,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             var identity = await credential.ToUserIdentityAsync(config.Value);
             Assert.NotNull(identity);
             Assert.Equal(UserTokenType.Certificate, identity.TokenType);
-            // TODO(4b): 2.0 X509 identity token carries only the public-key wire
-            // payload (CertificateData); private-key signing flows through the
-            // provider-based identity path. Verify the presented certificate identity.
+            // Phase 4b: the 2.0 provider-based X509 identity signs the activation
+            // challenge with the private key while eagerly loading the public-key
+            // wire payload (CertificateData). Verify the presented certificate.
             var x509Token = identity.TokenHandler.Token as X509IdentityToken;
             Assert.NotNull(x509Token);
             using var tokenCert3 = X509CertificateLoader.LoadCertificate(x509Token.CertificateData.ToArray());

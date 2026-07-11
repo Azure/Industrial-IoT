@@ -307,3 +307,81 @@ unit suites pass; the slow Module integration suite (boots OPC UA servers) is no
 The 2.0-Types migration (Phase 4a + Phase 5 + Phase 9A) is now **essentially complete**:
 the whole solution builds green with every project re-added, and the fast unit suites
 pass. Only `ISA95Jobs` and the `TODO(4b)` / residual `TODO(Phase 5)` items remain.
+
+## Phase 4b (this commit) — X509 challenge-signing + ManagedSession/subscription-engine assessment
+
+Phase 4b implements the bounded `TODO(4b)` items and records a precise, evidence-based
+assessment of the larger `ManagedSession` / `DefaultSubscriptionEngine` adoption. The
+whole solution stays **green** (15 projects, 0 errors); the fast suites pass.
+
+**Done — X509 challenge-signing (private key now signs the activation challenge):**
+
+- `Stack/Extensions/StackModelsEx.cs` — `ToUserIdentityAsync` X509 branch now builds the
+  identity via the 2.0 provider-based path
+  `UserIdentity.CreateAsync(CertificateIdentifier, ICertificatePasswordProvider,
+  ICertificateProvider)` instead of the cert-data-only `new UserIdentity(new
+  X509IdentityToken { CertificateData = ... })` stub. The resulting
+  `X509IdentityTokenHandler` resolves the private-key certificate on demand through the
+  application's `CertificateManager.CertificateProvider` and **signs the ActivateSession
+  challenge with the private key** (it also eagerly loads the public-key wire payload so
+  `X509IdentityToken.CertificateData` stays populated). The pre-existing
+  `LoadPrivateKeyAsync` probe is kept to preserve the exact `BadCertificateInvalid` /
+  `BadNotSupported` error semantics. `OpcUaApplicationTests` X509 tests (13) pass.
+- `Testing/cli/TestServerFactory.cs` — `VerifyCertificate(X509IdentityToken)` is no longer
+  a `return false` stub; it validates the user certificate against the server's
+  `CertificateManager` **Users** trust list
+  (`ValidateAsync(cert, TrustListIdentifier.Users)`), rejects self-signed application
+  certs used as user tokens, and throws the appropriate `BadIdentityToken*` status —
+  mirroring the 2.0 reference server `VerifyX509IdentityToken` idiom. It returns non-admin
+  (test servers never grant admin via user certs), matching the original pre-2.0 behavior.
+
+**Assessed and deferred — `ManagedSession` + `DefaultSubscriptionEngine` (kept classic):**
+
+Per the task's explicit escape hatches ("keep classic where the managed API doesn't
+cleanly cover a behavior — note it" and "if the engine does NOT handle
+`Bad_TooManyMonitoredItems`, STOP that part, keep the manual logic, and report it
+precisely for an upstream PR"), both large adoptions are **deferred** as isolated
+architectural rewrites, with the classic APIs kept intact:
+
+- **`ManagedSession` is all-or-nothing, not a clean partial replacement.** IIoT's
+  `OpcUaSession` *is-a* classic `Session` (`OpcUaSession : Session`, ~1569 LOC) and
+  `OpcUaClient` *is-a* `DefaultSessionFactory` driving `SessionReconnectHandler` directly
+  (~2531 LOC). The 2.0 `ManagedSession` is a **wrapper over** an `ISession` (not a
+  `Session` subclass); its `ConnectionStateMachine`/reconnect only applies when
+  `ManagedSession` *is* the session type. Adopting it requires converting `OpcUaSession`
+  from "is-a Session" to "has-a ISession" (re-plumbing the whole `IOpcUaSession` /
+  `ISessionServices` surface) and reworking `OpcUaClient`'s factory + reconnect, rippling
+  into `OpcUaSubscription`/`OpcUaClientManager`. Classic `Session` /
+  `SessionReconnectHandler` remain fully functional in 2.0, so keeping them is not a
+  regression. This is a dedicated future pass (does not fit a green single-commit change).
+
+- **`DefaultSubscriptionEngine` does NOT itself repartition monitored items** — the
+  native "unlimited monitored items" / `Bad_TooManyMonitoredItems` handling lives in the
+  **V2 managed-subscription stack**, a different API from the classic
+  `Subscription`/`MonitoredItem` that IIoT's `OpcUaSubscription` (~3456 LOC) +
+  `OpcUaMonitoredItem.*` (~4300 LOC) are built on. Evidence (submodule, do-not-modify):
+  - `DefaultSubscriptionEngine.CreateSubscription(...)` returns `IManagedSubscription`
+    (`Libraries/Opc.Ua.Client/Session/DefaultSubscriptionEngine.cs:220`) — the V2 model.
+  - The repartition-on-cap logic is in
+    `Subscription/MonitoredItemManager.cs:321-333` (invokes
+    `OnPartitionCapReached` on `StatusCodes.BadTooManyMonitoredItems`),
+    `Subscription/PartitionPlacementPolicy.cs:58-84,150-203,321` and
+    `Subscription/CompositeMonitoredItemCollection.cs:147-166,371` /
+    `Subscription/LogicalSubscription.cs:624-638` — all on the V2
+    `IManagedSubscription`/`LogicalSubscription`/`MonitoredItemManager` types.
+  Consuming it means replacing IIoT's classic subscription + monitored-item layer
+  (~7700 LOC) with the V2 model. Per the task, this part is **STOPPED**: the manual
+  proactive `Partition.Create` bag-packing partitioning in `OpcUaSubscription` (driven by
+  `ComputeMaxMonitoredItemsPerSubscription`) is **kept**. There is no gap to contribute
+  upstream — the 2.0 stack already implements native repartitioning in the V2 layer; the
+  remaining work is purely IIoT-side adoption of that V2 layer (the future pass above).
+
+**In scope this commit (all 15 projects green in `Industrial-IoT.slnx`):** unchanged from
+the final stage; only `Stack/Extensions/StackModelsEx.cs`, `Testing/cli/TestServerFactory.cs`,
+and the two `OpcUaApplicationTests` X509 comments changed.
+
+**Still deferred after Phase 4b:** the two architectural adoptions above
+(`OpcUaSession`/`OpcUaClient` → `ManagedSession`, and `OpcUaSubscription`/`OpcUaMonitoredItem`
+→ V2 `IManagedSubscription`/`DefaultSubscriptionEngine`) as a dedicated future pass;
+`ISA95Jobs` server (permanent documented descope); the residual `TODO(Phase 5)`
+`EncodeableDictionary.Decode` / `JsonMetadataMessage` stream-decode (off the live path).

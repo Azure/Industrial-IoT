@@ -659,14 +659,62 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
             /// <exception cref="ServiceResultException"></exception>
             private bool VerifyCertificate(X509IdentityToken token)
             {
-                // TODO(Stage final): The UA-.NETStandard 2.0 stack restructured
-                // CertificateValidator and moved X509 user-token validation to the
-                // async IdentityRegistry authenticators. The test servers do not
-                // grant administrative access via user certificates (integration
-                // tests use anonymous or username tokens), so this is reduced to a
-                // non-admin, best-effort acceptance for now.
-                _ = token;
-                return false;
+                // The UA-.NETStandard 2.0 stack restructured CertificateValidator;
+                // user-certificate validation now runs through the server's
+                // ICertificateManager against the Users trust list (mirrors the
+                // 2.0 reference server VerifyX509IdentityToken pattern).
+                using Opc.Ua.Security.Certificates.Certificate? userCertificate =
+                    token.CertificateData.IsEmpty
+                        ? null
+                        : Opc.Ua.Security.Certificates.Certificate.FromRawData(token.CertificateData);
+                try
+                {
+                    if (userCertificate == null)
+                    {
+                        throw new ServiceResultException((uint)StatusCodes.BadIdentityTokenInvalid);
+                    }
+                    // validate against the server's Users trust list.
+                    var result = CertificateManager!
+                        .ValidateAsync(userCertificate,
+                            Opc.Ua.Security.Certificates.TrustListIdentifier.Users)
+                        .GetAwaiter().GetResult();
+                    if (!result.IsValid)
+                    {
+                        throw new ServiceResultException(result.StatusCode);
+                    }
+                    // do not allow self signed application certs as user token.
+                    var isSelfSigned = X509Utils.CompareDistinguishedName(
+                        userCertificate.Subject, userCertificate.Issuer);
+                    if (isSelfSigned && X509Utils.HasApplicationURN(userCertificate))
+                    {
+                        throw new ServiceResultException((uint)StatusCodes.BadCertificateUseNotAllowed);
+                    }
+                    // test servers never grant administrative access via user certs.
+                    return false;
+                }
+                catch (Exception e)
+                {
+                    TranslationInfo info;
+                    var status = StatusCodes.BadIdentityTokenRejected;
+                    if (e is ServiceResultException se &&
+                        se.StatusCode == StatusCodes.BadCertificateUseNotAllowed)
+                    {
+                        info = new TranslationInfo("InvalidCertificate", "en-US",
+                            "'{0}' is an invalid user certificate.",
+                            userCertificate?.Subject ?? string.Empty);
+                        status = StatusCodes.BadIdentityTokenInvalid;
+                    }
+                    else
+                    {
+                        info = new TranslationInfo("UntrustedCertificate", "en-US",
+                            "'{0}' is not a trusted user certificate.",
+                            userCertificate?.Subject ?? string.Empty);
+                    }
+                    throw new ServiceResultException(new ServiceResult(
+                        kServerNamespaceUri,
+                        new StatusCode((uint)status, info.Key),
+                        new LocalizedText(info)));
+                }
             }
 
             private readonly ILogger _logger;

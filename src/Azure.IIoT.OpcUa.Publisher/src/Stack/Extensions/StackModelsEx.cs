@@ -326,7 +326,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                     {
                         using var users = configuration.SecurityConfiguration
                             .TrustedUserCertificates.OpenStore(configuration.CreateMessageContext().Telemetry);
-                        var userCertWithPrivateKey = await users.LoadPrivateKeyAsync(thumbprint, subjectName,
+                        using var userCertWithPrivateKey = await users.LoadPrivateKeyAsync(thumbprint, subjectName,
                             null, NodeId.Null /* TODO add rsa/ecc*/, passCode?.ToCharArray(), ct).ConfigureAwait(false);
                         if (userCertWithPrivateKey == null)
                         {
@@ -335,14 +335,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                                 "or provided password invalid. Please configure the User " +
                                 "Certificate correctly in the User certificate store.");
                         }
-                        // TODO(4b): 2.0 removed UserIdentity(Certificate); private-key
+                        // 2.0 removed UserIdentity(Certificate); private-key challenge
                         // signing now flows through provider-based UserIdentity.CreateAsync.
-                        // Carry the certificate data on the token so the identity compiles
-                        // and the certificate is presented; revisit signing in Phase 4b.
-                        return new UserIdentity(new X509IdentityToken
+                        // The X509IdentityTokenHandler resolves the private-key certificate
+                        // on demand via the certificate provider and signs the activation
+                        // challenge with it. We pass a CertificateIdentifier (resolved from
+                        // the trusted-user store above) rather than a live certificate.
+                        var certificateId = new CertificateIdentifier
                         {
-                            CertificateData = (ByteString)userCertWithPrivateKey.RawData
-                        });
+                            Thumbprint = userCertWithPrivateKey.Thumbprint,
+                            SubjectName = userCertWithPrivateKey.Subject,
+                            StorePath = users.StorePath,
+                            StoreType = users.StoreType
+                        };
+                        var passwordProvider = passCode == null
+                            ? new CertificatePasswordProvider()
+                            : new CertificatePasswordProvider(passCode.AsSpan());
+                        return await UserIdentity.CreateAsync(certificateId, passwordProvider,
+                            configuration.CertificateManager.CertificateProvider, ct).ConfigureAwait(false);
                     }
                     throw new ServiceResultException(StatusCodes.BadNotSupported,
                        "X509Certificate credential requires to set either a thumbprint or subject name (user).");
