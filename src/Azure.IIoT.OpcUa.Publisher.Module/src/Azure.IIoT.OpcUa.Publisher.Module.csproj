@@ -73,7 +73,6 @@
     <PackageReference Include="Azure.Identity" />
     <PackageReference Include="Azure.Core" />
     <PackageReference Include="KubernetesClient" />
-    <PackageReference Include="Mono.Options" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
     <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" />

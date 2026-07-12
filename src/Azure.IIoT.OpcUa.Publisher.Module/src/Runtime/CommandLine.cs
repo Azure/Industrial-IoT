@@ -12,8 +12,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Azure.IIoT.OpcUa.Core.Messaging;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
-    using Mono.Options;
-    using Newtonsoft.Json;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
@@ -69,7 +67,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             const string LegacyCompatibility = "LegacyCompatibility";
 
             // command line options
-            var options = new Mono.Options.OptionSet
+            var options = new CommandLineOptionParser
             {
                 "",
                 "General",
@@ -722,18 +720,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     _logger.ExitProcess(0);
                     return;
                 case HelpType.EnvVars:
-                    var envVars = options
+                    CommandLineOptionParser.WriteEnvironmentVariableHelp(Console.Out, options
                         .Where(o =>
                             !o.Hidden &&
-                            o.OptionValueType != OptionValueType.None &&
-                            !o.GetNames().Any(n => n.Contains("help", StringComparison.OrdinalIgnoreCase)))
-                        .Select(o => new
-                        {
-                            key = o.GetNames().Last(),
-                            description = o.Description
-                        })
-                        .ToList();
-                    Console.WriteLine(JsonConvert.SerializeObject(envVars, Formatting.Indented));
+                            o.OptionValueType != CommandLineOptionValueType.None &&
+                            !o.GetNames().Any(n => n.Contains("help", StringComparison.OrdinalIgnoreCase))));
                     _logger.ExitProcess(0);
                     return;
                 case HelpType.MessageProfiles:
@@ -786,7 +777,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     this[storeTypeKey] = s;
                     return;
                 }
-                throw new OptionException("Bad store type", optionName);
+                throw new CommandLineOptionException("Bad store type", optionName);
             }
         }
 

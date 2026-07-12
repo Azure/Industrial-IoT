@@ -103,7 +103,6 @@
     <PackageVersion Include="Microsoft.IO.RecyclableMemoryStream" Version="3.0.1" />
     <PackageVersion Include="Microsoft.Json.Schema" Version="2.3.0" />
     <PackageVersion Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.23.0" />
-    <PackageVersion Include="Mono.Options" Version="6.12.0.148" />
     <PackageVersion Include="MQTTnet.Extensions.Rpc" Version="5.1.0.1559" />
     <PackageVersion Include="Nito.AsyncEx" Version="5.1.2" />
     <PackageVersion Include="SharpPcap" Version="6.3.1" />
