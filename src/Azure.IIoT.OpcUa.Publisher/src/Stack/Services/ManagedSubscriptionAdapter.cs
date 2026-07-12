@@ -302,8 +302,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     var message = CreateNotification(notifications, NextSequenceNumber(),
                         now.UtcDateTime, MessageType.Condition);
-                    InvokeSubscriber(binding.Owner,
-                        owner => owner.OnSubscriptionEventReceived(message));
+                    Deliver(binding.Owner, message,
+                        static (owner, notification) => owner.OnSubscriptionEventReceived(notification));
                     InvokeSubscriber(binding.Owner,
                         owner => owner.OnSubscriptionEventDiagnosticsChange(true,
                             notifications.Count, notifications.Sum(item => item.Overflow), 0));
@@ -350,16 +350,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 MarkKeyFrameDelivered(owner, message.MessageType == MessageType.KeyFrame);
                 if (cyclic)
                 {
-                    InvokeSubscriber(owner, subscriber =>
-                        subscriber.OnSubscriptionCyclicReadCompleted(message));
+                    Deliver(owner, message,
+                        static (subscriber, notification) =>
+                            subscriber.OnSubscriptionCyclicReadCompleted(notification));
                     InvokeSubscriber(owner, subscriber =>
                         subscriber.OnSubscriptionCyclicReadDiagnosticsChange(message.Notifications.Count,
                             message.Notifications.Sum(item => item.Overflow)));
                 }
                 else
                 {
-                    InvokeSubscriber(owner, subscriber =>
-                        subscriber.OnSubscriptionDataChangeReceived(message));
+                    Deliver(owner, message,
+                        static (subscriber, notification) =>
+                            subscriber.OnSubscriptionDataChangeReceived(notification));
                     InvokeSubscriber(owner, subscriber =>
                         subscriber.OnSubscriptionDataDiagnosticsChange(true,
                             message.Notifications.Count,
@@ -411,7 +413,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 var message = CreateNotification(notifications, sequenceNumber, publishTime,
                     MessageType.Event);
-                InvokeSubscriber(owner, subscriber => subscriber.OnSubscriptionEventReceived(message));
+                Deliver(owner, message,
+                    static (subscriber, notification) =>
+                        subscriber.OnSubscriptionEventReceived(notification));
                 InvokeSubscriber(owner, subscriber => subscriber.OnSubscriptionEventDiagnosticsChange(
                     true, notifications.Count, notifications.Sum(item => item.Overflow), 0));
             }
@@ -429,12 +433,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     if (keyFrame != null)
                     {
                         MarkKeyFrameDelivered(owner, true);
-                        InvokeSubscriber(owner, subscriber =>
-                            subscriber.OnSubscriptionDataChangeReceived(keyFrame));
+                        Deliver(owner, keyFrame,
+                            static (subscriber, notification) =>
+                                subscriber.OnSubscriptionDataChangeReceived(notification));
                     }
                 }
-                InvokeSubscriber(owner, subscriber => subscriber.OnSubscriptionKeepAlive(
-                    CreateNotification([], sequenceNumber, publishTime, MessageType.KeepAlive)));
+                var keepAlive = CreateNotification([], sequenceNumber, publishTime,
+                    MessageType.KeepAlive);
+                Deliver(owner, keepAlive,
+                    static (subscriber, notification) =>
+                        subscriber.OnSubscriptionKeepAlive(notification));
             }
             return ValueTask.CompletedTask;
         }
@@ -470,8 +478,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     if (keyFrame != null)
                     {
                         MarkKeyFrameDelivered(owner, true);
-                        InvokeSubscriber(owner, subscriber =>
-                            subscriber.OnSubscriptionDataChangeReceived(keyFrame));
+                        Deliver(owner, keyFrame,
+                            static (subscriber, notification) =>
+                                subscriber.OnSubscriptionDataChangeReceived(notification));
                     }
                 }
             }
@@ -938,8 +947,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (notification != null)
                 {
                     MarkKeyFrameDelivered(owner, true);
-                    InvokeSubscriber(owner,
-                        subscriber => subscriber.OnSubscriptionDataChangeReceived(notification));
+                    Deliver(owner, notification,
+                        static (subscriber, keyFrame) =>
+                            subscriber.OnSubscriptionDataChangeReceived(keyFrame));
                 }
             }
         }
@@ -959,6 +969,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             try
             {
                 callback(owner);
+            }
+
+            private void Deliver(ISubscriber owner, OpcUaSubscriptionNotification notification,
+                Action<ISubscriber, OpcUaSubscriptionNotification> callback)
+            {
+                using (notification)
+                {
+                    InvokeSubscriber(owner, subscriber => callback(subscriber, notification));
+                }
             }
             catch (Exception ex)
             {
@@ -1022,7 +1041,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Owner = owner;
                 Template = template;
                 RootName = rootName;
-                ParentName = triggeredByNames.FirstOrDefault();
+                ParentName = triggeredByNames.Count == 0 ? null : triggeredByNames[0];
                 Monitor = new MutableOptionsMonitor<MonitoredItemOptions>(options);
                 (EventFieldNames, Condition) = CreateEventLayout(template, options);
             }
@@ -1111,7 +1130,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     var names = new string[clause.BrowsePath.Count];
                     for (var pathIndex = 0; pathIndex < clause.BrowsePath.Count; pathIndex++)
                     {
-                        names[pathIndex] = clause.BrowsePath[pathIndex].Name;
+                        names[pathIndex] = clause.BrowsePath[pathIndex].Name ?? string.Empty;
                     }
                     return string.Join("/", names);
                 }

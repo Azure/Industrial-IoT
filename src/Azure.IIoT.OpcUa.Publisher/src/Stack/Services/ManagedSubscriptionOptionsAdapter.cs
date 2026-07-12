@@ -289,7 +289,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 [new QualifiedName(BrowseNames.Retain)], Attributes.Value);
             return filter;
 
-            void AddIfMissing(NodeId typeDefinitionId, QualifiedNameCollection browsePath,
+            void AddIfMissing(NodeId typeDefinitionId, ArrayOf<QualifiedName> browsePath,
                 uint attributeId)
             {
                 foreach (var clause in clauses)
@@ -309,8 +309,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 });
                 clauses = filter.SelectClauses;
 
-                static bool HasSameBrowsePath(QualifiedNameCollection left,
-                    QualifiedNameCollection right)
+                static bool HasSameBrowsePath(ArrayOf<QualifiedName> left,
+                    ArrayOf<QualifiedName> right)
                 {
                     if (left.Count != right.Count)
                     {
