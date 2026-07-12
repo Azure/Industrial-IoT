@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
+    using System.Linq;
     using ManagedSubscriptionOptions = Opc.Ua.Client.Subscriptions.SubscriptionOptions;
 
     /// <summary>
@@ -160,7 +161,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </exception>
         internal static MonitoredItemOptions ToManagedOptions(
             BaseMonitoredItemModel template, OpcUaSubscriptionOptions options,
-            IVariantEncoder codec)
+            IVariantEncoder codec, string? affinity = null,
+            IReadOnlyList<string>? triggeredByNames = null)
         {
             ArgumentNullException.ThrowIfNull(template);
             ArgumentNullException.ThrowIfNull(options);
@@ -183,7 +185,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 QueueSize = effective.QueueSize ?? GetDefaultQueueSize(effective),
                 AutoSetQueueSize = effective.AutoSetQueueSize ?? false,
                 DiscardOldest = !(effective.DiscardNew ?? false),
-                Affinity = effective.TriggeredItems is { Count: > 0 } ? effective.Id : null
+                Affinity = affinity,
+                TriggeredByNames = triggeredByNames ?? []
             };
 
             return effective switch
@@ -194,13 +197,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     SamplingInterval = data.SamplingInterval
                         ?? options.DefaultSamplingInterval
                         ?? TimeSpan.FromSeconds(1),
-                    Filter = data.DataChangeFilter.ToStackModel()
+                    Filter = (MonitoringFilter?)data.DataChangeFilter.ToStackModel()
                         ?? data.AggregateFilter.ToStackModel(codec.Context)
                 },
                 EventMonitoredItemModel events => monitoredItemOptions with
                 {
                     SamplingInterval = TimeSpan.Zero,
-                    Filter = codec.Decode(events.EventFilter)
+                    Filter = events.ConditionHandling?.SnapshotInterval != null ?
+                        CreateConditionFilter(codec.Decode(events.EventFilter)) :
+                        codec.Decode(events.EventFilter)
                 },
                 MonitoredAddressSpaceModel => monitoredItemOptions with
                 {
@@ -251,11 +256,56 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     new SimpleAttributeOperand
                     {
                         BrowsePath = [new QualifiedName(BrowseNames.Changes)],
-                        TypeDefinitionId = ObjectTypeIds.BaseModelChangeEventType,
+                        TypeDefinitionId = ObjectTypeIds.GeneralModelChangeEventType,
                         AttributeId = Attributes.Value
                     }
-                ]
+                ],
+                WhereClause = new ContentFilter
+                {
+                    Elements =
+                    [
+                        new ContentFilterElement
+                        {
+                            FilterOperator = FilterOperator.OfType,
+                            FilterOperands =
+                            [
+                                new ExtensionObject(new LiteralOperand(
+                                    new Variant(ObjectTypeIds.BaseModelChangeEventType)))
+                            ]
+                        }
+                    ]
+                }
             };
+        }
+
+        private static EventFilter CreateConditionFilter(EventFilter? filter)
+        {
+            filter ??= FilterEncoderEx.GetDefaultEventFilter();
+            var clauses = filter.SelectClauses;
+            AddIfMissing(ObjectTypeIds.BaseEventType,
+                [new QualifiedName(BrowseNames.EventType)], Attributes.Value);
+            AddIfMissing(ObjectTypeIds.ConditionType, [], Attributes.NodeId);
+            AddIfMissing(ObjectTypeIds.ConditionType,
+                [new QualifiedName(BrowseNames.Retain)], Attributes.Value);
+            return filter;
+
+            void AddIfMissing(NodeId typeDefinitionId, QualifiedNameCollection browsePath,
+                uint attributeId)
+            {
+                if (clauses.Any(clause => clause.TypeDefinitionId == typeDefinitionId &&
+                    clause.AttributeId == attributeId &&
+                    clause.BrowsePath.SequenceEqual(browsePath)))
+                {
+                    return;
+                }
+                filter.SelectClauses = filter.SelectClauses.AddItem(new SimpleAttributeOperand
+                {
+                    TypeDefinitionId = typeDefinitionId,
+                    BrowsePath = browsePath,
+                    AttributeId = attributeId
+                });
+                clauses = filter.SelectClauses;
+            }
         }
     }
 }

@@ -147,34 +147,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             source[0] = 99;
 
             var notification = Assert.Single(owner.DataChanges);
-            var monitoredItem = Assert.Single(notification.Notifications);
+            Assert.Equal(MessageType.KeyFrame, notification.MessageType);
+            var monitoredItem = notification.Notifications.Single(item =>
+                item.NodeId == "ns=2;s=one");
             var value = Assert.IsType<DataValue>(monitoredItem.Value);
             Assert.True(value.WrappedValue.TryGetValue(out int[] copied));
             Assert.Equal([1, 2], copied);
-            Assert.Equal(MessageType.DeltaFrame, notification.MessageType);
         }
 
         [Fact]
-        public async Task ConvertsEventAndModelChangeNotifications()
+        public async Task CachesConditionsAndEmitsRefreshSnapshots()
         {
             var manager = new FakeSubscriptionManager();
             await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
             var owner = new FakeSubscriber();
-            Assert.True(adapter.TryAdd(owner, new EventMonitoredItemModel
-            {
-                StartNodeId = "ns=2;s=events",
-                EventFilter = new EventFilterModel
-                {
-                    SelectClauses = [new SimpleAttributeOperandModel
-                    {
-                        DisplayName = "Severity"
-                    }]
-                }
-            }));
-            Assert.True(adapter.TryAdd(owner, new MonitoredAddressSpaceModel
-            {
-                StartNodeId = "ns=2;s=model"
-            }));
             Assert.True(adapter.TryAdd(owner, new EventMonitoredItemModel
             {
                 StartNodeId = "ns=2;s=conditions",
@@ -195,22 +181,171 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             await manager.Handler!.OnEventDataNotificationAsync(manager.Subscription, 11,
                 DateTime.UtcNow,
                 [
-                    new EventNotification(items[0], ArrayOf.Wrapped(Variant.From(500))),
-                    new EventNotification(items[1], ArrayOf.Wrapped(
-                        Variant.From(ObjectTypeIds.BaseModelChangeEventType),
-                        Variant.From("changed"))),
-                    new EventNotification(items[2], ArrayOf.Wrapped(Variant.From("condition")))
+                    new EventNotification(items[0], ArrayOf.Wrapped(
+                        Variant.From("condition"),
+                        Variant.From(ObjectTypeIds.BaseEventType),
+                        Variant.From(new NodeId(1234u, 2)),
+                        Variant.From(true)))
                 ], PublishState.None, []);
-            await manager.Handler.OnSubscriptionStateChangedAsync(manager.Subscription,
-                SubscriptionState.Created, PublishState.None);
+            adapter.FlushConditions(force: true);
 
             var notification = Assert.Single(owner.Events);
-            Assert.Equal(MessageType.Event, notification.MessageType);
-            Assert.Equal(4, notification.Notifications.Count);
-            Assert.Equal("Severity", notification.Notifications[0].DataSetFieldName);
-            Assert.Equal(MonitoredItemSourceFlags.ModelChanges,
-                notification.Notifications[1].Flags);
-            Assert.Equal(1, manager.Subscription.ConditionRefreshCount);
+            Assert.Equal(MessageType.Condition, notification.MessageType);
+            Assert.Single(notification.Notifications);
+
+            await manager.Handler.OnEventDataNotificationAsync(manager.Subscription, 12,
+                DateTime.UtcNow,
+                [
+                    new EventNotification(items[0], ArrayOf.Wrapped(
+                        Variant.From("ignored"),
+                        Variant.From(ObjectTypeIds.RefreshStartEventType),
+                        Variant.From(new NodeId(1234u, 2)),
+                        Variant.From(true))),
+                    new EventNotification(items[0], ArrayOf.Wrapped(
+                        Variant.From("refreshed"),
+                        Variant.From(ObjectTypeIds.BaseEventType),
+                        Variant.From(new NodeId(1234u, 2)),
+                        Variant.From(true))),
+                    new EventNotification(items[0], ArrayOf.Wrapped(
+                        Variant.From("ignored"),
+                        Variant.From(ObjectTypeIds.RefreshEndEventType),
+                        Variant.From(new NodeId(1234u, 2)),
+                        Variant.From(true)))
+                ], PublishState.None, []);
+
+            Assert.Equal(2, owner.Events.Count);
+            Assert.Equal(MessageType.Condition, owner.Events[1].MessageType);
+        }
+
+        [Fact]
+        public async Task RejectsUnrelatedModelChangesAndUsesPublisherChangeFeedSink()
+        {
+            var manager = new FakeSubscriptionManager();
+            var sink = new FakeModelChangeSink();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions(), sink);
+            var owner = new FakeSubscriber();
+            Assert.True(adapter.TryAdd(owner, new MonitoredAddressSpaceModel
+            {
+                StartNodeId = "ns=2;s=model"
+            }));
+            var item = Assert.Single(manager.Subscription!.Collection.Items.Cast<FakeMonitoredItem>());
+
+            await manager.Handler!.OnEventDataNotificationAsync(manager.Subscription, 11,
+                DateTime.UtcNow, [new EventNotification(item, ArrayOf.Wrapped(
+                    Variant.From(ObjectTypeIds.BaseEventType), Variant.From("ignored")))],
+                PublishState.None, []);
+            Assert.Equal(0, sink.CallCount);
+
+            await manager.Handler.OnEventDataNotificationAsync(manager.Subscription, 12,
+                DateTime.UtcNow, [new EventNotification(item, ArrayOf.Wrapped(
+                    Variant.From(ObjectTypeIds.GeneralModelChangeEventType),
+                    Variant.From("changes")))], PublishState.None, []);
+            Assert.Equal(1, sink.CallCount);
+            Assert.Equal(1, owner.SemanticsChanges);
+        }
+
+        [Fact]
+        public async Task AddsTriggeredItemTreeWithStableNamesAndV2Links()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            var root = CreateDataItem("ns=2;s=root") with
+            {
+                TriggeredItems = [CreateDataItem("ns=2;s=child")]
+            };
+
+            Assert.True(await adapter.TryAddAsync(owner, root));
+
+            var items = manager.Subscription!.Collection.Items.Cast<FakeMonitoredItem>().ToArray();
+            Assert.Equal(2, items.Length);
+            Assert.Single(manager.Subscription.TriggeringCalls);
+            var child = items.Single(item => item.Name.Contains("/triggered/", StringComparison.Ordinal));
+            Assert.Equal(items[0].Options.Affinity, child.Options.Affinity);
+            Assert.Equal([items[0].Name], child.Options.TriggeredByNames);
+
+            Assert.True(adapter.TryRemove(items[0].ClientHandle));
+            Assert.Equal(0u, manager.Subscription.Collection.Count);
+        }
+
+        [Fact]
+        public async Task RetainedMonitorUpdatesSamplingFilterQueueAndMode()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            var first = CreateDataItem("ns=2;s=one") with
+            {
+                SamplingInterval = TimeSpan.FromSeconds(1),
+                QueueSize = 1
+            };
+            adapter.Update([(owner, first)]);
+            var item = Assert.Single(manager.Subscription!.Collection.Items.Cast<FakeMonitoredItem>());
+            var handle = item.ClientHandle;
+
+            adapter.Update([(owner, first with
+            {
+                SamplingInterval = TimeSpan.FromMilliseconds(250),
+                QueueSize = 4,
+                MonitoringMode = PublisherMonitoringMode.Sampling,
+                DataChangeFilter = new DataChangeFilterModel { DeadbandValue = 2.0 }
+            })]);
+
+            Assert.Equal(handle, Assert.Single(manager.Subscription.Collection.Items).ClientHandle);
+            Assert.Equal(TimeSpan.FromMilliseconds(250), item.Options.SamplingInterval);
+            Assert.Equal(4u, item.Options.QueueSize);
+            Assert.Equal(Opc.Ua.MonitoringMode.Sampling, item.Options.MonitoringMode);
+            Assert.IsType<DataChangeFilter>(item.Options.Filter);
+        }
+
+        [Fact]
+        public async Task EmitsInitialDeltaRecoveryAndExplicitKeyFrames()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            Assert.True(adapter.TryAdd(owner, CreateDataItem("ns=2;s=one")));
+            Assert.True(adapter.TryAdd(owner, CreateDataItem("ns=2;s=two")));
+            var item = manager.Subscription!.Collection.Items.Cast<FakeMonitoredItem>().First();
+
+            await manager.Handler!.OnDataChangeNotificationAsync(manager.Subscription, 1,
+                DateTime.UtcNow, [new DataValueChange(item, new DataValue(Variant.From(1)), null)],
+                PublishState.None, []);
+            await manager.Handler.OnDataChangeNotificationAsync(manager.Subscription, 2,
+                DateTime.UtcNow, [new DataValueChange(item, new DataValue(Variant.From(2)), null)],
+                PublishState.None, []);
+            adapter.RequestKeyFrame(owner);
+            await manager.Handler.OnKeepAliveNotificationAsync(manager.Subscription, 3,
+                DateTime.UtcNow, PublishState.KeepAlive);
+            await manager.Handler.OnSubscriptionStateChangedAsync(manager.Subscription,
+                SubscriptionState.Modified, PublishState.Recovered);
+
+            Assert.Equal(MessageType.KeyFrame, owner.DataChanges[0].MessageType);
+            Assert.Equal(2, owner.DataChanges[0].Notifications.Count);
+            Assert.Equal(MessageType.DeltaFrame, owner.DataChanges[1].MessageType);
+            Assert.Equal(MessageType.KeyFrame, owner.DataChanges[2].MessageType);
+            Assert.Equal(MessageType.KeyFrame, owner.DataChanges[3].MessageType);
+        }
+
+        [Fact]
+        public async Task ContainsThrowingSubscriberAndContinuesOtherDeliveries()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var throwing = new FakeSubscriber { ThrowOnData = true };
+            var receiving = new FakeSubscriber();
+            Assert.True(adapter.TryAdd(throwing, CreateDataItem("ns=2;s=throw")));
+            Assert.True(adapter.TryAdd(receiving, CreateDataItem("ns=2;s=receive")));
+            var items = manager.Subscription!.Collection.Items.Cast<FakeMonitoredItem>().ToArray();
+
+            await manager.Handler!.OnDataChangeNotificationAsync(manager.Subscription, 1,
+                DateTime.UtcNow,
+                [
+                    new DataValueChange(items[0], new DataValue(Variant.From(1)), null),
+                    new DataValueChange(items[1], new DataValue(Variant.From(2)), null)
+                ], PublishState.None, []);
+
+            Assert.Single(receiving.DataChanges);
         }
 
         [Fact]
@@ -239,7 +374,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 PublishState.Recovered, []);
 
             Assert.Equal(1, owner.SemanticsChanges);
-            Assert.Single(owner.DataChanges);
+            Assert.Equal(2, owner.DataChanges.Count);
         }
 
         [Fact]
@@ -260,10 +395,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         private static ManagedSubscriptionAdapter CreateAdapter(FakeSubscriptionManager manager,
-            OpcUaSubscriptionOptions options)
+            OpcUaSubscriptionOptions options, IModelChangeRebrowseSink? modelChangeSink = null)
         {
             return new ManagedSubscriptionAdapter(manager, new SubscriptionModel(), options,
-                new JsonVariantEncoder(new ServiceMessageContext()));
+                new JsonVariantEncoder(new ServiceMessageContext()), modelChangeSink);
         }
 
         private static DataMonitoredItemModel CreateDataItem(string nodeId)
@@ -328,6 +463,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public FakeCollection Collection { get; }
             public int DisposeCount { get; private set; }
             public int ConditionRefreshCount { get; private set; }
+            public List<(IMonitoredItem Trigger, IReadOnlyCollection<IMonitoredItem> Children)>
+                TriggeringCalls { get; } = [];
 
             public FakeSubscription(uint maxItems)
             {
@@ -363,12 +500,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 IReadOnlyCollection<IMonitoredItem>? linksToRemove = null,
                 CancellationToken ct = default)
             {
-                throw new NotSupportedException();
+                TriggeringCalls.Add((triggeringItem, linksToAdd ?? []));
+                return ValueTask.FromResult(new SetTriggeringResult(triggeringItem,
+                    (linksToAdd ?? []).Select(item => (item, StatusCodes.Good)).ToList(),
+                    [], StatusCodes.Good));
             }
 
             public ValueTask DisposeAsync()
             {
                 DisposeCount++;
+                return ValueTask.CompletedTask;
+            }
+        }
+
+        private sealed class FakeModelChangeSink : IModelChangeRebrowseSink
+        {
+            public int CallCount { get; private set; }
+
+            public ValueTask ProcessAsync(ISubscriber owner,
+                MonitoredAddressSpaceModel template, DataValue changes, CancellationToken ct)
+            {
+                CallCount++;
                 return ValueTask.CompletedTask;
             }
         }
@@ -412,7 +564,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     return false;
                 }
 
-                var item = new FakeMonitoredItem(_nextHandle++, name, options.CurrentValue);
+                var item = new FakeMonitoredItem(_nextHandle++, name, options);
                 _items.Add(item.ClientHandle, item);
                 monitoredItem = item;
                 return true;
@@ -456,22 +608,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public uint ClientHandle { get; }
             public string Name { get; }
             public ServiceResult Error { get; set; } = ServiceResult.Good;
+            public MonitoredItemOptions Options { get; private set; }
 
             public FakeMonitoredItem(uint clientHandle, string name,
-                MonitoredItemOptions options)
+                IOptionsMonitor<MonitoredItemOptions> options)
             {
                 ClientHandle = clientHandle;
                 Name = name;
-                _options = options;
+                Options = options.CurrentValue;
+                _registration = options.OnChange((updated, _) => Options = updated);
             }
 
-            public uint Order => _options.Order;
+            public uint Order => Options.Order;
             public uint ServerId => 0;
             public bool Created => true;
             public MonitoringFilterResult? FilterResult => null;
-            public Opc.Ua.MonitoringMode CurrentMonitoringMode => _options.MonitoringMode;
-            public TimeSpan CurrentSamplingInterval => _options.SamplingInterval;
-            public uint CurrentQueueSize => _options.QueueSize;
+            public Opc.Ua.MonitoringMode CurrentMonitoringMode => Options.MonitoringMode;
+            public TimeSpan CurrentSamplingInterval => Options.SamplingInterval;
+            public uint CurrentQueueSize => Options.QueueSize;
             public IEnumerable<IMonitoredItem> TriggeringItems => [];
             public IEnumerable<IMonitoredItem> TriggeredItems => [];
 
@@ -480,12 +634,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return ValueTask.CompletedTask;
             }
 
-            private readonly MonitoredItemOptions _options;
+            private readonly IDisposable _registration;
         }
 
         private sealed class FakeSubscriber : ISubscriber
         {
             public int SemanticsChanges { get; private set; }
+            public bool ThrowOnData { get; set; }
             public List<OpcUaSubscriptionNotification> DataChanges { get; } = [];
             public List<OpcUaSubscriptionNotification> Events { get; } = [];
             public List<ServiceResultModel?> Updates { get; } = [];
@@ -503,6 +658,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             public void OnSubscriptionDataChangeReceived(OpcUaSubscriptionNotification notification)
             {
+                if (ThrowOnData)
+                {
+                    throw new InvalidOperationException("expected test callback failure");
+                }
                 DataChanges.Add(notification);
             }
 
