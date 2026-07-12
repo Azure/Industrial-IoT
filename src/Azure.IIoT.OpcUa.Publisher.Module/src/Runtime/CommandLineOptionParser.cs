@@ -120,7 +120,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// <param name="prototype">The aliases and value requirement.</param>
         /// <param name="description">The help text.</param>
         /// <param name="action">The value callback.</param>
-        public void Add(string prototype, string description, Action<string?> action)
+        public void Add(string prototype, string description, Action<string> action)
         {
             Add(prototype, description, action, false);
         }
@@ -132,9 +132,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// <param name="description">The help text.</param>
         /// <param name="action">The value callback.</param>
         /// <param name="hidden">Whether to omit the option from help.</param>
-        public void Add(string prototype, string description, Action<string?> action, bool hidden)
+        public void Add(string prototype, string description, Action<string> action, bool hidden)
         {
-            AddOption(prototype, description, action, hidden);
+            AddOption(prototype, description, value => action(value!), hidden);
         }
 
         /// <summary>
@@ -307,7 +307,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 optionPart = optionPart[..separator];
                 hasValue = true;
             }
-            return _byName.TryGetValue(optionPart, out option);
+            if (_byName.TryGetValue(optionPart, out var found))
+            {
+                option = found;
+                return true;
+            }
+            return false;
         }
 
         private static bool IsOption(string value)
@@ -322,7 +327,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 var type = typeof(T);
                 if (type == typeof(string))
                 {
-                    return (T)(object?)value!;
+                    return value is null ? default! : (T)(object)value;
                 }
                 if (type == typeof(bool))
                 {
@@ -330,7 +335,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 }
                 if (type == typeof(bool?))
                 {
-                    return (T)(object)(bool?)(value == null ? null : bool.Parse(value));
+                    return value is null ? default! : (T)(object)bool.Parse(value);
                 }
                 if (type == typeof(uint))
                 {
@@ -342,8 +347,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 }
                 if (type == typeof(ushort?))
                 {
-                    return (T)(object)(ushort?)(value == null ? null :
-                        ushort.Parse(value, CultureInfo.CurrentCulture));
+                    return value is null ? default! :
+                        (T)(object)ushort.Parse(value, CultureInfo.CurrentCulture);
                 }
                 if (type == typeof(TimeSpan))
                 {
@@ -353,7 +358,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 {
                     return (T)Enum.Parse(type, value!, true);
                 }
-                return (T)Convert.ChangeType(value, type, CultureInfo.CurrentCulture);
+                var result = Convert.ChangeType(value, type, CultureInfo.CurrentCulture);
+                return result is null ? default! : (T)result;
             }
             catch (Exception ex) when (ex is ArgumentException or FormatException or
                 InvalidCastException or OverflowException)
