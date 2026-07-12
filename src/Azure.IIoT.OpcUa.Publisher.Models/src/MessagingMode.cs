@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// bandwidth efficiency, and compatibility with different message consumers.
     /// </summary>
     [DataContract]
+    [JsonConverter(typeof(JsonStringEnumConverter<MessagingMode>))]
     public enum MessagingMode
     {
         /// <summary>

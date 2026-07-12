@@ -16,7 +16,6 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Protocol
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.Net;
     using System.Threading;
@@ -28,10 +27,6 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Protocol
     /// messages through its $call endpoint, i.e., it is not
     /// just server but also a method invoker.
     /// </summary>
-    [SuppressMessage("Trimming", "IL2026",
-        Justification = "Reflection based serializer, hardened in a later phase.")]
-    [SuppressMessage("AotAnalysis", "IL3050",
-        Justification = "Reflection based serializer, hardened in a later phase.")]
     internal sealed class ChunkMethodInvoker : IMethodInvoker, IDisposable
     {
         /// <inheritdoc/>
@@ -67,7 +62,8 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Protocol
             ReadOnlyMemory<byte> payload, string contentType, IRpcHandler context,
             CancellationToken ct)
         {
-            var request = Json.Deserialize<MethodChunkModel>(payload)
+            var request = Json.Deserialize(payload,
+                CoreJsonContext.Default.MethodChunkModel)
                 ?? throw new ArgumentException("Payload invalid", nameof(payload));
             ChunkProcessor? processor;
             if (request.Handle != null)
@@ -94,7 +90,8 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Protocol
             }
             var response = await processor.ProcessAsync(context, request,
                 ct).ConfigureAwait(false);
-            return Json.SerializeToMemory(response).ToArray();
+            return Json.SerializeToMemory(response,
+                CoreJsonContext.Default.MethodChunkModel).ToArray();
         }
 
         /// <summary>

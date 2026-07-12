@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Core.Serialization
 {
     using Azure.IIoT.OpcUa.Core.Exceptions;
+    using Azure.IIoT.OpcUa.Core.Rpc.Models;
     using System.Text.Json.Serialization;
 
     /// <summary>
@@ -16,6 +17,7 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
     [JsonSourceGenerationOptions(
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonSerializable(typeof(ErrorDetails))]
+    [JsonSerializable(typeof(MethodChunkModel))]
     internal sealed partial class CoreJsonContext : JsonSerializerContext
     {
     }

@@ -32,6 +32,28 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.EventHubs
             }
         }
 
+        /// <inheritdoc/>
+        protected override EventHubsClientOptions Bind()
+        {
+            var schemaNamespace = Configuration[
+                $"{nameof(EventHubsClientOptions.SchemaRegistry)}:{nameof(SchemaRegistryOptions.FullyQualifiedNamespace)}"];
+            var schemaGroup = Configuration[
+                $"{nameof(EventHubsClientOptions.SchemaRegistry)}:{nameof(SchemaRegistryOptions.SchemaGroupName)}"];
+            return new EventHubsClientOptions
+            {
+                ConnectionString = GetStringOrDefault(
+                    nameof(EventHubsClientOptions.ConnectionString)),
+                MaxEventPayloadSizeInBytes = GetIntOrNull(
+                    nameof(EventHubsClientOptions.MaxEventPayloadSizeInBytes)),
+                SchemaRegistry = schemaNamespace is null && schemaGroup is null ? null :
+                    new SchemaRegistryOptions
+                    {
+                        FullyQualifiedNamespace = schemaNamespace!,
+                        SchemaGroupName = schemaGroup!
+                    }
+            };
+        }
+
         private const string kConnectionString = "PCS_EVENTHUB_CONNECTIONSTRING";
         private const string kConnectionStringShort = "_EH_CS";
     }

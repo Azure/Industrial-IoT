@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// Activation state of the endpoint twin
     /// </summary>
     [DataContract]
+    [JsonConverter(typeof(JsonStringEnumConverter<EndpointEventType>))]
     public enum EndpointEventType
     {
         /// <summary>

@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// Message timestamp configuration option
     /// </summary>
     [DataContract]
+    [JsonConverter(typeof(JsonStringEnumConverter<MessageTimestamp>))]
     public enum MessageTimestamp
     {
         /// <summary>

@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// The types of certificate stores
     /// </summary>
     [DataContract]
+    [JsonConverter(typeof(JsonStringEnumConverter<CertificateStoreName>))]
     public enum CertificateStoreName
     {
         /// <summary>

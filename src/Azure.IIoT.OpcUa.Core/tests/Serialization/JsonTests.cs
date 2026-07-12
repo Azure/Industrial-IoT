@@ -6,6 +6,8 @@
 namespace Azure.IIoT.OpcUa.Core.Serialization
 {
     using System.Runtime.Serialization;
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Text.Json;
     using System.Text.Json.Serialization;
     using Xunit;
@@ -43,6 +45,20 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
             Assert.Equal("deserialized", result.Value);
             Assert.Equal(0, result.OmitWhenDefault);
             Assert.Null(result.NotADataMember);
+        }
+
+        [Fact]
+        public void ClosedConvertersPreserveSetAndMatrixWireFormats()
+        {
+            IReadOnlySet<string> values = new HashSet<string> { "one", "two" };
+            var matrix = new[,] { { 1, 2 }, { 3, 4 } };
+
+            Assert.Equal("""["one","two"]""", JsonSerializer.Serialize(values, Json.Options));
+            Assert.Equivalent(values, JsonSerializer.Deserialize<IReadOnlySet<string>>(
+                """["one","two"]""", Json.Options));
+            Assert.Equal("""[[1,2],[3,4]]""", JsonSerializer.Serialize(matrix, Json.Options));
+            Assert.Equal(matrix.Cast<int>(), JsonSerializer.Deserialize<int[,]>(
+                """[[1,2],[3,4]]""", Json.Options)!.Cast<int>());
         }
 
     }

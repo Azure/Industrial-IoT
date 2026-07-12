@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// </summary>
     [Flags]
     [DataContract]
+    [JsonConverter(typeof(JsonStringEnumConverter<RolePermissions>))]
     public enum RolePermissions
     {
         /// <summary>

@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
     using Azure.IIoT.OpcUa.Core.Exceptions;
     using System;
     using System.Buffers;
+    using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.Text;
@@ -38,11 +39,11 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
     /// format stays compatible with the API models that are annotated with
     /// <see cref="System.Runtime.Serialization.DataMemberAttribute"/>.
     ///
-    /// The helper is reflection based (it uses the runtime type info resolver and
-    /// the reflection based converters) and therefore not Native-AOT / trim safe.
-    /// Every entry point is annotated with <see cref="RequiresUnreferencedCodeAttribute"/>
-    /// and <see cref="RequiresDynamicCodeAttribute"/>; AOT hardening of the
-    /// serialization pipeline is a later migration phase.
+    /// Source generated contexts can be registered by the assembly which owns a
+    /// contract. The shared options only contain closed converters, so shipping
+    /// contracts avoid runtime converter factories. A reflection fallback remains
+    /// for the public <see cref="Options"/> compatibility surface when callers pass
+    /// runtime-only types.
     /// </summary>
     public static class Json
     {
@@ -66,22 +67,33 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
         /// </summary>
         public static JsonSerializerOptions IndentedOptions { get; }
 
-        [UnconditionalSuppressMessage("Trimming", "IL2026",
-            Justification = "Reflection based serializer, hardened in a later phase.")]
-        [UnconditionalSuppressMessage("AotAnalysis", "IL3050",
-            Justification = "Reflection based serializer, hardened in a later phase.")]
+        /// <summary>
+        /// Gets registered source-generated metadata for <typeparamref name="T"/>.
+        /// </summary>
+        /// <typeparam name="T">The contract type.</typeparam>
+        /// <exception cref="NotSupportedException">
+        /// No source-generated metadata was registered for the type.
+        /// </exception>
+        public static JsonTypeInfo<T> GetTypeInfo<T>()
+        {
+            return (JsonTypeInfo<T>)Options.GetTypeInfo(typeof(T));
+        }
+
         static Json()
         {
             var settings = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-            settings.Converters.Add(new MatrixConverter());
+            settings.Converters.Add(new MatrixConverter<bool>());
+            settings.Converters.Add(new MatrixConverter<byte>());
+            settings.Converters.Add(new MatrixConverter<short>());
+            settings.Converters.Add(new MatrixConverter<int>());
+            settings.Converters.Add(new MatrixConverter<long>());
+            settings.Converters.Add(new MatrixConverter<float>());
+            settings.Converters.Add(new MatrixConverter<double>());
+            settings.Converters.Add(new MatrixConverter<string>());
             settings.Converters.Add(new ByteArrayConverter());
             settings.Converters.Add(new XmlElementConverter());
             settings.Converters.Add(new BigIntegerConverter());
-            settings.Converters.Add(new DataContractEnumConverter(
-                JsonNamingPolicy.CamelCase, true));
-            settings.Converters.Add(new JsonStringEnumConverter(
-                JsonNamingPolicy.CamelCase, true));
-            settings.Converters.Add(new ReadOnlySetConverter());
+            settings.Converters.Add(new ReadOnlySetConverter<string>());
             settings.NumberHandling =
                 JsonNumberHandling.AllowReadingFromString |
                 JsonNumberHandling.AllowNamedFloatingPointLiterals;
@@ -90,15 +102,7 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
             settings.AllowTrailingCommas = true;
             settings.WriteIndented = false;
             settings.DefaultBufferSize = 128;
-            // Reproduce the DataContract wire format (DataMember name / order /
-            // emit-default semantics) as a metadata contract modifier instead of
-            // the former whole-object reflection converter. The modifier works on
-            // reflection and source generated type info alike and does not emit
-            // dynamic code, which is the prerequisite for Native-AOT / trim safe
-            // (source generated) serialization of the API models.
-            var resolver = new DefaultJsonTypeInfoResolver();
-            resolver.Modifiers.Add(DataContractResolver.Modify);
-            settings.TypeInfoResolver = resolver;
+            settings.TypeInfoResolver = CreateResolver();
             if (settings.MaxDepth > 64)
             {
                 settings.MaxDepth = 64;
@@ -109,6 +113,22 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
             {
                 WriteIndented = true
             };
+        }
+
+        /// <summary>
+        /// Registers source generated metadata owned by another assembly.
+        /// Registrations are visible to the shared resolver immediately, including
+        /// after the serializer options have been made read-only.
+        /// </summary>
+        /// <param name="resolver">The source generated resolver.</param>
+        public static void RegisterTypeInfoResolver(IJsonTypeInfoResolver resolver)
+        {
+            ArgumentNullException.ThrowIfNull(resolver);
+            lock (kResolverLock)
+            {
+                kResolvers.Add(JsonTypeInfoResolver.WithAddedModifier(resolver,
+                    DataContractResolver.Modify));
+            }
         }
 
         /// <summary>
@@ -164,7 +184,7 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
         {
             try
             {
-                return JsonSerializer.Serialize(o, OptionsFor(format));
+                return JsonSerializer.Serialize(o, OptionsFor<T>(format));
             }
             catch (JsonException ex)
             {
@@ -186,7 +206,8 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
             try
             {
                 return JsonSerializer.Serialize(o,
-                    type ?? o?.GetType() ?? typeof(object), OptionsFor(format));
+                    type ?? o?.GetType() ?? typeof(object), OptionsFor(
+                        type ?? o?.GetType() ?? typeof(object), format));
             }
             catch (JsonException ex)
             {
@@ -207,7 +228,27 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
         {
             try
             {
-                return JsonSerializer.SerializeToUtf8Bytes(o, OptionsFor(format));
+                return JsonSerializer.SerializeToUtf8Bytes(o, OptionsFor<T>(format));
+            }
+            catch (JsonException ex)
+            {
+                throw new SerializerException(ex.Message, ex);
+            }
+        }
+
+        /// <summary>
+        /// Serialize to memory using source generated metadata.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="o">The value to serialize.</param>
+        /// <param name="typeInfo">The source generated type metadata.</param>
+        public static ReadOnlyMemory<byte> SerializeToMemory<T>(T? o,
+            JsonTypeInfo<T> typeInfo)
+        {
+            ArgumentNullException.ThrowIfNull(typeInfo);
+            try
+            {
+                return JsonSerializer.SerializeToUtf8Bytes(o, typeInfo);
             }
             catch (JsonException ex)
             {
@@ -229,7 +270,8 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
             try
             {
                 return JsonSerializer.SerializeToUtf8Bytes(o,
-                    type ?? o?.GetType() ?? typeof(object), OptionsFor(format));
+                    type ?? o?.GetType() ?? typeof(object), OptionsFor(
+                        type ?? o?.GetType() ?? typeof(object), format));
             }
             catch (JsonException ex)
             {
@@ -255,7 +297,8 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
                     new JsonWriterOptions { Indented = true } : default;
                 using var writer = new Utf8JsonWriter(buffer, options);
                 JsonSerializer.Serialize(writer, o,
-                    type ?? o?.GetType() ?? typeof(object), Options);
+                    type ?? o?.GetType() ?? typeof(object), OptionsFor(
+                        type ?? o?.GetType() ?? typeof(object), format));
             }
             catch (JsonException ex)
             {
@@ -274,7 +317,7 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
         {
             try
             {
-                return JsonSerializer.Deserialize<T>(str, Options);
+                return JsonSerializer.Deserialize<T>(str, OptionsFor<T>());
             }
             catch (JsonException ex)
             {
@@ -293,7 +336,27 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
         {
             try
             {
-                return JsonSerializer.Deserialize<T>(buffer.Span, Options);
+                return JsonSerializer.Deserialize<T>(buffer.Span, OptionsFor<T>());
+            }
+            catch (JsonException ex)
+            {
+                throw new SerializerException(ex.Message, ex);
+            }
+        }
+
+        /// <summary>
+        /// Deserialize from memory using source generated metadata.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="buffer">The JSON buffer.</param>
+        /// <param name="typeInfo">The source generated type metadata.</param>
+        public static T? Deserialize<T>(ReadOnlyMemory<byte> buffer,
+            JsonTypeInfo<T> typeInfo)
+        {
+            ArgumentNullException.ThrowIfNull(typeInfo);
+            try
+            {
+                return JsonSerializer.Deserialize(buffer.Span, typeInfo);
             }
             catch (JsonException ex)
             {
@@ -313,7 +376,7 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
             try
             {
                 var reader = new Utf8JsonReader(buffer);
-                return JsonSerializer.Deserialize<T>(ref reader, Options);
+                return JsonSerializer.Deserialize<T>(ref reader, OptionsFor<T>());
             }
             catch (JsonException ex)
             {
@@ -332,7 +395,7 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
         {
             try
             {
-                return JsonSerializer.Deserialize(str, type, Options);
+                return JsonSerializer.Deserialize(str, type, OptionsFor(type));
             }
             catch (JsonException ex)
             {
@@ -351,7 +414,7 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
         {
             try
             {
-                return JsonSerializer.Deserialize(buffer.Span, type, Options);
+                return JsonSerializer.Deserialize(buffer.Span, type, OptionsFor(type));
             }
             catch (JsonException ex)
             {
@@ -372,7 +435,7 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
         {
             try
             {
-                return await JsonSerializer.DeserializeAsync<T>(stream, Options, ct)
+                return await JsonSerializer.DeserializeAsync<T>(stream, OptionsFor<T>(), ct)
                     .ConfigureAwait(false);
             }
             catch (JsonException ex)
@@ -424,8 +487,8 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
         {
             try
             {
-                return JsonSerializer.SerializeToNode(o,
-                    o?.GetType() ?? typeof(object), Options);
+                var type = o?.GetType() ?? typeof(object);
+                return JsonSerializer.SerializeToNode(o, type, OptionsFor(type));
             }
             catch (JsonException ex)
             {
@@ -438,8 +501,44 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
             return format == SerializeOption.Indented ? IndentedOptions : Options;
         }
 
+        [RequiresUnreferencedCode(kReflection)]
+        [RequiresDynamicCode(kReflection)]
+        private static JsonSerializerOptions OptionsFor<T>(
+            SerializeOption format = SerializeOption.None)
+        {
+            return OptionsFor(typeof(T), format);
+        }
+
+        [RequiresUnreferencedCode(kReflection)]
+        [RequiresDynamicCode(kReflection)]
+        private static JsonSerializerOptions OptionsFor(Type type,
+            SerializeOption format = SerializeOption.None)
+        {
+            var options = OptionsFor(format);
+            try
+            {
+                _ = options.GetTypeInfo(type);
+                return options;
+            }
+            catch (NotSupportedException)
+            {
+                var reflection = new DefaultJsonTypeInfoResolver();
+                reflection.Modifiers.Add(DataContractResolver.Modify);
+                return new JsonSerializerOptions(options)
+                {
+                    TypeInfoResolver = JsonTypeInfoResolver.Combine(
+                        options.TypeInfoResolver!, reflection)
+                };
+            }
+        }
+
         private const string kReflection =
             "System.Text.Json reflection based serialization is not AOT / trim safe.";
+
+        private static IJsonTypeInfoResolver CreateResolver()
+        {
+            return kRegisteredResolver;
+        }
 
         private static readonly JsonNodeOptions kNodeOptions = new()
         {
@@ -451,5 +550,50 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
             AllowTrailingCommas = true,
             MaxDepth = 64
         };
+
+        private static readonly object kResolverLock = new();
+        private static readonly List<IJsonTypeInfoResolver> kResolvers =
+        [
+            JsonTypeInfoResolver.WithAddedModifier(CoreJsonContext.Default,
+                DataContractResolver.Modify)
+        ];
+        private static readonly IJsonTypeInfoResolver kRegisteredResolver =
+            new RegisteredTypeInfoResolver();
+
+        private sealed class RegisteredTypeInfoResolver : IJsonTypeInfoResolver
+        {
+            [UnconditionalSuppressMessage("Trimming", "IL2026",
+                Justification = "The fallback preserves the public Json.Options " +
+                    "contract for callers which pass runtime-only types. Shipping " +
+                    "DTOs resolve through registered source-generated metadata.")]
+            [UnconditionalSuppressMessage("AotAnalysis", "IL3050",
+                Justification = "The fallback preserves the public Json.Options " +
+                    "contract for callers which pass runtime-only types. Shipping " +
+                    "DTOs resolve through registered source-generated metadata.")]
+            public RegisteredTypeInfoResolver()
+            {
+                _reflectionFallback = new DefaultJsonTypeInfoResolver();
+                _reflectionFallback.Modifiers.Add(DataContractResolver.Modify);
+            }
+
+            public JsonTypeInfo? GetTypeInfo(Type type,
+                JsonSerializerOptions options)
+            {
+                lock (kResolverLock)
+                {
+                    foreach (var resolver in kResolvers)
+                    {
+                        var typeInfo = resolver.GetTypeInfo(type, options);
+                        if (typeInfo != null)
+                        {
+                            return typeInfo;
+                        }
+                    }
+                }
+                return _reflectionFallback.GetTypeInfo(type, options);
+            }
+
+            private readonly DefaultJsonTypeInfoResolver _reflectionFallback;
+        }
     }
 }

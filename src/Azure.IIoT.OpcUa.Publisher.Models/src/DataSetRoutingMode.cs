@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// that support hierarchical routing like MQTT.
     /// </summary>
     [DataContract]
+    [JsonConverter(typeof(JsonStringEnumConverter<DataSetRoutingMode>))]
     public enum DataSetRoutingMode
     {
         /// <summary>

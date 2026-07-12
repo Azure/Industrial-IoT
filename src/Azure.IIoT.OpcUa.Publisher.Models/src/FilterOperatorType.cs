@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// Filter operator type
     /// </summary>
     [DataContract]
+    [JsonConverter(typeof(JsonStringEnumConverter<FilterOperatorType>))]
     public enum FilterOperatorType
     {
         /// <summary>

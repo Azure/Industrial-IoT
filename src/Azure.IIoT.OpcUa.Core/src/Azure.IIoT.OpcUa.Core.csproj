@@ -9,12 +9,6 @@
       tunnel, AspNetCore helpers). System.Text.Json only; Native-AOT + trim clean.
     -->
     <IIoTNativeAot>true</IIoTNativeAot>
-    <!--
-      SYSLIB1104: the configuration binding source generator cannot emit binding
-      for the intentional generic Configuration.Get<T>() in PostConfigureOptionBase
-      (reflection fallback, flagged AOT-unsafe via Requires* attributes there).
-    -->
-    <NoWarn>$(NoWarn);SYSLIB1104</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Azure.Core" />

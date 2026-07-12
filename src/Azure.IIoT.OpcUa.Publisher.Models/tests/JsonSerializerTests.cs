@@ -104,5 +104,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
             result.Should().BeEquivalentTo(instance, options => options.AllowingInfiniteRecursion());
         }
 
+        [Fact]
+        public void DataContractEnumsUseClosedAotSafeConverters()
+        {
+            var value = ConnectionOptions.UseReverseConnect |
+                ConnectionOptions.DumpDiagnostics;
+
+            Assert.Equal("\"UseReverseConnect, DumpDiagnostics\"",
+                JsonSerializer.Serialize(value, Json.Options));
+            Assert.Equal(value, JsonSerializer.Deserialize<ConnectionOptions>(
+                "\"usereverseconnect, dumpdiagnostics\"", Json.Options));
+            Assert.Equal((ConnectionOptions)17,
+                JsonSerializer.Deserialize<ConnectionOptions>("17", Json.Options));
+            Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<ConnectionOptions>(
+                "\"not-an-option\"", Json.Options));
+        }
+
     }
 }

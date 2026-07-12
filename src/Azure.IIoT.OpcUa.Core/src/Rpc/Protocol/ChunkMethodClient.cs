@@ -14,7 +14,6 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Protocol
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.Text;
     using System.Threading;
@@ -23,10 +22,6 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Protocol
     /// <summary>
     /// Chunked method provide reliable any size send/receive
     /// </summary>
-    [SuppressMessage("Trimming", "IL2026",
-        Justification = "Reflection based serializer, hardened in a later phase.")]
-    [SuppressMessage("AotAnalysis", "IL3050",
-        Justification = "Reflection based serializer, hardened in a later phase.")]
     public sealed class ChunkMethodClient : IMethodClient
     {
         /// <summary>
@@ -107,9 +102,11 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Protocol
                         };
                     }
                     var result = await _client.CallAsync(target,
-                        MethodNames.Call, Json.SerializeToMemory(chunkModel),
+                        MethodNames.Call, Json.SerializeToMemory(chunkModel,
+                            CoreJsonContext.Default.MethodChunkModel),
                         ContentMimeType.Json, timeout, ct).ConfigureAwait(false);
-                    var response = Json.Deserialize<MethodChunkModel>(result);
+                    var response = Json.Deserialize(result,
+                        CoreJsonContext.Default.MethodChunkModel);
                     if (response?.Payload != null)
                     {
                         received.Write(response.Payload);
@@ -128,9 +125,11 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Protocol
                         Handle = handle,
                     };
                     var result = await _client.CallAsync(target,
-                        MethodNames.Call, Json.SerializeToMemory(chunkModel),
+                        MethodNames.Call, Json.SerializeToMemory(chunkModel,
+                            CoreJsonContext.Default.MethodChunkModel),
                         ContentMimeType.Json, timeout, ct).ConfigureAwait(false);
-                    var response = Json.Deserialize<MethodChunkModel>(result);
+                    var response = Json.Deserialize(result,
+                        CoreJsonContext.Default.MethodChunkModel);
                     if (response?.Payload != null)
                     {
                         received.Write(response.Payload);

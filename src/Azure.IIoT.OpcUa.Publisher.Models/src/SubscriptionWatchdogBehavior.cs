@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// </summary>
     [DataContract]
     [Flags]
+    [JsonConverter(typeof(JsonStringEnumConverter<SubscriptionWatchdogBehavior>))]
     public enum SubscriptionWatchdogBehavior
     {
         /// <summary>

@@ -561,17 +561,81 @@ namespace Azure.IIoT.OpcUa.Encoders
         /// <summary>
         /// Parse a json string leniently. Unlike
         /// <see cref="JsonNode.Parse(string, JsonNodeOptions?, JsonDocumentOptions)"/>
-        /// this accepts the same relaxed json the previous Newtonsoft based
-        /// implementation did (e.g. single quoted strings) so that user
-        /// provided values continue to sanitize identically. The value is
-        /// reparsed into a <see cref="JsonNode"/> via a strict serialization.
+        /// this also accepts the single quoted strings historically accepted by
+        /// the value API.
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
         private static JsonNode? ParseLenient(string value)
         {
-            var token = Newtonsoft.Json.Linq.JToken.Parse(value);
-            return JsonNode.Parse(token.ToString(Newtonsoft.Json.Formatting.None));
+            try
+            {
+                return JsonNode.Parse(value, documentOptions: kLenientDocumentOptions);
+            }
+            catch (JsonException) when (value.Contains('\'', StringComparison.Ordinal))
+            {
+                return JsonNode.Parse(NormalizeSingleQuotedStrings(value),
+                    documentOptions: kLenientDocumentOptions);
+            }
+        }
+
+        private static string NormalizeSingleQuotedStrings(string value)
+        {
+            var result = new System.Text.StringBuilder(value.Length);
+            var singleQuoted = false;
+            var escaped = false;
+            foreach (var character in value)
+            {
+                if (!singleQuoted)
+                {
+                    if (character == '\'')
+                    {
+                        singleQuoted = true;
+                        result.Append('"');
+                    }
+                    else
+                    {
+                        result.Append(character);
+                    }
+                    continue;
+                }
+
+                if (escaped)
+                {
+                    if (character == '\'')
+                    {
+                        result.Append('\'');
+                    }
+                    else
+                    {
+                        result.Append('\\').Append(character);
+                    }
+                    escaped = false;
+                    continue;
+                }
+                if (character == '\\')
+                {
+                    escaped = true;
+                }
+                else if (character == '\'')
+                {
+                    singleQuoted = false;
+                    result.Append('"');
+                }
+                else
+                {
+                    if (character == '"')
+                    {
+                        result.Append('\\');
+                    }
+                    result.Append(character);
+                }
+            }
+            if (escaped || singleQuoted)
+            {
+                throw new JsonException("Unterminated single-quoted JSON string.");
+            }
+            return result.ToString();
         }
 
         /// <summary>
@@ -591,5 +655,11 @@ namespace Azure.IIoT.OpcUa.Encoders
             }
             return node.ToJsonString();
         }
+
+        private static readonly JsonDocumentOptions kLenientDocumentOptions = new()
+        {
+            AllowTrailingCommas = true,
+            CommentHandling = JsonCommentHandling.Skip
+        };
     }
 }

@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// </summary>
     [DataContract]
     [Flags]
+    [JsonConverter(typeof(JsonStringEnumConverter<NetworkMessageContentFlags>))]
     public enum NetworkMessageContentFlags
     {
         /// <summary>

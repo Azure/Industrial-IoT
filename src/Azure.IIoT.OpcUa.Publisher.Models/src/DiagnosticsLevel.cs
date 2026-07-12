@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// Level of diagnostics requested in responses
     /// </summary>
     [DataContract]
+    [JsonConverter(typeof(JsonStringEnumConverter<DiagnosticsLevel>))]
     public enum DiagnosticsLevel
     {
         /// <summary>

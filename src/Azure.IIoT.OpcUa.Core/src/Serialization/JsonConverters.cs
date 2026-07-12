@@ -6,380 +6,140 @@
 namespace Azure.IIoT.OpcUa.Core.Serialization
 {
     using System;
-    using System.Collections.Concurrent;
     using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
-    using System.Linq;
     using System.Numerics;
-    using System.Reflection;
-    using System.Runtime.Serialization;
     using System.Text;
     using System.Text.Json;
     using System.Text.Json.Serialization;
+    using System.Text.Json.Serialization.Metadata;
     using System.Xml;
 
-    // The converters below are intentionally reflection based to preserve the
-    // data contract wire format. AOT / trim hardening is a later migration phase.
-#pragma warning disable IL2026, IL2055, IL2070, IL2071, IL2072, IL2075, IL2090, IL3050
-#pragma warning disable CA1852
-
     /// <summary>
-    /// System.Text.Json converters ported from the former Legacy default json
-    /// serializer so that the wire format (in particular <see cref="DataContractAttribute"/>
-    /// / <see cref="DataMemberAttribute"/> based property naming and ordering used by the
-    /// API models) is preserved. These converters are reflection based and therefore
-    /// not Native-AOT / trim safe; they are only reachable from the reflection based
-    /// <see cref="Json"/> helper whose entry points are annotated accordingly. AOT
-    /// hardening of the serialization pipeline is a later migration phase.
+    /// Converts a read-only set with a statically known element type.
     /// </summary>
-    internal static class JsonConverters
+    /// <typeparam name="TElement">The set element type.</typeparam>
+    internal sealed class ReadOnlySetConverter<TElement> :
+        JsonConverter<IReadOnlySet<TElement>?>
     {
-        /// <summary>
-        /// Get generic interface (ported from Legacy TypeEx).
-        /// </summary>
-        /// <param name="type"></param>
-        /// <param name="genericItfType"></param>
-        /// <exception cref="ArgumentException"></exception>
-        public static Type? GetCompatibleGenericInterface(this Type type,
-            Type genericItfType)
+        /// <inheritdoc/>
+        public override IReadOnlySet<TElement>? Read(ref Utf8JsonReader reader,
+            Type typeToConvert, JsonSerializerOptions options)
         {
-            if (!genericItfType.IsGenericType ||
-                !genericItfType.IsInterface ||
-                genericItfType != genericItfType.GetGenericTypeDefinition())
+            if (reader.TokenType == JsonTokenType.Null)
             {
-                throw new ArgumentException(
-                    "Argument must be a generic interface type" +
-                    $" which {genericItfType.Name} is not.");
+                return null;
             }
-            var check = type;
-            if (check.IsGenericType)
+            if (reader.TokenType != JsonTokenType.StartArray)
             {
-                check = check.GetGenericTypeDefinition();
+                throw new JsonException();
             }
-            if (check == genericItfType)
+
+            var elementTypeInfo = (JsonTypeInfo<TElement>)options.GetTypeInfo(
+                typeof(TElement));
+            var set = new HashSet<TElement>();
+            while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
             {
-                return type;
+                set.Add(JsonSerializer.Deserialize(ref reader, elementTypeInfo)!);
             }
-            foreach (var itfOfType in type.GetInterfaces())
+            return set;
+        }
+
+        /// <inheritdoc/>
+        public override void Write(Utf8JsonWriter writer, IReadOnlySet<TElement>? value,
+            JsonSerializerOptions options)
+        {
+            if (value is null)
             {
-                if (itfOfType.IsGenericType)
-                {
-                    var genericItf = itfOfType.GetGenericTypeDefinition();
-                    if (genericItf == genericItfType)
-                    {
-                        return itfOfType;
-                    }
-                }
+                writer.WriteNullValue();
+                return;
             }
-            return null;
+
+            var elementTypeInfo = (JsonTypeInfo<TElement>)options.GetTypeInfo(
+                typeof(TElement));
+            writer.WriteStartArray();
+            foreach (var item in value)
+            {
+                JsonSerializer.Serialize(writer, item, elementTypeInfo);
+            }
+            writer.WriteEndArray();
         }
     }
 
     /// <summary>
-    /// Converts enums with <see cref="DataContractAttribute"/> honoring
-    /// <see cref="EnumMemberAttribute"/> values.
+    /// Converts a two-dimensional matrix with a statically known element type.
     /// </summary>
-    internal sealed class DataContractEnumConverter : JsonConverterFactory
-    {
-        /// <summary>
-        /// Create converter
-        /// </summary>
-        /// <param name="namingPolicy"></param>
-        /// <param name="allowIntValues"></param>
-        public DataContractEnumConverter(JsonNamingPolicy namingPolicy,
-            bool allowIntValues)
-        {
-            _namingPolicy = namingPolicy;
-            _fallback = new JsonStringEnumConverter(namingPolicy, allowIntValues);
-        }
-
-        /// <inheritdoc/>
-        [UnconditionalSuppressMessage("Trimming", "IL2070",
-            Justification = "Reflection based serializer, hardened in a later phase.")]
-        public override bool CanConvert(Type typeToConvert)
-        {
-            if (!typeToConvert.IsEnum)
-            {
-                return false;
-            }
-            var dca = typeToConvert.GetCustomAttribute<DataContractAttribute>(true);
-            if (dca == null)
-            {
-                return false;
-            }
-            // If enum member attribute used
-            return typeToConvert.GetMembers()
-                .Any(p => p.GetCustomAttribute<EnumMemberAttribute>() != null);
-        }
-
-        /// <inheritdoc/>
-        [UnconditionalSuppressMessage("AotAnalysis", "IL3050",
-            Justification = "Reflection based serializer, hardened in a later phase.")]
-        [UnconditionalSuppressMessage("Trimming", "IL2055",
-            Justification = "Reflection based serializer, hardened in a later phase.")]
-        public override JsonConverter? CreateConverter(Type typeToConvert,
-            JsonSerializerOptions options)
-        {
-            var ct = typeof(DataContractEnumConverterOfT<>)
-                .MakeGenericType(typeToConvert);
-            return (JsonConverter?)Activator.CreateInstance(ct, [
-                _fallback.CreateConverter(typeToConvert, options),
-                this
-            ]);
-        }
-
-        /// <summary>
-        /// Actual converter of T
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        public class DataContractEnumConverterOfT<T> : JsonConverter<T>
-            where T : struct, Enum
-        {
-            /// <summary>
-            /// Create converter
-            /// </summary>
-            /// <param name="fallback"></param>
-            /// <param name="outer"></param>
-            public DataContractEnumConverterOfT(JsonConverter<T>? fallback,
-                DataContractEnumConverter outer)
-            {
-                _fallback = fallback;
-                _outer = outer;
-            }
-
-            /// <inheritdoc/>
-            public override T Read(ref Utf8JsonReader reader, Type typeToConvert,
-                JsonSerializerOptions options)
-            {
-                var token = reader.TokenType;
-                if (token == JsonTokenType.String)
-                {
-                    var enumString = FormatStringToEnumValue(reader.GetString());
-                    if (enumString == null)
-                    {
-                        throw new JsonException();
-                    }
-                    if (!Enum.TryParse<T>(enumString, ignoreCase: true, out var value))
-                    {
-                        throw new JsonException();
-                    }
-                    return value;
-                }
-                if (_fallback == null)
-                {
-                    throw new JsonException("Not supported");
-                }
-                return _fallback.Read(ref reader, typeToConvert, options);
-            }
-
-            /// <inheritdoc/>
-            public override void Write(Utf8JsonWriter writer, T value,
-                JsonSerializerOptions options)
-            {
-                var key = ConvertToUInt64(value);
-                if (kCache.TryGetValue(key, out var formatted))
-                {
-                    writer.WriteStringValue(formatted);
-                    return;
-                }
-
-                var enumString = FormatEnumValueToString(value.ToString(), options);
-                if (enumString != null)
-                {
-                    formatted = JsonEncodedText.Encode(enumString, options.Encoder);
-                    writer.WriteStringValue(formatted);
-                    kCache.TryAdd(key, formatted);
-                    return;
-                }
-
-                if (_fallback == null)
-                {
-                    throw new JsonException("Not supported");
-                }
-                _fallback.Write(writer, value, options);
-            }
-
-            private static string? FormatStringToEnumValue(string? value)
-            {
-                if (value == null)
-                {
-                    return null;
-                }
-                if (!value.Contains(kSeperator, StringComparison.Ordinal))
-                {
-                    return Convert(value);
-                }
-                var enumValues = value.Split(kSeperator, StringSplitOptions.RemoveEmptyEntries);
-                for (var i = 0; i < enumValues.Length; i++)
-                {
-                    enumValues[i] = Convert(enumValues[i]);
-                }
-                return string.Join(kSeperator, enumValues);
-                static string Convert(string value)
-                {
-                    if (kValueToMember.TryGetValue(value.ToUpperInvariant(), out var actual))
-                    {
-                        value = actual;
-                    }
-                    return value;
-                }
-            }
-
-            private string? FormatEnumValueToString(string? value, JsonSerializerOptions options)
-            {
-                if (value == null)
-                {
-                    return null;
-                }
-                var namingPolicy = _outer._namingPolicy ?? options.PropertyNamingPolicy;
-                if (!value.Contains(kSeperator, StringComparison.Ordinal))
-                {
-                    return Convert(value, namingPolicy);
-                }
-                var enumValues = value.Split(kSeperator, StringSplitOptions.RemoveEmptyEntries);
-                for (var i = 0; i < enumValues.Length; i++)
-                {
-                    enumValues[i] = Convert(enumValues[i], namingPolicy);
-                }
-                return string.Join(kSeperator, enumValues);
-                static string Convert(string value, JsonNamingPolicy? policy)
-                {
-                    // When an explicit [EnumMember(Value=...)] is declared, emit it
-                    // verbatim to match the Newtonsoft StringEnumConverter wire format
-                    // (the naming policy only applies to members without EnumMember).
-                    if (kMemberToValue.TryGetValue(value, out var actual))
-                    {
-                        return actual;
-                    }
-                    return policy != null ? policy.ConvertName(value) : value;
-                }
-            }
-
-            /// <summary>
-            /// Gather type information
-            /// </summary>
-            [UnconditionalSuppressMessage("Trimming", "IL2090",
-                Justification = "Reflection based serializer, hardened in a later phase.")]
-            [UnconditionalSuppressMessage("Trimming", "IL2075",
-                Justification = "Reflection based serializer, hardened in a later phase.")]
-            static DataContractEnumConverterOfT()
-            {
-                kTypeCode = Type.GetTypeCode(typeof(T));
-                kMemberToValue = typeof(T).GetMembers()
-                    .Where(p => p.GetCustomAttribute<EnumMemberAttribute>() != null)
-                    .ToDictionary(m => m.Name,
-                        p => p.GetCustomAttribute<EnumMemberAttribute>()?.Value ?? p.Name);
-                kValueToMember = kMemberToValue
-                    .ToDictionary(k => k.Value.ToUpperInvariant(), v => v.Key);
-            }
-
-            private static ulong ConvertToUInt64(object value)
-            {
-                System.Diagnostics.Debug.Assert(value is T);
-                return kTypeCode switch
-                {
-                    TypeCode.Int32 => (ulong)(int)value,
-                    TypeCode.UInt32 => (uint)value,
-                    TypeCode.UInt64 => (ulong)value,
-                    TypeCode.Int64 => (ulong)(long)value,
-                    TypeCode.SByte => (ulong)(sbyte)value,
-                    TypeCode.Byte => (byte)value,
-                    TypeCode.Int16 => (ulong)(short)value,
-                    TypeCode.UInt16 => (ushort)value,
-                    _ => throw new InvalidOperationException(),
-                };
-            }
-
-            private const string kSeperator = ", ";
-            private static readonly Dictionary<string, string> kValueToMember;
-            private static readonly Dictionary<string, string> kMemberToValue;
-            private static readonly ConcurrentDictionary<ulong, JsonEncodedText> kCache = new();
-            private static readonly TypeCode kTypeCode;
-            private readonly JsonConverter<T>? _fallback;
-            private readonly DataContractEnumConverter _outer;
-        }
-        private readonly JsonStringEnumConverter _fallback;
-        private readonly JsonNamingPolicy _namingPolicy;
-    }
-
-    /// <summary>
-    /// Read only set converter
-    /// </summary>
-    internal sealed class ReadOnlySetConverter : JsonConverterFactory
+    /// <typeparam name="TElement">The matrix element type.</typeparam>
+    internal sealed class MatrixConverter<TElement> : JsonConverter<TElement[,]>
     {
         /// <inheritdoc/>
-        public override bool CanConvert(Type typeToConvert)
+        public override TElement[,] Read(ref Utf8JsonReader reader, Type typeToConvert,
+            JsonSerializerOptions options)
         {
-            var type = typeToConvert.GetCompatibleGenericInterface(typeof(IReadOnlySet<>));
-            return type != null;
+            if (reader.TokenType != JsonTokenType.StartArray)
+            {
+                throw new JsonException("Expected beginning of matrix array.");
+            }
+
+            var elementTypeInfo = (JsonTypeInfo<TElement>)options.GetTypeInfo(
+                typeof(TElement));
+            var rows = new List<List<TElement>>();
+            var width = 0;
+            while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
+            {
+                if (reader.TokenType != JsonTokenType.StartArray)
+                {
+                    throw new JsonException("Expected matrix row.");
+                }
+
+                var row = new List<TElement>();
+                while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
+                {
+                    row.Add(JsonSerializer.Deserialize(ref reader, elementTypeInfo)!);
+                }
+                width = Math.Max(width, row.Count);
+                rows.Add(row);
+            }
+
+            var result = new TElement[rows.Count, width];
+            for (var row = 0; row < rows.Count; row++)
+            {
+                for (var column = 0; column < rows[row].Count; column++)
+                {
+                    result[row, column] = rows[row][column];
+                }
+            }
+            return result;
         }
 
         /// <inheritdoc/>
-        [UnconditionalSuppressMessage("AotAnalysis", "IL3050",
-            Justification = "Reflection based serializer, hardened in a later phase.")]
-        [UnconditionalSuppressMessage("Trimming", "IL2055",
-            Justification = "Reflection based serializer, hardened in a later phase.")]
-        public override JsonConverter? CreateConverter(Type typeToConvert,
+        public override void Write(Utf8JsonWriter writer, TElement[,] value,
             JsonSerializerOptions options)
         {
-            var type = typeToConvert.GetCompatibleGenericInterface(typeof(IReadOnlySet<>));
-            System.Diagnostics.Debug.Assert(type != null);
-            var ct = typeof(ReadOnlySetConverterOfT<,>)
-                .MakeGenericType(typeToConvert, type.GetGenericArguments()[0]);
-            return (JsonConverter?)Activator.CreateInstance(ct, []);
-        }
-
-        /// <summary>
-        /// Actual converter of T
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <typeparam name="TElement"></typeparam>
-        public class ReadOnlySetConverterOfT<T, TElement> : JsonConverter<T?>
-        {
-            /// <inheritdoc/>
-            public override void Write(Utf8JsonWriter writer, T? value,
-                JsonSerializerOptions options)
+            if (value is null)
             {
-                if (value is not IEnumerable<TElement?> items)
-                {
-                    writer.WriteNullValue();
-                    return;
-                }
-                var typeInfo = options.GetTypeInfo(typeof(TElement));
+                writer.WriteNullValue();
+                return;
+            }
+
+            var elementTypeInfo = (JsonTypeInfo<TElement>)options.GetTypeInfo(
+                typeof(TElement));
+            writer.WriteStartArray();
+            for (var row = 0; row < value.GetLength(0); row++)
+            {
                 writer.WriteStartArray();
-                foreach (var item in items)
+                for (var column = 0; column < value.GetLength(1); column++)
                 {
-                    JsonSerializer.Serialize(writer, item, typeInfo);
+                    JsonSerializer.Serialize(writer, value[row, column], elementTypeInfo);
                 }
                 writer.WriteEndArray();
             }
-
-            /// <inheritdoc/>
-            public override T? Read(ref Utf8JsonReader reader, Type typeToConvert,
-                JsonSerializerOptions options)
-            {
-                if (reader.TokenType == JsonTokenType.Null)
-                {
-                    return default;
-                }
-                if (reader.TokenType != JsonTokenType.StartArray)
-                {
-                    throw new JsonException();
-                }
-                var typeInfo = options.GetTypeInfo(typeof(TElement));
-                var set = new HashSet<TElement?>();
-                while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
-                {
-                    set.Add((TElement?)JsonSerializer.Deserialize(ref reader, typeInfo));
-                }
-                return (T?)(IReadOnlySet<TElement?>?)set;
-            }
+            writer.WriteEndArray();
         }
     }
 
     /// <summary>
-    /// Byte array converter allowing list of integers
+    /// Byte array converter allowing a list of integers.
     /// </summary>
     internal sealed class ByteArrayConverter : JsonConverter<byte[]>
     {
@@ -407,7 +167,7 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
         public override void Write(Utf8JsonWriter writer,
             byte[]? value, JsonSerializerOptions options)
         {
-            if (value == null)
+            if (value is null)
             {
                 writer.WriteNullValue();
             }
@@ -419,7 +179,7 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
     }
 
     /// <summary>
-    /// Xml element converter
+    /// Xml element converter.
     /// </summary>
     internal sealed class XmlElementConverter : JsonConverter<XmlElement>
     {
@@ -431,39 +191,34 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
             {
                 return null;
             }
-            if (reader.TokenType == JsonTokenType.String)
+            if (reader.TokenType != JsonTokenType.String)
             {
-                var encoded = reader.GetBytesFromBase64();
-                var xml = Encoding.UTF8.GetString(encoded);
-                if (xml == null)
-                {
-                    return null;
-                }
-                var doc = new XmlDocument();
-                doc.LoadXml(xml);
-                return doc.DocumentElement;
+                throw new JsonException();
             }
-            throw new JsonException();
+
+            var xml = Encoding.UTF8.GetString(reader.GetBytesFromBase64());
+            var document = new XmlDocument();
+            document.LoadXml(xml);
+            return document.DocumentElement;
         }
 
         /// <inheritdoc/>
         public override void Write(Utf8JsonWriter writer,
             XmlElement? value, JsonSerializerOptions options)
         {
-            if (value == null)
+            if (value is null)
             {
                 writer.WriteNullValue();
             }
             else
             {
-                var encoded = Encoding.UTF8.GetBytes(value.OuterXml);
-                writer.WriteBase64StringValue(encoded);
+                writer.WriteBase64StringValue(Encoding.UTF8.GetBytes(value.OuterXml));
             }
         }
     }
 
     /// <summary>
-    /// Big integer converter
+    /// Big integer converter.
     /// </summary>
     internal sealed class BigIntegerConverter : JsonConverter<BigInteger>
     {
@@ -476,209 +231,19 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
             {
                 throw new JsonException();
             }
-            using var doc = JsonDocument.ParseValue(ref reader);
-            var txt = doc.RootElement.GetRawText();
-            if (reader.TokenType == JsonTokenType.String &&
-                txt.Length >= 2 && txt[0] == '"' && txt[^1] == '"')
-            {
-                // Trim quotes
-                txt = txt[1..^1].Trim();
-            }
-            return BigInteger.Parse(txt, NumberFormatInfo.InvariantInfo);
+
+            using var document = JsonDocument.ParseValue(ref reader);
+            var value = document.RootElement.ValueKind == JsonValueKind.String
+                ? document.RootElement.GetString()
+                : document.RootElement.GetRawText();
+            return BigInteger.Parse(value, NumberFormatInfo.InvariantInfo);
         }
 
         /// <inheritdoc/>
         public override void Write(Utf8JsonWriter writer, BigInteger value,
             JsonSerializerOptions options)
         {
-            var s = value.ToString(NumberFormatInfo.InvariantInfo);
-            using var doc = JsonDocument.Parse(s);
-            doc.WriteTo(writer);
-        }
-    }
-
-    /// <summary>
-    /// Matrix converter
-    /// </summary>
-    internal sealed class MatrixConverter : JsonConverterFactory
-    {
-        /// <inheritdoc/>
-        public override bool CanConvert(Type typeToConvert)
-        {
-            if (typeToConvert.IsArray && typeToConvert.GetArrayRank() > 1)
-            {
-                return true;
-            }
-            return false;
-        }
-
-        /// <inheritdoc/>
-        [UnconditionalSuppressMessage("AotAnalysis", "IL3050",
-            Justification = "Reflection based serializer, hardened in a later phase.")]
-        [UnconditionalSuppressMessage("Trimming", "IL2055",
-            Justification = "Reflection based serializer, hardened in a later phase.")]
-        [UnconditionalSuppressMessage("Trimming", "IL2072",
-            Justification = "Reflection based serializer, hardened in a later phase.")]
-        public override JsonConverter? CreateConverter(Type typeToConvert,
-            JsonSerializerOptions options)
-        {
-            var ct = typeof(MatrixConverterOfT<,>).MakeGenericType(
-                typeToConvert, typeToConvert.GetElementType()!);
-            return (JsonConverter?)Activator.CreateInstance(ct, []);
-        }
-
-        /// <summary>
-        /// Actual converter of T where T is the array and E is the element type
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <typeparam name="E"></typeparam>
-        [UnconditionalSuppressMessage("AotAnalysis", "IL3050",
-            Justification = "Reflection based serializer, hardened in a later phase.")]
-        [UnconditionalSuppressMessage("Trimming", "IL2026",
-            Justification = "Reflection based serializer, hardened in a later phase.")]
-        public class MatrixConverterOfT<T, E> : JsonConverter<T?> where T : class
-        {
-            /// <inheritdoc/>
-            public override T? Read(ref Utf8JsonReader reader, Type typeToConvert,
-                JsonSerializerOptions options)
-            {
-                if (reader.TokenType != JsonTokenType.StartArray)
-                {
-                    // Expected to be at beginning of array or null
-                    throw new JsonException("Expected beginning of matrix array.");
-                }
-
-                var lengths = new int[typeToConvert.GetArrayRank()];
-                var slices = ReadDimension(0, ref reader, typeToConvert, lengths, options);
-                if (slices is not Array from)
-                {
-                    throw new JsonException();
-                }
-                var to = Array.CreateInstance(typeof(E), lengths);
-                Array.Clear(lengths);
-                CopyTo(from, to, lengths, 0);
-                return to as T;
-            }
-
-            private static object? ReadDimension(int dimension,
-                ref Utf8JsonReader reader, Type typeToConvert, int[] lengths,
-                JsonSerializerOptions options)
-            {
-                if (reader.TokenType == JsonTokenType.Null)
-                {
-                    return null;
-                }
-
-                if (dimension == lengths.Length - 1)
-                {
-                    // Last dimension - read the array slice
-                    var result = JsonSerializer.Deserialize(ref reader,
-                        typeof(E).MakeArrayType(), options);
-                    if (result is E[] element && element.Length > lengths[dimension])
-                    {
-                        lengths[dimension] = element.Length;
-                    }
-                    return result;
-                }
-
-                var list = new List<object?>();
-                while (true)
-                {
-                    if (!reader.Read())
-                    {
-                        throw new JsonException("Failed to read");
-                    }
-                    if (reader.TokenType == JsonTokenType.EndArray)
-                    {
-                        // we have read the last item of the array
-                        break;
-                    }
-
-                    // Now at start of array of next dimension
-                    var result = ReadDimension(dimension + 1, ref reader,
-                        typeToConvert, lengths, options);
-
-                    list.Add(result);
-                }
-                if (list.Count > lengths[dimension])
-                {
-                    lengths[dimension] = list.Count;
-                }
-                return list.ToArray(); // Slice
-            }
-
-            /// <inheritdoc/>
-            public override void Write(Utf8JsonWriter writer, T? value,
-                JsonSerializerOptions options)
-            {
-                if (value is Array a)
-                {
-                    var indices = new int[a.Rank];
-                    WriteDimension(0, writer, a, indices, options);
-                }
-                else
-                {
-                    writer.WriteNullValue();
-                }
-            }
-
-            private static void WriteDimension(int dimension, Utf8JsonWriter writer,
-                Array array, int[] indices, JsonSerializerOptions options)
-            {
-                if (dimension == indices.Length - 1)
-                {
-                    // Write the innermost slice element by element so that value
-                    // element types (for example byte) are emitted as JSON numbers
-                    // rather than being routed through element-array converters such
-                    // as the base64 byte[] converter. This matches the nested number
-                    // array wire format produced by the legacy serializer.
-                    writer.WriteStartArray();
-                    foreach (var element in Slice(array, indices))
-                    {
-                        JsonSerializer.Serialize(writer, element, options);
-                    }
-                    writer.WriteEndArray();
-                }
-                else
-                {
-                    writer.WriteStartArray();
-                    for (var index = 0; index < array.GetLength(dimension); index++)
-                    {
-                        indices[dimension] = index;
-                        WriteDimension(dimension + 1, writer, array, indices, options);
-                    }
-                    writer.WriteEndArray();
-                }
-                static IEnumerable<E?> Slice(Array array, int[] indices)
-                {
-                    for (var index = 0; index < array.GetLength(indices.Length - 1); index++)
-                    {
-                        indices[^1] = index;
-                        yield return (E?)array.GetValue(indices);
-                    }
-                }
-            }
-
-            private static void CopyTo(Array slice, Array array, int[] indices, int dimension)
-            {
-                indices[dimension] = 0;
-                foreach (var item in slice)
-                {
-                    if (item is Array inner)
-                    {
-                        CopyTo(inner, array, indices, dimension + 1);
-                    }
-                    else
-                    {
-                        if (dimension != indices.Length - 1)
-                        {
-                            throw new JsonException();
-                        }
-                        array.SetValue(item, indices);
-                    }
-                    indices[dimension]++;
-                }
-            }
+            writer.WriteRawValue(value.ToString(NumberFormatInfo.InvariantInfo));
         }
     }
 }

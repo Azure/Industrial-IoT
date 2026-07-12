@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// State of the endpoint after activation
     /// </summary>
     [DataContract]
+    [JsonConverter(typeof(JsonStringEnumConverter<EndpointConnectivityState>))]
     public enum EndpointConnectivityState
     {
         /// <summary>

@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// Type of structure
     /// </summary>
     [DataContract]
+    [JsonConverter(typeof(JsonStringEnumConverter<StructureType>))]
     public enum StructureType
     {
         /// <summary>

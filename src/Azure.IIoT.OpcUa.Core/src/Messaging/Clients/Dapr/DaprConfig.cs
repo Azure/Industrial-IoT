@@ -40,5 +40,21 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.Dapr
 
             options.GrpcChannelOptions.ThrowOperationCanceledOnCancellation = true;
         }
+
+        /// <inheritdoc/>
+        protected override DaprOptions Bind()
+        {
+            return new DaprOptions
+            {
+                PubSubComponent = GetStringOrDefault(nameof(DaprOptions.PubSubComponent)),
+                StateStoreName = GetStringOrDefault(nameof(DaprOptions.StateStoreName)),
+                ApiToken = GetStringOrDefault(nameof(DaprOptions.ApiToken)),
+                HttpEndpoint = GetStringOrDefault(nameof(DaprOptions.HttpEndpoint)),
+                GrpcEndpoint = GetStringOrDefault(nameof(DaprOptions.GrpcEndpoint)),
+                MessageMaxBytes = GetIntOrNull(nameof(DaprOptions.MessageMaxBytes)),
+                CheckSideCarHealthBeforeAccess = GetBoolOrDefault(
+                    nameof(DaprOptions.CheckSideCarHealthBeforeAccess))
+            };
+        }
     }
 }

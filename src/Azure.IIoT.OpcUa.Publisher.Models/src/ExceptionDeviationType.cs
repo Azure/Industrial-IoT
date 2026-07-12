@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// Exception deviation type
     /// </summary>
     [DataContract]
+    [JsonConverter(typeof(JsonStringEnumConverter<ExceptionDeviationType>))]
     public enum ExceptionDeviationType
     {
         /// <summary>

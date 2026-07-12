@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     [Flags]
     [DataContract]
 #pragma warning disable CA2217 // Do not mark enums with FlagsAttribute
+    [JsonConverter(typeof(JsonStringEnumConverter<NodeValueRank>))]
     public enum NodeValueRank
 #pragma warning restore CA2217 // Do not mark enums with FlagsAttribute
     {

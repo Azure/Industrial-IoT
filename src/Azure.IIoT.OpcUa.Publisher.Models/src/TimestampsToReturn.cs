@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// Timestamps
     /// </summary>
     [DataContract]
+    [JsonConverter(typeof(JsonStringEnumConverter<TimestampsToReturn>))]
     public enum TimestampsToReturn
     {
         /// <summary>

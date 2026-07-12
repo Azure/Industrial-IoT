@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// Deadband type
     /// </summary>
     [DataContract]
+    [JsonConverter(typeof(JsonStringEnumConverter<DeadbandType>))]
     public enum DeadbandType
     {
         /// <summary>

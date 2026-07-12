@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// </summary>
     [DataContract]
     [Flags]
+    [JsonConverter(typeof(JsonStringEnumConverter<MonitoredItemWatchdogCondition>))]
     public enum MonitoredItemWatchdogCondition
     {
         /// <summary>

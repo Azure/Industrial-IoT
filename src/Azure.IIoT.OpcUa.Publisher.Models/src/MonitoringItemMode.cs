@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// Monitoring modes
     /// </summary>
     [DataContract]
+    [JsonConverter(typeof(JsonStringEnumConverter<MonitoringMode>))]
     public enum MonitoringMode
     {
         /// <summary>

@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     /// Target to sent publisher diagnostics to
     /// </summary>
     [DataContract]
+    [JsonConverter(typeof(JsonStringEnumConverter<PublisherDiagnosticTargetType>))]
     public enum PublisherDiagnosticTargetType
     {
         /// <summary>
