@@ -970,18 +970,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 callback(owner);
             }
-
-            private void Deliver(ISubscriber owner, OpcUaSubscriptionNotification notification,
-                Action<ISubscriber, OpcUaSubscriptionNotification> callback)
-            {
-                using (notification)
-                {
-                    InvokeSubscriber(owner, subscriber => callback(subscriber, notification));
-                }
-            }
             catch (Exception ex)
             {
                 _logger.SubscriberCallbackFailed(ex, owner.GetType().Name);
+            }
+        }
+
+        private void Deliver(ISubscriber owner, OpcUaSubscriptionNotification notification,
+            Action<ISubscriber, OpcUaSubscriptionNotification> callback)
+        {
+            using (notification)
+            {
+                InvokeSubscriber(owner, subscriber => callback(subscriber, notification));
             }
         }
 
