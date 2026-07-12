@@ -151,8 +151,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var monitoredItem = notification.Notifications.Single(item =>
                 item.NodeId == "ns=2;s=one");
             var value = Assert.IsType<DataValue>(monitoredItem.Value);
-            Assert.True(value.WrappedValue.TryGetValue(out int[] copied));
-            Assert.Equal([1, 2], copied);
+            Assert.Equal(new Variant(new[] { 1, 2 }), value.WrappedValue);
         }
 
         [Fact]
@@ -180,7 +179,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             await manager.Handler!.OnEventDataNotificationAsync(manager.Subscription, 11,
                 DateTime.UtcNow,
-                [
+                new EventNotification[]
+                {
                     new EventNotification(items[0], ArrayOf.Wrapped(
                         Variant.From("condition"),
                         Variant.From(ObjectTypeIds.BaseEventType),
@@ -195,7 +195,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             await manager.Handler.OnEventDataNotificationAsync(manager.Subscription, 12,
                 DateTime.UtcNow,
-                [
+                new EventNotification[]
+                {
                     new EventNotification(items[0], ArrayOf.Wrapped(
                         Variant.From("ignored"),
                         Variant.From(ObjectTypeIds.RefreshStartEventType),
@@ -231,15 +232,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var item = Assert.Single(manager.Subscription!.Collection.Items.Cast<FakeMonitoredItem>());
 
             await manager.Handler!.OnEventDataNotificationAsync(manager.Subscription, 11,
-                DateTime.UtcNow, [new EventNotification(item, ArrayOf.Wrapped(
-                    Variant.From(ObjectTypeIds.BaseEventType), Variant.From("ignored")))],
+                DateTime.UtcNow, new EventNotification[] { new(item, ArrayOf.Wrapped(
+                    Variant.From(ObjectTypeIds.BaseEventType), Variant.From("ignored"))) },
                 PublishState.None, []);
             Assert.Equal(0, sink.CallCount);
 
             await manager.Handler.OnEventDataNotificationAsync(manager.Subscription, 12,
-                DateTime.UtcNow, [new EventNotification(item, ArrayOf.Wrapped(
+                DateTime.UtcNow, new EventNotification[] { new(item, ArrayOf.Wrapped(
                     Variant.From(ObjectTypeIds.GeneralModelChangeEventType),
-                    Variant.From("changes")))], PublishState.None, []);
+                    Variant.From("changes"))) }, PublishState.None, []);
             Assert.Equal(1, sink.CallCount);
             Assert.Equal(1, owner.SemanticsChanges);
         }
@@ -309,10 +310,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var item = manager.Subscription!.Collection.Items.Cast<FakeMonitoredItem>().First();
 
             await manager.Handler!.OnDataChangeNotificationAsync(manager.Subscription, 1,
-                DateTime.UtcNow, [new DataValueChange(item, new DataValue(Variant.From(1)), null)],
+                DateTime.UtcNow, new DataValueChange[]
+                {
+                    new(item, new DataValue(Variant.From(1)), null)
+                },
                 PublishState.None, []);
             await manager.Handler.OnDataChangeNotificationAsync(manager.Subscription, 2,
-                DateTime.UtcNow, [new DataValueChange(item, new DataValue(Variant.From(2)), null)],
+                DateTime.UtcNow, new DataValueChange[]
+                {
+                    new(item, new DataValue(Variant.From(2)), null)
+                },
                 PublishState.None, []);
             adapter.RequestKeyFrame(owner);
             await manager.Handler.OnKeepAliveNotificationAsync(manager.Subscription, 3,
@@ -340,7 +347,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             await manager.Handler!.OnDataChangeNotificationAsync(manager.Subscription, 1,
                 DateTime.UtcNow,
-                [
+                new DataValueChange[]
+                {
                     new DataValueChange(items[0], new DataValue(Variant.From(1)), null),
                     new DataValueChange(items[1], new DataValue(Variant.From(2)), null)
                 ], PublishState.None, []);
@@ -370,7 +378,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 SubscriptionState.Created, PublishState.Recovered | PublishState.Transferred);
             await manager.Handler.OnDataChangeNotificationAsync(manager.Subscription, 12,
                 DateTime.UtcNow,
-                [new DataValueChange(item, new DataValue(Variant.From(42)), null)],
+                new DataValueChange[]
+                {
+                    new(item, new DataValue(Variant.From(42)), null)
+                },
                 PublishState.Recovered, []);
 
             Assert.Equal(1, owner.SemanticsChanges);
