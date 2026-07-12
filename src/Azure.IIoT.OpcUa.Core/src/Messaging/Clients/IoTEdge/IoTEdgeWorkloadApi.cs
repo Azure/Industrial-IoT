@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
     using System.Net.Sockets;
 #endif
     using Azure.IIoT.OpcUa.Core.IoTEdge.Services;
+    using IoTHubby.Edge.Workload;
     using System;
     using System.Diagnostics.CodeAnalysis;
     using System.Net.Http;
@@ -56,8 +57,12 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
             }
 
             apiVersion ??= "2019-01-30";
-            _client = new WorkloadApiHttpClient(workloadUri, apiVersion,
+            var uri = WorkloadApiHttpClient.CreateWorkloadUri(workloadUri);
+            _client = new WorkloadApiHttpClient(uri, apiVersion,
                 moduleId, generationId, handler);
+            _workloadClient = new WorkloadApiClient(uri, apiVersion, handler);
+            _moduleId = moduleId;
+            _generationId = generationId;
         }
 
         /// <inheritdoc/>
@@ -65,11 +70,9 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
             string initializationVector, ReadOnlyMemory<byte> plaintext,
             CancellationToken ct = default)
         {
-            var client = GetClient();
-            // TODO(Phase 6 upstream): move Encrypt/Decrypt into IoTHubby.Edge.WorkloadApiClient.
-            var plaintextBase64 = Convert.ToBase64String(plaintext.Span);
-            return await client.EncryptAsync(initializationVector,
-                plaintextBase64, ct).ConfigureAwait(false);
+            var (client, moduleId, generationId) = GetWorkloadClient();
+            return await client.EncryptAsync(moduleId, generationId,
+                initializationVector, plaintext.ToArray(), ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -77,11 +80,9 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
             string initializationVector, ReadOnlyMemory<byte> ciphertext,
             CancellationToken ct = default)
         {
-            var client = GetClient();
-            var ciphertextBase64 = Convert.ToBase64String(ciphertext.Span);
-            var plaintextBase64 = await client.DecryptAsync(initializationVector,
-                ciphertextBase64, ct).ConfigureAwait(false);
-            return Convert.FromBase64String(plaintextBase64);
+            var (client, moduleId, generationId) = GetWorkloadClient();
+            return await client.DecryptAsync(moduleId, generationId,
+                initializationVector, ciphertext.ToArray(), ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
@@ -129,6 +130,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
         public void Dispose()
         {
             _client?.Dispose();
+            _workloadClient?.Dispose();
         }
 
         private WorkloadApiHttpClient GetClient()
@@ -138,6 +140,16 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
                 throw new NotSupportedException("Not running in IoT Edge.");
             }
             return _client;
+        }
+
+        private (WorkloadApiClient Client, string ModuleId, string GenerationId)
+            GetWorkloadClient()
+        {
+            if (_workloadClient == null || _moduleId == null || _generationId == null)
+            {
+                throw new NotSupportedException("Not running in IoT Edge.");
+            }
+            return (_workloadClient, _moduleId, _generationId);
         }
 
         private static X509Certificate2Collection ImportPem(string pem)
@@ -151,6 +163,9 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
         }
 
         private readonly WorkloadApiHttpClient? _client;
+        private readonly WorkloadApiClient? _workloadClient;
+        private readonly string? _moduleId;
+        private readonly string? _generationId;
     }
 
     /// <summary>
@@ -194,38 +209,6 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
             _requestBaseUri = CreateRequestBaseUri(workloadUri);
             _client = new HttpClient(handler ?? CreateTransportHandler(workloadUri),
                 disposeHandler: true);
-        }
-
-        /// <summary>
-        /// Encrypt using the workload daemon's legacy payload shape.
-        /// </summary>
-        public async Task<byte[]> EncryptAsync(string initializationVector,
-            string plaintextBase64, CancellationToken ct)
-        {
-            var request = new WorkloadEncryptRequest(
-                Encoding.UTF8.GetBytes(plaintextBase64),
-                Encoding.UTF8.GetBytes(initializationVector));
-            var response = await PostModuleAsync("encrypt", request,
-                IoTEdgeWorkloadJsonContext.Default.WorkloadEncryptRequest,
-                IoTEdgeWorkloadJsonContext.Default.WorkloadEncryptResponse,
-                ct).ConfigureAwait(false);
-            return response.Ciphertext ?? [];
-        }
-
-        /// <summary>
-        /// Decrypt using the workload daemon's legacy payload shape.
-        /// </summary>
-        public async Task<string> DecryptAsync(string initializationVector,
-            string ciphertextBase64, CancellationToken ct)
-        {
-            var request = new WorkloadDecryptRequest(
-                Convert.FromBase64String(ciphertextBase64),
-                Encoding.UTF8.GetBytes(initializationVector));
-            var response = await PostModuleAsync("decrypt", request,
-                IoTEdgeWorkloadJsonContext.Default.WorkloadDecryptRequest,
-                IoTEdgeWorkloadJsonContext.Default.WorkloadDecryptResponse,
-                ct).ConfigureAwait(false);
-            return Encoding.UTF8.GetString(response.Plaintext ?? []);
         }
 
         /// <summary>
@@ -333,7 +316,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
                 $"{relativePath}?api-version={Uri.EscapeDataString(_apiVersion)}");
         }
 
-        private static Uri CreateWorkloadUri(string workloadUriText)
+        internal static Uri CreateWorkloadUri(string workloadUriText)
         {
             if (workloadUriText.Length > 0 && workloadUriText[0] == '/')
             {
@@ -512,16 +495,6 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
         private readonly Uri _requestBaseUri;
     }
 
-    internal sealed record WorkloadEncryptRequest(byte[] Plaintext,
-        byte[] InitializationVector);
-
-    internal sealed record WorkloadEncryptResponse(byte[]? Ciphertext);
-
-    internal sealed record WorkloadDecryptRequest(byte[] Ciphertext,
-        byte[] InitializationVector);
-
-    internal sealed record WorkloadDecryptResponse(byte[]? Plaintext);
-
     internal sealed record WorkloadSignRequest(string KeyId, string Algo, byte[] Data);
 
     internal sealed record WorkloadSignResponse(byte[]? Digest);
@@ -537,10 +510,6 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
     internal sealed record WorkloadTrustBundleResponse(string? Certificate);
 
     [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
-    [JsonSerializable(typeof(WorkloadEncryptRequest))]
-    [JsonSerializable(typeof(WorkloadEncryptResponse))]
-    [JsonSerializable(typeof(WorkloadDecryptRequest))]
-    [JsonSerializable(typeof(WorkloadDecryptResponse))]
     [JsonSerializable(typeof(WorkloadSignRequest))]
     [JsonSerializable(typeof(WorkloadSignResponse))]
     [JsonSerializable(typeof(WorkloadServerCertificateRequest))]

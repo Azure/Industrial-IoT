@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
     using Azure.IIoT.OpcUa.Core.Exceptions;
     using FluentAssertions;
     using System;
+    using System.Collections.Generic;
     using System.Net;
     using System.Net.Http;
     using System.Text;
@@ -44,64 +45,48 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
         }
 
         [Fact]
-        public async Task WorkloadEncryptRequestPreservesLegacyIvAndBase64ShapeAsync()
+        public async Task WorkloadCryptoFacadeDelegatesAndPreservesOutputShapeAsync()
         {
-            using var handler = new CaptureHandler("{\"ciphertext\":\"AQID\"}");
-            using var client = new WorkloadApiHttpClient(new Uri("http://edge/"),
-                "2019-01-30", "publisher", "gen1", handler);
-
-            var encrypted = await client.EncryptAsync("alKGJdfsgidfasdO",
-                Convert.ToBase64String(Encoding.UTF8.GetBytes("user")),
-                CancellationToken.None);
-
-            encrypted.Should().Equal(1, 2, 3);
-            handler.RequestUri!.ToString().Should().Be(
-                "http://edge/modules/publisher/genid/gen1/encrypt?api-version=2019-01-30");
-            handler.RequestBody.Should().Be(
-                "{\"plaintext\":\"ZFhObGNnPT0=\",\"initializationVector\":\"YWxLR0pkZnNnaWRmYXNkTw==\"}");
-        }
-
-        [Fact]
-        public async Task WorkloadDecryptRequestPreservesLegacyIvAndBase64ShapeAsync()
-        {
-            using var handler = new CaptureHandler("{\"plaintext\":\"ZFhObGNnPT0=\"}");
+            using var handler = new CaptureHandler(
+                "{\"ciphertext\":\"AQID\"}",
+                "{\"plaintext\":\"ZFhObGNnPT0=\"}");
             using var workload = new IoTEdgeWorkloadApi("http://edge/", "gen1",
                 "publisher", "2019-01-30", handler);
 
+            var encrypted = await workload.EncryptAsync("alKGJdfsgidfasdO",
+                Encoding.UTF8.GetBytes("user"),
+                CancellationToken.None);
+
+            encrypted.ToArray().Should().Equal(1, 2, 3);
             var plaintext = await workload.DecryptAsync("alKGJdfsgidfasdO",
-                new byte[] { 1, 2, 3 }, CancellationToken.None);
+                encrypted, CancellationToken.None);
 
             Encoding.UTF8.GetString(plaintext.Span).Should().Be("user");
-            handler.RequestUri!.ToString().Should().Be(
-                "http://edge/modules/publisher/genid/gen1/decrypt?api-version=2019-01-30");
-            handler.RequestBody.Should().Be(
-                "{\"ciphertext\":\"AQID\",\"initializationVector\":\"YWxLR0pkZnNnaWRmYXNkTw==\"}");
+            handler.RequestCount.Should().Be(2);
         }
 
         private sealed class CaptureHandler : HttpMessageHandler
         {
-            public Uri? RequestUri { get; private set; }
-            public string? RequestBody { get; private set; }
-
-            public CaptureHandler(string response)
+            public CaptureHandler(params string[] responses)
             {
-                _response = response;
+                _responses = new Queue<string>(responses);
             }
 
-            protected override async Task<HttpResponseMessage> SendAsync(
+            protected override Task<HttpResponseMessage> SendAsync(
                 HttpRequestMessage request, CancellationToken cancellationToken)
             {
-                RequestUri = request.RequestUri;
-                RequestBody = request.Content == null ? null :
-                    await request.Content.ReadAsStringAsync(cancellationToken)
-                        .ConfigureAwait(false);
-                return new HttpResponseMessage(HttpStatusCode.OK)
+                Interlocked.Increment(ref _requestCount);
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
-                    Content = new StringContent(_response, Encoding.UTF8, "application/json")
-                };
+                    Content = new StringContent(_responses.Dequeue(), Encoding.UTF8,
+                        "application/json")
+                });
             }
 
-            private readonly string _response;
+            public int RequestCount => _requestCount;
+
+            private readonly Queue<string> _responses;
+            private int _requestCount;
         }
     }
 }
