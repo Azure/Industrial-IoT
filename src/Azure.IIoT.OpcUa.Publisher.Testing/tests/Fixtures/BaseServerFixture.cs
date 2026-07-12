@@ -192,7 +192,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                     }
                     try
                     {
-                        _port = NextPort();
+                        _port = ReserveServerPort(logger);
                         serverHost = new ServerConsoleHost(new ServerFactory(
                             _container.GetRequiredService<ILogger<ServerFactory>>(), TempPath, nodes)
                         {
@@ -258,7 +258,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                         Try.Op(serverHost.Dispose);
                     }
                     serverHost = null;
-                    if (IsAddressInUse(ex) && attempt < kMaxStartupAttempts &&
+                    if (IsBindCollision(ex) && attempt < kMaxStartupAttempts &&
                         sw.Elapsed < kStartupTimeout)
                     {
                         lastCollision = ex;
@@ -473,7 +473,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                     listener.Start();
                     return port;
                 }
-                catch (SocketException ex) when (ex.SocketErrorCode == SocketError.AddressAlreadyInUse)
+                catch (SocketException ex) when (IsBindCollision(ex))
                 {
                     logger.PortNotAccessible(ex, port);
                     kPorts.TryRemove(port, out _);
@@ -483,19 +483,45 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                 $"Could not reserve a reverse-connect port after {kMaxPortReservationAttempts} attempts.");
         }
 
-        private static bool IsAddressInUse(Exception exception)
+        private static int ReserveServerPort(ILogger logger)
+        {
+            for (var attempt = 0; attempt < kMaxPortReservationAttempts; attempt++)
+            {
+                var port = NextPort();
+                try
+                {
+                    using var listener = new TcpListener(IPAddress.Loopback, port);
+                    listener.Start();
+                    return port;
+                }
+                catch (SocketException ex) when (IsBindCollision(ex))
+                {
+                    logger.PortNotAccessible(ex, port);
+                    kPorts.TryRemove(port, out _);
+                }
+            }
+            throw new TimeoutException(
+                $"Could not reserve an OPC UA server port after {kMaxPortReservationAttempts} attempts.");
+        }
+
+        private static bool IsBindCollision(Exception exception)
         {
             for (var current = exception; current != null; current = current.InnerException)
             {
                 if (current is SocketException socketException &&
-                    socketException.SocketErrorCode == SocketError.AddressAlreadyInUse)
+                    socketException.SocketErrorCode is SocketError.AddressAlreadyInUse or
+                    SocketError.AccessDenied)
                 {
                     return true;
                 }
-                if (current.HResult == 10048 || current.HResult == unchecked((int)0x80072740) ||
+                if (current.HResult == 10048 || current.HResult == 10013 ||
+                    current.HResult == unchecked((int)0x80072740) ||
+                    current.HResult == unchecked((int)0x8007271D) ||
                     current.Message.Contains("address already in use",
                         StringComparison.OrdinalIgnoreCase) ||
                     current.Message.Contains("only one usage of each socket address",
+                        StringComparison.OrdinalIgnoreCase) ||
+                    current.Message.Contains("failed to establish tcp listener sockets",
                         StringComparison.OrdinalIgnoreCase))
                 {
                     return true;
