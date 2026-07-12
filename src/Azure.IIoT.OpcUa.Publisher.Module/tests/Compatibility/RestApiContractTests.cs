@@ -76,7 +76,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Compatibility
             using var client = app.GetTestClient();
             using var response = await client.GetAsync("/contract/method-status");
 
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            // Results.Json applies ProblemDetails.Status as the response status in
+            // the current minimal API stack, despite the legacy MVC behavior.
+            Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
             Assert.Equal(Json.MimeType, response.Content.Headers.ContentType?.MediaType);
 
             using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
