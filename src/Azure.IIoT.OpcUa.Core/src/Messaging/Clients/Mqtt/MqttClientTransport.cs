@@ -65,7 +65,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt
             _version = o.Protocol;
             _defaultQoS = o.QoS ?? QoS.AtMostOnce;
             MaxMethodPayloadSizeInBytes =
-                Math.Max(o.MaxPayloadSize ?? int.MaxValue, 268435455); // 256 MB
+                MqttClientTransportLimits.GetPayloadSizeLimit(o.MaxPayloadSize);
 
             if (o.NumberOfClientPartitions is > 1)
             {
@@ -666,7 +666,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt
                 }
                 if (_version != MqttVersion.v311)
                 {
-                    co.MaxIncomingPacketSize = 268435455;
+                    co.MaxIncomingPacketSize = MqttClientTransportLimits.kMqttMaximumPacketSize;
                 }
             });
             return builder.Build();

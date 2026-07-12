@@ -12,6 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
     using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
@@ -1153,42 +1154,42 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Collection(result.Results,
                 arg =>
                 {
-                    Assert.Equal(input[0].Value, arg.Value);
+                    JsonNodeAssert.AreEqual(input[0].Value, arg.Value, "result[0]");
                     Assert.Equal(input[0].DataType, arg.DataType);
                 },
                 arg =>
                 {
-                    Assert.Equal(input[1].Value, arg.Value);
+                    JsonNodeAssert.AreEqual(input[1].Value, arg.Value, "result[1]");
                     Assert.Equal(input[1].DataType, arg.DataType);
                 },
                 arg =>
                 {
-                    Assert.Equal(input[2].Value, arg.Value);
+                    JsonNodeAssert.AreEqual(input[2].Value, arg.Value, "result[2]");
                     Assert.Equal(input[2].DataType, arg.DataType);
                 },
                 arg =>
                 {
-                    Assert.Equal(input[3].Value, arg.Value);
+                    JsonNodeAssert.AreEqual(input[3].Value, arg.Value, "result[3]");
                     Assert.Equal(input[3].DataType, arg.DataType);
                 },
                 arg =>
                 {
-                    Assert.Equal(input[4].Value, arg.Value);
+                    JsonNodeAssert.AreEqual(input[4].Value, arg.Value, "result[4]");
                     Assert.Equal(input[4].DataType, arg.DataType);
                 },
                 arg =>
                 {
-                    Assert.Equal(input[5].Value, arg.Value);
+                    JsonNodeAssert.AreEqual(input[5].Value, arg.Value, "result[5]");
                     Assert.Equal(input[5].DataType, arg.DataType);
                 },
                 arg =>
                 {
-                    Assert.Equal(input[6].Value, arg.Value);
+                    JsonNodeAssert.AreEqual(input[6].Value, arg.Value, "result[6]");
                     Assert.Equal(input[6].DataType, arg.DataType);
                 },
                 arg =>
                 {
-                    Assert.Equal(input[7].Value, arg.Value);
+                    JsonNodeAssert.AreEqual(input[7].Value, arg.Value, "result[7]");
                     Assert.Equal(input[7].DataType, arg.DataType);
                 },
                 arg =>
@@ -1361,7 +1362,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Collection(result.Results,
                 arg => Assert.Equal("varianttest", (string)arg.Value!),
                 arg => Assert.Equal(9999, (int)arg.Value!),
-                arg => Assert.Equal(input[2].Value, arg.Value));
+                arg => JsonNodeAssert.AreEqual(input[2].Value, arg.Value, "result[2]"));
         }
 
         public async Task NodeMethodCallStaticScalarMethod3WithBrowsePathNoIdsTestAsync(CancellationToken ct = default)
@@ -1690,5 +1691,36 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         private readonly bool _newMetadata;
         private readonly T _connection;
         private readonly Func<INodeServices<T>> _services;
+    }
+
+    internal static class JsonNodeAssert
+    {
+        public static void AreEqual(JsonNode? expected, JsonNode? actual, string? context = null)
+        {
+            var prefix = string.IsNullOrEmpty(context) ? string.Empty : $"{context}: ";
+
+            Assert.True(JsonNode.DeepEquals(expected, actual),
+                $"{prefix}Expected: {expected} != Actual: {actual}");
+        }
+
+        public static void AreSequenceEqual(
+            IEnumerable<JsonNode?> expected,
+            IEnumerable<JsonNode?> actual,
+            string? context = null)
+        {
+            var expectedNodes = expected.ToArray();
+            var actualNodes = actual.ToArray();
+            var prefix = string.IsNullOrEmpty(context) ? string.Empty : $"{context}: ";
+
+            Assert.True(expectedNodes.Length == actualNodes.Length,
+                $"{prefix}Expected {expectedNodes.Length} item(s) but found {actualNodes.Length}.");
+
+            for (var index = 0; index < expectedNodes.Length; index++)
+            {
+                var itemContext = string.IsNullOrEmpty(context) ? $"[{index}]" : $"{context}[{index}]";
+
+                AreEqual(expectedNodes[index], actualNodes[index], itemContext);
+            }
+        }
     }
 }

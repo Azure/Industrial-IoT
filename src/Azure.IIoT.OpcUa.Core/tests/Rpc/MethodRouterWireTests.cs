@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Router
     using Microsoft.Extensions.Logging.Abstractions;
     using System;
     using System.Buffers;
+    using System.Collections.Generic;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
@@ -81,6 +82,43 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Router
         }
 
         [Fact]
+        public async Task RoundTripsChunkRequestWithTraceParentOnlyAsync()
+        {
+            var controller = new TestController();
+            await using var router = CreateRouter(controller);
+
+            var payload = Json.SerializeToMemory(new EchoRequest { Value = "hello" }).ToArray().Zip();
+            var request = new MethodChunkModel
+            {
+                MethodName = "Echo_V1",
+                ContentType = ContentMimeType.Json,
+                ContentLength = payload.Length,
+                MaxChunkLength = payload.Length,
+                Payload = payload,
+                Properties = new Dictionary<string, string>
+                {
+                    ["traceparent"] =
+                        "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+                }
+            };
+
+            var response = await router.InvokeAsync(MethodNames.Call,
+                new ReadOnlySequence<byte>(Json.SerializeToMemory(request).ToArray()),
+                ContentMimeType.Json, CancellationToken.None);
+
+            var chunk = Json.Deserialize<MethodChunkModel>(response);
+            chunk.Should().NotBeNull();
+            controller.EchoCalls.Should().Be(1);
+            chunk!.Handle.Should().BeNull();
+            chunk.Status.Should().BeNull();
+            chunk.ContentLength.Should().NotBeNull();
+            chunk.Payload.Should().NotBeNull();
+
+            var result = Json.Deserialize<EchoResponse>(chunk.Payload!.Unzip());
+            result!.Value.Should().Be("hello");
+        }
+
+        [Fact]
         public async Task RoundTripsMultiChunkRequestResponseAsync()
         {
             // Small transport payload budget forces the client and server to
@@ -140,10 +178,15 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Router
 
         private static MethodRouter CreateRouter()
         {
+            return CreateRouter(new TestController());
+        }
+
+        private static MethodRouter CreateRouter(TestController controller)
+        {
             var router = new MethodRouter(Array.Empty<IRpcServer>(),
                 NullLogger<MethodRouter>.Instance)
             {
-                Controllers = new[] { new TestController() }
+                Controllers = new[] { controller }
             };
             router.GetAwaiter().GetResult();
             return router;
@@ -152,8 +195,11 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Router
         [Version("_V1")]
         public sealed class TestController : IMethodController
         {
+            public int EchoCalls => _echoCalls;
+
             public async Task<EchoResponse> EchoAsync(EchoRequest request)
             {
+                Interlocked.Increment(ref _echoCalls);
                 await Task.Yield();
                 return new EchoResponse { Value = request?.Value };
             }
@@ -169,6 +215,8 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Router
                 await Task.Yield();
                 throw new InvalidOperationException("boom");
             }
+
+            private int _echoCalls;
         }
 
         public sealed class EchoRequest

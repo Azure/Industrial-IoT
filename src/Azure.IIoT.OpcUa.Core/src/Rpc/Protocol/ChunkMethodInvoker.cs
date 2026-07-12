@@ -196,8 +196,8 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Protocol
                         out IEnumerable<string>? fieldValues) =>
                     {
                         fieldValues = default;
-                        fieldValue = carrier is IDictionary<string, string> p ?
-                            p[fieldName] : default;
+                        fieldValue = carrier is IDictionary<string, string> p &&
+                            p.TryGetValue(fieldName, out var value) ? value : default;
                     }, out var requestId, out var traceState);
 
                     using var activity = CreateActivity(_method, requestId, traceState);

@@ -823,8 +823,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 "Boolean", "SByte", "ByteString", "Int16", "UInt16",
                 "Int32", "UInt32", "Int64", "UInt64", "Float", "Double"
             }, result.Results.Select(arg => arg.DataType));
-            Assert.Equal(input.Select(arg => arg.Value),
-                result.Results.Select(arg => arg.Value));
+            JsonNodeAssert.AreSequenceEqual(
+                input.Select(arg => arg.Value),
+                result.Results.Select(arg => arg.Value),
+                "result.Values");
             Assert.All(result.Results.Where(arg => arg.DataType != "ByteString"),
                 arg => Assert.True(arg.Value!.IsListOfValues()));
         }
@@ -867,9 +869,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 "Int32", "UInt32", "Int64", "UInt64", "Float", "Double"
             }, result.Results.Select(arg => arg.DataType));
             Assert.Collection(result.Results,
-                arg => Assert.Equal(input[0].Value, arg.Value),
-                arg => Assert.Equal(input[1].Value, arg.Value),
-                arg => Assert.Equal(input[2].Value, arg.Value),
+                arg => JsonNodeAssert.AreEqual(input[0].Value, arg.Value, "result[0]"),
+                arg => JsonNodeAssert.AreEqual(input[1].Value, arg.Value, "result[1]"),
+                arg => JsonNodeAssert.AreEqual(input[2].Value, arg.Value, "result[2]"),
                 arg => Assert.Empty(arg.Value!.Values()),
                 arg => Assert.Empty(arg.Value!.Values()),
                 arg => Assert.Empty(arg.Value!.Values()),
@@ -956,13 +958,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 "Int32", "UInt32", "Int64", "UInt64", "Float", "Double"
             }, result.Results.Select(arg => arg.DataType));
             Assert.Collection(result.Results,
-                arg => Assert.Equal(input[0]!.Value, arg.Value),
-                arg => Assert.Equal(input[1]!.Value, arg.Value),
+                arg => JsonNodeAssert.AreEqual(input[0]!.Value, arg.Value, "result[0]"),
+                arg => JsonNodeAssert.AreEqual(input[1]!.Value, arg.Value, "result[1]"),
                 arg =>
                 {
-                    Assert.Equal(JsonNodeValueExtensions.FromObject(
+                    JsonNodeAssert.AreEqual(JsonNodeValueExtensions.FromObject(
                         new byte[] { 0, 1, 2, 3, 4, 5, 6, byte.MaxValue }),
-                        arg.Value);
+                        arg.Value, "result[2]");
                 },
                 arg => Assert.Empty(arg.Value!.Values()),
                 arg => Assert.Empty(arg.Value!.Values()),
@@ -971,7 +973,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg => Assert.Empty(arg.Value!.Values()),
                 arg => Assert.Empty(arg.Value!.Values()),
                 arg => Assert.Empty(arg.Value!.Values()),
-                arg => Assert.Equal(input[10]!.Value, arg.Value));
+                arg => JsonNodeAssert.AreEqual(input[10]!.Value, arg.Value, "result[10]"));
             Assert.All(result.Results.Where(arg => arg.DataType != "ByteString"),
                 arg => Assert.True(arg.Value!.IsListOfValues()));
         }
@@ -1054,7 +1056,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg => Assert.Empty(arg.Value!.Values()),
                 arg => Assert.Empty(arg.Value!.Values()),
                 arg => Assert.Empty(arg.Value!.Values()),
-                arg => Assert.Equal(input[10].Value, arg.Value));
+                arg => JsonNodeAssert.AreEqual(input[10].Value, arg.Value, "result[10]"));
         }
 
         public async Task NodeMethodCallStaticArrayMethod2Test1Async(CancellationToken ct = default)
@@ -1187,16 +1189,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 "QualifiedName","LocalizedText","StatusCode" },
                 result.Results.Select(arg => arg.DataType));
             Assert.Collection(result.Results,
-                arg => Assert.Equal(input[0].Value, arg.Value),
-                arg => Assert.Equal(input[1].Value, arg.Value),
-                arg => Assert.Equal(input[2].Value, arg.Value),
-                arg => Assert.Equal(input[3].Value, arg.Value),
-                arg => Assert.Equal(input[4].Value, arg.Value),
-                arg => Assert.Equal(input[5].Value, arg.Value),
-                arg => Assert.Equal(input[6].Value, arg.Value),
-                arg => Assert.Equal(input[7].Value, arg.Value),
-                arg => Assert.Equal(input[8].Value, arg.Value),
-                arg => Assert.Equal(input[9].Value, arg.Value));
+                arg => JsonNodeAssert.AreEqual(input[0].Value, arg.Value, "result[0]"),
+                arg => JsonNodeAssert.AreEqual(input[1].Value, arg.Value, "result[1]"),
+                arg => JsonNodeAssert.AreEqual(input[2].Value, arg.Value, "result[2]"),
+                arg => JsonNodeAssert.AreEqual(input[3].Value, arg.Value, "result[3]"),
+                arg => JsonNodeAssert.AreEqual(input[4].Value, arg.Value, "result[4]"),
+                arg => JsonNodeAssert.AreEqual(input[5].Value, arg.Value, "result[5]"),
+                arg => JsonNodeAssert.AreEqual(input[6].Value, arg.Value, "result[6]"),
+                arg => JsonNodeAssert.AreEqual(input[7].Value, arg.Value, "result[7]"),
+                arg => JsonNodeAssert.AreEqual(input[8].Value, arg.Value, "result[8]"),
+                arg => JsonNodeAssert.AreEqual(input[9].Value, arg.Value, "result[9]"));
             Assert.All(result.Results, arg => Assert.True(arg.Value!.IsListOfValues()));
         }
 
@@ -1333,8 +1335,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 "XmlElement", "NodeId", "ExpandedNodeId",
                 "QualifiedName", "LocalizedText", "StatusCode" },
                 result.Results.Select(arg => arg.DataType));
-            Assert.Equal(input.Select(arg => arg.Value),
-                result.Results.Select(arg => arg.Value));
+            JsonNodeAssert.AreSequenceEqual(
+                input.Select(arg => arg.Value),
+                result.Results.Select(arg => arg.Value),
+                "result.Values");
             Assert.All(result.Results, arg => Assert.True(arg.Value!.IsListOfValues()));
             Assert.All(result.Results, arg => Assert.Empty(arg.Value!.Values()));
         }
@@ -1372,8 +1376,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal(new List<string> {
                 "Variant", "Int32", "ExtensionObject"
             }, result.Results.Select(arg => arg.DataType));
-            Assert.Equal(input.Select(arg => arg.Value),
-                result.Results.Select(arg => arg.Value));
+            JsonNodeAssert.AreSequenceEqual(
+                input.Select(arg => arg.Value),
+                result.Results.Select(arg => arg.Value),
+                "result.Values");
             Assert.All(result.Results, arg => Assert.True(arg.Value!.IsListOfValues()));
         }
 

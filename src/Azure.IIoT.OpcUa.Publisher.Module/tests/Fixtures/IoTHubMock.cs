@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 {
     using Azure.IIoT.OpcUa.Core;
     using Azure.IIoT.OpcUa.Core.AzureSdk;
+    using Azure.IIoT.OpcUa.Core.Exceptions;
     using Azure.IIoT.OpcUa.Core.Hosting;
     using Azure.IIoT.OpcUa.Core.Messaging;
     using Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt;
@@ -107,10 +108,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     /// In-memory IoT Hub mock for module tests.
     /// </summary>
     public sealed class IoTHubMock : IIoTHubTwinServices, IIoTHubEventProcessor,
-        IIoTHub
+        IIoTHub, IRpcClient
     {
         /// <inheritdoc/>
         public string HostName { get; }
+
+        /// <inheritdoc/>
+        public string Name => "IoTHub-Mock";
+
+        /// <inheritdoc/>
+        public int MaxMethodPayloadSizeInBytes => 120 * 1024;
 
         /// <summary>
         /// Create mock.
@@ -170,9 +177,78 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <inheritdoc/>
         public IIoTHubConnection Connect(string deviceId, string moduleId)
         {
-            var twin = GetRegistrationAsync(deviceId, moduleId)
-                .AsTask().GetAwaiter().GetResult();
-            return new IoTHubConnection(this, twin);
+            var key = Key(deviceId, moduleId);
+            lock (_connectionsLock)
+            {
+                if (!_devices.TryGetValue(key, out var twin))
+                {
+                    throw new KeyNotFoundException($"{deviceId}/{moduleId}");
+                }
+                if (_connections.TryGetValue(key, out var connection) &&
+                    connection.IsConnected)
+                {
+                    throw new InvalidOperationException(
+                        $"Device {deviceId}/{moduleId} is already connected.");
+                }
+                connection = new IoTHubConnection(this, twin);
+                _connections[key] = connection;
+                return connection;
+            }
+        }
+
+        /// <inheritdoc/>
+        public ValueTask<ReadOnlySequence<byte>> CallAsync(string target,
+            string method, ReadOnlySequence<byte> payload, string contentType,
+            TimeSpan? timeout = null, CancellationToken ct = default)
+        {
+            if (!HubResource.Parse(target, out _, out var deviceId, out var moduleId,
+                out var error))
+            {
+                throw new ArgumentException($"Target is malformed: {error}.", nameof(target));
+            }
+
+            IoTHubConnection connection;
+            lock (_connectionsLock)
+            {
+                var key = Key(deviceId, moduleId);
+                if (!_devices.ContainsKey(key))
+                {
+                    throw new ResourceNotFoundException("No such device");
+                }
+                if (!_connections.TryGetValue(key, out connection) ||
+                    !connection.IsConnected)
+                {
+                    throw new TimeoutException("Timed out waiting for device to connect");
+                }
+            }
+            return WaitForMethodAsync(connection, method, payload, contentType, timeout, ct);
+        }
+
+        private static async ValueTask<ReadOnlySequence<byte>> WaitForMethodAsync(
+            IoTHubConnection connection, string method, ReadOnlySequence<byte> payload,
+            string contentType, TimeSpan? timeout, CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            using var timeoutCts = new CancellationTokenSource();
+            if (timeout.HasValue)
+            {
+                timeoutCts.CancelAfter(timeout.Value);
+            }
+            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
+                ct, timeoutCts.Token);
+            try
+            {
+                return await connection.InvokeMethodAsync(method, payload, contentType,
+                    linkedCts.Token).AsTask().WaitAsync(linkedCts.Token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested)
+            {
+                throw new TimeoutException("Timed out waiting for device method call.");
+            }
         }
 
         private DeviceTwinModel Upsert(DeviceTwinModel device)
@@ -211,18 +287,54 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 
             public IKeyValueStore Twin { get; }
 
+            internal bool IsConnected => Volatile.Read(ref _isConnected) != 0;
+
             public IoTHubConnection(IoTHubMock outer, DeviceTwinModel device)
             {
-                RpcServer = new InMemoryRpcServer();
+                RpcServer = new InMemoryRpcServer(this);
                 EventClient = new InMemoryEventClient(outer, device);
                 Twin = new InMemoryTwin();
                 Twin.State[Constants.TwinPropertyApiKeyKey] =
                     JsonValue.Create(Guid.NewGuid().ToString());
+                _isConnected = 1;
             }
 
             public void Close()
             {
+                Interlocked.Exchange(ref _isConnected, 0);
             }
+
+            internal async ValueTask<ReadOnlySequence<byte>> InvokeMethodAsync(
+                string method, ReadOnlySequence<byte> payload, string contentType,
+                CancellationToken ct)
+            {
+                foreach (var handler in RpcServer.Connected)
+                {
+                    try
+                    {
+                        return await handler.InvokeAsync(method, payload,
+                            contentType, ct).ConfigureAwait(false);
+                    }
+                    catch (MethodCallStatusException)
+                    {
+                        throw;
+                    }
+                    catch (OperationCanceledException) when (ct.IsCancellationRequested)
+                    {
+                        throw;
+                    }
+                    catch (NotSupportedException)
+                    {
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new MethodCallStatusException(500, ex.Message);
+                    }
+                }
+                throw new MethodCallStatusException(500, "Not supported");
+            }
+
+            private int _isConnected;
         }
 
         private sealed class InMemoryTwin : IKeyValueStore
@@ -346,14 +458,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         {
             public string Name => "IoTHub";
 
-            public IEnumerable<IRpcHandler> Connected => _handlers;
+            public IEnumerable<IRpcHandler> Connected
+            {
+                get
+                {
+                    lock (_lock)
+                    {
+                        return _handlers.ToArray();
+                    }
+                }
+            }
+
+            public InMemoryRpcServer(IoTHubConnection connection)
+            {
+                _connection = connection;
+            }
 
             public ValueTask<IAsyncDisposable> ConnectAsync(IRpcHandler server,
                 CancellationToken ct = default)
             {
-                _handlers.Add(server);
+                if (!_connection.IsConnected)
+                {
+                    throw new InvalidOperationException(
+                        "Cannot connect server on disconnected connection.");
+                }
+                ct.ThrowIfCancellationRequested();
+                lock (_lock)
+                {
+                    _handlers.Add(server);
+                }
+#pragma warning disable CA2000 // Dispose objects before losing scope
+                // Ownership is transferred to the caller through the returned registration.
                 return ValueTask.FromResult<IAsyncDisposable>(
-                    new HandlerRegistration(_handlers, server));
+                    new HandlerRegistration(this, server));
+#pragma warning restore CA2000 // Dispose objects before losing scope
             }
 
             public void Start()
@@ -362,27 +500,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 
             private sealed class HandlerRegistration : IAsyncDisposable
             {
-                public HandlerRegistration(ICollection<IRpcHandler> handlers,
-                    IRpcHandler handler)
+                public HandlerRegistration(InMemoryRpcServer outer, IRpcHandler handler)
                 {
-                    _handlers = handlers;
+                    _outer = outer;
                     _handler = handler;
                 }
 
                 public ValueTask DisposeAsync()
                 {
-                    _handlers.Remove(_handler);
+                    lock (_outer._lock)
+                    {
+                        _outer._handlers.Remove(_handler);
+                    }
                     return ValueTask.CompletedTask;
                 }
 
-                private readonly ICollection<IRpcHandler> _handlers;
+                private readonly InMemoryRpcServer _outer;
                 private readonly IRpcHandler _handler;
             }
 
+            private readonly IoTHubConnection _connection;
+            private readonly object _lock = new();
             private readonly List<IRpcHandler> _handlers = [];
         }
 
         private readonly ConcurrentDictionary<string, DeviceTwinModel> _devices = new();
+        private readonly Dictionary<string, IoTHubConnection> _connections = [];
+        private readonly object _connectionsLock = new();
         private readonly ConcurrentDictionary<IIoTHubTelemetryHandler,
             IIoTHubTelemetryHandler> _listeners = new();
     }
