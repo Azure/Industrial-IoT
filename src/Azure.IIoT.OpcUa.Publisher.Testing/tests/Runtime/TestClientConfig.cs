@@ -35,9 +35,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Runtime
         {
             options.Security.PkiRootPath = _path;
             options.Security.AutoAcceptUntrustedCertificates = true;
-            options.DefaultConnectTimeoutDuration = TimeSpan.FromMinutes(2);
-            options.DefaultServiceCallTimeoutDuration = TimeSpan.FromMinutes(2);
-            options.CreateSessionTimeoutDuration = TimeSpan.FromMinutes(1);
             options.LingerTimeoutDuration = TimeSpan.FromSeconds(5);
         }
 
