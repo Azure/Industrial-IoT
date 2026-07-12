@@ -136,7 +136,8 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Generator
                 ? explicitServices
                 : implementation.AllInterfaces.Where(static service =>
                     service.ToDisplayString() != "System.IDisposable" &&
-                    service.ToDisplayString() != "System.IAsyncDisposable")
+                    service.ToDisplayString() != "System.IAsyncDisposable" &&
+                    IsAccessibleFromGeneratedTable(service))
                     .Cast<ITypeSymbol>().ToArray();
             return new ServiceRegistration(implementation, services,
                 methodName == "AddAs", hasUnsupportedExplicitTypes);
@@ -502,6 +503,18 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Generator
         private static string TypeName(ITypeSymbol type)
         {
             return type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        }
+
+        private static bool IsAccessibleFromGeneratedTable(ITypeSymbol type)
+        {
+            for (var current = type; current is not null; current = current.ContainingType)
+            {
+                if (current.DeclaredAccessibility is not Accessibility.Public)
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         private static string DescriptorClassName(string assemblyName)
