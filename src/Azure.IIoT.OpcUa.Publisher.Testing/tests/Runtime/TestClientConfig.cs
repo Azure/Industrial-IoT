@@ -18,9 +18,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Runtime
     public sealed class TestClientConfig : ConfigureOptionBase<OpcUaClientOptions>,
         IDisposable
     {
+        /// <summary>
+        /// Configuration key used by server fixtures to provide an isolated PKI root.
+        /// </summary>
+        public const string PkiRootPathKey = "TestClient:PkiRootPath";
+
         public TestClientConfig(IConfiguration configuration) : base(configuration)
         {
-            _path = Path.Combine(Directory.GetCurrentDirectory(), "pki",
+            _path = configuration[PkiRootPathKey] ?? configuration["PkiRootPath"] ??
+                Path.Combine(Path.GetTempPath(), "opcua-test-client-pki",
                     Guid.NewGuid().ToByteArray().ToBase16String());
         }
 
@@ -28,7 +34,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Runtime
         public override void Configure(string? name, OpcUaClientOptions options)
         {
             options.Security.PkiRootPath = _path;
-            options.LingerTimeoutDuration = TimeSpan.FromSeconds(20);
+            options.Security.AutoAcceptUntrustedCertificates = true;
+            options.DefaultConnectTimeoutDuration = TimeSpan.FromSeconds(10);
+            options.DefaultServiceCallTimeoutDuration = TimeSpan.FromSeconds(10);
+            options.CreateSessionTimeoutDuration = TimeSpan.FromSeconds(10);
+            options.LingerTimeoutDuration = TimeSpan.FromSeconds(5);
         }
 
         /// <inheritdoc/>

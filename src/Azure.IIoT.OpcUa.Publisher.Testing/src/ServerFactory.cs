@@ -277,8 +277,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                         ReverseConnect = new ReverseConnectServerConfiguration
                         {
                             ConnectInterval = 1000,
-                            ConnectTimeout = 120000,
-                            RejectTimeout = 120000
+                            ConnectTimeout = 30000,
+                            RejectTimeout = 30000
                         },
 
                         NodeManagerSaveFile = "nodes.xml",

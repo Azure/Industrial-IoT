@@ -61,7 +61,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             if (_server != null)
             {
-                await _lock.WaitAsync().ConfigureAwait(false);
+                await _lock.WaitAsync(kLockTimeout).ConfigureAwait(false);
                 try
                 {
 #pragma warning disable CA1508 // Avoid dead conditional code
@@ -70,7 +70,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         _logger.StoppingServer(this);
                         try
                         {
-                            await _server.StopAsync().ConfigureAwait(false);
+                            await _server.StopAsync().AsTask().WaitAsync(kServerStopTimeout)
+                                .ConfigureAwait(false);
                         }
                         catch (OperationCanceledException) { }
                         catch (Exception se)
@@ -98,7 +99,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public async Task AddReverseConnectionAsync(Uri client, int maxSessionCount)
         {
-            await _lock.WaitAsync().ConfigureAwait(false);
+            await _lock.WaitAsync(kLockTimeout).ConfigureAwait(false);
             try
             {
                 if (_server is ReverseConnectServer server)
@@ -109,6 +110,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             catch (Exception ex)
             {
                 _logger.AddReverseConnectionError(ex, this);
+                throw;
             }
             finally
             {
@@ -119,7 +121,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public async Task RemoveReverseConnectionAsync(Uri client)
         {
-            await _lock.WaitAsync().ConfigureAwait(false);
+            await _lock.WaitAsync(kLockTimeout).ConfigureAwait(false);
             try
             {
                 if (_server is ReverseConnectServer server)
@@ -130,6 +132,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             catch (Exception ex)
             {
                 _logger.RemoveReverseConnectionError(ex, this);
+                throw;
             }
             finally
             {
@@ -140,16 +143,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public async Task StartAsync(IEnumerable<int> ports)
         {
+            var requestedPorts = ports?.ToArray() ??
+                throw new ArgumentNullException(nameof(ports));
+            if (requestedPorts.Length == 0 || requestedPorts.Any(port => port is < 1 or > 65535))
+            {
+                throw new ArgumentOutOfRangeException(nameof(ports),
+                    "At least one valid TCP port is required.");
+            }
             if (_server == null)
             {
-                await _lock.WaitAsync().ConfigureAwait(false);
+                await _lock.WaitAsync(kLockTimeout).ConfigureAwait(false);
                 try
                 {
 #pragma warning disable CA1508 // Avoid dead conditional code
                     if (_server == null)
                     {
-                        await StartServerInternalAsync(ports).ConfigureAwait(false);
-                        _ports = ports.ToArray();
+                        await StartServerInternalAsync(requestedPorts).ConfigureAwait(false);
+                        _ports = requestedPorts;
                         return;
                     }
 #pragma warning restore CA1508 // Avoid dead conditional code
@@ -172,17 +182,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public async Task RestartAsync(Func<Task> predicate)
         {
-            await _lock.WaitAsync().ConfigureAwait(false);
+            await _lock.WaitAsync(kLockTimeout).ConfigureAwait(false);
             try
             {
                 if (_server != null)
                 {
-                    await _server.StopAsync().ConfigureAwait(false);
+                    await _server.StopAsync().AsTask().WaitAsync(kServerStopTimeout)
+                        .ConfigureAwait(false);
                     _server.Dispose();
 
                     if (predicate != null)
                     {
-                        await predicate().ConfigureAwait(false);
+                        await predicate().WaitAsync(kRestartTimeout).ConfigureAwait(false);
                     }
 
                     _logger.Restarting(this);
@@ -200,7 +211,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public void Dispose()
         {
-            StopAsync().WaitAsync(TimeSpan.FromMinutes(1)).GetAwaiter().GetResult();
+            StopAsync().WaitAsync(kServerStopTimeout).GetAwaiter().GetResult();
             _lock.Dispose();
         }
 
@@ -232,7 +243,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             config = ApplicationInstance.FixupAppConfig(config);
 
             _logger.ValidatingConfig(this);
-            await config.ValidateAsync(config.ApplicationType).ConfigureAwait(false);
+            await config.ValidateAsync(config.ApplicationType).WaitAsync(kConfigurationTimeout)
+                .ConfigureAwait(false);
 
             _logger.InitializingCertValidation(this);
             // The 2.0 stack cert-store/CertificateManager creation requires an
@@ -244,7 +256,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             // check the application certificate.
             var hasAppCertificate = await application.CheckApplicationInstanceCertificatesAsync(
-                silent: true).ConfigureAwait(false);
+                silent: true).AsTask().WaitAsync(kCertificateTimeout).ConfigureAwait(false);
             if (!hasAppCertificate)
             {
                 _logger.CertValidationError(this);
@@ -269,14 +281,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 registry: null,
                 needPrivateKey: false,
                 applicationUri: null,
-                telemetry: telemetry).ConfigureAwait(false);
+                telemetry: telemetry).WaitAsync(kCertificateTimeout).ConfigureAwait(false);
             Certificate = appCertificate == null
                 ? null
                 : X509CertificateLoader.LoadCertificate(appCertificate.RawData);
 
             _logger.StartingServer();
             // start the server.
-            await application.StartAsync(_server).ConfigureAwait(false);
+            await application.StartAsync(_server).WaitAsync(kServerStartTimeout)
+                .ConfigureAwait(false);
 
             foreach (var ep in config.ServerConfiguration.BaseAddresses)
             {
@@ -302,6 +315,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly ILogger _logger;
         private readonly IServerFactory _factory;
         private readonly SemaphoreSlim _lock = new(1, 1);
+        private static readonly TimeSpan kLockTimeout = TimeSpan.FromSeconds(30);
+        private static readonly TimeSpan kConfigurationTimeout = TimeSpan.FromSeconds(30);
+        private static readonly TimeSpan kCertificateTimeout = TimeSpan.FromSeconds(30);
+        private static readonly TimeSpan kServerStartTimeout = TimeSpan.FromSeconds(30);
+        private static readonly TimeSpan kServerStopTimeout = TimeSpan.FromSeconds(30);
+        private static readonly TimeSpan kRestartTimeout = TimeSpan.FromSeconds(30);
         private ServerBase _server;
         private int[] _ports;
     }
