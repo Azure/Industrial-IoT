@@ -239,6 +239,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
             }
         }
 
+        /// <inheritdoc/>
+        protected override OpcUaSubscriptionOptions Bind()
+        {
+            return Configuration.Get<OpcUaSubscriptionOptions>() ?? new();
+        }
+
         /// <summary>
         /// Create configurator
         /// </summary>

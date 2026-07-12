@@ -451,6 +451,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         }
 
         /// <inheritdoc/>
+        protected override OpcUaClientOptions Bind()
+        {
+            return Configuration.Get<OpcUaClientOptions>() ?? new();
+        }
+
+        /// <inheritdoc/>
         public OpcUaClientConfig(IConfiguration configuration) : base(configuration)
         {
         }

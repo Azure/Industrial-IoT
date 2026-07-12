@@ -13,7 +13,9 @@ namespace Azure.IIoT.OpcUa.Publisher
     using Microsoft.Extensions.Configuration;
     using Opc.Ua;
     using System;
+    using System.Collections.Generic;
     using System.Configuration;
+    using System.Globalization;
     using System.Linq;
     using System.Net;
     using System.Runtime.InteropServices;
@@ -461,6 +463,174 @@ namespace Azure.IIoT.OpcUa.Publisher
 
             options.DefaultUseReverseConnect ??= GetBoolOrNull(DefaultUseReverseConnectKey);
             options.DisableSubscriptionTransfer ??= GetBoolOrNull(DisableSubscriptionTransferKey);
+        }
+
+        /// <inheritdoc/>
+        protected override PublisherOptions Bind()
+        {
+            var topicTemplates = Configuration.GetSection(
+                nameof(PublisherOptions.TopicTemplates)).Get<TopicTemplatesOptions>();
+            var discovery = Configuration.GetSection(
+                nameof(PublisherOptions.AioNetworkDiscovery)).Get<DiscoveryConfigModel>();
+            var options = new PublisherOptions
+            {
+                PublisherId = GetStringOrDefault(nameof(PublisherOptions.PublisherId)),
+                SiteId = GetStringOrDefault(nameof(PublisherOptions.SiteId)),
+                PublishedNodesFile = GetStringOrDefault(nameof(PublisherOptions.PublishedNodesFile)),
+                UseFileChangePolling = GetBoolOrNull(nameof(PublisherOptions.UseFileChangePolling)),
+                CreatePublishFileIfNotExist = GetBoolOrNull(
+                    nameof(PublisherOptions.CreatePublishFileIfNotExist)),
+                RenewTlsCertificateOnStartup = GetBoolOrNull(
+                    nameof(PublisherOptions.RenewTlsCertificateOnStartup)),
+                MaxNodesPerDataSet = GetIntOrDefault(nameof(PublisherOptions.MaxNodesPerDataSet)),
+                BatchSize = GetIntOrNull(nameof(PublisherOptions.BatchSize)),
+                BatchTriggerInterval = GetDurationOrNull(
+                    nameof(PublisherOptions.BatchTriggerInterval)),
+                RemoveDuplicatesFromBatch = GetBoolOrNull(
+                    nameof(PublisherOptions.RemoveDuplicatesFromBatch)),
+                MaxNetworkMessageSize = GetIntOrNull(
+                    nameof(PublisherOptions.MaxNetworkMessageSize)),
+                DiagnosticsInterval = GetDurationOrNull(
+                    nameof(PublisherOptions.DiagnosticsInterval)),
+                DiagnosticsTarget = GetEnumOrNull<PublisherDiagnosticTargetType>(
+                    nameof(PublisherOptions.DiagnosticsTarget)),
+                DebugLogNotifications = GetBoolOrNull(
+                    nameof(PublisherOptions.DebugLogNotifications)),
+                DebugLogNotificationsFilter = GetStringOrDefault(
+                    nameof(PublisherOptions.DebugLogNotificationsFilter)),
+                DebugLogNotificationsWithHeartbeat = GetBoolOrNull(
+                    nameof(PublisherOptions.DebugLogNotificationsWithHeartbeat)),
+                DebugLogEncodedNotifications = GetBoolOrNull(
+                    nameof(PublisherOptions.DebugLogEncodedNotifications)),
+                MaxNetworkMessageSendQueueSize = GetIntOrNull(
+                    nameof(PublisherOptions.MaxNetworkMessageSendQueueSize)),
+                DefaultWriterGroupPartitions = GetIntOrNull(
+                    nameof(PublisherOptions.DefaultWriterGroupPartitions)),
+                UseStandardsCompliantEncoding = GetBoolOrNull(
+                    nameof(PublisherOptions.UseStandardsCompliantEncoding)),
+                WriteValueWhenDataSetHasSingleEntry = GetBoolOrNull(
+                    nameof(PublisherOptions.WriteValueWhenDataSetHasSingleEntry)),
+                MessageTimestamp = GetEnumOrNull<MessageTimestamp>(
+                    nameof(PublisherOptions.MessageTimestamp)),
+                DefaultTransport = GetEnumOrNull<WriterGroupTransport>(
+                    nameof(PublisherOptions.DefaultTransport)),
+                DefaultQualityOfService = GetEnumOrNull<QoS>(
+                    nameof(PublisherOptions.DefaultQualityOfService)),
+                DefaultMessageTimeToLive = GetDurationOrNull(
+                    nameof(PublisherOptions.DefaultMessageTimeToLive)),
+                DefaultMessageRetention = GetBoolOrNull(
+                    nameof(PublisherOptions.DefaultMessageRetention)),
+                DefaultMaxDataSetMessagesPerPublish = GetUIntOrNull(
+                    nameof(PublisherOptions.DefaultMaxDataSetMessagesPerPublish)),
+                EnableRuntimeStateReporting = GetBoolOrNull(
+                    nameof(PublisherOptions.EnableRuntimeStateReporting)),
+                RuntimeStateRoutingInfo = GetStringOrDefault(
+                    nameof(PublisherOptions.RuntimeStateRoutingInfo)),
+                DisableComplexTypeSystem = GetBoolOrNull(
+                    nameof(PublisherOptions.DisableComplexTypeSystem)),
+                DisableDataSetMetaData = GetBoolOrNull(
+                    nameof(PublisherOptions.DisableDataSetMetaData)),
+                DefaultMetaDataUpdateTime = GetDurationOrNull(
+                    nameof(PublisherOptions.DefaultMetaDataUpdateTime)),
+                AsyncMetaDataLoadTimeout = GetDurationOrNull(
+                    nameof(PublisherOptions.AsyncMetaDataLoadTimeout)),
+                EnableCloudEvents = GetBoolOrNull(nameof(PublisherOptions.EnableCloudEvents)),
+                EnableDataSetRoutingInfo = GetBoolOrNull(
+                    nameof(PublisherOptions.EnableDataSetRoutingInfo)),
+                EnableDataSetKeepAlives = GetBoolOrNull(
+                    nameof(PublisherOptions.EnableDataSetKeepAlives)),
+                SendDataSetKeepAlivesAsKeyFrame = GetBoolOrNull(
+                    nameof(PublisherOptions.SendDataSetKeepAlivesAsKeyFrame)),
+                DefaultKeyFrameCount = GetUIntOrNull(
+                    nameof(PublisherOptions.DefaultKeyFrameCount)),
+                DisableSessionPerWriterGroup = GetBoolOrNull(
+                    nameof(PublisherOptions.DisableSessionPerWriterGroup)),
+                DefaultUseReverseConnect = GetBoolOrNull(
+                    nameof(PublisherOptions.DefaultUseReverseConnect)),
+                DisableSubscriptionTransfer = GetBoolOrNull(
+                    nameof(PublisherOptions.DisableSubscriptionTransfer)),
+                ForceCredentialEncryption = GetBoolOrNull(
+                    nameof(PublisherOptions.ForceCredentialEncryption)),
+                DefaultNamespaceFormat = GetEnumOrNull<NamespaceFormat>(
+                    nameof(PublisherOptions.DefaultNamespaceFormat)),
+                DisableOpenApiEndpoint = GetBoolOrNull(
+                    nameof(PublisherOptions.DisableOpenApiEndpoint)),
+                ScaleTestCount = GetIntOrNull(nameof(PublisherOptions.ScaleTestCount)),
+                IgnoreConfiguredPublishingIntervals = GetBoolOrNull(
+                    nameof(PublisherOptions.IgnoreConfiguredPublishingIntervals)),
+                ApiKeyOverride = GetStringOrDefault(nameof(PublisherOptions.ApiKeyOverride)),
+                DefaultDataSetRouting = GetEnumOrNull<DataSetRoutingMode>(
+                    nameof(PublisherOptions.DefaultDataSetRouting)),
+                SchemaOptions = Configuration.GetSection(
+                    nameof(PublisherOptions.SchemaOptions)).Get<SchemaOptions>(),
+                DisableResourceMonitoring = GetBoolOrNull(
+                    nameof(PublisherOptions.DisableResourceMonitoring)),
+                UnsecureHttpServerPort = GetIntOrNull(
+                    nameof(PublisherOptions.UnsecureHttpServerPort)),
+                HttpServerPort = GetIntOrNull(nameof(PublisherOptions.HttpServerPort)),
+                IsAzureIoTOperationsConnector = GetBoolOrNull(
+                    nameof(PublisherOptions.IsAzureIoTOperationsConnector)),
+                AioDiscoveredDeviceEndpointType = GetStringOrDefault(
+                    nameof(PublisherOptions.AioDiscoveredDeviceEndpointType)),
+                AioDiscoveredDeviceEndpointTypeVersion = GetStringOrDefault(
+                    nameof(PublisherOptions.AioDiscoveredDeviceEndpointTypeVersion)),
+                AioNetworkDiscoveryMode = GetEnumOrNull<DiscoveryMode>(
+                    nameof(PublisherOptions.AioNetworkDiscoveryMode)),
+                AioNetworkDiscoveryInterval = GetDurationOrNull(
+                    nameof(PublisherOptions.AioNetworkDiscoveryInterval))
+            };
+            if (topicTemplates != null)
+            {
+                options.TopicTemplates.Root = topicTemplates.Root;
+                options.TopicTemplates.Method = topicTemplates.Method;
+                options.TopicTemplates.Events = topicTemplates.Events;
+                options.TopicTemplates.Diagnostics = topicTemplates.Diagnostics;
+                options.TopicTemplates.Telemetry = topicTemplates.Telemetry;
+                options.TopicTemplates.DataSetMetaData = topicTemplates.DataSetMetaData;
+                options.TopicTemplates.Schema = topicTemplates.Schema;
+            }
+            foreach (var transport in GetTransports())
+            {
+                options.AllowedEventAndDiagnosticsTransports.Add(transport);
+            }
+            if (discovery != null)
+            {
+                options.AioNetworkDiscovery.AddressRangesToScan = discovery.AddressRangesToScan;
+                options.AioNetworkDiscovery.NetworkProbeTimeout = discovery.NetworkProbeTimeout;
+                options.AioNetworkDiscovery.MaxNetworkProbes = discovery.MaxNetworkProbes;
+                options.AioNetworkDiscovery.PortRangesToScan = discovery.PortRangesToScan;
+                options.AioNetworkDiscovery.PortProbeTimeout = discovery.PortProbeTimeout;
+                options.AioNetworkDiscovery.MaxPortProbes = discovery.MaxPortProbes;
+                options.AioNetworkDiscovery.MinPortProbesPercent = discovery.MinPortProbesPercent;
+                options.AioNetworkDiscovery.IdleTimeBetweenScans = discovery.IdleTimeBetweenScans;
+                options.AioNetworkDiscovery.DiscoveryUrls = discovery.DiscoveryUrls;
+                options.AioNetworkDiscovery.Locales = discovery.Locales;
+            }
+            return options;
+        }
+
+        private TEnum? GetEnumOrNull<TEnum>(string key) where TEnum : struct, Enum
+        {
+            return Enum.TryParse<TEnum>(GetStringOrDefault(key), true, out var value)
+                ? value : null;
+        }
+
+        private uint? GetUIntOrNull(string key)
+        {
+            return uint.TryParse(GetStringOrDefault(key), NumberStyles.Integer,
+                CultureInfo.InvariantCulture, out var value) ? value : null;
+        }
+
+        private IEnumerable<WriterGroupTransport> GetTransports()
+        {
+            foreach (var value in Configuration.GetSection(
+                nameof(PublisherOptions.AllowedEventAndDiagnosticsTransports)).GetChildren())
+            {
+                if (Enum.TryParse<WriterGroupTransport>(value.Value, true, out var transport))
+                {
+                    yield return transport;
+                }
+            }
         }
 
         /// <summary>
