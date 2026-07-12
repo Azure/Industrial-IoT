@@ -17,7 +17,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
     using Opc.Ua.PubSub.Configuration;
     using Opc.Ua.PubSub.Diagnostics;
     using Opc.Ua.PubSub.Encoding;
-    using Opc.Ua.PubSub.Encoding.Json;
+    using JsonDataSetMessage = Opc.Ua.PubSub.Encoding.Json.JsonDataSetMessage;
+    using JsonDecoder = Opc.Ua.PubSub.Encoding.Json.JsonDecoder;
+    using JsonNetworkMessage = Opc.Ua.PubSub.Encoding.Json.JsonNetworkMessage;
+    using JsonWriterGroupMessageDataType = Opc.Ua.JsonWriterGroupMessageDataType;
     using Opc.Ua.PubSub.Encoding.Uadp;
     using Opc.Ua.PubSub.MetaData;
     using System;
@@ -74,9 +77,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 await transaction.CommitAsync();
             }
 
-            var nativeGroup = Assert.Single(configuration.Connections).WriterGroups.Single();
-            var nativeWriter = Assert.Single(nativeGroup.DataSetWriters);
-            var nativeDataSet = Assert.Single(configuration.PublishedDataSets);
+            var nativeGroup = Single(configuration.Connections).WriterGroups[0];
+            var nativeWriter = Single(nativeGroup.DataSetWriters);
+            var nativeDataSet = Single(configuration.PublishedDataSets);
 
             Assert.NotEqual(0, nativeGroup.WriterGroupId);
             Assert.NotEqual(0, nativeWriter.DataSetWriterId);
@@ -95,10 +98,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             await using var sameTransaction = await sameRegistry.BeginAsync();
             var reordered = translator.Translate([writerGroup], sameTransaction);
             Assert.Equal(nativeGroup.WriterGroupId,
-                Assert.Single(reordered.Connections).WriterGroups.Single().WriterGroupId);
+                Single(reordered.Connections).WriterGroups[0].WriterGroupId);
             Assert.Equal(nativeWriter.DataSetWriterId,
-                Assert.Single(reordered.Connections).WriterGroups.Single()
-                    .DataSetWriters.Single().DataSetWriterId);
+                Single(reordered.Connections).WriterGroups[0]
+                    .DataSetWriters[0].DataSetWriterId);
         }
 
         [Fact]
@@ -120,7 +123,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 await transaction.CommitAsync();
             }
 
-            var nativeGroup = configuration.Connections.Single().WriterGroups.Single();
+            var nativeGroup = Single(configuration.Connections).WriterGroups[0];
             Assert.Equal(TimeSpan.FromSeconds(3).TotalMilliseconds,
                 nativeGroup.PublishingInterval);
             Assert.True(nativeGroup.PublishingInterval > 0);
@@ -205,10 +208,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                     CreateWriterGroup("group-a", "writer-a", MessageEncoding.Json),
                     CreateWriterGroup("group-b", "writer-b", MessageEncoding.Uadp)
                 ], transaction);
-                firstGroupId = initial.Connections.Single(connection =>
-                    connection.Name == "shadow-group-a").WriterGroups.Single().WriterGroupId;
-                secondGroupId = initial.Connections.Single(connection =>
-                    connection.Name == "shadow-group-b").WriterGroups.Single().WriterGroupId;
+                firstGroupId = Find(initial.Connections,
+                    connection => connection.Name == "shadow-group-a").WriterGroups[0].WriterGroupId;
+                secondGroupId = Find(initial.Connections,
+                    connection => connection.Name == "shadow-group-b").WriterGroups[0].WriterGroupId;
                 await transaction.CommitAsync();
             }
 
@@ -219,10 +222,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                     CreateWriterGroup("group-b", "writer-b", MessageEncoding.Json),
                     CreateWriterGroup("group-a", "writer-a", MessageEncoding.Uadp)
                 ], transaction);
-                Assert.Equal(firstGroupId, reorderedAndUpdated.Connections.Single(connection =>
-                    connection.Name == "shadow-group-a").WriterGroups.Single().WriterGroupId);
-                Assert.Equal(secondGroupId, reorderedAndUpdated.Connections.Single(connection =>
-                    connection.Name == "shadow-group-b").WriterGroups.Single().WriterGroupId);
+                Assert.Equal(firstGroupId, Find(reorderedAndUpdated.Connections,
+                    connection => connection.Name == "shadow-group-a").WriterGroups[0].WriterGroupId);
+                Assert.Equal(secondGroupId, Find(reorderedAndUpdated.Connections,
+                    connection => connection.Name == "shadow-group-b").WriterGroups[0].WriterGroupId);
                 await transaction.CommitAsync();
             }
 
@@ -233,10 +236,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                     CreateWriterGroup("group-a", "writer-a", MessageEncoding.Uadp),
                     CreateWriterGroup("group-c", "writer-c", MessageEncoding.Json)
                 ], transaction);
-                Assert.Equal(firstGroupId, removedAndAdded.Connections.Single(connection =>
-                    connection.Name == "shadow-group-a").WriterGroups.Single().WriterGroupId);
-                Assert.NotEqual(firstGroupId, removedAndAdded.Connections.Single(connection =>
-                    connection.Name == "shadow-group-c").WriterGroups.Single().WriterGroupId);
+                Assert.Equal(firstGroupId, Find(removedAndAdded.Connections,
+                    connection => connection.Name == "shadow-group-a").WriterGroups[0].WriterGroupId);
+                Assert.NotEqual(firstGroupId, Find(removedAndAdded.Connections,
+                    connection => connection.Name == "shadow-group-c").WriterGroups[0].WriterGroupId);
                 await transaction.CommitAsync();
             }
 
@@ -429,61 +432,79 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                                 DataSetClassId = Guid.Empty,
                                 MajorVersion = 1
                             }
-
-                            private static async Task AssertMasksAsync(MessageEncoding encoding,
-                                NetworkMessageContentFlags? networkMask,
-                                DataSetMessageContentFlags? messageMask,
-                                DataSetFieldContentFlags? fieldMask)
-                            {
-                                var registry = new PubSubIdentityRegistry(new MemoryIdentityStore());
-                                var group = CreateWriterGroup("group", "writer", encoding);
-                                group.MessageSettings = new WriterGroupMessageSettingsModel
-                                {
-                                    NetworkMessageContentMask = networkMask
-                                };
-                                var writer = Assert.Single(group.DataSetWriters!);
-                                writer.DataSetFieldContentMask = fieldMask;
-                                writer.MessageSettings = new DataSetWriterMessageSettingsModel
-                                {
-                                    DataSetMessageContentMask = messageMask
-                                };
-                                PubSubConfigurationDataType configuration;
-                                await using (var transaction = await registry.BeginAsync())
-                                {
-                                    configuration = new PubSubConfigurationTranslator().Translate([group], transaction);
-                                    await transaction.CommitAsync();
-                                }
-
-                                var nativeGroup = configuration.Connections.Single().WriterGroups.Single();
-                                var nativeWriter = nativeGroup.DataSetWriters.Single();
-                                if (encoding == MessageEncoding.Json)
-                                {
-                                    Assert.True(nativeGroup.MessageSettings.TryGetValue(
-                                        out JsonWriterGroupMessageDataType? jsonGroup));
-                                    Assert.True(nativeWriter.MessageSettings.TryGetValue(
-                                        out JsonDataSetWriterMessageDataType? jsonWriter));
-                                    Assert.Equal(networkMask.ToStackType(encoding),
-                                        jsonGroup!.NetworkMessageContentMask);
-                                    Assert.Equal(messageMask.ToStackType(fieldMask, encoding),
-                                        jsonWriter!.DataSetMessageContentMask);
-                                }
-                                else
-                                {
-                                    Assert.True(nativeGroup.MessageSettings.TryGetValue(
-                                        out UadpWriterGroupMessageDataType? uadpGroup));
-                                    Assert.True(nativeWriter.MessageSettings.TryGetValue(
-                                        out UadpDataSetWriterMessageDataType? uadpWriter));
-                                    Assert.Equal(networkMask.ToStackType(encoding),
-                                        uadpGroup!.NetworkMessageContentMask);
-                                    Assert.Equal(messageMask.ToStackType(fieldMask, encoding),
-                                        uadpWriter!.DataSetMessageContentMask);
-                                }
-                                Assert.Equal((uint)fieldMask.ToStackType(), nativeWriter.DataSetFieldContentMask);
-                            }
                         }
                     }
                 ]
             };
+        }
+
+        private static async Task AssertMasksAsync(MessageEncoding encoding,
+            NetworkMessageContentFlags? networkMask,
+            DataSetMessageContentFlags? messageMask,
+            DataSetFieldContentFlags? fieldMask)
+        {
+            var registry = new PubSubIdentityRegistry(new MemoryIdentityStore());
+            var group = CreateWriterGroup("group", "writer", encoding);
+            group.MessageSettings = new WriterGroupMessageSettingsModel
+            {
+                NetworkMessageContentMask = networkMask
+            };
+            var writer = Assert.Single(group.DataSetWriters!);
+            writer.DataSetFieldContentMask = fieldMask;
+            writer.MessageSettings = new DataSetWriterMessageSettingsModel
+            {
+                DataSetMessageContentMask = messageMask
+            };
+            PubSubConfigurationDataType configuration;
+            await using (var transaction = await registry.BeginAsync())
+            {
+                configuration = new PubSubConfigurationTranslator().Translate([group], transaction);
+                await transaction.CommitAsync();
+            }
+
+            var nativeGroup = Single(configuration.Connections).WriterGroups[0];
+            var nativeWriter = Single(nativeGroup.DataSetWriters);
+            if (encoding == MessageEncoding.Json)
+            {
+                Assert.True(nativeGroup.MessageSettings.TryGetValue(
+                    out JsonWriterGroupMessageDataType? jsonGroup));
+                Assert.True(nativeWriter.MessageSettings.TryGetValue(
+                    out JsonDataSetWriterMessageDataType? jsonWriter));
+                Assert.Equal(networkMask.ToStackType(encoding),
+                    jsonGroup!.NetworkMessageContentMask);
+                Assert.Equal(messageMask.ToStackType(fieldMask, encoding),
+                    jsonWriter!.DataSetMessageContentMask);
+            }
+            else
+            {
+                Assert.True(nativeGroup.MessageSettings.TryGetValue(
+                    out UadpWriterGroupMessageDataType? uadpGroup));
+                Assert.True(nativeWriter.MessageSettings.TryGetValue(
+                    out UadpDataSetWriterMessageDataType? uadpWriter));
+                Assert.Equal(networkMask.ToStackType(encoding),
+                    uadpGroup!.NetworkMessageContentMask);
+                Assert.Equal(messageMask.ToStackType(fieldMask, encoding),
+                    uadpWriter!.DataSetMessageContentMask);
+            }
+            Assert.Equal((uint)fieldMask.ToStackType(), nativeWriter.DataSetFieldContentMask);
+        }
+
+        private static T Single<T>(ArrayOf<T> values)
+        {
+            Assert.Equal(1, values.Count);
+            return values[0];
+        }
+
+        private static T Find<T>(ArrayOf<T> values, Func<T, bool> predicate)
+        {
+            for (var index = 0; index < values.Count; index++)
+            {
+                if (predicate(values[index]))
+                {
+                    return values[index];
+                }
+            }
+            throw new Xunit.Sdk.XunitException("No matching value was found.");
         }
 
         private static PubSubNetworkMessageContext CreateContext()
