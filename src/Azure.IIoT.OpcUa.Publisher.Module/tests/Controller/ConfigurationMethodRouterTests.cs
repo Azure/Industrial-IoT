@@ -37,6 +37,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
     /// against the customer-reported case where invoking UnpublishAllNodes_V1
     /// with <c>{ "EndpointUrl": null }</c> returned a bodyless 500.
     /// </summary>
+    [Trait("Compatibility", "Authoritative")]
     public sealed class ConfigurationMethodRouterTests : TempFileProviderBase
     {
         private readonly ILoggerFactory _loggerFactory;

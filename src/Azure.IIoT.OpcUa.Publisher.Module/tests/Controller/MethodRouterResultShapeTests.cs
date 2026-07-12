@@ -28,6 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
     /// replaced the former <c>MakeGenericMethod</c> continuation dispatch, in
     /// particular the reflective async-enumerable drain path.
     /// </summary>
+    [Trait("Compatibility", "Authoritative")]
     public sealed class MethodRouterResultShapeTests
     {
         private sealed class ShapeController : IMethodController

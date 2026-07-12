@@ -30,6 +30,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
     /// REST surface keeps the exact same wire format as the rest of the pipeline
     /// (and the direct method / SDK path).
     /// </summary>
+    [Trait("Compatibility", "Authoritative")]
     public sealed class StartupTests
     {
         [Fact]

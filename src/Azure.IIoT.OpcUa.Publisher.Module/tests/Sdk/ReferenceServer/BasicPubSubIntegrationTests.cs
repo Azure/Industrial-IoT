@@ -518,6 +518,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             var appuri = payload.GetProperty("ApplicationUri").GetProperty("Value").GetString();
             Assert.False(string.IsNullOrEmpty(appuri));
 
+            var golden = CompatibilityGoldenNormalizer.Normalize(message);
+            var normalizedEndpoint = golden["Messages"]![0]!["Payload"]!["EndpointUrl"]!["Value"]!
+                .GetValue<string>();
+            Assert.Contains("://<host>:<port>", normalizedEndpoint, StringComparison.Ordinal);
+
             Assert.NotNull(metadata);
             var fields = metadata.Value.Message.GetProperty("MetaData").GetProperty("Fields");
             Assert.Equal(JsonValueKind.Array, fields.ValueKind);

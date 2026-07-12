@@ -26,6 +26,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
     /// project file set to copy to the output build directory so that it can
     /// be easily referenced here.
     /// </summary>
+    [Trait("Compatibility", "Authoritative")]
     public class PublishedNodesJobConverterTests
     {
         [Fact]

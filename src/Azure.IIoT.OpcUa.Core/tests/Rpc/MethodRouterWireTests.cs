@@ -28,6 +28,7 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Router
     /// request/response round-trip through <see cref="ChunkMethodClient"/> and the
     /// server side reassembly, and the exception -> status-code propagation.
     /// </summary>
+    [Trait("Compatibility", "Authoritative")]
     public sealed class MethodRouterWireTests
     {
         [Fact]
