@@ -32,7 +32,8 @@ namespace OpcPublisherAEE2ETests.Standalone
     /// default standalone publisher used by the other tests.
     /// </summary>
     [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
-    [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeTraitValue)]
+    [Trait(TestConstants.TraitConstants.PublisherModeTraitName,
+        TestConstants.TraitConstants.PublisherModeStandaloneTraitValue)]
     public sealed class EWriterGroupConnectionStringTestTheory : IClassFixture<IIoTStandaloneTestContext>, IDisposable
     {
         private readonly IIoTStandaloneTestContext _context;

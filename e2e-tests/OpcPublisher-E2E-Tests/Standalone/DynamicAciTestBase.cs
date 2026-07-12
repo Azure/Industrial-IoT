@@ -25,7 +25,6 @@ namespace OpcPublisherAEE2ETests.Standalone
     /// Base class for standalone tests using dynamic ACI
     /// </summary>
     [TestCaseOrderer(TestCaseOrderer.FullName, TestConstants.TestAssemblyName)]
-    [Trait(TestConstants.TraitConstants.PublisherModeTraitName, TestConstants.TraitConstants.PublisherModeTraitValue)]
     public abstract class DynamicAciTestBase : IDisposable
     {
         protected readonly IIoTStandaloneTestContext _context;

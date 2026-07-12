@@ -100,15 +100,48 @@ steps:
   inputs:
     command: build
     projects: '$(BasePath)\e2e-tests\IIoTPlatform-E2E-Tests.slnx'
-    arguments: '--configuration Release'
+    arguments: '--configuration Release --no-incremental'
+- task: PowerShell@2
+  displayName: 'Discover xUnit tests (with ${{ parameters.ModeName }}=${{ parameters.ModeValue }})'
+  inputs:
+    targetType: inline
+    workingDirectory: '$(BasePath)'
+    pwsh: true
+    script: |
+      $discovery = & dotnet test "$(TestPath)\IIoTPlatform-E2E-Tests.slnx" `
+        --configuration Release --no-build --list-tests `
+        --filter "${{ parameters.ModeName }}=${{ parameters.ModeValue }}" `
+        --logger "console;verbosity=normal" 2>&1
+      $discovery | ForEach-Object { Write-Host $_ }
+      if ($LASTEXITCODE -ne 0) {
+        exit $LASTEXITCODE
+      }
+      $listed = $false
+      $count = 0
+      foreach ($line in $discovery) {
+        if ($line -match 'The following Tests are available:') {
+          $listed = $true
+          continue
+        }
+        if ($listed -and [string]::IsNullOrWhiteSpace($line)) {
+          break
+        }
+        if ($listed -and $line -match '^\s+\S') {
+          $count++
+        }
+      }
+      Write-Host "Discovered $count test(s) for ${{ parameters.ModeName }}=${{ parameters.ModeValue }}."
+      if ($count -eq 0) {
+        throw 'The requested E2E mode discovered zero tests.'
+      }
 - task: DotNetCoreCLI@2
   displayName: 'Executing xUnit tests (with ${{ parameters.ModeName }}=${{ parameters.ModeValue }})'
   timeoutInMinutes: 180
-  retryCountOnTaskFailure: 1
+  retryCountOnTaskFailure: 0
   inputs:
     command: test
     projects: '$(TestPath)\IIoTPlatform-E2E-Tests.slnx'
-    arguments: '--configuration Release --filter ${{ parameters.ModeName }}=${{ parameters.ModeValue }} --verbosity=normal --logger "console;verbosity=detailed" --logger trx'
+    arguments: '--configuration Release --no-build --filter ${{ parameters.ModeName }}=${{ parameters.ModeValue }} --blame-hang-timeout 10m --blame-hang-dump-type none --verbosity=normal --logger "console;verbosity=detailed" --logger trx'
   env:
     ApplicationName: '$(ApplicationName)'
     AzureSubscription: '$(AzureSubscription)'

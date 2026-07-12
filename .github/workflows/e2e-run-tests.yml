@@ -147,7 +147,28 @@ jobs:
         shell: bash
         run: |
           dotnet build e2e-tests/IIoTPlatform-E2E-Tests.slnx \
-            -c Release --no-restore
+            -c Release --no-restore --no-incremental
+      - name: Discover xUnit tests (${{ inputs.filter_name }}=${{ inputs.filter_value }})
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p e2e-tests/results
+          dotnet test e2e-tests/IIoTPlatform-E2E-Tests.slnx \
+            --configuration Release --no-build --list-tests \
+            --filter "${{ inputs.filter_name }}=${{ inputs.filter_value }}" \
+            --logger "console;verbosity=normal" \
+            | tee "e2e-tests/results/${{ inputs.result_label }}-discovery.txt"
+          discovered=$(awk '
+            /The following Tests are available:/ { listed = 1; next }
+            listed && /^[[:space:]]*$/ { exit }
+            listed && /^[[:space:]]+[^[:space:]]/ { count++ }
+            END { print count + 0 }
+          ' "e2e-tests/results/${{ inputs.result_label }}-discovery.txt")
+          echo "Discovered ${discovered} test(s) for ${{ inputs.filter_name }}=${{ inputs.filter_value }}."
+          if [ "${discovered}" -eq 0 ]; then
+            echo "::error::The requested E2E mode discovered zero tests."
+            exit 1
+          fi
       - name: Execute xUnit tests (${{ inputs.filter_name }}=${{ inputs.filter_value }})
         id: test
         shell: bash
@@ -170,6 +191,7 @@ jobs:
           dotnet test e2e-tests/IIoTPlatform-E2E-Tests.slnx \
             --configuration Release --no-build \
             --filter "${{ inputs.filter_name }}=${{ inputs.filter_value }}" \
+            --blame-hang-timeout 10m --blame-hang-dump-type none \
             --logger "trx;LogFileName=${{ inputs.result_label }}.trx" \
             --logger "console;verbosity=detailed" \
             --results-directory e2e-tests/results

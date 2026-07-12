@@ -224,7 +224,7 @@ namespace OpcPublisherAEE2ETests
             /// <summary>
             /// The trait value for PublisherMode = standalone
             /// </summary>
-            public const string PublisherModeStandaloneTraitValue = "standaloneX";
+            public const string PublisherModeStandaloneTraitValue = "standalone";
         }
 
         /// <summary>
