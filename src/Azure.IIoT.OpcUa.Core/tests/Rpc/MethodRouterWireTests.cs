@@ -18,6 +18,7 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Router
     using System.Collections.Generic;
     using System.Text;
     using System.Text.Json.Serialization;
+    using System.Text.Json.Serialization.Metadata;
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
@@ -178,20 +179,70 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Router
             ex.Details.Detail.Should().Be("boom");
         }
 
+        [Fact]
+        public async Task RoutesWithSourceGeneratedMetadataOnlyAsync()
+        {
+            var controller = new TestController();
+            var serializer = new MethodRouterJsonSerializer(
+            [
+                new JsonContextMethodRouterJsonTypeInfoProvider(
+                    MethodRouterWireTestsJsonContext.Default),
+                new ThrowingJsonTypeInfoProvider()
+            ]);
+            await using var router = CreateRouter(controller, serializer);
+
+            var response = await router.InvokeAsync("Echo_V1",
+                new ReadOnlySequence<byte>(Json.SerializeToMemory(
+                    new EchoRequest { Value = "safe" }).ToArray()),
+                ContentMimeType.Json, CancellationToken.None);
+
+            Json.Deserialize<EchoResponse>(response.First)!.Value.Should().Be("safe");
+        }
+
+        [Fact]
+        public async Task PreservesConfiguredExceptionFilterArgumentsAsync()
+        {
+            var controller = new FilteredController();
+            await using var router = CreateFilteredRouter(controller);
+            var act = async () => await router.InvokeAsync("Filtered",
+                new ReadOnlySequence<byte>(Json.SerializeToMemory(
+                    new EchoRequest { Value = "x" }).ToArray()),
+                ContentMimeType.Json, CancellationToken.None);
+
+            var exception = (await act.Should().ThrowAsync<MethodCallStatusException>())
+                .Which;
+            exception.Details.Status.Should().Be(418);
+            exception.Details.Detail.Should().Be("configured");
+        }
+
         private static MethodRouter CreateRouter()
         {
             return CreateRouter(new TestController());
         }
 
-        private static MethodRouter CreateRouter(TestController controller)
+        private static MethodRouter CreateRouter(TestController controller,
+            IMethodRouterJsonSerializer? serializer = null)
+        {
+            var router = new MethodRouter(Array.Empty<IRpcServer>(),
+                NullLogger<MethodRouter>.Instance,
+                serializer ?? new MethodRouterJsonSerializer(
+                    [new JsonContextMethodRouterJsonTypeInfoProvider(
+                        MethodRouterWireTestsJsonContext.Default)]));
+            var provider = new Azure_IIoT_OpcUa_Core_TestsMethodRouterDescriptors();
+            provider.TryRegister(router, controller, router.JsonSerializer).Should().BeTrue();
+            router.GetAwaiter().GetResult();
+            return router;
+        }
+
+        private static MethodRouter CreateFilteredRouter(FilteredController controller)
         {
             var router = new MethodRouter(Array.Empty<IRpcServer>(),
                 NullLogger<MethodRouter>.Instance,
                 new MethodRouterJsonSerializer(
-                    MethodRouterWireTestsJsonContext.Default,
-                    MethodRouterWireTestsJsonContext.Default.Options));
-            Azure_IIoT_OpcUa_Core_TestsMethodRouterDescriptors.Register(router,
-                new[] { controller }, router.JsonSerializer);
+                    [new JsonContextMethodRouterJsonTypeInfoProvider(
+                        MethodRouterWireTestsJsonContext.Default)]));
+            var provider = new Azure_IIoT_OpcUa_Core_TestsMethodRouterDescriptors();
+            provider.TryRegister(router, controller, router.JsonSerializer).Should().BeTrue();
             router.GetAwaiter().GetResult();
             return router;
         }
@@ -231,6 +282,44 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Router
         public sealed class EchoResponse
         {
             public string? Value { get; set; }
+        }
+
+        [ConfiguredFilter(418, Detail = "configured")]
+        internal sealed class FilteredController : IMethodController
+        {
+            public Task<EchoResponse> FilteredAsync(EchoRequest request)
+            {
+                return Task.FromException<EchoResponse>(
+                    new InvalidOperationException(request.Value));
+            }
+        }
+
+        [AttributeUsage(AttributeTargets.Class)]
+        internal sealed class ConfiguredFilterAttribute : ExceptionFilterAttribute
+        {
+            public string Detail { get; set; } = string.Empty;
+
+            public ConfiguredFilterAttribute(int status)
+            {
+                _status = status;
+            }
+
+            public override Exception Filter(Exception exception, out int status)
+            {
+                status = _status;
+                return new InvalidOperationException(Detail, exception);
+            }
+
+            private readonly int _status;
+        }
+
+        private sealed class ThrowingJsonTypeInfoProvider :
+            IMethodRouterJsonTypeInfoProvider
+        {
+            public JsonTypeInfo? GetTypeInfo(Type type)
+            {
+                throw new InvalidOperationException("Reflection metadata was requested.");
+            }
         }
 
         /// <summary>

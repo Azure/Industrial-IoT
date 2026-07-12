@@ -79,10 +79,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             var router = new MethodRouter(Array.Empty<IRpcServer>(),
                 NullLogger<MethodRouter>.Instance,
                 new MethodRouterJsonSerializer(
-                    MethodRouterResultShapeTestsJsonContext.Default,
-                    MethodRouterResultShapeTestsJsonContext.Default.Options));
-            Azure_IIoT_OpcUa_Publisher_Module_TestsMethodRouterDescriptors.Register(
-                router, new[] { controller }, router.JsonSerializer);
+                    [new JsonContextMethodRouterJsonTypeInfoProvider(
+                        MethodRouterResultShapeTestsJsonContext.Default)]));
+            var provider =
+                new Azure_IIoT_OpcUa_Publisher_Module_TestsMethodRouterDescriptors();
+            provider.TryRegister(router, controller, router.JsonSerializer).Should().BeTrue();
             router.GetAwaiter().GetResult();
             return router;
         }

@@ -16,7 +16,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Azure.IIoT.OpcUa.Core.Rpc;
     using Azure.IIoT.OpcUa.Core.Rpc.Router;
     using Azure.IIoT.OpcUa.Core.Rpc.Servers;
-    using Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Core.Storage;
     using Azure.IIoT.OpcUa.Core.Storage.Services;
     using Microsoft.Extensions.DependencyInjection;
@@ -41,9 +40,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         public static IServiceCollection AddMethodRouter(this IServiceCollection services)
         {
             services.AddOptions();
-            services.AddSingleton<IMethodRouterJsonSerializer>(_ =>
-                new MethodRouterJsonSerializer(Json.Options.TypeInfoResolver!,
-                    Json.Options));
+            services.AddSingleton<IMethodRouterDescriptorProvider,
+                Azure_IIoT_OpcUa_Publisher_ModuleMethodRouterDescriptors>();
+            services.AddSingleton<IMethodRouterJsonSerializer>(s =>
+                new MethodRouterJsonSerializer(
+                    s.GetServices<IMethodRouterJsonTypeInfoProvider>()));
             services.AddSingleton<MethodRouter>(s =>
             {
                 var router = new MethodRouter(s.GetServices<IRpcServer>(),
@@ -52,8 +53,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     s.GetService<IExceptionSummarizer>(),
                     s.GetService<IOptions<RouterOptions>>(),
                     s.GetService<TimeProvider>());
-                Azure_IIoT_OpcUa_Publisher_ModuleMethodRouterDescriptors.Register(router,
-                    s.GetServices<IMethodController>(), router.JsonSerializer);
+                foreach (var controller in s.GetServices<IMethodController>())
+                {
+                    foreach (var provider in s.GetServices<IMethodRouterDescriptorProvider>())
+                    {
+                        if (provider.TryRegister(router, controller,
+                            router.JsonSerializer))
+                        {
+                            break;
+                        }
+                    }
+                }
                 return router;
             });
             services.AddSingleton<IRpcHandler>(

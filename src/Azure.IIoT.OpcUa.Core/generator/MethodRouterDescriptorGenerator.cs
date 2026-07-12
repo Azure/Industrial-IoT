@@ -121,10 +121,15 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Generator
             {
                 return null;
             }
+            var explicitArguments = invocation.ArgumentList.Arguments.Skip(1).ToArray();
+            var explicitOperations = methodName == "AddAs"
+                ? explicitArguments.Select(argument => context.SemanticModel.GetOperation(
+                    argument.Expression) as ITypeOfOperation).ToArray()
+                : Array.Empty<ITypeOfOperation?>();
+            var hasUnsupportedExplicitTypes = methodName == "AddAs" &&
+                explicitOperations.Any(static operation => operation is null);
             var explicitServices = methodName == "AddAs"
-                ? invocation.ArgumentList.Arguments.Skip(1).Select(argument =>
-                    context.SemanticModel.GetOperation(argument.Expression) as
-                        ITypeOfOperation).Where(static operation => operation is not null)
+                ? explicitOperations.Where(static operation => operation is not null)
                     .Select(static operation => operation!.TypeOperand).ToArray()
                 : Array.Empty<ITypeSymbol>();
             var services = methodName == "AddAs"
@@ -134,7 +139,7 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Generator
                     service.ToDisplayString() != "System.IAsyncDisposable")
                     .Cast<ITypeSymbol>().ToArray();
             return new ServiceRegistration(implementation, services,
-                methodName == "AddAs");
+                methodName == "AddAs", hasUnsupportedExplicitTypes);
         }
 
         private static string GenerateServiceForwardingTable(
@@ -154,6 +159,13 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Generator
             source.AppendLine();
             source.AppendLine("    internal static class GeneratedServiceForwardingTable");
             source.AppendLine("    {");
+            foreach (var unsupported in registrations.Where(static registration =>
+                registration.HasUnsupportedExplicitTypes))
+            {
+                source.Append("#error AddAs<")
+                    .Append(TypeName(unsupported.Implementation))
+                    .AppendLine("> requires literal typeof(...) service types.");
+            }
             source.AppendLine("        [ModuleInitializer]");
             source.AppendLine("        internal static void Register()");
             source.AppendLine("        {");
@@ -240,21 +252,19 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Generator
             source.AppendLine("    using System.Threading;");
             source.AppendLine("    using System.Threading.Tasks;");
             source.AppendLine();
-            source.Append("    public static class ")
+            source.Append("    public sealed class ")
                 .Append(DescriptorClassName(controllers[0].ContainingAssembly.Name))
-                .AppendLine();
+                .AppendLine(" : IMethodRouterDescriptorProvider");
             source.AppendLine("    {");
-            source.AppendLine("        public static void Register(MethodRouter router,");
-            source.AppendLine("            IEnumerable<IMethodController> controllers,");
+            source.AppendLine("        public bool TryRegister(MethodRouter router,");
+            source.AppendLine("            IMethodController controller,");
             source.AppendLine("            IMethodRouterJsonSerializer serializer)");
             source.AppendLine("        {");
             source.AppendLine("            ArgumentNullException.ThrowIfNull(router);");
-            source.AppendLine("            ArgumentNullException.ThrowIfNull(controllers);");
+            source.AppendLine("            ArgumentNullException.ThrowIfNull(controller);");
             source.AppendLine("            ArgumentNullException.ThrowIfNull(serializer);");
-            source.AppendLine("            foreach (var controller in controllers)");
+            source.AppendLine("            switch (controller)");
             source.AppendLine("            {");
-            source.AppendLine("                switch (controller)");
-            source.AppendLine("                {");
             foreach (var controller in controllers)
             {
                 var controllerMethods = methods.Where(method =>
@@ -264,14 +274,14 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Generator
                 {
                     continue;
                 }
-                source.Append("                    case ")
+                source.Append("                case ")
                     .Append(TypeName(controller))
                     .AppendLine(" typedController:");
                 foreach (var method in controllerMethods)
                 {
                     foreach (var version in method.Versions)
                     {
-                        source.Append("                        router.Register(\"")
+                        source.Append("                    router.Register(\"")
                             .Append(Escape(method.Name + version))
                             .Append("\", new MethodRouteDescriptor(\"")
                             .Append(Escape(method.Method.Name))
@@ -282,10 +292,10 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Generator
                             .AppendLine("(typedController, payload, ct, serializer)));");
                     }
                 }
-                source.AppendLine("                        break;");
+                source.AppendLine("                    return true;");
             }
-            source.AppendLine("                }");
             source.AppendLine("            }");
+            source.AppendLine("            return false;");
             source.AppendLine("        }");
             foreach (var method in methods)
             {
@@ -421,7 +431,7 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Generator
                     "Azure.IIoT.OpcUa.Core.Rpc.Router.IgnoreAttribute");
         }
 
-        private static INamedTypeSymbol? GetFilter(INamedTypeSymbol controller,
+        private static AttributeData? GetFilter(INamedTypeSymbol controller,
             IMethodSymbol method)
         {
             var methodFilter = method.GetAttributes().FirstOrDefault(static attribute =>
@@ -429,7 +439,7 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Generator
                     "Azure.IIoT.OpcUa.Core.Rpc.Router.ExceptionFilterAttribute"));
             if (methodFilter is not null && methodFilter.AttributeClass is not null)
             {
-                return methodFilter.AttributeClass;
+                return methodFilter;
             }
             for (INamedTypeSymbol? current = controller; current is not null;
                 current = current.BaseType)
@@ -439,7 +449,7 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Generator
                         "Azure.IIoT.OpcUa.Core.Rpc.Router.ExceptionFilterAttribute"));
                 if (filter is not null && filter.AttributeClass is not null)
                 {
-                    return filter.AttributeClass;
+                    return filter;
                 }
             }
             return null;
@@ -527,7 +537,53 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Generator
         {
             return descriptor.Filter is null
                 ? "null"
-                : "new " + TypeName(descriptor.Filter) + "()";
+                : "new " + TypeName(descriptor.Filter.AttributeClass!) + "(" +
+                    string.Join(", ", descriptor.Filter.ConstructorArguments
+                        .Select(FormatConstant)) + ")" + FormatNamedArguments(
+                            descriptor.Filter.NamedArguments);
+        }
+
+        private static string FormatNamedArguments(
+            ImmutableArray<KeyValuePair<string, TypedConstant>> arguments)
+        {
+            return arguments.IsDefaultOrEmpty
+                ? string.Empty
+                : " { " + string.Join(", ", arguments.Select(argument =>
+                    argument.Key + " = " + FormatConstant(argument.Value))) + " }";
+        }
+
+        private static string FormatConstant(TypedConstant constant)
+        {
+            if (constant.IsNull)
+            {
+                return "null";
+            }
+            if (constant.Kind == TypedConstantKind.Type)
+            {
+                return "typeof(" + TypeName((ITypeSymbol)constant.Value!) + ")";
+            }
+            if (constant.Kind == TypedConstantKind.Array)
+            {
+                return "new " + TypeName(constant.Type!) + " { " +
+                    string.Join(", ", constant.Values.Select(FormatConstant)) + " }";
+            }
+            if (constant.Type?.TypeKind == TypeKind.Enum)
+            {
+                return "(" + TypeName(constant.Type) + ")" +
+                    Convert.ToString(constant.Value, CultureInfo.InvariantCulture);
+            }
+            return constant.Value switch
+            {
+                string value => "\"" + Escape(value) + "\"",
+                char value => "'" + value.ToString().Replace("'", "\\'") + "'",
+                bool value => value ? "true" : "false",
+                float value => value.ToString("R", CultureInfo.InvariantCulture) + "F",
+                double value => value.ToString("R", CultureInfo.InvariantCulture) + "D",
+                decimal value => value.ToString(CultureInfo.InvariantCulture) + "M",
+                _ => Convert.ToString(constant.Value, CultureInfo.InvariantCulture) ??
+                    throw new InvalidOperationException(
+                        "Unsupported exception filter attribute argument.")
+            };
         }
 
         private static string Escape(string value)
@@ -540,14 +596,17 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Generator
             public INamedTypeSymbol Implementation { get; }
             public IReadOnlyList<ITypeSymbol> Services { get; }
             public bool IsExplicit { get; }
+            public bool HasUnsupportedExplicitTypes { get; }
             public string Key { get; }
 
             public ServiceRegistration(INamedTypeSymbol implementation,
-                IReadOnlyList<ITypeSymbol> services, bool isExplicit)
+                IReadOnlyList<ITypeSymbol> services, bool isExplicit,
+                bool hasUnsupportedExplicitTypes)
             {
                 Implementation = implementation;
                 Services = services;
                 IsExplicit = isExplicit;
+                HasUnsupportedExplicitTypes = hasUnsupportedExplicitTypes;
                 Key = TypeName(implementation) + "|" + isExplicit.ToString(
                     CultureInfo.InvariantCulture) + "|" + string.Join("|",
                     services.Select(TypeName));
@@ -559,13 +618,13 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Generator
             public INamedTypeSymbol Controller { get; }
             public IMethodSymbol Method { get; }
             public IReadOnlyList<string> Versions { get; }
-            public INamedTypeSymbol? Filter { get; }
+            public AttributeData? Filter { get; }
             public string Name { get; }
             public string WrapperName { get; }
             public IEnumerable<ITypeSymbol> Types { get; }
 
             public MethodDescriptor(INamedTypeSymbol controller, IMethodSymbol method,
-                IReadOnlyList<string> versions, INamedTypeSymbol? filter, string name,
+                IReadOnlyList<string> versions, AttributeData? filter, string name,
                 int index)
             {
                 Controller = controller;

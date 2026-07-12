@@ -17,6 +17,7 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Router
     using System.Collections.Generic;
     using System.Linq;
     using System.Text.Json;
+    using System.Text.Json.Serialization;
     using System.Text.Json.Serialization.Metadata;
     using System.Threading;
     using System.Threading.Tasks;
@@ -255,33 +256,107 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Router
     }
 
     /// <summary>
-    /// Adapts an injected JSON type-info resolver to generated direct-method
-    /// descriptor metadata.
+    /// Supplies source-generated JSON metadata to the direct-method serializer.
+    /// </summary>
+    public interface IMethodRouterJsonTypeInfoProvider
+    {
+        /// <summary>
+        /// Gets source-generated metadata for a statically rooted type.
+        /// </summary>
+        /// <param name="type">The statically rooted contract type.</param>
+        /// <returns>The source-generated metadata, or <see langword="null"/>.</returns>
+        JsonTypeInfo? GetTypeInfo(Type type);
+    }
+
+    /// <summary>
+    /// Adapts a source-generated <see cref="JsonSerializerContext"/> to direct
+    /// method metadata. It never creates reflection metadata.
+    /// </summary>
+    public sealed class JsonContextMethodRouterJsonTypeInfoProvider :
+        IMethodRouterJsonTypeInfoProvider
+    {
+        /// <summary>
+        /// Creates the source-generated metadata provider.
+        /// </summary>
+        /// <param name="context">Source-generated JSON context.</param>
+        public JsonContextMethodRouterJsonTypeInfoProvider(JsonSerializerContext context)
+        {
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+        }
+
+        /// <inheritdoc/>
+        public JsonTypeInfo? GetTypeInfo(Type type)
+        {
+            return _context.GetTypeInfo(type);
+        }
+
+        private readonly JsonSerializerContext _context;
+    }
+
+    /// <summary>
+    /// Composes source-generated type-info providers registered by controller and
+    /// contract assemblies. A missing contract is a startup/configuration error;
+    /// no reflection resolver is used.
     /// </summary>
     public sealed class MethodRouterJsonSerializer : IMethodRouterJsonSerializer
     {
         /// <summary>
-        /// Creates the adapter.
+        /// Creates the composite serializer.
         /// </summary>
-        /// <param name="resolver">Generated JSON metadata resolver.</param>
-        /// <param name="options">Serializer options associated with the resolver.</param>
-        public MethodRouterJsonSerializer(IJsonTypeInfoResolver resolver,
-            JsonSerializerOptions options)
+        /// <param name="providers">Source-generated type-info providers.</param>
+        public MethodRouterJsonSerializer(
+            IEnumerable<IMethodRouterJsonTypeInfoProvider> providers)
         {
-            _resolver = resolver ?? throw new ArgumentNullException(nameof(resolver));
-            _options = options ?? throw new ArgumentNullException(nameof(options));
+            _providers = providers?.ToArray() ??
+                throw new ArgumentNullException(nameof(providers));
         }
 
         /// <inheritdoc/>
         public JsonTypeInfo<T> GetTypeInfo<T>()
         {
-            return _resolver.GetTypeInfo(typeof(T), _options) as JsonTypeInfo<T> ??
-                throw new InvalidOperationException(
-                    $"Generated JSON metadata for {typeof(T)} is not registered.");
+            foreach (var provider in _providers)
+            {
+                if (provider.GetTypeInfo(typeof(T)) is JsonTypeInfo<T> typeInfo)
+                {
+                    return typeInfo;
+                }
+            }
+            throw new InvalidOperationException(
+                $"No source-generated JSON metadata provider registered for {typeof(T)}.");
         }
 
-        private readonly IJsonTypeInfoResolver _resolver;
-        private readonly JsonSerializerOptions _options;
+        private readonly IMethodRouterJsonTypeInfoProvider[] _providers;
+    }
+
+    /// <summary>
+    /// Registers descriptors for controllers emitted by one compile-time assembly.
+    /// </summary>
+    public interface IMethodRouterDescriptorProvider
+    {
+        /// <summary>
+        /// Registers descriptors when <paramref name="controller"/> belongs to this
+        /// provider's generated assembly.
+        /// </summary>
+        /// <param name="router">Method router.</param>
+        /// <param name="controller">Controller in host registration order.</param>
+        /// <param name="serializer">Source-generated JSON metadata provider.</param>
+        /// <returns><see langword="true"/> when the controller was handled.</returns>
+        bool TryRegister(MethodRouter router, IMethodController controller,
+            IMethodRouterJsonSerializer serializer);
+    }
+
+    /// <summary>
+    /// Throws when no source-generated metadata is available.
+    /// </summary>
+    public sealed class MissingMethodRouterJsonTypeInfoProvider :
+        IMethodRouterJsonTypeInfoProvider
+    {
+        /// <inheritdoc/>
+        public JsonTypeInfo? GetTypeInfo(Type type)
+        {
+            throw new InvalidOperationException(
+                $"No source-generated JSON metadata provider registered for {type}.");
+        }
     }
 
     /// <summary>

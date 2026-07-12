@@ -25,6 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
     using System.Collections.Generic;
     using System.IO;
     using System.Text;
+    using System.Text.Json.Serialization;
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
@@ -38,7 +39,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
     /// with <c>{ "EndpointUrl": null }</c> returned a bodyless 500.
     /// </summary>
     [Trait("Compatibility", "Authoritative")]
-    public sealed class ConfigurationMethodRouterTests : TempFileProviderBase
+    public sealed partial class ConfigurationMethodRouterTests : TempFileProviderBase
     {
         private readonly ILoggerFactory _loggerFactory;
         private readonly IOptions<PublisherOptions> _options;
@@ -169,10 +170,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         {
             var router = new MethodRouter(Array.Empty<IRpcServer>(),
                 _loggerFactory.CreateLogger<MethodRouter>(),
-                new MethodRouterJsonSerializer(Json.Options.TypeInfoResolver!,
-                    Json.Options));
-            Azure_IIoT_OpcUa_Publisher_ModuleMethodRouterDescriptors.Register(router,
-                new[] { controller }, router.JsonSerializer);
+                new MethodRouterJsonSerializer(
+                [
+                    new JsonContextMethodRouterJsonTypeInfoProvider(
+                        ConfigurationMethodRouterTestsJsonContext.Default)
+                ]));
+            var provider = new Azure_IIoT_OpcUa_Publisher_ModuleMethodRouterDescriptors();
+            provider.TryRegister(router, controller, router.JsonSerializer).Should().BeTrue();
             router.GetAwaiter().GetResult();
             return router;
         }
@@ -201,6 +205,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         private static void CopyContent(string sourcePath, string destinationPath)
         {
             File.WriteAllText(destinationPath, File.ReadAllText(sourcePath));
+        }
+
+        [JsonSerializable(typeof(PublishedNodesEntryModel))]
+        [JsonSerializable(typeof(PublishedNodesResponseModel))]
+        private sealed partial class ConfigurationMethodRouterTestsJsonContext :
+            JsonSerializerContext
+        {
         }
     }
 }
