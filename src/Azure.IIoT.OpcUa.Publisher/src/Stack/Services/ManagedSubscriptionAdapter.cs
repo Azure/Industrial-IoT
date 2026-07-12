@@ -17,6 +17,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Opc.Ua.Client.Subscriptions.MonitoredItems;
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -696,7 +697,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 return;
             }
-            var changes = new DataValue(CoreUtils.Clone(fields[1]));
+            var changes = Clone(new DataValue(fields[1]));
             await InvokeModelChangeSinkAsync(binding.Owner, template, changes, ct)
                 .ConfigureAwait(false);
         }
@@ -760,14 +761,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             condition.Active[id] = notifications.Select(CloneNotification).ToList();
             condition.Dirty = true;
-            if (_timeProvider.GetUtcNow() >= condition.LastSent +
-                TimeSpan.FromSeconds(condition.UpdateInterval))
-            {
-                FlushConditions(force: true);
-            }
         }
 
-        private static MonitoredItemNotificationModel CreateDataNotification(
+        private MonitoredItemNotificationModel CreateDataNotification(
             ManagedSubscriptionItemBinding binding, uint sequenceNumber, DataValue value)
         {
             return new MonitoredItemNotificationModel
@@ -783,7 +779,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             };
         }
 
-        private static void AddEventNotifications(List<MonitoredItemNotificationModel> notifications,
+        private void AddEventNotifications(List<MonitoredItemNotificationModel> notifications,
             ManagedSubscriptionItemBinding binding, uint sequenceNumber, ArrayOf<Variant> fields)
         {
             var names = binding.EventFieldNames;
@@ -800,7 +796,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     DataSetName = binding.Template.DisplayName,
                     DataSetFieldName = names[index],
                     NodeId = binding.Template.StartNodeId,
-                    Value = new DataValue(CoreUtils.Clone(fields[index])),
+                    Value = Clone(new DataValue(fields[index])),
                     SequenceNumber = sequenceNumber
                 });
             }
@@ -915,14 +911,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             return string.IsNullOrWhiteSpace(template.Id) ? "monitored-item" : template.Id;
         }
 
-        private static DataValue Clone(in DataValue value)
+        private DataValue Clone(in DataValue value)
         {
-            return new DataValue(CoreUtils.Clone(value.WrappedValue), value.StatusCode,
-                value.SourceTimestamp, value.ServerTimestamp, value.SourcePicoseconds,
-                value.ServerPicoseconds);
+            using var stream = new MemoryStream();
+            using (var encoder = new BinaryEncoder(stream, _codec.Context, leaveOpen: true))
+            {
+                encoder.WriteDataValue(null, value);
+            }
+            stream.Position = 0;
+            using var decoder = new BinaryDecoder(stream, _codec.Context, leaveOpen: true);
+            return decoder.ReadDataValue(null);
         }
 
-        private static MonitoredItemNotificationModel CloneNotification(
+        private MonitoredItemNotificationModel CloneNotification(
             MonitoredItemNotificationModel notification)
         {
             return notification with
