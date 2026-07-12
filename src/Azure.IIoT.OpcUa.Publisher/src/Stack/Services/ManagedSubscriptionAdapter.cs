@@ -376,7 +376,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             IReadOnlyList<string> stringTable)
         {
             var deliveries = new Dictionary<ISubscriber, List<MonitoredItemNotificationModel>>();
-            foreach (var item in notification.Span)
+            var eventNotifications = notification.ToArray();
+            foreach (var item in eventNotifications)
             {
                 if (!TryGetBinding(item.MonitoredItem, out var binding))
                 {
@@ -640,8 +641,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _bindingsByName.Add(binding.Name, binding);
                 GetOwnerState(binding.Owner).KeyFrameRequired = true;
             }
+            var createdMonitoredItem = monitoredItem;
             InvokeSubscriber(binding.Owner, subscriber =>
-                subscriber.OnMonitoredItemUpdate(binding.Template, ToServiceResult(monitoredItem)));
+                subscriber.OnMonitoredItemUpdate(binding.Template,
+                    ToServiceResult(createdMonitoredItem!)));
             return true;
         }
 
@@ -959,7 +962,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (Exception ex)
             {
-                _logger.SubscriberCallbackFailed(ex, owner);
+                _logger.SubscriberCallbackFailed(ex, owner.GetType().Name);
             }
         }
 
@@ -972,7 +975,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (Exception ex)
             {
-                _logger.SubscriberCallbackFailed(ex, owner);
+                _logger.SubscriberCallbackFailed(ex, owner.GetType().Name);
             }
         }
 
@@ -988,7 +991,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (Exception ex)
             {
-                _logger.ModelChangeSinkFailed(ex, owner);
+                _logger.ModelChangeSinkFailed(ex, owner.GetType().Name);
             }
         }
 
@@ -1089,16 +1092,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 static string? GetFieldName(EventMonitoredItemModel? template,
                     SimpleAttributeOperand clause, int index)
                 {
-                    var configured = template?.EventFilter.SelectClauses?
-                        .ElementAtOrDefault(index);
+                    SimpleAttributeOperandModel? configured = null;
+                    if (template?.EventFilter.SelectClauses is { } configuredClauses &&
+                        index < configuredClauses.Count)
+                    {
+                        configured = configuredClauses[index];
+                    }
                     if (configured != null)
                     {
                         return configured.DisplayName ??
                             (configured.BrowsePath is { Count: > 0 } ?
                                 string.Join("/", configured.BrowsePath) : null);
                     }
-                    return clause.BrowsePath.Count == 0 ? null :
-                        string.Join("/", clause.BrowsePath.Select(path => path.Name));
+                    if (clause.BrowsePath.Count == 0)
+                    {
+                        return null;
+                    }
+                    var names = new string[clause.BrowsePath.Count];
+                    for (var pathIndex = 0; pathIndex < clause.BrowsePath.Count; pathIndex++)
+                    {
+                        names[pathIndex] = clause.BrowsePath[pathIndex].Name;
+                    }
+                    return string.Join("/", names);
                 }
             }
 
@@ -1236,7 +1251,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         [LoggerMessage(EventId = 1120, Level = LogLevel.Error,
             Message = "A subscriber callback failed for {Subscriber}.")]
         public static partial void SubscriberCallbackFailed(this ILogger logger,
-            Exception exception, ISubscriber subscriber);
+            Exception exception, string subscriber);
 
         [LoggerMessage(EventId = 1121, Level = LogLevel.Warning,
             Message = "Condition refresh failed.")]
@@ -1245,6 +1260,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         [LoggerMessage(EventId = 1122, Level = LogLevel.Error,
             Message = "The model-change sink failed for {Subscriber}.")]
         public static partial void ModelChangeSinkFailed(this ILogger logger,
-            Exception exception, ISubscriber subscriber);
+            Exception exception, string subscriber);
     }
 }

@@ -112,7 +112,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             if (options.MaxSubscriptionPartitions is 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(options.MaxSubscriptionPartitions),
+                throw new ArgumentOutOfRangeException(nameof(options),
                     "An explicit V2 partition cap must be positive. Use null for unbounded partitioning.");
             }
 
@@ -292,11 +292,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             void AddIfMissing(NodeId typeDefinitionId, QualifiedNameCollection browsePath,
                 uint attributeId)
             {
-                if (clauses.Any(clause => clause.TypeDefinitionId == typeDefinitionId &&
-                    clause.AttributeId == attributeId &&
-                    clause.BrowsePath.SequenceEqual(browsePath)))
+                foreach (var clause in clauses)
                 {
-                    return;
+                    if (clause.TypeDefinitionId == typeDefinitionId &&
+                        clause.AttributeId == attributeId &&
+                        HasSameBrowsePath(clause.BrowsePath, browsePath))
+                    {
+                        return;
+                    }
                 }
                 filter.SelectClauses = filter.SelectClauses.AddItem(new SimpleAttributeOperand
                 {
@@ -305,6 +308,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     AttributeId = attributeId
                 });
                 clauses = filter.SelectClauses;
+
+                static bool HasSameBrowsePath(QualifiedNameCollection left,
+                    QualifiedNameCollection right)
+                {
+                    if (left.Count != right.Count)
+                    {
+                        return false;
+                    }
+                    for (var index = 0; index < left.Count; index++)
+                    {
+                        if (left[index] != right[index])
+                        {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
             }
         }
     }
