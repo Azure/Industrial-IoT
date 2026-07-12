@@ -406,7 +406,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         private static ManagedSubscriptionAdapter CreateAdapter(FakeSubscriptionManager manager,
-            OpcUaSubscriptionOptions options, IModelChangeRebrowseSink? modelChangeSink = null)
+            OpcUaSubscriptionOptions options, IModelChangeRebrowseSink modelChangeSink = null)
         {
             return new ManagedSubscriptionAdapter(manager, new SubscriptionModel(), options,
                 new JsonVariantEncoder(new ServiceMessageContext()), modelChangeSink);
@@ -422,9 +422,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         private sealed class FakeSubscriptionManager : ISubscriptionManager
         {
-            public FakeSubscription? Subscription { get; private set; }
-            public ISubscriptionNotificationHandler? Handler { get; private set; }
-            public SubscriptionOptions? CapturedOptions { get; private set; }
+            public FakeSubscription Subscription { get; private set; }
+            public ISubscriptionNotificationHandler Handler { get; private set; }
+            public SubscriptionOptions CapturedOptions { get; private set; }
 
             public FakeSubscriptionManager(uint maxItems = 0)
             {
@@ -453,7 +453,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public IEnumerable<ISubscription> Items => Subscription == null ? [] : [Subscription];
 
             public ValueTask SaveAsync(Stream stream, IServiceMessageContext messageContext,
-                IEnumerable<ISubscription>? subscriptions = null, CancellationToken ct = default)
+                IEnumerable<ISubscription> subscriptions = null, CancellationToken ct = default)
             {
                 throw new NotSupportedException();
             }
@@ -507,8 +507,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             public ValueTask<SetTriggeringResult> SetTriggeringAsync(
                 IMonitoredItem triggeringItem,
-                IReadOnlyCollection<IMonitoredItem>? linksToAdd = null,
-                IReadOnlyCollection<IMonitoredItem>? linksToRemove = null,
+                IReadOnlyCollection<IMonitoredItem> linksToAdd = null,
+                IReadOnlyCollection<IMonitoredItem> linksToRemove = null,
                 CancellationToken ct = default)
             {
                 TriggeringCalls.Add((triggeringItem, linksToAdd ?? []));
@@ -547,7 +547,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             public bool TryGetMonitoredItemByClientHandle(uint clientHandle,
-                out IMonitoredItem? monitoredItem)
+                out IMonitoredItem monitoredItem)
             {
                 if (_items.TryGetValue(clientHandle, out var item))
                 {
@@ -559,7 +559,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             public bool TryGetMonitoredItemByName(string name,
-                out IMonitoredItem? monitoredItem)
+                out IMonitoredItem monitoredItem)
             {
                 monitoredItem = _items.Values.FirstOrDefault(item =>
                     string.Equals(item.Name, name, StringComparison.Ordinal));
@@ -567,7 +567,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             public bool TryAdd(string name, IOptionsMonitor<MonitoredItemOptions> options,
-                out IMonitoredItem? monitoredItem)
+                out IMonitoredItem monitoredItem)
             {
                 if (_maxItems != 0 && _items.Count >= _maxItems)
                 {
@@ -633,7 +633,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public uint Order => Options.Order;
             public uint ServerId => 0;
             public bool Created => true;
-            public MonitoringFilterResult? FilterResult => null;
+            public MonitoringFilterResult FilterResult => null;
             public Opc.Ua.MonitoringMode CurrentMonitoringMode => Options.MonitoringMode;
             public TimeSpan CurrentSamplingInterval => Options.SamplingInterval;
             public uint CurrentQueueSize => Options.QueueSize;
@@ -654,7 +654,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public bool ThrowOnData { get; set; }
             public List<OpcUaSubscriptionNotification> DataChanges { get; } = [];
             public List<OpcUaSubscriptionNotification> Events { get; } = [];
-            public List<ServiceResultModel?> Updates { get; } = [];
+            public List<ServiceResultModel> Updates { get; } = [];
             public IEnumerable<BaseMonitoredItemModel> MonitoredItems => [];
 
             public Task OnMonitoredItemSemanticsChangedAsync(CancellationToken ct = default)
@@ -701,7 +701,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             public void OnMonitoredItemUpdate(BaseMonitoredItemModel monitoredItem,
-                ServiceResultModel? serviceResult)
+                ServiceResultModel serviceResult)
             {
                 Updates.Add(serviceResult);
             }
