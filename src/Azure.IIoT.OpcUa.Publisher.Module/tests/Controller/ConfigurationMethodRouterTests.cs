@@ -128,8 +128,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
 
             // Must return a real serialized PublishedNodesResponseModel body,
             // never a bodyless/unhandled failure.
-            response.Should().NotBeNull();
-            response.Length.Should().BeGreaterThan(0);
+            var model = Json.Deserialize<PublishedNodesResponseModel>(response);
+            model.Should().NotBeNull();
+            var json = Encoding.UTF8.GetString(response.Span);
+            json.Should().Be("{}");
         }
 
         [Fact]

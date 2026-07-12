@@ -46,26 +46,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Compatibility
                 .Where(endpoint => endpoint.RoutePattern.RawText?.StartsWith("v2/", StringComparison.Ordinal) == true)
                 .ToArray();
 
-            Assert.Equal(103, routes.Length);
             Assert.All(routes, endpoint => Assert.NotEmpty(
                 endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>()));
-
-            AssertRoute(routes, "v2/pki/{store}/certs", HttpMethods.Get, HttpMethods.Patch);
-            AssertRoute(routes, "v2/configuration/", HttpMethods.Get, HttpMethods.Put, HttpMethods.Patch);
-            AssertRoute(routes, "v2/configuration/nodes/unpublish/all", HttpMethods.Post);
-            AssertRoute(routes, "v2/diagnostics/channels/watch", HttpMethods.Get);
-            AssertRoute(routes, "v2/discovery/", HttpMethods.Post);
-            AssertRoute(routes, "v2/filesystem/download", HttpMethods.Get);
-            AssertRoute(routes, "v2/filesystem/upload", HttpMethods.Post);
-            AssertRoute(routes, "v2/browse", HttpMethods.Post);
-            AssertRoute(routes, "v2/read", HttpMethods.Post);
-            AssertRoute(routes, "v2/write", HttpMethods.Post);
-            AssertRoute(routes, "v2/call", HttpMethods.Post);
-            AssertRoute(routes, "v2/historyread/first", HttpMethods.Post);
-            AssertRoute(routes, "v2/history/values/read", HttpMethods.Post);
-            AssertRoute(routes, "v2/writer/", HttpMethods.Post, HttpMethods.Put);
-            AssertRoute(routes, "v2/writer/{dataSetWriterGroup}/{dataSetWriterId}/nodes",
-                HttpMethods.Get);
+            var actual = routes
+                .SelectMany(endpoint => endpoint.Metadata
+                    .GetMetadata<HttpMethodMetadata>()!.HttpMethods
+                    .Select(method => method + " " + endpoint.RoutePattern.RawText))
+                .ToHashSet(StringComparer.Ordinal);
+            Assert.True(kExpectedRoutes.SetEquals(actual),
+                "Missing: " + string.Join(", ", kExpectedRoutes.Except(actual).Order()) +
+                Environment.NewLine + "Unexpected: " +
+                string.Join(", ", actual.Except(kExpectedRoutes).Order()));
 
             await app.StartAsync();
             using var client = app.GetTestClient();
@@ -85,7 +76,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Compatibility
             using var client = app.GetTestClient();
             using var response = await client.GetAsync("/contract/method-status");
 
-            Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(Json.MimeType, response.Content.Headers.ContentType?.MediaType);
 
             using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
@@ -117,21 +108,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Compatibility
             throw new MethodCallStatusException(409, "already exists", "Conflict");
         }
 
-        private static void AssertRoute(IEnumerable<RouteEndpoint> endpoints, string route,
-            params string[] methods)
-        {
-            var metadata = endpoints
-                .Where(endpoint => string.Equals(endpoint.RoutePattern.RawText, route,
-                    StringComparison.Ordinal))
-                .Select(endpoint => endpoint.Metadata.GetMetadata<HttpMethodMetadata>())
-                .Where(metadata => metadata != null)
-                .ToArray();
-            Assert.NotEmpty(metadata);
-            Assert.Equal(methods.OrderBy(method => method, StringComparer.Ordinal),
-                metadata.SelectMany(metadata => metadata!.HttpMethods)
-                    .OrderBy(method => method, StringComparer.Ordinal));
-        }
-
         private sealed class ContractAuthenticationHandler
             : AuthenticationHandler<AuthenticationSchemeOptions>
         {
@@ -142,6 +118,121 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Compatibility
                 : base(options, logger, encoder)
             {
             }
+
+            private static readonly IReadOnlySet<string> kExpectedRoutes =
+                new HashSet<string>(StringComparer.Ordinal)
+                {
+                    "GET v2/pki/{store}/certs",
+                    "GET v2/pki/{store}/crls",
+                    "PATCH v2/pki/{store}/certs",
+                    "PATCH v2/pki/{store}/crls",
+                    "POST v2/pki/trusted/certs",
+                    "POST v2/pki/rejected/certs/{thumbprint}/approve",
+                    "POST v2/pki/https/certs",
+                    "DELETE v2/pki/{store}/certs/{thumbprint}",
+                    "DELETE v2/pki/{store}/crls",
+                    "DELETE v2/pki/{store}",
+
+                    "POST v2/configuration/start",
+                    "POST v2/configuration/stop",
+                    "POST v2/configuration/bulk",
+                    "POST v2/configuration/list",
+                    "POST v2/configuration/nodes",
+                    "POST v2/configuration/nodes/unpublish",
+                    "POST v2/configuration/nodes/unpublish/all",
+                    "PATCH v2/configuration/",
+                    "GET v2/configuration/",
+                    "PUT v2/configuration/",
+                    "POST v2/configuration/endpoints/list/nodes",
+                    "POST v2/configuration/diagnostics",
+
+                    "GET v2/reset",
+                    "GET v2/connections",
+                    "GET v2/diagnostics/writergroups/{dataSetWriterGroup}",
+                    "GET v2/diagnostics/writergroups",
+                    "POST v2/diagnostics/writergroups/{dataSetWriterGroup}/keyframe",
+                    "POST v2/diagnostics/writergroups/{dataSetWriterGroup}/writers/{dataSetWriterId}/keyframe",
+                    "GET v2/diagnostics/connections",
+                    "GET v2/diagnostics/channels",
+                    "GET v2/diagnostics/channels/watch",
+
+                    "POST v2/discovery/findserver",
+                    "POST v2/discovery/register",
+                    "POST v2/discovery/",
+                    "POST v2/discovery/cancel",
+
+                    "POST v2/filesystem/list",
+                    "POST v2/filesystem/list/directories",
+                    "POST v2/filesystem/list/files",
+                    "POST v2/filesystem/parent",
+                    "POST v2/filesystem/info/file",
+                    "POST v2/filesystem/create/file/{name}",
+                    "POST v2/filesystem/create/directory/{name}",
+                    "POST v2/filesystem/delete",
+                    "POST v2/filesystem/delete/{fileOrDirectoryNodeId}",
+                    "GET v2/filesystem/download",
+                    "POST v2/filesystem/upload",
+
+                    "POST v2/capabilities",
+                    "POST v2/browse/first",
+                    "POST v2/browse/next",
+                    "POST v2/browse",
+                    "POST v2/browse/path",
+                    "POST v2/read",
+                    "POST v2/write",
+                    "POST v2/metadata",
+                    "POST v2/query/compile",
+                    "POST v2/call/$metadata",
+                    "POST v2/call",
+                    "POST v2/read/attributes",
+                    "POST v2/write/attributes",
+                    "POST v2/historyread/first",
+                    "POST v2/historyread/next",
+                    "POST v2/historyupdate",
+                    "POST v2/certificate",
+                    "POST v2/history/capabilities",
+                    "POST v2/history/configuration",
+                    "POST v2/test",
+
+                    "POST v2/history/events/replace",
+                    "POST v2/history/events/insert",
+                    "POST v2/history/events/upsert",
+                    "POST v2/history/events/delete",
+                    "POST v2/history/values/delete/attimes",
+                    "POST v2/history/values/delete/modified",
+                    "POST v2/history/values/delete",
+                    "POST v2/history/values/replace",
+                    "POST v2/history/values/insert",
+                    "POST v2/history/values/upsert",
+                    "POST v2/history/events/read/first",
+                    "POST v2/history/events/read/next",
+                    "POST v2/history/values/read/first",
+                    "POST v2/history/values/read/first/attimes",
+                    "POST v2/history/values/read/first/processed",
+                    "POST v2/history/values/read/first/modified",
+                    "POST v2/history/values/read/next",
+                    "POST v2/history/values/read",
+                    "POST v2/history/values/read/modified",
+                    "POST v2/history/values/read/attimes",
+                    "POST v2/history/values/read/processed",
+                    "POST v2/history/events/read",
+
+                    "PUT v2/writer/",
+                    "GET v2/writer/{dataSetWriterGroup}/{dataSetWriterId}",
+                    "POST v2/writer/{dataSetWriterGroup}/{dataSetWriterId}/add",
+                    "PUT v2/writer/{dataSetWriterGroup}/{dataSetWriterId}",
+                    "POST v2/writer/{dataSetWriterGroup}/{dataSetWriterId}/remove",
+                    "DELETE v2/writer/{dataSetWriterGroup}/{dataSetWriterId}/{dataSetFieldId}",
+                    "GET v2/writer/{dataSetWriterGroup}/{dataSetWriterId}/{dataSetFieldId}",
+                    "GET v2/writer/{dataSetWriterGroup}/{dataSetWriterId}/nodes",
+                    "DELETE v2/writer/{dataSetWriterGroup}/{dataSetWriterId}",
+                    "POST v2/writer/expand",
+                    "POST v2/writer/",
+                    "POST v2/writer/assets/create",
+                    "POST v2/writer/assets",
+                    "POST v2/writer/assets/list",
+                    "POST v2/writer/assets/delete"
+                };
 
             protected override Task<AuthenticateResult> HandleAuthenticateAsync()
             {

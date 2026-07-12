@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
     using System.Globalization;
     using System.Linq;
     using System.Text.Json;
+    using System.Text.Json.Nodes;
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
@@ -518,19 +519,58 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             var appuri = payload.GetProperty("ApplicationUri").GetProperty("Value").GetString();
             Assert.False(string.IsNullOrEmpty(appuri));
 
-            var golden = CompatibilityGoldenNormalizer.Normalize(message);
-            var normalizedEndpoint = golden["Messages"]![0]!["Payload"]!["EndpointUrl"]!["Value"]!
-                .GetValue<string>();
-            Assert.Contains("://<host>:<port>", normalizedEndpoint, StringComparison.Ordinal);
-
             Assert.NotNull(metadata);
-            var fields = metadata.Value.Message.GetProperty("MetaData").GetProperty("Fields");
-            Assert.Equal(JsonValueKind.Array, fields.ValueKind);
-            var fieldNames = fields.EnumerateArray().Select(v => v.GetProperty("Name").GetString()).ToList();
-            Assert.Equal(3, fieldNames.Count);
-            Assert.Equal("Output", fieldNames[0]);
-            Assert.Equal("EndpointUrl", fieldNames[1]);
-            Assert.Equal("ApplicationUri", fieldNames[2]);
+            var actual = CreateFullCompliantSemanticGolden(message, metadata.Value.Message);
+            var expected = JsonNode.Parse("""
+                {
+                  "Envelope": {
+                    "MessageType": "ua-data",
+                    "DataSetCount": 1
+                  },
+                  "Payload": {
+                    "OutputValueKind": "Number",
+                    "EndpointUrl": "opc.tcp://<host>:<port>/",
+                    "ApplicationUriValueKind": "String"
+                  },
+                  "MetaDataFields": [
+                    "Output",
+                    "EndpointUrl",
+                    "ApplicationUri"
+                  ]
+                }
+                """);
+            Assert.Equal(expected!.ToJsonString(), actual.ToJsonString());
+        }
+
+        private static JsonObject CreateFullCompliantSemanticGolden(JsonElement message,
+            JsonElement metadata)
+        {
+            var normalized = CompatibilityGoldenNormalizer.Normalize(message).AsObject();
+            var dataSets = normalized["Messages"]!.AsArray();
+            var payload = dataSets[0]!["Payload"]!.AsObject();
+            var metadataFields = new JsonArray();
+            foreach (var field in metadata.GetProperty("MetaData").GetProperty("Fields")
+                .EnumerateArray())
+            {
+                metadataFields.Add(field.GetProperty("Name").GetString());
+            }
+
+            return new JsonObject
+            {
+                ["Envelope"] = new JsonObject
+                {
+                    ["MessageType"] = normalized["MessageType"]!.DeepClone(),
+                    ["DataSetCount"] = dataSets.Count
+                },
+                ["Payload"] = new JsonObject
+                {
+                    ["OutputValueKind"] = payload["Output"]!["Value"]!.GetValueKind().ToString(),
+                    ["EndpointUrl"] = payload["EndpointUrl"]!["Value"]!.DeepClone(),
+                    ["ApplicationUriValueKind"] =
+                        payload["ApplicationUri"]!["Value"]!.GetValueKind().ToString()
+                },
+                ["MetaDataFields"] = metadataFields
+            };
         }
 
         [Fact]

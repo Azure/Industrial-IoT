@@ -19,9 +19,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     /// </summary>
     internal static class CompatibilityGoldenNormalizer
     {
-        public static JsonNode Normalize(JsonElement value)
+        public static JsonNode Normalize(JsonElement element)
         {
-            return Normalize(JsonNode.Parse(value.GetRawText()), null)
+            return Normalize(JsonNode.Parse(element.GetRawText()), null)
                 ?? throw new InvalidOperationException("The PubSub message cannot be null.");
         }
 
@@ -44,17 +44,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             {
                 for (var i = 0; i < jsonArray.Count; i++)
                 {
-                    var value = jsonArray[i];
-                    var normalized = Normalize(value, propertyName);
-                    if (!ReferenceEquals(normalized, value))
+                    var item = jsonArray[i];
+                    var normalizedItem = Normalize(item, propertyName);
+                    if (!ReferenceEquals(normalizedItem, item))
                     {
-                        jsonArray[i] = normalized;
+                        jsonArray[i] = normalizedItem;
                     }
                 }
                 return jsonArray;
             }
 
-            if (node is not JsonValue value || propertyName is null)
+            if (node is not JsonValue jsonValue || propertyName is null)
             {
                 return node;
             }
@@ -64,7 +64,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 return JsonValue.Create("<sequence>");
             }
 
-            if (!value.TryGetValue<string>(out var text) || text is null)
+            if (!jsonValue.TryGetValue<string>(out var text) || text is null)
             {
                 return node;
             }

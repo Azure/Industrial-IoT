@@ -36,7 +36,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Runtime
             Assert.Equal(MessageEncoding.Json, options.MessagingProfile.MessageEncoding);
             Assert.Equal(0, options.BatchSize);
             Assert.Equal(System.TimeSpan.Zero, options.BatchTriggerInterval);
-            Assert.Equal(PublisherConfig.MaxNodesPerDataSetDefault, options.MaxNodesPerDataSet);
+            Assert.Equal(1000, options.MaxNodesPerDataSet);
             Assert.False(options.DisableDataSetMetaData);
         }
 
