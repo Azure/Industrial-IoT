@@ -15,6 +15,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Opc.Ua.Client.Subscriptions;
     using Opc.Ua.Extensions;
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -50,6 +51,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 nodeCacheTimeout ?? TimeSpan.FromMinutes(1), nodeCacheCapacity, true);
             Codec = new JsonVariantEncoder(session.MessageContext);
             CreatedAt = _timeProvider.GetUtcNow();
+            ConnectivityState = session.Connected ?
+                EndpointConnectivityState.Ready :
+                EndpointConnectivityState.Disconnected;
             _connection.ConnectionStateChanged += OnConnectionStateChanged;
 
             // Do not allow pooled notification instances to outlive dispatch.
@@ -103,7 +107,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Raised when managed-session connectivity changes.
         /// </summary>
-        internal event EventHandler<EndpointConnectivityStateEventArgs>? OnConnectionStateChange;
+        internal event EventHandler<EndpointConnectivityStateEventArgs>? OnConnectionStateChange
+        {
+            add
+            {
+                _connectionStateChange += value;
+                value(this, new EndpointConnectivityStateEventArgs(ConnectivityState));
+            }
+            remove => _connectionStateChange -= value;
+        }
 
         /// <inheritdoc/>
         public async ValueTask<ComplexTypeSystem?> GetComplexTypeSystemAsync(
@@ -182,20 +194,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public async ValueTask<ServerCapabilitiesModel> GetServerCapabilitiesAsync(
             NamespaceFormat namespaceFormat, CancellationToken ct = default)
         {
-            _ = namespaceFormat;
-            return new ServerCapabilitiesModel
+            if (_serverCapabilities != null && namespaceFormat == NamespaceFormat.Uri)
+            {
+                return _serverCapabilities;
+            }
+
+            var capabilities = await FetchServerCapabilitiesAsync(namespaceFormat, ct)
+                .ConfigureAwait(false);
+            var result = capabilities ?? new ServerCapabilitiesModel
             {
                 OperationLimits = await GetOperationLimitsAsync(ct).ConfigureAwait(false)
             };
+            if (namespaceFormat == NamespaceFormat.Uri)
+            {
+                _serverCapabilities = result;
+            }
+            return result;
         }
 
         /// <inheritdoc/>
-        public ValueTask<HistoryServerCapabilitiesModel> GetHistoryCapabilitiesAsync(
+        public async ValueTask<HistoryServerCapabilitiesModel> GetHistoryCapabilitiesAsync(
             NamespaceFormat namespaceFormat, CancellationToken ct = default)
         {
-            _ = namespaceFormat;
-            ct.ThrowIfCancellationRequested();
-            return ValueTask.FromResult(new HistoryServerCapabilitiesModel());
+            if (_historyCapabilities != null && namespaceFormat == NamespaceFormat.Uri)
+            {
+                return _historyCapabilities;
+            }
+
+            var result = await FetchHistoryCapabilitiesAsync(namespaceFormat, ct)
+                .ConfigureAwait(false) ?? new HistoryServerCapabilitiesModel();
+            if (namespaceFormat == NamespaceFormat.Uri)
+            {
+                _historyCapabilities = result;
+            }
+            return result;
         }
 
         /// <inheritdoc/>
@@ -365,7 +397,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _ => EndpointConnectivityState.Connecting
             };
             ConnectivityState = state;
-            OnConnectionStateChange?.Invoke(this,
+            _connectionStateChange?.Invoke(this,
                 new EndpointConnectivityStateEventArgs(state));
         }
 
@@ -374,7 +406,194 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             return value == 0 ? null : value;
         }
 
+        private async Task<ServerCapabilitiesModel?> FetchServerCapabilitiesAsync(
+            NamespaceFormat namespaceFormat, CancellationToken ct)
+        {
+            var config = new ServerCapabilitiesState(null);
+            config.ServerProfileArray =
+                PropertyState<ArrayOf<string>>.With<VariantBuilder>(config);
+            config.LocaleIdArray =
+                PropertyState<ArrayOf<string>>.With<VariantBuilder>(config);
+            config.ModellingRules =
+                new FolderState(config);
+            config.AggregateFunctions =
+                new FolderState(config);
+            config.Create(SystemContext, NodeId.Null,
+                new QualifiedName(BrowseNames.ServerCapabilities), LocalizedText.Null, false);
+
+            var relativePath = new RelativePath
+            {
+                Elements =
+                [
+                    new RelativePathElement
+                    {
+                        ReferenceTypeId = ReferenceTypeIds.HasComponent,
+                        IsInverse = false,
+                        IncludeSubtypes = false,
+                        TargetName = new QualifiedName(BrowseNames.ServerCapabilities)
+                    }
+                ]
+            };
+            var errorInfo = await this.ReadNodeStateAsync(new RequestHeader(), config,
+                new NodeId(Objects.Server), relativePath, ct).ConfigureAwait(false);
+            if (errorInfo != null)
+            {
+                return null;
+            }
+
+            var aggregateFunctionStates = new List<BaseInstanceState>();
+            config.AggregateFunctions.GetChildren(SystemContext, aggregateFunctionStates);
+            var aggregateFunctions = aggregateFunctionStates
+                .OfType<BaseObjectState>()
+                .ToDictionary(
+                    state => state.BrowseName.AsString(MessageContext, namespaceFormat),
+                    state => state.NodeId.AsString(MessageContext, namespaceFormat) ?? string.Empty);
+            var modellingRuleStates = new List<BaseInstanceState>();
+            config.ModellingRules.GetChildren(SystemContext, modellingRuleStates);
+            var modellingRules = modellingRuleStates
+                .OfType<BaseObjectState>()
+                .ToDictionary(
+                    state => state.BrowseName.AsString(MessageContext, namespaceFormat),
+                    state => state.NodeId.AsString(MessageContext, namespaceFormat) ?? string.Empty);
+            var conformanceUnits = config.ConformanceUnits.GetValueOrDefaultEx(
+                values => values is { Count: > 0 } items ?
+                    items.ToArray()!.Select(
+                        item => item.AsString(MessageContext, namespaceFormat)).ToList() :
+                    null);
+            return new ServerCapabilitiesModel
+            {
+                OperationLimits = await GetOperationLimitsAsync(ct).ConfigureAwait(false),
+                ModellingRules = modellingRules.Count == 0 ? null : modellingRules,
+                SupportedLocales = config.LocaleIdArray.GetValueOrDefaultEx(
+                    values => values is { Count: > 0 } items ? items.ToArray() : null),
+                ServerProfiles = config.ServerProfileArray.GetValueOrDefaultEx(
+                    values => values is { Count: > 0 } items ? items.ToArray() : null),
+                AggregateFunctions = aggregateFunctions.Count == 0 ? null : aggregateFunctions,
+                MaxSessions = config.MaxSessions.GetValueOrDefaultEx(),
+                MaxSubscriptions = config.MaxSubscriptions.GetValueOrDefaultEx(),
+                MaxMonitoredItems = config.MaxMonitoredItems.GetValueOrDefaultEx(),
+                MaxMonitoredItemsPerSubscription =
+                    config.MaxMonitoredItemsPerSubscription.GetValueOrDefaultEx(),
+                MaxMonitoredItemsQueueSize =
+                    config.MaxMonitoredItemsQueueSize.GetValueOrDefaultEx(),
+                MaxSubscriptionsPerSession =
+                    config.MaxSubscriptionsPerSession.GetValueOrDefaultEx(),
+                MaxWhereClauseParameters =
+                    config.MaxWhereClauseParameters.GetValueOrDefaultEx(),
+                MaxSelectClauseParameters =
+                    config.MaxSelectClauseParameters.GetValueOrDefaultEx(),
+                ConformanceUnits = conformanceUnits
+            };
+        }
+
+        private async Task<HistoryServerCapabilitiesModel?> FetchHistoryCapabilitiesAsync(
+            NamespaceFormat namespaceFormat, CancellationToken ct)
+        {
+            var config = new HistoryServerCapabilitiesState(null);
+            config.AccessHistoryDataCapability =
+                PropertyState<bool>.With<VariantBuilder>(config);
+            config.AccessHistoryEventsCapability =
+                PropertyState<bool>.With<VariantBuilder>(config);
+            config.MaxReturnDataValues =
+                PropertyState<uint>.With<VariantBuilder>(config);
+            config.MaxReturnEventValues =
+                PropertyState<uint>.With<VariantBuilder>(config);
+            config.InsertDataCapability =
+                PropertyState<bool>.With<VariantBuilder>(config);
+            config.ReplaceDataCapability =
+                PropertyState<bool>.With<VariantBuilder>(config);
+            config.UpdateDataCapability =
+                PropertyState<bool>.With<VariantBuilder>(config);
+            config.DeleteRawCapability =
+                PropertyState<bool>.With<VariantBuilder>(config);
+            config.DeleteAtTimeCapability =
+                PropertyState<bool>.With<VariantBuilder>(config);
+            config.InsertEventCapability =
+                PropertyState<bool>.With<VariantBuilder>(config);
+            config.ReplaceEventCapability =
+                PropertyState<bool>.With<VariantBuilder>(config);
+            config.UpdateEventCapability =
+                PropertyState<bool>.With<VariantBuilder>(config);
+            config.DeleteEventCapability =
+                PropertyState<bool>.With<VariantBuilder>(config);
+            config.InsertAnnotationCapability =
+                PropertyState<bool>.With<VariantBuilder>(config);
+            config.ServerTimestampSupported =
+                PropertyState<bool>.With<VariantBuilder>(config);
+            config.AggregateFunctions =
+                new FolderState(config);
+            config.Create(SystemContext, NodeId.Null,
+                new QualifiedName(BrowseNames.HistoryServerCapabilities),
+                LocalizedText.Null, false);
+
+            var relativePath = new RelativePath
+            {
+                Elements =
+                [
+                    new RelativePathElement
+                    {
+                        ReferenceTypeId = ReferenceTypeIds.HasComponent,
+                        IsInverse = false,
+                        IncludeSubtypes = false,
+                        TargetName = new QualifiedName(BrowseNames.HistoryServerCapabilities)
+                    }
+                ]
+            };
+            var errorInfo = await this.ReadNodeStateAsync(new RequestHeader(), config,
+                new NodeId(Objects.Server_ServerCapabilities), relativePath, ct)
+                .ConfigureAwait(false);
+            if (errorInfo != null)
+            {
+                return null;
+            }
+
+            var supportsValues =
+                config.AccessHistoryDataCapability.GetValueOrDefaultEx() ?? false;
+            var supportsEvents =
+                config.AccessHistoryEventsCapability.GetValueOrDefaultEx() ?? false;
+            Dictionary<string, string>? aggregateFunctions = null;
+            if (supportsEvents || supportsValues)
+            {
+                var aggregateFunctionStates = new List<BaseInstanceState>();
+                config.AggregateFunctions.GetChildren(SystemContext, aggregateFunctionStates);
+                aggregateFunctions = aggregateFunctionStates
+                    .OfType<BaseObjectState>()
+                    .ToDictionary(
+                        state => state.BrowseName.AsString(MessageContext, namespaceFormat),
+                        state => state.NodeId.AsString(MessageContext, namespaceFormat) ??
+                            string.Empty);
+            }
+            return new HistoryServerCapabilitiesModel
+            {
+                AccessHistoryDataCapability = supportsValues,
+                AccessHistoryEventsCapability = supportsEvents,
+                MaxReturnDataValues = config.MaxReturnDataValues.GetValueOrDefaultEx(
+                    value => !supportsValues ? null : value == 0 ? uint.MaxValue : value),
+                MaxReturnEventValues = config.MaxReturnEventValues.GetValueOrDefaultEx(
+                    value => !supportsEvents ? null : value == 0 ? uint.MaxValue : value),
+                InsertDataCapability = config.InsertDataCapability.GetValueOrDefaultEx(),
+                ReplaceDataCapability = config.ReplaceDataCapability.GetValueOrDefaultEx(),
+                UpdateDataCapability = config.UpdateDataCapability.GetValueOrDefaultEx(),
+                DeleteRawCapability = config.DeleteRawCapability.GetValueOrDefaultEx(),
+                DeleteAtTimeCapability = config.DeleteAtTimeCapability.GetValueOrDefaultEx(),
+                InsertEventCapability = config.InsertEventCapability.GetValueOrDefaultEx(),
+                ReplaceEventCapability = config.ReplaceEventCapability.GetValueOrDefaultEx(),
+                UpdateEventCapability = config.UpdateEventCapability.GetValueOrDefaultEx(),
+                DeleteEventCapability = config.DeleteEventCapability.GetValueOrDefaultEx(),
+                InsertAnnotationCapability =
+                    config.InsertAnnotationCapability.GetValueOrDefaultEx(),
+                ServerTimestampSupported =
+                    config.ServerTimestampSupported.GetValueOrDefaultEx(),
+                AggregateFunctions = aggregateFunctions is not { Count: > 0 } ?
+                    null :
+                    aggregateFunctions
+            };
+        }
+
         private ComplexTypeSystem? _complexTypeSystem;
+        private ServerCapabilitiesModel? _serverCapabilities;
+        private HistoryServerCapabilitiesModel? _historyCapabilities;
+        private EventHandler<EndpointConnectivityStateEventArgs>? _connectionStateChange;
         private int _disposed;
         private readonly IManagedSessionConnection _connection;
         private readonly ITelemetryContext _telemetry;

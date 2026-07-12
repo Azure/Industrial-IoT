@@ -117,11 +117,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// State changes map from the public managed session event to Publisher events.
         /// </summary>
         [Fact]
-        public void FacadeMapsManagedConnectionStateChanges()
+        public async Task FacadeMapsManagedConnectionStateChangesAsync()
         {
             var session = CreateSession(out _, out _);
             var connection = new FakeConnection(session.Object);
-            using var facade = new ManagedOpcUaSession(connection, CreateTelemetry());
+            await using var facade = new ManagedOpcUaSession(connection, CreateTelemetry());
             EndpointConnectivityState? observed = null;
             facade.OnConnectionStateChange += (_, args) => observed = args.State;
 
@@ -132,6 +132,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             connection.Raise(ConnectionState.Closing);
             Assert.Equal(EndpointConnectivityState.Disconnected, observed);
             Assert.Equal(EndpointConnectivityState.Disconnected, facade.ConnectivityState);
+        }
+
+        /// <summary>
+        /// An already connected managed session is immediately observable as ready.
+        /// </summary>
+        [Fact]
+        public async Task FacadeStartsReadyForConnectedManagedSessionAsync()
+        {
+            var session = CreateSession(out _, out _, connected: true);
+            var connection = new FakeConnection(session.Object);
+            await using var facade = new ManagedOpcUaSession(connection, CreateTelemetry());
+
+            var diagnostics = await facade.GetServerDiagnosticAsync();
+            EndpointConnectivityState? observed = null;
+            facade.OnConnectionStateChange += (_, args) => observed = args.State;
+
+            Assert.Equal(EndpointConnectivityState.Ready, facade.ConnectivityState);
+            Assert.Equal(EndpointConnectivityState.Ready, observed);
+            Assert.Equal("managed-session-tests", diagnostics.ServerUri);
         }
 
         /// <summary>
@@ -240,6 +259,107 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 provider.Request.ReverseConnectServerUri);
         }
 
+        /// <summary>
+        /// Caller cancellation leaves the shared connection usable by another waiter.
+        /// </summary>
+        [Fact]
+        public async Task PoolCallerCancellationDoesNotTearDownSharedConnectAsync()
+        {
+            var session = CreateSession(out _, out _);
+            var connection = new FakeConnection(session.Object);
+            var provider = new DelayedProvider();
+            await using var pool = new ManagedSessionPool(provider, CreateTelemetry(),
+                new ManagedSessionPoolOptions
+                {
+                    LingerTimeout = TimeSpan.Zero
+                });
+            var request = CreateRequest("opc.tcp://localhost:4842") with
+            {
+                ConnectTimeout = TimeSpan.FromSeconds(5)
+            };
+            using var cancellation = new CancellationTokenSource();
+
+            var canceledAcquire = pool.AcquireAsync(request, cancellation.Token);
+            await provider.Started.Task;
+            cancellation.Cancel();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(
+                async () => await canceledAcquire);
+            Assert.False(provider.ConnectCancellation.IsCancellationRequested);
+
+            var survivingAcquire = pool.AcquireAsync(request);
+            provider.Complete(connection);
+            using var lease = await survivingAcquire;
+
+            Assert.Equal(1, provider.ConnectCount);
+            Assert.Equal(0, connection.DisposeCount);
+        }
+
+        /// <summary>
+        /// A provider that ignores cancellation is disposed when it returns after timeout.
+        /// </summary>
+        [Fact]
+        public async Task PoolDisposesLateNonCooperativeConnectionAfterTimeoutAsync()
+        {
+            var session = CreateSession(out _, out _);
+            var connection = new FakeConnection(session.Object);
+            var provider = new DelayedProvider();
+            await using var pool = new ManagedSessionPool(provider, CreateTelemetry());
+            var request = CreateRequest("opc.tcp://localhost:4843") with
+            {
+                ConnectTimeout = TimeSpan.FromMilliseconds(10)
+            };
+
+            var acquire = pool.AcquireAsync(request);
+            await provider.Started.Task;
+            await Assert.ThrowsAsync<TimeoutException>(async () => await acquire);
+
+            provider.Complete(connection);
+            await connection.Disposed.Task.WaitAsync(TimeSpan.FromSeconds(2));
+
+            Assert.Equal(1, connection.DisposeCount);
+        }
+
+        /// <summary>
+        /// Capability fallback retains managed session operation limits when the server
+        /// does not expose the optional capability objects.
+        /// </summary>
+        [Fact]
+        public async Task FacadeCapabilitiesFallbackRetainsManagedOperationLimitsAsync()
+        {
+            var session = CreateSession(out _, out _);
+            session.SetupGet(s => s.OperationLimits).Returns(new OperationLimits
+            {
+                MaxNodesPerRead = 22,
+                MaxNodesPerBrowse = 23,
+                MaxMonitoredItemsPerCall = 24
+            });
+            session.Setup(s => s.TranslateBrowsePathsToNodeIdsAsync(
+                    It.IsAny<RequestHeader>(),
+                    It.IsAny<ArrayOf<BrowsePath>>(),
+                    It.IsAny<CancellationToken>()))
+                .Returns(ValueTask.FromResult(new TranslateBrowsePathsToNodeIdsResponse
+                {
+                    Results =
+                    [
+                        new BrowsePathResult
+                        {
+                            StatusCode = StatusCodes.BadNodeIdUnknown
+                        }
+                    ]
+                }));
+            var connection = new FakeConnection(session.Object);
+            await using var facade = new ManagedOpcUaSession(connection, CreateTelemetry());
+
+            var server = await facade.GetServerCapabilitiesAsync(NamespaceFormat.Uri);
+            var history = await facade.GetHistoryCapabilitiesAsync(NamespaceFormat.Uri);
+
+            Assert.Equal(22u, server.OperationLimits.MaxNodesPerRead);
+            Assert.Equal(23u, server.OperationLimits.MaxNodesPerBrowse);
+            Assert.Equal(24u, server.OperationLimits.MaxMonitoredItemsPerCall);
+            Assert.False(history.AccessHistoryDataCapability);
+            Assert.False(history.AccessHistoryEventsCapability);
+        }
+
         private static ManagedSessionConnectionRequest CreateRequest(string endpointUrl)
         {
             var connection = new ConnectionModel
@@ -266,7 +386,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         private static Mock<ISession> CreateSession(out ConfiguredEndpoint endpoint,
-            out IUserIdentity identity)
+            out IUserIdentity identity, bool connected = false)
         {
             var context = new ServiceMessageContext
             {
@@ -289,8 +409,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             session.SetupGet(s => s.MessageContext).Returns(context);
             session.SetupGet(s => s.ConfiguredEndpoint).Returns(endpoint);
             session.SetupGet(s => s.Identity).Returns(identity);
-            session.SetupGet(s => s.Connected).Returns(false);
+            session.SetupGet(s => s.Connected).Returns(connected);
             session.SetupGet(s => s.Endpoint).Returns(description);
+            session.SetupGet(s => s.SystemContext).Returns(new SystemContext());
             return session;
         }
 
@@ -353,6 +474,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public ManagedSessionConnectionRequest? Request { get; private set; }
 
             private readonly IManagedSessionConnection _connection;
+        }
+
+        private sealed class DelayedProvider : IManagedSessionProvider
+        {
+            public int ConnectCount { get; private set; }
+
+            public CancellationToken ConnectCancellation { get; private set; }
+
+            public TaskCompletionSource Started { get; } = new(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+
+            public Task<IManagedSessionConnection> ConnectAsync(
+                ManagedSessionConnectionRequest request, CancellationToken ct)
+            {
+                ArgumentNullException.ThrowIfNull(request);
+                ConnectCount++;
+                ConnectCancellation = ct;
+                Started.TrySetResult();
+                return _connection.Task;
+            }
+
+            public void Complete(IManagedSessionConnection connection)
+            {
+                _connection.TrySetResult(connection);
+            }
+
+            private readonly TaskCompletionSource<IManagedSessionConnection> _connection = new(
+                TaskCreationOptions.RunContinuationsAsynchronously);
         }
     }
 }

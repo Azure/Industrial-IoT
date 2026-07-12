@@ -41,7 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Preferred locales sent when activating the session.
         /// </summary>
-        public ArrayOf<string> PreferredLocales { get; init; } = default;
+        public ArrayOf<string> PreferredLocales { get; init; }
 
         /// <summary>
         /// Requested server session lifetime.
@@ -170,28 +170,47 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 TimeProvider = _timeProvider
             };
             var identity = request.Identity ?? await request.Connection.Connection.User
-                .ToUserIdentityAsync(_configuration).ConfigureAwait(false);
-            var session = await ManagedSession.CreateAsync(
-                _configuration,
-                request.Endpoint,
-                sessionFactory,
-                identity,
-                telemetry: _telemetry,
-                sessionName: request.Connection.ToString(),
-                sessionTimeout: (uint)request.SessionTimeout.TotalMilliseconds,
-                preferredLocales: request.PreferredLocales,
-                poolNotifications: false,
-                timeProvider: _timeProvider,
-                reverseConnectManager: request.ReverseConnectManager,
-                ct: ct).ConfigureAwait(false);
-
-            // Publisher handlers may retain values after dispatch. Keep pooling disabled
-            // until their ownership contract is changed to deep-copy those values.
-            if (session.TryGetSubscriptionManager(out ISubscriptionManager? subscriptions))
+                .ToUserIdentityAsync(_configuration, ct).ConfigureAwait(false);
+            ManagedSession? session = null;
+            try
             {
-                subscriptions.PoolNotifications = false;
+                session = await ManagedSession.CreateAsync(
+                    _configuration,
+                    request.Endpoint,
+                    sessionFactory,
+                    identity,
+                    telemetry: _telemetry,
+                    sessionName: request.Connection.ToString(),
+                    sessionTimeout: (uint)request.SessionTimeout.TotalMilliseconds,
+                    preferredLocales: request.PreferredLocales,
+                    poolNotifications: false,
+                    timeProvider: _timeProvider,
+                    reverseConnectManager: request.ReverseConnectManager,
+                    ct: ct).ConfigureAwait(false);
+
+                // Publisher handlers may retain values after dispatch. Keep pooling disabled
+                // until their ownership contract is changed to deep-copy those values.
+                if (session.TryGetSubscriptionManager(out ISubscriptionManager? subscriptions))
+                {
+                    subscriptions.PoolNotifications = false;
+                }
+                return new ManagedSessionConnection(session);
             }
-            return new ManagedSessionConnection(session);
+            catch (Exception ex) when (ex is not OutOfMemoryException)
+            {
+                if (session != null)
+                {
+                    try
+                    {
+                        await session.DisposeAsync().ConfigureAwait(false);
+                    }
+                    catch (Exception disposeException) when (
+                        disposeException is not OutOfMemoryException)
+                    {
+                    }
+                }
+                throw;
+            }
         }
 
         private readonly ApplicationConfiguration _configuration;
