@@ -248,7 +248,7 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
             ArgumentNullException.ThrowIfNull(typeInfo);
             try
             {
-                return JsonSerializer.SerializeToUtf8Bytes(o, typeInfo);
+                return JsonSerializer.SerializeToUtf8Bytes<T>(o!, typeInfo);
             }
             catch (JsonException ex)
             {

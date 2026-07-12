@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.Numerics;
     using System.Text;
@@ -73,6 +74,8 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
     internal sealed class MatrixConverter<TElement> : JsonConverter<TElement[,]>
     {
         /// <inheritdoc/>
+        [SuppressMessage("Performance", "CA1814",
+            Justification = "The converter's public contract is a rectangular matrix.")]
         public override TElement[,] Read(ref Utf8JsonReader reader, Type typeToConvert,
             JsonSerializerOptions options)
         {
@@ -236,7 +239,8 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
             var value = document.RootElement.ValueKind == JsonValueKind.String
                 ? document.RootElement.GetString()
                 : document.RootElement.GetRawText();
-            return BigInteger.Parse(value, NumberFormatInfo.InvariantInfo);
+            return BigInteger.Parse(value ?? throw new JsonException(),
+                NumberFormatInfo.InvariantInfo);
         }
 
         /// <inheritdoc/>
