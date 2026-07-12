@@ -35,6 +35,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         public const string DefaultLifetimeCountKey = "DefaultLifetimeCount";
         public const string DefaultKeepAliveCountKey = "DefaultKeepAliveCount";
         public const string MaxMonitoredItemPerSubscriptionKey = "MaxMonitoredItemPerSubscription";
+        public const string MaxSubscriptionPartitionsKey = "MaxSubscriptionPartitions";
         public const string UseDeferredAcknoledgementsKey = "UseDeferredAcknoledgements";
         public const string DefaultSamplingUsingCyclicReadKey = "DefaultSamplingUsingCyclicRead";
         public const string EnableImmediatePublishingKey = "EnableImmediatePublishing";
@@ -214,6 +215,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
             options.AutoSetQueueSizes ??= GetBoolOrNull(AutoSetQueueSizesKey);
 
             options.MaxMonitoredItemPerSubscription ??= (uint?)GetIntOrNull(MaxMonitoredItemPerSubscriptionKey);
+            if (options.MaxSubscriptionPartitions == null)
+            {
+                var maxPartitions = GetIntOrNull(MaxSubscriptionPartitionsKey);
+                if (maxPartitions.HasValue)
+                {
+                    options.MaxSubscriptionPartitions = maxPartitions.Value > 0
+                        ? (uint)maxPartitions.Value
+                        : throw new ArgumentOutOfRangeException(MaxSubscriptionPartitionsKey,
+                            "MaxSubscriptionPartitions must be positive. Omit it for unbounded partitioning.");
+                }
+            }
 
             var unsMode = _options.Value.DefaultDataSetRouting ?? DataSetRoutingMode.None;
             options.FetchOpcBrowsePathFromRoot ??= unsMode != DataSetRoutingMode.None

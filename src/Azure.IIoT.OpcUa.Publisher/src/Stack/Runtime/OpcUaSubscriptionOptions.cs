@@ -56,6 +56,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         public uint? MaxMonitoredItemPerSubscription { get; set; }
 
         /// <summary>
+        /// The maximum number of V2 server-side subscription partitions for a
+        /// logical subscription. A null value permits unbounded partitioning.
+        /// </summary>
+        public uint? MaxSubscriptionPartitions { get; set; }
+
+        /// <summary>
         /// Default subscription keep alive counter
         /// </summary>
         public uint? DefaultKeepAliveCount { get; set; }
