@@ -224,7 +224,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                     {
                         Endpoint = new EndpointModel
                         {
-                            Url = EndpointUrl
+                            Url = EndpointUrl,
+                            Certificate = serverHost.Certificate?.RawData?.ToThumbprint()
                         }
                     }, new TestConnectionRequestModel()).WaitAsync(kReadinessTimeout)
                         .GetAwaiter().GetResult();
