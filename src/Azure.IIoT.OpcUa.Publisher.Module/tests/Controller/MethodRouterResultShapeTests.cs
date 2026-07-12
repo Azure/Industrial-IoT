@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
     using System.Linq;
     using System.Runtime.CompilerServices;
     using System.Text;
+    using System.Text.Json.Serialization;
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
@@ -29,9 +30,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
     /// particular the reflective async-enumerable drain path.
     /// </summary>
     [Trait("Compatibility", "Authoritative")]
-    public sealed class MethodRouterResultShapeTests
+    public sealed partial class MethodRouterResultShapeTests
     {
-        private sealed class ShapeController : IMethodController
+        internal sealed class ShapeController : IMethodController
         {
             public Task TouchAsync(string input)
             {
@@ -76,10 +77,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         private static MethodRouter NewRouter(ShapeController controller)
         {
             var router = new MethodRouter(Array.Empty<IRpcServer>(),
-                NullLogger<MethodRouter>.Instance)
-            {
-                Controllers = new[] { controller }
-            };
+                NullLogger<MethodRouter>.Instance,
+                new MethodRouterJsonSerializer(
+                    MethodRouterResultShapeTestsJsonContext.Default,
+                    MethodRouterResultShapeTestsJsonContext.Default.Options));
+            Azure_IIoT_OpcUa_Publisher_Module_TestsMethodRouterDescriptors.Register(
+                router, new[] { controller }, router.JsonSerializer);
             router.GetAwaiter().GetResult();
             return router;
         }
@@ -167,6 +170,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             var act = async () => await router.InvokeAsync("Fail", buffer,
                 "application/json", CancellationToken.None);
             await act.Should().ThrowAsync<Exception>();
+        }
+
+        [JsonSourceGenerationOptions(
+            PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
+            PropertyNameCaseInsensitive = true)]
+        [JsonSerializable(typeof(string))]
+        [JsonSerializable(typeof(int))]
+        [JsonSerializable(typeof(List<int>))]
+        internal sealed partial class MethodRouterResultShapeTestsJsonContext :
+            JsonSerializerContext
+        {
         }
     }
 }

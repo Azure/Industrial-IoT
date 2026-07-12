@@ -15,6 +15,10 @@
     <Project Path="src/Azure.IIoT.OpcUa.Publisher.Testing/src/Azure.IIoT.OpcUa.Publisher.Testing.Servers.csproj" />
     <Project Path="src/Azure.IIoT.OpcUa/src/Azure.IIoT.OpcUa.csproj" />
   </Folder>
+  <Folder Name="/src/Azure.IIoT.OpcUa.Core/" />
+  <Folder Name="/src/Azure.IIoT.OpcUa.Core/generator/">
+    <Project Path="src/Azure.IIoT.OpcUa.Core/generator/Azure.IIoT.OpcUa.Core.Rpc.Generator.csproj" />
+  </Folder>
   <Folder Name="/tests/">
     <Project Path="src/Azure.IIoT.OpcUa.Core/tests/Azure.IIoT.OpcUa.Core.Tests.csproj" />
     <Project Path="src/Azure.IIoT.OpcUa.Publisher.Models/tests/Azure.IIoT.OpcUa.Publisher.Models.Tests.csproj" />

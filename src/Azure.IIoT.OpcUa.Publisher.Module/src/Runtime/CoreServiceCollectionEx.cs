@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Azure.IIoT.OpcUa.Core.Rpc;
     using Azure.IIoT.OpcUa.Core.Rpc.Router;
     using Azure.IIoT.OpcUa.Core.Rpc.Servers;
+    using Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Core.Storage;
     using Azure.IIoT.OpcUa.Core.Storage.Services;
     using Microsoft.Extensions.DependencyInjection;
@@ -40,15 +41,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         public static IServiceCollection AddMethodRouter(this IServiceCollection services)
         {
             services.AddOptions();
+            services.AddSingleton<IMethodRouterJsonSerializer>(_ =>
+                new MethodRouterJsonSerializer(Json.Options.TypeInfoResolver!,
+                    Json.Options));
             services.AddSingleton<MethodRouter>(s =>
-                new MethodRouter(s.GetServices<IRpcServer>(),
+            {
+                var router = new MethodRouter(s.GetServices<IRpcServer>(),
                     s.GetRequiredService<ILogger<MethodRouter>>(),
+                    s.GetRequiredService<IMethodRouterJsonSerializer>(),
                     s.GetService<IExceptionSummarizer>(),
                     s.GetService<IOptions<RouterOptions>>(),
-                    s.GetService<TimeProvider>())
-                {
-                    Controllers = s.GetServices<IMethodController>()
-                });
+                    s.GetService<TimeProvider>());
+                Azure_IIoT_OpcUa_Publisher_ModuleMethodRouterDescriptors.Register(router,
+                    s.GetServices<IMethodController>(), router.JsonSerializer);
+                return router;
+            });
             services.AddSingleton<IRpcHandler>(
                 s => s.GetRequiredService<MethodRouter>());
             services.AddSingleton<IAwaitable<MethodRouter>>(

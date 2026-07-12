@@ -168,10 +168,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         private MethodRouter NewRouter(ConfigurationController controller)
         {
             var router = new MethodRouter(Array.Empty<IRpcServer>(),
-                _loggerFactory.CreateLogger<MethodRouter>())
-            {
-                Controllers = new[] { controller }
-            };
+                _loggerFactory.CreateLogger<MethodRouter>(),
+                new MethodRouterJsonSerializer(Json.Options.TypeInfoResolver!,
+                    Json.Options));
+            Azure_IIoT_OpcUa_Publisher_ModuleMethodRouterDescriptors.Register(router,
+                new[] { controller }, router.JsonSerializer);
             router.GetAwaiter().GetResult();
             return router;
         }

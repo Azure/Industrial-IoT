@@ -81,5 +81,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Core\src\Azure.IIoT.OpcUa.Core.csproj" />
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Publisher\src\Azure.IIoT.OpcUa.Publisher.csproj" />
+    <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Core\generator\Azure.IIoT.OpcUa.Core.Rpc.Generator.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
   </ItemGroup>
 </Project>

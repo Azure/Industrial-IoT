@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
     using Azure.IIoT.OpcUa.Publisher;
+    using Azure.IIoT.OpcUa.Publisher.Module.Controllers;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Core.Messaging;
@@ -99,6 +100,51 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         }
 
         [Fact]
+        public void GeneratedForwardsPreserveSingletonInstances()
+        {
+            using var provider = BuildProvider(out _);
+
+            var publisher = provider.GetRequiredService<IPublisher>();
+            var publisherService = provider.GetRequiredService<PublisherService>();
+            var controller = provider.GetRequiredService<ConfigurationController>();
+            var controllers = provider.GetServices<IMethodController>().ToList();
+
+            Assert.Same(publisherService, publisher);
+            Assert.Contains(controller, controllers);
+            Assert.Same(controller, controllers.Single(item =>
+                item is ConfigurationController));
+        }
+
+        [Fact]
+        public void GeneratedForwardsPreserveLifetimeAndEnumerableSemantics()
+        {
+            var services = new ServiceCollection();
+            services.AddSingletonAsImplementedInterfaces<SingletonProbe>();
+            services.AddScopedAsImplementedInterfaces<ScopedProbe>();
+            services.AddTransientAsImplementedInterfaces<TransientProbe>();
+            services.AddSingletonAsImplementedInterfaces<AdditionalProbe>();
+            using var provider = services.BuildServiceProvider(
+                new ServiceProviderOptions { ValidateScopes = true });
+
+            Assert.Same(provider.GetRequiredService<SingletonProbe>(),
+                provider.GetRequiredService<ISingletonProbe>());
+            Assert.NotSame(provider.GetRequiredService<TransientProbe>(),
+                provider.GetRequiredService<ITransientProbe>());
+
+            using var firstScope = provider.CreateScope();
+            using var secondScope = provider.CreateScope();
+            Assert.Same(firstScope.ServiceProvider.GetRequiredService<ScopedProbe>(),
+                firstScope.ServiceProvider.GetRequiredService<IScopedProbe>());
+            Assert.NotSame(firstScope.ServiceProvider.GetRequiredService<IScopedProbe>(),
+                secondScope.ServiceProvider.GetRequiredService<IScopedProbe>());
+
+            var probes = provider.GetServices<ISharedProbe>().ToList();
+            Assert.Collection(probes,
+                probe => Assert.IsType<SingletonProbe>(probe),
+                probe => Assert.IsType<AdditionalProbe>(probe));
+        }
+
+        [Fact]
         public void ResolvesThePublisherOptions()
         {
             using var provider = BuildProvider(out _);
@@ -141,5 +187,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             });
             Assert.NotNull(scope.WriterGroup);
         }
+
+        internal interface ISharedProbe;
+
+        internal interface ISingletonProbe : ISharedProbe;
+
+        internal interface IScopedProbe;
+
+        internal interface ITransientProbe;
+
+        internal sealed class SingletonProbe : ISingletonProbe;
+
+        internal sealed class AdditionalProbe : ISharedProbe;
+
+        internal sealed class ScopedProbe : IScopedProbe;
+
+        internal sealed class TransientProbe : ITransientProbe;
     }
 }

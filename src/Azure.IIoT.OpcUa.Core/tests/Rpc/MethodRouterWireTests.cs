@@ -17,6 +17,7 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Router
     using System.Buffers;
     using System.Collections.Generic;
     using System.Text;
+    using System.Text.Json.Serialization;
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
@@ -29,7 +30,7 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Router
     /// server side reassembly, and the exception -> status-code propagation.
     /// </summary>
     [Trait("Compatibility", "Authoritative")]
-    public sealed class MethodRouterWireTests
+    public sealed partial class MethodRouterWireTests
     {
         [Fact]
         public void MethodChunkModelSerializesWithLegacyCompatibleShape()
@@ -185,10 +186,12 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Router
         private static MethodRouter CreateRouter(TestController controller)
         {
             var router = new MethodRouter(Array.Empty<IRpcServer>(),
-                NullLogger<MethodRouter>.Instance)
-            {
-                Controllers = new[] { controller }
-            };
+                NullLogger<MethodRouter>.Instance,
+                new MethodRouterJsonSerializer(
+                    MethodRouterWireTestsJsonContext.Default,
+                    MethodRouterWireTestsJsonContext.Default.Options));
+            Azure_IIoT_OpcUa_Core_TestsMethodRouterDescriptors.Register(router,
+                new[] { controller }, router.JsonSerializer);
             router.GetAwaiter().GetResult();
             return router;
         }
@@ -257,6 +260,15 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Router
             }
 
             private readonly MethodRouter _router;
+        }
+
+        [JsonSourceGenerationOptions(
+            PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
+            PropertyNameCaseInsensitive = true)]
+        [JsonSerializable(typeof(MethodRouterWireTests.EchoRequest))]
+        [JsonSerializable(typeof(MethodRouterWireTests.EchoResponse))]
+        internal sealed partial class MethodRouterWireTestsJsonContext : JsonSerializerContext
+        {
         }
     }
 }
