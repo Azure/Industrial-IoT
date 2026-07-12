@@ -25,6 +25,9 @@
     <ProjectReference Include="..\..\..\external\UA-.NETStandard\Libraries\Opc.Ua.Client\Opc.Ua.Client.csproj"
                       SetTargetFramework="TargetFramework=net10.0"
                       UndefineProperties="PublishAot" />
+    <ProjectReference Include="..\..\..\external\UA-.NETStandard\Libraries\Opc.Ua.PubSub\Opc.Ua.PubSub.csproj"
+                      SetTargetFramework="TargetFramework=net10.0"
+                      UndefineProperties="PublishAot" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Core\src\Azure.IIoT.OpcUa.Core.csproj" />
