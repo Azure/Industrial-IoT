@@ -64,7 +64,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             };
             using var cts = new CancellationTokenSource();
-            session.Setup(s => s.ReadAsync(request, 0, TimestampsToReturn.Both,
+            session.Setup(s => s.ReadAsync(request, 0, Opc.Ua.TimestampsToReturn.Both,
                     It.Is<ArrayOf<ReadValueId>>(items =>
                         items.Count == 1 && items[0].NodeId == ObjectIds.Server),
                     cts.Token))
@@ -73,7 +73,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             await using var facade = new ManagedOpcUaSession(connection, CreateTelemetry());
 
             var result = await facade.Services.ReadAsync(request, 0,
-                TimestampsToReturn.Both, nodes, cts.Token);
+                Opc.Ua.TimestampsToReturn.Both, nodes, cts.Token);
 
             Assert.Same(expected, result);
             session.VerifyAll();

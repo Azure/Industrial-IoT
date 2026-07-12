@@ -91,7 +91,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ManagedSessionConnectionRequest request, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
-            ObjectDisposedException.ThrowIf(_disposed, this);
+            ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) != 0, this);
 
             while (true)
             {

@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Opc.Ua.Client;
     using Opc.Ua.Client.ComplexTypes;
     using Opc.Ua.Client.Subscriptions;
+    using Opc.Ua.Extensions;
     using System;
     using System.Linq;
     using System.Threading;
@@ -42,10 +43,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 throw new ArgumentNullException(nameof(telemetry));
             _timeProvider = timeProvider ??
                 TimeProvider.System;
-            if (nodeCacheCapacity <= 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(nodeCacheCapacity));
-            }
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(nodeCacheCapacity);
 
             var session = _connection.Session;
             LruNodeCache = new LruNodeCache(new NodeCacheContext(session), _telemetry,
@@ -125,7 +123,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
 
                 var typeSystem = new ComplexTypeSystem(new NodeCacheResolver(
-                    _connection.Session, LruNodeCache.Inner, _telemetry, _timeProvider));
+                    _connection.Session, LruNodeCache.Inner, _telemetry, _timeProvider),
+                    _telemetry);
                 await typeSystem.LoadAsync(throwOnError: false, ct: ct)
                     .ConfigureAwait(false);
                 _complexTypeSystem = typeSystem;
@@ -261,7 +260,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public ValueTask<HistoryReadResponse> HistoryReadAsync(RequestHeader requestHeader,
-            ExtensionObject? historyReadDetails, TimestampsToReturn timestampsToReturn,
+            ExtensionObject? historyReadDetails, Opc.Ua.TimestampsToReturn timestampsToReturn,
             bool releaseContinuationPoints, HistoryReadValueIdCollection nodesToRead,
             CancellationToken ct)
         {
@@ -299,7 +298,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public ValueTask<ReadResponse> ReadAsync(RequestHeader requestHeader, double maxAge,
-            TimestampsToReturn timestampsToReturn, ReadValueIdCollection nodesToRead,
+            Opc.Ua.TimestampsToReturn timestampsToReturn, ReadValueIdCollection nodesToRead,
             CancellationToken ct)
         {
             return _connection.Session.ReadAsync(requestHeader, maxAge,
