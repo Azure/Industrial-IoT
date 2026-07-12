@@ -221,18 +221,64 @@ jobs:
         # flag so the restore also pulls the Native-AOT ILC runtime packages
         # (Microsoft.DotNet.ILCompiler + runtime.linux-x64.*), letting the
         # subsequent publish run with --no-restore.
-        run: dotnet restore src/Azure.IIoT.OpcUa.Publisher.Module/src -r linux-x64 -p:IIoTPublishAot=true -s https://api.nuget.org/v3/index.json
-        shell: pwsh
+        run: |
+          set -o pipefail
+          mkdir -p artifacts/aot-inventory
+          dotnet restore src/Azure.IIoT.OpcUa.Publisher.Module/src -r linux-x64 \
+            -p:IIoTPublishAot=true -s https://api.nuget.org/v3/index.json \
+            2>&1 | tee artifacts/aot-inventory/restore.log
+        shell: bash
       - name: AOT publish (self-contained, Native-AOT)
         # Fails the job if the Native-AOT compiler (ILC) reports a hard
         # error. Trim/AOT analyzer warnings surface during the ordinary
         # build (the Module sets IIoTNativeAot=true); this step is the
         # end-to-end native compilation gate.
         run: |
-          dotnet publish src/Azure.IIoT.OpcUa.Publisher.Module/src `
-            -c Release -r linux-x64 --self-contained --no-restore `
-            -p:IIoTPublishAot=true
-        shell: pwsh
+          set -o pipefail
+          dotnet publish src/Azure.IIoT.OpcUa.Publisher.Module/src \
+            -c Release -r linux-x64 --self-contained --no-restore \
+            -p:IIoTPublishAot=true 2>&1 | tee artifacts/aot-inventory/publish.log
+        shell: bash
+      - name: Generate AOT warning inventory
+        if: always()
+        run: |
+          set -euo pipefail
+          logs=()
+          for log in artifacts/aot-inventory/restore.log artifacts/aot-inventory/publish.log; do
+            if [ -f "$log" ]; then
+              logs+=(--log "$log")
+            fi
+          done
+          assets=()
+          if [ -f src/Azure.IIoT.OpcUa.Publisher.Module/src/obj/project.assets.json ]; then
+            assets+=(--assets src/Azure.IIoT.OpcUa.Publisher.Module/src/obj/project.assets.json)
+          fi
+          python3 tools/scripts/generate-aot-inventory.py \
+            "${logs[@]}" "${assets[@]}" \
+            --repo-root . --commit "$GITHUB_SHA" \
+            --json-out artifacts/aot-inventory/report.json \
+            --markdown-out artifacts/aot-inventory/report.md
+        shell: bash
+      - name: Enforce AOT warning baseline
+        if: success()
+        run: |
+          set -euo pipefail
+          python3 tools/scripts/generate-aot-inventory.py \
+            --log artifacts/aot-inventory/restore.log \
+            --log artifacts/aot-inventory/publish.log \
+            --assets src/Azure.IIoT.OpcUa.Publisher.Module/src/obj/project.assets.json \
+            --repo-root . --commit "$GITHUB_SHA" \
+            --baseline tools/aot/publisher-module-nativeaot-baseline.json \
+            --enforce
+        shell: bash
+      - name: Upload AOT warning inventory
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aot-warning-inventory
+          path: artifacts/aot-inventory
+          if-no-files-found: warn
+          retention-days: 14
 
   # --------------------------------------------------------------------------
   # report, render a markdown summary into $GITHUB_STEP_SUMMARY, and
