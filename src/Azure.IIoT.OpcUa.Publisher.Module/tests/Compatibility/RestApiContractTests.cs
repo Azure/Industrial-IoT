@@ -53,10 +53,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Compatibility
                     .GetMetadata<HttpMethodMetadata>()!.HttpMethods
                     .Select(method => method + " " + endpoint.RoutePattern.RawText))
                 .ToHashSet(StringComparer.Ordinal);
-            Assert.True(kExpectedRoutes.SetEquals(actual),
-                "Missing: " + string.Join(", ", kExpectedRoutes.Except(actual).Order()) +
+            Assert.True(ContractAuthenticationHandler.kExpectedRoutes.SetEquals(actual),
+                "Missing: " + string.Join(", ", ContractAuthenticationHandler.kExpectedRoutes.Except(actual).Order()) +
                 Environment.NewLine + "Unexpected: " +
-                string.Join(", ", actual.Except(kExpectedRoutes).Order()));
+                string.Join(", ", actual.Except(ContractAuthenticationHandler.kExpectedRoutes).Order()));
 
             await app.StartAsync();
             using var client = app.GetTestClient();
