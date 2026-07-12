@@ -118,7 +118,7 @@ class GenerateAotInventoryTests(unittest.TestCase):
         self.assertIn("## Warnings", (TEST_DIRECTORY / "clean.md").read_text(encoding="utf-8"))
 
     def test_policy_rejects_new_application_warning(self) -> None:
-        """The baseline permits known diagnostics but rejects new application ownership."""
+        """A changed PR baseline cannot authorize a new application warning."""
         baseline_log = TEST_DIRECTORY / "baseline.log"
         baseline_log.write_text(
             "D:\\repo\\src\\App\\Program.cs(10,2): Trim analysis warning IL2070: "
@@ -139,11 +139,73 @@ class GenerateAotInventoryTests(unittest.TestCase):
             "changed",
             "--baseline",
             str(TEST_DIRECTORY / "baseline.json"),
+            "--candidate-baseline",
+            str(TEST_DIRECTORY / "changed.json"),
             "--enforce",
         )
 
         self.assertEqual(result.returncode, 1)
+        self.assertIn("Application warning baseline grows outside the protected base", result.stderr)
         self.assertIn("New application warning IL2070", result.stderr)
+
+    def test_policy_reports_malformed_protected_baseline(self) -> None:
+        """A malformed protected baseline produces a clear policy failure."""
+        log = TEST_DIRECTORY / "known.log"
+        log.write_text(
+            "D:\\repo\\src\\App\\Program.cs(10,2): Trim analysis warning IL2070: "
+            "Known warning [D:\\repo\\src\\App\\App.csproj]\n",
+            encoding="utf-8",
+        )
+        malformed_baseline = TEST_DIRECTORY / "malformed.json"
+        malformed_baseline.write_text("{not valid JSON", encoding="utf-8")
+
+        result = self.run_generator(
+            log,
+            "malformed-output",
+            "--baseline",
+            str(malformed_baseline),
+            "--enforce",
+        )
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("Protected AOT baseline is malformed", result.stderr)
+
+    def test_policy_allows_application_baseline_to_shrink(self) -> None:
+        """Removing fixed application warnings from a PR baseline remains allowed."""
+        baseline_log = TEST_DIRECTORY / "shrink-baseline.log"
+        baseline_log.write_text(
+            "D:\\repo\\src\\App\\Program.cs(10,2): Trim analysis warning IL2070: "
+            "Known warning [D:\\repo\\src\\App\\App.csproj]\n",
+            encoding="utf-8",
+        )
+        baseline_result = self.run_generator(baseline_log, "shrink-protected")
+        self.assertEqual(baseline_result.returncode, 0, baseline_result.stderr)
+
+        clean_log = TEST_DIRECTORY / "shrink-clean.log"
+        clean_log.write_text("Build succeeded.\n", encoding="utf-8")
+        candidate_result = self.run_generator(clean_log, "shrink-candidate")
+        self.assertEqual(candidate_result.returncode, 0, candidate_result.stderr)
+
+        result = self.run_generator(
+            baseline_log,
+            "shrink-enforcement",
+            "--baseline",
+            str(TEST_DIRECTORY / "shrink-protected.json"),
+            "--candidate-baseline",
+            str(TEST_DIRECTORY / "shrink-candidate.json"),
+            "--enforce",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_workflow_materializes_the_pull_request_base_baseline(self) -> None:
+        """The CI command must use the protected pull-request base rather than PR JSON."""
+        workflow = Path(__file__).parents[3] / ".github" / "workflows" / "ci.yml"
+        content = workflow.read_text(encoding="utf-8")
+
+        self.assertIn("BASE_SHA: ${{ github.event.pull_request.base.sha }}", content)
+        self.assertIn('git show "${BASE_SHA}:${baseline_source}"', content)
+        self.assertIn("--candidate-baseline tools/aot/publisher-module-nativeaot-baseline.json", content)
 
 
 if __name__ == "__main__":

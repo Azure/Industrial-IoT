@@ -259,6 +259,33 @@ jobs:
             --json-out artifacts/aot-inventory/report.json \
             --markdown-out artifacts/aot-inventory/report.md
         shell: bash
+      - name: Materialize protected AOT baseline
+        id: aot_policy_baseline
+        if: success()
+        run: |
+          set -euo pipefail
+          baseline_source=tools/aot/publisher-module-nativeaot-baseline.json
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            if [ -z "${BASE_SHA}" ]; then
+              echo "::error::Pull request base SHA is unavailable; refusing to use the PR baseline."
+              exit 1
+            fi
+            if ! git cat-file -e "${BASE_SHA}:${baseline_source}" 2>/dev/null; then
+              echo "::error::Protected AOT baseline is missing at base ${BASE_SHA}: ${baseline_source}"
+              exit 1
+            fi
+            git show "${BASE_SHA}:${baseline_source}" > artifacts/aot-inventory/protected-baseline.json
+            echo "path=artifacts/aot-inventory/protected-baseline.json" >> "$GITHUB_OUTPUT"
+          else
+            if [ ! -f "${baseline_source}" ]; then
+              echo "::error::Checked-in AOT baseline is missing: ${baseline_source}"
+              exit 1
+            fi
+            echo "path=${baseline_source}" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        shell: bash
       - name: Enforce AOT warning baseline
         if: success()
         run: |
@@ -268,7 +295,8 @@ jobs:
             --log artifacts/aot-inventory/publish.log \
             --assets src/Azure.IIoT.OpcUa.Publisher.Module/src/obj/project.assets.json \
             --repo-root . --commit "$GITHUB_SHA" \
-            --baseline tools/aot/publisher-module-nativeaot-baseline.json \
+            --baseline "${{ steps.aot_policy_baseline.outputs.path }}" \
+            --candidate-baseline tools/aot/publisher-module-nativeaot-baseline.json \
             --enforce
         shell: bash
       - name: Upload AOT warning inventory

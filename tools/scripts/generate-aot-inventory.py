@@ -79,6 +79,14 @@ def parse_args() -> argparse.Namespace:
         help="Committed JSON baseline used by --enforce.",
     )
     parser.add_argument(
+        "--candidate-baseline",
+        type=Path,
+        help=(
+            "Candidate JSON baseline whose application warnings must not grow beyond "
+            "--baseline. Used to validate pull request baseline edits."
+        ),
+    )
+    parser.add_argument(
         "--enforce",
         action="store_true",
         help="Fail for unclassified, feed, or new application-owned warnings.",
@@ -417,15 +425,65 @@ def write_report(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8", newline="\n")
 
 
-def enforce_policy(report: dict[str, Any], baseline_path: Path) -> list[str]:
-    """Return policy failures for the report compared with its committed baseline."""
+def load_baseline(baseline_path: Path, description: str) -> tuple[dict[str, Any] | None, list[str]]:
+    """Load a baseline and return actionable failures for missing or malformed data."""
     if not baseline_path.is_file():
-        return [f"Committed AOT baseline does not exist: {baseline_path}"]
-    with baseline_path.open(encoding="utf-8") as stream:
-        baseline = json.load(stream)
-    baseline_keys = {warning["key"] for warning in baseline.get("warnings", [])}
+        return None, [f"{description} does not exist: {baseline_path}"]
 
-    failures: list[str] = []
+    try:
+        with baseline_path.open(encoding="utf-8") as stream:
+            baseline = json.load(stream)
+    except (OSError, json.JSONDecodeError) as exception:
+        return None, [f"{description} is malformed: {baseline_path} ({exception})"]
+
+    if not isinstance(baseline, dict) or not isinstance(baseline.get("warnings"), list):
+        return None, [f"{description} is malformed: {baseline_path} has no warnings list"]
+
+    for index, warning in enumerate(baseline["warnings"]):
+        if (
+            not isinstance(warning, dict)
+            or not isinstance(warning.get("key"), str)
+            or not isinstance(warning.get("owner"), str)
+        ):
+            return None, [
+                f"{description} is malformed: {baseline_path} warning {index} has no key or owner"
+            ]
+    return baseline, []
+
+
+def enforce_policy(
+    report: dict[str, Any],
+    baseline_path: Path,
+    candidate_baseline_path: Path | None,
+) -> list[str]:
+    """Return policy failures for the report compared with its committed baseline."""
+    baseline, failures = load_baseline(baseline_path, "Protected AOT baseline")
+    if baseline is None:
+        return failures
+
+    baseline_keys = {warning["key"] for warning in baseline.get("warnings", [])}
+    if candidate_baseline_path is not None:
+        candidate, candidate_failures = load_baseline(
+            candidate_baseline_path,
+            "Candidate AOT baseline",
+        )
+        if candidate is None:
+            return candidate_failures
+
+        protected_application_keys = {
+            warning["key"] for warning in baseline["warnings"] if warning["owner"] == "application"
+        }
+        candidate_application_keys = {
+            warning["key"]
+            for warning in candidate["warnings"]
+            if warning["owner"] == "application"
+        }
+        for key in sorted(candidate_application_keys - protected_application_keys):
+            failures.append(
+                "Application warning baseline grows outside the protected base: "
+                f"{key}"
+            )
+
     for warning in report["warnings"]:
         if warning["owner"] == "unclassified":
             failures.append(
@@ -462,7 +520,7 @@ def main() -> int:
         if args.baseline is None:
             print("--baseline is required with --enforce.", file=sys.stderr)
             return 2
-        failures = enforce_policy(report, args.baseline)
+        failures = enforce_policy(report, args.baseline, args.candidate_baseline)
         if failures:
             print("Native-AOT warning policy failed:", file=sys.stderr)
             for failure in failures:
