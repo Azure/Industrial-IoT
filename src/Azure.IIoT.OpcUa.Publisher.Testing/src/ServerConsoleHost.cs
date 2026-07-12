@@ -49,11 +49,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="factory"></param>
         /// <param name="logger"></param>
-        public ServerConsoleHost(IServerFactory factory, ILogger<ServerConsoleHost> logger)
+        /// <param name="lockTimeout"></param>
+        public ServerConsoleHost(IServerFactory factory, ILogger<ServerConsoleHost> logger,
+            TimeSpan? lockTimeout = null)
         {
             _instance = Guid.NewGuid().ToString();
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _factory = factory ?? throw new ArgumentNullException(nameof(factory));
+            _lockTimeout = lockTimeout ?? kDefaultLockTimeout;
         }
 
         /// <inheritdoc/>
@@ -61,7 +64,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             if (_server != null)
             {
-                await _lock.WaitAsync(kLockTimeout).ConfigureAwait(false);
+                await WaitForLockAsync().ConfigureAwait(false);
                 try
                 {
 #pragma warning disable CA1508 // Avoid dead conditional code
@@ -99,7 +102,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public async Task AddReverseConnectionAsync(Uri client, int maxSessionCount)
         {
-            await _lock.WaitAsync(kLockTimeout).ConfigureAwait(false);
+            await WaitForLockAsync().ConfigureAwait(false);
             try
             {
                 if (_server is ReverseConnectServer server)
@@ -121,7 +124,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public async Task RemoveReverseConnectionAsync(Uri client)
         {
-            await _lock.WaitAsync(kLockTimeout).ConfigureAwait(false);
+            await WaitForLockAsync().ConfigureAwait(false);
             try
             {
                 if (_server is ReverseConnectServer server)
@@ -152,7 +155,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             if (_server == null)
             {
-                await _lock.WaitAsync(kLockTimeout).ConfigureAwait(false);
+                await WaitForLockAsync().ConfigureAwait(false);
                 try
                 {
 #pragma warning disable CA1508 // Avoid dead conditional code
@@ -182,7 +185,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public async Task RestartAsync(Func<Task> predicate)
         {
-            await _lock.WaitAsync(kLockTimeout).ConfigureAwait(false);
+            await WaitForLockAsync().ConfigureAwait(false);
             try
             {
                 if (_server != null)
@@ -219,6 +222,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public override string ToString()
         {
             return _instance;
+        }
+
+        private async Task WaitForLockAsync()
+        {
+            if (!await _lock.WaitAsync(_lockTimeout).ConfigureAwait(false))
+            {
+                throw new TimeoutException(
+                    $"Timed out waiting for the server lifecycle lock after {_lockTimeout}.");
+            }
         }
 
         /// <summary>
@@ -315,12 +327,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly ILogger _logger;
         private readonly IServerFactory _factory;
         private readonly SemaphoreSlim _lock = new(1, 1);
-        private static readonly TimeSpan kLockTimeout = TimeSpan.FromSeconds(30);
+        private static readonly TimeSpan kDefaultLockTimeout = TimeSpan.FromSeconds(30);
         private static readonly TimeSpan kConfigurationTimeout = TimeSpan.FromSeconds(30);
         private static readonly TimeSpan kCertificateTimeout = TimeSpan.FromSeconds(30);
         private static readonly TimeSpan kServerStartTimeout = TimeSpan.FromSeconds(30);
         private static readonly TimeSpan kServerStopTimeout = TimeSpan.FromSeconds(30);
         private static readonly TimeSpan kRestartTimeout = TimeSpan.FromSeconds(30);
+        private readonly TimeSpan _lockTimeout;
         private ServerBase _server;
         private int[] _ports;
     }

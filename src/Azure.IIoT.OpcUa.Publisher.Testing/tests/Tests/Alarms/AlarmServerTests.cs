@@ -48,7 +48,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var target = Assert.Single(results.Targets!);
             Assert.NotNull(target.BrowsePath);
             Assert.NotNull(target.Target);
-            Assert.Equal("http://opcfoundation.org/AlarmCondition#s=0%3aEast%2fBlue", target.Target.NodeId);
+            Assert.Equal("http://opcfoundation.org/AlarmCondition#s=0%3AEast%2FBlue", target.Target.NodeId);
         }
 
         public async Task BrowseMetalsSouthMotorTestAsync(CancellationToken ct = default)
@@ -74,7 +74,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var target = Assert.Single(results.Targets!);
             Assert.NotNull(target.BrowsePath);
             Assert.NotNull(target.Target);
-            Assert.Equal("http://opcfoundation.org/AlarmCondition#s=1%3aMetals%2fSouthMotor", target.Target.NodeId);
+            Assert.Equal("http://opcfoundation.org/AlarmCondition#s=1%3AMetals%2FSouthMotor", target.Target.NodeId);
         }
 
         public async Task BrowseColoursEastTankTestAsync(CancellationToken ct = default)
@@ -99,7 +99,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var target = Assert.Single(results.Targets!);
             Assert.NotNull(target.BrowsePath);
             Assert.NotNull(target.Target);
-            Assert.Equal("http://opcfoundation.org/AlarmCondition#s=1%3aColours%2fEastTank", target.Target.NodeId);
+            Assert.Equal("http://opcfoundation.org/AlarmCondition#s=1%3AColours%2FEastTank", target.Target.NodeId);
         }
 
         public async Task CompileSimpleBaseEventQueryTestAsync(CancellationToken ct = default)

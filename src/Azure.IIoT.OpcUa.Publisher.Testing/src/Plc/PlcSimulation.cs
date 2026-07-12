@@ -44,6 +44,7 @@ namespace Plc
         /// </summary>
         public void Start()
         {
+            _started = true;
             if (EventInstanceCount > 0)
             {
                 _eventInstanceGenerator = EventInstanceRate >= 50 || !Stopwatch.IsHighResolution
@@ -63,6 +64,11 @@ namespace Plc
         /// </summary>
         public void Stop()
         {
+            if (!_started)
+            {
+                return;
+            }
+            _started = false;
             Disable(_eventInstanceGenerator);
 
             // Stop simulation of nodes from plugin nodes list.
@@ -184,5 +190,6 @@ namespace Plc
         private readonly TimeService _timeService;
         private ITimer _eventInstanceGenerator;
         private uint _eventInstanceCycle;
+        private bool _started;
     }
 }

@@ -244,10 +244,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                     var clientPort = ReserveReverseConnectPort(logger);
                     UseReverseConnect = true;
                     ReverseConnectPort = clientPort;
-                    var clientUrl = $"opc.tcp://{HostName}:{clientPort}";
-                    serverHost.AddReverseConnectionAsync(new Uri(clientUrl), 4)
-                        .WaitAsync(kReverseConnectTimeout).GetAwaiter().GetResult();
-                    logger.StartReverseConnect(clientUrl);
+                    _reverseConnectUri = new Uri($"opc.tcp://{HostName}:{clientPort}");
                     startedServerHost = serverHost;
                     break;
                 }
@@ -299,6 +296,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         public Task RestartAsync(Func<Task> predicate)
         {
             return _serverHost.RestartAsync(predicate);
+        }
+
+        /// <summary>
+        /// Starts the deferred reverse connection after its client listener is ready.
+        /// </summary>
+        /// <returns>
+        /// A task that completes when the reverse connection is configured.
+        /// </returns>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown when reverse connect is not enabled for this fixture.
+        /// </exception>
+        public async Task StartReverseConnectionAsync()
+        {
+            if (!UseReverseConnect || _reverseConnectUri == null)
+            {
+                throw new InvalidOperationException("Reverse connect is not enabled for this fixture.");
+            }
+
+            if (!_reverseConnectionStarted)
+            {
+                await _serverHost.AddReverseConnectionAsync(_reverseConnectUri, 4)
+                    .WaitAsync(kReverseConnectTimeout).ConfigureAwait(false);
+                _reverseConnectionStarted = true;
+                var logger = _container.GetRequiredService<ILogger<BaseServerFixture>>();
+                logger.StartReverseConnect(_reverseConnectUri.ToString());
+            }
         }
 
         /// <summary>
@@ -627,6 +650,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         private bool _disposedValue;
         private int _port;
         private readonly string[] _alternativeHosts;
+        private Uri? _reverseConnectUri;
+        private bool _reverseConnectionStarted;
         private readonly ServiceProvider _container;
         private readonly ServerConsoleHost _serverHost;
         private readonly Mock<TimeService> _timeService;

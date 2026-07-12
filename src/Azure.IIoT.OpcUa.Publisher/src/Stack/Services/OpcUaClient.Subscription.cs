@@ -419,7 +419,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (Exception ex)
             {
-                _logger.SyncSubscriptionsErrorMessage(this, ex.Message);
+                _logger.SyncSubscriptionsError(ex, this);
                 return false;
             }
         }

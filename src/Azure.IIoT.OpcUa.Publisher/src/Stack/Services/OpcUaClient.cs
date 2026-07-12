@@ -437,7 +437,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     await endpoint.UpdateFromServerAsync(endpoint.EndpointUrl, connection,
                         endpoint.Description.SecurityMode, endpoint.Description.SecurityPolicyUri,
-                        ct).ConfigureAwait(false);
+                        Telemetry, ct).ConfigureAwait(false);
                     updateBeforeConnect = false;
                     connection = null;
                 }

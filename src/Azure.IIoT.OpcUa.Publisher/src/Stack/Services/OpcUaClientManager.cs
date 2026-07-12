@@ -74,7 +74,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             _logger = _loggerFactory.CreateLogger<OpcUaClientManager>();
 
-            _reverseConnectManager = new ReverseConnectManager();
+            _reverseConnectManager = new ReverseConnectManager(
+                _configuration.Value.CreateMessageContext().Telemetry);
             _reverseConnectStartException = new Lazy<Exception?>(
                 StartReverseConnectManager, isThreadSafe: true);
             _configuration.Validate += OnValidate;

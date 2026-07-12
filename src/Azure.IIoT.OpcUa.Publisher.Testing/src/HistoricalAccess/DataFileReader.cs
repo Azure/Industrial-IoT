@@ -268,8 +268,8 @@ namespace HistoricalAccess
                 // add record to table.
                 var row = dataset.Tables[0].NewRow();
 
-                row[0] = dataValue.SourceTimestamp;
-                row[1] = dataValue.ServerTimestamp;
+                row[0] = (DateTime)dataValue.SourceTimestamp;
+                row[1] = (DateTime)dataValue.ServerTimestamp;
                 row[2] = dataValue;
                 row[3] = dataValue.WrappedValue.TypeInfo.BuiltInType;
                 row[4] = dataValue.WrappedValue.TypeInfo.ValueRank;
@@ -442,8 +442,8 @@ namespace HistoricalAccess
                 {
                     row = dataset.Tables[0].NewRow();
 
-                    row[0] = dataValue.SourceTimestamp;
-                    row[1] = dataValue.ServerTimestamp;
+                    row[0] = (DateTime)dataValue.SourceTimestamp;
+                    row[1] = (DateTime)dataValue.ServerTimestamp;
                     row[2] = dataValue;
                     row[3] = valueType;
                     row[4] = (value.TypeInfo != null) ? value.TypeInfo.ValueRank : ValueRanks.Any;
@@ -454,8 +454,8 @@ namespace HistoricalAccess
                 {
                     row = dataset.Tables[1].NewRow();
 
-                    row[0] = dataValue.SourceTimestamp;
-                    row[1] = dataValue.ServerTimestamp;
+                    row[0] = (DateTime)dataValue.SourceTimestamp;
+                    row[1] = (DateTime)dataValue.ServerTimestamp;
                     row[2] = dataValue;
                     row[3] = valueType;
                     row[4] = (value.TypeInfo != null) ? value.TypeInfo.ValueRank : ValueRanks.Any;
@@ -482,8 +482,8 @@ namespace HistoricalAccess
                     };
                     dataValue = dataValue.WithWrappedValue(new ExtensionObject(annotation));
 
-                    row[0] = dataValue.SourceTimestamp;
-                    row[1] = dataValue.ServerTimestamp;
+                    row[0] = (DateTime)dataValue.SourceTimestamp;
+                    row[1] = (DateTime)dataValue.ServerTimestamp;
                     row[2] = dataValue;
                     row[3] = valueType;
                     row[4] = (value.TypeInfo != null) ? value.TypeInfo.ValueRank : ValueRanks.Any;
