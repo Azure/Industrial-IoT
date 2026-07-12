@@ -136,14 +136,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return;
             }
 
-            await _shutdown.CancelAsync().ConfigureAwait(false);
-            var entries = _sessions.ToArray();
-            _sessions.Clear();
-            foreach (var entry in entries)
+            try
             {
-                await entry.Value.CloseAsync().ConfigureAwait(false);
+                await _shutdown.CancelAsync().ConfigureAwait(false);
+                var entries = _sessions.ToArray();
+                _sessions.Clear();
+                foreach (var entry in entries)
+                {
+                    await entry.Value.CloseAsync().ConfigureAwait(false);
+                }
             }
-            _shutdown.Dispose();
+            catch (OperationCanceledException)
+            {
+                // Shared connect cancellation is expected while shutting down.
+            }
+            finally
+            {
+                _shutdown.Dispose();
+            }
         }
 
         private async Task<ManagedOpcUaSession> ConnectAsync(
@@ -169,6 +179,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 await attempt.CancelAsync().ConfigureAwait(false);
                 attempt.DisposeWhenComplete();
                 attempt = null;
+                if (_shutdown.IsCancellationRequested)
+                {
+                    throw new OperationCanceledException(_shutdown.Token);
+                }
                 throw new TimeoutException("Connecting to the managed OPC UA session timed out.");
             }
             finally
@@ -260,6 +274,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                     Interlocked.Increment(ref _generation);
                     _connect ??= _owner.ConnectAsync(_request);
+                    _observeConnect ??= ObserveConnectAsync(_connect);
+                    _pendingAcquires++;
                     connect = _connect;
                 }
                 finally
@@ -267,32 +283,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _gate.Release();
                 }
 
-                var session = await connect.WaitAsync(ct).ConfigureAwait(false);
-                await _gate.WaitAsync(ct).ConfigureAwait(false);
                 try
                 {
-                    if (_closing)
+                    var session = await connect.WaitAsync(ct).ConfigureAwait(false);
+                    await _gate.WaitAsync(ct).ConfigureAwait(false);
+                    try
                     {
-                        throw new EntryClosingException();
+                        if (_closing)
+                        {
+                            throw new EntryClosingException();
+                        }
+                        _references++;
+                        return new ManagedSessionLease(session,
+                            _owner._options.ServiceCallTimeout, Release);
                     }
-                    _references++;
-                    return new ManagedSessionLease(session,
-                        _owner._options.ServiceCallTimeout, Release);
+                    finally
+                    {
+                        _gate.Release();
+                    }
                 }
                 finally
                 {
-                    _gate.Release();
+                    await CompleteAcquireAsync().ConfigureAwait(false);
                 }
             }
 
             public void Release()
             {
-                if (Interlocked.Decrement(ref _references) != 0)
-                {
-                    return;
-                }
-                var generation = Interlocked.Increment(ref _generation);
-                _ = _owner.CloseAfterLingerAsync(this, generation);
+                _ = ReleaseAsync();
             }
 
             public async Task<bool> TryStartClosingAsync(int generation,
@@ -301,7 +319,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 await _gate.WaitAsync(ct).ConfigureAwait(false);
                 try
                 {
-                    if (_closing || _references != 0 ||
+                    if (_closing || _references != 0 || _pendingAcquires != 0 ||
                         Volatile.Read(ref _generation) != generation)
                     {
                         return false;
@@ -323,32 +341,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
 
                 Task<ManagedOpcUaSession>? connect;
+                Task? observeConnect;
                 await _gate.WaitAsync().ConfigureAwait(false);
                 try
                 {
                     _closing = true;
                     connect = _connect;
+                    observeConnect = _observeConnect;
                 }
                 finally
                 {
                     _gate.Release();
                 }
 
-                if (connect == null)
-                {
-                    Dispose();
-                    return;
-                }
                 try
                 {
-                    var session = await connect.ConfigureAwait(false);
-                    await session.DisposeAsync().ConfigureAwait(false);
+                    if (connect != null)
+                    {
+                        var session = await connect.ConfigureAwait(false);
+                        await session.DisposeAsync().ConfigureAwait(false);
+                    }
                 }
                 catch (OperationCanceledException)
                 {
                 }
                 finally
                 {
+                    if (observeConnect != null)
+                    {
+                        await observeConnect.ConfigureAwait(false);
+                    }
+                    await WaitForPendingAcquiresAsync().ConfigureAwait(false);
                     Dispose();
                 }
             }
@@ -362,15 +385,132 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _gate.Dispose();
             }
 
+            private async Task CompleteAcquireAsync()
+            {
+                var scheduleCleanup = false;
+                var generation = 0;
+                await _gate.WaitAsync().ConfigureAwait(false);
+                try
+                {
+                    _pendingAcquires--;
+                    if (_pendingAcquires == 0)
+                    {
+                        _noPendingAcquires.TrySetResult();
+                    }
+                    ScheduleCleanupIfUnused(ref scheduleCleanup, ref generation);
+                }
+                finally
+                {
+                    _gate.Release();
+                }
+                if (scheduleCleanup)
+                {
+                    _ = _owner.CloseAfterLingerAsync(this, generation);
+                }
+            }
+
+            private async Task ObserveConnectAsync(Task<ManagedOpcUaSession> connect)
+            {
+                var completed = false;
+                try
+                {
+                    await connect.ConfigureAwait(false);
+                    completed = true;
+                }
+                catch (Exception ex) when (ex is not OutOfMemoryException)
+                {
+                }
+
+                var scheduleCleanup = false;
+                var generation = 0;
+                await _gate.WaitAsync().ConfigureAwait(false);
+                try
+                {
+                    _connectCompleted = true;
+                    if (completed)
+                    {
+                        ScheduleCleanupIfUnused(ref scheduleCleanup, ref generation);
+                    }
+                }
+                finally
+                {
+                    _gate.Release();
+                }
+                if (scheduleCleanup)
+                {
+                    _ = _owner.CloseAfterLingerAsync(this, generation);
+                }
+            }
+
+            private async Task ReleaseAsync()
+            {
+                var scheduleCleanup = false;
+                var generation = 0;
+                try
+                {
+                    await _gate.WaitAsync().ConfigureAwait(false);
+                    try
+                    {
+                        _references--;
+                        ScheduleCleanupIfUnused(ref scheduleCleanup, ref generation);
+                    }
+                    finally
+                    {
+                        _gate.Release();
+                    }
+                }
+                catch (ObjectDisposedException)
+                {
+                }
+                if (scheduleCleanup)
+                {
+                    _ = _owner.CloseAfterLingerAsync(this, generation);
+                }
+            }
+
+            private async Task WaitForPendingAcquiresAsync()
+            {
+                Task noPending;
+                await _gate.WaitAsync().ConfigureAwait(false);
+                try
+                {
+                    noPending = _pendingAcquires == 0 ?
+                        Task.CompletedTask :
+                        _noPendingAcquires.Task;
+                }
+                finally
+                {
+                    _gate.Release();
+                }
+                await noPending.ConfigureAwait(false);
+            }
+
+            private void ScheduleCleanupIfUnused(ref bool scheduleCleanup,
+                ref int generation)
+            {
+                if (_closing || !_connectCompleted || _references != 0 ||
+                    _pendingAcquires != 0)
+                {
+                    return;
+                }
+                generation = Interlocked.Increment(ref _generation);
+                scheduleCleanup = true;
+            }
+
             private int _disposed;
             private int _gateDisposed;
             private int _generation;
             private int _references;
+            private int _pendingAcquires;
             private bool _closing;
+            private bool _connectCompleted;
             private Task<ManagedOpcUaSession>? _connect;
+            private Task? _observeConnect;
             private readonly ManagedSessionPool _owner;
             private readonly ManagedSessionConnectionRequest _request;
             private readonly SemaphoreSlim _gate = new(1, 1);
+            private readonly TaskCompletionSource _noPendingAcquires = new(
+                TaskCreationOptions.RunContinuationsAsynchronously);
         }
 
         private sealed class ConnectionAttempt : IDisposable

@@ -295,6 +295,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
+        /// A sole canceled waiter releases a successful late connection after linger.
+        /// </summary>
+        [Fact]
+        public async Task PoolCleansLateConnectionAfterSoleCallerCancellationAsync()
+        {
+            var session = CreateSession(out _, out _);
+            var connection = new FakeConnection(session.Object);
+            var provider = new DelayedProvider();
+            await using var pool = new ManagedSessionPool(provider, CreateTelemetry(),
+                new ManagedSessionPoolOptions
+                {
+                    LingerTimeout = TimeSpan.FromMilliseconds(10)
+                });
+            var request = CreateRequest("opc.tcp://localhost:4844") with
+            {
+                ConnectTimeout = TimeSpan.FromSeconds(5)
+            };
+            using var cancellation = new CancellationTokenSource();
+
+            var canceledAcquire = pool.AcquireAsync(request, cancellation.Token);
+            await provider.Started.Task;
+            cancellation.Cancel();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(
+                async () => await canceledAcquire);
+
+            provider.Complete(connection);
+            await connection.Disposed.Task.WaitAsync(TimeSpan.FromSeconds(2));
+
+            Assert.Equal(1, provider.ConnectCount);
+            Assert.Equal(1, connection.DisposeCount);
+        }
+
+        /// <summary>
         /// A provider that ignores cancellation is disposed when it returns after timeout.
         /// </summary>
         [Fact]
@@ -316,6 +349,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             provider.Complete(connection);
             await connection.Disposed.Task.WaitAsync(TimeSpan.FromSeconds(2));
 
+            Assert.Equal(1, connection.DisposeCount);
+        }
+
+        /// <summary>
+        /// Pool shutdown cancels a delayed connect without surfacing a timeout.
+        /// </summary>
+        [Fact]
+        public async Task PoolDisposeCancelsDelayedConnectWithoutTimeoutAsync()
+        {
+            var session = CreateSession(out _, out _);
+            var connection = new FakeConnection(session.Object);
+            var provider = new DelayedProvider();
+            var pool = new ManagedSessionPool(provider, CreateTelemetry());
+            var request = CreateRequest("opc.tcp://localhost:4845") with
+            {
+                ConnectTimeout = TimeSpan.FromSeconds(5)
+            };
+
+            var acquire = pool.AcquireAsync(request);
+            await provider.Started.Task;
+
+            await pool.DisposeAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(2));
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(
+                async () => await acquire);
+
+            provider.Complete(connection);
+            await connection.Disposed.Task.WaitAsync(TimeSpan.FromSeconds(2));
             Assert.Equal(1, connection.DisposeCount);
         }
 
@@ -411,7 +471,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             session.SetupGet(s => s.Identity).Returns(identity);
             session.SetupGet(s => s.Connected).Returns(connected);
             session.SetupGet(s => s.Endpoint).Returns(description);
-            session.SetupGet(s => s.SystemContext).Returns(new SystemContext());
+            session.SetupGet(s => s.SystemContext).Returns(new SystemContext(CreateTelemetry())
+            {
+                NamespaceUris = context.NamespaceUris,
+                ServerUris = context.ServerUris
+            });
             return session;
         }
 
@@ -434,7 +498,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public TaskCompletionSource Disposed { get; } = new(
                 TaskCreationOptions.RunContinuationsAsynchronously);
 
-            public event EventHandler<ConnectionStateChangedEventArgs>? ConnectionStateChanged;
+            public event EventHandler<ConnectionStateChangedEventArgs> ConnectionStateChanged;
 
             public ValueTask DisposeAsync()
             {
@@ -471,7 +535,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return Task.FromResult(_connection);
             }
 
-            public ManagedSessionConnectionRequest? Request { get; private set; }
+            public ManagedSessionConnectionRequest Request { get; private set; }
 
             private readonly IManagedSessionConnection _connection;
         }
