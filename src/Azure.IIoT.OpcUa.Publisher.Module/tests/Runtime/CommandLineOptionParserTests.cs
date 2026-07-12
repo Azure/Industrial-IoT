@@ -139,6 +139,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
         }
 
         [Fact]
+        public void BundlesUseSingleCharacterAliasesBeforeOverlappingAliases()
+        {
+            var calls = new List<string>();
+            var parser = new CommandLineOptionParser
+            {
+                { "h|help", "Show help.\n", value => calls.Add($"h:{value}") },
+                { "t|transport=", "Transport.\n", value => calls.Add($"t:{value}") },
+                { "ht=", "Direct transport.\n", value => calls.Add($"ht:{value}") }
+            };
+
+            parser.Parse(["-htMqtt"]).Should().BeEmpty();
+
+            calls.Should().Equal("h:htMqtt", "t:Mqtt");
+
+            calls.Clear();
+            parser.Parse(["-ht=value"]).Should().BeEmpty();
+
+            calls.Should().Equal("ht:value");
+        }
+
+        [Fact]
         public void InvalidGroupedShortOptionUsesLegacyFailure()
         {
             var parser = new CommandLineOptionParser

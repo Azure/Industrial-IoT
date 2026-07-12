@@ -341,19 +341,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             }
 
             var bundle = argument[1..];
-            var valueOption = _options
-                .Where(option => option.OptionValueType != CommandLineOptionValueType.None)
-                .SelectMany(option => option.Names.Select(name => (option, name)))
-                .Where(candidate => bundle.Length > candidate.name.Length &&
-                    bundle.StartsWith(candidate.name, StringComparison.Ordinal))
-                .OrderByDescending(candidate => candidate.name.Length)
-                .FirstOrDefault();
-            if (valueOption.option != null)
-            {
-                valueOption.option.Action(bundle[valueOption.name.Length..]);
-                return true;
-            }
-
             for (var position = 0; position < bundle.Length; position++)
             {
                 var optionName = bundle[position].ToString();
@@ -577,6 +564,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// <summary>
         /// Gets the malformed option name.
         /// </summary>
-        public string OptionName { get; }
+        public string OptionName { get; } = string.Empty;
     }
 }
