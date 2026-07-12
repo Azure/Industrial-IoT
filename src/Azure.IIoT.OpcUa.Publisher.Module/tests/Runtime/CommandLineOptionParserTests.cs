@@ -60,6 +60,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
         }
 
         [Fact]
+        public void OptionExceptionsPreserveLegacyMessage()
+        {
+            var exception = new CommandLineOptionException("Bad store type", "apt");
+
+            exception.Message.Should().Be("Bad store type");
+            exception.OptionName.Should().Be("apt");
+        }
+
+        [Fact]
         public void UnknownArgumentsAreReturnedUnchanged()
         {
             var parser = new CommandLineOptionParser

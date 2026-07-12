@@ -491,8 +491,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         /// <param name="message">The error message.</param>
         /// <param name="optionName">The malformed option name.</param>
         public CommandLineOptionException(string message, string optionName)
-            : base($"{message} ({optionName})")
+            : base(message)
         {
+            OptionName = optionName;
         }
+
+        /// <summary>
+        /// Gets the malformed option name.
+        /// </summary>
+        public string OptionName { get; }
     }
 }
