@@ -6,6 +6,8 @@
 namespace Azure.IIoT.OpcUa.Publisher.PubSub
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Publisher.Stack;
+    using Microsoft.Extensions.Options;
     using Opc.Ua;
     using Opc.Ua.PubSub.Configuration;
     using System;
@@ -14,6 +16,12 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
 
     internal sealed class PubSubConfigurationTranslator
     {
+        public PubSubConfigurationTranslator(IOptions<PublisherOptions>? options = null)
+        {
+            _defaultPublishingInterval = options?.Value.BatchTriggerInterval
+                ?? TimeSpan.FromMilliseconds(PublisherConfig.BatchTriggerIntervalLLegacyDefaultMillis);
+        }
+
         public PubSubConfigurationDataType Translate(
             IEnumerable<WriterGroupModel> writerGroups,
             IPubSubIdentityTransaction identities)
@@ -57,7 +65,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             };
         }
 
-        private static PubSubConnectionDataType TranslateWriterGroup(
+        private PubSubConnectionDataType TranslateWriterGroup(
             WriterGroupModel source,
             Dictionary<string, PublishedDataSetDataType> dataSets,
             IPubSubIdentityTransaction identities)
@@ -75,7 +83,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 Name = source.Name ?? source.Id,
                 WriterGroupId = identities.GetOrAllocate("writer-group", source.Id),
                 Enabled = false,
-                PublishingInterval = source.PublishingInterval?.TotalMilliseconds ?? 0,
+                PublishingInterval = (source.PublishingInterval ?? _defaultPublishingInterval)
+                    .TotalMilliseconds,
                 KeepAliveTime = source.KeepAliveTime?.TotalMilliseconds ?? 0,
                 MaxNetworkMessageSize = source.MaxNetworkMessageSize ?? 1500,
                 SecurityMode = MessageSecurityMode.None,
@@ -143,7 +152,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                     Enabled = false,
                     DataSetName = dataSetName,
                     KeyFrameCount = source.KeyFrameCount ?? 1,
-                    DataSetFieldContentMask = (uint)(source.DataSetFieldContentMask ?? 0),
+                    DataSetFieldContentMask = (uint)source.DataSetFieldContentMask.ToStackType(),
                     MessageSettings = new ExtensionObject(isUadp
                         ? CreateUadpDataSetWriterSettings(source)
                         : CreateJsonDataSetWriterSettings(source))
@@ -187,8 +196,10 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             return new UadpWriterGroupMessageDataType
             {
                 GroupVersion = source.MessageSettings?.GroupVersion ?? 0,
-                NetworkMessageContentMask = (uint)(
-                    source.MessageSettings?.NetworkMessageContentMask ?? 0)
+                NetworkMessageContentMask = (source.MessageSettings is null
+                    ? null
+                    : source.MessageSettings.NetworkMessageContentMask)
+                    .ToStackType(MessageEncoding.Uadp)
             };
         }
 
@@ -197,8 +208,10 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         {
             return new JsonWriterGroupMessageDataType
             {
-                NetworkMessageContentMask = (uint)(
-                    source.MessageSettings?.NetworkMessageContentMask ?? 0)
+                NetworkMessageContentMask = (source.MessageSettings is null
+                    ? null
+                    : source.MessageSettings.NetworkMessageContentMask)
+                    .ToStackType(MessageEncoding.Json)
             };
         }
 
@@ -207,8 +220,10 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         {
             return new UadpDataSetWriterMessageDataType
             {
-                DataSetMessageContentMask = (uint)(
-                    source.MessageSettings?.DataSetMessageContentMask ?? 0)
+                DataSetMessageContentMask = (source.MessageSettings is null
+                    ? null
+                    : source.MessageSettings.DataSetMessageContentMask)
+                    .ToStackType(source.DataSetFieldContentMask, MessageEncoding.Uadp)
             };
         }
 
@@ -217,9 +232,13 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         {
             return new JsonDataSetWriterMessageDataType
             {
-                DataSetMessageContentMask = (uint)(
-                    source.MessageSettings?.DataSetMessageContentMask ?? 0)
+                DataSetMessageContentMask = (source.MessageSettings is null
+                    ? null
+                    : source.MessageSettings.DataSetMessageContentMask)
+                    .ToStackType(source.DataSetFieldContentMask, MessageEncoding.Json)
             };
         }
+
+        private readonly TimeSpan _defaultPublishingInterval;
     }
 }

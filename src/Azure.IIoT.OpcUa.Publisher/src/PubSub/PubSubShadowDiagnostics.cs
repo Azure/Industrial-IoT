@@ -105,6 +105,24 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         /// Gets a snapshot of captured frames.
         /// </summary>
         IReadOnlyList<PubSubShadowCapture> Captures { get; }
+
+        /// <summary>
+        /// Gets the number of frames discarded after the retained window
+        /// reached its configured capacity.
+        /// </summary>
+        long DroppedCaptureCount { get; }
+    }
+
+    /// <summary>
+    /// Configures the bounded diagnostic frame-retention window.
+    /// </summary>
+    public sealed class PubSubShadowCaptureOptions
+    {
+        /// <summary>
+        /// Gets or sets the maximum retained frames. New frames evict the
+        /// oldest retained frame when this limit is reached.
+        /// </summary>
+        public int Capacity { get; set; } = 1024;
     }
 
     /// <summary>
@@ -113,6 +131,19 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     public sealed class InMemoryPubSubShadowCaptureSink :
         IPubSubShadowCaptureSink, IPubSubShadowCaptureStore
     {
+        /// <summary>
+        /// Initializes an in-memory bounded capture sink.
+        /// </summary>
+        /// <param name="capacity">Maximum retained frames.</param>
+        public InMemoryPubSubShadowCaptureSink(int capacity = 1024)
+        {
+            if (capacity <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(capacity));
+            }
+            _capacity = capacity;
+        }
+
         /// <inheritdoc/>
         public IReadOnlyList<PubSubShadowCapture> Captures
         {
@@ -126,6 +157,18 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         }
 
         /// <inheritdoc/>
+        public long DroppedCaptureCount
+        {
+            get
+            {
+                lock (_gate)
+                {
+                    return _droppedCaptureCount;
+                }
+            }
+        }
+
+        /// <inheritdoc/>
         public ValueTask CaptureAsync(PubSubShadowCapture capture,
             CancellationToken cancellationToken = default)
         {
@@ -133,6 +176,11 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             cancellationToken.ThrowIfCancellationRequested();
             lock (_gate)
             {
+                if (_captures.Count == _capacity)
+                {
+                    _captures.RemoveAt(0);
+                    _droppedCaptureCount++;
+                }
                 _captures.Add(capture.Clone());
             }
             return default;
@@ -140,6 +188,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
 
         private readonly Lock _gate = new();
         private readonly List<PubSubShadowCapture> _captures = [];
+        private readonly int _capacity;
+        private long _droppedCaptureCount;
     }
 
     /// <summary>

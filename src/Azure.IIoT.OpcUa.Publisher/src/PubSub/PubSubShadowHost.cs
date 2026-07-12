@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Options;
     using Opc.Ua;
     using Opc.Ua.PubSub.Application;
     using Opc.Ua.PubSub.Transports;
@@ -53,6 +54,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             ArgumentNullException.ThrowIfNull(services);
 
             services.AddOptions<PublisherOptions>();
+            services.AddOptions<PubSubShadowCaptureOptions>();
             services.TryAddSingleton<IPubSubIdentityRegistryStore,
                 FilePubSubIdentityRegistryStore>();
             services.TryAddSingleton<IPubSubIdentityRegistry, PubSubIdentityRegistry>();
@@ -60,7 +62,11 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             services.TryAddSingleton<PubSubShadowRuntimeStateProvider>();
             services.TryAddSingleton<IPubSubShadowRuntimeStateProvider>(
                 provider => provider.GetRequiredService<PubSubShadowRuntimeStateProvider>());
-            services.TryAddSingleton<InMemoryPubSubShadowCaptureSink>();
+            services.TryAddSingleton<InMemoryPubSubShadowCaptureSink>(provider =>
+            {
+                var options = provider.GetRequiredService<IOptions<PubSubShadowCaptureOptions>>();
+                return new InMemoryPubSubShadowCaptureSink(options.Value.Capacity);
+            });
             services.TryAddSingleton<IPubSubShadowCaptureSink>(
                 provider => provider.GetRequiredService<InMemoryPubSubShadowCaptureSink>());
             services.TryAddSingleton<IPubSubShadowCaptureStore>(
@@ -174,7 +180,10 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                         }
                     }
 
-                    await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+                    // The native runtime is now changed. Complete the durable
+                    // identity commit even if the initiating caller has since
+                    // canceled, so its state cannot diverge from the runtime.
+                    await transaction.CommitAsync(CancellationToken.None).ConfigureAwait(false);
                     _configuration = replacement;
                     _state.Replaced(replacement.Connections.Count,
                         CountDataSetWriters(replacement));
@@ -183,8 +192,17 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 {
                     if (replaced)
                     {
-                        await _application.ReplaceConfigurationAsync(_configuration,
-                            cancellationToken).ConfigureAwait(false);
+                        try
+                        {
+                            var rollbackStatus = await _application.ReplaceConfigurationAsync(
+                                _configuration, CancellationToken.None).ConfigureAwait(false);
+                            EnsureSuccessfulReplacement(rollbackStatus);
+                        }
+                        catch (Exception rollbackException)
+                        {
+                            _state.Failed(rollbackException);
+                            throw new PubSubShadowRollbackException(exception, rollbackException);
+                        }
                     }
                     _state.Failed(exception);
                     throw;
@@ -237,6 +255,18 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             return count;
         }
 
+        private static void EnsureSuccessfulReplacement(ArrayOf<StatusCode> statusCodes)
+        {
+            foreach (var statusCode in statusCodes)
+            {
+                if (!StatusCode.IsGood(statusCode))
+                {
+                    throw new InvalidOperationException(
+                        "The standard PubSub runtime rejected a configuration change.");
+                }
+            }
+        }
+
         private readonly SemaphoreSlim _gate = new(1, 1);
         private readonly IPubSubIdentityRegistry _identityRegistry;
         private readonly PubSubConfigurationTranslator _translator;
@@ -244,6 +274,16 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         private readonly IPubSubApplication _application;
         private PubSubConfigurationDataType _configuration;
         private bool _started;
+    }
+
+    internal sealed class PubSubShadowRollbackException : Exception
+    {
+        public PubSubShadowRollbackException(Exception updateException,
+            Exception rollbackException)
+            : base("The shadow PubSub update and its native runtime rollback failed.",
+                new AggregateException(updateException, rollbackException))
+        {
+        }
     }
 
     internal sealed class NoEgressPubSubTransportFactory : IPubSubTransportFactory

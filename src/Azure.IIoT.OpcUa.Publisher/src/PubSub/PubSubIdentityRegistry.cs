@@ -424,16 +424,32 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         public async ValueTask<PubSubIdentityRegistrySnapshot> LoadAsync(
             CancellationToken cancellationToken = default)
         {
-            if (!File.Exists(_path))
+            foreach (var candidate in new[] { _path, _backupPath, _temporaryPath })
             {
-                return new PubSubIdentityRegistrySnapshot();
+                if (!File.Exists(candidate))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    await using var stream = File.OpenRead(candidate);
+                    var snapshot = await JsonSerializer.DeserializeAsync(stream,
+                        PubSubIdentityJsonContext.Default.PubSubIdentityRegistrySnapshot,
+                        cancellationToken).ConfigureAwait(false);
+                    if (snapshot is not null)
+                    {
+                        return snapshot;
+                    }
+                }
+                catch (JsonException)
+                {
+                    // A completed atomic replacement may have left a durable
+                    // backup. Continue recovery with that snapshot.
+                }
             }
 
-            await using var stream = File.OpenRead(_path);
-            return await JsonSerializer.DeserializeAsync(stream,
-                PubSubIdentityJsonContext.Default.PubSubIdentityRegistrySnapshot,
-                cancellationToken).ConfigureAwait(false)
-                ?? new PubSubIdentityRegistrySnapshot();
+            return new PubSubIdentityRegistrySnapshot();
         }
 
         public async ValueTask SaveAsync(PubSubIdentityRegistrySnapshot snapshot,
@@ -446,35 +462,45 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 Directory.CreateDirectory(directory);
             }
 
-            var temporaryPath = _path + ".new";
+            var completed = false;
             try
             {
-                await using (var stream = File.Create(temporaryPath))
+                await using (var stream = new FileStream(_temporaryPath, FileMode.Create,
+                    FileAccess.Write, FileShare.None, bufferSize: 4096,
+                    FileOptions.Asynchronous | FileOptions.WriteThrough))
                 {
                     await JsonSerializer.SerializeAsync(stream, snapshot,
                         PubSubIdentityJsonContext.Default.PubSubIdentityRegistrySnapshot,
                         cancellationToken).ConfigureAwait(false);
                     await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
+                    stream.Flush(flushToDisk: true);
                 }
                 if (File.Exists(_path))
                 {
-                    File.Replace(temporaryPath, _path, null);
+                    File.Replace(_temporaryPath, _path, _backupPath);
                 }
                 else
                 {
-                    File.Move(temporaryPath, _path);
+                    File.Move(_temporaryPath, _path);
                 }
+                completed = true;
             }
             finally
             {
-                if (File.Exists(temporaryPath))
+                if (completed && File.Exists(_temporaryPath))
                 {
-                    File.Delete(temporaryPath);
+                    File.Delete(_temporaryPath);
+                }
+                if (completed && File.Exists(_backupPath))
+                {
+                    File.Delete(_backupPath);
                 }
             }
         }
 
         private readonly string _path;
+        private string _temporaryPath => _path + ".new";
+        private string _backupPath => _path + ".bak";
     }
 
     [JsonSerializable(typeof(PubSubIdentityRegistrySnapshot))]
