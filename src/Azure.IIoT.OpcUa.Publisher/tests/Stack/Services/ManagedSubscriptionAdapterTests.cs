@@ -186,7 +186,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         Variant.From(ObjectTypeIds.BaseEventType),
                         Variant.From(new NodeId(1234u, 2)),
                         Variant.From(true)))
-                ], PublishState.None, []);
+                }, PublishState.None, []);
             adapter.FlushConditions(force: true);
 
             var notification = Assert.Single(owner.Events);
@@ -212,7 +212,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         Variant.From(ObjectTypeIds.RefreshEndEventType),
                         Variant.From(new NodeId(1234u, 2)),
                         Variant.From(true)))
-                ], PublishState.None, []);
+                }, PublishState.None, []);
 
             Assert.Equal(2, owner.Events.Count);
             Assert.Equal(MessageType.Condition, owner.Events[1].MessageType);
@@ -351,7 +351,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     new DataValueChange(items[0], new DataValue(Variant.From(1)), null),
                     new DataValueChange(items[1], new DataValue(Variant.From(2)), null)
-                ], PublishState.None, []);
+                }, PublishState.None, []);
 
             Assert.Single(receiving.DataChanges);
         }
