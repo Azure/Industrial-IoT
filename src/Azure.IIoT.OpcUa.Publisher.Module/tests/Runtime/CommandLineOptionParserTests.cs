@@ -82,6 +82,91 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
         }
 
         [Fact]
+        public void DoubleDashReturnsTheUnprocessedTail()
+        {
+            var calls = new List<string>();
+            var parser = new CommandLineOptionParser
+            {
+                { "h|help", "Show help.\n", _ => calls.Add("help") },
+                { "id=", "Publisher identifier.\n", value => calls.Add($"id:{value}") }
+            };
+
+            var unsupported = parser.Parse(["--", "--help", "--id=after", "tail"]);
+
+            calls.Should().BeEmpty();
+            unsupported.Should().Equal("--help", "--id=after", "tail");
+        }
+
+        [Fact]
+        public void DoubleDashDoesNotInvokeCommandLineHandlers()
+        {
+            var result = new CommandLineTest(["--", "--help"]);
+
+            result.ExitCode.Should().Be(-1);
+            result.CommandLine.Should().BeEmpty();
+            result.Warnings.Should().Contain(
+                "Option {0} wrong or not supported, please use -h option to get all the supported options.::--help");
+        }
+
+        [Fact]
+        public void GroupedShortOptionsInvokeHandlersInOrder()
+        {
+            var calls = new List<string>();
+            var parser = new CommandLineOptionParser
+            {
+                { "h", "Show help.\n", _ => calls.Add("h") },
+                { "c", "Enable compliance.\n", _ => calls.Add("c") }
+            };
+
+            parser.Parse(["-hc"]).Should().BeEmpty();
+
+            calls.Should().Equal("h", "c");
+        }
+
+        [Fact]
+        public void GroupedRequiredOptionConsumesRemainingArgument()
+        {
+            var calls = new List<string>();
+            var parser = new CommandLineOptionParser
+            {
+                { "h", "Show help.\n", _ => calls.Add("h") },
+                { "i|id=", "Publisher identifier.\n", value => calls.Add($"id:{value}") }
+            };
+
+            parser.Parse(["-hi", "-leading-value"]).Should().BeEmpty();
+
+            calls.Should().Equal("h", "id:-leading-value");
+        }
+
+        [Fact]
+        public void InvalidGroupedShortOptionUsesLegacyFailure()
+        {
+            var parser = new CommandLineOptionParser
+            {
+                { "h", "Show help.\n", _ => { } }
+            };
+
+            var action = () => parser.Parse(["-hunknown"]);
+
+            action.Should().Throw<CommandLineOptionException>()
+                .WithMessage("Cannot use unregistered option 'u' in bundle '-hunknown'.");
+        }
+
+        [Fact]
+        public void RequiredValueConsumesLeadingDash()
+        {
+            string value = null;
+            var parser = new CommandLineOptionParser
+            {
+                { "id=", "Publisher identifier.\n", input => value = input }
+            };
+
+            parser.Parse(["--id", "-leading-value"]).Should().BeEmpty();
+
+            value.Should().Be("-leading-value");
+        }
+
+        [Fact]
         public void HelpAndEnvironmentVariableOutputAreDeterministic()
         {
             var parser = new CommandLineOptionParser

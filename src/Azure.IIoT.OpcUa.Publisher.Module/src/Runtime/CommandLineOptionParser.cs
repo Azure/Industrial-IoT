@@ -176,39 +176,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             for (var index = 0; index < values.Count; index++)
             {
                 var argument = values[index];
-                if (!TryFindOption(argument, out var option, out var value, out var hasValue))
+                if (argument == "--")
                 {
-                    unsupported.Add(argument);
+                    unsupported.AddRange(values.Skip(index + 1));
+                    break;
+                }
+
+                if (TryFindOption(argument, out var option, out var optionName,
+                    out var value, out var hasValue))
+                {
+                    ProcessOption(option, argument, optionName, value, hasValue,
+                        values, ref index);
                     continue;
                 }
 
-                switch (option.OptionValueType)
+                if (TryProcessShortOptionBundle(argument, values, ref index))
                 {
-                    case CommandLineOptionValueType.Required:
-                        if (!hasValue)
-                        {
-                            if (++index == values.Count || IsOption(values[index]))
-                            {
-                                throw new CommandLineOptionException(
-                                    $"Missing required value for option '{argument}'.");
-                            }
-                            value = values[index];
-                        }
-                        break;
-                    case CommandLineOptionValueType.Optional:
-                        value = hasValue ? value : null;
-                        break;
-                    case CommandLineOptionValueType.None:
-                        if (hasValue)
-                        {
-                            throw new CommandLineOptionException(
-                                $"Option '{argument}' does not take a value.");
-                        }
-                        value = null;
-                        break;
+                    continue;
                 }
 
-                option.Action(value);
+                unsupported.Add(argument);
             }
             return unsupported;
         }
@@ -289,9 +276,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         }
 
         private bool TryFindOption(string argument,
-            out CommandLineOptionDescriptor option, out string? value, out bool hasValue)
+            out CommandLineOptionDescriptor option, out string optionName,
+            out string? value, out bool hasValue)
         {
             option = null!;
+            optionName = string.Empty;
             value = null;
             hasValue = false;
             if (!IsOption(argument))
@@ -310,9 +299,98 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             if (_byName.TryGetValue(optionPart, out var found))
             {
                 option = found;
+                optionName = optionPart;
                 return true;
             }
             return false;
+        }
+
+        private void ProcessOption(CommandLineOptionDescriptor option, string argument,
+            string optionName, string? value, bool hasValue, List<string> values,
+            ref int index)
+        {
+            switch (option.OptionValueType)
+            {
+                case CommandLineOptionValueType.Required:
+                    if (!hasValue)
+                    {
+                        if (++index == values.Count)
+                        {
+                            throw new CommandLineOptionException(
+                                $"Missing required value for option '{argument}'.");
+                        }
+                        value = values[index];
+                    }
+                    option.Action(value);
+                    break;
+                case CommandLineOptionValueType.Optional:
+                    option.Action(hasValue ? value : null);
+                    break;
+                case CommandLineOptionValueType.None:
+                    option.Action(optionName);
+                    break;
+            }
+        }
+
+        private bool TryProcessShortOptionBundle(string argument, List<string> values,
+            ref int index)
+        {
+            if (argument.Length <= 2 || argument[0] != '-' || argument[1] == '-')
+            {
+                return false;
+            }
+
+            var bundle = argument[1..];
+            var valueOption = _options
+                .Where(option => option.OptionValueType != CommandLineOptionValueType.None)
+                .SelectMany(option => option.Names.Select(name => (option, name)))
+                .Where(candidate => bundle.Length > candidate.name.Length &&
+                    bundle.StartsWith(candidate.name, StringComparison.Ordinal))
+                .OrderByDescending(candidate => candidate.name.Length)
+                .FirstOrDefault();
+            if (valueOption.option != null)
+            {
+                valueOption.option.Action(bundle[valueOption.name.Length..]);
+                return true;
+            }
+
+            for (var position = 0; position < bundle.Length; position++)
+            {
+                var optionName = bundle[position].ToString();
+                if (!_byName.TryGetValue(optionName, out var option))
+                {
+                    if (position == 0)
+                    {
+                        return false;
+                    }
+                    throw new CommandLineOptionException(
+                        $"Cannot use unregistered option '{optionName}' in bundle '{argument}'.");
+                }
+
+                var remaining = bundle[(position + 1)..];
+                switch (option.OptionValueType)
+                {
+                    case CommandLineOptionValueType.None:
+                        option.Action(bundle);
+                        continue;
+                    case CommandLineOptionValueType.Optional:
+                        option.Action(remaining.Length == 0 ? null : remaining);
+                        return true;
+                    case CommandLineOptionValueType.Required:
+                        if (remaining.Length == 0)
+                        {
+                            if (++index == values.Count)
+                            {
+                                throw new CommandLineOptionException(
+                                    $"Missing required value for option '-{optionName}'.");
+                            }
+                            remaining = values[index];
+                        }
+                        option.Action(remaining);
+                        return true;
+                }
+            }
+            return true;
         }
 
         private static bool IsOption(string value)
