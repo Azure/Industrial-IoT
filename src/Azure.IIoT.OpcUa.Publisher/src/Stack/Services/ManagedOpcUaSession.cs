@@ -112,7 +112,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             add
             {
                 _connectionStateChange += value;
-                value(this, new EndpointConnectivityStateEventArgs(ConnectivityState));
+                value?.Invoke(this, new EndpointConnectivityStateEventArgs(ConnectivityState));
             }
             remove => _connectionStateChange -= value;
         }

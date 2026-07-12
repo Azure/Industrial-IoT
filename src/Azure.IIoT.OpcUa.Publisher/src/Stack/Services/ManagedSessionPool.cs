@@ -149,8 +149,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private async Task<ManagedOpcUaSession> ConnectAsync(
             ManagedSessionConnectionRequest request)
         {
-            var attempt = new ConnectionAttempt(_provider, request, _shutdown.Token);
-            var transferredOwnership = false;
+            ConnectionAttempt? attempt = new ConnectionAttempt(_provider, request,
+                _shutdown.Token);
             try
             {
                 var connect = attempt.Connect;
@@ -167,16 +167,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
 
                 await attempt.CancelAsync().ConfigureAwait(false);
-                _ = attempt.DisposeWhenCompleteAsync();
-                transferredOwnership = true;
+                attempt.DisposeWhenComplete();
+                attempt = null;
                 throw new TimeoutException("Connecting to the managed OPC UA session timed out.");
             }
             finally
             {
-                if (!transferredOwnership)
-                {
-                    attempt.Dispose();
-                }
+                attempt?.Dispose();
             }
         }
 
@@ -400,7 +397,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return _cancellation.CancelAsync();
             }
 
-            public async Task DisposeWhenCompleteAsync()
+            public void DisposeWhenComplete()
+            {
+                _ = DisposeWhenCompleteAsync();
+            }
+
+            private async Task DisposeWhenCompleteAsync()
             {
                 try
                 {
