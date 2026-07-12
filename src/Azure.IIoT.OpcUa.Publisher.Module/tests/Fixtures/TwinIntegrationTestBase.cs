@@ -7,8 +7,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 {
     using System;
     using System.Threading;
+    using Xunit;
     using Xunit.Abstractions;
 
+    [Trait("Category", "ServerIntegration")]
     public abstract class TwinIntegrationTestBase : IDisposable
     {
         protected CancellationToken Ct => _cts.Token;

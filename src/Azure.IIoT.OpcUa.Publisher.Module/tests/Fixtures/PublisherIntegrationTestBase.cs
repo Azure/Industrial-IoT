@@ -38,6 +38,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     /// Base class for integration testing, it connects to the server, runs
     /// publisher and injects mocked IoTHub services.
     /// </summary>
+    [Trait("Category", "ServerIntegration")]
     public class PublisherIntegrationTestBase : IDisposable
     {
         protected string EndpointUrl { get; set; }

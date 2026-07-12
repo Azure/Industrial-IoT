@@ -6,7 +6,7 @@ name: CI
 #
 # Stages (mirrors templates in the internal Industrial-IoT repo):
 #   version         -> compute nbgv version, share via job outputs
-#   build_test      -> matrix (Linux + Windows) x (4 unit test projects)
+#   build_test      -> matrix (Linux + Windows) x (Fast and ServerIntegration test projects)
 #                      with coverlet.msbuild Cobertura coverage
 #   coverage_report -> merge with ReportGenerator -> $GITHUB_STEP_SUMMARY
 #   images_build    -> matrix arch (x64/arm/arm64), produces image tarballs
@@ -100,16 +100,16 @@ jobs:
         shell: bash
 
   # --------------------------------------------------------------------------
-  # build_test: 8-way matrix (2 OS x 4 test projects). Each project is run
-  # in its own job so the OPC UA per-project port and PKI contention only
-  # has to be tolerated within a single project (matches the existing
-  # serial-per-project pattern in the deleted test.yml). Coverage is
+  # build_test: each project is run in its own job. Fast projects remain
+  # parallelizable in the matrix; each ServerIntegration project executes in
+  # one serial test process so its OPC UA fixture ports and PKI roots are
+  # isolated. Coverage is
   # collected with coverlet.msbuild (the only coverlet package referenced
   # by the test csproj files) using MSBuild integration -- same as the
   # internal templates/test.yml.
   # --------------------------------------------------------------------------
   build_test:
-    name: Build & Test (${{ matrix.os }} / ${{ matrix.project.name }})
+    name: Build & Test (${{ matrix.os }} / ${{ matrix.project.category }} / ${{ matrix.project.name }})
     needs: version
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
@@ -120,12 +120,22 @@ jobs:
         project:
           - name: Models
             path: src/Azure.IIoT.OpcUa.Publisher.Models/tests/Azure.IIoT.OpcUa.Publisher.Models.Tests.csproj
+            category: Fast
+          - name: Core
+            path: src/Azure.IIoT.OpcUa.Core/tests/Azure.IIoT.OpcUa.Core.Tests.csproj
+            category: Fast
           - name: OpcUa
             path: src/Azure.IIoT.OpcUa/tests/Azure.IIoT.OpcUa.Tests.csproj
+            category: Fast
+          - name: Testing
+            path: src/Azure.IIoT.OpcUa.Publisher.Testing/tests/Azure.IIoT.OpcUa.Publisher.Testing.csproj
+            category: ServerIntegration
           - name: Publisher
             path: src/Azure.IIoT.OpcUa.Publisher/tests/Azure.IIoT.OpcUa.Publisher.Tests.csproj
+            category: ServerIntegration
           - name: Publisher.Module
             path: src/Azure.IIoT.OpcUa.Publisher.Module/tests/Azure.IIoT.OpcUa.Publisher.Module.Tests.csproj
+            category: ServerIntegration
     steps:
       - uses: actions/checkout@v4
         with:
@@ -145,15 +155,12 @@ jobs:
         run: dotnet restore "${{ matrix.project.path }}" -s https://api.nuget.org/v3/index.json
         shell: pwsh
       - name: Build
-        run: dotnet build "${{ matrix.project.path }}" -c Release --no-restore
+        run: dotnet build "${{ matrix.project.path }}" -c Release --no-restore --no-incremental
         shell: pwsh
       - name: Test
         # OPC UA tests within a project contend on local ports and PKI
         # directories; --blame-hang-timeout protects against the
         # intermittent test-host hangs that historically affected Windows.
-        # 30m allows the coverlet.collector finalizer enough headroom on
-        # Linux (instrumentation flush on the Publisher.Module assembly
-        # can sit idle >10m after the last test completes).
         #
         # Coverage uses the `XPlat Code Coverage` data collector backed by
         # coverlet.collector (registered as a PackageReference in each test
@@ -164,7 +171,7 @@ jobs:
         shell: pwsh
         run: |
           dotnet test "${{ matrix.project.path }}" --no-build -c Release `
-            --blame-hang-timeout 30m --blame-hang-dump-type none `
+            --blame-hang-timeout 10m --blame-hang-dump-type none `
             --logger "trx;LogFileName=test-results.trx" `
             --results-directory ./testresults/${{ matrix.project.name }} `
             --collect:"XPlat Code Coverage;Format=cobertura"
@@ -591,5 +598,3 @@ jobs:
       cleanup: ${{ github.event_name != 'workflow_dispatch' || inputs.e2e_cleanup }}
       head_sha: ${{ github.sha }}
     secrets: inherit
-
-
