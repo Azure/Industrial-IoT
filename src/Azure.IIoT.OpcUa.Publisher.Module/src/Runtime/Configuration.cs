@@ -10,7 +10,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Azure.IIoT.OpcUa.Publisher.Module.Controllers;
     using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Core.Rpc.Router;
-    using Azure.Iot.Operations.Protocol;
     using Azure.IIoT.OpcUa.Core.Messaging.Clients.EventHubs;
     using Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge;
     using Azure.IIoT.OpcUa.Core.Configuration;
@@ -19,7 +18,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Azure.IIoT.OpcUa.Core.Logging;
     using Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt;
     using Azure.IIoT.OpcUa.Core.Rpc.Servers;
-    using k8s;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Server.Kestrel.Core;
@@ -170,8 +168,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 services.AddTransientAsImplementedInterfaces<Aio>();
                 if (publisherOptions.IsAzureIoTOperationsConnector.Value)
                 {
-                    services.AddSingleton(new HybridLogicalClock(
-                        DateTime.UtcNow, 0, publisherOptions.PublisherId));
                     services.AddSingletonAsImplementedInterfaces<AssetDeviceIntegration>();
                 }
             }
@@ -437,8 +433,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             this IConfigurationBuilder builder)
         {
             var connectorConfigMountPath = Environment.GetEnvironmentVariable(
-                Azure.Iot.Operations.Connector.ConnectorConfigurations.
-                    ConnectorFileMountSettings.ConnectorConfigMountPathEnvVar);
+                kConnectorConfigMountPathEnvironmentVariable);
             if (string.IsNullOrEmpty(connectorConfigMountPath))
             {
                 return builder;
@@ -446,14 +441,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             var additionalConfiguration = Path.Combine(connectorConfigMountPath,
                 "ADDITIONAL_CONNECTOR_CONFIGURATION");
             var diagnostics = Path.Combine(connectorConfigMountPath,
-                 Azure.Iot.Operations.Connector.ConnectorConfigurations.
-                    ConnectorFileMountSettings.ConnectorDiagnosticsConfigFileName);
+                kConnectorDiagnosticsConfigFileName);
             return builder
                 .AddJsonFile(diagnostics, optional: true,
                     reloadOnChange: true)
                 .AddJsonFile(additionalConfiguration, optional: true,
                     reloadOnChange: true);
         }
+
+        private const string kConnectorConfigMountPathEnvironmentVariable =
+            "CONNECTOR_CONFIGURATION_MOUNT_PATH";
+        private const string kConnectorDiagnosticsConfigFileName = "DIAGNOSTICS";
 
         /// <summary>
         /// Add obs configuration
@@ -1315,7 +1313,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             /// <inheritdoc/>
             public override void Configure(string? name, PublisherOptions options)
             {
-                if (!KubernetesClientConfiguration.IsInCluster())
+                if (!KubernetesEnvironment.IsInCluster())
                 {
                     return;
                 }

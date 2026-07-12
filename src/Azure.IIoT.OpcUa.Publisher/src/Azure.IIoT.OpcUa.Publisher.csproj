@@ -12,7 +12,6 @@
     <PackageReference Include="Azure.Iot.Operations.Connector" />
     <PackageReference Include="Azure.Iot.Operations.Services" />
     <PackageReference Include="Irony" />
-    <PackageReference Include="KubernetesClient" />
     <!--
       Phase 8 (AOT gate): pin these multi-TFM UA-.NETStandard submodule references to
       net10.0 and stop PublishAot from propagating into them (and their transitive
