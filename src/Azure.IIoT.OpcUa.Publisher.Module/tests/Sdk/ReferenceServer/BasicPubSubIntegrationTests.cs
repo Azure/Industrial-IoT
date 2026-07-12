@@ -529,7 +529,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                   },
                   "Payload": {
                     "OutputValueKind": "Number",
-                    "EndpointUrl": "opc.tcp://<host>:<port>/",
+                    "EndpointUrl": "opc.tcp://<host>:<port>/UA/SampleServer",
                     "ApplicationUriValueKind": "String"
                   },
                   "MetaDataFields": [

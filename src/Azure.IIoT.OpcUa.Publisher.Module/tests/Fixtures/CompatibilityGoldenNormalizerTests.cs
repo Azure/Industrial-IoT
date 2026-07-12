@@ -20,6 +20,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                   "Timestamp": "2026-07-12T20:27:40.779+02:00",
                   "DataSetClassId": "d2719a6e-10ad-4e2b-a76b-0973382d0bd3",
                   "SequenceNumber": 12,
+                  "WrappedEndpoint": {
+                    "EndpointUrl": {
+                      "Value": "opc.tcp://localhost:4840/wrapped"
+                    }
+                  },
                   "Payload": {
                     "Output": 42,
                     "Description": "unchanged",
@@ -38,6 +43,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             Assert.Equal("<timestamp>", normalized["Timestamp"]!.GetValue<string>());
             Assert.Equal("<guid>", normalized["DataSetClassId"]!.GetValue<string>());
             Assert.Equal("<sequence>", normalized["SequenceNumber"]!.GetValue<string>());
+            Assert.Equal("opc.tcp://<host>:<port>/wrapped",
+                normalized["WrappedEndpoint"]!["EndpointUrl"]!["Value"]!.GetValue<string>());
             Assert.Equal(42, normalized["Payload"]!["Output"]!.GetValue<int>());
             Assert.Equal("unchanged", normalized["Payload"]!["Description"]!.GetValue<string>());
             Assert.Equal("<timestamp>",

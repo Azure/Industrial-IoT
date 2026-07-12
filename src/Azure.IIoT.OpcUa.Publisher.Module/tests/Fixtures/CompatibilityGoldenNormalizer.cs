@@ -31,7 +31,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             {
                 foreach (var property in jsonObject.ToArray())
                 {
-                    var normalized = Normalize(property.Value, property.Key);
+                    var childPropertyName = string.Equals(propertyName, "EndpointUrl",
+                        StringComparison.Ordinal) ? propertyName : property.Key;
+                    var normalized = Normalize(property.Value, childPropertyName);
                     if (!ReferenceEquals(normalized, property.Value))
                     {
                         jsonObject[property.Key] = normalized;
