@@ -370,7 +370,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             {
                 httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
                 httpContext.Response.Headers.Append("errorInfo",
-                    new StringValues(Json.SerializeToString(result,
+                    new StringValues(Json.SerializeToString<ServiceResponse<Stream>>(result,
                         Json.GetTypeInfo<ServiceResponse<Stream>>())));
             }
             await response.CompleteAsync().ConfigureAwait(false);
@@ -438,7 +438,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             {
                 httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
                 httpContext.Response.Headers.Append("errorInfo",
-                    new StringValues(Json.SerializeToString(result,
+                    new StringValues(Json.SerializeToString<ServiceResponse<Stream>>(result,
                         Json.GetTypeInfo<ServiceResponse<Stream>>())));
             }
         }
