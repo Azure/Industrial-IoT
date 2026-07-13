@@ -422,7 +422,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 try
                 {
                     await events.SendEventAsync(eventsTopic,
-                        Json.SerializeToMemory(runtimeStateEvent), Json.MimeType,
+                        Json.SerializeToMemory(runtimeStateEvent,
+                            Json.GetTypeInfo<RuntimeStateEventModel>()), Json.MimeType,
                         Encoding.UTF8.WebName, configure: eventMessage =>
                         {
                             eventMessage.SetRetain(true);
@@ -527,7 +528,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     try
                     {
                         await events.SendEventAsync(diagnosticsTopic,
-                            Json.SerializeToMemory(info), Json.MimeType,
+                            Json.SerializeToMemory(info,
+                                Json.GetTypeInfo<WriterGroupDiagnosticModel>()), Json.MimeType,
                             Encoding.UTF8.WebName, configure: eventMessage =>
                             {
                                 eventMessage

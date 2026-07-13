@@ -41,9 +41,7 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
     ///
     /// Source generated contexts can be registered by the assembly which owns a
     /// contract. The shared options only contain closed converters, so shipping
-    /// contracts avoid runtime converter factories. A reflection fallback remains
-    /// for the public <see cref="Options"/> compatibility surface when callers pass
-    /// runtime-only types.
+    /// contracts avoid runtime converter factories and reflection metadata.
     /// </summary>
     public static class Json
     {
@@ -193,6 +191,37 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
         }
 
         /// <summary>
+        /// Serialize to string using source generated metadata.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="o">The value to serialize.</param>
+        /// <param name="typeInfo">The source generated type metadata.</param>
+        /// <param name="format">The requested formatting.</param>
+        public static string SerializeToString<T>(T? o, JsonTypeInfo<T> typeInfo,
+            SerializeOption format = SerializeOption.None)
+        {
+            ArgumentNullException.ThrowIfNull(typeInfo);
+            try
+            {
+                if (format == SerializeOption.None)
+                {
+                    return JsonSerializer.Serialize<T>(o!, typeInfo);
+                }
+                var buffer = new ArrayBufferWriter<byte>();
+                using (var writer = new Utf8JsonWriter(buffer,
+                    new JsonWriterOptions { Indented = true }))
+                {
+                    JsonSerializer.Serialize<T>(writer, o!, typeInfo);
+                }
+                return ContentEncoding.GetString(buffer.WrittenSpan);
+            }
+            catch (JsonException ex)
+            {
+                throw new SerializerException(ex.Message, ex);
+            }
+        }
+
+        /// <summary>
         /// Serialize object to string.
         /// </summary>
         /// <param name="o"></param>
@@ -318,6 +347,25 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
             try
             {
                 return JsonSerializer.Deserialize<T>(str, OptionsFor<T>());
+            }
+            catch (JsonException ex)
+            {
+                throw new SerializerException(ex.Message, ex);
+            }
+        }
+
+        /// <summary>
+        /// Deserialize from string using source generated metadata.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="str">The JSON string.</param>
+        /// <param name="typeInfo">The source generated type metadata.</param>
+        public static T? Deserialize<T>(string str, JsonTypeInfo<T> typeInfo)
+        {
+            ArgumentNullException.ThrowIfNull(typeInfo);
+            try
+            {
+                return JsonSerializer.Deserialize(str, typeInfo);
             }
             catch (JsonException ex)
             {
@@ -562,20 +610,6 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
 
         private sealed class RegisteredTypeInfoResolver : IJsonTypeInfoResolver
         {
-            [UnconditionalSuppressMessage("Trimming", "IL2026",
-                Justification = "The fallback preserves the public Json.Options " +
-                    "contract for callers which pass runtime-only types. Shipping " +
-                    "DTOs resolve through registered source-generated metadata.")]
-            [UnconditionalSuppressMessage("AotAnalysis", "IL3050",
-                Justification = "The fallback preserves the public Json.Options " +
-                    "contract for callers which pass runtime-only types. Shipping " +
-                    "DTOs resolve through registered source-generated metadata.")]
-            public RegisteredTypeInfoResolver()
-            {
-                _reflectionFallback = new DefaultJsonTypeInfoResolver();
-                _reflectionFallback.Modifiers.Add(DataContractResolver.Modify);
-            }
-
             public JsonTypeInfo? GetTypeInfo(Type type,
                 JsonSerializerOptions options)
             {
@@ -590,10 +624,8 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
                         }
                     }
                 }
-                return _reflectionFallback.GetTypeInfo(type, options);
+                return null;
             }
-
-            private readonly DefaultJsonTypeInfoResolver _reflectionFallback;
         }
     }
 }

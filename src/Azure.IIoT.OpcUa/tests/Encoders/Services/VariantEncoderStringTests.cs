@@ -450,6 +450,31 @@ namespace Azure.IIoT.OpcUa.Encoders
             Assert.True(JsonNode.DeepEquals(TestJson.FromArray("", "", ""), encoded));
         }
 
+        [Fact]
+        public void SanitizeAcceptsMixedQuotedJson()
+        {
+            var codec = new JsonVariantEncoder(new ServiceMessageContext());
+
+            var result = codec.Sanitize(
+                JsonValue.Create("""{'name': "O'Reilly"}"""), isString: true);
+
+            Assert.True(JsonNode.DeepEquals(
+                JsonNode.Parse("""{"name":"O'Reilly"}"""), result));
+        }
+
+        [Fact]
+        public void SanitizeAcceptsSingleQuotesCommentsAndTrailingCommas()
+        {
+            var codec = new JsonVariantEncoder(new ServiceMessageContext());
+
+            var result = codec.Sanitize(
+                JsonValue.Create("""{'name': 'value', /* comment */}"""),
+                isString: true);
+
+            Assert.True(JsonNode.DeepEquals(
+                JsonNode.Parse("""{"name":"value"}"""), result));
+        }
+
 #pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
 
 #pragma warning restore CA1814 // Prefer jagged arrays over multidimensional

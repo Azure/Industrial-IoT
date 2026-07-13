@@ -556,7 +556,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 if (nodesToRemoveSet.Count != 0)
                 {
                     request.OpcNodes = [.. nodesToRemoveSet];
-                    var entriesNotFoundJson = Json.SerializeToString(request);
+                    var entriesNotFoundJson = Json.SerializeToString(request,
+                        Json.GetTypeInfo<PublishedNodesEntryModel>());
                     throw new ResourceNotFoundException($"Nodes not found: \n{entriesNotFoundJson}");
                 }
 
@@ -888,8 +889,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             try
             {
                 var currentNodes = GetCurrentPublishedNodes(preferTimespan: false);
-                var updatedContent = Json.SerializeToString(
-                    currentNodes, SerializeOption.Indented) ?? string.Empty;
+                var updatedContent = Json.SerializeToString(currentNodes,
+                    Json.GetTypeInfo<IEnumerable<PublishedNodesEntryModel>>(),
+                    SerializeOption.Indented) ?? string.Empty;
 
                 _publishedNodesProvider.WriteContent(updatedContent, true);
                 // Update _lastKnownFileHash

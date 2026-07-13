@@ -5,7 +5,6 @@
 
 namespace Azure.IIoT.OpcUa.Encoders
 {
-    using Azure.IIoT.OpcUa.Core.Serialization;
     using System;
     using System.Globalization;
     using System.Text.Json;
@@ -51,7 +50,14 @@ namespace Azure.IIoT.OpcUa.Encoders
 
         private static JsonSerializerOptions CreateOptions()
         {
-            var options = new JsonSerializerOptions(Json.Options);
+            var options = new JsonSerializerOptions(JsonSerializerDefaults.Web)
+            {
+                AllowTrailingCommas = true,
+                NumberHandling = JsonNumberHandling.AllowReadingFromString |
+                    JsonNumberHandling.AllowNamedFloatingPointLiterals,
+                PropertyNameCaseInsensitive = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
             options.Converters.Insert(0, new FloatingPointConverter<double>(
                 d => double.IsFinite(d) && d == Math.Floor(d),
                 d => d.ToString("R", CultureInfo.InvariantCulture)));

@@ -582,16 +582,21 @@ namespace Azure.IIoT.OpcUa.Encoders
         private static string NormalizeSingleQuotedStrings(string value)
         {
             var result = new System.Text.StringBuilder(value.Length);
-            var singleQuoted = false;
+            var quote = '\0';
             var escaped = false;
             foreach (var character in value)
             {
-                if (!singleQuoted)
+                if (quote == '\0')
                 {
                     if (character == '\'')
                     {
-                        singleQuoted = true;
+                        quote = character;
                         result.Append('"');
+                    }
+                    else if (character == '"')
+                    {
+                        quote = character;
+                        result.Append(character);
                     }
                     else
                     {
@@ -602,7 +607,7 @@ namespace Azure.IIoT.OpcUa.Encoders
 
                 if (escaped)
                 {
-                    if (character == '\'')
+                    if (quote == '\'' && character == '\'')
                     {
                         result.Append('\'');
                     }
@@ -617,21 +622,21 @@ namespace Azure.IIoT.OpcUa.Encoders
                 {
                     escaped = true;
                 }
-                else if (character == '\'')
+                else if (character == quote)
                 {
-                    singleQuoted = false;
+                    quote = '\0';
                     result.Append('"');
                 }
                 else
                 {
-                    if (character == '"')
+                    if (quote == '\'' && character == '"')
                     {
                         result.Append('\\');
                     }
                     result.Append(character);
                 }
             }
-            if (escaped || singleQuoted)
+            if (escaped || quote != '\0')
             {
                 throw new JsonException("Unterminated single-quoted JSON string.");
             }

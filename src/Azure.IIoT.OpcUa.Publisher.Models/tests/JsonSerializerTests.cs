@@ -12,6 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
     using System.Text.Json.Nodes;
     using System.Collections;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Text.Json;
     using Xunit;
@@ -118,6 +119,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
                 JsonSerializer.Deserialize<ConnectionOptions>("17", Json.Options));
             Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<ConnectionOptions>(
                 "\"not-an-option\"", Json.Options));
+        }
+
+        [Fact]
+        public void ShippingSerializationRootsResolveWithoutReflection()
+        {
+            var roots = TypeFixture.GetDataContractTypes()
+                .Select(values => (Type)values[0])
+                .Append(typeof(DiscoveryEventModel))
+                .Append(typeof(List<PublishedNodesEntryModel>))
+                .Append(typeof(IEnumerable<PublishedNodesEntryModel>))
+                .Append(typeof(ServiceResponse<Stream>));
+
+            foreach (var root in roots.Distinct())
+            {
+                var typeInfo = Json.Options.GetTypeInfo(root);
+                Assert.Equal("PublisherModelsJsonContext",
+                    typeInfo.OriginatingResolver?.GetType().Name);
+            }
+
+            Assert.Throws<NotSupportedException>(() =>
+                Json.Options.GetTypeInfo(typeof(ReflectionOnlyModel)));
+        }
+
+        private sealed class ReflectionOnlyModel
+        {
         }
 
     }

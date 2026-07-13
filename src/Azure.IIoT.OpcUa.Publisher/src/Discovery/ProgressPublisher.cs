@@ -111,7 +111,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                     try
                     {
                         await events.SendEventAsync(eventsTopic,
-                            Json.SerializeToMemory(progress with { DiscovererId = events.Identity }),
+                            Json.SerializeToMemory(progress with { DiscovererId = events.Identity },
+                                Json.GetTypeInfo<DiscoveryProgressModel>()),
                             Json.MimeType, Encoding.UTF8.WebName,
                             eventMessage =>
                             {

@@ -63,7 +63,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
             _logger.ReadingPublishedNodesFile();
             try
             {
-                var items = Json.Deserialize<List<PublishedNodesEntryModel>>(publishedNodesContent)
+                var items = Json.Deserialize(publishedNodesContent,
+                    Json.GetTypeInfo<List<PublishedNodesEntryModel>>())
                     ?? throw new SerializerException("Published nodes files, malformed.");
 
                 _logger.ReadPublishedNodesFile(items.Count, sw.Elapsed);

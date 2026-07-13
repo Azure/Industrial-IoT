@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
 {
     using Azure.IIoT.OpcUa.Core.Exceptions;
     using Azure.IIoT.OpcUa.Core.Rpc.Models;
+    using System.Collections.Generic;
     using System.Text.Json.Serialization;
 
     /// <summary>
@@ -15,9 +16,25 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
     /// Native-AOT and trim safe (no reflection-based metadata discovery).
     /// </summary>
     [JsonSourceGenerationOptions(
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
+        AllowTrailingCommas = true,
+        DefaultBufferSize = 128,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        MaxDepth = 64,
+        NumberHandling = JsonNumberHandling.AllowReadingFromString |
+            JsonNumberHandling.AllowNamedFloatingPointLiterals,
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
     [JsonSerializable(typeof(ErrorDetails))]
     [JsonSerializable(typeof(MethodChunkModel))]
+    [JsonSerializable(typeof(IReadOnlySet<string>))]
+    [JsonSerializable(typeof(bool[,]))]
+    [JsonSerializable(typeof(byte[,]))]
+    [JsonSerializable(typeof(short[,]))]
+    [JsonSerializable(typeof(int[,]))]
+    [JsonSerializable(typeof(long[,]))]
+    [JsonSerializable(typeof(float[,]))]
+    [JsonSerializable(typeof(double[,]))]
+    [JsonSerializable(typeof(string[,]))]
     internal sealed partial class CoreJsonContext : JsonSerializerContext
     {
     }

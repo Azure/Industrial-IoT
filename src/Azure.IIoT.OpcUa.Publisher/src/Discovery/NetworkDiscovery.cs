@@ -718,7 +718,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                 .Select((discovery, i) =>
                 {
                     discovery.Index = i;
-                    return Json.SerializeToMemory(discovery);
+                    return Json.SerializeToMemory(discovery,
+                        Json.GetTypeInfo<DiscoveryEventModel>());
                 })
                 .ToList();
 

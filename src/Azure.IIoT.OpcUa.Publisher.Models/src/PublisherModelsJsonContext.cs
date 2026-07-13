@@ -6,6 +6,9 @@
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using Azure.IIoT.OpcUa.Core.Serialization;
+    using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
+    using System.IO;
     using System.Runtime.CompilerServices;
     using System.Text.Json;
     using System.Text.Json.Nodes;
@@ -71,6 +74,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     [JsonSerializable(typeof(DiagnosticsModel))]
     [JsonSerializable(typeof(DiscoveryCancelRequestModel))]
     [JsonSerializable(typeof(DiscoveryConfigModel))]
+    [JsonSerializable(typeof(DiscoveryEventModel))]
     [JsonSerializable(typeof(DiscoveryMode))]
     [JsonSerializable(typeof(DiscoveryProgressModel))]
     [JsonSerializable(typeof(DiscoveryProgressType))]
@@ -182,6 +186,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     [JsonSerializable(typeof(PublishedNodeDeleteAssetRequestModel))]
     [JsonSerializable(typeof(PublishedNodeExpansionModel))]
     [JsonSerializable(typeof(PublishedNodesEntryModel))]
+    [JsonSerializable(typeof(List<PublishedNodesEntryModel>))]
+    [JsonSerializable(typeof(IEnumerable<PublishedNodesEntryModel>))]
     [JsonSerializable(typeof(PublisherDiagnosticTargetType))]
     [JsonSerializable(typeof(PublishingQueueSettingsModel))]
     [JsonSerializable(typeof(PublishStartRequestModel))]
@@ -209,6 +215,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     [JsonSerializable(typeof(ServerEndpointQueryModel))]
     [JsonSerializable(typeof(ServerRegistrationRequestModel))]
     [JsonSerializable(typeof(ServiceCounterModel))]
+    [JsonSerializable(typeof(ServiceResponse<Stream>))]
     [JsonSerializable(typeof(ServiceResultModel))]
     [JsonSerializable(typeof(SessionDiagnosticsModel))]
     [JsonSerializable(typeof(SetConfiguredEndpointsRequestModel))]
@@ -249,6 +256,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     internal static class PublisherModelsJsonRegistration
     {
         [ModuleInitializer]
+        [SuppressMessage("Usage", "CA2255",
+            Justification = "The module initializer registers this assembly's " +
+                "source-generated metadata before its contracts are serialized.")]
         internal static void Register()
         {
             Json.RegisterTypeInfoResolver(PublisherModelsJsonContext.Default);

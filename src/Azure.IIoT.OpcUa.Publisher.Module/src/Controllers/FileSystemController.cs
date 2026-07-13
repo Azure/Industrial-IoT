@@ -340,16 +340,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
-        [UnconditionalSuppressMessage("Trimming", "IL2026",
-            Justification = "Connection and file object models are (de)serialized via the " +
-            "shared reflection-based JSON serializer that preserves the DataContract wire " +
-            "format; source generating the full REST DTO graph on the HTTP path is the " +
-            "final AOT step, validated against the endpoint integration suite in CI.")]
-        [UnconditionalSuppressMessage("AOT", "IL3050",
-            Justification = "Connection and file object models are (de)serialized via the " +
-            "shared reflection-based JSON serializer that preserves the DataContract wire " +
-            "format; source generating the full REST DTO graph on the HTTP path is the " +
-            "final AOT step, validated against the endpoint integration suite in CI.")]
         public async Task DownloadAsync(
              string connectionJson,
              string fileObjectJson,
@@ -359,8 +349,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             ArgumentNullException.ThrowIfNullOrWhiteSpace(connectionJson);
             ArgumentNullException.ThrowIfNullOrWhiteSpace(fileObjectJson);
 
-            var connection = Json.Deserialize<ConnectionModel>(connectionJson);
-            var fileObject = Json.Deserialize<FileSystemObjectModel>(fileObjectJson);
+            var connection = Json.Deserialize(connectionJson,
+                Json.GetTypeInfo<ConnectionModel>());
+            var fileObject = Json.Deserialize(fileObjectJson,
+                Json.GetTypeInfo<FileSystemObjectModel>());
 
             ArgumentNullException.ThrowIfNull(connection);
             ArgumentNullException.ThrowIfNull(fileObject);
@@ -377,7 +369,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             {
                 httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
                 httpContext.Response.Headers.Append("errorInfo",
-                    new StringValues(Json.SerializeObjectToString(result)));
+                    new StringValues(Json.SerializeToString(result,
+                        Json.GetTypeInfo<ServiceResponse<Stream>>())));
             }
             await response.CompleteAsync().ConfigureAwait(false);
         }
@@ -410,18 +403,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
         /// <response code="400">The passed in information is invalid</response>
         /// <response code="408">The operation timed out.</response>
         /// <response code="500">An unexpected error occurred</response>
-        [UnconditionalSuppressMessage("Trimming", "IL2026",
-            Justification = "Connection, file object and write option models are " +
-            "(de)serialized via the shared reflection-based JSON serializer that preserves " +
-            "the DataContract wire format; source generating the full REST DTO graph on the " +
-            "HTTP path is the final AOT step, validated against the endpoint integration " +
-            "suite in CI.")]
-        [UnconditionalSuppressMessage("AOT", "IL3050",
-            Justification = "Connection, file object and write option models are " +
-            "(de)serialized via the shared reflection-based JSON serializer that preserves " +
-            "the DataContract wire format; source generating the full REST DTO graph on the " +
-            "HTTP path is the final AOT step, validated against the endpoint integration " +
-            "suite in CI.")]
         public async Task UploadAsync(
              string connectionJson,
              string fileObjectJson,
@@ -433,9 +414,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             ArgumentNullException.ThrowIfNullOrWhiteSpace(fileObjectJson);
             ArgumentNullException.ThrowIfNullOrWhiteSpace(writeOptionsJson);
 
-            var connection = Json.Deserialize<ConnectionModel>(connectionJson);
-            var fileObject = Json.Deserialize<FileSystemObjectModel>(fileObjectJson);
-            var options = Json.Deserialize<FileOpenWriteOptionsModel?>(writeOptionsJson);
+            var connection = Json.Deserialize(connectionJson,
+                Json.GetTypeInfo<ConnectionModel>());
+            var fileObject = Json.Deserialize(fileObjectJson,
+                Json.GetTypeInfo<FileSystemObjectModel>());
+            var options = Json.Deserialize(writeOptionsJson,
+                Json.GetTypeInfo<FileOpenWriteOptionsModel>());
 
             ArgumentNullException.ThrowIfNull(connection);
             ArgumentNullException.ThrowIfNull(fileObject);
@@ -453,7 +437,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             {
                 httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
                 httpContext.Response.Headers.Append("errorInfo",
-                    new StringValues(Json.SerializeObjectToString(result)));
+                    new StringValues(Json.SerializeToString(result,
+                        Json.GetTypeInfo<ServiceResponse<Stream>>())));
             }
         }
         private readonly IFileSystemServices<ConnectionModel> _files;

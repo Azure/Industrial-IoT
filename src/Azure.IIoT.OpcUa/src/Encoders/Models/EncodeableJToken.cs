@@ -25,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         /// <param name="typeId"></param>
         public EncodeableJToken(JsonElement json, ExpandedNodeId typeId)
         {
-            JToken = json;
+            JToken = json.Clone();
             TypeId = typeId;
         }
 

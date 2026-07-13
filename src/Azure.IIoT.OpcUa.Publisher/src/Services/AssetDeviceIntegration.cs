@@ -582,7 +582,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             if (_logger.IsDebugLogConfigurationEnabled())
                             {
                                 _logger.NewConfigurationApplied(
-                                    Json.SerializeToString(entries, SerializeOption.Indented));
+                                    Json.SerializeToString(entries,
+                                        Json.GetTypeInfo<List<PublishedNodesEntryModel>>(),
+                                        SerializeOption.Indented));
                             }
                             _logger.AssetsAndDevicesUpdated(assets.Count, devices.Count);
                         }
@@ -676,7 +678,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         if (_logger.IsDebugLogConfigurationEnabled())
                         {
                             _logger.DroppingResultWithoutRequiredInformation(
-                                Json.SerializeToString(found.Result));
+                                Json.SerializeToString(found.Result,
+                                    Json.GetTypeInfo<PublishedNodesEntryModel>()));
                         }
                         else
                         {
@@ -1123,7 +1126,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     continue;
 #endif
                 }
-                var additionalConfiguration = Json.SerializeToString(epModel);
+                var additionalConfiguration = Json.SerializeToString(epModel,
+                    Json.GetTypeInfo<DeviceEndpointConfiguration>());
                 if (additionalConfiguration.Length > 512)
                 {
                     _logger.EndpointConfigurationTooLong(uniqueName, deviceName,
@@ -2410,7 +2414,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             byte[] compressed;
             using (var input = new MemoryStream(
-                Json.SerializeToMemory(methodMetadata).ToArray()))
+                Json.SerializeToMemory(methodMetadata,
+                    Json.GetTypeInfo<MethodMetadataModel>()).ToArray()))
             using (var result = new MemoryStream())
             {
                 using (var gs = new GZipStream(result, CompressionMode.Compress))
@@ -2481,7 +2486,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
                     decompressed = output.ToArray();
                 }
-                return Json.Deserialize<MethodMetadataModel>(decompressed)
+                return Json.Deserialize(decompressed,
+                    Json.GetTypeInfo<MethodMetadataModel>())
                     ?? new MethodMetadataModel();
             }
             catch (Exception ex)
