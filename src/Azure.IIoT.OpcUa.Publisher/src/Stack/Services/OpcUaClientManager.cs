@@ -54,6 +54,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="subscriptionOptions"></param>
         /// <param name="timeProvider"></param>
         /// <param name="metrics"></param>
+        /// <param name="runtimeStrategy"></param>
         public OpcUaClientManager(ILoggerFactory loggerFactory,
             IOpcUaConfiguration configuration, IOptions<OpcUaClientOptions> clientOptions,
             IOptions<OpcUaSubscriptionOptions> subscriptionOptions,
@@ -356,11 +357,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public async ValueTask DisposeAsync()
         {
-            if (_disposed)
+            lock (_clientsGate)
             {
-                return;
+                if (_disposed)
+                {
+                    return;
+                }
+                _disposed = true;
             }
-            _disposed = true;
 
             _logger.StoppingAllClients(_clients.Count);
             foreach (var client in _clients)
@@ -598,31 +602,43 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 throw _reverseConnectStartException.Value;
             }
 
-            // Find client and if not exists create
             var id = new ConnectionIdentifier(connection);
-            // try to get an existing client
-            var client = _clients.GetOrAdd(id, id =>
+            while (true)
             {
-                var client = _runtimeStrategy.Create(new OpcUaClientRuntimeContext
+                IOpcUaClientRuntime client;
+                lock (_clientsGate)
                 {
-                    Configuration = _configuration.Value,
-                    Connection = id,
-                    LoggerFactory = _loggerFactory,
-                    TimeProvider = _timeProvider,
-                    Metrics = _metrics,
-                    OnClose = () => OnClientClosedAsync(id),
-                    Notifier = OnConnectionStateChange,
-                    ReverseConnectManager = _reverseConnectManager,
-                    DiagnosticsCallback = OnClientConnectionDiagnosticChange,
-                    ClientOptions = _clientOptions,
-                    SubscriptionOptions = _subscriptionOptions
-                });
-                _logger.CreatedNewClient(id);
-                return client;
-            });
+                    ObjectDisposedException.ThrowIf(_disposed, this);
+                    client = _clients.GetOrAdd(id, static (key, manager) =>
+                    {
+                        var runtime = manager._runtimeStrategy.Create(
+                            new OpcUaClientRuntimeContext
+                            {
+                                Configuration = manager._configuration.Value,
+                                Connection = key,
+                                LoggerFactory = manager._loggerFactory,
+                                TimeProvider = manager._timeProvider,
+                                Metrics = manager._metrics,
+                                OnClose = () => manager.OnClientClosedAsync(key),
+                                Notifier = manager.OnConnectionStateChange,
+                                ReverseConnectManager = manager._reverseConnectManager,
+                                DiagnosticsCallback = manager.OnClientConnectionDiagnosticChange,
+                                ClientOptions = manager._clientOptions,
+                                SubscriptionOptions = manager._subscriptionOptions
+                            });
+                        manager._logger.CreatedNewClient(key);
+                        return runtime;
+                    }, this);
+                    if (client.TryAddRef())
+                    {
+                        return client;
+                    }
 
-            client.AddRef();
-            return client;
+                    ((ICollection<KeyValuePair<ConnectionIdentifier, IOpcUaClientRuntime>>)_clients)
+                        .Remove(new KeyValuePair<ConnectionIdentifier, IOpcUaClientRuntime>(id,
+                            client));
+                }
+            }
         }
 
         /// <summary>
@@ -632,7 +648,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <returns></returns>
         private async Task OnClientClosedAsync(ConnectionIdentifier id)
         {
-            if (_clients.TryRemove(id, out var client))
+            IOpcUaClientRuntime? client;
+            lock (_clientsGate)
+            {
+                if (!_clients.TryGetValue(id, out client) ||
+                    !((ICollection<KeyValuePair<ConnectionIdentifier, IOpcUaClientRuntime>>)_clients)
+                        .Remove(new KeyValuePair<ConnectionIdentifier, IOpcUaClientRuntime>(id,
+                            client)))
+                {
+                    return;
+                }
+            }
+            if (client != null)
             {
                 try
                 {
@@ -714,6 +741,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly ConcurrentDictionary<
             AsyncProducerConsumerQueue<ChannelDiagnosticModel>, bool> _listeners = new();
         private readonly ConcurrentDictionary<ConnectionIdentifier, IOpcUaClientRuntime> _clients = new();
+        private readonly Lock _clientsGate = new();
         private readonly IOpcUaClientRuntimeStrategy _runtimeStrategy;
         private readonly IMetricsContext _metrics;
         private readonly Meter _meter = Diagnostics.NewMeter();

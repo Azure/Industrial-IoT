@@ -540,8 +540,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     LingerTimeout = TimeSpan.FromMinutes(1)
                 });
             var closeCount = 0;
-                var closed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-                using var runtime = strategy.Create(new OpcUaClientRuntimeContext
+            var closed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            using var runtime = strategy.Create(new OpcUaClientRuntimeContext
             {
                 Configuration = new ApplicationConfiguration(),
                 Connection = request.Connection,
@@ -614,6 +614,263 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             Assert.IsType<ManagedOpcUaSession>(handle.Session);
             Assert.Equal(1, provider.ConnectCount);
+        }
+
+        [Fact]
+        public Task ManagedRuntimeKeepsSessionForBrowseNextContinuationAsync()
+        {
+            return VerifyContinuationSessionAffinityAsync("browse-next");
+        }
+
+        [Fact]
+        public Task ManagedRuntimeKeepsSessionForHistoryReadNextContinuationAsync()
+        {
+            return VerifyContinuationSessionAffinityAsync("history-read-next");
+        }
+
+        [Fact]
+        public async Task ManagerResetReconnectsManagedSessionAsync()
+        {
+            var session = CreateSession(out _, out _);
+            var connection = new FakeConnection(session.Object);
+            var provider = new FakeProvider(connection);
+            var request = CreateRequest("opc.tcp://localhost:4852");
+            var configuration = new Mock<IOpcUaConfiguration>();
+            configuration.SetupGet(item => item.Value).Returns(CreateApplicationConfiguration());
+            var strategy = new ManagedSessionRuntimeStrategy(provider, CreateTelemetry(),
+                new FixedRequestFactory(request), new ManagedSessionPoolOptions
+                {
+                    LingerTimeout = TimeSpan.FromMinutes(1)
+                });
+            using var manager = new OpcUaClientManager(NullLoggerFactory.Instance,
+                configuration.Object, Options.Create(new OpcUaClientOptions()),
+                Options.Create(new OpcUaSubscriptionOptions()), runtimeStrategy: strategy);
+            using var handle = await manager.AcquireSessionAsync(request.Connection.Connection,
+                header: null, ct: default);
+
+            await manager.ResetAllConnectionsAsync(default);
+
+            Assert.Equal(1, connection.ReconnectCount);
+        }
+
+        [Fact]
+        public async Task ManagerWatchReceivesChangedManagedDiagnosticsOnceAsync()
+        {
+            var session = CreateSession(out _, out _);
+            session.SetupGet(item => item.SessionId).Returns(new NodeId(123u, 2));
+            var connection = new FakeConnection(session.Object);
+            var provider = new FakeProvider(connection);
+            var request = CreateRequest("opc.tcp://localhost:4853");
+            var configuration = new Mock<IOpcUaConfiguration>();
+            configuration.SetupGet(item => item.Value).Returns(CreateApplicationConfiguration());
+            var strategy = new ManagedSessionRuntimeStrategy(provider, CreateTelemetry(),
+                new FixedRequestFactory(request), new ManagedSessionPoolOptions
+                {
+                    LingerTimeout = TimeSpan.FromMinutes(1)
+                });
+            using var manager = new OpcUaClientManager(NullLoggerFactory.Instance,
+                configuration.Object, Options.Create(new OpcUaClientOptions()),
+                Options.Create(new OpcUaSubscriptionOptions()), runtimeStrategy: strategy);
+            using var cancellation = new CancellationTokenSource();
+            await using var watch = manager.WatchChannelDiagnosticsAsync(cancellation.Token)
+                .GetAsyncEnumerator();
+            var next = watch.MoveNextAsync().AsTask();
+
+            using var first = await manager.AcquireSessionAsync(request.Connection.Connection,
+                header: null, ct: default);
+            Assert.True(await next.WaitAsync(TimeSpan.FromSeconds(2)));
+            var diagnostic = watch.Current;
+            using var second = await manager.AcquireSessionAsync(request.Connection.Connection,
+                header: null, ct: default);
+            cancellation.Cancel();
+
+            Assert.Equal("ns=2;i=123", diagnostic.SessionId);
+            Assert.Equal(1, provider.ConnectCount);
+        }
+
+        [Fact]
+        public async Task ManagerRetriesWhenFinalReleaseRacesNewAcquireAsync()
+        {
+            var session = CreateSession(out _, out _);
+            var connection = new FakeConnection(session.Object);
+            var provider = new FakeProvider(connection);
+            var request = CreateRequest("opc.tcp://localhost:4855");
+            var configuration = new Mock<IOpcUaConfiguration>();
+            configuration.SetupGet(item => item.Value).Returns(CreateApplicationConfiguration());
+            var strategy = new ManagedSessionRuntimeStrategy(provider, CreateTelemetry(),
+                new FixedRequestFactory(request), new ManagedSessionPoolOptions
+                {
+                    LingerTimeout = TimeSpan.FromMinutes(1)
+                });
+            using var manager = new OpcUaClientManager(NullLoggerFactory.Instance,
+                configuration.Object, Options.Create(new OpcUaClientOptions()),
+                Options.Create(new OpcUaSubscriptionOptions()), runtimeStrategy: strategy);
+            using var first = await manager.AcquireSessionAsync(request.Connection.Connection,
+                header: null, ct: default);
+
+            var acquire = Task.Run(() => manager.AcquireSessionAsync(
+                request.Connection.Connection, header: null, ct: default));
+            first.Dispose();
+            using var second = await acquire;
+
+            Assert.IsType<ManagedOpcUaSession>(second.Session);
+        }
+
+        [Fact]
+        public async Task ManagedRuntimeSnapshotsSubscriptionsForConcurrentDiagnosticsAsync()
+        {
+            var session = CreateSession(out _, out _);
+            session.SetupGet(item => item.SessionId).Returns(new NodeId(124u, 2));
+            session.SetupGet(item => item.SessionName).Returns("managed");
+            var collection = new Mock<IMonitoredItemCollection>();
+            collection.Setup(items => items.Update(It.IsAny<IReadOnlyList<(
+                    string Name, IOptionsMonitor<MonitoredItemOptions> Options)>>()))
+                .Returns([]);
+            var subscription = new Mock<Opc.Ua.Client.Subscriptions.ISubscription>();
+            subscription.SetupGet(item => item.MonitoredItems).Returns(collection.Object);
+            var subscriptionManager = new Mock<ISubscriptionManager>();
+            subscriptionManager.Setup(manager => manager.Add(
+                    It.IsAny<ISubscriptionNotificationHandler>(),
+                    It.IsAny<IOptionsMonitor<SubscriptionOptions>>()))
+                .Returns(subscription.Object);
+            ISubscriptionManager manager = subscriptionManager.Object;
+            session.Setup(item => item.TryGetSubscriptionManager(out manager)).Returns(true);
+
+            var connection = new FakeConnection(session.Object);
+            var provider = new FakeProvider(connection);
+            var request = CreateRequest("opc.tcp://localhost:4856");
+            var closed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            await using var strategy = new ManagedSessionRuntimeStrategy(provider,
+                CreateTelemetry(), new FixedRequestFactory(request),
+                new ManagedSessionPoolOptions
+                {
+                    LingerTimeout = TimeSpan.FromMinutes(1)
+                });
+            using var runtime = CreateManagedRuntime(strategy, request, closed);
+            runtime.AddRef();
+            var subscriber = new Mock<ISubscriber>();
+            subscriber.SetupGet(item => item.MonitoredItems).Returns(
+            [
+                new DataMonitoredItemModel
+                {
+                    StartNodeId = "ns=2;s=value"
+                }
+            ]);
+            await using var registration = await runtime.RegisterAsync(new SubscriptionModel(),
+                subscriber.Object, default);
+            await runtime.ResetAsync(default);
+
+            var diagnostics = Enumerable.Range(0, 32)
+                .Select(_ => runtime.GetSessionDiagnosticsAsync(default));
+            var remove = registration.DisposeAsync().AsTask();
+            await Task.WhenAll(diagnostics.Cast<Task>().Append(remove));
+            runtime.Dispose();
+            await closed.Task.WaitAsync(TimeSpan.FromSeconds(2));
+
+            Assert.Equal(1, subscriptionManager.Invocations.Count(invocation =>
+                invocation.Method.Name == nameof(ISubscriptionManager.Add)));
+            Assert.Equal(1, connection.ReconnectCount);
+            collection.Verify(items => items.Update(It.IsAny<IReadOnlyList<(
+                string Name, IOptionsMonitor<MonitoredItemOptions> Options)>>()), Times.AtLeast(2));
+        }
+
+        [Fact]
+        public async Task ManagedRuntimeDoesNotPublishUnchangedDiagnosticsTwiceAsync()
+        {
+            var session = CreateSession(out _, out _);
+            session.SetupGet(item => item.SessionId).Returns(new NodeId(125u, 2));
+            var connection = new FakeConnection(session.Object);
+            var provider = new FakeProvider(connection);
+            var request = CreateRequest("opc.tcp://localhost:4857");
+            var closed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            var diagnostics = new List<ChannelDiagnosticModel>();
+            await using var strategy = new ManagedSessionRuntimeStrategy(provider,
+                CreateTelemetry(), new FixedRequestFactory(request),
+                new ManagedSessionPoolOptions
+                {
+                    LingerTimeout = TimeSpan.FromMinutes(1)
+                });
+            using var runtime = CreateManagedRuntime(strategy, request, closed,
+                diagnostics.Add);
+            runtime.AddRef();
+            using (await runtime.AcquireAsync(null, null, default))
+            {
+            }
+            using (await runtime.AcquireAsync(null, null, default))
+            {
+            }
+            runtime.Dispose();
+            await closed.Task.WaitAsync(TimeSpan.FromSeconds(2));
+
+            Assert.Single(diagnostics);
+        }
+
+        private static async Task VerifyContinuationSessionAffinityAsync(string token)
+        {
+            var session = CreateSession(out _, out _);
+            var connection = new FakeConnection(session.Object);
+            var provider = new FakeProvider(connection);
+            var request = CreateRequest("opc.tcp://localhost:4854");
+            var closed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            await using var strategy = new ManagedSessionRuntimeStrategy(provider,
+                CreateTelemetry(), new FixedRequestFactory(request),
+                new ManagedSessionPoolOptions
+                {
+                    LingerTimeout = TimeSpan.Zero
+                });
+            using var runtime = CreateManagedRuntime(strategy, request, closed);
+            runtime.AddRef();
+            IOpcUaSession? firstSession = null;
+
+            await runtime.RunAsync(context =>
+            {
+                firstSession = context.Session;
+                context.TrackedToken = token;
+                return Task.FromResult(true);
+            }, null, null, default);
+            await runtime.RunAsync(context =>
+            {
+                Assert.Same(firstSession, context.Session);
+                context.UntrackedToken = token;
+                return Task.FromResult(true);
+            }, null, null, default);
+            runtime.Dispose();
+            await closed.Task.WaitAsync(TimeSpan.FromSeconds(2));
+
+            Assert.Equal(1, provider.ConnectCount);
+        }
+
+        private static ManagedOpcUaClient CreateManagedRuntime(
+            ManagedSessionRuntimeStrategy strategy, ManagedSessionConnectionRequest request,
+            TaskCompletionSource closed, Action<ChannelDiagnosticModel>? diagnostics = null)
+        {
+            return (ManagedOpcUaClient)strategy.Create(new OpcUaClientRuntimeContext
+            {
+                Configuration = CreateApplicationConfiguration(),
+                Connection = request.Connection,
+                LoggerFactory = NullLoggerFactory.Instance,
+                TimeProvider = TimeProvider.System,
+                Metrics = IMetricsContext.Empty,
+                OnClose = () =>
+                {
+                    closed.TrySetResult();
+                    return Task.CompletedTask;
+                },
+                ReverseConnectManager = new ReverseConnectManager(CreateTelemetry()),
+                DiagnosticsCallback = diagnostics ?? (_ => { }),
+                ClientOptions = Options.Create(new OpcUaClientOptions()),
+                SubscriptionOptions = Options.Create(new OpcUaSubscriptionOptions())
+            });
+        }
+
+        private static ApplicationConfiguration CreateApplicationConfiguration()
+        {
+            return new ApplicationConfiguration
+            {
+                ApplicationName = "managed-runtime-test",
+                ApplicationUri = "urn:managed-runtime-test",
+                ApplicationType = Opc.Ua.ApplicationType.Client
+            };
         }
 
         private static ManagedSessionConnectionRequest CreateRequest(string endpointUrl)
@@ -833,6 +1090,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public ISession Session { get; }
 
             public int DisposeCount { get; private set; }
+            public int ReconnectCount { get; private set; }
 
             public TaskCompletionSource Disposed { get; } = new(
                 TaskCreationOptions.RunContinuationsAsynchronously);
@@ -848,6 +1106,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     return ValueTask.FromException(_disposeException);
                 }
                 return ValueTask.CompletedTask;
+            }
+
+            public Task ReconnectAsync(CancellationToken ct)
+            {
+                ct.ThrowIfCancellationRequested();
+                ReconnectCount++;
+                Raise(ConnectionState.Reconnecting);
+                Raise(ConnectionState.Connected);
+                return Task.CompletedTask;
             }
 
             public void Raise(ConnectionState state)

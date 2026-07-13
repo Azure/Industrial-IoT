@@ -125,6 +125,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             return _connection.Session.TryGetSubscriptionManager(out manager);
         }
 
+        /// <summary>
+        /// Reconnects the public managed session used by this facade.
+        /// </summary>
+        internal Task ReconnectAsync(CancellationToken ct)
+        {
+            return _connection.ReconnectAsync(ct);
+        }
+
         /// <inheritdoc/>
         public async ValueTask<ComplexTypeSystem?> GetComplexTypeSystemAsync(
             CancellationToken ct = default)

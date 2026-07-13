@@ -19,6 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Opc.Ua.Client;
     using Opc.Ua.Client.Subscriptions;
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
@@ -50,6 +51,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         Task ResetAsync(CancellationToken ct);
         Task<SessionDiagnosticsModel?> GetSessionDiagnosticsAsync(CancellationToken ct);
         ValueTask CloseAsync(bool shutdown = false, bool fromManagementLoop = false);
+        bool TryAddRef();
         void AddRef(string? token = null, TimeSpan? expiresAfter = null);
     }
 
@@ -266,11 +268,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             };
         }
 
-        public ChannelDiagnosticModel LastDiagnostics => _lastDiagnostics;
+        public ChannelDiagnosticModel LastDiagnostics
+        {
+            get
+            {
+                lock (_diagnosticsGate)
+                {
+                    return _lastDiagnostics;
+                }
+            }
+        }
         public int BadPublishRequestCount => 0;
         public int GoodPublishRequestCount => 0;
         public int OutstandingRequestCount => 0;
-        public int SubscriptionCount => _subscriptions.Count;
+        public int SubscriptionCount => Volatile.Read(ref _subscriptionCount);
         public EndpointConnectivityState State => _state;
         public int ReconnectCount => _reconnectCount;
         public bool ReconnectTriggered => _state == EndpointConnectivityState.Connecting;
@@ -284,9 +295,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             ThrowIfDisposed();
             var lease = await AcquireLeaseAsync(connectTimeout, ct).ConfigureAwait(false);
-            AddRef();
-            return new ManagedSessionHandle(lease, GetServiceCallTimeout(serviceCallTimeout),
-                Dispose);
+            try
+            {
+                AddRef();
+                return new ManagedSessionHandle(lease, GetServiceCallTimeout(serviceCallTimeout),
+                    Dispose);
+            }
+            catch
+            {
+                lease.Dispose();
+                throw;
+            }
         }
 
         public async Task<T> RunAsync<T>(Func<ServiceCallContext, Task<T>> service,
@@ -299,10 +318,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             call.CancelAfter(timeout);
             try
             {
-                using var lease = await AcquireLeaseAsync(connectTimeout, call.Token)
+                ISessionHandle? lease = await AcquireLeaseAsync(connectTimeout, call.Token)
                     .ConfigureAwait(false);
-                using var context = new ServiceCallContext(lease.Session, timeout, call.Token);
-                return await service(context).ConfigureAwait(false);
+                try
+                {
+                    using var context = new ServiceCallContext(lease.Session, timeout, call.Token);
+                    var result = await service(context).ConfigureAwait(false);
+                    CompleteServiceCall(context, ref lease);
+                    return result;
+                }
+                finally
+                {
+                    lease?.Dispose();
+                }
             }
             catch (OperationCanceledException) when (!ct.IsCancellationRequested)
             {
@@ -352,6 +380,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                 _context.TimeProvider));
                         lease = null!;
                         _subscriptions.Add(subscription, state);
+                        Interlocked.Increment(ref _subscriptionCount);
                     }
                     finally
                     {
@@ -372,26 +401,61 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
-        public Task ResetAsync(CancellationToken ct)
+        public async Task ResetAsync(CancellationToken ct)
         {
-            ct.ThrowIfCancellationRequested();
-            // ManagedSession owns reconnect/recreate transitions. Its public connection
-            // state machine is deliberately not driven by the classic reset path.
-            return Task.CompletedTask;
+            ThrowIfDisposed();
+            await _subscriptionGate.WaitAsync(ct).ConfigureAwait(false);
+            ISessionHandle? temporaryLease = null;
+            try
+            {
+                var states = _subscriptions.Values.ToArray();
+                var session = states.FirstOrDefault()?.Lease.Session as ManagedOpcUaSession;
+                if (session == null)
+                {
+                    temporaryLease = await AcquireLeaseAsync(null, ct).ConfigureAwait(false);
+                    session = temporaryLease.Session as ManagedOpcUaSession ??
+                        throw new InvalidOperationException(
+                            "The managed pool returned a non-managed session facade.");
+                }
+
+                await session.ReconnectAsync(ct).ConfigureAwait(false);
+                UpdateDiagnostics(session);
+                foreach (var state in states)
+                {
+                    await SynchronizeAsync(state, ct).ConfigureAwait(false);
+                }
+            }
+            finally
+            {
+                temporaryLease?.Dispose();
+                _subscriptionGate.Release();
+            }
         }
 
         public async Task<SessionDiagnosticsModel?> GetSessionDiagnosticsAsync(CancellationToken ct)
         {
-            if (_subscriptions.Values.FirstOrDefault()?.Lease.Session is ManagedOpcUaSession session)
+            ManagedOpcUaSession? session;
+            await _subscriptionGate.WaitAsync(ct).ConfigureAwait(false);
+            try
             {
-                return await session.GetServerDiagnosticAsync(ct).ConfigureAwait(false);
+                session = _subscriptions.Values.FirstOrDefault()?.Lease.Session
+                    as ManagedOpcUaSession;
             }
-            return null;
+            finally
+            {
+                _subscriptionGate.Release();
+            }
+            return session == null ? null :
+                await session.GetServerDiagnosticAsync(ct).ConfigureAwait(false);
         }
 
         public async ValueTask CloseAsync(bool shutdown = false,
             bool fromManagementLoop = false)
         {
+            lock (_lifetimeGate)
+            {
+                _closing = true;
+            }
             if (Interlocked.Exchange(ref _disposed, 1) != 0)
             {
                 return;
@@ -405,7 +469,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     await state.DisposeAsync().ConfigureAwait(false);
                 }
                 _subscriptions.Clear();
+                Interlocked.Exchange(ref _subscriptionCount, 0);
                 _registrations.Clear();
+                foreach (var continuation in _continuations.ToArray())
+                {
+                    if (_continuations.TryRemove(continuation.Key, out var lease))
+                    {
+                        lease.Dispose();
+                    }
+                }
                 lock (_observedSessions)
                 {
                     foreach (var session in _observedSessions)
@@ -425,13 +497,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         public void AddRef(string? token = null, TimeSpan? expiresAfter = null)
         {
-            ThrowIfDisposed();
-            Interlocked.Increment(ref _references);
+            ObjectDisposedException.ThrowIf(!TryAddRef(), this);
+        }
+
+        public bool TryAddRef()
+        {
+            lock (_lifetimeGate)
+            {
+                if (_disposed != 0 || _closing)
+                {
+                    return false;
+                }
+                _references++;
+                return true;
+            }
         }
 
         public void Dispose()
         {
-            if (Interlocked.Decrement(ref _references) == 0)
+            var close = false;
+            lock (_lifetimeGate)
+            {
+                if (_references == 0)
+                {
+                    return;
+                }
+                _references--;
+                if (_references == 0 && !_closing)
+                {
+                    _closing = true;
+                    close = true;
+                }
+            }
+            if (close)
             {
                 _ = CloseAndNotifyAsync();
             }
@@ -451,10 +549,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 IEnumerable<T> results;
                 try
                 {
-                    using var lease = await AcquireLeaseAsync(connectTimeout, call.Token)
+                    ISessionHandle? lease = await AcquireLeaseAsync(connectTimeout, call.Token)
                         .ConfigureAwait(false);
-                    using var context = new ServiceCallContext(lease.Session, timeout, call.Token);
-                    results = await operation.ExecuteAsync(context).ConfigureAwait(false);
+                    try
+                    {
+                        using var context = new ServiceCallContext(lease.Session, timeout, call.Token);
+                        results = await operation.ExecuteAsync(context).ConfigureAwait(false);
+                        CompleteServiceCall(context, ref lease);
+                    }
+                    finally
+                    {
+                        lease?.Dispose();
+                    }
                 }
                 catch (OperationCanceledException) when (!ct.IsCancellationRequested)
                 {
@@ -496,6 +602,72 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             return lease;
         }
 
+        private void CompleteServiceCall(ServiceCallContext context,
+            ref ISessionHandle? lease)
+        {
+            if (!string.IsNullOrEmpty(context.TrackedToken))
+            {
+                if (string.Equals(context.TrackedToken, context.UntrackedToken,
+                    StringComparison.Ordinal))
+                {
+                    RenewContinuation(context.TrackedToken);
+                }
+                else if (lease != null)
+                {
+                    TrackContinuation(context.TrackedToken, lease);
+                    lease = null;
+                }
+            }
+            if (!string.IsNullOrEmpty(context.UntrackedToken) &&
+                !string.Equals(context.UntrackedToken, context.TrackedToken,
+                    StringComparison.Ordinal))
+            {
+                ReleaseContinuation(context.UntrackedToken);
+            }
+        }
+
+        private void TrackContinuation(string token, ISessionHandle lease)
+        {
+            AddRef();
+            var continuation = new ContinuationLease(this, token, lease,
+                kContinuationTimeout);
+            while (true)
+            {
+                if (_continuations.TryGetValue(token, out var existing))
+                {
+                    if (_continuations.TryUpdate(token, continuation, existing))
+                    {
+                        existing.Dispose();
+                        return;
+                    }
+                    continue;
+                }
+                if (_continuations.TryAdd(token, continuation))
+                {
+                    return;
+                }
+            }
+        }
+
+        private void RenewContinuation(string token)
+        {
+            if (_continuations.TryGetValue(token, out var continuation))
+            {
+                continuation.Renew(kContinuationTimeout);
+            }
+        }
+
+        private void ReleaseContinuation(string token, ContinuationLease? expected = null)
+        {
+            if (_continuations.TryGetValue(token, out var continuation) &&
+                (expected == null || ReferenceEquals(expected, continuation)) &&
+                ((ICollection<KeyValuePair<string, ContinuationLease>>)_continuations).Remove(
+                    new KeyValuePair<string, ContinuationLease>(token, continuation)))
+            {
+                continuation.Dispose();
+            }
+        }
+
         private static async Task SynchronizeAsync(ManagedSubscriptionState state,
             CancellationToken ct)
         {
@@ -512,6 +684,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             if (state.Registrations.Count == 0)
             {
                 _subscriptions.Remove(state.Template);
+                Interlocked.Decrement(ref _subscriptionCount);
                 await state.DisposeAsync().ConfigureAwait(false);
             }
             else
@@ -555,6 +728,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             if (e.State == EndpointConnectivityState.Ready)
             {
                 Interlocked.Increment(ref _connectCount);
+                if (sender is ManagedOpcUaSession session)
+                {
+                    UpdateDiagnostics(session);
+                }
             }
             else if (e.State == EndpointConnectivityState.Connecting)
             {
@@ -572,13 +749,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         private void UpdateDiagnostics(ManagedOpcUaSession session)
         {
-            _lastDiagnostics = new ChannelDiagnosticModel
+            var diagnostics = new ChannelDiagnosticModel
             {
                 Connection = _context.Connection.Connection,
                 TimeStamp = _context.TimeProvider.GetUtcNow(),
                 SessionCreated = session.CreatedAt,
                 SessionId = session.SessionId.ToString()
             };
+            lock (_diagnosticsGate)
+            {
+                if (string.Equals(_lastDiagnostics.SessionId, diagnostics.SessionId,
+                    StringComparison.Ordinal) &&
+                    _lastDiagnostics.SessionCreated == diagnostics.SessionCreated)
+                {
+                    return;
+                }
+                _lastDiagnostics = diagnostics;
+            }
+            _context.DiagnosticsCallback(diagnostics);
         }
 
         private TimeSpan GetServiceCallTimeout(int? serviceCallTimeout)
@@ -620,6 +808,47 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             private ISessionHandle? _inner;
             private Action? _release;
+        }
+
+        private sealed class ContinuationLease : IDisposable
+        {
+            public ContinuationLease(ManagedOpcUaClient owner, string token,
+                ISessionHandle lease, TimeSpan timeout)
+            {
+                _owner = owner;
+                _token = token;
+                _lease = lease;
+                _timer = owner._context.TimeProvider.CreateTimer(static state =>
+                    ((ContinuationLease)state!).Expire(), this, timeout,
+                    Timeout.InfiniteTimeSpan);
+            }
+
+            public void Renew(TimeSpan timeout)
+            {
+                _timer.Change(timeout, Timeout.InfiniteTimeSpan);
+            }
+
+            public void Dispose()
+            {
+                if (Interlocked.Exchange(ref _disposed, 1) != 0)
+                {
+                    return;
+                }
+                _timer.Dispose();
+                _lease.Dispose();
+                _owner.Dispose();
+            }
+
+            private void Expire()
+            {
+                _owner.ReleaseContinuation(_token, this);
+            }
+
+            private int _disposed;
+            private readonly ManagedOpcUaClient _owner;
+            private readonly ISessionHandle _lease;
+            private readonly string _token;
+            private readonly ITimer _timer;
         }
 
         private sealed class ManagedSubscriptionState : IAsyncDisposable
@@ -739,10 +968,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private readonly ManagedOpcUaClient _owner;
         }
 
+        private const int kContinuationTimeoutMilliseconds = 10000;
+        private static readonly TimeSpan kContinuationTimeout =
+            TimeSpan.FromMilliseconds(kContinuationTimeoutMilliseconds);
         private int _connectCount;
         private int _disposed;
         private int _reconnectCount;
         private int _references;
+        private int _subscriptionCount;
+        private bool _closing;
         private ChannelDiagnosticModel _lastDiagnostics;
         private EndpointConnectivityState _state = EndpointConnectivityState.Disconnected;
         private readonly OpcUaClientRuntimeContext _context;
@@ -750,6 +984,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly IModelChangeRebrowseSink _modelChangeSink;
         private readonly ManagedSessionPool _pool;
         private readonly IManagedSessionRequestFactory _requestFactory;
+        private readonly ConcurrentDictionary<string, ContinuationLease> _continuations = [];
+        private readonly Lock _diagnosticsGate = new();
+        private readonly Lock _lifetimeGate = new();
         private readonly HashSet<ManagedOpcUaSession> _observedSessions = [];
         private readonly Dictionary<ISubscriber, ManagedRegistration> _registrations = [];
 #pragma warning disable CA2213 // Closed asynchronously by the final reference release.

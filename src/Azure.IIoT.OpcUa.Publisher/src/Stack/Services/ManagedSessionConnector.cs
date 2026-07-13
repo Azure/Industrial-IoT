@@ -94,6 +94,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Raised when managed-session connectivity changes.
         /// </summary>
         event EventHandler<ConnectionStateChangedEventArgs>? ConnectionStateChanged;
+
+        /// <summary>
+        /// Reconnect the managed session without exposing its implementation type.
+        /// </summary>
+        Task ReconnectAsync(CancellationToken ct);
     }
 
     /// <summary>
@@ -125,6 +130,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public ValueTask DisposeAsync()
         {
             return _session.DisposeAsync();
+        }
+
+        /// <inheritdoc/>
+        public Task ReconnectAsync(CancellationToken ct)
+        {
+            return _session.ReconnectAsync(null, null, ct);
         }
 
         private readonly ManagedSession _session;

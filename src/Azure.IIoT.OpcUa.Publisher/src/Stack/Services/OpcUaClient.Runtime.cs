@@ -58,6 +58,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             return CloseAsync(shutdown, fromManagementLoop);
         }
 
+        bool IOpcUaClientRuntime.TryAddRef()
+        {
+            if (_disposed)
+            {
+                return false;
+            }
+            AddRef();
+            if (!_disposed)
+            {
+                return true;
+            }
+            Release();
+            return false;
+        }
+
         void IOpcUaClientRuntime.AddRef(string? token, TimeSpan? expiresAfter)
         {
             AddRef(token, expiresAfter);
