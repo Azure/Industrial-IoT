@@ -54,6 +54,7 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Router
                     StringComparison.Ordinal);
                 json = Regex.Replace(json, "\"(length|acceptedSize)\":(\\d+)",
                     static match => $"\"{match.Groups[1].Value.ToUpperInvariant()}\":\"{match.Groups[2].Value}\"");
+                json = json[..^1] + ",}";
                 return await _router.InvokeAsync(method,
                     new ReadOnlySequence<byte>(Encoding.UTF8.GetBytes(json)),
                     contentType, ct).ConfigureAwait(false);
