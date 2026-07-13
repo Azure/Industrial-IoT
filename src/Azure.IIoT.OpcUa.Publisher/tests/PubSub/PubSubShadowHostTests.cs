@@ -495,6 +495,97 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 transaction));
         }
 
+        [Fact]
+        public async Task ReplacementKeepsInFlightEncodingGenerationConsistentAsync()
+        {
+            var services = new ServiceCollection();
+            services.AddLogging();
+            await using var provider = services.BuildServiceProvider();
+            var identities = new PubSubIdentityRegistry(new MemoryIdentityStore());
+            var translator = new PubSubConfigurationTranslator();
+            var state = new PubSubShadowRuntimeStateProvider();
+            var encodings = new PubSubShadowEncodingRegistry();
+            var captures = new InMemoryPubSubShadowCaptureSink();
+            var observer = new BlockingEncoderObserver();
+            var removed = CreateWriterGroup("removed", "removed-writer", MessageEncoding.Json);
+            var retained = CreateWriterGroup("retained", "retained-writer", MessageEncoding.Json);
+            removed.PublishingInterval = TimeSpan.FromDays(1);
+            retained.PublishingInterval = TimeSpan.FromDays(1);
+
+            PubSubShadowConfigurationTranslation initial;
+            await using (var transaction = await identities.BeginAsync())
+            {
+                initial = translator.TranslateWithEncodingRegistry([removed, retained], transaction);
+                await transaction.CommitAsync();
+            }
+            encodings.Replace(initial.Encodings);
+            var initialGeneration = encodings.ActiveGeneration.Id;
+
+            await using var application = new PubSubApplicationBuilder(
+                new ServiceProviderTelemetryContext(provider))
+                .WithApplicationId("pubsub-shadow-generation-test")
+                .UseConfiguration(initial.Configuration)
+                .AddDataSetSource("dataset-removed-writer",
+                    new ValueDataSetSource("dataset-removed-writer", 42))
+                .AddDataSetSource("dataset-retained-writer",
+                    new ValueDataSetSource("dataset-retained-writer", 43))
+                .AddTransportFactory(new NoEgressPubSubTransportFactory(
+                    Profiles.PubSubMqttJsonTransport, PubSubShadowEncoding.Json,
+                    captures, state, encodings))
+                .AddTransportFactory(new NoEgressPubSubTransportFactory(
+                    Profiles.PubSubUdpUadpTransport, PubSubShadowEncoding.Uadp,
+                    captures, state))
+                .AddEncoder(new ShadowJsonEncoder(encodings, observer))
+                .AddEncoder(new Opc.Ua.PubSub.Encoding.Uadp.UadpEncoder())
+                .AddDecoder(new JsonDecoder())
+                .AddDecoder(new UadpDecoder())
+                .Build();
+            await using var host = new PubSubShadowHost(identities, translator, state,
+                encodings, application, initial.Configuration);
+            await host.StartAsync(default);
+            var captureCount = captures.Captures.Count;
+            var oldConnection = application.Connections.Single(connection =>
+                connection.Name == "shadow-removed");
+            Assert.Equal(1, oldConnection.WriterGroups.Count);
+            var oldGroup = Assert.IsType<WriterGroup>(oldConnection.WriterGroups[0]);
+
+            observer.BlockNextEncode();
+            var oldPublish = oldGroup.PublishOnceAsync().AsTask();
+            await observer.WaitForBlockedEncodeAsync();
+            var replacement = host.ReplaceConfigurationAsync(
+                [CreateWriterGroup("retained", "retained-writer",
+                    MessageEncoding.JsonReversibleGzip)]).AsTask();
+            await WaitForGenerationChangeAsync(encodings, initialGeneration);
+            observer.ReleaseEncode();
+            await oldPublish;
+            await replacement;
+
+            Assert.Equal(initialGeneration, observer.BlockedGeneration);
+            Assert.NotEqual(initialGeneration, encodings.ActiveGeneration.Id);
+            var oldCapture = captures.Captures
+                .Skip(captureCount)
+                .Single(capture => capture.Encoding == PubSubShadowEncoding.Json);
+            var oldPayload = Encoding.UTF8.GetString(oldCapture.Payload.Span);
+            Assert.Null(oldCapture.ContentEncoding);
+            Assert.Contains("\"Value\":42", oldPayload, StringComparison.Ordinal);
+            Assert.DoesNotContain("\"Type\":", oldPayload, StringComparison.Ordinal);
+
+            var newCaptureCount = captures.Captures.Count;
+            var newConnection = application.Connections.Single(connection =>
+                connection.Name == "shadow-retained");
+            Assert.Equal(1, newConnection.WriterGroups.Count);
+            var newGroup = Assert.IsType<WriterGroup>(newConnection.WriterGroups[0]);
+            await newGroup.PublishOnceAsync();
+
+            var newCapture = Assert.Single(captures.Captures.Skip(newCaptureCount));
+            var newPayload = Decompress(newCapture.Payload);
+            Assert.Equal(PubSubShadowEncoding.JsonReversibleGzip, newCapture.Encoding);
+            Assert.Equal("gzip", newCapture.ContentEncoding);
+            Assert.Contains("\"Type\":", newPayload, StringComparison.Ordinal);
+            Assert.Contains("\"Body\":43", newPayload, StringComparison.Ordinal);
+            Assert.Equal(0, captures.DroppedCaptureCount);
+        }
+
         private static async Task<PubSubShadowCapture> CaptureActualWriterGroupAsync(
             MessageEncoding encoding)
         {
@@ -550,6 +641,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             using var gzip = new GZipStream(input, CompressionMode.Decompress);
             using var reader = new StreamReader(gzip, Encoding.UTF8);
             return reader.ReadToEnd();
+        }
+
+        private static async Task WaitForGenerationChangeAsync(
+            PubSubShadowEncodingRegistry encodings, long initialGeneration)
+        {
+            for (var attempt = 0; attempt < 100; attempt++)
+            {
+                if (encodings.ActiveGeneration.Id != initialGeneration)
+                {
+                    return;
+                }
+                await Task.Delay(10);
+            }
+            throw new Xunit.Sdk.XunitException(
+                "The replacement did not activate a new encoding generation.");
         }
 
         private static WriterGroupModel CreateWriterGroup(string groupId,
@@ -660,11 +766,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
 
         private sealed class ValueDataSetSource : IPublishedDataSetSource
         {
+            public ValueDataSetSource(string name = "dataset-writer", int value = 42)
+            {
+                _name = name;
+                _value = value;
+            }
+
             public DataSetMetaDataType BuildMetaData()
             {
                 return new DataSetMetaDataType
                 {
-                    Name = "dataset-writer",
+                    Name = _name,
                     Fields =
                     [
                         new FieldMetaData
@@ -693,10 +805,61 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                         [new DataSetField
                         {
                             Name = "Value",
-                            Value = new Variant(42)
+                            Value = new Variant(_value)
                         }],
                         DateTimeUtc.From(DateTimeOffset.UnixEpoch)));
             }
+
+            private readonly string _name;
+            private readonly int _value;
+        }
+
+        private sealed class BlockingEncoderObserver : IPubSubShadowEncodingObserver
+        {
+            public void BlockNextEncode()
+            {
+                _blocked = new TaskCompletionSource<bool>(
+                    TaskCreationOptions.RunContinuationsAsynchronously);
+                _release = new TaskCompletionSource<bool>(
+                    TaskCreationOptions.RunContinuationsAsynchronously);
+                Interlocked.Exchange(ref _blockNextEncode, 1);
+            }
+
+            public async ValueTask BeforeEncodeAsync(PubSubShadowEncodingMarker marker,
+                PubSubNetworkMessage networkMessage,
+                CancellationToken cancellationToken = default)
+            {
+                if (Interlocked.Exchange(ref _blockNextEncode, 0) == 0)
+                {
+                    return;
+                }
+                if (marker.Generation is null)
+                {
+                    throw new Xunit.Sdk.XunitException(
+                        "The JSON encoder did not capture an encoding generation.");
+                }
+                BlockedGeneration = marker.Generation.Id;
+                _blocked.TrySetResult(true);
+                await _release.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            public Task WaitForBlockedEncodeAsync()
+            {
+                return _blocked.Task;
+            }
+
+            public void ReleaseEncode()
+            {
+                _release.TrySetResult(true);
+            }
+
+            public long BlockedGeneration { get; private set; }
+
+            private TaskCompletionSource<bool> _blocked = new(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+            private TaskCompletionSource<bool> _release = new(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+            private int _blockNextEncode;
         }
 
         private sealed class MemoryIdentityStore : IPubSubIdentityRegistryStore
