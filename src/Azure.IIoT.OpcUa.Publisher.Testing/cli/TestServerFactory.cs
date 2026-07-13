@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
 {
     using Azure.IIoT.OpcUa.Publisher.Stack;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Sample;
     using CoreUtils = Azure.IIoT.OpcUa.Core.Utils.Utils;
     using Try = Azure.IIoT.OpcUa.Core.Utils.Try;
     using Microsoft.Extensions.Logging;
