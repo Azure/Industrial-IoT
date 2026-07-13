@@ -85,6 +85,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Compatibility
             Assert.Equal(409, document.RootElement.GetProperty("status").GetInt32());
             Assert.Equal("Conflict", document.RootElement.GetProperty("title").GetString());
             Assert.Equal("already exists", document.RootElement.GetProperty("detail").GetString());
+            Assert.Equal("conflict",
+                document.RootElement.GetProperty("context").GetProperty("kind").GetString());
+        }
+
+        [Fact]
+        public async Task ServerMethodStatusUsesGeneratedProblemDetailsMetadataAsync()
+        {
+            await using var app = CreateApp();
+            app.MapGet("/contract/method-status-server", ThrowMethodStatusServer)
+                .AddEndpointFilter<RestExceptionFilter>();
+
+            await app.StartAsync();
+            using var client = app.GetTestClient();
+            using var response = await client.GetAsync("/contract/method-status-server");
+
+            Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+            Assert.Equal(Json.MimeType, response.Content.Headers.ContentType?.MediaType);
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            Assert.Equal(500, document.RootElement.GetProperty("status").GetInt32());
+            Assert.Equal("failure", document.RootElement.GetProperty("context")
+                .GetProperty("kind").GetString());
         }
 
         private static WebApplication CreateApp()
@@ -107,7 +128,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Compatibility
 
         private static IResult ThrowMethodStatus()
         {
-            throw new MethodCallStatusException(409, "already exists", "Conflict");
+            throw new MethodCallStatusException(CreateErrorDetails(409, "Conflict",
+                "already exists", "conflict"));
+        }
+
+        private static IResult ThrowMethodStatusServer()
+        {
+            throw new MethodCallStatusException(CreateErrorDetails(500, "Internal Server Error",
+                "failed", "failure"));
+        }
+
+        private static ErrorDetails CreateErrorDetails(int status, string title,
+            string detail, string extension)
+        {
+            using var document = JsonDocument.Parse($$"""{"kind":"{{extension}}"}""");
+            return new ErrorDetails
+            {
+                Status = status,
+                Title = title,
+                Detail = detail,
+                Extensions = new Dictionary<string, JsonElement>
+                {
+                    ["context"] = document.RootElement.Clone()
+                }
+            };
         }
 
         private sealed class ContractAuthenticationHandler

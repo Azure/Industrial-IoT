@@ -7,13 +7,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
 {
     using Azure.IIoT.OpcUa.Exceptions;
     using Azure.IIoT.OpcUa.Core.Exceptions;
+    using Azure.IIoT.OpcUa.Publisher.Module.Serialization;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Diagnostics.ExceptionSummarization;
     using Microsoft.Extensions.Logging;
     using System;
-    using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.Net;
     using System.Net.Sockets;
@@ -52,14 +52,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
         /// </summary>
         /// <param name="exception"></param>
         /// <param name="httpContext"></param>
-        [UnconditionalSuppressMessage("Trimming", "IL2026",
-            Justification = "Serializes framework ProblemDetails via the shared " +
-            "reflection-based JSON serializer to preserve the exact MVC error wire " +
-            "format; source generating the error envelope is part of the final AOT step.")]
-        [UnconditionalSuppressMessage("AOT", "IL3050",
-            Justification = "Serializes framework ProblemDetails via the shared " +
-            "reflection-based JSON serializer to preserve the exact MVC error wire " +
-            "format; source generating the error envelope is part of the final AOT step.")]
         private static IResult Map(Exception exception, HttpContext httpContext)
         {
             if (exception is AggregateException ae)
@@ -96,7 +88,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
                     var problem = mcs.Details.ToProblemDetails();
                     // Match the MVC ObjectResult with a null status code which
                     // surfaces as HTTP 200 with the problem details body.
-                    result = Results.Json(problem, statusCode: null);
+                    result = Results.Json(problem, ModuleJsonContext.Default.ProblemDetails,
+                        statusCode: null);
                     status = problem.Status ?? (int)HttpStatusCode.InternalServerError;
                     break;
                 case SerializerException:
@@ -141,24 +134,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Filters
         /// <param name="code"></param>
         /// <param name="exception"></param>
         /// <param name="summarizer"></param>
-        [UnconditionalSuppressMessage("Trimming", "IL2026",
-            Justification = "Serializes framework ProblemDetails / error strings via the " +
-            "shared reflection-based JSON serializer to preserve the exact MVC error wire " +
-            "format; source generating the error envelope is part of the final AOT step.")]
-        [UnconditionalSuppressMessage("AOT", "IL3050",
-            Justification = "Serializes framework ProblemDetails / error strings via the " +
-            "shared reflection-based JSON serializer to preserve the exact MVC error wire " +
-            "format; source generating the error envelope is part of the final AOT step.")]
         private static (IResult, int) Response(HttpStatusCode code, Exception exception,
             IExceptionSummarizer? summarizer)
         {
             if (summarizer != null)
             {
                 var ex = exception.AsMethodCallStatusException((int)code, summarizer);
-                return (Results.Json(ex.Details.ToProblemDetails(), statusCode: (int)code),
+                return (Results.Json(ex.Details.ToProblemDetails(),
+                    ModuleJsonContext.Default.ProblemDetails, statusCode: (int)code),
                     (int)code);
             }
-            return (Results.Json(exception.Message, statusCode: (int)code), (int)code);
+            return (Results.Json(exception.Message, ModuleJsonContext.Default.String,
+                statusCode: (int)code), (int)code);
         }
 
         /// <summary>
