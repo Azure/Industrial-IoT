@@ -325,10 +325,49 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Assert.True(await adapter.TryAddAsync(owner, root));
 
             manager.Subscription!.TriggerAddStatus = StatusCodes.BadMonitoredItemIdInvalid;
-            await Assert.ThrowsAsync<ServiceResultException>(() =>
+            var exception = await Assert.ThrowsAsync<ServiceResultException>(() =>
                 adapter.UpdateAsync([(owner, root)]).AsTask());
 
+            Assert.Equal(StatusCodes.BadMonitoredItemIdInvalid, exception.Result.StatusCode);
             Assert.Single(manager.Subscription.Collection.Items);
+        }
+
+        [Fact]
+        public async Task SurfacesMalformedTriggeringResultAsUnexpectedError()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            var root = CreateDataItem("ns=2;s=root") with
+            {
+                TriggeredItems = [CreateDataItem("ns=2;s=child")]
+            };
+            Assert.True(await adapter.TryAddAsync(owner, root));
+            manager.Subscription!.TriggerResultCount = 0;
+
+            var exception = await Assert.ThrowsAsync<ServiceResultException>(() =>
+                adapter.UpdateAsync([(owner, root)]).AsTask());
+
+            Assert.Equal(StatusCodes.BadUnexpectedError, exception.Result.StatusCode);
+        }
+
+        [Fact]
+        public async Task SurfacesBadRemoveLinkStatusFromTriggeringResult()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            var root = CreateDataItem("ns=2;s=root") with
+            {
+                TriggeredItems = [CreateDataItem("ns=2;s=child")]
+            };
+            Assert.True(await adapter.TryAddAsync(owner, root));
+            manager.Subscription!.TriggerRemoveStatus = StatusCodes.BadMonitoredItemIdInvalid;
+
+            var exception = await Assert.ThrowsAsync<ServiceResultException>(() =>
+                adapter.UpdateAsync([(owner, root)]).AsTask());
+
+            Assert.Equal(StatusCodes.BadMonitoredItemIdInvalid, exception.Result.StatusCode);
         }
 
         [Fact]
@@ -743,6 +782,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public int ConditionRefreshCount { get; private set; }
             public StatusCode TriggerServiceStatus { get; set; } = StatusCodes.Good;
             public StatusCode TriggerAddStatus { get; set; } = StatusCodes.Good;
+            public StatusCode TriggerRemoveStatus { get; set; } = StatusCodes.Good;
+            public int TriggerResultCount { get; set; } = -1;
             public List<(IMonitoredItem Trigger, IReadOnlyCollection<IMonitoredItem> Children)>
                 TriggeringCalls { get; } = [];
 
@@ -781,9 +822,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 CancellationToken ct = default)
             {
                 TriggeringCalls.Add((triggeringItem, linksToAdd ?? []));
+                var addResults = (linksToAdd ?? [])
+                    .Select(item => (item, TriggerAddStatus))
+                    .ToList();
+                if (TriggerResultCount >= 0)
+                {
+                    addResults = [.. addResults.Take(TriggerResultCount)];
+                }
                 return ValueTask.FromResult(new SetTriggeringResult(triggeringItem,
-                    (linksToAdd ?? []).Select(item => (item, TriggerAddStatus)).ToList(),
-                    [], TriggerServiceStatus));
+                    addResults,
+                    StatusCode.IsGood(TriggerRemoveStatus) ? [] :
+                        [(triggeringItem, TriggerRemoveStatus)],
+                    TriggerServiceStatus));
             }
 
             public ValueTask DisposeAsync()

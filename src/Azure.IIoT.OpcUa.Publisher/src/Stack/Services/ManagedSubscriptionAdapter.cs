@@ -259,10 +259,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 var result = await _subscription.SetTriggeringAsync(parentItem!, [childItem!], null, ct)
                     .ConfigureAwait(false);
-                if (!TryApplyTriggeringResult(parent, [binding], result))
+                if (!TryApplyTriggeringResult(parent, [binding], result,
+                    out var failureStatus))
                 {
                     RemoveTree(binding);
-                    throw new ServiceResultException(result.ServiceResult);
+                    throw new ServiceResultException(failureStatus);
                 }
             }
         }
@@ -571,7 +572,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 added.Add(child);
                 var result = await _subscription.SetTriggeringAsync(parentItem, [childItem!], null, ct)
                     .ConfigureAwait(false);
-                if (!TryApplyTriggeringResult(parent, [child], result))
+                if (!TryApplyTriggeringResult(parent, [child], result,
+                    out _))
                 {
                     return false;
                 }
@@ -585,16 +587,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         private bool TryApplyTriggeringResult(ManagedSubscriptionItemBinding parent,
-            IReadOnlyList<ManagedSubscriptionItemBinding> children, SetTriggeringResult result)
+            IReadOnlyList<ManagedSubscriptionItemBinding> children, SetTriggeringResult result,
+            out StatusCode failureStatus)
         {
             if (!StatusCode.IsGood(result.ServiceResult))
             {
                 ReportTriggeringFailure(parent, result.ServiceResult);
+                failureStatus = result.ServiceResult;
                 return false;
             }
             if (result.AddResults.Count != children.Count)
             {
                 ReportTriggeringFailure(parent, StatusCodes.BadUnexpectedError);
+                failureStatus = StatusCodes.BadUnexpectedError;
                 return false;
             }
             for (var index = 0; index < children.Count; index++)
@@ -603,9 +608,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (!StatusCode.IsGood(status))
                 {
                     ReportTriggeringFailure(children[index], status);
+                    failureStatus = status;
                     return false;
                 }
             }
+            foreach (var (_, status) in result.RemoveResults)
+            {
+                if (!StatusCode.IsGood(status))
+                {
+                    ReportTriggeringFailure(parent, status);
+                    failureStatus = status;
+                    return false;
+                }
+            }
+            if (result.RemoveResults.Count != 0)
+            {
+                ReportTriggeringFailure(parent, StatusCodes.BadUnexpectedError);
+                failureStatus = StatusCodes.BadUnexpectedError;
+                return false;
+            }
+            failureStatus = StatusCodes.Good;
             return true;
         }
 
