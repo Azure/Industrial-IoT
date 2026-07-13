@@ -1049,16 +1049,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     return false;
                 }
 
-                private bool IsLiveOwner(ISubscriber owner)
-                {
-                    lock (_bindingsLock)
-                    {
-                        return _bindingsByHandle.Values.Any(binding => binding.Owner.Equals(owner));
-                    }
-                }
                 return state.KeyFrameRequired || _periodicKeyFrameInterval.HasValue &&
                     _timeProvider.GetUtcNow() >= state.LastKeyFrame +
                     _periodicKeyFrameInterval.Value;
+            }
+        }
+
+        private bool IsLiveOwner(ISubscriber owner)
+        {
+            lock (_bindingsLock)
+            {
+                return _bindingsByHandle.Values.Any(binding => binding.Owner.Equals(owner));
             }
         }
 
