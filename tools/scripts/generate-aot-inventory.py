@@ -89,7 +89,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--enforce",
         action="store_true",
-        help="Fail for unclassified, feed, or new application-owned warnings.",
+        help="Fail for unclassified, feed, or new application-owned AOT warnings.",
     )
     return parser.parse_args()
 
@@ -451,6 +451,21 @@ def load_baseline(baseline_path: Path, description: str) -> tuple[dict[str, Any]
     return baseline, []
 
 
+def is_aot_policy_warning(warning: dict[str, Any]) -> bool:
+    """Return whether a warning belongs to the trim/Native-AOT policy."""
+    code = warning["code"]
+    if code.startswith("IL"):
+        return True
+    if not code.startswith("NETSDK"):
+        return False
+
+    message = warning["message"].casefold()
+    return any(
+        marker in message
+        for marker in ("nativeaot", "native aot", "ahead-of-time", "aot", "trim")
+    )
+
+
 def enforce_policy(
     report: dict[str, Any],
     baseline_path: Path,
@@ -471,12 +486,14 @@ def enforce_policy(
             return candidate_failures
 
         protected_application_keys = {
-            warning["key"] for warning in baseline["warnings"] if warning["owner"] == "application"
+            warning["key"]
+            for warning in baseline["warnings"]
+            if warning["owner"] == "application" and is_aot_policy_warning(warning)
         }
         candidate_application_keys = {
             warning["key"]
             for warning in candidate["warnings"]
-            if warning["owner"] == "application"
+            if warning["owner"] == "application" and is_aot_policy_warning(warning)
         }
         for key in sorted(candidate_application_keys - protected_application_keys):
             failures.append(
@@ -493,7 +510,11 @@ def enforce_policy(
             failures.append(
                 f"Restore/feed warning {warning['code']} at {warning['source_or_assembly']}"
             )
-        elif warning["owner"] == "application" and warning["key"] not in baseline_keys:
+        elif (
+            warning["owner"] == "application"
+            and is_aot_policy_warning(warning)
+            and warning["key"] not in baseline_keys
+        ):
             failures.append(
                 f"New application warning {warning['code']} at {warning['source_or_assembly']}"
             )

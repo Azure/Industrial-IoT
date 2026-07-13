@@ -118,7 +118,7 @@ class GenerateAotInventoryTests(unittest.TestCase):
         self.assertIn("## Warnings", (TEST_DIRECTORY / "clean.md").read_text(encoding="utf-8"))
 
     def test_policy_rejects_new_application_warning(self) -> None:
-        """A changed PR baseline cannot authorize a new application warning."""
+        """A changed PR baseline cannot authorize a new application IL warning."""
         baseline_log = TEST_DIRECTORY / "baseline.log"
         baseline_log.write_text(
             "D:\\repo\\src\\App\\Program.cs(10,2): Trim analysis warning IL2070: "
@@ -147,6 +147,117 @@ class GenerateAotInventoryTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("Application warning baseline grows outside the protected base", result.stderr)
         self.assertIn("New application warning IL2070", result.stderr)
+
+    def test_policy_allows_new_application_compiler_warning(self) -> None:
+        """Ordinary application compiler diagnostics remain reported but do not fail AOT policy."""
+        clean_log = TEST_DIRECTORY / "ca-clean.log"
+        clean_log.write_text("Build succeeded.\n", encoding="utf-8")
+        baseline_result = self.run_generator(clean_log, "ca-baseline")
+        self.assertEqual(baseline_result.returncode, 0, baseline_result.stderr)
+
+        compiler_log = TEST_DIRECTORY / "ca-warning.log"
+        compiler_log.write_text(
+            "D:\\repo\\src\\App\\Program.cs(10,2): warning CA2000: Dispose the object "
+            "created by 'new Stream()'. [D:\\repo\\src\\App\\App.csproj]\n",
+            encoding="utf-8",
+        )
+        result = self.run_generator(
+            compiler_log,
+            "ca-enforcement",
+            "--baseline",
+            str(TEST_DIRECTORY / "ca-baseline.json"),
+            "--enforce",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        report = json.loads((TEST_DIRECTORY / "ca-enforcement.json").read_text(encoding="utf-8"))
+        self.assertEqual(report["warnings"][0]["owner"], "application")
+        self.assertEqual(report["warnings"][0]["code"], "CA2000")
+
+    def test_policy_allows_dependency_aot_warning(self) -> None:
+        """Third-party AOT diagnostics remain reported but are not application policy failures."""
+        clean_log = TEST_DIRECTORY / "dependency-clean.log"
+        clean_log.write_text("Build succeeded.\n", encoding="utf-8")
+        baseline_result = self.run_generator(clean_log, "dependency-baseline")
+        self.assertEqual(baseline_result.returncode, 0, baseline_result.stderr)
+
+        dependency_log = TEST_DIRECTORY / "dependency-warning.log"
+        dependency_log.write_text(
+            "C:\\Users\\builder\\.nuget\\packages\\mono.options\\6.12.0.148\\lib\\"
+            "netstandard2.0\\Mono.Options.dll : warning IL2104: Assembly 'Mono.Options' "
+            "produced trim warnings.\n",
+            encoding="utf-8",
+        )
+        result = self.run_generator(
+            dependency_log,
+            "dependency-enforcement",
+            "--baseline",
+            str(TEST_DIRECTORY / "dependency-baseline.json"),
+            "--enforce",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        report = json.loads(
+            (TEST_DIRECTORY / "dependency-enforcement.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(report["warnings"][0]["owner"], "third-party")
+        self.assertEqual(report["warnings"][0]["code"], "IL2104")
+
+    def test_policy_rejects_application_native_aot_netsdk_warning(self) -> None:
+        """Explicit Native-AOT NETSDK diagnostics are treated as AOT policy warnings."""
+        clean_log = TEST_DIRECTORY / "netsdk-clean.log"
+        clean_log.write_text("Build succeeded.\n", encoding="utf-8")
+        baseline_result = self.run_generator(clean_log, "netsdk-baseline")
+        self.assertEqual(baseline_result.returncode, 0, baseline_result.stderr)
+
+        netsdk_log = TEST_DIRECTORY / "netsdk-warning.log"
+        netsdk_log.write_text(
+            "D:\\repo\\src\\App\\App.csproj : warning NETSDK1207: Native AOT compilation "
+            "is not supported for the target framework.\n",
+            encoding="utf-8",
+        )
+        result = self.run_generator(
+            netsdk_log,
+            "netsdk-enforcement",
+            "--baseline",
+            str(TEST_DIRECTORY / "netsdk-baseline.json"),
+            "--enforce",
+        )
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("New application warning NETSDK1207", result.stderr)
+
+    def test_policy_rejects_unclassified_and_feed_warnings(self) -> None:
+        """Unclassified and restore/feed defects fail regardless of AOT baseline membership."""
+        clean_log = TEST_DIRECTORY / "failure-clean.log"
+        clean_log.write_text("Build succeeded.\n", encoding="utf-8")
+        baseline_result = self.run_generator(clean_log, "failure-baseline")
+        self.assertEqual(baseline_result.returncode, 0, baseline_result.stderr)
+
+        failures_log = TEST_DIRECTORY / "failure-warnings.log"
+        failures_log.write_text(
+            "\n".join(
+                (
+                    "D:\\unknown\\Program.cs(10,2): Trim analysis warning IL2070: "
+                    "Unknown ownership.",
+                    "D:\\repo\\src\\App\\App.csproj : warning NU1900: Unable to load the "
+                    "service index for source https://pkgs.dev.azure.com/example.",
+                )
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        result = self.run_generator(
+            failures_log,
+            "failure-enforcement",
+            "--baseline",
+            str(TEST_DIRECTORY / "failure-baseline.json"),
+            "--enforce",
+        )
+
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("Unclassified warning IL2070", result.stderr)
+        self.assertIn("Restore/feed warning NU1900", result.stderr)
 
     def test_policy_reports_malformed_protected_baseline(self) -> None:
         """A malformed protected baseline produces a clear policy failure."""
