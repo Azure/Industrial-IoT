@@ -482,6 +482,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 static provider => provider.GetRequiredService<IoTHubMock>());
             services.AddSingleton<IIoTHubEventProcessor>(
                 static provider => provider.GetRequiredService<IoTHubMock>());
+            services.AddSingleton<IEventRegistration<IIoTHubTelemetryHandler>>(
+                static provider => provider.GetRequiredService<IoTHubMock>());
             services.AddSingleton<IIoTHub>(
                 static provider => provider.GetRequiredService<IoTHubMock>());
             services.AddSingleton<Azure.IIoT.OpcUa.Core.Rpc.IRpcClient>(

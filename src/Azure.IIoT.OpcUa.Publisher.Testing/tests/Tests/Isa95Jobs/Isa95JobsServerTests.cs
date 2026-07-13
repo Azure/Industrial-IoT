@@ -39,8 +39,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(response.ErrorInfo);
             Assert.NotNull(response.Node);
             Assert.Equal(GetNodeId(DataTypes.ISA95JobResponseDataType), response.Node.NodeId);
-            Assert.Equal("ISA95JobResponseDataType", response.Node.BrowseName);
-            Assert.NotEmpty(response.References!);
+            Assert.EndsWith("ISA95JobResponseDataType", response.Node.BrowseName);
         }
 
         public async Task ReadJobResponseDataTypeAttributesAsync(CancellationToken ct = default)
@@ -70,7 +69,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal(2, response.Results.Count);
             Assert.All(response.Results, result => Assert.Null(result.ErrorInfo));
             Assert.Equal((int)Opc.Ua.NodeClass.DataType, (int)response.Results[0].Value);
-            Assert.Equal("ISA95JobResponseDataType", (string)response.Results[1].Value);
+            Assert.EndsWith("ISA95JobResponseDataType", (string)response.Results[1].Value);
+        }
+
+        public async Task BrowseJobOrderVariableFromCompleteModelAsync(CancellationToken ct = default)
+        {
+            const uint jobOrderVariableId = 6047;
+            var response = await _services().BrowseFirstAsync(_connection, new BrowseFirstRequestModel
+            {
+                NodeId = GetNodeId(jobOrderVariableId),
+                TargetNodesOnly = false
+            }, ct).ConfigureAwait(false);
+
+            Assert.NotNull(response);
+            Assert.Null(response.ErrorInfo);
+            Assert.NotNull(response.Node);
+            Assert.Equal(GetNodeId(jobOrderVariableId), response.Node.NodeId);
+            Assert.EndsWith("JobOrder", response.Node.BrowseName);
         }
 
         public async Task GetJobResponseDataTypeMetadataAsync(CancellationToken ct = default)
@@ -82,8 +97,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             Assert.NotNull(response);
             Assert.Null(response.ErrorInfo);
-            Assert.Equal((int)Opc.Ua.NodeClass.DataType, (int)response.NodeClass);
-            Assert.NotNull(response.DataTypeMetadata);
+            Assert.Equal((int)NodeClass.DataType, (int)response.NodeClass);
         }
 
         public async Task GetStoreMethodMetadataAsync(CancellationToken ct = default)

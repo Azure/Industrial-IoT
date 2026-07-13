@@ -33,6 +33,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Isa95Jobs
         }
 
         [Fact]
+        public Task BrowseJobOrderVariableFromCompleteModelAsync()
+        {
+            return GetTests().BrowseJobOrderVariableFromCompleteModelAsync();
+        }
+
+        [Fact]
         public Task GetJobResponseDataTypeMetadataAsync()
         {
             return GetTests().GetJobResponseDataTypeMetadataAsync();
