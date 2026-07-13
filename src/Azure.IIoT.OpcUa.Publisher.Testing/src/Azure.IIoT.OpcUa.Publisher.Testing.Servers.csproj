@@ -62,6 +62,8 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Linq.Async" />
+    <!-- Legacy Asset simulations intentionally use Newtonsoft.Json and are test-only. -->
+    <PackageReference Include="Newtonsoft.Json" />
     <!--
       Phase 8 (AOT gate): pin the multi-TFM UA-.NETStandard submodule reference to
       net10.0 and stop PublishAot from propagating so a `-p:PublishAot=true` publish
