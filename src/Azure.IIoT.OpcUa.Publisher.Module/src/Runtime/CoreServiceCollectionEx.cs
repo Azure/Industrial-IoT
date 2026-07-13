@@ -18,6 +18,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Azure.IIoT.OpcUa.Core.Rpc.Servers;
     using Azure.IIoT.OpcUa.Core.Storage;
     using Azure.IIoT.OpcUa.Core.Storage.Services;
+    using Azure.IIoT.OpcUa.Publisher.Module.Serialization;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Diagnostics.ExceptionSummarization;
     using Microsoft.Extensions.Logging;
@@ -42,6 +43,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             services.AddOptions();
             services.AddSingleton<IMethodRouterDescriptorProvider,
                 Azure_IIoT_OpcUa_Publisher_ModuleMethodRouterDescriptors>();
+            services.AddSingleton<IMethodRouterJsonTypeInfoProvider,
+                MethodRouterJsonTypeInfoProvider>();
             services.AddSingleton<IMethodRouterJsonSerializer>(s =>
                 new MethodRouterJsonSerializer(
                     s.GetServices<IMethodRouterJsonTypeInfoProvider>()));
