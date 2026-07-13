@@ -114,6 +114,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     return _bindingsByHandle.Count;
                 }
+
+                /// <summary>
+                /// The number of owners that retain Publisher key-frame state.
+                /// </summary>
+                internal int OwnerStateCount
+                {
+                    get
+                    {
+                        lock (_bindingsLock)
+                        {
+                            return _ownerStates.Count;
+                        }
+
+                        /// <summary>
+                        /// Gets the effective condition timing state for an item binding.
+                        /// </summary>
+                        internal bool TryGetConditionIntervals(uint clientHandle,
+                            out int snapshotInterval, out int updateInterval)
+                        {
+                            snapshotInterval = 0;
+                            updateInterval = 0;
+                            if (!TryGetBinding(clientHandle, out var binding) || binding.Condition == null)
+                            {
+                                return false;
+                            }
+                            lock (binding.Condition._lock)
+                            {
+                                snapshotInterval = binding.Condition.SnapshotInterval;
+                                updateInterval = binding.Condition.UpdateInterval;
+                                return true;
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -222,8 +256,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     continue;
                 }
-                await _subscription.SetTriggeringAsync(parentItem!, [childItem!], null, ct)
+                var result =                 var result = await _subscription.SetTriggeringAsync(parentItem!, [childItem!], null, ct)
                     .ConfigureAwait(false);
+                if (!TryApplyTriggeringResult(parent, [binding], result))
+                {
+                    RemoveTree(binding);
+                    throw new ServiceResultException(result.ServiceResult);
+                }
+                if (!TryApplyTriggeringResult(parent, [child], result))
+                {
+                    RemoveTree(child);
+                    throw new ServiceResultException(result.ServiceResult);
+                }
             }
         }
 
@@ -239,13 +283,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 return false;
             }
-            var bindings = GetBindings()
-                .Where(candidate => candidate.Name == binding.Name ||
-                    candidate.RootName == binding.RootName && candidate.Name != binding.RootName)
-                .ToArray();
+            var bindings = GetDescendants(binding).ToArray();
             var removed = _subscription.MonitoredItems.TryRemove(clientHandle);
-            RemoveBindings(bindings.Where(candidate => candidate.ClientHandle != clientHandle));
             RemoveBinding(binding);
+            RemoveBindings(bindings.Where(candidate => candidate.ClientHandle != clientHandle));
             return removed;
         }
 
@@ -285,30 +326,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             foreach (var binding in GetBindings().Where(binding => binding.Condition != null))
             {
-                var condition = binding.Condition!;
-                var now = _timeProvider.GetUtcNow();
-                if (!force && (condition.Refreshing ||
-                    now < condition.LastSent + TimeSpan.FromSeconds(condition.SnapshotInterval)) &&
-                    (!condition.Dirty ||
-                        now < condition.LastSent + TimeSpan.FromSeconds(condition.UpdateInterval)))
-                {
-                    continue;
-                }
-                var notifications = condition.Active.Values
-                    .SelectMany(value => value.Select(CloneNotification))
-                    .ToList();
-                condition.Dirty = false;
-                condition.LastSent = now;
-                if (notifications.Count != 0)
-                {
-                    var message = CreateNotification(notifications, NextSequenceNumber(),
-                        now.UtcDateTime, MessageType.Condition);
-                    Deliver(binding.Owner, message,
-                        static (owner, notification) => owner.OnSubscriptionEventReceived(notification));
-                    InvokeSubscriber(binding.Owner,
-                        owner => owner.OnSubscriptionEventDiagnosticsChange(true,
-                            notifications.Count, notifications.Sum(item => item.Overflow), 0));
-                }
+                FlushCondition(binding, force, endRefresh: false);
             }
         }
 
@@ -537,8 +555,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     return false;
                 }
                 added.Add(child);
-                await _subscription.SetTriggeringAsync(parentItem, [childItem!], null, ct)
+                var result = await _subscription.SetTriggeringAsync(parentItem, [childItem!], null, ct)
                     .ConfigureAwait(false);
+                if (!TryApplyTriggeringResult(parent, [child], result))
+                {
+                    return false;
+                }
                 if (!await AddTriggeredItemsAsync(child, childItem!, rootName, added, ct)
                     .ConfigureAwait(false))
                 {
@@ -546,6 +568,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
             return true;
+        }
+
+        private bool TryApplyTriggeringResult(ManagedSubscriptionItemBinding parent,
+            IReadOnlyList<ManagedSubscriptionItemBinding> children, SetTriggeringResult result)
+        {
+            if (!StatusCode.IsGood(result.ServiceResult))
+            {
+                ReportTriggeringFailure(parent, result.ServiceResult);
+                return false;
+            }
+            if (result.AddResults.Count != children.Count)
+            {
+                ReportTriggeringFailure(parent, StatusCodes.BadUnexpectedError);
+                return false;
+            }
+            for (var index = 0; index < children.Count; index++)
+            {
+                var status = result.AddResults[index].Status;
+                if (!StatusCode.IsGood(status))
+                {
+                    ReportTriggeringFailure(children[index], status);
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private void ReportTriggeringFailure(ManagedSubscriptionItemBinding binding,
+            StatusCode statusCode)
+        {
+            InvokeSubscriber(binding.Owner, subscriber =>
+                subscriber.OnMonitoredItemUpdate(binding.Template,
+                    new ServiceResult(statusCode).ToServiceResultModel()));
         }
 
         private List<ManagedSubscriptionItemBinding> CreateDesiredBindings(
@@ -611,6 +666,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _bindingsByName.Add(binding.Name, binding);
                     GetOwnerState(binding.Owner).KeyFrameRequired = true;
                 }
+                PruneOwnerStates();
             }
             foreach (var binding in GetBindings())
             {
@@ -673,7 +729,45 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 _bindingsByHandle.Remove(binding.ClientHandle);
                 _bindingsByName.Remove(binding.Name);
+                PruneOwnerStates();
             }
+        }
+
+        private IEnumerable<ManagedSubscriptionItemBinding> GetDescendants(
+            ManagedSubscriptionItemBinding root)
+        {
+            var bindings = GetBindings();
+            var byName = bindings.ToDictionary(binding => binding.Name, StringComparer.Ordinal);
+            foreach (var candidate in bindings)
+            {
+                var parent = candidate.ParentName;
+                while (parent != null)
+                {
+                    if (string.Equals(parent, root.Name, StringComparison.Ordinal))
+                    {
+                        yield return candidate;
+                        break;
+                    }
+                    parent = byName.TryGetValue(parent, out var parentBinding) ?
+                        parentBinding.ParentName : null;
+                }
+            }
+        }
+
+        private void RemoveTree(ManagedSubscriptionItemBinding root)
+        {
+            var descendants = GetDescendants(root).ToArray();
+            _subscription.MonitoredItems.TryRemove(root.ClientHandle);
+            RemoveBinding(root);
+            RemoveBindings(descendants);
+        }
+
+        private void PruneOwnerStates()
+        {
+            var activeOwners = _bindingsByHandle.Values
+                .Select(binding => binding.Owner)
+                .ToHashSet();
+            _ownerStates.RemoveWhere(owner => !activeOwners.Contains(owner));
         }
 
         private ManagedSubscriptionItemBinding CreateBinding(string name,
@@ -712,15 +806,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 if (eventType == ObjectTypeIds.RefreshStartEventType)
                 {
-                    condition.Active.Clear();
-                    condition.Refreshing = true;
+                    lock (condition._lock)
+                    {
+                        condition.Active.Clear();
+                        condition.Refreshing = true;
+                    }
                     return;
                 }
                 if (eventType == ObjectTypeIds.RefreshEndEventType)
                 {
-                    condition.Refreshing = false;
-                    condition.Dirty = true;
-                    FlushConditions(force: true);
+                    FlushCondition(binding, force: true, endRefresh: true);
                     return;
                 }
                 if (eventType == ObjectTypeIds.RefreshRequiredEventType)
@@ -736,31 +831,84 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     return;
                 }
             }
-            if (condition.ConditionIdIndex < 0 || condition.RetainIndex < 0 ||
-                condition.ConditionIdIndex >= fields.Count || condition.RetainIndex >= fields.Count)
+            lock (condition._lock)
             {
-                return;
-            }
-            var id = fields[condition.ConditionIdIndex].ToString();
-            if (string.IsNullOrEmpty(id))
-            {
-                return;
-            }
-            var retain = fields[condition.RetainIndex].TryGetValue(out bool value) && value;
-            if (!retain)
-            {
-                condition.Active.Remove(id);
+                if (condition.ConditionIdIndex < 0 || condition.RetainIndex < 0 ||
+                    condition.ConditionIdIndex >= fields.Count || condition.RetainIndex >= fields.Count)
+                {
+                    return;
+                }
+                var id = fields[condition.ConditionIdIndex].ToString();
+                if (string.IsNullOrEmpty(id))
+                {
+                    return;
+                }
+                var retain = fields[condition.RetainIndex].TryGetValue(out bool value) && value;
+                if (!retain)
+                {
+                    condition.Active.Remove(id);
+                    condition.Dirty = true;
+                    return;
+                }
+                var notifications = new List<MonitoredItemNotificationModel>();
+                AddEventNotifications(notifications, binding, sequenceNumber, fields);
+                if (notifications.Count == 0)
+                {
+                    return;
+                }
+                condition.Active[id] = notifications.Select(CloneNotification).ToList();
                 condition.Dirty = true;
-                return;
             }
-            var notifications = new List<MonitoredItemNotificationModel>();
-            AddEventNotifications(notifications, binding, sequenceNumber, fields);
-            if (notifications.Count == 0)
+        }
+
+        private void FlushCondition(ManagedSubscriptionItemBinding binding,
+            bool force, bool endRefresh)
+        {
+            var condition = binding.Condition!;
+            var now = _timeProvider.GetUtcNow();
+            List<MonitoredItemNotificationModel>? notifications = null;
+            lock (condition._lock)
             {
-                return;
+                if (endRefresh)
+                {
+                    condition.Refreshing = false;
+                    condition.Dirty = true;
+                }
+                if (condition.Refreshing || condition.Publishing ||
+                    !force && now < condition.LastSent +
+                    TimeSpan.FromSeconds(condition.SnapshotInterval) &&
+                    (!condition.Dirty || now < condition.LastSent +
+                        TimeSpan.FromSeconds(condition.UpdateInterval)))
+                {
+                    return;
+                }
+                condition.Publishing = true;
+                notifications = condition.Active.Values
+                    .SelectMany(value => value.Select(CloneNotification))
+                    .ToList();
+                condition.Dirty = false;
+                condition.LastSent = now;
             }
-            condition.Active[id] = notifications.Select(CloneNotification).ToList();
-            condition.Dirty = true;
+            try
+            {
+                if (notifications.Count != 0)
+                {
+                    var message = CreateNotification(notifications, NextSequenceNumber(),
+                        now.UtcDateTime, MessageType.Condition);
+                    Deliver(binding.Owner, message,
+                        static (owner, notification) => owner.OnSubscriptionEventReceived(notification));
+                    InvokeSubscriber(binding.Owner,
+                        owner => owner.OnSubscriptionEventDiagnosticsChange(true,
+                            notifications.Count, notifications.Sum(item => item.Overflow), 0));
+                }
+            }
+            finally
+            {
+                lock (condition._lock)
+                {
+                    condition.Publishing = false;
+                }
+            }
         }
 
         private MonitoredItemNotificationModel CreateDataNotification(
@@ -1050,6 +1198,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public void Update(ISubscriber owner, BaseMonitoredItemModel template,
                 MonitoredItemOptions options)
             {
+                if (!ReferenceEquals(Owner, owner) ||
+                    Template.GetType() != template.GetType() ||
+                    !string.Equals(Template.StartNodeId, template.StartNodeId,
+                        StringComparison.Ordinal) ||
+                    Template.AttributeId != template.AttributeId)
+                {
+                    LastDataValue = null;
+                    Interlocked.Exchange(ref _firstDataChange, 0);
+                }
                 Owner = owner;
                 Template = template;
                 Monitor.Update(options);
@@ -1075,7 +1232,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var condition = eventTemplate is
                     {
                         ConditionHandling: { SnapshotInterval: not null }
-                    } ? existing ?? new ConditionState(eventTemplate) : null;
+                    } ? existing is { } current && current.Matches(eventTemplate) ? current :
+                        new ConditionState(eventTemplate) : null;
                 for (var index = 0; index < filter.SelectClauses.Count; index++)
                 {
                     var clause = filter.SelectClauses[index];
@@ -1149,6 +1307,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public int UpdateInterval { get; }
             public DateTimeOffset LastSent { get; set; }
             public bool Dirty { get; set; }
+            public bool Publishing { get; set; }
             public bool Refreshing { get; set; }
             public Dictionary<string, List<MonitoredItemNotificationModel>> Active { get; } = [];
 
@@ -1157,6 +1316,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 SnapshotInterval = template.ConditionHandling!.SnapshotInterval!.Value;
                 UpdateInterval = template.ConditionHandling.UpdateInterval ?? SnapshotInterval;
             }
+
+            public bool Matches(EventMonitoredItemModel template)
+            {
+                return SnapshotInterval == template.ConditionHandling!.SnapshotInterval!.Value &&
+                    UpdateInterval == (template.ConditionHandling.UpdateInterval ?? SnapshotInterval);
+            }
+
+            internal readonly Lock _lock = new();
         }
 
         private sealed class OwnerState

@@ -219,6 +219,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         [Fact]
+        public async Task DoesNotFlushConditionsWhileRefreshIsActive()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            Assert.True(adapter.TryAdd(owner, CreateConditionItem("stable", 5, 2)));
+            var item = Assert.Single(manager.Subscription!.Collection.Items.Cast<FakeMonitoredItem>());
+
+            await manager.Handler!.OnEventDataNotificationAsync(manager.Subscription, 1,
+                DateTime.UtcNow, new EventNotification[]
+                {
+                    new(item, ArrayOf.Wrapped(
+                        Variant.From("ignored"),
+                        Variant.From(ObjectTypeIds.RefreshStartEventType),
+                        Variant.From(new NodeId(1u, 2)),
+                        Variant.From(true)))
+                }, PublishState.None, []);
+            adapter.FlushConditions(force: true);
+
+            Assert.Empty(owner.Events);
+        }
+
+        [Fact]
         public async Task RejectsUnrelatedModelChangesAndUsesPublisherChangeFeedSink()
         {
             var manager = new FakeSubscriptionManager();
@@ -270,6 +293,77 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         [Fact]
+        public async Task RollsBackTriggeredTreeWhenV2RejectsTriggering()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            var root = CreateDataItem("ns=2;s=root") with
+            {
+                TriggeredItems = [CreateDataItem("ns=2;s=child")]
+            };
+
+            manager.Subscription!.TriggerServiceStatus = StatusCodes.BadUnexpectedError;
+            Assert.False(await adapter.TryAddAsync(owner, root));
+
+            Assert.Equal(0, adapter.BindingCount);
+            Assert.Equal(0u, manager.Subscription.Collection.Count);
+            Assert.Contains(owner.Updates, update =>
+                update?.StatusCode == StatusCodes.BadUnexpectedError.Code);
+        }
+
+        [Fact]
+        public async Task RollsBackOnlyFailingTriggeredUpdateBranch()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            var root = CreateDataItem("ns=2;s=root") with
+            {
+                TriggeredItems = [CreateDataItem("ns=2;s=child")]
+            };
+            Assert.True(await adapter.TryAddAsync(owner, root));
+
+            manager.Subscription!.TriggerAddStatus = StatusCodes.BadMonitoredItemIdInvalid;
+            await Assert.ThrowsAsync<ServiceResultException>(() =>
+                adapter.UpdateAsync([(owner, root)]).AsTask());
+
+            Assert.Single(manager.Subscription.Collection.Items);
+        }
+
+        [Fact]
+        public async Task RemovesOnlySelectedTriggeredDescendants()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            var root = CreateDataItem("ns=2;s=root") with
+            {
+                TriggeredItems =
+                [
+                    CreateDataItem("ns=2;s=left") with
+                    {
+                        TriggeredItems = [CreateDataItem("ns=2;s=left-grandchild")]
+                    },
+                    CreateDataItem("ns=2;s=right")
+                ]
+            };
+            Assert.True(await adapter.TryAddAsync(owner, root));
+            var left = manager.Subscription!.Collection.Items
+                .Cast<FakeMonitoredItem>()
+                .Single(item => item.Name.Contains("left", StringComparison.Ordinal) &&
+                    !item.Name.Contains("grandchild", StringComparison.Ordinal));
+
+            Assert.True(adapter.TryRemove(left.ClientHandle));
+
+            var remaining = manager.Subscription.Collection.Items
+                .Cast<FakeMonitoredItem>().Select(item => item.Name).ToArray();
+            Assert.Equal(2, remaining.Length);
+            Assert.Contains(remaining, name => name.Contains("root", StringComparison.Ordinal));
+            Assert.Contains(remaining, name => name.Contains("right", StringComparison.Ordinal));
+        }
+
+        [Fact]
         public async Task RetainedMonitorUpdatesSamplingFilterQueueAndMode()
         {
             var manager = new FakeSubscriptionManager();
@@ -297,6 +391,64 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Assert.Equal(4u, item.Options.QueueSize);
             Assert.Equal(Opc.Ua.MonitoringMode.Sampling, item.Options.MonitoringMode);
             Assert.IsType<DataChangeFilter>(item.Options.Filter);
+        }
+
+        [Fact]
+        public async Task RetargetingStableBindingClearsCachedDataAndReplacesConditionSettings()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            var first = CreateDataItem("ns=2;s=old") with { DataSetFieldId = "stable" };
+            adapter.Update([(owner, first)]);
+            var item = Assert.Single(manager.Subscription!.Collection.Items.Cast<FakeMonitoredItem>());
+            await manager.Handler!.OnDataChangeNotificationAsync(manager.Subscription, 1,
+                DateTime.UtcNow, new DataValueChange[]
+                {
+                    new(item, new DataValue(Variant.From(42)), null)
+                }, PublishState.None, []);
+
+            adapter.Update([(owner, first with { StartNodeId = "ns=2;s=new" })]);
+            adapter.RequestKeyFrame(owner);
+            await manager.Handler.OnKeepAliveNotificationAsync(manager.Subscription, 2,
+                DateTime.UtcNow, PublishState.KeepAlive);
+
+            var keyFrame = owner.DataChanges.Last();
+            var retargeted = Assert.Single(keyFrame.Notifications);
+            var value = Assert.IsType<DataValue>(retargeted.Value);
+            Assert.Equal(StatusCodes.BadNoData, value.StatusCode);
+
+            var condition = CreateConditionItem("condition-stable", 5, 2);
+            adapter.Update([(owner, condition)]);
+            var conditionItem = Assert.Single(manager.Subscription.Collection.Items);
+            Assert.True(adapter.TryGetConditionIntervals(conditionItem.ClientHandle,
+                out var snapshot, out var update));
+            Assert.Equal(5, snapshot);
+            Assert.Equal(2, update);
+
+            adapter.Update([(owner, CreateConditionItem("condition-stable", 10, 4))]);
+            Assert.True(adapter.TryGetConditionIntervals(conditionItem.ClientHandle,
+                out snapshot, out update));
+            Assert.Equal(10, snapshot);
+            Assert.Equal(4, update);
+        }
+
+        [Fact]
+        public async Task PrunesOwnerStateWhenFinalBindingIsRemoved()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var firstOwner = new FakeSubscriber();
+            var secondOwner = new FakeSubscriber();
+            Assert.True(adapter.TryAdd(firstOwner, CreateDataItem("ns=2;s=one")));
+            Assert.True(adapter.TryAdd(secondOwner, CreateDataItem("ns=2;s=two")));
+            var items = manager.Subscription!.Collection.Items.Cast<FakeMonitoredItem>().ToArray();
+            Assert.Equal(2, adapter.OwnerStateCount);
+
+            Assert.True(adapter.TryRemove(items[0].ClientHandle));
+            Assert.Equal(1, adapter.OwnerStateCount);
+            Assert.True(adapter.TryRemove(items[1].ClientHandle));
+            Assert.Equal(0, adapter.OwnerStateCount);
         }
 
         [Fact]
@@ -420,6 +572,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             };
         }
 
+        private static EventMonitoredItemModel CreateConditionItem(string stableId,
+            int snapshotInterval, int updateInterval)
+        {
+            return new EventMonitoredItemModel
+            {
+                DataSetFieldId = stableId,
+                StartNodeId = "ns=2;s=conditions",
+                ConditionHandling = new ConditionHandlingOptionsModel
+                {
+                    SnapshotInterval = snapshotInterval,
+                    UpdateInterval = updateInterval
+                },
+                EventFilter = new EventFilterModel
+                {
+                    SelectClauses = [new SimpleAttributeOperandModel
+                    {
+                        DisplayName = "ConditionId"
+                    }]
+                }
+            };
+        }
+
         private sealed class FakeSubscriptionManager : ISubscriptionManager
         {
             public FakeSubscription Subscription { get; private set; }
@@ -474,6 +648,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public FakeCollection Collection { get; }
             public int DisposeCount { get; private set; }
             public int ConditionRefreshCount { get; private set; }
+            public StatusCode TriggerServiceStatus { get; set; } = StatusCodes.Good;
+            public StatusCode TriggerAddStatus { get; set; } = StatusCodes.Good;
             public List<(IMonitoredItem Trigger, IReadOnlyCollection<IMonitoredItem> Children)>
                 TriggeringCalls { get; } = [];
 
@@ -513,8 +689,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 TriggeringCalls.Add((triggeringItem, linksToAdd ?? []));
                 return ValueTask.FromResult(new SetTriggeringResult(triggeringItem,
-                    (linksToAdd ?? []).Select(item => (item, StatusCodes.Good)).ToList(),
-                    [], StatusCodes.Good));
+                    (linksToAdd ?? []).Select(item => (item, TriggerAddStatus)).ToList(),
+                    [], TriggerServiceStatus));
             }
 
             public ValueTask DisposeAsync()
