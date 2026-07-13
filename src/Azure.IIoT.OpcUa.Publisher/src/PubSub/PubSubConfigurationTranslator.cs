@@ -75,9 +75,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 throw new ArgumentException("A writer group identifier is required.", nameof(source));
             }
 
-            var isUadp = source.MessageType.HasValue &&
-                source.MessageType.Value.HasFlag(MessageEncoding.Uadp) &&
-                !source.MessageType.Value.HasFlag(MessageEncoding.Json);
+            var isUadp = IsUadp(source.MessageType);
             var writerGroup = new WriterGroupDataType
             {
                 Name = source.Name ?? source.Id,
@@ -236,6 +234,19 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                     ? null
                     : source.MessageSettings.DataSetMessageContentMask)
                     .ToStackType(source.DataSetFieldContentMask, MessageEncoding.Json)
+            };
+        }
+
+        private static bool IsUadp(MessageEncoding? encoding)
+        {
+            return encoding switch
+            {
+                null or MessageEncoding.Json or MessageEncoding.JsonReversible
+                    or MessageEncoding.JsonGzip or MessageEncoding.JsonReversibleGzip => false,
+                MessageEncoding.Uadp => true,
+                _ => throw new ArgumentException(
+                    $"Message encoding '{encoding}' is not supported by the inert PubSub host.",
+                    nameof(encoding))
             };
         }
 

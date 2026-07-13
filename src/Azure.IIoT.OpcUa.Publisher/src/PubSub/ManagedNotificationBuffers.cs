@@ -98,6 +98,33 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     }
 
     /// <summary>
+    /// Reports bounded managed-notification queue health.
+    /// </summary>
+    public interface IManagedPubSubNotificationBufferDiagnostics
+    {
+        /// <summary>
+        /// Gets the current queued notification count.
+        /// </summary>
+        int QueueDepth { get; }
+
+        /// <summary>
+        /// Gets the number of producers delayed by bounded-queue backpressure.
+        /// </summary>
+        long BackpressureCount { get; }
+    }
+
+    /// <summary>
+    /// Configures the lossless bounded notification queue.
+    /// </summary>
+    public sealed class ManagedPubSubNotificationBufferOptions
+    {
+        /// <summary>
+        /// Gets or sets the maximum queued notifications.
+        /// </summary>
+        public int Capacity { get; set; } = 1024;
+    }
+
+    /// <summary>
     /// Marker for a notification buffer whose entries represent source events.
     /// Event entries retain every occurrence, including repeated values.
     /// </summary>
@@ -138,14 +165,40 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     }
 
     internal sealed class ManagedPubSubNotificationBuffer :
-        IManagedPubSubNotificationBuffer, IManagedPubSubEventBuffer
+        IManagedPubSubNotificationBuffer, IManagedPubSubEventBuffer,
+        IManagedPubSubNotificationBufferDiagnostics
     {
+        public ManagedPubSubNotificationBuffer(int capacity = 1024)
+        {
+            if (capacity <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(capacity));
+            }
+            _channel = Channel.CreateBounded<ManagedPubSubNotification>(
+                new BoundedChannelOptions(capacity)
+                {
+                    FullMode = BoundedChannelFullMode.Wait,
+                    AllowSynchronousContinuations = false,
+                    SingleReader = false,
+                    SingleWriter = false
+                });
+        }
+
+        public int QueueDepth => Volatile.Read(ref _queueDepth);
+
+        public long BackpressureCount => Interlocked.Read(ref _backpressureCount);
+
         public async ValueTask EnqueueAsync(ManagedPubSubNotification notification,
             CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(notification);
-            await _channel.Writer.WriteAsync(notification.Clone(), cancellationToken)
-                .ConfigureAwait(false);
+            var copy = notification.Clone();
+            if (!_channel.Writer.TryWrite(copy))
+            {
+                Interlocked.Increment(ref _backpressureCount);
+                await _channel.Writer.WriteAsync(copy, cancellationToken).ConfigureAwait(false);
+            }
+            Interlocked.Increment(ref _queueDepth);
         }
 
         public async IAsyncEnumerable<ManagedPubSubNotification> ReadAllAsync(
@@ -154,17 +207,13 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             await foreach (var notification in _channel.Reader.ReadAllAsync(cancellationToken)
                 .ConfigureAwait(false))
             {
+                Interlocked.Decrement(ref _queueDepth);
                 yield return notification.Clone();
             }
         }
 
-        private readonly Channel<ManagedPubSubNotification> _channel =
-            Channel.CreateUnbounded<ManagedPubSubNotification>(
-                new UnboundedChannelOptions
-                {
-                    AllowSynchronousContinuations = false,
-                    SingleReader = false,
-                    SingleWriter = false
-                });
+        private readonly Channel<ManagedPubSubNotification> _channel;
+        private int _queueDepth;
+        private long _backpressureCount;
     }
 }

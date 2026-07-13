@@ -55,6 +55,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
 
             services.AddOptions<PublisherOptions>();
             services.AddOptions<PubSubShadowCaptureOptions>();
+            services.AddOptions<ManagedPubSubNotificationBufferOptions>();
             services.TryAddSingleton<IPubSubIdentityRegistryStore,
                 FilePubSubIdentityRegistryStore>();
             services.TryAddSingleton<IPubSubIdentityRegistry, PubSubIdentityRegistry>();
@@ -71,7 +72,12 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 provider => provider.GetRequiredService<InMemoryPubSubShadowCaptureSink>());
             services.TryAddSingleton<IPubSubShadowCaptureStore>(
                 provider => provider.GetRequiredService<InMemoryPubSubShadowCaptureSink>());
-            services.TryAddSingleton<ManagedPubSubNotificationBuffer>();
+            services.TryAddSingleton<ManagedPubSubNotificationBuffer>(provider =>
+            {
+                var options = provider.GetRequiredService<
+                    IOptions<ManagedPubSubNotificationBufferOptions>>();
+                return new ManagedPubSubNotificationBuffer(options.Value.Capacity);
+            });
             services.TryAddSingleton<IManagedPubSubNotificationBuffer>(
                 provider => provider.GetRequiredService<ManagedPubSubNotificationBuffer>());
             services.TryAddSingleton<IManagedPubSubEventBuffer>(
@@ -168,8 +174,9 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 var replaced = false;
                 try
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     var statusCodes = await _application.ReplaceConfigurationAsync(replacement,
-                        cancellationToken).ConfigureAwait(false);
+                        CancellationToken.None).ConfigureAwait(false);
                     replaced = true;
                     foreach (var statusCode in statusCodes)
                     {
