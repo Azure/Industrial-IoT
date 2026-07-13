@@ -87,6 +87,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                     [
                         new Asset.AssetServer(logger),
                     ]);
+                case "isa95jobs":
+                    return new TestServerFactory(logger,
+                    [
+                        new Isa95Jobs.Isa95JobControlServer(),
+                    ]);
                 case "testdata":
                     return new TestServerFactory(logger,
                     [
