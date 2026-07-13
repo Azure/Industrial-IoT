@@ -18,6 +18,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     using System.IO;
     using System.IO.Compression;
     using System.Linq;
+    using System.Security.Authentication;
     using System.Text.Json.Nodes;
     using System.Threading;
     using System.Threading.Channels;
@@ -43,6 +44,11 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             PubSubShadowEgressOverflowPolicy.Wait;
         public TimeSpan InitialRetryDelay { get; set; } = TimeSpan.FromMilliseconds(50);
         public TimeSpan MaximumRetryDelay { get; set; } = TimeSpan.FromSeconds(5);
+        /// <summary>
+        /// Gets or sets the maximum total send attempts for a transient
+        /// failure, including the initial attempt.
+        /// </summary>
+        public int MaxSendAttempts { get; set; } = 5;
         public bool IncludeSchema { get; set; } = true;
     }
 
@@ -332,18 +338,137 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     /// registration separate from PublisherOptions prevents an accidental
     /// production cutover through application configuration.
     /// </summary>
-    internal sealed class PubSubShadowEgressRegistration
+    internal sealed class PubSubShadowEgressRegistration : IAsyncDisposable
     {
         public PubSubShadowEgressRegistration(IEventClient eventClient,
             PubSubShadowEgressOptions options)
         {
             EventClient = eventClient ?? throw new ArgumentNullException(nameof(eventClient));
             Options = options ?? throw new ArgumentNullException(nameof(options));
+            Tombstones = new PubSubShadowTombstoneQueue(EventClient, Options);
         }
 
         public IEventClient EventClient { get; }
         public PubSubShadowEgressOptions Options { get; }
         public PubSubShadowEgressSettingsRegistry Settings { get; } = new();
+        public PubSubShadowTombstoneQueue Tombstones { get; }
+
+        public ValueTask DisposeAsync()
+        {
+            return Tombstones.DisposeAsync();
+        }
+    }
+
+    /// <summary>
+    /// Retains cleanup work independently of a native host replacement. The
+    /// queue survives host stop/start within the test composition and retries
+    /// a transient broker failure until it succeeds or the service provider is
+    /// disposed.
+    /// </summary>
+    internal sealed class PubSubShadowTombstoneQueue : IAsyncDisposable
+    {
+        public PubSubShadowTombstoneQueue(IEventClient eventClient,
+            PubSubShadowEgressOptions options)
+        {
+            _eventClient = eventClient ?? throw new ArgumentNullException(nameof(eventClient));
+            _options = options ?? throw new ArgumentNullException(nameof(options));
+            _queue = Channel.CreateBounded<PendingTombstone>(
+                new BoundedChannelOptions(options.QueueCapacity)
+                {
+                    FullMode = BoundedChannelFullMode.Wait,
+                    SingleReader = true,
+                    SingleWriter = false,
+                    AllowSynchronousContinuations = false
+                });
+            _worker = Task.Run(ProcessAsync);
+        }
+
+        public int PendingCount => Volatile.Read(ref _pendingCount);
+
+        public long RetryCount => Interlocked.Read(ref _retryCount);
+
+        public async ValueTask EnqueueAsync(PubSubShadowEgressSettings settings,
+            string topic, CancellationToken cancellationToken = default)
+        {
+            var tombstone = new PendingTombstone(settings, topic);
+            Interlocked.Increment(ref _pendingCount);
+            try
+            {
+                await _queue.Writer.WriteAsync(tombstone, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch
+            {
+                Interlocked.Decrement(ref _pendingCount);
+                throw;
+            }
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            _queue.Writer.TryComplete();
+            _stop.Cancel();
+            try
+            {
+                await _worker.ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            finally
+            {
+                _stop.Dispose();
+            }
+        }
+
+        private async Task ProcessAsync()
+        {
+            try
+            {
+                await foreach (var tombstone in _queue.Reader.ReadAllAsync(_stop.Token)
+                    .ConfigureAwait(false))
+                {
+                    var delay = _options.InitialRetryDelay;
+                    for (;;)
+                    {
+                        try
+                        {
+                            await EventClientPubSubTransportFactory.SendMetadataTombstoneAsync(
+                                _eventClient, tombstone.Settings, tombstone.Topic,
+                                TimeProvider.System, _stop.Token).ConfigureAwait(false);
+                            Interlocked.Decrement(ref _pendingCount);
+                            break;
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            throw;
+                        }
+                        catch
+                        {
+                            Interlocked.Increment(ref _retryCount);
+                            await Task.Delay(delay, TimeProvider.System, _stop.Token)
+                                .ConfigureAwait(false);
+                            delay = TimeSpan.FromTicks(Math.Min(delay.Ticks * 2,
+                                _options.MaximumRetryDelay.Ticks));
+                        }
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }
+
+        private sealed record class PendingTombstone(
+            PubSubShadowEgressSettings Settings, string Topic);
+
+        private readonly Channel<PendingTombstone> _queue;
+        private readonly CancellationTokenSource _stop = new();
+        private readonly IEventClient _eventClient;
+        private readonly PubSubShadowEgressOptions _options;
+        private readonly Task _worker;
+        private int _pendingCount;
+        private long _retryCount;
     }
 
     /// <summary>
@@ -529,6 +654,11 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             {
                 throw new ArgumentOutOfRangeException(nameof(options),
                     "The maximum retry delay must not be smaller than the initial delay.");
+            }
+            if (options.MaxSendAttempts <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(options),
+                    "The maximum number of send attempts must be positive.");
             }
 
             TransportProfileUri = transportProfileUri ??
@@ -739,7 +869,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             CancellationToken cancellationToken)
         {
             var delay = _options.InitialRetryDelay;
-            for (;;)
+            for (var attempt = 1; ; attempt++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 try
@@ -752,14 +882,31 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 {
                     throw;
                 }
-                catch
+                catch (Exception exception) when (IsTerminal(exception))
                 {
+                    throw new PubSubShadowTerminalEgressException(exception);
+                }
+                catch (Exception exception)
+                {
+                    if (attempt >= _options.MaxSendAttempts)
+                    {
+                        throw new PubSubShadowRetryLimitExceededException(attempt, exception);
+                    }
                     Interlocked.Increment(ref _retryCount);
                     await Task.Delay(delay, _timeProvider, cancellationToken).ConfigureAwait(false);
                     var nextTicks = Math.Min(delay.Ticks * 2, _options.MaximumRetryDelay.Ticks);
                     delay = TimeSpan.FromTicks(nextTicks);
                 }
             }
+        }
+
+        private static bool IsTerminal(Exception exception)
+        {
+            return exception is AuthenticationException
+                or UnauthorizedAccessException
+                or ArgumentException
+                or NotSupportedException
+                or PubSubShadowPayloadTooLargeException;
         }
 
         private async ValueTask SendChunkAsync(ReadOnlyMemory<byte> payload, string topic,
@@ -890,5 +1037,26 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
 
         public int PayloadSize { get; }
         public int MaximumSize { get; }
+    }
+
+    internal sealed class PubSubShadowTerminalEgressException : InvalidOperationException
+    {
+        public PubSubShadowTerminalEgressException(Exception innerException)
+            : base("The selected event client rejected a PubSub frame permanently.",
+                innerException)
+        {
+        }
+    }
+
+    internal sealed class PubSubShadowRetryLimitExceededException : InvalidOperationException
+    {
+        public PubSubShadowRetryLimitExceededException(int attempts, Exception innerException)
+            : base($"The selected event client did not send a PubSub frame after {attempts} "
+                + "transient attempts.", innerException)
+        {
+            Attempts = attempts;
+        }
+
+        public int Attempts { get; }
     }
 }

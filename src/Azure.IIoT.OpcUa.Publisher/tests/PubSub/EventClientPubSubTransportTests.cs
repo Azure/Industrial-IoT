@@ -22,6 +22,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
     using System.IO;
     using System.IO.Compression;
     using System.Linq;
+    using System.Security.Authentication;
     using System.Text;
     using System.Text.Json;
     using System.Threading;
@@ -138,6 +139,53 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 new PubSubDiagnostics(PubSubDiagnosticsLevel.Medium), transport);
             Assert.Equal(0, diagnostic.OutgressIoTMessageFailedCount);
             Assert.Equal(2, diagnostic.ConnectionRetries);
+        }
+
+        [Fact]
+        public async Task TerminalFailureReleasesFifoHeadForFollowingFramesAsync()
+        {
+            var client = new RecordingEventClient
+            {
+                PermanentFailure = new AuthenticationException("permanent"),
+                TerminalFailuresRemaining = 1
+            };
+            await using var transport = CreateTransport(client);
+            await transport.OpenAsync();
+
+            var first = transport.SendAsync(new byte[] { 1 }, "topic").AsTask();
+            var second = transport.SendAsync(new byte[] { 2 }, "topic").AsTask();
+            await Assert.ThrowsAsync<PubSubShadowTerminalEgressException>(() => first);
+            await second;
+            await transport.CloseAsync();
+
+            var sent = Assert.Single(client.Events);
+            Assert.Equal(new byte[] { 2 }, sent.Payload);
+            Assert.Equal(1, transport.Metrics.FailedCount);
+            Assert.Equal(0, transport.Metrics.RetryCount);
+        }
+
+        [Fact]
+        public async Task RetryExhaustionReleasesFifoHeadForFollowingFramesAsync()
+        {
+            var client = new RecordingEventClient { FailuresRemaining = 3 };
+            await using var transport = CreateTransport(client, options =>
+            {
+                options.MaxSendAttempts = 3;
+            });
+            await transport.OpenAsync();
+
+            var first = transport.SendAsync(new byte[] { 1 }, "topic").AsTask();
+            var second = transport.SendAsync(new byte[] { 2 }, "topic").AsTask();
+            var exception = await Assert.ThrowsAsync<PubSubShadowRetryLimitExceededException>(
+                () => first);
+            await second;
+            await transport.CloseAsync();
+
+            Assert.Equal(3, exception.Attempts);
+            var sent = Assert.Single(client.Events);
+            Assert.Equal(new byte[] { 2 }, sent.Payload);
+            Assert.Equal(2, transport.Metrics.RetryCount);
+            Assert.Equal(1, transport.Metrics.FailedCount);
         }
 
         [Fact]
@@ -304,6 +352,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             await using var provider = services.BuildServiceProvider();
             var host = provider.GetRequiredService<IPubSubShadowHost>();
             var hosted = Assert.Single(provider.GetServices<IHostedService>());
+            var tombstones = provider.GetRequiredService<PubSubShadowEgressRegistration>()
+                .Tombstones;
             var group = CreateManagedWriterGroup();
             group.DataSetWriters![0].MetaData = new PublishingQueueSettingsModel
             {
@@ -315,6 +365,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             await host.ReplaceConfigurationAsync([group]);
             var before = client.Events.Count;
             await host.ReplaceConfigurationAsync([]);
+            await WaitUntilAsync(() => tombstones.PendingCount == 0);
             await hosted.StopAsync(default);
 
             var tombstone = client.Events.Skip(before).Single(captured =>
@@ -333,6 +384,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             await using var provider = services.BuildServiceProvider();
             var host = provider.GetRequiredService<IPubSubShadowHost>();
             var hosted = Assert.Single(provider.GetServices<IHostedService>());
+            var tombstones = provider.GetRequiredService<PubSubShadowEgressRegistration>()
+                .Tombstones;
             var retained = CreateManagedWriterGroup();
             retained.DataSetWriters![0].MetaData = new PublishingQueueSettingsModel
             {
@@ -350,10 +403,54 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             await host.ReplaceConfigurationAsync([retained]);
             var before = client.Events.Count;
             await host.ReplaceConfigurationAsync([transient]);
+            await WaitUntilAsync(() => tombstones.PendingCount == 0);
             await hosted.StopAsync(default);
 
             Assert.Contains(client.Events.Skip(before), captured =>
                 captured.Topic == "metadata/retention-change"
+                && captured.Retain && captured.Payload.Length == 0);
+        }
+
+        [Fact]
+        public async Task TombstoneQueueRetriesAndSurvivesHostRestartAsync()
+        {
+            var client = new RecordingEventClient();
+            var services = new ServiceCollection();
+            services.AddLogging();
+            services.AddPubSubShadowEgressHost(client, options =>
+            {
+                options.IncludeSchema = false;
+                options.InitialRetryDelay = TimeSpan.FromMilliseconds(1);
+                options.MaximumRetryDelay = TimeSpan.FromMilliseconds(5);
+            });
+            await using var provider = services.BuildServiceProvider();
+            var host = provider.GetRequiredService<IPubSubShadowHost>();
+            var hosted = Assert.Single(provider.GetServices<IHostedService>());
+            var tombstones = provider.GetRequiredService<PubSubShadowEgressRegistration>()
+                .Tombstones;
+            var group = CreateManagedWriterGroup();
+            group.DataSetWriters![0].MetaData = new PublishingQueueSettingsModel
+            {
+                QueueName = "metadata/retry",
+                Retain = true
+            };
+
+            await hosted.StartAsync(default);
+            await host.ReplaceConfigurationAsync([group]);
+            client.BlockSuccessfulSends();
+            client.FailuresRemaining = 1;
+            await host.ReplaceConfigurationAsync([]);
+            await WaitUntilAsync(() => tombstones.RetryCount != 0
+                && tombstones.PendingCount == 1);
+
+            await hosted.StopAsync(default);
+            await hosted.StartAsync(default);
+            Assert.Equal(1, tombstones.PendingCount);
+            client.ReleaseSuccessfulSends();
+            await WaitUntilAsync(() => tombstones.PendingCount == 0);
+            await hosted.StopAsync(default);
+
+            Assert.Contains(client.Events, captured => captured.Topic == "metadata/retry"
                 && captured.Retain && captured.Payload.Length == 0);
         }
 
@@ -441,6 +538,45 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
         }
 
         [Fact]
+        public async Task KeyframeWatermarkSuppressesObsoleteDataButPreservesQueuedEventsAsync()
+        {
+            var buffer = new ManagedPubSubNotificationBuffer(8);
+            await using var provider = new ManagedPubSubNotificationDataSourceProvider(buffer);
+            var managed = Assert.IsAssignableFrom<IManagedPubSubDataSource>(
+                await provider.CreateAsync(new PublishedDataSetModel { Name = "data" }));
+            await using var source = new ManagedPubSubDataSetSource("data", managed);
+            source.Start();
+            await buffer.EnqueueAsync(new ManagedPubSubNotification(
+                "data", "value", DateTimeOffset.UnixEpoch, [1]));
+            await buffer.EnqueueAsync(new ManagedPubSubNotification(
+                "data", "alarm", DateTimeOffset.UnixEpoch.AddMilliseconds(1), [9],
+                ManagedPubSubNotificationKind.Event));
+            await buffer.EnqueueAsync(new ManagedPubSubNotification(
+                "data", "value", DateTimeOffset.UnixEpoch.AddMilliseconds(2), [2]));
+            await WaitUntilAsync(() => source.PendingCount == 3);
+
+            var metadata = source.BuildMetaData();
+            source.RequestKeyFrame();
+            var keyframe = await source.SampleAsync(metadata);
+            Assert.Equal(2, keyframe.Fields.Count);
+            var value = keyframe.Fields[0].Name == "value"
+                ? keyframe.Fields[0]
+                : keyframe.Fields[1];
+            Assert.Equal(new byte[] { 2 }, Assert.IsType<byte[]>(value.Value.Value));
+
+            var next = await source.SampleAsync(metadata);
+            Assert.Equal(1, next.Fields.Count);
+            Assert.Equal("alarm", next.Fields[0].Name);
+            Assert.Equal(new byte[] { 9 },
+                Assert.IsType<byte[]>(next.Fields[0].Value.Value));
+            Assert.Equal(0, (await source.SampleAsync(metadata)).Fields.Count);
+
+            await buffer.EnqueueAsync(new ManagedPubSubNotification(
+                "data", "value", DateTimeOffset.UnixEpoch.AddMilliseconds(3), [3]));
+            Assert.Equal(new byte[] { 3 }, await ReadPayloadAsync(source, metadata));
+        }
+
+        [Fact]
         public async Task ManagedRoutesPropagateBackpressureAndDoNotReplayAfterRemovalAsync()
         {
             var options = Options.Create(new ManagedPubSubNotificationBufferOptions
@@ -492,6 +628,49 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             Assert.NotSame(source, replacement);
             await Task.Delay(50);
             Assert.Equal(0, replacement.PendingCount);
+        }
+
+        [Fact]
+        public async Task FailedSourceTransactionDoesNotLeaveAStagedRouteBlockingDispatchAsync()
+        {
+            var buffer = new ManagedPubSubNotificationBuffer(4);
+            await using var provider = new ManagedPubSubNotificationDataSourceProvider(buffer);
+            await using var registry = new ManagedPubSubDataSetSourceRegistry([provider]);
+            var activeGroup = CreateManagedWriterGroup();
+            await using (var transaction = await registry.PrepareAsync([activeGroup]))
+            {
+                transaction.Install();
+                await transaction.CommitAsync();
+            }
+            Assert.True(registry.TryGetSource("data", out var active));
+            var activeSource = Assert.IsType<ManagedPubSubDataSetSource>(active);
+            var stagedGroup = new WriterGroupModel
+            {
+                Id = "staged",
+                DataSetWriters =
+                [
+                    new DataSetWriterModel
+                    {
+                        Id = "staged-writer",
+                        DataSet = new PublishedDataSetModel { Name = "staged-data" }
+                    }
+                ]
+            };
+
+            await using (var failed = await registry.PrepareAsync([activeGroup, stagedGroup]))
+            {
+                failed.Install();
+            }
+            await buffer.EnqueueAsync(new ManagedPubSubNotification(
+                "staged-data", "value", DateTimeOffset.UnixEpoch, [1]));
+            await buffer.EnqueueAsync(new ManagedPubSubNotification(
+                "data", "value", DateTimeOffset.UnixEpoch, [2]));
+
+            await WaitUntilAsync(() => activeSource.PendingCount == 1);
+            var sample = await activeSource.SampleAsync(activeSource.BuildMetaData());
+            Assert.Equal(1, sample.Fields.Count);
+            Assert.Equal(new byte[] { 2 },
+                Assert.IsType<byte[]>(sample.Fields[0].Value.Value));
         }
 
         [Fact]
@@ -701,6 +880,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 | EventClientCapabilities.CloudEvents
                 | EventClientCapabilities.Schema;
             public bool SupportsRetainedTombstones { get; set; } = true;
+            public Exception? PermanentFailure { get; set; }
+            public int TerminalFailuresRemaining
+            {
+                get => Volatile.Read(ref _terminalFailuresRemaining);
+                set => Volatile.Write(ref _terminalFailuresRemaining, value);
+            }
             public int FailuresRemaining
             {
                 get => Volatile.Read(ref _failuresRemaining);
@@ -740,6 +925,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 CancellationToken cancellationToken)
             {
                 SendStarted.TrySetResult();
+                if (PermanentFailure is not null
+                    && Interlocked.Decrement(ref _terminalFailuresRemaining) >= 0)
+                {
+                    throw PermanentFailure;
+                }
                 if (Interlocked.Decrement(ref _failuresRemaining) >= 0)
                 {
                     throw new InvalidOperationException("transient");
@@ -859,6 +1049,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             private readonly List<CapturedEvent> _events = [];
             private TaskCompletionSource<bool>? _release;
             private int _failuresRemaining;
+            private int _terminalFailuresRemaining;
         }
 
         private sealed record CapturedEvent(string? Topic, DateTimeOffset Timestamp,

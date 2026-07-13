@@ -312,15 +312,30 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             {
                 return new ValueTask<IManagedPubSubDataSource?>((IManagedPubSubDataSource?)null);
             }
-            var source = _sources.GetOrAdd(name, _ => new RoutedDataSource(_capacity));
-            EnsureStarted();
-            return new ValueTask<IManagedPubSubDataSource?>(source);
+            if (_sources.TryGetValue(name, out var active))
+            {
+                return new ValueTask<IManagedPubSubDataSource?>(active);
+            }
+            return new ValueTask<IManagedPubSubDataSource?>(
+                new RoutedDataSource(_capacity, route => Activate(name, route)));
         }
 
         public async ValueTask RemoveAsync(string dataSetName,
             CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            RoutedDataSource? stagedRoute;
+            lock (_gate)
+            {
+                if (_dispatch is null)
+                {
+                    if (_sources.TryRemove(dataSetName, out stagedRoute))
+                    {
+                        stagedRoute.Complete();
+                    }
+                    return;
+                }
+            }
             if (!_sources.ContainsKey(dataSetName))
             {
                 return;
@@ -362,6 +377,24 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             }
         }
 
+        private void Activate(string dataSetName, RoutedDataSource source)
+        {
+            if (_sources.TryAdd(dataSetName, source))
+            {
+                EnsureStarted();
+                return;
+            }
+            if (_sources.TryGetValue(dataSetName, out var existing)
+                && ReferenceEquals(existing, source))
+            {
+                EnsureStarted();
+                return;
+            }
+            source.Complete();
+            throw new InvalidOperationException(
+                $"The managed PubSub source '{dataSetName}' was activated twice.");
+        }
+
         private async Task DispatchAsync()
         {
             await foreach (var notification in _notifications.ReadAllAsync(_stop.Token)
@@ -394,8 +427,9 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
 
         private sealed class RoutedDataSource : IManagedPubSubDataSource
         {
-            public RoutedDataSource(int capacity)
+            public RoutedDataSource(int capacity, Action<RoutedDataSource> activate)
             {
+                _activate = activate ?? throw new ArgumentNullException(nameof(activate));
                 _notifications = Channel.CreateBounded<ManagedPubSubNotification>(
                     new BoundedChannelOptions(capacity)
                     {
@@ -420,6 +454,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             public async IAsyncEnumerable<ManagedPubSubNotification> ReadNotificationsAsync(
                 [EnumeratorCancellation] CancellationToken cancellationToken = default)
             {
+                _activate(this);
                 await foreach (var notification in _notifications.Reader.ReadAllAsync(cancellationToken)
                     .ConfigureAwait(false))
                 {
@@ -428,6 +463,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             }
 
             private readonly Channel<ManagedPubSubNotification> _notifications;
+            private readonly Action<RoutedDataSource> _activate;
         }
 
         private readonly Lock _gate = new();
@@ -459,7 +495,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             {
                 throw new ArgumentOutOfRangeException(nameof(capacity));
             }
-            _pending = Channel.CreateBounded<ManagedPubSubNotification>(
+            _pending = Channel.CreateBounded<ManagedPendingNotification>(
                 new BoundedChannelOptions(capacity)
                 {
                     FullMode = BoundedChannelFullMode.Wait,
@@ -500,6 +536,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             cancellationToken.ThrowIfCancellationRequested();
             if (Interlocked.Exchange(ref _keyFrameRequested, 0) != 0)
             {
+                Interlocked.Exchange(ref _keyFrameWatermark, Interlocked.Read(ref _sequence));
                 return new ValueTask<PublishedDataSetSnapshot>(new PublishedDataSetSnapshot(
                     metaData.ConfigurationVersion ?? new ConfigurationVersionDataType
                     {
@@ -508,31 +545,38 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                     SnapshotCurrentData(),
                     DateTimeUtc.From(DateTimeOffset.UtcNow)));
             }
-            if (!_pending.Reader.TryRead(out var notification))
+            while (_pending.Reader.TryRead(out var pending))
             {
+                Interlocked.Decrement(ref _pendingCount);
+                if (pending.Notification.Kind == ManagedPubSubNotificationKind.Data
+                    && pending.Sequence <= Interlocked.Read(ref _keyFrameWatermark))
+                {
+                    continue;
+                }
+
+                var notification = pending.Notification;
                 return new ValueTask<PublishedDataSetSnapshot>(new PublishedDataSetSnapshot(
                     metaData.ConfigurationVersion ?? new ConfigurationVersionDataType
                     {
                         MajorVersion = 1
                     },
-                    [], DateTimeUtc.From(DateTimeOffset.UtcNow)));
+                    [
+                        new DataSetField
+                        {
+                            Name = notification.FieldName,
+                            Value = new Variant(notification.Payload.ToArray()),
+                            SourceTimestamp = DateTimeUtc.From(notification.Timestamp)
+                        }
+                    ],
+                    DateTimeUtc.From(notification.Timestamp)));
             }
-            Interlocked.Decrement(ref _pendingCount);
 
             return new ValueTask<PublishedDataSetSnapshot>(new PublishedDataSetSnapshot(
                 metaData.ConfigurationVersion ?? new ConfigurationVersionDataType
                 {
                     MajorVersion = 1
                 },
-                [
-                    new DataSetField
-                    {
-                        Name = notification.FieldName,
-                        Value = new Variant(notification.Payload.ToArray()),
-                        SourceTimestamp = DateTimeUtc.From(notification.Timestamp)
-                    }
-                ],
-                DateTimeUtc.From(notification.Timestamp)));
+                [], DateTimeUtc.From(DateTimeOffset.UtcNow)));
         }
 
         public void Start()
@@ -585,9 +629,12 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 {
                     continue;
                 }
+                var sequence = Interlocked.Increment(ref _sequence);
                 if (copy.Kind == ManagedPubSubNotificationKind.Data)
                 {
-                    _currentData.AddOrUpdate(copy.FieldName, copy, (_, _) => copy);
+                    _currentData.AddOrUpdate(copy.FieldName,
+                        new ManagedCurrentData(copy, sequence), (_, _) =>
+                            new ManagedCurrentData(copy, sequence));
                 }
                 if (_knownFields.TryAdd(copy.FieldName, 0))
                 {
@@ -601,7 +648,9 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 {
                     using var linked = CancellationTokenSource.CreateLinkedTokenSource(
                         _stop.Token, _pendingWrite.Token);
-                    await _pending.Writer.WriteAsync(copy, linked.Token).ConfigureAwait(false);
+                    await _pending.Writer.WriteAsync(
+                        new ManagedPendingNotification(copy, sequence), linked.Token)
+                        .ConfigureAwait(false);
                 }
                 catch (OperationCanceledException) when (
                     Volatile.Read(ref _removing) != 0 && !_stop.IsCancellationRequested)
@@ -622,7 +671,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             foreach (var name in _knownFields.Keys.OrderBy(name => name,
                 StringComparer.Ordinal))
             {
-                _ = _currentData.TryGetValue(name, out var notification);
+                _ = _currentData.TryGetValue(name, out var current);
+                var notification = current?.Notification;
                 fields.Add(new DataSetField
                 {
                     Name = name,
@@ -640,8 +690,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         private readonly Lock _gate = new();
         private readonly CancellationTokenSource _stop = new();
         private readonly CancellationTokenSource _pendingWrite = new();
-        private readonly Channel<ManagedPubSubNotification> _pending;
-        private readonly ConcurrentDictionary<string, ManagedPubSubNotification> _currentData =
+        private readonly Channel<ManagedPendingNotification> _pending;
+        private readonly ConcurrentDictionary<string, ManagedCurrentData> _currentData =
             new(StringComparer.Ordinal);
         private readonly ConcurrentDictionary<string, byte> _knownFields =
             new(StringComparer.Ordinal);
@@ -651,6 +701,14 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         private int _keyFrameRequested;
         private int _pendingCount;
         private int _removing;
+        private long _sequence;
+        private long _keyFrameWatermark;
+
+        private sealed record class ManagedPendingNotification(
+            ManagedPubSubNotification Notification, long Sequence);
+
+        private sealed record class ManagedCurrentData(
+            ManagedPubSubNotification Notification, long Sequence);
     }
 
     /// <summary>
@@ -695,6 +753,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             var replacement = new Dictionary<string, IPublishedDataSetSource>(
                 StringComparer.Ordinal);
             var created = new List<ManagedPubSubDataSetSource>();
+            var createdNames = new List<string>();
             foreach (var dataSet in EnumerateDataSets(writerGroups))
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -726,8 +785,10 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 var source = new ManagedPubSubDataSetSource(name, managedSource, _capacity);
                 replacement.Add(name, source);
                 created.Add(source);
+                createdNames.Add(name);
             }
-            return new ManagedPubSubDataSetSourceTransaction(this, current, replacement, created);
+            return new ManagedPubSubDataSetSourceTransaction(this, current, replacement, created,
+                createdNames);
         }
 
         public async ValueTask DisposeAsync()
@@ -799,12 +860,22 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             }
         }
 
-        private void Rollback(ManagedPubSubDataSetSourceTransaction transaction)
+        private async ValueTask RollbackAsync(ManagedPubSubDataSetSourceTransaction transaction)
         {
             lock (_gate)
             {
                 _sources = new Dictionary<string, IPublishedDataSetSource>(transaction.Previous,
                     StringComparer.Ordinal);
+            }
+            foreach (var name in transaction.CreatedNames)
+            {
+                foreach (var provider in _providers)
+                {
+                    if (provider is IManagedPubSubDataSourceLifecycle lifecycle)
+                    {
+                        await lifecycle.RemoveAsync(name).ConfigureAwait(false);
+                    }
+                }
             }
         }
 
@@ -842,17 +913,20 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             internal ManagedPubSubDataSetSourceTransaction(ManagedPubSubDataSetSourceRegistry owner,
                 Dictionary<string, IPublishedDataSetSource> previous,
                 Dictionary<string, IPublishedDataSetSource> replacement,
-                List<ManagedPubSubDataSetSource> created)
+                List<ManagedPubSubDataSetSource> created,
+                List<string> createdNames)
             {
                 _owner = owner;
                 Previous = previous;
                 Replacement = replacement;
                 Created = created;
+                CreatedNames = createdNames;
             }
 
             internal Dictionary<string, IPublishedDataSetSource> Previous { get; }
             internal Dictionary<string, IPublishedDataSetSource> Replacement { get; }
             internal List<ManagedPubSubDataSetSource> Created { get; }
+            internal List<string> CreatedNames { get; }
 
             public void Install()
             {
@@ -881,7 +955,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 }
                 if (_installed)
                 {
-                    _owner.Rollback(this);
+                    await _owner.RollbackAsync(this).ConfigureAwait(false);
                 }
                 foreach (var source in Created)
                 {

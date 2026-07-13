@@ -313,19 +313,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                         CountDataSetWriters(replacement));
                     foreach (var tombstone in tombstones)
                     {
-                        try
-                        {
-                            await EventClientPubSubTransportFactory.SendMetadataTombstoneAsync(
-                                _egress!.EventClient, tombstone.Settings, tombstone.Topic,
-                                TimeProvider.System, cancellationToken).ConfigureAwait(false);
-                        }
-                        catch (Exception exception)
-                        {
-                            // The replacement is already durable and running. Do not
-                            // report it as rolled back; retain the cleanup failure in
-                            // shadow diagnostics for a retrying cutover controller.
-                            _state.Failed(exception);
-                        }
+                        await _egress!.Tombstones.EnqueueAsync(tombstone.Settings,
+                            tombstone.Topic, CancellationToken.None).ConfigureAwait(false);
                     }
                 }
                 catch (Exception exception)
