@@ -71,11 +71,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                 new DataAccess.DataAccessServer(),
                 new Alarms.AlarmConditionServer(new TimeService()),
                 new SimpleEvents.SimpleEventsServer(),
-                new Plc.PlcServer(new TimeService(), logger, scaleunits)
-                // TODO(Stage final): Isa95Jobs descoped — stale NodeSet2-generated
-                // model (159 errors) has no 2.0 source-generator path; needs upstream
-                // generator NodeSet2 support or a manual model rewrite.
-                // new Isa95Jobs.Isa95JobControlServer()
+                new Plc.PlcServer(new TimeService(), logger, scaleunits),
+                new Isa95Jobs.Isa95JobControlServer()
                 // new FileSystem.FileSystemServer(),
                 // new Asset.AssetServer(logger),
                 // new PerfTest.PerfTestServer(),

@@ -30,12 +30,11 @@
 namespace Isa95Jobs
 {
     using System.Runtime.Serialization;
-    using UAModel.ISA95_JOBCONTROL_V2;
 
     /// <summary>
     /// Stores the configuration the data access node manager.
     /// </summary>
-    [DataContract(Namespace = Namespaces.ISA95_JOBCONTROL_V2)]
+    [DataContract(Namespace = UAModel.ISA95_JOBCONTROL_V2.Namespaces.ISA95_JOBCONTROL_V2)]
     public class Isa95JobControlServerConfiguration
     {
         /// <summary>

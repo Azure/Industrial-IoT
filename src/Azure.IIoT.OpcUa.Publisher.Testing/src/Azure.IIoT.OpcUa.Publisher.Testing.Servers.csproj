@@ -7,6 +7,7 @@
     <IsTrimmable>false</IsTrimmable>
     <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
     <Nullable>disable</Nullable>
+    <ModelSourceGeneratorOmitFluentApi>true</ModelSourceGeneratorOmitFluentApi>
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="HistoricalAccess\Data\Dynamic\Boolean.txt" />
@@ -56,9 +57,6 @@
     <EmbeddedResource Include="Generated\TestData\Design\TestData.PredefinedNodes.uanodes" />
     <EmbeddedResource Include="Generated\MemoryBuffer\Design\MemoryBuffer.PredefinedNodes.uanodes" />
     <EmbeddedResource Include="Generated\Boiler\Design\Boiler.PredefinedNodes.uanodes" />
-    <EmbeddedResource Include="Generated\Isa95Jobs\Design\UAModel.ISA95_JOBCONTROL_V2.PredefinedNodes.uanodes" />
-    <EmbeddedResource Include="Generated\Isa95Jobs\Design\UAModel.ISA95_JOBCONTROL_V2.Types.bsd" />
-    <EmbeddedResource Include="Generated\Isa95Jobs\Design\UAModel.ISA95_JOBCONTROL_V2.Types.xsd" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Linq.Async" />
@@ -94,18 +92,14 @@
     <AdditionalFiles Include="Generated\Plc\Design\ModelDesign.xml" />
     <AdditionalFiles Include="Generated\SimpleEvents\Design\ModelDesign.csv" />
     <AdditionalFiles Include="Generated\SimpleEvents\Design\ModelDesign.xml" />
+    <AdditionalFiles Include="Generated\Isa95Jobs\Design\UAModel.ISA95_JOBCONTROL_V2.NodeSet2.xml">
+      <ModelSourceGeneratorModelUri>http://opcfoundation.org/UA/ISA95-JOBCONTROL_V2/</ModelSourceGeneratorModelUri>
+      <ModelSourceGeneratorName>ISA95_JOBCONTROL_V2</ModelSourceGeneratorName>
+      <ModelSourceGeneratorPrefix>UAModel.ISA95_JOBCONTROL_V2</ModelSourceGeneratorPrefix>
+    </AdditionalFiles>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Core\src\Azure.IIoT.OpcUa.Core.csproj" />
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa\src\Azure.IIoT.OpcUa.csproj" />
-  </ItemGroup>
-  <!-- TODO(Stage final): Isa95Jobs server descoped from compilation. Its model was
-       generated from NodeSet2 (not ModelDesign) and the 2.0 Opc.Ua source generator
-       cannot consume that input; the stale generated code has ~159 unmigrated errors
-       against the redesigned value-type stack. Re-enable once the upstream generator
-       supports NodeSet2 or the model is rewritten. -->
-  <ItemGroup>
-    <Compile Remove="Isa95Jobs\**\*.cs" />
-    <Compile Remove="Generated\Isa95Jobs\**\*.cs" />
   </ItemGroup>
 </Project>

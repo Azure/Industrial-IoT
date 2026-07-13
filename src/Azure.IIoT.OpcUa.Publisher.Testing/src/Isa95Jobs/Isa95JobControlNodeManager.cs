@@ -29,323 +29,217 @@
 
 namespace Isa95Jobs
 {
+    using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using Opc.Ua.Server;
     using System;
     using System.Collections.Generic;
-    using System.Globalization;
-    using System.Reflection;
     using System.Threading;
+    using System.Threading.Tasks;
     using UAModel.ISA95_JOBCONTROL_V2;
 
     /// <summary>
-    /// A node manager for a server that exposes several variables.
+    /// Hosts the ISA-95 Job Control NodeSet2 model.
     /// </summary>
-    public class Isa95JobControlNodeManager : CustomNodeManager2
+    public sealed partial class Isa95JobControlNodeManager : AsyncCustomNodeManager
     {
         /// <summary>
-        /// Initializes the node manager.
+        /// Initializes a new instance of the <see cref="Isa95JobControlNodeManager"/> class.
         /// </summary>
-        /// <param name="server"></param>
-        /// <param name="configuration"></param>
-        public Isa95JobControlNodeManager(IServerInternal server, ApplicationConfiguration configuration) :
-            base(server, configuration)
+        /// <param name="server">
+        /// The server that owns the node manager.
+        /// </param>
+        /// <param name="configuration">
+        /// The server configuration.
+        /// </param>
+        public Isa95JobControlNodeManager(
+            IServerInternal server,
+            ApplicationConfiguration configuration)
+            : base(server, configuration, kModelUri)
         {
-            SystemContext.NodeIdFactory = this;
-
-            // set one namespace for the type model and one names for dynamically created nodes.
-            var namespaceUrls = new string[1];
-            namespaceUrls[0] = UAModel.ISA95_JOBCONTROL_V2.Namespaces.ISA95_JOBCONTROL_V2;
-            SetNamespaces(namespaceUrls);
-
-            // get the configuration for the node manager.
-            // use suitable defaults if no configuration exists.
-            _configuration = configuration.ParseExtension<Isa95JobControlServerConfiguration>()
-                ?? new Isa95JobControlServerConfiguration();
         }
 
-        /// <summary>
-        /// An overrideable version of the Dispose.
-        /// </summary>
-        /// <param name="disposing"></param>
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing && _simulationTimer != null)
-            {
-                Utils.SilentDispose(_simulationTimer);
-                _simulationTimer = null;
-            }
-            base.Dispose(disposing);
-        }
-
-        /// <summary>
-        /// Creates the NodeId for the specified node.
-        /// </summary>
-        /// <param name="context"></param>
-        /// <param name="node"></param>
+        /// <inheritdoc/>
         public override NodeId New(ISystemContext context, NodeState node)
         {
             return node.NodeId;
         }
 
-        /// <summary>
-        /// Loads a node set from a file or resource and addes them to the set of predefined nodes.
-        /// </summary>
-        /// <param name="context"></param>
-        protected override NodeStateCollection LoadPredefinedNodes(ISystemContext context)
+        /// <inheritdoc/>
+        public override async ValueTask CreateAddressSpaceAsync(
+            IDictionary<NodeId, IList<IReference>> externalReferences,
+            CancellationToken cancellationToken = default)
         {
-            var type = GetType().GetTypeInfo();
-            var predefinedNodes = new NodeStateCollection();
-            predefinedNodes.LoadFromBinaryResource(context,
-                $"{type.Assembly.GetName().Name}.Generated.{type.Namespace}.Design.UAModel.ISA95_JOBCONTROL_V2.PredefinedNodes.uanodes",
-                type.Assembly, true);
-            return predefinedNodes;
+            await base.CreateAddressSpaceAsync(externalReferences, cancellationToken)
+                .ConfigureAwait(false);
+
+            _simulationCancellation = new CancellationTokenSource();
+            _ = PublishEventsAsync(_simulationCancellation.Token);
         }
 
-        /// <summary>
-        /// Does any initialization required before the address space can be used.
-        /// </summary>
-        /// <param name="externalReferences"></param>
-        /// <remarks>
-        /// The externalReferences is an out parameter that allows the node manager to link to nodes
-        /// in other node managers. For example, the 'Objects' node is managed by the CoreNodeManager and
-        /// should have a reference to the root folder node(s) exposed by this node manager.
-        /// </remarks>
-        public override void CreateAddressSpace(IDictionary<NodeId, IList<IReference>> externalReferences)
+        /// <inheritdoc/>
+        protected override void Dispose(bool disposing)
         {
-            lock (Lock)
+            if (disposing)
             {
-                LoadPredefinedNodes(SystemContext, externalReferences);
-
-                // start a simulation that changes the values of the nodes.
-                _simulationTimer = new Timer(DoSimulation, null, kEventInterval, kEventInterval);
+                _simulationCancellation?.Cancel();
+                _simulationCancellation?.Dispose();
+                _simulationCancellation = null;
             }
+            base.Dispose(disposing);
         }
 
-        /// <summary>
-        /// Frees any resources allocated for the address space.
-        /// </summary>
-        public override void DeleteAddressSpace()
+        /// <inheritdoc/>
+        protected override ValueTask<NodeStateCollection> LoadPredefinedNodesAsync(
+            ISystemContext context,
+            CancellationToken cancellationToken = default)
         {
-            lock (Lock)
-            {
-                base.DeleteAddressSpace();
-            }
+            var nodes = new NodeStateCollection();
+            return new ValueTask<NodeStateCollection>(
+                nodes.AddUAModelISA95_JOBCONTROL_V2(context));
         }
 
-        /// <summary>
-        /// Returns a unique handle for the node.
-        /// </summary>
-        /// <param name="context"></param>
-        /// <param name="nodeId"></param>
-        /// <param name="cache"></param>
-        protected override NodeHandle GetManagerHandle(ServerSystemContext context, NodeId nodeId, IDictionary<NodeId, NodeState> cache)
+        private async Task PublishEventsAsync(CancellationToken cancellationToken)
         {
-            lock (Lock)
-            {
-                // quickly exclude nodes that are not in the namespace.
-                if (!IsNodeIdInNamespace(nodeId))
-                {
-                    return null;
-                }
-
-                // check for predefined nodes.
-                if (PredefinedNodes != null && PredefinedNodes.TryGetValue(nodeId, out var node))
-                {
-                    return new NodeHandle
-                    {
-                        NodeId = nodeId,
-                        Validated = true,
-                        Node = node
-                    };
-                }
-
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Verifies that the specified node exists.
-        /// </summary>
-        /// <param name="context"></param>
-        /// <param name="handle"></param>
-        /// <param name="cache"></param>
-        protected override NodeState ValidateNode(
-            ServerSystemContext context,
-            NodeHandle handle,
-            IDictionary<NodeId, NodeState> cache)
-        {
-            // not valid if no root.
-            if (handle == null)
-            {
-                return null;
-            }
-
-            // check if previously validated.
-            if (handle.Validated)
-            {
-                return handle.Node;
-            }
-
-            // TBD
-
-            return null;
-        }
-
-        /// <summary>
-        /// Does the simulation.
-        /// </summary>
-        /// <param name="state">The state.</param>
-        private void DoSimulation(object state)
-        {
+            using var timer = new PeriodicTimer(kEventInterval);
             try
             {
-                // construct translation object with default text.
-                var info = new TranslationInfo(
-                    "ISA95JobResponse",
-                    "en-US",
-                    "The job '{0}' has completed.",
-                    ++_jobId);
-
-                // construct the event.
-                var e = new ISA95JobOrderStatusEventTypeState(null);
-
-                e.Initialize(
-                    SystemContext,
-                    null,
-                    (EventSeverity)0,
-                    new LocalizedText(info));
-
-                e.SetChildValue(SystemContext, Opc.Ua.BrowseNames.SourceName, "GB05_ServerTEST", false);
-                e.SetChildValue(SystemContext, Opc.Ua.BrowseNames.SourceNode, Opc.Ua.ObjectIds.Server, false);
-
-                var startTime = DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(3));
-                var endTime = DateTime.UtcNow;
-                var response = new ISA95JobResponseDataType
+                while (await timer.WaitForNextTickAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    EncodingMask = (ISA95JobResponseDataTypeFields)(
-                        (int)ISA95JobResponseDataTypeFields.None |
-                        (int)ISA95JobResponseDataTypeFields.StartTime |
-                        (int)ISA95JobResponseDataTypeFields.EndTime |
-                        (int)ISA95JobResponseDataTypeFields.EquipmentActuals |
-                        (int)ISA95JobResponseDataTypeFields.MaterialActuals),
-                    JobOrderID = _jobId.ToString(CultureInfo.InvariantCulture),
-                    JobResponseID = Guid.NewGuid().ToString(),
-                    StartTime = startTime,
-                    EndTime = endTime,
-                    EquipmentActuals =
+                    var jobId = Interlocked.Increment(ref _jobId);
+                    var eventState = new ISA95JobOrderStatusEventState(null);
+                    eventState.Initialize(
+                        SystemContext,
+                        null,
+                        EventSeverity.Low,
+                        new LocalizedText("en-US", $"The job '{jobId}' has completed."));
+                    eventState.SetChildValue(
+                        SystemContext,
+                        Opc.Ua.BrowseNames.SourceName,
+                        "ISA95 Job Control",
+                        false);
+                    eventState.SetChildValue(
+                        SystemContext,
+                        Opc.Ua.BrowseNames.SourceNode,
+                        Opc.Ua.ObjectIds.Server,
+                        false);
+
+                    var now = DateTimeUtc.Now;
+                    var response = new ISA95JobResponseDataType
+                    {
+                        EncodingMask = (uint)(
+                            ISA95JobResponseDataTypeFields.StartTime |
+                            ISA95JobResponseDataTypeFields.EndTime |
+                            ISA95JobResponseDataTypeFields.EquipmentActuals |
+                            ISA95JobResponseDataTypeFields.MaterialActuals),
+                        JobOrderID = jobId.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                        JobResponseID = Guid.NewGuid().ToString(),
+                        StartTime = now.AddMilliseconds(-TimeSpan.FromMinutes(3).TotalMilliseconds),
+                        EndTime = now,
+                        EquipmentActuals =
                         [
                             new ISA95EquipmentDataType
                             {
-                                EncodingMask =  (ISA95EquipmentDataTypeFields)(
-                                    (int)ISA95EquipmentDataTypeFields.EquipmentUse |
-                                    (int)ISA95EquipmentDataTypeFields.EngineeringUnits |
-                                    (int)ISA95EquipmentDataTypeFields.Quantity),
-                                EngineeringUnits = new EUInformation("rpm", "RPM"),
+                                EncodingMask = (uint)(
+                                    ISA95EquipmentDataTypeFields.EquipmentUse |
+                                    ISA95EquipmentDataTypeFields.EngineeringUnits |
+                                    ISA95EquipmentDataTypeFields.Quantity),
                                 EquipmentUse = "consumable",
+                                EngineeringUnits = new EUInformation("rpm", "RPM"),
                                 Quantity = "500"
                             },
                             new ISA95EquipmentDataType
                             {
-                                EncodingMask =  (ISA95EquipmentDataTypeFields)(
-                                    (int)ISA95EquipmentDataTypeFields.EquipmentUse |
-                                    (int)ISA95EquipmentDataTypeFields.EngineeringUnits |
-                                    (int)ISA95EquipmentDataTypeFields.Quantity),
-                                EngineeringUnits = new EUInformation("C", "Celsius"),
+                                EncodingMask = (uint)(
+                                    ISA95EquipmentDataTypeFields.EquipmentUse |
+                                    ISA95EquipmentDataTypeFields.EngineeringUnits |
+                                    ISA95EquipmentDataTypeFields.Quantity),
                                 EquipmentUse = "consumable",
+                                EngineeringUnits = new EUInformation("C", "Celsius"),
                                 Quantity = "3"
                             }
                         ],
-                    MaterialActuals =
+                        MaterialActuals =
                         [
                             new ISA95MaterialDataType
                             {
-                                EncodingMask = (ISA95MaterialDataTypeFields)(
-                                    (int)ISA95MaterialDataTypeFields.MaterialClassID |
-                                    (int)ISA95MaterialDataTypeFields.MaterialUse |
-                                    (int)ISA95MaterialDataTypeFields.Quantity),
+                                EncodingMask = (uint)(
+                                    ISA95MaterialDataTypeFields.MaterialClassID |
+                                    ISA95MaterialDataTypeFields.MaterialUse |
+                                    ISA95MaterialDataTypeFields.Quantity),
                                 MaterialClassID = Guid.NewGuid().ToString(),
                                 MaterialUse = "consumable",
                                 Quantity = "1"
                             },
                             new ISA95MaterialDataType
                             {
-                                EncodingMask = (ISA95MaterialDataTypeFields)(
-                                    (int)ISA95MaterialDataTypeFields.MaterialClassID |
-                                    (int)ISA95MaterialDataTypeFields.MaterialUse |
-                                    (int)ISA95MaterialDataTypeFields.Quantity),
+                                EncodingMask = (uint)(
+                                    ISA95MaterialDataTypeFields.MaterialClassID |
+                                    ISA95MaterialDataTypeFields.MaterialUse |
+                                    ISA95MaterialDataTypeFields.Quantity),
                                 MaterialClassID = Guid.NewGuid().ToString(),
                                 MaterialUse = "consumable",
                                 Quantity = "2"
                             }
                         ]
-                };
-                e.SetChildValue(SystemContext, new QualifiedName(UAModel.ISA95_JOBCONTROL_V2.BrowseNames.JobResponse, NamespaceIndex), response, false);
+                    };
+                    eventState.SetChildValue(
+                        SystemContext,
+                        new QualifiedName(
+                            UAModel.ISA95_JOBCONTROL_V2.BrowseNames.JobResponse,
+                            NamespaceIndex),
+                        response,
+                        false);
 
-                var jobOrderState = new ISA95JobOrderAndStateDataType
-                {
-                    JobOrder = new ISA95JobOrderDataType
+                    var jobOrder = new ISA95JobOrderDataType
                     {
-                        EncodingMask = ISA95JobOrderDataTypeFields.None,
-                        JobOrderID = _jobId.ToString(CultureInfo.InvariantCulture),
+                        JobOrderID = jobId.ToString(System.Globalization.CultureInfo.InvariantCulture),
                         EquipmentRequirements =
-                            [
-                                new ISA95EquipmentDataType
-                                {
-                                    EncodingMask = (ISA95EquipmentDataTypeFields)(
-                                        (int)ISA95EquipmentDataTypeFields.EquipmentUse |
-                                        (int) ISA95EquipmentDataTypeFields.EngineeringUnits |
-                                        (int)ISA95EquipmentDataTypeFields.Quantity),
-                                    EngineeringUnits = new EUInformation("rpm", "RPM"),
-                                    EquipmentUse = "free",
-                                    Quantity = "1000"
-                                }
-                            ]
-                    },
-                    State =
-                    [
-                        new ISA95StateDataType
-                        {
-                            StateNumber = ++_state,
-                            BrowsePath = new RelativePath(new QualifiedName("State " + _state, NamespaceIndex)),
-                            StateText = new LocalizedText("en-US", "State " + _state)
-                        },
-                        new ISA95StateDataType
-                        {
-                            StateNumber = ++_state,
-                            BrowsePath = new RelativePath(new QualifiedName("State " + _state, NamespaceIndex)),
-                            StateText = new LocalizedText("en-US", "State " + _state)
-                        },
-                        new ISA95StateDataType
-                        {
-                            StateNumber = ++_state,
-                            BrowsePath = new RelativePath(new QualifiedName("State " + _state, NamespaceIndex)),
-                            StateText = new LocalizedText("en-US", "State " + _state)
-                        }
-                    ]
-                };
-                e.SetChildValue(SystemContext, new QualifiedName(UAModel.ISA95_JOBCONTROL_V2.BrowseNames.JobState, NamespaceIndex), jobOrderState, false);
-                // e.SetChildValue(SystemContext, new QualifiedName(UAModel.ISA95_JOBCONTROL_V2.BrowseNames.JobOrder, NamespaceIndex), state, false);
-
-                Server.ReportEvent(e);
+                        [
+                            new ISA95EquipmentDataType
+                            {
+                                EncodingMask = (uint)(
+                                    ISA95EquipmentDataTypeFields.EquipmentUse |
+                                    ISA95EquipmentDataTypeFields.EngineeringUnits |
+                                    ISA95EquipmentDataTypeFields.Quantity),
+                                EquipmentUse = "free",
+                                EngineeringUnits = new EUInformation("rpm", "RPM"),
+                                Quantity = "1000"
+                            }
+                        ]
+                    };
+                    eventState.SetChildValue(
+                        SystemContext,
+                        new QualifiedName(
+                            UAModel.ISA95_JOBCONTROL_V2.BrowseNames.JobOrder,
+                            NamespaceIndex),
+                        jobOrder,
+                        false);
+                    Server.ReportEvent(eventState);
+                }
             }
-            catch (NullReferenceException)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-                // Stop simulation because the subscription is closed. This should be fixed in the server library.
-                _simulationTimer.Change(Timeout.Infinite, Timeout.Infinite);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Utils.Trace(e, "Unexpected error during simulation.");
+                SimulationFailed(
+                    Server.Telemetry.CreateLogger<Isa95JobControlNodeManager>(),
+                    ex);
             }
         }
 
-#pragma warning disable IDE0052 // Remove unread private members
-        private readonly Isa95JobControlServerConfiguration _configuration;
-#pragma warning restore IDE0052 // Remove unread private members
-        private Timer _simulationTimer;
+        [LoggerMessage(
+            EventId = 1,
+            Level = LogLevel.Error,
+            Message = "ISA-95 job-control event simulation failed.")]
+        private static partial void SimulationFailed(ILogger logger, Exception exception);
+
+        internal const string kModelUri =
+            UAModel.ISA95_JOBCONTROL_V2.Namespaces.ISA95_JOBCONTROL_V2;
+
+        private static readonly TimeSpan kEventInterval = TimeSpan.FromSeconds(1);
+        private CancellationTokenSource? _simulationCancellation;
         private int _jobId;
-        private uint _state;
-        private const int kEventInterval = 1000;
     }
 }
