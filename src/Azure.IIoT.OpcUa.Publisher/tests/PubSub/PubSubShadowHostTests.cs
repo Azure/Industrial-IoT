@@ -133,6 +133,42 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
         }
 
         [Fact]
+        public async Task TranslatorNormalizesEveryNonPositivePublishingIntervalAsync()
+        {
+            foreach (var interval in new TimeSpan?[]
+            {
+                null,
+                TimeSpan.Zero,
+                TimeSpan.FromMilliseconds(-1),
+                TimeSpan.FromMilliseconds(25)
+            })
+            {
+                var translator = new PubSubConfigurationTranslator(Options.Create(
+                    new PublisherOptions { BatchTriggerInterval = TimeSpan.Zero }));
+                var registry = new PubSubIdentityRegistry(new MemoryIdentityStore());
+                var group = CreateWriterGroup("group-" + interval, "writer-" + interval,
+                    MessageEncoding.Uadp);
+                group.PublishingInterval = interval;
+                PubSubConfigurationDataType configuration;
+                await using (var transaction = await registry.BeginAsync())
+                {
+                    configuration = translator.Translate([group], transaction);
+                    await transaction.CommitAsync();
+                }
+
+                var nativeGroup = Single(configuration.Connections).WriterGroups[0];
+                Assert.True(nativeGroup.PublishingInterval > 0);
+                Assert.Equal(interval is { } value && value > TimeSpan.Zero
+                    ? value.TotalMilliseconds
+                    : PublisherConfig.BatchTriggerIntervalLLegacyDefaultMillis,
+                    nativeGroup.PublishingInterval);
+                new PubSubConfigurationValidator([Profiles.PubSubUdpUadpTransport])
+                    .Validate(configuration)
+                    .ThrowIfInvalid();
+            }
+        }
+
+        [Fact]
         public async Task TranslatorUsesEncodingAwareMasksForEveryPublicFlagAsync()
         {
             foreach (var encoding in new[] { MessageEncoding.Json, MessageEncoding.Uadp })
@@ -153,6 +189,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             }
         }
 
+        [Fact]
         public async Task IdentityRegistrySurvivesRestartAndRetainsRemovedIdentitiesAsync()
         {
             var path = ".pubsub-identity-registry-" + Guid.NewGuid().ToString("N") + ".json";

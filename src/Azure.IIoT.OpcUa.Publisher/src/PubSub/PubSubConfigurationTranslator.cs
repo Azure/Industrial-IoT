@@ -18,8 +18,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     {
         public PubSubConfigurationTranslator(IOptions<PublisherOptions>? options = null)
         {
-            _defaultPublishingInterval = options?.Value.BatchTriggerInterval
-                ?? TimeSpan.FromMilliseconds(PublisherConfig.BatchTriggerIntervalLLegacyDefaultMillis);
+            _defaultPublishingInterval = NormalizePublishingInterval(
+                options?.Value.BatchTriggerInterval);
         }
 
         public PubSubConfigurationDataType Translate(
@@ -81,8 +81,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 Name = source.Name ?? source.Id,
                 WriterGroupId = identities.GetOrAllocate("writer-group", source.Id),
                 Enabled = false,
-                PublishingInterval = (source.PublishingInterval ?? _defaultPublishingInterval)
-                    .TotalMilliseconds,
+                PublishingInterval = NormalizePublishingInterval(source.PublishingInterval
+                    ?? _defaultPublishingInterval).TotalMilliseconds,
                 KeepAliveTime = source.KeepAliveTime?.TotalMilliseconds ?? 0,
                 MaxNetworkMessageSize = source.MaxNetworkMessageSize ?? 1500,
                 SecurityMode = MessageSecurityMode.None,
@@ -248,6 +248,15 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                     $"Message encoding '{encoding}' is not supported by the inert PubSub host.",
                     nameof(encoding))
             };
+        }
+
+        private static TimeSpan NormalizePublishingInterval(TimeSpan? interval)
+        {
+            if (interval is { } value && value > TimeSpan.Zero)
+            {
+                return value;
+            }
+            return TimeSpan.FromMilliseconds(PublisherConfig.BatchTriggerIntervalLLegacyDefaultMillis);
         }
 
         private readonly TimeSpan _defaultPublishingInterval;
