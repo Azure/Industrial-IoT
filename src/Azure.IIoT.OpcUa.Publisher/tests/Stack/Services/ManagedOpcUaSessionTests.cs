@@ -21,6 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Threading.Tasks;
     using Xunit;
     using OpcUaClientOptions = Azure.IIoT.OpcUa.Publisher.Stack.OpcUaClientOptions;
+    using ManagedMonitoredItemOptions = Opc.Ua.Client.Subscriptions.MonitoredItems.MonitoredItemOptions;
 
     /// <summary>
     /// Characterization tests for the managed session composition seam.
@@ -727,7 +728,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             session.SetupGet(item => item.SessionName).Returns("managed");
             var collection = new Mock<IMonitoredItemCollection>();
             collection.Setup(items => items.Update(It.IsAny<IReadOnlyList<(
-                    string Name, IOptionsMonitor<MonitoredItemOptions> Options)>>()))
+                    string Name, IOptionsMonitor<ManagedMonitoredItemOptions> Options)>>()))
                 .Returns([]);
             var subscription = new Mock<Opc.Ua.Client.Subscriptions.ISubscription>();
             subscription.SetupGet(item => item.MonitoredItems).Returns(collection.Object);
@@ -774,7 +775,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 invocation.Method.Name == nameof(ISubscriptionManager.Add)));
             Assert.Equal(1, connection.ReconnectCount);
             collection.Verify(items => items.Update(It.IsAny<IReadOnlyList<(
-                string Name, IOptionsMonitor<MonitoredItemOptions> Options)>>()), Times.AtLeast(2));
+                string Name, IOptionsMonitor<ManagedMonitoredItemOptions> Options)>>()), Times.AtLeast(2));
         }
 
         [Fact]
