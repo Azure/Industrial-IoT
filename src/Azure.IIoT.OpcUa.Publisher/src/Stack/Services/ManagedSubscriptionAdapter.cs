@@ -229,7 +229,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 throw new InvalidOperationException(
                     "Triggered item updates require UpdateAsync so V2 SetTriggeringAsync can complete.");
             }
-            UpdateBindings(desired);
+            UpdateBindings(desired, requestConditionRefresh: true);
         }
 
         /// <summary>
@@ -245,7 +245,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ArgumentNullException.ThrowIfNull(items);
             ThrowIfDisposed();
             var desired = CreateDesiredBindings(items, includeTriggeredItems: true);
-            UpdateBindings(desired);
+            UpdateBindings(desired, requestConditionRefresh: false);
+            await RequestPendingConditionRefreshAsync(ct).ConfigureAwait(false);
 
             foreach (var binding in GetBindings())
             {
@@ -294,7 +295,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ArgumentNullException.ThrowIfNull(owner);
             lock (_bindingsLock)
             {
-                GetOwnerState(owner).KeyFrameRequired = true;
+                if (_bindingsByHandle.Values.Any(binding => binding.Owner.Equals(owner)) &&
+                    _ownerStates.TryGetValue(owner, out var state))
+                {
+                    state.KeyFrameRequired = true;
+                }
             }
         }
 
@@ -441,10 +446,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             foreach (var owner in GetBindings().Select(binding => binding.Owner).Distinct())
             {
+                if (!IsLiveOwner(owner))
+                {
+                    continue;
+                }
                 if (RequiresKeyFrame(owner))
                 {
                     var keyFrame = CreateKeyFrame(owner, sequenceNumber, publishTime);
-                    if (keyFrame != null)
+                    if (keyFrame != null && IsLiveOwner(owner))
                     {
                         MarkKeyFrameDelivered(owner, true);
                         using (keyFrame)
@@ -454,6 +463,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     subscriber.OnSubscriptionDataChangeReceived(notification));
                         }
                     }
+                }
+                if (!IsLiveOwner(owner))
+                {
+                    continue;
                 }
                 using var keepAlive = CreateNotification([], sequenceNumber, publishTime,
                     MessageType.KeepAlive);
@@ -644,7 +657,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
-        private void UpdateBindings(List<ManagedSubscriptionItemBinding> desired)
+        private void UpdateBindings(List<ManagedSubscriptionItemBinding> desired,
+            bool requestConditionRefresh)
         {
             var state = desired.Select(binding => (binding.Name,
                 (IOptionsMonitor<MonitoredItemOptions>)binding.Monitor)).ToList();
@@ -677,6 +691,36 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         subscriber.OnMonitoredItemUpdate(binding.Template,
                             ToServiceResult(monitoredItem!)));
                 }
+            }
+            if (requestConditionRefresh)
+            {
+                _ = RequestPendingConditionRefreshAsync(default);
+            }
+        }
+
+        private async ValueTask RequestPendingConditionRefreshAsync(CancellationToken ct)
+        {
+            var pending = GetBindings()
+                .Where(binding => binding.Condition is { RefreshRequested: true })
+                .ToArray();
+            if (pending.Length == 0)
+            {
+                return;
+            }
+            try
+            {
+                await _subscription.ConditionRefreshAsync(ct).ConfigureAwait(false);
+                foreach (var binding in pending)
+                {
+                    lock (binding.Condition!._lock)
+                    {
+                        binding.Condition.RefreshRequested = false;
+                    }
+                }
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _logger.ConditionRefreshFailed(ex);
             }
         }
 
@@ -807,6 +851,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ArrayOf<Variant> fields)
         {
             var condition = binding.Condition!;
+            lock (condition._lock)
+            {
+                if (condition.Superseded)
+                {
+                    return;
+                }
+            }
             if (condition.EventTypeIndex >= 0 && condition.EventTypeIndex < fields.Count &&
                 fields[condition.EventTypeIndex].TryGetValue(out NodeId eventType))
             {
@@ -880,7 +931,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     condition.Refreshing = false;
                     condition.Dirty = true;
                 }
-                if (condition.Refreshing || condition.Publishing ||
+                if (condition.Superseded || condition.Refreshing || condition.Publishing ||
                     !force && now < condition.LastSent +
                     TimeSpan.FromSeconds(condition.SnapshotInterval) &&
                     (!condition.Dirty || now < condition.LastSent +
@@ -897,7 +948,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             try
             {
-                if (notifications.Count != 0)
+                if (notifications.Count != 0 &&
+                    ReferenceEquals(binding.Condition, condition) &&
+                    IsLiveOwner(binding.Owner))
                 {
                     using var message = CreateNotification(notifications, NextSequenceNumber(),
                         now.UtcDateTime, MessageType.Condition);
@@ -959,6 +1012,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private OpcUaSubscriptionNotification? CreateKeyFrame(ISubscriber owner,
             uint sequenceNumber, DateTime publishTime)
         {
+            if (!IsLiveOwner(owner))
+            {
+                return null;
+            }
             var values = GetBindings()
                 .Where(binding => binding.Owner.Equals(owner) &&
                     binding.Template is DataMonitoredItemModel)
@@ -986,7 +1043,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             lock (_bindingsLock)
             {
-                var state = GetOwnerState(owner);
+                if (!_bindingsByHandle.Values.Any(binding => binding.Owner.Equals(owner)) ||
+                    !_ownerStates.TryGetValue(owner, out var state))
+                {
+                    return false;
+                }
+
+                private bool IsLiveOwner(ISubscriber owner)
+                {
+                    lock (_bindingsLock)
+                    {
+                        return _bindingsByHandle.Values.Any(binding => binding.Owner.Equals(owner));
+                    }
+                }
                 return state.KeyFrameRequired || _periodicKeyFrameInterval.HasValue &&
                     _timeProvider.GetUtcNow() >= state.LastKeyFrame +
                     _periodicKeyFrameInterval.Value;
@@ -1001,9 +1070,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             lock (_bindingsLock)
             {
-                var state = GetOwnerState(owner);
-                state.KeyFrameRequired = false;
-                state.LastKeyFrame = _timeProvider.GetUtcNow();
+                if (_bindingsByHandle.Values.Any(binding => binding.Owner.Equals(owner)) &&
+                    _ownerStates.TryGetValue(owner, out var state))
+                {
+                    state.KeyFrameRequired = false;
+                    state.LastKeyFrame = _timeProvider.GetUtcNow();
+                }
             }
         }
 
@@ -1097,9 +1169,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             foreach (var owner in GetBindings().Select(binding => binding.Owner).Distinct())
             {
                 RequestKeyFrame(owner);
+                if (!RequiresKeyFrame(owner))
+                {
+                    continue;
+                }
                 var notification = CreateKeyFrame(owner, NextSequenceNumber(),
                     _timeProvider.GetUtcNow().UtcDateTime);
-                if (notification != null)
+                if (notification != null && IsLiveOwner(owner))
                 {
                     MarkKeyFrameDelivered(owner, true);
                     using (notification)
@@ -1204,11 +1280,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public void Update(ISubscriber owner, BaseMonitoredItemModel template,
                 MonitoredItemOptions options)
             {
-                if (!ReferenceEquals(Owner, owner) ||
+                var ownerChanged = !ReferenceEquals(Owner, owner);
+                var itemIdentityChanged = ownerChanged ||
                     Template.GetType() != template.GetType() ||
                     !string.Equals(Template.StartNodeId, template.StartNodeId,
                         StringComparison.Ordinal) ||
-                    Template.AttributeId != template.AttributeId)
+                    Template.AttributeId != template.AttributeId;
+                var conditionChanged = Registered && Template is EventMonitoredItemModel &&
+                    template is EventMonitoredItemModel &&
+                    (!Equals(Template, template) ||
+                        !ReferenceEquals(Monitor.CurrentValue.Filter, options.Filter));
+                if (itemIdentityChanged)
                 {
                     LastDataValue = null;
                     Interlocked.Exchange(ref _firstDataChange, 0);
@@ -1216,7 +1298,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Owner = owner;
                 Template = template;
                 Monitor.Update(options);
-                (EventFieldNames, Condition) = CreateEventLayout(template, options, Condition);
+                if (conditionChanged && Condition != null)
+                {
+                    lock (Condition._lock)
+                    {
+                        Condition.Superseded = true;
+                        Condition.Refreshing = true;
+                    }
+                }
+                (EventFieldNames, Condition) = CreateEventLayout(template, options,
+                    conditionChanged ? null : Condition);
+                if (conditionChanged && Condition != null)
+                {
+                    Condition.Refreshing = true;
+                    Condition.RefreshRequested = true;
+                }
             }
 
             public bool SkipFirstDataChange()
@@ -1314,7 +1410,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public DateTimeOffset LastSent { get; set; }
             public bool Dirty { get; set; }
             public bool Publishing { get; set; }
+            public bool RefreshRequested { get; set; }
             public bool Refreshing { get; set; }
+            public bool Superseded { get; set; }
             public Dictionary<string, List<MonitoredItemNotificationModel>> Active { get; } = [];
 
             public ConditionState(EventMonitoredItemModel template)

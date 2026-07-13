@@ -452,6 +452,76 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         [Fact]
+        public async Task RecreatesConditionStateBeforeDeliveringToNewOwner()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var originalOwner = new FakeSubscriber();
+            var replacementOwner = new FakeSubscriber();
+            var original = CreateConditionItem("condition-stable", 5, 2);
+            adapter.Update([(originalOwner, original)]);
+            var item = Assert.Single(manager.Subscription!.Collection.Items.Cast<FakeMonitoredItem>());
+            await manager.Handler!.OnEventDataNotificationAsync(manager.Subscription, 1,
+                DateTime.UtcNow, CreateConditionNotification(item, "cached"), PublishState.None, []);
+            adapter.FlushConditions(force: true);
+            Assert.Single(originalOwner.Events);
+
+            var updated = original with
+            {
+                EventFilter = new EventFilterModel
+                {
+                    SelectClauses = [new SimpleAttributeOperandModel
+                    {
+                        DisplayName = "ChangedConditionId"
+                    }]
+                }
+            };
+            await adapter.UpdateAsync([(replacementOwner, updated)]);
+            adapter.FlushConditions(force: true);
+
+            Assert.Empty(replacementOwner.Events);
+            Assert.Equal(1, manager.Subscription.ConditionRefreshCount);
+            Assert.Single(originalOwner.Events);
+        }
+
+        [Fact]
+        public async Task DoesNotRecreateOwnerStateForStaleKeepAliveOwner()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var first = new FakeSubscriber();
+            var second = new FakeSubscriber();
+            Assert.True(adapter.TryAdd(first, CreateDataItem("ns=2;s=first")));
+            Assert.True(adapter.TryAdd(second, CreateDataItem("ns=2;s=second")));
+            var secondHandle = manager.Subscription!.Collection.Items
+                .Cast<FakeMonitoredItem>()
+                .Single(item => item.Name.Contains("second", StringComparison.Ordinal))
+                .ClientHandle;
+            first.OnKeepAliveAction = () => adapter.TryRemove(secondHandle);
+
+            await manager.Handler!.OnKeepAliveNotificationAsync(manager.Subscription, 1,
+                DateTime.UtcNow, PublishState.KeepAlive);
+
+            Assert.Equal(1, adapter.OwnerStateCount);
+            Assert.Equal(1u, manager.Subscription.Collection.Count);
+        }
+
+        [Fact]
+        public async Task ReleasesOwnerAfterItsFinalBindingIsRemoved()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var weakOwner = AddAndRemoveTransientOwner(adapter, manager);
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+
+            Assert.Equal(0, adapter.OwnerStateCount);
+            Assert.False(weakOwner.IsAlive);
+        }
+
+        [Fact]
         public async Task EmitsInitialDeltaRecoveryAndExplicitKeyFrames()
         {
             var manager = new FakeSubscriptionManager();
@@ -592,6 +662,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }]
                 }
             };
+        }
+
+        private static EventNotification[] CreateConditionNotification(FakeMonitoredItem item,
+            string value)
+        {
+            return
+            [
+                new EventNotification(item, ArrayOf.Wrapped(
+                    Variant.From(value),
+                    Variant.From(ObjectTypeIds.BaseEventType),
+                    Variant.From(new NodeId(1u, 2)),
+                    Variant.From(true)))
+            ];
+        }
+
+        private static WeakReference AddAndRemoveTransientOwner(
+            ManagedSubscriptionAdapter adapter, FakeSubscriptionManager manager)
+        {
+            var owner = new FakeSubscriber();
+            Assert.True(adapter.TryAdd(owner, CreateDataItem("ns=2;s=transient")));
+            var handle = Assert.Single(manager.Subscription!.Collection.Items).ClientHandle;
+            Assert.True(adapter.TryRemove(handle));
+            return new WeakReference(owner);
         }
 
         private sealed class FakeSubscriptionManager : ISubscriptionManager
@@ -827,6 +920,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private sealed class FakeSubscriber : ISubscriber
         {
             public int SemanticsChanges { get; private set; }
+            public Action? OnKeepAliveAction { get; set; }
             public bool ThrowOnData { get; set; }
             public List<OpcUaSubscriptionNotification> DataChanges { get; } = [];
             public List<OpcUaSubscriptionNotification> Events { get; } = [];
@@ -841,6 +935,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             public void OnSubscriptionKeepAlive(OpcUaSubscriptionNotification notification)
             {
+                OnKeepAliveAction?.Invoke();
             }
 
             public void OnSubscriptionDataChangeReceived(OpcUaSubscriptionNotification notification)
