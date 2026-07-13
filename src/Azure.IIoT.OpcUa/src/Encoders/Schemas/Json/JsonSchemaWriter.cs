@@ -339,6 +339,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
             {
                 return;
             }
+            constValue.EnsureSupported();
             if (name.Length != 0)
             {
                 _writer.WritePropertyName(name);
@@ -356,6 +357,10 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
             if (constValues == null)
             {
                 return;
+            }
+            foreach (var constValue in constValues)
+            {
+                constValue.EnsureSupported();
             }
             if (name.Length != 0)
             {

@@ -25,6 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
     using System.Linq;
     using System.Net;
     using System.Net.Sockets;
+    using System.Text.Json.Nodes;
     using System.Text;
     using System.Threading;
     using System.Threading.Channels;
@@ -311,7 +312,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         {
             _logger.ProcessingDiscoveryRequest();
             request.Progress.OnDiscoveryStarted(request.Request);
-            object? diagnostics = null;
+            JsonNode? diagnostics = null;
 
             //
             // Discover servers
@@ -690,7 +691,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
         /// <returns></returns>
         private async Task SendDiscoveryResultsAsync(DiscoveryRequest request,
             List<ApplicationRegistrationModel> discovered, DateTimeOffset timestamp,
-            object? diagnostics, CancellationToken ct)
+            JsonNode? diagnostics, CancellationToken ct)
         {
             _logger.UploadingResults(discovered.Count);
             var buffers = discovered
@@ -710,8 +711,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Discovery
                         Id = request.Request.Id,
                         Context = request.Request.Context,
                         RegisterOnly = request.Mode == DiscoveryMode.Off,
-                        Diagnostics = diagnostics == null ? null :
-                            System.Text.Json.JsonSerializer.SerializeToNode(diagnostics)
+                        Diagnostics = diagnostics?.DeepClone()
                     },
                     TimeStamp = timestamp
                 })

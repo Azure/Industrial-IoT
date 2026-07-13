@@ -297,6 +297,11 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
         internal abstract void Write(Utf8JsonWriter writer);
 
         /// <summary>
+        /// Validates that the const value has a schema scalar representation.
+        /// </summary>
+        internal abstract void EnsureSupported();
+
+        /// <summary>
         /// Create const
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -338,7 +343,94 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
         /// <inheritdoc/>
         internal override void Write(Utf8JsonWriter writer)
         {
-            JsonSerializer.Serialize(writer, Value);
+            EnsureSupported();
+            switch (Value)
+            {
+                case null:
+                    writer.WriteNullValue();
+                    return;
+                case string value:
+                    writer.WriteStringValue(value);
+                    return;
+                case char value:
+                    writer.WriteStringValue(value.ToString());
+                    return;
+                case bool value:
+                    writer.WriteBooleanValue(value);
+                    return;
+                case byte value:
+                    writer.WriteNumberValue(value);
+                    return;
+                case sbyte value:
+                    writer.WriteNumberValue(value);
+                    return;
+                case short value:
+                    writer.WriteNumberValue(value);
+                    return;
+                case ushort value:
+                    writer.WriteNumberValue(value);
+                    return;
+                case int value:
+                    writer.WriteNumberValue(value);
+                    return;
+                case uint value:
+                    writer.WriteNumberValue(value);
+                    return;
+                case long value:
+                    writer.WriteNumberValue(value);
+                    return;
+                case ulong value:
+                    writer.WriteNumberValue(value);
+                    return;
+                case float value:
+                    writer.WriteNumberValue(value);
+                    return;
+                case double value:
+                    writer.WriteNumberValue(value);
+                    return;
+                case decimal value:
+                    writer.WriteNumberValue(value);
+                    return;
+                case Guid value:
+                    writer.WriteStringValue(value);
+                    return;
+                case DateTime value:
+                    writer.WriteStringValue(value);
+                    return;
+                case DateTimeOffset value:
+                    writer.WriteStringValue(value);
+                    return;
+            }
+        }
+
+        /// <inheritdoc/>
+        internal override void EnsureSupported()
+        {
+            switch (Value)
+            {
+                case null:
+                case string:
+                case char:
+                case bool:
+                case byte:
+                case sbyte:
+                case short:
+                case ushort:
+                case int:
+                case uint:
+                case long:
+                case ulong:
+                case float:
+                case double:
+                case decimal:
+                case Guid:
+                case DateTime:
+                case DateTimeOffset:
+                    return;
+                default:
+                    throw new NotSupportedException(
+                        $"Schema constants of type {typeof(T)} are not supported.");
+            }
         }
     }
 
