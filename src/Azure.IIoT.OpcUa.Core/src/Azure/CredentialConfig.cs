@@ -31,7 +31,9 @@ namespace Azure.IIoT.OpcUa.Core.AzureSdk
         /// <inheritdoc/>
         protected override CredentialOptions Bind()
         {
-            return Configuration.Get<CredentialOptions>() ?? new();
+            return NormalizeLegacyBooleanAliases(
+                nameof(CredentialOptions.AllowInteractiveLogin))
+                .Get<CredentialOptions>() ?? new();
         }
 
         private const string kAllowInteractiveLogin = "PCS_ALLOW_INTERACTIVE_LOGIN";

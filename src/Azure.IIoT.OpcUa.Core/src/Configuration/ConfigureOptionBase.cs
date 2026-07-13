@@ -150,5 +150,51 @@ namespace Azure.IIoT.OpcUa.Core.Configuration
                 return defaultValue;
             }
         }
+
+        /// <summary>
+        /// Produces a configuration view that normalizes legacy boolean spellings
+        /// before a source-generated binder consumes concrete option types.
+        /// </summary>
+        /// <param name="keys">Boolean-backed configuration property names.</param>
+        /// <returns>A configuration view retaining the original provider precedence.</returns>
+        protected IConfiguration NormalizeLegacyBooleanAliases(params string[] keys)
+        {
+            ArgumentNullException.ThrowIfNull(keys);
+            var aliases = new HashSet<string>(keys, StringComparer.OrdinalIgnoreCase);
+            var normalized = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+            foreach (var (key, value) in Configuration.AsEnumerable())
+            {
+                if (value is null)
+                {
+                    continue;
+                }
+                var separator = key.LastIndexOf(ConfigurationPath.KeyDelimiter,
+                    StringComparison.Ordinal);
+                var name = separator < 0 ? key : key[(separator + 1)..];
+                if (!aliases.Contains(name))
+                {
+                    continue;
+                }
+                normalized[key] = NormalizeLegacyBoolean(value);
+            }
+            if (normalized.Count == 0)
+            {
+                return Configuration;
+            }
+            return new ConfigurationBuilder()
+                .AddConfiguration(Configuration)
+                .AddInMemoryCollection(normalized)
+                .Build();
+        }
+
+        private static string NormalizeLegacyBoolean(string value)
+        {
+            return value.Trim().ToUpperInvariant() switch
+            {
+                "TRUE" or "YES" or "Y" or "1" => bool.TrueString,
+                "FALSE" or "NO" or "N" or "0" => bool.FalseString,
+                _ => value
+            };
+        }
     }
 }

@@ -453,7 +453,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         /// <inheritdoc/>
         protected override OpcUaClientOptions Bind()
         {
-            return Configuration.Get<OpcUaClientOptions>() ?? new();
+            return NormalizeLegacyBooleanAliases(
+                nameof(OpcUaClientOptions.DisableComplexTypePreloading),
+                nameof(OpcUaClientOptions.EnableOpcUaStackLogging),
+                nameof(SecurityOptions.AutoAcceptUntrustedCertificates),
+                nameof(SecurityOptions.RejectSha1SignedCertificates),
+                nameof(SecurityOptions.AddAppCertToTrustedStore),
+                nameof(SecurityOptions.RejectUnknownRevocationStatus),
+                nameof(SecurityOptions.TryUseConfigurationFromExistingAppCert))
+                .Get<OpcUaClientOptions>() ?? new();
         }
 
         /// <inheritdoc/>

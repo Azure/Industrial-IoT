@@ -242,7 +242,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
         /// <inheritdoc/>
         protected override OpcUaSubscriptionOptions Bind()
         {
-            return Configuration.Get<OpcUaSubscriptionOptions>() ?? new();
+            return NormalizeLegacyBooleanAliases(
+                nameof(OpcUaSubscriptionOptions.DefaultSkipFirst),
+                nameof(OpcUaSubscriptionOptions.DefaultRepublishAfterTransfer),
+                nameof(OpcUaSubscriptionOptions.DefaultDiscardNew),
+                nameof(OpcUaSubscriptionOptions.EnableImmediatePublishing),
+                nameof(OpcUaSubscriptionOptions.EnableSequentialPublishing),
+                nameof(OpcUaSubscriptionOptions.ResolveDisplayName),
+                nameof(OpcUaSubscriptionOptions.AutoSetQueueSizes),
+                nameof(OpcUaSubscriptionOptions.UseDeferredAcknoledgements),
+                nameof(OpcUaSubscriptionOptions.DefaultSamplingUsingCyclicRead),
+                nameof(OpcUaSubscriptionOptions.FetchOpcBrowsePathFromRoot))
+                .Get<OpcUaSubscriptionOptions>() ?? new();
         }
 
         /// <summary>
