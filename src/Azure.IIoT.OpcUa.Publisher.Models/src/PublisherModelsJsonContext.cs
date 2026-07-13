@@ -182,6 +182,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     [JsonSerializable(typeof(PublishedItemListResponseModel))]
     [JsonSerializable(typeof(PublishedItemModel))]
     [JsonSerializable(typeof(PublishedMethodItemsModel))]
+    [JsonSerializable(typeof(PublishedNetworkMessageSchemaModel))]
     [JsonSerializable(typeof(PublishedNodeDeleteAssetRequestModel))]
     [JsonSerializable(typeof(PublishedNodeExpansionModel))]
     [JsonSerializable(typeof(PublishedNodesEntryModel))]

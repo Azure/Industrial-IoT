@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Exceptions;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
@@ -27,7 +28,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Net;
     using System.Runtime.CompilerServices;
     using System.Security.Cryptography.X509Certificates;
-    using System.Text.Json;
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
@@ -2100,18 +2100,15 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
                     {
                         var diagnostics = await _session.GetServerDiagnosticAsync(
                             ct).ConfigureAwait(false);
-                        var str = JsonSerializer.Serialize(diagnostics, kIndented);
+                        var str = Json.SerializeToString(diagnostics,
+                            Json.GetTypeInfo<SessionDiagnosticsModel>(),
+                            SerializeOption.Indented);
                         Console.WriteLine(str);
                     }
                 }
             }
             catch (OperationCanceledException) { }
         }
-        private static readonly JsonSerializerOptions kIndented = new()
-        {
-            WriteIndented = true
-        };
-
         private enum ConnectionEvent
         {
             Connect,

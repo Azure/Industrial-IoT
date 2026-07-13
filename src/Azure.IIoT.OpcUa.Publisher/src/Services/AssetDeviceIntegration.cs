@@ -31,9 +31,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.IO.Compression;
     using System.Linq;
     using System.Text;
-    using System.Text.Json;
     using System.Text.Json.Nodes;
-    using System.Text.Json.Serialization;
     using System.Text.Json.Serialization.Metadata;
     using System.Text.RegularExpressions;
     using System.Threading;
@@ -891,7 +889,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 if (_logger.IsDebugLogConfigurationEnabled())
                 {
                     _logger.ReportingNewDiscoveredAsset(uniqueAssetName, assetId, assetTypeRef,
-                        JsonSerializer.Serialize(dAsset, kDebugSerializerOptions));
+                        Json.SerializeToString(dAsset,
+                            Json.GetTypeInfo<DiscoveredAsset>(),
+                            SerializeOption.Indented));
                 }
                 await _client.ReportDiscoveredAssetAsync(resource.DeviceName, resource.EndpointName,
                     uniqueAssetName, dAsset, cancellationToken: ct).ConfigureAwait(false);
@@ -1156,7 +1156,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             if (_logger.IsDebugLogConfigurationEnabled())
             {
                 _logger.ReportingNewDiscoveredDevice(deviceName, endpointType,
-                    JsonSerializer.Serialize(dDevice, kDebugSerializerOptions));
+                    Json.SerializeToString(dDevice,
+                        Json.GetTypeInfo<DiscoveredDevice>(),
+                        SerializeOption.Indented));
             }
             await _client.ReportDiscoveredDeviceAsync(deviceName, dDevice,
                 endpointType, cancellationToken: ct).ConfigureAwait(false);
@@ -3017,13 +3019,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private const string kInvalidEndpointUrl = "500.7";
 
         private static readonly TimeSpan kDefaultDeviceDiscoveryRefresh = TimeSpan.FromHours(6);
-        private static readonly JsonSerializerOptions kDebugSerializerOptions = new()
-        {
-            WriteIndented = true,
-            Converters = { new JsonStringEnumConverter() },
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-        };
-
         private const string kAssetIdAttribute = "AssetId";
 
         private readonly ConcurrentDictionary<string, AssetResource> _assets = new();

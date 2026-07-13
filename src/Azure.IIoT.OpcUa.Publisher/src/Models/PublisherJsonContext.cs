@@ -6,11 +6,13 @@
 namespace Azure.IIoT.OpcUa.Publisher.Models
 {
     using Azure.IIoT.OpcUa.Core.Serialization;
+    using Azure.Iot.Operations.Services.AssetAndDeviceRegistry.Models;
     using System.Diagnostics.CodeAnalysis;
     using System.Runtime.CompilerServices;
     using System.Text.Json.Serialization;
 
     [JsonSourceGenerationOptions(
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         GenerationMode = JsonSourceGenerationMode.Metadata,
         PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
         UseStringEnumConverter = true)]
@@ -23,6 +25,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     [JsonSerializable(typeof(EventDataPointConfiguration))]
     [JsonSerializable(typeof(ManagementGroupConfiguration))]
     [JsonSerializable(typeof(ActionConfiguration))]
+    [JsonSerializable(typeof(DiscoveredAsset))]
+    [JsonSerializable(typeof(DiscoveredDevice))]
+    [JsonSerializable(typeof(Azure.IIoT.OpcUa.Core.Messaging.QoS),
+        TypeInfoPropertyName = "CoreQoS")]
+    [JsonSerializable(typeof(Azure.IIoT.OpcUa.Core.Messaging.QoS?),
+        TypeInfoPropertyName = "CoreNullableQoS")]
+    [JsonSerializable(typeof(QoS), TypeInfoPropertyName = "AssetQoS")]
+    [JsonSerializable(typeof(QoS?), TypeInfoPropertyName = "AssetNullableQoS")]
     internal sealed partial class PublisherJsonContext : JsonSerializerContext
     {
     }

@@ -57,6 +57,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         }
 
         [Fact]
+        public void DebugAssetAndDeviceTypesSerializeWithoutReflection()
+        {
+            AssertGeneratedDebugSerialization<DiscoveredAsset>();
+            AssertGeneratedDebugSerialization<DiscoveredDevice>();
+        }
+
+        [Fact]
         public async Task DisposeAsyncCanBeCalledMultipleTimes()
         {
             // Arrange
@@ -700,6 +707,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 typeInfo.OriginatingResolver?.GetType().Name);
             var json = Json.SerializeToString(configuration, typeInfo);
             Assert.NotNull(Json.Deserialize(json, typeInfo));
+        }
+
+        private static void AssertGeneratedDebugSerialization<T>()
+        {
+            var typeInfo = Json.GetTypeInfo<T>();
+            Assert.Equal("PublisherJsonContext",
+                typeInfo.OriginatingResolver?.GetType().Name);
+            Assert.Equal("null", Json.SerializeToString<T>(default, typeInfo,
+                SerializeOption.Indented));
         }
 
         private static void TryCompleteChannel(AssetDeviceIntegration sut)

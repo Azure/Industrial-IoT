@@ -5,12 +5,12 @@
 
 namespace Azure.IIoT.OpcUa.Encoders.Schemas.Uadp
 {
+    using Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Core;
     using Azure.IIoT.OpcUa.Core.Messaging;
     using System;
     using System.Linq;
-    using System.Text.Json;
 
     /// <summary>
     /// Network message schema for uadp. Enables a consumer
@@ -41,7 +41,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Uadp
         {
             ArgumentNullException.ThrowIfNull(networkMessage);
 
-            Schema = JsonSerializer.Serialize(networkMessage);
+            Schema = Json.SerializeToString(networkMessage,
+                Json.GetTypeInfo<PublishedNetworkMessageSchemaModel>());
             var minor = networkMessage.DataSetMessages?
                 .Max(dataSet => dataSet?.MetaData?.MinorVersion ?? 0) ?? 0;
             var major = networkMessage.DataSetMessages?
