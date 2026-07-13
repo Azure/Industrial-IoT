@@ -23,7 +23,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         public void RegistersAsRpcClient()
         {
             var services = new ServiceCollection();
-            services.AddSingletonAsImplementedInterfaces<IoTHubMock>();
+            services.AddSingleton<IoTHubMock>();
+            services.AddSingleton<IIoTHubTwinServices>(
+                static provider => provider.GetRequiredService<IoTHubMock>());
+            services.AddSingleton<IIoTHubEventProcessor>(
+                static provider => provider.GetRequiredService<IoTHubMock>());
+            services.AddSingleton<IIoTHub>(
+                static provider => provider.GetRequiredService<IoTHubMock>());
+            services.AddSingleton<IRpcClient>(
+                static provider => provider.GetRequiredService<IoTHubMock>());
 
             using var provider = services.BuildServiceProvider();
             var mock = provider.GetRequiredService<IoTHubMock>();

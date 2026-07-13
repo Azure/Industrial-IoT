@@ -101,29 +101,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         }
 
         [Fact]
-        public void GeneratedForwardsPreserveSingletonInstances()
+        public void ExplicitRegistrationsPreserveSingletonInstances()
         {
-            using var provider = BuildProvider(out _);
+            var services = new ServiceCollection();
+            RegisterExplicitProbes(services);
+            using var provider = services.BuildServiceProvider(
+                new ServiceProviderOptions { ValidateScopes = true });
 
-            var publisher = provider.GetRequiredService<IPublisher>();
-            var publisherService = provider.GetRequiredService<PublisherService>();
-            var controller = provider.GetRequiredService<ConfigurationController>();
-            var controllers = provider.GetServices<IMethodController>().ToList();
+            var singleton = provider.GetRequiredService<SingletonProbe>();
+            var singletonService = provider.GetRequiredService<ISingletonProbe>();
+            var sharedService = provider.GetServices<ISharedProbe>().First();
 
-            Assert.Same(publisherService, publisher);
-            Assert.Contains(controller, controllers);
-            Assert.Same(controller, controllers.Single(item =>
-                item is ConfigurationController));
+            Assert.Same(singleton, singletonService);
+            Assert.Same(singleton, sharedService);
         }
 
         [Fact]
-        public void GeneratedForwardsPreserveLifetimeAndEnumerableSemantics()
+        public void ExplicitRegistrationsPreserveLifetimeAndEnumerableSemantics()
         {
             var services = new ServiceCollection();
-            services.AddSingletonAsImplementedInterfaces<SingletonProbe>();
-            services.AddScopedAsImplementedInterfaces<ScopedProbe>();
-            services.AddTransientAsImplementedInterfaces<TransientProbe>();
-            services.AddSingletonAsImplementedInterfaces<AdditionalProbe>();
+            RegisterExplicitProbes(services);
             using var provider = services.BuildServiceProvider(
                 new ServiceProviderOptions { ValidateScopes = true });
 
@@ -143,6 +140,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             Assert.Collection(probes,
                 probe => Assert.IsType<SingletonProbe>(probe),
                 probe => Assert.IsType<AdditionalProbe>(probe));
+        }
+
+        private static void RegisterExplicitProbes(IServiceCollection services)
+        {
+            services.AddSingleton<SingletonProbe>();
+            services.AddSingleton<ISingletonProbe>(
+                static provider => provider.GetRequiredService<SingletonProbe>());
+            services.AddSingleton<ISharedProbe>(
+                static provider => provider.GetRequiredService<SingletonProbe>());
+            services.AddScoped<ScopedProbe>();
+            services.AddScoped<IScopedProbe>(
+                static provider => provider.GetRequiredService<ScopedProbe>());
+            services.AddTransient<TransientProbe>();
+            services.AddTransient<ITransientProbe>(
+                static provider => provider.GetRequiredService<TransientProbe>());
+            services.AddSingleton<AdditionalProbe>();
+            services.AddSingleton<ISharedProbe>(
+                static provider => provider.GetRequiredService<AdditionalProbe>());
         }
 
         [Fact]

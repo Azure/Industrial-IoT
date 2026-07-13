@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using Moq;
     using Opc.Ua;
     using Opc.Ua.Server;
@@ -415,7 +416,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
             services.AddSingleton<IConfigurationRoot>(configuration);
             services.AddSingleton(loggerFactory);
 
-            services.AddTransientAsImplementedInterfaces<TestClientConfig>();
+            services.AddTransient<TestClientConfig>();
+            services.AddTransient<IConfigureOptions<OpcUaClientOptions>>(
+                static provider => provider.GetRequiredService<TestClientConfig>());
+            services.AddTransient<IConfigureNamedOptions<OpcUaClientOptions>>(
+                static provider => provider.GetRequiredService<TestClientConfig>());
 
             services.AddOpcUaStack();
             return services.BuildServiceProvider();

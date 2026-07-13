@@ -556,7 +556,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         public static IServiceCollection AddMqttServer(this IServiceCollection services)
         {
             services.AddSingleton<MqttServer>();
-            services.AddSingletonAsImplementedInterfaces<MqttClientTransport>();
+            services.AddSingleton<MqttClientTransport>();
+            services.AddSingleton<IEventClient>(
+                static provider => provider.GetRequiredService<MqttClientTransport>());
+            services.AddSingleton<IEventSubscriber>(
+                static provider => provider.GetRequiredService<MqttClientTransport>());
+            services.AddSingleton<IRpcClient>(
+                static provider => provider.GetRequiredService<MqttClientTransport>());
+            services.AddSingleton<IRpcServer>(
+                static provider => provider.GetRequiredService<MqttClientTransport>());
             services.AddSingleton<IPostConfigureOptions<MqttOptions>, MqttConfig>();
             return services;
         }

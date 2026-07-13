@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Azure.IIoT.OpcUa.Publisher.Sdk;
     using Azure.IIoT.OpcUa.Publisher.Sdk.Clients;
     using Azure.IIoT.OpcUa.Publisher.Service.Clients.Adapters;
+    using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Testing.Runtime;
     using Azure.IIoT.OpcUa.Core.AzureSdk;
     using Azure.IIoT.OpcUa.Core.IoTEdge;
@@ -18,6 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt;
     using CoreUtils = Azure.IIoT.OpcUa.Core.Utils.Utils;
     using Try = Azure.IIoT.OpcUa.Core.Utils.Try;
+    using Azure.IIoT.OpcUa.Core.Rpc;
     using Azure.IIoT.OpcUa.Core.Rpc.Protocol;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc.Testing;
@@ -332,9 +334,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         {
             // Register publisher services
             services.AddPublisherServices();
-            services.AddTransientAsImplementedInterfaces<TestClientConfig>();
+            services.AddTransient<TestClientConfig>();
+            services.AddTransient<IConfigureOptions<OpcUaClientOptions>>(
+                static provider => provider.GetRequiredService<TestClientConfig>());
+            services.AddTransient<IConfigureNamedOptions<OpcUaClientOptions>>(
+                static provider => provider.GetRequiredService<TestClientConfig>());
 
-            services.AddScopedAsImplementedInterfaces<IoTEdgeMockIdentity>();
+            services.AddScoped<IoTEdgeMockIdentity>();
+            services.AddScoped<IIoTEdgeDeviceIdentity>(
+                static provider => provider.GetRequiredService<IoTEdgeMockIdentity>());
             if (_connection.EventClient is IProcessIdentity identity)
             {
                 services.AddSingleton(identity);
@@ -360,7 +368,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             services.AddSingleton<IConfiguration>(_config);
             services.AddSingleton<IConfigurationRoot>((IConfigurationRoot)_config);
             // Override process control
-            services.AddSingletonAsImplementedInterfaces<ExitOverride>();
+            services.AddSingleton<ExitOverride>();
+            services.AddSingleton<IProcessControl>(
+                static provider => provider.GetRequiredService<ExitOverride>());
         }
 
         /// <summary>
@@ -384,10 +394,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             // Add API
             services.Configure<SdkOptions>(options =>
                 options.Target = Server.BaseAddress.ToString());
-            services.AddTransientAsImplementedInterfaces<NodeServicesRestClient>();
-            services.AddTransientAsImplementedInterfaces<HistoryServicesRestClient>();
-            services.AddTransientAsImplementedInterfaces<FileSystemServicesRestClient>();
-            services.AddTransientAsImplementedInterfaces<ConfigurationServicesRestClient>();
+            services.AddTransient<NodeServicesRestClient>();
+            services.AddTransient<INodeServices<ConnectionModel>>(
+                static provider => provider.GetRequiredService<NodeServicesRestClient>());
+            services.AddTransient<HistoryServicesRestClient>();
+            services.AddTransient<IHistoryServices<ConnectionModel>>(
+                static provider => provider.GetRequiredService<HistoryServicesRestClient>());
+            services.AddTransient<FileSystemServicesRestClient>();
+            services.AddTransient<IFileSystemServices<ConnectionModel>>(
+                static provider => provider.GetRequiredService<FileSystemServicesRestClient>());
+            services.AddTransient<ConfigurationServicesRestClient>();
+            services.AddTransient<IConfigurationServices>(
+                static provider => provider.GetRequiredService<ConfigurationServicesRestClient>());
+            services.AddTransient<IAssetConfiguration<Stream>>(
+                static provider => provider.GetRequiredService<ConfigurationServicesRestClient>());
+            services.AddTransient<IAssetConfiguration<byte[]>>(
+                static provider => provider.GetRequiredService<ConfigurationServicesRestClient>());
+            services.AddTransient<IAssetConfiguration<System.Text.Json.Nodes.JsonNode>>(
+                static provider => provider.GetRequiredService<ConfigurationServicesRestClient>());
 
             // Register http client factory (owned by the fixture, do not dispose)
             services.AddSingleton<IHttpClientFactory>(this);
@@ -447,13 +471,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
 
             if (devices != null)
             {
-                services.AddSingletonAsImplementedInterfaces(_ =>
-                    IoTHubMock.Create(devices));
+                services.AddSingleton(_ => IoTHubMock.Create(devices));
             }
             else
             {
-                services.AddSingletonAsImplementedInterfaces<IoTHubMock>();
+                services.AddSingleton<IoTHubMock>();
             }
+            services.AddSingleton<IIoTHubTwinServices>(
+                static provider => provider.GetRequiredService<IoTHubMock>());
+            services.AddSingleton<IIoTHubEventProcessor>(
+                static provider => provider.GetRequiredService<IoTHubMock>());
+            services.AddSingleton<IIoTHub>(
+                static provider => provider.GetRequiredService<IoTHubMock>());
+            services.AddSingleton<Azure.IIoT.OpcUa.Core.Rpc.IRpcClient>(
+                static provider => provider.GetRequiredService<IoTHubMock>());
 
             if (mqttVersion != null)
             {
@@ -461,16 +492,36 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 services.AddMqttServer();
             }
 
-            services.AddTransientAsImplementedInterfaces<ChunkMethodClient>();
-            services.AddTransientAsImplementedInterfaces<PublisherApiClient>();
-            services.AddTransientAsImplementedInterfaces<TwinApiClient>();
-            services.AddTransientAsImplementedInterfaces<HistoryApiClient>();
-            services.AddTransientAsImplementedInterfaces<DiscoveryApiClient>();
+            services.AddTransient<ChunkMethodClient>();
+            services.AddTransient<IMethodClient>(
+                static provider => provider.GetRequiredService<ChunkMethodClient>());
+            services.AddTransient<PublisherApiClient>();
+            services.AddTransient<IPublisherApi>(
+                static provider => provider.GetRequiredService<PublisherApiClient>());
+            services.AddTransient<TwinApiClient>();
+            services.AddTransient<ITwinApi>(
+                static provider => provider.GetRequiredService<TwinApiClient>());
+            services.AddTransient<HistoryApiClient>();
+            services.AddTransient<IHistoryApi>(
+                static provider => provider.GetRequiredService<HistoryApiClient>());
+            services.AddTransient<DiscoveryApiClient>();
+            services.AddTransient<IDiscoveryApi>(
+                static provider => provider.GetRequiredService<DiscoveryApiClient>());
 
-            services.AddTransientAsImplementedInterfaces<PublisherApiAdapter>();
-            services.AddTransientAsImplementedInterfaces<TwinApiAdapter>();
-            services.AddTransientAsImplementedInterfaces<HistoryApiAdapter>();
-            services.AddTransientAsImplementedInterfaces<DiscoveryApiAdapter>();
+            services.AddTransient<PublisherApiAdapter>();
+            services.AddTransient<ICertificateServices<EndpointModel>>(
+                static provider => provider.GetRequiredService<PublisherApiAdapter>());
+            services.AddTransient<TwinApiAdapter>();
+            services.AddTransient<INodeServices<ConnectionModel>>(
+                static provider => provider.GetRequiredService<TwinApiAdapter>());
+            services.AddTransient<HistoryApiAdapter>();
+            services.AddTransient<IHistoryServices<ConnectionModel>>(
+                static provider => provider.GetRequiredService<HistoryApiAdapter>());
+            services.AddTransient<DiscoveryApiAdapter>();
+            services.AddTransient<INetworkDiscovery>(
+                static provider => provider.GetRequiredService<DiscoveryApiAdapter>());
+            services.AddTransient<IServerDiscovery>(
+                static provider => provider.GetRequiredService<DiscoveryApiAdapter>());
 
             return new TestContainer(services.BuildServiceProvider());
         }
