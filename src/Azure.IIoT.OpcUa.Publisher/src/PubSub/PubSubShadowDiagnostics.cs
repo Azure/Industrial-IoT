@@ -402,26 +402,27 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 _state.Captured();
             }
 
-            private static ReadOnlyMemory<byte> CompressIfRequired(ReadOnlyMemory<byte> encoded,
-                PubSubShadowEncoding encoding)
-            {
-                if (encoding is not (PubSubShadowEncoding.JsonGzip
-                    or PubSubShadowEncoding.JsonReversibleGzip))
-                {
-                    return encoded;
-                }
-                using var output = new MemoryStream();
-                using (var gzip = new GZipStream(output, CompressionLevel.SmallestSize, true))
-                {
-                    gzip.Write(encoded.Span);
-                }
-                return output.ToArray();
-            }
             catch (Exception exception)
             {
                 _state.Failed(exception);
                 throw;
             }
+        }
+
+        private static ReadOnlyMemory<byte> CompressIfRequired(ReadOnlyMemory<byte> encoded,
+            PubSubShadowEncoding encoding)
+        {
+            if (encoding is not (PubSubShadowEncoding.JsonGzip
+                or PubSubShadowEncoding.JsonReversibleGzip))
+            {
+                return encoded;
+            }
+            using var output = new MemoryStream();
+            using (var gzip = new GZipStream(output, CompressionLevel.SmallestSize, true))
+            {
+                gzip.Write(encoded.Span);
+            }
+            return output.ToArray();
         }
 
         private PubSubNetworkMessageContext CreateContext()
