@@ -137,10 +137,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var limits = await facade.GetOperationLimitsAsync();
 
             Assert.Equal(32u, limits.MaxArrayLength);
-            Assert.Equal(2, limits.MaxBrowseContinuationPoints);
+            Assert.Equal((ushort?)2, limits.MaxBrowseContinuationPoints);
             Assert.Equal(8u, limits.MaxByteStringLength);
-            Assert.Equal(3, limits.MaxHistoryContinuationPoints);
-            Assert.Equal(4, limits.MaxQueryContinuationPoints);
+            Assert.Equal((ushort?)3, limits.MaxHistoryContinuationPoints);
+            Assert.Equal((ushort?)4, limits.MaxQueryContinuationPoints);
             Assert.Equal(16u, limits.MaxStringLength);
             Assert.Equal(0.5, limits.MinSupportedSampleRate);
             Assert.Equal(25u, limits.MaxNodesPerRead);
@@ -591,14 +591,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     ArrayOf<ReadValueId> nodes, CancellationToken _) =>
                 {
                     var stackLimits = session.Object.OperationLimits;
-                    var values = new ArrayOf<DataValue>();
-                    foreach (var node in nodes)
+                    var values = new DataValue[nodes.Count];
+                    for (var i = 0; i < nodes.Count; i++)
                     {
-                        values.Add(CreateOperationLimitValue(node.NodeId, stackLimits));
+                        values[i] = CreateOperationLimitValue(nodes[i].NodeId, stackLimits);
                     }
                     return ValueTask.FromResult(new ReadResponse
                     {
-                        Results = values
+                        Results = new ArrayOf<DataValue>(values)
                     });
                 });
         }
