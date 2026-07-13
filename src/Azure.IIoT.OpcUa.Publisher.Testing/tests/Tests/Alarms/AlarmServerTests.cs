@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
+extern alias Quickstarts;
+
 namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Alarms;
+    using Alarms = Quickstarts::Alarms;
     using FluentAssertions;
     using System;
     using System.Collections.Generic;
@@ -32,14 +34,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             var results = await services.BrowsePathAsync(_connection, new BrowsePathRequestModel
             {
-                NodeId = Opc.Ua.ObjectIds.Server.ToString(),
+                NodeId = Opc.Ua.ObjectIds.ObjectsFolder.ToString(),
                 BrowsePaths = new[]
                 {
                     new[]
                     {
-                        Namespaces.AlarmCondition + "#Green",
-                        Namespaces.AlarmCondition + "#East",
-                        Namespaces.AlarmCondition + "#Blue"
+                        Alarms.Namespaces.Alarms + "#Alarms"
                     }
                 }
             }, ct).ConfigureAwait(false);
@@ -48,7 +48,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var target = Assert.Single(results.Targets!);
             Assert.NotNull(target.BrowsePath);
             Assert.NotNull(target.Target);
-            Assert.Equal("http://opcfoundation.org/AlarmCondition#s=0%3AEast%2FBlue", target.Target.NodeId);
+            Assert.Equal(Alarms.Namespaces.Alarms + "#s=Alarms", target.Target.NodeId);
         }
 
         public async Task BrowseMetalsSouthMotorTestAsync(CancellationToken ct = default)
@@ -57,15 +57,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             var results = await services.BrowsePathAsync(_connection, new BrowsePathRequestModel
             {
-                NodeId = Opc.Ua.ObjectIds.Server.ToString(),
+                NodeId = Opc.Ua.ObjectIds.ObjectsFolder.ToString(),
                 BrowsePaths = new[]
                 {
                     new[]
                     {
-                        Namespaces.AlarmCondition + "#Green",
-                        Namespaces.AlarmCondition + "#East",
-                        Namespaces.AlarmCondition + "#Blue",
-                        Namespaces.AlarmCondition + "#SouthMotor"
+                        Alarms.Namespaces.Alarms + "#Alarms",
+                        Alarms.Namespaces.Alarms + "#Alarms.Start"
                     }
                 }
             }, ct).ConfigureAwait(false);
@@ -74,7 +72,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var target = Assert.Single(results.Targets!);
             Assert.NotNull(target.BrowsePath);
             Assert.NotNull(target.Target);
-            Assert.Equal("http://opcfoundation.org/AlarmCondition#s=1%3AMetals%2FSouthMotor", target.Target.NodeId);
+            Assert.Equal(Alarms.Namespaces.Alarms + "#s=Alarms.Start", target.Target.NodeId);
         }
 
         public async Task BrowseColoursEastTankTestAsync(CancellationToken ct = default)
@@ -82,15 +80,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             var results = await services.BrowsePathAsync(_connection, new BrowsePathRequestModel
             {
-                NodeId = Opc.Ua.ObjectIds.Server.ToString(),
+                NodeId = Opc.Ua.ObjectIds.ObjectsFolder.ToString(),
                 BrowsePaths = new[]
                 {
                     new[]
                     {
-                        Namespaces.AlarmCondition + "#Yellow",
-                        Namespaces.AlarmCondition + "#West",
-                        Namespaces.AlarmCondition + "#Blue",
-                        Namespaces.AlarmCondition + "#EastTank"
+                        Alarms.Namespaces.Alarms + "#Alarms",
+                        Alarms.Namespaces.Alarms + "#Alarms.StartBranch"
                     }
                 }
             }, ct).ConfigureAwait(false);
@@ -99,7 +95,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var target = Assert.Single(results.Targets!);
             Assert.NotNull(target.BrowsePath);
             Assert.NotNull(target.Target);
-            Assert.Equal("http://opcfoundation.org/AlarmCondition#s=1%3AColours%2FEastTank", target.Target.NodeId);
+            Assert.Equal(Alarms.Namespaces.Alarms + "#s=Alarms.StartBranch", target.Target.NodeId);
         }
 
         public async Task CompileSimpleBaseEventQueryTestAsync(CancellationToken ct = default)
