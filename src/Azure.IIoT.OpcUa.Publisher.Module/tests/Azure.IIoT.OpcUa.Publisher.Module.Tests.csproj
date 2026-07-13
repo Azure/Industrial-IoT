@@ -38,10 +38,6 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <!-- ISA95Jobs server is descoped (2.0 migration): no source-gen path for its generated model. -->
-    <Compile Remove="Sdk\Isa95Jobs\**\*.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
   </ItemGroup>
 </Project>

@@ -29,11 +29,4 @@
   <ItemGroup>
     <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Publisher.Testing.Servers.csproj" />
   </ItemGroup>
-  <!-- TODO(Stage final): Isa95Jobs server descoped from compilation (see Servers.csproj).
-       Its generated model has no source-gen path yet, so the server type is absent.
-       Exclude the dependent fixture and tests until the model is regenerated. -->
-  <ItemGroup>
-    <Compile Remove="Fixtures\Isa95JobsServer.cs" />
-    <Compile Remove="Tests\Isa95Jobs\**\*.cs" />
-  </ItemGroup>
 </Project>
