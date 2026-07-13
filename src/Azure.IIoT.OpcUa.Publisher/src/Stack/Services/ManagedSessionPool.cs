@@ -85,6 +85,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
+        /// Number of connections currently retained by the pool.
+        /// </summary>
+        internal int Count => _sessions.Count;
+
+        /// <summary>
         /// Acquire a reference-counted session lease.
         /// </summary>
         public async Task<ISessionHandle> AcquireAsync(
@@ -136,23 +141,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return;
             }
 
+            List<Exception>? errors = null;
             try
             {
                 await _shutdown.CancelAsync().ConfigureAwait(false);
-                var entries = _sessions.ToArray();
-                _sessions.Clear();
-                foreach (var entry in entries)
-                {
-                    await entry.Value.CloseAsync().ConfigureAwait(false);
-                }
             }
             catch (OperationCanceledException)
             {
                 // Shared connect cancellation is expected while shutting down.
             }
+            var entries = _sessions.ToArray();
+            _sessions.Clear();
+            try
+            {
+                foreach (var entry in entries)
+                {
+                    try
+                    {
+                        await entry.Value.CloseAsync().ConfigureAwait(false);
+                    }
+                    catch (Exception ex) when (ex is not OutOfMemoryException)
+                    {
+                        errors ??= [];
+                        errors.Add(ex);
+                    }
+                }
+            }
             finally
             {
                 _shutdown.Dispose();
+            }
+            if (errors is { Count: > 0 })
+            {
+                throw new AggregateException(errors);
             }
         }
 
@@ -243,6 +264,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             return ((ICollection<KeyValuePair<ConnectionIdentifier, Entry>>)_sessions)
                 .Remove(new KeyValuePair<ConnectionIdentifier, Entry>(entry.Key, entry));
+        }
+
+        private void CloseFailedEntry(Entry entry)
+        {
+            if (Remove(entry))
+            {
+                _ = CloseEntryAsync(entry);
+            }
+        }
+
+        private static async Task CloseEntryAsync(Entry entry)
+        {
+            try
+            {
+                await entry.CloseAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex) when (ex is not OutOfMemoryException)
+            {
+            }
         }
 
         private void ThrowIfDisposed()
@@ -388,6 +428,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private async Task CompleteAcquireAsync()
             {
                 var scheduleCleanup = false;
+                var closeFailedEntry = false;
                 var generation = 0;
                 await _gate.WaitAsync().ConfigureAwait(false);
                 try
@@ -397,7 +438,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     {
                         _noPendingAcquires.TrySetResult();
                     }
-                    ScheduleCleanupIfUnused(ref scheduleCleanup, ref generation);
+                    if (!TryCloseFailedConnect(ref closeFailedEntry))
+                    {
+                        ScheduleCleanupIfUnused(ref scheduleCleanup, ref generation);
+                    }
                 }
                 finally
                 {
@@ -406,6 +450,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (scheduleCleanup)
                 {
                     _ = _owner.CloseAfterLingerAsync(this, generation);
+                }
+                if (closeFailedEntry)
+                {
+                    _owner.CloseFailedEntry(this);
                 }
             }
 
@@ -422,14 +470,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
 
                 var scheduleCleanup = false;
+                var closeFailedEntry = false;
                 var generation = 0;
                 await _gate.WaitAsync().ConfigureAwait(false);
                 try
                 {
                     _connectCompleted = true;
+                    _connectFailed = !completed;
                     if (completed)
                     {
                         ScheduleCleanupIfUnused(ref scheduleCleanup, ref generation);
+                    }
+                    else
+                    {
+                        TryCloseFailedConnect(ref closeFailedEntry);
                     }
                 }
                 finally
@@ -439,6 +493,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (scheduleCleanup)
                 {
                     _ = _owner.CloseAfterLingerAsync(this, generation);
+                }
+                if (closeFailedEntry)
+                {
+                    _owner.CloseFailedEntry(this);
                 }
             }
 
@@ -497,6 +555,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 scheduleCleanup = true;
             }
 
+            private bool TryCloseFailedConnect(ref bool closeFailedEntry)
+            {
+                if (_closing || !_connectFailed || _references != 0 ||
+                    _pendingAcquires != 0)
+                {
+                    return false;
+                }
+                _closing = true;
+                closeFailedEntry = true;
+                return true;
+            }
+
             private int _disposed;
             private int _gateDisposed;
             private int _generation;
@@ -504,6 +574,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private int _pendingAcquires;
             private bool _closing;
             private bool _connectCompleted;
+            private bool _connectFailed;
             private Task<ManagedOpcUaSession>? _connect;
             private Task? _observeConnect;
             private readonly ManagedSessionPool _owner;

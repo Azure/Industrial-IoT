@@ -152,24 +152,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public ValueTask<OperationLimitsModel> GetOperationLimitsAsync(
             CancellationToken ct = default)
         {
-            ct.ThrowIfCancellationRequested();
-            var limits = _connection.Session.OperationLimits;
-            return ValueTask.FromResult(new OperationLimitsModel
+            return new ValueTask<OperationLimitsModel>(GetOperationLimitsCoreAsync(ct));
+        }
+
+        private async Task<OperationLimitsModel> GetOperationLimitsCoreAsync(
+            CancellationToken ct)
+        {
+            if (_operationLimits != null)
             {
-                MaxNodesPerRead = ToNullable(limits.MaxNodesPerRead),
-                MaxNodesPerHistoryReadData = ToNullable(limits.MaxNodesPerHistoryReadData),
-                MaxNodesPerHistoryReadEvents = ToNullable(limits.MaxNodesPerHistoryReadEvents),
-                MaxNodesPerWrite = ToNullable(limits.MaxNodesPerWrite),
-                MaxNodesPerHistoryUpdateData = ToNullable(limits.MaxNodesPerHistoryUpdateData),
-                MaxNodesPerHistoryUpdateEvents = ToNullable(limits.MaxNodesPerHistoryUpdateEvents),
-                MaxNodesPerMethodCall = ToNullable(limits.MaxNodesPerMethodCall),
-                MaxNodesPerBrowse = ToNullable(limits.MaxNodesPerBrowse),
-                MaxNodesPerRegisterNodes = ToNullable(limits.MaxNodesPerRegisterNodes),
-                MaxNodesPerTranslatePathsToNodeIds =
-                    ToNullable(limits.MaxNodesPerTranslateBrowsePathsToNodeIds),
-                MaxNodesPerNodeManagement = ToNullable(limits.MaxNodesPerNodeManagement),
-                MaxMonitoredItemsPerCall = ToNullable(limits.MaxMonitoredItemsPerCall)
-            });
+                return _operationLimits;
+            }
+            _operationLimits = await FetchOperationLimitsAsync(ct).ConfigureAwait(false);
+            return _operationLimits;
         }
 
         /// <inheritdoc/>
@@ -401,9 +395,128 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 new EndpointConnectivityStateEventArgs(state));
         }
 
-        private static uint? ToNullable(uint value)
+        private async Task<OperationLimitsModel> FetchOperationLimitsAsync(
+            CancellationToken ct)
         {
-            return value == 0 ? null : value;
+            var stackLimits = _connection.Session.OperationLimits;
+            var nodeIds = new[]
+            {
+                Variables.Server_ServerCapabilities_MaxArrayLength,
+                Variables.Server_ServerCapabilities_MaxBrowseContinuationPoints,
+                Variables.Server_ServerCapabilities_MaxByteStringLength,
+                Variables.Server_ServerCapabilities_MaxHistoryContinuationPoints,
+                Variables.Server_ServerCapabilities_MaxQueryContinuationPoints,
+                Variables.Server_ServerCapabilities_MaxStringLength,
+                Variables.Server_ServerCapabilities_MinSupportedSampleRate,
+                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryReadData,
+                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryReadEvents,
+                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerWrite,
+                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerRead,
+                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryUpdateData,
+                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryUpdateEvents,
+                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerMethodCall,
+                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerBrowse,
+                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerRegisterNodes,
+                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerTranslateBrowsePathsToNodeIds,
+                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerNodeManagement,
+                Variables.Server_ServerCapabilities_OperationLimits_MaxMonitoredItemsPerCall
+            };
+            var values = new List<DataValue>(nodeIds.Length);
+            var maxNodesPerRead = Math.Max(1, (int)stackLimits.MaxNodesPerRead);
+            foreach (var batch in nodeIds.Batch(maxNodesPerRead))
+            {
+                var requests = new ReadValueIdCollection(batch.Select(nodeId => new ReadValueId
+                {
+                    NodeId = new NodeId(nodeId),
+                    AttributeId = Attributes.Value
+                }));
+                var response = await Services.ReadAsync(new RequestHeader(), 0,
+                    Opc.Ua.TimestampsToReturn.Both, requests, ct).ConfigureAwait(false);
+                if (response.Results.Count != requests.Count)
+                {
+                    throw new ServiceResultException(StatusCodes.BadUnexpectedError,
+                        "The server returned an incomplete operation limits response.");
+                }
+                foreach (var value in response.Results)
+                {
+                    if (StatusCode.IsBad(value.StatusCode))
+                    {
+                        throw new ServiceResultException(value.StatusCode);
+                    }
+                    values.Add(value);
+                }
+            }
+
+            return new OperationLimitsModel
+            {
+                MaxArrayLength = Validate32(values[0].GetValueOrDefaultEx<uint?>()),
+                MaxBrowseContinuationPoints =
+                    Validate16(values[1].GetValueOrDefaultEx<ushort?>()),
+                MaxByteStringLength = Validate32(values[2].GetValueOrDefaultEx<uint?>()),
+                MaxHistoryContinuationPoints =
+                    Validate16(values[3].GetValueOrDefaultEx<ushort?>()),
+                MaxQueryContinuationPoints =
+                    Validate16(values[4].GetValueOrDefaultEx<ushort?>()),
+                MaxStringLength = Validate32(values[5].GetValueOrDefaultEx<uint?>()),
+                MinSupportedSampleRate =
+                    Validate64(values[6].GetValueOrDefaultEx<double?>()),
+                MaxNodesPerHistoryReadData =
+                    Validate32(values[7].GetValueOrDefaultEx<uint?>()),
+                MaxNodesPerHistoryReadEvents =
+                    Validate32(values[8].GetValueOrDefaultEx<uint?>()),
+                MaxNodesPerWrite =
+                    Validate32(values[9].GetValueOrDefaultEx<uint?>(), stackLimits.MaxNodesPerWrite),
+                MaxNodesPerRead =
+                    Validate32(values[10].GetValueOrDefaultEx<uint?>(), stackLimits.MaxNodesPerRead),
+                MaxNodesPerHistoryUpdateData =
+                    Validate32(values[11].GetValueOrDefaultEx<uint?>()),
+                MaxNodesPerHistoryUpdateEvents =
+                    Validate32(values[12].GetValueOrDefaultEx<uint?>()),
+                MaxNodesPerMethodCall =
+                    Validate32(values[13].GetValueOrDefaultEx<uint?>()),
+                MaxNodesPerBrowse =
+                    Validate32(values[14].GetValueOrDefaultEx<uint?>(), stackLimits.MaxNodesPerBrowse),
+                MaxNodesPerRegisterNodes =
+                    Validate32(values[15].GetValueOrDefaultEx<uint?>()),
+                MaxNodesPerTranslatePathsToNodeIds =
+                    Validate32(values[16].GetValueOrDefaultEx<uint?>()),
+                MaxNodesPerNodeManagement =
+                    Validate32(values[17].GetValueOrDefaultEx<uint?>()),
+                MaxMonitoredItemsPerCall =
+                    Validate32(values[18].GetValueOrDefaultEx<uint?>())
+            };
+
+            static uint? Validate32(uint? value, uint maximum = 0)
+            {
+                if (value is null or 0)
+                {
+                    return null;
+                }
+                var limit = maximum == 0 ? int.MaxValue : maximum;
+                return Math.Min(limit, value is > 0 and < int.MaxValue ?
+                    value.Value :
+                    int.MaxValue);
+            }
+
+            static ushort? Validate16(ushort? value, ushort maximum = 0)
+            {
+                if (value is null or 0)
+                {
+                    return null;
+                }
+                return Math.Min(maximum == 0 ? ushort.MaxValue : maximum,
+                    value > 0 ? value.Value : ushort.MaxValue);
+            }
+
+            static double? Validate64(double? value, double maximum = 0)
+            {
+                if (value is null or 0)
+                {
+                    return null;
+                }
+                return Math.Min(maximum == 0 ? double.MaxValue : maximum,
+                    value > 0 ? value.Value : double.MaxValue);
+            }
         }
 
         private async Task<ServerCapabilitiesModel?> FetchServerCapabilitiesAsync(
@@ -591,6 +704,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         private ComplexTypeSystem? _complexTypeSystem;
+        private OperationLimitsModel? _operationLimits;
         private ServerCapabilitiesModel? _serverCapabilities;
         private HistoryServerCapabilitiesModel? _historyCapabilities;
         private EventHandler<EndpointConnectivityStateEventArgs>? _connectionStateChange;

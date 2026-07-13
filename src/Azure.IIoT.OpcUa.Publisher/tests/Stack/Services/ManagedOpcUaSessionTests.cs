@@ -101,6 +101,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             session.SetupGet(s => s.LastKeepAliveTime).Returns(DateTime.UnixEpoch);
             session.SetupGet(s => s.SubscriptionCount).Returns(4);
             session.SetupGet(s => s.OutstandingRequestCount).Returns(5);
+            SetupOperationLimitsRead(session);
             var connection = new FakeConnection(session.Object);
             await using var facade = new ManagedOpcUaSession(connection, CreateTelemetry());
 
@@ -114,6 +115,46 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Assert.Equal(2000, diagnostics.ActualSessionTimeout);
             Assert.Equal(4u, diagnostics.CurrentSubscriptionsCount);
             Assert.Equal(5u, diagnostics.CurrentPublishRequestsInQueue);
+        }
+
+        /// <summary>
+        /// Operation limit values retain the server's small encoding and continuation limits.
+        /// </summary>
+        [Fact]
+        public async Task FacadeMapsAllOperationLimitValuesAsync()
+        {
+            var session = CreateSession(out _, out _);
+            session.SetupGet(s => s.OperationLimits).Returns(new OperationLimits
+            {
+                MaxNodesPerRead = 25,
+                MaxNodesPerBrowse = 26,
+                MaxNodesPerWrite = 27
+            });
+            SetupOperationLimitsRead(session);
+            var connection = new FakeConnection(session.Object);
+            await using var facade = new ManagedOpcUaSession(connection, CreateTelemetry());
+
+            var limits = await facade.GetOperationLimitsAsync();
+
+            Assert.Equal(32u, limits.MaxArrayLength);
+            Assert.Equal(2, limits.MaxBrowseContinuationPoints);
+            Assert.Equal(8u, limits.MaxByteStringLength);
+            Assert.Equal(3, limits.MaxHistoryContinuationPoints);
+            Assert.Equal(4, limits.MaxQueryContinuationPoints);
+            Assert.Equal(16u, limits.MaxStringLength);
+            Assert.Equal(0.5, limits.MinSupportedSampleRate);
+            Assert.Equal(25u, limits.MaxNodesPerRead);
+            Assert.Equal(26u, limits.MaxNodesPerBrowse);
+            Assert.Equal(27u, limits.MaxNodesPerWrite);
+            Assert.Equal(28u, limits.MaxNodesPerHistoryReadData);
+            Assert.Equal(29u, limits.MaxNodesPerHistoryReadEvents);
+            Assert.Equal(30u, limits.MaxNodesPerHistoryUpdateData);
+            Assert.Equal(31u, limits.MaxNodesPerHistoryUpdateEvents);
+            Assert.Equal(33u, limits.MaxNodesPerMethodCall);
+            Assert.Equal(34u, limits.MaxNodesPerRegisterNodes);
+            Assert.Equal(35u, limits.MaxNodesPerTranslatePathsToNodeIds);
+            Assert.Equal(36u, limits.MaxNodesPerNodeManagement);
+            Assert.Equal(37u, limits.MaxMonitoredItemsPerCall);
         }
 
         /// <summary>
@@ -331,6 +372,36 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
+        /// A timed-out shared connect after its sole caller cancels is evicted for retry.
+        /// </summary>
+        [Fact]
+        public async Task PoolEvictsFailedConnectAfterSoleCallerCancellationAsync()
+        {
+            var session = CreateSession(out _, out _);
+            var connection = new FakeConnection(session.Object);
+            var provider = new RetryProvider(connection);
+            await using var pool = new ManagedSessionPool(provider, CreateTelemetry());
+            var request = CreateRequest("opc.tcp://localhost:4846") with
+            {
+                ConnectTimeout = TimeSpan.FromMilliseconds(20)
+            };
+            using var cancellation = new CancellationTokenSource();
+
+            var canceledAcquire = pool.AcquireAsync(request, cancellation.Token);
+            await provider.FirstAttemptStarted.Task;
+            cancellation.Cancel();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(
+                async () => await canceledAcquire);
+            await provider.FirstAttemptCanceled.Task;
+            await WaitUntilAsync(() => pool.Count == 0);
+
+            using var lease = await pool.AcquireAsync(request);
+
+            Assert.Equal(2, provider.ConnectCount);
+            Assert.NotNull(lease.Session);
+        }
+
+        /// <summary>
         /// A provider that ignores cancellation is disposed when it returns after timeout.
         /// </summary>
         [Fact]
@@ -383,6 +454,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
+        /// Pool disposal closes every entry even when an individual close fails.
+        /// </summary>
+        [Fact]
+        public async Task PoolDisposeAttemptsAllEntriesWhenOneCloseFailsAsync()
+        {
+            var firstSession = CreateSession(out _, out _);
+            var secondSession = CreateSession(out _, out _);
+            var first = new FakeConnection(firstSession.Object);
+            var second = new FakeConnection(secondSession.Object,
+                new InvalidOperationException("Expected disposal failure."));
+            var provider = new MultiProvider(first, second);
+            var pool = new ManagedSessionPool(provider, CreateTelemetry());
+            var firstRequest = CreateRequest("opc.tcp://localhost:4847");
+            var secondRequest = CreateRequest("opc.tcp://localhost:4848");
+            using var firstLease = await pool.AcquireAsync(firstRequest);
+            using var secondLease = await pool.AcquireAsync(secondRequest);
+
+            await Assert.ThrowsAsync<AggregateException>(
+                async () => await pool.DisposeAsync());
+
+            Assert.Equal(1, first.DisposeCount);
+            Assert.Equal(1, second.DisposeCount);
+        }
+
+        /// <summary>
         /// Capability fallback retains managed session operation limits when the server
         /// does not expose the optional capability objects.
         /// </summary>
@@ -396,6 +492,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 MaxNodesPerBrowse = 23,
                 MaxMonitoredItemsPerCall = 24
             });
+            SetupOperationLimitsRead(session);
             session.Setup(s => s.TranslateBrowsePathsToNodeIdsAsync(
                     It.IsAny<RequestHeader>(),
                     It.IsAny<ArrayOf<BrowsePath>>(),
@@ -482,6 +579,148 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             return session;
         }
 
+        private static void SetupOperationLimitsRead(Mock<ISession> session)
+        {
+            session.Setup(s => s.ReadAsync(
+                    It.IsAny<RequestHeader>(),
+                    It.IsAny<double>(),
+                    It.IsAny<Opc.Ua.TimestampsToReturn>(),
+                    It.IsAny<ArrayOf<ReadValueId>>(),
+                    It.IsAny<CancellationToken>()))
+                .Returns((RequestHeader _, double _, Opc.Ua.TimestampsToReturn _,
+                    ArrayOf<ReadValueId> nodes, CancellationToken _) =>
+                {
+                    var stackLimits = session.Object.OperationLimits;
+                    var values = new ArrayOf<DataValue>();
+                    foreach (var node in nodes)
+                    {
+                        values.Add(CreateOperationLimitValue(node.NodeId, stackLimits));
+                    }
+                    return ValueTask.FromResult(new ReadResponse
+                    {
+                        Results = values
+                    });
+                });
+        }
+
+        private static DataValue CreateOperationLimitValue(NodeId nodeId,
+            OperationLimits stackLimits)
+        {
+            if (nodeId == new NodeId(Variables.Server_ServerCapabilities_MaxArrayLength))
+            {
+                return new DataValue(32u);
+            }
+            if (nodeId == new NodeId(
+                Variables.Server_ServerCapabilities_MaxBrowseContinuationPoints))
+            {
+                return new DataValue((ushort)2);
+            }
+            if (nodeId == new NodeId(Variables.Server_ServerCapabilities_MaxByteStringLength))
+            {
+                return new DataValue(8u);
+            }
+            if (nodeId == new NodeId(
+                Variables.Server_ServerCapabilities_MaxHistoryContinuationPoints))
+            {
+                return new DataValue((ushort)3);
+            }
+            if (nodeId == new NodeId(
+                Variables.Server_ServerCapabilities_MaxQueryContinuationPoints))
+            {
+                return new DataValue((ushort)4);
+            }
+            if (nodeId == new NodeId(Variables.Server_ServerCapabilities_MaxStringLength))
+            {
+                return new DataValue(16u);
+            }
+            if (nodeId == new NodeId(Variables.Server_ServerCapabilities_MinSupportedSampleRate))
+            {
+                return new DataValue(0.5);
+            }
+            if (nodeId == new NodeId(
+                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryReadData))
+            {
+                return new DataValue(28u);
+            }
+            if (nodeId == new NodeId(
+                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryReadEvents))
+            {
+                return new DataValue(29u);
+            }
+            if (nodeId == new NodeId(
+                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerWrite))
+            {
+                return new DataValue(stackLimits.MaxNodesPerWrite == 0 ?
+                    64u :
+                    stackLimits.MaxNodesPerWrite);
+            }
+            if (nodeId == new NodeId(
+                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerRead))
+            {
+                return new DataValue(stackLimits.MaxNodesPerRead == 0 ?
+                    64u :
+                    stackLimits.MaxNodesPerRead);
+            }
+            if (nodeId == new NodeId(
+                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryUpdateData))
+            {
+                return new DataValue(30u);
+            }
+            if (nodeId == new NodeId(
+                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryUpdateEvents))
+            {
+                return new DataValue(31u);
+            }
+            if (nodeId == new NodeId(
+                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerMethodCall))
+            {
+                return new DataValue(33u);
+            }
+            if (nodeId == new NodeId(
+                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerBrowse))
+            {
+                return new DataValue(stackLimits.MaxNodesPerBrowse == 0 ?
+                    64u :
+                    stackLimits.MaxNodesPerBrowse);
+            }
+            if (nodeId == new NodeId(
+                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerRegisterNodes))
+            {
+                return new DataValue(34u);
+            }
+            if (nodeId == new NodeId(
+                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerTranslateBrowsePathsToNodeIds))
+            {
+                return new DataValue(35u);
+            }
+            if (nodeId == new NodeId(
+                Variables.Server_ServerCapabilities_OperationLimits_MaxNodesPerNodeManagement))
+            {
+                return new DataValue(36u);
+            }
+            if (nodeId == new NodeId(
+                Variables.Server_ServerCapabilities_OperationLimits_MaxMonitoredItemsPerCall))
+            {
+                return new DataValue(stackLimits.MaxMonitoredItemsPerCall == 0 ?
+                    37u :
+                    stackLimits.MaxMonitoredItemsPerCall);
+            }
+            throw new InvalidOperationException($"Unexpected operation limit node {nodeId}.");
+        }
+
+        private static async Task WaitUntilAsync(Func<bool> condition)
+        {
+            var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(2);
+            while (!condition())
+            {
+                if (DateTime.UtcNow >= deadline)
+                {
+                    throw new TimeoutException("The expected pool state was not reached.");
+                }
+                await Task.Delay(10);
+            }
+        }
+
         private static ITelemetryContext CreateTelemetry()
         {
             return new LoggerTelemetryContext(NullLoggerFactory.Instance);
@@ -489,9 +728,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         private sealed class FakeConnection : IManagedSessionConnection
         {
-            public FakeConnection(ISession session)
+            public FakeConnection(ISession session, Exception disposeException = null)
             {
                 Session = session;
+                _disposeException = disposeException;
             }
 
             public ISession Session { get; }
@@ -507,6 +747,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 DisposeCount++;
                 Disposed.TrySetResult();
+                if (_disposeException != null)
+                {
+                    return ValueTask.FromException(_disposeException);
+                }
                 return ValueTask.CompletedTask;
             }
 
@@ -517,6 +761,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     NewState = state
                 });
             }
+
+            private readonly Exception _disposeException;
         }
 
         private sealed class FakeProvider : IManagedSessionProvider
@@ -569,6 +815,69 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             private readonly TaskCompletionSource<IManagedSessionConnection> _connection = new(
                 TaskCreationOptions.RunContinuationsAsynchronously);
+        }
+
+        private sealed class RetryProvider : IManagedSessionProvider
+        {
+            public RetryProvider(IManagedSessionConnection connection)
+            {
+                _connection = connection;
+            }
+
+            public int ConnectCount { get; private set; }
+
+            public TaskCompletionSource FirstAttemptStarted { get; } = new(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+
+            public TaskCompletionSource FirstAttemptCanceled { get; } = new(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+
+            public Task<IManagedSessionConnection> ConnectAsync(
+                ManagedSessionConnectionRequest request, CancellationToken ct)
+            {
+                ArgumentNullException.ThrowIfNull(request);
+                ConnectCount++;
+                return ConnectCount == 1 ?
+                    WaitForFirstAttemptCancellationAsync(ct) :
+                    Task.FromResult(_connection);
+            }
+
+            private async Task<IManagedSessionConnection> WaitForFirstAttemptCancellationAsync(
+                CancellationToken ct)
+            {
+                FirstAttemptStarted.TrySetResult();
+                try
+                {
+                    await Task.Delay(Timeout.InfiniteTimeSpan, ct);
+                    throw new InvalidOperationException("The first connect unexpectedly completed.");
+                }
+                catch (OperationCanceledException)
+                {
+                    FirstAttemptCanceled.TrySetResult();
+                    throw;
+                }
+            }
+
+            private readonly IManagedSessionConnection _connection;
+        }
+
+        private sealed class MultiProvider : IManagedSessionProvider
+        {
+            public MultiProvider(params IManagedSessionConnection[] connections)
+            {
+                _connections = connections;
+            }
+
+            public Task<IManagedSessionConnection> ConnectAsync(
+                ManagedSessionConnectionRequest request, CancellationToken ct)
+            {
+                ArgumentNullException.ThrowIfNull(request);
+                ct.ThrowIfCancellationRequested();
+                return Task.FromResult(_connections[_next++]);
+            }
+
+            private int _next;
+            private readonly IManagedSessionConnection[] _connections;
         }
     }
 }
