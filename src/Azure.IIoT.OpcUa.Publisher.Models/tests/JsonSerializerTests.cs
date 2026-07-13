@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
     using System.Text.Json.Nodes;
     using System.Collections;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
     using System.Text.Json;
     using Xunit;
@@ -128,8 +127,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
                 .Select(values => (Type)values[0])
                 .Append(typeof(DiscoveryEventModel))
                 .Append(typeof(List<PublishedNodesEntryModel>))
-                .Append(typeof(IEnumerable<PublishedNodesEntryModel>))
-                .Append(typeof(ServiceResponse<Stream>));
+                .Append(typeof(IEnumerable<PublishedNodesEntryModel>));
 
             foreach (var root in roots.Distinct())
             {
@@ -140,6 +138,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
 
             Assert.Throws<NotSupportedException>(() =>
                 Json.Options.GetTypeInfo(typeof(ReflectionOnlyModel)));
+        }
+
+        [Fact]
+        public void DataContractRequiredMembersRemainLenient()
+        {
+            var result = Json.Deserialize<PublishedNodesEntryModel>("{}");
+
+            Assert.NotNull(result);
+            Assert.Null(result.EndpointUrl);
         }
 
         private sealed class ReflectionOnlyModel

@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Generator
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
-    using Microsoft.CodeAnalysis.Operations;
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
@@ -51,31 +50,6 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Generator
                 }
             });
 
-            var serviceRegistrations = context.SyntaxProvider.CreateSyntaxProvider(
-                static (node, _) => node is InvocationExpressionSyntax,
-                static (syntaxContext, _) => GetServiceRegistration(syntaxContext))
-                .Where(static registration => registration is not null)
-                .Collect();
-
-            context.RegisterSourceOutput(serviceRegistrations,
-                static (productionContext, source) =>
-                {
-                    var registrations = source.Where(static registration =>
-                            registration is not null)
-                        .Select(static registration => registration!)
-                        .GroupBy(static registration => registration.Key,
-                            StringComparer.Ordinal)
-                        .Select(static group => group.First())
-                        .OrderBy(static registration => registration.Key,
-                            StringComparer.Ordinal)
-                        .ToArray();
-                    if (registrations.Length != 0)
-                    {
-                        productionContext.AddSource(
-                            "GeneratedServiceForwardingTable.g.cs",
-                            GenerateServiceForwardingTable(registrations));
-                    }
-                });
         }
 
         private static INamedTypeSymbol? GetController(
@@ -92,151 +66,6 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Generator
                     "Azure.IIoT.OpcUa.Core.Rpc.Router.IMethodController")
                 ? symbol
                 : null;
-        }
-
-        private static ServiceRegistration? GetServiceRegistration(
-            GeneratorSyntaxContext context)
-        {
-            if (context.Node is not InvocationExpressionSyntax invocation ||
-                context.SemanticModel.GetSymbolInfo(invocation).Symbol is not IMethodSymbol
-                    method ||
-                method.TypeArguments.Length != 1)
-            {
-                return null;
-            }
-            var methodName = method.Name;
-            if (methodName is not "AddSingletonAsImplementedInterfaces" and
-                not "AddScopedAsImplementedInterfaces" and
-                not "AddTransientAsImplementedInterfaces" and not "AddAs")
-            {
-                return null;
-            }
-            if (method.ContainingType.ToDisplayString() !=
-                "Microsoft.Extensions.DependencyInjection.ServiceCollectionForwardingEx")
-            {
-                return null;
-            }
-            var implementation = method.TypeArguments[0] as INamedTypeSymbol;
-            if (implementation is null)
-            {
-                return null;
-            }
-            var explicitArguments = invocation.ArgumentList.Arguments.Skip(1).ToArray();
-            var explicitOperations = methodName == "AddAs"
-                ? explicitArguments.Select(argument => context.SemanticModel.GetOperation(
-                    argument.Expression) as ITypeOfOperation).ToArray()
-                : Array.Empty<ITypeOfOperation?>();
-            var hasUnsupportedExplicitTypes = methodName == "AddAs" &&
-                explicitOperations.Any(static operation => operation is null);
-            var explicitServices = methodName == "AddAs"
-                ? explicitOperations.Where(static operation => operation is not null)
-                    .Select(static operation => operation!.TypeOperand).ToArray()
-                : Array.Empty<ITypeSymbol>();
-            var services = methodName == "AddAs"
-                ? explicitServices
-                : implementation.AllInterfaces.Where(static service =>
-                    service.ToDisplayString() != "System.IDisposable" &&
-                    service.ToDisplayString() != "System.IAsyncDisposable" &&
-                    IsAccessibleFromGeneratedTable(service))
-                    .Cast<ITypeSymbol>().ToArray();
-            return new ServiceRegistration(implementation, services,
-                methodName == "AddAs", hasUnsupportedExplicitTypes);
-        }
-
-        private static string GenerateServiceForwardingTable(
-            IReadOnlyList<ServiceRegistration> registrations)
-        {
-            var automatic = registrations.Where(static registration =>
-                !registration.IsExplicit).ToArray();
-            var explicitRegistrations = registrations.Where(static registration =>
-                registration.IsExplicit).ToArray();
-            var source = new StringBuilder();
-            source.AppendLine("// <auto-generated />");
-            source.AppendLine("#pragma warning disable CS1591");
-            source.AppendLine("namespace Microsoft.Extensions.DependencyInjection");
-            source.AppendLine("{");
-            source.AppendLine("    using System;");
-            source.AppendLine("    using System.Runtime.CompilerServices;");
-            source.AppendLine();
-            source.AppendLine("    internal static class GeneratedServiceForwardingTable");
-            source.AppendLine("    {");
-            foreach (var unsupported in registrations.Where(static registration =>
-                registration.HasUnsupportedExplicitTypes))
-            {
-                source.Append("#error AddAs<")
-                    .Append(TypeName(unsupported.Implementation))
-                    .AppendLine("> requires literal typeof(...) service types.");
-            }
-            source.AppendLine("        [ModuleInitializer]");
-            source.AppendLine("        internal static void Register()");
-            source.AppendLine("        {");
-            source.AppendLine("            ServiceCollectionForwardingEx.RegisterGeneratedTable(");
-            source.AppendLine("                AddForwarders, AddExplicitRegistration);");
-            source.AppendLine("        }");
-            source.AppendLine();
-            source.AppendLine("        private static bool AddForwarders(IServiceCollection services,");
-            source.AppendLine("            Type implementationType, ServiceLifetime lifetime)");
-            source.AppendLine("        {");
-            foreach (var registration in automatic)
-            {
-                source.Append("            if (implementationType == typeof(")
-                    .Append(TypeName(registration.Implementation))
-                    .AppendLine("))");
-                source.AppendLine("            {");
-                foreach (var service in registration.Services)
-                {
-                    source.Append("                ServiceCollectionForwardingEx.AddForward<")
-                        .Append(TypeName(registration.Implementation))
-                        .Append(", ")
-                        .Append(TypeName(service))
-                        .AppendLine(">(services, lifetime);");
-                }
-                source.AppendLine("                return true;");
-                source.AppendLine("            }");
-            }
-            source.AppendLine("            return false;");
-            source.AppendLine("        }");
-            source.AppendLine();
-            source.AppendLine("        private static bool AddExplicitRegistration(");
-            source.AppendLine("            IServiceCollection services, Type implementationType,");
-            source.AppendLine("            ServiceLifetime lifetime, Type[] serviceTypes)");
-            source.AppendLine("        {");
-            foreach (var registration in explicitRegistrations)
-            {
-                source.Append("            if (implementationType == typeof(")
-                    .Append(TypeName(registration.Implementation))
-                    .Append(") && serviceTypes.Length == ")
-                    .Append(registration.Services.Count.ToString(CultureInfo.InvariantCulture));
-                for (var i = 0; i < registration.Services.Count; i++)
-                {
-                    source.Append(" && serviceTypes[")
-                        .Append(i.ToString(CultureInfo.InvariantCulture))
-                        .Append("] == typeof(")
-                        .Append(TypeName(registration.Services[i]))
-                        .Append(')');
-                }
-                source.AppendLine(")");
-                source.AppendLine("            {");
-                source.Append("                ServiceCollectionForwardingEx.AddImplementation<")
-                    .Append(TypeName(registration.Implementation))
-                    .AppendLine(">(services, lifetime);");
-                foreach (var service in registration.Services)
-                {
-                    source.Append("                ServiceCollectionForwardingEx.AddForward<")
-                        .Append(TypeName(registration.Implementation))
-                        .Append(", ")
-                        .Append(TypeName(service))
-                        .AppendLine(">(services, lifetime);");
-                }
-                source.AppendLine("                return true;");
-                source.AppendLine("            }");
-            }
-            source.AppendLine("            return false;");
-            source.AppendLine("        }");
-            source.AppendLine("    }");
-            source.AppendLine("}");
-            source.AppendLine("#pragma warning restore CS1591");
-            return source.ToString();
         }
 
         private static string Generate(INamedTypeSymbol[] controllers)
@@ -505,18 +334,6 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Generator
             return type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
         }
 
-        private static bool IsAccessibleFromGeneratedTable(ITypeSymbol type)
-        {
-            for (var current = type; current is not null; current = current.ContainingType)
-            {
-                if (current.DeclaredAccessibility is not Accessibility.Public)
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-
         private static string DescriptorClassName(string assemblyName)
         {
             var name = new StringBuilder();
@@ -602,28 +419,6 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Generator
         private static string Escape(string value)
         {
             return value.Replace("\\", "\\\\").Replace("\"", "\\\"");
-        }
-
-        private sealed class ServiceRegistration
-        {
-            public INamedTypeSymbol Implementation { get; }
-            public IReadOnlyList<ITypeSymbol> Services { get; }
-            public bool IsExplicit { get; }
-            public bool HasUnsupportedExplicitTypes { get; }
-            public string Key { get; }
-
-            public ServiceRegistration(INamedTypeSymbol implementation,
-                IReadOnlyList<ITypeSymbol> services, bool isExplicit,
-                bool hasUnsupportedExplicitTypes)
-            {
-                Implementation = implementation;
-                Services = services;
-                IsExplicit = isExplicit;
-                HasUnsupportedExplicitTypes = hasUnsupportedExplicitTypes;
-                Key = TypeName(implementation) + "|" + isExplicit.ToString(
-                    CultureInfo.InvariantCulture) + "|" + string.Join("|",
-                    services.Select(TypeName));
-            }
         }
 
         private sealed class MethodDescriptor

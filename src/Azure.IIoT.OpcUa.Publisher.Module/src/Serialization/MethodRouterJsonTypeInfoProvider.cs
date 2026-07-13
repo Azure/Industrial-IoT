@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module.Serialization
 {
     using Azure.IIoT.OpcUa.Core.Rpc.Router;
+    using Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using System.Text.Json.Serialization.Metadata;
@@ -20,8 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Serialization
         /// <inheritdoc/>
         public JsonTypeInfo? GetTypeInfo(Type type)
         {
-            return PublisherModelsJsonContext.Default.GetTypeInfo(type) ??
-                ModuleJsonContext.Default.GetTypeInfo(type);
+            return Json.Options.TypeInfoResolver?.GetTypeInfo(type, Json.Options);
         }
     }
 }

@@ -28,9 +28,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Publisher.Testing.Servers.csproj" />
-    <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Core\generator\Azure.IIoT.OpcUa.Core.Rpc.Generator.csproj"
-                      OutputItemType="Analyzer"
-                      ReferenceOutputAssembly="false" />
   </ItemGroup>
   <!-- TODO(Stage final): Isa95Jobs server descoped from compilation (see Servers.csproj).
        Its generated model has no source-gen path yet, so the server type is absent.

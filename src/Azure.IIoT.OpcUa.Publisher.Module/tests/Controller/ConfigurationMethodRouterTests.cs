@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Module.Controllers;
+    using Azure.IIoT.OpcUa.Publisher.Module.Serialization;
     using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Storage;
     using Azure.IIoT.OpcUa.Publisher.Tests.Utils;
@@ -25,7 +26,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
     using System.Collections.Generic;
     using System.IO;
     using System.Text;
-    using System.Text.Json.Serialization;
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
@@ -172,8 +172,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 _loggerFactory.CreateLogger<MethodRouter>(),
                 new MethodRouterJsonSerializer(
                 [
-                    new JsonContextMethodRouterJsonTypeInfoProvider(
-                        ConfigurationMethodRouterTestsJsonContext.Default)
+                    new MethodRouterJsonTypeInfoProvider()
                 ]));
             var provider = new Azure_IIoT_OpcUa_Publisher_ModuleMethodRouterDescriptors();
             provider.TryRegister(router, controller, router.JsonSerializer).Should().BeTrue();
@@ -207,11 +206,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             File.WriteAllText(destinationPath, File.ReadAllText(sourcePath));
         }
 
-        [JsonSerializable(typeof(PublishedNodesEntryModel))]
-        [JsonSerializable(typeof(PublishedNodesResponseModel))]
-        private sealed partial class ConfigurationMethodRouterTestsJsonContext :
-            JsonSerializerContext
-        {
-        }
     }
 }
