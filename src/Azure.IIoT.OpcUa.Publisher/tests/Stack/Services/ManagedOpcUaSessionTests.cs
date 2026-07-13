@@ -76,7 +76,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Opc.Ua.TimestampsToReturn.Both, nodes, cts.Token);
 
             Assert.Same(expected, result);
-            session.VerifyAll();
+            session.Verify(s => s.ReadAsync(request, 0, Opc.Ua.TimestampsToReturn.Both,
+                It.Is<ArrayOf<ReadValueId>>(items =>
+                    items.Count == 1 && items[0].NodeId == ObjectIds.Server),
+                cts.Token), Times.Once);
         }
 
         /// <summary>
@@ -150,7 +153,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             Assert.Equal(EndpointConnectivityState.Ready, facade.ConnectivityState);
             Assert.Equal(EndpointConnectivityState.Ready, observed);
-            Assert.Equal("managed-session-tests", diagnostics.ServerUri);
+            Assert.Equal("urn:managed-session-tests", diagnostics.ServerUri);
         }
 
         /// <summary>
