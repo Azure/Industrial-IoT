@@ -325,7 +325,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         public ShadowJsonEncoder(string profile, JsonEncodingMode mode)
         {
             TransportProfileUri = profile;
-            _encoder = new JsonEncoder(mode);
+            _encoder = new Opc.Ua.PubSub.Encoding.Json.JsonEncoder(mode);
         }
 
         public string TransportProfileUri { get; }
@@ -338,7 +338,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             return _encoder.EncodeAsync(networkMessage, context, cancellationToken);
         }
 
-        private readonly JsonEncoder _encoder;
+        private readonly Opc.Ua.PubSub.Encoding.Json.JsonEncoder _encoder;
     }
 
     internal sealed class NoEgressPubSubTransportFactory : IPubSubTransportFactory
