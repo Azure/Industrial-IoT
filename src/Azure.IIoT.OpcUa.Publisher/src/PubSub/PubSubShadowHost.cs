@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.PubSub
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Core.Messaging;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Hosting;
@@ -39,6 +40,16 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A task that completes after the replacement is committed.</returns>
         ValueTask ReplaceConfigurationAsync(IEnumerable<WriterGroupModel> writerGroups,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Forces the native runtime to publish a complete keyframe for a
+        /// writer group. Selecting an individual writer intentionally emits
+        /// the complete group snapshot because a native network message is
+        /// the compatibility boundary.
+        /// </summary>
+        ValueTask ForceKeyFrameAsync(string writerGroupId,
+            string? dataSetWriterId = null,
             CancellationToken cancellationToken = default);
     }
 
@@ -90,6 +101,10 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 provider => provider.GetRequiredService<ManagedPubSubNotificationBuffer>());
             services.TryAddSingleton<IManagedPubSubEventBuffer>(
                 provider => provider.GetRequiredService<ManagedPubSubNotificationBuffer>());
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<
+                IManagedPubSubDataSourceProvider,
+                ManagedPubSubNotificationDataSourceProvider>());
+            services.TryAddSingleton<ManagedPubSubDataSetSourceRegistry>();
             services.TryAddSingleton<PubSubShadowHost>();
             services.TryAddSingleton<IPubSubShadowHost>(
                 provider => provider.GetRequiredService<PubSubShadowHost>());
@@ -98,6 +113,29 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 services.AddSingleton<IHostedService>(
                     provider => provider.GetRequiredService<PubSubShadowHost>());
             }
+            return services;
+        }
+
+        /// <summary>
+        /// Registers the event-client transport only for an explicit test
+        /// composition. No Publisher configuration path invokes this method.
+        /// </summary>
+        internal static IServiceCollection AddPubSubShadowEgressHost(
+            this IServiceCollection services, IEventClient eventClient,
+            Action<PubSubShadowEgressOptions>? configure = null)
+        {
+            ArgumentNullException.ThrowIfNull(services);
+            ArgumentNullException.ThrowIfNull(eventClient);
+            if (services.Any(descriptor =>
+                descriptor.ServiceType == typeof(PubSubShadowEgressRegistration)))
+            {
+                throw new InvalidOperationException(
+                    "The test-only PubSub shadow egress transport is already registered.");
+            }
+            var options = new PubSubShadowEgressOptions();
+            configure?.Invoke(options);
+            services.AddPubSubShadowHost();
+            services.AddSingleton(new PubSubShadowEgressRegistration(eventClient, options));
             return services;
         }
     }
@@ -116,6 +154,10 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                     state, services.GetRequiredService<PubSubShadowEncodingRegistry>(),
                     out var configuration), configuration)
         {
+            _publisherOptions = services.GetRequiredService<IOptions<PublisherOptions>>();
+            _managedDataSources = services.GetRequiredService<
+                ManagedPubSubDataSetSourceRegistry>();
+            _egress = services.GetService<PubSubShadowEgressRegistration>();
         }
 
         internal PubSubShadowHost(IPubSubIdentityRegistry identityRegistry,
@@ -193,18 +235,32 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
             try
             {
+                var groups = writerGroups.ToArray();
                 await using var transaction = await _identityRegistry.BeginAsync(cancellationToken)
                     .ConfigureAwait(false);
-                var translation = _translator.TranslateWithEncodingRegistry(writerGroups, transaction);
+                var translation = _translator.TranslateWithEncodingRegistry(groups, transaction);
                 var replacement = translation.Configuration;
                 var previousGeneration = _encodingRegistry.ActiveGeneration;
+                var previousEgress = _egress?.Settings.Snapshot();
+                await using var sourceTransaction = _managedDataSources is null
+                    ? null
+                    : await _managedDataSources.PrepareAsync(groups, cancellationToken)
+                        .ConfigureAwait(false);
                 var wasStarted = _started;
                 var stopped = false;
                 var replaced = false;
                 var encodingsReplaced = false;
+                var egressReplaced = false;
                 try
                 {
                     cancellationToken.ThrowIfCancellationRequested();
+                    sourceTransaction?.Install();
+                    if (_egress is not null)
+                    {
+                        _egress.Settings.Replace(groups, _publisherOptions?.Value
+                            ?? new PublisherOptions(), _egress.Options);
+                        egressReplaced = true;
+                    }
                     if (wasStarted)
                     {
                         await _application.StopAsync(CancellationToken.None)
@@ -230,6 +286,10 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                     {
                         await _application.StartAsync(CancellationToken.None)
                             .ConfigureAwait(false);
+                    }
+                    if (sourceTransaction is not null)
+                    {
+                        await sourceTransaction.CommitAsync().ConfigureAwait(false);
                     }
                     _configuration = replacement;
                     _state.Replaced(replacement.Connections.Count,
@@ -257,11 +317,20 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                                 _encodingRegistry.Restore(previousGeneration);
                                 encodingsReplaced = false;
                             }
+                            if (egressReplaced && previousEgress is not null)
+                            {
+                                _egress!.Settings.Restore(previousEgress);
+                                egressReplaced = false;
+                            }
                         }
                     }
                     if (encodingsReplaced)
                     {
                         _encodingRegistry.Restore(previousGeneration);
+                    }
+                    if (egressReplaced && previousEgress is not null)
+                    {
+                        _egress!.Settings.Restore(previousEgress);
                     }
                     if (stopped && wasStarted)
                     {
@@ -271,6 +340,78 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                     _state.Failed(exception);
                     throw;
                 }
+            }
+            finally
+            {
+                _gate.Release();
+            }
+        }
+
+        public async ValueTask ForceKeyFrameAsync(string writerGroupId,
+            string? dataSetWriterId = null,
+            CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(writerGroupId))
+            {
+                throw new ArgumentException("A writer group identifier is required.",
+                    nameof(writerGroupId));
+            }
+            await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                if (!_started)
+                {
+                    throw new InvalidOperationException(
+                        "The shadow host must be running to force a native keyframe.");
+                }
+                var connectionName = "shadow-" + writerGroupId;
+                var connection = _application.Connections.SingleOrDefault(candidate =>
+                    string.Equals(candidate.Name, connectionName, StringComparison.Ordinal));
+                if (connection is null || connection.WriterGroups.Count != 1
+                    || connection.WriterGroups[0] is not Opc.Ua.PubSub.Groups.WriterGroup group)
+                {
+                    throw new InvalidOperationException(
+                        $"The native writer group '{writerGroupId}' is not available.");
+                }
+                if (dataSetWriterId is not null)
+                {
+                    var nativeId = await _identityRegistry.TryGetIdAsync(
+                        "data-set-writer", dataSetWriterId, cancellationToken).ConfigureAwait(false);
+                    var found = false;
+                    for (var index = 0; nativeId is not null
+                        && index < group.DataSetWriters.Count; index++)
+                    {
+                        if (group.DataSetWriters[index].DataSetWriterId == nativeId.Value)
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found)
+                    {
+                        throw new ArgumentException(
+                            $"Data set writer '{dataSetWriterId}' is not in writer group '{writerGroupId}'.",
+                            nameof(dataSetWriterId));
+                    }
+                }
+
+                // The stack has no public force-keyframe operation. Replacing the
+                // same native configuration resets its per-writer snapshot state;
+                // the first explicit PublishOnceAsync is therefore a complete,
+                // native keyframe for every writer in the group.
+                await _application.StopAsync(CancellationToken.None).ConfigureAwait(false);
+                var statusCodes = await _application.ReplaceConfigurationAsync(_configuration,
+                    CancellationToken.None).ConfigureAwait(false);
+                EnsureSuccessfulReplacement(statusCodes);
+                await _application.StartAsync(CancellationToken.None).ConfigureAwait(false);
+
+                connection = _application.Connections.Single(candidate =>
+                    string.Equals(candidate.Name, connectionName, StringComparison.Ordinal));
+                group = connection.WriterGroups[0] as Opc.Ua.PubSub.Groups.WriterGroup
+                    ?? throw new InvalidOperationException(
+                        "The native PubSub writer group does not expose PublishOnceAsync.");
+                await group.EnableAsync(cancellationToken).ConfigureAwait(false);
+                await group.PublishOnceAsync(cancellationToken).ConfigureAwait(false);
             }
             finally
             {
@@ -299,20 +440,37 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             ArgumentNullException.ThrowIfNull(state);
             ArgumentNullException.ThrowIfNull(encodingRegistry);
             configuration = PubSubConfigurationTranslator.CreateEmpty();
-            return new PubSubApplicationBuilder(new ServiceProviderTelemetryContext(services))
+            var egress = services.GetService<PubSubShadowEgressRegistration>();
+            var builder = new PubSubApplicationBuilder(new ServiceProviderTelemetryContext(services))
                 .WithApplicationId("azure-iiot-publisher-shadow")
                 .UseConfiguration(configuration)
-                .AddTransportFactory(new NoEgressPubSubTransportFactory(
-                    Profiles.PubSubMqttJsonTransport, PubSubShadowEncoding.Json,
-                    captureSink, state, encodingRegistry))
-                .AddTransportFactory(new NoEgressPubSubTransportFactory(
-                    Profiles.PubSubUdpUadpTransport, PubSubShadowEncoding.Uadp,
-                    captureSink, state))
                 .AddEncoder(new ShadowJsonEncoder(encodingRegistry))
                 .AddEncoder(new Opc.Ua.PubSub.Encoding.Uadp.UadpEncoder())
                 .AddDecoder(new Opc.Ua.PubSub.Encoding.Json.JsonDecoder())
                 .AddDecoder(new Opc.Ua.PubSub.Encoding.Uadp.UadpDecoder())
-                .Build();
+                .WithDataSetSourceProvider(services.GetRequiredService<
+                    ManagedPubSubDataSetSourceRegistry>());
+            if (egress is null)
+            {
+                builder
+                    .AddTransportFactory(new NoEgressPubSubTransportFactory(
+                        Profiles.PubSubMqttJsonTransport, PubSubShadowEncoding.Json,
+                        captureSink, state, encodingRegistry))
+                    .AddTransportFactory(new NoEgressPubSubTransportFactory(
+                        Profiles.PubSubUdpUadpTransport, PubSubShadowEncoding.Uadp,
+                        captureSink, state));
+            }
+            else
+            {
+                builder
+                    .AddTransportFactory(new EventClientPubSubTransportFactory(
+                        Profiles.PubSubMqttJsonTransport, egress.EventClient,
+                        egress.Settings, egress.Options))
+                    .AddTransportFactory(new EventClientPubSubTransportFactory(
+                        Profiles.PubSubUdpUadpTransport, egress.EventClient,
+                        egress.Settings, egress.Options));
+            }
+            return builder.Build();
         }
 
         private static int CountDataSetWriters(PubSubConfigurationDataType configuration)
@@ -346,6 +504,9 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         private readonly PubSubShadowRuntimeStateProvider _state;
         private readonly PubSubShadowEncodingRegistry _encodingRegistry;
         private readonly IPubSubApplication _application;
+        private IOptions<PublisherOptions>? _publisherOptions;
+        private ManagedPubSubDataSetSourceRegistry? _managedDataSources;
+        private PubSubShadowEgressRegistration? _egress;
         private PubSubConfigurationDataType _configuration;
         private bool _started;
         private int _disposed;

@@ -5,7 +5,9 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.PubSub
 {
+    using Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
+    using Opc.Ua.PubSub.Diagnostics;
     using System;
     using System.Collections.Generic;
     using System.Threading;
@@ -366,6 +368,35 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         private int _dataSetWriterCount;
         private long _captureCount;
         private string? _lastError;
+    }
+
+    /// <summary>
+    /// Maps native PubSub counters and the test-only event-client transport
+    /// counters onto the established WriterGroupDiagnosticModel fields. No new
+    /// diagnostics contract is introduced before the production cutover.
+    /// </summary>
+    internal static class PubSubShadowDiagnosticsBridge
+    {
+        public static WriterGroupDiagnosticModel Apply(WriterGroupDiagnosticModel diagnostic,
+            IPubSubDiagnostics nativeDiagnostics,
+            IPubSubShadowEgressMetricsProvider egress)
+        {
+            ArgumentNullException.ThrowIfNull(diagnostic);
+            ArgumentNullException.ThrowIfNull(nativeDiagnostics);
+            ArgumentNullException.ThrowIfNull(egress);
+            var metrics = egress.Metrics;
+            return diagnostic with
+            {
+                OutgressInputBufferCount = metrics.QueueDepth,
+                OutgressInputBufferDropped = metrics.OverflowCount,
+                OutgressIoTMessageCount = metrics.SentCount,
+                OutgressIoTMessageFailedCount = metrics.FailedCount + metrics.RetryCount,
+                EncoderIoTMessagesProcessed = nativeDiagnostics.Read(
+                    PubSubDiagnosticsCounterKind.SentNetworkMessages),
+                EncoderNotificationsProcessed = nativeDiagnostics.Read(
+                    PubSubDiagnosticsCounterKind.SentDataSetMessages)
+            };
+        }
     }
 
 }

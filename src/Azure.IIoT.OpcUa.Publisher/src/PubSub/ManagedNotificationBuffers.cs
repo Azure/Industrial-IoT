@@ -6,8 +6,13 @@
 namespace Azure.IIoT.OpcUa.Publisher.PubSub
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Opc.Ua;
+    using Opc.Ua.PubSub.DataSets;
+    using Opc.Ua.PubSub.Encoding;
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Channels;
@@ -207,13 +212,457 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             await foreach (var notification in _channel.Reader.ReadAllAsync(cancellationToken)
                 .ConfigureAwait(false))
             {
-                Interlocked.Decrement(ref _queueDepth);
-                yield return notification.Clone();
+                // A notification is acknowledged only after the receiving adapter
+                // advances the iterator. It has an owned copy while it processes it.
+                try
+                {
+                    yield return notification.Clone();
+                }
+                finally
+                {
+                    Interlocked.Decrement(ref _queueDepth);
+                }
             }
         }
 
         private readonly Channel<ManagedPubSubNotification> _channel;
         private int _queueDepth;
         private long _backpressureCount;
+    }
+
+    /// <summary>
+    /// Adapts the ordered notification buffer to one managed source per
+    /// published data set. The router is the sole buffer reader, so a burst
+    /// cannot be coalesced by multiple consumers racing to read the channel.
+    /// </summary>
+    internal sealed class ManagedPubSubNotificationDataSourceProvider :
+        IManagedPubSubDataSourceProvider, IAsyncDisposable
+    {
+        public ManagedPubSubNotificationDataSourceProvider(
+            IManagedPubSubNotificationBuffer notifications)
+        {
+            _notifications = notifications ?? throw new ArgumentNullException(nameof(notifications));
+        }
+
+        public ValueTask<IManagedPubSubDataSource?> CreateAsync(PublishedDataSetModel dataSet,
+            CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(dataSet);
+            cancellationToken.ThrowIfCancellationRequested();
+            var name = dataSet.Name ?? dataSet.DataSetMetaData?.Name;
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                return new ValueTask<IManagedPubSubDataSource?>((IManagedPubSubDataSource?)null);
+            }
+            var source = _sources.GetOrAdd(name, static _ => new RoutedDataSource());
+            EnsureStarted();
+            return new ValueTask<IManagedPubSubDataSource?>(source);
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            _stop.Cancel();
+            if (_dispatch is not null)
+            {
+                try
+                {
+                    await _dispatch.ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                }
+            }
+            _stop.Dispose();
+        }
+
+        private void EnsureStarted()
+        {
+            lock (_gate)
+            {
+                _dispatch ??= Task.Run(DispatchAsync);
+            }
+        }
+
+        private async Task DispatchAsync()
+        {
+            await foreach (var notification in _notifications.ReadAllAsync(_stop.Token)
+                .ConfigureAwait(false))
+            {
+                if (_sources.TryGetValue(notification.DataSetName, out var source))
+                {
+                    // This copy is the buffer acknowledgement point. Once this
+                    // returns, the adapter owns the payload independently.
+                    source.Offer(notification);
+                }
+            }
+        }
+
+        private sealed class RoutedDataSource : IManagedPubSubDataSource
+        {
+            public void Offer(ManagedPubSubNotification notification)
+            {
+                _notifications.Writer.TryWrite(notification.Clone());
+            }
+
+            public async IAsyncEnumerable<ManagedPubSubNotification> ReadNotificationsAsync(
+                [EnumeratorCancellation] CancellationToken cancellationToken = default)
+            {
+                await foreach (var notification in _notifications.Reader.ReadAllAsync(cancellationToken)
+                    .ConfigureAwait(false))
+                {
+                    yield return notification.Clone();
+                }
+            }
+
+            private readonly Channel<ManagedPubSubNotification> _notifications =
+                Channel.CreateUnbounded<ManagedPubSubNotification>(
+                    new UnboundedChannelOptions
+                    {
+                        SingleReader = true,
+                        SingleWriter = true,
+                        AllowSynchronousContinuations = false
+                    });
+        }
+
+        private readonly Lock _gate = new();
+        private readonly CancellationTokenSource _stop = new();
+        private readonly IManagedPubSubNotificationBuffer _notifications;
+        private readonly ConcurrentDictionary<string, RoutedDataSource> _sources =
+            new(StringComparer.Ordinal);
+        private Task? _dispatch;
+    }
+
+    /// <summary>
+    /// Native source provider used by the shadow host. It retains each
+    /// managed notification in order and returns one source notification per
+    /// native sample, so event and condition bursts are not reduced to a
+    /// latest-value cache.
+    /// </summary>
+    internal sealed class ManagedPubSubDataSetSource : IPublishedDataSetSource,
+        IAsyncDisposable
+    {
+        public ManagedPubSubDataSetSource(string dataSetName,
+            IManagedPubSubDataSource source)
+        {
+            _dataSetName = string.IsNullOrWhiteSpace(dataSetName)
+                ? throw new ArgumentException("A dataset name is required.", nameof(dataSetName))
+                : dataSetName;
+            _source = source ?? throw new ArgumentNullException(nameof(source));
+        }
+
+        public DataSetMetaDataType BuildMetaData()
+        {
+            return new DataSetMetaDataType
+            {
+                Name = _dataSetName,
+                Fields =
+                [
+                    new FieldMetaData
+                    {
+                        Name = "payload",
+                        BuiltInType = (byte)DataTypes.ByteString,
+                        DataType = DataTypeIds.ByteString,
+                        ValueRank = ValueRanks.Scalar
+                    }
+                ],
+                ConfigurationVersion = new ConfigurationVersionDataType
+                {
+                    MajorVersion = 1
+                }
+            };
+        }
+
+        public ValueTask<PublishedDataSetSnapshot> SampleAsync(
+            DataSetMetaDataType metaData, CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(metaData);
+            cancellationToken.ThrowIfCancellationRequested();
+            if (!_pending.TryDequeue(out var notification))
+            {
+                return new ValueTask<PublishedDataSetSnapshot>(new PublishedDataSetSnapshot(
+                    metaData.ConfigurationVersion ?? new ConfigurationVersionDataType
+                    {
+                        MajorVersion = 1
+                    },
+                    [], DateTimeUtc.From(DateTimeOffset.UtcNow)));
+            }
+
+            return new ValueTask<PublishedDataSetSnapshot>(new PublishedDataSetSnapshot(
+                metaData.ConfigurationVersion ?? new ConfigurationVersionDataType
+                {
+                    MajorVersion = 1
+                },
+                [
+                    new DataSetField
+                    {
+                        Name = notification.FieldName,
+                        Value = new Variant(notification.Payload.ToArray()),
+                        SourceTimestamp = DateTimeUtc.From(notification.Timestamp)
+                    }
+                ],
+                DateTimeUtc.From(notification.Timestamp)));
+        }
+
+        public void Start()
+        {
+            lock (_gate)
+            {
+                _pump ??= Task.Run(PumpAsync);
+            }
+        }
+
+        internal int PendingCount => _pending.Count;
+
+        public async ValueTask DisposeAsync()
+        {
+            _stop.Cancel();
+            if (_pump is not null)
+            {
+                try
+                {
+                    await _pump.ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                }
+            }
+            _stop.Dispose();
+        }
+
+        private async Task PumpAsync()
+        {
+            await foreach (var notification in _source.ReadNotificationsAsync(_stop.Token)
+                .ConfigureAwait(false))
+            {
+                // The source owns this clone before advancing its input iterator.
+                _pending.Enqueue(notification.Clone());
+            }
+        }
+
+        private readonly Lock _gate = new();
+        private readonly CancellationTokenSource _stop = new();
+        private readonly ConcurrentQueue<ManagedPubSubNotification> _pending = new();
+        private readonly string _dataSetName;
+        private readonly IManagedPubSubDataSource _source;
+        private Task? _pump;
+    }
+
+    /// <summary>
+    /// Transactional source map for hot native configuration replacement.
+    /// Existing sources are kept when a dataset remains configured, retaining
+    /// notifications accumulated during a replace. New sources do not begin
+    /// consuming until the native replacement has committed.
+    /// </summary>
+    internal sealed class ManagedPubSubDataSetSourceRegistry : IDataSetSourceProvider,
+        IAsyncDisposable
+    {
+        public ManagedPubSubDataSetSourceRegistry(
+            IEnumerable<IManagedPubSubDataSourceProvider> providers)
+        {
+            _providers = providers?.ToArray()
+                ?? throw new ArgumentNullException(nameof(providers));
+        }
+
+        public bool TryGetSource(string publishedDataSetName,
+            out IPublishedDataSetSource source)
+        {
+            lock (_gate)
+            {
+                return _sources.TryGetValue(publishedDataSetName, out source!);
+            }
+        }
+
+        public async ValueTask<ManagedPubSubDataSetSourceTransaction> PrepareAsync(
+            IEnumerable<WriterGroupModel> writerGroups,
+            CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(writerGroups);
+            Dictionary<string, IPublishedDataSetSource> current;
+            lock (_gate)
+            {
+                current = new Dictionary<string, IPublishedDataSetSource>(_sources,
+                    StringComparer.Ordinal);
+            }
+
+            var replacement = new Dictionary<string, IPublishedDataSetSource>(
+                StringComparer.Ordinal);
+            var created = new List<ManagedPubSubDataSetSource>();
+            foreach (var dataSet in EnumerateDataSets(writerGroups))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var name = GetDataSetName(dataSet.Group, dataSet.Writer);
+                if (replacement.ContainsKey(name))
+                {
+                    continue;
+                }
+                if (current.TryGetValue(name, out var existing))
+                {
+                    replacement.Add(name, existing);
+                    continue;
+                }
+
+                IManagedPubSubDataSource? managedSource = null;
+                foreach (var provider in _providers)
+                {
+                    managedSource = await provider.CreateAsync(dataSet.Writer.DataSet!,
+                        cancellationToken).ConfigureAwait(false);
+                    if (managedSource is not null)
+                    {
+                        break;
+                    }
+                }
+                if (managedSource is null)
+                {
+                    continue;
+                }
+                var source = new ManagedPubSubDataSetSource(name, managedSource);
+                replacement.Add(name, source);
+                created.Add(source);
+            }
+            return new ManagedPubSubDataSetSourceTransaction(this, current, replacement, created);
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            ManagedPubSubDataSetSource[] sources;
+            lock (_gate)
+            {
+                sources = _sources.Values.OfType<ManagedPubSubDataSetSource>().ToArray();
+                _sources.Clear();
+            }
+            foreach (var source in sources)
+            {
+                await source.DisposeAsync().ConfigureAwait(false);
+            }
+        }
+
+        private void Install(ManagedPubSubDataSetSourceTransaction transaction)
+        {
+            lock (_gate)
+            {
+                _sources = new Dictionary<string, IPublishedDataSetSource>(transaction.Replacement,
+                    StringComparer.Ordinal);
+            }
+        }
+
+        private async ValueTask CommitAsync(ManagedPubSubDataSetSourceTransaction transaction)
+        {
+            foreach (var source in transaction.Created)
+            {
+                source.Start();
+            }
+            var retained = new HashSet<IPublishedDataSetSource>(transaction.Replacement.Values);
+            foreach (var source in transaction.Previous.Values.OfType<ManagedPubSubDataSetSource>())
+            {
+                if (!retained.Contains(source))
+                {
+                    await source.DisposeAsync().ConfigureAwait(false);
+                }
+            }
+        }
+
+        private void Rollback(ManagedPubSubDataSetSourceTransaction transaction)
+        {
+            lock (_gate)
+            {
+                _sources = new Dictionary<string, IPublishedDataSetSource>(transaction.Previous,
+                    StringComparer.Ordinal);
+            }
+        }
+
+        private static IEnumerable<(WriterGroupModel Group, DataSetWriterModel Writer)>
+            EnumerateDataSets(IEnumerable<WriterGroupModel> writerGroups)
+        {
+            foreach (var group in writerGroups)
+            {
+                ArgumentNullException.ThrowIfNull(group);
+                foreach (var writer in group.DataSetWriters ?? [])
+                {
+                    if (writer.DataSet is not null)
+                    {
+                        yield return (group, writer);
+                    }
+                }
+            }
+        }
+
+        private static string GetDataSetName(WriterGroupModel group, DataSetWriterModel writer)
+        {
+            return writer.DataSet?.Name
+                ?? writer.DataSet?.DataSetMetaData?.Name
+                ?? $"{group.Id}:{writer.Id}";
+        }
+
+        private readonly Lock _gate = new();
+        private readonly IManagedPubSubDataSourceProvider[] _providers;
+        private Dictionary<string, IPublishedDataSetSource> _sources =
+            new(StringComparer.Ordinal);
+
+        internal sealed class ManagedPubSubDataSetSourceTransaction : IAsyncDisposable
+        {
+            internal ManagedPubSubDataSetSourceTransaction(ManagedPubSubDataSetSourceRegistry owner,
+                Dictionary<string, IPublishedDataSetSource> previous,
+                Dictionary<string, IPublishedDataSetSource> replacement,
+                List<ManagedPubSubDataSetSource> created)
+            {
+                _owner = owner;
+                Previous = previous;
+                Replacement = replacement;
+                Created = created;
+            }
+
+            internal Dictionary<string, IPublishedDataSetSource> Previous { get; }
+            internal Dictionary<string, IPublishedDataSetSource> Replacement { get; }
+            internal List<ManagedPubSubDataSetSource> Created { get; }
+
+            public void Install()
+            {
+                ThrowIfCompleted();
+                _owner.Install(this);
+                _installed = true;
+            }
+
+            public async ValueTask CommitAsync()
+            {
+                ThrowIfCompleted();
+                if (!_installed)
+                {
+                    throw new InvalidOperationException(
+                        "The managed source transaction must be installed before it commits.");
+                }
+                await _owner.CommitAsync(this).ConfigureAwait(false);
+                _completed = true;
+            }
+
+            public async ValueTask DisposeAsync()
+            {
+                if (_completed)
+                {
+                    return;
+                }
+                if (_installed)
+                {
+                    _owner.Rollback(this);
+                }
+                foreach (var source in Created)
+                {
+                    await source.DisposeAsync().ConfigureAwait(false);
+                }
+                _completed = true;
+            }
+
+            private void ThrowIfCompleted()
+            {
+                if (_completed)
+                {
+                    throw new InvalidOperationException(
+                        "The managed source transaction is complete.");
+                }
+            }
+
+            private readonly ManagedPubSubDataSetSourceRegistry _owner;
+            private bool _installed;
+            private bool _completed;
+        }
     }
 }
