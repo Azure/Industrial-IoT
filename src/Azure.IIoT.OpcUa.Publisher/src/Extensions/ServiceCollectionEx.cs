@@ -10,7 +10,10 @@ namespace Azure.IIoT.OpcUa.Publisher
     using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Storage;
+    using Azure.IIoT.OpcUa.Core;
+    using Azure.IIoT.OpcUa.Core.IoTEdge;
     using Azure.IIoT.OpcUa.Core.Messaging;
+    using Azure.IIoT.OpcUa.Core.Storage;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
@@ -30,37 +33,95 @@ namespace Azure.IIoT.OpcUa.Publisher
         {
             services.AddOpcUaStack();
 
-            services.AddTransientAsImplementedInterfaces<PublisherConfig>();
+            services.AddTransient<PublisherConfig>();
+            services.AddTransient<IPostConfigureOptions<PublisherOptions>>(
+                static sp => sp.GetRequiredService<PublisherConfig>());
 
-            services.AddSingletonAsImplementedInterfaces<PhysicalFileProviderFactory>();
-            services.AddSingletonAsImplementedInterfaces<PublishedNodesProvider>();
+            services.AddSingleton<PhysicalFileProviderFactory>();
+            services.AddSingleton<IFileProviderFactory>(
+                static sp => sp.GetRequiredService<PhysicalFileProviderFactory>());
+            services.AddSingleton<PublishedNodesProvider>();
+            services.AddSingleton<IStorageProvider>(
+                static sp => sp.GetRequiredService<PublishedNodesProvider>());
             services.AddSingleton<PublishedNodesConverter>();
-            services.AddSingletonAsImplementedInterfaces<PublishedNodesJsonServices>();
-            services.AddSingletonAsImplementedInterfaces<PublisherService>();
+            services.AddSingleton<PublishedNodesJsonServices>();
+            services.AddSingleton<IAwaitable<PublishedNodesJsonServices>>(
+                static sp => sp.GetRequiredService<PublishedNodesJsonServices>());
+            services.AddSingleton<IAwaitable>(
+                static sp => sp.GetRequiredService<PublishedNodesJsonServices>());
+            services.AddSingleton<IPublishedNodesServices>(
+                static sp => sp.GetRequiredService<PublishedNodesJsonServices>());
+            services.AddSingleton<IPublishServices<ConnectionModel>>(
+                static sp => sp.GetRequiredService<PublishedNodesJsonServices>());
+            services.AddSingleton<PublisherService>();
+            services.AddSingleton<IPublisher>(
+                static sp => sp.GetRequiredService<PublisherService>());
+            services.AddSingleton<IMetricsContext>(
+                static sp => sp.GetRequiredService<PublisherService>());
 
             // The diagnostic collector used to be an Autofac IStartable (started
             // before the module hosted service). Register it (and its hosted
             // service facet) before the module so the host starts it first.
-            services.AddSingletonAsImplementedInterfaces<PublisherDiagnosticCollector>();
-            services.AddSingletonAsImplementedInterfaces<RuntimeStateReporter>();
+            services.AddSingleton<PublisherDiagnosticCollector>();
+            services.AddSingleton<IDiagnosticCollector>(
+                static sp => sp.GetRequiredService<PublisherDiagnosticCollector>());
+            services.AddSingleton<IHostedService>(
+                static sp => sp.GetRequiredService<PublisherDiagnosticCollector>());
+            services.AddSingleton<RuntimeStateReporter>();
+            services.AddSingleton<IRuntimeStateReporter>(
+                static sp => sp.GetRequiredService<RuntimeStateReporter>());
+            services.AddSingleton<IApiKeyProvider>(
+                static sp => sp.GetRequiredService<RuntimeStateReporter>());
+            services.AddSingleton<ISslCertProvider>(
+                static sp => sp.GetRequiredService<RuntimeStateReporter>());
 
             // The module hosted service
-            services.AddSingletonAsImplementedInterfaces<PublisherModule>();
+            services.AddSingleton<PublisherModule>();
+            services.AddSingleton<IHostedService>(
+                static sp => sp.GetRequiredService<PublisherModule>());
+            services.AddSingleton<IIoTEdgeClientState>(
+                static sp => sp.GetRequiredService<PublisherModule>());
+            services.AddSingleton<IProcessControl>(
+                static sp => sp.GetRequiredService<PublisherModule>());
 
-            services.AddSingletonAsImplementedInterfaces<WriterGroupScopeFactory>();
+            services.AddSingleton<WriterGroupScopeFactory>();
+            services.AddSingleton<IWriterGroupScopeFactory>(
+                static sp => sp.GetRequiredService<WriterGroupScopeFactory>());
 
             // Per connection service facades (Autofac InstancePerLifetimeScope). They
             // are resolved from the root by the singleton method router as well as
             // per request by the MVC pipeline, therefore they are registered as
             // transient so they can be created from the root scope without violating
             // scope validation.
-            services.AddTransientAsImplementedInterfaces<NodeServices<ConnectionModel>>();
-            services.AddTransientAsImplementedInterfaces<ConfigurationServices>();
-            services.AddTransientAsImplementedInterfaces<HistoryServices<ConnectionModel>>();
-            services.AddTransientAsImplementedInterfaces<FileSystemServices<ConnectionModel>>();
-            services.AddTransientAsImplementedInterfaces<ServerDiscovery>();
-            services.AddTransientAsImplementedInterfaces<NetworkDiscovery>();
-            services.AddTransientAsImplementedInterfaces<ProgressPublisher>();
+            services.AddTransient<NodeServices<ConnectionModel>>();
+            services.AddTransient<INodeServices<ConnectionModel>>(
+                static sp => sp.GetRequiredService<NodeServices<ConnectionModel>>());
+            services.AddTransient<INodeServicesInternal<ConnectionModel>>(
+                static sp => sp.GetRequiredService<NodeServices<ConnectionModel>>());
+            services.AddTransient<ConfigurationServices>();
+            services.AddTransient<IConfigurationServices>(
+                static sp => sp.GetRequiredService<ConfigurationServices>());
+            services.AddTransient<IAssetConfiguration<System.IO.Stream>>(
+                static sp => sp.GetRequiredService<ConfigurationServices>());
+            services.AddTransient<IAssetConfiguration<byte[]>>(
+                static sp => sp.GetRequiredService<ConfigurationServices>());
+            services.AddTransient<HistoryServices<ConnectionModel>>();
+            services.AddTransient<IHistoryServices<ConnectionModel>>(
+                static sp => sp.GetRequiredService<HistoryServices<ConnectionModel>>());
+            services.AddTransient<FileSystemServices<ConnectionModel>>();
+            services.AddTransient<IFileSystemServices<ConnectionModel>>(
+                static sp => sp.GetRequiredService<FileSystemServices<ConnectionModel>>());
+            services.AddTransient<ServerDiscovery>();
+            services.AddTransient<IServerDiscovery>(
+                static sp => sp.GetRequiredService<ServerDiscovery>());
+            services.AddTransient<NetworkDiscovery>();
+            services.AddTransient<INetworkDiscovery>(
+                static sp => sp.GetRequiredService<NetworkDiscovery>());
+            services.AddTransient<IDiscoveryServices>(
+                static sp => sp.GetRequiredService<NetworkDiscovery>());
+            services.AddTransient<ProgressPublisher>();
+            services.AddTransient<IDiscoveryProgress>(
+                static sp => sp.GetRequiredService<ProgressPublisher>());
 
             services.AddWriterGroupProcessing();
             return services;
