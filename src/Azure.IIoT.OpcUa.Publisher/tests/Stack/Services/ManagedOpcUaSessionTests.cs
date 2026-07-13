@@ -13,7 +13,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Opc.Ua;
     using Opc.Ua.Client;
     using Opc.Ua.Client.Subscriptions;
+    using Opc.Ua.Client.Subscriptions.MonitoredItems;
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
@@ -731,7 +734,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var subscriptionManager = new Mock<ISubscriptionManager>();
             subscriptionManager.Setup(manager => manager.Add(
                     It.IsAny<ISubscriptionNotificationHandler>(),
-                    It.IsAny<IOptionsMonitor<SubscriptionOptions>>()))
+                    It.IsAny<IOptionsMonitor<Opc.Ua.Client.Subscriptions.SubscriptionOptions>>()))
                 .Returns(subscription.Object);
             ISubscriptionManager manager = subscriptionManager.Object;
             session.Setup(item => item.TryGetSubscriptionManager(out manager)).Returns(true);
