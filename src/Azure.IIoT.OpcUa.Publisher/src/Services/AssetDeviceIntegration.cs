@@ -2383,6 +2383,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="configuration"></param>
+        /// <param name="typeInfo"></param>
         /// <param name="createDefault"></param>
         /// <param name="errors"></param>
         /// <param name="resource"></param>
