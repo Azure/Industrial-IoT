@@ -6,15 +6,8 @@
 namespace Azure.IIoT.OpcUa.Publisher.PubSub
 {
     using Opc.Ua;
-    using Opc.Ua.PubSub.Diagnostics;
-    using Opc.Ua.PubSub.Encoding;
-    using Opc.Ua.PubSub.Encoding.Json;
-    using Opc.Ua.PubSub.Encoding.Uadp;
-    using Opc.Ua.PubSub.MetaData;
     using System;
     using System.Collections.Generic;
-    using System.IO;
-    using System.IO.Compression;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -54,9 +47,25 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         /// <param name="payload">Encoded payload to copy.</param>
         public PubSubShadowCapture(PubSubShadowEncoding encoding,
             DateTimeOffset capturedAt, ReadOnlySpan<byte> payload)
+            : this(encoding, capturedAt, GetTransportProfile(encoding), payload)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a capture with its actual transport profile and an owned
+        /// copy of <paramref name="payload"/>.
+        /// </summary>
+        /// <param name="encoding">Encoding used for the frame.</param>
+        /// <param name="capturedAt">Capture timestamp.</param>
+        /// <param name="transportProfileUri">Transport profile that sent the frame.</param>
+        /// <param name="payload">Encoded payload to copy.</param>
+        public PubSubShadowCapture(PubSubShadowEncoding encoding,
+            DateTimeOffset capturedAt, string transportProfileUri, ReadOnlySpan<byte> payload)
         {
             Encoding = encoding;
             CapturedAt = capturedAt;
+            TransportProfileUri = transportProfileUri ??
+                throw new ArgumentNullException(nameof(transportProfileUri));
             _payload = payload.ToArray();
         }
 
@@ -69,6 +78,11 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         /// Gets the capture timestamp.
         /// </summary>
         public DateTimeOffset CapturedAt { get; }
+
+        /// <summary>
+        /// Gets the transport profile used to send the captured frame.
+        /// </summary>
+        public string TransportProfileUri { get; }
 
         /// <summary>
         /// Gets the owned encoded payload. Consumers must treat it as immutable.
@@ -87,10 +101,17 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         /// <returns>A deep copy of the capture.</returns>
         public PubSubShadowCapture Clone()
         {
-            return new PubSubShadowCapture(Encoding, CapturedAt, _payload);
+            return new PubSubShadowCapture(Encoding, CapturedAt, TransportProfileUri, _payload);
         }
 
         private readonly byte[] _payload;
+
+        private static string GetTransportProfile(PubSubShadowEncoding encoding)
+        {
+            return encoding == PubSubShadowEncoding.Uadp
+                ? Profiles.PubSubUdpUadpTransport
+                : Profiles.PubSubMqttJsonTransport;
+        }
     }
 
     /// <summary>
@@ -347,95 +368,4 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         private string? _lastError;
     }
 
-    internal sealed class PubSubShadowEncodingBridge
-    {
-        public PubSubShadowEncodingBridge(IPubSubShadowCaptureSink captureSink,
-            PubSubShadowRuntimeStateProvider state, TimeProvider? timeProvider = null)
-        {
-            _captureSink = captureSink ?? throw new ArgumentNullException(nameof(captureSink));
-            _state = state ?? throw new ArgumentNullException(nameof(state));
-            _timeProvider = timeProvider ?? TimeProvider.System;
-        }
-
-        public async ValueTask CaptureJsonAsync(PubSubNetworkMessage message,
-            CancellationToken cancellationToken = default)
-        {
-            await CaptureJsonAsync(message, PubSubShadowEncoding.Json, cancellationToken)
-                .ConfigureAwait(false);
-        }
-
-        public async ValueTask CaptureJsonAsync(PubSubNetworkMessage message,
-            PubSubShadowEncoding encoding, CancellationToken cancellationToken = default)
-        {
-            if (encoding is not (PubSubShadowEncoding.Json or PubSubShadowEncoding.JsonReversible
-                or PubSubShadowEncoding.JsonGzip or PubSubShadowEncoding.JsonReversibleGzip))
-            {
-                throw new ArgumentOutOfRangeException(nameof(encoding));
-            }
-            var mode = encoding is PubSubShadowEncoding.JsonReversible
-                or PubSubShadowEncoding.JsonReversibleGzip
-                ? JsonEncodingMode.Verbose
-                : JsonEncodingMode.Compact;
-            var encoded = await new Opc.Ua.PubSub.Encoding.Json.JsonEncoder(mode).EncodeAsync(message, CreateContext(),
-                cancellationToken).ConfigureAwait(false);
-            await CaptureAsync(encoding, CompressIfRequired(encoded, encoding), cancellationToken)
-                .ConfigureAwait(false);
-        }
-
-        public async ValueTask CaptureUadpAsync(PubSubNetworkMessage message,
-            CancellationToken cancellationToken = default)
-        {
-            var encoded = await new UadpEncoder().EncodeAsync(message, CreateContext(),
-                cancellationToken).ConfigureAwait(false);
-            await CaptureAsync(PubSubShadowEncoding.Uadp, encoded, cancellationToken)
-                .ConfigureAwait(false);
-        }
-
-        private async ValueTask CaptureAsync(PubSubShadowEncoding encoding,
-            ReadOnlyMemory<byte> encoded, CancellationToken cancellationToken)
-        {
-            try
-            {
-                await _captureSink.CaptureAsync(new PubSubShadowCapture(encoding,
-                    _timeProvider.GetUtcNow(), encoded.Span), cancellationToken)
-                    .ConfigureAwait(false);
-                _state.Captured();
-            }
-
-            catch (Exception exception)
-            {
-                _state.Failed(exception);
-                throw;
-            }
-        }
-
-        internal static ReadOnlyMemory<byte> CompressIfRequired(ReadOnlyMemory<byte> encoded,
-            PubSubShadowEncoding encoding)
-        {
-            if (encoding is not (PubSubShadowEncoding.JsonGzip
-                or PubSubShadowEncoding.JsonReversibleGzip))
-            {
-                return encoded;
-            }
-            using var output = new MemoryStream();
-            using (var gzip = new GZipStream(output, CompressionLevel.SmallestSize, true))
-            {
-                gzip.Write(encoded.Span);
-            }
-            return output.ToArray();
-        }
-
-        private PubSubNetworkMessageContext CreateContext()
-        {
-            return new PubSubNetworkMessageContext(
-                ServiceMessageContext.CreateEmpty(null!),
-                new DataSetMetaDataRegistry(),
-                new PubSubDiagnostics(PubSubDiagnosticsLevel.Low),
-                _timeProvider);
-        }
-
-        private readonly IPubSubShadowCaptureSink _captureSink;
-        private readonly PubSubShadowRuntimeStateProvider _state;
-        private readonly TimeProvider _timeProvider;
-    }
 }

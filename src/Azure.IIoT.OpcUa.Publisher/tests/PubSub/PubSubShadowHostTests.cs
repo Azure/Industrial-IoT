@@ -15,9 +15,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
     using Opc.Ua;
     using Opc.Ua.PubSub.Application;
     using Opc.Ua.PubSub.Configuration;
+    using Opc.Ua.PubSub.DataSets;
     using Opc.Ua.PubSub.Diagnostics;
     using Opc.Ua.PubSub.Encoding;
-    using JsonDataSetMessage = Opc.Ua.PubSub.Encoding.Json.JsonDataSetMessage;
+    using Opc.Ua.PubSub.Groups;
     using JsonDecoder = Opc.Ua.PubSub.Encoding.Json.JsonDecoder;
     using JsonNetworkMessage = Opc.Ua.PubSub.Encoding.Json.JsonNetworkMessage;
     using JsonWriterGroupMessageDataType = Opc.Ua.JsonWriterGroupMessageDataType;
@@ -26,7 +27,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.IO.Compression;
     using System.Linq;
+    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
@@ -403,48 +406,150 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
         }
 
         [Fact]
-        public async Task ShadowEncodingRoundTripsThroughNativeDecodersAsync()
+        public async Task ActualJsonWriterGroupUsesCompactJsonNetworkMessageAsync()
         {
-            var captureSink = new InMemoryPubSubShadowCaptureSink();
-            var state = new PubSubShadowRuntimeStateProvider();
-            var bridge = new PubSubShadowEncodingBridge(captureSink, state);
-            var context = CreateContext();
+            var capture = await CaptureActualWriterGroupAsync(MessageEncoding.Json);
+            var payload = Encoding.UTF8.GetString(capture.Payload.Span);
 
-            await bridge.CaptureJsonAsync(new JsonNetworkMessage
-            {
-                PublisherId = PublisherId.FromUInt16(12),
-                DataSetMessages =
-                [
-                    new JsonDataSetMessage
-                    {
-                        DataSetWriterId = 4,
-                        Fields = [new DataSetField { Value = new Variant(42) }]
-                    }
-                ]
-            });
-            await bridge.CaptureUadpAsync(new UadpNetworkMessage
-            {
-                ContentMask = UadpNetworkMessageContentMask.PublisherId,
-                PublisherId = PublisherId.FromUInt16(12),
-                DataSetMessages =
-                [
-                    new UadpDataSetMessage
-                    {
-                        DataSetWriterId = 4,
-                        Fields = [new DataSetField { Value = new Variant(42) }]
-                    }
-                ]
-            });
-
-            var captures = captureSink.Captures;
-            Assert.Equal(2, captures.Count);
+            Assert.Equal(PubSubShadowEncoding.Json, capture.Encoding);
+            Assert.Equal(Profiles.PubSubMqttJsonTransport, capture.TransportProfileUri);
+            Assert.Null(capture.ContentEncoding);
+            Assert.Contains("\"Value\":42", payload, StringComparison.Ordinal);
+            Assert.DoesNotContain("\"Type\":", payload, StringComparison.Ordinal);
             Assert.IsType<JsonNetworkMessage>(await new JsonDecoder().TryDecodeAsync(
-                captures.Single(capture => capture.Encoding == PubSubShadowEncoding.Json).Payload,
-                context));
+                capture.Payload, CreateContext()));
+        }
+
+        [Fact]
+        public async Task ActualJsonReversibleWriterGroupUsesVerboseJsonAsync()
+        {
+            var compact = await CaptureActualWriterGroupAsync(MessageEncoding.Json);
+            var reversible = await CaptureActualWriterGroupAsync(MessageEncoding.JsonReversible);
+            var compactPayload = Encoding.UTF8.GetString(compact.Payload.Span);
+            var reversiblePayload = Encoding.UTF8.GetString(reversible.Payload.Span);
+
+            Assert.Equal(PubSubShadowEncoding.JsonReversible, reversible.Encoding);
+            Assert.Equal(Profiles.PubSubMqttJsonTransport, reversible.TransportProfileUri);
+            Assert.NotEqual(compactPayload, reversiblePayload);
+            Assert.Contains("\"Type\":", reversiblePayload, StringComparison.Ordinal);
+            Assert.Contains("\"Body\":42", reversiblePayload, StringComparison.Ordinal);
+            Assert.IsType<JsonNetworkMessage>(await new JsonDecoder().TryDecodeAsync(
+                reversible.Payload, CreateContext()));
+        }
+
+        [Fact]
+        public async Task ActualJsonGzipWriterGroupCompressesCompactJsonAsync()
+        {
+            var capture = await CaptureActualWriterGroupAsync(MessageEncoding.JsonGzip);
+            var payload = Decompress(capture.Payload);
+
+            Assert.Equal(PubSubShadowEncoding.JsonGzip, capture.Encoding);
+            Assert.Equal("gzip", capture.ContentEncoding);
+            Assert.Equal(Profiles.PubSubMqttJsonTransport, capture.TransportProfileUri);
+            Assert.Equal((byte)0x1f, capture.Payload.Span[0]);
+            Assert.Equal((byte)0x8b, capture.Payload.Span[1]);
+            Assert.Contains("\"Value\":42", payload, StringComparison.Ordinal);
+            Assert.DoesNotContain("\"Type\":", payload, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public async Task ActualJsonReversibleGzipWriterGroupCompressesVerboseJsonAsync()
+        {
+            var capture = await CaptureActualWriterGroupAsync(MessageEncoding.JsonReversibleGzip);
+            var payload = Decompress(capture.Payload);
+
+            Assert.Equal(PubSubShadowEncoding.JsonReversibleGzip, capture.Encoding);
+            Assert.Equal("gzip", capture.ContentEncoding);
+            Assert.Equal(Profiles.PubSubMqttJsonTransport, capture.TransportProfileUri);
+            Assert.Equal((byte)0x1f, capture.Payload.Span[0]);
+            Assert.Equal((byte)0x8b, capture.Payload.Span[1]);
+            Assert.Contains("\"Type\":", payload, StringComparison.Ordinal);
+            Assert.Contains("\"Body\":42", payload, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public async Task ActualUadpWriterGroupUsesUadpTransportAndEncoderAsync()
+        {
+            var capture = await CaptureActualWriterGroupAsync(MessageEncoding.Uadp);
+
+            Assert.Equal(PubSubShadowEncoding.Uadp, capture.Encoding);
+            Assert.Null(capture.ContentEncoding);
+            Assert.Equal(Profiles.PubSubUdpUadpTransport, capture.TransportProfileUri);
             Assert.IsType<UadpNetworkMessage>(await new UadpDecoder().TryDecodeAsync(
-                captures.Single(capture => capture.Encoding == PubSubShadowEncoding.Uadp).Payload,
-                context));
-            Assert.Equal(2, state.State.CaptureCount);
+                capture.Payload, CreateContext()));
+        }
+
+        [Fact]
+        public async Task TranslatorRejectsCombinedAndUnknownMessageEncodingsAsync()
+        {
+            var translator = new PubSubConfigurationTranslator();
+            var registry = new PubSubIdentityRegistry(new MemoryIdentityStore());
+
+            await using var transaction = await registry.BeginAsync();
+            Assert.Throws<ArgumentException>(() => translator.Translate(
+                [CreateWriterGroup("group-a", "writer-a",
+                    MessageEncoding.Json | MessageEncoding.Uadp)],
+                transaction));
+            Assert.Throws<ArgumentException>(() => translator.Translate(
+                [CreateWriterGroup("group-b", "writer-b", (MessageEncoding)0x1000)],
+                transaction));
+        }
+
+        private static async Task<PubSubShadowCapture> CaptureActualWriterGroupAsync(
+            MessageEncoding encoding)
+        {
+            var services = new ServiceCollection();
+            services.AddLogging();
+            await using var provider = services.BuildServiceProvider();
+            var identities = new PubSubIdentityRegistry(new MemoryIdentityStore());
+            var translator = new PubSubConfigurationTranslator();
+            var writerGroup = CreateWriterGroup("group", "writer", encoding);
+            writerGroup.PublishingInterval = TimeSpan.FromDays(1);
+            PubSubShadowConfigurationTranslation translation;
+            await using (var transaction = await identities.BeginAsync())
+            {
+                translation = translator.TranslateWithEncodingRegistry([writerGroup], transaction);
+                await transaction.CommitAsync();
+            }
+
+            var encodings = new PubSubShadowEncodingRegistry();
+            encodings.Replace(translation.Encodings);
+            var captures = new InMemoryPubSubShadowCaptureSink();
+            var state = new PubSubShadowRuntimeStateProvider();
+            await using var application = new PubSubApplicationBuilder(
+                new ServiceProviderTelemetryContext(provider))
+                .WithApplicationId("pubsub-shadow-actual-test")
+                .UseConfiguration(translation.Configuration)
+                .AddDataSetSource("dataset-writer", new ValueDataSetSource())
+                .AddTransportFactory(new NoEgressPubSubTransportFactory(
+                    Profiles.PubSubMqttJsonTransport, PubSubShadowEncoding.Json,
+                    captures, state, encodings))
+                .AddTransportFactory(new NoEgressPubSubTransportFactory(
+                    Profiles.PubSubUdpUadpTransport, PubSubShadowEncoding.Uadp,
+                    captures, state))
+                .AddEncoder(new ShadowJsonEncoder(encodings))
+                .AddEncoder(new Opc.Ua.PubSub.Encoding.Uadp.UadpEncoder())
+                .AddDecoder(new JsonDecoder())
+                .AddDecoder(new UadpDecoder())
+                .Build();
+
+            await application.StartAsync();
+            var connection = Assert.Single(application.Connections);
+            Assert.Equal(1, connection.WriterGroups.Count);
+            var group = Assert.IsType<WriterGroup>(connection.WriterGroups[0]);
+            var initialCaptureCount = captures.Captures.Count;
+
+            await group.PublishOnceAsync();
+
+            return Assert.Single(captures.Captures.Skip(initialCaptureCount));
+        }
+
+        private static string Decompress(ReadOnlyMemory<byte> payload)
+        {
+            using var input = new MemoryStream(payload.ToArray());
+            using var gzip = new GZipStream(input, CompressionMode.Decompress);
+            using var reader = new StreamReader(gzip, Encoding.UTF8);
+            return reader.ReadToEnd();
         }
 
         private static WriterGroupModel CreateWriterGroup(string groupId,
@@ -551,6 +656,47 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 new DataSetMetaDataRegistry(),
                 new PubSubDiagnostics(PubSubDiagnosticsLevel.Low),
                 TimeProvider.System);
+        }
+
+        private sealed class ValueDataSetSource : IPublishedDataSetSource
+        {
+            public DataSetMetaDataType BuildMetaData()
+            {
+                return new DataSetMetaDataType
+                {
+                    Name = "dataset-writer",
+                    Fields =
+                    [
+                        new FieldMetaData
+                        {
+                            Name = "Value",
+                            BuiltInType = (byte)DataTypes.Int32,
+                            DataType = DataTypeIds.Int32,
+                            ValueRank = ValueRanks.Scalar
+                        }
+                    ],
+                    ConfigurationVersion = new ConfigurationVersionDataType
+                    {
+                        MajorVersion = 1,
+                        MinorVersion = 0
+                    }
+                };
+            }
+
+            public ValueTask<PublishedDataSetSnapshot> SampleAsync(
+                DataSetMetaDataType metaData,
+                CancellationToken cancellationToken = default)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                return new ValueTask<PublishedDataSetSnapshot>(
+                    new PublishedDataSetSnapshot(metaData.ConfigurationVersion,
+                        [new DataSetField
+                        {
+                            Name = "Value",
+                            Value = new Variant(42)
+                        }],
+                        DateTimeUtc.From(DateTimeOffset.UnixEpoch)));
+            }
         }
 
         private sealed class MemoryIdentityStore : IPubSubIdentityRegistryStore

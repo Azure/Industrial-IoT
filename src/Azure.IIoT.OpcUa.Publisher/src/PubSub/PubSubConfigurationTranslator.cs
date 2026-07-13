@@ -26,6 +26,13 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             IEnumerable<WriterGroupModel> writerGroups,
             IPubSubIdentityTransaction identities)
         {
+            return TranslateWithEncodingRegistry(writerGroups, identities).Configuration;
+        }
+
+        internal PubSubShadowConfigurationTranslation TranslateWithEncodingRegistry(
+            IEnumerable<WriterGroupModel> writerGroups,
+            IPubSubIdentityTransaction identities)
+        {
             ArgumentNullException.ThrowIfNull(writerGroups);
             ArgumentNullException.ThrowIfNull(identities);
 
@@ -33,6 +40,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             var dataSets = new Dictionary<string, PublishedDataSetDataType>(
                 StringComparer.Ordinal);
             var groupIds = new HashSet<string>(StringComparer.Ordinal);
+            var encodings = new PubSubShadowEncodingRegistrySnapshot();
             foreach (var writerGroup in writerGroups)
             {
                 ArgumentNullException.ThrowIfNull(writerGroup);
@@ -43,16 +51,22 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                         nameof(writerGroups));
                 }
 
-                connections.Add(TranslateWriterGroup(writerGroup, dataSets, identities));
+                var encoding = GetShadowEncoding(writerGroup.MessageType);
+                var connection = TranslateWriterGroup(writerGroup, dataSets, identities, encoding);
+                connections.Add(connection);
+                encodings.Add(connection.Name ?? string.Empty,
+                    connection.WriterGroups[0].WriterGroupId, encoding);
             }
 
-            return new PubSubConfigurationDataType
-            {
-                Enabled = true,
-                Connections = new ArrayOf<PubSubConnectionDataType>(connections.ToArray()),
-                PublishedDataSets = new ArrayOf<PublishedDataSetDataType>(
-                    dataSets.Values.ToArray())
-            };
+            return new PubSubShadowConfigurationTranslation(
+                new PubSubConfigurationDataType
+                {
+                    Enabled = true,
+                    Connections = new ArrayOf<PubSubConnectionDataType>(connections.ToArray()),
+                    PublishedDataSets = new ArrayOf<PublishedDataSetDataType>(
+                        dataSets.Values.ToArray())
+                },
+                encodings);
         }
 
         public static PubSubConfigurationDataType CreateEmpty()
@@ -68,14 +82,15 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         private PubSubConnectionDataType TranslateWriterGroup(
             WriterGroupModel source,
             Dictionary<string, PublishedDataSetDataType> dataSets,
-            IPubSubIdentityTransaction identities)
+            IPubSubIdentityTransaction identities,
+            PubSubShadowEncoding encoding)
         {
             if (string.IsNullOrWhiteSpace(source.Id))
             {
                 throw new ArgumentException("A writer group identifier is required.", nameof(source));
             }
 
-            var isUadp = IsUadp(source.MessageType);
+            var isUadp = encoding == PubSubShadowEncoding.Uadp;
             var writerGroup = new WriterGroupDataType
             {
                 Name = source.Name ?? source.Id,
@@ -98,7 +113,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 Name = "shadow-" + source.Id,
                 Enabled = false,
                 PublisherId = new Variant(source.PublisherId ?? source.Id),
-                TransportProfileUri = GetTransportProfile(source.MessageType),
+                TransportProfileUri = GetTransportProfile(encoding),
                 Address = new ExtensionObject(new NetworkAddressUrlDataType
                 {
                     NetworkInterface = string.Empty,
@@ -235,13 +250,15 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             };
         }
 
-        private static bool IsUadp(MessageEncoding? encoding)
+        internal static PubSubShadowEncoding GetShadowEncoding(MessageEncoding? encoding)
         {
             return encoding switch
             {
-                null or MessageEncoding.Json or MessageEncoding.JsonReversible
-                    or MessageEncoding.JsonGzip or MessageEncoding.JsonReversibleGzip => false,
-                MessageEncoding.Uadp => true,
+                null or MessageEncoding.Json => PubSubShadowEncoding.Json,
+                MessageEncoding.JsonReversible => PubSubShadowEncoding.JsonReversible,
+                MessageEncoding.JsonGzip => PubSubShadowEncoding.JsonGzip,
+                MessageEncoding.JsonReversibleGzip => PubSubShadowEncoding.JsonReversibleGzip,
+                MessageEncoding.Uadp => PubSubShadowEncoding.Uadp,
                 _ => throw new ArgumentException(
                     $"Message encoding '{encoding}' is not supported by the inert PubSub host.",
                     nameof(encoding))
@@ -250,12 +267,17 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
 
         internal static string GetTransportProfile(MessageEncoding? encoding)
         {
+            return GetTransportProfile(GetShadowEncoding(encoding));
+        }
+
+        private static string GetTransportProfile(PubSubShadowEncoding encoding)
+        {
             return encoding switch
             {
-                null or MessageEncoding.Json or MessageEncoding.JsonReversible
-                    or MessageEncoding.JsonGzip or MessageEncoding.JsonReversibleGzip
+                PubSubShadowEncoding.Json or PubSubShadowEncoding.JsonReversible
+                    or PubSubShadowEncoding.JsonGzip or PubSubShadowEncoding.JsonReversibleGzip
                     => Profiles.PubSubMqttJsonTransport,
-                MessageEncoding.Uadp => Profiles.PubSubUdpUadpTransport,
+                PubSubShadowEncoding.Uadp => Profiles.PubSubUdpUadpTransport,
                 _ => throw new ArgumentException(
                     $"Message encoding '{encoding}' is not supported by the inert PubSub host.",
                     nameof(encoding))

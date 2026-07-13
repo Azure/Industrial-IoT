@@ -17,6 +17,9 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     using Opc.Ua.PubSub.Transports;
     using System;
     using System.Collections.Generic;
+    using System.IO;
+    using System.IO.Compression;
+    using System.Linq;
     using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
@@ -54,6 +57,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         public static IServiceCollection AddPubSubShadowHost(this IServiceCollection services)
         {
             ArgumentNullException.ThrowIfNull(services);
+            var registered = services.Any(descriptor =>
+                descriptor.ServiceType == typeof(IPubSubShadowHost));
 
             services.AddOptions<PublisherOptions>();
             services.AddOptions<PubSubShadowCaptureOptions>();
@@ -62,6 +67,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 FilePubSubIdentityRegistryStore>();
             services.TryAddSingleton<IPubSubIdentityRegistry, PubSubIdentityRegistry>();
             services.TryAddSingleton<PubSubConfigurationTranslator>();
+            services.TryAddSingleton<PubSubShadowEncodingRegistry>();
             services.TryAddSingleton<PubSubShadowRuntimeStateProvider>();
             services.TryAddSingleton<IPubSubShadowRuntimeStateProvider>(
                 provider => provider.GetRequiredService<PubSubShadowRuntimeStateProvider>());
@@ -84,12 +90,14 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 provider => provider.GetRequiredService<ManagedPubSubNotificationBuffer>());
             services.TryAddSingleton<IManagedPubSubEventBuffer>(
                 provider => provider.GetRequiredService<ManagedPubSubNotificationBuffer>());
-            services.TryAddSingleton<PubSubShadowEncodingBridge>();
             services.TryAddSingleton<PubSubShadowHost>();
             services.TryAddSingleton<IPubSubShadowHost>(
                 provider => provider.GetRequiredService<PubSubShadowHost>());
-            services.TryAddEnumerable(ServiceDescriptor.Singleton<IHostedService>(
-                provider => provider.GetRequiredService<PubSubShadowHost>()));
+            if (!registered)
+            {
+                services.AddSingleton<IHostedService>(
+                    provider => provider.GetRequiredService<PubSubShadowHost>());
+            }
             return services;
         }
     }
@@ -102,9 +110,11 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             PubSubShadowRuntimeStateProvider state,
             IServiceProvider services)
             : this(identityRegistry, translator, state,
+                services.GetRequiredService<PubSubShadowEncodingRegistry>(),
                 CreateApplication(services,
                     services.GetRequiredService<IPubSubShadowCaptureSink>(),
-                    state, out var configuration), configuration)
+                    state, services.GetRequiredService<PubSubShadowEncodingRegistry>(),
+                    out var configuration), configuration)
         {
         }
 
@@ -113,11 +123,24 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             PubSubShadowRuntimeStateProvider state,
             IPubSubApplication application,
             PubSubConfigurationDataType configuration)
+            : this(identityRegistry, translator, state, new PubSubShadowEncodingRegistry(),
+                application, configuration)
+        {
+        }
+
+        internal PubSubShadowHost(IPubSubIdentityRegistry identityRegistry,
+            PubSubConfigurationTranslator translator,
+            PubSubShadowRuntimeStateProvider state,
+            PubSubShadowEncodingRegistry encodingRegistry,
+            IPubSubApplication application,
+            PubSubConfigurationDataType configuration)
         {
             _identityRegistry = identityRegistry ??
                 throw new ArgumentNullException(nameof(identityRegistry));
             _translator = translator ?? throw new ArgumentNullException(nameof(translator));
             _state = state ?? throw new ArgumentNullException(nameof(state));
+            _encodingRegistry = encodingRegistry ??
+                throw new ArgumentNullException(nameof(encodingRegistry));
             _application = application ?? throw new ArgumentNullException(nameof(application));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
@@ -172,7 +195,11 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             {
                 await using var transaction = await _identityRegistry.BeginAsync(cancellationToken)
                     .ConfigureAwait(false);
-                var replacement = _translator.Translate(writerGroups, transaction);
+                var translation = _translator.TranslateWithEncodingRegistry(writerGroups, transaction);
+                var replacement = translation.Configuration;
+                var previousEncodings = _encodingRegistry.Snapshot;
+                _encodingRegistry.Replace(translation.Encodings);
+                var encodingsReplaced = true;
                 var replaced = false;
                 try
                 {
@@ -213,6 +240,10 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                             throw new PubSubShadowRollbackException(exception, rollbackException);
                         }
                     }
+                    if (encodingsReplaced)
+                    {
+                        _encodingRegistry.Replace(previousEncodings);
+                    }
                     _state.Failed(exception);
                     throw;
                 }
@@ -225,6 +256,10 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
 
         public async ValueTask DisposeAsync()
         {
+            if (Interlocked.Exchange(ref _disposed, 1) != 0)
+            {
+                return;
+            }
             await StopAsync(CancellationToken.None).ConfigureAwait(false);
             await _application.DisposeAsync().ConfigureAwait(false);
             _gate.Dispose();
@@ -232,22 +267,27 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
 
         private static IPubSubApplication CreateApplication(IServiceProvider services,
             IPubSubShadowCaptureSink captureSink, PubSubShadowRuntimeStateProvider state,
+            PubSubShadowEncodingRegistry encodingRegistry,
             out PubSubConfigurationDataType configuration)
         {
             ArgumentNullException.ThrowIfNull(services);
             ArgumentNullException.ThrowIfNull(captureSink);
             ArgumentNullException.ThrowIfNull(state);
+            ArgumentNullException.ThrowIfNull(encodingRegistry);
             configuration = PubSubConfigurationTranslator.CreateEmpty();
             return new PubSubApplicationBuilder(new ServiceProviderTelemetryContext(services))
                 .WithApplicationId("azure-iiot-publisher-shadow")
                 .UseConfiguration(configuration)
                 .AddTransportFactory(new NoEgressPubSubTransportFactory(
                     Profiles.PubSubMqttJsonTransport, PubSubShadowEncoding.Json,
-                    captureSink, state))
+                    captureSink, state, encodingRegistry))
                 .AddTransportFactory(new NoEgressPubSubTransportFactory(
                     Profiles.PubSubUdpUadpTransport, PubSubShadowEncoding.Uadp,
                     captureSink, state))
-                .UseAllStandardEncoders()
+                .AddEncoder(new ShadowJsonEncoder(encodingRegistry))
+                .AddEncoder(new Opc.Ua.PubSub.Encoding.Uadp.UadpEncoder())
+                .AddDecoder(new Opc.Ua.PubSub.Encoding.Json.JsonDecoder())
+                .AddDecoder(new Opc.Ua.PubSub.Encoding.Uadp.UadpDecoder())
                 .Build();
         }
 
@@ -280,9 +320,11 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         private readonly IPubSubIdentityRegistry _identityRegistry;
         private readonly PubSubConfigurationTranslator _translator;
         private readonly PubSubShadowRuntimeStateProvider _state;
+        private readonly PubSubShadowEncodingRegistry _encodingRegistry;
         private readonly IPubSubApplication _application;
         private PubSubConfigurationDataType _configuration;
         private bool _started;
+        private int _disposed;
     }
 
     internal sealed class PubSubShadowRollbackException : Exception
@@ -295,46 +337,188 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         }
     }
 
-    internal static class PubSubShadowProfiles
+    internal sealed class PubSubShadowConfigurationTranslation
     {
-        public const string JsonCompact = "urn:azure:iiot:pubsub:shadow:json:compact";
-        public const string JsonVerbose = "urn:azure:iiot:pubsub:shadow:json:verbose";
-        public const string JsonCompactGzip = "urn:azure:iiot:pubsub:shadow:json:compact:gzip";
-        public const string JsonVerboseGzip = "urn:azure:iiot:pubsub:shadow:json:verbose:gzip";
+        public PubSubShadowConfigurationTranslation(PubSubConfigurationDataType configuration,
+            PubSubShadowEncodingRegistrySnapshot encodings)
+        {
+            Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            Encodings = encodings ?? throw new ArgumentNullException(nameof(encodings));
+        }
+
+        public PubSubConfigurationDataType Configuration { get; }
+
+        public PubSubShadowEncodingRegistrySnapshot Encodings { get; }
+    }
+
+    internal sealed class PubSubShadowEncodingRegistrySnapshot
+    {
+        public void Add(string connectionName, ushort writerGroupId,
+            PubSubShadowEncoding encoding)
+        {
+            if (string.IsNullOrWhiteSpace(connectionName))
+            {
+                throw new ArgumentException("A connection name is required.", nameof(connectionName));
+            }
+            if (writerGroupId == 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(writerGroupId));
+            }
+            if (!_connectionEncodings.TryAdd(connectionName, encoding)
+                || !_writerGroupEncodings.TryAdd(writerGroupId, encoding))
+            {
+                throw new ArgumentException(
+                    "A shadow PubSub encoding marker already exists for this connection or writer group.");
+            }
+        }
+
+        internal bool TryGetConnectionEncoding(string connectionName,
+            out PubSubShadowEncoding encoding)
+        {
+            return _connectionEncodings.TryGetValue(connectionName, out encoding);
+        }
+
+        internal bool TryGetWriterGroupEncoding(ushort writerGroupId,
+            out PubSubShadowEncoding encoding)
+        {
+            return _writerGroupEncodings.TryGetValue(writerGroupId, out encoding);
+        }
+
+        internal PubSubShadowEncodingRegistrySnapshot Clone()
+        {
+            var copy = new PubSubShadowEncodingRegistrySnapshot();
+            foreach (var entry in _connectionEncodings)
+            {
+                copy._connectionEncodings.Add(entry.Key, entry.Value);
+            }
+            foreach (var entry in _writerGroupEncodings)
+            {
+                copy._writerGroupEncodings.Add(entry.Key, entry.Value);
+            }
+            return copy;
+        }
+
+        private readonly Dictionary<string, PubSubShadowEncoding> _connectionEncodings =
+            new(StringComparer.Ordinal);
+        private readonly Dictionary<ushort, PubSubShadowEncoding> _writerGroupEncodings = [];
+    }
+
+    internal sealed class PubSubShadowEncodingRegistry
+    {
+        public PubSubShadowEncodingRegistrySnapshot Snapshot
+        {
+            get
+            {
+                lock (_gate)
+                {
+                    return _snapshot.Clone();
+                }
+            }
+        }
+
+        public void Replace(PubSubShadowEncodingRegistrySnapshot snapshot)
+        {
+            ArgumentNullException.ThrowIfNull(snapshot);
+            lock (_gate)
+            {
+                _snapshot = snapshot.Clone();
+            }
+        }
+
+        public PubSubShadowEncoding ResolveForWriterGroup(ushort? writerGroupId)
+        {
+            if (writerGroupId is not { } id)
+            {
+                throw new InvalidOperationException(
+                    "The JSON NetworkMessage does not carry a writer group identity.");
+            }
+            lock (_gate)
+            {
+                if (_snapshot.TryGetWriterGroupEncoding(id, out var encoding))
+                {
+                    return encoding;
+                }
+            }
+            throw new InvalidOperationException(
+                $"No shadow PubSub encoding marker exists for writer group '{id}'.");
+        }
+
+        public PubSubShadowEncoding ResolveForConnection(PubSubConnectionDataType connection)
+        {
+            ArgumentNullException.ThrowIfNull(connection);
+            var connectionName = connection.Name ?? string.Empty;
+            lock (_gate)
+            {
+                if (!_snapshot.TryGetConnectionEncoding(connectionName, out var encoding))
+                {
+                    throw new InvalidOperationException(
+                        $"No shadow PubSub encoding marker exists for connection '{connectionName}'.");
+                }
+                foreach (var writerGroup in connection.WriterGroups)
+                {
+                    if (!_snapshot.TryGetWriterGroupEncoding(writerGroup.WriterGroupId,
+                        out var writerGroupEncoding)
+                        || writerGroupEncoding != encoding)
+                    {
+                        throw new InvalidOperationException(
+                            $"The shadow PubSub encoding markers for connection '{connectionName}' disagree.");
+                    }
+                }
+                return encoding;
+            }
+        }
+
+        private readonly Lock _gate = new();
+        private PubSubShadowEncodingRegistrySnapshot _snapshot = new();
     }
 
     internal sealed class ShadowJsonEncoder : INetworkMessageEncoder
     {
-        public ShadowJsonEncoder(string profile, JsonEncodingMode mode)
+        public ShadowJsonEncoder(PubSubShadowEncodingRegistry encodings)
         {
-            TransportProfileUri = profile;
-            _encoder = new Opc.Ua.PubSub.Encoding.Json.JsonEncoder(mode);
+            _encodings = encodings ?? throw new ArgumentNullException(nameof(encodings));
         }
 
-        public string TransportProfileUri { get; }
+        public string TransportProfileUri => Profiles.PubSubMqttJsonTransport;
 
-        public int EstimatedHeaderOverhead => _encoder.EstimatedHeaderOverhead;
+        public int EstimatedHeaderOverhead => _compact.EstimatedHeaderOverhead;
 
         public ValueTask<ReadOnlyMemory<byte>> EncodeAsync(PubSubNetworkMessage networkMessage,
             PubSubNetworkMessageContext context, CancellationToken cancellationToken = default)
         {
-            return _encoder.EncodeAsync(networkMessage, context, cancellationToken);
+            ArgumentNullException.ThrowIfNull(networkMessage);
+            var encoding = _encodings.ResolveForWriterGroup(networkMessage.WriterGroupId);
+            return encoding switch
+            {
+                PubSubShadowEncoding.Json or PubSubShadowEncoding.JsonGzip =>
+                    _compact.EncodeAsync(networkMessage, context, cancellationToken),
+                PubSubShadowEncoding.JsonReversible or PubSubShadowEncoding.JsonReversibleGzip =>
+                    _verbose.EncodeAsync(networkMessage, context, cancellationToken),
+                _ => throw new InvalidOperationException(
+                    $"Shadow JSON encoder cannot encode '{encoding}' messages.")
+            };
         }
 
-        private readonly Opc.Ua.PubSub.Encoding.Json.JsonEncoder _encoder;
+        private readonly PubSubShadowEncodingRegistry _encodings;
+        private readonly Opc.Ua.PubSub.Encoding.Json.JsonEncoder _compact =
+            new(JsonEncodingMode.Compact);
+        private readonly Opc.Ua.PubSub.Encoding.Json.JsonEncoder _verbose =
+            new(JsonEncodingMode.Verbose);
     }
 
     internal sealed class NoEgressPubSubTransportFactory : IPubSubTransportFactory
     {
         public NoEgressPubSubTransportFactory(string transportProfileUri,
             PubSubShadowEncoding encoding, IPubSubShadowCaptureSink captureSink,
-            PubSubShadowRuntimeStateProvider state)
+            PubSubShadowRuntimeStateProvider state,
+            PubSubShadowEncodingRegistry? encodingRegistry = null)
         {
             TransportProfileUri = transportProfileUri ??
                 throw new ArgumentNullException(nameof(transportProfileUri));
             _encoding = encoding;
             _captureSink = captureSink ?? throw new ArgumentNullException(nameof(captureSink));
             _state = state ?? throw new ArgumentNullException(nameof(state));
+            _encodingRegistry = encodingRegistry;
         }
 
         public string TransportProfileUri { get; }
@@ -354,13 +538,15 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             {
                 direction |= PubSubTransportDirection.Receive;
             }
-            return new NoEgressPubSubTransport(TransportProfileUri, _encoding, direction,
+            var encoding = _encodingRegistry?.ResolveForConnection(connection) ?? _encoding;
+            return new NoEgressPubSubTransport(TransportProfileUri, encoding, direction,
                 _captureSink, _state, timeProvider);
         }
 
         private readonly PubSubShadowEncoding _encoding;
         private readonly IPubSubShadowCaptureSink _captureSink;
         private readonly PubSubShadowRuntimeStateProvider _state;
+        private readonly PubSubShadowEncodingRegistry? _encodingRegistry;
     }
 
     internal sealed class NoEgressPubSubTransport : IPubSubTransport
@@ -409,8 +595,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         {
             cancellationToken.ThrowIfCancellationRequested();
             await _captureSink.CaptureAsync(new PubSubShadowCapture(_encoding,
-                _timeProvider.GetUtcNow(),
-                PubSubShadowEncodingBridge.CompressIfRequired(payload, _encoding).Span),
+                _timeProvider.GetUtcNow(), TransportProfileUri,
+                CompressIfRequired(payload, _encoding).Span),
                 cancellationToken).ConfigureAwait(false);
             _state.Captured();
         }
@@ -426,6 +612,22 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         public async ValueTask DisposeAsync()
         {
             await CloseAsync().ConfigureAwait(false);
+        }
+
+        private static ReadOnlyMemory<byte> CompressIfRequired(ReadOnlyMemory<byte> payload,
+            PubSubShadowEncoding encoding)
+        {
+            if (encoding is not (PubSubShadowEncoding.JsonGzip
+                or PubSubShadowEncoding.JsonReversibleGzip))
+            {
+                return payload;
+            }
+            using var output = new MemoryStream();
+            using (var gzip = new GZipStream(output, CompressionLevel.SmallestSize, true))
+            {
+                gzip.Write(payload.Span);
+            }
+            return output.ToArray();
         }
 
         private readonly PubSubShadowEncoding _encoding;
