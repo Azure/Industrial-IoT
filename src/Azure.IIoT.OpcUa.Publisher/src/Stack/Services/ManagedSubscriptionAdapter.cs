@@ -114,40 +114,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     return _bindingsByHandle.Count;
                 }
+            }
+        }
 
-                /// <summary>
-                /// The number of owners that retain Publisher key-frame state.
-                /// </summary>
-                internal int OwnerStateCount
+        /// <summary>
+        /// The number of owners that retain Publisher key-frame state.
+        /// </summary>
+        internal int OwnerStateCount
+        {
+            get
+            {
+                lock (_bindingsLock)
                 {
-                    get
-                    {
-                        lock (_bindingsLock)
-                        {
-                            return _ownerStates.Count;
-                        }
-
-                        /// <summary>
-                        /// Gets the effective condition timing state for an item binding.
-                        /// </summary>
-                        internal bool TryGetConditionIntervals(uint clientHandle,
-                            out int snapshotInterval, out int updateInterval)
-                        {
-                            snapshotInterval = 0;
-                            updateInterval = 0;
-                            if (!TryGetBinding(clientHandle, out var binding) || binding.Condition == null)
-                            {
-                                return false;
-                            }
-                            lock (binding.Condition._lock)
-                            {
-                                snapshotInterval = binding.Condition.SnapshotInterval;
-                                updateInterval = binding.Condition.UpdateInterval;
-                                return true;
-                            }
-                        }
-                    }
+                    return _ownerStates.Count;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Gets the effective condition timing state for an item binding.
+        /// </summary>
+        internal bool TryGetConditionIntervals(uint clientHandle,
+            out int snapshotInterval, out int updateInterval)
+        {
+            snapshotInterval = 0;
+            updateInterval = 0;
+            if (!TryGetBinding(clientHandle, out var binding) || binding.Condition == null)
+            {
+                return false;
+            }
+            lock (binding.Condition._lock)
+            {
+                snapshotInterval = binding.Condition.SnapshotInterval;
+                updateInterval = binding.Condition.UpdateInterval;
+                return true;
             }
         }
 
