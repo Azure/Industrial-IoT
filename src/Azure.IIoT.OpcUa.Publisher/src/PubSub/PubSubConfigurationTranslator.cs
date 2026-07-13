@@ -252,10 +252,9 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         {
             return encoding switch
             {
-                null or MessageEncoding.Json => PubSubShadowProfiles.JsonCompact,
-                MessageEncoding.JsonReversible => PubSubShadowProfiles.JsonVerbose,
-                MessageEncoding.JsonGzip => PubSubShadowProfiles.JsonCompactGzip,
-                MessageEncoding.JsonReversibleGzip => PubSubShadowProfiles.JsonVerboseGzip,
+                null or MessageEncoding.Json or MessageEncoding.JsonReversible
+                    or MessageEncoding.JsonGzip or MessageEncoding.JsonReversibleGzip
+                    => Profiles.PubSubMqttJsonTransport,
                 MessageEncoding.Uadp => Profiles.PubSubUdpUadpTransport,
                 _ => throw new ArgumentException(
                     $"Message encoding '{encoding}' is not supported by the inert PubSub host.",

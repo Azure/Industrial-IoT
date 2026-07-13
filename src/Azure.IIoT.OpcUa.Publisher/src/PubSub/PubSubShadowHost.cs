@@ -242,28 +242,11 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 .WithApplicationId("azure-iiot-publisher-shadow")
                 .UseConfiguration(configuration)
                 .AddTransportFactory(new NoEgressPubSubTransportFactory(
-                    PubSubShadowProfiles.JsonCompact, PubSubShadowEncoding.Json,
-                    captureSink, state))
-                .AddTransportFactory(new NoEgressPubSubTransportFactory(
-                    PubSubShadowProfiles.JsonVerbose, PubSubShadowEncoding.JsonReversible,
-                    captureSink, state))
-                .AddTransportFactory(new NoEgressPubSubTransportFactory(
-                    PubSubShadowProfiles.JsonCompactGzip, PubSubShadowEncoding.JsonGzip,
-                    captureSink, state))
-                .AddTransportFactory(new NoEgressPubSubTransportFactory(
-                    PubSubShadowProfiles.JsonVerboseGzip, PubSubShadowEncoding.JsonReversibleGzip,
+                    Profiles.PubSubMqttJsonTransport, PubSubShadowEncoding.Json,
                     captureSink, state))
                 .AddTransportFactory(new NoEgressPubSubTransportFactory(
                     Profiles.PubSubUdpUadpTransport, PubSubShadowEncoding.Uadp,
                     captureSink, state))
-                .AddEncoder(new ShadowJsonEncoder(PubSubShadowProfiles.JsonCompact,
-                    JsonEncodingMode.Compact))
-                .AddEncoder(new ShadowJsonEncoder(PubSubShadowProfiles.JsonVerbose,
-                    JsonEncodingMode.Verbose))
-                .AddEncoder(new ShadowJsonEncoder(PubSubShadowProfiles.JsonCompactGzip,
-                    JsonEncodingMode.Compact))
-                .AddEncoder(new ShadowJsonEncoder(PubSubShadowProfiles.JsonVerboseGzip,
-                    JsonEncodingMode.Verbose))
                 .UseAllStandardEncoders()
                 .Build();
         }
