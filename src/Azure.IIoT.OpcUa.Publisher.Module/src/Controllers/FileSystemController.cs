@@ -18,7 +18,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
     using System.Diagnostics.CodeAnalysis;
-    using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -370,8 +369,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             {
                 httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
                 httpContext.Response.Headers.Append("errorInfo",
-                    new StringValues(Json.SerializeToString<ServiceResponse<Stream>>(result,
-                        Json.GetTypeInfo<ServiceResponse<Stream>>())));
+                    new StringValues(Json.SerializeToString(result,
+                        Json.GetTypeInfo<ServiceResultModel>())));
             }
             await response.CompleteAsync().ConfigureAwait(false);
         }
@@ -438,8 +437,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Controllers
             {
                 httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
                 httpContext.Response.Headers.Append("errorInfo",
-                    new StringValues(Json.SerializeToString<ServiceResponse<Stream>>(result,
-                        Json.GetTypeInfo<ServiceResponse<Stream>>())));
+                    new StringValues(Json.SerializeToString(result,
+                        Json.GetTypeInfo<ServiceResultModel>())));
             }
         }
         private readonly IFileSystemServices<ConnectionModel> _files;

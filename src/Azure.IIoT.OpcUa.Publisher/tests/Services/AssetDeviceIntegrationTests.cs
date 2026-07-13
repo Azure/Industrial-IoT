@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Services;
+    using Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.Iot.Operations.Services.AssetAndDeviceRegistry.Models;
     using AssetModel = Iot.Operations.Services.AssetAndDeviceRegistry.Models.Asset;
     using Microsoft.Extensions.Logging;
@@ -40,6 +41,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var sut = CreateSut();
             // Assert
             Assert.NotNull(sut);
+        }
+
+        [Fact]
+        public void AssetConfigurationRootsParseWithoutReflection()
+        {
+            AssertGeneratedRoundTrip(new DataSetConfiguration());
+            AssertGeneratedRoundTrip(new DataSetDataPointConfiguration());
+            AssertGeneratedRoundTrip(new EventGroupConfiguration());
+            AssertGeneratedRoundTrip(new EventConfiguration());
+            AssertGeneratedRoundTrip(new EventDataPointConfiguration());
+            AssertGeneratedRoundTrip(new ManagementGroupConfiguration());
+            AssertGeneratedRoundTrip(new ActionConfiguration { CompiledMetadata = [] });
+            AssertGeneratedRoundTrip(new DeviceEndpointConfiguration());
         }
 
         [Fact]
@@ -677,6 +691,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             // Act
             errors.OnError(device, "code1", "error1");
             // No assert, just ensure no exception and internal state updated
+        }
+
+        private static void AssertGeneratedRoundTrip<T>(T configuration)
+        {
+            var typeInfo = Json.GetTypeInfo<T>();
+            Assert.Equal("PublisherJsonContext",
+                typeInfo.OriginatingResolver?.GetType().Name);
+            var json = Json.SerializeToString(configuration, typeInfo);
+            Assert.NotNull(Json.Deserialize(json, typeInfo));
         }
 
         private static void TryCompleteChannel(AssetDeviceIntegration sut)

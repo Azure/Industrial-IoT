@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     using Azure.IIoT.OpcUa.Core.Serialization;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
-    using System.IO;
     using System.Runtime.CompilerServices;
     using System.Text.Json;
     using System.Text.Json.Nodes;
@@ -215,7 +214,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     [JsonSerializable(typeof(ServerEndpointQueryModel))]
     [JsonSerializable(typeof(ServerRegistrationRequestModel))]
     [JsonSerializable(typeof(ServiceCounterModel))]
-    [JsonSerializable(typeof(ServiceResponse<Stream>))]
     [JsonSerializable(typeof(ServiceResultModel))]
     [JsonSerializable(typeof(SessionDiagnosticsModel))]
     [JsonSerializable(typeof(SetConfiguredEndpointsRequestModel))]

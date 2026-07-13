@@ -15,6 +15,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
         UseStringEnumConverter = true)]
     [JsonSerializable(typeof(DeviceEndpointConfiguration))]
+    [JsonSerializable(typeof(DataSetEventConfiguration))]
+    [JsonSerializable(typeof(DataSetConfiguration))]
+    [JsonSerializable(typeof(DataSetDataPointConfiguration))]
+    [JsonSerializable(typeof(EventGroupConfiguration))]
+    [JsonSerializable(typeof(EventConfiguration))]
+    [JsonSerializable(typeof(EventDataPointConfiguration))]
+    [JsonSerializable(typeof(ManagementGroupConfiguration))]
+    [JsonSerializable(typeof(ActionConfiguration))]
     internal sealed partial class PublisherJsonContext : JsonSerializerContext
     {
     }

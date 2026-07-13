@@ -34,6 +34,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Text.Json;
     using System.Text.Json.Nodes;
     using System.Text.Json.Serialization;
+    using System.Text.Json.Serialization.Metadata;
     using System.Text.RegularExpressions;
     using System.Threading;
     using System.Threading.Channels;
@@ -1106,6 +1107,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         // Deserialize existing configuration
                         var errors = new ValidationErrors(this);
                         var epModelExisting = Deserialize(existing.Value.Value.AdditionalConfiguration,
+                            Json.GetTypeInfo<DeviceEndpointConfiguration>(),
                             () => new DeviceEndpointConfiguration(), errors, resource!);
                         if (epModelExisting != null)
                         {
@@ -1230,6 +1232,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var deviceEndpointResource = new DeviceEndpointResource(deviceResource.DeviceName,
                     deviceResource.Device, deviceRef.EndpointName);
                 var endpointConfiguration = Deserialize(endpoint.AdditionalConfiguration,
+                    Json.GetTypeInfo<DeviceEndpointConfiguration>(),
                     () => new DeviceEndpointConfiguration(), errors, deviceEndpointResource);
                 if (endpointConfiguration == null)
                 {
@@ -1269,6 +1272,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 if (asset.Asset.Datasets != null)
                 {
                     var dataSetAdditionalConfiguration = Deserialize(asset.Asset.DefaultDatasetsConfiguration,
+                        Json.GetTypeInfo<PublishedNodesEntryModel>(),
                         () => new PublishedNodesEntryModel { EndpointUrl = string.Empty },
                         errors, asset);
                     if (dataSetAdditionalConfiguration != null)
@@ -1285,6 +1289,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 if (asset.Asset.EventGroups != null)
                 {
                     var eventAdditionalConfiguration = Deserialize(asset.Asset.DefaultEventsConfiguration,
+                        Json.GetTypeInfo<PublishedNodesEntryModel>(),
                         () => new PublishedNodesEntryModel { EndpointUrl = string.Empty },
                         errors, asset);
                     if (eventAdditionalConfiguration != null)
@@ -1302,6 +1307,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 if (asset.Asset.ManagementGroups != null)
                 {
                     var managementGroupConfiguration = Deserialize(asset.Asset.DefaultManagementGroupsConfiguration,
+                        Json.GetTypeInfo<PublishedNodesEntryModel>(),
                         () => new PublishedNodesEntryModel { EndpointUrl = string.Empty },
                         errors, asset);
                     if (managementGroupConfiguration != null)
@@ -1471,6 +1477,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             // Map dataset configuration on top of entry
             var additionalConfiguration = Deserialize(resource.DataSet.DatasetConfiguration,
+                Json.GetTypeInfo<DataSetConfiguration>(),
                 () => new DataSetConfiguration(), errors, resource);
             if (additionalConfiguration == null)
             {
@@ -1484,8 +1491,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             foreach (var datapoint in resource.DataSet.DataPoints)
             {
                 var nodeFromAdditionalConfiguration = Deserialize(
-                    datapoint.DataPointConfiguration, () => new DataSetDataPointConfiguration(),
-                    errors, resource);
+                    datapoint.DataPointConfiguration,
+                    Json.GetTypeInfo<DataSetDataPointConfiguration>(),
+                    () => new DataSetDataPointConfiguration(), errors, resource);
                 if (nodeFromAdditionalConfiguration == null)
                 {
                     continue;
@@ -1550,6 +1558,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             // Map dataset configuration on top of entry
             var additionalConfiguration = Deserialize(resource.EventGroup.EventGroupConfiguration,
+                Json.GetTypeInfo<EventGroupConfiguration>(),
                 () => new EventGroupConfiguration(), errors, resource);
             if (additionalConfiguration == null)
             {
@@ -1565,6 +1574,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     resource.Asset, resource.EventGroup, @event);
                 // Map event configuration on top of entry
                 var eventConfiguration = Deserialize(@event.EventConfiguration,
+                    Json.GetTypeInfo<EventConfiguration>(),
                     () => new EventConfiguration(), errors, eventResource);
                 if (eventConfiguration == null)
                 {
@@ -1637,6 +1647,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             // Map event configuration on top of entry
             var additionalConfiguration = Deserialize(
                 resource.ManagementGroup.ManagementGroupConfiguration,
+                Json.GetTypeInfo<ManagementGroupConfiguration>(),
                 () => new ManagementGroupConfiguration(), errors, resource);
             if (additionalConfiguration == null)
             {
@@ -2174,6 +2185,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 continue;
                             }
                             var endpointConfiguration = Deserialize(endpoint.Value.AdditionalConfiguration,
+                                Json.GetTypeInfo<DeviceEndpointConfiguration>(),
                                 () => new DeviceEndpointConfiguration(), errors, deviceEndpointResource);
                             if (endpointConfiguration == null)
                             {
@@ -2375,7 +2387,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="errors"></param>
         /// <param name="resource"></param>
         /// <returns></returns>
-        private T? Deserialize<T>(string? configuration, Func<T> createDefault,
+        private T? Deserialize<T>(string? configuration, JsonTypeInfo<T> typeInfo,
+            Func<T> createDefault,
             ValidationErrors errors, Resource resource)
         {
             try
@@ -2383,7 +2396,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 T? result = default;
                 if (configuration != null)
                 {
-                    result = Json.Deserialize<T>(configuration);
+                    result = Json.Deserialize(configuration, typeInfo);
                 }
                 return result ??= createDefault();
             }
@@ -2424,7 +2437,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
                 compressed = result.ToArray();
             }
-            var json = JsonSerializer.Serialize(new ActionConfiguration { CompiledMetadata = compressed });
+            var json = Json.SerializeToString(new ActionConfiguration
+            {
+                CompiledMetadata = compressed
+            }, Json.GetTypeInfo<ActionConfiguration>());
             if (Encoding.UTF8.GetByteCount(json) > 512) // 512 is max size but we are leaving some room here
             {
                 if (compressionLevel > 2)
@@ -2470,6 +2486,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             try
             {
                 var actionConfiguration = Deserialize(actionConfigurationJson,
+                    Json.GetTypeInfo<ActionConfiguration>(),
                     () => new ActionConfiguration { CompiledMetadata = [] }, errors, resource);
                 if (actionConfiguration?.CompiledMetadata == null ||
                     actionConfiguration.CompiledMetadata.Length == 0)
