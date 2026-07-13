@@ -78,4 +78,19 @@ namespace Azure.IIoT.OpcUa.Core.Messaging
         /// </summary>
         EventClientCapabilities Capabilities { get; }
     }
+
+    /// <summary>
+    /// Optional capability declared by event clients that can remove a
+    /// retained broker message by sending an empty retained event. It is a
+    /// separate contract so existing <see cref="IEventClientCapabilities"/>
+    /// implementations remain binary and source compatible.
+    /// </summary>
+    public interface IEventClientRetainedTombstoneCapabilities
+    {
+        /// <summary>
+        /// Gets whether an empty retained event removes the retained broker
+        /// message rather than storing an empty value.
+        /// </summary>
+        bool SupportsRetainedTombstones { get; }
+    }
 }

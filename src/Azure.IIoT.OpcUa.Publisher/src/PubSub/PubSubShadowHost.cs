@@ -42,12 +42,14 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         ValueTask ReplaceConfigurationAsync(IEnumerable<WriterGroupModel> writerGroups,
             CancellationToken cancellationToken = default);
 
-        /// <summary>
-        /// Forces the native runtime to publish a complete keyframe for a
-        /// writer group. Selecting an individual writer intentionally emits
-        /// the complete group snapshot because a native network message is
-        /// the compatibility boundary.
-        /// </summary>
+    }
+
+    /// <summary>
+    /// Test-only compatibility control for an all-writer native keyframe.
+    /// It is intentionally separate from the public shadow-host contract.
+    /// </summary>
+    internal interface IPubSubKeyFrameControl
+    {
         ValueTask ForceKeyFrameAsync(string writerGroupId,
             string? dataSetWriterId = null,
             CancellationToken cancellationToken = default);
@@ -108,6 +110,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             services.TryAddSingleton<PubSubShadowHost>();
             services.TryAddSingleton<IPubSubShadowHost>(
                 provider => provider.GetRequiredService<PubSubShadowHost>());
+            services.TryAddSingleton<IPubSubKeyFrameControl>(
+                provider => provider.GetRequiredService<PubSubShadowHost>());
             if (!registered)
             {
                 services.AddSingleton<IHostedService>(
@@ -141,6 +145,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     }
 
     internal sealed class PubSubShadowHost : IHostedService, IPubSubShadowHost,
+        IPubSubKeyFrameControl,
         IAsyncDisposable
     {
         public PubSubShadowHost(IPubSubIdentityRegistry identityRegistry,
@@ -251,6 +256,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 var replaced = false;
                 var encodingsReplaced = false;
                 var egressReplaced = false;
+                var committed = false;
+                var tombstones = Array.Empty<RetainedMetaDataTombstone>();
                 try
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -260,6 +267,15 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                         _egress.Settings.Replace(groups, _publisherOptions?.Value
                             ?? new PublisherOptions(), _egress.Options);
                         egressReplaced = true;
+                        tombstones = GetRemovedMetaDataTopics(_configuration, previousEgress,
+                            replacement, _egress.Settings.Snapshot());
+                        foreach (var tombstone in tombstones)
+                        {
+                            EventClientPubSubTransportFactory.ValidateTombstoneCapability(
+                                _egress.EventClient);
+                            EventClientPubSubTransportFactory.ValidateCapabilities(
+                                _egress.EventClient, tombstone.Settings.RequiredCapabilities);
+                        }
                     }
                     if (wasStarted)
                     {
@@ -292,11 +308,33 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                         await sourceTransaction.CommitAsync().ConfigureAwait(false);
                     }
                     _configuration = replacement;
+                    committed = true;
                     _state.Replaced(replacement.Connections.Count,
                         CountDataSetWriters(replacement));
+                    foreach (var tombstone in tombstones)
+                    {
+                        try
+                        {
+                            await EventClientPubSubTransportFactory.SendMetadataTombstoneAsync(
+                                _egress!.EventClient, tombstone.Settings, tombstone.Topic,
+                                TimeProvider.System, cancellationToken).ConfigureAwait(false);
+                        }
+                        catch (Exception exception)
+                        {
+                            // The replacement is already durable and running. Do not
+                            // report it as rolled back; retain the cleanup failure in
+                            // shadow diagnostics for a retrying cutover controller.
+                            _state.Failed(exception);
+                        }
+                    }
                 }
                 catch (Exception exception)
                 {
+                    if (committed)
+                    {
+                        _state.Failed(exception);
+                        throw;
+                    }
                     if (replaced)
                     {
                         try
@@ -399,6 +437,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 // same native configuration resets its per-writer snapshot state;
                 // the first explicit PublishOnceAsync is therefore a complete,
                 // native keyframe for every writer in the group.
+                _managedDataSources?.RequestKeyFrame();
                 await _application.StopAsync(CancellationToken.None).ConfigureAwait(false);
                 var statusCodes = await _application.ReplaceConfigurationAsync(_configuration,
                     CancellationToken.None).ConfigureAwait(false);
@@ -486,6 +525,59 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             return count;
         }
 
+        private static RetainedMetaDataTombstone[] GetRemovedMetaDataTopics(
+            PubSubConfigurationDataType previous,
+            Dictionary<string, PubSubShadowEgressSettings>? previousSettings,
+            PubSubConfigurationDataType replacement,
+            Dictionary<string, PubSubShadowEgressSettings> replacementSettings)
+        {
+            if (previousSettings is null)
+            {
+                return [];
+            }
+            var activeTopics = new Dictionary<string, List<PubSubShadowEgressSettings>>(
+                StringComparer.Ordinal);
+            foreach (var connection in replacement.Connections)
+            {
+                if (!replacementSettings.TryGetValue(connection.Name ?? string.Empty,
+                    out var settings))
+                {
+                    continue;
+                }
+                foreach (var topic in EventClientPubSubTransportFactory
+                    .CreateMetadataRouting(connection, settings).ByTopic)
+                {
+                    if (!activeTopics.TryGetValue(topic.Key, out var active))
+                    {
+                        active = [];
+                        activeTopics.Add(topic.Key, active);
+                    }
+                    active.Add(topic.Value);
+                }
+            }
+
+            var removed = new List<RetainedMetaDataTombstone>();
+            foreach (var connection in previous.Connections)
+            {
+                if (!previousSettings.TryGetValue(connection.Name ?? string.Empty,
+                    out var settings))
+                {
+                    continue;
+                }
+                foreach (var entry in EventClientPubSubTransportFactory
+                    .CreateMetadataRouting(connection, settings).ByTopic)
+                {
+                    if (entry.Value.Retain
+                        && (!activeTopics.TryGetValue(entry.Key, out var active)
+                            || !active.Any(settings => settings.Retain)))
+                    {
+                        removed.Add(new RetainedMetaDataTombstone(entry.Key, entry.Value));
+                    }
+                }
+            }
+            return [.. removed];
+        }
+
         private static void EnsureSuccessfulReplacement(ArrayOf<StatusCode> statusCodes)
         {
             foreach (var statusCode in statusCodes)
@@ -521,6 +613,9 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         {
         }
     }
+
+    internal sealed record class RetainedMetaDataTombstone(string Topic,
+        PubSubShadowEgressSettings Settings);
 
     internal sealed class PubSubShadowConfigurationTranslation
     {

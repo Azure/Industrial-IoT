@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using Opc.Ua;
     using Opc.Ua.PubSub.Diagnostics;
     using Opc.Ua.PubSub.Transports;
@@ -18,8 +19,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
     using System.Buffers;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
+    using System.IO;
+    using System.IO.Compression;
     using System.Linq;
     using System.Text;
+    using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
@@ -27,15 +31,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
     public sealed class EventClientPubSubTransportTests
     {
         [Fact]
-        public async Task EgressPreservesEventClientHeadersAndChunksAsync()
+        public async Task EgressPreservesEventClientHeadersWithoutByteSlicingAsync()
         {
-            var client = new RecordingEventClient { MaxPayload = 2 };
+            var client = new RecordingEventClient { MaxPayload = 1024 };
             await using var transport = CreateTransport(client, new PubSubShadowEgressSettings
             {
                 ConnectionName = "shadow-group",
+                Encoding = PubSubShadowEncoding.Json,
                 Topic = "configured/topic",
                 ContentType = "application/json",
-                ContentEncoding = "gzip",
+                ContentEncoding = null,
                 QualityOfService = QoS.AtLeastOnce,
                 Retain = true,
                 TimeToLive = TimeSpan.FromMinutes(1),
@@ -49,27 +54,66 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             });
             await transport.OpenAsync();
 
-            await transport.SendAsync(new byte[] { 1, 2, 3, 4, 5 }, "writer/topic");
+            var payload = Encoding.UTF8.GetBytes("""{"MessageType":"ua-data"}""");
+            await transport.SendAsync(payload, "writer/topic");
             await transport.CloseAsync();
 
             var events = client.Events;
-            Assert.Equal(3, events.Count);
-            Assert.All(events, captured =>
+            var captured = Assert.Single(events);
+            Assert.All(events, sent =>
             {
-                Assert.Equal("writer/topic", captured.Topic);
-                Assert.Equal(QoS.AtLeastOnce, captured.QualityOfService);
-                Assert.True(captured.Retain);
-                Assert.Equal(TimeSpan.FromMinutes(1), captured.TimeToLive);
-                Assert.Equal("application/json", captured.ContentType);
-                Assert.Equal("gzip", captured.ContentEncoding);
-                Assert.Equal("property", captured.Properties["custom"]);
-                Assert.NotNull(captured.CloudEvent);
-                Assert.NotNull(captured.Schema);
+                Assert.Equal("writer/topic", sent.Topic);
+                Assert.Equal(QoS.AtLeastOnce, sent.QualityOfService);
+                Assert.True(sent.Retain);
+                Assert.Equal(TimeSpan.FromMinutes(1), sent.TimeToLive);
+                Assert.Equal("application/json", sent.ContentType);
+                Assert.Null(sent.ContentEncoding);
+                Assert.Equal("property", sent.Properties["custom"]);
+                Assert.NotNull(sent.CloudEvent);
+                Assert.NotNull(sent.Schema);
             });
-            Assert.Equal(new byte[] { 1, 2 }, events[0].Payload);
-            Assert.Equal(new byte[] { 3, 4 }, events[1].Payload);
-            Assert.Equal(new byte[] { 5 }, events[2].Payload);
-            Assert.Equal(3, transport.Metrics.ChunkCount);
+            Assert.Equal(payload, captured.Payload);
+            using var _ = JsonDocument.Parse(captured.Payload);
+            Assert.Equal(1, transport.Metrics.ChunkCount);
+        }
+
+        [Theory]
+        [InlineData(PubSubShadowEncoding.JsonGzip)]
+        [InlineData(PubSubShadowEncoding.JsonReversibleGzip)]
+        public async Task EgressCompressesGzipPayloadBeforeSendingAsync(
+            PubSubShadowEncoding encoding)
+        {
+            var client = new RecordingEventClient { MaxPayload = 128 };
+            var settings = CreateSettings(encoding, "gzip");
+            await using var transport = CreateTransport(client, settings);
+            await transport.OpenAsync();
+            var payload = Encoding.UTF8.GetBytes(
+                "{\"MessageType\":\"" + new string('x', 512) + "\"}");
+
+            await transport.SendAsync(payload, "topic");
+            await transport.CloseAsync();
+
+            var captured = Assert.Single(client.Events);
+            Assert.Equal("gzip", captured.ContentEncoding);
+            Assert.Equal(payload, Decompress(captured.Payload));
+            using var _ = JsonDocument.Parse(Decompress(captured.Payload));
+        }
+
+        [Fact]
+        public async Task EgressRejectsOversizeFramesWithoutCreatingInvalidFragmentsAsync()
+        {
+            var client = new RecordingEventClient { MaxPayload = 3 };
+            await using var transport = CreateTransport(client);
+            await transport.OpenAsync();
+
+            var exception = await Assert.ThrowsAsync<PubSubShadowPayloadTooLargeException>(
+                async () => await transport.SendAsync(new byte[] { 1, 2, 3, 4 }, "topic"));
+            await transport.CloseAsync();
+
+            Assert.Equal(4, exception.PayloadSize);
+            Assert.Empty(client.Events);
+            Assert.Equal(1, transport.Metrics.FailedCount);
+            Assert.Equal(0, transport.Metrics.ChunkCount);
         }
 
         [Fact]
@@ -88,6 +132,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             Assert.Equal(new byte[] { 2 }, client.Events[1].Payload);
             Assert.Equal(2, transport.Metrics.RetryCount);
             Assert.Equal(2, transport.Metrics.SentCount);
+            Assert.Equal(0, transport.Metrics.FailedCount);
+            var diagnostic = PubSubShadowDiagnosticsBridge.Apply(
+                new WriterGroupDiagnosticModel(),
+                new PubSubDiagnostics(PubSubDiagnosticsLevel.Medium), transport);
+            Assert.Equal(0, diagnostic.OutgressIoTMessageFailedCount);
+            Assert.Equal(2, diagnostic.ConnectionRetries);
         }
 
         [Fact]
@@ -105,6 +155,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             await Assert.ThrowsAnyAsync<OperationCanceledException>(() => sending);
             await transport.CloseAsync();
             Assert.NotEqual(0, transport.Metrics.RetryCount);
+        }
+
+        [Fact]
+        public async Task EgressCloseCancelsActiveRetriesAndCompletesPendingFramesAsync()
+        {
+            var client = new RecordingEventClient { FailuresRemaining = int.MaxValue };
+            await using var transport = CreateTransport(client);
+            await transport.OpenAsync();
+            var sending = transport.SendAsync(new byte[] { 1 }, "topic").AsTask();
+            await client.SendStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+            await transport.CloseAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(2));
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => sending);
+            Assert.Equal(0, transport.Metrics.QueueDepth);
         }
 
         [Fact]
@@ -172,6 +236,152 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
         }
 
         [Fact]
+        public async Task EgressUsesPerWriterMetadataPublishingSettingsAsync()
+        {
+            var client = new RecordingEventClient();
+            var settings = CreateSettings(metadataWriters:
+            [
+                new PubSubShadowMetadataWriterSettings
+                {
+                    WriterName = "writer",
+                    Publishing = new PublishingQueueSettingsModel
+                    {
+                        QueueName = "metadata/topic",
+                        RequestedDeliveryGuarantee = QoS.AtMostOnce,
+                        Retain = false,
+                        Ttl = TimeSpan.FromSeconds(30)
+                    }
+                }
+            ]);
+            var connection = new PubSubConnectionDataType
+            {
+                Name = settings.ConnectionName,
+                WriterGroups =
+                [
+                    new WriterGroupDataType
+                    {
+                        WriterGroupId = 3,
+                        DataSetWriters =
+                        [
+                            new DataSetWriterDataType
+                            {
+                                Name = "writer",
+                                DataSetWriterId = 4
+                            }
+                        ]
+                    }
+                ]
+            };
+            var routing = EventClientPubSubTransportFactory.CreateMetadataRouting(
+                connection, settings);
+            await using var transport = new EventClientPubSubTransport(
+                Profiles.PubSubMqttJsonTransport, PubSubTransportDirection.Send,
+                client, settings, routing, new PubSubShadowEgressOptions
+                {
+                    InitialRetryDelay = TimeSpan.FromMilliseconds(1),
+                    MaximumRetryDelay = TimeSpan.FromMilliseconds(5)
+                }, TimeProvider.System);
+            await transport.OpenAsync();
+
+            var topic = transport.BuildMetaDataTopic(default, 3, 4);
+            await transport.SendAsync(new byte[] { 1 }, topic);
+            await transport.CloseAsync();
+
+            var sent = Assert.Single(client.Events);
+            Assert.Equal("metadata/topic", sent.Topic);
+            Assert.Equal(QoS.AtMostOnce, sent.QualityOfService);
+            Assert.False(sent.Retain);
+            Assert.Equal(TimeSpan.FromSeconds(30), sent.TimeToLive);
+        }
+
+        [Fact]
+        public async Task ConfigurationRemovalPublishesRetainedMetadataTombstoneAsync()
+        {
+            var client = new RecordingEventClient();
+            var services = new ServiceCollection();
+            services.AddLogging();
+            services.AddPubSubShadowEgressHost(client, options => options.IncludeSchema = false);
+            await using var provider = services.BuildServiceProvider();
+            var host = provider.GetRequiredService<IPubSubShadowHost>();
+            var hosted = Assert.Single(provider.GetServices<IHostedService>());
+            var group = CreateManagedWriterGroup();
+            group.DataSetWriters![0].MetaData = new PublishingQueueSettingsModel
+            {
+                QueueName = "metadata/removed",
+                Retain = true
+            };
+
+            await hosted.StartAsync(default);
+            await host.ReplaceConfigurationAsync([group]);
+            var before = client.Events.Count;
+            await host.ReplaceConfigurationAsync([]);
+            await hosted.StopAsync(default);
+
+            var tombstone = client.Events.Skip(before).Single(captured =>
+                captured.Topic == "metadata/removed");
+            Assert.True(tombstone.Retain);
+            Assert.Empty(tombstone.Payload);
+        }
+
+        [Fact]
+        public async Task ConfigurationRetentionChangeClearsPreviousMetadataAsync()
+        {
+            var client = new RecordingEventClient();
+            var services = new ServiceCollection();
+            services.AddLogging();
+            services.AddPubSubShadowEgressHost(client, options => options.IncludeSchema = false);
+            await using var provider = services.BuildServiceProvider();
+            var host = provider.GetRequiredService<IPubSubShadowHost>();
+            var hosted = Assert.Single(provider.GetServices<IHostedService>());
+            var retained = CreateManagedWriterGroup();
+            retained.DataSetWriters![0].MetaData = new PublishingQueueSettingsModel
+            {
+                QueueName = "metadata/retention-change",
+                Retain = true
+            };
+            var transient = CreateManagedWriterGroup();
+            transient.DataSetWriters![0].MetaData = new PublishingQueueSettingsModel
+            {
+                QueueName = "metadata/retention-change",
+                Retain = false
+            };
+
+            await hosted.StartAsync(default);
+            await host.ReplaceConfigurationAsync([retained]);
+            var before = client.Events.Count;
+            await host.ReplaceConfigurationAsync([transient]);
+            await hosted.StopAsync(default);
+
+            Assert.Contains(client.Events.Skip(before), captured =>
+                captured.Topic == "metadata/retention-change"
+                && captured.Retain && captured.Payload.Length == 0);
+        }
+
+        [Fact]
+        public async Task ConfigurationRemovalFailsWhenClientCannotTombstoneAsync()
+        {
+            var client = new RecordingEventClient { SupportsRetainedTombstones = false };
+            var services = new ServiceCollection();
+            services.AddLogging();
+            services.AddPubSubShadowEgressHost(client, options => options.IncludeSchema = false);
+            await using var provider = services.BuildServiceProvider();
+            var host = provider.GetRequiredService<IPubSubShadowHost>();
+            var hosted = Assert.Single(provider.GetServices<IHostedService>());
+            var group = CreateManagedWriterGroup();
+            group.DataSetWriters![0].MetaData = new PublishingQueueSettingsModel
+            {
+                QueueName = "metadata/removed",
+                Retain = true
+            };
+
+            await hosted.StartAsync(default);
+            await host.ReplaceConfigurationAsync([group]);
+            await Assert.ThrowsAsync<NotSupportedException>(async () =>
+                await host.ReplaceConfigurationAsync([]));
+            await hosted.StopAsync(default);
+        }
+
+        [Fact]
         public async Task ManagedSourceRetainsEveryBurstNotificationAfterOwnershipTransferAsync()
         {
             var buffer = new ManagedPubSubNotificationBuffer(8);
@@ -199,6 +409,92 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
         }
 
         [Fact]
+        public async Task ManagedSourceUsesCurrentStateForKeyframesAndKeepsEventsInFifoAsync()
+        {
+            var buffer = new ManagedPubSubNotificationBuffer(8);
+            await using var provider = new ManagedPubSubNotificationDataSourceProvider(buffer);
+            var managed = Assert.IsAssignableFrom<IManagedPubSubDataSource>(
+                await provider.CreateAsync(new PublishedDataSetModel { Name = "data" }));
+            await using var source = new ManagedPubSubDataSetSource("data", managed);
+            source.Start();
+            var metadata = source.BuildMetaData();
+            await buffer.EnqueueAsync(new ManagedPubSubNotification(
+                "data", "first", DateTimeOffset.UnixEpoch, [1]));
+            await buffer.EnqueueAsync(new ManagedPubSubNotification(
+                "data", "second", DateTimeOffset.UnixEpoch.AddSeconds(1), [2]));
+
+            Assert.Equal(new byte[] { 1 }, await ReadPayloadAsync(source, metadata));
+            Assert.Equal(new byte[] { 2 }, await ReadPayloadAsync(source, metadata));
+
+            metadata = source.BuildMetaData();
+            Assert.Equal(2, metadata.Fields.Count);
+            source.RequestKeyFrame();
+            var keyframe = await source.SampleAsync(metadata);
+            Assert.Equal(2, keyframe.Fields.Count);
+            Assert.Equal("first", keyframe.Fields[0].Name);
+            Assert.Equal("second", keyframe.Fields[1].Name);
+
+            await buffer.EnqueueAsync(new ManagedPubSubNotification(
+                "data", "event", DateTimeOffset.UnixEpoch.AddSeconds(2), [3],
+                ManagedPubSubNotificationKind.Event));
+            Assert.Equal(new byte[] { 3 }, await ReadPayloadAsync(source, metadata));
+        }
+
+        [Fact]
+        public async Task ManagedRoutesPropagateBackpressureAndDoNotReplayAfterRemovalAsync()
+        {
+            var options = Options.Create(new ManagedPubSubNotificationBufferOptions
+            {
+                Capacity = 1
+            });
+            var buffer = new ManagedPubSubNotificationBuffer(1);
+            await using var provider = new ManagedPubSubNotificationDataSourceProvider(buffer,
+                options);
+            await using var registry = new ManagedPubSubDataSetSourceRegistry([provider], options);
+            var group = CreateManagedWriterGroup();
+            await using (var transaction = await registry.PrepareAsync([group]))
+            {
+                transaction.Install();
+                await transaction.CommitAsync();
+            }
+            Assert.True(registry.TryGetSource("data", out var first));
+            var source = Assert.IsType<ManagedPubSubDataSetSource>(first);
+            await buffer.EnqueueAsync(new ManagedPubSubNotification(
+                "data", "value", DateTimeOffset.UnixEpoch, [1]));
+            await WaitUntilAsync(() => source.PendingCount == 1);
+            var producers = Enumerable.Range(2, 10).Select(value =>
+                buffer.EnqueueAsync(new ManagedPubSubNotification(
+                    "data", "value", DateTimeOffset.UnixEpoch.AddSeconds(value), [(byte)value]))
+                    .AsTask()).ToArray();
+            await Task.Delay(50);
+            Assert.Contains(producers, producer => !producer.IsCompleted);
+
+            var metadata = source.BuildMetaData();
+            for (var attempt = 0; attempt < 100 && !Task.WhenAll(producers).IsCompleted; attempt++)
+            {
+                _ = await source.SampleAsync(metadata);
+                await Task.Delay(10);
+            }
+            await Task.WhenAll(producers).WaitAsync(TimeSpan.FromSeconds(5));
+
+            await using (var transaction = await registry.PrepareAsync([]))
+            {
+                transaction.Install();
+                await transaction.CommitAsync();
+            }
+            await using (var transaction = await registry.PrepareAsync([group]))
+            {
+                transaction.Install();
+                await transaction.CommitAsync();
+            }
+            Assert.True(registry.TryGetSource("data", out var readded));
+            var replacement = Assert.IsType<ManagedPubSubDataSetSource>(readded);
+            Assert.NotSame(source, replacement);
+            await Task.Delay(50);
+            Assert.Equal(0, replacement.PendingCount);
+        }
+
+        [Fact]
         public async Task DiagnosticsBridgeMapsNativeAndEgressCountersAsync()
         {
             var client = new RecordingEventClient();
@@ -216,6 +512,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             Assert.Equal(1, diagnostic.OutgressIoTMessageCount);
             Assert.Equal(4, diagnostic.EncoderIoTMessagesProcessed);
             Assert.Equal(5, diagnostic.EncoderNotificationsProcessed);
+            Assert.Equal(0, diagnostic.OutgressIoTMessageFailedCount);
         }
 
         [Fact]
@@ -234,7 +531,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             var buffer = provider.GetRequiredService<IManagedPubSubNotificationBuffer>();
 
             await hosted.StartAsync(default);
-            await host.ReplaceConfigurationAsync([CreateManagedWriterGroup()]);
+            await host.ReplaceConfigurationAsync([CreateManagedWriterGroup(MessageEncoding.JsonGzip)]);
             await buffer.EnqueueAsync(new ManagedPubSubNotification("data", "payload",
                 DateTimeOffset.UnixEpoch, [42]));
             await WaitUntilAsync(() => ((IManagedPubSubNotificationBufferDiagnostics)buffer)
@@ -245,8 +542,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             await WaitUntilAsync(() => managedSource.PendingCount == 1);
             var priorEvents = client.Events.Count;
 
-            await host.ForceKeyFrameAsync("group", "writer");
-            Assert.Equal(0, managedSource.PendingCount);
+            await provider.GetRequiredService<IPubSubKeyFrameControl>()
+                .ForceKeyFrameAsync("group", "writer");
+            Assert.Equal(1, managedSource.PendingCount);
             await WaitUntilAsync(() => client.Events.Count > priorEvents);
             await hosted.StopAsync(default);
 
@@ -255,8 +553,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 string.Join(", ", published.Select(captured =>
                     captured.Topic + ":" + Encoding.UTF8.GetString(captured.Payload))));
             var publication = published.Single(captured => captured.Topic == "shadow/group");
-            Assert.Contains("\"payload\"", Encoding.UTF8.GetString(publication.Payload),
+            Assert.Equal("gzip", publication.ContentEncoding);
+            var decoded = Decompress(publication.Payload);
+            Assert.Contains("\"payload\"", Encoding.UTF8.GetString(decoded),
                 StringComparison.Ordinal);
+            using var _ = JsonDocument.Parse(decoded);
             Assert.Equal(1, ((IPubSubShadowRuntimeStateProvider)provider.GetRequiredService<
                 IPubSubShadowRuntimeStateProvider>()).State.StartCount);
         }
@@ -281,14 +582,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 PubSubTransportDirection.Send, client, settings, options, TimeProvider.System);
         }
 
-        private static PubSubShadowEgressSettings CreateSettings()
+        private static PubSubShadowEgressSettings CreateSettings(
+            PubSubShadowEncoding encoding = PubSubShadowEncoding.Json,
+            string? contentEncoding = null,
+            IReadOnlyList<PubSubShadowMetadataWriterSettings>? metadataWriters = null)
         {
             return new PubSubShadowEgressSettings
             {
                 ConnectionName = "shadow-group",
+                Encoding = encoding,
                 Topic = "configured/topic",
                 ContentType = "application/json",
-                ContentEncoding = null,
+                ContentEncoding = contentEncoding,
                 QualityOfService = QoS.AtLeastOnce,
                 Retain = false,
                 TimeToLive = null,
@@ -298,16 +603,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 CloudEventSubject = "group",
                 Schema = null,
                 Properties = new ReadOnlyDictionary<string, string?>(
-                    new Dictionary<string, string?>())
+                    new Dictionary<string, string?>()),
+                MetadataWriters = metadataWriters ?? []
             };
         }
 
-        private static WriterGroupModel CreateManagedWriterGroup()
+        private static byte[] Decompress(byte[] payload)
+        {
+            using var input = new MemoryStream(payload);
+            using var gzip = new GZipStream(input, CompressionMode.Decompress);
+            using var output = new MemoryStream();
+            gzip.CopyTo(output);
+            return output.ToArray();
+        }
+
+        private static WriterGroupModel CreateManagedWriterGroup(
+            MessageEncoding encoding = MessageEncoding.Json)
         {
             return new WriterGroupModel
             {
                 Id = "group",
-                MessageType = MessageEncoding.Json,
+                MessageType = encoding,
                 PublishingInterval = TimeSpan.FromDays(1),
                 DataSetWriters =
                 [
@@ -366,7 +682,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             public IEvent CreateEvent() => throw new NotSupportedException();
         }
 
-        private sealed class RecordingEventClient : IEventClient, IEventClientCapabilities
+        private sealed class RecordingEventClient : IEventClient, IEventClientCapabilities,
+            IEventClientRetainedTombstoneCapabilities
         {
             public string Name => "recording";
             public int MaxPayload { get; set; } = 1024;
@@ -383,6 +700,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 | EventClientCapabilities.CustomProperties
                 | EventClientCapabilities.CloudEvents
                 | EventClientCapabilities.Schema;
+            public bool SupportsRetainedTombstones { get; set; } = true;
             public int FailuresRemaining
             {
                 get => Volatile.Read(ref _failuresRemaining);

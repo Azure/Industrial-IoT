@@ -390,7 +390,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 OutgressInputBufferCount = metrics.QueueDepth,
                 OutgressInputBufferDropped = metrics.OverflowCount,
                 OutgressIoTMessageCount = metrics.SentCount,
-                OutgressIoTMessageFailedCount = metrics.FailedCount + metrics.RetryCount,
+                OutgressIoTMessageFailedCount = metrics.FailedCount,
+                ConnectionRetries = metrics.RetryCount,
                 EncoderIoTMessagesProcessed = nativeDiagnostics.Read(
                     PubSubDiagnosticsCounterKind.SentNetworkMessages),
                 EncoderNotificationsProcessed = nativeDiagnostics.Read(

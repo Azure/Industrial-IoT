@@ -15,6 +15,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     using System.Buffers;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
+    using System.IO;
+    using System.IO.Compression;
     using System.Linq;
     using System.Text.Json.Nodes;
     using System.Threading;
@@ -67,6 +69,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     internal sealed class PubSubShadowEgressSettings
     {
         public required string ConnectionName { get; init; }
+        public required PubSubShadowEncoding Encoding { get; init; }
         public required string Topic { get; init; }
         public required string ContentType { get; init; }
         public string? ContentEncoding { get; init; }
@@ -79,6 +82,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         public string? CloudEventSubject { get; init; }
         public IEventSchema? Schema { get; init; }
         public required IReadOnlyDictionary<string, string?> Properties { get; init; }
+        public IReadOnlyList<PubSubShadowMetadataWriterSettings> MetadataWriters { get; init; } = [];
 
         public EventClientCapabilities RequiredCapabilities
         {
@@ -112,6 +116,38 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 return capabilities;
             }
         }
+
+        public PubSubShadowEgressSettings WithTransportSettings(
+            string topic, PublishingQueueSettingsModel? publishing, bool defaultRetain)
+        {
+            return new PubSubShadowEgressSettings
+            {
+                ConnectionName = ConnectionName,
+                Encoding = Encoding,
+                Topic = topic,
+                ContentType = ContentType,
+                ContentEncoding = ContentEncoding,
+                QualityOfService = publishing?.RequestedDeliveryGuarantee ?? QualityOfService,
+                Retain = publishing?.Retain ?? defaultRetain,
+                TimeToLive = publishing?.Ttl ?? TimeToLive,
+                UseCloudEvents = UseCloudEvents,
+                CloudEventSource = CloudEventSource,
+                CloudEventType = CloudEventType,
+                CloudEventSubject = CloudEventSubject,
+                Schema = Schema,
+                Properties = Properties
+            };
+        }
+    }
+
+    /// <summary>
+    /// Public-model metadata transport configuration associated with one
+    /// native data-set writer.
+    /// </summary>
+    internal sealed class PubSubShadowMetadataWriterSettings
+    {
+        public required string WriterName { get; init; }
+        public PublishingQueueSettingsModel? Publishing { get; init; }
     }
 
     /// <summary>
@@ -237,9 +273,17 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             var schema = options.IncludeSchema
                 ? new PubSubShadowEventSchema(writerGroup.Id, encoding)
                 : null;
+            var metadataWriters = (writerGroup.DataSetWriters ?? [])
+                .Select(writer => new PubSubShadowMetadataWriterSettings
+                {
+                    WriterName = writer.DataSetWriterName ?? writer.Id,
+                    Publishing = writer.MetaData
+                })
+                .ToArray();
             return new PubSubShadowEgressSettings
             {
                 ConnectionName = "shadow-" + writerGroup.Id,
+                Encoding = encoding,
                 Topic = topic,
                 ContentType = isJson ? "application/json" : "application/octet-stream",
                 ContentEncoding = encoding is PubSubShadowEncoding.JsonGzip
@@ -254,7 +298,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 CloudEventType = "org.opcfoundation.ua.pubsub",
                 CloudEventSubject = writerGroup.Name ?? writerGroup.Id,
                 Schema = schema,
-                Properties = new ReadOnlyDictionary<string, string?>(properties)
+                Properties = new ReadOnlyDictionary<string, string?>(properties),
+                MetadataWriters = metadataWriters
             };
         }
 
@@ -328,11 +373,16 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             ArgumentNullException.ThrowIfNull(timeProvider);
             var settings = _settings.Resolve(connection);
             ValidateCapabilities(_eventClient, settings.RequiredCapabilities);
+            var metadata = CreateMetadataRouting(connection, settings);
+            foreach (var route in metadata.ByTopic.Values)
+            {
+                ValidateCapabilities(_eventClient, route.RequiredCapabilities);
+            }
             var direction = connection.WriterGroups.IsNull || connection.WriterGroups.Count == 0
                 ? PubSubTransportDirection.None
                 : PubSubTransportDirection.Send;
             return new EventClientPubSubTransport(TransportProfileUri, direction, _eventClient,
-                settings, _options, timeProvider);
+                settings, metadata, _options, timeProvider);
         }
 
         internal static void ValidateCapabilities(IEventClient eventClient,
@@ -354,9 +404,89 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             }
         }
 
+        internal static void ValidateTombstoneCapability(IEventClient eventClient)
+        {
+            if (eventClient is not IEventClientRetainedTombstoneCapabilities tombstones
+                || !tombstones.SupportsRetainedTombstones)
+            {
+                throw new NotSupportedException(
+                    $"The selected event client '{eventClient.Name}' cannot remove retained "
+                    + "PubSub metadata. Configuration replacement is rejected rather than "
+                    + "leaving stale retained metadata.");
+            }
+        }
+
+        internal static async ValueTask SendMetadataTombstoneAsync(IEventClient eventClient,
+            PubSubShadowEgressSettings settings, string topic, TimeProvider timeProvider,
+            CancellationToken cancellationToken)
+        {
+            ValidateTombstoneCapability(eventClient);
+            ValidateCapabilities(eventClient, EventClientCapabilities.Payload
+                | EventClientCapabilities.Topic | EventClientCapabilities.Retain
+                | EventClientCapabilities.ContentType);
+            using var @event = eventClient.CreateEvent();
+            var configured = @event
+                .SetTimestamp(timeProvider.GetUtcNow())
+                .SetTopic(topic)
+                .SetContentType(settings.ContentType)
+                .SetRetain(true)
+                .SetQoS(settings.QualityOfService)
+                .AddBuffers([ReadOnlySequence<byte>.Empty]);
+            if (settings.TimeToLive.HasValue)
+            {
+                configured = configured.SetTtl(settings.TimeToLive.Value);
+            }
+            await configured.SendAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        internal static PubSubShadowMetadataRouting CreateMetadataRouting(
+            PubSubConnectionDataType connection, PubSubShadowEgressSettings settings)
+        {
+            var byTopic = new Dictionary<string, PubSubShadowEgressSettings>(
+                StringComparer.Ordinal);
+            var byWriter = new Dictionary<(ushort WriterGroupId, ushort DataSetWriterId), string>();
+            foreach (var group in connection.WriterGroups)
+            {
+                foreach (var writer in group.DataSetWriters)
+                {
+                    var configured = settings.MetadataWriters.SingleOrDefault(candidate =>
+                        string.Equals(candidate.WriterName, writer.Name, StringComparison.Ordinal));
+                    var topic = configured?.Publishing?.QueueName;
+                    if (string.IsNullOrWhiteSpace(topic))
+                    {
+                        topic = string.Concat(settings.Topic.TrimEnd('/'), "/metadata/",
+                            group.WriterGroupId, "/", writer.DataSetWriterId);
+                    }
+                    var metadataSettings = settings.WithTransportSettings(topic,
+                        configured?.Publishing, defaultRetain: true);
+                    if (!byTopic.TryAdd(topic, metadataSettings))
+                    {
+                        throw new InvalidOperationException(
+                            $"Metadata topic '{topic}' is configured more than once.");
+                    }
+                    byWriter.Add((group.WriterGroupId, writer.DataSetWriterId), topic);
+                }
+            }
+            return new PubSubShadowMetadataRouting(byTopic, byWriter);
+        }
+
         private readonly IEventClient _eventClient;
         private readonly PubSubShadowEgressSettingsRegistry _settings;
         private readonly PubSubShadowEgressOptions _options;
+    }
+
+    internal sealed class PubSubShadowMetadataRouting
+    {
+        public PubSubShadowMetadataRouting(
+            IReadOnlyDictionary<string, PubSubShadowEgressSettings> byTopic,
+            IReadOnlyDictionary<(ushort WriterGroupId, ushort DataSetWriterId), string> byWriter)
+        {
+            ByTopic = byTopic ?? throw new ArgumentNullException(nameof(byTopic));
+            ByWriter = byWriter ?? throw new ArgumentNullException(nameof(byWriter));
+        }
+
+        public IReadOnlyDictionary<string, PubSubShadowEgressSettings> ByTopic { get; }
+        public IReadOnlyDictionary<(ushort WriterGroupId, ushort DataSetWriterId), string> ByWriter { get; }
     }
 
     /// <summary>
@@ -372,6 +502,18 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             PubSubTransportDirection direction, IEventClient eventClient,
             PubSubShadowEgressSettings settings, PubSubShadowEgressOptions options,
             TimeProvider timeProvider)
+            : this(transportProfileUri, direction, eventClient, settings,
+                new PubSubShadowMetadataRouting(
+                    new Dictionary<string, PubSubShadowEgressSettings>(StringComparer.Ordinal),
+                    new Dictionary<(ushort WriterGroupId, ushort DataSetWriterId), string>()),
+                options, timeProvider)
+        {
+        }
+
+        public EventClientPubSubTransport(string transportProfileUri,
+            PubSubTransportDirection direction, IEventClient eventClient,
+            PubSubShadowEgressSettings settings, PubSubShadowMetadataRouting metadata,
+            PubSubShadowEgressOptions options, TimeProvider timeProvider)
         {
             if (options.QueueCapacity <= 0)
             {
@@ -394,6 +536,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             Direction = direction;
             _eventClient = eventClient ?? throw new ArgumentNullException(nameof(eventClient));
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
+            _metadata = metadata ?? throw new ArgumentNullException(nameof(metadata));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
             _outbound = Channel.CreateBounded<PendingFrame>(
@@ -444,6 +587,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 return;
             }
             _outbound.Writer.TryComplete();
+            _stop.Cancel();
             if (_sendLoop is not null)
             {
                 await _sendLoop.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -460,8 +604,11 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 throw new InvalidOperationException("The event-client PubSub transport is not open.");
             }
             cancellationToken.ThrowIfCancellationRequested();
-            var frame = new PendingFrame(payload.ToArray(),
-                string.IsNullOrWhiteSpace(topic) ? _settings.Topic : topic!,
+            var resolvedTopic = string.IsNullOrWhiteSpace(topic) ? _settings.Topic : topic!;
+            var settings = _metadata.ByTopic.TryGetValue(resolvedTopic, out var metadata)
+                ? metadata
+                : _settings;
+            var frame = new PendingFrame(payload.ToArray(), resolvedTopic, settings,
                 cancellationToken);
 
             if (!_outbound.Writer.TryWrite(frame))
@@ -492,11 +639,15 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         {
             try
             {
-                await CloseAsync().ConfigureAwait(false);
+                _outbound.Writer.TryComplete();
+                _stop.Cancel();
+                if (_sendLoop is not null)
+                {
+                    await _sendLoop.ConfigureAwait(false);
+                }
             }
             finally
             {
-                _stop.Cancel();
                 _stop.Dispose();
             }
         }
@@ -504,6 +655,10 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         public string BuildMetaDataTopic(PublisherId publisherId, ushort writerGroupId,
             ushort dataSetWriterId)
         {
+            if (_metadata.ByWriter.TryGetValue((writerGroupId, dataSetWriterId), out var topic))
+            {
+                return topic;
+            }
             return string.Concat(_settings.Topic.TrimEnd('/'), "/metadata/",
                 writerGroupId, "/", dataSetWriterId);
         }
@@ -568,23 +723,20 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                     $"The selected event client '{_eventClient.Name}' has an invalid maximum payload size.");
             }
 
-            for (var offset = 0; offset < frame.Payload.Length || offset == 0; offset += maximum)
+            var payload = CompressIfRequired(frame.Payload, frame.Settings.Encoding);
+            if (payload.Length > maximum)
             {
-                var length = Math.Min(maximum, frame.Payload.Length - offset);
-                var chunk = frame.Payload.AsMemory(offset, length);
-                await SendChunkWithRetryAsync(chunk, frame.Topic, cancellationToken)
-                    .ConfigureAwait(false);
-                Interlocked.Increment(ref _chunkCount);
-                if (frame.Payload.Length == 0)
-                {
-                    break;
-                }
+                throw new PubSubShadowPayloadTooLargeException(payload.Length, maximum);
             }
+            await SendChunkWithRetryAsync(payload, frame.Topic, frame.Settings, cancellationToken)
+                .ConfigureAwait(false);
+            Interlocked.Increment(ref _chunkCount);
             Interlocked.Increment(ref _sentCount);
         }
 
         private async ValueTask SendChunkWithRetryAsync(ReadOnlyMemory<byte> payload,
-            string topic, CancellationToken cancellationToken)
+            string topic, PubSubShadowEgressSettings settings,
+            CancellationToken cancellationToken)
         {
             var delay = _options.InitialRetryDelay;
             for (;;)
@@ -592,7 +744,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 cancellationToken.ThrowIfCancellationRequested();
                 try
                 {
-                    await SendChunkAsync(payload, topic, cancellationToken).ConfigureAwait(false);
+                    await SendChunkAsync(payload, topic, settings, cancellationToken)
+                        .ConfigureAwait(false);
                     return;
                 }
                 catch (OperationCanceledException)
@@ -610,61 +763,75 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         }
 
         private async ValueTask SendChunkAsync(ReadOnlyMemory<byte> payload, string topic,
-            CancellationToken cancellationToken)
+            PubSubShadowEgressSettings settings, CancellationToken cancellationToken)
         {
             using var @event = _eventClient.CreateEvent();
             var configured = @event
                 .SetTimestamp(_timeProvider.GetUtcNow())
                 .SetTopic(topic)
-                .SetContentType(_settings.ContentType)
-                .SetContentEncoding(_settings.ContentEncoding)
-                .SetQoS(_settings.QualityOfService)
-                .SetRetain(_settings.Retain || IsMetaDataTopic(topic));
-            if (_settings.TimeToLive.HasValue)
+                .SetContentType(settings.ContentType)
+                .SetContentEncoding(settings.ContentEncoding)
+                .SetQoS(settings.QualityOfService)
+                .SetRetain(settings.Retain);
+            if (settings.TimeToLive.HasValue)
             {
-                configured = configured.SetTtl(_settings.TimeToLive.Value);
+                configured = configured.SetTtl(settings.TimeToLive.Value);
             }
-            foreach (var property in _settings.Properties)
+            foreach (var property in settings.Properties)
             {
                 configured = configured.AddProperty(property.Key, property.Value);
             }
-            if (_settings.UseCloudEvents)
+            if (settings.UseCloudEvents)
             {
                 configured = configured.AsCloudEvent(new CloudEventHeader
                 {
                     Id = Guid.NewGuid().ToString("N"),
-                    Source = _settings.CloudEventSource,
-                    Type = _settings.CloudEventType,
-                    Subject = _settings.CloudEventSubject,
+                    Source = settings.CloudEventSource,
+                    Type = settings.CloudEventType,
+                    Subject = settings.CloudEventSubject,
                     Time = _timeProvider.GetUtcNow(),
-                    DataContentType = _settings.ContentType
+                    DataContentType = settings.ContentType
                 });
             }
-            if (_settings.Schema is not null)
+            if (settings.Schema is not null)
             {
-                configured = configured.SetSchema(_settings.Schema);
+                configured = configured.SetSchema(settings.Schema);
             }
             configured = configured.AddBuffers([new ReadOnlySequence<byte>(payload)]);
             await configured.SendAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        private static bool IsMetaDataTopic(string topic)
+        private static ReadOnlyMemory<byte> CompressIfRequired(ReadOnlyMemory<byte> payload,
+            PubSubShadowEncoding encoding)
         {
-            return topic.Contains("/metadata/", StringComparison.Ordinal);
+            if (encoding is not (PubSubShadowEncoding.JsonGzip
+                or PubSubShadowEncoding.JsonReversibleGzip))
+            {
+                return payload;
+            }
+            using var output = new MemoryStream();
+            using (var gzip = new GZipStream(output, CompressionLevel.SmallestSize, true))
+            {
+                gzip.Write(payload.Span);
+            }
+            return output.ToArray();
         }
 
         private sealed class PendingFrame
         {
             public PendingFrame(byte[] payload, string topic,
+                PubSubShadowEgressSettings settings,
                 CancellationToken cancellationToken)
             {
                 Payload = payload;
                 Topic = topic;
+                Settings = settings;
                 CancellationToken = cancellationToken;
             }
 
             public byte[] Payload { get; }
             public string Topic { get; }
+            public PubSubShadowEgressSettings Settings { get; }
             public CancellationToken CancellationToken { get; }
             public TaskCompletionSource Completion { get; } = new(
                 TaskCreationOptions.RunContinuationsAsynchronously);
@@ -674,6 +841,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         private readonly CancellationTokenSource _stop = new();
         private readonly IEventClient _eventClient;
         private readonly PubSubShadowEgressSettings _settings;
+        private readonly PubSubShadowMetadataRouting _metadata;
         private readonly PubSubShadowEgressOptions _options;
         private readonly TimeProvider _timeProvider;
         private Task? _sendLoop;
@@ -701,5 +869,26 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         public ulong Version => 1;
         public string Schema { get; }
         public string Id { get; }
+    }
+
+    /// <summary>
+    /// A native PubSub frame cannot be split at arbitrary byte offsets:
+    /// JSON and UADP fragments would not be independently decodable. Until
+    /// the stack publishes a protocol-aware chunking contract, reject the
+    /// encoded frame before it reaches the event client.
+    /// </summary>
+    internal sealed class PubSubShadowPayloadTooLargeException : InvalidOperationException
+    {
+        public PubSubShadowPayloadTooLargeException(int payloadSize, int maximumSize)
+            : base($"The encoded PubSub frame is {payloadSize} bytes but the selected "
+                + $"event client permits {maximumSize} bytes. Arbitrary PubSub "
+                + "byte slicing is not supported.")
+        {
+            PayloadSize = payloadSize;
+            MaximumSize = maximumSize;
+        }
+
+        public int PayloadSize { get; }
+        public int MaximumSize { get; }
     }
 }
