@@ -353,7 +353,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             foreach (var ((owner, cyclic), notifications) in deliveries)
             {
-                var message = RequiresKeyFrame(owner)
+                using var message = RequiresKeyFrame(owner)
                     ? CreateKeyFrame(owner, sequenceNumber, publishTime)
                     : CreateNotification(notifications, sequenceNumber, publishTime,
                         MessageType.DeltaFrame);
@@ -425,7 +425,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     continue;
                 }
-                var message = CreateNotification(notifications, sequenceNumber, publishTime,
+                using var message = CreateNotification(notifications, sequenceNumber, publishTime,
                     MessageType.Event);
                 Deliver(owner, message,
                     static (subscriber, notification) =>
@@ -447,12 +447,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     if (keyFrame != null)
                     {
                         MarkKeyFrameDelivered(owner, true);
-                        Deliver(owner, keyFrame,
-                            static (subscriber, notification) =>
-                                subscriber.OnSubscriptionDataChangeReceived(notification));
+                        using (keyFrame)
+                        {
+                            Deliver(owner, keyFrame,
+                                static (subscriber, notification) =>
+                                    subscriber.OnSubscriptionDataChangeReceived(notification));
+                        }
                     }
                 }
-                var keepAlive = CreateNotification([], sequenceNumber, publishTime,
+                using var keepAlive = CreateNotification([], sequenceNumber, publishTime,
                     MessageType.KeepAlive);
                 Deliver(owner, keepAlive,
                     static (subscriber, notification) =>
@@ -492,9 +495,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     if (keyFrame != null)
                     {
                         MarkKeyFrameDelivered(owner, true);
-                        Deliver(owner, keyFrame,
-                            static (subscriber, notification) =>
-                                subscriber.OnSubscriptionDataChangeReceived(notification));
+                        using (keyFrame)
+                        {
+                            Deliver(owner, keyFrame,
+                                static (subscriber, notification) =>
+                                    subscriber.OnSubscriptionDataChangeReceived(notification));
+                        }
                     }
                 }
             }
@@ -893,7 +899,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 if (notifications.Count != 0)
                 {
-                    var message = CreateNotification(notifications, NextSequenceNumber(),
+                    using var message = CreateNotification(notifications, NextSequenceNumber(),
                         now.UtcDateTime, MessageType.Condition);
                     Deliver(binding.Owner, message,
                         static (owner, notification) => owner.OnSubscriptionEventReceived(notification));
@@ -1096,9 +1102,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (notification != null)
                 {
                     MarkKeyFrameDelivered(owner, true);
-                    Deliver(owner, notification,
-                        static (subscriber, keyFrame) =>
-                            subscriber.OnSubscriptionDataChangeReceived(keyFrame));
+                    using (notification)
+                    {
+                        Deliver(owner, notification,
+                            static (subscriber, keyFrame) =>
+                                subscriber.OnSubscriptionDataChangeReceived(keyFrame));
+                    }
                 }
             }
         }
@@ -1128,10 +1137,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private void Deliver(ISubscriber owner, OpcUaSubscriptionNotification notification,
             Action<ISubscriber, OpcUaSubscriptionNotification> callback)
         {
-            using (notification)
-            {
-                InvokeSubscriber(owner, subscriber => callback(subscriber, notification));
-            }
+            InvokeSubscriber(owner, subscriber => callback(subscriber, notification));
         }
 
         private async ValueTask InvokeSubscriberAsync(ISubscriber owner,

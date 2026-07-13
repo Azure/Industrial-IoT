@@ -155,6 +155,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="template">The Publisher item template.</param>
         /// <param name="options">The Publisher defaults.</param>
         /// <param name="codec">The Publisher value codec.</param>
+        /// <param name="affinity">The V2 partition affinity for this item.</param>
+        /// <param name="triggeredByNames">The V2 names that trigger this item.</param>
         /// <returns>The V2 options snapshot.</returns>
         /// <exception cref="ArgumentException">
         /// Thrown when the item node id cannot be converted.
