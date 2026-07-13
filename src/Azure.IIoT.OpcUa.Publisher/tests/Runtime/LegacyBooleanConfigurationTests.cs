@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Runtime
 {
     using Azure.IIoT.OpcUa.Core.Messaging;
     using Azure.IIoT.OpcUa.Publisher.Stack;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Runtime;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Options;
     using System;
@@ -29,16 +30,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Runtime
         public void GeneratedBindersAcceptLegacyBooleanAliases(string value, bool expected)
         {
             var subscription = new OpcUaSubscriptionConfig(Configuration(
-                [OpcUaSubscriptionConfig.EnableSequentialPublishingKey] = value),
+                Pair(OpcUaSubscriptionConfig.EnableSequentialPublishingKey, value)),
                 Options.Create(new PublisherOptions())).ToOptions().Value;
             var client = new OpcUaClientConfig(Configuration(
-                [OpcUaClientConfig.EnableOpcUaStackLoggingKey] = value)).ToOptions().Value;
+                Pair(OpcUaClientConfig.EnableOpcUaStackLoggingKey, value))).ToOptions().Value;
             var nestedClient = new OpcUaClientConfig(Configuration(
-                ["Security:AutoAcceptUntrustedCertificates"] = value)).ToOptions().Value;
+                Pair("Security:AutoAcceptUntrustedCertificates", value))).ToOptions().Value;
             var publisher = new PublisherConfig(Configuration(
-                [PublisherConfig.EnableCloudEventsKey] = value)).ToOptions().Value;
+                Pair(PublisherConfig.EnableCloudEventsKey, value))).ToOptions().Value;
             var schema = new PublisherConfig(Configuration(
-                ["SchemaOptions:PreferAvroOverJsonSchema"] = value)).ToOptions().Value;
+                Pair("SchemaOptions:PreferAvroOverJsonSchema", value))).ToOptions().Value;
 
             Assert.Equal(expected, subscription.EnableSequentialPublishing);
             Assert.Equal(expected, client.EnableOpcUaStackLogging);
@@ -51,7 +52,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Runtime
         public void InvalidGeneratedBooleanValueStillFails()
         {
             var configuration = Configuration(
-                [OpcUaSubscriptionConfig.EnableSequentialPublishingKey] = "maybe");
+                Pair(OpcUaSubscriptionConfig.EnableSequentialPublishingKey, "maybe"));
 
             Assert.Throws<InvalidOperationException>(() =>
                 new OpcUaSubscriptionConfig(configuration,
@@ -62,7 +63,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Runtime
         public void InvalidSchemaBooleanValueStillFails()
         {
             var configuration = Configuration(
-                ["SchemaOptions:PreferAvroOverJsonSchema"] = "maybe");
+                Pair("SchemaOptions:PreferAvroOverJsonSchema", "maybe"));
 
             Assert.Throws<InvalidOperationException>(() =>
                 new PublisherConfig(configuration).ToOptions());
@@ -74,6 +75,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Runtime
             return new ConfigurationBuilder()
                 .AddInMemoryCollection(values)
                 .Build();
+        }
+
+        private static KeyValuePair<string, string?> Pair(string key, string? value)
+        {
+            return new KeyValuePair<string, string?>(key, value);
         }
     }
 }
