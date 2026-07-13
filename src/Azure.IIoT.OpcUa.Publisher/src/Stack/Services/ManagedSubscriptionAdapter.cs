@@ -768,26 +768,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             pendingCondition.Condition.RefreshRequested = false;
                         }
                     }
-
-                    private static PendingConditionRefresh? TryCapturePendingConditionRefresh(
-                        ManagedSubscriptionItemBinding binding)
-                    {
-                        var condition = binding.Condition;
-                        if (condition == null)
-                        {
-                            return null;
-                        }
-                        lock (condition._lock)
-                        {
-                            return condition.RefreshRequested ?
-                                new PendingConditionRefresh(binding, condition) : null;
-                        }
-                    }
                 }
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 _logger.ConditionRefreshFailed(ex);
+            }
+        }
+
+        private static PendingConditionRefresh? TryCapturePendingConditionRefresh(
+            ManagedSubscriptionItemBinding binding)
+        {
+            var condition = binding.Condition;
+            if (condition == null)
+            {
+                return null;
+            }
+            lock (condition._lock)
+            {
+                return condition.RefreshRequested ?
+                    new PendingConditionRefresh(binding, condition) : null;
             }
         }
 
