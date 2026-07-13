@@ -524,6 +524,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         [Fact]
+        public async Task DoesNotClearNewConditionRefreshRequestAfterOlderRequestCompletes()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            var original = CreateConditionItem("condition-stable", 5, 2);
+            adapter.Update([(owner, original)]);
+            var handle = Assert.Single(manager.Subscription!.Collection.Items).ClientHandle;
+
+            var firstGate = manager.Subscription.EnqueueConditionRefresh();
+            var firstUpdate = adapter.UpdateAsync([(owner, original with
+            {
+                EventFilter = CreateEventFilter("first")
+            })]).AsTask();
+            await firstGate.Started.Task;
+
+            var secondGate = manager.Subscription.EnqueueConditionRefresh();
+            var secondUpdate = adapter.UpdateAsync([(owner, original with
+            {
+                EventFilter = CreateEventFilter("second")
+            })]).AsTask();
+            await secondGate.Started.Task;
+
+            firstGate.Gate.SetResult();
+            await firstUpdate;
+
+            Assert.True(adapter.IsConditionRefreshRequested(handle));
+
+            secondGate.Gate.SetResult();
+            await secondUpdate;
+
+            Assert.False(adapter.IsConditionRefreshRequested(handle));
+        }
+
+        [Fact]
         public async Task DoesNotRecreateOwnerStateForStaleKeepAliveOwner()
         {
             var manager = new FakeSubscriptionManager();
@@ -543,6 +578,58 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             Assert.Equal(1, adapter.OwnerStateCount);
             Assert.Equal(1u, manager.Subscription.Collection.Count);
+        }
+
+        [Fact]
+        public async Task SkipsStaleOwnerInBatchedDataDelivery()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var first = new FakeSubscriber();
+            var second = new FakeSubscriber();
+            Assert.True(adapter.TryAdd(first, CreateDataItem("ns=2;s=first")));
+            Assert.True(adapter.TryAdd(second, CreateDataItem("ns=2;s=second")));
+            var items = manager.Subscription!.Collection.Items.Cast<FakeMonitoredItem>().ToArray();
+            var secondHandle = items.Single(item => item.Name.Contains("second", StringComparison.Ordinal))
+                .ClientHandle;
+            first.OnDataChangeAction = () => adapter.TryRemove(secondHandle);
+
+            await manager.Handler!.OnDataChangeNotificationAsync(manager.Subscription, 1,
+                DateTime.UtcNow,
+                new DataValueChange[]
+                {
+                    new DataValueChange(items[0], new DataValue(Variant.From(1)), null),
+                    new DataValueChange(items[1], new DataValue(Variant.From(2)), null)
+                }, PublishState.None, []);
+
+            Assert.Single(first.DataChanges);
+            Assert.Empty(second.DataChanges);
+        }
+
+        [Fact]
+        public async Task SkipsStaleOwnerInBatchedEventDelivery()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var first = new FakeSubscriber();
+            var second = new FakeSubscriber();
+            Assert.True(adapter.TryAdd(first, CreateEventItem("ns=2;s=first")));
+            Assert.True(adapter.TryAdd(second, CreateEventItem("ns=2;s=second")));
+            var items = manager.Subscription!.Collection.Items.Cast<FakeMonitoredItem>().ToArray();
+            var secondHandle = items.Single(item => item.Name.Contains("second", StringComparison.Ordinal))
+                .ClientHandle;
+            first.OnEventReceivedAction = () => adapter.TryRemove(secondHandle);
+
+            await manager.Handler!.OnEventDataNotificationAsync(manager.Subscription, 1,
+                DateTime.UtcNow,
+                new EventNotification[]
+                {
+                    new EventNotification(items[0], ArrayOf.Wrapped(Variant.From(1))),
+                    new EventNotification(items[1], ArrayOf.Wrapped(Variant.From(2)))
+                }, PublishState.None, []);
+
+            Assert.Single(first.Events);
+            Assert.Empty(second.Events);
         }
 
         [Fact]
@@ -703,6 +790,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             };
         }
 
+        private static EventMonitoredItemModel CreateEventItem(string nodeId)
+        {
+            return new EventMonitoredItemModel
+            {
+                StartNodeId = nodeId,
+                EventFilter = CreateEventFilter("Value")
+            };
+        }
+
+        private static EventFilterModel CreateEventFilter(string displayName)
+        {
+            return new EventFilterModel
+            {
+                SelectClauses = [new SimpleAttributeOperandModel
+                {
+                    DisplayName = displayName
+                }]
+            };
+        }
+
         private static EventNotification[] CreateConditionNotification(FakeMonitoredItem item,
             string value)
         {
@@ -784,6 +891,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public StatusCode TriggerAddStatus { get; set; } = StatusCodes.Good;
             public StatusCode TriggerRemoveStatus { get; set; } = StatusCodes.Good;
             public int TriggerResultCount { get; set; } = -1;
+            public Queue<ConditionRefreshGate> ConditionRefreshGates { get; } = [];
             public List<(IMonitoredItem Trigger, IReadOnlyCollection<IMonitoredItem> Children)>
                 TriggeringCalls { get; } = [];
 
@@ -806,7 +914,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public ValueTask ConditionRefreshAsync(CancellationToken ct = default)
             {
                 ConditionRefreshCount++;
+                if (ConditionRefreshGates.TryDequeue(out var gate))
+                {
+                    gate.Started.SetResult();
+                    return new ValueTask(gate.Gate.Task.WaitAsync(ct));
+                }
                 return ValueTask.CompletedTask;
+            }
+
+            public ConditionRefreshGate EnqueueConditionRefresh()
+            {
+                var gate = new ConditionRefreshGate();
+                ConditionRefreshGates.Enqueue(gate);
+                return gate;
             }
 
             public ValueTask<TimeSpan> SetAsDurableAsync(TimeSpan lifetime,
@@ -841,6 +961,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 DisposeCount++;
                 return ValueTask.CompletedTask;
             }
+        }
+
+        private sealed class ConditionRefreshGate
+        {
+            public TaskCompletionSource Started { get; } = new(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+            public TaskCompletionSource Gate { get; } = new(
+                TaskCreationOptions.RunContinuationsAsynchronously);
         }
 
         private sealed class FakeModelChangeSink : IModelChangeRebrowseSink
@@ -971,6 +1099,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             public int SemanticsChanges { get; private set; }
             public Action? OnKeepAliveAction { get; set; }
+            public Action? OnDataChangeAction { get; set; }
+            public Action? OnEventReceivedAction { get; set; }
             public bool ThrowOnData { get; set; }
             public List<OpcUaSubscriptionNotification> DataChanges { get; } = [];
             public List<OpcUaSubscriptionNotification> Events { get; } = [];
@@ -995,6 +1125,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     throw new InvalidOperationException("expected test callback failure");
                 }
                 DataChanges.Add(notification);
+                OnDataChangeAction?.Invoke();
             }
 
             public void OnSubscriptionCyclicReadCompleted(OpcUaSubscriptionNotification notification)
@@ -1005,6 +1136,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public void OnSubscriptionEventReceived(OpcUaSubscriptionNotification notification)
             {
                 Events.Add(notification);
+                OnEventReceivedAction?.Invoke();
             }
 
             public void OnSubscriptionDataDiagnosticsChange(bool liveData, int valueChanges,

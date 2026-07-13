@@ -152,6 +152,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
+        /// Gets whether the binding has a condition refresh request in flight.
+        /// </summary>
+        internal bool IsConditionRefreshRequested(uint clientHandle)
+        {
+            return TryGetBinding(clientHandle, out var binding) &&
+                binding.Condition is { RefreshRequested: true };
+        }
+
+        /// <summary>
         /// Adds a non-triggered Publisher monitored item to the V2 logical
         /// subscription.
         /// </summary>
@@ -359,6 +368,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             foreach (var ((owner, cyclic), notifications) in deliveries)
             {
+                if (!IsLiveOwner(owner))
+                {
+                    continue;
+                }
                 using var message = RequiresKeyFrame(owner)
                     ? CreateKeyFrame(owner, sequenceNumber, publishTime)
                     : CreateNotification(notifications, sequenceNumber, publishTime,
@@ -373,19 +386,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     Deliver(owner, message,
                         static (subscriber, notification) =>
                             subscriber.OnSubscriptionCyclicReadCompleted(notification));
-                    InvokeSubscriber(owner, subscriber =>
-                        subscriber.OnSubscriptionCyclicReadDiagnosticsChange(message.Notifications.Count,
-                            message.Notifications.Sum(item => item.Overflow)));
+                    if (IsLiveOwner(owner))
+                    {
+                        InvokeSubscriber(owner, subscriber =>
+                            subscriber.OnSubscriptionCyclicReadDiagnosticsChange(message.Notifications.Count,
+                                message.Notifications.Sum(item => item.Overflow)));
+                    }
                 }
                 else
                 {
                     Deliver(owner, message,
                         static (subscriber, notification) =>
                             subscriber.OnSubscriptionDataChangeReceived(notification));
-                    InvokeSubscriber(owner, subscriber =>
-                        subscriber.OnSubscriptionDataDiagnosticsChange(true,
-                            message.Notifications.Count,
-                            message.Notifications.Sum(item => item.Overflow), 0));
+                    if (IsLiveOwner(owner))
+                    {
+                        InvokeSubscriber(owner, subscriber =>
+                            subscriber.OnSubscriptionDataDiagnosticsChange(true,
+                                message.Notifications.Count,
+                                message.Notifications.Sum(item => item.Overflow), 0));
+                    }
                 }
             }
             return ValueTask.CompletedTask;
@@ -427,7 +446,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             foreach (var (owner, notifications) in deliveries)
             {
-                if (notifications.Count == 0)
+                if (notifications.Count == 0 || !IsLiveOwner(owner))
                 {
                     continue;
                 }
@@ -436,8 +455,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Deliver(owner, message,
                     static (subscriber, notification) =>
                         subscriber.OnSubscriptionEventReceived(notification));
-                InvokeSubscriber(owner, subscriber => subscriber.OnSubscriptionEventDiagnosticsChange(
-                    true, notifications.Count, notifications.Sum(item => item.Overflow), 0));
+                if (IsLiveOwner(owner))
+                {
+                    InvokeSubscriber(owner, subscriber => subscriber.OnSubscriptionEventDiagnosticsChange(
+                        true, notifications.Count, notifications.Sum(item => item.Overflow), 0));
+                }
             }
         }
 
@@ -723,7 +745,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private async ValueTask RequestPendingConditionRefreshAsync(CancellationToken ct)
         {
             var pending = GetBindings()
-                .Where(binding => binding.Condition is { RefreshRequested: true })
+                .Select(TryCapturePendingConditionRefresh)
+                .Where(pending => pending != null)
+                .Cast<PendingConditionRefresh>()
                 .ToArray();
             if (pending.Length == 0)
             {
@@ -732,11 +756,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             try
             {
                 await _subscription.ConditionRefreshAsync(ct).ConfigureAwait(false);
-                foreach (var binding in pending)
+                foreach (var pendingCondition in pending)
                 {
-                    lock (binding.Condition!._lock)
+                    lock (pendingCondition.Condition!._lock)
                     {
-                        binding.Condition.RefreshRequested = false;
+                        if (ReferenceEquals(pendingCondition.Binding.Condition,
+                            pendingCondition.Condition) &&
+                            pendingCondition.Condition.Generation ==
+                            pendingCondition.Generation)
+                        {
+                            pendingCondition.Condition.RefreshRequested = false;
+                        }
+                    }
+
+                    private static PendingConditionRefresh? TryCapturePendingConditionRefresh(
+                        ManagedSubscriptionItemBinding binding)
+                    {
+                        var condition = binding.Condition;
+                        if (condition == null)
+                        {
+                            return null;
+                        }
+                        lock (condition._lock)
+                        {
+                            return condition.RefreshRequested ?
+                                new PendingConditionRefresh(binding, condition) : null;
+                        }
                     }
                 }
             }
@@ -1436,10 +1481,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public bool RefreshRequested { get; set; }
             public bool Refreshing { get; set; }
             public bool Superseded { get; set; }
+            public long Generation { get; }
             public Dictionary<string, List<MonitoredItemNotificationModel>> Active { get; } = [];
 
             public ConditionState(EventMonitoredItemModel template)
             {
+                Generation = Interlocked.Increment(ref s_generation);
                 SnapshotInterval = template.ConditionHandling!.SnapshotInterval!.Value;
                 UpdateInterval = template.ConditionHandling.UpdateInterval ?? SnapshotInterval;
             }
@@ -1451,6 +1498,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             internal readonly Lock _lock = new();
+            private static long s_generation;
+        }
+
+        private sealed record class PendingConditionRefresh(
+            ManagedSubscriptionItemBinding Binding, ConditionState? Condition)
+        {
+            public long Generation => Condition?.Generation ?? 0;
         }
 
         private sealed class OwnerState
