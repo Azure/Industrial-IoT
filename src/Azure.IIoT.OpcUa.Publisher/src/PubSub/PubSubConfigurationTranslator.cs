@@ -98,9 +98,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 Name = "shadow-" + source.Id,
                 Enabled = false,
                 PublisherId = new Variant(source.PublisherId ?? source.Id),
-                TransportProfileUri = isUadp
-                    ? Profiles.PubSubUdpUadpTransport
-                    : Profiles.PubSubMqttJsonTransport,
+                TransportProfileUri = GetTransportProfile(source.MessageType),
                 Address = new ExtensionObject(new NetworkAddressUrlDataType
                 {
                     NetworkInterface = string.Empty,
@@ -244,6 +242,21 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 null or MessageEncoding.Json or MessageEncoding.JsonReversible
                     or MessageEncoding.JsonGzip or MessageEncoding.JsonReversibleGzip => false,
                 MessageEncoding.Uadp => true,
+                _ => throw new ArgumentException(
+                    $"Message encoding '{encoding}' is not supported by the inert PubSub host.",
+                    nameof(encoding))
+            };
+        }
+
+        internal static string GetTransportProfile(MessageEncoding? encoding)
+        {
+            return encoding switch
+            {
+                null or MessageEncoding.Json => PubSubShadowProfiles.JsonCompact,
+                MessageEncoding.JsonReversible => PubSubShadowProfiles.JsonVerbose,
+                MessageEncoding.JsonGzip => PubSubShadowProfiles.JsonCompactGzip,
+                MessageEncoding.JsonReversibleGzip => PubSubShadowProfiles.JsonVerboseGzip,
+                MessageEncoding.Uadp => Profiles.PubSubUdpUadpTransport,
                 _ => throw new ArgumentException(
                     $"Message encoding '{encoding}' is not supported by the inert PubSub host.",
                     nameof(encoding))

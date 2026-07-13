@@ -409,7 +409,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             }
         }
 
-        private static ReadOnlyMemory<byte> CompressIfRequired(ReadOnlyMemory<byte> encoded,
+        internal static ReadOnlyMemory<byte> CompressIfRequired(ReadOnlyMemory<byte> encoded,
             PubSubShadowEncoding encoding)
         {
             if (encoding is not (PubSubShadowEncoding.JsonGzip

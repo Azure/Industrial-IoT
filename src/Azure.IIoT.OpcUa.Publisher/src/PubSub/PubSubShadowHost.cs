@@ -12,6 +12,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     using Microsoft.Extensions.Options;
     using Opc.Ua;
     using Opc.Ua.PubSub.Application;
+    using Opc.Ua.PubSub.Encoding;
+    using Opc.Ua.PubSub.Encoding.Json;
     using Opc.Ua.PubSub.Transports;
     using System;
     using System.Collections.Generic;
@@ -240,11 +242,28 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 .WithApplicationId("azure-iiot-publisher-shadow")
                 .UseConfiguration(configuration)
                 .AddTransportFactory(new NoEgressPubSubTransportFactory(
-                    Profiles.PubSubMqttJsonTransport, PubSubShadowEncoding.Json,
+                    PubSubShadowProfiles.JsonCompact, PubSubShadowEncoding.Json,
+                    captureSink, state))
+                .AddTransportFactory(new NoEgressPubSubTransportFactory(
+                    PubSubShadowProfiles.JsonVerbose, PubSubShadowEncoding.JsonReversible,
+                    captureSink, state))
+                .AddTransportFactory(new NoEgressPubSubTransportFactory(
+                    PubSubShadowProfiles.JsonCompactGzip, PubSubShadowEncoding.JsonGzip,
+                    captureSink, state))
+                .AddTransportFactory(new NoEgressPubSubTransportFactory(
+                    PubSubShadowProfiles.JsonVerboseGzip, PubSubShadowEncoding.JsonReversibleGzip,
                     captureSink, state))
                 .AddTransportFactory(new NoEgressPubSubTransportFactory(
                     Profiles.PubSubUdpUadpTransport, PubSubShadowEncoding.Uadp,
                     captureSink, state))
+                .AddEncoder(new ShadowJsonEncoder(PubSubShadowProfiles.JsonCompact,
+                    JsonEncodingMode.Compact))
+                .AddEncoder(new ShadowJsonEncoder(PubSubShadowProfiles.JsonVerbose,
+                    JsonEncodingMode.Verbose))
+                .AddEncoder(new ShadowJsonEncoder(PubSubShadowProfiles.JsonCompactGzip,
+                    JsonEncodingMode.Compact))
+                .AddEncoder(new ShadowJsonEncoder(PubSubShadowProfiles.JsonVerboseGzip,
+                    JsonEncodingMode.Verbose))
                 .UseAllStandardEncoders()
                 .Build();
         }
@@ -291,6 +310,35 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 new AggregateException(updateException, rollbackException))
         {
         }
+    }
+
+    internal static class PubSubShadowProfiles
+    {
+        public const string JsonCompact = "urn:azure:iiot:pubsub:shadow:json:compact";
+        public const string JsonVerbose = "urn:azure:iiot:pubsub:shadow:json:verbose";
+        public const string JsonCompactGzip = "urn:azure:iiot:pubsub:shadow:json:compact:gzip";
+        public const string JsonVerboseGzip = "urn:azure:iiot:pubsub:shadow:json:verbose:gzip";
+    }
+
+    internal sealed class ShadowJsonEncoder : INetworkMessageEncoder
+    {
+        public ShadowJsonEncoder(string profile, JsonEncodingMode mode)
+        {
+            TransportProfileUri = profile;
+            _encoder = new JsonEncoder(mode);
+        }
+
+        public string TransportProfileUri { get; }
+
+        public int EstimatedHeaderOverhead => _encoder.EstimatedHeaderOverhead;
+
+        public ValueTask<ReadOnlyMemory<byte>> EncodeAsync(PubSubNetworkMessage networkMessage,
+            PubSubNetworkMessageContext context, CancellationToken cancellationToken = default)
+        {
+            return _encoder.EncodeAsync(networkMessage, context, cancellationToken);
+        }
+
+        private readonly JsonEncoder _encoder;
     }
 
     internal sealed class NoEgressPubSubTransportFactory : IPubSubTransportFactory
@@ -378,7 +426,9 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         {
             cancellationToken.ThrowIfCancellationRequested();
             await _captureSink.CaptureAsync(new PubSubShadowCapture(_encoding,
-                _timeProvider.GetUtcNow(), payload.Span), cancellationToken).ConfigureAwait(false);
+                _timeProvider.GetUtcNow(),
+                PubSubShadowEncodingBridge.CompressIfRequired(payload, _encoding).Span),
+                cancellationToken).ConfigureAwait(false);
             _state.Captured();
         }
 
