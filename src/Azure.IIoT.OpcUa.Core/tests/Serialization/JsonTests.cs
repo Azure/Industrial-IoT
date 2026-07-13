@@ -5,11 +5,13 @@
 
 namespace Azure.IIoT.OpcUa.Core.Serialization
 {
+    using System;
     using System.Runtime.Serialization;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text.Json;
     using System.Text.Json.Serialization;
+    using System.Text.Json.Serialization.Metadata;
     using Xunit;
 
     /// <summary>
@@ -61,6 +63,20 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
                 """[[1,2],[3,4]]""", Json.Options)!.Cast<int>());
         }
 
+        [Fact]
+        public void ApplyToReplacesReflectionResolverWithRegisteredMetadata()
+        {
+            var options = new JsonSerializerOptions
+            {
+                TypeInfoResolver = new DefaultJsonTypeInfoResolver()
+            };
+
+            Json.ApplyTo(options);
+
+            Assert.Throws<NotSupportedException>(() =>
+                options.GetTypeInfo(typeof(ReflectionOnlyModel)));
+        }
+
     }
 
     [DataContract]
@@ -73,6 +89,10 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
         public int OmitWhenDefault { get; set; }
 
         public string NotADataMember { get; set; }
+    }
+
+    internal sealed class ReflectionOnlyModel
+    {
     }
 
     [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]

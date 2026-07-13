@@ -153,14 +153,17 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
             target.IgnoreReadOnlyProperties = Options.IgnoreReadOnlyProperties;
             target.AllowTrailingCommas = Options.AllowTrailingCommas;
             target.MaxDepth = Options.MaxDepth;
-            if (target.TypeInfoResolver == null)
+            if (target.TypeInfoResolver == null ||
+                target.TypeInfoResolver is DefaultJsonTypeInfoResolver)
             {
                 target.TypeInfoResolver = Options.TypeInfoResolver;
             }
             else
             {
-                target.TypeInfoResolver = JsonTypeInfoResolver.WithAddedModifier(
-                    target.TypeInfoResolver, DataContractResolver.Modify);
+                target.TypeInfoResolver = JsonTypeInfoResolver.Combine(
+                    Options.TypeInfoResolver!,
+                    JsonTypeInfoResolver.WithAddedModifier(target.TypeInfoResolver,
+                        DataContractResolver.Modify));
             }
             target.Converters.Clear();
             foreach (var converter in Options.Converters)
