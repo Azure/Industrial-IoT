@@ -256,16 +256,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     continue;
                 }
-                var result =                 var result = await _subscription.SetTriggeringAsync(parentItem!, [childItem!], null, ct)
+                var result = await _subscription.SetTriggeringAsync(parentItem!, [childItem!], null, ct)
                     .ConfigureAwait(false);
                 if (!TryApplyTriggeringResult(parent, [binding], result))
                 {
                     RemoveTree(binding);
-                    throw new ServiceResultException(result.ServiceResult);
-                }
-                if (!TryApplyTriggeringResult(parent, [child], result))
-                {
-                    RemoveTree(child);
                     throw new ServiceResultException(result.ServiceResult);
                 }
             }
