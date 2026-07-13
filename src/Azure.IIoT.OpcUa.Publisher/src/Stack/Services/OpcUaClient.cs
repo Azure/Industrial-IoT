@@ -37,7 +37,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// OPC UA Client based on official ua client reference sample.
     /// </summary>
     internal sealed partial class OpcUaClient : DefaultSessionFactory,
-        IOpcUaClientDiagnostics, IDisposable
+        IOpcUaClientDiagnostics, IOpcUaClientRuntime, IDisposable
     {
         /// <summary>
         /// Client namespace

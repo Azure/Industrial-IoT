@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Microsoft.Extensions.Logging.Abstractions;
+    using Microsoft.Extensions.Options;
     using Moq;
     using Opc.Ua;
     using Opc.Ua.Client;
@@ -16,6 +17,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
+    using OpcUaClientOptions = Azure.IIoT.OpcUa.Publisher.Stack.OpcUaClientOptions;
 
     /// <summary>
     /// Characterization tests for the managed session composition seam.
@@ -520,6 +522,100 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Assert.False(history.AccessHistoryEventsCapability);
         }
 
+        /// <summary>
+        /// The test-only runtime routes both a session handle and a service call through
+        /// the managed facade/pool without constructing the classic client runtime.
+        /// </summary>
+        [Fact]
+        public async Task ManagedRuntimeUsesPoolForHandlesAndServiceCallsAsync()
+        {
+            var session = CreateSession(out _, out _);
+            var connection = new FakeConnection(session.Object);
+            var provider = new FakeProvider(connection);
+            var request = CreateRequest("opc.tcp://localhost:4850");
+            await using var strategy = new ManagedSessionRuntimeStrategy(provider,
+                CreateTelemetry(), new FixedRequestFactory(request),
+                new ManagedSessionPoolOptions
+                {
+                    LingerTimeout = TimeSpan.FromMinutes(1)
+                });
+            var closeCount = 0;
+                var closed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+                using var runtime = strategy.Create(new OpcUaClientRuntimeContext
+            {
+                Configuration = new ApplicationConfiguration(),
+                Connection = request.Connection,
+                LoggerFactory = NullLoggerFactory.Instance,
+                TimeProvider = TimeProvider.System,
+                Metrics = IMetricsContext.Empty,
+                OnClose = () =>
+                {
+                    closeCount++;
+                    closed.TrySetResult();
+                    return Task.CompletedTask;
+                },
+                ReverseConnectManager = new ReverseConnectManager(CreateTelemetry()),
+                DiagnosticsCallback = _ => { },
+                ClientOptions = Options.Create(new OpcUaClientOptions
+                {
+                    DefaultServiceCallTimeoutDuration = TimeSpan.FromSeconds(5)
+                }),
+                SubscriptionOptions = Options.Create(new OpcUaSubscriptionOptions())
+            });
+
+            runtime.AddRef();
+            using (var handle = await runtime.AcquireAsync(null, 1000, default))
+            {
+                Assert.IsType<ManagedOpcUaSession>(handle.Session);
+                Assert.Equal(TimeSpan.FromSeconds(1), handle.ServiceCallTimeout);
+            }
+            var result = await runtime.RunAsync(context =>
+            {
+                Assert.IsType<ManagedOpcUaSession>(context.Session);
+                return Task.FromResult(42);
+            }, null, null, default);
+            runtime.Dispose();
+            await closed.Task;
+
+            Assert.Equal(42, result);
+            Assert.Equal(1, provider.ConnectCount);
+            Assert.Equal(1, closeCount);
+        }
+
+        /// <summary>
+        /// The manager accepts the managed strategy only through its internal
+        /// constructor seam; normal production registration retains the classic default.
+        /// </summary>
+        [Fact]
+        public async Task ManagerUsesInjectedManagedRuntimeStrategyAsync()
+        {
+            var session = CreateSession(out _, out _);
+            var connection = new FakeConnection(session.Object);
+            var provider = new FakeProvider(connection);
+            var request = CreateRequest("opc.tcp://localhost:4851");
+            var configuration = new Mock<IOpcUaConfiguration>();
+            configuration.SetupGet(item => item.Value).Returns(new ApplicationConfiguration
+            {
+                ApplicationName = "managed-runtime-test",
+                ApplicationUri = "urn:managed-runtime-test",
+                ApplicationType = Opc.Ua.ApplicationType.Client
+            });
+            var strategy = new ManagedSessionRuntimeStrategy(provider, CreateTelemetry(),
+                new FixedRequestFactory(request), new ManagedSessionPoolOptions
+                {
+                    LingerTimeout = TimeSpan.FromMinutes(1)
+                });
+            using var manager = new OpcUaClientManager(NullLoggerFactory.Instance,
+                configuration.Object, Options.Create(new OpcUaClientOptions()),
+                Options.Create(new OpcUaSubscriptionOptions()), runtimeStrategy: strategy);
+
+            using var handle = await manager.AcquireSessionAsync(request.Connection.Connection,
+                header: null, ct: default);
+
+            Assert.IsType<ManagedOpcUaSession>(handle.Session);
+            Assert.Equal(1, provider.ConnectCount);
+        }
+
         private static ManagedSessionConnectionRequest CreateRequest(string endpointUrl)
         {
             var connection = new ConnectionModel
@@ -787,6 +883,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public ManagedSessionConnectionRequest Request { get; private set; }
 
             private readonly IManagedSessionConnection _connection;
+        }
+
+        private sealed class FixedRequestFactory : IManagedSessionRequestFactory
+        {
+            public FixedRequestFactory(ManagedSessionConnectionRequest request)
+            {
+                _request = request;
+            }
+
+            public Task<ManagedSessionConnectionRequest> CreateAsync(
+                ManagedSessionClientContext context, CancellationToken ct)
+            {
+                ct.ThrowIfCancellationRequested();
+                return Task.FromResult(_request with
+                {
+                    ConnectTimeout = context.ConnectTimeout is > 0 ?
+                        TimeSpan.FromMilliseconds(context.ConnectTimeout.Value) :
+                        _request.ConnectTimeout
+                });
+            }
+
+            private readonly ManagedSessionConnectionRequest _request;
         }
 
         private sealed class DelayedProvider : IManagedSessionProvider

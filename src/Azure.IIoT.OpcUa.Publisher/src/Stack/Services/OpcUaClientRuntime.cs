@@ -1,0 +1,760 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
+
+namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
+{
+    using Azure.IIoT.OpcUa.Core.Exceptions;
+    using Azure.IIoT.OpcUa.Core.Utils;
+    using Azure.IIoT.OpcUa.Exceptions;
+    using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Publisher.Stack;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Logging.Abstractions;
+    using Microsoft.Extensions.Options;
+    using Opc.Ua;
+    using Opc.Ua.Client;
+    using Opc.Ua.Client.Subscriptions;
+    using System;
+    using System.Collections.Generic;
+    using System.Globalization;
+    using System.Linq;
+    using System.Runtime.CompilerServices;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using OpcUaClientOptions = Azure.IIoT.OpcUa.Publisher.Stack.OpcUaClientOptions;
+    using PublisherSubscription = Azure.IIoT.OpcUa.Publisher.Stack.ISubscription;
+
+    /// <summary>
+    /// Internal runtime surface selected by the client-manager composition root.
+    /// </summary>
+    /// <remarks>
+    /// It deliberately is not registered in production DI. The default strategy below
+    /// remains classic; tests can supply the managed strategy through the internal
+    /// <see cref="OpcUaClientManager"/> constructor.
+    /// </remarks>
+    internal interface IOpcUaClientRuntime : IDisposable
+    {
+        ChannelDiagnosticModel LastDiagnostics { get; }
+        Task<ISessionHandle> AcquireAsync(int? connectTimeout,
+            int? serviceCallTimeout, CancellationToken ct);
+        Task<T> RunAsync<T>(Func<ServiceCallContext, Task<T>> service,
+            int? connectTimeout, int? serviceCallTimeout, CancellationToken ct);
+        IAsyncEnumerable<T> RunAsync<T>(AsyncEnumerableBase<T> operation,
+            int? connectTimeout, int? serviceCallTimeout, CancellationToken ct);
+        ValueTask<PublisherSubscription> RegisterAsync(SubscriptionModel subscription,
+            ISubscriber subscriber, CancellationToken ct);
+        Task ResetAsync(CancellationToken ct);
+        Task<SessionDiagnosticsModel?> GetSessionDiagnosticsAsync(CancellationToken ct);
+        ValueTask CloseAsync(bool shutdown = false, bool fromManagementLoop = false);
+        void AddRef(string? token = null, TimeSpan? expiresAfter = null);
+    }
+
+    /// <summary>
+    /// Factory for the runtime selected for one connection.
+    /// </summary>
+    internal interface IOpcUaClientRuntimeStrategy : IAsyncDisposable
+    {
+        IOpcUaClientRuntime Create(OpcUaClientRuntimeContext context);
+    }
+
+    /// <summary>
+    /// Inputs shared by the classic and test-only managed client runtimes.
+    /// </summary>
+    internal sealed record class OpcUaClientRuntimeContext
+    {
+        public required ApplicationConfiguration Configuration { get; init; }
+        public required ConnectionIdentifier Connection { get; init; }
+        public required ILoggerFactory LoggerFactory { get; init; }
+        public required TimeProvider TimeProvider { get; init; }
+        public required IMetricsContext Metrics { get; init; }
+        public required Func<Task> OnClose { get; init; }
+        public EventHandler<EndpointConnectivityStateEventArgs>? Notifier { get; init; }
+        public required ReverseConnectManager ReverseConnectManager { get; init; }
+        public required Action<ChannelDiagnosticModel> DiagnosticsCallback { get; init; }
+        public required IOptions<OpcUaClientOptions> ClientOptions { get; init; }
+        public required IOptions<OpcUaSubscriptionOptions> SubscriptionOptions { get; init; }
+    }
+
+    /// <summary>
+    /// The production runtime strategy. It has no configuration surface by design.
+    /// </summary>
+    internal sealed class ClassicOpcUaClientRuntimeStrategy : IOpcUaClientRuntimeStrategy
+    {
+        public static ClassicOpcUaClientRuntimeStrategy Instance { get; } = new();
+
+        public IOpcUaClientRuntime Create(OpcUaClientRuntimeContext context)
+        {
+            return new OpcUaClient(context.Configuration, context.Connection, context.LoggerFactory,
+                context.TimeProvider, context.Metrics, context.OnClose, context.Notifier,
+                context.Connection.Connection.IsReverseConnect() ?
+                    context.ReverseConnectManager : null,
+                context.DiagnosticsCallback, context.ClientOptions, context.SubscriptionOptions);
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            return ValueTask.CompletedTask;
+        }
+
+        private ClassicOpcUaClientRuntimeStrategy()
+        {
+        }
+    }
+
+    /// <summary>
+    /// Creates the managed-session request for a managed runtime connection.
+    /// </summary>
+    /// <remarks>
+    /// This is a narrow test seam which lets comparison tests use deterministic
+    /// managed-connection fakes without exposing a production option or switch.
+    /// </remarks>
+    internal interface IManagedSessionRequestFactory
+    {
+        Task<ManagedSessionConnectionRequest> CreateAsync(
+            ManagedSessionClientContext context, CancellationToken ct);
+    }
+
+    /// <summary>
+    /// Inputs used by a managed-session request factory.
+    /// </summary>
+    internal sealed record class ManagedSessionClientContext
+    {
+        public required ApplicationConfiguration Configuration { get; init; }
+        public required ConnectionIdentifier Connection { get; init; }
+        public required ILogger Logger { get; init; }
+        public required IOptions<OpcUaClientOptions> Options { get; init; }
+        public required ReverseConnectManager ReverseConnectManager { get; init; }
+        public required TimeProvider TimeProvider { get; init; }
+        public int? ConnectTimeout { get; init; }
+    }
+
+    /// <summary>
+    /// Selects an endpoint and translates Publisher connection data to the managed
+    /// session connector request.
+    /// </summary>
+    internal sealed class DefaultManagedSessionRequestFactory : IManagedSessionRequestFactory
+    {
+        public async Task<ManagedSessionConnectionRequest> CreateAsync(
+            ManagedSessionClientContext context, CancellationToken ct)
+        {
+            var connection = context.Connection.Connection;
+            var endpointModel = connection.Endpoint ??
+                throw new ArgumentException("Missing endpoint.", nameof(context));
+            var endpointUrl = endpointModel.Url ??
+                throw new ArgumentException("Missing endpoint url.", nameof(context));
+            var securityMode = endpointModel.SecurityMode ?? SecurityMode.NotNone;
+            var endpointDescription = await OpcUaClient.SelectEndpointAsync(context.Configuration,
+                new Uri(endpointUrl), null, securityMode, endpointModel.SecurityPolicy,
+                context.Logger, context.Connection, ct: ct).ConfigureAwait(false) ??
+                throw new ConnectionException("No matching endpoint was found.");
+            var endpointConfiguration = EndpointConfiguration.Create(context.Configuration);
+            var connectTimeout = GetConnectTimeout(context.ConnectTimeout, context.Options.Value);
+            endpointConfiguration.OperationTimeout = (int)Math.Min(connectTimeout.TotalMilliseconds,
+                int.MaxValue);
+            var endpoint = new ConfiguredEndpoint(null, endpointDescription, endpointConfiguration);
+
+            var credential = connection.User;
+            if (securityMode == SecurityMode.Best &&
+                endpointDescription.SecurityMode == MessageSecurityMode.None)
+            {
+                credential = null;
+            }
+            var identity = await credential.ToUserIdentityAsync(context.Configuration, ct)
+                .ConfigureAwait(false);
+            var locales = connection.Locales?.ToList() ?? [];
+            if (locales.Count == 0)
+            {
+                locales.Add("en-US");
+                if (!string.Equals(CultureInfo.CurrentCulture.Name, locales[0],
+                    StringComparison.Ordinal))
+                {
+                    locales.Add(CultureInfo.CurrentCulture.Name);
+                }
+            }
+            return new ManagedSessionConnectionRequest
+            {
+                Connection = context.Connection,
+                Endpoint = endpoint,
+                Identity = identity,
+                PreferredLocales = locales,
+                SessionTimeout = context.Options.Value.DefaultSessionTimeoutDuration ??
+                    TimeSpan.FromSeconds(30),
+                ConnectTimeout = connectTimeout,
+                ReverseConnectManager = connection.IsReverseConnect() ?
+                    context.ReverseConnectManager : null,
+                ReverseConnectServerUri = connection.IsReverseConnect() ?
+                    endpoint.EndpointUrl : null
+            };
+        }
+
+        private static TimeSpan GetConnectTimeout(int? connectTimeout,
+            OpcUaClientOptions options)
+        {
+            return connectTimeout is > 0 ?
+                TimeSpan.FromMilliseconds(connectTimeout.Value) :
+                options.DefaultConnectTimeoutDuration ??
+                options.DefaultServiceCallTimeoutDuration ??
+                TimeSpan.FromMinutes(1);
+        }
+    }
+
+    /// <summary>
+    /// Test-only managed runtime strategy. Callers must opt in through the internal
+    /// manager constructor; production registration always selects the classic runtime.
+    /// </summary>
+    internal sealed class ManagedSessionRuntimeStrategy : IOpcUaClientRuntimeStrategy
+    {
+        public ManagedSessionRuntimeStrategy(IManagedSessionProvider provider,
+            ITelemetryContext telemetry, IManagedSessionRequestFactory? requestFactory = null,
+            ManagedSessionPoolOptions? options = null, TimeProvider? timeProvider = null,
+            IModelChangeRebrowseSink? modelChangeSink = null)
+        {
+            _pool = new ManagedSessionPool(provider, telemetry, options, timeProvider);
+            _requestFactory = requestFactory ?? new DefaultManagedSessionRequestFactory();
+            _modelChangeSink = modelChangeSink ?? NoOpModelChangeRebrowseSink.Instance;
+        }
+
+        public IOpcUaClientRuntime Create(OpcUaClientRuntimeContext context)
+        {
+            return new ManagedOpcUaClient(context, _pool, _requestFactory, _modelChangeSink);
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            return _pool.DisposeAsync();
+        }
+
+        private sealed class NoOpModelChangeRebrowseSink : IModelChangeRebrowseSink
+        {
+            public static NoOpModelChangeRebrowseSink Instance { get; } = new();
+
+            public ValueTask ProcessAsync(ISubscriber owner,
+                MonitoredAddressSpaceModel template, DataValue changes, CancellationToken ct)
+            {
+                // The subscriber receives the semantics callback from the adapter.
+                return ValueTask.CompletedTask;
+            }
+        }
+
+        private readonly ManagedSessionPool _pool;
+        private readonly IManagedSessionRequestFactory _requestFactory;
+        private readonly IModelChangeRebrowseSink _modelChangeSink;
+    }
+
+    /// <summary>
+    /// Managed-session client runtime used only by comparison tests until the
+    /// upstream managed-session artifact has passed the production gate.
+    /// </summary>
+    internal sealed class ManagedOpcUaClient : IOpcUaClientRuntime, IOpcUaClientDiagnostics
+    {
+        public ManagedOpcUaClient(OpcUaClientRuntimeContext context, ManagedSessionPool pool,
+            IManagedSessionRequestFactory requestFactory, IModelChangeRebrowseSink modelChangeSink)
+        {
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _pool = pool ?? throw new ArgumentNullException(nameof(pool));
+            _requestFactory = requestFactory ?? throw new ArgumentNullException(nameof(requestFactory));
+            _modelChangeSink = modelChangeSink ?? throw new ArgumentNullException(nameof(modelChangeSink));
+            _logger = context.LoggerFactory.CreateLogger<ManagedOpcUaClient>();
+            _lastDiagnostics = new ChannelDiagnosticModel
+            {
+                Connection = context.Connection.Connection,
+                TimeStamp = context.TimeProvider.GetUtcNow()
+            };
+        }
+
+        public ChannelDiagnosticModel LastDiagnostics => _lastDiagnostics;
+        public int BadPublishRequestCount => 0;
+        public int GoodPublishRequestCount => 0;
+        public int OutstandingRequestCount => 0;
+        public int SubscriptionCount => _subscriptions.Count;
+        public EndpointConnectivityState State => _state;
+        public int ReconnectCount => _reconnectCount;
+        public bool ReconnectTriggered => _state == EndpointConnectivityState.Connecting;
+        public int ConnectCount => _connectCount;
+        public int MinPublishRequestCount => 0;
+        public int KeepAliveCounter => 0;
+        public int KeepAliveTotal => 0;
+
+        public async Task<ISessionHandle> AcquireAsync(int? connectTimeout,
+            int? serviceCallTimeout, CancellationToken ct)
+        {
+            ThrowIfDisposed();
+            var lease = await AcquireLeaseAsync(connectTimeout, ct).ConfigureAwait(false);
+            AddRef();
+            return new ManagedSessionHandle(lease, GetServiceCallTimeout(serviceCallTimeout),
+                Dispose);
+        }
+
+        public async Task<T> RunAsync<T>(Func<ServiceCallContext, Task<T>> service,
+            int? connectTimeout, int? serviceCallTimeout, CancellationToken ct)
+        {
+            ArgumentNullException.ThrowIfNull(service);
+            ThrowIfDisposed();
+            var timeout = GetServiceCallTimeout(serviceCallTimeout);
+            using var call = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            call.CancelAfter(timeout);
+            try
+            {
+                using var lease = await AcquireLeaseAsync(connectTimeout, call.Token)
+                    .ConfigureAwait(false);
+                using var context = new ServiceCallContext(lease.Session, timeout, call.Token);
+                return await service(context).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+            {
+                throw new TimeoutException(
+                    "Connecting to the endpoint or the request itself timed out.");
+            }
+        }
+
+        public IAsyncEnumerable<T> RunAsync<T>(AsyncEnumerableBase<T> operation,
+            int? connectTimeout, int? serviceCallTimeout, CancellationToken ct)
+        {
+            ArgumentNullException.ThrowIfNull(operation);
+            return RunAsyncCore(operation, connectTimeout, serviceCallTimeout, ct);
+        }
+
+        public async ValueTask<PublisherSubscription> RegisterAsync(SubscriptionModel subscription,
+            ISubscriber subscriber, CancellationToken ct)
+        {
+            ArgumentNullException.ThrowIfNull(subscription);
+            ArgumentNullException.ThrowIfNull(subscriber);
+            ThrowIfDisposed();
+
+            await _subscriptionGate.WaitAsync(ct).ConfigureAwait(false);
+            try
+            {
+                if (_registrations.TryGetValue(subscriber, out var existing))
+                {
+                    await RemoveRegistrationAsync(existing).ConfigureAwait(false);
+                    Dispose();
+                }
+
+                if (!_subscriptions.TryGetValue(subscription, out var state))
+                {
+                    var lease = await AcquireLeaseAsync(null, ct).ConfigureAwait(false);
+                    try
+                    {
+                        if (lease.Session is not ManagedOpcUaSession session ||
+                            !session.TryGetSubscriptionManager(out var manager))
+                        {
+                            throw new InvalidOperationException(
+                                "The managed session does not expose a subscription manager.");
+                        }
+                        state = new ManagedSubscriptionState(subscription, lease,
+                            new ManagedSubscriptionAdapter(manager!, subscription,
+                                _context.SubscriptionOptions.Value, session.Codec, _modelChangeSink,
+                                _context.LoggerFactory.CreateLogger<ManagedSubscriptionAdapter>(),
+                                _context.TimeProvider));
+                        lease = null!;
+                        _subscriptions.Add(subscription, state);
+                    }
+                    finally
+                    {
+                        lease?.Dispose();
+                    }
+                }
+
+                var registration = new ManagedRegistration(this, state, subscriber);
+                state.Registrations.Add(registration);
+                _registrations.Add(subscriber, registration);
+                AddRef();
+                await SynchronizeAsync(state, ct).ConfigureAwait(false);
+                return registration;
+            }
+            finally
+            {
+                _subscriptionGate.Release();
+            }
+        }
+
+        public Task ResetAsync(CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            // ManagedSession owns reconnect/recreate transitions. Its public connection
+            // state machine is deliberately not driven by the classic reset path.
+            return Task.CompletedTask;
+        }
+
+        public async Task<SessionDiagnosticsModel?> GetSessionDiagnosticsAsync(CancellationToken ct)
+        {
+            if (_subscriptions.Values.FirstOrDefault()?.Lease.Session is ManagedOpcUaSession session)
+            {
+                return await session.GetServerDiagnosticAsync(ct).ConfigureAwait(false);
+            }
+            return null;
+        }
+
+        public async ValueTask CloseAsync(bool shutdown = false,
+            bool fromManagementLoop = false)
+        {
+            if (Interlocked.Exchange(ref _disposed, 1) != 0)
+            {
+                return;
+            }
+
+            await _subscriptionGate.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                foreach (var state in _subscriptions.Values)
+                {
+                    await state.DisposeAsync().ConfigureAwait(false);
+                }
+                _subscriptions.Clear();
+                _registrations.Clear();
+                lock (_observedSessions)
+                {
+                    foreach (var session in _observedSessions)
+                    {
+                        session.OnConnectionStateChange -= OnConnectionStateChanged;
+                    }
+                    _observedSessions.Clear();
+                }
+                _state = EndpointConnectivityState.Disconnected;
+            }
+            finally
+            {
+                _subscriptionGate.Release();
+                _subscriptionGate.Dispose();
+            }
+        }
+
+        public void AddRef(string? token = null, TimeSpan? expiresAfter = null)
+        {
+            ThrowIfDisposed();
+            Interlocked.Increment(ref _references);
+        }
+
+        public void Dispose()
+        {
+            if (Interlocked.Decrement(ref _references) == 0)
+            {
+                _ = CloseAndNotifyAsync();
+            }
+        }
+
+        private async IAsyncEnumerable<T> RunAsyncCore<T>(AsyncEnumerableBase<T> operation,
+            int? connectTimeout, int? serviceCallTimeout,
+            [EnumeratorCancellation] CancellationToken ct)
+        {
+            var timeout = GetServiceCallTimeout(serviceCallTimeout);
+            operation.Reset();
+            while (operation.HasMore)
+            {
+                ThrowIfDisposed();
+                using var call = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                call.CancelAfter(timeout);
+                IEnumerable<T> results;
+                try
+                {
+                    using var lease = await AcquireLeaseAsync(connectTimeout, call.Token)
+                        .ConfigureAwait(false);
+                    using var context = new ServiceCallContext(lease.Session, timeout, call.Token);
+                    results = await operation.ExecuteAsync(context).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+                {
+                    throw new TimeoutException(
+                        "Connecting to the endpoint or a request operation timed out.");
+                }
+                foreach (var result in results)
+                {
+                    yield return result;
+                }
+            }
+        }
+
+        private async Task<ISessionHandle> AcquireLeaseAsync(int? connectTimeout,
+            CancellationToken ct)
+        {
+            var request = await _requestFactory.CreateAsync(new ManagedSessionClientContext
+            {
+                Configuration = _context.Configuration,
+                Connection = _context.Connection,
+                Logger = _logger,
+                Options = _context.ClientOptions,
+                ReverseConnectManager = _context.ReverseConnectManager,
+                TimeProvider = _context.TimeProvider,
+                ConnectTimeout = connectTimeout
+            }, ct).ConfigureAwait(false);
+            var lease = await _pool.AcquireAsync(request, ct).ConfigureAwait(false);
+            if (lease.Session is ManagedOpcUaSession session)
+            {
+                lock (_observedSessions)
+                {
+                    if (_observedSessions.Add(session))
+                    {
+                        session.OnConnectionStateChange += OnConnectionStateChanged;
+                    }
+                }
+                UpdateDiagnostics(session);
+            }
+            return lease;
+        }
+
+        private static async Task SynchronizeAsync(ManagedSubscriptionState state,
+            CancellationToken ct)
+        {
+            await state.Adapter.UpdateAsync(state.Registrations.SelectMany(registration =>
+                registration.Owner.MonitoredItems.Select(item =>
+                    (registration.Owner, Template: item))), ct).ConfigureAwait(false);
+        }
+
+        private async ValueTask RemoveRegistrationAsync(ManagedRegistration registration)
+        {
+            _registrations.Remove(registration.Owner);
+            var state = registration.State;
+            state.Registrations.Remove(registration);
+            if (state.Registrations.Count == 0)
+            {
+                _subscriptions.Remove(state.Template);
+                await state.DisposeAsync().ConfigureAwait(false);
+            }
+            else
+            {
+                await SynchronizeAsync(state, default).ConfigureAwait(false);
+            }
+        }
+
+        private async ValueTask DisposeRegistrationAsync(ManagedRegistration registration)
+        {
+            if (Volatile.Read(ref _disposed) != 0)
+            {
+                return;
+            }
+            await _subscriptionGate.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                if (_registrations.TryGetValue(registration.Owner, out var current) &&
+                    ReferenceEquals(current, registration))
+                {
+                    await RemoveRegistrationAsync(registration).ConfigureAwait(false);
+                    Dispose();
+                }
+            }
+            finally
+            {
+                _subscriptionGate.Release();
+            }
+        }
+
+        private async Task CloseAndNotifyAsync()
+        {
+            await CloseAsync().ConfigureAwait(false);
+            await _context.OnClose().ConfigureAwait(false);
+        }
+
+        private void OnConnectionStateChanged(object? sender,
+            EndpointConnectivityStateEventArgs e)
+        {
+            _state = e.State;
+            if (e.State == EndpointConnectivityState.Ready)
+            {
+                Interlocked.Increment(ref _connectCount);
+            }
+            else if (e.State == EndpointConnectivityState.Connecting)
+            {
+                Interlocked.Increment(ref _reconnectCount);
+            }
+            try
+            {
+                _context.Notifier?.Invoke(this, e);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Managed session state callback failed.");
+            }
+        }
+
+        private void UpdateDiagnostics(ManagedOpcUaSession session)
+        {
+            _lastDiagnostics = new ChannelDiagnosticModel
+            {
+                Connection = _context.Connection.Connection,
+                TimeStamp = _context.TimeProvider.GetUtcNow(),
+                SessionCreated = session.CreatedAt,
+                SessionId = session.SessionId.ToString()
+            };
+        }
+
+        private TimeSpan GetServiceCallTimeout(int? serviceCallTimeout)
+        {
+            return serviceCallTimeout is > 0 ?
+                TimeSpan.FromMilliseconds(serviceCallTimeout.Value) :
+                _context.ClientOptions.Value.DefaultServiceCallTimeoutDuration ??
+                TimeSpan.FromMinutes(5);
+        }
+
+        private void ThrowIfDisposed()
+        {
+            ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) != 0, this);
+        }
+
+        private sealed class ManagedSessionHandle : ISessionHandle
+        {
+            public ManagedSessionHandle(ISessionHandle inner, TimeSpan serviceCallTimeout,
+                Action release)
+            {
+                _inner = inner;
+                ServiceCallTimeout = serviceCallTimeout;
+                _release = release;
+            }
+
+            public IOpcUaSession Session => _inner?.Session ??
+                throw new ObjectDisposedException(nameof(ManagedSessionHandle));
+            public TimeSpan ServiceCallTimeout { get; }
+
+            public void Dispose()
+            {
+                var inner = Interlocked.Exchange(ref _inner, null);
+                if (inner != null)
+                {
+                    inner.Dispose();
+                    Interlocked.Exchange(ref _release, null)?.Invoke();
+                }
+            }
+
+            private ISessionHandle? _inner;
+            private Action? _release;
+        }
+
+        private sealed class ManagedSubscriptionState : IAsyncDisposable
+        {
+            public ManagedSubscriptionState(SubscriptionModel template, ISessionHandle lease,
+                ManagedSubscriptionAdapter adapter)
+            {
+                Template = template;
+                Lease = lease;
+                Adapter = adapter;
+            }
+
+            public ManagedSubscriptionAdapter Adapter { get; }
+            public ISessionHandle Lease { get; }
+            public List<ManagedRegistration> Registrations { get; } = [];
+            public SubscriptionModel Template { get; }
+
+            public async ValueTask DisposeAsync()
+            {
+                await Adapter.DisposeAsync().ConfigureAwait(false);
+                Lease.Dispose();
+            }
+        }
+
+        private sealed class ManagedRegistration : PublisherSubscription, ISubscriptionDiagnostics
+        {
+            public ManagedRegistration(ManagedOpcUaClient owner,
+                ManagedSubscriptionState state, ISubscriber subscriber)
+            {
+                _owner = owner;
+                State = state;
+                Owner = subscriber;
+            }
+
+            public IOpcUaClientDiagnostics ClientDiagnostics => _owner;
+            public ISubscriptionDiagnostics Diagnostics => this;
+            public int GoodMonitoredItems => Owner.MonitoredItems.Count();
+            public int BadMonitoredItems => 0;
+            public int LateMonitoredItems => 0;
+            public int HeartbeatsEnabled => 0;
+            public int ConditionsEnabled => Owner.MonitoredItems.OfType<EventMonitoredItemModel>()
+                .Count(item => item.ConditionHandling?.SnapshotInterval != null);
+            public ISubscriber Owner { get; }
+            public ManagedSubscriptionState State { get; }
+
+            public ValueTask DisposeAsync()
+            {
+                return _owner.DisposeRegistrationAsync(this);
+            }
+
+            public OpcUaSubscriptionNotification? CreateKeepAlive()
+            {
+                return State.Adapter.CreateKeepAlive(Owner);
+            }
+
+            public void NotifyMonitoredItemsChanged()
+            {
+                _ = SynchronizeAsync(State, default);
+            }
+
+            public ValueTask<PublishedDataSetMetaDataModel> CollectMetaDataAsync(
+                ISubscriber owner, DataSetFieldContentFlags? fieldMask,
+                DataSetMetaDataModel dataSetMetaData, uint minorVersion,
+                CancellationToken ct = default)
+            {
+                return new ValueTask<PublishedDataSetMetaDataModel>(CollectMetaDataCoreAsync(owner,
+                    dataSetMetaData, minorVersion, ct));
+            }
+
+            private async Task<PublishedDataSetMetaDataModel> CollectMetaDataCoreAsync(
+                ISubscriber owner, DataSetMetaDataModel dataSetMetaData, uint minorVersion,
+                CancellationToken ct)
+            {
+                ArgumentNullException.ThrowIfNull(owner);
+                var session = State.Lease.Session;
+                var typeSystem = await session.GetComplexTypeSystemAsync(ct).ConfigureAwait(false);
+                var dataTypes = new NodeIdDictionary<object>();
+                var fields = new List<PublishedFieldMetaDataModel>();
+                foreach (var item in EnumerateDataItems(owner.MonitoredItems))
+                {
+                    using var monitoredItem = new OpcUaMonitoredItem.DataChange(owner, item,
+                        NullLogger<OpcUaMonitoredItem.DataChange>.Instance,
+                        _owner._context.TimeProvider);
+                    await monitoredItem.GetMetaDataAsync(session, typeSystem, fields, dataTypes, ct)
+                        .ConfigureAwait(false);
+                }
+                return new PublishedDataSetMetaDataModel
+                {
+                    DataSetMetaData = dataSetMetaData,
+                    EnumDataTypes = dataTypes.Values.OfType<EnumDescriptionModel>().ToList(),
+                    StructureDataTypes = dataTypes.Values.OfType<StructureDescriptionModel>().ToList(),
+                    SimpleDataTypes = dataTypes.Values.OfType<SimpleTypeDescriptionModel>().ToList(),
+                    Fields = fields,
+                    MinorVersion = minorVersion
+                };
+
+                static IEnumerable<DataMonitoredItemModel> EnumerateDataItems(
+                    IEnumerable<BaseMonitoredItemModel> items)
+                {
+                    foreach (var item in items)
+                    {
+                        if (item is DataMonitoredItemModel data)
+                        {
+                            yield return data;
+                        }
+                        if (item.TriggeredItems != null)
+                        {
+                            foreach (var triggered in EnumerateDataItems(item.TriggeredItems))
+                            {
+                                yield return triggered;
+                            }
+                        }
+                    }
+                }
+            }
+
+            private readonly ManagedOpcUaClient _owner;
+        }
+
+        private int _connectCount;
+        private int _disposed;
+        private int _reconnectCount;
+        private int _references;
+        private ChannelDiagnosticModel _lastDiagnostics;
+        private EndpointConnectivityState _state = EndpointConnectivityState.Disconnected;
+        private readonly OpcUaClientRuntimeContext _context;
+        private readonly ILogger _logger;
+        private readonly IModelChangeRebrowseSink _modelChangeSink;
+        private readonly ManagedSessionPool _pool;
+        private readonly IManagedSessionRequestFactory _requestFactory;
+        private readonly HashSet<ManagedOpcUaSession> _observedSessions = [];
+        private readonly Dictionary<ISubscriber, ManagedRegistration> _registrations = [];
+#pragma warning disable CA2213 // Closed asynchronously by the final reference release.
+        private readonly SemaphoreSlim _subscriptionGate = new(1, 1);
+#pragma warning restore CA2213 // Disposable fields should be disposed
+        private readonly Dictionary<SubscriptionModel, ManagedSubscriptionState> _subscriptions = [];
+    }
+}

@@ -328,6 +328,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
+        /// Creates a Publisher keep-alive for one currently registered owner.
+        /// </summary>
+        internal OpcUaSubscriptionNotification? CreateKeepAlive(ISubscriber owner)
+        {
+            ArgumentNullException.ThrowIfNull(owner);
+            return IsLiveOwner(owner) ? CreateNotification([], NextSequenceNumber(),
+                _timeProvider.GetUtcNow().UtcDateTime, MessageType.KeepAlive) : null;
+        }
+
+        /// <summary>
         /// Emits any pending condition snapshots. This is the timer's testable
         /// Publisher-owned seam.
         /// </summary>

@@ -57,7 +57,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public OpcUaClientManager(ILoggerFactory loggerFactory,
             IOpcUaConfiguration configuration, IOptions<OpcUaClientOptions> clientOptions,
             IOptions<OpcUaSubscriptionOptions> subscriptionOptions,
-            TimeProvider? timeProvider = null, IMetricsContext? metrics = null)
+            TimeProvider? timeProvider = null, IMetricsContext? metrics = null,
+            IOpcUaClientRuntimeStrategy? runtimeStrategy = null)
         {
             _metrics = metrics ??
                 IMetricsContext.Empty;
@@ -71,6 +72,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 throw new ArgumentNullException(nameof(loggerFactory));
             _configuration = configuration ??
                 throw new ArgumentNullException(nameof(configuration));
+            _runtimeStrategy = runtimeStrategy ??
+                ClassicOpcUaClientRuntimeStrategy.Instance;
 
             _logger = _loggerFactory.CreateLogger<OpcUaClientManager>();
 
@@ -161,7 +164,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.GetDiagnosticsFailed(ex, kv.Value);
+                    _logger.GetDiagnosticsFailed(ex, kv.Key);
                 }
                 yield return new ConnectionDiagnosticsModel
                 {
@@ -373,6 +376,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
             _clients.Clear();
+            await _runtimeStrategy.DisposeAsync().ConfigureAwait(false);
             _logger.StoppedAllClients();
         }
 
@@ -585,7 +589,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
-        private OpcUaClient GetOrAddClient(ConnectionModel connection)
+        private IOpcUaClientRuntime GetOrAddClient(ConnectionModel connection)
         {
             // Lazy start connect manager
             var reverseConnect = connection.IsReverseConnect();
@@ -599,11 +603,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // try to get an existing client
             var client = _clients.GetOrAdd(id, id =>
             {
-                var client = new OpcUaClient(_configuration.Value, id,
-                    _loggerFactory, _timeProvider, _metrics, () => OnClientClosedAsync(id),
-                    OnConnectionStateChange, reverseConnect ? _reverseConnectManager : null,
-                    OnClientConnectionDiagnosticChange, _clientOptions, _subscriptionOptions);
-                _logger.CreatedNewClient(client);
+                var client = _runtimeStrategy.Create(new OpcUaClientRuntimeContext
+                {
+                    Configuration = _configuration.Value,
+                    Connection = id,
+                    LoggerFactory = _loggerFactory,
+                    TimeProvider = _timeProvider,
+                    Metrics = _metrics,
+                    OnClose = () => OnClientClosedAsync(id),
+                    Notifier = OnConnectionStateChange,
+                    ReverseConnectManager = _reverseConnectManager,
+                    DiagnosticsCallback = OnClientConnectionDiagnosticChange,
+                    ClientOptions = _clientOptions,
+                    SubscriptionOptions = _subscriptionOptions
+                });
+                _logger.CreatedNewClient(id);
                 return client;
             });
 
@@ -626,7 +640,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     // must not await the management loop task (deadlock).
                     await client.CloseAsync(false,
                         fromManagementLoop: true).ConfigureAwait(false);
-                    _logger.ClosedClient(client);
+                    _logger.ClosedClient(id);
                 }
                 catch (OperationCanceledException) { }
                 catch (Exception ex)
@@ -699,7 +713,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly Lazy<Exception?> _reverseConnectStartException;
         private readonly ConcurrentDictionary<
             AsyncProducerConsumerQueue<ChannelDiagnosticModel>, bool> _listeners = new();
-        private readonly ConcurrentDictionary<ConnectionIdentifier, OpcUaClient> _clients = new();
+        private readonly ConcurrentDictionary<ConnectionIdentifier, IOpcUaClientRuntime> _clients = new();
+        private readonly IOpcUaClientRuntimeStrategy _runtimeStrategy;
         private readonly IMetricsContext _metrics;
         private readonly Meter _meter = Diagnostics.NewMeter();
     }
@@ -714,7 +729,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Error,
             Message = "Failed to get diagnostics for client {Client}.")]
         public static partial void GetDiagnosticsFailed(this ILogger logger, Exception ex,
-            OpcUaClient client);
+            ConnectionIdentifier client);
 
         [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Debug,
             Message = "Try finding endpoints at {DiscoveryUrl}...")]
@@ -788,10 +803,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         [LoggerMessage(EventId = EventClass + 17, Level = LogLevel.Information,
             Message = "{Client}: Created new client.")]
-        public static partial void CreatedNewClient(this ILogger logger, OpcUaClient client);
+        public static partial void CreatedNewClient(this ILogger logger, ConnectionIdentifier client);
 
         [LoggerMessage(EventId = EventClass + 18, Level = LogLevel.Information,
             Message = "{Client}: Closed client.")]
-        public static partial void ClosedClient(this ILogger logger, OpcUaClient client);
+        public static partial void ClosedClient(this ILogger logger, ConnectionIdentifier client);
     }
 }

@@ -117,6 +117,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             remove => _connectionStateChange -= value;
         }
 
+        /// <summary>
+        /// Gets the public managed subscription manager associated with this session.
+        /// </summary>
+        internal bool TryGetSubscriptionManager(out ISubscriptionManager? manager)
+        {
+            return _connection.Session.TryGetSubscriptionManager(out manager);
+        }
+
         /// <inheritdoc/>
         public async ValueTask<ComplexTypeSystem?> GetComplexTypeSystemAsync(
             CancellationToken ct = default)
