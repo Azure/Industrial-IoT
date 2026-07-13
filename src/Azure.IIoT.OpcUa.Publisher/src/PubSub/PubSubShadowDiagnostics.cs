@@ -13,6 +13,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     using Opc.Ua.PubSub.MetaData;
     using System;
     using System.Collections.Generic;
+    using System.IO;
+    using System.IO.Compression;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -25,6 +27,12 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         /// OPC UA JSON PubSub encoding.
         /// </summary>
         Json,
+
+        JsonReversible,
+
+        JsonGzip,
+
+        JsonReversibleGzip,
 
         /// <summary>
         /// OPC UA UADP PubSub encoding.
@@ -66,6 +74,12 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         /// Gets the owned encoded payload. Consumers must treat it as immutable.
         /// </summary>
         public ReadOnlyMemory<byte> Payload => _payload;
+
+        /// <summary>
+        /// Gets the capture content encoding when payload compression is used.
+        /// </summary>
+        public string? ContentEncoding => Encoding is PubSubShadowEncoding.JsonGzip
+            or PubSubShadowEncoding.JsonReversibleGzip ? "gzip" : null;
 
         /// <summary>
         /// Creates a capture with its own payload copy.
@@ -346,9 +360,25 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         public async ValueTask CaptureJsonAsync(PubSubNetworkMessage message,
             CancellationToken cancellationToken = default)
         {
-            var encoded = await new Opc.Ua.PubSub.Encoding.Json.JsonEncoder().EncodeAsync(message, CreateContext(),
+            await CaptureJsonAsync(message, PubSubShadowEncoding.Json, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        public async ValueTask CaptureJsonAsync(PubSubNetworkMessage message,
+            PubSubShadowEncoding encoding, CancellationToken cancellationToken = default)
+        {
+            if (encoding is not (PubSubShadowEncoding.Json or PubSubShadowEncoding.JsonReversible
+                or PubSubShadowEncoding.JsonGzip or PubSubShadowEncoding.JsonReversibleGzip))
+            {
+                throw new ArgumentOutOfRangeException(nameof(encoding));
+            }
+            var mode = encoding is PubSubShadowEncoding.JsonReversible
+                or PubSubShadowEncoding.JsonReversibleGzip
+                ? JsonEncodingMode.Verbose
+                : JsonEncodingMode.Compact;
+            var encoded = await new Opc.Ua.PubSub.Encoding.Json.JsonEncoder(mode).EncodeAsync(message, CreateContext(),
                 cancellationToken).ConfigureAwait(false);
-            await CaptureAsync(PubSubShadowEncoding.Json, encoded, cancellationToken)
+            await CaptureAsync(encoding, CompressIfRequired(encoded, encoding), cancellationToken)
                 .ConfigureAwait(false);
         }
 
@@ -370,6 +400,22 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                     _timeProvider.GetUtcNow(), encoded.Span), cancellationToken)
                     .ConfigureAwait(false);
                 _state.Captured();
+            }
+
+            private static ReadOnlyMemory<byte> CompressIfRequired(ReadOnlyMemory<byte> encoded,
+                PubSubShadowEncoding encoding)
+            {
+                if (encoding is not (PubSubShadowEncoding.JsonGzip
+                    or PubSubShadowEncoding.JsonReversibleGzip))
+                {
+                    return encoded;
+                }
+                using var output = new MemoryStream();
+                using (var gzip = new GZipStream(output, CompressionLevel.SmallestSize, true))
+                {
+                    gzip.Write(encoded.Span);
+                }
+                return output.ToArray();
             }
             catch (Exception exception)
             {
