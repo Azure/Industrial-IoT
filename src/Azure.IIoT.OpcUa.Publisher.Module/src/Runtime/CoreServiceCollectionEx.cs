@@ -7,6 +7,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
 {
     using Azure.IIoT.OpcUa.Core;
     using Azure.IIoT.OpcUa.Core.AzureSdk;
+    using Azure.IIoT.OpcUa.Core.Hosting;
+    using Azure.IIoT.OpcUa.Core.IoTEdge;
+    using Azure.IIoT.OpcUa.Core.IoTEdge.Services;
     using Azure.IIoT.OpcUa.Core.Messaging;
     using Azure.IIoT.OpcUa.Core.Messaging.Clients;
     using Azure.IIoT.OpcUa.Core.Messaging.Clients.Dapr;
@@ -24,6 +27,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
+    using System.Collections;
+    using System.Collections.Generic;
+    using System.Text.Json.Nodes;
 
     /// <summary>
     /// <see cref="IServiceCollection"/> registrations for the in-repo
@@ -85,7 +91,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         public static IServiceCollection AddMemoryKeyValueStore(
             this IServiceCollection services)
         {
-            return services.AddSingletonAsImplementedInterfaces<MemoryKVStore>();
+            services.AddSingleton<MemoryKVStore>();
+            services.AddSingleton<IKeyValueStore>(
+                static provider => provider.GetRequiredService<MemoryKVStore>());
+            return services;
         }
 
         /// <summary>
@@ -95,8 +104,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         public static IServiceCollection AddNullEventClient(
             this IServiceCollection services)
         {
-            return services.AddAs<NullEventClient>(ServiceLifetime.Transient,
-                typeof(IEventClient));
+            services.AddTransient<NullEventClient>();
+            services.AddTransient<IEventClient>(
+                static provider => provider.GetRequiredService<NullEventClient>());
+            return services;
         }
 
         /// <summary>
@@ -107,7 +118,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             this IServiceCollection services)
         {
             services.AddOptions();
-            services.AddSingletonAsImplementedInterfaces<DefaultAzureCredentials>();
+            services.AddSingleton<DefaultAzureCredentials>();
+            services.AddSingleton<ICredentialProvider>(
+                static provider => provider.GetRequiredService<DefaultAzureCredentials>());
             services.AddSingleton<IPostConfigureOptions<CredentialOptions>, CredentialConfig>();
             return services;
         }
@@ -121,8 +134,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         {
             services.AddOptions();
             AddDefaultAzureCredentials(services);
-            services.AddTransientAsImplementedInterfaces<EventHubsClient>();
-            services.AddTransientAsImplementedInterfaces<EventHubsClientFactory>();
+            services.AddTransient<EventHubsClient>();
+            services.AddTransient<IEventClient>(
+                static provider => provider.GetRequiredService<EventHubsClient>());
+            services.AddTransient<EventHubsClientFactory>();
+            services.AddTransient<IEventClientFactory>(
+                static provider => provider.GetRequiredService<EventHubsClientFactory>());
             services.AddSingleton<IPostConfigureOptions<EventHubsClientOptions>,
                 EventHubsClientConfig>();
             return services;
@@ -135,8 +152,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         public static IServiceCollection AddDaprPubSubClient(
             this IServiceCollection services)
         {
-            services.AddAs<DaprPubSubClient>(ServiceLifetime.Transient,
-                typeof(IEventClient));
+            services.AddTransient<DaprPubSubClient>();
+            services.AddTransient<IEventClient>(
+                static provider => provider.GetRequiredService<DaprPubSubClient>());
             services.AddOptions();
             services.AddSingleton<IPostConfigureOptions<DaprOptions>, DaprConfig>();
             return services;
@@ -149,9 +167,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         public static IServiceCollection AddDaprStateStoreClient(
             this IServiceCollection services)
         {
-            services.AddAs<DaprStateStoreClient>(ServiceLifetime.Singleton,
-                typeof(IKeyValueStore), typeof(IAwaitable),
-                typeof(IAwaitable<IKeyValueStore>));
+            services.AddSingleton<DaprStateStoreClient>();
+            services.AddSingleton<IKeyValueStore>(
+                static provider => provider.GetRequiredService<DaprStateStoreClient>());
+            services.AddSingleton<IAwaitable>(
+                static provider => provider.GetRequiredService<DaprStateStoreClient>());
+            services.AddSingleton<IAwaitable<IKeyValueStore>>(
+                static provider => provider.GetRequiredService<DaprStateStoreClient>());
             services.AddOptions();
             services.AddSingleton<IPostConfigureOptions<DaprOptions>, DaprConfig>();
             return services;
@@ -165,9 +187,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             this IServiceCollection services)
         {
             services.AddOptions();
-            services.AddAs<FileSystemEventClient>(ServiceLifetime.Singleton,
-                typeof(IEventClient));
-            services.AddSingletonAsImplementedInterfaces<FileSystemClientFactory>();
+            services.AddSingleton<FileSystemEventClient>();
+            services.AddSingleton<IEventClient>(
+                static provider => provider.GetRequiredService<FileSystemEventClient>());
+            services.AddSingleton<FileSystemClientFactory>();
+            services.AddSingleton<IEventClientFactory>(
+                static provider => provider.GetRequiredService<FileSystemClientFactory>());
             return services;
         }
 
@@ -179,7 +204,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             this IServiceCollection services)
         {
             services.AddOptions();
-            return services.AddSingletonAsImplementedInterfaces<FileSystemRpcServer>();
+            services.AddSingleton<FileSystemRpcServer>();
+            services.AddSingleton<IRpcServer>(
+                static provider => provider.GetRequiredService<FileSystemRpcServer>());
+            return services;
         }
 
         /// <summary>
@@ -191,8 +219,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         {
             services.AddOptions();
             services.AddHttpClient();
-            return services.AddAs<HttpEventClient>(ServiceLifetime.Transient,
-                typeof(IEventClient));
+            services.AddTransient<HttpEventClient>();
+            services.AddTransient<IEventClient>(
+                static provider => provider.GetRequiredService<HttpEventClient>());
+            return services;
         }
 
         /// <summary>
@@ -205,7 +235,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             this IServiceCollection services)
         {
             services.AddOptions();
-            services.AddSingletonAsImplementedInterfaces<MqttClientTransport>();
+            services.AddSingleton<MqttClientTransport>();
+            services.AddSingleton<IEventClient>(
+                static provider => provider.GetRequiredService<MqttClientTransport>());
+            services.AddSingleton<IEventSubscriber>(
+                static provider => provider.GetRequiredService<MqttClientTransport>());
+            services.AddSingleton<IRpcClient>(
+                static provider => provider.GetRequiredService<MqttClientTransport>());
+            services.AddSingleton<IRpcServer>(
+                static provider => provider.GetRequiredService<MqttClientTransport>());
             services.AddSingleton<IPostConfigureOptions<MqttOptions>, MqttConfig>();
             return services;
         }
@@ -218,11 +256,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             this IServiceCollection services)
         {
             services.AddOptions();
-            services.AddSingletonAsImplementedInterfaces<IoTEdgeIdentity>();
+            services.AddSingleton<IoTEdgeIdentity>();
+            services.AddSingleton<IIoTEdgeDeviceIdentity>(
+                static provider => provider.GetRequiredService<IoTEdgeIdentity>());
             services.AddSingleton<IoTEdgeModuleClient>();
-            services.AddSingletonAsImplementedInterfaces<IoTEdgeTransport>();
-            services.AddSingletonAsImplementedInterfaces<IoTEdgeTwinStore>();
-            services.AddTransientAsImplementedInterfaces<IoTEdgeWorkloadApi>();
+            services.AddSingleton<IoTEdgeTransport>();
+            services.AddSingleton<IEventClient>(
+                static provider => provider.GetRequiredService<IoTEdgeTransport>());
+            services.AddSingleton<IEventSubscriber>(
+                static provider => provider.GetRequiredService<IoTEdgeTransport>());
+            services.AddSingleton<IRpcServer>(
+                static provider => provider.GetRequiredService<IoTEdgeTransport>());
+            services.AddSingleton<IRpcClient>(
+                static provider => provider.GetRequiredService<IoTEdgeTransport>());
+            services.AddSingleton<IProcessIdentity>(
+                static provider => provider.GetRequiredService<IoTEdgeTransport>());
+            services.AddSingleton<IoTEdgeTwinStore>();
+            services.AddSingleton<IKeyValueStore>(
+                static provider => provider.GetRequiredService<IoTEdgeTwinStore>());
+            services.AddSingleton<IAwaitable<IKeyValueStore>>(
+                static provider => provider.GetRequiredService<IoTEdgeTwinStore>());
+            services.AddSingleton<IAwaitable>(
+                static provider => provider.GetRequiredService<IoTEdgeTwinStore>());
+            services.AddSingleton<IDictionary<string, JsonNode?>>(
+                static provider => provider.GetRequiredService<IoTEdgeTwinStore>());
+            services.AddSingleton<ICollection<KeyValuePair<string, JsonNode?>>>(
+                static provider => provider.GetRequiredService<IoTEdgeTwinStore>());
+            services.AddSingleton<IEnumerable<KeyValuePair<string, JsonNode?>>>(
+                static provider => provider.GetRequiredService<IoTEdgeTwinStore>());
+            services.AddSingleton<IEnumerable>(
+                static provider => provider.GetRequiredService<IoTEdgeTwinStore>());
+            services.AddTransient<IoTEdgeWorkloadApi>();
+            services.AddTransient<IIoTEdgeWorkloadApi>(
+                static provider => provider.GetRequiredService<IoTEdgeWorkloadApi>());
             return services;
         }
     }

@@ -23,6 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using Microsoft.AspNetCore.Server.Kestrel.Core;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Diagnostics.HealthChecks;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Logging.Console;
     using Microsoft.Extensions.Options;
@@ -32,12 +33,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
     using OpenTelemetry.Metrics;
     using OpenTelemetry.Trace;
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Net;
+    using System.Runtime.Serialization;
     using System.Text.RegularExpressions;
 
     /// <summary>
@@ -53,27 +56,93 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
         {
             services.AddPublisherCore();
 
-            services.AddSingletonAsImplementedInterfaces<HealthCheckRegistrar>();
-            services.AddSingletonAsImplementedInterfaces<CommandLine>();
-            services.AddTransientAsImplementedInterfaces<LoggingLevel>();
-            services.AddTransientAsImplementedInterfaces<ConsoleLogging<ConsoleFormatterOptions>>();
-            services.AddTransientAsImplementedInterfaces<ConsoleLogging<SimpleConsoleFormatterOptions>>();
-            services.AddTransientAsImplementedInterfaces<ConsoleLogging<JsonConsoleFormatterOptions>>();
-            services.AddSingletonAsImplementedInterfaces<Syslog>();
-            services.AddTransientAsImplementedInterfaces<Kestrel>();
+            services.AddSingleton<HealthCheckRegistrar>();
+            services.AddSingleton<IOptions<HealthCheckServiceOptions>>(
+                static provider => provider.GetRequiredService<HealthCheckRegistrar>());
+            services.AddSingleton<CommandLine>();
+            services.AddSingleton<IDictionary<string, string?>>(
+                static provider => provider.GetRequiredService<CommandLine>());
+            services.AddSingleton<ICollection<KeyValuePair<string, string?>>>(
+                static provider => provider.GetRequiredService<CommandLine>());
+            services.AddSingleton<IEnumerable<KeyValuePair<string, string?>>>(
+                static provider => provider.GetRequiredService<CommandLine>());
+            services.AddSingleton<IEnumerable>(
+                static provider => provider.GetRequiredService<CommandLine>());
+            services.AddSingleton<IDictionary>(
+                static provider => provider.GetRequiredService<CommandLine>());
+            services.AddSingleton<ICollection>(
+                static provider => provider.GetRequiredService<CommandLine>());
+            services.AddSingleton<IReadOnlyDictionary<string, string?>>(
+                static provider => provider.GetRequiredService<CommandLine>());
+            services.AddSingleton<IReadOnlyCollection<KeyValuePair<string, string?>>>(
+                static provider => provider.GetRequiredService<CommandLine>());
+            services.AddSingleton<ISerializable>(
+                static provider => provider.GetRequiredService<CommandLine>());
+            services.AddSingleton<IDeserializationCallback>(
+                static provider => provider.GetRequiredService<CommandLine>());
+            services.AddTransient<LoggingLevel>();
+            services.AddTransient<IConfigureOptions<LoggerFilterOptions>>(
+                static provider => provider.GetRequiredService<LoggingLevel>());
+            services.AddTransient<IConfigureNamedOptions<LoggerFilterOptions>>(
+                static provider => provider.GetRequiredService<LoggingLevel>());
+            services.AddTransient<ConsoleLogging<ConsoleFormatterOptions>>();
+            services.AddTransient<IPostConfigureOptions<ConsoleLoggerOptions>>(
+                static provider => provider.GetRequiredService<ConsoleLogging<ConsoleFormatterOptions>>());
+            services.AddTransient<IConfigureOptions<ConsoleFormatterOptions>>(
+                static provider => provider.GetRequiredService<ConsoleLogging<ConsoleFormatterOptions>>());
+            services.AddTransient<IConfigureNamedOptions<ConsoleFormatterOptions>>(
+                static provider => provider.GetRequiredService<ConsoleLogging<ConsoleFormatterOptions>>());
+            services.AddTransient<ConsoleLogging<SimpleConsoleFormatterOptions>>();
+            services.AddTransient<IPostConfigureOptions<ConsoleLoggerOptions>>(
+                static provider => provider.GetRequiredService<ConsoleLogging<SimpleConsoleFormatterOptions>>());
+            services.AddTransient<IConfigureOptions<SimpleConsoleFormatterOptions>>(
+                static provider => provider.GetRequiredService<ConsoleLogging<SimpleConsoleFormatterOptions>>());
+            services.AddTransient<IConfigureNamedOptions<SimpleConsoleFormatterOptions>>(
+                static provider => provider.GetRequiredService<ConsoleLogging<SimpleConsoleFormatterOptions>>());
+            services.AddTransient<ConsoleLogging<JsonConsoleFormatterOptions>>();
+            services.AddTransient<IPostConfigureOptions<ConsoleLoggerOptions>>(
+                static provider => provider.GetRequiredService<ConsoleLogging<JsonConsoleFormatterOptions>>());
+            services.AddTransient<IConfigureOptions<JsonConsoleFormatterOptions>>(
+                static provider => provider.GetRequiredService<ConsoleLogging<JsonConsoleFormatterOptions>>());
+            services.AddTransient<IConfigureNamedOptions<JsonConsoleFormatterOptions>>(
+                static provider => provider.GetRequiredService<ConsoleLogging<JsonConsoleFormatterOptions>>());
+            services.AddSingleton<Syslog>();
+            services.AddTransient<Kestrel>();
+            services.AddTransient<IConfigureOptions<KestrelServerOptions>>(
+                static provider => provider.GetRequiredService<Kestrel>());
+            services.AddTransient<IConfigureNamedOptions<KestrelServerOptions>>(
+                static provider => provider.GetRequiredService<Kestrel>());
 
             // Register and configure controllers
             CoreServiceCollectionEx.AddMethodRouter(services);
-            services.AddTransientAsImplementedInterfaces<Router>();
+            services.AddTransient<Router>();
+            services.AddTransient<IPostConfigureOptions<RouterOptions>>(
+                static provider => provider.GetRequiredService<Router>());
 
-            services.AddTransientAsImplementedInterfaces<PublisherController>();
-            services.AddTransientAsImplementedInterfaces<ConfigurationController>();
-            services.AddTransientAsImplementedInterfaces<WriterController>();
-            services.AddTransientAsImplementedInterfaces<GeneralController>();
-            services.AddTransientAsImplementedInterfaces<HistoryController>();
-            services.AddTransientAsImplementedInterfaces<DiscoveryController>();
-            services.AddTransientAsImplementedInterfaces<CertificatesController>();
-            services.AddTransientAsImplementedInterfaces<DiagnosticsController>();
+            services.AddTransient<PublisherController>();
+            services.AddTransient<IMethodController>(
+                static provider => provider.GetRequiredService<PublisherController>());
+            services.AddTransient<ConfigurationController>();
+            services.AddTransient<IMethodController>(
+                static provider => provider.GetRequiredService<ConfigurationController>());
+            services.AddTransient<WriterController>();
+            services.AddTransient<IMethodController>(
+                static provider => provider.GetRequiredService<WriterController>());
+            services.AddTransient<GeneralController>();
+            services.AddTransient<IMethodController>(
+                static provider => provider.GetRequiredService<GeneralController>());
+            services.AddTransient<HistoryController>();
+            services.AddTransient<IMethodController>(
+                static provider => provider.GetRequiredService<HistoryController>());
+            services.AddTransient<DiscoveryController>();
+            services.AddTransient<IMethodController>(
+                static provider => provider.GetRequiredService<DiscoveryController>());
+            services.AddTransient<CertificatesController>();
+            services.AddTransient<IMethodController>(
+                static provider => provider.GetRequiredService<CertificatesController>());
+            services.AddTransient<DiagnosticsController>();
+            services.AddTransient<IMethodController>(
+                static provider => provider.GetRequiredService<DiagnosticsController>());
 
             // FileSystemController is intentionally NOT forwarded as an
             // IMethodController (its file up/download endpoints are HTTP only and
@@ -119,8 +188,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             if (mqttOptions.HostName != null)
             {
                 CoreServiceCollectionEx.AddMqttClient(services);
-                services.AddTransientAsImplementedInterfaces<MqttBroker>();
-                services.AddTransientAsImplementedInterfaces<SchemaTopicBuilder>();
+                services.AddTransient<MqttBroker>();
+                services.AddTransient<IConfigureOptions<MqttOptions>>(
+                    static provider => provider.GetRequiredService<MqttBroker>());
+                services.AddTransient<IConfigureNamedOptions<MqttOptions>>(
+                    static provider => provider.GetRequiredService<MqttBroker>());
+                services.AddTransient<SchemaTopicBuilder>();
+                services.AddTransient<IConfigureOptions<MqttOptions>>(
+                    static provider => provider.GetRequiredService<SchemaTopicBuilder>());
+                services.AddTransient<IConfigureNamedOptions<MqttOptions>>(
+                    static provider => provider.GetRequiredService<SchemaTopicBuilder>());
             }
         }
 
@@ -138,7 +215,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             if (iotEdgeOptions.EdgeHubConnectionString != null)
             {
                 CoreServiceCollectionEx.AddIoTEdgeServices(services);
-                services.AddTransientAsImplementedInterfaces<IoTEdge>();
+                services.AddTransient<IoTEdge>();
+                services.AddTransient<IConfigureOptions<IoTEdgeClientOptions>>(
+                    static provider => provider.GetRequiredService<IoTEdge>());
+                services.AddTransient<IConfigureNamedOptions<IoTEdgeClientOptions>>(
+                    static provider => provider.GetRequiredService<IoTEdge>());
             }
         }
 
@@ -165,10 +246,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                         options.FileSystemPollingInterval = TimeSpan.FromSeconds(5));
                 }
 
-                services.AddTransientAsImplementedInterfaces<Aio>();
+                services.AddTransient<Aio>();
+                services.AddTransient<IConfigureOptions<PublisherOptions>>(
+                    static provider => provider.GetRequiredService<Aio>());
+                services.AddTransient<IConfigureNamedOptions<PublisherOptions>>(
+                    static provider => provider.GetRequiredService<Aio>());
                 if (publisherOptions.IsAzureIoTOperationsConnector.Value)
                 {
-                    services.AddSingletonAsImplementedInterfaces<AssetDeviceIntegration>();
+                    services.AddSingleton<AssetDeviceIntegration>();
+                    services.AddSingleton<IAioSrCallbacks>(
+                        static provider => provider.GetRequiredService<AssetDeviceIntegration>());
                 }
             }
         }
@@ -187,7 +274,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             if (eventHubsOptions.ConnectionString != null)
             {
                 CoreServiceCollectionEx.AddHubEventClient(services);
-                services.AddTransientAsImplementedInterfaces<EventHubs>();
+                services.AddTransient<EventHubs>();
+                services.AddTransient<IConfigureOptions<EventHubsClientOptions>>(
+                    static provider => provider.GetRequiredService<EventHubs>());
+                services.AddTransient<IConfigureNamedOptions<EventHubsClientOptions>>(
+                    static provider => provider.GetRequiredService<EventHubs>());
             }
         }
 
@@ -204,8 +295,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             if (fsOptions.OutputFolder != null)
             {
                 CoreServiceCollectionEx.AddFileSystemEventClient(services);
-                services.AddTransientAsImplementedInterfaces<FileSystem>();
-                services.AddTransientAsImplementedInterfaces<ConsoleWriter>();
+                services.AddTransient<FileSystem>();
+                services.AddTransient<IConfigureOptions<FileSystemEventClientOptions>>(
+                    static provider => provider.GetRequiredService<FileSystem>());
+                services.AddTransient<IConfigureNamedOptions<FileSystemEventClientOptions>>(
+                    static provider => provider.GetRequiredService<FileSystem>());
+                services.AddTransient<IConfigureOptions<FileSystemRpcServerOptions>>(
+                    static provider => provider.GetRequiredService<FileSystem>());
+                services.AddTransient<IConfigureNamedOptions<FileSystemRpcServerOptions>>(
+                    static provider => provider.GetRequiredService<FileSystem>());
+                services.AddTransient<ConsoleWriter>();
+                services.AddTransient<IConfigureOptions<ConsoleWriterOptions>>(
+                    static provider => provider.GetRequiredService<ConsoleWriter>());
+                services.AddTransient<IConfigureNamedOptions<ConsoleWriterOptions>>(
+                    static provider => provider.GetRequiredService<ConsoleWriter>());
             }
         }
 
@@ -222,7 +325,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             if (fsOptions.RequestFilePath != null)
             {
                 CoreServiceCollectionEx.AddFileSystemRpcServer(services);
-                services.AddTransientAsImplementedInterfaces<FileSystem>();
+                services.AddTransient<FileSystem>();
+                services.AddTransient<IConfigureOptions<FileSystemEventClientOptions>>(
+                    static provider => provider.GetRequiredService<FileSystem>());
+                services.AddTransient<IConfigureNamedOptions<FileSystemEventClientOptions>>(
+                    static provider => provider.GetRequiredService<FileSystem>());
+                services.AddTransient<IConfigureOptions<FileSystemRpcServerOptions>>(
+                    static provider => provider.GetRequiredService<FileSystem>());
+                services.AddTransient<IConfigureNamedOptions<FileSystemRpcServerOptions>>(
+                    static provider => provider.GetRequiredService<FileSystem>());
             }
         }
 
@@ -239,7 +350,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             if (httpOptions.HostName != null)
             {
                 CoreServiceCollectionEx.AddHttpEventClient(services);
-                services.AddTransientAsImplementedInterfaces<Http>();
+                services.AddTransient<Http>();
+                services.AddTransient<IConfigureOptions<HttpEventClientOptions>>(
+                    static provider => provider.GetRequiredService<Http>());
+                services.AddTransient<IConfigureNamedOptions<HttpEventClientOptions>>(
+                    static provider => provider.GetRequiredService<Http>());
             }
         }
 
@@ -256,7 +371,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             if (!string.IsNullOrWhiteSpace(daprOptions.PubSubComponent))
             {
                 CoreServiceCollectionEx.AddDaprPubSubClient(services);
-                services.AddTransientAsImplementedInterfaces<Dapr>();
+                services.AddTransient<Dapr>();
+                services.AddTransient<IConfigureOptions<DaprOptions>>(
+                    static provider => provider.GetRequiredService<Dapr>());
+                services.AddTransient<IConfigureNamedOptions<DaprOptions>>(
+                    static provider => provider.GetRequiredService<Dapr>());
             }
         }
 
@@ -273,7 +392,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
             if (!string.IsNullOrWhiteSpace(daprOptions.StateStoreName))
             {
                 CoreServiceCollectionEx.AddDaprStateStoreClient(services);
-                services.AddTransientAsImplementedInterfaces<Dapr>();
+                services.AddTransient<Dapr>();
+                services.AddTransient<IConfigureOptions<DaprOptions>>(
+                    static provider => provider.GetRequiredService<Dapr>());
+                services.AddTransient<IConfigureNamedOptions<DaprOptions>>(
+                    static provider => provider.GetRequiredService<Dapr>());
             }
         }
 
