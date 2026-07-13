@@ -762,7 +762,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var activeOwners = _bindingsByHandle.Values
                 .Select(binding => binding.Owner)
                 .ToHashSet();
-            _ownerStates.RemoveWhere(owner => !activeOwners.Contains(owner));
+            foreach (var owner in _ownerStates.Keys
+                .Where(owner => !activeOwners.Contains(owner))
+                .ToArray())
+            {
+                _ownerStates.Remove(owner);
+            }
         }
 
         private ManagedSubscriptionItemBinding CreateBinding(string name,
