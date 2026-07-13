@@ -28,6 +28,11 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\src\Azure.IIoT.OpcUa.Publisher.Testing.Servers.csproj" />
+    <ProjectReference Include="..\..\..\external\UA-.NETStandard\Applications\Quickstarts.Servers\Quickstarts.Servers.csproj"
+                      SetTargetFramework="TargetFramework=net10.0"
+                      UndefineProperties="PublishAot">
+      <Aliases>Quickstarts</Aliases>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\src\Generated\Isa95Jobs\Design\UAModel.ISA95_JOBCONTROL_V2.NodeSet2.xml">

@@ -195,7 +195,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                     {
                         _port = ReserveServerPort(logger);
                         serverHost = new ServerConsoleHost(new ServerFactory(
-                            _container.GetRequiredService<ILogger<ServerFactory>>(), TempPath, nodes)
+                            _container.GetRequiredService<ILogger<ServerFactory>>(), TempPath, nodes,
+                            TimeService)
                         {
                             LogStatus = false
                         }, _container.GetRequiredService<ILogger<ServerConsoleHost>>())

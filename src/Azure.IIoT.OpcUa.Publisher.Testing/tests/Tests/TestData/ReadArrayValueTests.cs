@@ -37,7 +37,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             const Opc.Ua.NodeClass expected = Opc.Ua.NodeClass.Variable;
 
             var attributes = new List<AttributeReadRequestModel>();
-            for (var i = 10300; i < 10326; i++)
+            for (var i = 2228; i < 2254; i++)
             {
                 attributes.Add(new AttributeReadRequestModel
                 {
@@ -73,7 +73,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var browser = _services();
             const int expected = Opc.Ua.AccessLevels.CurrentRead | Opc.Ua.AccessLevels.CurrentWrite;
             var attributes = new List<AttributeReadRequestModel>();
-            for (var i = 10300; i < 10326; i++)
+            for (var i = 2228; i < 2254; i++)
             {
                 attributes.Add(new AttributeReadRequestModel
                 {
@@ -109,7 +109,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var browser = _services();
 
             var attributes = new List<AttributeReadRequestModel>();
-            for (var i = 10300; i < 10326; i++)
+            for (var i = 2228; i < 2254; i++)
             {
                 attributes.Add(new AttributeReadRequestModel
                 {
@@ -137,7 +137,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.Results);
             Assert.Equal(attributes.Count, result.Results.Count);
             Assert.All(result.Results, r => Assert.Null(r.ErrorInfo));
-            Assert.All(result.Results, r => Assert.Equal(0, (int)r.Value));
+            Assert.All(result.Results, r => Assert.Null(r.Value));
         }
 
         public async Task NodeReadAllStaticArrayVariableWriteMaskTest2Async(CancellationToken ct = default)
@@ -145,12 +145,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var browser = _services();
 
             var attributes = new List<AttributeReadRequestModel>();
-            for (var i = 10300; i < 10326; i++)
+            for (var i = 2228; i < 2254; i++)
             {
                 attributes.Add(new AttributeReadRequestModel
                 {
                     Attribute = NodeAttribute.WriteMask,
-                    NodeId = "http://test.org/UA/Data/#i=10300"
+                    NodeId = "http://test.org/UA/Data/#i=2228"
                 });
             }
 
@@ -173,13 +173,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.Results);
             Assert.Equal(attributes.Count, result.Results.Count);
             Assert.All(result.Results, r => Assert.Null(r.ErrorInfo));
-            Assert.All(result.Results, r => Assert.Equal(0, (int)r.Value));
+            Assert.All(result.Results, r => Assert.Null(r.Value));
         }
 
         public async Task NodeReadStaticArrayBooleanValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10300";
+            const string node = "http://test.org/UA/Data/#i=2228";
             var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
@@ -208,7 +208,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeReadStaticArraySByteValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10301";
+            const string node = "http://test.org/UA/Data/#i=2229";
             var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
@@ -237,7 +237,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeReadStaticArrayByteValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10302";
+            const string node = "http://test.org/UA/Data/#i=2230";
             var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
@@ -259,7 +259,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeReadStaticArrayInt16ValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10303";
+            const string node = "http://test.org/UA/Data/#i=2231";
             var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
@@ -288,7 +288,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeReadStaticArrayUInt16ValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10304";
+            const string node = "http://test.org/UA/Data/#i=2232";
             var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
@@ -317,7 +317,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeReadStaticArrayInt32ValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10305";
+            const string node = "http://test.org/UA/Data/#i=2233";
             var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
@@ -346,7 +346,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeReadStaticArrayUInt32ValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10306";
+            const string node = "http://test.org/UA/Data/#i=2234";
             var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
@@ -375,7 +375,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeReadStaticArrayInt64ValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10307";
+            const string node = "http://test.org/UA/Data/#i=2235";
             var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
@@ -404,7 +404,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeReadStaticArrayUInt64ValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10308";
+            const string node = "http://test.org/UA/Data/#i=2236";
             var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
@@ -433,7 +433,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeReadStaticArrayFloatValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10309";
+            const string node = "http://test.org/UA/Data/#i=2237";
             var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
@@ -462,7 +462,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeReadStaticArrayDoubleValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10310";
+            const string node = "http://test.org/UA/Data/#i=2238";
             var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
@@ -491,7 +491,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeReadStaticArrayStringValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10311";
+            const string node = "http://test.org/UA/Data/#i=2239";
             var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
@@ -520,7 +520,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeReadStaticArrayDateTimeValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10312";
+            const string node = "http://test.org/UA/Data/#i=2240";
             var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
@@ -549,7 +549,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeReadStaticArrayGuidValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10313";
+            const string node = "http://test.org/UA/Data/#i=2241";
             var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
@@ -578,7 +578,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeReadStaticArrayByteStringValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10314";
+            const string node = "http://test.org/UA/Data/#i=2242";
             var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
@@ -610,7 +610,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeReadStaticArrayXmlElementValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10315";
+            const string node = "http://test.org/UA/Data/#i=2243";
             var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
@@ -641,7 +641,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeReadStaticArrayNodeIdValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10316";
+            const string node = "http://test.org/UA/Data/#i=2244";
             var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
@@ -670,7 +670,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeReadStaticArrayExpandedNodeIdValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10317";
+            const string node = "http://test.org/UA/Data/#i=2245";
             var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
@@ -699,7 +699,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeReadStaticArrayQualifiedNameValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10318";
+            const string node = "http://test.org/UA/Data/#i=2246";
             var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
@@ -728,7 +728,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeReadStaticArrayLocalizedTextValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10319";
+            const string node = "http://test.org/UA/Data/#i=2247";
             var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
@@ -757,7 +757,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeReadStaticArrayStatusCodeValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10320";
+            const string node = "http://test.org/UA/Data/#i=2248";
             var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
@@ -787,7 +787,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeReadStaticArrayVariantValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10321";
+            const string node = "http://test.org/UA/Data/#i=2249";
             var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
@@ -809,7 +809,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeReadStaticArrayEnumerationValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10322";
+            const string node = "http://test.org/UA/Data/#i=2250";
             var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
@@ -838,7 +838,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeReadStaticArrayStructureValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10323";
+            const string node = "http://test.org/UA/Data/#i=2251";
             var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
@@ -868,7 +868,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeReadStaticArrayNumberValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10324";
+            const string node = "http://test.org/UA/Data/#i=2252";
             var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
@@ -896,7 +896,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeReadStaticArrayIntegerValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10325";
+            const string node = "http://test.org/UA/Data/#i=2253";
             var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act
@@ -924,7 +924,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeReadStaticArrayUIntegerValueVariableTestAsync(CancellationToken ct = default)
         {
             var browser = _services();
-            const string node = "http://test.org/UA/Data/#i=10326";
+            const string node = "http://test.org/UA/Data/#i=2254";
             var expected = await _readExpected(_connection, node).ConfigureAwait(false);
 
             // Act

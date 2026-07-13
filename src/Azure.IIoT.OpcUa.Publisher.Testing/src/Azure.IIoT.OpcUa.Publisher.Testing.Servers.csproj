@@ -1,9 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>Azure.IIoT.OpcUa.Publisher.Testing.Servers</AssemblyName>
+    <PackageId>Azure.IIoT.OpcUa.Publisher.Testing.Servers</PackageId>
+    <RootNamespace>Azure.IIoT.OpcUa.Publisher.Testing</RootNamespace>
     <Description>Contains several test servers to run tests against</Description>
-    <IsPackable>true</IsPackable>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <IsPackable>false</IsPackable>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <IsTrimmable>false</IsTrimmable>
     <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
     <Nullable>disable</Nullable>
@@ -54,9 +57,6 @@
     <EmbeddedResource Include="Generated\HistoricalEvents\Design\HistoricalEvents.PredefinedNodes.uanodes" />
     <EmbeddedResource Include="Generated\Plc\Design\PlcModel.PredefinedNodes.uanodes" />
     <EmbeddedResource Include="Generated\SimpleEvents\Design\SimpleEvents.PredefinedNodes.uanodes" />
-    <EmbeddedResource Include="Generated\TestData\Design\TestData.PredefinedNodes.uanodes" />
-    <EmbeddedResource Include="Generated\MemoryBuffer\Design\MemoryBuffer.PredefinedNodes.uanodes" />
-    <EmbeddedResource Include="Generated\Boiler\Design\Boiler.PredefinedNodes.uanodes" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Linq.Async" />
@@ -71,6 +71,13 @@
     <ProjectReference Include="..\..\..\external\UA-.NETStandard\Libraries\Opc.Ua.Server\Opc.Ua.Server.csproj"
                       SetTargetFramework="TargetFramework=net10.0"
                       UndefineProperties="PublishAot" />
+    <!-- Consume the authoritative generic server cohorts without allowing its
+         multi-targeted build or AOT properties to leak into Publisher builds. -->
+    <ProjectReference Include="..\..\..\external\UA-.NETStandard\Applications\Quickstarts.Servers\Quickstarts.Servers.csproj"
+                      SetTargetFramework="TargetFramework=net10.0"
+                      UndefineProperties="PublishAot">
+      <Aliases>Quickstarts</Aliases>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\external\UA-.NETStandard\Tools\Opc.Ua.SourceGeneration\Opc.Ua.SourceGeneration.csproj">
@@ -80,12 +87,6 @@
   </ItemGroup>
   <Import Project="..\..\..\external\UA-.NETStandard\Tools\Opc.Ua.SourceGeneration\OPCFoundation.Opc.Ua.SourceGeneration.props" />
   <ItemGroup>
-    <AdditionalFiles Include="Generated\TestData\Design\TestDataDesign.csv" />
-    <AdditionalFiles Include="Generated\TestData\Design\TestDataDesign.xml" />
-    <AdditionalFiles Include="Generated\Boiler\Design\BoilerDesign.csv" />
-    <AdditionalFiles Include="Generated\Boiler\Design\BoilerDesign.xml" />
-    <AdditionalFiles Include="Generated\MemoryBuffer\Design\MemoryBufferDesign.csv" />
-    <AdditionalFiles Include="Generated\MemoryBuffer\Design\MemoryBufferDesign.xml" />
     <AdditionalFiles Include="Generated\HistoricalEvents\Design\ModelDesign.csv" />
     <AdditionalFiles Include="Generated\HistoricalEvents\Design\ModelDesign.xml" />
     <AdditionalFiles Include="Generated\Plc\Design\ModelDesign.csv" />

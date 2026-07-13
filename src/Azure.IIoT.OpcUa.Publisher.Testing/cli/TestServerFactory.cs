@@ -48,16 +48,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
         /// <param name="logger"></param>
         public TestServerFactory(ILogger<TestServerFactory> logger) :
             this(logger, new List<INodeManagerFactory> {
-                new TestData.TestDataServer(),
-                new MemoryBuffer.MemoryBufferServer(),
-                new Boiler.BoilerServer(),
+                QuickstartsNodeManagerFactories.CreateTestData(),
+                QuickstartsNodeManagerFactories.CreateMemoryBuffer(),
+                QuickstartsNodeManagerFactories.CreateBoiler(),
                 new Vehicles.VehiclesServer(),
-                new Reference.ReferenceServer(),
+                QuickstartsNodeManagerFactories.CreateReference(),
                 new HistoricalEvents.HistoricalEventsServer(new TimeService()),
                 new HistoricalAccess.HistoricalAccessServer(new TimeService()),
                 new Views.ViewsServer(),
                 new DataAccess.DataAccessServer(),
-                new Alarms.AlarmConditionServer(new TimeService()),
+                QuickstartsNodeManagerFactories.CreateAlarms(),
                 new PerfTest.PerfTestServer(),
                 new SimpleEvents.SimpleEventsServer(),
                 new Plc.PlcServer(new TimeService(), logger, 1),
@@ -75,7 +75,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                 case "reference":
                     return new TestServerFactory(logger,
                     [
-                        new Reference.ReferenceServer(),
+                        QuickstartsNodeManagerFactories.CreateReference(),
                     ]);
                 case "plc":
                     return new TestServerFactory(logger,
@@ -95,25 +95,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                 case "testdata":
                     return new TestServerFactory(logger,
                     [
-                        new TestData.TestDataServer(),
-                        new MemoryBuffer.MemoryBufferServer(),
-                        new Boiler.BoilerServer(),
+                        QuickstartsNodeManagerFactories.CreateTestData(),
+                        QuickstartsNodeManagerFactories.CreateMemoryBuffer(),
+                        QuickstartsNodeManagerFactories.CreateBoiler(),
                         new Vehicles.VehiclesServer(),
                         new DataAccess.DataAccessServer(),
                     ]);
                 default:
                     return new TestServerFactory(logger,
                     [
-                        new TestData.TestDataServer(),
-                        new MemoryBuffer.MemoryBufferServer(),
-                        new Boiler.BoilerServer(),
+                        QuickstartsNodeManagerFactories.CreateTestData(),
+                        QuickstartsNodeManagerFactories.CreateMemoryBuffer(),
+                        QuickstartsNodeManagerFactories.CreateBoiler(),
                         new Vehicles.VehiclesServer(),
-                        new Reference.ReferenceServer(),
+                        QuickstartsNodeManagerFactories.CreateReference(),
                         new HistoricalEvents.HistoricalEventsServer(new TimeService()),
                         new HistoricalAccess.HistoricalAccessServer(new TimeService()),
                         new Views.ViewsServer(),
                         new DataAccess.DataAccessServer(),
-                        new Alarms.AlarmConditionServer(new TimeService()),
+                        QuickstartsNodeManagerFactories.CreateAlarms(),
                         new PerfTest.PerfTestServer(),
                         new SimpleEvents.SimpleEventsServer(),
                         new Plc.PlcServer(new TimeService(), logger, 1),
@@ -179,24 +179,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
             {
                 var extensions = new List<object>
                 {
-                    new MemoryBuffer.MemoryBufferConfiguration
-                    {
-                        Buffers =
-                        [
-                            new MemoryBuffer.MemoryBufferInstance
-                            {
-                                Name = "UInt32",
-                                TagCount = 10000,
-                                DataType = "UInt32"
-                            },
-                            new MemoryBuffer.MemoryBufferInstance
-                            {
-                                Name = "Double",
-                                TagCount = 100,
-                                DataType = "Double"
-                            }
-                        ]
-                    }
+                    QuickstartsNodeManagerFactories.CreateMemoryBufferConfiguration()
                     /// ...
                 };
                 certStoreType ??= CertificateStoreType.Directory;
@@ -361,9 +344,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
             {
                 _logger.CreatingNodeManagers();
                 var nodeManagers = _nodes
+                    .Where(n => n is not AsyncNodeManagerFactoryAdapter)
                     .Select(n => n.Create(server, configuration));
+                var asyncNodeManagers = _nodes
+                    .OfType<AsyncNodeManagerFactoryAdapter>()
+                    .Select(n => n.Factory.CreateAsync(server, configuration)
+                        .AsTask().GetAwaiter().GetResult());
                 return new MasterNodeManager(server, configuration, null,
-                    nodeManagers.ToArray());
+                    asyncNodeManagers.ToArray(), nodeManagers.ToArray());
             }
 
             /// <inheritdoc/>

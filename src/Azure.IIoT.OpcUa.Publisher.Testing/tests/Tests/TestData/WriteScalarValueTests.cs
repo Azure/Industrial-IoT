@@ -3,12 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
+extern alias Quickstarts;
+
 namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
     using Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using System.Text.Json.Nodes;
-    using MemoryBuffer;
+    using MemoryBuffer = Quickstarts::MemoryBuffer;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
@@ -34,7 +36,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticScalarBooleanValueVariableTestAsync(CancellationToken ct = default)
         {
             var services = _services();
-            const string node = "http://test.org/UA/Data/#i=10216";
+            const string node = "http://test.org/UA/Data/#i=2039";
 
             JsonNode? expected = false;
 
@@ -54,7 +56,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             // Act
             result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
             {
-                NodeId = "ns=2;i=10216",
+                NodeId = "ns=2;i=2039",
                 Value = expected,
                 DataType = "Boolean"
             }, ct).ConfigureAwait(false);
@@ -66,7 +68,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticScalarBooleanValueVariableWithBrowsePathTest1Async(CancellationToken ct = default)
         {
             var services = _services();
-            const string node = "http://test.org/UA/Data/#i=10159"; // Scalar
+            const string node = "http://test.org/UA/Data/#i=1976"; // Scalar
             var path = new[] {
                 ".http://test.org/UA/Data/#BooleanValue"
             };
@@ -83,7 +85,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             }, ct).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync("http://test.org/UA/Data/#i=10216", expected, result).ConfigureAwait(false);
+            await AssertResultAsync("http://test.org/UA/Data/#i=2039", expected, result).ConfigureAwait(false);
 
             expected = true;
 
@@ -97,13 +99,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             }, ct).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync("http://test.org/UA/Data/#i=10216", expected, result).ConfigureAwait(false);
+            await AssertResultAsync("http://test.org/UA/Data/#i=2039", expected, result).ConfigureAwait(false);
         }
 
         public async Task NodeWriteStaticScalarBooleanValueVariableWithBrowsePathTest2Async(CancellationToken ct = default)
         {
             var services = _services();
-            const string node = "http://test.org/UA/Data/#i=10159"; // Scalar
+            const string node = "http://test.org/UA/Data/#i=1976"; // Scalar
             var path = new[] {
                 "http://test.org/UA/Data/#BooleanValue"
             };
@@ -120,7 +122,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             }, ct).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync("http://test.org/UA/Data/#i=10216", expected, result).ConfigureAwait(false);
+            await AssertResultAsync("http://test.org/UA/Data/#i=2039", expected, result).ConfigureAwait(false);
 
             expected = true;
 
@@ -134,7 +136,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             }, ct).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync("http://test.org/UA/Data/#i=10216", expected, result).ConfigureAwait(false);
+            await AssertResultAsync("http://test.org/UA/Data/#i=2039", expected, result).ConfigureAwait(false);
         }
 
         public async Task NodeWriteStaticScalarBooleanValueVariableWithBrowsePathTest3Async(CancellationToken ct = default)
@@ -159,7 +161,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             }, ct).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync("http://test.org/UA/Data/#i=10216", expected, result).ConfigureAwait(false);
+            await AssertResultAsync("http://test.org/UA/Data/#i=2039", expected, result).ConfigureAwait(false);
 
             expected = true;
 
@@ -172,13 +174,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             }, ct).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync("http://test.org/UA/Data/#i=10216", expected, result).ConfigureAwait(false);
+            await AssertResultAsync("http://test.org/UA/Data/#i=2039", expected, result).ConfigureAwait(false);
         }
 
         public async Task NodeWriteStaticScalarSByteValueVariableTestAsync(CancellationToken ct = default)
         {
             var services = _services();
-            const string node = "http://test.org/UA/Data/#i=10217";
+            const string node = "http://test.org/UA/Data/#i=2040";
 
             var expected = JsonNode.Parse("-61");
 
@@ -197,7 +199,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticScalarByteValueVariableTestAsync(CancellationToken ct = default)
         {
             var services = _services();
-            const string node = "http://test.org/UA/Data/#i=10218";
+            const string node = "http://test.org/UA/Data/#i=2041";
 
             var expected = JsonNode.Parse("216");
 
@@ -216,7 +218,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticScalarInt16ValueVariableTestAsync(CancellationToken ct = default)
         {
             var services = _services();
-            const string node = "http://test.org/UA/Data/#i=10219";
+            const string node = "http://test.org/UA/Data/#i=2042";
 
             var expected = JsonNode.Parse("15373");
 
@@ -235,7 +237,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticScalarUInt16ValueVariableTestAsync(CancellationToken ct = default)
         {
             var services = _services();
-            const string node = "http://test.org/UA/Data/#i=10220";
+            const string node = "http://test.org/UA/Data/#i=2043";
 
             var expected = JsonNode.Parse("52454");
 
@@ -254,7 +256,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticScalarInt32ValueVariableTestAsync(CancellationToken ct = default)
         {
             var services = _services();
-            const string node = "http://test.org/UA/Data/#i=10221";
+            const string node = "http://test.org/UA/Data/#i=2044";
 
             var expected = JsonNode.Parse(
                 "1966214362");
@@ -274,7 +276,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticScalarUInt32ValueVariableTestAsync(CancellationToken ct = default)
         {
             var services = _services();
-            const string node = "http://test.org/UA/Data/#i=10222";
+            const string node = "http://test.org/UA/Data/#i=2045";
 
             var expected = JsonNode.Parse("2235103439");
 
@@ -293,7 +295,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticScalarInt64ValueVariableTestAsync(CancellationToken ct = default)
         {
             var services = _services();
-            const string node = "http://test.org/UA/Data/#i=10223";
+            const string node = "http://test.org/UA/Data/#i=2046";
 
             var expected = JsonNode.Parse("1485146186671575531");
 
@@ -312,7 +314,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticScalarUInt64ValueVariableTestAsync(CancellationToken ct = default)
         {
             var services = _services();
-            const string node = "http://test.org/UA/Data/#i=10224";
+            const string node = "http://test.org/UA/Data/#i=2047";
 
             var expected = JsonNode.Parse("5415129398295885582");
 
@@ -331,7 +333,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticScalarFloatValueVariableTestAsync(CancellationToken ct = default)
         {
             var services = _services();
-            const string node = "http://test.org/UA/Data/#i=10225";
+            const string node = "http://test.org/UA/Data/#i=2048";
 
             var expected = JsonNode.Parse(
                 "1.65278221E-37");
@@ -351,7 +353,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticScalarDoubleValueVariableTestAsync(CancellationToken ct = default)
         {
             var services = _services();
-            const string node = "http://test.org/UA/Data/#i=10226";
+            const string node = "http://test.org/UA/Data/#i=2049";
 
             var expected = JsonNode.Parse("103.27073669433594");
 
@@ -370,7 +372,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticScalarStringValueVariableTestAsync(CancellationToken ct = default)
         {
             var services = _services();
-            const string node = "http://test.org/UA/Data/#i=10227";
+            const string node = "http://test.org/UA/Data/#i=2050";
 
             var expected = JsonNode.Parse(
                 "\"Red+ Green] Cow^ Purple Horse~ Elephant^ Horse Lime\"");
@@ -390,7 +392,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticScalarDateTimeValueVariableTestAsync(CancellationToken ct = default)
         {
             var services = _services();
-            const string node = "http://test.org/UA/Data/#i=10228";
+            const string node = "http://test.org/UA/Data/#i=2051";
 
             JsonNode? expected = DateTime.UtcNow + TimeSpan.FromDays(11);
 
@@ -409,7 +411,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticScalarGuidValueVariableTestAsync(CancellationToken ct = default)
         {
             var services = _services();
-            const string node = "http://test.org/UA/Data/#i=10229";
+            const string node = "http://test.org/UA/Data/#i=2052";
 
             JsonNode? expected = "bdc1d303-2355-6173-9314-1816b7315b96";
 
@@ -428,7 +430,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticScalarByteStringValueVariableTestAsync(CancellationToken ct = default)
         {
             var services = _services();
-            const string node = "http://test.org/UA/Data/#i=10230";
+            const string node = "http://test.org/UA/Data/#i=2053";
 
             var expected = JsonNode.Parse(
                "\"+1q+tSjpWzavev/hDIb4gk/xHLZGD4VscxJEWo2QzUU145zcKKra6WaGpq" +
@@ -449,10 +451,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticScalarXmlElementValueVariableTestAsync(CancellationToken ct = default)
         {
             var services = _services();
-            const string node = "http://test.org/UA/Data/#i=10231";
+            const string node = "http://test.org/UA/Data/#i=2054";
 
             var expected = JsonNodeValueExtensions.FromObject(XmlElementEx.SerializeObject(
-                new MemoryBufferInstance
+                new MemoryBuffer.MemoryBufferInstance
                 {
                     Name = "test",
                     TagCount = 333,
@@ -474,7 +476,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticScalarNodeIdValueVariableTestAsync(CancellationToken ct = default)
         {
             var services = _services();
-            const string node = "http://test.org/UA/Data/#i=10232";
+            const string node = "http://test.org/UA/Data/#i=2055";
 
             JsonNode? expected = "http://samples.org/UA/memorybuffer#i=2040578002";
 
@@ -493,7 +495,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticScalarExpandedNodeIdValueVariableTestAsync(CancellationToken ct = default)
         {
             var services = _services();
-            const string node = "http://test.org/UA/Data/#i=10233";
+            const string node = "http://test.org/UA/Data/#i=2056";
 
             JsonNode? expected = "http://opcfoundation.org/UA/Diagnostics#i=1375605653";
 
@@ -512,7 +514,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticScalarQualifiedNameValueVariableTestAsync(CancellationToken ct = default)
         {
             var services = _services();
-            const string node = "http://test.org/UA/Data/#i=10234";
+            const string node = "http://test.org/UA/Data/#i=2057";
 
             var expected = JsonNodeValueExtensions.FromObject("http://test.org/UA/Data/#testname");
 
@@ -531,7 +533,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticScalarLocalizedTextValueVariableTestAsync(CancellationToken ct = default)
         {
             var services = _services();
-            const string node = "http://test.org/UA/Data/#i=10235";
+            const string node = "http://test.org/UA/Data/#i=2058";
 
             var expected = JsonNode.Parse(
                 "{\"Text\":\"자주색 들쭉) 망고 고양이\",\"Locale\":\"ko\"}");
@@ -551,7 +553,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticScalarStatusCodeValueVariableTestAsync(CancellationToken ct = default)
         {
             var services = _services();
-            const string node = "http://test.org/UA/Data/#i=10236";
+            const string node = "http://test.org/UA/Data/#i=2059";
 
             var expected = JsonNode.Parse("11927552");
 
@@ -570,7 +572,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticScalarVariantValueVariableTestAsync(CancellationToken ct = default)
         {
             var services = _services();
-            const string node = "http://test.org/UA/Data/#i=10237";
+            const string node = "http://test.org/UA/Data/#i=2060";
 
             var expected = JsonNode.Parse("-2.5828845095702735E-29");
 
@@ -589,7 +591,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticScalarEnumerationValueVariableTestAsync(CancellationToken ct = default)
         {
             var services = _services();
-            const string node = "http://test.org/UA/Data/#i=10238";
+            const string node = "http://test.org/UA/Data/#i=2061";
 
             var expected = JsonNode.Parse("1137262927");
 
@@ -609,12 +611,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticScalarStructuredValueVariableTestAsync(CancellationToken ct = default)
         {
             var services = _services();
-            const string node = "http://test.org/UA/Data/#i=10239";
+            const string node = "http://test.org/UA/Data/#i=2062";
 
             var expected = JsonNode.Parse("""
 
 {
-    "TypeId": "http://test.org/UA/Data/#i=9440",
+    "TypeId": "http://test.org/UA/Data/#i=1078",
     "Encoding": "Json",
     "Body": {
         "BooleanValue": false,
@@ -679,7 +681,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticScalarNumberValueVariableTestAsync(CancellationToken ct = default)
         {
             var services = _services();
-            const string node = "http://test.org/UA/Data/#i=10240";
+            const string node = "http://test.org/UA/Data/#i=2063";
 
             var expected = JsonNode.Parse("-44");
 
@@ -699,7 +701,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticScalarIntegerValueVariableTestAsync(CancellationToken ct = default)
         {
             var services = _services();
-            const string node = "http://test.org/UA/Data/#i=10241";
+            const string node = "http://test.org/UA/Data/#i=2064";
 
             var expected = JsonNode.Parse("94903859");
 
@@ -719,7 +721,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeWriteStaticScalarUIntegerValueVariableTestAsync(CancellationToken ct = default)
         {
             var services = _services();
-            const string node = "http://test.org/UA/Data/#i=10242";
+            const string node = "http://test.org/UA/Data/#i=2065";
 
             var expected = JsonNode.Parse("64817");
 

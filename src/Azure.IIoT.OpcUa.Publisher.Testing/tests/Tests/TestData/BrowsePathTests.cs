@@ -27,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
         public async Task NodeBrowsePathStaticScalarMethod3Test1Async(CancellationToken ct = default)
         {
-            const string nodeId = "http://test.org/UA/Data/#i=10157"; // Data
+            const string nodeId = "http://test.org/UA/Data/#i=1974"; // Data
             var pathElements = new[] {
                 "http://test.org/UA/Data/#Static",
                 "http://test.org/UA/Data/#MethodTest",
@@ -57,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             {
                 Assert.Equal("http://test.org/UA/Data/#ScalarMethod3", target.Target.BrowseName);
                 Assert.Equal("ScalarMethod3", target.Target.DisplayName);
-                Assert.Equal("http://test.org/UA/Data/#i=10762", target.Target.NodeId);
+                Assert.Equal("http://test.org/UA/Data/#i=2715", target.Target.NodeId);
                 Assert.Equal(false, target.Target.Children);
                 Assert.Equal(-1, target.RemainingPathIndex);
             });
@@ -65,7 +65,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
         public async Task NodeBrowsePathStaticScalarMethod3Test2Async(CancellationToken ct = default)
         {
-            const string nodeId = "http://test.org/UA/Data/#i=10157"; // Data
+            const string nodeId = "http://test.org/UA/Data/#i=1974"; // Data
             var pathElements = new[] {
                 ".http://test.org/UA/Data/#Static",
                 ".http://test.org/UA/Data/#MethodTest",
@@ -95,7 +95,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             {
                 Assert.Equal("http://test.org/UA/Data/#ScalarMethod3", target.Target.BrowseName);
                 Assert.Equal("ScalarMethod3", target.Target.DisplayName);
-                Assert.Equal("http://test.org/UA/Data/#i=10762", target.Target.NodeId);
+                Assert.Equal("http://test.org/UA/Data/#i=2715", target.Target.NodeId);
                 Assert.Equal(false, target.Target.Children);
                 Assert.Equal(-1, target.RemainingPathIndex);
             });
@@ -103,7 +103,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
         public async Task NodeBrowsePathStaticScalarMethod3Test3Async(CancellationToken ct = default)
         {
-            const string nodeId = "http://test.org/UA/Data/#i=10157"; // Data
+            const string nodeId = "http://test.org/UA/Data/#i=1974"; // Data
             var pathElements = new[] {
                 "<HasComponent>http://test.org/UA/Data/#Static",
                 "<HasComponent>http://test.org/UA/Data/#MethodTest",
@@ -133,7 +133,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             {
                 Assert.Equal("http://test.org/UA/Data/#ScalarMethod3", target.Target.BrowseName);
                 Assert.Equal("ScalarMethod3", target.Target.DisplayName);
-                Assert.Equal("http://test.org/UA/Data/#i=10762", target.Target.NodeId);
+                Assert.Equal("http://test.org/UA/Data/#i=2715", target.Target.NodeId);
                 Assert.Equal(false, target.Target.Children);
                 Assert.Equal(-1, target.RemainingPathIndex);
             });
@@ -141,7 +141,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
         public async Task NodeBrowsePathStaticScalarMethodsTestAsync(CancellationToken ct = default)
         {
-            const string nodeId = "http://test.org/UA/Data/#i=10157"; // Data
+            const string nodeId = "http://test.org/UA/Data/#i=1974"; // Data
             var pathElements3 = new[] {
                 ".http://test.org/UA/Data/#Static",
                 ".http://test.org/UA/Data/#MethodTest",
@@ -176,14 +176,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             {
                 Assert.Equal("http://test.org/UA/Data/#ScalarMethod3", target.Target.BrowseName);
                 Assert.Equal("ScalarMethod3", target.Target.DisplayName);
-                Assert.Equal("http://test.org/UA/Data/#i=10762", target.Target.NodeId);
+                Assert.Equal("http://test.org/UA/Data/#i=2715", target.Target.NodeId);
                 Assert.Equal(false, target.Target.Children);
                 Assert.Equal(-1, target.RemainingPathIndex);
             }, target =>
             {
                 Assert.Equal("http://test.org/UA/Data/#ScalarMethod2", target.Target.BrowseName);
                 Assert.Equal("ScalarMethod2", target.Target.DisplayName);
-                Assert.Equal("http://test.org/UA/Data/#i=10759", target.Target.NodeId);
+                Assert.Equal("http://test.org/UA/Data/#i=2712", target.Target.NodeId);
                 Assert.Equal(false, target.Target.Children);
                 Assert.Equal(-1, target.RemainingPathIndex);
             });

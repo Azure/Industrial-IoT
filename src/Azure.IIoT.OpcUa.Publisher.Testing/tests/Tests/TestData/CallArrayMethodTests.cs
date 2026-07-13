@@ -35,8 +35,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeMethodMetadataStaticArrayMethod1TestAsync(CancellationToken ct = default)
         {
             var service = _services();
-            const string methodId = "http://test.org/UA/Data/#i=10765";
-            const string objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=2718";
+            const string objectId = "http://test.org/UA/Data/#i=2708";
 
             // Act
             MethodMetadataModel result;
@@ -351,8 +351,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeMethodMetadataStaticArrayMethod2TestAsync(CancellationToken ct = default)
         {
             var service = _services();
-            const string methodId = "http://test.org/UA/Data/#i=10768";
-            const string objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=2721";
+            const string objectId = "http://test.org/UA/Data/#i=2708";
 
             // Act
             MethodMetadataModel result;
@@ -641,8 +641,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeMethodMetadataStaticArrayMethod3TestAsync(CancellationToken ct = default)
         {
             var service = _services();
-            const string methodId = "http://test.org/UA/Data/#i=10771";
-            const string objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=2724";
+            const string objectId = "http://test.org/UA/Data/#i=2708";
 
             // Act
             MethodMetadataModel result;
@@ -749,8 +749,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeMethodCallStaticArrayMethod1Test1Async(CancellationToken ct = default)
         {
             var service = _services();
-            const string methodId = "http://test.org/UA/Data/#i=10765";
-            const string objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=2718";
+            const string objectId = "http://test.org/UA/Data/#i=2708";
 
             var input = new List<MethodCallArgumentModel> {
                 new() {
@@ -834,8 +834,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeMethodCallStaticArrayMethod1Test2Async(CancellationToken ct = default)
         {
             var service = _services();
-            const string methodId = "http://test.org/UA/Data/#i=10765";
-            const string objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=2718";
+            const string objectId = "http://test.org/UA/Data/#i=2708";
 
             var input = new List<MethodCallArgumentModel> {
                 new() {
@@ -887,8 +887,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeMethodCallStaticArrayMethod1Test3Async(CancellationToken ct = default)
         {
             var service = _services();
-            const string methodId = "http://test.org/UA/Data/#i=10765";
-            const string objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=2718";
+            const string objectId = "http://test.org/UA/Data/#i=2708";
 
             // Act
             var result = await service.MethodCallAsync(_connection, new MethodCallRequestModel
@@ -911,8 +911,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeMethodCallStaticArrayMethod1Test4Async(CancellationToken ct = default)
         {
             var service = _services();
-            const string methodId = "http://test.org/UA/Data/#i=10765";
-            const string objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=2718";
+            const string objectId = "http://test.org/UA/Data/#i=2708";
 
             var input = new List<MethodCallArgumentModel?> {
                 new() {
@@ -981,8 +981,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeMethodCallStaticArrayMethod1Test5Async(CancellationToken ct = default)
         {
             var service = _services();
-            const string methodId = "http://test.org/UA/Data/#i=10765";
-            const string objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=2718";
+            const string objectId = "http://test.org/UA/Data/#i=2708";
             var input = new List<MethodCallArgumentModel> {
                 new() {
                     DataType = "boolean",
@@ -1062,8 +1062,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeMethodCallStaticArrayMethod2Test1Async(CancellationToken ct = default)
         {
             var service = _services();
-            const string methodId = "http://test.org/UA/Data/#i=10768";
-            const string objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=2721";
+            const string objectId = "http://test.org/UA/Data/#i=2708";
 
             var input = new List<MethodCallArgumentModel> {
                 new() {
@@ -1205,8 +1205,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeMethodCallStaticArrayMethod2Test2Async(CancellationToken ct = default)
         {
             var service = _services();
-            const string methodId = "http://test.org/UA/Data/#i=10768";
-            const string objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=2721";
+            const string objectId = "http://test.org/UA/Data/#i=2708";
 
             // Act
             var result = await service.MethodCallAsync(_connection, new MethodCallRequestModel
@@ -1228,8 +1228,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeMethodCallStaticArrayMethod2Test3Async(CancellationToken ct = default)
         {
             var service = _services();
-            const string methodId = "http://test.org/UA/Data/#i=10768";
-            const string objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=2721";
+            const string objectId = "http://test.org/UA/Data/#i=2708";
 
             var input = new List<MethodCallArgumentModel?> {
                 null,
@@ -1273,8 +1273,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeMethodCallStaticArrayMethod2Test4Async(CancellationToken ct = default)
         {
             var service = _services();
-            const string methodId = "http://test.org/UA/Data/#i=10768";
-            const string objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=2721";
+            const string objectId = "http://test.org/UA/Data/#i=2708";
 
 #pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
             var input = new List<MethodCallArgumentModel> {
@@ -1346,8 +1346,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeMethodCallStaticArrayMethod3Test1Async(CancellationToken ct = default)
         {
             var service = _services();
-            const string methodId = "http://test.org/UA/Data/#i=10771";
-            const string objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=2724";
+            const string objectId = "http://test.org/UA/Data/#i=2708";
 
             var input = new List<MethodCallArgumentModel> {
                 new() {
@@ -1386,8 +1386,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeMethodCallStaticArrayMethod3Test2Async(CancellationToken ct = default)
         {
             var service = _services();
-            const string methodId = "http://test.org/UA/Data/#i=10771";
-            const string objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=2724";
+            const string objectId = "http://test.org/UA/Data/#i=2708";
 
             var input = new List<MethodCallArgumentModel> {
                 new() {
@@ -1450,8 +1450,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeMethodCallStaticArrayMethod3Test3Async(CancellationToken ct = default)
         {
             var service = _services();
-            const string methodId = "http://test.org/UA/Data/#i=10771";
-            const string objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=2724";
+            const string objectId = "http://test.org/UA/Data/#i=2708";
 
             // Act
             var result = await service.MethodCallAsync(_connection, new MethodCallRequestModel

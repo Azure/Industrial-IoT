@@ -3,12 +3,14 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
+extern alias Quickstarts;
+
 namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
     using Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using System.Text.Json.Nodes;
-    using MemoryBuffer;
+    using MemoryBuffer = Quickstarts::MemoryBuffer;
     using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
@@ -37,8 +39,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeMethodMetadataStaticScalarMethod1TestAsync(CancellationToken ct = default)
         {
             var service = _services();
-            const string methodId = "http://test.org/UA/Data/#i=10756";
-            const string objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=2709";
+            const string objectId = "http://test.org/UA/Data/#i=2708";
 
             // Act
             MethodMetadataModel result;
@@ -309,8 +311,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeMethodMetadataStaticScalarMethod2TestAsync(CancellationToken ct = default)
         {
             var service = _services();
-            const string methodId = "http://test.org/UA/Data/#i=10759";
-            const string objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=2712";
+            const string objectId = "http://test.org/UA/Data/#i=2708";
 
             // Act
             MethodMetadataModel result;
@@ -559,8 +561,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeMethodMetadataStaticScalarMethod3TestAsync(CancellationToken ct = default)
         {
             var service = _services();
-            const string methodId = "http://test.org/UA/Data/#i=10762";
-            const string objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=2715";
+            const string objectId = "http://test.org/UA/Data/#i=2708";
 
             // Act
             MethodMetadataModel result;
@@ -655,7 +657,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeMethodMetadataStaticScalarMethod3WithBrowsePathTest1Async(CancellationToken ct = default)
         {
             var service = _services();
-            const string objectId = "http://test.org/UA/Data/#i=10755";
+            const string objectId = "http://test.org/UA/Data/#i=2708";
             var path = new[] {
                 ".http://test.org/UA/Data/#ScalarMethod3"
             };
@@ -782,7 +784,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             }
 
             // Assert
-            Assert.Equal("http://test.org/UA/Data/#i=10755", result.ObjectId);
+            Assert.Equal("http://test.org/UA/Data/#i=2708", result.ObjectId);
             Assert.Collection(result.InputArguments!,
                 arg =>
                 {
@@ -856,8 +858,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeMethodCallStaticScalarMethod1Test1Async(CancellationToken ct = default)
         {
             var service = _services();
-            const string methodId = "http://test.org/UA/Data/#i=10756";
-            const string objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=2709";
+            const string objectId = "http://test.org/UA/Data/#i=2708";
 
             var input = new List<MethodCallArgumentModel> {
                 new() {
@@ -932,8 +934,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeMethodCallStaticScalarMethod1Test2Async(CancellationToken ct = default)
         {
             var service = _services();
-            const string methodId = "http://test.org/UA/Data/#i=10756";
-            const string objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=2709";
+            const string objectId = "http://test.org/UA/Data/#i=2708";
 
             var input = new List<MethodCallArgumentModel> {
                 new() {
@@ -976,8 +978,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeMethodCallStaticScalarMethod1Test3Async(CancellationToken ct = default)
         {
             var service = _services();
-            const string methodId = "http://test.org/UA/Data/#i=10756";
-            const string objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=2709";
+            const string objectId = "http://test.org/UA/Data/#i=2708";
 
             // Act
             var result = await service.MethodCallAsync(_connection, new MethodCallRequestModel
@@ -1004,8 +1006,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeMethodCallStaticScalarMethod1Test4Async(CancellationToken ct = default)
         {
             var service = _services();
-            const string methodId = "http://test.org/UA/Data/#i=10756";
-            const string objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=2709";
+            const string objectId = "http://test.org/UA/Data/#i=2708";
 
             // Act
             var result = await service.MethodCallAsync(_connection, new MethodCallRequestModel
@@ -1033,8 +1035,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeMethodCallStaticScalarMethod1Test5Async(CancellationToken ct = default)
         {
             var service = _services();
-            const string methodId = "http://test.org/UA/Data/#i=10756";
-            const string objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=2709";
+            const string objectId = "http://test.org/UA/Data/#i=2708";
 
             var input = new List<MethodCallArgumentModel?> {
                 new() {
@@ -1088,8 +1090,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeMethodCallStaticScalarMethod2Test1Async(CancellationToken ct = default)
         {
             var service = _services();
-            const string methodId = "http://test.org/UA/Data/#i=10759";
-            const string objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=2712";
+            const string objectId = "http://test.org/UA/Data/#i=2708";
 
             var input = new List<MethodCallArgumentModel> {
                 new() {
@@ -1111,7 +1113,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 new() {
                     DataType = "XmlElement",
                     Value = JsonNodeValueExtensions.FromObject(XmlElementEx.SerializeObject(
-                        new MemoryBufferInstance{
+                        new MemoryBuffer.MemoryBufferInstance{
                             Name = "test",
                             TagCount = 333,
                             DataType ="Byte"
@@ -1208,8 +1210,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeMethodCallStaticScalarMethod2Test2Async(CancellationToken ct = default)
         {
             var service = _services();
-            const string methodId = "http://test.org/UA/Data/#i=10759";
-            const string objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=2712";
+            const string objectId = "http://test.org/UA/Data/#i=2708";
 
             var types = new List<string> {
                 "String", "DateTime", "Guid", "ByteString",
@@ -1280,8 +1282,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeMethodCallStaticScalarMethod3Test1Async(CancellationToken ct = default)
         {
             var service = _services();
-            const string methodId = "http://test.org/UA/Data/#i=10762";
-            const string objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=2715";
+            const string objectId = "http://test.org/UA/Data/#i=2708";
 
             var input = new List<MethodCallArgumentModel> {
                 new() {
@@ -1328,8 +1330,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeMethodCallStaticScalarMethod3Test2Async(CancellationToken ct = default)
         {
             var service = _services();
-            const string methodId = "http://test.org/UA/Data/#i=10762";
-            const string objectId = "http://test.org/UA/Data/#i=10755";
+            const string methodId = "http://test.org/UA/Data/#i=2715";
+            const string objectId = "http://test.org/UA/Data/#i=2708";
 
             var input = new List<MethodCallArgumentModel> {
                 new() {
@@ -1424,7 +1426,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeMethodCallStaticScalarMethod3WithObjectIdAndBrowsePathTestAsync(CancellationToken ct = default)
         {
             var service = _services();
-            const string objectId = "http://test.org/UA/Data/#i=10755";
+            const string objectId = "http://test.org/UA/Data/#i=2708";
             var methodPath = new[] {
                 "http://test.org/UA/Data/#ScalarMethod3"
             };
@@ -1474,9 +1476,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeMethodCallStaticScalarMethod3WithObjectIdAndMethodIdAndBrowsePathTestAsync(CancellationToken ct = default)
         {
             var service = _services();
-            const string objectId = "http://test.org/UA/Data/#i=10755";
+            const string objectId = "http://test.org/UA/Data/#i=2708";
 
-            const string methodId = "http://test.org/UA/Data/#i=10157"; // Data
+            const string methodId = "http://test.org/UA/Data/#i=1974"; // Data
             var methodPath = new[] {
                 "http://test.org/UA/Data/#Static",
                 "http://test.org/UA/Data/#MethodTest",
@@ -1536,7 +1538,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 "http://test.org/UA/Data/#MethodTest"
             };
 
-            const string methodId = "http://test.org/UA/Data/#i=10157"; // Data
+            const string methodId = "http://test.org/UA/Data/#i=1974"; // Data
             var methodPath = new[] {
                 "http://test.org/UA/Data/#Static",
                 "http://test.org/UA/Data/#MethodTest",
@@ -1589,13 +1591,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         public async Task NodeMethodCallStaticScalarMethod3WithObjectIdAndPathAndMethodIdAndPathTestAsync(CancellationToken ct = default)
         {
             var service = _services();
-            const string objectId = "http://test.org/UA/Data/#i=10157"; // Data
+            const string objectId = "http://test.org/UA/Data/#i=1974"; // Data
             var objectPath = new[] {
                 "http://test.org/UA/Data/#Static",
                 "http://test.org/UA/Data/#MethodTest"
             };
 
-            const string methodId = "http://test.org/UA/Data/#i=10157"; // Data
+            const string methodId = "http://test.org/UA/Data/#i=1974"; // Data
             var methodPath = new[] {
                 "http://test.org/UA/Data/#Static",
                 "http://test.org/UA/Data/#MethodTest",

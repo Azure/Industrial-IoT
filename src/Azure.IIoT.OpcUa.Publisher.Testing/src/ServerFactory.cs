@@ -43,11 +43,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
         /// <param name="tempPath"></param>
         /// <param name="nodes"></param>
         public ServerFactory(ILogger<ServerFactory> logger, string tempPath,
-            IEnumerable<INodeManagerFactory> nodes)
+            IEnumerable<INodeManagerFactory> nodes, TimeService timeService = null)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _nodes = nodes ?? throw new ArgumentNullException(nameof(nodes));
             _tempPath = tempPath;
+            _timeService = timeService ?? new TimeService();
         }
 
         /// <summary>
@@ -60,16 +61,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             uint scaleunits = 0) :
             this(logger, tempPath, new List<INodeManagerFactory>
             {
-                new TestData.TestDataServer(),
-                new MemoryBuffer.MemoryBufferServer(),
-                new Boiler.BoilerServer(),
+                QuickstartsNodeManagerFactories.CreateTestData(),
+                QuickstartsNodeManagerFactories.CreateMemoryBuffer(),
+                QuickstartsNodeManagerFactories.CreateBoiler(),
                 new Vehicles.VehiclesServer(),
-                new Reference.ReferenceServer(),
+                QuickstartsNodeManagerFactories.CreateReference(),
                 new HistoricalEvents.HistoricalEventsServer(new TimeService()),
                 new HistoricalAccess.HistoricalAccessServer(new TimeService()),
                 new Views.ViewsServer(),
                 new DataAccess.DataAccessServer(),
-                new Alarms.AlarmConditionServer(new TimeService()),
+                QuickstartsNodeManagerFactories.CreateAlarms(),
                 new SimpleEvents.SimpleEventsServer(),
                 new Plc.PlcServer(new TimeService(), logger, scaleunits),
                 new Isa95Jobs.Isa95JobControlServer()
@@ -86,7 +87,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             IEnumerable<string> alternativeAddresses, string path,
             string certStoreType, Action<ServerConfiguration> configure)
         {
-            server = new Server(LogStatus, _nodes, _logger);
+            server = new Server(LogStatus, _nodes, _logger, _timeService);
             return Server.CreateServerConfiguration(_tempPath,
                 ports, listenHostName, alternativeAddresses, path,
                 pkiRootPath, certStoreType, EnableDiagnostics, configure);
@@ -142,8 +143,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             /// <param name="nodes"></param>
             /// <param name="logger"></param>
             public Server(bool logStatus, IEnumerable<INodeManagerFactory> nodes,
-                ILogger logger)
-                : base(kTelemetry)
+                ILogger logger, TimeService timeService)
+                : base(kTelemetry, new TimeServiceTimeProvider(timeService))
             {
                 _logger = logger;
                 _logStatus = logStatus;
@@ -170,24 +171,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             {
                 var extensions = new List<object>
                 {
-                    new MemoryBuffer.MemoryBufferConfiguration
-                    {
-                        Buffers =
-                        [
-                            new MemoryBuffer.MemoryBufferInstance
-                            {
-                                Name = "UInt32",
-                                TagCount = 10000,
-                                DataType = "UInt32"
-                            },
-                            new MemoryBuffer.MemoryBufferInstance
-                            {
-                                Name = "Double",
-                                TagCount = 100,
-                                DataType = "Double"
-                            }
-                        ]
-                    },
+                    QuickstartsNodeManagerFactories.CreateMemoryBufferConfiguration(),
 
                     // ...
 
@@ -434,11 +418,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             {
                 _logger.CreatingNodeManagers();
                 var nodeManagers = _nodes
+                    .Where(n => n is not AsyncNodeManagerFactoryAdapter)
                     .Select(n => n.Create(server, configuration))
+                    .ToArray();
+                var asyncNodeManagers = _nodes
+                    .OfType<AsyncNodeManagerFactoryAdapter>()
+                    .Select(n => n.Factory.CreateAsync(server, configuration)
+                        .AsTask().GetAwaiter().GetResult())
                     .ToArray();
 
                 _plc = nodeManagers.OfType<Plc.PlcNodeManager>().FirstOrDefault();
-                return new MasterNodeManager(server, configuration, null, nodeManagers);
+                return new MasterNodeManager(server, configuration, null,
+                    asyncNodeManagers, nodeManagers);
             }
 
             /// <inheritdoc/>
@@ -885,6 +876,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
         private readonly ILogger _logger;
         private readonly IEnumerable<INodeManagerFactory> _nodes;
         private readonly string _tempPath;
+        private readonly TimeService _timeService;
     }
 
     /// <summary>

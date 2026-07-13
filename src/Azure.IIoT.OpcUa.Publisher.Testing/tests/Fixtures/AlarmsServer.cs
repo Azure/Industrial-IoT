@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
 {
+    using Azure.IIoT.OpcUa.Publisher.Stack.Sample;
     using Microsoft.Extensions.Logging;
     using Opc.Ua.Server;
     using Opc.Ua.Test;
@@ -23,7 +24,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
         public static IEnumerable<INodeManagerFactory> Alarms(
             ILoggerFactory? factory, TimeService timeservice)
         {
-            yield return new Alarms.AlarmConditionServer(timeservice);
+            _ = factory;
+            _ = timeservice;
+            yield return QuickstartsNodeManagerFactories.CreateAlarms();
         }
 
         /// <inheritdoc/>

@@ -3,6 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
+extern alias Quickstarts;
+
 #nullable enable
 
 namespace Asset
@@ -11,7 +13,7 @@ namespace Asset
     using System;
     using System.Collections.Concurrent;
     using System.Threading;
-    using TestData;
+    using TestData = Quickstarts::TestData;
 
     public sealed class SimulatedAsset : IAsset
     {
@@ -202,7 +204,7 @@ namespace Asset
                 {
                     if (_generator.GetRandomBoolean())
                     {
-                        var scalar = new ScalarValueDataType
+                        var scalar = new TestData.ScalarStructureDataType
                         {
                             BooleanValue = _generator.GetRandom<bool>(),
                             SByteValue = _generator.GetRandom<sbyte>(),
@@ -229,7 +231,7 @@ namespace Asset
                         };
                         return new ExtensionObject(scalar);
                     }
-                    var array = new ArrayValueDataType
+                    var array = new TestData.ArrayValueDataType
                     {
                         BooleanValue = _generator.GetRandomArray<bool>(10),
                         SByteValue = _generator.GetRandomArray<sbyte>(10),

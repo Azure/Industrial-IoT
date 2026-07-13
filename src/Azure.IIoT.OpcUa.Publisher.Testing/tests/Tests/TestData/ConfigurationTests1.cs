@@ -3,6 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
+extern alias Quickstarts;
+
 namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
@@ -15,6 +17,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
+    using Boiler = Quickstarts::Boiler;
+    using TestData = Quickstarts::TestData;
 
     public class ConfigurationTests1
     {
@@ -36,7 +40,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             {
                 new OpcNodeModel
                 {
-                    Id = "http://test.org/UA/Data/#i=10157",
+                    Id = "http://test.org/UA/Data/#i=1974",
                     BrowsePath = new[]
                     {
                         "http://test.org/UA/Data/#Static"
@@ -69,7 +73,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             {
                 new OpcNodeModel
                 {
-                    Id = "http://test.org/UA/Data/#i=10157",
+                    Id = "http://test.org/UA/Data/#i=1974",
                     BrowsePath = new[]
                     {
                         "http://test.org/UA/Data/#Static"
@@ -104,7 +108,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             {
                 new OpcNodeModel
                 {
-                    Id = "http://test.org/UA/Data/#i=10157"
+                    Id = "http://test.org/UA/Data/#i=1974"
                 }
             };
             var results = await _service.ExpandAsync(entry,
@@ -133,7 +137,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             {
                 new OpcNodeModel
                 {
-                    Id = "http://test.org/UA/Data/#i=10157"
+                    Id = "http://test.org/UA/Data/#i=1974"
                 }
             };
             var results = await _service.ExpandAsync(entry,
@@ -372,7 +376,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 new OpcNodeModel
                 {
-                    Id = "http://test.org/UA/Data/#i=10157",
+                    Id = "http://test.org/UA/Data/#i=1974",
                     DataSetFieldId = "data"
                 }
             };
@@ -680,9 +684,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var entry = _connection.ToPublishedNodesEntry();
             entry.OpcNodes = new[]
             {
-                new OpcNodeModel { Id = "http://test.org/UA/Data/#i=10216" },
-                new OpcNodeModel { Id = "http://test.org/UA/Data/#i=10217" },
-                new OpcNodeModel { Id = "http://test.org/UA/Data/#i=10218" }
+                new OpcNodeModel { Id = "http://test.org/UA/Data/#i=2039" },
+                new OpcNodeModel { Id = "http://test.org/UA/Data/#i=2040" },
+                new OpcNodeModel { Id = "http://test.org/UA/Data/#i=2041" }
             };
             var results = await _service.ExpandAsync(entry,
                 new PublishedNodeExpansionModel
@@ -706,10 +710,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var entry = _connection.ToPublishedNodesEntry();
             entry.OpcNodes = new[]
             {
-                new OpcNodeModel { Id = "http://test.org/UA/Data/#i=10217" },
-                new OpcNodeModel { Id = "http://test.org/UA/Data/#i=10216" },
+                new OpcNodeModel { Id = "http://test.org/UA/Data/#i=2040" },
+                new OpcNodeModel { Id = "http://test.org/UA/Data/#i=2039" },
                 new OpcNodeModel { Id = Opc.Ua.ObjectIds.Server.ToString() },
-                new OpcNodeModel { Id = "http://test.org/UA/Data/#i=10218" },
+                new OpcNodeModel { Id = "http://test.org/UA/Data/#i=2041" },
                 new OpcNodeModel { Id = Opc.Ua.ObjectTypeIds.BaseObjectType.ToString() }
             };
             var results = await _service.ExpandAsync(entry,
@@ -819,7 +823,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var entry = _connection.ToPublishedNodesEntry();
             entry.OpcNodes = new[]
             {
-                new OpcNodeModel { Id = "http://test.org/UA/Data/#i=10791" }
+                new OpcNodeModel { Id = "http://test.org/UA/Data/#i=2744" }
             };
             var results = await _service.ExpandAsync(entry,
                 new PublishedNodeExpansionModel
@@ -835,7 +839,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var result = Assert.Single(results);
             Assert.NotNull(result.Result);
             Assert.NotNull(result.Result.OpcNodes);
-            Assert.Equal("http://test.org/UA/Data/#i=10791",
+            Assert.Equal("http://test.org/UA/Data/#i=2744",
                 Assert.Single(result.Result.OpcNodes).Id);
             Assert.NotNull(result.ErrorInfo);
             Assert.Equal("No objects resolved.", result.ErrorInfo.ErrorMessage);
@@ -847,7 +851,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var entry = _connection.ToPublishedNodesEntry();
             entry.OpcNodes = new[]
             {
-                new OpcNodeModel { Id = "http://test.org/UA/Data/#i=10791" }
+                new OpcNodeModel { Id = "http://test.org/UA/Data/#i=2744" }
             };
             var results = await _service.ExpandAsync(entry,
                 new PublishedNodeExpansionModel
@@ -927,8 +931,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var entry = _connection.ToPublishedNodesEntry();
             entry.OpcNodes = new[]
             {
-                new OpcNodeModel { Id = "http://test.org/UA/Data/#i=10157", DataSetFieldId = "test" },
-                new OpcNodeModel { Id = "http://test.org/UA/Data/#i=10158", DataSetFieldId = "test" }
+                new OpcNodeModel { Id = "http://test.org/UA/Data/#i=1974", DataSetFieldId = "test" },
+                new OpcNodeModel { Id = "http://test.org/UA/Data/#i=1975", DataSetFieldId = "test" }
             };
             var ex = await Assert.ThrowsAnyAsync<Exception>(async () => await _service.ExpandAsync(
                 entry, new PublishedNodeExpansionModel

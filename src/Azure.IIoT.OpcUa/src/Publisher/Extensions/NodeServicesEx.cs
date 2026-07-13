@@ -49,7 +49,7 @@ namespace Azure.IIoT.OpcUa.Publisher
                 references.AddRange(result.References);
             }
             var continuationToken = result.ContinuationToken;
-            while (continuationToken != null)
+            while (!string.IsNullOrEmpty(continuationToken))
             {
                 try
                 {

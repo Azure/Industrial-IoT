@@ -148,7 +148,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             double? dvalue = null;
             foreach (var message in doubleValues)
             {
-                Assert.Equal("http://test.org/UA/Data/#i=11224", message.Message.GetProperty("NodeId").GetString());
+                Assert.Equal("http://test.org/UA/Data/#i=3307", message.Message.GetProperty("NodeId").GetString());
                 var value1 = message.Message.GetProperty("Value").GetProperty("Value").GetDouble();
                 _output.WriteLine(JsonSerializer.Serialize(message));
                 if (dvalue != null)
@@ -164,7 +164,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             long? lvalue = null;
             foreach (var message in int64Values)
             {
-                Assert.Equal("http://test.org/UA/Data/#i=11206", message.Message.GetProperty("NodeId").GetString());
+                Assert.Equal("http://test.org/UA/Data/#i=3289", message.Message.GetProperty("NodeId").GetString());
                 var value1 = message.Message.GetProperty("Value").GetProperty("Value").GetInt64();
                 _output.WriteLine(JsonSerializer.Serialize(message));
                 if (lvalue != null)
