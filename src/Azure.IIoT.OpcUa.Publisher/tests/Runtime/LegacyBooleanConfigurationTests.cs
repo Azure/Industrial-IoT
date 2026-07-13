@@ -37,11 +37,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Runtime
                 ["Security:AutoAcceptUntrustedCertificates"] = value)).ToOptions().Value;
             var publisher = new PublisherConfig(Configuration(
                 [PublisherConfig.EnableCloudEventsKey] = value)).ToOptions().Value;
+            var schema = new PublisherConfig(Configuration(
+                ["SchemaOptions:PreferAvroOverJsonSchema"] = value)).ToOptions().Value;
 
             Assert.Equal(expected, subscription.EnableSequentialPublishing);
             Assert.Equal(expected, client.EnableOpcUaStackLogging);
             Assert.Equal(expected, nestedClient.Security.AutoAcceptUntrustedCertificates);
             Assert.Equal(expected, publisher.EnableCloudEvents);
+            Assert.Equal(expected, schema.SchemaOptions!.PreferAvroOverJsonSchema);
         }
 
         [Fact]
@@ -53,6 +56,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Runtime
             Assert.Throws<InvalidOperationException>(() =>
                 new OpcUaSubscriptionConfig(configuration,
                     Options.Create(new PublisherOptions())).ToOptions());
+        }
+
+        [Fact]
+        public void InvalidSchemaBooleanValueStillFails()
+        {
+            var configuration = Configuration(
+                ["SchemaOptions:PreferAvroOverJsonSchema"] = "maybe");
+
+            Assert.Throws<InvalidOperationException>(() =>
+                new PublisherConfig(configuration).ToOptions());
         }
 
         private static IConfiguration Configuration(

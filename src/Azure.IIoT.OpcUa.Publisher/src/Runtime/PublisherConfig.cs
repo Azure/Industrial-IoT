@@ -472,6 +472,10 @@ namespace Azure.IIoT.OpcUa.Publisher
                 nameof(PublisherOptions.TopicTemplates)).Get<TopicTemplatesOptions>();
             var discovery = Configuration.GetSection(
                 nameof(PublisherOptions.AioNetworkDiscovery)).Get<DiscoveryConfigModel>();
+            var schemaOptions = NormalizeLegacyBooleanAliases(
+                nameof(SchemaOptions.PreferAvroOverJsonSchema))
+                .GetSection(nameof(PublisherOptions.SchemaOptions))
+                .Get<SchemaOptions>();
             var options = new PublisherOptions
             {
                 PublisherId = GetStringOrDefault(nameof(PublisherOptions.PublisherId)),
@@ -561,8 +565,7 @@ namespace Azure.IIoT.OpcUa.Publisher
                 ApiKeyOverride = GetStringOrDefault(nameof(PublisherOptions.ApiKeyOverride)),
                 DefaultDataSetRouting = GetEnumOrNull<DataSetRoutingMode>(
                     nameof(PublisherOptions.DefaultDataSetRouting)),
-                SchemaOptions = Configuration.GetSection(
-                    nameof(PublisherOptions.SchemaOptions)).Get<SchemaOptions>(),
+                SchemaOptions = schemaOptions,
                 DisableResourceMonitoring = GetBoolOrNull(
                     nameof(PublisherOptions.DisableResourceMonitoring)),
                 UnsecureHttpServerPort = GetIntOrNull(
