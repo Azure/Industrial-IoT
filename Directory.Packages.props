@@ -58,6 +58,7 @@
 
   <ItemGroup Label="OpenApi">
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.OpenApi" Version="2.7.5" />
   </ItemGroup>
 
   <ItemGroup Label="Messaging transports">
