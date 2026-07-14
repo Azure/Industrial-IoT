@@ -57,8 +57,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             await transport.OpenAsync();
 
             var payload = Encoding.UTF8.GetBytes("""{"MessageType":"ua-data"}""");
-            await transport.SendAsync(payload, "writer/topic");
-            await transport.CloseAsync();
+            await transport.SendAsync(payload, "writer/topic").AsTask()
+                .WaitAsync(TimeSpan.FromSeconds(10));
+            await transport.CloseAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(10));
 
             var events = client.Events;
             var captured = Assert.Single(events);
@@ -500,6 +501,110 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
         }
 
         [Fact]
+        public async Task ReactivationCancelsAnOlderInFlightTombstoneAsync()
+        {
+            var client = new RecordingEventClient();
+            var options = new PubSubShadowEgressOptions
+            {
+                InitialRetryDelay = TimeSpan.FromMilliseconds(1),
+                MaximumRetryDelay = TimeSpan.FromMilliseconds(5)
+            };
+            await using var tombstones = new PubSubShadowTombstoneQueue(client, options);
+            var settings = CreateSettings(retain: true);
+            const string topic = "metadata/reactivated";
+            client.BlockSuccessfulSends();
+            var removedGeneration = tombstones.NextGeneration();
+            tombstones.Persist(settings, topic, removedGeneration);
+            await client.SendStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+            await tombstones.ReactivateAsync(topic, tombstones.NextGeneration());
+            Assert.Equal(0, tombstones.PendingCount);
+            client.ReleaseSuccessfulSends();
+
+            await using var transport = CreateTransport(client, settings);
+            await transport.OpenAsync();
+            await transport.SendAsync(new byte[] { 7 }, topic);
+            await transport.CloseAsync();
+            await Task.Delay(25);
+
+            var retained = Assert.Single(client.Events);
+            Assert.Equal(new byte[] { 7 }, retained.Payload);
+            Assert.True(retained.Retain);
+        }
+
+        [Fact]
+        public async Task ReactivationRestoreRequeuesCleanupAfterReplacementRollbackAsync()
+        {
+            var client = new RecordingEventClient();
+            var options = new PubSubShadowEgressOptions
+            {
+                InitialRetryDelay = TimeSpan.FromMilliseconds(1),
+                MaximumRetryDelay = TimeSpan.FromMilliseconds(5)
+            };
+            await using var tombstones = new PubSubShadowTombstoneQueue(client, options);
+            var settings = CreateSettings(retain: true);
+            const string topic = "metadata/rollback";
+            client.BlockSuccessfulSends();
+            var removedGeneration = tombstones.NextGeneration();
+            tombstones.Persist(settings, topic, removedGeneration);
+            await client.SendStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+            var reactivation = await tombstones.ReactivateAsync(
+                topic, tombstones.NextGeneration());
+            Assert.NotNull(reactivation);
+            tombstones.Restore(reactivation!);
+            client.ReleaseSuccessfulSends();
+            await WaitUntilAsync(() => tombstones.PendingCount == 0);
+
+            var tombstone = Assert.Single(client.Events);
+            Assert.Equal(topic, tombstone.Topic);
+            Assert.Empty(tombstone.Payload);
+        }
+
+        [Fact]
+        public async Task ReintroducedRetainedMetadataInvalidatesPendingTombstoneAsync()
+        {
+            var client = new RecordingEventClient();
+            var services = new ServiceCollection();
+            services.AddLogging();
+            services.AddPubSubShadowEgressHost(client, options =>
+            {
+                options.IncludeSchema = false;
+                options.InitialRetryDelay = TimeSpan.FromMilliseconds(1);
+                options.MaximumRetryDelay = TimeSpan.FromMilliseconds(5);
+            });
+            await using var provider = services.BuildServiceProvider();
+            var host = provider.GetRequiredService<IPubSubShadowHost>();
+            var hosted = Assert.Single(provider.GetServices<IHostedService>());
+            var tombstones = provider.GetRequiredService<PubSubShadowEgressRegistration>()
+                .Tombstones;
+            var group = CreateManagedWriterGroup();
+            group.DataSetWriters![0].MetaData = new PublishingQueueSettingsModel
+            {
+                QueueName = "metadata/reintroduced",
+                Retain = true
+            };
+
+            await hosted.StartAsync(default);
+            await host.ReplaceConfigurationAsync([group]);
+            client.FailuresRemaining = int.MaxValue;
+            await host.ReplaceConfigurationAsync([]);
+            await WaitUntilAsync(() => tombstones.PendingCount == 1
+                && tombstones.RetryCount != 0);
+
+            client.FailuresRemaining = 0;
+            var before = client.Events.Count;
+            await host.ReplaceConfigurationAsync([group]);
+            await WaitUntilAsync(() => tombstones.PendingCount == 0);
+            await Task.Delay(25);
+            await hosted.StopAsync(default);
+
+            Assert.DoesNotContain(client.Events.Skip(before), captured =>
+                captured.Topic == "metadata/reintroduced"
+                && captured.Retain && captured.Payload.Length == 0);
+        }
+
+        [Fact]
         public async Task ConfigurationRemovalFailsWhenClientCannotTombstoneAsync()
         {
             var client = new RecordingEventClient { SupportsRetainedTombstones = false };
@@ -728,6 +833,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 options.QueueCapacity = 8;
             });
             await transport.OpenAsync();
+            client.BlockSuccessfulSends();
             var transportDepths = new ConcurrentBag<int>();
             using var monitorStop = new CancellationTokenSource();
             var monitor = Task.Run(async () =>
@@ -741,13 +847,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             await Task.Delay(10);
             var sends = Enumerable.Range(0, kCount).Select(index =>
                 transport.SendAsync(new byte[] { (byte)index }, "topic").AsTask()).ToArray();
+            await WaitUntilAsync(() => transport.Metrics.BackpressureCount != 0);
+            client.ReleaseSuccessfulSends();
             await Task.WhenAll(sends);
             monitorStop.Cancel();
             await monitor;
             await transport.CloseAsync();
 
             Assert.NotEmpty(transportDepths);
-            Assert.All(transportDepths, depth => Assert.True(depth >= 0));
+            Assert.All(transportDepths, depth => Assert.InRange(depth, 0, 8));
             Assert.Equal(0, transport.Metrics.QueueDepth);
 
             var buffer = new ManagedPubSubNotificationBuffer(8);
@@ -762,6 +870,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 }
             });
             await Task.Delay(10);
+            var writes = Enumerable.Range(0, kCount).Select(index =>
+                buffer.EnqueueAsync(new ManagedPubSubNotification("data", "value",
+                    DateTimeOffset.UnixEpoch.AddMilliseconds(index), [(byte)index])).AsTask())
+                .ToArray();
+            await WaitUntilAsync(() => buffer.BackpressureCount != 0);
             var reader = Task.Run(async () =>
             {
                 var read = 0;
@@ -771,17 +884,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                     read++;
                 }
             });
-            var writes = Enumerable.Range(0, kCount).Select(index =>
-                buffer.EnqueueAsync(new ManagedPubSubNotification("data", "value",
-                    DateTimeOffset.UnixEpoch.AddMilliseconds(index), [(byte)index])).AsTask())
-                .ToArray();
             await Task.WhenAll(writes);
             await reader;
             bufferMonitorStop.Cancel();
             await bufferMonitor;
 
             Assert.NotEmpty(bufferDepths);
-            Assert.All(bufferDepths, depth => Assert.True(depth >= 0));
+            Assert.All(bufferDepths, depth => Assert.InRange(depth, 0, 8));
             Assert.Equal(0, buffer.QueueDepth);
         }
 
@@ -876,7 +985,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
         private static PubSubShadowEgressSettings CreateSettings(
             PubSubShadowEncoding encoding = PubSubShadowEncoding.Json,
             string? contentEncoding = null,
-            IReadOnlyList<PubSubShadowMetadataWriterSettings>? metadataWriters = null)
+            IReadOnlyList<PubSubShadowMetadataWriterSettings>? metadataWriters = null,
+            bool retain = false)
         {
             return new PubSubShadowEgressSettings
             {
@@ -886,7 +996,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 ContentType = "application/json",
                 ContentEncoding = contentEncoding,
                 QualityOfService = QoS.AtLeastOnce,
-                Retain = false,
+                Retain = retain,
                 TimeToLive = null,
                 UseCloudEvents = false,
                 CloudEventSource = new Uri("urn:test:publisher"),

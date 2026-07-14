@@ -257,7 +257,9 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 var encodingsReplaced = false;
                 var egressReplaced = false;
                 var committed = false;
+                var egressGeneration = 0L;
                 var tombstones = Array.Empty<RetainedMetaDataTombstone>();
+                var reactivations = new List<PubSubShadowTombstoneReactivation>();
                 try
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -275,6 +277,18 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                                 _egress.EventClient);
                             EventClientPubSubTransportFactory.ValidateCapabilities(
                                 _egress.EventClient, tombstone.Settings.RequiredCapabilities);
+                        }
+                        egressGeneration = _egress.Tombstones.NextGeneration();
+                        foreach (var topic in GetRetainedMetaDataTopics(replacement,
+                            _egress.Settings.Snapshot()))
+                        {
+                            var reactivation = await _egress.Tombstones
+                                .ReactivateAsync(topic, egressGeneration)
+                                .ConfigureAwait(false);
+                            if (reactivation is not null)
+                            {
+                                reactivations.Add(reactivation);
+                            }
                         }
                     }
                     if (wasStarted)
@@ -313,7 +327,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                         CountDataSetWriters(replacement));
                     foreach (var tombstone in tombstones)
                     {
-                        _egress!.Tombstones.Persist(tombstone.Settings, tombstone.Topic);
+                        _egress!.Tombstones.Persist(tombstone.Settings, tombstone.Topic,
+                            egressGeneration);
                     }
                 }
                 catch (Exception exception)
@@ -322,6 +337,10 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                     {
                         _state.Failed(exception);
                         throw;
+                    }
+                    foreach (var reactivation in reactivations)
+                    {
+                        _egress?.Tombstones.Restore(reactivation);
                     }
                     if (replaced)
                     {
@@ -564,6 +583,30 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 }
             }
             return [.. removed];
+        }
+
+        private static HashSet<string> GetRetainedMetaDataTopics(
+            PubSubConfigurationDataType configuration,
+            Dictionary<string, PubSubShadowEgressSettings> settings)
+        {
+            var topics = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var connection in configuration.Connections)
+            {
+                if (!settings.TryGetValue(connection.Name ?? string.Empty,
+                    out var egress))
+                {
+                    continue;
+                }
+                foreach (var route in EventClientPubSubTransportFactory
+                    .CreateMetadataRouting(connection, egress).ByTopic)
+                {
+                    if (route.Value.Retain)
+                    {
+                        _ = topics.Add(route.Key);
+                    }
+                }
+            }
+            return topics;
         }
 
         private static void EnsureSuccessfulReplacement(ArrayOf<StatusCode> statusCodes)

@@ -239,7 +239,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 });
         }
 
-        public int QueueDepth => Volatile.Read(ref _queueDepth);
+        public int QueueDepth => _channel.Reader.Count;
 
         public long BackpressureCount => Interlocked.Read(ref _backpressureCount);
 
@@ -248,20 +248,11 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         {
             ArgumentNullException.ThrowIfNull(notification);
             var copy = notification.Clone();
-            Interlocked.Increment(ref _queueDepth);
-            try
+            if (!_channel.Writer.TryWrite(copy))
             {
-                if (!_channel.Writer.TryWrite(copy))
-                {
-                    Interlocked.Increment(ref _backpressureCount);
-                    await _channel.Writer.WriteAsync(copy, cancellationToken)
-                        .ConfigureAwait(false);
-                }
-            }
-            catch
-            {
-                Interlocked.Decrement(ref _queueDepth);
-                throw;
+                Interlocked.Increment(ref _backpressureCount);
+                await _channel.Writer.WriteAsync(copy, cancellationToken)
+                    .ConfigureAwait(false);
             }
         }
 
@@ -271,15 +262,11 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             await foreach (var notification in _channel.Reader.ReadAllAsync(cancellationToken)
                 .ConfigureAwait(false))
             {
-                // Queue depth tracks entries that have not been dequeued. The
-                // recipient receives an owned copy before the next entry is read.
-                Interlocked.Decrement(ref _queueDepth);
                 yield return notification.Clone();
             }
         }
 
         private readonly Channel<ManagedPubSubNotification> _channel;
-        private int _queueDepth;
         private long _backpressureCount;
     }
 

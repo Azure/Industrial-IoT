@@ -390,11 +390,21 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         public long RetryCount => Interlocked.Read(ref _retryCount);
 
         /// <summary>
+        /// Gets a monotonically increasing configuration generation used to
+        /// invalidate cleanup from an older configuration.
+        /// </summary>
+        public long NextGeneration()
+        {
+            return Interlocked.Increment(ref _nextGeneration);
+        }
+
+        /// <summary>
         /// Persists cleanup intent without awaiting a bounded send path.
         /// Repeated intent for the same topic is coalesced to the latest
         /// settings and remains available across host stop/start.
         /// </summary>
-        public void Persist(PubSubShadowEgressSettings settings, string topic)
+        public void Persist(PubSubShadowEgressSettings settings, string topic,
+            long generation)
         {
             ArgumentNullException.ThrowIfNull(settings);
             if (string.IsNullOrWhiteSpace(topic))
@@ -403,8 +413,59 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             }
             lock (_gate)
             {
-                _pending[topic] = new PendingTombstone(settings, topic,
+                if (_pending.TryGetValue(topic, out var previous))
+                {
+                    previous.SendCancellation?.Cancel();
+                }
+                _pending[topic] = new PendingTombstone(settings, topic, generation,
                     _timeProvider.GetUtcNow(), _options.InitialRetryDelay);
+            }
+            _wake.Release();
+        }
+
+        /// <summary>
+        /// Cancels pending or in-flight cleanup from an older generation and
+        /// waits for its send to finish before a newly retained topic is
+        /// allowed to publish.
+        /// </summary>
+        public async ValueTask<PubSubShadowTombstoneReactivation?> ReactivateAsync(
+            string topic, long generation)
+        {
+            Task? inFlight = null;
+            PendingTombstone? removed = null;
+            lock (_gate)
+            {
+                if (_pending.TryGetValue(topic, out var pending)
+                    && pending.Generation < generation)
+                {
+                    _ = _pending.Remove(topic);
+                    pending.SendCancellation?.Cancel();
+                    inFlight = pending.SendCompleted?.Task;
+                    removed = pending.Clone();
+                }
+            }
+            if (inFlight is not null)
+            {
+                await inFlight.ConfigureAwait(false);
+            }
+            return removed is null ? null : new PubSubShadowTombstoneReactivation(removed);
+        }
+
+        /// <summary>
+        /// Restores cleanup canceled by a replacement that later rolled back.
+        /// A newer journal generation always wins over the restored entry.
+        /// </summary>
+        public void Restore(PubSubShadowTombstoneReactivation reactivation)
+        {
+            ArgumentNullException.ThrowIfNull(reactivation);
+            lock (_gate)
+            {
+                if (_pending.TryGetValue(reactivation.Entry.Topic, out var current)
+                    && current.Generation > reactivation.Entry.Generation)
+                {
+                    return;
+                }
+                _pending[reactivation.Entry.Topic] = reactivation.Entry.Clone();
             }
             _wake.Release();
         }
@@ -454,11 +515,25 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
 
                     foreach (var tombstone in due)
                     {
+                        CancellationTokenSource? sendCancellation = null;
+                        lock (_gate)
+                        {
+                            if (!_pending.TryGetValue(tombstone.Topic, out var current)
+                                || !ReferenceEquals(current, tombstone))
+                            {
+                                continue;
+                            }
+                            sendCancellation = CancellationTokenSource.CreateLinkedTokenSource(
+                                _stop.Token);
+                            tombstone.SendCompleted = new TaskCompletionSource(
+                                TaskCreationOptions.RunContinuationsAsynchronously);
+                            tombstone.SendCancellation = sendCancellation;
+                        }
                         try
                         {
                             await EventClientPubSubTransportFactory.SendMetadataTombstoneAsync(
                                 _eventClient, tombstone.Settings, tombstone.Topic,
-                                _timeProvider, _stop.Token).ConfigureAwait(false);
+                                _timeProvider, sendCancellation!.Token).ConfigureAwait(false);
                             lock (_gate)
                             {
                                 if (_pending.TryGetValue(tombstone.Topic, out var current)
@@ -467,6 +542,10 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                                     _ = _pending.Remove(tombstone.Topic);
                                 }
                             }
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            // Reactivation invalidated this generation.
                         }
                         catch
                         {
@@ -484,6 +563,16 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                                 }
                             }
                         }
+                        finally
+                        {
+                            lock (_gate)
+                            {
+                                tombstone.SendCancellation = null;
+                                tombstone.SendCompleted?.TrySetResult();
+                                tombstone.SendCompleted = null;
+                            }
+                            sendCancellation!.Dispose();
+                        }
                     }
                 }
             }
@@ -492,21 +581,32 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             }
         }
 
-        private sealed class PendingTombstone
+        internal sealed class PendingTombstone
         {
             public PendingTombstone(PubSubShadowEgressSettings settings,
-                string topic, DateTimeOffset nextAttempt, TimeSpan retryDelay)
+                string topic, long generation, DateTimeOffset nextAttempt,
+                TimeSpan retryDelay)
             {
                 Settings = settings;
                 Topic = topic;
+                Generation = generation;
                 NextAttempt = nextAttempt;
                 RetryDelay = retryDelay;
             }
 
             public PubSubShadowEgressSettings Settings { get; }
             public string Topic { get; }
+            public long Generation { get; }
             public DateTimeOffset NextAttempt { get; set; }
             public TimeSpan RetryDelay { get; set; }
+            public CancellationTokenSource? SendCancellation { get; set; }
+            public TaskCompletionSource? SendCompleted { get; set; }
+
+            public PendingTombstone Clone()
+            {
+                return new PendingTombstone(Settings, Topic, Generation, NextAttempt,
+                    RetryDelay);
+            }
         }
 
         private readonly Lock _gate = new();
@@ -519,6 +619,18 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         private readonly TimeProvider _timeProvider;
         private readonly Task _worker;
         private long _retryCount;
+        private long _nextGeneration;
+    }
+
+    internal sealed class PubSubShadowTombstoneReactivation
+    {
+        internal PubSubShadowTombstoneReactivation(
+            PubSubShadowTombstoneQueue.PendingTombstone entry)
+        {
+            Entry = entry;
+        }
+
+        internal PubSubShadowTombstoneQueue.PendingTombstone Entry { get; }
     }
 
     /// <summary>
@@ -739,7 +851,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
 
         public PubSubShadowEgressMetrics Metrics => new()
         {
-            QueueDepth = Volatile.Read(ref _queueDepth),
+            QueueDepth = _outbound.Reader.Count,
             BackpressureCount = Interlocked.Read(ref _backpressureCount),
             OverflowCount = Interlocked.Read(ref _overflowCount),
             RetryCount = Interlocked.Read(ref _retryCount),
@@ -790,26 +902,17 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 : _settings;
             var frame = new PendingFrame(payload.ToArray(), resolvedTopic, settings,
                 cancellationToken);
-            Interlocked.Increment(ref _queueDepth);
-            try
+            if (!_outbound.Writer.TryWrite(frame))
             {
-                if (!_outbound.Writer.TryWrite(frame))
+                if (_options.OverflowPolicy == PubSubShadowEgressOverflowPolicy.Reject)
                 {
-                    if (_options.OverflowPolicy == PubSubShadowEgressOverflowPolicy.Reject)
-                    {
-                        Interlocked.Increment(ref _overflowCount);
-                        throw new InvalidOperationException(
-                            "The bounded event-client PubSub egress queue rejected a frame.");
-                    }
-                    Interlocked.Increment(ref _backpressureCount);
-                    await _outbound.Writer.WriteAsync(frame, cancellationToken)
-                        .ConfigureAwait(false);
+                    Interlocked.Increment(ref _overflowCount);
+                    throw new InvalidOperationException(
+                        "The bounded event-client PubSub egress queue rejected a frame.");
                 }
-            }
-            catch
-            {
-                Interlocked.Decrement(ref _queueDepth);
-                throw;
+                Interlocked.Increment(ref _backpressureCount);
+                await _outbound.Writer.WriteAsync(frame, cancellationToken)
+                    .ConfigureAwait(false);
             }
             await frame.Completion.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
         }
@@ -870,7 +973,6 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 await foreach (var frame in _outbound.Reader.ReadAllAsync(_stop.Token)
                     .ConfigureAwait(false))
                 {
-                    Interlocked.Decrement(ref _queueDepth);
                     try
                     {
                         using var linked = CancellationTokenSource.CreateLinkedTokenSource(
@@ -896,7 +998,6 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             {
                 while (_outbound.Reader.TryRead(out var frame))
                 {
-                    Interlocked.Decrement(ref _queueDepth);
                     frame.Completion.TrySetCanceled(_stop.Token);
                 }
             }
@@ -1051,7 +1152,6 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         private readonly TimeProvider _timeProvider;
         private Task? _sendLoop;
         private int _isConnected;
-        private int _queueDepth;
         private long _backpressureCount;
         private long _overflowCount;
         private long _retryCount;
