@@ -335,8 +335,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=2048";
 
-            var expected = JsonNode.Parse(
-                "1.65278221E-37");
+            var expected = JsonNodeValueExtensions.FromObject(1.65278221E-37f);
 
             // Act
             var result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
