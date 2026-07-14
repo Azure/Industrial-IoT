@@ -831,67 +831,116 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             _metadata = metadata ?? throw new ArgumentNullException(nameof(metadata));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _timeProvider = timeProvider ?? throw new ArgumentNullException(nameof(timeProvider));
-            _outbound = Channel.CreateBounded<PendingFrame>(
-                new BoundedChannelOptions(options.QueueCapacity)
-                {
-                    FullMode = BoundedChannelFullMode.Wait,
-                    SingleReader = true,
-                    SingleWriter = false,
-                    AllowSynchronousContinuations = false
-                });
         }
 
         public string TransportProfileUri { get; }
 
         public PubSubTransportDirection Direction { get; }
 
-        public bool IsConnected => Volatile.Read(ref _isConnected) != 0;
+        public bool IsConnected => Volatile.Read(ref _active) is not null;
 
         public event EventHandler<PubSubTransportStateChangedEventArgs>? StateChanged;
 
-        public PubSubShadowEgressMetrics Metrics => new()
+        public PubSubShadowEgressMetrics Metrics
         {
-            QueueDepth = _outbound.Reader.Count,
-            BackpressureCount = Interlocked.Read(ref _backpressureCount),
-            OverflowCount = Interlocked.Read(ref _overflowCount),
-            RetryCount = Interlocked.Read(ref _retryCount),
-            SentCount = Interlocked.Read(ref _sentCount),
-            FailedCount = Interlocked.Read(ref _failedCount),
-            ChunkCount = Interlocked.Read(ref _chunkCount)
-        };
+            get
+            {
+                var generation = Volatile.Read(ref _active);
+                return new PubSubShadowEgressMetrics
+                {
+                    QueueDepth = generation?.Outbound.Reader.Count ?? 0,
+                    BackpressureCount = Interlocked.Read(ref _backpressureCount),
+                    OverflowCount = Interlocked.Read(ref _overflowCount),
+                    RetryCount = Interlocked.Read(ref _retryCount),
+                    SentCount = Interlocked.Read(ref _sentCount),
+                    FailedCount = Interlocked.Read(ref _failedCount),
+                    ChunkCount = Interlocked.Read(ref _chunkCount)
+                };
+            }
+        }
 
-        public ValueTask OpenAsync(CancellationToken cancellationToken = default)
+        public async ValueTask OpenAsync(CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (Interlocked.CompareExchange(ref _isConnected, 1, 0) == 0)
+            while (true)
             {
-                _sendLoop = Task.Run(ProcessAsync);
-                StateChanged?.Invoke(this, new PubSubTransportStateChangedEventArgs(
-                    true, StatusCodes.Good, "Event-client PubSub egress transport opened."));
+                Task closing;
+                Task? notification = null;
+                await _lifecycleGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+                try
+                {
+                    if (_disposed != 0)
+                    {
+                        throw new ObjectDisposedException(nameof(EventClientPubSubTransport));
+                    }
+                    if (_active is not null)
+                    {
+                        return;
+                    }
+                    closing = _closingTask;
+                    if (closing.IsCompletedSuccessfully)
+                    {
+                        var generation = new EgressGeneration(_options.QueueCapacity);
+                        generation.SendLoop = Task.Run(() => ProcessAsync(generation));
+                        Volatile.Write(ref _active, generation);
+                        notification = QueueStateChanged(generation, true,
+                            "Event-client PubSub egress transport opened.");
+                    }
+                }
+                finally
+                {
+                    _lifecycleGate.Release();
+                }
+                if (notification is not null)
+                {
+                    await notification.ConfigureAwait(false);
+                    return;
+                }
+                await closing.WaitAsync(cancellationToken).ConfigureAwait(false);
             }
-            return default;
         }
 
         public async ValueTask CloseAsync(CancellationToken cancellationToken = default)
         {
-            if (Interlocked.Exchange(ref _isConnected, 0) == 0)
+            cancellationToken.ThrowIfCancellationRequested();
+            EgressGeneration? generation;
+            Task closing;
+            TaskCompletionSource? closeStart = null;
+            await _lifecycleGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
             {
-                return;
+                generation = _active;
+                if (generation is not null)
+                {
+                    Volatile.Write(ref _active, null);
+                    closeStart = new TaskCompletionSource(
+                        TaskCreationOptions.RunContinuationsAsynchronously);
+                    closing = CloseGenerationAsync(generation, closeStart.Task, notify: true);
+                    _closingTask = closing;
+                }
+                else
+                {
+                    closing = _closingTask;
+                }
             }
-            _outbound.Writer.TryComplete();
-            _stop.Cancel();
-            if (_sendLoop is not null)
+            finally
             {
-                await _sendLoop.WaitAsync(cancellationToken).ConfigureAwait(false);
+                _lifecycleGate.Release();
             }
-            StateChanged?.Invoke(this, new PubSubTransportStateChangedEventArgs(
-                false, StatusCodes.Good, "Event-client PubSub egress transport closed."));
+            closeStart?.TrySetResult();
+            await closing.WaitAsync(cancellationToken).ConfigureAwait(false);
+            if (generation is not null)
+            {
+                await generation.StateNotification.WaitAsync(cancellationToken)
+                    .ConfigureAwait(false);
+            }
         }
 
         public async ValueTask SendAsync(ReadOnlyMemory<byte> payload, string? topic = null,
             CancellationToken cancellationToken = default)
         {
-            if (!IsConnected)
+            var generation = Volatile.Read(ref _active);
+            if (generation is null)
             {
                 throw new InvalidOperationException("The event-client PubSub transport is not open.");
             }
@@ -902,8 +951,14 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 : _settings;
             var frame = new PendingFrame(payload.ToArray(), resolvedTopic, settings,
                 cancellationToken);
-            if (!_outbound.Writer.TryWrite(frame))
+            if (!generation.TryWrite(frame, out var accepting))
             {
+                if (!accepting)
+                {
+                    throw new OperationCanceledException(
+                        "The event-client PubSub transport closed while queuing the frame.",
+                        null, generation.CancellationToken);
+                }
                 if (_options.OverflowPolicy == PubSubShadowEgressOverflowPolicy.Reject)
                 {
                     Interlocked.Increment(ref _overflowCount);
@@ -911,8 +966,20 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                         "The bounded event-client PubSub egress queue rejected a frame.");
                 }
                 Interlocked.Increment(ref _backpressureCount);
-                await _outbound.Writer.WriteAsync(frame, cancellationToken)
-                    .ConfigureAwait(false);
+                using var linked = CancellationTokenSource.CreateLinkedTokenSource(
+                    cancellationToken, generation.CancellationToken);
+                try
+                {
+                    await generation.Outbound.Writer.WriteAsync(frame, linked.Token)
+                        .ConfigureAwait(false);
+                }
+                catch (ChannelClosedException exception)
+                    when (generation.IsStopping)
+                {
+                    throw new OperationCanceledException(
+                        "The event-client PubSub transport closed while queuing the frame.",
+                        exception, generation.CancellationToken);
+                }
             }
             await frame.Completion.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
         }
@@ -928,19 +995,36 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
 
         public async ValueTask DisposeAsync()
         {
+            Task closing;
+            TaskCompletionSource? closeStart = null;
+            await _lifecycleGate.WaitAsync().ConfigureAwait(false);
             try
             {
-                _outbound.Writer.TryComplete();
-                _stop.Cancel();
-                if (_sendLoop is not null)
+                if (_disposed != 0)
                 {
-                    await _sendLoop.ConfigureAwait(false);
+                    return;
+                }
+                _disposed = 1;
+                var generation = _active;
+                Volatile.Write(ref _active, null);
+                if (generation is not null)
+                {
+                    closeStart = new TaskCompletionSource(
+                        TaskCreationOptions.RunContinuationsAsynchronously);
+                    closing = CloseGenerationAsync(generation, closeStart.Task, notify: false);
+                    _closingTask = closing;
+                }
+                else
+                {
+                    closing = _closingTask;
                 }
             }
             finally
             {
-                _stop.Dispose();
+                _lifecycleGate.Release();
             }
+            closeStart?.TrySetResult();
+            await closing.ConfigureAwait(false);
         }
 
         public string BuildMetaDataTopic(PublisherId publisherId, ushort writerGroupId,
@@ -966,17 +1050,18 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 messageTypeSegment);
         }
 
-        private async Task ProcessAsync()
+        private async Task ProcessAsync(EgressGeneration generation)
         {
             try
             {
-                await foreach (var frame in _outbound.Reader.ReadAllAsync(_stop.Token)
+                await foreach (var frame in generation.Outbound.Reader
+                    .ReadAllAsync(generation.CancellationToken)
                     .ConfigureAwait(false))
                 {
                     try
                     {
                         using var linked = CancellationTokenSource.CreateLinkedTokenSource(
-                            _stop.Token, frame.CancellationToken);
+                            generation.CancellationToken, frame.CancellationToken);
                         await SendFrameAsync(frame, linked.Token).ConfigureAwait(false);
                         frame.Completion.TrySetResult();
                     }
@@ -996,10 +1081,53 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             }
             finally
             {
-                while (_outbound.Reader.TryRead(out var frame))
+                while (generation.Outbound.Reader.TryRead(out var frame))
                 {
-                    frame.Completion.TrySetCanceled(_stop.Token);
+                    frame.Completion.TrySetCanceled(generation.CancellationToken);
                 }
+            }
+        }
+
+        private async Task CloseGenerationAsync(EgressGeneration generation, Task start,
+            bool notify)
+        {
+            await start.ConfigureAwait(false);
+            try
+            {
+                generation.StopAccepting();
+                await generation.SendLoop.ConfigureAwait(false);
+            }
+            finally
+            {
+                generation.Dispose();
+            }
+            if (notify)
+            {
+                generation.StateNotification = QueueStateChanged(generation, false,
+                    "Event-client PubSub egress transport closed.");
+            }
+        }
+
+        private Task QueueStateChanged(EgressGeneration generation, bool isConnected,
+            string reason)
+        {
+            lock (_stateNotificationGate)
+            {
+                _stateNotification = _stateNotification.ContinueWith(previous =>
+                {
+                    if (previous.IsFaulted)
+                    {
+                        _ = previous.Exception;
+                    }
+                    if (!isConnected
+                        || ReferenceEquals(Volatile.Read(ref _active), generation))
+                    {
+                        StateChanged?.Invoke(this, new PubSubTransportStateChangedEventArgs(
+                            isConnected, StatusCodes.Good, reason));
+                    }
+                }, CancellationToken.None, TaskContinuationOptions.None,
+                    TaskScheduler.Default);
+                return _stateNotification;
             }
         }
 
@@ -1123,6 +1251,70 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             return output.ToArray();
         }
 
+        private sealed class EgressGeneration : IDisposable
+        {
+            public EgressGeneration(int capacity)
+            {
+                Outbound = Channel.CreateBounded<PendingFrame>(
+                    new BoundedChannelOptions(capacity)
+                    {
+                        FullMode = BoundedChannelFullMode.Wait,
+                        SingleReader = true,
+                        SingleWriter = false,
+                        AllowSynchronousContinuations = false
+                    });
+                CancellationToken = _stop.Token;
+            }
+
+            public Channel<PendingFrame> Outbound { get; }
+
+            public CancellationToken CancellationToken { get; }
+
+            public bool IsStopping => Volatile.Read(ref _stopping) != 0;
+
+            public Task SendLoop { get; set; } = Task.CompletedTask;
+
+            public Task StateNotification { get; set; } = Task.CompletedTask;
+
+            public bool TryWrite(PendingFrame frame, out bool accepting)
+            {
+                lock (_gate)
+                {
+                    accepting = _accepting;
+                    return accepting && Outbound.Writer.TryWrite(frame);
+                }
+            }
+
+            public void StopAccepting()
+            {
+                var stop = false;
+                lock (_gate)
+                {
+                    if (_accepting)
+                    {
+                        _accepting = false;
+                        Volatile.Write(ref _stopping, 1);
+                        stop = true;
+                    }
+                }
+                if (stop)
+                {
+                    _stop.Cancel();
+                    _ = Outbound.Writer.TryComplete();
+                }
+            }
+
+            public void Dispose()
+            {
+                _stop.Dispose();
+            }
+
+            private readonly Lock _gate = new();
+            private readonly CancellationTokenSource _stop = new();
+            private bool _accepting = true;
+            private int _stopping;
+        }
+
         private sealed class PendingFrame
         {
             public PendingFrame(byte[] payload, string topic,
@@ -1143,15 +1335,17 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 TaskCreationOptions.RunContinuationsAsynchronously);
         }
 
-        private readonly Channel<PendingFrame> _outbound;
-        private readonly CancellationTokenSource _stop = new();
         private readonly IEventClient _eventClient;
         private readonly PubSubShadowEgressSettings _settings;
         private readonly PubSubShadowMetadataRouting _metadata;
         private readonly PubSubShadowEgressOptions _options;
         private readonly TimeProvider _timeProvider;
-        private Task? _sendLoop;
-        private int _isConnected;
+        private readonly SemaphoreSlim _lifecycleGate = new(1, 1);
+        private readonly Lock _stateNotificationGate = new();
+        private Task _closingTask = Task.CompletedTask;
+        private Task _stateNotification = Task.CompletedTask;
+        private EgressGeneration? _active;
+        private int _disposed;
         private long _backpressureCount;
         private long _overflowCount;
         private long _retryCount;

@@ -222,6 +222,172 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
         }
 
         [Fact]
+        public async Task EgressCanReopenAfterCloseAsync()
+        {
+            var client = new RecordingEventClient();
+            await using var transport = CreateTransport(client);
+
+            await transport.OpenAsync();
+            await transport.SendAsync(new byte[] { 1 }, "topic");
+            await transport.CloseAsync();
+            Assert.False(transport.IsConnected);
+
+            await transport.OpenAsync();
+            await transport.SendAsync(new byte[] { 2 }, "topic");
+            await transport.CloseAsync();
+
+            Assert.Equal(2, client.Events.Count);
+            Assert.Equal(new byte[] { 1 }, client.Events[0].Payload);
+            Assert.Equal(new byte[] { 2 }, client.Events[1].Payload);
+            Assert.Equal(2, transport.Metrics.SentCount);
+            Assert.Equal(2, transport.Metrics.ChunkCount);
+            Assert.Equal(0, transport.Metrics.QueueDepth);
+        }
+
+        [Fact]
+        public async Task ConcurrentLifecycleCallsRemainIdempotentAsync()
+        {
+            var client = new RecordingEventClient();
+            await using var transport = CreateTransport(client);
+
+            var openStart = new TaskCompletionSource(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+            var opens = Enumerable.Range(0, 8).Select(async _ =>
+            {
+                await openStart.Task;
+                await transport.OpenAsync();
+            }).ToArray();
+            openStart.TrySetResult();
+            await Task.WhenAll(opens);
+            Assert.True(transport.IsConnected);
+            await transport.SendAsync(new byte[] { 1 }, "topic");
+
+            var closeStart = new TaskCompletionSource(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+            var closes = Enumerable.Range(0, 8).Select(async _ =>
+            {
+                await closeStart.Task;
+                await transport.CloseAsync();
+            }).ToArray();
+            closeStart.TrySetResult();
+            await Task.WhenAll(closes);
+            Assert.False(transport.IsConnected);
+
+            await transport.OpenAsync();
+            await transport.SendAsync(new byte[] { 2 }, "topic");
+            await transport.CloseAsync();
+            Assert.Equal(new byte[] { 1, 2 },
+                client.Events.SelectMany(captured => captured.Payload).ToArray());
+        }
+
+        [Fact]
+        public async Task CloseAndReopenIsolatePendingGenerationAsync()
+        {
+            var client = new RecordingEventClient();
+            client.BlockSuccessfulSends();
+            await using var transport = CreateTransport(client);
+            var states = new ConcurrentQueue<bool>();
+            transport.StateChanged += (_, args) => states.Enqueue(args.IsConnected);
+            await transport.OpenAsync();
+            var stale = transport.SendAsync(new byte[] { 1 }, "topic").AsTask();
+            await client.SendStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+            var closing = transport.CloseAsync().AsTask();
+            var reopening = transport.OpenAsync().AsTask();
+            await closing.WaitAsync(TimeSpan.FromSeconds(5));
+            await reopening.WaitAsync(TimeSpan.FromSeconds(5));
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => stale);
+
+            client.ReleaseSuccessfulSends();
+            await transport.SendAsync(new byte[] { 2 }, "topic");
+            await transport.CloseAsync();
+
+            var sent = Assert.Single(client.Events);
+            Assert.Equal(new byte[] { 2 }, sent.Payload);
+            Assert.Equal(0, transport.Metrics.QueueDepth);
+            Assert.Equal(new[] { true, false, true, false }, states);
+        }
+
+        [Fact]
+        public async Task CloseCancelsActiveQueuedAndBackpressuredGenerationAsync()
+        {
+            var client = new RecordingEventClient();
+            client.BlockSuccessfulSends();
+            await using var transport = CreateTransport(client, options =>
+            {
+                options.QueueCapacity = 1;
+            });
+            await transport.OpenAsync();
+            var active = transport.SendAsync(new byte[] { 1 }, "topic").AsTask();
+            await client.SendStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            var queued = transport.SendAsync(new byte[] { 2 }, "topic").AsTask();
+            var backpressured = transport.SendAsync(new byte[] { 3 }, "topic").AsTask();
+            await WaitUntilAsync(() => transport.Metrics.BackpressureCount == 1);
+
+            var closing = transport.CloseAsync().AsTask();
+            var reopening = transport.OpenAsync().AsTask();
+            await closing.WaitAsync(TimeSpan.FromSeconds(5));
+            await reopening.WaitAsync(TimeSpan.FromSeconds(5));
+
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => active);
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => queued);
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => backpressured);
+            client.ReleaseSuccessfulSends();
+            await transport.SendAsync(new byte[] { 4 }, "topic");
+            await transport.CloseAsync();
+
+            var sent = Assert.Single(client.Events);
+            Assert.Equal(new byte[] { 4 }, sent.Payload);
+            Assert.Equal(0, transport.Metrics.QueueDepth);
+        }
+
+        [Fact]
+        public async Task CloseCancellationDoesNotPermitOverlappingGenerationAsync()
+        {
+            var client = new RecordingEventClient { IgnoreCancellation = true };
+            client.BlockSuccessfulSends();
+            await using var transport = CreateTransport(client);
+            await transport.OpenAsync();
+            var sending = transport.SendAsync(new byte[] { 1 }, "topic").AsTask();
+            await client.SendStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(25));
+
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+                await transport.CloseAsync(cts.Token));
+            var reopening = transport.OpenAsync().AsTask();
+            await Task.Delay(25);
+            Assert.False(reopening.IsCompleted);
+
+            client.ReleaseSuccessfulSends();
+            await reopening.WaitAsync(TimeSpan.FromSeconds(5));
+            await sending.WaitAsync(TimeSpan.FromSeconds(5));
+            await transport.SendAsync(new byte[] { 2 }, "topic");
+            await transport.CloseAsync();
+
+            Assert.Equal(new byte[] { 1, 2 },
+                client.Events.SelectMany(captured => captured.Payload).ToArray());
+        }
+
+        [Fact]
+        public async Task DisposeIsTerminalAndCancelsActiveGenerationAsync()
+        {
+            var client = new RecordingEventClient { FailuresRemaining = int.MaxValue };
+            var transport = CreateTransport(client);
+            await transport.OpenAsync();
+            var sending = transport.SendAsync(new byte[] { 1 }, "topic").AsTask();
+            await client.SendStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+            await transport.DisposeAsync();
+
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => sending);
+            await Assert.ThrowsAsync<ObjectDisposedException>(async () =>
+                await transport.OpenAsync());
+            await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                await transport.SendAsync(new byte[] { 2 }, "topic"));
+            await transport.DisposeAsync();
+        }
+
+        [Fact]
         public async Task EgressAppliesBoundedQueueBackpressureAndRejectPolicyAsync()
         {
             var client = new RecordingEventClient();
@@ -350,7 +516,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             var client = new RecordingEventClient();
             var services = new ServiceCollection();
             services.AddLogging();
-            services.AddPubSubShadowEgressHost(client, options => options.IncludeSchema = false);
+            services.AddIsolatedPubSubShadowEgressHost(client,
+                options => options.IncludeSchema = false);
             await using var provider = services.BuildServiceProvider();
             var host = provider.GetRequiredService<IPubSubShadowHost>();
             var hosted = Assert.Single(provider.GetServices<IHostedService>());
@@ -382,7 +549,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             var client = new RecordingEventClient();
             var services = new ServiceCollection();
             services.AddLogging();
-            services.AddPubSubShadowEgressHost(client, options => options.IncludeSchema = false);
+            services.AddIsolatedPubSubShadowEgressHost(client,
+                options => options.IncludeSchema = false);
             await using var provider = services.BuildServiceProvider();
             var host = provider.GetRequiredService<IPubSubShadowHost>();
             var hosted = Assert.Single(provider.GetServices<IHostedService>());
@@ -419,7 +587,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             var client = new RecordingEventClient();
             var services = new ServiceCollection();
             services.AddLogging();
-            services.AddPubSubShadowEgressHost(client, options =>
+            services.AddIsolatedPubSubShadowEgressHost(client, options =>
             {
                 options.IncludeSchema = false;
                 options.InitialRetryDelay = TimeSpan.FromMilliseconds(1);
@@ -462,7 +630,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             var client = new RecordingEventClient();
             var services = new ServiceCollection();
             services.AddLogging();
-            services.AddPubSubShadowEgressHost(client, options =>
+            services.AddIsolatedPubSubShadowEgressHost(client, options =>
             {
                 options.IncludeSchema = false;
                 options.QueueCapacity = 1;
@@ -567,7 +735,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             var client = new RecordingEventClient();
             var services = new ServiceCollection();
             services.AddLogging();
-            services.AddPubSubShadowEgressHost(client, options =>
+            services.AddIsolatedPubSubShadowEgressHost(client, options =>
             {
                 options.IncludeSchema = false;
                 options.InitialRetryDelay = TimeSpan.FromMilliseconds(1);
@@ -593,13 +761,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 && tombstones.RetryCount != 0);
 
             client.FailuresRemaining = 0;
-            var before = client.Events.Count;
             await host.ReplaceConfigurationAsync([group]);
+            var afterReactivation = client.Events.Count;
             await WaitUntilAsync(() => tombstones.PendingCount == 0);
             await Task.Delay(25);
             await hosted.StopAsync(default);
 
-            Assert.DoesNotContain(client.Events.Skip(before), captured =>
+            Assert.DoesNotContain(client.Events.Skip(afterReactivation), captured =>
                 captured.Topic == "metadata/reintroduced"
                 && captured.Retain && captured.Payload.Length == 0);
         }
@@ -610,7 +778,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             var client = new RecordingEventClient { SupportsRetainedTombstones = false };
             var services = new ServiceCollection();
             services.AddLogging();
-            services.AddPubSubShadowEgressHost(client, options => options.IncludeSchema = false);
+            services.AddIsolatedPubSubShadowEgressHost(client,
+                options => options.IncludeSchema = false);
             await using var provider = services.BuildServiceProvider();
             var host = provider.GetRequiredService<IPubSubShadowHost>();
             var hosted = Assert.Single(provider.GetServices<IHostedService>());
@@ -949,7 +1118,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             var client = new RecordingEventClient();
             var services = new ServiceCollection();
             services.AddLogging();
-            services.AddPubSubShadowEgressHost(client, options =>
+            services.AddIsolatedPubSubShadowEgressHost(client, options =>
             {
                 options.IncludeSchema = false;
             });
@@ -1152,6 +1321,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 | EventClientCapabilities.CloudEvents
                 | EventClientCapabilities.Schema;
             public bool SupportsRetainedTombstones { get; set; } = true;
+            public bool IgnoreCancellation { get; set; }
             public Exception? PermanentFailure { get; set; }
             public int TerminalFailuresRemaining
             {
@@ -1208,7 +1378,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 }
                 if (_release is not null)
                 {
-                    await _release.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+                    if (IgnoreCancellation)
+                    {
+                        await _release.Task.ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        await _release.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+                    }
                 }
                 lock (_gate)
                 {

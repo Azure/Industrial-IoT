@@ -44,7 +44,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
         {
             var services = new ServiceCollection();
             services.AddLogging();
-            services.AddPubSubShadowHost();
+            services.AddIsolatedPubSubShadowHost();
             await using var provider = services.BuildServiceProvider();
 
             var host = provider.GetRequiredService<IPubSubShadowHost>();
@@ -68,7 +68,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
         [Fact]
         public async Task TranslatorPreservesStableIdsAndStandardConfigurationAsync()
         {
-            var store = new MemoryIdentityStore();
+            var store = new PubSubTestIdentityStore();
             var registry = new PubSubIdentityRegistry(store);
             var translator = new PubSubConfigurationTranslator();
             var writerGroup = CreateWriterGroup("group-a", "writer-a", MessageEncoding.Uadp);
@@ -115,7 +115,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 BatchTriggerInterval = TimeSpan.FromSeconds(3)
             });
             var translator = new PubSubConfigurationTranslator(options);
-            var registry = new PubSubIdentityRegistry(new MemoryIdentityStore());
+            var registry = new PubSubIdentityRegistry(new PubSubTestIdentityStore());
             var group = CreateWriterGroup("group-a", "writer-a", MessageEncoding.Uadp);
             group.PublishingInterval = null;
 
@@ -148,7 +148,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             {
                 var translator = new PubSubConfigurationTranslator(Options.Create(
                     new PublisherOptions { BatchTriggerInterval = TimeSpan.Zero }));
-                var registry = new PubSubIdentityRegistry(new MemoryIdentityStore());
+                var registry = new PubSubIdentityRegistry(new PubSubTestIdentityStore());
                 var group = CreateWriterGroup("group-" + interval, "writer-" + interval,
                     MessageEncoding.Uadp);
                 group.PublishingInterval = interval;
@@ -237,7 +237,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
         [Fact]
         public async Task IdentityRegistryStaysStableAcrossReorderUpdateAddAndRemoveAsync()
         {
-            var registry = new PubSubIdentityRegistry(new MemoryIdentityStore());
+            var registry = new PubSubIdentityRegistry(new PubSubTestIdentityStore());
             var translator = new PubSubConfigurationTranslator();
             ushort firstGroupId;
             ushort secondGroupId;
@@ -290,7 +290,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
         [Fact]
         public async Task IdentityRegistryResolvesCollisionsWithinScopeAsync()
         {
-            var registry = new PubSubIdentityRegistry(new MemoryIdentityStore(), _ => 0);
+            var registry = new PubSubIdentityRegistry(new PubSubTestIdentityStore(), _ => 0);
 
             await using var transaction = await registry.BeginAsync();
             var first = transaction.GetOrAllocate("writer-group", "first");
@@ -311,7 +311,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 .Returns<PubSubConfigurationDataType, CancellationToken>((_, _) =>
                     ValueTask.FromException<ArrayOf<StatusCode>>(
                         new InvalidOperationException("replacement failed")));
-            var registry = new PubSubIdentityRegistry(new MemoryIdentityStore());
+            var registry = new PubSubIdentityRegistry(new PubSubTestIdentityStore());
             var state = new PubSubShadowRuntimeStateProvider();
             var host = new PubSubShadowHost(registry, new PubSubConfigurationTranslator(),
                 state, application.Object, PubSubConfigurationTranslator.CreateEmpty());
@@ -332,7 +332,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                     It.IsAny<PubSubConfigurationDataType>(),
                     It.IsAny<CancellationToken>()))
                 .Returns(new ValueTask<ArrayOf<StatusCode>>([StatusCodes.Good]));
-            var registry = new PubSubIdentityRegistry(new MemoryIdentityStore());
+            var registry = new PubSubIdentityRegistry(new PubSubTestIdentityStore());
             var state = new PubSubShadowRuntimeStateProvider();
             var host = new PubSubShadowHost(registry, new PubSubConfigurationTranslator(),
                 state, application.Object, PubSubConfigurationTranslator.CreateEmpty());
@@ -355,7 +355,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
         {
             var services = new ServiceCollection();
             services.AddLogging();
-            services.AddPubSubShadowHost();
+            services.AddIsolatedPubSubShadowHost();
             await using var provider = services.BuildServiceProvider();
             var host = provider.GetRequiredService<IPubSubShadowHost>();
             var hosted = Assert.Single(provider.GetServices<IHostedService>());
@@ -483,7 +483,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
         public async Task TranslatorRejectsCombinedAndUnknownMessageEncodingsAsync()
         {
             var translator = new PubSubConfigurationTranslator();
-            var registry = new PubSubIdentityRegistry(new MemoryIdentityStore());
+            var registry = new PubSubIdentityRegistry(new PubSubTestIdentityStore());
 
             await using var transaction = await registry.BeginAsync();
             Assert.Throws<ArgumentException>(() => translator.Translate(
@@ -501,7 +501,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             var services = new ServiceCollection();
             services.AddLogging();
             await using var provider = services.BuildServiceProvider();
-            var identities = new PubSubIdentityRegistry(new MemoryIdentityStore());
+            var identities = new PubSubIdentityRegistry(new PubSubTestIdentityStore());
             var translator = new PubSubConfigurationTranslator();
             var state = new PubSubShadowRuntimeStateProvider();
             var encodings = new PubSubShadowEncodingRegistry();
@@ -592,7 +592,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             var services = new ServiceCollection();
             services.AddLogging();
             await using var provider = services.BuildServiceProvider();
-            var identities = new PubSubIdentityRegistry(new MemoryIdentityStore());
+            var identities = new PubSubIdentityRegistry(new PubSubTestIdentityStore());
             var translator = new PubSubConfigurationTranslator();
             var writerGroup = CreateWriterGroup("group", "writer", encoding);
             writerGroup.PublishingInterval = TimeSpan.FromDays(1);
@@ -691,7 +691,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             DataSetMessageContentFlags? messageMask,
             DataSetFieldContentFlags? fieldMask)
         {
-            var registry = new PubSubIdentityRegistry(new MemoryIdentityStore());
+            var registry = new PubSubIdentityRegistry(new PubSubTestIdentityStore());
             var group = CreateWriterGroup("group", "writer", encoding);
             group.MessageSettings = new WriterGroupMessageSettingsModel
             {
@@ -862,39 +862,5 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             private int _blockNextEncode;
         }
 
-        private sealed class MemoryIdentityStore : IPubSubIdentityRegistryStore
-        {
-            public ValueTask<PubSubIdentityRegistrySnapshot> LoadAsync(
-                CancellationToken cancellationToken = default)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                return new ValueTask<PubSubIdentityRegistrySnapshot>(Clone(_snapshot));
-            }
-
-            public ValueTask SaveAsync(PubSubIdentityRegistrySnapshot snapshot,
-                CancellationToken cancellationToken = default)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                _snapshot = Clone(snapshot);
-                return default;
-            }
-
-            private static PubSubIdentityRegistrySnapshot Clone(
-                PubSubIdentityRegistrySnapshot snapshot)
-            {
-                return new PubSubIdentityRegistrySnapshot
-                {
-                    Entries = snapshot.Entries.ConvertAll(entry =>
-                        new PubSubIdentityRegistryEntry
-                        {
-                            Scope = entry.Scope,
-                            Id = entry.Id,
-                            Value = entry.Value
-                        })
-                };
-            }
-
-            private PubSubIdentityRegistrySnapshot _snapshot = new();
-        }
     }
 }
