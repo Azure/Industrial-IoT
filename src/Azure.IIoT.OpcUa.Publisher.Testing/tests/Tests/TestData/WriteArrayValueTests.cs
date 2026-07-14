@@ -3,19 +3,21 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
+extern alias Quickstarts;
+
 namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 {
     using Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Publisher.Models;
-    using Azure.IIoT.OpcUa.Encoders;
     using System.Text.Json.Nodes;
     using Opc.Ua;
+    using Opc.Ua.Extensions;
     using System;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Xml;
     using Xunit;
+    using TestData = Quickstarts::TestData;
 
     public class WriteArrayValueTests<T>
     {
@@ -544,6 +546,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     "J7sy1a7rAg%3d%3d\"," +
                 "\"http://samples.org/UA/memorybuffer/Instance#b=Sd3cIpMx8dJmHYZE57NO%2f97D6hXTRBk%3d\"," +
                 "\"http://test.org/UA/Data/#g=1ad3ae1c-1c15-e1b1-0f18-96aa0c4f3766\"]");
+            expected = await ReadCanonicalValueAsync(node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -568,6 +571,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     "F0s64Z2BzAQUguTWwH3T4OSRPSoA%2fZs0gCG%2fs8gfzkzVk8yr8krC2nSLstV" +
                     "dBLSCSWVI2H5rTBm%2f9mFrwhhMA%3d\", " +
                 "\"http://opcfoundation.org/UA/Boiler/#g=7e12cb12-9cea-2be5-5753-ab5e78b7d3d7\"]");
+            expected = await ReadCanonicalValueAsync(node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -600,6 +604,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 "http://test.org/UA/Data/#w",
                 "afsdff"
             });
+            expected = await ReadCanonicalValueAsync(node).ConfigureAwait(false);
 
             // Act
             var result = await browser.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -661,7 +666,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=2248";
 
-            var expected = JsonNode.Parse("[2555904,9306112]");
+            var expected = JsonNode.Parse("""[{"Code":2555904},{"Code":9306112}]""");
 
             // Act
             var result = await browser.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -680,29 +685,47 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var browser = _services();
             const string node = "http://test.org/UA/Data/#i=2249";
 
-            var encoder = new JsonVariantEncoder(new ServiceMessageContext());
-            var values = _generator.GetRandomArray<string>();
-            var expected = JsonNodeValueExtensions.FromObject(values
-                .Select((object v) =>
+            var expected = new JsonArray
+            {
+                new JsonObject
                 {
-                    var body = encoder.Encode(new Variant(v), out var t);
-                    return JsonNodeValueExtensions.FromObject(new
+                    ["Value"] = "first"
+                },
+                null,
+                new JsonObject
+                {
+                    ["Value"] = 42
+                }
+            };
+            var input = new JsonObject
+            {
+                ["Type"] = BuiltInType.Variant.ToString(),
+                ["Body"] = new JsonArray
+                {
+                    new JsonObject
                     {
-                        Type = t.ToString(),
-                        Body = body
-                    });
-                }));
+                        ["UaType"] = (byte)BuiltInType.String,
+                        ["Value"] = "first"
+                    },
+                    null,
+                    new JsonObject
+                    {
+                        ["UaType"] = (byte)BuiltInType.Int32,
+                        ["Value"] = 42
+                    }
+                }
+            };
 
             // Act
             var result = await browser.ValueWriteAsync(_connection, new ValueWriteRequestModel
             {
                 NodeId = node,
-                Value = expected,
+                Value = input,
                 DataType = "Variant"
             }, ct).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, JsonNodeValueExtensions.FromObject(values), result).ConfigureAwait(false);
+            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
         }
 
         public async Task NodeWriteStaticArrayEnumerationValueVariableTestAsync(CancellationToken ct = default)
@@ -1127,17 +1150,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 ]
 
 """);
+            expected = new JsonArray
+            {
+                CreateStructureValue(),
+                CreateStructureValue()
+            };
+            var input = AddTestDataStructureTypeId(expected.DeepClone());
             // Act
             var result = await browser.ValueWriteAsync(_connection, new ValueWriteRequestModel
             {
                 NodeId = node,
-                Value = expected,
+                Value = input,
                 DataType = "ExtensionObject"
             }, ct).ConfigureAwait(false);
 
             // Assert
 
-            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
+            await AssertStructuredArrayResultAsync(node, result).ConfigureAwait(false);
         }
 
         public async Task NodeWriteStaticArrayNumberValueVariableTest1Async(CancellationToken ct = default)
@@ -1146,12 +1175,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             const string node = "http://test.org/UA/Data/#i=2252";
 
             var values = _generator.GetRandomArray<sbyte>();
-            var expected = JsonNodeValueExtensions.FromObject(values
-                .Select(v => new
-                {
-                    Type = "SByte",
-                    Body = v
-                }));
+            var body = JsonNodeValueExtensions.FromObject(values);
+            var expected = new JsonObject
+            {
+                ["Type"] = "SByte",
+                ["Body"] = body
+            };
 
             // Act
             var result = await browser.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -1162,7 +1191,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             }, ct).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, JsonNodeValueExtensions.FromObject(values), result).ConfigureAwait(false);
+            await AssertResultAsync(node, body, result).ConfigureAwait(false);
         }
 
         public async Task NodeWriteStaticArrayNumberValueVariableTest2Async(CancellationToken ct = default)
@@ -1177,7 +1206,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             {
                 NodeId = node,
                 Value = expected,
-                DataType = "Number"
+                DataType = "SByte"
             }, ct).ConfigureAwait(false);
 
             // Assert
@@ -1190,12 +1219,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             const string node = "http://test.org/UA/Data/#i=2253";
 
             var values = _generator.GetRandomArray<int>();
-            var expected = JsonNodeValueExtensions.FromObject(values
-                .Select(v => new
-                {
-                    Type = "Int32",
-                    Body = v
-                }));
+            var body = JsonNodeValueExtensions.FromObject(values);
+            var expected = new JsonObject
+            {
+                ["Type"] = "Int32",
+                ["Body"] = body
+            };
 
             // Act
             var result = await browser.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -1206,7 +1235,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             }, ct).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, JsonNodeValueExtensions.FromObject(values), result).ConfigureAwait(false);
+            await AssertResultAsync(node, body, result).ConfigureAwait(false);
         }
 
         public async Task NodeWriteStaticArrayIntegerValueVariableTest2Async(CancellationToken ct = default)
@@ -1221,7 +1250,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             {
                 NodeId = node,
                 Value = expected,
-                DataType = "Integer"
+                DataType = "Int32"
             }, ct).ConfigureAwait(false);
 
             // Assert
@@ -1234,12 +1263,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             const string node = "http://test.org/UA/Data/#i=2254";
 
             var values = _generator.GetRandomArray<ushort>();
-            var expected = JsonNodeValueExtensions.FromObject(values
-                .Select(v => new
-                {
-                    Type = "UInt16",
-                    Body = v
-                }));
+            var body = JsonNodeValueExtensions.FromObject(values);
+            var expected = new JsonObject
+            {
+                ["Type"] = "UInt16",
+                ["Body"] = body
+            };
 
             // Act
             var result = await browser.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -1250,7 +1279,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             }, ct).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, JsonNodeValueExtensions.FromObject(values), result).ConfigureAwait(false);
+            await AssertResultAsync(node, body, result).ConfigureAwait(false);
         }
 
         public async Task NodeWriteStaticArrayUIntegerValueVariableTest2Async(CancellationToken ct = default)
@@ -1265,7 +1294,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             {
                 NodeId = node,
                 Value = expected,
-                DataType = "UInteger"
+                DataType = "UInt16"
             }, ct).ConfigureAwait(false);
 
             // Assert
@@ -1282,6 +1311,61 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.True(JsonNode.DeepEquals(expected, value), $"{expected} != {value}");
         }
 
+        private async Task<JsonNode> ReadCanonicalValueAsync(string node)
+        {
+            var value = await _readExpected(_connection, node).ConfigureAwait(false);
+            return Assert.IsAssignableFrom<JsonNode>(value);
+        }
+
+        private static JsonNode AddTestDataStructureTypeId(JsonNode value)
+        {
+            if (value is JsonArray values)
+            {
+                foreach (var item in values)
+                {
+                    Assert.IsType<JsonObject>(item)["UaTypeId"] = kTestDataStructureEncodingId;
+                }
+                return values;
+            }
+            Assert.IsType<JsonObject>(value)["UaTypeId"] = kTestDataStructureEncodingId;
+            return value;
+        }
+
+        private static JsonNode CreateStructureValue()
+        {
+            var value = new TestData.ScalarStructureDataType();
+            return new JsonObject
+            {
+                ["UaEncoding"] = (byte)ExtensionObjectEncoding.Binary,
+                ["UaBody"] = Convert.ToBase64String(
+                    value.AsBinary(new ServiceMessageContext()))
+            };
+        }
+
+        private async Task AssertStructuredArrayResultAsync(string node,
+            ValueWriteResponseModel result)
+        {
+            Assert.Null(result.ErrorInfo);
+            var value = await _readExpected(_connection, node).ConfigureAwait(false);
+            var structures = Assert.IsType<JsonArray>(value);
+            Assert.Equal(2, structures.Count);
+            foreach (var item in structures)
+            {
+                var structure = Assert.IsType<JsonObject>(item);
+                Assert.False(structure["BooleanValue"]!.GetValue<bool>());
+                Assert.Equal((sbyte)0, structure["SByteValue"]!.GetValue<sbyte>());
+                Assert.Equal((byte)0, structure["ByteValue"]!.GetValue<byte>());
+                Assert.Equal((short)0, structure["Int16Value"]!.GetValue<short>());
+                Assert.Equal((ushort)0, structure["UInt16Value"]!.GetValue<ushort>());
+                Assert.Equal(0, structure["Int32Value"]!.GetValue<int>());
+                Assert.Equal(0u, structure["UInt32Value"]!.GetValue<uint>());
+                Assert.Equal("0", structure["Int64Value"]!.GetValue<string>());
+                Assert.Equal("0", structure["UInt64Value"]!.GetValue<string>());
+            }
+        }
+
+        private const string kTestDataStructureEncodingId =
+            "nsu=http://test.org/UA/Data/;i=1078";
         private readonly T _connection;
         private readonly Func<T, string, Task<JsonNode?>> _readExpected;
         private readonly Func<INodeServices<T>> _services;

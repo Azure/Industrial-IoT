@@ -11,6 +11,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
     using Azure.IIoT.OpcUa.Publisher.Models;
     using System.Text.Json.Nodes;
     using MemoryBuffer = Quickstarts::MemoryBuffer;
+    using TestData = Quickstarts::TestData;
+    using Opc.Ua;
+    using Opc.Ua.Extensions;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
@@ -56,7 +59,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             // Act
             result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
             {
-                NodeId = "ns=2;i=2039",
+                NodeId = $"ns={await GetTestDataNamespaceIndexAsync(ct).ConfigureAwait(false)};i=2039",
                 Value = expected,
                 DataType = "Boolean"
             }, ct).ConfigureAwait(false);
@@ -70,7 +73,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=1976"; // Scalar
             var path = new[] {
-                ".http://test.org/UA/Data/#BooleanValue"
+                "http://test.org/UA/Data/#BooleanValue"
             };
 
             JsonNode? expected = false;
@@ -92,7 +95,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             // Act
             result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
             {
-                NodeId = "ns=2;i=1976",
+                NodeId = $"ns={await GetTestDataNamespaceIndexAsync(ct).ConfigureAwait(false)};i=1976",
                 BrowsePath = path,
                 Value = expected,
                 DataType = "Boolean"
@@ -129,7 +132,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             // Act
             result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
             {
-                NodeId = "ns=2;i=1976",
+                NodeId = $"ns={await GetTestDataNamespaceIndexAsync(ct).ConfigureAwait(false)};i=1976",
                 BrowsePath = path,
                 Value = expected,
                 DataType = "Boolean"
@@ -393,7 +396,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=2051";
 
-            JsonNode? expected = DateTime.UtcNow + TimeSpan.FromDays(11);
+            var expected = JsonNodeValueExtensions.FromObject(
+                DateTime.UtcNow + TimeSpan.FromDays(11));
 
             // Act
             var result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -477,7 +481,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=2055";
 
-            JsonNode? expected = "http://samples.org/UA/memorybuffer#i=2040578002";
+            var expected = await ReadCanonicalValueAsync(node).ConfigureAwait(false);
 
             // Act
             var result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -496,7 +500,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=2056";
 
-            JsonNode? expected = "http://opcfoundation.org/UA/Diagnostics#i=1375605653";
+            var expected = await ReadCanonicalValueAsync(node).ConfigureAwait(false);
 
             // Act
             var result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -515,7 +519,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=2057";
 
-            var expected = JsonNodeValueExtensions.FromObject("http://test.org/UA/Data/#testname");
+            var expected = await ReadCanonicalValueAsync(node).ConfigureAwait(false);
 
             // Act
             var result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -554,7 +558,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=2059";
 
-            var expected = JsonNode.Parse("11927552");
+            var expected = JsonNode.Parse("""{"Code":11927552}""");
 
             // Act
             var result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -664,17 +668,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 }
 
 """);
+            expected = CreateStructureValue();
+            var input = AddTestDataStructureTypeId(expected.DeepClone());
 
             // Act
             var result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
             {
                 NodeId = node,
-                Value = expected,
+                Value = input,
                 DataType = "ExtensionObject"
             }, ct).ConfigureAwait(false);
 
             // Assert
-            await AssertResultAsync(node, expected, result).ConfigureAwait(false);
+            await AssertStructuredResultAsync(node, result).ConfigureAwait(false);
         }
 
         public async Task NodeWriteStaticScalarNumberValueVariableTestAsync(CancellationToken ct = default)
@@ -747,6 +753,69 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.True(JsonNode.DeepEquals(expected, value), $"{expected} != {value}");
         }
 
+        private async Task<JsonNode> ReadCanonicalValueAsync(string node)
+        {
+            var value = await _readExpected(_connection, node).ConfigureAwait(false);
+            return Assert.IsAssignableFrom<JsonNode>(value);
+        }
+
+        private async Task<int> GetTestDataNamespaceIndexAsync(CancellationToken ct)
+        {
+            var result = await _services().ValueReadAsync(_connection,
+                new ValueReadRequestModel
+                {
+                    NodeId = Opc.Ua.VariableIds.Server_NamespaceArray.ToString()
+                }, ct).ConfigureAwait(false);
+            Assert.Null(result.ErrorInfo);
+            var namespaces = Assert.IsType<JsonArray>(result.Value);
+            for (var index = 0; index < namespaces.Count; index++)
+            {
+                if (namespaces[index]?.GetValue<string>() == kTestDataNamespaceUri)
+                {
+                    return index;
+                }
+            }
+            throw new Xunit.Sdk.XunitException(
+                $"The TestData namespace '{kTestDataNamespaceUri}' is not advertised.");
+        }
+
+        private static JsonNode AddTestDataStructureTypeId(JsonNode value)
+        {
+            Assert.IsType<JsonObject>(value)["UaTypeId"] = kTestDataStructureEncodingId;
+            return value;
+        }
+
+        private static JsonNode CreateStructureValue()
+        {
+            var value = new TestData.ScalarStructureDataType();
+            return new JsonObject
+            {
+                ["UaEncoding"] = (byte)ExtensionObjectEncoding.Binary,
+                ["UaBody"] = Convert.ToBase64String(
+                    value.AsBinary(new ServiceMessageContext()))
+            };
+        }
+
+        private async Task AssertStructuredResultAsync(string node,
+            ValueWriteResponseModel result)
+        {
+            Assert.Null(result.ErrorInfo);
+            var value = await _readExpected(_connection, node).ConfigureAwait(false);
+            var structure = Assert.IsType<JsonObject>(value);
+            Assert.False(structure["BooleanValue"]!.GetValue<bool>());
+            Assert.Equal((sbyte)0, structure["SByteValue"]!.GetValue<sbyte>());
+            Assert.Equal((byte)0, structure["ByteValue"]!.GetValue<byte>());
+            Assert.Equal((short)0, structure["Int16Value"]!.GetValue<short>());
+            Assert.Equal((ushort)0, structure["UInt16Value"]!.GetValue<ushort>());
+            Assert.Equal(0, structure["Int32Value"]!.GetValue<int>());
+            Assert.Equal(0u, structure["UInt32Value"]!.GetValue<uint>());
+            Assert.Equal("0", structure["Int64Value"]!.GetValue<string>());
+            Assert.Equal("0", structure["UInt64Value"]!.GetValue<string>());
+        }
+
+        private const string kTestDataNamespaceUri = "http://test.org/UA/Data/";
+        private const string kTestDataStructureEncodingId =
+            "nsu=http://test.org/UA/Data/;i=1078";
         private readonly T _connection;
         private readonly Func<T, string, Task<JsonNode?>> _readExpected;
         private readonly Func<INodeServices<T>> _services;
