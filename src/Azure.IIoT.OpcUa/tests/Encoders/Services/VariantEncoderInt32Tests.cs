@@ -25,6 +25,18 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         [Fact]
+        public void DecodeEncodeZeroInt32FromJValue()
+        {
+            var codec = new JsonVariantEncoder(new ServiceMessageContext());
+            var value = TestJson.FromObject(0);
+            var variant = codec.Decode(value, BuiltInType.Int32);
+            var encoded = codec.Encode(variant);
+
+            Assert.NotNull(encoded);
+            Assert.True(JsonNode.DeepEquals(value, encoded));
+        }
+
+        [Fact]
         public void DecodeEncodeInt32ArrayFromJArray()
         {
             var codec = new JsonVariantEncoder(new ServiceMessageContext());

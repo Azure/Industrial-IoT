@@ -37,28 +37,31 @@ namespace Azure.IIoT.OpcUa.Encoders
         public JsonNode? Encode(Variant? value, out BuiltInType builtinType,
             ValueEncoding encoding = ValueEncoding.Reversible)
         {
-            if (value == null || value == Variant.Null)
+            if (value is null || value.Value.IsNull)
             {
                 builtinType = BuiltInType.Null;
                 return null;
             }
             var useReversibleEncoding = encoding != ValueEncoding.NonReversible;
-            var options = useReversibleEncoding
-                ? Opc.Ua.JsonEncoderOptions.Compact
-                : Opc.Ua.JsonEncoderOptions.Verbose;
             string text;
-            using (var encoder = new Opc.Ua.JsonEncoder(Context, options))
+            if (useReversibleEncoding)
+            {
+                using var encoder = new Opc.Ua.JsonEncoder(
+                    Context, Opc.Ua.JsonEncoderOptions.RawData);
+                encoder.WriteVariantValue(nameof(value), value.Value);
+                text = encoder.CloseAndReturnText();
+
+                builtinType = value.Value.TypeInfo.BuiltInType;
+                var rawToken = JsonNode.Parse(text);
+                return NumberizeWideIntegers(
+                    rawToken?["value"]?.DeepClone(), builtinType);
+            }
+
+            using (var encoder = new Opc.Ua.JsonEncoder(
+                Context, Opc.Ua.JsonEncoderOptions.Verbose))
             {
                 encoder.WriteVariant(nameof(value), value.Value);
                 text = encoder.CloseAndReturnText();
-            }
-            var token = JsonNode.Parse(text);
-            if (useReversibleEncoding)
-            {
-                Enum.TryParse(ToStringValue(token?["value"]?["UaType"]),
-                    true, out builtinType);
-                return NumberizeWideIntegers(
-                    token?["value"]?["Value"]?.DeepClone(), builtinType);
             }
 
             //
@@ -67,6 +70,7 @@ namespace Azure.IIoT.OpcUa.Encoders
             // from the variant type information instead.
             //
             builtinType = value.Value.TypeInfo.BuiltInType;
+            var token = JsonNode.Parse(text);
             return NumberizeWideIntegers(
                 token?["value"]?.DeepClone(), builtinType);
         }

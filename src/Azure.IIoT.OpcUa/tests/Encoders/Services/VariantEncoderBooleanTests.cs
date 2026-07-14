@@ -26,6 +26,18 @@ namespace Azure.IIoT.OpcUa.Encoders
         }
 
         [Fact]
+        public void DecodeEncodeFalseBooleanFromJValue()
+        {
+            var codec = new JsonVariantEncoder(new ServiceMessageContext());
+            var value = TestJson.FromObject(false);
+            var variant = codec.Decode(value, BuiltInType.Boolean);
+            var encoded = codec.Encode(variant);
+
+            Assert.NotNull(encoded);
+            Assert.True(JsonNode.DeepEquals(value, encoded));
+        }
+
+        [Fact]
         public void DecodeEncodeBooleanArrayFromJArray()
         {
             var codec = new JsonVariantEncoder(new ServiceMessageContext());

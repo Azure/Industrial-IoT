@@ -1280,7 +1280,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(value);
 
             Assert.True(JsonNode.DeepEquals(expected, value), $"{expected} != {value}");
-            Assert.Equal(expected, value);
         }
 
         private readonly T _connection;
