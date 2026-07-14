@@ -313,8 +313,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                         CountDataSetWriters(replacement));
                     foreach (var tombstone in tombstones)
                     {
-                        await _egress!.Tombstones.EnqueueAsync(tombstone.Settings,
-                            tombstone.Topic, CancellationToken.None).ConfigureAwait(false);
+                        _egress!.Tombstones.Persist(tombstone.Settings, tombstone.Topic);
                     }
                 }
                 catch (Exception exception)

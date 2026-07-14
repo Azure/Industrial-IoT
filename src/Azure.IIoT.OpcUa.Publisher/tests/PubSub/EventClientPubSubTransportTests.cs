@@ -18,6 +18,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
     using System;
     using System.Buffers;
     using System.Collections.Generic;
+    using System.Collections.Concurrent;
     using System.Collections.ObjectModel;
     using System.IO;
     using System.IO.Compression;
@@ -455,6 +456,50 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
         }
 
         [Fact]
+        public async Task TombstoneJournalDoesNotBlockReplaceOrStopWhenCapacityIsExceededAsync()
+        {
+            var client = new RecordingEventClient();
+            var services = new ServiceCollection();
+            services.AddLogging();
+            services.AddPubSubShadowEgressHost(client, options =>
+            {
+                options.IncludeSchema = false;
+                options.QueueCapacity = 1;
+                options.InitialRetryDelay = TimeSpan.FromMilliseconds(1);
+                options.MaximumRetryDelay = TimeSpan.FromMilliseconds(5);
+            });
+            await using var provider = services.BuildServiceProvider();
+            var host = provider.GetRequiredService<IPubSubShadowHost>();
+            var hosted = Assert.Single(provider.GetServices<IHostedService>());
+            var tombstones = provider.GetRequiredService<PubSubShadowEgressRegistration>()
+                .Tombstones;
+            var groups = Enumerable.Range(0, 3).Select(index =>
+            {
+                var group = CreateManagedWriterGroup(groupId: "group-" + index,
+                    writerId: "writer-" + index, dataSetName: "data-" + index);
+                group.DataSetWriters![0].MetaData = new PublishingQueueSettingsModel
+                {
+                    QueueName = "metadata/deadlock/" + index,
+                    Retain = true
+                };
+                return group;
+            }).ToArray();
+
+            await hosted.StartAsync(default);
+            await host.ReplaceConfigurationAsync(groups);
+            client.FailuresRemaining = int.MaxValue;
+            var replacing = host.ReplaceConfigurationAsync([]).AsTask();
+            var stopping = hosted.StopAsync(default);
+            await Task.WhenAll(replacing, stopping).WaitAsync(TimeSpan.FromSeconds(30));
+            Assert.Equal(groups.Length, tombstones.PendingCount);
+
+            client.FailuresRemaining = 0;
+            await hosted.StartAsync(default);
+            await WaitUntilAsync(() => tombstones.PendingCount == 0);
+            await hosted.StopAsync(default);
+        }
+
+        [Fact]
         public async Task ConfigurationRemovalFailsWhenClientCannotTombstoneAsync()
         {
             var client = new RecordingEventClient { SupportsRetainedTombstones = false };
@@ -674,6 +719,73 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
         }
 
         [Fact]
+        public async Task QueueDepthNeverGoesNegativeUnderConcurrentEnqueueAndDequeueAsync()
+        {
+            const int kCount = 128;
+            var client = new RecordingEventClient();
+            await using var transport = CreateTransport(client, options =>
+            {
+                options.QueueCapacity = 8;
+            });
+            await transport.OpenAsync();
+            var transportDepths = new ConcurrentBag<int>();
+            using var monitorStop = new CancellationTokenSource();
+            var monitor = Task.Run(async () =>
+            {
+                while (!monitorStop.IsCancellationRequested)
+                {
+                    transportDepths.Add(transport.Metrics.QueueDepth);
+                    await Task.Delay(1);
+                }
+            });
+            await Task.Delay(10);
+            var sends = Enumerable.Range(0, kCount).Select(index =>
+                transport.SendAsync(new byte[] { (byte)index }, "topic").AsTask()).ToArray();
+            await Task.WhenAll(sends);
+            monitorStop.Cancel();
+            await monitor;
+            await transport.CloseAsync();
+
+            Assert.NotEmpty(transportDepths);
+            Assert.All(transportDepths, depth => Assert.True(depth >= 0));
+            Assert.Equal(0, transport.Metrics.QueueDepth);
+
+            var buffer = new ManagedPubSubNotificationBuffer(8);
+            var bufferDepths = new ConcurrentBag<int>();
+            using var bufferMonitorStop = new CancellationTokenSource();
+            var bufferMonitor = Task.Run(async () =>
+            {
+                while (!bufferMonitorStop.IsCancellationRequested)
+                {
+                    bufferDepths.Add(buffer.QueueDepth);
+                    await Task.Delay(1);
+                }
+            });
+            await Task.Delay(10);
+            var reader = Task.Run(async () =>
+            {
+                var read = 0;
+                await using var enumerator = buffer.ReadAllAsync().GetAsyncEnumerator();
+                while (read < kCount && await enumerator.MoveNextAsync())
+                {
+                    read++;
+                }
+            });
+            var writes = Enumerable.Range(0, kCount).Select(index =>
+                buffer.EnqueueAsync(new ManagedPubSubNotification("data", "value",
+                    DateTimeOffset.UnixEpoch.AddMilliseconds(index), [(byte)index])).AsTask())
+                .ToArray();
+            await Task.WhenAll(writes);
+            await reader;
+            bufferMonitorStop.Cancel();
+            await bufferMonitor;
+
+            Assert.NotEmpty(bufferDepths);
+            Assert.All(bufferDepths, depth => Assert.True(depth >= 0));
+            Assert.Equal(0, buffer.QueueDepth);
+        }
+
+        [Fact]
         public async Task DiagnosticsBridgeMapsNativeAndEgressCountersAsync()
         {
             var client = new RecordingEventClient();
@@ -797,25 +909,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
         }
 
         private static WriterGroupModel CreateManagedWriterGroup(
-            MessageEncoding encoding = MessageEncoding.Json)
+            MessageEncoding encoding = MessageEncoding.Json, string groupId = "group",
+            string writerId = "writer", string dataSetName = "data")
         {
             return new WriterGroupModel
             {
-                Id = "group",
+                Id = groupId,
                 MessageType = encoding,
                 PublishingInterval = TimeSpan.FromDays(1),
                 DataSetWriters =
                 [
                     new DataSetWriterModel
                     {
-                        Id = "writer",
-                        DataSetWriterName = "writer",
+                        Id = writerId,
+                        DataSetWriterName = writerId,
                         DataSet = new PublishedDataSetModel
                         {
-                            Name = "data",
+                            Name = dataSetName,
                             DataSetMetaData = new DataSetMetaDataModel
                             {
-                                Name = "data",
+                                Name = dataSetName,
                                 DataSetClassId = Guid.Empty,
                                 MajorVersion = 1
                             }

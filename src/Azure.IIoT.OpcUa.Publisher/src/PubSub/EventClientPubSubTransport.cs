@@ -360,10 +360,10 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     }
 
     /// <summary>
-    /// Retains cleanup work independently of a native host replacement. The
-    /// queue survives host stop/start within the test composition and retries
-    /// a transient broker failure until it succeeds or the service provider is
-    /// disposed.
+    /// Retains cleanup work independently of a native host replacement. A
+    /// lock-protected pending set is the durable-in-composition journal: host
+    /// replacement only persists work and signals this worker, so it never
+    /// waits for an egress queue while holding the host lifecycle gate.
     /// </summary>
     internal sealed class PubSubShadowTombstoneQueue : IAsyncDisposable
     {
@@ -372,42 +372,47 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         {
             _eventClient = eventClient ?? throw new ArgumentNullException(nameof(eventClient));
             _options = options ?? throw new ArgumentNullException(nameof(options));
-            _queue = Channel.CreateBounded<PendingTombstone>(
-                new BoundedChannelOptions(options.QueueCapacity)
-                {
-                    FullMode = BoundedChannelFullMode.Wait,
-                    SingleReader = true,
-                    SingleWriter = false,
-                    AllowSynchronousContinuations = false
-                });
+            _timeProvider = TimeProvider.System;
             _worker = Task.Run(ProcessAsync);
         }
 
-        public int PendingCount => Volatile.Read(ref _pendingCount);
+        public int PendingCount
+        {
+            get
+            {
+                lock (_gate)
+                {
+                    return _pending.Count;
+                }
+            }
+        }
 
         public long RetryCount => Interlocked.Read(ref _retryCount);
 
-        public async ValueTask EnqueueAsync(PubSubShadowEgressSettings settings,
-            string topic, CancellationToken cancellationToken = default)
+        /// <summary>
+        /// Persists cleanup intent without awaiting a bounded send path.
+        /// Repeated intent for the same topic is coalesced to the latest
+        /// settings and remains available across host stop/start.
+        /// </summary>
+        public void Persist(PubSubShadowEgressSettings settings, string topic)
         {
-            var tombstone = new PendingTombstone(settings, topic);
-            Interlocked.Increment(ref _pendingCount);
-            try
+            ArgumentNullException.ThrowIfNull(settings);
+            if (string.IsNullOrWhiteSpace(topic))
             {
-                await _queue.Writer.WriteAsync(tombstone, cancellationToken)
-                    .ConfigureAwait(false);
+                throw new ArgumentException("A tombstone topic is required.", nameof(topic));
             }
-            catch
+            lock (_gate)
             {
-                Interlocked.Decrement(ref _pendingCount);
-                throw;
+                _pending[topic] = new PendingTombstone(settings, topic,
+                    _timeProvider.GetUtcNow(), _options.InitialRetryDelay);
             }
+            _wake.Release();
         }
 
         public async ValueTask DisposeAsync()
         {
-            _queue.Writer.TryComplete();
             _stop.Cancel();
+            _wake.Release();
             try
             {
                 await _worker.ConfigureAwait(false);
@@ -418,6 +423,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             finally
             {
                 _stop.Dispose();
+                _wake.Dispose();
             }
         }
 
@@ -425,31 +431,58 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         {
             try
             {
-                await foreach (var tombstone in _queue.Reader.ReadAllAsync(_stop.Token)
-                    .ConfigureAwait(false))
+                while (!_stop.IsCancellationRequested)
                 {
-                    var delay = _options.InitialRetryDelay;
-                    for (;;)
+                    PendingTombstone[] due;
+                    TimeSpan wait;
+                    lock (_gate)
+                    {
+                        var now = _timeProvider.GetUtcNow();
+                        due = _pending.Values
+                            .Where(tombstone => tombstone.NextAttempt <= now)
+                            .ToArray();
+                        wait = due.Length != 0 || _pending.Count == 0
+                            ? Timeout.InfiniteTimeSpan
+                            : _pending.Values.Min(tombstone =>
+                                tombstone.NextAttempt - now);
+                    }
+                    if (due.Length == 0)
+                    {
+                        _ = await _wake.WaitAsync(wait, _stop.Token).ConfigureAwait(false);
+                        continue;
+                    }
+
+                    foreach (var tombstone in due)
                     {
                         try
                         {
                             await EventClientPubSubTransportFactory.SendMetadataTombstoneAsync(
                                 _eventClient, tombstone.Settings, tombstone.Topic,
-                                TimeProvider.System, _stop.Token).ConfigureAwait(false);
-                            Interlocked.Decrement(ref _pendingCount);
-                            break;
-                        }
-                        catch (OperationCanceledException)
-                        {
-                            throw;
+                                _timeProvider, _stop.Token).ConfigureAwait(false);
+                            lock (_gate)
+                            {
+                                if (_pending.TryGetValue(tombstone.Topic, out var current)
+                                    && ReferenceEquals(current, tombstone))
+                                {
+                                    _ = _pending.Remove(tombstone.Topic);
+                                }
+                            }
                         }
                         catch
                         {
                             Interlocked.Increment(ref _retryCount);
-                            await Task.Delay(delay, TimeProvider.System, _stop.Token)
-                                .ConfigureAwait(false);
-                            delay = TimeSpan.FromTicks(Math.Min(delay.Ticks * 2,
-                                _options.MaximumRetryDelay.Ticks));
+                            lock (_gate)
+                            {
+                                if (_pending.TryGetValue(tombstone.Topic, out var current)
+                                    && ReferenceEquals(current, tombstone))
+                                {
+                                    var delay = TimeSpan.FromTicks(Math.Min(
+                                        tombstone.RetryDelay.Ticks * 2,
+                                        _options.MaximumRetryDelay.Ticks));
+                                    tombstone.RetryDelay = delay;
+                                    tombstone.NextAttempt = _timeProvider.GetUtcNow() + delay;
+                                }
+                            }
                         }
                     }
                 }
@@ -459,15 +492,32 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             }
         }
 
-        private sealed record class PendingTombstone(
-            PubSubShadowEgressSettings Settings, string Topic);
+        private sealed class PendingTombstone
+        {
+            public PendingTombstone(PubSubShadowEgressSettings settings,
+                string topic, DateTimeOffset nextAttempt, TimeSpan retryDelay)
+            {
+                Settings = settings;
+                Topic = topic;
+                NextAttempt = nextAttempt;
+                RetryDelay = retryDelay;
+            }
 
-        private readonly Channel<PendingTombstone> _queue;
+            public PubSubShadowEgressSettings Settings { get; }
+            public string Topic { get; }
+            public DateTimeOffset NextAttempt { get; set; }
+            public TimeSpan RetryDelay { get; set; }
+        }
+
+        private readonly Lock _gate = new();
         private readonly CancellationTokenSource _stop = new();
+        private readonly SemaphoreSlim _wake = new(0);
+        private readonly Dictionary<string, PendingTombstone> _pending =
+            new(StringComparer.Ordinal);
         private readonly IEventClient _eventClient;
         private readonly PubSubShadowEgressOptions _options;
+        private readonly TimeProvider _timeProvider;
         private readonly Task _worker;
-        private int _pendingCount;
         private long _retryCount;
     }
 
@@ -740,19 +790,27 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 : _settings;
             var frame = new PendingFrame(payload.ToArray(), resolvedTopic, settings,
                 cancellationToken);
-
-            if (!_outbound.Writer.TryWrite(frame))
-            {
-                if (_options.OverflowPolicy == PubSubShadowEgressOverflowPolicy.Reject)
-                {
-                    Interlocked.Increment(ref _overflowCount);
-                    throw new InvalidOperationException(
-                        "The bounded event-client PubSub egress queue rejected a frame.");
-                }
-                Interlocked.Increment(ref _backpressureCount);
-                await _outbound.Writer.WriteAsync(frame, cancellationToken).ConfigureAwait(false);
-            }
             Interlocked.Increment(ref _queueDepth);
+            try
+            {
+                if (!_outbound.Writer.TryWrite(frame))
+                {
+                    if (_options.OverflowPolicy == PubSubShadowEgressOverflowPolicy.Reject)
+                    {
+                        Interlocked.Increment(ref _overflowCount);
+                        throw new InvalidOperationException(
+                            "The bounded event-client PubSub egress queue rejected a frame.");
+                    }
+                    Interlocked.Increment(ref _backpressureCount);
+                    await _outbound.Writer.WriteAsync(frame, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+            }
+            catch
+            {
+                Interlocked.Decrement(ref _queueDepth);
+                throw;
+            }
             await frame.Completion.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
         }
 

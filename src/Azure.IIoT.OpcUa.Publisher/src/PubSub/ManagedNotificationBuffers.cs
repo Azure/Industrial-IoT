@@ -248,12 +248,21 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         {
             ArgumentNullException.ThrowIfNull(notification);
             var copy = notification.Clone();
-            if (!_channel.Writer.TryWrite(copy))
-            {
-                Interlocked.Increment(ref _backpressureCount);
-                await _channel.Writer.WriteAsync(copy, cancellationToken).ConfigureAwait(false);
-            }
             Interlocked.Increment(ref _queueDepth);
+            try
+            {
+                if (!_channel.Writer.TryWrite(copy))
+                {
+                    Interlocked.Increment(ref _backpressureCount);
+                    await _channel.Writer.WriteAsync(copy, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+            }
+            catch
+            {
+                Interlocked.Decrement(ref _queueDepth);
+                throw;
+            }
         }
 
         public async IAsyncEnumerable<ManagedPubSubNotification> ReadAllAsync(
@@ -262,16 +271,10 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             await foreach (var notification in _channel.Reader.ReadAllAsync(cancellationToken)
                 .ConfigureAwait(false))
             {
-                // A notification is acknowledged only after the receiving adapter
-                // advances the iterator. It has an owned copy while it processes it.
-                try
-                {
-                    yield return notification.Clone();
-                }
-                finally
-                {
-                    Interlocked.Decrement(ref _queueDepth);
-                }
+                // Queue depth tracks entries that have not been dequeued. The
+                // recipient receives an owned copy before the next entry is read.
+                Interlocked.Decrement(ref _queueDepth);
+                yield return notification.Clone();
             }
         }
 
