@@ -727,6 +727,34 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
         }
 
         [Fact]
+        public async Task KeyframeBoundaryIncludesOrRetainsADataUpdateExactlyOnceAsync()
+        {
+            var buffer = new ManagedPubSubNotificationBuffer(8);
+            await using var provider = new ManagedPubSubNotificationDataSourceProvider(buffer);
+            var managed = Assert.IsAssignableFrom<IManagedPubSubDataSource>(
+                await provider.CreateAsync(new PublishedDataSetModel { Name = "data" }));
+            var observer = new BlockingDataPublicationObserver();
+            await using var source = new ManagedPubSubDataSetSource("data", managed,
+                observer: observer);
+            source.Start();
+            var metadata = source.BuildMetaData();
+            await buffer.EnqueueAsync(new ManagedPubSubNotification(
+                "data", "value", DateTimeOffset.UnixEpoch, [4]));
+            await observer.Allocated.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+            source.RequestKeyFrame();
+            var keyframeTask = Task.Run(async () => await source.SampleAsync(metadata));
+            observer.Release();
+            var keyframe = await keyframeTask.WaitAsync(TimeSpan.FromSeconds(5));
+            await WaitUntilAsync(() => source.PendingCount == 1);
+
+            Assert.Equal(1, keyframe.Fields.Count);
+            Assert.Equal(new byte[] { 4 },
+                Assert.IsType<byte[]>(keyframe.Fields[0].Value.Value));
+            Assert.Equal(0, (await source.SampleAsync(metadata)).Fields.Count);
+        }
+
+        [Fact]
         public async Task ManagedRoutesPropagateBackpressureAndDoNotReplayAfterRemovalAsync()
         {
             var options = Options.Create(new ManagedPubSubNotificationBufferOptions
@@ -1074,6 +1102,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 await Task.Delay(10);
             }
             throw new Xunit.Sdk.XunitException("The expected condition was not reached.");
+        }
+
+        private sealed class BlockingDataPublicationObserver :
+            IManagedPubSubDataPublicationObserver
+        {
+            public TaskCompletionSource Allocated { get; } = new(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+
+            public void AfterSequenceAllocated(long sequence)
+            {
+                Allocated.TrySetResult();
+                _release.Task.GetAwaiter().GetResult();
+            }
+
+            public void Release()
+            {
+                _release.TrySetResult();
+            }
+
+            private readonly TaskCompletionSource _release = new(
+                TaskCreationOptions.RunContinuationsAsynchronously);
         }
 
         private sealed class UndeclaredEventClient : IEventClient

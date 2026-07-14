@@ -219,6 +219,15 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             CancellationToken cancellationToken = default);
     }
 
+    /// <summary>
+    /// Test seam for deterministically observing the data publication
+    /// boundary. Production does not register an observer.
+    /// </summary>
+    internal interface IManagedPubSubDataPublicationObserver
+    {
+        void AfterSequenceAllocated(long sequence);
+    }
+
     internal sealed class ManagedPubSubNotificationBuffer :
         IManagedPubSubNotificationBuffer, IManagedPubSubEventBuffer,
         IManagedPubSubNotificationBufferDiagnostics
@@ -475,12 +484,14 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         IMetaDataChangeNotifier, IAsyncDisposable
     {
         public ManagedPubSubDataSetSource(string dataSetName,
-            IManagedPubSubDataSource source, int capacity = 1024)
+            IManagedPubSubDataSource source, int capacity = 1024,
+            IManagedPubSubDataPublicationObserver? observer = null)
         {
             _dataSetName = string.IsNullOrWhiteSpace(dataSetName)
                 ? throw new ArgumentException("A dataset name is required.", nameof(dataSetName))
                 : dataSetName;
             _source = source ?? throw new ArgumentNullException(nameof(source));
+            _observer = observer;
             if (capacity <= 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(capacity));
@@ -497,24 +508,27 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
 
         public DataSetMetaDataType BuildMetaData()
         {
-            return new DataSetMetaDataType
+            lock (_stateGate)
             {
-                Name = _dataSetName,
-                Fields = _knownFields.Keys
-                    .OrderBy(name => name, StringComparer.Ordinal)
-                    .Select(name => new FieldMetaData
-                    {
-                        Name = name,
-                        BuiltInType = (byte)DataTypes.ByteString,
-                        DataType = DataTypeIds.ByteString,
-                        ValueRank = ValueRanks.Scalar
-                    })
-                    .ToArray(),
-                ConfigurationVersion = new ConfigurationVersionDataType
+                return new DataSetMetaDataType
                 {
-                    MajorVersion = 1
-                }
-            };
+                    Name = _dataSetName,
+                    Fields = _knownFields.Keys
+                        .OrderBy(name => name, StringComparer.Ordinal)
+                        .Select(name => new FieldMetaData
+                        {
+                            Name = name,
+                            BuiltInType = (byte)DataTypes.ByteString,
+                            DataType = DataTypeIds.ByteString,
+                            ValueRank = ValueRanks.Scalar
+                        })
+                        .ToArray(),
+                    ConfigurationVersion = new ConfigurationVersionDataType
+                    {
+                        MajorVersion = 1
+                    }
+                };
+            }
         }
 
         public event EventHandler? MetaDataChanged;
@@ -526,14 +540,18 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             cancellationToken.ThrowIfCancellationRequested();
             if (Interlocked.Exchange(ref _keyFrameRequested, 0) != 0)
             {
-                Interlocked.Exchange(ref _keyFrameWatermark, Interlocked.Read(ref _sequence));
-                return new ValueTask<PublishedDataSetSnapshot>(new PublishedDataSetSnapshot(
-                    metaData.ConfigurationVersion ?? new ConfigurationVersionDataType
-                    {
-                        MajorVersion = 1
-                    },
-                    SnapshotCurrentData(),
-                    DateTimeUtc.From(DateTimeOffset.UtcNow)));
+                lock (_stateGate)
+                {
+                    Interlocked.Exchange(ref _keyFrameWatermark,
+                        Interlocked.Read(ref _sequence));
+                    return new ValueTask<PublishedDataSetSnapshot>(new PublishedDataSetSnapshot(
+                        metaData.ConfigurationVersion ?? new ConfigurationVersionDataType
+                        {
+                            MajorVersion = 1
+                        },
+                        SnapshotCurrentData(),
+                        DateTimeUtc.From(DateTimeOffset.UtcNow)));
+                }
             }
             while (_pending.Reader.TryRead(out var pending))
             {
@@ -619,14 +637,29 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 {
                     continue;
                 }
-                var sequence = Interlocked.Increment(ref _sequence);
+                long sequence;
+                var metadataChanged = false;
                 if (copy.Kind == ManagedPubSubNotificationKind.Data)
                 {
-                    _currentData.AddOrUpdate(copy.FieldName,
-                        new ManagedCurrentData(copy, sequence), (_, _) =>
-                            new ManagedCurrentData(copy, sequence));
+                    lock (_stateGate)
+                    {
+                        sequence = Interlocked.Increment(ref _sequence);
+                        _observer?.AfterSequenceAllocated(sequence);
+                        _currentData.AddOrUpdate(copy.FieldName,
+                            new ManagedCurrentData(copy, sequence), (_, _) =>
+                                new ManagedCurrentData(copy, sequence));
+                        metadataChanged = _knownFields.TryAdd(copy.FieldName, 0);
+                    }
                 }
-                if (_knownFields.TryAdd(copy.FieldName, 0))
+                else
+                {
+                    sequence = Interlocked.Increment(ref _sequence);
+                    lock (_stateGate)
+                    {
+                        metadataChanged = _knownFields.TryAdd(copy.FieldName, 0);
+                    }
+                }
+                if (metadataChanged)
                 {
                     MetaDataChanged?.Invoke(this, EventArgs.Empty);
                 }
@@ -678,6 +711,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         }
 
         private readonly Lock _gate = new();
+        private readonly Lock _stateGate = new();
         private readonly CancellationTokenSource _stop = new();
         private readonly CancellationTokenSource _pendingWrite = new();
         private readonly Channel<ManagedPendingNotification> _pending;
@@ -687,6 +721,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             new(StringComparer.Ordinal);
         private readonly string _dataSetName;
         private readonly IManagedPubSubDataSource _source;
+        private readonly IManagedPubSubDataPublicationObserver? _observer;
         private Task? _pump;
         private int _keyFrameRequested;
         private int _pendingCount;
