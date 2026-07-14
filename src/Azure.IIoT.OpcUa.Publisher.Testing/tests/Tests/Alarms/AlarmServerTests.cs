@@ -203,7 +203,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             var result = await services.CompileQueryAsync(_connection, new QueryCompilationRequestModel
             {
-                Query = "select * from TripAlarmType",
+                Query = "select * from OffNormalAlarmType",
                 QueryType = QueryType.Event
             }, ct).ConfigureAwait(false);
 
@@ -268,7 +268,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         DisplayName = "/Severity.Value"
                     },
                     new() {
-                        TypeDefinitionId = "i=2782",
+                        TypeDefinitionId = "i=10637",
                         BrowsePath = new[] { "/ConditionClassId" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/ConditionClassId.Value"
@@ -674,12 +674,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             var result = await services.CompileQueryAsync(_connection, new QueryCompilationRequestModel
             {
-                Query = @"
-                    PREFIX ac <http://opcfoundation.org/AlarmCondition>
-                    SELECT /Comment, /Severity, /SourceNode FROM TripAlarmType, BaseEventType
+                Query = $@"
+                    PREFIX alarms <{Alarms.Namespaces.Alarms}>
+                    SELECT /Comment, /Severity, /SourceNode FROM OffNormalAlarmType, BaseEventType
                     WHERE
-                        OFTYPE TripAlarmType AND
-                        /SourceNode IN ('ac:s=1%3aMetals%2fSouthMotor'^^NodeId)
+                        OFTYPE OffNormalAlarmType AND
+                        /SourceNode IN ('alarms:s=Alarms.BooleanSource'^^NodeId)
                 ",
                 QueryType = QueryType.Event
             }, ct).ConfigureAwait(false);
@@ -698,13 +698,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         DisplayName = "/Comment.Value"
                     },
                     new() {
-                        TypeDefinitionId = "i=2041",
+                        TypeDefinitionId = "i=10637",
                         BrowsePath = new[] { "/Severity" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/Severity.Value"
                     },
                     new() {
-                        TypeDefinitionId = "i=2041",
+                        TypeDefinitionId = "i=10637",
                         BrowsePath = new[] { "/SourceNode" },
                         AttributeId = NodeAttribute.Value,
                         DisplayName = "/SourceNode.Value"
@@ -733,12 +733,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                             FilterOperands = new List<FilterOperandModel>
                             {
                                 new() {
-                                    NodeId = "i=2041",
+                                    NodeId = "i=10637",
                                     BrowsePath = new[] { "/SourceNode" },
                                     AttributeId = NodeAttribute.Value
                                 },
                                 new() {
-                                    Value = "http://opcfoundation.org/AlarmCondition#s=1%3aMetals%2fSouthMotor",
+                                    Value = Alarms.Namespaces.Alarms + "#s=Alarms.BooleanSource",
                                     DataType = "NodeId"
                                 }
                             }
@@ -748,7 +748,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                             FilterOperands = new List<FilterOperandModel>
                             {
                                 new() {
-                                    Value = "i=10751",
+                                    Value = "i=10637",
                                     DataType = "NodeId"
                                 }
                             }
@@ -766,12 +766,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             var result = await services.CompileQueryAsync(_connection, new QueryCompilationRequestModel
             {
-                Query = @"
-                    PREFIX ac <http://opcfoundation.org/AlarmCondition>
-                    SELECT * FROM BaseEventType, TripAlarmType
+                Query = $@"
+                    PREFIX alarms <{Alarms.Namespaces.Alarms}>
+                    SELECT * FROM BaseEventType, OffNormalAlarmType
                     WHERE
-                        OFTYPE TripAlarmType AND
-                        /SourceNode IN ('ac:s=1%3aMetals%2fSouthMotor'^^NodeId)
+                        OFTYPE OffNormalAlarmType AND
+                        /SourceNode IN ('alarms:s=Alarms.BooleanSource'^^NodeId)
                 ",
                 QueryType = QueryType.Event
             }, ct).ConfigureAwait(false);
@@ -1287,7 +1287,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                                 },
                                 new FilterOperandModel
                                 {
-                                    Value = "http://opcfoundation.org/AlarmCondition#s=1%3aMetals%2fSouthMotor",
+                                    Value = Alarms.Namespaces.Alarms + "#s=Alarms.BooleanSource",
                                     DataType = "NodeId"
                                 }
                             }

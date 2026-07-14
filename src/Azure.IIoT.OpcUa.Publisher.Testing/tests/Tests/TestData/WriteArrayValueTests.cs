@@ -1275,10 +1275,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         private async Task AssertResultAsync(string node, JsonNode? expected,
             ValueWriteResponseModel result)
         {
+            Assert.Null(result.ErrorInfo);
             var value = await _readExpected(_connection, node).ConfigureAwait(false);
             Assert.NotNull(value);
-            Assert.Null(result.ErrorInfo);
-            Assert.True(expected.Equals(value), $"{expected} != {value}");
+
+            Assert.True(JsonNode.DeepEquals(expected, value), $"{expected} != {value}");
             Assert.Equal(expected, value);
         }
 
