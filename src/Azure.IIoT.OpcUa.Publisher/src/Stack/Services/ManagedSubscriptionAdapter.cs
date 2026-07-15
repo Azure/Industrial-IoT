@@ -87,8 +87,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _options = options;
             _periodicKeyFrameInterval = periodicKeyFrameInterval;
             _timeProvider = timeProvider ?? TimeProvider.System;
-            _subscription = manager.Add(this, new MutableOptionsMonitor<ManagedSubscriptionOptions>(
-                ManagedSubscriptionOptionsAdapter.ToManagedOptions(template, options)));
+            _subscription = manager.Add(this,
+                new MutableOptionsMonitor<ManagedSubscriptionOptions>(
+                    ManagedSubscriptionOptionsAdapter.ToManagedOptions(template, options)));
             if (periodicKeyFrameInterval.HasValue)
             {
                 _keyFrameTimer = _timeProvider.CreateTimer(OnKeyFrameTimer, null,
@@ -323,7 +324,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             out OpcUaSubscriptionNotification? notification)
         {
             ArgumentNullException.ThrowIfNull(owner);
-            notification = CreateKeyFrame(owner, NextSequenceNumber(), _timeProvider.GetUtcNow().UtcDateTime);
+            notification = CreateKeyFrame(owner, _timeProvider.GetUtcNow().UtcDateTime);
             return notification != null;
         }
 
@@ -333,7 +334,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         internal OpcUaSubscriptionNotification? CreateKeepAlive(ISubscriber owner)
         {
             ArgumentNullException.ThrowIfNull(owner);
-            return IsLiveOwner(owner) ? CreateNotification([], NextSequenceNumber(),
+            return IsLiveOwner(owner) ? CreateNotification([],
                 _timeProvider.GetUtcNow().UtcDateTime, MessageType.KeepAlive) : null;
         }
 
@@ -357,7 +358,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             IReadOnlyList<string> stringTable)
         {
             var deliveries = new Dictionary<(ISubscriber Owner, bool Cyclic),
-                List<MonitoredItemNotificationModel>>();
+                List<(ManagedSubscriptionItemBinding Binding, DataValue Value)>>();
             foreach (var change in notification.Span)
             {
                 if (!TryGetBinding(change.MonitoredItem, out var binding) ||
@@ -368,24 +369,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 binding.LastDataValue = Clone(change.Value);
                 var key = (binding.Owner, binding.Template is DataMonitoredItemModel data &&
                     data.SamplingUsingCyclicRead == true);
-                if (!deliveries.TryGetValue(key, out var notifications))
+                if (!deliveries.TryGetValue(key, out var changes))
                 {
-                    notifications = [];
-                    deliveries.Add(key, notifications);
+                    changes = [];
+                    deliveries.Add(key, changes);
                 }
-                notifications.Add(CreateDataNotification(binding, sequenceNumber, change.Value));
+                changes.Add((binding, change.Value));
             }
 
-            foreach (var ((owner, cyclic), notifications) in deliveries)
+            foreach (var ((owner, cyclic), changes) in deliveries)
             {
                 if (!IsLiveOwner(owner))
                 {
                     continue;
                 }
-                using var message = RequiresKeyFrame(owner)
-                    ? CreateKeyFrame(owner, sequenceNumber, publishTime)
-                    : CreateNotification(notifications, sequenceNumber, publishTime,
-                        MessageType.DeltaFrame);
+                var keyFrameRequired = RequiresKeyFrame(owner);
+                var notifications = keyFrameRequired ? null : changes
+                    .Select(change => CreateDataNotification(change.Binding, change.Value))
+                    .ToList();
+                using var message = keyFrameRequired
+                    ? CreateKeyFrame(owner, publishTime, sequenceNumber)
+                    : CreateNotification(notifications!, publishTime,
+                        MessageType.DeltaFrame, sequenceNumber);
                 if (message == null)
                 {
                     continue;
@@ -451,7 +456,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     notifications = [];
                     deliveries.Add(binding.Owner, notifications);
                 }
-                AddEventNotifications(notifications, binding, sequenceNumber, item.Fields);
+                AddEventNotifications(notifications, binding, item.Fields);
             }
 
             foreach (var (owner, notifications) in deliveries)
@@ -460,8 +465,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     continue;
                 }
-                using var message = CreateNotification(notifications, sequenceNumber, publishTime,
-                    MessageType.Event);
+                using var message = CreateNotification(notifications, publishTime,
+                    MessageType.Event, sequenceNumber);
                 Deliver(owner, message,
                     static (subscriber, notification) =>
                         subscriber.OnSubscriptionEventReceived(notification));
@@ -485,7 +490,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 if (RequiresKeyFrame(owner))
                 {
-                    var keyFrame = CreateKeyFrame(owner, sequenceNumber, publishTime);
+                    var keyFrame = CreateKeyFrame(owner, publishTime, sequenceNumber);
                     if (keyFrame != null && IsLiveOwner(owner))
                     {
                         MarkKeyFrameDelivered(owner, true);
@@ -501,8 +506,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     continue;
                 }
-                using var keepAlive = CreateNotification([], sequenceNumber, publishTime,
-                    MessageType.KeepAlive);
+                using var keepAlive = CreateNotification([], publishTime,
+                    MessageType.KeepAlive, sequenceNumber);
                 Deliver(owner, keepAlive,
                     static (subscriber, notification) =>
                         subscriber.OnSubscriptionKeepAlive(notification));
@@ -536,7 +541,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     RequestKeyFrame(owner);
                     await InvokeSubscriberAsync(owner, subscriber =>
                         subscriber.OnMonitoredItemSemanticsChangedAsync(ct)).ConfigureAwait(false);
-                    var keyFrame = CreateKeyFrame(owner, NextSequenceNumber(),
+                    var keyFrame = CreateKeyFrame(owner,
                         _timeProvider.GetUtcNow().UtcDateTime);
                     if (keyFrame != null)
                     {
@@ -985,7 +990,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     return;
                 }
                 var notifications = new List<MonitoredItemNotificationModel>();
-                AddEventNotifications(notifications, binding, sequenceNumber, fields);
+                AddEventNotifications(notifications, binding, fields);
                 if (notifications.Count == 0)
                 {
                     return;
@@ -1029,7 +1034,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     ReferenceEquals(binding.Condition, condition) &&
                     IsLiveOwner(binding.Owner))
                 {
-                    using var message = CreateNotification(notifications, NextSequenceNumber(),
+                    using var message = CreateNotification(notifications,
                         now.UtcDateTime, MessageType.Condition);
                     Deliver(binding.Owner, message,
                         static (owner, notification) => owner.OnSubscriptionEventReceived(notification));
@@ -1048,7 +1053,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         private MonitoredItemNotificationModel CreateDataNotification(
-            ManagedSubscriptionItemBinding binding, uint sequenceNumber, DataValue value)
+            ManagedSubscriptionItemBinding binding, DataValue value)
         {
             return new MonitoredItemNotificationModel
             {
@@ -1059,15 +1064,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Value = Clone(value),
                 Flags = 0,
                 Overflow = value.StatusCode.Overflow ? 1 : 0,
-                SequenceNumber = sequenceNumber
+                SequenceNumber = binding.NextSequenceNumber()
             };
         }
 
         private void AddEventNotifications(List<MonitoredItemNotificationModel> notifications,
-            ManagedSubscriptionItemBinding binding, uint sequenceNumber, ArrayOf<Variant> fields)
+            ManagedSubscriptionItemBinding binding, ArrayOf<Variant> fields)
         {
             var names = binding.EventFieldNames;
             var count = Math.Min(names.Count, fields.Count);
+            var itemSequenceNumber = binding.NextSequenceNumber();
             for (var index = 0; index < count; index++)
             {
                 if (names[index] == null)
@@ -1081,13 +1087,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     DataSetFieldName = names[index],
                     NodeId = binding.Template.StartNodeId,
                     Value = Clone(new DataValue(fields[index])),
-                    SequenceNumber = sequenceNumber
+                    SequenceNumber = itemSequenceNumber
                 });
             }
         }
 
         private OpcUaSubscriptionNotification? CreateKeyFrame(ISubscriber owner,
-            uint sequenceNumber, DateTime publishTime)
+            DateTime publishTime, uint? publishSequenceNumber = null)
         {
             if (!IsLiveOwner(owner))
             {
@@ -1096,23 +1102,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var values = GetBindings()
                 .Where(binding => binding.Owner.Equals(owner) &&
                     binding.Template is DataMonitoredItemModel)
-                .Select(binding => CreateDataNotification(binding, sequenceNumber,
+                .Select(binding => CreateDataNotification(binding,
                     binding.LastDataValue ?? DataValue.FromStatusCode(StatusCodes.BadNoData)))
                 .ToList();
             return values.Count == 0 ? null :
-                CreateNotification(values, sequenceNumber, publishTime, MessageType.KeyFrame);
+                CreateNotification(values, publishTime, MessageType.KeyFrame,
+                    publishSequenceNumber);
         }
 
         private OpcUaSubscriptionNotification CreateNotification(
-            IList<MonitoredItemNotificationModel> notifications, uint sequenceNumber,
-            DateTime publishTime, MessageType messageType)
+            IList<MonitoredItemNotificationModel> notifications,
+            DateTime publishTime, MessageType messageType,
+            uint? publishSequenceNumber = null)
         {
             return new OpcUaSubscriptionNotification(_timeProvider.GetUtcNow(),
-                _codec.Context as ServiceMessageContext, notifications)
+                _codec.Context as ServiceMessageContext, notifications,
+                publishSequenceNumber)
             {
                 MessageType = messageType,
                 PublishTimestamp = new DateTimeOffset(publishTime),
-                SequenceNumber = sequenceNumber
+                SequenceNumber = NextSequenceNumber()
             };
         }
 
@@ -1251,7 +1260,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     continue;
                 }
-                var notification = CreateKeyFrame(owner, NextSequenceNumber(),
+                var notification = CreateKeyFrame(owner,
                     _timeProvider.GetUtcNow().UtcDateTime);
                 if (notification != null && IsLiveOwner(owner))
                 {
@@ -1399,6 +1408,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     Interlocked.Exchange(ref _firstDataChange, 1) == 0;
             }
 
+            public uint NextSequenceNumber()
+            {
+                return SequenceNumber.Increment32(ref _sequenceNumber);
+            }
+
             private static (IReadOnlyList<string?> Fields, ConditionState? Condition) CreateEventLayout(
                 BaseMonitoredItemModel template, MonitoredItemOptions options,
                 ConditionState? existing = null)
@@ -1476,6 +1490,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             private int _firstDataChange;
+            private uint _sequenceNumber;
         }
 
         private sealed class ConditionState

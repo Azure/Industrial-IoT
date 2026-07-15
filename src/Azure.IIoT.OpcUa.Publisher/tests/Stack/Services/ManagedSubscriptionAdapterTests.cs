@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
+    using Microsoft.Extensions.Logging.Abstractions;
     using Microsoft.Extensions.Options;
     using Opc.Ua;
     using Opc.Ua.Client.Subscriptions;
@@ -33,6 +34,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Assert.All(optionNames, name =>
                 Assert.True(ManagedSubscriptionOptionsAdapter.OptionBehaviors.ContainsKey(name),
                     $"Missing V2 adapter behavior for {name}."));
+        }
+
+        [Fact]
+        public void DocumentsPublishingEnabledLifecycleGap()
+        {
+            Assert.StartsWith("Gap:",
+                ManagedSubscriptionOptionsAdapter.OptionBehaviors[
+                    nameof(OpcUaSubscriptionOptions.EnableImmediatePublishing)]);
         }
 
         [Fact]
@@ -80,12 +89,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public void RejectsZeroAsAnExplicitPartitionCap()
         {
             var exception = Assert.Throws<ArgumentOutOfRangeException>(() =>
-                CreateAdapter(new FakeSubscriptionManager(), new OpcUaSubscriptionOptions
-                {
-                    MaxSubscriptionPartitions = 0
-                }));
+                ManagedSubscriptionOptionsAdapter.ToManagedOptions(
+                    new SubscriptionModel(), new OpcUaSubscriptionOptions
+                    {
+                        MaxSubscriptionPartitions = 0
+                    }));
 
+            Assert.Equal("options", exception.ParamName);
             Assert.Contains("partition cap", exception.Message, StringComparison.OrdinalIgnoreCase);
+        }
+
+        [Theory]
+        [InlineData(null, 0u)]
+        [InlineData(1u, 1u)]
+        [InlineData(17u, 17u)]
+        public void MapsPartitionCapToManagedSentinelOrPositiveValue(
+            uint? partitionCap, uint expected)
+        {
+            var translated = ManagedSubscriptionOptionsAdapter.ToManagedOptions(
+                new SubscriptionModel(), new OpcUaSubscriptionOptions
+                {
+                    MaxSubscriptionPartitions = partitionCap
+                });
+
+            Assert.Equal(expected, translated.MaxPartitionCount);
         }
 
         [Fact]
@@ -114,6 +141,100 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Assert.False(translated.DiscardOldest);
             Assert.Equal(Opc.Ua.MonitoringMode.Sampling, translated.MonitoringMode);
             Assert.IsType<DataChangeFilter>(translated.Filter);
+        }
+
+        [Fact]
+        public async Task SubscriptionDefaultsMatchClassicOptionResolutionAsync()
+        {
+            var options = new OpcUaSubscriptionOptions
+            {
+                DefaultPublishingInterval = TimeSpan.FromSeconds(2),
+                DefaultKeepAliveCount = 7,
+                DefaultLifeTimeCount = 21,
+                EnableImmediatePublishing = true,
+                MaxMonitoredItemPerSubscription = 37,
+                MaxSubscriptionPartitions = 5
+            };
+            var template = new SubscriptionModel();
+            var client = CreateClassicClient(options);
+            try
+            {
+                await using var classic = new OpcUaSubscription(client, template,
+                    Options.Create(options), NullLoggerFactory.Instance, IMetricsContext.Empty);
+
+                var managed = ManagedSubscriptionOptionsAdapter.ToManagedOptions(
+                    template, options);
+
+                Assert.Equal(TimeSpan.FromSeconds(2), managed.PublishingInterval);
+                Assert.Equal(7u, managed.KeepAliveCount);
+                Assert.Equal(21u, managed.LifetimeCount);
+                Assert.Equal((byte)0, managed.Priority);
+                Assert.Equal(0u, managed.MaxNotificationsPerPublish);
+                Assert.True(managed.PublishingEnabled);
+                Assert.Equal(classic.DesiredPublishingInterval, managed.PublishingInterval);
+                Assert.Equal(classic.DesiredKeepAliveCount, managed.KeepAliveCount);
+                Assert.Equal(classic.DesiredLifetimeCount, managed.LifetimeCount);
+                Assert.Equal(classic.DesiredPriority, managed.Priority);
+                Assert.Equal(classic.DesiredMaxNotificationsPerPublish,
+                    managed.MaxNotificationsPerPublish);
+                Assert.True(classic.EnableImmediatePublishing);
+                Assert.True(managed.PublishingEnabled);
+                Assert.Equal(37u, managed.MaxMonitoredItemsPerPartition);
+                Assert.Equal(5u, managed.MaxPartitionCount);
+            }
+            finally
+            {
+                await client.CloseAsync(shutdown: true);
+            }
+        }
+
+        [Fact]
+        public async Task PerSubscriptionOverridesMatchClassicPrecedenceAsync()
+        {
+            var options = new OpcUaSubscriptionOptions
+            {
+                DefaultPublishingInterval = TimeSpan.FromSeconds(20),
+                DefaultKeepAliveCount = 10,
+                DefaultLifeTimeCount = 30,
+                EnableImmediatePublishing = true
+            };
+            var template = new SubscriptionModel
+            {
+                PublishingInterval = TimeSpan.FromMilliseconds(250),
+                KeepAliveCount = 3,
+                LifetimeCount = 9,
+                Priority = 17,
+                MaxNotificationsPerPublish = 41,
+                EnableImmediatePublishing = false
+            };
+            var client = CreateClassicClient(options);
+            try
+            {
+                await using var classic = new OpcUaSubscription(client, template,
+                    Options.Create(options), NullLoggerFactory.Instance, IMetricsContext.Empty);
+
+                var managed = ManagedSubscriptionOptionsAdapter.ToManagedOptions(
+                    template, options);
+
+                Assert.Equal(TimeSpan.FromMilliseconds(250), managed.PublishingInterval);
+                Assert.Equal(3u, managed.KeepAliveCount);
+                Assert.Equal(9u, managed.LifetimeCount);
+                Assert.Equal((byte)17, managed.Priority);
+                Assert.Equal(41u, managed.MaxNotificationsPerPublish);
+                Assert.False(managed.PublishingEnabled);
+                Assert.Equal(classic.DesiredPublishingInterval, managed.PublishingInterval);
+                Assert.Equal(classic.DesiredKeepAliveCount, managed.KeepAliveCount);
+                Assert.Equal(classic.DesiredLifetimeCount, managed.LifetimeCount);
+                Assert.Equal(classic.DesiredPriority, managed.Priority);
+                Assert.Equal(classic.DesiredMaxNotificationsPerPublish,
+                    managed.MaxNotificationsPerPublish);
+                Assert.False(classic.EnableImmediatePublishing);
+                Assert.False(managed.PublishingEnabled);
+            }
+            finally
+            {
+                await client.CloseAsync(shutdown: true);
+            }
         }
 
         [Fact]
@@ -266,6 +387,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     Variant.From("changes"))) }, PublishState.None, []);
             Assert.Equal(1, sink.CallCount);
             Assert.Equal(1, owner.SemanticsChanges);
+        }
+
+        [Fact]
+        public async Task KeepsMultipleEventsFromOnePublishDistinctAndOrdered()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            Assert.True(adapter.TryAdd(owner, CreateEventItem("ns=2;s=events")));
+            var item = Assert.Single(
+                manager.Subscription!.Collection.Items.Cast<FakeMonitoredItem>());
+
+            await manager.Handler!.OnEventDataNotificationAsync(manager.Subscription, 250,
+                DateTime.UnixEpoch,
+                new[]
+                {
+                    new EventNotification(item, ArrayOf.Wrapped(Variant.From("first"))),
+                    new EventNotification(item, ArrayOf.Wrapped(Variant.From("second")))
+                },
+                PublishState.None, []);
+
+            var message = Assert.Single(owner.Events);
+            Assert.Equal(1u, message.SequenceNumber);
+            Assert.Equal(250u, message.PublishSequenceNumber);
+            Assert.Equal([1u, 2u],
+                message.Notifications.Select(notification => notification.SequenceNumber));
+            Assert.Equal([Variant.From("first"), Variant.From("second")],
+                message.Notifications.Select(notification =>
+                    Assert.IsType<DataValue>(notification.Value).WrappedValue));
         }
 
         [Fact]
@@ -683,6 +833,124 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         [Fact]
+        public async Task PreservesDataDeliveryOrderAcrossSimulatedRecreateBoundary()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            Assert.True(adapter.TryAdd(owner, CreateDataItem("ns=2;s=sequence")));
+            var item = Assert.Single(
+                manager.Subscription!.Collection.Items.Cast<FakeMonitoredItem>());
+            await manager.Handler!.OnSubscriptionStateChangedAsync(manager.Subscription,
+                SubscriptionState.Created, PublishState.None);
+
+            await manager.Handler.OnDataChangeNotificationAsync(manager.Subscription, 100,
+                DateTime.UnixEpoch.AddSeconds(1),
+                new[] { new DataValueChange(item, new DataValue(Variant.From(10)), null) },
+                PublishState.None, []);
+            await manager.Handler.OnDataChangeNotificationAsync(manager.Subscription, 101,
+                DateTime.UnixEpoch.AddSeconds(2),
+                new[] { new DataValueChange(item, new DataValue(Variant.From(11)), null) },
+                PublishState.None, []);
+
+            // This is an adapter-only recreation signal. It verifies callback ordering
+            // and the cached recovery frame, not server-side transfer continuity.
+            await manager.Handler.OnSubscriptionStateChangedAsync(manager.Subscription,
+                SubscriptionState.Created,
+                PublishState.Recovered | PublishState.Transferred);
+
+            await manager.Handler.OnDataChangeNotificationAsync(manager.Subscription, 102,
+                DateTime.UnixEpoch.AddSeconds(3),
+                new[] { new DataValueChange(item, new DataValue(Variant.From(12)), null) },
+                PublishState.None, []);
+
+            Assert.Equal(
+                [
+                    MessageType.KeyFrame,
+                    MessageType.DeltaFrame,
+                    MessageType.KeyFrame,
+                    MessageType.DeltaFrame
+                ],
+                owner.DataChanges.Select(notification => notification.MessageType));
+            Assert.Equal([1u, 2u, 3u, 4u],
+                owner.DataChanges.Select(notification => notification.SequenceNumber));
+            Assert.Equal([100u, 101u, null, 102u],
+                owner.DataChanges.Select(notification => notification.PublishSequenceNumber));
+            Assert.Equal(
+                [Variant.From(10), Variant.From(11), Variant.From(11), Variant.From(12)],
+                owner.DataChanges.Select(GetSingleValue));
+
+            var sourceDeliveries = new[]
+            {
+                owner.DataChanges[0],
+                owner.DataChanges[1],
+                owner.DataChanges[3]
+            };
+            Assert.Equal([1u, 2u, 4u],
+                sourceDeliveries.Select(notification =>
+                    Assert.Single(notification.Notifications).SequenceNumber));
+            Assert.Equal([Variant.From(10), Variant.From(11), Variant.From(12)],
+                sourceDeliveries.Select(GetSingleValue));
+            Assert.Equal(1, owner.SemanticsChanges);
+        }
+
+        [Fact]
+        public async Task PreservesEventDeliveryOrderAcrossSimulatedRecreateBoundary()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            Assert.True(adapter.TryAdd(owner, CreateEventItem("ns=2;s=events")));
+            var item = Assert.Single(
+                manager.Subscription!.Collection.Items.Cast<FakeMonitoredItem>());
+            await manager.Handler!.OnSubscriptionStateChangedAsync(manager.Subscription,
+                SubscriptionState.Created, PublishState.None);
+
+            await manager.Handler.OnEventDataNotificationAsync(manager.Subscription, 200,
+                DateTime.UnixEpoch.AddSeconds(1),
+                new[] { new EventNotification(
+                    item, ArrayOf.Wrapped(Variant.From("before-1"))) },
+                PublishState.None, []);
+            await manager.Handler.OnEventDataNotificationAsync(manager.Subscription, 201,
+                DateTime.UnixEpoch.AddSeconds(2),
+                new[] { new EventNotification(
+                    item, ArrayOf.Wrapped(Variant.From("before-2"))) },
+                PublishState.None, []);
+
+            // No real server is involved; this only characterizes adapter dispatch at
+            // the same lifecycle boundary raised by a recreate/transfer.
+            await manager.Handler.OnSubscriptionStateChangedAsync(manager.Subscription,
+                SubscriptionState.Created,
+                PublishState.Recovered | PublishState.Transferred);
+
+            await manager.Handler.OnEventDataNotificationAsync(manager.Subscription, 202,
+                DateTime.UnixEpoch.AddSeconds(3),
+                new[] { new EventNotification(
+                    item, ArrayOf.Wrapped(Variant.From("after"))) },
+                PublishState.None, []);
+
+            Assert.Equal(3, owner.Events.Count);
+            Assert.All(owner.Events,
+                notification => Assert.Equal(MessageType.Event, notification.MessageType));
+            Assert.Equal([1u, 2u, 3u],
+                owner.Events.Select(notification => notification.SequenceNumber));
+            Assert.Equal([200u, 201u, 202u],
+                owner.Events.Select(notification => notification.PublishSequenceNumber));
+            Assert.Equal([1u, 2u, 3u],
+                owner.Events.Select(notification =>
+                    Assert.Single(notification.Notifications).SequenceNumber));
+            Assert.Equal(
+                [
+                    Variant.From("before-1"),
+                    Variant.From("before-2"),
+                    Variant.From("after")
+                ],
+                owner.Events.Select(GetSingleValue));
+            Assert.Empty(owner.DataChanges);
+            Assert.Equal(1, owner.SemanticsChanges);
+        }
+
+        [Fact]
         public async Task ContainsThrowingSubscriberAndContinuesOtherDeliveries()
         {
             var manager = new FakeSubscriptionManager();
@@ -743,20 +1011,54 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
             var owner = new FakeSubscriber();
 
-            adapter.Update([(owner, CreateDataItem("ns=2;s=one"))]);
+            await adapter.UpdateAsync([(owner, CreateDataItem("ns=2;s=one"))]);
             Assert.Equal(1, adapter.BindingCount);
             var handle = Assert.Single(manager.Subscription!.Collection.Items).ClientHandle;
             Assert.True(adapter.TryRemove(handle));
             Assert.Equal(0, adapter.BindingCount);
 
-            adapter.Update([]);
+            await adapter.UpdateAsync([]);
             Assert.Equal(0u, manager.Subscription.Collection.Count);
         }
 
-        private static ManagedSubscriptionAdapter CreateAdapter(FakeSubscriptionManager manager,
-            OpcUaSubscriptionOptions options, IModelChangeRebrowseSink modelChangeSink = null)
+        private static OpcUaClient CreateClassicClient(
+            OpcUaSubscriptionOptions subscriptionOptions)
         {
-            return new ManagedSubscriptionAdapter(manager, new SubscriptionModel(), options,
+            var configuration = new ApplicationConfiguration
+            {
+                ApplicationName = "managed-subscription-parity-tests",
+                ApplicationUri = "urn:managed-subscription-parity-tests",
+                ApplicationType = Opc.Ua.ApplicationType.Client,
+                ClientConfiguration = new Opc.Ua.ClientConfiguration()
+            };
+            var connection = new ConnectionIdentifier(new ConnectionModel
+            {
+                Endpoint = new EndpointModel
+                {
+                    Url = "opc.tcp://localhost:4840"
+                }
+            });
+            return new OpcUaClient(configuration, connection,
+                NullLoggerFactory.Instance, TimeProvider.System, IMetricsContext.Empty,
+                () => Task.CompletedTask, notifier: null, reverseConnectManager: null,
+                diagnosticsCallback: _ => { },
+                Options.Create(new OpcUaClientOptions()),
+                Options.Create(subscriptionOptions));
+        }
+
+        private static Variant GetSingleValue(
+            OpcUaSubscriptionNotification notification)
+        {
+            var item = Assert.Single(notification.Notifications);
+            var value = Assert.IsType<DataValue>(item.Value);
+            return value.WrappedValue;
+        }
+
+        private static ManagedSubscriptionAdapter CreateAdapter(FakeSubscriptionManager manager,
+            OpcUaSubscriptionOptions options, IModelChangeRebrowseSink modelChangeSink = null,
+            SubscriptionModel template = null)
+        {
+            return new ManagedSubscriptionAdapter(manager, template ?? new SubscriptionModel(), options,
                 new JsonVariantEncoder(new ServiceMessageContext()), modelChangeSink);
         }
 

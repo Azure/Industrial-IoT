@@ -78,7 +78,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
 
         internal OpcUaSubscriptionNotification(DateTimeOffset createdTimestamp,
             ServiceMessageContext? serviceMessageContext = null,
-            IList<MonitoredItemNotificationModel>? notifications = null)
+            IList<MonitoredItemNotificationModel>? notifications = null,
+            uint? publishSequenceNumber = null)
         {
             _outer = null;
             _advance = null;
@@ -86,6 +87,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
             CreatedTimestamp = createdTimestamp;
             ServiceMessageContext = serviceMessageContext ?? new();
             Notifications = notifications ?? Array.Empty<MonitoredItemNotificationModel>();
+            PublishSequenceNumber = publishSequenceNumber;
         }
 
         /// <summary>
