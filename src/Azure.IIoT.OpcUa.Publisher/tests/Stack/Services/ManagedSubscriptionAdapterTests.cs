@@ -833,6 +833,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         [Fact]
+        public async Task DeliveredDeltaCanUpgradeFromManagedSnapshotProvider()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            Assert.True(adapter.TryAdd(owner, CreateDataItem("ns=2;s=one")));
+            Assert.True(adapter.TryAdd(owner, CreateDataItem("ns=2;s=two")));
+            var item = manager.Subscription!.Collection.Items
+                .Cast<FakeMonitoredItem>().First();
+
+            await manager.Handler!.OnDataChangeNotificationAsync(manager.Subscription, 1,
+                DateTime.UtcNow,
+                new[] { new DataValueChange(item, new DataValue(Variant.From(1)), null) },
+                PublishState.None, []);
+            await manager.Handler.OnDataChangeNotificationAsync(manager.Subscription, 2,
+                DateTime.UtcNow,
+                new[] { new DataValueChange(item, new DataValue(Variant.From(2)), null) },
+                PublishState.None, []);
+            var delta = owner.DataChanges.Last();
+            Assert.Equal(MessageType.DeltaFrame, delta.MessageType);
+            Assert.Single(delta.Notifications);
+
+            Assert.True(delta.TryUpgradeToKeyFrame(owner));
+            Assert.Equal(MessageType.KeyFrame, delta.MessageType);
+            Assert.Equal(2, delta.Notifications.Count);
+        }
+
+        [Fact]
         public async Task PreservesDataDeliveryOrderAcrossSimulatedRecreateBoundary()
         {
             var manager = new FakeSubscriptionManager();

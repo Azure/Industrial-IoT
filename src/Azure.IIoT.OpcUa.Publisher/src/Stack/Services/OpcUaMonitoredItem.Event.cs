@@ -199,6 +199,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 try
                 {
+                    var metadataBuilder = new MonitoredItemMetaDataBuilder(_logger);
                     Debug.Assert(Fields.Count == eventFilter.SelectClauses.Count);
                     for (var i = 0; i < eventFilter.SelectClauses.Count; i++)
                     {
@@ -215,19 +216,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             ct).ConfigureAwait(false);
                         if (targetNode is VariableNode variable)
                         {
-                            await AddVariableFieldAsync(fields, dataTypes, session,
+                            await metadataBuilder.AddVariableFieldAsync(fields, dataTypes, session,
                                 typeSystem, variable, fieldName, dataSetClassFieldId,
-                                ct).ConfigureAwait(false);
+                                this, ct).ConfigureAwait(false);
                         }
                         else
                         {
                             // Should this happen?
-                            await AddVariableFieldAsync(fields, dataTypes, session,
+                            await metadataBuilder.AddVariableFieldAsync(fields, dataTypes, session,
                                 typeSystem, new VariableNode
                                 {
                                     DataType = (NodeId)(uint)BuiltInType.Variant
                                 }, fieldName, dataSetClassFieldId,
-                                ct).ConfigureAwait(false);
+                                this, ct).ConfigureAwait(false);
                         }
                     }
                 }

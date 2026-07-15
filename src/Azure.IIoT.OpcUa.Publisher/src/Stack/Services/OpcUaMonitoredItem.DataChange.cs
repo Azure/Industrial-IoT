@@ -217,25 +217,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 ComplexTypeSystem? typeSystem, List<PublishedFieldMetaDataModel> fields,
                 NodeIdDictionary<object> dataTypes, CancellationToken ct)
             {
-                var nodeId = NodeId.ToNodeId(session.MessageContext);
-                if (Opc.Ua.NodeIdCompat.IsNull(nodeId))
-                {
-                    // Failed.
-                    return;
-                }
-                try
-                {
-                    var node = await session.LruNodeCache.GetNodeAsync(nodeId, ct).ConfigureAwait(false);
-                    if (node is VariableNode variable)
-                    {
-                        await AddVariableFieldAsync(fields, dataTypes, session, typeSystem, variable,
-                            Template.DisplayName, (Uuid)DataSetClassFieldId, ct).ConfigureAwait(false);
-                    }
-                }
-                catch (Exception ex) when (ex is not OperationCanceledException)
-                {
-                    _logger.GetMetadataFailed(this, Template.DisplayName, nodeId, ex.Message);
-                }
+                await new MonitoredItemMetaDataBuilder(_logger).BuildDataChangeAsync(
+                    session, typeSystem, NodeId, Template.DisplayName,
+                    (Uuid)DataSetClassFieldId, fields, dataTypes, this, ct)
+                    .ConfigureAwait(false);
             }
 
             /// <inheritdoc/>
@@ -525,10 +510,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     internal static partial class OpcUaMonitoredItemDataChangeLogging
     {
         private const int EventClass = 1060;
-
-        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Debug,
-            Message = "{Item}: Failed to get meta data for field {Field} with node {NodeId} with message {Message}.")]
-        public static partial void GetMetadataFailed(this ILogger logger, OpcUaMonitoredItem.DataChange item, string field, ExpandedNodeId nodeId, string message);
 
         [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Error,
             Message = "Aggregate filter applied with result {Result} for {Item}")]

@@ -55,11 +55,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="timeProvider"></param>
         /// <param name="metrics"></param>
         /// <param name="runtimeStrategy"></param>
+        /// <param name="endpointSelector"></param>
         public OpcUaClientManager(ILoggerFactory loggerFactory,
             IOpcUaConfiguration configuration, IOptions<OpcUaClientOptions> clientOptions,
             IOptions<OpcUaSubscriptionOptions> subscriptionOptions,
             TimeProvider? timeProvider = null, IMetricsContext? metrics = null,
-            IOpcUaClientRuntimeStrategy? runtimeStrategy = null)
+            IOpcUaClientRuntimeStrategy? runtimeStrategy = null,
+            IOpcUaEndpointSelector? endpointSelector = null)
         {
             _metrics = metrics ??
                 IMetricsContext.Empty;
@@ -75,6 +77,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 throw new ArgumentNullException(nameof(configuration));
             _runtimeStrategy = runtimeStrategy ??
                 ClassicOpcUaClientRuntimeStrategy.Instance;
+            _endpointSelector = endpointSelector ?? OpcUaEndpointSelector.Instance;
 
             _logger = _loggerFactory.CreateLogger<OpcUaClientManager>();
 
@@ -108,7 +111,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var endpointUrl = new Uri(endpoint.Endpoint.Url);
             try
             {
-                var endpointDescription = await OpcUaClient.SelectEndpointAsync(
+                var endpointDescription = await _endpointSelector.SelectAsync(
                     _configuration.Value, endpointUrl, null,
                     endpoint.Endpoint.SecurityMode ?? SecurityMode.NotNone,
                     endpoint.Endpoint.SecurityPolicy, _logger, endpoint.Endpoint,
@@ -624,7 +627,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                 ReverseConnectManager = manager._reverseConnectManager,
                                 DiagnosticsCallback = manager.OnClientConnectionDiagnosticChange,
                                 ClientOptions = manager._clientOptions,
-                                SubscriptionOptions = manager._subscriptionOptions
+                                SubscriptionOptions = manager._subscriptionOptions,
+                                EndpointSelector = manager._endpointSelector
                             });
                         manager._logger.CreatedNewClient(key);
                         return runtime;
@@ -736,6 +740,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly IOpcUaConfiguration _configuration;
         private readonly IOptions<OpcUaClientOptions> _clientOptions;
         private readonly IOptions<OpcUaSubscriptionOptions> _subscriptionOptions;
+        private readonly IOpcUaEndpointSelector _endpointSelector;
         private readonly ReverseConnectManager _reverseConnectManager;
         private readonly Lazy<Exception?> _reverseConnectStartException;
         private readonly ConcurrentDictionary<

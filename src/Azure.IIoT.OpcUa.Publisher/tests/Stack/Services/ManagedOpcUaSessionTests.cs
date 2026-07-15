@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
+    using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Logging.Abstractions;
     using Microsoft.Extensions.Options;
     using Moq;
@@ -622,6 +623,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             Assert.IsType<ManagedOpcUaSession>(handle.Session);
             Assert.Equal(1, provider.ConnectCount);
+        }
+
+        [Fact]
+        public async Task ManagedStrategyUsesRuntimeEndpointSelectorAsync()
+        {
+            var session = CreateSession(out _, out _);
+            var provider = new FakeProvider(new FakeConnection(session.Object));
+            var selector = new CapturingEndpointSelector
+            {
+                Endpoint = CreateRequest("opc.tcp://selected:4870").Endpoint.Description
+            };
+            await using var strategy = new ManagedSessionRuntimeStrategy(provider,
+                CreateTelemetry());
+            using var reverseConnectManager = new ReverseConnectManager(CreateTelemetry());
+            using var runtime = strategy.Create(CreateRuntimeContext(
+                CreateRequest("opc.tcp://localhost:4870").Connection,
+                Options.Create(new OpcUaClientOptions()),
+                Options.Create(new OpcUaSubscriptionOptions()),
+                reverseConnectManager) with
+            {
+                EndpointSelector = selector
+            });
+            runtime.AddRef();
+
+            using var handle = await runtime.AcquireAsync(null, null, default);
+
+            Assert.Equal(1, selector.CallCount);
+            Assert.Same(selector.Endpoint, provider.Request.Endpoint.Description);
+            runtime.Dispose();
         }
 
         [Fact]
@@ -1687,6 +1717,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             private readonly ManagedSession _session;
+        }
+
+        private sealed class CapturingEndpointSelector : IOpcUaEndpointSelector
+        {
+            public EndpointDescription Endpoint { get; init; }
+            public int CallCount { get; private set; }
+
+            public Task<EndpointDescription?> SelectAsync(
+                ApplicationConfiguration configuration, Uri? discoveryUrl,
+                ITransportWaitingConnection? connection, SecurityMode securityMode,
+                string? securityPolicy, ILogger logger, object? context,
+                string? endpointUrl = null, CancellationToken ct = default)
+            {
+                ct.ThrowIfCancellationRequested();
+                CallCount++;
+                return Task.FromResult<EndpointDescription?>(Endpoint);
+            }
         }
 
         private sealed class FixedRequestFactory : IManagedSessionRequestFactory

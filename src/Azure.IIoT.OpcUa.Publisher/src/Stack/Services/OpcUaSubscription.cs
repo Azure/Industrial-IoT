@@ -39,7 +39,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     [KnownType(typeof(OpcUaMonitoredItem.Event))]
     [KnownType(typeof(OpcUaMonitoredItem.Condition))]
     internal sealed class OpcUaSubscription : Subscription, IAsyncDisposable,
-        IEquatable<OpcUaSubscription>
+        IEquatable<OpcUaSubscription>, IKeyFrameSnapshotProvider
     {
         /// <summary>
         /// Template for subscription
@@ -2384,6 +2384,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _logger.GetNotificationsFailed(ex, this);
                 return false;
             }
+        }
+
+        bool IKeyFrameSnapshotProvider.TryGetNotifications(ISubscriber owner,
+            [NotNullWhen(true)] out IList<MonitoredItemNotificationModel>? notifications)
+        {
+            return TryGetNotifications(owner, out notifications);
         }
 
         /// <summary>

@@ -78,4 +78,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             AddRef(token, expiresAfter);
         }
     }
+
+    /// <summary>
+    /// The production runtime strategy. It has no configuration surface by design.
+    /// </summary>
+    internal sealed class ClassicOpcUaClientRuntimeStrategy : IOpcUaClientRuntimeStrategy
+    {
+        public static ClassicOpcUaClientRuntimeStrategy Instance { get; } = new();
+
+        public IOpcUaClientRuntime Create(OpcUaClientRuntimeContext context)
+        {
+            return new OpcUaClient(context.Configuration, context.Connection,
+                context.LoggerFactory, context.TimeProvider, context.Metrics,
+                context.OnClose, context.Notifier,
+                context.Connection.Connection.IsReverseConnect() ?
+                    context.ReverseConnectManager : null,
+                context.DiagnosticsCallback, context.ClientOptions,
+                context.SubscriptionOptions, endpointSelector: context.EndpointSelector);
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            return ValueTask.CompletedTask;
+        }
+
+        private ClassicOpcUaClientRuntimeStrategy()
+        {
+        }
+    }
 }

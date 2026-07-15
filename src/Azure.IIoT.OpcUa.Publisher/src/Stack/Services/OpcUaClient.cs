@@ -213,6 +213,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="options"></param>
         /// <param name="subscriptionOptions"></param>
         /// <param name="sessionName"></param>
+        /// <param name="endpointSelector"></param>
         /// <exception cref="ArgumentNullException"></exception>
         public OpcUaClient(ApplicationConfiguration configuration,
             ConnectionIdentifier connection, ILoggerFactory loggerFactory, TimeProvider timeProvider,
@@ -222,7 +223,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Action<ChannelDiagnosticModel> diagnosticsCallback,
             IOptions<OpcUaClientOptions> options,
             IOptions<OpcUaSubscriptionOptions> subscriptionOptions,
-            string? sessionName = null)
+            string? sessionName = null, IOpcUaEndpointSelector? endpointSelector = null)
             : base(new LoggerTelemetryContext(loggerFactory
                 ?? throw new ArgumentNullException(nameof(loggerFactory))))
         {
@@ -249,6 +250,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 throw new ArgumentNullException(nameof(metrics));
             _configuration = configuration ??
                 throw new ArgumentNullException(nameof(configuration));
+            _endpointSelector = endpointSelector ?? OpcUaEndpointSelector.Instance;
             _loggerFactory = loggerFactory ??
                 throw new ArgumentNullException(nameof(loggerFactory));
             _notifier = notifier;
@@ -601,7 +603,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             var sessionLock = readerlock;
                             readerlock = null; // Do not dispose below but when handle is disposed
                             return new ServiceCallContext(_session, GetServiceCallTimeout(
-                                serviceCallTimeout), this, sessionLock, cancellationToken);
+                                serviceCallTimeout), () => AddRef(), () => Release(),
+                                sessionLock, cancellationToken);
                         }
                     }
                     finally
@@ -1324,7 +1327,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     //
                     var securityMode = _connection.Endpoint.SecurityMode ?? SecurityMode.NotNone;
                     var securityProfile = _connection.Endpoint.SecurityPolicy;
-                    var endpointDescription = await SelectEndpointAsync(_configuration,
+                    var endpointDescription = await _endpointSelector.SelectAsync(_configuration,
                         endpointUrl, connection, securityMode, securityProfile, _logger,
                         this, ct: ct).ConfigureAwait(false);
                     if (endpointDescription == null)
@@ -1824,150 +1827,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
-        /// Select the endpoint to use
-        /// </summary>
-        /// <param name="configuration"></param>
-        /// <param name="discoveryUrl"></param>
-        /// <param name="connection"></param>
-        /// <param name="securityMode"></param>
-        /// <param name="securityPolicy"></param>
-        /// <param name="logger"></param>
-        /// <param name="context"></param>
-        /// <param name="endpointUrl"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        internal static async Task<EndpointDescription?> SelectEndpointAsync(
-            ApplicationConfiguration configuration, Uri? discoveryUrl,
-            ITransportWaitingConnection? connection, SecurityMode securityMode,
-            string? securityPolicy, ILogger logger, object? context,
-            string? endpointUrl = null, CancellationToken ct = default)
-        {
-            var ctx = context?.ToString() ?? "null";
-            var endpointConfiguration = EndpointConfiguration.Create();
-            endpointConfiguration.OperationTimeout =
-                (int)TimeSpan.FromSeconds(15).TotalMilliseconds;
-
-            // needs to add the /discovery onto http urls
-            if (connection == null)
-            {
-                if (discoveryUrl == null)
-                {
-                    return null;
-                }
-                if (discoveryUrl.Scheme == Utils.UriSchemeHttp &&
-                    !discoveryUrl.AbsolutePath.EndsWith("/discovery",
-                        StringComparison.OrdinalIgnoreCase))
-                {
-                    discoveryUrl = new UriBuilder(discoveryUrl)
-                    {
-                        Path = discoveryUrl.AbsolutePath.TrimEnd('/') + "/discovery"
-                    }.Uri;
-                }
-            }
-
-            using var client = connection != null ?
-                DiscoveryClient.Create(configuration, connection, endpointConfiguration) :
-                DiscoveryClient.Create(configuration, discoveryUrl, endpointConfiguration);
-            var uri = new Uri(endpointUrl ?? client.Endpoint.EndpointUrl);
-            var endpoints = (await client.GetEndpointsAsync(default, ct).ConfigureAwait(false))
-                .ToArray() ?? [];
-            discoveryUrl ??= uri;
-
-            logger.DiscoveryEndpointReturnedEndpoints(ctx,
-                discoveryUrl, uri, securityMode, securityPolicy ?? "any", endpoints.Select(
-                    ep => "      " + ToString(ep)).Aggregate((a, b) => $"{a}\n{b}"));
-
-            var filtered = endpoints
-                .Where(ep =>
-                    SecurityPolicies.GetDisplayName(ep.SecurityPolicyUri) != null &&
-                    ep.SecurityMode.IsSame(securityMode) &&
-                    (securityPolicy == null ||
-                     string.Equals(ep.SecurityPolicyUri,
-                        securityPolicy,
-                        StringComparison.OrdinalIgnoreCase) ||
-                     string.Equals(ep.SecurityPolicyUri,
-                        "http://opcfoundation.org/UA/SecurityPolicy#" + securityPolicy,
-                        StringComparison.OrdinalIgnoreCase)))
-                //
-                // The security level is a relative measure assigned by the server
-                // to the endpoints that it returns. Clients should always pick the
-                // highest level unless they have a reason not too. Some servers
-                // however, mess this up a bit. So group SecurityLevel also by
-                // security mode and then pick the highest in that group.
-                //
-                .OrderByDescending(ep => ((int)ep.SecurityMode << 8) | ep.SecurityLevel)
-                .ToList();
-
-            //
-            // Try to find endpoint that matches scheme and endpoint url path
-            // but fall back to match just the scheme. We need to match only
-            // scheme to support the reverse connect (indicated by connection
-            // being not null here).
-            //
-            var selected = filtered.Find(ep => Match(ep, uri, true, true))
-                        ?? filtered.Find(ep => Match(ep, uri, true, false));
-            if (connection != null)
-            {
-                //
-                // Only allow same uri scheme (which must also be opc.tcp)
-                // for when reverse connection is used.
-                //
-                if (selected != null)
-                {
-                    logger.EndpointSelectedViaReverseConnect(ctx, ToString(selected));
-                }
-                return selected;
-            }
-
-            if (selected == null)
-            {
-                //
-                // Fall back to first supported endpoint matching absolute path
-                // then fall back to first endpoint (backwards compatibilty)
-                //
-                selected = filtered.Find(ep => Match(ep, uri, false, true))
-                        ?? filtered.Find(ep => Match(ep, uri, false, false));
-
-                if (selected == null)
-                {
-                    return null;
-                }
-            }
-
-            //
-            // Adjust the host name and port to the host name and port
-            // that was use to successfully connect the discovery client
-            //
-            var selectedUrl = Utils.ParseUri(selected.EndpointUrl);
-            if (selectedUrl != null && discoveryUrl != null &&
-                selectedUrl.Scheme == discoveryUrl.Scheme)
-            {
-                selected.EndpointUrl = new UriBuilder(selectedUrl)
-                {
-                    Host = discoveryUrl.DnsSafeHost,
-                    Port = discoveryUrl.Port
-                }.ToString();
-            }
-
-            logger.EndpointSelected(ctx, ToString(selected));
-            return selected;
-
-            static string ToString(EndpointDescription ep) =>
-$"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolicyUri}]";
-            // Match endpoint returned against desired endpoint url
-            static bool Match(EndpointDescription endpointDescription,
-                Uri endpointUrl, bool includeScheme, bool includePath)
-            {
-                var url = Utils.ParseUri(endpointDescription.EndpointUrl);
-                return url != null &&
-                    (!includeScheme || string.Equals(url.Scheme,
-                        endpointUrl.Scheme, StringComparison.OrdinalIgnoreCase)) &&
-                    (!includePath || string.Equals(url.AbsolutePath,
-                        endpointUrl.AbsolutePath, StringComparison.OrdinalIgnoreCase));
-            }
-        }
-
-        /// <summary>
         /// Convert exception to connectivity state
         /// </summary>
         /// <param name="ex"></param>
@@ -2247,6 +2106,7 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
         private readonly ReverseConnectManager? _reverseConnectManager;
         private readonly AsyncReaderWriterLock _lock = new();
         private readonly ApplicationConfiguration _configuration;
+        private readonly IOpcUaEndpointSelector _endpointSelector;
         private readonly ILoggerFactory _loggerFactory;
         private readonly string _sessionName;
         private readonly IOptions<OpcUaClientOptions> _options;
@@ -2512,19 +2372,5 @@ $"#{ep.SecurityLevel:000}: {ep.EndpointUrl}|{ep.SecurityMode} [{ep.SecurityPolic
         public static partial void SessionCloseFailed(this ILogger logger, Exception ex,
             OpcUaClient client, OpcUaSession session);
 
-        [LoggerMessage(EventId = EventClass + 60, Level = LogLevel.Information,
-            Message = "{Context}: Discovery endpoint {DiscoveryUrl} returned endpoints. Selecting endpoint {EndpointUri} " +
-            "with SecurityMode {SecurityMode} and {SecurityPolicy} SecurityPolicyUri from:\n{Endpoints}")]
-        public static partial void DiscoveryEndpointReturnedEndpoints(this ILogger logger, string? context,
-            Uri discoveryUrl, Uri endpointUri, SecurityMode securityMode, string securityPolicy, string endpoints);
-
-        [LoggerMessage(EventId = EventClass + 61, Level = LogLevel.Information,
-            Message = "{Context}: Endpoint {Endpoint} selected via reverse connect!")]
-        public static partial void EndpointSelectedViaReverseConnect(this ILogger logger, string? context,
-            string endpoint);
-
-        [LoggerMessage(EventId = EventClass + 62, Level = LogLevel.Information,
-            Message = "{Context}: Endpoint {Endpoint} selected!")]
-        public static partial void EndpointSelected(this ILogger logger, string? context, string endpoint);
     }
 }

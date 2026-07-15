@@ -17,6 +17,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Opc.Ua.Client.Subscriptions.MonitoredItems;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.Linq;
     using System.Threading;
@@ -51,7 +52,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// remains independent from the V2 implementation's internal types.
     /// </remarks>
     internal sealed class ManagedSubscriptionAdapter : ISubscriptionNotificationHandler,
-        IAsyncDisposable
+        IAsyncDisposable, IKeyFrameSnapshotProvider
     {
         /// <summary>
         /// Creates and registers a Publisher adapter with a V2 subscription
@@ -326,6 +327,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ArgumentNullException.ThrowIfNull(owner);
             notification = CreateKeyFrame(owner, _timeProvider.GetUtcNow().UtcDateTime);
             return notification != null;
+        }
+
+        bool IKeyFrameSnapshotProvider.TryGetNotifications(ISubscriber owner,
+            [NotNullWhen(true)] out IList<MonitoredItemNotificationModel>? notifications)
+        {
+            return TryGetKeyFrameNotifications(owner, out notifications);
         }
 
         /// <summary>
@@ -1095,9 +1102,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private OpcUaSubscriptionNotification? CreateKeyFrame(ISubscriber owner,
             DateTime publishTime, uint? publishSequenceNumber = null)
         {
-            if (!IsLiveOwner(owner))
+            if (!TryGetKeyFrameNotifications(owner, out var values))
             {
                 return null;
+            }
+            return CreateNotification(values, publishTime, MessageType.KeyFrame,
+                publishSequenceNumber);
+        }
+
+        private bool TryGetKeyFrameNotifications(ISubscriber owner,
+            [NotNullWhen(true)] out IList<MonitoredItemNotificationModel>? notifications)
+        {
+            notifications = null;
+            if (!IsLiveOwner(owner))
+            {
+                return false;
             }
             var values = GetBindings()
                 .Where(binding => binding.Owner.Equals(owner) &&
@@ -1105,9 +1124,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 .Select(binding => CreateDataNotification(binding,
                     binding.LastDataValue ?? DataValue.FromStatusCode(StatusCodes.BadNoData)))
                 .ToList();
-            return values.Count == 0 ? null :
-                CreateNotification(values, publishTime, MessageType.KeyFrame,
-                    publishSequenceNumber);
+            if (values.Count == 0)
+            {
+                return false;
+            }
+            notifications = values;
+            return true;
         }
 
         private OpcUaSubscriptionNotification CreateNotification(
@@ -1117,7 +1139,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             return new OpcUaSubscriptionNotification(_timeProvider.GetUtcNow(),
                 _codec.Context as ServiceMessageContext, notifications,
-                publishSequenceNumber)
+                publishSequenceNumber, keyFrameSnapshotProvider: this)
             {
                 MessageType = messageType,
                 PublishTimestamp = new DateTimeOffset(publishTime),

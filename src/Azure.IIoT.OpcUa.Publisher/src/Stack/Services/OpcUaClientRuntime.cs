@@ -79,32 +79,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public required Action<ChannelDiagnosticModel> DiagnosticsCallback { get; init; }
         public required IOptions<OpcUaClientOptions> ClientOptions { get; init; }
         public required IOptions<OpcUaSubscriptionOptions> SubscriptionOptions { get; init; }
-    }
-
-    /// <summary>
-    /// The production runtime strategy. It has no configuration surface by design.
-    /// </summary>
-    internal sealed class ClassicOpcUaClientRuntimeStrategy : IOpcUaClientRuntimeStrategy
-    {
-        public static ClassicOpcUaClientRuntimeStrategy Instance { get; } = new();
-
-        public IOpcUaClientRuntime Create(OpcUaClientRuntimeContext context)
-        {
-            return new OpcUaClient(context.Configuration, context.Connection, context.LoggerFactory,
-                context.TimeProvider, context.Metrics, context.OnClose, context.Notifier,
-                context.Connection.Connection.IsReverseConnect() ?
-                    context.ReverseConnectManager : null,
-                context.DiagnosticsCallback, context.ClientOptions, context.SubscriptionOptions);
-        }
-
-        public ValueTask DisposeAsync()
-        {
-            return ValueTask.CompletedTask;
-        }
-
-        private ClassicOpcUaClientRuntimeStrategy()
-        {
-        }
+        public IOpcUaEndpointSelector EndpointSelector { get; init; }
+            = OpcUaEndpointSelector.Instance;
     }
 
     /// <summary>
@@ -140,6 +116,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// </summary>
     internal sealed class DefaultManagedSessionRequestFactory : IManagedSessionRequestFactory
     {
+        /// <summary>
+        /// Create the default request factory.
+        /// </summary>
+        public DefaultManagedSessionRequestFactory(
+            IOpcUaEndpointSelector? endpointSelector = null)
+        {
+            _endpointSelector = endpointSelector ?? OpcUaEndpointSelector.Instance;
+        }
+
         public async Task<ManagedSessionConnectionRequest> CreateAsync(
             ManagedSessionClientContext context, CancellationToken ct)
         {
@@ -149,7 +134,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var endpointUrl = endpointModel.Url ??
                 throw new ArgumentException("Missing endpoint url.", nameof(context));
             var securityMode = endpointModel.SecurityMode ?? SecurityMode.NotNone;
-            var endpointDescription = await OpcUaClient.SelectEndpointAsync(context.Configuration,
+            var endpointDescription = await _endpointSelector.SelectAsync(context.Configuration,
                 new Uri(endpointUrl), null, securityMode, endpointModel.SecurityPolicy,
                 context.Logger, context.Connection, ct: ct).ConfigureAwait(false) ??
                 throw new ConnectionException("No matching endpoint was found.");
@@ -221,6 +206,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 options.DefaultServiceCallTimeoutDuration ??
                 TimeSpan.FromMinutes(1);
         }
+
+        private readonly IOpcUaEndpointSelector _endpointSelector;
     }
 
     /// <summary>
@@ -235,13 +222,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             IModelChangeRebrowseSink? modelChangeSink = null)
         {
             _pool = new ManagedSessionPool(provider, telemetry, options, timeProvider);
-            _requestFactory = requestFactory ?? new DefaultManagedSessionRequestFactory();
+            _requestFactory = requestFactory;
             _modelChangeSink = modelChangeSink ?? NoOpModelChangeRebrowseSink.Instance;
         }
 
         public IOpcUaClientRuntime Create(OpcUaClientRuntimeContext context)
         {
-            return new ManagedOpcUaClient(context, _pool, _requestFactory, _modelChangeSink);
+            return new ManagedOpcUaClient(context, _pool,
+                _requestFactory ?? new DefaultManagedSessionRequestFactory(
+                    context.EndpointSelector), _modelChangeSink);
         }
 
         public ValueTask DisposeAsync()
@@ -262,7 +251,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         private readonly ManagedSessionPool _pool;
-        private readonly IManagedSessionRequestFactory _requestFactory;
+        private readonly IManagedSessionRequestFactory? _requestFactory;
         private readonly IModelChangeRebrowseSink _modelChangeSink;
     }
 
@@ -964,12 +953,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var typeSystem = await session.GetComplexTypeSystemAsync(ct).ConfigureAwait(false);
                 var dataTypes = new NodeIdDictionary<object>();
                 var fields = new List<PublishedFieldMetaDataModel>();
+                var metadataBuilder = new MonitoredItemMetaDataBuilder(NullLogger.Instance);
                 foreach (var item in EnumerateDataItems(owner.MonitoredItems))
                 {
-                    using var monitoredItem = new OpcUaMonitoredItem.DataChange(owner, item,
-                        NullLogger<OpcUaMonitoredItem.DataChange>.Instance,
-                        _owner._context.TimeProvider);
-                    await monitoredItem.GetMetaDataAsync(session, typeSystem, fields, dataTypes, ct)
+                    await metadataBuilder.BuildDataChangeAsync(session, typeSystem,
+                        item, fields, dataTypes, ct)
                         .ConfigureAwait(false);
                 }
                 return new PublishedDataSetMetaDataModel

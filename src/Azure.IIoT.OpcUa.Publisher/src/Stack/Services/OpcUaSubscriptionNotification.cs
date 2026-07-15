@@ -5,12 +5,24 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
 {
-    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
+
+    /// <summary>
+    /// Provides a full monitored-item value snapshot for key-frame upgrades.
+    /// </summary>
+    internal interface IKeyFrameSnapshotProvider
+    {
+        /// <summary>
+        /// Try to get the current notifications for an owner.
+        /// </summary>
+        bool TryGetNotifications(ISubscriber owner,
+            [NotNullWhen(true)] out IList<MonitoredItemNotificationModel>? notifications);
+    }
 
     /// <summary>
     /// Opc Ua subscription notification
@@ -53,20 +65,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         /// <summary>
         /// Create acknoledgeable notification
         /// </summary>
-        /// <param name="outer"></param>
+        /// <param name="keyFrameSnapshotProvider"></param>
         /// <param name="messageContext"></param>
         /// <param name="notifications"></param>
         /// <param name="timeProvider"></param>
         /// <param name="advance"></param>
         /// <param name="sequenceNumber"></param>
         /// <param name="createdTimestamp"></param>
-        internal OpcUaSubscriptionNotification(OpcUaSubscription outer,
+        internal OpcUaSubscriptionNotification(
+            IKeyFrameSnapshotProvider? keyFrameSnapshotProvider,
             IServiceMessageContext messageContext,
             IList<MonitoredItemNotificationModel> notifications,
             TimeProvider timeProvider, IDisposable? advance = null,
             uint? sequenceNumber = null, DateTimeOffset? createdTimestamp = null)
         {
-            _outer = outer;
+            _keyFrameSnapshotProvider = keyFrameSnapshotProvider;
             _advance = advance;
 
             PublishSequenceNumber = sequenceNumber;
@@ -79,9 +92,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         internal OpcUaSubscriptionNotification(DateTimeOffset createdTimestamp,
             ServiceMessageContext? serviceMessageContext = null,
             IList<MonitoredItemNotificationModel>? notifications = null,
-            uint? publishSequenceNumber = null)
+            uint? publishSequenceNumber = null,
+            IKeyFrameSnapshotProvider? keyFrameSnapshotProvider = null)
         {
-            _outer = null;
+            _keyFrameSnapshotProvider = keyFrameSnapshotProvider;
             _advance = null;
 
             CreatedTimestamp = createdTimestamp;
@@ -98,7 +112,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
         internal OpcUaSubscriptionNotification(OpcUaSubscriptionNotification template,
             IList<MonitoredItemNotificationModel>? notifications = null)
         {
-            _outer = null;
+            _keyFrameSnapshotProvider = null;
             _advance = null;
 
             Notifications = notifications ?? Array.Empty<MonitoredItemNotificationModel>();
@@ -122,7 +136,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
                 // Already a key frame
                 return true;
             }
-            if (_outer != null && _outer.TryGetNotifications(owner, out var allNotifications))
+            if (_keyFrameSnapshotProvider != null &&
+                _keyFrameSnapshotProvider.TryGetNotifications(owner,
+                    out var allNotifications))
             {
                 MessageType = MessageType.KeyFrame;
 
@@ -193,7 +209,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
             return Notifications.Count;
         }
 
-        private readonly OpcUaSubscription? _outer;
+        private readonly IKeyFrameSnapshotProvider? _keyFrameSnapshotProvider;
         private readonly IDisposable? _advance;
     }
 }
