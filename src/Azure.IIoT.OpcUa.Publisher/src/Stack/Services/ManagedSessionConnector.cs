@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Opc.Ua;
     using Opc.Ua.Client;
     using Opc.Ua.Client.Subscriptions;
+    using Opc.Ua.Extensions;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
@@ -54,6 +55,47 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public TimeSpan ConnectTimeout { get; init; } = TimeSpan.FromSeconds(10);
 
         /// <summary>
+        /// Subscription engine used by the managed inner session.
+        /// </summary>
+        public ISubscriptionEngineFactory SubscriptionEngineFactory { get; init; } =
+            DefaultSubscriptionEngineFactory.Instance;
+
+        /// <summary>
+        /// Reconnect policy used by the managed session.
+        /// </summary>
+        public IReconnectPolicy ReconnectPolicy { get; init; } = new ReconnectPolicy();
+
+        /// <summary>
+        /// Whether V2 subscriptions should be transferred after recreation.
+        /// </summary>
+        public bool TransferSubscriptionsOnRecreate { get; init; } = true;
+
+        /// <summary>
+        /// Optional session keep-alive interval.
+        /// </summary>
+        public TimeSpan? KeepAliveInterval { get; init; }
+
+        /// <summary>
+        /// Initial minimum publish worker count.
+        /// </summary>
+        public int MinPublishWorkerCount { get; init; } = 2;
+
+        /// <summary>
+        /// Maximum publish worker count.
+        /// </summary>
+        public int MaxPublishWorkerCount { get; init; } = 10;
+
+        /// <summary>
+        /// Optional operation-limit overrides.
+        /// </summary>
+        public OperationLimits? OperationLimitOverrides { get; init; }
+
+        /// <summary>
+        /// Whether Publisher must not load the complex type system.
+        /// </summary>
+        public bool DisableComplexTypeLoading { get; init; }
+
+        /// <summary>
         /// Optional reverse-connect manager.
         /// </summary>
         public ReverseConnectManager? ReverseConnectManager { get; init; }
@@ -78,6 +120,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         Task<IManagedSessionConnection> ConnectAsync(
             ManagedSessionConnectionRequest request, CancellationToken ct);
+    }
+
+    /// <summary>
+    /// Creates the public managed-session instance used by the connector.
+    /// </summary>
+    internal interface IManagedSessionFactory
+    {
+        Task<ManagedSession> CreateAsync(ApplicationConfiguration configuration,
+            ManagedSessionConnectionRequest request, ISessionFactory sessionFactory,
+            IUserIdentity? identity, ITelemetryContext telemetry, TimeProvider timeProvider,
+            CancellationToken ct);
+    }
+
+    /// <summary>
+    /// Default public managed-session factory.
+    /// </summary>
+    internal sealed class DefaultManagedSessionFactory : IManagedSessionFactory
+    {
+        public Task<ManagedSession> CreateAsync(ApplicationConfiguration configuration,
+            ManagedSessionConnectionRequest request, ISessionFactory sessionFactory,
+            IUserIdentity? identity, ITelemetryContext telemetry, TimeProvider timeProvider,
+            CancellationToken ct)
+        {
+            return ManagedSession.CreateAsync(configuration, request.Endpoint, sessionFactory,
+                identity, request.ReconnectPolicy, telemetry: telemetry,
+                sessionName: request.Connection.ToString(),
+                sessionTimeout: (uint)Math.Clamp(request.SessionTimeout.TotalMilliseconds,
+                    1, uint.MaxValue),
+                preferredLocales: request.PreferredLocales,
+                engineFactory: request.SubscriptionEngineFactory,
+                transferSubscriptionsOnRecreate: request.TransferSubscriptionsOnRecreate,
+                poolNotifications: false, timeProvider: timeProvider,
+                reverseConnectManager: request.ReverseConnectManager, ct: ct);
+        }
     }
 
     /// <summary>
@@ -150,7 +226,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Create a connector.
         /// </summary>
         public ManagedSessionConnector(ApplicationConfiguration configuration,
-            ITelemetryContext telemetry, TimeProvider? timeProvider = null)
+            ITelemetryContext telemetry, TimeProvider? timeProvider = null,
+            IManagedSessionFactory? managedSessionFactory = null)
         {
             _configuration = configuration ??
                 throw new ArgumentNullException(nameof(configuration));
@@ -158,6 +235,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 throw new ArgumentNullException(nameof(telemetry));
             _timeProvider = timeProvider ??
                 TimeProvider.System;
+            _managedSessionFactory = managedSessionFactory ??
+                new DefaultManagedSessionFactory();
         }
 
         /// <inheritdoc/>
@@ -178,6 +257,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             var sessionFactory = new DefaultSessionFactory(_telemetry)
             {
+                SubscriptionEngineFactory = request.SubscriptionEngineFactory,
                 TimeProvider = _timeProvider
             };
             var identity = request.Identity ?? await request.Connection.Connection.User
@@ -185,26 +265,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ManagedSession? session = null;
             try
             {
-                session = await ManagedSession.CreateAsync(
-                    _configuration,
-                    request.Endpoint,
-                    sessionFactory,
-                    identity,
-                    telemetry: _telemetry,
-                    sessionName: request.Connection.ToString(),
-                    sessionTimeout: (uint)request.SessionTimeout.TotalMilliseconds,
-                    preferredLocales: request.PreferredLocales,
-                    poolNotifications: false,
-                    timeProvider: _timeProvider,
-                    reverseConnectManager: request.ReverseConnectManager,
-                    ct: ct).ConfigureAwait(false);
+                session = await _managedSessionFactory.CreateAsync(_configuration, request,
+                    sessionFactory, identity, _telemetry, _timeProvider, ct)
+                    .ConfigureAwait(false);
+                if (request.KeepAliveInterval is { } keepAliveInterval)
+                {
+                    session.KeepAliveInterval = (int)Math.Clamp(
+                        keepAliveInterval.TotalMilliseconds, 1, int.MaxValue);
+                }
+                session.OperationLimits.Override(request.OperationLimitOverrides);
 
                 // Publisher handlers may retain values after dispatch. Keep pooling disabled
                 // until their ownership contract is changed to deep-copy those values.
-                if (session.TryGetSubscriptionManager(out ISubscriptionManager? subscriptions))
+                if (!session.TryGetSubscriptionManager(
+                    out ISubscriptionManager? subscriptions))
                 {
-                    subscriptions.PoolNotifications = false;
+                    throw new InvalidOperationException(
+                        "The managed session did not expose the required V2 subscription manager.");
                 }
+                subscriptions.PoolNotifications = false;
+                subscriptions.MinPublishWorkerCount = request.MinPublishWorkerCount;
+                subscriptions.MaxPublishWorkerCount = request.MaxPublishWorkerCount;
                 return new ManagedSessionConnection(session);
             }
             catch (Exception ex) when (ex is not OutOfMemoryException)
@@ -218,6 +299,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     catch (Exception disposeException) when (
                         disposeException is not OutOfMemoryException)
                     {
+                        throw new AggregateException(
+                            "Managed session activation and cleanup both failed.",
+                            ex, disposeException);
                     }
                 }
                 throw;
@@ -225,6 +309,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         private readonly ApplicationConfiguration _configuration;
+        private readonly IManagedSessionFactory _managedSessionFactory;
         private readonly ITelemetryContext _telemetry;
         private readonly TimeProvider _timeProvider;
     }

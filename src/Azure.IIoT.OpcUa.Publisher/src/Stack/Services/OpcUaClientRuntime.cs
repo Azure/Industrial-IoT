@@ -155,8 +155,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 throw new ConnectionException("No matching endpoint was found.");
             var endpointConfiguration = EndpointConfiguration.Create(context.Configuration);
             var connectTimeout = GetConnectTimeout(context.ConnectTimeout, context.Options.Value);
-            endpointConfiguration.OperationTimeout = (int)Math.Min(connectTimeout.TotalMilliseconds,
-                int.MaxValue);
+            endpointConfiguration.OperationTimeout =
+                ManagedSessionOptionsAdapter.GetEndpointOperationTimeout(context, connectTimeout);
             var endpoint = new ConfiguredEndpoint(null, endpointDescription, endpointConfiguration);
 
             var credential = connection.User;
@@ -186,6 +186,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 SessionTimeout = context.Options.Value.DefaultSessionTimeoutDuration ??
                     TimeSpan.FromSeconds(30),
                 ConnectTimeout = connectTimeout,
+                SubscriptionEngineFactory =
+                    ManagedSessionOptionsAdapter.CreateSubscriptionEngineFactory(
+                        context.TimeProvider),
+                ReconnectPolicy =
+                    ManagedSessionOptionsAdapter.CreateReconnectPolicy(context.Options.Value),
+                TransferSubscriptionsOnRecreate =
+                    ManagedSessionOptionsAdapter.TransferSubscriptionsOnRecreate(connection),
+                KeepAliveInterval = context.Options.Value.KeepAliveIntervalDuration,
+                MinPublishWorkerCount =
+                    ManagedSessionOptionsAdapter.GetPublishWorkerCounts(
+                        context.Options.Value, 0).Minimum,
+                MaxPublishWorkerCount =
+                    ManagedSessionOptionsAdapter.GetPublishWorkerCounts(
+                        context.Options.Value, 0).Maximum,
+                OperationLimitOverrides =
+                    ManagedSessionOptionsAdapter.CreateOperationLimitOverrides(
+                        context.Options.Value),
+                DisableComplexTypeLoading =
+                    connection.Options.HasFlag(ConnectionOptions.NoComplexTypeSystem),
                 ReverseConnectManager = connection.IsReverseConnect() ?
                     context.ReverseConnectManager : null,
                 ReverseConnectServerUri = connection.IsReverseConnect() ?
@@ -381,6 +400,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         lease = null!;
                         _subscriptions.Add(subscription, state);
                         Interlocked.Increment(ref _subscriptionCount);
+                        UpdatePublishWorkerCounts(session);
                     }
                     finally
                     {
@@ -685,6 +705,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 _subscriptions.Remove(state.Template);
                 Interlocked.Decrement(ref _subscriptionCount);
+                if (state.Lease.Session is ManagedOpcUaSession session)
+                {
+                    UpdatePublishWorkerCounts(session);
+                }
                 await state.DisposeAsync().ConfigureAwait(false);
             }
             else
@@ -719,6 +743,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             await CloseAsync().ConfigureAwait(false);
             await _context.OnClose().ConfigureAwait(false);
+        }
+
+        private void UpdatePublishWorkerCounts(ManagedOpcUaSession session)
+        {
+            if (!session.TryGetSubscriptionManager(out var manager))
+            {
+                throw new InvalidOperationException(
+                    "The managed session does not expose a subscription manager.");
+            }
+            var counts = ManagedSessionOptionsAdapter.GetPublishWorkerCounts(
+                _context.ClientOptions.Value, Volatile.Read(ref _subscriptionCount));
+            manager.MinPublishWorkerCount = counts.Minimum;
+            manager.MaxPublishWorkerCount = counts.Maximum;
         }
 
         private void OnConnectionStateChanged(object? sender,

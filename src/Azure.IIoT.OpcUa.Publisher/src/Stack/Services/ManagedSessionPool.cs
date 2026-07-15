@@ -187,14 +187,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var connect = attempt.Connect;
                 if (request.ConnectTimeout <= TimeSpan.Zero)
                 {
-                    return await CreateFacadeAsync(connect).ConfigureAwait(false);
+                    return await CreateFacadeAsync(connect, request).ConfigureAwait(false);
                 }
 
                 var timeoutTask = Task.Delay(request.ConnectTimeout, _timeProvider,
                     _shutdown.Token);
                 if (await Task.WhenAny(connect, timeoutTask).ConfigureAwait(false) == connect)
                 {
-                    return await CreateFacadeAsync(connect).ConfigureAwait(false);
+                    return await CreateFacadeAsync(connect, request).ConfigureAwait(false);
                 }
 
                 await attempt.CancelAsync().ConfigureAwait(false);
@@ -213,13 +213,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         private async Task<ManagedOpcUaSession> CreateFacadeAsync(
-            Task<IManagedSessionConnection> connect)
+            Task<IManagedSessionConnection> connect,
+            ManagedSessionConnectionRequest request)
         {
             var connection = await connect.ConfigureAwait(false);
             try
             {
                 return new ManagedOpcUaSession(connection, _telemetry, _timeProvider,
-                    _options.NodeCacheTimeout, _options.NodeCacheCapacity);
+                    _options.NodeCacheTimeout, _options.NodeCacheCapacity,
+                    request.DisableComplexTypeLoading);
             }
             catch (Exception ex) when (ex is not OutOfMemoryException)
             {

@@ -36,7 +36,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         public ManagedOpcUaSession(IManagedSessionConnection connection,
             ITelemetryContext telemetry, TimeProvider? timeProvider = null,
-            TimeSpan? nodeCacheTimeout = null, int nodeCacheCapacity = 4096)
+            TimeSpan? nodeCacheTimeout = null, int nodeCacheCapacity = 4096,
+            bool disableComplexTypeLoading = false)
         {
             _connection = connection ??
                 throw new ArgumentNullException(nameof(connection));
@@ -44,6 +45,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 throw new ArgumentNullException(nameof(telemetry));
             _timeProvider = timeProvider ??
                 TimeProvider.System;
+            _disableComplexTypeLoading = disableComplexTypeLoading;
             ArgumentOutOfRangeException.ThrowIfNegativeOrZero(nodeCacheCapacity);
 
             var session = _connection.Session;
@@ -137,7 +139,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public async ValueTask<ComplexTypeSystem?> GetComplexTypeSystemAsync(
             CancellationToken ct = default)
         {
-            if (!_connection.Session.Connected)
+            if (_disableComplexTypeLoading || !_connection.Session.Connected)
             {
                 return null;
             }
@@ -726,6 +728,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private EventHandler<EndpointConnectivityStateEventArgs>? _connectionStateChange;
         private int _disposed;
         private readonly IManagedSessionConnection _connection;
+        private readonly bool _disableComplexTypeLoading;
         private readonly ITelemetryContext _telemetry;
         private readonly TimeProvider _timeProvider;
         private readonly SemaphoreSlim _complexTypeGate = new(1, 1);

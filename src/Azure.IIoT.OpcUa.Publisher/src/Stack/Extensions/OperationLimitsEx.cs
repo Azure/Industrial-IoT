@@ -26,35 +26,39 @@ namespace Opc.Ua.Extensions
             {
                 return limits;
             }
-            return new OperationLimits
-            {
-                MaxMonitoredItemsPerCall
-                    = Override(limits.MaxMonitoredItemsPerCall, update.MaxMonitoredItemsPerCall),
-                MaxNodesPerBrowse
-                    = Override(limits.MaxNodesPerBrowse, update.MaxNodesPerBrowse),
-                MaxNodesPerHistoryReadData
-                    = Override(limits.MaxNodesPerHistoryReadData, update.MaxNodesPerHistoryReadData),
-                MaxNodesPerHistoryReadEvents
-                    = Override(limits.MaxNodesPerHistoryReadEvents, update.MaxNodesPerHistoryReadEvents),
-                MaxNodesPerHistoryUpdateData
-                    = Override(limits.MaxNodesPerHistoryUpdateData, update.MaxNodesPerHistoryUpdateData),
-                MaxNodesPerHistoryUpdateEvents
-                    = Override(limits.MaxNodesPerHistoryUpdateEvents, update.MaxNodesPerHistoryUpdateEvents),
-                MaxNodesPerMethodCall
-                    = Override(limits.MaxNodesPerMethodCall, update.MaxNodesPerMethodCall),
-                MaxNodesPerNodeManagement
-                    = Override(limits.MaxNodesPerNodeManagement, update.MaxNodesPerNodeManagement),
-                MaxNodesPerRead
-                    = Override(limits.MaxNodesPerRead, update.MaxNodesPerRead),
-                MaxNodesPerRegisterNodes
-                    = Override(limits.MaxNodesPerRegisterNodes, update.MaxNodesPerRegisterNodes),
-                MaxNodesPerTranslateBrowsePathsToNodeIds
-                    = Override(limits.MaxNodesPerTranslateBrowsePathsToNodeIds, update.MaxNodesPerTranslateBrowsePathsToNodeIds),
-                MaxNodesPerWrite
-                    = Override(limits.MaxNodesPerWrite, update.MaxNodesPerWrite)
-            };
+            limits.MaxMonitoredItemsPerCall =
+                Override(limits.MaxMonitoredItemsPerCall, update.MaxMonitoredItemsPerCall);
+            limits.MaxNodesPerBrowse =
+                Override(limits.MaxNodesPerBrowse, update.MaxNodesPerBrowse);
+            limits.MaxNodesPerHistoryReadData =
+                Override(limits.MaxNodesPerHistoryReadData, update.MaxNodesPerHistoryReadData);
+            limits.MaxNodesPerHistoryReadEvents =
+                Override(limits.MaxNodesPerHistoryReadEvents, update.MaxNodesPerHistoryReadEvents);
+            limits.MaxNodesPerHistoryUpdateData =
+                Override(limits.MaxNodesPerHistoryUpdateData, update.MaxNodesPerHistoryUpdateData);
+            limits.MaxNodesPerHistoryUpdateEvents =
+                Override(limits.MaxNodesPerHistoryUpdateEvents, update.MaxNodesPerHistoryUpdateEvents);
+            limits.MaxNodesPerMethodCall =
+                Override(limits.MaxNodesPerMethodCall, update.MaxNodesPerMethodCall);
+            limits.MaxNodesPerNodeManagement =
+                Override(limits.MaxNodesPerNodeManagement, update.MaxNodesPerNodeManagement);
+            limits.MaxNodesPerRead =
+                Override(limits.MaxNodesPerRead, update.MaxNodesPerRead);
+            limits.MaxNodesPerRegisterNodes =
+                Override(limits.MaxNodesPerRegisterNodes, update.MaxNodesPerRegisterNodes);
+            limits.MaxNodesPerTranslateBrowsePathsToNodeIds =
+                Override(limits.MaxNodesPerTranslateBrowsePathsToNodeIds,
+                    update.MaxNodesPerTranslateBrowsePathsToNodeIds);
+            limits.MaxNodesPerWrite =
+                Override(limits.MaxNodesPerWrite, update.MaxNodesPerWrite);
+            return limits;
 
-            static uint Override(uint a, uint b) => b == 0u ? a : b < a ? b : a;
+            static uint Override(uint current, uint configured)
+            {
+                return configured == 0 ? current :
+                    current == 0 ? configured :
+                    Math.Min(current, configured);
+            }
         }
 
         /// <summary>

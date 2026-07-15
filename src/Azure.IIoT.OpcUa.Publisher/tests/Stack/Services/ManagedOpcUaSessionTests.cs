@@ -824,6 +824,173 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
+        [Theory]
+        [InlineData(ConnectionOptions.None, true)]
+        [InlineData(ConnectionOptions.NoSubscriptionTransfer, false)]
+        public void ManagedOptionsMapTransferIntent(ConnectionOptions connectionOptions,
+            bool transferEnabled)
+        {
+            var connection = new ConnectionModel
+            {
+                Endpoint = new EndpointModel
+                {
+                    Url = "opc.tcp://localhost:4840"
+                },
+                Options = connectionOptions
+            };
+
+            Assert.Equal(transferEnabled,
+                ManagedSessionOptionsAdapter.TransferSubscriptionsOnRecreate(connection));
+        }
+
+        [Fact]
+        public void ManagedOptionsMapReconnectWorkersLimitsAndEngine()
+        {
+            var options = new OpcUaClientOptions
+            {
+                MinReconnectDelayDuration = TimeSpan.FromSeconds(3),
+                MaxReconnectDelayDuration = TimeSpan.FromSeconds(9),
+                MinPublishRequests = 3,
+                MaxPublishRequests = 7,
+                PublishRequestsPerSubscriptionPercent = 150,
+                MaxNodesPerReadOverride = 23,
+                MaxNodesPerBrowseOverride = 29
+            };
+
+            var reconnect = ManagedSessionOptionsAdapter.CreateReconnectPolicy(options);
+            var empty = ManagedSessionOptionsAdapter.GetPublishWorkerCounts(options, 0);
+            var active = ManagedSessionOptionsAdapter.GetPublishWorkerCounts(options, 4);
+            var limits = Assert.IsType<OperationLimits>(
+                ManagedSessionOptionsAdapter.CreateOperationLimitOverrides(options));
+
+            Assert.Equal(TimeSpan.FromSeconds(3), reconnect.InitialDelay);
+            Assert.Equal(TimeSpan.FromSeconds(9), reconnect.MaxDelay);
+            Assert.Equal(Timeout.InfiniteTimeSpan, reconnect.MaxTotalReconnectTime);
+            Assert.Equal((3, 7), empty);
+            Assert.Equal((6, 7), active);
+            Assert.Equal(23u, limits.MaxNodesPerRead);
+            Assert.Equal(29u, limits.MaxNodesPerBrowse);
+            Assert.IsType<DefaultSubscriptionEngineFactory>(
+                ManagedSessionOptionsAdapter.CreateSubscriptionEngineFactory(
+                    TimeProvider.System));
+        }
+
+        [Theory]
+        [InlineData(0, 5, 1, 5)]
+        [InlineData(10, 3, 3, 3)]
+        public void ManagedReconnectPolicyMatchesClassicBounds(int minimumSeconds,
+            int maximumSeconds, int expectedMinimumSeconds, int expectedMaximumSeconds)
+        {
+            var reconnect = ManagedSessionOptionsAdapter.CreateReconnectPolicy(
+                new OpcUaClientOptions
+                {
+                    MinReconnectDelayDuration = TimeSpan.FromSeconds(minimumSeconds),
+                    MaxReconnectDelayDuration = TimeSpan.FromSeconds(maximumSeconds)
+                });
+
+            Assert.Equal(TimeSpan.FromSeconds(expectedMinimumSeconds),
+                reconnect.InitialDelay);
+            Assert.Equal(TimeSpan.FromSeconds(expectedMaximumSeconds),
+                reconnect.MaxDelay);
+            Assert.Equal(Timeout.InfiniteTimeSpan, reconnect.MaxTotalReconnectTime);
+            Assert.NotNull(reconnect.GetNextDelay(1000));
+        }
+
+        [Fact]
+        public void ManagedOptionsUseOperationQuotaForEndpointTimeout()
+        {
+            var options = Options.Create(new OpcUaClientOptions());
+            options.Value.Quotas.OperationTimeout = 4321;
+            using var reverseConnectManager = new ReverseConnectManager(CreateTelemetry());
+            var context = new ManagedSessionClientContext
+            {
+                Configuration = CreateApplicationConfiguration(),
+                Connection = CreateRequest("opc.tcp://localhost:4864").Connection,
+                Logger = NullLogger.Instance,
+                Options = options,
+                ReverseConnectManager = reverseConnectManager,
+                TimeProvider = TimeProvider.System
+            };
+
+            Assert.Equal(4321, ManagedSessionOptionsAdapter.GetEndpointOperationTimeout(
+                context, TimeSpan.FromSeconds(11)));
+        }
+
+        [Fact]
+        public async Task ConnectorRequiresAndConfiguresDefaultSubscriptionManagerAsync()
+        {
+            var managed = await CreateManagedSessionAsync(
+                DefaultSubscriptionEngineFactory.Instance);
+            var factory = new CapturingManagedSessionFactory(managed);
+            var connector = new ManagedSessionConnector(CreateApplicationConfiguration(),
+                CreateTelemetry(), TimeProvider.System, factory);
+            var request = CreateRequest("opc.tcp://localhost:4865") with
+            {
+                Identity = new UserIdentity(),
+                SubscriptionEngineFactory = DefaultSubscriptionEngineFactory.Instance,
+                ReconnectPolicy = new ReconnectPolicy(),
+                TransferSubscriptionsOnRecreate = true,
+                KeepAliveInterval = TimeSpan.FromSeconds(4),
+                MinPublishWorkerCount = 3,
+                MaxPublishWorkerCount = 8,
+                OperationLimitOverrides = new OperationLimits
+                {
+                    MaxNodesPerRead = 31,
+                    MaxNodesPerBrowse = 37
+                }
+            };
+
+            await using var connection = await connector.ConnectAsync(request, default);
+
+            Assert.Same(request, factory.Request);
+            Assert.Equal(4000, managed.KeepAliveInterval);
+            Assert.Equal(31u, managed.OperationLimits.MaxNodesPerRead);
+            Assert.Equal(37u, managed.OperationLimits.MaxNodesPerBrowse);
+            Assert.True(managed.TryGetSubscriptionManager(out var manager));
+            Assert.NotNull(manager);
+            Assert.False(manager.PoolNotifications);
+            Assert.Equal(3, manager.MinPublishWorkerCount);
+            Assert.Equal(8, manager.MaxPublishWorkerCount);
+        }
+
+        [Fact]
+        public async Task ConnectorRejectsManagedSessionWithoutDefaultManagerAsync()
+        {
+            var managed = await CreateManagedSessionAsync(
+                ClassicSubscriptionEngineFactory.Instance);
+            var factory = new CapturingManagedSessionFactory(managed);
+            var connector = new ManagedSessionConnector(CreateApplicationConfiguration(),
+                CreateTelemetry(), TimeProvider.System, factory);
+            var request = CreateRequest("opc.tcp://localhost:4866") with
+            {
+                Identity = new UserIdentity(),
+                SubscriptionEngineFactory = DefaultSubscriptionEngineFactory.Instance
+            };
+
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                await connector.ConnectAsync(request, default));
+
+            Assert.Contains("V2 subscription manager", exception.Message,
+                StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public async Task PoolHonorsNoComplexTypeSystemOptionAsync()
+        {
+            var session = CreateSession(out _, out _);
+            session.SetupGet(item => item.Connected).Returns(true);
+            var provider = new FakeProvider(new FakeConnection(session.Object));
+            await using var pool = new ManagedSessionPool(provider, CreateTelemetry());
+            var request = CreateRequest("opc.tcp://localhost:4867") with
+            {
+                DisableComplexTypeLoading = true
+            };
+
+            using var lease = await pool.AcquireAsync(request);
+
+            Assert.Null(await lease.Session.GetComplexTypeSystemAsync());
+        }
+
         [Fact]
         public Task ManagedRuntimeKeepsSessionForBrowseNextContinuationAsync()
         {
@@ -980,6 +1147,52 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Assert.Equal(1, connection.ReconnectCount);
             collection.Verify(items => items.Update(It.IsAny<IReadOnlyList<(
                 string Name, IOptionsMonitor<ManagedMonitoredItemOptions> Options)>>()), Times.AtLeast(2));
+        }
+
+        [Fact]
+        public async Task ManagedRuntimeScalesPublishWorkersWithLogicalSubscriptionsAsync()
+        {
+            var session = CreateSession(out _, out _);
+            var collection = new Mock<IMonitoredItemCollection>();
+            collection.Setup(items => items.Update(It.IsAny<IReadOnlyList<(
+                    string Name, IOptionsMonitor<ManagedMonitoredItemOptions> Options)>>() ))
+                .Returns([]);
+            var subscription = new Mock<Opc.Ua.Client.Subscriptions.ISubscription>();
+            subscription.SetupGet(item => item.MonitoredItems).Returns(collection.Object);
+            var manager = new Mock<ISubscriptionManager>();
+            manager.SetupAllProperties();
+            manager.Setup(item => item.Add(It.IsAny<ISubscriptionNotificationHandler>(),
+                    It.IsAny<IOptionsMonitor<Opc.Ua.Client.Subscriptions.SubscriptionOptions>>()))
+                .Returns(subscription.Object);
+            ISubscriptionManager subscriptionManager = manager.Object;
+            session.Setup(item => item.TryGetSubscriptionManager(out subscriptionManager))
+                .Returns(true);
+            var connection = new FakeConnection(session.Object);
+            var provider = new FakeProvider(connection);
+            var request = CreateRequest("opc.tcp://localhost:4868");
+            await using var strategy = new ManagedSessionRuntimeStrategy(provider,
+                CreateTelemetry(), new FixedRequestFactory(request));
+            using var runtime = (ManagedOpcUaClient)strategy.Create(
+                CreateRuntimeContext(request.Connection, Options.Create(new OpcUaClientOptions
+                {
+                    MinPublishRequests = 1,
+                    MaxPublishRequests = 10,
+                    PublishRequestsPerSubscriptionPercent = 200
+                }), Options.Create(new OpcUaSubscriptionOptions()),
+                new ReverseConnectManager(CreateTelemetry())));
+            runtime.AddRef();
+            var subscriber = new Mock<ISubscriber>();
+            subscriber.SetupGet(item => item.MonitoredItems).Returns(
+                [new DataMonitoredItemModel { StartNodeId = "ns=2;s=value" }]);
+
+            await using var registration = await runtime.RegisterAsync(
+                new SubscriptionModel(), subscriber.Object, default);
+            Assert.Equal(2, manager.Object.MinPublishWorkerCount);
+            Assert.Equal(10, manager.Object.MaxPublishWorkerCount);
+
+            await registration.DisposeAsync();
+            Assert.Equal(1, manager.Object.MinPublishWorkerCount);
+            runtime.Dispose();
         }
 
         [Fact]
@@ -1148,6 +1361,38 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             endpoint ??= CreateRequest("opc.tcp://localhost:4862").Endpoint;
             return new Session(CreateTransportChannel().Object, application, endpoint,
                 engineFactory: subscriptionEngineFactory);
+        }
+
+        private static async Task<ManagedSession> CreateManagedSessionAsync(
+            ISubscriptionEngineFactory engineFactory)
+        {
+            var telemetry = CreateTelemetry();
+            var application = CreateApplicationConfiguration();
+            var endpoint = CreateRequest("opc.tcp://localhost:4869").Endpoint;
+            var inner = CreateEngineSession(engineFactory, application, endpoint);
+            var factory = new Mock<ISessionFactory>();
+            factory.SetupGet(item => item.Telemetry).Returns(telemetry);
+            factory.Setup(item => item.CreateAsync(
+                    It.IsAny<ApplicationConfiguration>(),
+                    It.IsAny<ConfiguredEndpoint>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<string>(),
+                    It.IsAny<uint>(),
+                    It.IsAny<IUserIdentity>(),
+                    It.IsAny<ArrayOf<string>>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(inner);
+            try
+            {
+                return await ManagedSession.CreateAsync(application, endpoint,
+                    factory.Object, telemetry: telemetry, engineFactory: engineFactory);
+            }
+            catch
+            {
+                inner.Dispose();
+                throw;
+            }
         }
 
         private static TimeSpan InvokeTimeSpanMethod(object instance,
@@ -1420,6 +1665,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public ManagedSessionConnectionRequest Request { get; private set; }
 
             private readonly IManagedSessionConnection _connection;
+        }
+
+        private sealed class CapturingManagedSessionFactory : IManagedSessionFactory
+        {
+            public CapturingManagedSessionFactory(ManagedSession session)
+            {
+                _session = session;
+            }
+
+            public ManagedSessionConnectionRequest Request { get; private set; }
+
+            public Task<ManagedSession> CreateAsync(ApplicationConfiguration configuration,
+                ManagedSessionConnectionRequest request, ISessionFactory sessionFactory,
+                IUserIdentity? identity, ITelemetryContext telemetry, TimeProvider timeProvider,
+                CancellationToken ct)
+            {
+                ct.ThrowIfCancellationRequested();
+                Request = request;
+                return Task.FromResult(_session);
+            }
+
+            private readonly ManagedSession _session;
         }
 
         private sealed class FixedRequestFactory : IManagedSessionRequestFactory
