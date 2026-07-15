@@ -88,9 +88,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _options = options;
             _periodicKeyFrameInterval = periodicKeyFrameInterval;
             _timeProvider = timeProvider ?? TimeProvider.System;
-            _subscription = manager.Add(this,
-                new MutableOptionsMonitor<ManagedSubscriptionOptions>(
-                    ManagedSubscriptionOptionsAdapter.ToManagedOptions(template, options)));
+            var subscriptionOptions =
+                ManagedSubscriptionOptionsAdapter.ToManagedOptions(template, options);
+            _subscriptionOptions =
+                new MutableOptionsMonitor<ManagedSubscriptionOptions>(subscriptionOptions);
+            _subscription = manager.Add(this, _subscriptionOptions);
             if (periodicKeyFrameInterval.HasValue)
             {
                 _keyFrameTimer = _timeProvider.CreateTimer(OnKeyFrameTimer, null,
@@ -176,14 +178,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             ArgumentNullException.ThrowIfNull(owner);
             ArgumentNullException.ThrowIfNull(template);
-            ThrowIfDisposed();
-            if (template.TriggeredItems is { Count: > 0 })
+            EnterSynchronousMutation();
+            try
             {
-                throw new InvalidOperationException(
-                    "Triggered items require TryAddAsync so V2 SetTriggeringAsync can complete.");
+                if (template.TriggeredItems is { Count: > 0 })
+                {
+                    throw new InvalidOperationException(
+                        "Triggered items require TryAddAsync so V2 SetTriggeringAsync can complete.");
+                }
+                var added = TryAddBinding(
+                    CreateBinding(CreateName(template), owner, template, null, []), out _);
+                if (added)
+                {
+                    ApplyPublishingState();
+                }
+                return added;
             }
-            return TryAddBinding(CreateBinding(CreateName(template), owner, template, null, []),
-                out _);
+            finally
+            {
+                ExitMutation();
+            }
         }
 
         /// <summary>
@@ -201,26 +215,42 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ArgumentNullException.ThrowIfNull(template);
             ThrowIfDisposed();
 
-            var added = new List<ManagedSubscriptionItemBinding>();
-            var completed = false;
+            using var operation = CancellationTokenSource.CreateLinkedTokenSource(
+                ct, _disposeCts.Token);
+            await _updateGate.WaitAsync(operation.Token).ConfigureAwait(false);
             try
             {
-                var root = CreateBinding(CreateName(template), owner, template, null, []);
-                if (!TryAddBinding(root, out var rootItem))
+                ThrowIfDisposed();
+                var added = new List<ManagedSubscriptionItemBinding>();
+                var completed = false;
+                try
                 {
-                    return false;
+                    var root = CreateBinding(CreateName(template), owner, template, null, []);
+                    if (!TryAddBinding(root, out var rootItem))
+                    {
+                        return false;
+                    }
+                    added.Add(root);
+                    completed = await AddTriggeredItemsAsync(root, rootItem!, root.Name, added,
+                        operation.Token).ConfigureAwait(false);
+                    if (completed)
+                    {
+                        ApplyPublishingState();
+                    }
+                    return completed;
                 }
-                added.Add(root);
-                completed = await AddTriggeredItemsAsync(root, rootItem!, root.Name, added, ct)
-                    .ConfigureAwait(false);
-                return completed;
+                finally
+                {
+                    if (!completed)
+                    {
+                        RemoveBindings(added);
+                        ApplyPublishingState();
+                    }
+                }
             }
             finally
             {
-                if (!completed)
-                {
-                    RemoveBindings(added);
-                }
+                ExitMutation();
             }
         }
 
@@ -233,14 +263,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         internal void Update(IEnumerable<(ISubscriber Owner, BaseMonitoredItemModel Template)> items)
         {
             ArgumentNullException.ThrowIfNull(items);
-            ThrowIfDisposed();
-            var desired = CreateDesiredBindings(items);
-            if (desired.Any(binding => binding.Template.TriggeredItems is { Count: > 0 }))
+            EnterSynchronousMutation();
+            try
             {
-                throw new InvalidOperationException(
-                    "Triggered item updates require UpdateAsync so V2 SetTriggeringAsync can complete.");
+                var desired = CreateDesiredBindings(items);
+                if (desired.Any(binding => binding.Template.TriggeredItems is { Count: > 0 }))
+                {
+                    throw new InvalidOperationException(
+                        "Triggered item updates require UpdateAsync so V2 SetTriggeringAsync can complete.");
+                }
+                UpdateBindings(desired, requestConditionRefresh: true);
+                ApplyPublishingState();
             }
-            UpdateBindings(desired, requestConditionRefresh: true);
+            finally
+            {
+                ExitMutation();
+            }
         }
 
         /// <summary>
@@ -249,33 +287,75 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="items">The desired Publisher items and owners.</param>
         /// <param name="ct">Cancellation token.</param>
+        /// <param name="lifetimeCt">Runtime lifetime cancellation token.</param>
         internal async ValueTask UpdateAsync(
             IEnumerable<(ISubscriber Owner, BaseMonitoredItemModel Template)> items,
-            CancellationToken ct = default)
+            CancellationToken ct = default, CancellationToken lifetimeCt = default)
         {
             ArgumentNullException.ThrowIfNull(items);
             ThrowIfDisposed();
-            var desired = CreateDesiredBindings(items, includeTriggeredItems: true);
-            UpdateBindings(desired, requestConditionRefresh: false);
-            await RequestPendingConditionRefreshAsync(ct).ConfigureAwait(false);
-
-            foreach (var binding in GetBindings())
+            using var operation = CancellationTokenSource.CreateLinkedTokenSource(
+                ct, lifetimeCt, _disposeCts.Token);
+            await _updateGate.WaitAsync(operation.Token).ConfigureAwait(false);
+            try
             {
-                if (binding.ParentName == null ||
-                    !TryGetBindingByName(binding.ParentName, out var parent) ||
-                    !TryGetMonitoredItem(binding, out var childItem) ||
-                    !TryGetMonitoredItem(parent, out var parentItem))
+                ThrowIfDisposed();
+                var previousPublishingEnabled = _subscriptionOptions.CurrentValue.PublishingEnabled;
+                var previousItems = SnapshotDesiredItems();
+                PendingInitialApply? pendingApply = null;
+                try
                 {
-                    continue;
+                    var desired = CreateDesiredBindings(items, includeTriggeredItems: true);
+                    if (desired.Any(binding =>
+                        binding.Monitor.CurrentValue.MonitoringMode !=
+                            Opc.Ua.MonitoringMode.Disabled))
+                    {
+                        pendingApply = BeginPendingInitialApply();
+                    }
+                    var monitoredItems = UpdateBindings(desired, requestConditionRefresh: false);
+                    if (pendingApply != null)
+                    {
+                        await WaitForInitialApplyAsync(pendingApply, monitoredItems,
+                            operation.Token)
+                            .ConfigureAwait(false);
+                    }
+                    await RequestPendingConditionRefreshAsync(operation.Token)
+                        .ConfigureAwait(false);
+                    await ApplyTriggeringAsync(operation.Token).ConfigureAwait(false);
+                    ApplyPublishingState();
                 }
-                var result = await _subscription.SetTriggeringAsync(parentItem!, [childItem!], null, ct)
-                    .ConfigureAwait(false);
-                if (!TryApplyTriggeringResult(parent, [binding], result,
-                    out var failureStatus))
+                catch (Exception updateException)
                 {
-                    RemoveTree(binding);
-                    throw new ServiceResultException(failureStatus);
+                    ClearPendingInitialApply(pendingApply);
+                    try
+                    {
+                        RestoreBindings(previousItems);
+                        if (!lifetimeCt.IsCancellationRequested &&
+                            !_disposeCts.IsCancellationRequested)
+                        {
+                            using var rollback =
+                                CancellationTokenSource.CreateLinkedTokenSource(
+                                    lifetimeCt, _disposeCts.Token);
+                            await ApplyTriggeringAsync(rollback.Token).ConfigureAwait(false);
+                        }
+                        SetPublishingEnabled(previousPublishingEnabled);
+                    }
+                    catch (Exception rollbackException)
+                    {
+                        throw new AggregateException(
+                            "Managed subscription synchronization and rollback failed.",
+                            updateException, rollbackException);
+                    }
+                    throw;
                 }
+                finally
+                {
+                    ClearPendingInitialApply(pendingApply);
+                }
+            }
+            finally
+            {
+                ExitMutation();
             }
         }
 
@@ -286,16 +366,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <returns><c>true</c> if V2 removed the root item.</returns>
         internal bool TryRemove(uint clientHandle)
         {
-            ThrowIfDisposed();
-            if (!TryGetBinding(clientHandle, out var binding))
+            EnterSynchronousMutation();
+            try
             {
-                return false;
+                if (!TryGetBinding(clientHandle, out var binding))
+                {
+                    return false;
+                }
+                var bindings = GetDescendants(binding).ToArray();
+                var removed = _subscription.MonitoredItems.TryRemove(clientHandle);
+                RemoveBinding(binding);
+                RemoveBindings(bindings.Where(candidate => candidate.ClientHandle != clientHandle));
+                ApplyPublishingState();
+                return removed;
             }
-            var bindings = GetDescendants(binding).ToArray();
-            var removed = _subscription.MonitoredItems.TryRemove(clientHandle);
-            RemoveBinding(binding);
-            RemoveBindings(bindings.Where(candidate => candidate.ClientHandle != clientHandle));
-            return removed;
+            finally
+            {
+                ExitMutation();
+            }
         }
 
         /// <summary>
@@ -527,6 +615,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             SubscriptionState state, PublishState publishStateMask,
             CancellationToken ct = default)
         {
+            if (state is SubscriptionState.Created or SubscriptionState.Modified)
+            {
+                TryCompletePendingInitialApply();
+                QueuePublishingStateEvaluation();
+            }
             var bindings = GetBindings();
             foreach (var binding in bindings)
             {
@@ -585,15 +678,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 return;
             }
-            _conditionTimer.Dispose();
-            _keyFrameTimer?.Dispose();
-            lock (_bindingsLock)
+            CancelPendingInitialApply();
+            await _disposeCts.CancelAsync().ConfigureAwait(false);
+            await _updateGate.WaitAsync().ConfigureAwait(false);
+            try
             {
-                _bindingsByHandle.Clear();
-                _bindingsByName.Clear();
-                _ownerStates.Clear();
+                _conditionTimer.Dispose();
+                _keyFrameTimer?.Dispose();
+                lock (_bindingsLock)
+                {
+                    _bindingsByHandle.Clear();
+                    _bindingsByName.Clear();
+                    _ownerStates.Clear();
+                }
+                await _subscription.DisposeAsync().ConfigureAwait(false);
             }
-            await _subscription.DisposeAsync().ConfigureAwait(false);
+            finally
+            {
+                _updateGate.Release();
+                _disposeCts.Dispose();
+            }
         }
 
         private async ValueTask<bool> AddTriggeredItemsAsync(
@@ -675,6 +779,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             return true;
         }
 
+        private async ValueTask ApplyTriggeringAsync(CancellationToken ct)
+        {
+            foreach (var binding in GetBindings())
+            {
+                if (binding.ParentName == null ||
+                    !TryGetBindingByName(binding.ParentName, out var parent) ||
+                    !TryGetMonitoredItem(binding, out var childItem) ||
+                    !TryGetMonitoredItem(parent, out var parentItem))
+                {
+                    continue;
+                }
+                var result = await _subscription.SetTriggeringAsync(parentItem!,
+                    [childItem!], null, ct).ConfigureAwait(false);
+                if (!TryApplyTriggeringResult(parent, [binding], result,
+                    out var failureStatus))
+                {
+                    throw new ServiceResultException(failureStatus);
+                }
+            }
+        }
+
         private void ReportTriggeringFailure(ManagedSubscriptionItemBinding binding,
             StatusCode statusCode)
         {
@@ -723,12 +848,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
-        private void UpdateBindings(List<ManagedSubscriptionItemBinding> desired,
+        private IReadOnlyList<IMonitoredItem> UpdateBindings(
+            List<ManagedSubscriptionItemBinding> desired,
             bool requestConditionRefresh)
         {
             var state = desired.Select(binding => (binding.Name,
                 (IOptionsMonitor<MonitoredItemOptions>)binding.Monitor)).ToList();
             var monitoredItems = _subscription.MonitoredItems.Update(state);
+            var desiredNames = desired
+                .Select(binding => binding.Name)
+                .ToHashSet(StringComparer.Ordinal);
+            var monitoredItemNames = monitoredItems
+                .Select(monitoredItem => monitoredItem.Name)
+                .ToHashSet(StringComparer.Ordinal);
+            if (monitoredItemNames.Count != monitoredItems.Count ||
+                !desiredNames.SetEquals(monitoredItemNames))
+            {
+                var missing = desiredNames.Except(monitoredItemNames).Take(5);
+                var unexpected = monitoredItemNames.Except(desiredNames).Take(5);
+                throw new InvalidOperationException(
+                    $"V2 monitored-item update was incomplete. Missing: " +
+                    $"[{string.Join(", ", missing)}]; unexpected: " +
+                    $"[{string.Join(", ", unexpected)}].");
+            }
             lock (_bindingsLock)
             {
                 _bindingsByHandle.Clear();
@@ -760,8 +902,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             if (requestConditionRefresh)
             {
-                _ = RequestPendingConditionRefreshAsync(default);
+                _ = RequestPendingConditionRefreshAsync(default).AsTask();
             }
+            return monitoredItems;
         }
 
         private async ValueTask RequestPendingConditionRefreshAsync(CancellationToken ct)
@@ -888,12 +1031,199 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
-        private void RemoveTree(ManagedSubscriptionItemBinding root)
+        private void ApplyPublishingState()
         {
-            var descendants = GetDescendants(root).ToArray();
-            _subscription.MonitoredItems.TryRemove(root.ClientHandle);
-            RemoveBinding(root);
-            RemoveBindings(descendants);
+            var hasActiveItems = GetBindings().Any(binding =>
+                TryGetMonitoredItem(binding, out var monitoredItem) &&
+                monitoredItem!.Created &&
+                monitoredItem.CurrentMonitoringMode != Opc.Ua.MonitoringMode.Disabled);
+            SetPublishingEnabled(hasActiveItems);
+        }
+
+        private void QueuePublishingStateEvaluation()
+        {
+            Interlocked.Exchange(ref _publishingStateDirty, 1);
+            ApplyPendingPublishingState();
+        }
+
+        private void ApplyPendingPublishingState()
+        {
+            while (Volatile.Read(ref _disposed) == 0)
+            {
+                if (!_updateGate.Wait(0))
+                {
+                    return;
+                }
+                try
+                {
+                    do
+                    {
+                        Interlocked.Exchange(ref _publishingStateDirty, 0);
+                        if (Volatile.Read(ref _disposed) == 0 && BindingCount != 0)
+                        {
+                            ApplyPublishingState();
+                        }
+                    }
+                    while (Volatile.Read(ref _publishingStateDirty) != 0);
+                }
+                finally
+                {
+                    _updateGate.Release();
+                }
+                if (Volatile.Read(ref _publishingStateDirty) == 0)
+                {
+                    return;
+                }
+            }
+        }
+
+        private void ExitMutation()
+        {
+            _updateGate.Release();
+            if (Volatile.Read(ref _publishingStateDirty) != 0)
+            {
+                ApplyPendingPublishingState();
+            }
+        }
+
+        private void SetPublishingEnabled(bool enabled)
+        {
+            var current = _subscriptionOptions.CurrentValue;
+            if (current.PublishingEnabled != enabled)
+            {
+                _subscriptionOptions.Update(current with
+                {
+                    PublishingEnabled = enabled
+                });
+            }
+        }
+
+        private DesiredItemSnapshot[] SnapshotDesiredItems()
+        {
+            return GetBindings()
+                .Where(binding => binding.ParentName == null)
+                .Select(binding => new DesiredItemSnapshot(
+                    binding.Name, binding.Owner, binding.Template))
+                .ToArray();
+        }
+
+        private void RestoreBindings(IEnumerable<DesiredItemSnapshot> items)
+        {
+            var desired = new List<ManagedSubscriptionItemBinding>();
+            foreach (var item in items)
+            {
+                AddDesiredBinding(item.Owner, item.Template, item.Name, null, [],
+                    desired, includeTriggeredItems: true);
+            }
+            UpdateBindings(desired, requestConditionRefresh: false);
+        }
+
+        private PendingInitialApply BeginPendingInitialApply()
+        {
+            var pending = new PendingInitialApply();
+            lock (_initialApplyLock)
+            {
+                if (_pendingInitialApply != null)
+                {
+                    throw new InvalidOperationException(
+                        "An initial monitored-item synchronization is already pending.");
+                }
+                _pendingInitialApply = pending;
+            }
+            return pending;
+        }
+
+        private async ValueTask WaitForInitialApplyAsync(PendingInitialApply pending,
+            IReadOnlyList<IMonitoredItem> monitoredItems, CancellationToken ct)
+        {
+            lock (_initialApplyLock)
+            {
+                if (!ReferenceEquals(_pendingInitialApply, pending))
+                {
+                    ThrowIfDisposed();
+                    throw new InvalidOperationException(
+                        "The initial monitored-item synchronization is no longer active.");
+                }
+                pending.MonitoredItems = monitoredItems.Select(monitoredItem =>
+                {
+                    if (!TryGetBindingByName(monitoredItem.Name, out var binding))
+                    {
+                        throw new InvalidOperationException(
+                            $"Missing Publisher binding for V2 item '{monitoredItem.Name}'.");
+                    }
+                    return new PendingMonitoredItem(monitoredItem,
+                        binding.Monitor.CurrentValue.MonitoringMode);
+                }).ToArray();
+            }
+            TryCompletePendingInitialApply();
+            await pending.Completion.Task.WaitAsync(ct).ConfigureAwait(false);
+        }
+
+        private void TryCompletePendingInitialApply()
+        {
+            PendingInitialApply? pending;
+            IReadOnlyList<PendingMonitoredItem>? monitoredItems;
+            lock (_initialApplyLock)
+            {
+                pending = _pendingInitialApply;
+                monitoredItems = pending?.MonitoredItems;
+            }
+            if (pending == null || monitoredItems == null)
+            {
+                return;
+            }
+            if (monitoredItems.All(item =>
+                !ServiceResult.IsGood(item.Item.Error) ||
+                item.Item.Created &&
+                item.Item.CurrentMonitoringMode == item.DesiredMonitoringMode))
+            {
+                pending.Completion.TrySetResult();
+            }
+        }
+
+        private void ClearPendingInitialApply(PendingInitialApply? pending)
+        {
+            if (pending == null)
+            {
+                return;
+            }
+            lock (_initialApplyLock)
+            {
+                if (ReferenceEquals(_pendingInitialApply, pending))
+                {
+                    _pendingInitialApply = null;
+                }
+            }
+        }
+
+        private void CancelPendingInitialApply()
+        {
+            PendingInitialApply? pending;
+            lock (_initialApplyLock)
+            {
+                pending = _pendingInitialApply;
+            }
+            pending?.Completion.TrySetException(new ObjectDisposedException(
+                nameof(ManagedSubscriptionAdapter)));
+        }
+
+        private void EnterSynchronousMutation()
+        {
+            ThrowIfDisposed();
+            if (!_updateGate.Wait(0))
+            {
+                throw new InvalidOperationException(
+                    "A managed subscription mutation is already in progress.");
+            }
+            try
+            {
+                ThrowIfDisposed();
+            }
+            catch
+            {
+                _updateGate.Release();
+                throw;
+            }
         }
 
         private void PruneOwnerStates()
@@ -1356,7 +1686,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         private void ThrowIfDisposed()
         {
-            ObjectDisposedException.ThrowIf(_disposed != 0, this);
+            ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) != 0, this);
         }
 
         private sealed class ManagedSubscriptionItemBinding
@@ -1554,6 +1884,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public long Generation => Condition?.Generation ?? 0;
         }
 
+        private sealed record class DesiredItemSnapshot(
+            string Name,
+            ISubscriber Owner,
+            BaseMonitoredItemModel Template);
+
+        private sealed record class PendingMonitoredItem(
+            IMonitoredItem Item,
+            Opc.Ua.MonitoringMode DesiredMonitoringMode);
+
         private sealed class OwnerState
         {
             public bool KeyFrameRequired { get; set; } = true;
@@ -1563,6 +1902,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 LastKeyFrame = now;
             }
+        }
+
+        private sealed class PendingInitialApply
+        {
+            public TaskCompletionSource Completion { get; } = new(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+            public IReadOnlyList<PendingMonitoredItem>? MonitoredItems { get; set; }
         }
 
         private sealed class MutableOptionsMonitor<T> : IOptionsMonitor<T> where T : class
@@ -1644,16 +1990,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             new(StringComparer.Ordinal);
         private readonly IVariantEncoder _codec;
         private readonly ITimer _conditionTimer;
+        private readonly CancellationTokenSource _disposeCts = new();
+        private readonly Lock _initialApplyLock = new();
         private readonly ILogger _logger;
         private readonly IModelChangeRebrowseSink? _modelChangeSink;
         private readonly OpcUaSubscriptionOptions _options;
         private readonly Dictionary<ISubscriber, OwnerState> _ownerStates = [];
         private readonly TimeSpan? _periodicKeyFrameInterval;
         private readonly ISubscription _subscription;
+        private readonly MutableOptionsMonitor<ManagedSubscriptionOptions> _subscriptionOptions;
         private readonly TimeProvider _timeProvider;
         private readonly ITimer? _keyFrameTimer;
+#pragma warning disable CA2213 // Retained so pre-disposal waiters can release safely.
+        private readonly SemaphoreSlim _updateGate = new(1, 1);
+#pragma warning restore CA2213 // Disposable fields should be disposed
+        private PendingInitialApply? _pendingInitialApply;
         private int _disposed;
         private int _nextItemName;
+        private int _publishingStateDirty;
         private uint _sequenceNumber;
         private bool _created;
     }

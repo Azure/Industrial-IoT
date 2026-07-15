@@ -54,7 +54,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 [nameof(OpcUaSubscriptionOptions.DefaultLifeTimeCount)] =
                     "Mapped: SubscriptionOptions.LifetimeCount.",
                 [nameof(OpcUaSubscriptionOptions.EnableImmediatePublishing)] =
-                    "Gap: V2 PublishingEnabled is persistent; the cutover must serialize disabled creation, item synchronization, and active-item steady state.",
+                    "PublisherOwned: serialized disabled-to-active item/trigger synchronization enables publishing only after active items are ready.",
                 [nameof(OpcUaSubscriptionOptions.EnableSequentialPublishing)] =
                     "PublisherOwned: V2 publishes in sequence without a public toggle.",
                 [nameof(OpcUaSubscriptionOptions.ResolveDisplayName)] =

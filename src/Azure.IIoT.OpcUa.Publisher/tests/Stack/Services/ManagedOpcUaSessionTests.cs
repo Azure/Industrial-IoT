@@ -1130,7 +1130,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var collection = new Mock<IMonitoredItemCollection>();
             collection.Setup(items => items.Update(It.IsAny<IReadOnlyList<(
                     string Name, IOptionsMonitor<ManagedMonitoredItemOptions> Options)>>()))
-                .Returns([]);
+                .Returns(CreateAppliedMonitoredItems);
             var subscription = new Mock<Opc.Ua.Client.Subscriptions.ISubscription>();
             subscription.SetupGet(item => item.MonitoredItems).Returns(collection.Object);
             var subscriptionManager = new Mock<ISubscriptionManager>();
@@ -1180,13 +1180,257 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         [Fact]
+        public async Task ManagedRuntimeCloseCancelsPendingSubscriptionSynchronizationAsync()
+        {
+            var session = CreateSession(out _, out _);
+            var updateStarted = new TaskCompletionSource(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+            var itemName = string.Empty;
+            var monitoredItem = new Mock<IMonitoredItem>();
+            monitoredItem.SetupGet(item => item.Name).Returns(() => itemName);
+            monitoredItem.SetupGet(item => item.ClientHandle).Returns(1u);
+            monitoredItem.SetupGet(item => item.Created).Returns(false);
+            monitoredItem.SetupGet(item => item.Error).Returns(ServiceResult.Good);
+            var collection = new Mock<IMonitoredItemCollection>();
+            collection.Setup(items => items.Update(It.IsAny<IReadOnlyList<(
+                    string Name, IOptionsMonitor<ManagedMonitoredItemOptions> Options)>>() ))
+                .Returns((IReadOnlyList<(
+                    string Name, IOptionsMonitor<ManagedMonitoredItemOptions> Options)> state) =>
+                {
+                    if (state.Count == 0)
+                    {
+                        return [];
+                    }
+                    itemName = state[0].Name;
+                    updateStarted.TrySetResult();
+                    return [monitoredItem.Object];
+                });
+            var subscription = new Mock<Opc.Ua.Client.Subscriptions.ISubscription>();
+            subscription.SetupGet(item => item.MonitoredItems).Returns(collection.Object);
+            var manager = new Mock<ISubscriptionManager>();
+            manager.Setup(item => item.Add(It.IsAny<ISubscriptionNotificationHandler>(),
+                    It.IsAny<IOptionsMonitor<Opc.Ua.Client.Subscriptions.SubscriptionOptions>>()))
+                .Returns(subscription.Object);
+            ISubscriptionManager subscriptionManager = manager.Object;
+            session.Setup(item => item.TryGetSubscriptionManager(out subscriptionManager))
+                .Returns(true);
+            var request = CreateRequest("opc.tcp://localhost:4869");
+            var provider = new FakeProvider(new FakeConnection(session.Object));
+            await using var strategy = new ManagedSessionRuntimeStrategy(provider,
+                CreateTelemetry(), new FixedRequestFactory(request));
+            using var runtime = (ManagedOpcUaClient)strategy.Create(
+                CreateRuntimeContext(request.Connection, Options.Create(new OpcUaClientOptions()),
+                    Options.Create(new OpcUaSubscriptionOptions()),
+                    new ReverseConnectManager(CreateTelemetry())));
+            runtime.AddRef();
+            var subscriber = new Mock<ISubscriber>();
+            subscriber.SetupGet(item => item.MonitoredItems).Returns(
+                [new DataMonitoredItemModel { StartNodeId = "ns=2;s=value" }]);
+
+            var registration = runtime.RegisterAsync(
+                new SubscriptionModel(), subscriber.Object, default).AsTask();
+            await updateStarted.Task.WaitAsync(TimeSpan.FromSeconds(2));
+
+            await runtime.CloseAsync(shutdown: true).AsTask()
+                .WaitAsync(TimeSpan.FromSeconds(2));
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => registration);
+
+            Assert.Equal(0, runtime.SubscriptionCount);
+        }
+
+        [Fact]
+        public async Task FailedRegistrationRemovalCanBeRetriedWithoutLeakingReferenceAsync()
+        {
+            var session = CreateSession(out _, out _);
+            var failNextUpdate = false;
+            var updateCount = 0;
+            var collection = new Mock<IMonitoredItemCollection>();
+            collection.Setup(items => items.Update(It.IsAny<IReadOnlyList<(
+                    string Name, IOptionsMonitor<ManagedMonitoredItemOptions> Options)>>() ))
+                .Returns((IReadOnlyList<(
+                    string Name, IOptionsMonitor<ManagedMonitoredItemOptions> Options)> state) =>
+                {
+                    updateCount++;
+                    if (failNextUpdate)
+                    {
+                        failNextUpdate = false;
+                        throw new InvalidOperationException("Injected synchronization failure.");
+                    }
+                    return CreateAppliedMonitoredItems(state);
+                });
+            var subscription = new Mock<Opc.Ua.Client.Subscriptions.ISubscription>();
+            subscription.SetupGet(item => item.MonitoredItems).Returns(collection.Object);
+            var manager = new Mock<ISubscriptionManager>();
+            manager.Setup(item => item.Add(It.IsAny<ISubscriptionNotificationHandler>(),
+                    It.IsAny<IOptionsMonitor<Opc.Ua.Client.Subscriptions.SubscriptionOptions>>()))
+                .Returns(subscription.Object);
+            ISubscriptionManager subscriptionManager = manager.Object;
+            session.Setup(item => item.TryGetSubscriptionManager(out subscriptionManager))
+                .Returns(true);
+            var request = CreateRequest("opc.tcp://localhost:4871");
+            var provider = new FakeProvider(new FakeConnection(session.Object));
+            var closed = new TaskCompletionSource(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+            await using var strategy = new ManagedSessionRuntimeStrategy(provider,
+                CreateTelemetry(), new FixedRequestFactory(request));
+            using var runtime = CreateManagedRuntime(strategy, request, closed);
+            runtime.AddRef();
+            var firstSubscriber = new Mock<ISubscriber>();
+            firstSubscriber.SetupGet(item => item.MonitoredItems).Returns(
+                [new DataMonitoredItemModel { StartNodeId = "ns=2;s=first" }]);
+            var secondSubscriber = new Mock<ISubscriber>();
+            secondSubscriber.SetupGet(item => item.MonitoredItems).Returns(
+                [new DataMonitoredItemModel { StartNodeId = "ns=2;s=second" }]);
+            var template = new SubscriptionModel();
+            var first = await runtime.RegisterAsync(template, firstSubscriber.Object, default);
+            var second = await runtime.RegisterAsync(template, secondSubscriber.Object, default);
+            failNextUpdate = true;
+
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => first.DisposeAsync().AsTask());
+            var failedUpdateCount = updateCount;
+
+            await first.DisposeAsync();
+            Assert.True(updateCount > failedUpdateCount);
+            await second.DisposeAsync();
+            runtime.Dispose();
+            await closed.Task.WaitAsync(TimeSpan.FromSeconds(2));
+        }
+
+        [Fact]
+        public async Task FailedReregistrationKeepsPreviousHandleActiveAsync()
+        {
+            var session = CreateSession(out _, out _);
+            var failNextUpdate = false;
+            TaskCompletionSource? updateObserved = null;
+            var collection = new Mock<IMonitoredItemCollection>();
+            collection.Setup(items => items.Update(It.IsAny<IReadOnlyList<(
+                    string Name, IOptionsMonitor<ManagedMonitoredItemOptions> Options)>>() ))
+                .Returns((IReadOnlyList<(
+                    string Name, IOptionsMonitor<ManagedMonitoredItemOptions> Options)> state) =>
+                {
+                    if (failNextUpdate)
+                    {
+                        failNextUpdate = false;
+                        throw new InvalidOperationException("Injected replacement failure.");
+                    }
+                    updateObserved?.TrySetResult();
+                    return CreateAppliedMonitoredItems(state);
+                });
+            var subscription = new Mock<Opc.Ua.Client.Subscriptions.ISubscription>();
+            subscription.SetupGet(item => item.MonitoredItems).Returns(collection.Object);
+            var manager = new Mock<ISubscriptionManager>();
+            manager.Setup(item => item.Add(It.IsAny<ISubscriptionNotificationHandler>(),
+                    It.IsAny<IOptionsMonitor<Opc.Ua.Client.Subscriptions.SubscriptionOptions>>()))
+                .Returns(subscription.Object);
+            ISubscriptionManager subscriptionManager = manager.Object;
+            session.Setup(item => item.TryGetSubscriptionManager(out subscriptionManager))
+                .Returns(true);
+            var request = CreateRequest("opc.tcp://localhost:4872");
+            var provider = new FakeProvider(new FakeConnection(session.Object));
+            var closed = new TaskCompletionSource(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+            await using var strategy = new ManagedSessionRuntimeStrategy(provider,
+                CreateTelemetry(), new FixedRequestFactory(request));
+            using var runtime = CreateManagedRuntime(strategy, request, closed);
+            runtime.AddRef();
+            var subscriber = new Mock<ISubscriber>();
+            subscriber.SetupGet(item => item.MonitoredItems).Returns(
+                [new DataMonitoredItemModel { StartNodeId = "ns=2;s=value" }]);
+            var template = new SubscriptionModel();
+            var existing = await runtime.RegisterAsync(template, subscriber.Object, default);
+            failNextUpdate = true;
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                runtime.RegisterAsync(template, subscriber.Object, default).AsTask());
+
+            updateObserved = new TaskCompletionSource(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+            existing.NotifyMonitoredItemsChanged();
+            await updateObserved.Task.WaitAsync(TimeSpan.FromSeconds(2));
+
+            await existing.DisposeAsync();
+            runtime.Dispose();
+            await closed.Task.WaitAsync(TimeSpan.FromSeconds(2));
+        }
+
+        [Fact]
+        public async Task CommittedReregistrationSurvivesOldStateCleanupFailureAsync()
+        {
+            var session = CreateSession(out _, out _);
+            var oldCollection = new Mock<IMonitoredItemCollection>();
+            oldCollection.Setup(items => items.Update(It.IsAny<IReadOnlyList<(
+                    string Name, IOptionsMonitor<ManagedMonitoredItemOptions> Options)>>() ))
+                .Returns(CreateAppliedMonitoredItems);
+            var newUpdateObserved = new TaskCompletionSource(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+            var observeNewUpdate = false;
+            var newCollection = new Mock<IMonitoredItemCollection>();
+            newCollection.Setup(items => items.Update(It.IsAny<IReadOnlyList<(
+                    string Name, IOptionsMonitor<ManagedMonitoredItemOptions> Options)>>() ))
+                .Returns((IReadOnlyList<(
+                    string Name, IOptionsMonitor<ManagedMonitoredItemOptions> Options)> state) =>
+                {
+                    if (observeNewUpdate)
+                    {
+                        newUpdateObserved.TrySetResult();
+                    }
+                    return CreateAppliedMonitoredItems(state);
+                });
+            var oldSubscription = new Mock<Opc.Ua.Client.Subscriptions.ISubscription>();
+            oldSubscription.SetupGet(item => item.MonitoredItems).Returns(oldCollection.Object);
+            oldSubscription.Setup(item => item.DisposeAsync()).Returns(
+                new ValueTask(Task.FromException(
+                    new InvalidOperationException("Injected old-state cleanup failure."))));
+            var newSubscription = new Mock<Opc.Ua.Client.Subscriptions.ISubscription>();
+            newSubscription.SetupGet(item => item.MonitoredItems).Returns(newCollection.Object);
+            var subscriptions = new Queue<Opc.Ua.Client.Subscriptions.ISubscription>(
+                [oldSubscription.Object, newSubscription.Object]);
+            var manager = new Mock<ISubscriptionManager>();
+            manager.Setup(item => item.Add(It.IsAny<ISubscriptionNotificationHandler>(),
+                    It.IsAny<IOptionsMonitor<Opc.Ua.Client.Subscriptions.SubscriptionOptions>>()))
+                .Returns(() => subscriptions.Dequeue());
+            ISubscriptionManager subscriptionManager = manager.Object;
+            session.Setup(item => item.TryGetSubscriptionManager(out subscriptionManager))
+                .Returns(true);
+            var request = CreateRequest("opc.tcp://localhost:4873");
+            var provider = new FakeProvider(new FakeConnection(session.Object));
+            var closed = new TaskCompletionSource(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+            await using var strategy = new ManagedSessionRuntimeStrategy(provider,
+                CreateTelemetry(), new FixedRequestFactory(request));
+            using var runtime = CreateManagedRuntime(strategy, request, closed);
+            runtime.AddRef();
+            var subscriber = new Mock<ISubscriber>();
+            subscriber.SetupGet(item => item.MonitoredItems).Returns(
+                [new DataMonitoredItemModel { StartNodeId = "ns=2;s=value" }]);
+            var existing = await runtime.RegisterAsync(
+                new SubscriptionModel(), subscriber.Object, default);
+
+            var replacement = await runtime.RegisterAsync(new SubscriptionModel
+            {
+                PublishingInterval = TimeSpan.FromSeconds(2)
+            }, subscriber.Object, default);
+
+            await existing.DisposeAsync();
+            observeNewUpdate = true;
+            replacement.NotifyMonitoredItemsChanged();
+            await newUpdateObserved.Task.WaitAsync(TimeSpan.FromSeconds(2));
+
+            await replacement.DisposeAsync();
+            runtime.Dispose();
+            await closed.Task.WaitAsync(TimeSpan.FromSeconds(2));
+            Assert.Equal(0, runtime.SubscriptionCount);
+        }
+
+        [Fact]
         public async Task ManagedRuntimeScalesPublishWorkersWithLogicalSubscriptionsAsync()
         {
             var session = CreateSession(out _, out _);
             var collection = new Mock<IMonitoredItemCollection>();
             collection.Setup(items => items.Update(It.IsAny<IReadOnlyList<(
                     string Name, IOptionsMonitor<ManagedMonitoredItemOptions> Options)>>() ))
-                .Returns([]);
+                .Returns(CreateAppliedMonitoredItems);
             var subscription = new Mock<Opc.Ua.Client.Subscriptions.ISubscription>();
             subscription.SetupGet(item => item.MonitoredItems).Returns(collection.Object);
             var manager = new Mock<ISubscriptionManager>();
@@ -1312,6 +1556,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 ClientOptions = Options.Create(new OpcUaClientOptions()),
                 SubscriptionOptions = Options.Create(new OpcUaSubscriptionOptions())
             });
+        }
+
+        private static IReadOnlyList<IMonitoredItem> CreateAppliedMonitoredItems(
+            IReadOnlyList<(string Name,
+                IOptionsMonitor<ManagedMonitoredItemOptions> Options)> state)
+        {
+            return state.Select((entry, index) =>
+            {
+                var item = new Mock<IMonitoredItem>();
+                item.SetupGet(monitoredItem => monitoredItem.Name).Returns(entry.Name);
+                item.SetupGet(monitoredItem => monitoredItem.ClientHandle)
+                    .Returns((uint)index + 1);
+                item.SetupGet(monitoredItem => monitoredItem.Created).Returns(true);
+                item.SetupGet(monitoredItem => monitoredItem.Error).Returns(ServiceResult.Good);
+                item.SetupGet(monitoredItem => monitoredItem.CurrentMonitoringMode)
+                    .Returns(entry.Options.CurrentValue.MonitoringMode);
+                return item.Object;
+            }).ToArray();
         }
 
         private static OpcUaClientRuntimeContext CreateRuntimeContext(

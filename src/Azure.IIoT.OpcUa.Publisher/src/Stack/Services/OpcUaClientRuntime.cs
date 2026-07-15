@@ -24,6 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Globalization;
     using System.Linq;
     using System.Runtime.CompilerServices;
+    using System.Runtime.ExceptionServices;
     using System.Threading;
     using System.Threading.Tasks;
     using OpcUaClientOptions = Azure.IIoT.OpcUa.Publisher.Stack.OpcUaClientOptions;
@@ -269,6 +270,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _requestFactory = requestFactory ?? throw new ArgumentNullException(nameof(requestFactory));
             _modelChangeSink = modelChangeSink ?? throw new ArgumentNullException(nameof(modelChangeSink));
             _logger = context.LoggerFactory.CreateLogger<ManagedOpcUaClient>();
+            _lifetimeToken = _lifetimeCts.Token;
             _lastDiagnostics = new ChannelDiagnosticModel
             {
                 Connection = context.Connection.Connection,
@@ -361,48 +363,60 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ArgumentNullException.ThrowIfNull(subscriber);
             ThrowIfDisposed();
 
-            await _subscriptionGate.WaitAsync(ct).ConfigureAwait(false);
+            using var operation = CancellationTokenSource.CreateLinkedTokenSource(
+                ct, _lifetimeToken);
+            await _subscriptionGate.WaitAsync(operation.Token).ConfigureAwait(false);
+            ManagedSubscriptionState? state = null;
+            ManagedRegistration? registration = null;
+            var referenceAdded = false;
             try
             {
+                ThrowIfDisposed();
                 if (_registrations.TryGetValue(subscriber, out var existing))
                 {
-                    await RemoveRegistrationAsync(existing).ConfigureAwait(false);
-                    Dispose();
+                    return await ReplaceRegistrationAsync(existing, subscription,
+                        subscriber, ct, operation.Token).ConfigureAwait(false);
                 }
 
-                if (!_subscriptions.TryGetValue(subscription, out var state))
-                {
-                    var lease = await AcquireLeaseAsync(null, ct).ConfigureAwait(false);
-                    try
-                    {
-                        if (lease.Session is not ManagedOpcUaSession session ||
-                            !session.TryGetSubscriptionManager(out var manager))
-                        {
-                            throw new InvalidOperationException(
-                                "The managed session does not expose a subscription manager.");
-                        }
-                        state = new ManagedSubscriptionState(subscription, lease,
-                            new ManagedSubscriptionAdapter(manager!, subscription,
-                                _context.SubscriptionOptions.Value, session.Codec, _modelChangeSink,
-                                _context.LoggerFactory.CreateLogger<ManagedSubscriptionAdapter>(),
-                                _context.TimeProvider));
-                        lease = null!;
-                        _subscriptions.Add(subscription, state);
-                        Interlocked.Increment(ref _subscriptionCount);
-                        UpdatePublishWorkerCounts(session);
-                    }
-                    finally
-                    {
-                        lease?.Dispose();
-                    }
-                }
+                state = await GetOrCreateSubscriptionStateAsync(subscription,
+                    operation.Token).ConfigureAwait(false);
 
-                var registration = new ManagedRegistration(this, state, subscriber);
+                registration = new ManagedRegistration(this, state, subscriber);
                 state.Registrations.Add(registration);
                 _registrations.Add(subscriber, registration);
                 AddRef();
-                await SynchronizeAsync(state, ct).ConfigureAwait(false);
+                referenceAdded = true;
+                await SynchronizeAsync(state, ct, _lifetimeToken).ConfigureAwait(false);
                 return registration;
+            }
+            catch (Exception registrationException)
+            {
+                Exception? cleanupException = null;
+                try
+                {
+                    if (registration != null)
+                    {
+                        await RemoveFailedRegistrationAsync(registration).ConfigureAwait(false);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    cleanupException = ex;
+                }
+                finally
+                {
+                    if (referenceAdded)
+                    {
+                        Dispose();
+                    }
+                }
+                if (cleanupException != null)
+                {
+                    throw new AggregateException(
+                        "Managed subscription registration and cleanup failed.",
+                        registrationException, cleanupException);
+                }
+                throw;
             }
             finally
             {
@@ -413,25 +427,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public async Task ResetAsync(CancellationToken ct)
         {
             ThrowIfDisposed();
-            await _subscriptionGate.WaitAsync(ct).ConfigureAwait(false);
+            using var operation = CancellationTokenSource.CreateLinkedTokenSource(
+                ct, _lifetimeToken);
+            await _subscriptionGate.WaitAsync(operation.Token).ConfigureAwait(false);
             ISessionHandle? temporaryLease = null;
             try
             {
+                ThrowIfDisposed();
                 var states = _subscriptions.Values.ToArray();
                 var session = states.FirstOrDefault()?.Lease.Session as ManagedOpcUaSession;
                 if (session == null)
                 {
-                    temporaryLease = await AcquireLeaseAsync(null, ct).ConfigureAwait(false);
+                    temporaryLease = await AcquireLeaseAsync(null, operation.Token)
+                        .ConfigureAwait(false);
                     session = temporaryLease.Session as ManagedOpcUaSession ??
                         throw new InvalidOperationException(
                             "The managed pool returned a non-managed session facade.");
                 }
 
-                await session.ReconnectAsync(ct).ConfigureAwait(false);
+                await session.ReconnectAsync(operation.Token).ConfigureAwait(false);
                 UpdateDiagnostics(session);
                 foreach (var state in states)
                 {
-                    await SynchronizeAsync(state, ct).ConfigureAwait(false);
+                    await SynchronizeAsync(state, ct, _lifetimeToken).ConfigureAwait(false);
                 }
             }
             finally
@@ -444,9 +462,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public async Task<SessionDiagnosticsModel?> GetSessionDiagnosticsAsync(CancellationToken ct)
         {
             ManagedOpcUaSession? session;
-            await _subscriptionGate.WaitAsync(ct).ConfigureAwait(false);
+            using var operation = CancellationTokenSource.CreateLinkedTokenSource(
+                ct, _lifetimeToken);
+            await _subscriptionGate.WaitAsync(operation.Token).ConfigureAwait(false);
             try
             {
+                ThrowIfDisposed();
                 session = _subscriptions.Values.FirstOrDefault()?.Lease.Session
                     as ManagedOpcUaSession;
             }
@@ -469,6 +490,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 return;
             }
+            await _lifetimeCts.CancelAsync().ConfigureAwait(false);
 
             await _subscriptionGate.WaitAsync().ConfigureAwait(false);
             try
@@ -500,7 +522,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             finally
             {
                 _subscriptionGate.Release();
-                _subscriptionGate.Dispose();
+                _lifetimeCts.Dispose();
             }
         }
 
@@ -678,31 +700,271 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         private static async Task SynchronizeAsync(ManagedSubscriptionState state,
-            CancellationToken ct)
+            CancellationToken ct, CancellationToken lifetimeCt)
         {
             await state.Adapter.UpdateAsync(state.Registrations.SelectMany(registration =>
                 registration.Owner.MonitoredItems.Select(item =>
-                    (registration.Owner, Template: item))), ct).ConfigureAwait(false);
+                    (registration.Owner, Template: item))), ct, lifetimeCt).ConfigureAwait(false);
         }
 
-        private async ValueTask RemoveRegistrationAsync(ManagedRegistration registration)
+        private async ValueTask<ManagedSubscriptionState>
+            GetOrCreateSubscriptionStateAsync(SubscriptionModel subscription,
+                CancellationToken ct)
         {
+            if (_subscriptions.TryGetValue(subscription, out var existing))
+            {
+                return existing;
+            }
+
+            var lease = await AcquireLeaseAsync(null, ct).ConfigureAwait(false);
+            ManagedSubscriptionState? state = null;
+            var registered = false;
+            try
+            {
+                if (lease.Session is not ManagedOpcUaSession session ||
+                    !session.TryGetSubscriptionManager(out var manager))
+                {
+                    throw new InvalidOperationException(
+                        "The managed session does not expose a subscription manager.");
+                }
+                state = new ManagedSubscriptionState(subscription, lease,
+                    new ManagedSubscriptionAdapter(manager!, subscription,
+                        _context.SubscriptionOptions.Value, session.Codec, _modelChangeSink,
+                        _context.LoggerFactory.CreateLogger<ManagedSubscriptionAdapter>(),
+                        _context.TimeProvider));
+                lease = null!;
+                _subscriptions.Add(subscription, state);
+                registered = true;
+                Interlocked.Increment(ref _subscriptionCount);
+                UpdatePublishWorkerCounts(session);
+                return state;
+            }
+            catch (Exception creationException)
+            {
+                if (state == null)
+                {
+                    throw;
+                }
+                try
+                {
+                    if (registered)
+                    {
+                        await RemoveEmptyStateAsync(state).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        await state.DisposeAsync().ConfigureAwait(false);
+                    }
+                }
+                catch (Exception cleanupException)
+                {
+                    throw new AggregateException(
+                        "Managed subscription state creation and cleanup failed.",
+                        creationException, cleanupException);
+                }
+                throw;
+            }
+            finally
+            {
+                lease?.Dispose();
+            }
+        }
+
+        private async ValueTask<ManagedRegistration> ReplaceRegistrationAsync(
+            ManagedRegistration existing, SubscriptionModel subscription,
+            ISubscriber subscriber, CancellationToken ct, CancellationToken operationCt)
+        {
+            if (_subscriptions.TryGetValue(subscription, out var targetState) &&
+                ReferenceEquals(targetState, existing.State))
+            {
+                var index = targetState.Registrations.IndexOf(existing);
+                if (index < 0)
+                {
+                    throw new InvalidOperationException(
+                        "The existing managed registration is not tracked by its state.");
+                }
+                var replacement = new ManagedRegistration(this, targetState, subscriber);
+                targetState.Registrations[index] = replacement;
+                try
+                {
+                    await SynchronizeAsync(targetState, ct, _lifetimeToken)
+                        .ConfigureAwait(false);
+                }
+                catch
+                {
+                    targetState.Registrations[index] = existing;
+                    throw;
+                }
+                _registrations.Remove(existing.Owner);
+                _registrations.Add(subscriber, replacement);
+                return replacement;
+            }
+
+            targetState = await GetOrCreateSubscriptionStateAsync(subscription, operationCt)
+                .ConfigureAwait(false);
+            var targetWasEmpty = targetState.Registrations.Count == 0;
+            var provisional = new ManagedRegistration(this, targetState, subscriber);
+            targetState.Registrations.Add(provisional);
+            try
+            {
+                await SynchronizeAsync(targetState, ct, _lifetimeToken).ConfigureAwait(false);
+            }
+            catch (Exception synchronizationException)
+            {
+                await RemoveProvisionalRegistrationAsync(provisional,
+                    resynchronize: false, synchronizationException).ConfigureAwait(false);
+                throw;
+            }
+
+            Exception? cleanupException;
+            try
+            {
+                cleanupException = await RemoveRegistrationAsync(existing, ct,
+                    releaseReference: false)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception removalException)
+            {
+                await RemoveProvisionalRegistrationAsync(provisional,
+                    resynchronize: !targetWasEmpty, removalException).ConfigureAwait(false);
+                throw;
+            }
+
+            _registrations.Add(subscriber, provisional);
+            if (cleanupException != null)
+            {
+                _logger.LogError(cleanupException,
+                    "Managed subscription cleanup failed after replacement committed.");
+            }
+            return provisional;
+        }
+
+        private async ValueTask RemoveProvisionalRegistrationAsync(
+            ManagedRegistration registration, bool resynchronize,
+            Exception originalException)
+        {
+            var state = registration.State;
+            state.Registrations.Remove(registration);
+            try
+            {
+                if (state.Registrations.Count == 0)
+                {
+                    await RemoveEmptyStateAsync(state).ConfigureAwait(false);
+                }
+                else if (resynchronize)
+                {
+                    await SynchronizeAsync(state, default, _lifetimeToken)
+                        .ConfigureAwait(false);
+                }
+            }
+            catch (Exception cleanupException)
+            {
+                throw new AggregateException(
+                    "Managed replacement registration and cleanup failed.",
+                    originalException, cleanupException);
+            }
+        }
+
+        private async ValueTask<Exception?> RemoveRegistrationAsync(
+            ManagedRegistration registration,
+            CancellationToken ct, bool releaseReference = true)
+        {
+            var state = registration.State;
+            var registrationIndex = state.Registrations.IndexOf(registration);
+            if (registrationIndex < 0 ||
+                !_registrations.TryGetValue(registration.Owner, out var current) ||
+                !ReferenceEquals(current, registration))
+            {
+                return null;
+            }
             _registrations.Remove(registration.Owner);
+            state.Registrations.RemoveAt(registrationIndex);
+            if (state.Registrations.Count == 0)
+            {
+                Exception? cleanupException = null;
+                try
+                {
+                    await RemoveEmptyStateAsync(state).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    cleanupException = ex;
+                }
+                finally
+                {
+                    if (releaseReference)
+                    {
+                        Dispose();
+                    }
+                }
+                if (releaseReference && cleanupException != null)
+                {
+                    ExceptionDispatchInfo.Capture(cleanupException).Throw();
+                }
+                return cleanupException;
+            }
+            try
+            {
+                await SynchronizeAsync(state, ct, _lifetimeToken).ConfigureAwait(false);
+            }
+            catch
+            {
+                state.Registrations.Insert(registrationIndex, registration);
+                _registrations.Add(registration.Owner, registration);
+                throw;
+            }
+            if (releaseReference)
+            {
+                Dispose();
+            }
+            return null;
+        }
+
+        private async ValueTask RemoveFailedRegistrationAsync(
+            ManagedRegistration registration)
+        {
+            if (_registrations.TryGetValue(registration.Owner, out var current) &&
+                ReferenceEquals(current, registration))
+            {
+                _registrations.Remove(registration.Owner);
+            }
             var state = registration.State;
             state.Registrations.Remove(registration);
             if (state.Registrations.Count == 0)
             {
-                _subscriptions.Remove(state.Template);
-                Interlocked.Decrement(ref _subscriptionCount);
-                if (state.Lease.Session is ManagedOpcUaSession session)
+                await RemoveEmptyStateAsync(state).ConfigureAwait(false);
+            }
+        }
+
+        private async ValueTask RemoveEmptyStateAsync(ManagedSubscriptionState state)
+        {
+            _subscriptions.Remove(state.Template);
+            Interlocked.Decrement(ref _subscriptionCount);
+            Exception? workerException = null;
+            if (state.Lease.Session is ManagedOpcUaSession session)
+            {
+                try
                 {
                     UpdatePublishWorkerCounts(session);
                 }
+                catch (Exception ex)
+                {
+                    workerException = ex;
+                }
+            }
+            try
+            {
                 await state.DisposeAsync().ConfigureAwait(false);
             }
-            else
+            catch (Exception disposeException) when (workerException != null)
             {
-                await SynchronizeAsync(state, default).ConfigureAwait(false);
+                throw new AggregateException(
+                    "Managed subscription worker update and disposal failed.",
+                    workerException, disposeException);
+            }
+            if (workerException != null)
+            {
+                throw workerException;
             }
         }
 
@@ -712,19 +974,65 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 return;
             }
-            await _subscriptionGate.WaitAsync().ConfigureAwait(false);
             try
             {
+                await _subscriptionGate.WaitAsync(_lifetimeToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (_lifetimeToken.IsCancellationRequested)
+            {
+                return;
+            }
+            try
+            {
+                if (Volatile.Read(ref _disposed) != 0)
+                {
+                    return;
+                }
                 if (_registrations.TryGetValue(registration.Owner, out var current) &&
                     ReferenceEquals(current, registration))
                 {
-                    await RemoveRegistrationAsync(registration).ConfigureAwait(false);
-                    Dispose();
+                    await RemoveRegistrationAsync(registration, default).ConfigureAwait(false);
+                }
+            }
+
+            finally
+            {
+                _subscriptionGate.Release();
+            }
+        }
+
+        private async Task SynchronizeRegistrationAsync(ManagedRegistration registration)
+        {
+            if (Volatile.Read(ref _disposed) != 0)
+            {
+                return;
+            }
+            var entered = false;
+            try
+            {
+                await _subscriptionGate.WaitAsync(_lifetimeToken).ConfigureAwait(false);
+                entered = true;
+                if (Volatile.Read(ref _disposed) == 0 &&
+                    _registrations.TryGetValue(registration.Owner, out var current) &&
+                    ReferenceEquals(current, registration))
+                {
+                    await SynchronizeAsync(registration.State, default, _lifetimeToken)
+                        .ConfigureAwait(false);
+                }
+            }
+            catch (Exception ex)
+            {
+                if (Volatile.Read(ref _disposed) == 0)
+                {
+                    _logger.LogError(ex, "Managed subscription synchronization failed.");
                 }
             }
             finally
             {
-                _subscriptionGate.Release();
+                if (entered)
+                {
+                    _subscriptionGate.Release();
+                }
             }
         }
 
@@ -743,7 +1051,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             var counts = ManagedSessionOptionsAdapter.GetPublishWorkerCounts(
                 _context.ClientOptions.Value, Volatile.Read(ref _subscriptionCount));
-            manager.MinPublishWorkerCount = counts.Minimum;
+            manager!.MinPublishWorkerCount = counts.Minimum;
             manager.MaxPublishWorkerCount = counts.Maximum;
         }
 
@@ -894,8 +1202,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             public async ValueTask DisposeAsync()
             {
-                await Adapter.DisposeAsync().ConfigureAwait(false);
-                Lease.Dispose();
+                Exception? adapterException = null;
+                try
+                {
+                    await Adapter.DisposeAsync().ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    adapterException = ex;
+                }
+                try
+                {
+                    Lease.Dispose();
+                }
+                catch (Exception leaseException) when (adapterException != null)
+                {
+                    throw new AggregateException(
+                        "Managed subscription adapter and lease disposal failed.",
+                        adapterException, leaseException);
+                }
+                if (adapterException != null)
+                {
+                    ExceptionDispatchInfo.Capture(adapterException).Throw();
+                }
             }
         }
 
@@ -932,7 +1261,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             public void NotifyMonitoredItemsChanged()
             {
-                _ = SynchronizeAsync(State, default);
+                _ = _owner.SynchronizeRegistrationAsync(this);
             }
 
             public ValueTask<PublishedDataSetMetaDataModel> CollectMetaDataAsync(
@@ -1011,10 +1340,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly IManagedSessionRequestFactory _requestFactory;
         private readonly ConcurrentDictionary<string, ContinuationLease> _continuations = [];
         private readonly Lock _diagnosticsGate = new();
+        private readonly CancellationTokenSource _lifetimeCts = new();
+        private readonly CancellationToken _lifetimeToken;
         private readonly Lock _lifetimeGate = new();
         private readonly HashSet<ManagedOpcUaSession> _observedSessions = [];
         private readonly Dictionary<ISubscriber, ManagedRegistration> _registrations = [];
-#pragma warning disable CA2213 // Closed asynchronously by the final reference release.
+#pragma warning disable CA2213 // Retained so pre-close synchronization tasks can release safely.
         private readonly SemaphoreSlim _subscriptionGate = new(1, 1);
 #pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly Dictionary<SubscriptionModel, ManagedSubscriptionState> _subscriptions = [];
