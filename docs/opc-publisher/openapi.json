@@ -6162,6 +6162,10 @@
           "format": "int32",
           "description": "Time interval for sending pending interval snapshot in seconds.",
           "type": "integer"
+        },
+        "refreshRetainedConditionsOnStart": {
+          "description": "Issue a single ConditionRefresh when the event subscription is\n            established (and again after a reconnect) so retained conditions\n            already present on the server are delivered once as regular events.\n            Unlike SnapshotInterval this does not cache conditions or\n            periodically re-send snapshots. Ignored when SnapshotInterval is set.",
+          "type": "boolean"
         }
       },
       "additionalProperties": false

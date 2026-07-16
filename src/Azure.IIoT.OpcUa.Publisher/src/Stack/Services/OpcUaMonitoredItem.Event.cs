@@ -402,6 +402,86 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             /// <summary>
+            /// Whether a subscription wide condition refresh is required for this
+            /// item. A refresh is only required when the item (re-)entered a good
+            /// state since the last refresh was sent. While the item is in a bad
+            /// state the pending flag is reset so that a subsequent transition
+            /// from bad to good triggers a new refresh. This avoids cyclically
+            /// refreshing on every resync when nothing about the item changed.
+            /// </summary>
+            protected bool ConditionRefreshRequired
+            {
+                get
+                {
+                    if (IsBad)
+                    {
+                        // Reset so a future bad to good transition refreshes.
+                        _conditionRefreshSent = false;
+                        return false;
+                    }
+                    return !_conditionRefreshSent;
+                }
+            }
+
+            /// <summary>
+            /// Mark that a subscription wide condition refresh has been completed
+            /// for this item while it was in a good state.
+            /// </summary>
+            protected void MarkConditionRefreshCompleted()
+            {
+                if (IsGood)
+                {
+                    _conditionRefreshSent = true;
+                }
+            }
+
+            /// <summary>
+            /// Return the event type node id of the notification if the configured
+            /// event filter selects it, otherwise null. Used to detect the
+            /// RefreshStart/RefreshEnd/RefreshRequired markers emitted around a
+            /// ConditionRefresh.
+            /// </summary>
+            /// <param name="eventFields"></param>
+            protected NodeId? GetRefreshEventType(EventFieldList eventFields)
+            {
+                var evFilter = Filter as EventFilter;
+                var eventTypeIndex = evFilter?.SelectClauses.IndexOf(
+                    evFilter.SelectClauses
+                        .Find(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType
+                            && x.BrowsePath?.FirstOrDefault() == BrowseNames.EventType));
+                if (eventTypeIndex.HasValue && eventTypeIndex.Value != -1 &&
+                    eventTypeIndex.Value < eventFields.EventFields.Count)
+                {
+                    return eventFields.EventFields[eventTypeIndex.Value].Value as NodeId;
+                }
+                return null;
+            }
+
+            /// <summary>
+            /// Issue a subscription wide condition refresh so retained conditions
+            /// are (re-)delivered. Failures are logged but not propagated.
+            /// </summary>
+            protected void IssueConditionRefresh()
+            {
+                Debug.Assert(Subscription != null);
+                _logger.IssuingConditionRefresh(this, Template.DisplayName,
+                    Subscription.DisplayName);
+                try
+                {
+                    Subscription.ConditionRefreshAsync(default).GetAwaiter().GetResult(); // TODO
+                    _logger.ConditionRefreshCompleted(this, Template.DisplayName,
+                        Subscription.DisplayName);
+                }
+                catch (Exception e)
+                {
+                    _logger.ConditionRefreshFailed(this, Template.DisplayName,
+                        Subscription.DisplayName, e.Message);
+                }
+            }
+
+            private bool _conditionRefreshSent;
+
+            /// <summary>
             /// Convert to monitored item notifications
             /// </summary>
             /// <param name="eventFields"></param>

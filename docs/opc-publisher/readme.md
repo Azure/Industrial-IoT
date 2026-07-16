@@ -462,7 +462,8 @@ The configuration consists a JSON array of [entries](./definitions.md#publishedn
       },
       "ConditionHandling": {
         "UpdateInterval": "integer",
-        "SnapshotInterval": "integer"
+        "SnapshotInterval": "integer",
+        "RefreshRetainedConditionsOnStart": "boolean"
       },
       "EventFilter": {
         (*)
@@ -997,10 +998,11 @@ The `ConditionHandling` section consists of the following properties:
 
 - `UpdateInterval` - the interval, in seconds, which a message is sent if anything has been updated during this interval.
 - `SnapshotInterval` - the interval, in seconds, that triggers a message to be sent regardless of if there has been an update or not.
+- `RefreshRetainedConditionsOnStart` - a boolean that, when set to `true`, issues a single `ConditionRefresh` when the event subscription is established (and again after a reconnect) so that conditions with the `Retain` flag already present on the server are delivered once. Unlike `SnapshotInterval`/`UpdateInterval` it does not cache conditions or periodically re-send snapshots, so no duplicate messages are produced. This is useful when you only want to pick up the alarms and conditions that already exist on the server at startup and then continue receiving new event changes normally. This option is ignored when `SnapshotInterval` is set, because snapshotting already performs the initial refresh.
 
-One or both of these must be set for condition handling to be in effect. You can use the condition handling configuration regardless if you are using advanced or simple event filters. If you specify the`ConditionHandling` option property without an `EventFilter` property it is ignored, as condition handling has no effect for data change subscriptions.
+For the snapshotting behavior, one or both of `UpdateInterval` and `SnapshotInterval` must be set for condition handling to be in effect. Alternatively, set `RefreshRetainedConditionsOnStart` to `true` for the one-time refresh behavior. You can use the condition handling configuration regardless if you are using advanced or simple event filters. If you specify the`ConditionHandling` option property without an `EventFilter` property it is ignored, as condition handling has no effect for data change subscriptions.
 
-Conditions are sent as `ua-condition` data set messages. This is a message type not part of the official standard but allows separating condition snapshots from regular `ua-event` data set messages.
+Condition snapshots (produced through `SnapshotInterval`/`UpdateInterval`) are sent as `ua-condition` data set messages. This is a message type not part of the official standard but allows separating condition snapshots from regular `ua-event` data set messages. Retained conditions delivered through `RefreshRetainedConditionsOnStart` are surfaced once as regular `ua-event` messages (the `RefreshStart`/`RefreshEnd` envelope events are suppressed).
 
 ## Publish to a Unified Namespace
 

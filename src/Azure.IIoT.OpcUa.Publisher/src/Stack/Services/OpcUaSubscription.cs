@@ -1560,7 +1560,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // RefreshStartEvent/RefreshEndEvent for every subscribed condition.
             //
             var conditionsToRefresh = set
-                .OfType<OpcUaMonitoredItem.Condition>()
+                .OfType<OpcUaMonitoredItem.IConditionRefreshable>()
                 .Where(c => c.IsConditionRefreshRequired)
                 .ToList();
             if (conditionsToRefresh.Count > 0)

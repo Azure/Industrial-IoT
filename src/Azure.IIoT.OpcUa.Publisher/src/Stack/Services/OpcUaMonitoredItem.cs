@@ -286,6 +286,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             yield return new Condition(owner, emi,
                                 factory.CreateLogger<Condition>(), timeProvider);
                         }
+                        else if (emi.ConditionHandling?.RefreshRetainedConditionsOnStart == true)
+                        {
+                            yield return new ConditionRefresh(owner, emi,
+                                factory.CreateLogger<ConditionRefresh>(), timeProvider);
+                        }
                         else
                         {
                             yield return new Event(owner, emi,

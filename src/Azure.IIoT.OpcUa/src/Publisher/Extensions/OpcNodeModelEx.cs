@@ -239,6 +239,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             hash.Add(model.ModelChangeHandling?.RebrowseIntervalTimespan);
             hash.Add(model.ConditionHandling?.UpdateInterval);
             hash.Add(model.ConditionHandling?.SnapshotInterval);
+            hash.Add(model.ConditionHandling?.RefreshRetainedConditionsOnStart);
             hash.Add(model.UseCyclicRead);
             hash.Add(model.GetNormalizedCyclicReadMaxAge());
             hash.Add(model.RegisterNode);

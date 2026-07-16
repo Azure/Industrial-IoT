@@ -319,6 +319,130 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             Assert.True(condition.IsConditionRefreshRequired);
         }
 
+        [Fact]
+        public async Task RefreshOnlyItemIsCreatedWhenRefreshRetainedConditionsOnStartIsSetAsync()
+        {
+            // SnapshotInterval null but the refresh-on-start flag set -> the
+            // lightweight refresh-only item (no snapshotting) is created.
+            var refreshOnly = new EventMonitoredItemModel
+            {
+                StartNodeId = "i=2258",
+                EventFilter = new EventFilterModel(),
+                ConditionHandling = new ConditionHandlingOptionsModel
+                {
+                    RefreshRetainedConditionsOnStart = true
+                }
+            };
+            var refreshItem = await GetMonitoredItemAsync(refreshOnly);
+            Assert.IsType<OpcUaMonitoredItem.ConditionRefresh>(refreshItem);
+            Assert.IsAssignableFrom<OpcUaMonitoredItem.IConditionRefreshable>(refreshItem);
+
+            // SnapshotInterval set -> the snapshotting Condition item (which also
+            // performs the initial refresh) takes precedence.
+            var snapshot = new EventMonitoredItemModel
+            {
+                StartNodeId = "i=2258",
+                EventFilter = new EventFilterModel(),
+                ConditionHandling = new ConditionHandlingOptionsModel
+                {
+                    SnapshotInterval = 10,
+                    RefreshRetainedConditionsOnStart = true
+                }
+            };
+            var snapshotItem = await GetMonitoredItemAsync(snapshot);
+            Assert.IsType<OpcUaMonitoredItem.Condition>(snapshotItem);
+
+            // Neither set -> a plain event item that does not participate in
+            // condition refresh.
+            var plain = new EventMonitoredItemModel
+            {
+                StartNodeId = "i=2258",
+                EventFilter = new EventFilterModel()
+            };
+            var plainItem = await GetMonitoredItemAsync(plain);
+            Assert.IsType<OpcUaMonitoredItem.Event>(plainItem);
+            Assert.IsNotAssignableFrom<OpcUaMonitoredItem.IConditionRefreshable>(plainItem);
+        }
+
+        [Fact]
+        public async Task RefreshOnlyItemDoesNotAddConditionSnapshotSelectClausesAsync()
+        {
+            // The refresh-only item forwards events normally, so it must not add
+            // the ConditionType NodeId/Retain select clauses that the snapshotting
+            // Condition item adds for its caching logic.
+            var refreshOnly = new EventMonitoredItemModel
+            {
+                StartNodeId = "i=2258",
+                EventFilter = new EventFilterModel(),
+                ConditionHandling = new ConditionHandlingOptionsModel
+                {
+                    RefreshRetainedConditionsOnStart = true
+                }
+            };
+            var refreshItem = await GetMonitoredItemAsync(refreshOnly);
+            var refreshFilter = (EventFilter)refreshItem.Filter;
+
+            var snapshot = new EventMonitoredItemModel
+            {
+                StartNodeId = "i=2258",
+                EventFilter = new EventFilterModel(),
+                ConditionHandling = new ConditionHandlingOptionsModel
+                {
+                    SnapshotInterval = 10
+                }
+            };
+            var snapshotItem = await GetMonitoredItemAsync(snapshot);
+            var snapshotFilter = (EventFilter)snapshotItem.Filter;
+
+            // The snapshotting item adds two extra ConditionType select clauses
+            // (NodeId + Retain); the refresh-only item does not.
+            Assert.Equal(snapshotFilter.SelectClauses.Count - 2, refreshFilter.SelectClauses.Count);
+            Assert.DoesNotContain(refreshFilter.SelectClauses,
+                x => x.TypeDefinitionId == ObjectTypeIds.ConditionType &&
+                    x.BrowsePath?.FirstOrDefault() == "Retain");
+        }
+
+        [Fact]
+        public async Task RefreshOnlyConditionRefreshIsRequiredOnBadToGoodTransitionAsync()
+        {
+            var template = new EventMonitoredItemModel
+            {
+                StartNodeId = "i=2258",
+                EventFilter = new EventFilterModel(),
+                ConditionHandling = new ConditionHandlingOptionsModel
+                {
+                    RefreshRetainedConditionsOnStart = true
+                }
+            };
+            var item = await GetMonitoredItemAsync(template)
+                as OpcUaMonitoredItem.ConditionRefresh;
+            Assert.NotNull(item);
+
+            // Not yet created (bad) -> no refresh required.
+            Assert.True(item.IsBad);
+            Assert.False(item.IsConditionRefreshRequired);
+
+            // Item becomes good -> a refresh is required once, and reading the
+            // property again while good is stable.
+            SetCreateResult(item, StatusCodes.Good);
+            Assert.True(item.IsGood);
+            Assert.True(item.IsConditionRefreshRequired);
+            Assert.True(item.IsConditionRefreshRequired);
+
+            // After the refresh completed no more refresh is required while good.
+            item.OnConditionRefreshCompleted();
+            Assert.False(item.IsConditionRefreshRequired);
+
+            // Item goes bad -> no refresh required, and a bad->good transition
+            // requires a refresh again (reconnect case).
+            SetCreateResult(item, StatusCodes.BadNodeIdUnknown);
+            Assert.True(item.IsBad);
+            Assert.False(item.IsConditionRefreshRequired);
+            SetCreateResult(item, StatusCodes.Good);
+            Assert.True(item.IsGood);
+            Assert.True(item.IsConditionRefreshRequired);
+        }
+
         /// <summary>
         /// Drive the underlying stack monitored item status to a created/good
         /// or bad state by invoking the internal SetCreateResult method.

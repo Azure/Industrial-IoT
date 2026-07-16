@@ -26,5 +26,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         [DataMember(Name = "snapshotInterval", Order = 2,
             EmitDefaultValue = false)]
         public int? SnapshotInterval { get; set; }
+
+        /// <summary>
+        /// Issue a single ConditionRefresh when the event subscription is
+        /// established (and again after a reconnect) so retained conditions
+        /// already present on the server are delivered once as regular events.
+        /// Unlike <see cref="SnapshotInterval"/> this does not cache conditions
+        /// or periodically re-send snapshots. Ignored when
+        /// <see cref="SnapshotInterval"/> is set (snapshotting already performs
+        /// the initial refresh).
+        /// </summary>
+        [DataMember(Name = "refreshRetainedConditionsOnStart", Order = 3,
+            EmitDefaultValue = false)]
+        public bool? RefreshRetainedConditionsOnStart { get; set; }
     }
 }
