@@ -429,11 +429,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             "The managed pool returned a non-managed session facade.");
                 }
 
+                foreach (var state in states)
+                {
+                    state.Adapter.NotifyConnectionState(disconnected: true);
+                }
                 await session.ReconnectAsync(operation.Token).ConfigureAwait(false);
                 UpdateDiagnostics(session);
                 foreach (var state in states)
                 {
                     await SynchronizeAsync(state, ct, _lifetimeToken).ConfigureAwait(false);
+                }
+                foreach (var state in states)
+                {
+                    state.Adapter.NotifyConnectionState(disconnected: false);
                 }
             }
             finally
@@ -1044,6 +1052,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             EndpointConnectivityStateEventArgs e)
         {
             _state = e.State;
+            var stateVersion = Interlocked.Increment(ref _connectionStateVersion);
+            _ = NotifySubscriptionConnectionStateAsync(
+                e.State != EndpointConnectivityState.Ready, stateVersion);
             if (e.State == EndpointConnectivityState.Ready)
             {
                 Interlocked.Increment(ref _connectCount);
@@ -1063,6 +1074,44 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Managed session state callback failed.");
+            }
+        }
+
+        private async Task NotifySubscriptionConnectionStateAsync(
+            bool disconnected, long stateVersion)
+        {
+            var entered = false;
+            try
+            {
+                await _subscriptionGate.WaitAsync(_lifetimeToken).ConfigureAwait(false);
+                entered = true;
+                if (Volatile.Read(ref _disposed) != 0 ||
+                    Volatile.Read(ref _connectionStateVersion) != stateVersion)
+                {
+                    return;
+                }
+                foreach (var state in _subscriptions.Values)
+                {
+                    state.Adapter.NotifyConnectionState(disconnected);
+                }
+            }
+            catch (OperationCanceledException) when (_lifetimeToken.IsCancellationRequested)
+            {
+            }
+            catch (Exception ex)
+            {
+                if (Volatile.Read(ref _disposed) == 0)
+                {
+                    _logger.LogError(ex,
+                        "Managed heartbeat connection-state update failed.");
+                }
+            }
+            finally
+            {
+                if (entered)
+                {
+                    _subscriptionGate.Release();
+                }
             }
         }
 
@@ -1228,7 +1277,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public int GoodMonitoredItems => Owner.MonitoredItems.Count();
             public int BadMonitoredItems => 0;
             public int LateMonitoredItems => 0;
-            public int HeartbeatsEnabled => 0;
+            public int HeartbeatsEnabled => State.Adapter.GetHeartbeatsEnabled(Owner);
             public int ConditionsEnabled => Owner.MonitoredItems.OfType<EventMonitoredItemModel>()
                 .Count(item => item.ConditionHandling?.SnapshotInterval != null);
             public ISubscriber Owner { get; }
@@ -1310,6 +1359,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private const int kContinuationTimeoutMilliseconds = 10000;
         private static readonly TimeSpan kContinuationTimeout =
             TimeSpan.FromMilliseconds(kContinuationTimeoutMilliseconds);
+        private long _connectionStateVersion;
         private int _connectCount;
         private int _disposed;
         private int _reconnectCount;

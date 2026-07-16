@@ -156,6 +156,365 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         [Fact]
+        public async Task EmitsManagedHeartbeatWithLastValueAndDiagnostics()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            Assert.True(adapter.TryAdd(owner, CreateDataItem("ns=2;s=value") with
+            {
+                HeartbeatInterval = TimeSpan.FromMinutes(10)
+            }));
+            var item = Assert.Single(manager.Subscription!.Collection.Items);
+
+            await manager.Handler.OnDataChangeNotificationAsync(manager.Subscription, 1,
+                DateTime.UtcNow,
+                new[] { new DataValueChange(item, new DataValue(Variant.From(42)), null) },
+                PublishState.None, []);
+            owner.DataChanges.Clear();
+            owner.DataDiagnostics.Clear();
+
+            adapter.FlushHeartbeats();
+            Assert.Empty(owner.DataChanges);
+            adapter.FlushHeartbeats(force: true);
+
+            var heartbeat = Assert.Single(owner.DataChanges);
+            var notification = Assert.Single(heartbeat.Notifications);
+            Assert.Equal(MessageType.DeltaFrame, heartbeat.MessageType);
+            Assert.Null(heartbeat.PublishTimestamp);
+            Assert.True(notification.Flags.HasFlag(MonitoredItemSourceFlags.Heartbeat));
+            Assert.Equal(Variant.From(42),
+                Assert.IsType<DataValue>(notification.Value).WrappedValue);
+            Assert.Equal(1u, notification.SequenceNumber);
+            Assert.Equal(0, notification.Overflow);
+            var diagnostics = Assert.Single(owner.DataDiagnostics);
+            Assert.False(diagnostics.LiveData);
+            Assert.Equal(1, diagnostics.ValueChanges);
+            Assert.Equal(1, diagnostics.Heartbeats);
+            Assert.Equal(1, adapter.GetHeartbeatsEnabled(owner));
+        }
+
+        [Fact]
+        public async Task ManagedHeartbeatUsesSubscriptionDefaults()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions
+            {
+                DefaultHeartbeatInterval = TimeSpan.FromMinutes(10),
+                DefaultHeartbeatBehavior = HeartbeatBehavior.WatchdogLKVDiagnosticsOnly
+            });
+            var owner = new FakeSubscriber();
+            await adapter.UpdateAsync([(owner, CreateDataItem("ns=2;s=value"))]);
+            var item = Assert.Single(manager.Subscription!.Collection.Items);
+            await manager.Handler.OnDataChangeNotificationAsync(manager.Subscription, 1,
+                DateTime.UtcNow,
+                new[] { new DataValueChange(item, new DataValue(Variant.From(42)), null) },
+                PublishState.None, []);
+            owner.DataChanges.Clear();
+            owner.DataDiagnostics.Clear();
+
+            adapter.FlushHeartbeats(force: true);
+
+            Assert.Equal(1, adapter.GetHeartbeatsEnabled(owner));
+            Assert.Empty(owner.DataChanges);
+            Assert.Equal(1, Assert.Single(owner.DataDiagnostics).Heartbeats);
+        }
+
+        [Fact]
+        public async Task PeriodicDropValueSuppressesDataButEmitsHeartbeat()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            Assert.True(adapter.TryAdd(owner, CreateDataItem("ns=2;s=value") with
+            {
+                HeartbeatInterval = TimeSpan.FromMinutes(10),
+                HeartbeatBehavior = HeartbeatBehavior.PeriodicLKVDropValue
+            }));
+            var item = Assert.Single(manager.Subscription!.Collection.Items);
+
+            await manager.Handler.OnDataChangeNotificationAsync(manager.Subscription, 1,
+                DateTime.UtcNow,
+                new[] { new DataValueChange(item, new DataValue(Variant.From(42)), null) },
+                PublishState.None, []);
+            Assert.Empty(owner.DataChanges);
+            Assert.False(adapter.TryCreateKeyFrame(owner, out _));
+
+            adapter.FlushHeartbeats(force: true);
+
+            Assert.Single(owner.DataChanges);
+            Assert.True(Assert.Single(owner.DataChanges[0].Notifications).Flags
+                .HasFlag(MonitoredItemSourceFlags.Heartbeat));
+        }
+
+        [Fact]
+        public async Task HeartbeatMarksDisconnectAndRestoresConnectedStatus()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            Assert.True(adapter.TryAdd(owner, CreateDataItem("ns=2;s=value") with
+            {
+                HeartbeatInterval = TimeSpan.FromMinutes(10)
+            }));
+            var item = Assert.Single(manager.Subscription!.Collection.Items);
+            await manager.Handler.OnDataChangeNotificationAsync(manager.Subscription, 1,
+                DateTime.UtcNow,
+                new[] { new DataValueChange(item, new DataValue(Variant.From(42)), null) },
+                PublishState.None, []);
+            owner.DataChanges.Clear();
+
+            adapter.NotifyConnectionState(disconnected: true);
+            adapter.FlushHeartbeats(force: true);
+
+            var disconnected = Assert.IsType<DataValue>(
+                Assert.Single(Assert.Single(owner.DataChanges).Notifications).Value);
+            Assert.Equal(StatusCodes.UncertainNoCommunicationLastUsableValue,
+                disconnected.StatusCode);
+
+            owner.DataChanges.Clear();
+            adapter.NotifyConnectionState(disconnected: false);
+            adapter.FlushHeartbeats(force: true);
+            var connected = Assert.IsType<DataValue>(
+                Assert.Single(Assert.Single(owner.DataChanges).Notifications).Value);
+            Assert.Equal(StatusCodes.Good, connected.StatusCode);
+        }
+
+        [Fact]
+        public async Task ReconnectDoesNotOverwriteNewerBadValue()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            Assert.True(adapter.TryAdd(owner, CreateDataItem("ns=2;s=value") with
+            {
+                HeartbeatInterval = TimeSpan.FromMinutes(10)
+            }));
+            var item = Assert.Single(manager.Subscription!.Collection.Items);
+            await manager.Handler.OnDataChangeNotificationAsync(manager.Subscription, 1,
+                DateTime.UtcNow,
+                new[] { new DataValueChange(item, new DataValue(Variant.From(42)), null) },
+                PublishState.None, []);
+            adapter.NotifyConnectionState(disconnected: true);
+            await manager.Handler.OnDataChangeNotificationAsync(manager.Subscription, 2,
+                DateTime.UtcNow,
+                new[] { new DataValueChange(item,
+                    DataValue.FromStatusCode(StatusCodes.BadNodeIdUnknown), null) },
+                PublishState.None, []);
+            owner.DataChanges.Clear();
+
+            adapter.NotifyConnectionState(disconnected: false);
+            adapter.FlushHeartbeats(force: true);
+
+            var value = Assert.IsType<DataValue>(
+                Assert.Single(Assert.Single(owner.DataChanges).Notifications).Value);
+            Assert.Equal(StatusCodes.BadNodeIdUnknown, value.StatusCode);
+        }
+
+        [Fact]
+        public async Task StatusOnlyHeartbeatReportsCommunicationLoss()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            Assert.True(adapter.TryAdd(owner, CreateDataItem("ns=2;s=value") with
+            {
+                HeartbeatInterval = TimeSpan.FromMinutes(10)
+            }));
+            var item = Assert.Single(manager.Subscription!.Collection.Items);
+            await manager.Handler.OnDataChangeNotificationAsync(manager.Subscription, 1,
+                DateTime.UtcNow,
+                new[] { new DataValueChange(item,
+                    DataValue.FromStatusCode(StatusCodes.BadNodeIdUnknown), null) },
+                PublishState.None, []);
+            owner.DataChanges.Clear();
+
+            adapter.NotifyConnectionState(disconnected: true);
+            adapter.FlushHeartbeats(force: true);
+            var disconnected = Assert.IsType<DataValue>(
+                Assert.Single(Assert.Single(owner.DataChanges).Notifications).Value);
+            Assert.Equal(StatusCodes.BadNoCommunication, disconnected.StatusCode);
+
+            owner.DataChanges.Clear();
+            adapter.NotifyConnectionState(disconnected: false);
+            adapter.FlushHeartbeats(force: true);
+            var connected = Assert.IsType<DataValue>(
+                Assert.Single(Assert.Single(owner.DataChanges).Notifications).Value);
+            Assert.Equal(StatusCodes.BadNodeIdUnknown, connected.StatusCode);
+        }
+
+        [Fact]
+        public async Task EnablingHeartbeatSeedsExistingCachedValue()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            var template = CreateDataItem("ns=2;s=value");
+            adapter.Update([(owner, template)]);
+            var item = Assert.Single(manager.Subscription!.Collection.Items);
+            await manager.Handler.OnDataChangeNotificationAsync(manager.Subscription, 1,
+                DateTime.UtcNow,
+                new[] { new DataValueChange(item, new DataValue(Variant.From(42)), null) },
+                PublishState.None, []);
+            owner.DataChanges.Clear();
+
+            adapter.Update([(owner, template with
+            {
+                HeartbeatInterval = TimeSpan.FromMinutes(10)
+            })]);
+            Assert.Equal(1, adapter.GetHeartbeatsEnabled(owner));
+            adapter.FlushHeartbeats(force: true);
+
+            Assert.Equal(Variant.From(42), Assert.IsType<DataValue>(
+                Assert.Single(Assert.Single(owner.DataChanges).Notifications).Value)
+                .WrappedValue);
+        }
+
+        [Fact]
+        public async Task EnablingHeartbeatWhileDisconnectedMarksCachedValue()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            var template = CreateDataItem("ns=2;s=value");
+            adapter.Update([(owner, template)]);
+            var item = Assert.Single(manager.Subscription!.Collection.Items);
+            await manager.Handler.OnDataChangeNotificationAsync(manager.Subscription, 1,
+                DateTime.UtcNow,
+                new[] { new DataValueChange(item, new DataValue(Variant.From(42)), null) },
+                PublishState.None, []);
+            owner.DataChanges.Clear();
+            adapter.NotifyConnectionState(disconnected: true);
+
+            adapter.Update([(owner, template with
+            {
+                HeartbeatInterval = TimeSpan.FromMinutes(10)
+            })]);
+            adapter.FlushHeartbeats(force: true);
+
+            var value = Assert.IsType<DataValue>(
+                Assert.Single(Assert.Single(owner.DataChanges).Notifications).Value);
+            Assert.Equal(StatusCodes.UncertainNoCommunicationLastUsableValue,
+                value.StatusCode);
+        }
+
+        [Fact]
+        public async Task HeartbeatTogglePreservesStatusRestorationAcrossReconnect()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            var template = CreateDataItem("ns=2;s=value") with
+            {
+                HeartbeatInterval = TimeSpan.FromMinutes(10)
+            };
+            adapter.Update([(owner, template)]);
+            var item = Assert.Single(manager.Subscription!.Collection.Items);
+            await manager.Handler.OnDataChangeNotificationAsync(manager.Subscription, 1,
+                DateTime.UtcNow,
+                new[] { new DataValueChange(item, new DataValue(Variant.From(42)), null) },
+                PublishState.None, []);
+            owner.DataChanges.Clear();
+
+            adapter.NotifyConnectionState(disconnected: true);
+            adapter.Update([(owner, template with { HeartbeatInterval = null })]);
+            adapter.NotifyConnectionState(disconnected: false);
+            adapter.Update([(owner, template)]);
+            adapter.FlushHeartbeats(force: true);
+
+            var value = Assert.IsType<DataValue>(
+                Assert.Single(Assert.Single(owner.DataChanges).Notifications).Value);
+            Assert.Equal(StatusCodes.Good, value.StatusCode);
+        }
+
+        [Fact]
+        public async Task FailedLastKnownGoodItemDisablesHeartbeatUntilRecovery()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            Assert.True(adapter.TryAdd(owner, CreateDataItem("ns=2;s=value") with
+            {
+                HeartbeatInterval = TimeSpan.FromMinutes(10),
+                HeartbeatBehavior = HeartbeatBehavior.WatchdogLKG
+            }));
+            var item = Assert.IsType<FakeMonitoredItem>(
+                Assert.Single(manager.Subscription!.Collection.Items));
+            await manager.Handler.OnDataChangeNotificationAsync(manager.Subscription, 1,
+                DateTime.UtcNow,
+                new[] { new DataValueChange(item, new DataValue(Variant.From(42)), null) },
+                PublishState.None, []);
+            owner.DataChanges.Clear();
+
+            item.Created = false;
+            item.Error = new ServiceResult(StatusCodes.BadNodeIdUnknown);
+            await manager.Handler.OnSubscriptionStateChangedAsync(manager.Subscription,
+                SubscriptionState.Modified, default);
+            adapter.FlushHeartbeats(force: true);
+            Assert.Empty(owner.DataChanges);
+            Assert.Equal(0, adapter.GetHeartbeatsEnabled(owner));
+
+            item.Created = true;
+            item.Error = ServiceResult.Good;
+            await manager.Handler.OnSubscriptionStateChangedAsync(manager.Subscription,
+                SubscriptionState.Modified, default);
+            adapter.FlushHeartbeats(force: true);
+            Assert.Single(owner.DataChanges);
+            Assert.Equal(1, adapter.GetHeartbeatsEnabled(owner));
+        }
+
+        [Fact]
+        public async Task LastKnownGoodHeartbeatSkipsBadValue()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            Assert.True(adapter.TryAdd(owner, CreateDataItem("ns=2;s=value") with
+            {
+                HeartbeatInterval = TimeSpan.FromMinutes(10),
+                HeartbeatBehavior = HeartbeatBehavior.WatchdogLKG
+            }));
+            var item = Assert.Single(manager.Subscription!.Collection.Items);
+
+            await manager.Handler.OnDataChangeNotificationAsync(manager.Subscription, 1,
+                DateTime.UtcNow,
+                new[] { new DataValueChange(item,
+                    DataValue.FromStatusCode(StatusCodes.BadNodeIdUnknown), null) },
+                PublishState.None, []);
+            owner.DataChanges.Clear();
+
+            adapter.FlushHeartbeats(force: true);
+
+            Assert.Empty(owner.DataChanges);
+        }
+
+        [Fact]
+        public async Task DiagnosticsOnlyHeartbeatDoesNotDeliverData()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            Assert.True(adapter.TryAdd(owner, CreateDataItem("ns=2;s=value") with
+            {
+                HeartbeatInterval = TimeSpan.FromMinutes(10),
+                HeartbeatBehavior = HeartbeatBehavior.WatchdogLKVDiagnosticsOnly
+            }));
+            var item = Assert.Single(manager.Subscription!.Collection.Items);
+
+            await manager.Handler.OnDataChangeNotificationAsync(manager.Subscription, 1,
+                DateTime.UtcNow,
+                new[] { new DataValueChange(item, new DataValue(Variant.From(42)), null) },
+                PublishState.None, []);
+            owner.DataChanges.Clear();
+            owner.DataDiagnostics.Clear();
+
+            adapter.FlushHeartbeats(force: true);
+
+            Assert.Empty(owner.DataChanges);
+            Assert.Equal(1, Assert.Single(owner.DataDiagnostics).Heartbeats);
+        }
+
+        [Fact]
         public async Task ReenablingAfterEmptyWaitsForMonitoredItemApplication()
         {
             var manager = new FakeSubscriptionManager();
@@ -1955,6 +2314,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public bool ThrowOnData { get; set; }
             public List<OpcUaSubscriptionNotification> DataChanges { get; } = [];
             public List<OpcUaSubscriptionNotification> Events { get; } = [];
+            public List<(bool LiveData, int ValueChanges, int Overflow, int Heartbeats)>
+                DataDiagnostics { get; } = [];
             public List<ServiceResultModel> Updates { get; } = [];
             public IEnumerable<BaseMonitoredItemModel> MonitoredItems => [];
 
@@ -1993,6 +2354,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public void OnSubscriptionDataDiagnosticsChange(bool liveData, int valueChanges,
                 int overflow, int heartbeats)
             {
+                DataDiagnostics.Add((liveData, valueChanges, overflow, heartbeats));
             }
 
             public void OnSubscriptionCyclicReadDiagnosticsChange(int valuesSampled, int overflow)

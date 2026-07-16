@@ -148,6 +148,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
+        /// Gets the number of active heartbeat items for an owner.
+        /// </summary>
+        internal int GetHeartbeatsEnabled(ISubscriber owner)
+        {
+            ArgumentNullException.ThrowIfNull(owner);
+            return GetBindings().Count(binding =>
+                binding.Owner.Equals(owner) && binding.HeartbeatEnabled);
+        }
+
+        /// <summary>
+        /// Updates cached heartbeat values for connection loss or recovery.
+        /// </summary>
+        internal void NotifyConnectionState(bool disconnected)
+        {
+            foreach (var binding in GetBindings())
+            {
+                binding.NotifyConnectionState(disconnected);
+            }
+        }
+
+        /// <summary>
         /// Adds a non-triggered Publisher monitored item to the V2 logical
         /// subscription.
         /// </summary>
@@ -462,6 +483,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
+        /// <summary>
+        /// Emits heartbeat notifications that are due.
+        /// </summary>
+        internal void FlushHeartbeats(bool force = false)
+        {
+            foreach (var binding in GetBindings().Where(binding => binding.HeartbeatEnabled))
+            {
+                EmitHeartbeat(binding, force);
+            }
+        }
+
         /// <inheritdoc/>
         public ValueTask OnDataChangeNotificationAsync(ISubscription subscription,
             uint sequenceNumber, DateTime publishTime,
@@ -469,15 +501,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             IReadOnlyList<string> stringTable)
         {
             var deliveries = new Dictionary<(ISubscriber Owner, bool Cyclic),
-                List<(ManagedSubscriptionItemBinding Binding, DataValue Value)>>();
+                List<(ManagedSubscriptionItemBinding Binding, DataValue Value,
+                    uint ItemSequenceNumber)>>();
             foreach (var change in notification.Span)
             {
-                if (!TryGetBinding(change.MonitoredItem, out var binding) ||
-                    binding.SkipFirstDataChange())
+                if (!TryGetBinding(change.MonitoredItem, out var binding))
                 {
                     continue;
                 }
-                binding.LastDataValue = Clone(change.Value);
+                var value = Clone(change.Value);
+                var itemSequenceNumber = binding.RecordDataChange(value,
+                    _timeProvider.GetUtcNow());
+                if (binding.SkipFirstDataChange() || binding.DropDataChange)
+                {
+                    continue;
+                }
                 var key = (binding.Owner, binding.Template is DataMonitoredItemModel data &&
                     data.SamplingUsingCyclicRead == true);
                 if (!deliveries.TryGetValue(key, out var changes))
@@ -485,7 +523,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     changes = [];
                     deliveries.Add(key, changes);
                 }
-                changes.Add((binding, change.Value));
+                changes.Add((binding, change.Value, itemSequenceNumber));
             }
 
             foreach (var ((owner, cyclic), changes) in deliveries)
@@ -495,11 +533,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     continue;
                 }
                 var keyFrameRequired = RequiresKeyFrame(owner);
+                var currentSequences = keyFrameRequired ? changes
+                    .GroupBy(change => change.Binding.Name, StringComparer.Ordinal)
+                    .ToDictionary(group => group.Key,
+                        group => group.Last().ItemSequenceNumber,
+                        StringComparer.Ordinal) : null;
                 var notifications = keyFrameRequired ? null : changes
-                    .Select(change => CreateDataNotification(change.Binding, change.Value))
+                    .Select(change => CreateDataNotification(change.Binding, change.Value,
+                        change.ItemSequenceNumber))
                     .ToList();
                 using var message = keyFrameRequired
-                    ? CreateKeyFrame(owner, publishTime, sequenceNumber)
+                    ? CreateKeyFrame(owner, publishTime, sequenceNumber,
+                        currentSequences)
                     : CreateNotification(notifications!, publishTime,
                         MessageType.DeltaFrame, sequenceNumber);
                 if (message == null)
@@ -641,6 +686,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 if (TryGetMonitoredItem(binding, out var monitoredItem))
                 {
+                    binding.UpdateMonitoredItemStatus(monitoredItem!);
                     InvokeSubscriber(binding.Owner, subscriber =>
                         subscriber.OnMonitoredItemUpdate(binding.Template,
                             ToServiceResult(monitoredItem!)));
@@ -719,11 +765,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     exceptions ??= [];
                     exceptions.Add(ex);
                 }
+                ManagedSubscriptionItemBinding[] bindings;
                 lock (_bindingsLock)
                 {
+                    bindings = [.. _bindingsByHandle.Values];
                     _bindingsByHandle.Clear();
                     _bindingsByName.Clear();
                     _ownerStates.Clear();
+                }
+                foreach (var binding in bindings)
+                {
+                    binding.Dispose();
                 }
                 try
                 {
@@ -878,18 +930,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             string name, string? rootName, IReadOnlyList<string> triggeredByNames,
             List<ManagedSubscriptionItemBinding> desired, bool includeTriggeredItems)
         {
+            var effective = template.SetDefaults(_options);
             var binding = TryGetBindingByName(name, out var current) ? current :
-                CreateBinding(name, owner, template, rootName, triggeredByNames);
-            binding.Update(owner, template, ManagedSubscriptionOptionsAdapter.ToManagedOptions(
-                template, _options, _codec, rootName ?? name, triggeredByNames));
+                CreateBinding(name, owner, effective, rootName, triggeredByNames);
+            binding.Update(owner, effective, ManagedSubscriptionOptionsAdapter.ToManagedOptions(
+                effective, _options, _codec, rootName ?? name, triggeredByNames));
             desired.Add(binding);
-            if (!includeTriggeredItems || template.TriggeredItems == null)
+            if (!includeTriggeredItems || effective.TriggeredItems == null)
             {
                 return;
             }
-            for (var index = 0; index < template.TriggeredItems.Count; index++)
+            for (var index = 0; index < effective.TriggeredItems.Count; index++)
             {
-                var child = template.TriggeredItems[index];
+                var child = effective.TriggeredItems[index];
                 AddDesiredBinding(owner, child, $"{name}/triggered/{index}:{GetNamePrefix(child)}",
                     rootName ?? name, [name], desired, true);
             }
@@ -918,6 +971,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     $"[{string.Join(", ", missing)}]; unexpected: " +
                     $"[{string.Join(", ", unexpected)}].");
             }
+            var previousBindings = GetBindings();
+            ManagedSubscriptionItemBinding[] removedBindings;
             lock (_bindingsLock)
             {
                 _bindingsByHandle.Clear();
@@ -931,17 +986,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         continue;
                     }
                     binding.ClientHandle = monitoredItem.ClientHandle;
-                    binding.Registered = true;
+                    binding.Activate();
                     _bindingsByHandle.Add(binding.ClientHandle, binding);
                     _bindingsByName.Add(binding.Name, binding);
                     GetOwnerState(binding.Owner).KeyFrameRequired = true;
                 }
                 PruneOwnerStates();
+                var activeBindings = _bindingsByHandle.Values.ToHashSet();
+                removedBindings = previousBindings
+                    .Where(binding => !activeBindings.Contains(binding))
+                    .ToArray();
+            }
+            foreach (var binding in removedBindings)
+            {
+                binding.Dispose();
             }
             foreach (var binding in GetBindings())
             {
                 if (TryGetMonitoredItem(binding, out var monitoredItem))
                 {
+                    binding.UpdateMonitoredItemStatus(monitoredItem!);
                     InvokeSubscriber(binding.Owner, subscriber =>
                         subscriber.OnMonitoredItemUpdate(binding.Template,
                             ToServiceResult(monitoredItem!)));
@@ -1015,6 +1079,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             if (!_subscription.MonitoredItems.TryAdd(binding.Name, binding.Monitor,
                 out monitoredItem) || monitoredItem == null)
             {
+                binding.Dispose();
                 return false;
             }
             lock (_bindingsLock)
@@ -1023,16 +1088,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _bindingsByName.ContainsKey(binding.Name))
                 {
                     _subscription.MonitoredItems.TryRemove(monitoredItem.ClientHandle);
+                    binding.Dispose();
                     monitoredItem = null;
                     return false;
                 }
                 binding.ClientHandle = monitoredItem.ClientHandle;
-                binding.Registered = true;
+                binding.Activate();
                 _bindingsByHandle.Add(binding.ClientHandle, binding);
                 _bindingsByName.Add(binding.Name, binding);
                 GetOwnerState(binding.Owner).KeyFrameRequired = true;
             }
             var createdMonitoredItem = monitoredItem;
+            binding.UpdateMonitoredItemStatus(createdMonitoredItem);
             InvokeSubscriber(binding.Owner, subscriber =>
                 subscriber.OnMonitoredItemUpdate(binding.Template,
                     ToServiceResult(createdMonitoredItem!)));
@@ -1056,6 +1123,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _bindingsByName.Remove(binding.Name);
                 PruneOwnerStates();
             }
+            binding.Dispose();
         }
 
         private IEnumerable<ManagedSubscriptionItemBinding> GetDescendants(
@@ -1502,7 +1570,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             return new ManagedSubscriptionItemBinding(name, owner, effective,
                 ManagedSubscriptionOptionsAdapter.ToManagedOptions(effective, _options, _codec,
                     rootName ?? name, triggeredByNames),
-                rootName ?? name, triggeredByNames);
+                rootName ?? name, triggeredByNames, _timeProvider,
+                OnHeartbeatTimer);
+        }
+
+        private void OnHeartbeatTimer(ManagedSubscriptionItemBinding binding)
+        {
+            try
+            {
+                EmitHeartbeat(binding);
+            }
+            catch (Exception ex)
+            {
+                _logger.HeartbeatFailed(ex, binding.Name);
+            }
         }
 
         private async ValueTask ProcessModelChangeAsync(ManagedSubscriptionItemBinding binding,
@@ -1644,7 +1725,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         private MonitoredItemNotificationModel CreateDataNotification(
-            ManagedSubscriptionItemBinding binding, DataValue value)
+            ManagedSubscriptionItemBinding binding, DataValue value,
+            uint? sequenceNumber = null)
         {
             return new MonitoredItemNotificationModel
             {
@@ -1655,8 +1737,113 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Value = Clone(value),
                 Flags = 0,
                 Overflow = value.StatusCode.Overflow ? 1 : 0,
-                SequenceNumber = binding.NextSequenceNumber()
+                SequenceNumber = sequenceNumber ?? binding.NextSequenceNumber()
             };
+        }
+
+        private void EmitHeartbeat(ManagedSubscriptionItemBinding binding, bool force = false)
+        {
+            if (Volatile.Read(ref _disposed) != 0 ||
+                !TryGetBindingByName(binding.Name, out var current) ||
+                !ReferenceEquals(current, binding) ||
+                !IsLiveOwner(binding.Owner) ||
+                !binding.TryCaptureHeartbeat(_timeProvider.GetUtcNow(), force,
+                    out var heartbeat))
+            {
+                return;
+            }
+
+            var value = heartbeat.Value;
+            if ((heartbeat.Behavior & HeartbeatBehavior.WatchdogLKG) ==
+                HeartbeatBehavior.WatchdogLKG && !IsGoodDataValue(value))
+            {
+                return;
+            }
+            if (!value.HasValue && TryGetMonitoredItem(binding, out var monitoredItem) &&
+                ServiceResult.IsNotGood(monitoredItem!.Error))
+            {
+                value = DataValue.FromStatusCode(monitoredItem.Error.StatusCode);
+            }
+            if (!value.HasValue)
+            {
+                return;
+            }
+
+            var heartbeatValue = value.Value;
+            if ((heartbeat.Behavior &
+                HeartbeatBehavior.WatchdogLKVWithUpdatedTimestamps) ==
+                HeartbeatBehavior.WatchdogLKVWithUpdatedTimestamps)
+            {
+                var elapsed = heartbeat.ReceivedAt.HasValue ?
+                    heartbeat.SignalTime - heartbeat.ReceivedAt.Value : TimeSpan.Zero;
+                heartbeatValue = new DataValue(heartbeatValue.WrappedValue,
+                    heartbeatValue.StatusCode,
+                    heartbeatValue.SourceTimestamp == DateTimeUtc.MinValue ?
+                        DateTimeUtc.MinValue :
+                        heartbeatValue.SourceTimestamp.ToDateTime().Add(elapsed),
+                    heartbeatValue.ServerTimestamp == DateTimeUtc.MinValue ?
+                        DateTimeUtc.MinValue :
+                        heartbeatValue.ServerTimestamp.ToDateTime().Add(elapsed),
+                    heartbeatValue.SourcePicoseconds,
+                    heartbeatValue.ServerPicoseconds);
+            }
+
+            if (!binding.IsHeartbeatCurrent(heartbeat.ItemSequenceNumber))
+            {
+                return;
+            }
+            var notification = new MonitoredItemNotificationModel
+            {
+                Id = binding.Template.DataSetFieldId ?? string.Empty,
+                DataSetFieldName = binding.Template.DisplayName,
+                DataSetName = binding.Template.DisplayName,
+                NodeId = binding.Template.StartNodeId,
+                Value = Clone(heartbeatValue),
+                Flags = MonitoredItemSourceFlags.Heartbeat,
+                Overflow = 0,
+                SequenceNumber = heartbeat.ItemSequenceNumber
+            };
+            using var message = new OpcUaSubscriptionNotification(
+                heartbeat.SignalTime, _codec.Context as ServiceMessageContext,
+                [notification], keyFrameSnapshotProvider: this)
+            {
+                MessageType = MessageType.DeltaFrame,
+                SequenceNumber = NextSequenceNumber()
+            };
+            var diagnosticsOnly = (heartbeat.Behavior &
+                HeartbeatBehavior.WatchdogLKVDiagnosticsOnly) ==
+                HeartbeatBehavior.WatchdogLKVDiagnosticsOnly;
+            if (!TryGetBindingByName(binding.Name, out current) ||
+                !ReferenceEquals(current, binding) ||
+                !IsLiveOwner(binding.Owner) ||
+                !binding.IsHeartbeatCurrent(heartbeat.ItemSequenceNumber))
+            {
+                return;
+            }
+            if (!diagnosticsOnly)
+            {
+                Deliver(binding.Owner, message,
+                    static (subscriber, heartbeatNotification) =>
+                        subscriber.OnSubscriptionDataChangeReceived(heartbeatNotification));
+            }
+            if (IsLiveOwner(binding.Owner))
+            {
+                InvokeSubscriber(binding.Owner, subscriber =>
+                    subscriber.OnSubscriptionDataDiagnosticsChange(false, 1,
+                        notification.Overflow, 1));
+            }
+        }
+
+        private static bool IsGoodDataValue(DataValue? value)
+        {
+            if (!value.HasValue)
+            {
+                return false;
+            }
+            var dataValue = value.Value;
+            return dataValue.StatusCode == StatusCodes.Good ||
+                dataValue.WrappedValue != Variant.Null &&
+                !StatusCode.IsBad(dataValue.StatusCode);
         }
 
         private void AddEventNotifications(List<MonitoredItemNotificationModel> notifications,
@@ -1684,9 +1871,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         private OpcUaSubscriptionNotification? CreateKeyFrame(ISubscriber owner,
-            DateTime publishTime, uint? publishSequenceNumber = null)
+            DateTime publishTime, uint? publishSequenceNumber = null,
+            IReadOnlyDictionary<string, uint>? currentSequences = null)
         {
-            if (!TryGetKeyFrameNotifications(owner, out var values))
+            if (!TryGetKeyFrameNotifications(owner, out var values,
+                currentSequences))
             {
                 return null;
             }
@@ -1695,7 +1884,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         private bool TryGetKeyFrameNotifications(ISubscriber owner,
-            [NotNullWhen(true)] out IList<MonitoredItemNotificationModel>? notifications)
+            [NotNullWhen(true)] out IList<MonitoredItemNotificationModel>? notifications,
+            IReadOnlyDictionary<string, uint>? currentSequences = null)
         {
             notifications = null;
             if (!IsLiveOwner(owner))
@@ -1704,9 +1894,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             var values = GetBindings()
                 .Where(binding => binding.Owner.Equals(owner) &&
-                    binding.Template is DataMonitoredItemModel)
+                    binding.Template is DataMonitoredItemModel &&
+                    !binding.DropDataChange)
                 .Select(binding => CreateDataNotification(binding,
-                    binding.LastDataValue ?? DataValue.FromStatusCode(StatusCodes.BadNoData)))
+                    binding.LastDataValue ?? DataValue.FromStatusCode(StatusCodes.BadNoData),
+                    currentSequences?.TryGetValue(binding.Name, out var sequenceNumber) == true ?
+                        sequenceNumber : null))
                 .ToList();
             if (values.Count == 0)
             {
@@ -1958,12 +2151,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public MutableOptionsMonitor<MonitoredItemOptions> Monitor { get; }
             public IReadOnlyList<string?> EventFieldNames { get; private set; }
             public ConditionState? Condition { get; private set; }
-            public DataValue? LastDataValue { get; set; }
-            public bool Registered { get; set; }
+            public DataValue? LastDataValue
+            {
+                get
+                {
+                    lock (_dataLock)
+                    {
+                        return _lastDataValue;
+                    }
+                }
+            }
+            public bool Registered { get; private set; }
+            public bool HeartbeatEnabled => _heartbeat?.Enabled == true;
+            public bool DropDataChange => _heartbeat?.DropDataChange == true;
 
             public ManagedSubscriptionItemBinding(string name, ISubscriber owner,
                 BaseMonitoredItemModel template, MonitoredItemOptions options,
-                string rootName, IReadOnlyList<string> triggeredByNames)
+                string rootName, IReadOnlyList<string> triggeredByNames,
+                TimeProvider timeProvider,
+                Action<ManagedSubscriptionItemBinding> heartbeatCallback)
             {
                 Name = name;
                 Owner = owner;
@@ -1972,6 +2178,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 ParentName = triggeredByNames.Count == 0 ? null : triggeredByNames[0];
                 Monitor = new MutableOptionsMonitor<MonitoredItemOptions>(options);
                 (EventFieldNames, Condition) = CreateEventLayout(template, options);
+                _timeProvider = timeProvider;
+                _heartbeatCallback = heartbeatCallback;
+                UpdateHeartbeat(template);
             }
 
             public void Update(ISubscriber owner, BaseMonitoredItemModel template,
@@ -1989,12 +2198,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         !ReferenceEquals(Monitor.CurrentValue.Filter, options.Filter));
                 if (itemIdentityChanged)
                 {
-                    LastDataValue = null;
+                    lock (_dataLock)
+                    {
+                        _lastDataValue = null;
+                        _lastDataReceivedAt = null;
+                        _lastDataSequenceNumber = 0;
+                        _lastConnectedStatusCode = null;
+                        _heartbeat?.Reset();
+                    }
                     Interlocked.Exchange(ref _firstDataChange, 0);
                 }
                 Owner = owner;
                 Template = template;
                 Monitor.Update(options);
+                UpdateHeartbeat(template);
                 if (conditionChanged && Condition != null)
                 {
                     lock (Condition._lock)
@@ -2003,6 +2220,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         Condition.Refreshing = true;
                     }
                 }
+
                 (EventFieldNames, Condition) = CreateEventLayout(template, options,
                     conditionChanged ? null : Condition);
                 if (conditionChanged && Condition != null)
@@ -2010,6 +2228,83 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     Condition.Refreshing = true;
                     Condition.RefreshRequested = true;
                 }
+            }
+
+            public void Activate()
+            {
+                Registered = true;
+                _heartbeat?.SetActive(true);
+            }
+
+            public void Dispose()
+            {
+                Registered = false;
+                _heartbeat?.Dispose();
+                _heartbeat = null;
+            }
+
+            public uint RecordDataChange(DataValue value, DateTimeOffset receivedAt)
+            {
+                var sequenceNumber = NextSequenceNumber();
+                lock (_dataLock)
+                {
+                    _lastDataValue = value;
+                    _lastDataReceivedAt = receivedAt;
+                    _lastDataSequenceNumber = sequenceNumber;
+                    _lastConnectedStatusCode = null;
+                    _heartbeat?.Record(value, receivedAt, sequenceNumber);
+                }
+                return sequenceNumber;
+            }
+
+            public void NotifyConnectionState(bool disconnected)
+            {
+                lock (_dataLock)
+                {
+                    if (!_lastDataValue.HasValue)
+                    {
+                        return;
+                    }
+                    var value = _lastDataValue.Value;
+                    if (disconnected)
+                    {
+                        _lastConnectedStatusCode ??= value.StatusCode;
+                        value = HeartbeatState.WithStatusCode(value,
+                            IsGoodDataValue(value) ?
+                                StatusCodes.UncertainNoCommunicationLastUsableValue :
+                                StatusCodes.BadNoCommunication);
+                    }
+                    else if (_lastConnectedStatusCode.HasValue)
+                    {
+                        value = HeartbeatState.WithStatusCode(value,
+                            _lastConnectedStatusCode.Value);
+                        _lastConnectedStatusCode = null;
+                    }
+                    _lastDataValue = value;
+                    _heartbeat?.ReplaceValue(value);
+                }
+            }
+
+            public void UpdateMonitoredItemStatus(IMonitoredItem monitoredItem)
+            {
+                _heartbeat?.SetApplied(monitoredItem.Created &&
+                    ServiceResult.IsGood(monitoredItem.Error));
+            }
+
+            public bool TryCaptureHeartbeat(DateTimeOffset signalTime, bool force,
+                out HeartbeatSnapshot heartbeat)
+            {
+                if (_heartbeat != null)
+                {
+                    return _heartbeat.TryCapture(signalTime, force, out heartbeat);
+                }
+                heartbeat = default;
+                return false;
+            }
+
+            public bool IsHeartbeatCurrent(uint sequenceNumber)
+            {
+                return _heartbeat?.IsCurrent(sequenceNumber) == true;
             }
 
             public bool SkipFirstDataChange()
@@ -2021,6 +2316,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public uint NextSequenceNumber()
             {
                 return SequenceNumber.Increment32(ref _sequenceNumber);
+            }
+
+            private void UpdateHeartbeat(BaseMonitoredItemModel template)
+            {
+                lock (_dataLock)
+                {
+                    if (template is not DataMonitoredItemModel data ||
+                        data.SamplingUsingCyclicRead == true ||
+                        data.HeartbeatInterval is not { } interval ||
+                        interval <= TimeSpan.Zero)
+                    {
+                        _heartbeat?.Dispose();
+                        _heartbeat = null;
+                        return;
+                    }
+                    var created = _heartbeat == null;
+                    _heartbeat ??= new HeartbeatState(_timeProvider,
+                        () => _heartbeatCallback(this));
+                    _heartbeat.Update(interval,
+                        data.HeartbeatBehavior ?? HeartbeatBehavior.WatchdogLKV,
+                        Registered);
+                    if (created && _lastDataValue.HasValue &&
+                        _lastDataReceivedAt.HasValue)
+                    {
+                        _heartbeat.Record(_lastDataValue.Value,
+                            _lastDataReceivedAt.Value,
+                            _lastDataSequenceNumber);
+                    }
+                }
             }
 
             private static (IReadOnlyList<string?> Fields, ConditionState? Condition) CreateEventLayout(
@@ -2101,6 +2425,258 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             private int _firstDataChange;
             private uint _sequenceNumber;
+            private HeartbeatState? _heartbeat;
+            private DataValue? _lastDataValue;
+            private DateTimeOffset? _lastDataReceivedAt;
+            private uint _lastDataSequenceNumber;
+            private StatusCode? _lastConnectedStatusCode;
+            private readonly Lock _dataLock = new();
+            private readonly TimeProvider _timeProvider;
+            private readonly Action<ManagedSubscriptionItemBinding> _heartbeatCallback;
+        }
+
+        private readonly record struct HeartbeatSnapshot(
+            DataValue? Value,
+            DateTimeOffset? ReceivedAt,
+            DateTimeOffset SignalTime,
+            HeartbeatBehavior Behavior,
+            uint ItemSequenceNumber);
+
+        private sealed class HeartbeatState : IDisposable
+        {
+            public bool Enabled
+            {
+                get
+                {
+                    lock (_lock)
+                    {
+                        return _enabled;
+                    }
+                }
+            }
+
+            public bool DropDataChange
+            {
+                get
+                {
+                    lock (_lock)
+                    {
+                        return (_behavior & HeartbeatBehavior.Reserved) != 0;
+                    }
+                }
+            }
+
+            public HeartbeatState(TimeProvider timeProvider, Action callback)
+            {
+                _timeProvider = timeProvider;
+                _callback = callback;
+            }
+
+            public void Update(TimeSpan interval, HeartbeatBehavior behavior, bool active)
+            {
+                lock (_lock)
+                {
+                    if (_disposed)
+                    {
+                        return;
+                    }
+                    var changed = _interval != interval || _behavior != behavior;
+                    _interval = interval;
+                    _behavior = behavior;
+                    _registered = active;
+                    ReconcileTimer(changed);
+                }
+            }
+
+            public void SetActive(bool active)
+            {
+                lock (_lock)
+                {
+                    if (_disposed || _registered == active)
+                    {
+                        return;
+                    }
+                    _registered = active;
+                    ReconcileTimer(restart: true);
+                }
+            }
+
+            public void SetApplied(bool applied)
+            {
+                lock (_lock)
+                {
+                    if (_disposed || _applied == applied)
+                    {
+                        return;
+                    }
+                    _applied = applied;
+                    ReconcileTimer(restart: applied);
+                }
+            }
+
+            public void Record(DataValue value, DateTimeOffset receivedAt,
+                uint sequenceNumber)
+            {
+                lock (_lock)
+                {
+                    if (_disposed)
+                    {
+                        return;
+                    }
+                    _lastValue = value;
+                    _lastReceivedAt = receivedAt;
+                    _lastSequenceNumber = sequenceNumber;
+                    if (_enabled &&
+                        (_behavior & HeartbeatBehavior.PeriodicLKV) == 0)
+                    {
+                        ArmTimer();
+                    }
+                }
+            }
+
+            public void Reset()
+            {
+                lock (_lock)
+                {
+                    _lastValue = null;
+                    _lastReceivedAt = null;
+                    _lastSequenceNumber = 0;
+                    if (_enabled)
+                    {
+                        ArmTimer();
+                    }
+                }
+            }
+
+            public void ReplaceValue(DataValue value)
+            {
+                lock (_lock)
+                {
+                    _lastValue = value;
+                }
+            }
+
+            public bool TryCapture(DateTimeOffset signalTime, bool force,
+                out HeartbeatSnapshot heartbeat)
+            {
+                lock (_lock)
+                {
+                    if (_disposed || !_enabled)
+                    {
+                        heartbeat = default;
+                        return false;
+                    }
+                    if (!force)
+                    {
+                        var elapsed = _timeProvider.GetElapsedTime(_armedTimestamp);
+                        if (elapsed < _interval)
+                        {
+                            _timer!.Change(_interval - elapsed,
+                                Timeout.InfiniteTimeSpan);
+                            heartbeat = default;
+                            return false;
+                        }
+                    }
+                    ArmTimer();
+                    heartbeat = new HeartbeatSnapshot(_lastValue,
+                        _lastReceivedAt, signalTime, _behavior,
+                        _lastSequenceNumber);
+                    return true;
+                }
+            }
+
+            public bool IsCurrent(uint sequenceNumber)
+            {
+                lock (_lock)
+                {
+                    return !_disposed && _enabled &&
+                        _lastSequenceNumber == sequenceNumber;
+                }
+            }
+
+            public void Dispose()
+            {
+                lock (_lock)
+                {
+                    if (_disposed)
+                    {
+                        return;
+                    }
+                    _disposed = true;
+                    DisableTimer();
+                }
+            }
+
+            private void EnableTimer(bool restart)
+            {
+                if (_timer == null)
+                {
+                    _timer = _timeProvider.CreateTimer(_ => _callback(), null,
+                        Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+                    restart = true;
+                }
+                _enabled = true;
+                if (restart)
+                {
+                    ArmTimer();
+                }
+            }
+
+            private void ArmTimer()
+            {
+                _armedTimestamp = _timeProvider.GetTimestamp();
+                _timer!.Change(_interval, Timeout.InfiniteTimeSpan);
+            }
+
+            private void DisableTimer()
+            {
+                _enabled = false;
+                _timer?.Dispose();
+                _timer = null;
+            }
+
+            private void ReconcileTimer(bool restart)
+            {
+                var shouldEnable = _registered &&
+                    (!RequiresGoodValue(_behavior) || _applied);
+                if (!shouldEnable)
+                {
+                    DisableTimer();
+                }
+                else
+                {
+                    EnableTimer(restart);
+                }
+            }
+
+            private static bool RequiresGoodValue(HeartbeatBehavior behavior)
+            {
+                return (behavior & HeartbeatBehavior.WatchdogLKG) ==
+                    HeartbeatBehavior.WatchdogLKG;
+            }
+
+            public static DataValue WithStatusCode(in DataValue value,
+                StatusCode statusCode)
+            {
+                return new DataValue(value.WrappedValue, statusCode,
+                    value.SourceTimestamp, value.ServerTimestamp,
+                    value.SourcePicoseconds, value.ServerPicoseconds);
+            }
+
+            private readonly Lock _lock = new();
+            private readonly TimeProvider _timeProvider;
+            private readonly Action _callback;
+            private ITimer? _timer;
+            private DataValue? _lastValue;
+            private DateTimeOffset? _lastReceivedAt;
+            private long _armedTimestamp;
+            private TimeSpan _interval;
+            private HeartbeatBehavior _behavior;
+            private uint _lastSequenceNumber;
+            private bool _registered;
+            private bool _applied;
+            private bool _enabled;
+            private bool _disposed;
         }
 
         private sealed class ConditionState
@@ -2345,5 +2921,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Message = "The model-change browser failed for {Subscriber}.")]
         public static partial void ModelChangeBrowserFailed(this ILogger logger,
             Exception exception, string subscriber);
+
+        [LoggerMessage(EventId = 1123, Level = LogLevel.Error,
+            Message = "Managed heartbeat failed for {Item}.")]
+        public static partial void HeartbeatFailed(this ILogger logger,
+            Exception exception, string item);
     }
 }
