@@ -18,6 +18,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Threading.Channels;
     using System.Threading.Tasks;
 
+    internal interface IStartableOpcUaBrowser : IOpcUaBrowser
+    {
+        void Start();
+        void OnConnected();
+    }
+
     internal sealed partial class OpcUaClient
     {
         /// <summary>
@@ -35,7 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Browser utility class
         /// </summary>
-        private sealed class Browser : IAsyncDisposable, IOpcUaBrowser
+        internal sealed class Browser : IAsyncDisposable, IStartableOpcUaBrowser
         {
             /// <summary>
             /// Reference changes
@@ -50,22 +56,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <summary>
             /// Create browser
             /// </summary>
-            /// <param name="client"></param>
-            /// <param name="subscriptionId"></param>
+            /// <param name="sessionProvider"></param>
+            /// <param name="isConnected"></param>
+            /// <param name="logger"></param>
+            /// <param name="timeProvider"></param>
             /// <param name="browseDelay"></param>
-            private Browser(OpcUaClient client, string subscriptionId, TimeSpan browseDelay)
+            /// <param name="registryGate"></param>
+            /// <param name="remove"></param>
+            private Browser(Func<ISession?> sessionProvider, Func<bool> isConnected,
+                ILogger logger, TimeProvider timeProvider, TimeSpan browseDelay,
+                object registryGate, Func<Browser, bool> remove)
             {
-                _client = client;
-                _logger = client._logger;
-                _subscriptionId = subscriptionId;
+                _sessionProvider = sessionProvider;
+                _isConnected = isConnected;
+                _logger = logger;
+                _timeProvider = timeProvider;
                 _browseDelay = browseDelay == TimeSpan.Zero ? Timeout.InfiniteTimeSpan : browseDelay;
+                _registryGate = registryGate;
+                _remove = remove;
                 _channel = Channel.CreateUnbounded<bool>();
 
                 // Order is important
-                _rebrowseTimer = _client._timeProvider.CreateTimer(_ => _channel.Writer.TryWrite(true),
+                _rebrowseTimer = _timeProvider.CreateTimer(_ => _channel.Writer.TryWrite(true),
                     null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
                 _browser = RunAsync(_cts.Token);
-                _channel.Writer.TryWrite(true);
             }
 
             /// <inheritdoc/>
@@ -103,7 +117,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <inheritdoc/>
             public void Rebrowse()
             {
-                _channel.Writer.TryWrite(true);
+                if (Volatile.Read(ref _started) != 0)
+                {
+                    _channel.Writer.TryWrite(true);
+                }
+            }
+
+            /// <inheritdoc/>
+            public void Start()
+            {
+                if (Interlocked.Exchange(ref _started, 1) == 0)
+                {
+                    _channel.Writer.TryWrite(true);
+                }
             }
 
             /// <summary>
@@ -111,7 +137,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// </summary>
             public void OnConnected()
             {
-                _channel.Writer.TryWrite(false);
+                if (Volatile.Read(ref _started) != 0)
+                {
+                    _channel.Writer.TryWrite(false);
+                }
             }
 
             /// <summary>
@@ -137,7 +166,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         _rebrowseTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
                         try
                         {
-                            var session = _client._session;
+                            var session = _sessionProvider();
                             if (session?.Connected != true)
                             {
                                 continue;
@@ -153,7 +182,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         catch (ServiceResultException sre)
                         {
                             _logger.BrowserBrowsingCompletedWithError(sre.Message, sw.Elapsed, _referencesAdded, _referencesRemoved, _nodesAdded, _nodesChanged, _nodesRemoved, _errors);
-                            if (!_client.IsConnected)
+                            if (!_isConnected())
                             {
                                 _logger.BrowserNotConnectedWaiting();
                                 continue;
@@ -192,7 +221,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="session"></param>
             /// <param name="ct"></param>
             /// <returns></returns>
-            private async Task BrowseAddressSpaceAsync(OpcUaSession session, CancellationToken ct)
+            private async Task BrowseAddressSpaceAsync(ISession session, CancellationToken ct)
             {
                 var browseDescriptionCollection = CreateBrowseDescriptionCollection(
                     (ObjectIds.RootFolder, new RelativePath()).YieldReturn());
@@ -212,7 +241,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         bool repeatBrowse;
                         var allBrowseResults = new List<(NodeId, RelativePath, BrowseResult)>();
                         var unprocessedOperations = new BrowseDescriptionCollection();
-                        IReadOnlyList<BrowseResult>? browseResultCollection = null;
+                        BrowseResult[] browseResultCollection = [];
                         do
                         {
                             var browseCollection = maxNodesPerBrowse == 0
@@ -230,7 +259,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     browseResponse.DiagnosticInfos.ToArray() ?? [], browseCollection);
 
                                 // seperate unprocessed nodes for later
-                                for (var index = 0; index < browseResultCollection.Count; index++)
+                                for (var index = 0; index < browseResultCollection.Length; index++)
                                 {
                                     var browseResult = browseResultCollection[index];
 
@@ -252,7 +281,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                     }
                                     // save results.
                                     allBrowseResults.Add((browseCollection[index].NodeId,
-                                        (RelativePath)browseCollection[index].Handle, browseResult));
+                                        browseCollection[index].Handle as RelativePath ??
+                                            new RelativePath(), browseResult));
                                 }
                             }
                             catch (ServiceResultException sre) when
@@ -268,14 +298,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         while (repeatBrowse);
 
                         // Browse next
-                        Debug.Assert(browseResultCollection != null);
-                        if (browseResultCollection == null)
-                        {
-                            break;
-                        }
                         var (nodeIds, continuationPoints) = PrepareBrowseNext(
                             new NodeIdCollection(browseDescriptionCollection
-                                .Take(browseResultCollection.Count).Select(r => r.NodeId)),
+                                .Take(browseResultCollection.Length).Select(r => r.NodeId)),
                             browseResultCollection);
                         while (continuationPoints.Count != 0)
                         {
@@ -288,7 +313,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                             allBrowseResults.AddRange(browseNextResultCollection
                                 .Select((r, i) => (browseDescriptionCollection[i].NodeId,
-                                    (RelativePath)browseDescriptionCollection[i].Handle, r)));
+                                    browseDescriptionCollection[i].Handle as RelativePath ??
+                                        new RelativePath(), r)));
                             (nodeIds, continuationPoints) = PrepareBrowseNext(nodeIds, browseNextResultCollection);
                         }
 
@@ -299,7 +325,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         else
                         {
                             browseDescriptionCollection = new BrowseDescriptionCollection(
-                                browseDescriptionCollection.Skip(browseResultCollection.Count));
+                                browseDescriptionCollection.Skip(browseResultCollection.Length));
                         }
 
                         static (NodeIdCollection, ByteStringCollection) PrepareBrowseNext(
@@ -443,7 +469,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="foundNodes"></param>
             /// <param name="ct"></param>
             /// <returns></returns>
-            private async ValueTask ReadNodeAsync(OpcUaSession session, NodeId targetNodeId,
+            private async ValueTask ReadNodeAsync(ISession session, NodeId targetNodeId,
                 RelativePath targetPath, Dictionary<NodeId, (RelativePath Path, Node Node)> foundNodes,
                 CancellationToken ct)
             {
@@ -490,7 +516,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private Change<T> CreateChange<T>(NodeId source, RelativePath path, T? existing, T? New) where T : class
             {
                 return new(source, path, existing, New, Interlocked.Increment(ref _sequenceNumber),
-                    _client._timeProvider.GetUtcNow());
+                    _timeProvider.GetUtcNow());
             }
 
             /// <summary>
@@ -504,10 +530,43 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 lock (outer._browsers)
                 {
-                    if (!outer._browsers.TryGetValue((subscriptionId, rebrowsePeriod), out var browser))
+                    var key = (subscriptionId, rebrowsePeriod);
+                    if (!outer._browsers.TryGetValue(key, out var browser))
                     {
-                        browser = new Browser(outer, subscriptionId, rebrowsePeriod);
-                        outer._browsers.Add((subscriptionId, rebrowsePeriod), browser);
+                        browser = new Browser(() => outer._session, () => outer.IsConnected,
+                            outer._logger, outer._timeProvider, rebrowsePeriod, outer._browsers,
+                            current => outer._browsers.TryGetValue(key, out var registered) &&
+                                ReferenceEquals(current, registered) &&
+                                outer._browsers.Remove(key));
+                        outer._browsers.Add(key, browser);
+                    }
+                    browser.AddRef();
+                    return browser;
+                }
+            }
+
+            /// <summary>
+            /// Register a browser over a stable managed session.
+            /// </summary>
+            internal static Browser Register(ISession session, ILogger logger,
+                TimeProvider timeProvider, Dictionary<(string, TimeSpan), Browser> browsers,
+                TimeSpan rebrowsePeriod, string subscriptionId)
+            {
+                ArgumentNullException.ThrowIfNull(session);
+                ArgumentNullException.ThrowIfNull(logger);
+                ArgumentNullException.ThrowIfNull(timeProvider);
+                ArgumentNullException.ThrowIfNull(browsers);
+                lock (browsers)
+                {
+                    var key = (subscriptionId, rebrowsePeriod);
+                    if (!browsers.TryGetValue(key, out var browser))
+                    {
+                        browser = new Browser(() => session, () => session.Connected,
+                            logger, timeProvider, rebrowsePeriod, browsers,
+                            current => browsers.TryGetValue(key, out var registered) &&
+                                ReferenceEquals(current, registered) &&
+                                browsers.Remove(key));
+                        browsers.Add(key, browser);
                     }
                     browser.AddRef();
                     return browser;
@@ -519,8 +578,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// </summary>
             private void AddRef()
             {
-                _refCount++;
-                _channel.Writer.TryWrite(false); // Ensure we start a rebrowse in 10
+                var started = false;
+                lock (_registryGate)
+                {
+                    _refCount++;
+                    started = Volatile.Read(ref _started) != 0;
+                }
+                if (started)
+                {
+                    _channel.Writer.TryWrite(false); // Ensure we start a rebrowse in 10
+                }
             }
 
             /// <summary>
@@ -529,21 +596,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <returns></returns>
             private bool Release()
             {
-                var cleanup = false;
-                lock (_client._browsers)
+                lock (_registryGate)
                 {
-                    if (--_refCount == 0 && _client._browsers.Remove((_subscriptionId, _browseDelay)))
-                    {
-                        cleanup = true;
-                    }
+                    return --_refCount == 0 && _remove(this);
                 }
-                return cleanup;
             }
 
             private const int kMaxSearchDepth = 128;
             private const int kMaxReferencesPerNode = 1000;
 
             private bool _disposed;
+            private int _started;
             private uint _sequenceNumber;
             private int _refCount;
             private int _referencesAdded;
@@ -555,14 +618,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private Dictionary<NodeId, (RelativePath, Node)> _knownNodes = [];
             private Dictionary<ReferenceDescription, (NodeId, RelativePath)> _knownReferences =
                 new(Compare.Using<ReferenceDescription>(Utils.IsEqual));
-            private readonly string _subscriptionId;
             private readonly Task _browser;
-            private readonly OpcUaClient _client;
+            private readonly Func<ISession?> _sessionProvider;
+            private readonly Func<bool> _isConnected;
             private readonly ILogger _logger;
+            private readonly TimeProvider _timeProvider;
             private readonly Channel<bool> _channel;
             private readonly ITimer _rebrowseTimer;
             private readonly CancellationTokenSource _cts = new();
             private readonly TimeSpan _browseDelay;
+            private readonly object _registryGate;
+            private readonly Func<Browser, bool> _remove;
         }
     }
 

@@ -242,6 +242,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Assert.False(subscriptions.Object.PoolNotifications);
         }
 
+        [Fact]
+        public async Task FacadeSharesModelChangeBrowserBySubscriptionAndPeriodAsync()
+        {
+            var session = CreateSession(out _, out _);
+            var connection = new FakeConnection(session.Object);
+            await using var facade = new ManagedOpcUaSession(connection, CreateTelemetry());
+
+            var first = facade.CreateBrowser(TimeSpan.Zero, "subscription",
+                NullLogger.Instance);
+            var second = facade.CreateBrowser(TimeSpan.Zero, "subscription",
+                NullLogger.Instance);
+
+            Assert.Same(first, second);
+            await first.CloseAsync();
+            await second.CloseAsync();
+        }
+
         /// <summary>
         /// A disconnected managed session does not try to load complex types.
         /// </summary>

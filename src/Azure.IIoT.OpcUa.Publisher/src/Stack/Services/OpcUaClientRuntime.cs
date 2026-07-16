@@ -219,19 +219,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     {
         public ManagedSessionRuntimeStrategy(IManagedSessionProvider provider,
             ITelemetryContext telemetry, IManagedSessionRequestFactory? requestFactory = null,
-            ManagedSessionPoolOptions? options = null, TimeProvider? timeProvider = null,
-            IModelChangeRebrowseSink? modelChangeSink = null)
+            ManagedSessionPoolOptions? options = null, TimeProvider? timeProvider = null)
         {
             _pool = new ManagedSessionPool(provider, telemetry, options, timeProvider);
             _requestFactory = requestFactory;
-            _modelChangeSink = modelChangeSink ?? NoOpModelChangeRebrowseSink.Instance;
         }
 
         public IOpcUaClientRuntime Create(OpcUaClientRuntimeContext context)
         {
             return new ManagedOpcUaClient(context, _pool,
                 _requestFactory ?? new DefaultManagedSessionRequestFactory(
-                    context.EndpointSelector), _modelChangeSink);
+                    context.EndpointSelector));
         }
 
         public ValueTask DisposeAsync()
@@ -239,21 +237,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             return _pool.DisposeAsync();
         }
 
-        private sealed class NoOpModelChangeRebrowseSink : IModelChangeRebrowseSink
-        {
-            public static NoOpModelChangeRebrowseSink Instance { get; } = new();
-
-            public ValueTask ProcessAsync(ISubscriber owner,
-                MonitoredAddressSpaceModel template, DataValue changes, CancellationToken ct)
-            {
-                // The subscriber receives the semantics callback from the adapter.
-                return ValueTask.CompletedTask;
-            }
-        }
-
         private readonly ManagedSessionPool _pool;
         private readonly IManagedSessionRequestFactory? _requestFactory;
-        private readonly IModelChangeRebrowseSink _modelChangeSink;
     }
 
     /// <summary>
@@ -263,12 +248,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     internal sealed class ManagedOpcUaClient : IOpcUaClientRuntime, IOpcUaClientDiagnostics
     {
         public ManagedOpcUaClient(OpcUaClientRuntimeContext context, ManagedSessionPool pool,
-            IManagedSessionRequestFactory requestFactory, IModelChangeRebrowseSink modelChangeSink)
+            IManagedSessionRequestFactory requestFactory)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _pool = pool ?? throw new ArgumentNullException(nameof(pool));
             _requestFactory = requestFactory ?? throw new ArgumentNullException(nameof(requestFactory));
-            _modelChangeSink = modelChangeSink ?? throw new ArgumentNullException(nameof(modelChangeSink));
             _logger = context.LoggerFactory.CreateLogger<ManagedOpcUaClient>();
             _lifetimeToken = _lifetimeCts.Token;
             _lastDiagnostics = new ChannelDiagnosticModel
@@ -729,7 +713,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 state = new ManagedSubscriptionState(subscription, lease,
                     new ManagedSubscriptionAdapter(manager!, subscription,
-                        _context.SubscriptionOptions.Value, session.Codec, _modelChangeSink,
+                        _context.SubscriptionOptions.Value, session.Codec,
+                        (period, name) => session.CreateBrowser(period, name, _logger),
                         _context.LoggerFactory.CreateLogger<ManagedSubscriptionAdapter>(),
                         _context.TimeProvider));
                 lease = null!;
@@ -1335,7 +1320,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private EndpointConnectivityState _state = EndpointConnectivityState.Disconnected;
         private readonly OpcUaClientRuntimeContext _context;
         private readonly ILogger _logger;
-        private readonly IModelChangeRebrowseSink _modelChangeSink;
         private readonly ManagedSessionPool _pool;
         private readonly IManagedSessionRequestFactory _requestFactory;
         private readonly ConcurrentDictionary<string, ContinuationLease> _continuations = [];

@@ -617,30 +617,105 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         [Fact]
-        public async Task RejectsUnrelatedModelChangesAndUsesPublisherChangeFeedSink()
+        public async Task RejectsUnrelatedModelChangesAndUsesPublisherBrowser()
         {
             var manager = new FakeSubscriptionManager();
-            var sink = new FakeModelChangeSink();
-            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions(), sink);
+            var browser = new FakeModelChangeBrowser();
+            TimeSpan? capturedRebrowsePeriod = null;
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions
+            {
+                DefaultRebrowsePeriod = TimeSpan.FromMinutes(3)
+            }, (period, _) =>
+            {
+                capturedRebrowsePeriod = period;
+                return browser;
+            });
             var owner = new FakeSubscriber();
-            Assert.True(adapter.TryAdd(owner, new MonitoredAddressSpaceModel
+            await adapter.UpdateAsync([(owner, new MonitoredAddressSpaceModel
             {
                 StartNodeId = "ns=2;s=model"
-            }));
+            })]);
+            Assert.Equal(TimeSpan.FromMinutes(3), capturedRebrowsePeriod);
+            Assert.Equal(1, browser.StartCount);
             var item = Assert.Single(manager.Subscription!.Collection.Items.Cast<FakeMonitoredItem>());
 
             await manager.Handler!.OnEventDataNotificationAsync(manager.Subscription, 11,
                 DateTime.UtcNow, new EventNotification[] { new(item, ArrayOf.Wrapped(
                     Variant.From(ObjectTypeIds.BaseEventType), Variant.From("ignored"))) },
                 PublishState.None, []);
-            Assert.Equal(0, sink.CallCount);
+            Assert.Equal(0, browser.RebrowseCount);
 
             await manager.Handler.OnEventDataNotificationAsync(manager.Subscription, 12,
                 DateTime.UtcNow, new EventNotification[] { new(item, ArrayOf.Wrapped(
                     Variant.From(ObjectTypeIds.GeneralModelChangeEventType),
                     Variant.From("changes"))) }, PublishState.None, []);
-            Assert.Equal(1, sink.CallCount);
+            Assert.Equal(1, browser.RebrowseCount);
             Assert.Equal(1, owner.SemanticsChanges);
+
+            browser.RaiseReference(new Change<ReferenceDescription>(
+                new NodeId(1u, 2), new RelativePath(), null,
+                new ReferenceDescription
+                {
+                    NodeId = new ExpandedNodeId(2u, 2),
+                    BrowseName = new QualifiedName("Changed", 2)
+                }, 7, DateTimeOffset.UtcNow));
+            var changeEvent = Assert.Single(owner.Events);
+            Assert.Equal(MessageType.Event, changeEvent.MessageType);
+            Assert.Equal(5, changeEvent.Notifications.Count);
+            Assert.All(changeEvent.Notifications, notification =>
+                Assert.True(notification.Flags.HasFlag(
+                    MonitoredItemSourceFlags.ModelChanges)));
+            Assert.Equal(7u, changeEvent.Notifications[0].SequenceNumber);
+
+            Assert.Throws<InvalidOperationException>(() => adapter.Update([]));
+            await adapter.UpdateAsync([]);
+            Assert.Equal(1, browser.CloseCount);
+        }
+
+        [Fact]
+        public async Task ModelChangeBrowserStartsOnlyAfterTriggeringCommits()
+        {
+            var manager = new FakeSubscriptionManager();
+            var browser = new FakeModelChangeBrowser();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions(),
+                (_, _) => browser);
+            var owner = new FakeSubscriber();
+            var root = new MonitoredAddressSpaceModel
+            {
+                StartNodeId = "ns=2;s=model",
+                TriggeredItems = [CreateDataItem("ns=2;s=child")]
+            };
+            var gate = manager.Subscription!.BlockTriggering();
+
+            var update = adapter.UpdateAsync([(owner, root)]).AsTask();
+            await gate.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.Equal(0, browser.StartCount);
+
+            gate.Release.TrySetResult();
+            await update;
+            Assert.Equal(1, browser.StartCount);
+        }
+
+        [Fact]
+        public async Task BrowserCloseFailureDoesNotSkipSubscriptionDisposal()
+        {
+            var manager = new FakeSubscriptionManager();
+            var browser = new FakeModelChangeBrowser
+            {
+                ThrowOnClose = true
+            };
+            var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions(),
+                (_, _) => browser);
+            var owner = new FakeSubscriber();
+            await adapter.UpdateAsync([(owner, new MonitoredAddressSpaceModel
+            {
+                StartNodeId = "ns=2;s=model"
+            })]);
+
+            await Assert.ThrowsAsync<AggregateException>(
+                () => adapter.DisposeAsync().AsTask());
+
+            Assert.Equal(1, manager.Subscription!.DisposeCount);
         }
 
         [Fact]
@@ -1412,11 +1487,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         private static ManagedSubscriptionAdapter CreateAdapter(FakeSubscriptionManager manager,
-            OpcUaSubscriptionOptions options, IModelChangeRebrowseSink modelChangeSink = null,
+            OpcUaSubscriptionOptions options,
+            Func<TimeSpan, string, IOpcUaBrowser> modelChangeBrowserFactory = null,
             SubscriptionModel template = null)
         {
             return new ManagedSubscriptionAdapter(manager, template ?? new SubscriptionModel(), options,
-                new JsonVariantEncoder(new ServiceMessageContext()), modelChangeSink);
+                new JsonVariantEncoder(new ServiceMessageContext()),
+                modelChangeBrowserFactory);
         }
 
         private static DataMonitoredItemModel CreateDataItem(string nodeId)
@@ -1697,15 +1774,50 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 TaskCreationOptions.RunContinuationsAsynchronously);
         }
 
-        private sealed class FakeModelChangeSink : IModelChangeRebrowseSink
+        private sealed class FakeModelChangeBrowser : IStartableOpcUaBrowser
         {
-            public int CallCount { get; private set; }
+            public event EventHandler<Change<Node>> OnNodeChange;
+            public event EventHandler<Change<ReferenceDescription>> OnReferenceChange;
+            public int RebrowseCount { get; private set; }
+            public int CloseCount { get; private set; }
+            public int StartCount { get; private set; }
+            public int ConnectedCount { get; private set; }
+            public bool ThrowOnClose { get; set; }
 
-            public ValueTask ProcessAsync(ISubscriber owner,
-                MonitoredAddressSpaceModel template, DataValue changes, CancellationToken ct)
+            public void Rebrowse()
             {
-                CallCount++;
+                RebrowseCount++;
+            }
+
+            public ValueTask CloseAsync()
+            {
+                CloseCount++;
+                if (ThrowOnClose)
+                {
+                    return ValueTask.FromException(
+                        new InvalidOperationException("Injected browser close failure."));
+                }
                 return ValueTask.CompletedTask;
+            }
+
+            public void Start()
+            {
+                StartCount++;
+            }
+
+            public void OnConnected()
+            {
+                ConnectedCount++;
+            }
+
+            public void RaiseReference(Change<ReferenceDescription> change)
+            {
+                OnReferenceChange?.Invoke(this, change);
+            }
+
+            public void RaiseNode(Change<Node> change)
+            {
+                OnNodeChange?.Invoke(this, change);
             }
         }
 

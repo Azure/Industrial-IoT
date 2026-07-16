@@ -25,24 +25,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using ManagedSubscriptionOptions = Opc.Ua.Client.Subscriptions.SubscriptionOptions;
 
     /// <summary>
-    /// Converts a model-change notification to Publisher's browse/change-feed
-    /// domain logic.
-    /// </summary>
-    internal interface IModelChangeRebrowseSink
-    {
-        /// <summary>
-        /// Process the server's model-change payload.
-        /// </summary>
-        /// <param name="owner">The owning Publisher subscriber.</param>
-        /// <param name="template">The address-space monitoring template.</param>
-        /// <param name="changes">The deep-copied GeneralModelChangeEvent changes.</param>
-        /// <param name="ct">Cancellation token.</param>
-        /// <returns>A task that completes after Publisher rebrowse processing.</returns>
-        ValueTask ProcessAsync(ISubscriber owner, MonitoredAddressSpaceModel template,
-            DataValue changes, CancellationToken ct);
-    }
-
-    /// <summary>
     /// Publisher-owned adapter for the public V2 subscription APIs.
     /// </summary>
     /// <remarks>
@@ -62,13 +44,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="template">The Publisher subscription template.</param>
         /// <param name="options">The Publisher subscription options.</param>
         /// <param name="codec">The Publisher codec for node ids and filters.</param>
-        /// <param name="modelChangeSink">Publisher's rebrowse/change-feed composition.</param>
+        /// <param name="modelChangeBrowserFactory">Creates Publisher address-space browsers.</param>
         /// <param name="logger">Logger used to contain subscriber failures.</param>
         /// <param name="timeProvider">The time provider for notification creation.</param>
         /// <param name="periodicKeyFrameInterval">Optional Publisher key-frame period.</param>
         public ManagedSubscriptionAdapter(ISubscriptionManager manager,
             SubscriptionModel template, OpcUaSubscriptionOptions options,
-            IVariantEncoder codec, IModelChangeRebrowseSink? modelChangeSink = null,
+            IVariantEncoder codec,
+            Func<TimeSpan, string, IOpcUaBrowser>? modelChangeBrowserFactory = null,
             ILogger<ManagedSubscriptionAdapter>? logger = null, TimeProvider? timeProvider = null,
             TimeSpan? periodicKeyFrameInterval = null)
         {
@@ -84,7 +67,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             _codec = codec;
             _logger = logger ?? NullLogger<ManagedSubscriptionAdapter>.Instance;
-            _modelChangeSink = modelChangeSink;
+            _modelChangeBrowserFactory = modelChangeBrowserFactory;
             _options = options;
             _periodicKeyFrameInterval = periodicKeyFrameInterval;
             _timeProvider = timeProvider ?? TimeProvider.System;
@@ -186,6 +169,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     throw new InvalidOperationException(
                         "Triggered items require TryAddAsync so V2 SetTriggeringAsync can complete.");
                 }
+                if (template is MonitoredAddressSpaceModel)
+                {
+                    throw new InvalidOperationException(
+                        "Address-space monitoring requires TryAddAsync for browser lifecycle synchronization.");
+                }
                 var added = TryAddBinding(
                     CreateBinding(CreateName(template), owner, template, null, []), out _);
                 if (added)
@@ -214,6 +202,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ArgumentNullException.ThrowIfNull(owner);
             ArgumentNullException.ThrowIfNull(template);
             ThrowIfDisposed();
+            if (ContainsAddressSpaceTemplate(template))
+            {
+                throw new InvalidOperationException(
+                    "Address-space monitoring requires UpdateAsync for browser lifecycle synchronization.");
+            }
 
             using var operation = CancellationTokenSource.CreateLinkedTokenSource(
                 ct, _disposeCts.Token);
@@ -231,10 +224,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         return false;
                     }
                     added.Add(root);
-                    completed = await AddTriggeredItemsAsync(root, rootItem!, root.Name, added,
+                    var itemsAdded = await AddTriggeredItemsAsync(root, rootItem!, root.Name, added,
                         operation.Token).ConfigureAwait(false);
-                    if (completed)
+                    if (itemsAdded)
                     {
+                        completed = true;
                         ApplyPublishingState();
                     }
                     return completed;
@@ -266,11 +260,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             EnterSynchronousMutation();
             try
             {
+                if (GetBindings().Any(binding =>
+                    binding.Template is MonitoredAddressSpaceModel))
+                {
+                    throw new InvalidOperationException(
+                        "Address-space monitoring updates require UpdateAsync for browser lifecycle synchronization.");
+                }
                 var desired = CreateDesiredBindings(items);
                 if (desired.Any(binding => binding.Template.TriggeredItems is { Count: > 0 }))
                 {
                     throw new InvalidOperationException(
                         "Triggered item updates require UpdateAsync so V2 SetTriggeringAsync can complete.");
+                }
+                if (desired.Any(binding => binding.Template is MonitoredAddressSpaceModel))
+                {
+                    throw new InvalidOperationException(
+                        "Address-space monitoring updates require UpdateAsync for browser lifecycle synchronization.");
                 }
                 UpdateBindings(desired, requestConditionRefresh: true);
                 ApplyPublishingState();
@@ -322,6 +327,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     await RequestPendingConditionRefreshAsync(operation.Token)
                         .ConfigureAwait(false);
                     await ApplyTriggeringAsync(operation.Token).ConfigureAwait(false);
+                    await SynchronizeModelChangeBrowsersAsync(operation.Token)
+                        .ConfigureAwait(false);
                     ApplyPublishingState();
                 }
                 catch (Exception updateException)
@@ -336,6 +343,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             using var rollback =
                                 CancellationTokenSource.CreateLinkedTokenSource(
                                     lifetimeCt, _disposeCts.Token);
+                            await SynchronizeModelChangeBrowsersAsync(rollback.Token)
+                                .ConfigureAwait(false);
                             await ApplyTriggeringAsync(rollback.Token).ConfigureAwait(false);
                         }
                         SetPublishingEnabled(previousPublishingEnabled);
@@ -374,6 +383,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     return false;
                 }
                 var bindings = GetDescendants(binding).ToArray();
+                if (binding.Template is MonitoredAddressSpaceModel ||
+                    bindings.Any(candidate =>
+                        candidate.Template is MonitoredAddressSpaceModel))
+                {
+                    throw new InvalidOperationException(
+                        "Address-space monitoring removal requires UpdateAsync for browser lifecycle synchronization.");
+                }
                 var removed = _subscription.MonitoredItems.TryRemove(clientHandle);
                 RemoveBinding(binding);
                 RemoveBindings(bindings.Where(candidate => candidate.ClientHandle != clientHandle));
@@ -534,9 +550,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     continue;
                 }
-                if (binding.Template is MonitoredAddressSpaceModel addressSpace)
+                if (binding.Template is MonitoredAddressSpaceModel)
                 {
-                    await ProcessModelChangeAsync(binding, addressSpace, item.Fields, ct: default)
+                    await ProcessModelChangeAsync(binding, item.Fields, ct: default)
                         .ConfigureAwait(false);
                     continue;
                 }
@@ -681,22 +697,53 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             CancelPendingInitialApply();
             await _disposeCts.CancelAsync().ConfigureAwait(false);
             await _updateGate.WaitAsync().ConfigureAwait(false);
+            List<Exception>? exceptions = null;
             try
             {
-                _conditionTimer.Dispose();
-                _keyFrameTimer?.Dispose();
+                try
+                {
+                    _conditionTimer.Dispose();
+                    _keyFrameTimer?.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    exceptions ??= [];
+                    exceptions.Add(ex);
+                }
+                try
+                {
+                    await DisposeModelChangeBrowsersAsync().ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    exceptions ??= [];
+                    exceptions.Add(ex);
+                }
                 lock (_bindingsLock)
                 {
                     _bindingsByHandle.Clear();
                     _bindingsByName.Clear();
                     _ownerStates.Clear();
                 }
-                await _subscription.DisposeAsync().ConfigureAwait(false);
+                try
+                {
+                    await _subscription.DisposeAsync().ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    exceptions ??= [];
+                    exceptions.Add(ex);
+                }
             }
             finally
             {
                 _updateGate.Release();
                 _disposeCts.Dispose();
+            }
+            if (exceptions != null)
+            {
+                throw new AggregateException(
+                    "Managed subscription disposal failed.", exceptions);
             }
         }
 
@@ -959,10 +1006,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private bool TryAddBinding(ManagedSubscriptionItemBinding binding,
             out IMonitoredItem? monitoredItem)
         {
-            if (binding.Template is MonitoredAddressSpaceModel && _modelChangeSink == null)
+            if (binding.Template is MonitoredAddressSpaceModel &&
+                _modelChangeBrowserFactory == null)
             {
                 throw new NotSupportedException(
-                    "V2 ISubscription exposes model-change notifications but no public rebrowse/change-feed API. Supply IModelChangeRebrowseSink.");
+                    "Address-space monitoring requires a managed browser factory.");
             }
             if (!_subscription.MonitoredItems.TryAdd(binding.Name, binding.Monitor,
                 out monitoredItem) || monitoredItem == null)
@@ -1118,6 +1166,213 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             UpdateBindings(desired, requestConditionRefresh: false);
         }
 
+        private async ValueTask SynchronizeModelChangeBrowsersAsync(CancellationToken ct)
+        {
+            var desired = GetBindings()
+                .Where(binding => binding.Template is MonitoredAddressSpaceModel)
+                .ToDictionary(binding => binding.Name, StringComparer.Ordinal);
+            if (desired.Count != 0 && _modelChangeBrowserFactory == null)
+            {
+                throw new NotSupportedException(
+                    "Address-space monitoring requires a managed browser factory.");
+            }
+
+            Dictionary<string, ModelChangeBrowserRegistration> current;
+            lock (_modelChangeBrowsersLock)
+            {
+                current = new Dictionary<string, ModelChangeBrowserRegistration>(
+                    _modelChangeBrowsers, StringComparer.Ordinal);
+            }
+
+            List<ModelChangeBrowserRegistration> staged = [];
+            try
+            {
+                foreach (var binding in desired.Values)
+                {
+                    ct.ThrowIfCancellationRequested();
+                    var rebrowsePeriod = GetRebrowsePeriod(binding);
+                    if (current.TryGetValue(binding.Name, out var existingRegistration) &&
+                        existingRegistration.RebrowsePeriod == rebrowsePeriod)
+                    {
+                        continue;
+                    }
+                    var browser = _modelChangeBrowserFactory!(rebrowsePeriod,
+                        _modelChangeSubscriptionName);
+                    ModelChangeBrowserRegistration? registration = null;
+                    registration = new ModelChangeBrowserRegistration(binding.Name,
+                        rebrowsePeriod, browser,
+                        (_, change) => PublishModelChange(registration!,
+                            kNodeChangeType, change),
+                        (_, change) => PublishModelChange(registration!,
+                            kReferenceChangeType, change));
+                    registration.Attach();
+                    staged.Add(registration);
+                }
+            }
+            catch (Exception creationException)
+            {
+                foreach (var registration in staged)
+                {
+                    registration.Detach();
+                }
+                try
+                {
+                    await CloseModelChangeBrowsersAsync(staged).ConfigureAwait(false);
+                }
+                catch (Exception cleanupException)
+                {
+                    throw new AggregateException(
+                        "Managed model-change browser creation and cleanup failed.",
+                        creationException, cleanupException);
+                }
+                throw;
+            }
+
+            List<ModelChangeBrowserRegistration> removed = [];
+            lock (_modelChangeBrowsersLock)
+            {
+                foreach (var registration in _modelChangeBrowsers.Values.ToArray())
+                {
+                    if (!desired.TryGetValue(registration.Name, out var binding) ||
+                        registration.RebrowsePeriod != GetRebrowsePeriod(binding))
+                    {
+                        _modelChangeBrowsers.Remove(registration.Name);
+                        registration.Detach();
+                        removed.Add(registration);
+                    }
+                }
+                foreach (var registration in staged)
+                {
+                    _modelChangeBrowsers.Add(registration.Name, registration);
+                }
+            }
+            await CloseModelChangeBrowsersAsync(removed).ConfigureAwait(false);
+            foreach (var registration in staged)
+            {
+                registration.Start();
+            }
+        }
+
+        private async ValueTask DisposeModelChangeBrowsersAsync()
+        {
+            ModelChangeBrowserRegistration[] registrations;
+            lock (_modelChangeBrowsersLock)
+            {
+                registrations = [.. _modelChangeBrowsers.Values];
+                _modelChangeBrowsers.Clear();
+                foreach (var registration in registrations)
+                {
+                    registration.Detach();
+                }
+            }
+            await CloseModelChangeBrowsersAsync(registrations).ConfigureAwait(false);
+        }
+
+        private static async ValueTask CloseModelChangeBrowsersAsync(
+            IEnumerable<ModelChangeBrowserRegistration> registrations)
+        {
+            List<Exception>? exceptions = null;
+            foreach (var registration in registrations)
+            {
+                try
+                {
+                    await registration.Browser.CloseAsync().ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    exceptions ??= [];
+                    exceptions.Add(ex);
+                }
+            }
+            if (exceptions != null)
+            {
+                throw new AggregateException(
+                    "One or more managed model-change browsers failed to close.",
+                    exceptions);
+            }
+        }
+
+        private void PublishModelChange<T>(ModelChangeBrowserRegistration registration,
+            ExpandedNodeId eventType,
+            Change<T> change) where T : class, IEncodeable
+        {
+            lock (_modelChangeBrowsersLock)
+            {
+                if (!_modelChangeBrowsers.TryGetValue(registration.Name, out var current) ||
+                    !ReferenceEquals(current, registration))
+                {
+                    return;
+                }
+            }
+            if (Volatile.Read(ref _disposed) != 0 ||
+                !TryGetBindingByName(registration.Name, out var binding) ||
+                binding.Template is not MonitoredAddressSpaceModel template ||
+                !IsLiveOwner(binding.Owner))
+            {
+                return;
+            }
+
+            var notifications = CreateModelChangeNotifications(template, eventType, change)
+                .ToList();
+            using var message = CreateNotification(notifications,
+                change.Timestamp.UtcDateTime, MessageType.Event);
+            Deliver(binding.Owner, message,
+                static (subscriber, notification) =>
+                    subscriber.OnSubscriptionEventReceived(notification));
+            if (IsLiveOwner(binding.Owner))
+            {
+                InvokeSubscriber(binding.Owner, subscriber =>
+                    subscriber.OnSubscriptionEventDiagnosticsChange(false,
+                        notifications.Count,
+                        notifications.Sum(notification => notification.Overflow), 1));
+            }
+        }
+
+        private static IEnumerable<MonitoredItemNotificationModel>
+            CreateModelChangeNotifications<T>(MonitoredAddressSpaceModel template,
+                ExpandedNodeId eventType, Change<T> change) where T : class, IEncodeable
+        {
+            for (var index = 0; index < kModelChangeFields.Length; index++)
+            {
+                Variant value = index switch
+                {
+                    0 => new Variant((Uuid)Guid.NewGuid()),
+                    1 => new Variant(eventType),
+                    2 => new Variant(change.Source),
+                    3 => new Variant(change.Timestamp.UtcDateTime),
+                    4 => change.ChangedItem == null ?
+                        Variant.Null : Variant.FromStructure(change.ChangedItem),
+                    _ => Variant.Null
+                };
+                yield return new MonitoredItemNotificationModel
+                {
+                    Id = template.Id ?? string.Empty,
+                    DataSetName = template.DisplayName,
+                    DataSetFieldName = kModelChangeFields[index],
+                    PathFromRoot = change.PathFromRoot,
+                    NodeId = template.StartNodeId,
+                    Value = new DataValue(value),
+                    Flags = MonitoredItemSourceFlags.ModelChanges,
+                    SequenceNumber = change.SequenceNumber
+                };
+            }
+        }
+
+        private TimeSpan GetRebrowsePeriod(
+            ManagedSubscriptionItemBinding binding)
+        {
+            return ((MonitoredAddressSpaceModel)binding.Template).RebrowsePeriod ??
+                _options.DefaultRebrowsePeriod ??
+                TimeSpan.FromHours(12);
+        }
+
+        private static bool ContainsAddressSpaceTemplate(
+            BaseMonitoredItemModel template)
+        {
+            return template is MonitoredAddressSpaceModel ||
+                template.TriggeredItems?.Any(ContainsAddressSpaceTemplate) == true;
+        }
+
         private PendingInitialApply BeginPendingInitialApply()
         {
             var pending = new PendingInitialApply();
@@ -1251,7 +1506,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         private async ValueTask ProcessModelChangeAsync(ManagedSubscriptionItemBinding binding,
-            MonitoredAddressSpaceModel template, ArrayOf<Variant> fields, CancellationToken ct)
+            ArrayOf<Variant> fields, CancellationToken ct)
         {
             if (fields.Count < 2 ||
                 !fields[0].TryGetValue(out NodeId eventType) ||
@@ -1260,8 +1515,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 return;
             }
-            var changes = Clone(new DataValue(fields[1]));
-            await InvokeModelChangeSinkAsync(binding.Owner, template, changes, ct)
+            await InvokeModelChangeBrowserAsync(binding, ct)
                 .ConfigureAwait(false);
         }
 
@@ -1668,19 +1922,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
-        private async ValueTask InvokeModelChangeSinkAsync(ISubscriber owner,
-            MonitoredAddressSpaceModel template, DataValue changes, CancellationToken ct)
+        private async ValueTask InvokeModelChangeBrowserAsync(
+            ManagedSubscriptionItemBinding binding, CancellationToken ct)
         {
             try
             {
-                await _modelChangeSink!.ProcessAsync(owner, template, changes, ct)
-                    .ConfigureAwait(false);
-                await InvokeSubscriberAsync(owner, subscriber =>
+                ModelChangeBrowserRegistration? registration;
+                lock (_modelChangeBrowsersLock)
+                {
+                    _modelChangeBrowsers.TryGetValue(binding.Name, out registration);
+                }
+                registration?.Browser.Rebrowse();
+                await InvokeSubscriberAsync(binding.Owner, subscriber =>
                     subscriber.OnMonitoredItemSemanticsChangedAsync(ct)).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                _logger.ModelChangeSinkFailed(ex, owner.GetType().Name);
+                _logger.ModelChangeBrowserFailed(ex, binding.Owner.GetType().Name);
             }
         }
 
@@ -1893,6 +2151,47 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             IMonitoredItem Item,
             Opc.Ua.MonitoringMode DesiredMonitoringMode);
 
+        private sealed class ModelChangeBrowserRegistration
+        {
+            public string Name { get; }
+            public TimeSpan RebrowsePeriod { get; }
+            public IOpcUaBrowser Browser { get; }
+
+            public ModelChangeBrowserRegistration(string name, TimeSpan rebrowsePeriod,
+                IOpcUaBrowser browser, EventHandler<Change<Node>> nodeChanged,
+                EventHandler<Change<ReferenceDescription>> referenceChanged)
+            {
+                Name = name;
+                RebrowsePeriod = rebrowsePeriod;
+                Browser = browser;
+                _nodeChanged = nodeChanged;
+                _referenceChanged = referenceChanged;
+            }
+
+            public void Attach()
+            {
+                Browser.OnNodeChange += _nodeChanged;
+                Browser.OnReferenceChange += _referenceChanged;
+            }
+
+            public void Detach()
+            {
+                Browser.OnNodeChange -= _nodeChanged;
+                Browser.OnReferenceChange -= _referenceChanged;
+            }
+
+            public void Start()
+            {
+                if (Browser is IStartableOpcUaBrowser startable)
+                {
+                    startable.Start();
+                }
+            }
+
+            private readonly EventHandler<Change<Node>> _nodeChanged;
+            private readonly EventHandler<Change<ReferenceDescription>> _referenceChanged;
+        }
+
         private sealed class OwnerState
         {
             public bool KeyFrameRequired { get; set; } = true;
@@ -1993,7 +2292,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly CancellationTokenSource _disposeCts = new();
         private readonly Lock _initialApplyLock = new();
         private readonly ILogger _logger;
-        private readonly IModelChangeRebrowseSink? _modelChangeSink;
+        private readonly Func<TimeSpan, string, IOpcUaBrowser>? _modelChangeBrowserFactory;
+        private readonly Lock _modelChangeBrowsersLock = new();
+        private readonly Dictionary<string, ModelChangeBrowserRegistration>
+            _modelChangeBrowsers = new(StringComparer.Ordinal);
+        private readonly string _modelChangeSubscriptionName = Guid.NewGuid().ToString("N");
         private readonly OpcUaSubscriptionOptions _options;
         private readonly Dictionary<ISubscriber, OwnerState> _ownerStates = [];
         private readonly TimeSpan? _periodicKeyFrameInterval;
@@ -2010,6 +2313,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private int _publishingStateDirty;
         private uint _sequenceNumber;
         private bool _created;
+        private static readonly ExpandedNodeId kReferenceChangeType
+            = new("ReferenceChange", "http://www.microsoft.com/opc-publisher");
+        private static readonly ExpandedNodeId kNodeChangeType
+            = new("NodeChange", "http://www.microsoft.com/opc-publisher");
+        private static readonly string[] kModelChangeFields =
+        [
+            BrowseNames.EventId,
+            BrowseNames.EventType,
+            BrowseNames.SourceNode,
+            BrowseNames.Time,
+            "Change"
+        ];
     }
 
     /// <summary>
@@ -2027,8 +2342,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public static partial void ConditionRefreshFailed(this ILogger logger, Exception exception);
 
         [LoggerMessage(EventId = 1122, Level = LogLevel.Error,
-            Message = "The model-change sink failed for {Subscriber}.")]
-        public static partial void ModelChangeSinkFailed(this ILogger logger,
+            Message = "The model-change browser failed for {Subscriber}.")]
+        public static partial void ModelChangeBrowserFailed(this ILogger logger,
             Exception exception, string subscriber);
     }
 }

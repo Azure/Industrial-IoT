@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
+    using Microsoft.Extensions.Logging;
     using Opc.Ua;
     using Opc.Ua.Client;
     using Opc.Ua.Client.ComplexTypes;
@@ -89,6 +90,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// The configured endpoint selected for the managed inner session.
         /// </summary>
         internal ConfiguredEndpoint Endpoint => _connection.Session.ConfiguredEndpoint;
+
+        /// <summary>
+        /// Stable managed session used by Publisher-owned runtime policies.
+        /// </summary>
+        internal ISession InnerSession => _connection.Session;
+
+        /// <summary>
+        /// Register a shared Publisher address-space browser.
+        /// </summary>
+        internal IOpcUaBrowser CreateBrowser(TimeSpan rebrowsePeriod,
+            string subscriptionName, ILogger logger)
+        {
+            return OpcUaClient.Browser.Register(InnerSession, logger, _timeProvider,
+                _browsers, rebrowsePeriod, subscriptionName);
+        }
 
         /// <summary>
         /// The managed inner session identifier.
@@ -394,7 +410,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _connection.ConnectionStateChanged -= OnConnectionStateChanged;
             LruNodeCache.Clear();
             _complexTypeGate.Dispose();
-            await _connection.DisposeAsync().ConfigureAwait(false);
+            List<Exception>? exceptions = null;
+            OpcUaClient.Browser[] browsers;
+            lock (_browsers)
+            {
+                browsers = [.. _browsers.Values];
+                _browsers.Clear();
+            }
+            foreach (var browser in browsers)
+            {
+                try
+                {
+                    await browser.DisposeAsync().ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    exceptions ??= [];
+                    exceptions.Add(ex);
+                }
+            }
+            try
+            {
+                await _connection.DisposeAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                exceptions ??= [];
+                exceptions.Add(ex);
+            }
+            if (exceptions != null)
+            {
+                throw new AggregateException(
+                    "Managed session browser or connection disposal failed.",
+                    exceptions);
+            }
         }
 
         private void OnConnectionStateChanged(object? sender,
@@ -409,6 +458,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _ => EndpointConnectivityState.Connecting
             };
             ConnectivityState = state;
+            if (state == EndpointConnectivityState.Ready)
+            {
+                lock (_browsers)
+                {
+                    foreach (var browser in _browsers.Values)
+                    {
+                        browser.OnConnected();
+                    }
+                }
+            }
             _connectionStateChange?.Invoke(this,
                 new EndpointConnectivityStateEventArgs(state));
         }
@@ -728,6 +787,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private EventHandler<EndpointConnectivityStateEventArgs>? _connectionStateChange;
         private int _disposed;
         private readonly IManagedSessionConnection _connection;
+        private readonly Dictionary<(string, TimeSpan), OpcUaClient.Browser> _browsers = [];
         private readonly bool _disableComplexTypeLoading;
         private readonly ITelemetryContext _telemetry;
         private readonly TimeProvider _timeProvider;

@@ -420,6 +420,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                         _browser.OnReferenceChange += OnReferenceChange;
                         _browser.OnNodeChange += OnNodeChange;
+                        if (_browser is IStartableOpcUaBrowser startable)
+                        {
+                            startable.Start();
+                        }
                         _logger.ItemRegistered(this);
                     }
                 }
