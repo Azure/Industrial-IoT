@@ -301,6 +301,51 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         }
 
         [Fact]
+        public async Task CanRefreshRetainedConditionsOnStartTestAsync()
+        {
+            // With RefreshRetainedConditionsOnStart set (and no SnapshotInterval),
+            // the publisher issues a single ConditionRefresh once the event
+            // subscription is established, so the retained alarms already present
+            // on the server are delivered once as regular events (not ua-condition
+            // snapshots) without any periodic re-sending.
+            var messages = await ProcessMessagesAsync(
+                nameof(CanRefreshRetainedConditionsOnStartTestAsync),
+                "./Resources/PendingAlarmsRefreshOnStart.json", GetPendingAlarmEvent);
+
+            // Assert - a retained alarm was delivered through the initial refresh.
+            messages.ForEach(m => _output.WriteLine(m.Topic + m.Message.ToJsonString()));
+            var evt = messages[0].Message;
+
+            Assert.Equal(JsonValueKind.Object, evt.ValueKind);
+            Assert.Equal("i=2253", evt.GetProperty("NodeId").GetString());
+            Assert.Equal("PendingAlarms", evt.GetProperty("DisplayName").GetString());
+
+            // The retained condition is delivered as a regular event whose Value
+            // carries the condition fields (Severity is a scalar here).
+            Assert.True(evt.TryGetProperty("Value", out var value));
+            Assert.Equal(JsonValueKind.Object, value.ValueKind);
+            Assert.True(value.TryGetProperty("Severity", out var sev));
+            Assert.True(sev.GetInt32() >= 0);
+        }
+
+        /// <summary>
+        /// Safely match a retained PendingAlarms condition event delivered through
+        /// the normal event path. Guards value kinds so non-alarm events (and the
+        /// suppressed refresh markers, should any slip through) do not throw.
+        /// </summary>
+        /// <param name="jsonElement"></param>
+        private static JsonElement GetPendingAlarmEvent(JsonElement jsonElement)
+        {
+            return jsonElement.ValueKind == JsonValueKind.Object &&
+                jsonElement.TryGetProperty("NodeId", out var nodeId) &&
+                nodeId.ValueKind == JsonValueKind.String &&
+                nodeId.GetString() == "i=2253" &&
+                jsonElement.TryGetProperty("Value", out var value) &&
+                value.ValueKind == JsonValueKind.Object &&
+                value.TryGetProperty("Severity", out _) ? jsonElement : default;
+        }
+
+        [Fact]
         public async Task CanSendDataItemToIoTHubTestWithDeviceMethodAsync()
         {
             const string name = nameof(CanSendDataItemToIoTHubTestWithDeviceMethodAsync);

@@ -47,6 +47,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 return false;
             }
+            if (model.RefreshRetainedConditionsOnStart != that.RefreshRetainedConditionsOnStart)
+            {
+                return false;
+            }
             return true;
         }
     }

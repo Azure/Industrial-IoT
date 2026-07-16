@@ -29,47 +29,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         [KnownType(typeof(DataChangeFilter))]
         [KnownType(typeof(EventFilter))]
         [KnownType(typeof(AggregateFilter))]
-        internal class Condition : Event
+        internal class Condition : Event, IConditionRefreshable
         {
             /// <summary>
             /// Whether timer is enabled
             /// </summary>
             public bool TimerEnabled { get; set; }
 
-            /// <summary>
-            /// Whether a subscription wide condition refresh is required for
-            /// this item. A refresh is only required when the item (re-)entered
-            /// a good state since the last refresh was sent. While the item is
-            /// in a bad state the pending flag is reset so that a subsequent
-            /// transition from bad to good triggers a new refresh. This avoids
-            /// cyclically refreshing conditions on every resync when nothing
-            /// about the condition item itself changed.
-            /// </summary>
-            public bool IsConditionRefreshRequired
-            {
-                get
-                {
-                    if (IsBad)
-                    {
-                        // Reset so a future bad to good transition refreshes.
-                        _conditionRefreshSent = false;
-                        return false;
-                    }
-                    return !_conditionRefreshSent;
-                }
-            }
+            /// <inheritdoc/>
+            public bool IsConditionRefreshRequired => ConditionRefreshRequired;
 
-            /// <summary>
-            /// Mark that a subscription wide condition refresh has been
-            /// completed for this item while it was in a good state.
-            /// </summary>
-            public void OnConditionRefreshCompleted()
-            {
-                if (IsGood)
-                {
-                    _conditionRefreshSent = true;
-                }
-            }
+            /// <inheritdoc/>
+            public void OnConditionRefreshCompleted() => MarkConditionRefreshCompleted();
 
             /// <summary>
             /// Create condition item
@@ -104,9 +75,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _updateInterval = item._updateInterval;
                 _conditionHandlingState = item._conditionHandlingState;
                 _lastSentPendingConditions = item._lastSentPendingConditions;
-                // Intentionally do not copy _conditionRefreshSent: a cloned item
-                // (for example after a subscription transfer) should re-issue a
-                // condition refresh once it is good again to re-establish state.
+                // The condition-refresh-sent flag lives in the base Event and is
+                // intentionally not copied there: a cloned item (for example after
+                // a subscription transfer) should re-issue a condition refresh once
+                // it is good again to re-establish state.
                 if (item.TimerEnabled)
                 {
                     EnableConditionTimer();
@@ -178,18 +150,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     return false;
                 }
 
-                var evFilter = Filter as EventFilter;
-                var eventTypeIndex = evFilter?.SelectClauses.IndexOf(
-                    evFilter.SelectClauses
-                        .Find(x => x.TypeDefinitionId == ObjectTypeIds.BaseEventType
-                            && x.BrowsePath?.FirstOrDefault() == BrowseNames.EventType));
-
                 var state = _conditionHandlingState;
 
                 // now, is this a regular event or RefreshStartEventType/RefreshEndEventType?
-                if (eventTypeIndex.HasValue && eventTypeIndex.Value != -1)
+                var eventType = GetRefreshEventType(eventFields);
+                if (eventType != null)
                 {
-                    var eventType = eventFields.EventFields[eventTypeIndex.Value].Value as NodeId;
                     if (eventType == ObjectTypeIds.RefreshStartEventType)
                     {
                         // stop the timers during condition refresh
@@ -207,27 +173,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                     else if (eventType == ObjectTypeIds.RefreshRequiredEventType)
                     {
-                        var noErrorFound = true;
-                        Debug.Assert(Subscription != null);
-
                         // issue a condition refresh to make sure we are in a correct state
-                        _logger.IssuingConditionRefresh(this, Template.DisplayName,
-                            Subscription.DisplayName);
-                        try
-                        {
-                            Subscription.ConditionRefreshAsync(default).GetAwaiter().GetResult(); // TODO
-                        }
-                        catch (Exception e)
-                        {
-                            _logger.ConditionRefreshFailed(this,
-                                Template.DisplayName, Subscription.DisplayName, e.Message);
-                            noErrorFound = false;
-                        }
-                        if (noErrorFound)
-                        {
-                            _logger.ConditionRefreshCompleted(this,
-                                Template.DisplayName, Subscription.DisplayName);
-                        }
+                        IssueConditionRefresh();
                         return true;
                     }
                 }
@@ -532,7 +479,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private TimerEx? _conditionTimer;
             private readonly object _timerLock = new();
             private bool _disposed;
-            private bool _conditionRefreshSent;
         }
     }
 
