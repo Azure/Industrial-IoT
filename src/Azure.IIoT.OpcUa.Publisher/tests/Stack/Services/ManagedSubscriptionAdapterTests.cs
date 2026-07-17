@@ -221,6 +221,312 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         [Fact]
+        public async Task DiagnosticWatchdogMarksLateItemsWithoutAction()
+        {
+            var manager = new FakeSubscriptionManager();
+            var actions = new List<SubscriptionWatchdogBehavior>();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions(), template: new SubscriptionModel
+                {
+                    MonitoredItemWatchdogTimeout = TimeSpan.FromMinutes(10),
+                    WatchdogBehavior = SubscriptionWatchdogBehavior.Diagnostic
+                }, watchdogAction: (behavior, _) => actions.Add(behavior));
+            var owner = new FakeSubscriber();
+            await adapter.UpdateAsync([(owner, CreateDataItem("ns=2;s=value"))]);
+
+            adapter.FlushWatchdog();
+
+            Assert.Equal(1, adapter.GetLateMonitoredItems(owner));
+            Assert.Empty(actions);
+        }
+
+        [Fact]
+        public async Task AnyLateWatchdogRunsResetOnce()
+        {
+            var manager = new FakeSubscriptionManager();
+            var actions = new List<SubscriptionWatchdogBehavior>();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions(), template: new SubscriptionModel
+                {
+                    MonitoredItemWatchdogTimeout = TimeSpan.FromMinutes(10),
+                    WatchdogBehavior = SubscriptionWatchdogBehavior.Reset,
+                    WatchdogCondition = MonitoredItemWatchdogCondition.WhenAnyIsLate
+                }, watchdogAction: (behavior, _) => actions.Add(behavior));
+            var owner = new FakeSubscriber();
+            await adapter.UpdateAsync(
+            [
+                (owner, CreateDataItem("ns=2;s=first")),
+                (owner, CreateDataItem("ns=2;s=second"))
+            ]);
+            var first = manager.Subscription!.Collection.Items.First();
+            await manager.Handler.OnDataChangeNotificationAsync(manager.Subscription, 1,
+                DateTime.UtcNow,
+                new[] { new DataValueChange(first, new DataValue(Variant.From(42)), null) },
+                PublishState.None, []);
+
+            adapter.FlushWatchdog();
+            adapter.FlushWatchdog();
+
+            Assert.Equal([SubscriptionWatchdogBehavior.Reset], actions);
+            Assert.Equal(1, adapter.GetLateMonitoredItems(owner));
+        }
+
+        [Fact]
+        public async Task FailedWatchdogResetRearmsWatchdog()
+        {
+            var manager = new FakeSubscriptionManager();
+            var actions = new List<SubscriptionWatchdogBehavior>();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions(), template: new SubscriptionModel
+                {
+                    MonitoredItemWatchdogTimeout = TimeSpan.FromMinutes(10),
+                    WatchdogBehavior = SubscriptionWatchdogBehavior.Reset
+                }, watchdogAction: (behavior, _) => actions.Add(behavior));
+            var owner = new FakeSubscriber();
+            await adapter.UpdateAsync([(owner, CreateDataItem("ns=2;s=value"))]);
+
+            adapter.FlushWatchdog();
+            adapter.CompleteWatchdogReset(succeeded: false);
+            adapter.FlushWatchdog();
+
+            Assert.Equal(
+                [
+                    SubscriptionWatchdogBehavior.Reset,
+                    SubscriptionWatchdogBehavior.Reset
+                ], actions);
+        }
+
+        [Fact]
+        public async Task WatchdogRunsWhenTimeProviderTimestampStartsAtZero()
+        {
+            var manager = new FakeSubscriptionManager();
+            var actions = new List<SubscriptionWatchdogBehavior>();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions(), template: new SubscriptionModel
+                {
+                    MonitoredItemWatchdogTimeout = TimeSpan.FromMinutes(10),
+                    WatchdogBehavior = SubscriptionWatchdogBehavior.Reset
+                }, watchdogAction: (behavior, _) => actions.Add(behavior),
+                timeProvider: new ZeroTimestampTimeProvider());
+            var owner = new FakeSubscriber();
+            await adapter.UpdateAsync([(owner, CreateDataItem("ns=2;s=value"))]);
+
+            adapter.FlushWatchdog();
+
+            Assert.Equal([SubscriptionWatchdogBehavior.Reset], actions);
+        }
+
+        [Fact]
+        public async Task ZeroTimestampActivityIsNotMarkedLate()
+        {
+            var manager = new FakeSubscriptionManager();
+            var actions = new List<SubscriptionWatchdogBehavior>();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions(), template: new SubscriptionModel
+                {
+                    MonitoredItemWatchdogTimeout = TimeSpan.FromMinutes(10),
+                    WatchdogBehavior = SubscriptionWatchdogBehavior.Reset
+                }, watchdogAction: (behavior, _) => actions.Add(behavior),
+                timeProvider: new ZeroTimestampTimeProvider());
+            var owner = new FakeSubscriber();
+            await adapter.UpdateAsync([(owner, CreateDataItem("ns=2;s=value"))]);
+            var item = Assert.Single(manager.Subscription!.Collection.Items);
+            await manager.Handler.OnDataChangeNotificationAsync(manager.Subscription, 1,
+                DateTime.UtcNow,
+                new[] { new DataValueChange(item, new DataValue(Variant.From(42)), null) },
+                PublishState.None, []);
+
+            adapter.FlushWatchdog();
+
+            Assert.Empty(actions);
+        }
+
+        [Fact]
+        public async Task AllLateWatchdogWaitsUntilEveryItemIsLate()
+        {
+            var manager = new FakeSubscriptionManager();
+            var actions = new List<SubscriptionWatchdogBehavior>();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions(), template: new SubscriptionModel
+                {
+                    MonitoredItemWatchdogTimeout = TimeSpan.FromMinutes(10),
+                    WatchdogBehavior = SubscriptionWatchdogBehavior.Reset,
+                    WatchdogCondition = MonitoredItemWatchdogCondition.WhenAllAreLate
+                }, watchdogAction: (behavior, _) => actions.Add(behavior));
+            var owner = new FakeSubscriber();
+            await adapter.UpdateAsync(
+            [
+                (owner, CreateDataItem("ns=2;s=first")),
+                (owner, CreateDataItem("ns=2;s=second"))
+            ]);
+            var first = manager.Subscription!.Collection.Items.First();
+            await manager.Handler.OnDataChangeNotificationAsync(manager.Subscription, 1,
+                DateTime.UtcNow,
+                new[] { new DataValueChange(first, new DataValue(Variant.From(42)), null) },
+                PublishState.None, []);
+
+            adapter.FlushWatchdog();
+            Assert.Empty(actions);
+
+            adapter.FlushWatchdog();
+            Assert.Equal([SubscriptionWatchdogBehavior.Reset], actions);
+            Assert.Equal(2, adapter.GetLateMonitoredItems(owner));
+        }
+
+        [Fact]
+        public async Task WatchdogStopsAndRecoversWithPublishingState()
+        {
+            var manager = new FakeSubscriptionManager();
+            var actions = new List<SubscriptionWatchdogBehavior>();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions(), template: new SubscriptionModel
+                {
+                    MonitoredItemWatchdogTimeout = TimeSpan.FromMinutes(10),
+                    WatchdogBehavior = SubscriptionWatchdogBehavior.Reset
+                }, watchdogAction: (behavior, _) => actions.Add(behavior));
+            var owner = new FakeSubscriber();
+            await adapter.UpdateAsync([(owner, CreateDataItem("ns=2;s=value"))]);
+
+            await manager.Handler.OnSubscriptionStateChangedAsync(manager.Subscription!,
+                SubscriptionState.Modified, PublishState.Stopped);
+            adapter.FlushWatchdog();
+            Assert.Empty(actions);
+
+            await manager.Handler.OnSubscriptionStateChangedAsync(manager.Subscription,
+                SubscriptionState.Modified, PublishState.Recovered);
+            adapter.FlushWatchdog();
+            Assert.Equal([SubscriptionWatchdogBehavior.Reset], actions);
+        }
+
+        [Fact]
+        public async Task SecondaryPartitionDeletionDoesNotStopLogicalWatchdog()
+        {
+            var manager = new FakeSubscriptionManager();
+            var actions = new List<SubscriptionWatchdogBehavior>();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions(), template: new SubscriptionModel
+                {
+                    MonitoredItemWatchdogTimeout = TimeSpan.FromMinutes(10),
+                    WatchdogBehavior = SubscriptionWatchdogBehavior.Reset
+                }, watchdogAction: (behavior, _) => actions.Add(behavior));
+            var owner = new FakeSubscriber();
+            await adapter.UpdateAsync([(owner, CreateDataItem("ns=2;s=value"))]);
+            manager.Subscription!.Created = false;
+            manager.Subscription.CurrentPublishingEnabled = true;
+
+            await manager.Handler.OnSubscriptionStateChangedAsync(manager.Subscription,
+                SubscriptionState.Deleted, default);
+            adapter.FlushWatchdog();
+
+            Assert.Equal([SubscriptionWatchdogBehavior.Reset], actions);
+        }
+
+        [Fact]
+        public async Task RemainingStoppedPartitionKeepsWatchdogDisabledOnDeletion()
+        {
+            var manager = new FakeSubscriptionManager();
+            var actions = new List<SubscriptionWatchdogBehavior>();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions(), template: new SubscriptionModel
+                {
+                    MonitoredItemWatchdogTimeout = TimeSpan.FromMinutes(10),
+                    WatchdogBehavior = SubscriptionWatchdogBehavior.Reset
+                }, watchdogAction: (behavior, _) => actions.Add(behavior));
+            var owner = new FakeSubscriber();
+            await adapter.UpdateAsync([(owner, CreateDataItem("ns=2;s=value"))]);
+
+            await manager.Handler.OnSubscriptionStateChangedAsync(manager.Subscription!,
+                SubscriptionState.Deleted,
+                PublishState.Stopped | PublishState.Completed);
+            adapter.FlushWatchdog();
+
+            Assert.Empty(actions);
+        }
+
+        [Fact]
+        public async Task SubscriptionTimeoutDefaultsToResetAction()
+        {
+            var manager = new FakeSubscriptionManager();
+            var actions = new List<SubscriptionWatchdogBehavior>();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions(), watchdogAction:
+                    (behavior, _) => actions.Add(behavior));
+
+            await manager.Handler!.OnSubscriptionStateChangedAsync(manager.Subscription!,
+                default, PublishState.Timeout);
+            await manager.Handler.OnSubscriptionStateChangedAsync(manager.Subscription,
+                default, PublishState.Timeout);
+
+            Assert.Equal([SubscriptionWatchdogBehavior.Reset], actions);
+        }
+
+        [Fact]
+        public async Task DisablingLateItemClearsWatchdogDiagnostics()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions(), template: new SubscriptionModel
+                {
+                    MonitoredItemWatchdogTimeout = TimeSpan.FromMinutes(10)
+                });
+            var owner = new FakeSubscriber();
+            var item = CreateDataItem("ns=2;s=value") with
+            {
+                DataSetFieldId = "stable"
+            };
+            await adapter.UpdateAsync([(owner, item)]);
+            adapter.FlushWatchdog();
+            Assert.Equal(1, adapter.GetLateMonitoredItems(owner));
+
+            await adapter.UpdateAsync([(owner, item with
+            {
+                MonitoringMode = PublisherMonitoringMode.Disabled
+            })]);
+
+            Assert.Equal(0, adapter.GetLateMonitoredItems(owner));
+        }
+
+        [Fact]
+        public async Task SubscriptionDeletedCallbackDuringDisposeDoesNotUseDisposedTimer()
+        {
+            var manager = new FakeSubscriptionManager();
+            var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions(), template: new SubscriptionModel
+                {
+                    MonitoredItemWatchdogTimeout = TimeSpan.FromMinutes(10)
+                });
+            var owner = new FakeSubscriber();
+            await adapter.UpdateAsync([(owner, CreateDataItem("ns=2;s=value"))]);
+            manager.Subscription!.OnDisposeAsync = () =>
+                manager.Handler!.OnSubscriptionStateChangedAsync(
+                    manager.Subscription, SubscriptionState.Deleted, default);
+
+            await adapter.DisposeAsync();
+
+            Assert.Equal(1, manager.Subscription.DisposeCount);
+        }
+
+        [Fact]
+        public async Task FailedWatchdogResetCompletionAfterDisposeIsIgnored()
+        {
+            var manager = new FakeSubscriptionManager();
+            var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions(), template: new SubscriptionModel
+                {
+                    MonitoredItemWatchdogTimeout = TimeSpan.FromMinutes(10),
+                    WatchdogBehavior = SubscriptionWatchdogBehavior.Reset
+                }, watchdogAction: (_, _) => { });
+            var owner = new FakeSubscriber();
+            await adapter.UpdateAsync([(owner, CreateDataItem("ns=2;s=value"))]);
+            adapter.FlushWatchdog();
+
+            await adapter.DisposeAsync();
+            adapter.CompleteWatchdogReset(succeeded: false);
+
+            Assert.Equal(1, manager.Subscription!.DisposeCount);
+        }
+
+        [Fact]
         public async Task PeriodicDropValueSuppressesDataButEmitsHeartbeat()
         {
             var manager = new FakeSubscriptionManager();
@@ -1848,11 +2154,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private static ManagedSubscriptionAdapter CreateAdapter(FakeSubscriptionManager manager,
             OpcUaSubscriptionOptions options,
             Func<TimeSpan, string, IOpcUaBrowser> modelChangeBrowserFactory = null,
-            SubscriptionModel template = null)
+            SubscriptionModel template = null,
+            Action<SubscriptionWatchdogBehavior, string> watchdogAction = null,
+            TimeProvider timeProvider = null)
         {
             return new ManagedSubscriptionAdapter(manager, template ?? new SubscriptionModel(), options,
                 new JsonVariantEncoder(new ServiceMessageContext()),
-                modelChangeBrowserFactory);
+                modelChangeBrowserFactory,
+                timeProvider: timeProvider,
+                watchdogAction: watchdogAction == null ? null :
+                    (_, behavior, message) => watchdogAction(behavior, message));
         }
 
         private static DataMonitoredItemModel CreateDataItem(string nodeId)
@@ -1979,7 +2290,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private readonly uint _maxItems;
         }
 
-        private sealed class FakeSubscription : ISubscription
+        private sealed class ZeroTimestampTimeProvider : TimeProvider
+        {
+            public override long GetTimestamp()
+            {
+                return 0;
+            }
+        }
+
+        private sealed class FakeSubscription : IPartitionedSubscription
         {
             public FakeCollection Collection { get; }
             public int DisposeCount { get; private set; }
@@ -1998,16 +2317,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Collection = new FakeCollection(maxItems);
             }
 
-            public bool Created => true;
+            public bool Created { get; set; } = true;
             public TimeSpan CurrentPublishingInterval => TimeSpan.FromSeconds(1);
             public byte CurrentPriority => 0;
             public uint CurrentLifetimeCount => 0;
             public uint CurrentKeepAliveCount => 0;
-            public bool CurrentPublishingEnabled => true;
+            public bool CurrentPublishingEnabled { get; set; } = true;
             public uint CurrentMaxNotificationsPerPublish => 0;
             public IMonitoredItemCollection MonitoredItems => Collection;
             public long MissingMessageCount => 0;
             public long RepublishMessageCount => 0;
+            public int PartitionCount { get; set; } = 1;
+            public IReadOnlyList<uint> PartitionIds =>
+                Enumerable.Range(1, PartitionCount).Select(index => (uint)index).ToArray();
+            public Func<ValueTask>? OnDisposeAsync { get; set; }
 
             public ValueTask ConditionRefreshAsync(CancellationToken ct = default)
             {
@@ -2017,6 +2340,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     gate.Started.SetResult();
                     return new ValueTask(gate.Gate.Task.WaitAsync(ct));
                 }
+                return ValueTask.CompletedTask;
+            }
+
+            public ValueTask RecreateAsync(CancellationToken ct = default)
+            {
                 return ValueTask.CompletedTask;
             }
 
@@ -2105,7 +2433,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public ValueTask DisposeAsync()
             {
                 DisposeCount++;
-                return ValueTask.CompletedTask;
+                return OnDisposeAsync?.Invoke() ?? ValueTask.CompletedTask;
             }
 
             private sealed record class TriggeringResultOptions(

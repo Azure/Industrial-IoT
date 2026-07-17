@@ -48,12 +48,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="logger">Logger used to contain subscriber failures.</param>
         /// <param name="timeProvider">The time provider for notification creation.</param>
         /// <param name="periodicKeyFrameInterval">Optional Publisher key-frame period.</param>
+        /// <param name="watchdogAction">Runs non-diagnostic watchdog actions.</param>
         public ManagedSubscriptionAdapter(ISubscriptionManager manager,
             SubscriptionModel template, OpcUaSubscriptionOptions options,
             IVariantEncoder codec,
             Func<TimeSpan, string, IOpcUaBrowser>? modelChangeBrowserFactory = null,
             ILogger<ManagedSubscriptionAdapter>? logger = null, TimeProvider? timeProvider = null,
-            TimeSpan? periodicKeyFrameInterval = null)
+            TimeSpan? periodicKeyFrameInterval = null,
+            Action<ManagedSubscriptionAdapter, SubscriptionWatchdogBehavior, string>?
+                watchdogAction = null)
         {
             ArgumentNullException.ThrowIfNull(manager);
             ArgumentNullException.ThrowIfNull(template);
@@ -71,6 +74,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _options = options;
             _periodicKeyFrameInterval = periodicKeyFrameInterval;
             _timeProvider = timeProvider ?? TimeProvider.System;
+            _watchdogTimeout = template.MonitoredItemWatchdogTimeout ??
+                options.DefaultMonitoredItemWatchdogTimeout ?? TimeSpan.Zero;
+            _watchdogCondition = template.WatchdogCondition ??
+                options.DefaultMonitoredItemWatchdogCondition ??
+                MonitoredItemWatchdogCondition.WhenAnyIsLate;
+            _configuredWatchdogBehavior = template.WatchdogBehavior ??
+                options.DefaultWatchdogBehavior;
+            _watchdogBehavior = _configuredWatchdogBehavior ??
+                SubscriptionWatchdogBehavior.Diagnostic;
+            _watchdogAction = watchdogAction;
             var subscriptionOptions =
                 ManagedSubscriptionOptionsAdapter.ToManagedOptions(template, options);
             _subscriptionOptions =
@@ -83,6 +96,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             _conditionTimer = _timeProvider.CreateTimer(OnConditionTimer, null,
                 TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+            _watchdogTimer = _timeProvider.CreateTimer(OnWatchdogTimer, null,
+                Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         }
 
         /// <summary>
@@ -158,6 +173,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
+        /// Gets the number of late monitored items for an owner.
+        /// </summary>
+        internal int GetLateMonitoredItems(ISubscriber owner)
+        {
+            ArgumentNullException.ThrowIfNull(owner);
+            return GetBindings().Count(binding =>
+                binding.Owner.Equals(owner) && binding.WatchdogEligible &&
+                binding.IsLate);
+        }
+
+        /// <summary>
         /// Updates cached heartbeat values for connection loss or recovery.
         /// </summary>
         internal void NotifyConnectionState(bool disconnected)
@@ -165,6 +191,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             foreach (var binding in GetBindings())
             {
                 binding.NotifyConnectionState(disconnected);
+            }
+            lock (_watchdogLock)
+            {
+                _watchdogConnected = !disconnected;
+                UpdateWatchdogTimer();
             }
         }
 
@@ -383,6 +414,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     ClearPendingInitialApply(pendingApply);
                 }
             }
+
             finally
             {
                 ExitMutation();
@@ -494,6 +526,36 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
+        /// <summary>
+        /// Runs the monitored-item watchdog immediately.
+        /// </summary>
+        internal void FlushWatchdog()
+        {
+            EvaluateWatchdog();
+        }
+
+        /// <summary>
+        /// Completes a previously started reset watchdog action.
+        /// </summary>
+        internal void CompleteWatchdogReset(bool succeeded)
+        {
+            Interlocked.Exchange(ref _watchdogResetInProgress, 0);
+            if (!succeeded)
+            {
+                lock (_watchdogLock)
+                {
+                    if (_watchdogDisposing || Volatile.Read(ref _disposed) != 0)
+                    {
+                        return;
+                    }
+                    _watchdogPublishingEnabled =
+                        !_watchdogPublishingStopped &&
+                        _subscription.CurrentPublishingEnabled;
+                    UpdateWatchdogTimer();
+                }
+            }
+        }
+
         /// <inheritdoc/>
         public ValueTask OnDataChangeNotificationAsync(ISubscription subscription,
             uint sequenceNumber, DateTime publishTime,
@@ -595,6 +657,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     continue;
                 }
+                binding.RecordActivity();
                 if (binding.Template is MonitoredAddressSpaceModel)
                 {
                     await ProcessModelChangeAsync(binding, item.Fields, ct: default)
@@ -676,6 +739,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             SubscriptionState state, PublishState publishStateMask,
             CancellationToken ct = default)
         {
+            HandleWatchdogPublishState(subscription, state, publishStateMask);
             if (state is SubscriptionState.Created or SubscriptionState.Modified)
             {
                 TryCompletePendingInitialApply();
@@ -733,12 +797,81 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
+        private void HandleWatchdogPublishState(ISubscription subscription,
+            SubscriptionState state, PublishState publishStateMask)
+        {
+            var logicalStopped = !subscription.CurrentPublishingEnabled;
+            var publishingStopped = publishStateMask.HasFlag(PublishState.Stopped);
+            if (publishingStopped)
+            {
+                lock (_watchdogLock)
+                {
+                    _watchdogPublishingStopped = true;
+                    _watchdogPublishingEnabled = false;
+                    UpdateWatchdogTimer();
+                }
+            }
+            if (!publishingStopped &&
+                (publishStateMask.HasFlag(PublishState.Completed) ||
+                    state == SubscriptionState.Deleted))
+            {
+                lock (_watchdogLock)
+                {
+                    if (logicalStopped && !subscription.Created)
+                    {
+                        _watchdogPublishingStopped = true;
+                        _watchdogPublishingEnabled = false;
+                    }
+                    else if (subscription.CurrentPublishingEnabled)
+                    {
+                        _watchdogPublishingStopped = false;
+                        _watchdogPublishingEnabled = true;
+                    }
+                    UpdateWatchdogTimer();
+                }
+            }
+            if (publishStateMask.HasFlag(PublishState.Recovered) ||
+                state == SubscriptionState.Created && subscription.Created)
+            {
+                lock (_watchdogLock)
+                {
+                    _watchdogPublishingStopped = false;
+                    _watchdogPublishingEnabled =
+                        subscription.CurrentPublishingEnabled;
+                    UpdateWatchdogTimer();
+                }
+            }
+            else if (state == SubscriptionState.Modified)
+            {
+                lock (_watchdogLock)
+                {
+                    _watchdogPublishingEnabled =
+                        !_watchdogPublishingStopped &&
+                        subscription.CurrentPublishingEnabled;
+                    UpdateWatchdogTimer();
+                }
+            }
+            if (publishStateMask.HasFlag(PublishState.Timeout))
+            {
+                RunWatchdogAction(_configuredWatchdogBehavior ??
+                    SubscriptionWatchdogBehavior.Reset,
+                    "Managed subscription timed out on the server.",
+                    requireEnabled: false);
+            }
+        }
+
         /// <inheritdoc/>
         public async ValueTask DisposeAsync()
         {
             if (Interlocked.Exchange(ref _disposed, 1) != 0)
             {
                 return;
+            }
+            lock (_watchdogLock)
+            {
+                _watchdogDisposing = true;
+                _watchdogPublishingEnabled = false;
+                UpdateWatchdogTimer();
             }
             CancelPendingInitialApply();
             await _disposeCts.CancelAsync().ConfigureAwait(false);
@@ -780,6 +913,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 try
                 {
                     await _subscription.DisposeAsync().ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    exceptions ??= [];
+                    exceptions.Add(ex);
+                }
+                try
+                {
+                    lock (_watchdogLock)
+                    {
+                        _watchdogTimerDisposed = true;
+                    }
+                    _watchdogTimer.Dispose();
                 }
                 catch (Exception ex)
                 {
@@ -1154,6 +1300,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 monitoredItem!.Created &&
                 monitoredItem.CurrentMonitoringMode != Opc.Ua.MonitoringMode.Disabled);
             SetPublishingEnabled(hasActiveItems);
+            SetWatchdogPublishingState(hasActiveItems &&
+                _subscription.CurrentPublishingEnabled);
         }
 
         private void QueuePublishingStateEvaluation()
@@ -1204,6 +1352,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         private void SetPublishingEnabled(bool enabled)
         {
+            if (!enabled)
+            {
+                SetWatchdogPublishingState(false);
+            }
             var current = _subscriptionOptions.CurrentValue;
             if (current.PublishingEnabled != enabled)
             {
@@ -1211,6 +1363,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     PublishingEnabled = enabled
                 });
+            }
+        }
+
+        private void SetWatchdogPublishingState(bool enabled)
+        {
+            lock (_watchdogLock)
+            {
+                _watchdogPublishingEnabled = enabled &&
+                    !_watchdogPublishingStopped;
+                UpdateWatchdogTimer();
             }
         }
 
@@ -1479,7 +1641,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }).ToArray();
             }
             TryCompletePendingInitialApply();
-            await pending.Completion.Task.WaitAsync(ct).ConfigureAwait(false);
+            try
+            {
+                await pending.Completion.Task.WaitAsync(ct).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+                when (Volatile.Read(ref _disposed) != 0)
+            {
+                throw new ObjectDisposedException(nameof(ManagedSubscriptionAdapter));
+            }
         }
 
         private void TryCompletePendingInitialApply()
@@ -2079,6 +2249,140 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             FlushConditions();
         }
 
+        private void OnWatchdogTimer(object? state)
+        {
+            try
+            {
+                EvaluateWatchdog();
+            }
+            catch (Exception ex)
+            {
+                _logger.WatchdogFailed(ex);
+            }
+        }
+
+        private void EvaluateWatchdog()
+        {
+            long lastCheck;
+            lock (_watchdogLock)
+            {
+                if (_watchdogDisposing || Volatile.Read(ref _disposed) != 0 ||
+                    !_watchdogEnabled || !_watchdogCheckInitialized)
+                {
+                    return;
+                }
+                lastCheck = _lastWatchdogCheckTimestamp;
+                _lastWatchdogCheckTimestamp = _timeProvider.GetTimestamp();
+            }
+
+            var bindings = GetBindings()
+                .Where(binding => binding.WatchdogEligible)
+                .ToArray();
+            if (bindings.Length == 0)
+            {
+                return;
+            }
+            var late = bindings.Count(binding => binding.WasLateSince(lastCheck));
+            if (late == 0)
+            {
+                return;
+            }
+            _logger.WatchdogItemsLate(late, bindings.Length, _watchdogBehavior);
+            if (_watchdogBehavior == SubscriptionWatchdogBehavior.Diagnostic ||
+                _watchdogCondition == MonitoredItemWatchdogCondition.WhenAllAreLate &&
+                late != bindings.Length)
+            {
+                return;
+            }
+            var message = $"Performed watchdog action {_watchdogBehavior} because " +
+                $"{late} of {bindings.Length} managed monitored items are late.";
+            RunWatchdogAction(_watchdogBehavior, message, requireEnabled: true);
+        }
+
+        private void RunWatchdogAction(SubscriptionWatchdogBehavior behavior,
+            string message, bool requireEnabled)
+        {
+            lock (_watchdogLock)
+            {
+                if (_watchdogDisposing || Volatile.Read(ref _disposed) != 0)
+                {
+                    return;
+                }
+                if (requireEnabled && (!_watchdogEnabled ||
+                    !_watchdogConnected || !_watchdogPublishingEnabled))
+                {
+                    return;
+                }
+                if (behavior == SubscriptionWatchdogBehavior.Reset)
+                {
+                    if (Interlocked.Exchange(ref _watchdogResetInProgress, 1) != 0)
+                    {
+                        return;
+                    }
+                    _watchdogPublishingEnabled = false;
+                    UpdateWatchdogTimer();
+                }
+                if (_watchdogAction == null)
+                {
+                    if (behavior == SubscriptionWatchdogBehavior.Reset)
+                    {
+                        CompleteFailedWatchdogReset();
+                    }
+                    return;
+                }
+                try
+                {
+                    _watchdogAction(this, behavior, message);
+                }
+                catch
+                {
+                    if (behavior == SubscriptionWatchdogBehavior.Reset)
+                    {
+                        CompleteFailedWatchdogReset();
+                    }
+                    throw;
+                }
+            }
+        }
+
+        private void CompleteFailedWatchdogReset()
+        {
+            Interlocked.Exchange(ref _watchdogResetInProgress, 0);
+            _watchdogPublishingEnabled =
+                !_watchdogPublishingStopped &&
+                _subscription.CurrentPublishingEnabled;
+            UpdateWatchdogTimer();
+        }
+
+        private void UpdateWatchdogTimer()
+        {
+            var enabled = !_watchdogDisposing &&
+                Volatile.Read(ref _disposed) == 0 &&
+                _watchdogTimeout > TimeSpan.Zero &&
+                _watchdogConnected &&
+                _watchdogPublishingEnabled;
+            if (!enabled)
+            {
+                _watchdogEnabled = false;
+                _watchdogCheckInitialized = false;
+                _lastWatchdogCheckTimestamp = 0;
+                if (!_watchdogTimerDisposed)
+                {
+                    _watchdogTimer.Change(Timeout.InfiniteTimeSpan,
+                        Timeout.InfiniteTimeSpan);
+                }
+                return;
+            }
+            if (_watchdogEnabled)
+            {
+                return;
+            }
+            _watchdogEnabled = true;
+            _watchdogCheckInitialized = true;
+            _lastWatchdogCheckTimestamp = _timeProvider.GetTimestamp();
+            _watchdogTimer.Change(_watchdogTimeout, _watchdogTimeout);
+        }
+
         private uint NextSequenceNumber()
         {
             return SequenceNumber.Increment32(ref _sequenceNumber);
@@ -2196,7 +2500,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     template is EventMonitoredItemModel &&
                     (!Equals(Template, template) ||
                         !ReferenceEquals(Monitor.CurrentValue.Filter, options.Filter));
-                if (itemIdentityChanged)
+                var monitoringModeChanged =
+                    Monitor.CurrentValue.MonitoringMode != options.MonitoringMode;
+                if (itemIdentityChanged || monitoringModeChanged)
                 {
                     lock (_dataLock)
                     {
@@ -2204,7 +2510,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         _lastDataReceivedAt = null;
                         _lastDataSequenceNumber = 0;
                         _lastConnectedStatusCode = null;
+                        _lastActivityTimestamp = 0;
+                        _hasActivity = false;
+                        _isLate = false;
+                        _applied = false;
+                        _appliedMonitoringMode = Opc.Ua.MonitoringMode.Disabled;
                         _heartbeat?.Reset();
+                        _heartbeat?.SetApplied(false);
                     }
                     Interlocked.Exchange(ref _firstDataChange, 0);
                 }
@@ -2232,15 +2544,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             public void Activate()
             {
-                Registered = true;
-                _heartbeat?.SetActive(true);
+                lock (_dataLock)
+                {
+                    Registered = true;
+                    _heartbeat?.SetActive(true);
+                }
             }
 
             public void Dispose()
             {
-                Registered = false;
-                _heartbeat?.Dispose();
-                _heartbeat = null;
+                lock (_dataLock)
+                {
+                    Registered = false;
+                    _isLate = false;
+                    _heartbeat?.Dispose();
+                    _heartbeat = null;
+                }
             }
 
             public uint RecordDataChange(DataValue value, DateTimeOffset receivedAt)
@@ -2251,6 +2570,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     _lastDataValue = value;
                     _lastDataReceivedAt = receivedAt;
                     _lastDataSequenceNumber = sequenceNumber;
+                    _lastActivityTimestamp = _timeProvider.GetTimestamp();
+                    _hasActivity = true;
+                    _isLate = false;
                     _lastConnectedStatusCode = null;
                     _heartbeat?.Record(value, receivedAt, sequenceNumber);
                 }
@@ -2287,8 +2609,44 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             public void UpdateMonitoredItemStatus(IMonitoredItem monitoredItem)
             {
-                _heartbeat?.SetApplied(monitoredItem.Created &&
-                    ServiceResult.IsGood(monitoredItem.Error));
+                var applied = monitoredItem.Created &&
+                    ServiceResult.IsGood(monitoredItem.Error);
+                lock (_dataLock)
+                {
+                    _applied = applied;
+                    _appliedMonitoringMode = monitoredItem.CurrentMonitoringMode;
+                    if (!applied)
+                    {
+                        _isLate = false;
+                    }
+                    _heartbeat?.SetApplied(applied);
+                }
+            }
+
+            public void RecordActivity()
+            {
+                lock (_dataLock)
+                {
+                    _lastActivityTimestamp = _timeProvider.GetTimestamp();
+                    _hasActivity = true;
+                    _isLate = false;
+                }
+            }
+
+            public bool WasLateSince(long lastCheck)
+            {
+                lock (_dataLock)
+                {
+                    if (!Registered || !_applied ||
+                        Monitor.CurrentValue.MonitoringMode ==
+                            Opc.Ua.MonitoringMode.Disabled)
+                    {
+                        _isLate = false;
+                        return false;
+                    }
+                    return _isLate = !_hasActivity ||
+                        _lastActivityTimestamp < lastCheck;
+                }
             }
 
             public bool TryCaptureHeartbeat(DateTimeOffset signalTime, bool force,
@@ -2305,6 +2663,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public bool IsHeartbeatCurrent(uint sequenceNumber)
             {
                 return _heartbeat?.IsCurrent(sequenceNumber) == true;
+            }
+
+            public bool IsLate
+            {
+                get
+                {
+                    lock (_dataLock)
+                    {
+                        return _isLate;
+                    }
+                }
+            }
+            public bool WatchdogEligible
+            {
+                get
+                {
+                    lock (_dataLock)
+                    {
+                        return Registered && _applied &&
+                            _appliedMonitoringMode != Opc.Ua.MonitoringMode.Disabled;
+                    }
+                }
             }
 
             public bool SkipFirstDataChange()
@@ -2430,6 +2810,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private DateTimeOffset? _lastDataReceivedAt;
             private uint _lastDataSequenceNumber;
             private StatusCode? _lastConnectedStatusCode;
+            private long _lastActivityTimestamp;
+            private bool _hasActivity;
+            private bool _applied;
+            private Opc.Ua.MonitoringMode _appliedMonitoringMode;
+            private volatile bool _isLate;
             private readonly Lock _dataLock = new();
             private readonly TimeProvider _timeProvider;
             private readonly Action<ManagedSubscriptionItemBinding> _heartbeatCallback;
@@ -2880,6 +3265,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly MutableOptionsMonitor<ManagedSubscriptionOptions> _subscriptionOptions;
         private readonly TimeProvider _timeProvider;
         private readonly ITimer? _keyFrameTimer;
+        private readonly Action<ManagedSubscriptionAdapter,
+            SubscriptionWatchdogBehavior, string>? _watchdogAction;
+        private readonly SubscriptionWatchdogBehavior? _configuredWatchdogBehavior;
+        private readonly SubscriptionWatchdogBehavior _watchdogBehavior;
+        private readonly MonitoredItemWatchdogCondition _watchdogCondition;
+        private readonly Lock _watchdogLock = new();
+        private readonly ITimer _watchdogTimer;
+        private readonly TimeSpan _watchdogTimeout;
 #pragma warning disable CA2213 // Retained so pre-disposal waiters can release safely.
         private readonly SemaphoreSlim _updateGate = new(1, 1);
 #pragma warning restore CA2213 // Disposable fields should be disposed
@@ -2887,8 +3280,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private int _disposed;
         private int _nextItemName;
         private int _publishingStateDirty;
+        private int _watchdogResetInProgress;
+        private long _lastWatchdogCheckTimestamp;
         private uint _sequenceNumber;
         private bool _created;
+        private bool _watchdogConnected = true;
+        private bool _watchdogCheckInitialized;
+        private bool _watchdogDisposing;
+        private bool _watchdogEnabled;
+        private bool _watchdogPublishingEnabled;
+        private bool _watchdogPublishingStopped;
+        private bool _watchdogTimerDisposed;
         private static readonly ExpandedNodeId kReferenceChangeType
             = new("ReferenceChange", "http://www.microsoft.com/opc-publisher");
         private static readonly ExpandedNodeId kNodeChangeType
@@ -2926,5 +3328,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Message = "Managed heartbeat failed for {Item}.")]
         public static partial void HeartbeatFailed(this ILogger logger,
             Exception exception, string item);
+
+        [LoggerMessage(EventId = 1124, Level = LogLevel.Warning,
+            Message = "{Late} of {Total} managed monitored items are late; watchdog behavior is {Behavior}.")]
+        public static partial void WatchdogItemsLate(this ILogger logger,
+            int late, int total, SubscriptionWatchdogBehavior behavior);
+
+        [LoggerMessage(EventId = 1125, Level = LogLevel.Error,
+            Message = "Managed monitored-item watchdog failed.")]
+        public static partial void WatchdogFailed(this ILogger logger,
+            Exception exception);
     }
 }

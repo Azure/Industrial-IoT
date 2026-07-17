@@ -1076,6 +1076,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         [Fact]
+        public async Task WatchdogResetDoesNotFlowNotificationExecutionContextAsync()
+        {
+            var ambient = new AsyncLocal<object?>
+            {
+                Value = new object()
+            };
+
+            await ManagedOpcUaClient.RunWithoutExecutionContextAsync(() =>
+            {
+                Assert.Null(ambient.Value);
+                return Task.CompletedTask;
+            });
+
+            Assert.NotNull(ambient.Value);
+        }
+
+        [Fact]
         public async Task ManagerWatchReceivesChangedManagedDiagnosticsOnceAsync()
         {
             var session = CreateSession(out _, out _);

@@ -694,7 +694,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private static async Task SynchronizeAsync(ManagedSubscriptionState state,
             CancellationToken ct, CancellationToken lifetimeCt)
         {
-            await state.Adapter.UpdateAsync(state.Registrations.SelectMany(registration =>
+            await SynchronizeAdapterAsync(state.Adapter, state.Registrations,
+                ct, lifetimeCt).ConfigureAwait(false);
+        }
+
+        private static async Task SynchronizeAdapterAsync(
+            ManagedSubscriptionAdapter adapter,
+            IEnumerable<ManagedRegistration> registrations,
+            CancellationToken ct, CancellationToken lifetimeCt)
+        {
+            await adapter.UpdateAsync(registrations.SelectMany(registration =>
                 registration.Owner.MonitoredItems.Select(item =>
                     (registration.Owner, Template: item))), ct, lifetimeCt).ConfigureAwait(false);
         }
@@ -720,11 +729,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         "The managed session does not expose a subscription manager.");
                 }
                 state = new ManagedSubscriptionState(subscription, lease,
-                    new ManagedSubscriptionAdapter(manager!, subscription,
-                        _context.SubscriptionOptions.Value, session.Codec,
-                        (period, name) => session.CreateBrowser(period, name, _logger),
-                        _context.LoggerFactory.CreateLogger<ManagedSubscriptionAdapter>(),
-                        _context.TimeProvider));
+                    CreateSubscriptionAdapter(session, manager!, subscription));
                 lease = null!;
                 _subscriptions.Add(subscription, state);
                 registered = true;
@@ -761,6 +766,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 lease?.Dispose();
             }
+        }
+
+        private ManagedSubscriptionAdapter CreateSubscriptionAdapter(
+            ManagedOpcUaSession session, ISubscriptionManager manager,
+            SubscriptionModel template)
+        {
+            return new ManagedSubscriptionAdapter(manager, template,
+                _context.SubscriptionOptions.Value, session.Codec,
+                (period, name) => session.CreateBrowser(period, name, _logger),
+                _context.LoggerFactory.CreateLogger<ManagedSubscriptionAdapter>(),
+                _context.TimeProvider,
+                watchdogAction: HandleWatchdogAction);
         }
 
         private async ValueTask<ManagedRegistration> ReplaceRegistrationAsync(
@@ -1095,6 +1112,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     state.Adapter.NotifyConnectionState(disconnected);
                 }
             }
+
             catch (OperationCanceledException) when (_lifetimeToken.IsCancellationRequested)
             {
             }
@@ -1112,6 +1130,125 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     _subscriptionGate.Release();
                 }
+            }
+        }
+
+        private void HandleWatchdogAction(ManagedSubscriptionAdapter adapter,
+            SubscriptionWatchdogBehavior behavior, string message)
+        {
+            lock (_lifetimeGate)
+            {
+                if (_disposed != 0 || _closing)
+                {
+                    return;
+                }
+            }
+            switch (behavior)
+            {
+                case SubscriptionWatchdogBehavior.Diagnostic:
+                    _logger.LogWarning("{Message}", message);
+                    break;
+                case SubscriptionWatchdogBehavior.Reset:
+                    StartWatchdogReset(adapter, message);
+                    break;
+                case SubscriptionWatchdogBehavior.FailFast:
+                    Publisher.Runtime.FailFast(message, null);
+                    break;
+                case SubscriptionWatchdogBehavior.ExitProcess:
+                    Console.WriteLine(message);
+                    Publisher.Runtime.Exit(-10);
+                    break;
+            }
+        }
+
+        private void StartWatchdogReset(
+            ManagedSubscriptionAdapter adapter, string message)
+        {
+            _ = RunWithoutExecutionContextAsync(
+                () => ResetFromWatchdogAsync(adapter, message));
+        }
+
+        internal static Task RunWithoutExecutionContextAsync(Func<Task> action)
+        {
+            ArgumentNullException.ThrowIfNull(action);
+            if (ExecutionContext.IsFlowSuppressed())
+            {
+                return Task.Run(action);
+            }
+            using (ExecutionContext.SuppressFlow())
+            {
+                return Task.Run(action);
+            }
+        }
+
+        private async Task ResetFromWatchdogAsync(
+            ManagedSubscriptionAdapter adapter, string message)
+        {
+            var succeeded = false;
+            try
+            {
+                _logger.LogWarning("{Message}", message);
+                var attempt = 0;
+                while (!_lifetimeToken.IsCancellationRequested)
+                {
+                    var entered = false;
+                    try
+                    {
+                        await _subscriptionGate.WaitAsync(_lifetimeToken)
+                            .ConfigureAwait(false);
+                        entered = true;
+                        var state = _subscriptions.Values.FirstOrDefault(candidate =>
+                            ReferenceEquals(candidate.Adapter, adapter));
+                        if (Volatile.Read(ref _disposed) != 0 || state == null)
+                        {
+                            return;
+                        }
+                        using var reset =
+                            CancellationTokenSource.CreateLinkedTokenSource(
+                                _lifetimeToken);
+                        reset.CancelAfter(GetServiceCallTimeout(null));
+                        await adapter.Subscription.RecreateAsync(reset.Token)
+                            .ConfigureAwait(false);
+                        await SynchronizeAsync(state, default, reset.Token)
+                            .ConfigureAwait(false);
+                        succeeded = true;
+                        return;
+                    }
+                    catch (OperationCanceledException)
+                        when (!_lifetimeToken.IsCancellationRequested)
+                    {
+                        _logger.LogWarning(
+                            "Managed watchdog reset timed out; retrying.");
+                    }
+                    catch (Exception ex)
+                    {
+                        if (Volatile.Read(ref _disposed) == 0)
+                        {
+                            _logger.LogError(ex,
+                                "Managed watchdog reset failed; retrying.");
+                        }
+                    }
+                    finally
+                    {
+                        if (entered)
+                        {
+                            _subscriptionGate.Release();
+                        }
+                    }
+
+                    attempt++;
+                    var delay = TimeSpan.FromSeconds(Math.Min(30,
+                        1 << Math.Min(attempt - 1, 5)));
+                    await Task.Delay(delay, _context.TimeProvider,
+                        _lifetimeToken).ConfigureAwait(false);
+                }
+            }
+            catch (OperationCanceledException) when (_lifetimeToken.IsCancellationRequested)
+            {
+            }
+            finally
+            {
+                adapter.CompleteWatchdogReset(succeeded);
             }
         }
 
@@ -1276,7 +1413,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public ISubscriptionDiagnostics Diagnostics => this;
             public int GoodMonitoredItems => Owner.MonitoredItems.Count();
             public int BadMonitoredItems => 0;
-            public int LateMonitoredItems => 0;
+            public int LateMonitoredItems => State.Adapter.GetLateMonitoredItems(Owner);
             public int HeartbeatsEnabled => State.Adapter.GetHeartbeatsEnabled(Owner);
             public int ConditionsEnabled => Owner.MonitoredItems.OfType<EventMonitoredItemModel>()
                 .Count(item => item.ConditionHandling?.SnapshotInterval != null);
