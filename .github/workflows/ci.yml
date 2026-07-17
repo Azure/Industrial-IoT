@@ -444,6 +444,16 @@ jobs:
         run: |
           dotnet restore Industrial-IoT.slnx \
             -s https://api.nuget.org/v3/index.json
+      - name: Build solution
+        # Pack does not build the projects when run against the solution
+        # (the packable project outputs would be missing -> NU5026), so build
+        # the Release outputs explicitly before packing with --no-build.
+        shell: bash
+        run: |
+          dotnet build Industrial-IoT.slnx \
+            -c Release \
+            --no-restore \
+            /p:ContinuousIntegrationBuild=true
       - name: Pack solution
         shell: bash
         run: |
@@ -451,6 +461,7 @@ jobs:
             -c Release \
             -o ./nupkgs \
             --no-restore \
+            --no-build \
             /p:ContinuousIntegrationBuild=true
       - name: Validate produced packages
         shell: bash
