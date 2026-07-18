@@ -59,11 +59,14 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Protocol
             {
                 throw new ArgumentNullException(nameof(method));
             }
+            contentType ??= ContentMimeType.Json;
             if (payload.Length == 0)
             {
-                payload = " "u8.ToArray();
+                payload = contentType.StartsWith(ContentMimeType.Json,
+                    StringComparison.OrdinalIgnoreCase)
+                    ? "{}"u8.ToArray()
+                    : " "u8.ToArray();
             }
-            contentType ??= ContentMimeType.Json;
 
             using var activity = kActivity.CreateActivity(target + method, ActivityKind.Client);
 

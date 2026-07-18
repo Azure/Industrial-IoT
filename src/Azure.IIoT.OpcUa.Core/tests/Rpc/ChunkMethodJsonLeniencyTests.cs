@@ -35,6 +35,20 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Router
             Json.Deserialize<EchoResponse>(response)!.Value.Should().Be("lenient");
         }
 
+        [Fact]
+        public async Task ChunkProtocolUsesEmptyObjectForEmptyJsonPayloadAsync()
+        {
+            await using var router = CreateRouter();
+            var client = new ChunkMethodClient(new LenientRouterRpcClient(router),
+                NullLogger<ChunkMethodClient>.Instance);
+
+            var response = await client.CallMethodAsync("target", "Echo_V1",
+                ReadOnlyMemory<byte>.Empty, ContentMimeType.Json, null,
+                CancellationToken.None);
+
+            Json.Deserialize<EchoResponse>(response)!.Value.Should().BeNull();
+        }
+
         private sealed class LenientRouterRpcClient : IRpcClient
         {
             public string Name => "lenient-test";
