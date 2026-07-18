@@ -24,6 +24,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         /// <summary>
         /// Gets or sets the persisted identity entries.
         /// </summary>
+        [JsonRequired]
         public List<PubSubIdentityRegistryEntry> Entries { get; set; } = [];
     }
 
@@ -169,11 +170,42 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             }
 
             var snapshot = await _store.LoadAsync(cancellationToken).ConfigureAwait(false);
+            var (entries, reverse) = ValidateSnapshot(snapshot);
+
+            _entries = entries;
+            _reverse = reverse;
+            _initialized = true;
+        }
+
+        internal static (Dictionary<string, ushort> Entries,
+            Dictionary<string, string> Reverse) ValidateSnapshot(
+                PubSubIdentityRegistrySnapshot? snapshot)
+        {
+            if (snapshot?.Entries is null)
+            {
+                throw new InvalidDataException(
+                    "The persisted PubSub identity registry must contain an entries array.");
+            }
+
             var entries = new Dictionary<string, ushort>(StringComparer.Ordinal);
             var reverse = new Dictionary<string, string>(StringComparer.Ordinal);
             foreach (var entry in snapshot.Entries)
             {
-                ValidateIdentity(entry.Scope, entry.Id);
+                if (entry is null)
+                {
+                    throw new InvalidDataException(
+                        "The persisted PubSub identity registry contains a null mapping.");
+                }
+                try
+                {
+                    ValidateIdentity(entry.Scope, entry.Id);
+                }
+                catch (ArgumentException ex)
+                {
+                    throw new InvalidDataException(
+                        "The persisted PubSub identity registry contains an invalid mapping.",
+                        ex);
+                }
                 if (entry.Value == 0)
                 {
                     throw new InvalidDataException("The persisted PubSub identifier must not be zero.");
@@ -188,10 +220,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                         "The persisted PubSub identity registry contains duplicate mappings.");
                 }
             }
-
-            _entries = entries;
-            _reverse = reverse;
-            _initialized = true;
+            return (entries, reverse);
         }
 
         private async ValueTask CommitAsync(Transaction transaction,
@@ -424,12 +453,15 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         public async ValueTask<PubSubIdentityRegistrySnapshot> LoadAsync(
             CancellationToken cancellationToken = default)
         {
+            var foundCandidate = false;
+            Exception? lastError = null;
             foreach (var candidate in new[] { _path, _backupPath, _temporaryPath })
             {
                 if (!File.Exists(candidate))
                 {
                     continue;
                 }
+                foundCandidate = true;
 
                 try
                 {
@@ -439,16 +471,30 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                         cancellationToken).ConfigureAwait(false);
                     if (snapshot is not null)
                     {
+                        PubSubIdentityRegistry.ValidateSnapshot(snapshot);
                         return snapshot;
                     }
+                    lastError = new JsonException(
+                        "The persisted PubSub identity registry was null.");
                 }
-                catch (JsonException)
+                catch (JsonException ex)
                 {
                     // A completed atomic replacement may have left a durable
                     // backup. Continue recovery with that snapshot.
+                    lastError = ex;
+                }
+                catch (InvalidDataException ex)
+                {
+                    lastError = ex;
                 }
             }
 
+            if (foundCandidate)
+            {
+                throw new InvalidDataException(
+                    "No valid persisted PubSub identity registry snapshot was found.",
+                    lastError);
+            }
             return new PubSubIdentityRegistrySnapshot();
         }
 
@@ -456,6 +502,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(snapshot);
+            PubSubIdentityRegistry.ValidateSnapshot(snapshot);
             var directory = Path.GetDirectoryName(_path);
             if (!string.IsNullOrEmpty(directory))
             {
