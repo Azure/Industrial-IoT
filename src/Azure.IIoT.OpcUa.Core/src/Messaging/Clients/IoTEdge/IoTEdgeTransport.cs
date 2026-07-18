@@ -23,7 +23,8 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
     /// IoT Hub/Edge transport backed by IoTHubby.
     /// </summary>
     public sealed class IoTEdgeTransport : IEventClient, IEventSubscriber,
-        IRpcServer, IRpcClient, IProcessIdentity, IAsyncDisposable
+        IRpcServer, IRpcClient, IProcessIdentity, IEventClientCapabilities,
+        IAsyncDisposable
     {
         /// <inheritdoc/>
         public string Name => "IoTEdge";
@@ -33,6 +34,17 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
 
         /// <inheritdoc/>
         public int MaxMethodPayloadSizeInBytes { get; } = 120 * 1024;
+
+        /// <inheritdoc/>
+        public EventClientCapabilities Capabilities =>
+            EventClientCapabilities.Payload
+            | EventClientCapabilities.Topic
+            | EventClientCapabilities.ContentType
+            | EventClientCapabilities.ContentEncoding
+            | EventClientCapabilities.CustomProperties
+            | EventClientCapabilities.CloudEvents
+            | EventClientCapabilities.TransportSecurity
+            | EventClientCapabilities.Authentication;
 
         /// <inheritdoc/>
         public string Identity => _client.Identity.ModuleId == null ?

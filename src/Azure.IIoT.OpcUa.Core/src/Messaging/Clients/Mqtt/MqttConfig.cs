@@ -21,9 +21,13 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt
             {
                 options.HostName = "localhost";
             }
-            options.Port ??= options.UseTls == true ? 8883 : 1883;
+            var useWebSocket = options.WebSocketPath != null;
+            options.UseTls ??= options.Port != null &&
+                options.Port != (useWebSocket ? 80 : 1883);
+            options.Port ??= useWebSocket
+                ? (options.UseTls == true ? 443 : 80)
+                : (options.UseTls == true ? 8883 : 1883);
             options.QoS ??= QoS.AtMostOnce;
-            options.UseTls ??= options.Port != 1883;
             options.ClientId ??= Guid.NewGuid().ToString();
             if (options.ReconnectDelay == TimeSpan.Zero)
             {

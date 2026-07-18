@@ -16,7 +16,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients
     /// <summary>
     /// Nil output client
     /// </summary>
-    public sealed class NullEventClient : IEvent, IEventClient
+    public sealed class NullEventClient : IEvent, IEventClient, IEventClientCapabilities
     {
         /// <inheritdoc/>
         public string Name => "NULL";
@@ -24,6 +24,9 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients
         public int MaxEventPayloadSizeInBytes => int.MaxValue;
         /// <inheritdoc/>
         public string Identity => Dns.GetHostName();
+
+        /// <inheritdoc/>
+        public EventClientCapabilities Capabilities => 0;
 
         /// <inheritdoc/>
         public IEvent CreateEvent()

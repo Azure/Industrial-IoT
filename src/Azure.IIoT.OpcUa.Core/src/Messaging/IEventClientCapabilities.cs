@@ -8,8 +8,8 @@ namespace Azure.IIoT.OpcUa.Core.Messaging
     using System;
 
     /// <summary>
-    /// Declares the event features that an event client applies without
-    /// reducing or ignoring their requested semantics.
+    /// Declares the event and transport features that an event client applies
+    /// without reducing or ignoring their requested semantics.
     /// </summary>
     [Flags]
     public enum EventClientCapabilities
@@ -62,7 +62,17 @@ namespace Azure.IIoT.OpcUa.Core.Messaging
         /// <summary>
         /// The client registers and applies event schemas.
         /// </summary>
-        Schema = 1 << 9
+        Schema = 1 << 9,
+
+        /// <summary>
+        /// The client can protect transport traffic with TLS.
+        /// </summary>
+        TransportSecurity = 1 << 10,
+
+        /// <summary>
+        /// The client can authenticate to the target transport.
+        /// </summary>
+        Authentication = 1 << 11
     }
 
     /// <summary>
@@ -74,7 +84,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging
     public interface IEventClientCapabilities
     {
         /// <summary>
-        /// Gets the faithfully supported event features.
+        /// Gets the faithfully supported event and transport features.
         /// </summary>
         EventClientCapabilities Capabilities { get; }
     }

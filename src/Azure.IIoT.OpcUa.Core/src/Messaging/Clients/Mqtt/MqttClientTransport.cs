@@ -31,7 +31,8 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt
     /// protocol are preserved (see <see cref="MqttRpcProtocol"/>).
     /// </summary>
     public sealed class MqttClientTransport : IEventClient, IEventSubscriber,
-        IRpcClient, IRpcServer, IMqttPublisher, IAsyncDisposable
+        IRpcClient, IRpcServer, IMqttPublisher, IEventClientCapabilities,
+        IEventClientRetainedTombstoneCapabilities, IAsyncDisposable
     {
         /// <inheritdoc/>
         public string Name => "Mqtt";
@@ -41,6 +42,13 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt
 
         /// <inheritdoc/>
         public int MaxMethodPayloadSizeInBytes { get; }
+
+        /// <inheritdoc/>
+        public EventClientCapabilities Capabilities => GetCapabilities(
+            _version, _options?.Value.ConfigureSchemaMessage != null);
+
+        /// <inheritdoc/>
+        public bool SupportsRetainedTombstones => true;
 
         /// <inheritdoc/>
         public string Identity { get; }
@@ -82,6 +90,81 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt
         {
             ObjectDisposedException.ThrowIf(_isDisposed, this);
             return new MqttEvent(_version, _defaultQoS, this);
+        }
+
+        internal static EventClientCapabilities GetCapabilities(
+            MqttVersion version, bool supportsSchema = false)
+        {
+            var capabilities = EventClientCapabilities.Payload
+                | EventClientCapabilities.Topic
+                | EventClientCapabilities.QualityOfService
+                | EventClientCapabilities.Retain
+                | EventClientCapabilities.TransportSecurity
+                | EventClientCapabilities.Authentication;
+            if (version != MqttVersion.v311)
+            {
+                capabilities |= EventClientCapabilities.TimeToLive
+                    | EventClientCapabilities.ContentType
+                    | EventClientCapabilities.ContentEncoding
+                    | EventClientCapabilities.CustomProperties
+                    | EventClientCapabilities.CloudEvents;
+            }
+            if (supportsSchema)
+            {
+                capabilities |= EventClientCapabilities.Schema;
+            }
+            return capabilities;
+        }
+
+        internal static (string Endpoint, bool UseTls,
+            bool AllowUntrustedCertificates) GetConnectionSettings(MqttOptions options)
+        {
+            ArgumentNullException.ThrowIfNull(options);
+
+            var useWebSocket = options.WebSocketPath != null;
+            var useTls = options.UseTls ??
+                (options.Port != null &&
+                    options.Port != (useWebSocket ? 80 : 1883));
+            if (useWebSocket && options.Port == 1883)
+            {
+                throw new NotSupportedException(
+                    "Mqtt.Client 1.1.2 rewrites WebSocket port 1883. " +
+                    "Choose another explicit port so the requested endpoint is preserved.");
+            }
+            if (useWebSocket && useTls &&
+                options.AllowUntrustedCertificates == true)
+            {
+                throw new NotSupportedException(
+                    "Mqtt.Client 1.1.2 does not apply custom certificate " +
+                    "validation settings to secure WebSocket connections.");
+            }
+            var host = options.HostName ?? "localhost";
+            var port = options.Port ?? (useWebSocket
+                ? (useTls ? 443 : 80)
+                : (useTls ? 8883 : 1883));
+            var scheme = useWebSocket
+                ? (useTls ? "wss" : "ws")
+                : (useTls ? "mqtts" : "mqtt");
+            return ($"{scheme}://{host}:{port}", useTls,
+                !useWebSocket && useTls &&
+                    options.AllowUntrustedCertificates == true);
+        }
+
+        internal static (string UserName, byte[] Password)? GetCredentials(
+            MqttOptions options)
+        {
+            ArgumentNullException.ThrowIfNull(options);
+
+            if (options.UserName == null)
+            {
+                return null;
+            }
+            var password = options.Password != null
+                ? Encoding.UTF8.GetBytes(options.Password)
+                : (options.PasswordFile != null
+                    ? File.ReadAllBytes(options.PasswordFile)
+                    : []);
+            return (options.UserName, password);
         }
 
         /// <inheritdoc/>
@@ -615,14 +698,9 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt
         /// <param name="loggerFactory"></param>
         private MqttClient BuildClient(MqttOptions o, ILoggerFactory? loggerFactory)
         {
-            var useTls = o.UseTls ?? (o.Port != null && o.Port != 1883);
-            var host = o.HostName ?? "localhost";
-            var port = o.Port ?? (useTls ? 8883 : 1883);
-            var scheme = o.WebSocketPath != null
-                ? (useTls ? "wss" : "ws")
-                : (useTls ? "mqtts" : "mqtt");
+            var connection = GetConnectionSettings(o);
             var builder = MqttClient.CreateBuilder()
-                .ConnectTo($"{scheme}://{host}:{port}")
+                .ConnectTo(connection.Endpoint)
                 .WithClientId(Identity)
                 .WithProtocol(_version == MqttVersion.v311
                     ? MqttProtocolVersion.V311 : MqttProtocolVersion.V500)
@@ -633,18 +711,19 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt
                 builder = builder.WithKeepAlive(
                     (ushort)Math.Clamp(o.KeepAlivePeriod.Value.TotalSeconds, 0, ushort.MaxValue));
             }
-            if (o.UserName != null)
+            var credentials = GetCredentials(o);
+            if (credentials != null)
             {
-                var password = o.Password != null
-                    ? Encoding.UTF8.GetBytes(o.Password)
-                    : (o.PasswordFile != null ? File.ReadAllBytes(o.PasswordFile) : []);
-                builder = builder.WithCredentials(o.UserName, password);
+                builder = builder.WithCredentials(credentials.Value.UserName,
+                    credentials.Value.Password);
             }
-            if (useTls && o.AllowUntrustedCertificates == true)
+            if (connection.AllowUntrustedCertificates)
             {
                 builder = builder.WithTls(tls =>
                     tls.RemoteCertificateValidationCallback =
-                        (_, _, _, _) => true);
+                        (_, _, _, errors) =>
+                            o.AllowUntrustedCertificates == true ||
+                            errors == SslPolicyErrors.None);
             }
             if (loggerFactory != null)
             {

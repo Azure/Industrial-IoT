@@ -19,7 +19,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients
     /// <summary>
     /// Event client that posts events to a webhook via HTTP
     /// </summary>
-    public sealed class HttpEventClient : IEventClient
+    public sealed class HttpEventClient : IEventClient, IEventClientCapabilities
     {
         /// <inheritdoc/>
         public string Name => "HTTP";
@@ -29,6 +29,17 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients
 
         /// <inheritdoc/>
         public string Identity => Guid.NewGuid().ToString();
+
+        /// <inheritdoc/>
+        public EventClientCapabilities Capabilities =>
+            EventClientCapabilities.Payload
+            | EventClientCapabilities.Topic
+            | EventClientCapabilities.ContentType
+            | EventClientCapabilities.ContentEncoding
+            | EventClientCapabilities.CustomProperties
+            | EventClientCapabilities.CloudEvents
+            | EventClientCapabilities.TransportSecurity
+            | EventClientCapabilities.Authentication;
 
         /// <summary>
         /// Create dapr client
@@ -70,11 +81,12 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients
                 _request.AddHeader("ce-type", header.Type);
                 if (header.Time != null)
                 {
-                    _request.AddHeader("ce-time", header.Time.ToString());
+                    _request.AddHeader("ce-time", header.Time.Value.ToString(
+                        "O", CultureInfo.InvariantCulture));
                 }
                 if (header.DataContentType != null)
                 {
-                    _request.AddHeader("ce-datacontenttype", header.DataContentType);
+                    _contentType = header.DataContentType;
                 }
                 if (header.Subject != null)
                 {
@@ -175,11 +187,15 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients
                 if (_contentType != null)
                 {
                     var contentType = new MediaTypeHeaderValue(_contentType);
-                    if (_contentEncoding != null)
+                    if (_contentEncoding != null && IsCharacterEncoding(_contentEncoding))
                     {
                         contentType.CharSet = _contentEncoding;
                     }
                     _content.ForEach(c => c.Headers.ContentType = contentType);
+                }
+                if (_contentEncoding != null && !IsCharacterEncoding(_contentEncoding))
+                {
+                    _content.ForEach(c => c.Headers.ContentEncoding.Add(_contentEncoding));
                 }
                 if (_content.Count > 1 ||
                     _outer._options.Value.UseMultipartForSingleBuffer == true)
@@ -222,7 +238,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients
                     Host = host,
                     Scheme = useSsl ? "https" : "http",
                     Port = _outer._options.Value.Port ?? (!useSsl ? 80 : 443),
-                    Path = _topic
+                    Path = topic
                 }.Uri;
 
                 if (useSsl && _outer._options.Value.AuthorizationHeader != null)
@@ -238,9 +254,24 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients
                 }
 
                 using var client = _outer._factory.CreateClient();
-                var response = await client.SendAsync(_request,
+                using var response = await client.SendAsync(_request,
                     HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false);
                 response.ValidateResponse();
+            }
+
+            private static bool IsCharacterEncoding(string value)
+            {
+                return value.Equals("utf-8", StringComparison.OrdinalIgnoreCase)
+                    || value.Equals("utf8", StringComparison.OrdinalIgnoreCase)
+                    || value.Equals("utf-16", StringComparison.OrdinalIgnoreCase)
+                    || value.Equals("utf-16le", StringComparison.OrdinalIgnoreCase)
+                    || value.Equals("utf-16be", StringComparison.OrdinalIgnoreCase)
+                    || value.Equals("utf-32", StringComparison.OrdinalIgnoreCase)
+                    || value.Equals("utf-32le", StringComparison.OrdinalIgnoreCase)
+                    || value.Equals("utf-32be", StringComparison.OrdinalIgnoreCase)
+                    || value.Equals("us-ascii", StringComparison.OrdinalIgnoreCase)
+                    || value.Equals("iso-8859-1", StringComparison.OrdinalIgnoreCase)
+                    || value.Equals("windows-1252", StringComparison.OrdinalIgnoreCase);
             }
 
             /// <inheritdoc/>

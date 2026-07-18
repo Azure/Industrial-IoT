@@ -16,10 +16,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Options;
+    using MqttNetServer = MQTTnet.Server.MqttServer;
+    using MqttNetServerFactory = MQTTnet.Server.MqttServerFactory;
     using System;
     using System.Buffers;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.Net;
     using System.Text.Json.Nodes;
     using System.Threading;
     using System.Threading.Tasks;
@@ -532,15 +535,43 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
     }
 
     /// <summary>
-    /// Test MQTT server placeholder.
+    /// Test MQTT server.
     /// </summary>
-    public sealed class MqttServer : IAwaitable<MqttServer>
+    public sealed class MqttServer : IAwaitable<MqttServer>, IDisposable
     {
+        /// <summary>
+        /// Create and start the test MQTT server.
+        /// </summary>
+        /// <param name="options"></param>
+        public MqttServer(IOptions<MqttOptions> options)
+        {
+            ArgumentNullException.ThrowIfNull(options);
+            var port = options.Value.Port ??
+                throw new InvalidOperationException("MQTT test server port is not configured.");
+            var factory = new MqttNetServerFactory();
+            var serverOptions = factory.CreateServerOptionsBuilder()
+                .WithDefaultEndpoint()
+                .WithDefaultEndpointBoundIPAddress(IPAddress.Loopback)
+                .WithDefaultEndpointBoundIPV6Address(IPAddress.None)
+                .WithDefaultEndpointPort(port)
+                .Build();
+            _server = factory.CreateMqttServer(serverOptions);
+            _server.StartAsync().GetAwaiter().GetResult();
+        }
+
         /// <inheritdoc/>
         public IAwaiter<MqttServer> GetAwaiter()
         {
             return Task.FromResult(this).AsAwaiter();
         }
+
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+            _server.Dispose();
+        }
+
+        private readonly MqttNetServer _server;
     }
 
     /// <summary>

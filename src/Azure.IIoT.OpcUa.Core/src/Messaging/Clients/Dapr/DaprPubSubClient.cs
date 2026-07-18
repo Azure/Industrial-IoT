@@ -18,7 +18,8 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.Dapr
     /// <summary>
     /// Event client built on Dapr pub/sub.
     /// </summary>
-    public sealed class DaprPubSubClient : IEventClient, IDisposable
+    public sealed class DaprPubSubClient : IEventClient, IEventClientCapabilities,
+        IDisposable
     {
         /// <inheritdoc/>
         public string Name => "Dapr";
@@ -28,6 +29,14 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.Dapr
 
         /// <inheritdoc/>
         public string Identity => Guid.NewGuid().ToString();
+
+        /// <inheritdoc/>
+        public EventClientCapabilities Capabilities =>
+            EventClientCapabilities.Payload
+            | EventClientCapabilities.Topic
+            | EventClientCapabilities.ContentType
+            | EventClientCapabilities.TransportSecurity
+            | EventClientCapabilities.Authentication;
 
         /// <summary>
         /// Create Dapr pub/sub client.

@@ -14,13 +14,15 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.EventHubs
     using System;
     using System.Buffers;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
     /// Event Hubs event client.
     /// </summary>
-    public sealed class EventHubsClient : IEventClient, IDisposable, IAsyncDisposable
+    public sealed class EventHubsClient : IEventClient, IEventClientCapabilities,
+        IDisposable, IAsyncDisposable
     {
         /// <inheritdoc/>
         public string Name => "EventHub";
@@ -31,6 +33,17 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.EventHubs
         /// <inheritdoc/>
         public int MaxEventPayloadSizeInBytes
             => _options.Value.MaxEventPayloadSizeInBytes ?? 1024 * 1024;
+
+        /// <inheritdoc/>
+        public EventClientCapabilities Capabilities =>
+            EventClientCapabilities.Payload
+            | EventClientCapabilities.Topic
+            | EventClientCapabilities.ContentType
+            | EventClientCapabilities.ContentEncoding
+            | EventClientCapabilities.CustomProperties
+            | EventClientCapabilities.CloudEvents
+            | EventClientCapabilities.TransportSecurity
+            | EventClientCapabilities.Authentication;
 
         /// <summary>
         /// Create client.
@@ -86,7 +99,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.EventHubs
             await _client.DisposeAsync().ConfigureAwait(false);
         }
 
-        private sealed class EventHubsEvent : IEvent
+        internal sealed class EventHubsEvent : IEvent
         {
             /// <summary>
             /// Create event.
@@ -100,21 +113,22 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.EventHubs
             /// <inheritdoc/>
             public IEvent AsCloudEvent(CloudEventHeader header)
             {
-                _properties["specversion"] = "1.0";
-                _properties["id"] = header.Id;
-                _properties["source"] = header.Source.ToString();
-                _properties["type"] = header.Type;
+                _properties["cloudEvents:specversion"] = "1.0";
+                _properties["cloudEvents:id"] = header.Id;
+                _properties["cloudEvents:source"] = header.Source.ToString();
+                _properties["cloudEvents:type"] = header.Type;
                 if (header.Time != null)
                 {
-                    _properties["time"] = header.Time.ToString();
+                    _properties["cloudEvents:time"] = header.Time.Value.ToString(
+                        "O", CultureInfo.InvariantCulture);
                 }
                 if (header.DataContentType != null)
                 {
-                    _properties["datacontenttype"] = header.DataContentType;
+                    _contentType = header.DataContentType;
                 }
                 if (header.Subject != null)
                 {
-                    _properties["subject"] = header.Subject;
+                    _properties["cloudEvents:subject"] = header.Subject;
                 }
                 return this;
             }
@@ -128,6 +142,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.EventHubs
             /// <inheritdoc/>
             public IEvent SetContentType(string? value)
             {
+                _contentType = value;
                 return this;
             }
 
@@ -206,7 +221,8 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.EventHubs
 
                         if (retrievedSchemaId != null)
                         {
-                            _contentEncoding = $"{_contentEncoding}+{retrievedSchemaId}";
+                            _contentType =
+                                $"{ContentMimeType.AvroBinary}+{retrievedSchemaId}";
                         }
                     }
 
@@ -230,12 +246,14 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.EventHubs
                 _buffers.Clear();
             }
 
-            private EventData CreateMessage(ReadOnlySequence<byte> buffer)
+            internal EventData CreateMessage(ReadOnlySequence<byte> buffer)
             {
                 var message = !buffer.IsSingleSegment ?
                     new EventData(buffer.ToArray()) :
                     new EventData(buffer.First);
-                message.ContentType = _contentEncoding;
+                message.ContentType = _contentType;
+                message.GetRawAmqpMessage().Properties.ContentEncoding =
+                    _contentEncoding;
                 foreach (var item in _properties)
                 {
                     if (item.Value == null)
@@ -257,6 +275,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.EventHubs
             private readonly Dictionary<string, string?> _properties = [];
             private readonly List<ReadOnlySequence<byte>> _buffers = [];
             private IEventSchema? _schema;
+            private string? _contentType;
             private string? _contentEncoding;
         }
 
@@ -276,4 +295,3 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.EventHubs
         public static partial void SendingMessageFailed(this ILogger logger, Exception ex);
     }
 }
-

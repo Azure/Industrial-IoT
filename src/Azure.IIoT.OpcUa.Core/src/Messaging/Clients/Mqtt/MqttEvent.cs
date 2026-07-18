@@ -44,7 +44,8 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt
                 AddUserProperty("type", header.Type);
                 if (header.Time != null)
                 {
-                    AddUserProperty("time", header.Time.ToString()!);
+                    AddUserProperty("time", header.Time.Value.ToString(
+                        "O", CultureInfo.InvariantCulture));
                 }
                 if (header.DataContentType != null)
                 {

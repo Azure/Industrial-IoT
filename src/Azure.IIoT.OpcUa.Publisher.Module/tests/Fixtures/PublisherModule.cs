@@ -314,7 +314,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 {
                     Try.Op(() => Directory.Delete(CurrentDirectory, true));
                 }
-                ClientContainer.Dispose();
+                await ClientContainer.DisposeAsync();
             }
         }
 

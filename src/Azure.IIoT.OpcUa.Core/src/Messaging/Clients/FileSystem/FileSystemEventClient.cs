@@ -20,7 +20,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients
     /// <summary>
     /// Event client that writes events to the filesystem
     /// </summary>
-    public class FileSystemEventClient : IEventClient
+    public class FileSystemEventClient : IEventClient, IEventClientCapabilities
     {
         /// <inheritdoc/>
         public string Name => "FileSystem";
@@ -31,6 +31,14 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients
 
         /// <inheritdoc/>
         public string Identity => Guid.NewGuid().ToString();
+
+        /// <inheritdoc/>
+        public EventClientCapabilities Capabilities =>
+            EventClientCapabilities.Payload
+            | EventClientCapabilities.ContentType
+            | EventClientCapabilities.ContentEncoding
+            | EventClientCapabilities.CustomProperties
+            | EventClientCapabilities.CloudEvents;
 
         /// <summary>
         /// Create dapr client
