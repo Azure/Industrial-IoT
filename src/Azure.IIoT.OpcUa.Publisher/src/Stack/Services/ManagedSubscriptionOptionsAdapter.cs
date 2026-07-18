@@ -196,6 +196,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 DataMonitoredItemModel data => monitoredItemOptions with
                 {
                     IndexRange = data.IndexRange,
+                    MonitoringMode = data.SamplingUsingCyclicRead == true
+                        ? Opc.Ua.MonitoringMode.Disabled
+                        : monitoredItemOptions.MonitoringMode,
                     SamplingInterval = data.SamplingInterval
                         ?? options.DefaultSamplingInterval
                         ?? TimeSpan.FromSeconds(1),

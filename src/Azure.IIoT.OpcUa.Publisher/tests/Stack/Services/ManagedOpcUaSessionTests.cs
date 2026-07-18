@@ -93,6 +93,250 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 cts.Token), Times.Once);
         }
 
+        [Fact]
+        public async Task CyclicReadClientBatchesAndMapsServiceFailuresAsync()
+        {
+            var session = CreateSession(out _, out _);
+            session.SetupGet(s => s.OperationLimits).Returns(new OperationLimits
+            {
+                MaxNodesPerRead = 2
+            });
+            SetupOperationLimitsRead(session);
+            var connection = new FakeConnection(session.Object);
+            await using var facade = new ManagedOpcUaSession(connection, CreateTelemetry());
+            _ = await facade.GetOperationLimitsAsync();
+            var calls = new List<(RequestHeader Header, double MaxAge,
+                Opc.Ua.TimestampsToReturn Timestamps, ReadValueId[] Nodes)>();
+            session.Setup(s => s.ReadAsync(
+                    It.IsAny<RequestHeader>(),
+                    It.IsAny<double>(),
+                    It.IsAny<Opc.Ua.TimestampsToReturn>(),
+                    It.IsAny<ArrayOf<ReadValueId>>(),
+                    It.IsAny<CancellationToken>()))
+                .Returns((RequestHeader header, double maxAge,
+                    Opc.Ua.TimestampsToReturn timestamps,
+                    ArrayOf<ReadValueId> nodes, CancellationToken _) =>
+                {
+                    calls.Add((header, maxAge, timestamps, [.. nodes]));
+                    if (calls.Count == 1)
+                    {
+                        return ValueTask.FromResult(new ReadResponse
+                        {
+                            ResponseHeader = new ResponseHeader
+                            {
+                                ServiceResult = StatusCodes.BadTimeout
+                            },
+                            Results = []
+                        });
+                    }
+                    return ValueTask.FromResult(new ReadResponse
+                    {
+                        ResponseHeader = new ResponseHeader
+                        {
+                            ServiceResult = StatusCodes.Good
+                        },
+                        Results = new ArrayOf<DataValue>(nodes
+                            .Select(node => new DataValue(
+                                Variant.From((uint)node.NodeId.Identifier)))
+                            .ToArray())
+                    });
+                });
+            await using var client =
+                new ManagedCyclicReadClient(facade, TimeProvider.System);
+            var nodesToRead = Enumerable.Range(1, 3)
+                .Select(index => new ReadValueId
+                {
+                    NodeId = new NodeId((uint)index, 2),
+                    AttributeId = Attributes.Value,
+                    IndexRange = index == 3 ? "1:2" : null
+                })
+                .ToArray();
+
+            var values = await client.ReadAsync(nodesToRead
+                .Select(node => new ManagedCyclicReadRequest(node, false))
+                .ToArray(),
+                TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(15),
+                default);
+
+            Assert.Equal([2, 1], calls.Select(call => call.Nodes.Length));
+            Assert.All(calls, call =>
+            {
+                Assert.Equal(50u, call.Header.TimeoutHint);
+                Assert.NotEqual(DateTime.MinValue, call.Header.Timestamp);
+                Assert.Equal(15, call.MaxAge);
+                Assert.Equal(Opc.Ua.TimestampsToReturn.Both, call.Timestamps);
+            });
+            Assert.Equal(StatusCodes.BadTimeout, values[0].StatusCode);
+            Assert.Equal(StatusCodes.BadTimeout, values[1].StatusCode);
+            Assert.Equal(Variant.From((uint)3), values[2].WrappedValue);
+            Assert.Equal("1:2", calls[1].Nodes[0].IndexRange);
+        }
+
+        [Fact]
+        public async Task CyclicReadClientMapsPreparationFailureToEveryItemAsync()
+        {
+            var session = CreateSession(out _, out _);
+            session.SetupGet(s => s.OperationLimits).Returns(new OperationLimits
+            {
+                MaxNodesPerRead = 2
+            });
+            session.Setup(s => s.ReadAsync(
+                    It.IsAny<RequestHeader>(),
+                    It.IsAny<double>(),
+                    It.IsAny<Opc.Ua.TimestampsToReturn>(),
+                    It.IsAny<ArrayOf<ReadValueId>>(),
+                    It.IsAny<CancellationToken>()))
+                .Throws(new ServiceResultException(StatusCodes.BadNotConnected));
+            var connection = new FakeConnection(session.Object);
+            await using var facade = new ManagedOpcUaSession(connection, CreateTelemetry());
+            await using var client =
+                new ManagedCyclicReadClient(facade, TimeProvider.System);
+
+            var values = await client.ReadAsync(
+            [
+                new ManagedCyclicReadRequest(
+                    new ReadValueId { NodeId = ObjectIds.Server }, false),
+                new ManagedCyclicReadRequest(
+                    new ReadValueId { NodeId = new NodeId(1u, 2) }, false)
+            ], TimeSpan.FromSeconds(1), TimeSpan.Zero, default);
+
+            Assert.Equal(2, values.Count);
+            Assert.All(values, value =>
+                Assert.Equal(StatusCodes.BadNotConnected, value.StatusCode));
+        }
+
+        [Fact]
+        public async Task CyclicReadClientFallsBackWhenOperationLimitsAreUnavailableAsync()
+        {
+            var session = CreateSession(out _, out _);
+            session.SetupGet(s => s.OperationLimits).Returns(new OperationLimits
+            {
+                MaxNodesPerRead = 2
+            });
+            var callCount = 0;
+            var actualReadCount = 0;
+            session.Setup(s => s.ReadAsync(
+                    It.IsAny<RequestHeader>(),
+                    It.IsAny<double>(),
+                    It.IsAny<Opc.Ua.TimestampsToReturn>(),
+                    It.IsAny<ArrayOf<ReadValueId>>(),
+                    It.IsAny<CancellationToken>()))
+                .Returns((RequestHeader _, double _,
+                    Opc.Ua.TimestampsToReturn _,
+                    ArrayOf<ReadValueId> nodes, CancellationToken _) =>
+                {
+                    if (Interlocked.Increment(ref callCount) == 1)
+                    {
+                        throw new ServiceResultException(
+                            StatusCodes.BadNodeIdUnknown);
+                    }
+                    actualReadCount = nodes.Count;
+                    return ValueTask.FromResult(new ReadResponse
+                    {
+                        ResponseHeader = new ResponseHeader
+                        {
+                            ServiceResult = StatusCodes.Good
+                        },
+                        Results = new ArrayOf<DataValue>(nodes
+                            .Select(node => new DataValue(
+                                Variant.From((uint)node.NodeId.Identifier)))
+                            .ToArray())
+                    });
+                });
+            var connection = new FakeConnection(session.Object);
+            await using var facade = new ManagedOpcUaSession(connection, CreateTelemetry());
+            await using var client =
+                new ManagedCyclicReadClient(facade, TimeProvider.System);
+
+            var values = await client.ReadAsync(
+            [
+                new ManagedCyclicReadRequest(
+                    new ReadValueId { NodeId = new NodeId(1u, 2) }, false),
+                new ManagedCyclicReadRequest(
+                    new ReadValueId { NodeId = new NodeId(2u, 2) }, false),
+                new ManagedCyclicReadRequest(
+                    new ReadValueId { NodeId = new NodeId(3u, 2) }, false)
+            ], TimeSpan.FromSeconds(1), TimeSpan.Zero, default);
+
+            Assert.Equal(3, actualReadCount);
+            Assert.Equal(3, values.Count);
+            Assert.Equal(Variant.From(1u), values[0].WrappedValue);
+            Assert.Equal(Variant.From(2u), values[1].WrappedValue);
+            Assert.Equal(Variant.From(3u), values[2].WrappedValue);
+        }
+
+        [Fact]
+        public async Task CyclicReadClientRegistersRequestedNodeOnceAsync()
+        {
+            var session = CreateSession(out _, out _);
+            session.SetupGet(s => s.OperationLimits).Returns(new OperationLimits
+            {
+                MaxNodesPerRead = 10,
+                MaxNodesPerRegisterNodes = 10
+            });
+            SetupOperationLimitsRead(session);
+            var connection = new FakeConnection(session.Object);
+            await using var facade = new ManagedOpcUaSession(connection, CreateTelemetry());
+            _ = await facade.GetOperationLimitsAsync();
+            var original = new NodeId(1u, 2);
+            var registered = new NodeId(99u, 2);
+            session.Setup(s => s.RegisterNodesAsync(
+                    It.IsAny<RequestHeader>(),
+                    It.Is<ArrayOf<NodeId>>(nodes =>
+                        nodes.Count == 1 && nodes[0] == original),
+                    It.IsAny<CancellationToken>()))
+                .Returns(ValueTask.FromResult(new RegisterNodesResponse
+                {
+                    ResponseHeader = new ResponseHeader
+                    {
+                        ServiceResult = StatusCodes.Good
+                    },
+                    RegisteredNodeIds = [registered]
+                }));
+            var readNodes = new List<NodeId>();
+            session.Setup(s => s.ReadAsync(
+                    It.IsAny<RequestHeader>(),
+                    It.IsAny<double>(),
+                    It.IsAny<Opc.Ua.TimestampsToReturn>(),
+                    It.IsAny<ArrayOf<ReadValueId>>(),
+                    It.IsAny<CancellationToken>()))
+                .Returns((RequestHeader _, double _,
+                    Opc.Ua.TimestampsToReturn _,
+                    ArrayOf<ReadValueId> nodes, CancellationToken _) =>
+                {
+                    readNodes.Add(nodes[0].NodeId);
+                    return ValueTask.FromResult(new ReadResponse
+                    {
+                        ResponseHeader = new ResponseHeader
+                        {
+                            ServiceResult = StatusCodes.Good
+                        },
+                        Results = [new DataValue(Variant.From(1u))]
+                    });
+                });
+            await using var client =
+                new ManagedCyclicReadClient(facade, TimeProvider.System);
+            ManagedCyclicReadRequest[] requests =
+            [
+                new(new ReadValueId
+                {
+                    NodeId = original,
+                    AttributeId = Attributes.Value
+                }, true)
+            ];
+
+            _ = await client.ReadAsync(requests,
+                TimeSpan.FromSeconds(1), TimeSpan.Zero, default);
+            _ = await client.ReadAsync(requests,
+                TimeSpan.FromSeconds(1), TimeSpan.Zero, default);
+
+            Assert.Equal([registered, registered], readNodes);
+            session.Verify(s => s.RegisterNodesAsync(
+                It.IsAny<RequestHeader>(),
+                It.IsAny<ArrayOf<NodeId>>(),
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
         /// <summary>
         /// Operation limits and diagnostics are projected from the managed session.
         /// </summary>

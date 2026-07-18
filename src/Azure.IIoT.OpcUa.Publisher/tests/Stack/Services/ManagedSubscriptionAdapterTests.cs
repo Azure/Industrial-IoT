@@ -19,6 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.IO;
     using System.Linq;
     using System.Threading;
+    using System.Threading.Channels;
     using System.Threading.Tasks;
     using Xunit;
     using PublisherMonitoringMode = Azure.IIoT.OpcUa.Publisher.Models.MonitoringMode;
@@ -109,6 +110,504 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Assert.Equal(0u, manager.Subscription.Collection.Count);
             Assert.False(manager.CapturedOptionsMonitor.CurrentValue.PublishingEnabled);
             Assert.DoesNotContain(true, publishingStates);
+        }
+
+        [Fact]
+        public async Task CyclicOnlySubscriptionReadsDisabledItem()
+        {
+            var manager = new FakeSubscriptionManager();
+            var readClient = new FakeCyclicReadClient();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions(), cyclicReadClient: readClient);
+            var owner = new FakeSubscriber();
+            var item = CreateDataItem("ns=2;s=cyclic") with
+            {
+                SamplingUsingCyclicRead = true,
+                SamplingInterval = TimeSpan.FromMilliseconds(20),
+                CyclicReadMaxAge = TimeSpan.FromMilliseconds(7),
+                IndexRange = "1:2",
+                RegisterRead = true
+            };
+
+            await adapter.UpdateAsync([(owner, item)]);
+
+            var monitoredItem = Assert.IsType<FakeMonitoredItem>(
+                Assert.Single(manager.Subscription!.Collection.Items));
+            Assert.Equal(Opc.Ua.MonitoringMode.Disabled,
+                monitoredItem.CurrentMonitoringMode);
+            Assert.False(manager.CapturedOptionsMonitor!.CurrentValue.PublishingEnabled);
+
+            var call = await readClient.ReadNextAsync()
+                .AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+            var request = Assert.Single(call.Nodes);
+            Assert.Equal(new NodeId("cyclic", 2), request.NodeId);
+            Assert.Equal(Attributes.Value, request.AttributeId);
+            Assert.Equal("1:2", request.IndexRange);
+            Assert.True(Assert.Single(call.Register));
+            Assert.Equal(TimeSpan.FromMilliseconds(20), call.SamplingInterval);
+            Assert.Equal(TimeSpan.FromMilliseconds(7), call.MaxAge);
+            call.Complete(new DataValue(Variant.From(42)));
+
+            var notification = await owner.ReadCyclicAsync()
+                .AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.Equal(Variant.From(42), GetSingleValue(notification));
+            Assert.Empty(owner.DataChanges);
+        }
+
+        [Fact]
+        public async Task TryAddAsyncStartsCyclicWorkerAfterApply()
+        {
+            var manager = new FakeSubscriptionManager();
+            var readClient = new FakeCyclicReadClient();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions(), cyclicReadClient: readClient);
+            var owner = new FakeSubscriber();
+
+            var added = await adapter.TryAddAsync(owner,
+                CreateDataItem("ns=2;s=cyclic") with
+                {
+                    SamplingUsingCyclicRead = true,
+                    SamplingInterval = TimeSpan.FromMilliseconds(20)
+                });
+
+            Assert.True(added);
+            var call = await readClient.ReadNextAsync()
+                .AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.Equal(new NodeId("cyclic", 2),
+                Assert.Single(call.Nodes).NodeId);
+        }
+
+        [Fact]
+        public async Task FailedDisabledCyclicItemDoesNotStartWorker()
+        {
+            var manager = new FakeSubscriptionManager();
+            var readClient = new FakeCyclicReadClient();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions(), cyclicReadClient: readClient);
+            var owner = new FakeSubscriber();
+            manager.Subscription!.Collection.NewItemsCreated = false;
+
+            var update = adapter.UpdateAsync(
+                [(owner, CreateDataItem("ns=2;s=cyclic") with
+                {
+                    SamplingUsingCyclicRead = true,
+                    SamplingInterval = TimeSpan.FromMilliseconds(10)
+                })]).AsTask();
+            var monitoredItem = Assert.IsType<FakeMonitoredItem>(
+                Assert.Single(manager.Subscription.Collection.Items));
+
+            Assert.False(update.IsCompleted);
+            monitoredItem.Error = new ServiceResult(StatusCodes.BadNodeIdUnknown);
+            await manager.Handler.OnSubscriptionStateChangedAsync(manager.Subscription,
+                SubscriptionState.Modified, default);
+            await update;
+            await Task.Delay(100);
+
+            Assert.Equal(0, readClient.CallCount);
+        }
+
+        [Fact]
+        public async Task UpdatedCyclicItemWaitsForNewOptionsToApply()
+        {
+            var manager = new FakeSubscriptionManager();
+            var readClient = new FakeCyclicReadClient();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions(), cyclicReadClient: readClient);
+            var owner = new FakeSubscriber();
+            var interval = TimeSpan.FromMilliseconds(500);
+            await adapter.UpdateAsync(
+                [(owner, CreateDataItem("ns=2;s=old") with
+                {
+                    DataSetFieldId = "stable",
+                    SamplingUsingCyclicRead = true,
+                    SamplingInterval = interval
+                })]);
+            var staleCall = await readClient.ReadNextAsync()
+                .AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+            var monitoredItem = Assert.IsType<FakeMonitoredItem>(
+                Assert.Single(manager.Subscription!.Collection.Items));
+            monitoredItem.ApplyOptionsImmediately = false;
+
+            var update = adapter.UpdateAsync(
+                [(owner, CreateDataItem("ns=2;s=new") with
+                {
+                    DataSetFieldId = "stable",
+                    SamplingUsingCyclicRead = true,
+                    SamplingInterval = interval
+                })]).AsTask();
+            await Task.Delay(20);
+
+            Assert.False(update.IsCompleted);
+            Assert.True(monitoredItem.HasPendingChanges);
+            staleCall.Complete(new DataValue(Variant.From(1)));
+            monitoredItem.CurrentMonitoringMode = Opc.Ua.MonitoringMode.Disabled;
+            var stateChanged = manager.Handler.OnSubscriptionStateChangedAsync(
+                manager.Subscription, SubscriptionState.Modified, default).AsTask();
+            await update.WaitAsync(TimeSpan.FromSeconds(5));
+            await stateChanged.WaitAsync(TimeSpan.FromSeconds(5));
+            var currentCall = await readClient.ReadNextAsync()
+                .AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+
+            Assert.Equal(new NodeId("new", 2),
+                Assert.Single(currentCall.Nodes).NodeId);
+            Assert.False(owner.TryReadCyclic(out _));
+        }
+
+        [Fact]
+        public async Task CyclicReadsGroupByIntervalAndMaxAge()
+        {
+            var manager = new FakeSubscriptionManager();
+            var readClient = new FakeCyclicReadClient();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions(), cyclicReadClient: readClient);
+            var owner = new FakeSubscriber();
+
+            await adapter.UpdateAsync(
+            [
+                (owner, CreateDataItem("ns=2;s=one") with
+                {
+                    SamplingUsingCyclicRead = true,
+                    SamplingInterval = TimeSpan.FromMilliseconds(20)
+                }),
+                (owner, CreateDataItem("ns=2;s=two") with
+                {
+                    SamplingUsingCyclicRead = true,
+                    SamplingInterval = TimeSpan.FromMilliseconds(20)
+                }),
+                (owner, CreateDataItem("ns=2;s=three") with
+                {
+                    SamplingUsingCyclicRead = true,
+                    SamplingInterval = TimeSpan.FromMilliseconds(30),
+                    CyclicReadMaxAge = TimeSpan.FromMilliseconds(5)
+                })
+            ]);
+
+            var first = await readClient.ReadNextAsync()
+                .AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+            var second = await readClient.ReadNextAsync()
+                .AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+            var calls = new[] { first, second }.OrderBy(call => call.Nodes.Count).ToArray();
+
+            Assert.Single(calls[0].Nodes);
+            Assert.Equal(TimeSpan.FromMilliseconds(30), calls[0].SamplingInterval);
+            Assert.Equal(TimeSpan.FromMilliseconds(5), calls[0].MaxAge);
+            Assert.Equal(2, calls[1].Nodes.Count);
+            Assert.Equal(TimeSpan.FromMilliseconds(20), calls[1].SamplingInterval);
+            Assert.Equal(TimeSpan.Zero, calls[1].MaxAge);
+
+            calls[0].Complete(new DataValue(Variant.From(3)));
+            calls[1].Complete(new DataValue(Variant.From(1)),
+                new DataValue(Variant.From(2)));
+            _ = await owner.ReadCyclicAsync()
+                .AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+            _ = await owner.ReadCyclicAsync()
+                .AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+        }
+
+        [Fact]
+        public async Task CyclicReadOrdersValuesBySourceTimestamp()
+        {
+            var manager = new FakeSubscriptionManager();
+            var readClient = new FakeCyclicReadClient();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions(), cyclicReadClient: readClient);
+            var owner = new FakeSubscriber();
+            await adapter.UpdateAsync(
+            [
+                (owner, CreateDataItem("ns=2;s=later") with
+                {
+                    SamplingUsingCyclicRead = true,
+                    SamplingInterval = TimeSpan.FromMilliseconds(20)
+                }),
+                (owner, CreateDataItem("ns=2;s=earlier") with
+                {
+                    SamplingUsingCyclicRead = true,
+                    SamplingInterval = TimeSpan.FromMilliseconds(20)
+                })
+            ]);
+            var call = await readClient.ReadNextAsync()
+                .AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+            var now = DateTime.UtcNow;
+            call.Complete([.. call.Nodes.Select(request =>
+                request.NodeId == new NodeId("later", 2)
+                    ? new DataValue(Variant.From(1), StatusCodes.Good,
+                        now.AddSeconds(1))
+                    : new DataValue(Variant.From(2), StatusCodes.Good, now))]);
+
+            var notification = await owner.ReadCyclicAsync()
+                .AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+
+            Assert.Equal(["ns=2;s=earlier", "ns=2;s=later"],
+                notification.Notifications.Select(value => value.NodeId));
+        }
+
+        [Fact]
+        public async Task CyclicReadDropsInFlightResultAfterUpdate()
+        {
+            var manager = new FakeSubscriptionManager();
+            var readClient = new FakeCyclicReadClient();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions(), cyclicReadClient: readClient);
+            var owner = new FakeSubscriber();
+            var interval = TimeSpan.FromMilliseconds(20);
+            await adapter.UpdateAsync(
+                [(owner, CreateDataItem("ns=2;s=old") with
+                {
+                    SamplingUsingCyclicRead = true,
+                    SamplingInterval = interval
+                })]);
+            var staleCall = await readClient.ReadNextAsync()
+                .AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+
+            await adapter.UpdateAsync(
+                [(owner, CreateDataItem("ns=2;s=new") with
+                {
+                    SamplingUsingCyclicRead = true,
+                    SamplingInterval = interval
+                })]);
+            staleCall.Complete(new DataValue(Variant.From(1)));
+
+            var currentCall = await readClient.ReadNextAsync()
+                .AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.Equal(new NodeId("new", 2), Assert.Single(currentCall.Nodes).NodeId);
+            Assert.False(owner.TryReadCyclic(out _));
+            currentCall.Complete(new DataValue(Variant.From(2)));
+
+            var notification = await owner.ReadCyclicAsync()
+                .AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.Equal(Variant.From(2), GetSingleValue(notification));
+        }
+
+        [Fact]
+        public async Task CyclicReadCompletedDuringUpdateIsDropped()
+        {
+            var manager = new FakeSubscriptionManager();
+            var readClient = new FakeCyclicReadClient();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions(), cyclicReadClient: readClient);
+            var owner = new FakeSubscriber();
+            var interval = TimeSpan.FromMilliseconds(500);
+            await adapter.UpdateAsync(
+                [(owner, CreateDataItem("ns=2;s=old") with
+                {
+                    SamplingUsingCyclicRead = true,
+                    SamplingInterval = interval
+                })]);
+            var staleCall = await readClient.ReadNextAsync()
+                .AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+            var gate = manager.Subscription!.BlockTriggering();
+            var replacement = CreateDataItem("ns=2;s=new") with
+            {
+                SamplingUsingCyclicRead = true,
+                SamplingInterval = interval,
+                TriggeredItems = [CreateDataItem("ns=2;s=triggered")]
+            };
+            var update = adapter.UpdateAsync([(owner, replacement)]).AsTask();
+            await gate.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+            staleCall.Complete(new DataValue(Variant.From(1)));
+            await Task.Delay(20);
+            gate.Release.TrySetResult();
+            await update;
+            var currentCall = await readClient.ReadNextAsync()
+                .AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+
+            Assert.Equal(new NodeId("new", 2),
+                Assert.Single(currentCall.Nodes).NodeId);
+            Assert.False(owner.TryReadCyclic(out _));
+        }
+
+        [Fact]
+        public async Task FailedCyclicUpdateRestoresPreviousWorkerBinding()
+        {
+            var manager = new FakeSubscriptionManager();
+            var readClient = new FakeCyclicReadClient();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions(), cyclicReadClient: readClient);
+            var owner = new FakeSubscriber();
+            var interval = TimeSpan.FromMilliseconds(20);
+            await adapter.UpdateAsync(
+                [(owner, CreateDataItem("ns=2;s=old") with
+                {
+                    SamplingUsingCyclicRead = true,
+                    SamplingInterval = interval
+                })]);
+            var staleCall = await readClient.ReadNextAsync()
+                .AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+            manager.Subscription!.TriggerAddStatus =
+                StatusCodes.BadMonitoredItemIdInvalid;
+            var replacement = CreateDataItem("ns=2;s=new") with
+            {
+                SamplingUsingCyclicRead = true,
+                SamplingInterval = interval,
+                TriggeredItems = [CreateDataItem("ns=2;s=triggered")]
+            };
+
+            await Assert.ThrowsAsync<ServiceResultException>(() =>
+                adapter.UpdateAsync([(owner, replacement)]).AsTask());
+            staleCall.Complete(new DataValue(Variant.From(1)));
+            var restoredCall = await readClient.ReadNextAsync()
+                .AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+
+            Assert.Equal(new NodeId("old", 2),
+                Assert.Single(restoredCall.Nodes).NodeId);
+            Assert.False(owner.TryReadCyclic(out _));
+        }
+
+        [Fact]
+        public async Task CyclicValueIsNotIncludedInNormalKeyFrame()
+        {
+            var manager = new FakeSubscriptionManager();
+            var readClient = new FakeCyclicReadClient();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions(), cyclicReadClient: readClient);
+            var owner = new FakeSubscriber();
+            await adapter.UpdateAsync(
+            [
+                (owner, CreateDataItem("ns=2;s=cyclic") with
+                {
+                    SamplingUsingCyclicRead = true,
+                    SamplingInterval = TimeSpan.FromMilliseconds(20)
+                }),
+                (owner, CreateDataItem("ns=2;s=normal"))
+            ]);
+            var call = await readClient.ReadNextAsync()
+                .AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+            call.Complete(new DataValue(Variant.From(1)));
+            _ = await owner.ReadCyclicAsync()
+                .AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+            var normalItem = manager.Subscription!.Collection.Items
+                .Cast<FakeMonitoredItem>()
+                .Single(item => item.Options.StartNodeId == new NodeId("normal", 2));
+
+            await manager.Handler.OnDataChangeNotificationAsync(manager.Subscription,
+                1, DateTime.UtcNow,
+                new DataValueChange[]
+                {
+                    new(normalItem, new DataValue(Variant.From(2)), null)
+                }, default, []);
+
+            var keyFrame = Assert.Single(owner.DataChanges);
+            var value = Assert.Single(keyFrame.Notifications);
+            Assert.Equal("ns=2;s=normal", value.NodeId);
+        }
+
+        [Fact]
+        public async Task CyclicReadReportsMissedCyclesAsOverflow()
+        {
+            var manager = new FakeSubscriptionManager();
+            var readClient = new FakeCyclicReadClient();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions(), cyclicReadClient: readClient);
+            var owner = new FakeSubscriber();
+            await adapter.UpdateAsync(
+                [(owner, CreateDataItem("ns=2;s=slow") with
+                {
+                    SamplingUsingCyclicRead = true,
+                    SamplingInterval = TimeSpan.FromMilliseconds(20)
+                })]);
+            var call = await readClient.ReadNextAsync()
+                .AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+
+            await Task.Delay(80);
+            call.Complete(new DataValue(Variant.From(1)));
+            var notification = await owner.ReadCyclicAsync()
+                .AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+
+            var value = Assert.Single(notification.Notifications);
+            Assert.True(value.Overflow > 0);
+            Assert.True(Assert.IsType<DataValue>(value.Value).StatusCode.Overflow);
+        }
+
+        [Fact]
+        public async Task CyclicReadCadenceIgnoresUtcClockChanges()
+        {
+            var manager = new FakeSubscriptionManager();
+            var readClient = new FakeCyclicReadClient();
+            var timeProvider = new OffsetTimeProvider();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions(), timeProvider: timeProvider,
+                cyclicReadClient: readClient);
+            var owner = new FakeSubscriber();
+            await adapter.UpdateAsync(
+                [(owner, CreateDataItem("ns=2;s=cyclic") with
+                {
+                    SamplingUsingCyclicRead = true,
+                    SamplingInterval = TimeSpan.FromMilliseconds(500)
+                })]);
+            var call = await readClient.ReadNextAsync()
+                .AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+
+            timeProvider.SetUtcOffset(TimeSpan.FromDays(1));
+            call.Complete(new DataValue(Variant.From(1)));
+            var notification = await owner.ReadCyclicAsync()
+                .AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+
+            Assert.Equal(0, Assert.Single(notification.Notifications).Overflow);
+        }
+
+        [Fact]
+        public async Task CyclicReadDeliversServiceErrorAndDisposalSuppressesInFlightResult()
+        {
+            var manager = new FakeSubscriptionManager();
+            var readClient = new FakeCyclicReadClient
+            {
+                IgnoreCancellation = true
+            };
+            var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions(), cyclicReadClient: readClient);
+            var owner = new FakeSubscriber();
+            await adapter.UpdateAsync(
+                [(owner, CreateDataItem("ns=2;s=cyclic") with
+                {
+                    SamplingUsingCyclicRead = true,
+                    SamplingInterval = TimeSpan.FromMilliseconds(20)
+                })]);
+            var first = await readClient.ReadNextAsync()
+                .AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+            first.Complete(DataValue.FromStatusCode(StatusCodes.BadNotConnected));
+            var notification = await owner.ReadCyclicAsync()
+                .AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.Equal(StatusCodes.BadNotConnected,
+                Assert.IsType<DataValue>(
+                    Assert.Single(notification.Notifications).Value).StatusCode);
+            var inFlight = await readClient.ReadNextAsync()
+                .AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+
+            var disposal = adapter.DisposeAsync().AsTask();
+            await Task.Delay(20);
+            Assert.False(disposal.IsCompleted);
+            inFlight.Complete(new DataValue(Variant.From(2)));
+            await disposal.WaitAsync(TimeSpan.FromSeconds(5));
+
+            Assert.Equal(1, manager.Subscription!.DisposeCount);
+            Assert.False(owner.TryReadCyclic(out _));
+        }
+
+        [Fact]
+        public async Task SynchronousCyclicMutationsAreRejected()
+        {
+            var manager = new FakeSubscriptionManager();
+            var readClient = new FakeCyclicReadClient();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions(), cyclicReadClient: readClient);
+            var owner = new FakeSubscriber();
+            var cyclic = CreateDataItem("ns=2;s=cyclic") with
+            {
+                SamplingUsingCyclicRead = true,
+                SamplingInterval = TimeSpan.FromSeconds(1)
+            };
+
+            Assert.Throws<InvalidOperationException>(() =>
+                adapter.TryAdd(owner, cyclic));
+            Assert.Throws<InvalidOperationException>(() =>
+                adapter.Update([(owner, cyclic)]));
+
+            await adapter.UpdateAsync([(owner, cyclic)]);
+            var handle = Assert.Single(
+                manager.Subscription!.Collection.Items).ClientHandle;
+            Assert.Throws<InvalidOperationException>(() =>
+                adapter.TryRemove(handle));
         }
 
         [Fact]
@@ -1532,6 +2031,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             manager.Subscription.EnqueueTriggeringResult(
                 addStatus: StatusCodes.BadMonitoredItemIdInvalid);
             var update = adapter.UpdateAsync([(owner, root)]).AsTask();
+            foreach (var item in monitoredItems)
+            {
+                item.CurrentMonitoringMode = Opc.Ua.MonitoringMode.Reporting;
+            }
+            await manager.Handler.OnSubscriptionStateChangedAsync(manager.Subscription,
+                SubscriptionState.Modified, default);
             await gate.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
 
             foreach (var item in monitoredItems)
@@ -2156,14 +2661,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Func<TimeSpan, string, IOpcUaBrowser> modelChangeBrowserFactory = null,
             SubscriptionModel template = null,
             Action<SubscriptionWatchdogBehavior, string> watchdogAction = null,
-            TimeProvider timeProvider = null)
+            TimeProvider timeProvider = null,
+            IManagedCyclicReadClient cyclicReadClient = null)
         {
             return new ManagedSubscriptionAdapter(manager, template ?? new SubscriptionModel(), options,
                 new JsonVariantEncoder(new ServiceMessageContext()),
                 modelChangeBrowserFactory,
                 timeProvider: timeProvider,
                 watchdogAction: watchdogAction == null ? null :
-                    (_, behavior, message) => watchdogAction(behavior, message));
+                    (_, behavior, message) => watchdogAction(behavior, message),
+                cyclicReadClient: cyclicReadClient);
         }
 
         private static DataMonitoredItemModel CreateDataItem(string nodeId)
@@ -2296,6 +2803,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 return 0;
             }
+        }
+
+        private sealed class OffsetTimeProvider : TimeProvider
+        {
+            public override TimeZoneInfo LocalTimeZone =>
+                TimeProvider.System.LocalTimeZone;
+            public override long TimestampFrequency =>
+                TimeProvider.System.TimestampFrequency;
+
+            public void SetUtcOffset(TimeSpan offset)
+            {
+                Interlocked.Exchange(ref _offsetTicks, offset.Ticks);
+            }
+
+            public override DateTimeOffset GetUtcNow()
+            {
+                return TimeProvider.System.GetUtcNow() +
+                    TimeSpan.FromTicks(Interlocked.Read(ref _offsetTicks));
+            }
+
+            public override long GetTimestamp()
+            {
+                return TimeProvider.System.GetTimestamp();
+            }
+
+            public override ITimer CreateTimer(TimerCallback callback,
+                object state, TimeSpan dueTime, TimeSpan period)
+            {
+                return TimeProvider.System.CreateTimer(
+                    callback, state, dueTime, period);
+            }
+
+            private long _offsetTicks;
         }
 
         private sealed class FakeSubscription : IPartitionedSubscription
@@ -2590,13 +3130,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private uint _nextHandle = 1;
         }
 
-        private sealed class FakeMonitoredItem : IMonitoredItem
+        private sealed class FakeMonitoredItem :
+            IMonitoredItem,
+            IMonitoredItemApplyState
         {
             public uint ClientHandle { get; }
             public string Name { get; }
             public ServiceResult Error { get; set; } = ServiceResult.Good;
             public MonitoredItemOptions Options { get; private set; }
             public bool ApplyOptionsImmediately { get; set; } = true;
+            public bool HasPendingChanges { get; private set; }
 
             public FakeMonitoredItem(uint clientHandle, string name,
                 IOptionsMonitor<MonitoredItemOptions> options)
@@ -2607,7 +3150,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 CurrentMonitoringMode = Options.MonitoringMode;
                 _registration = options.OnChange((updated, _) =>
                 {
+                    var changed = Options != updated;
                     Options = updated;
+                    if (!changed)
+                    {
+                        HasPendingChanges = false;
+                        return;
+                    }
+                    HasPendingChanges = true;
                     if (ApplyOptionsImmediately)
                     {
                         CurrentMonitoringMode = updated.MonitoringMode;
@@ -2619,7 +3169,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public uint ServerId => Created ? ClientHandle : 0;
             public bool Created { get; set; } = true;
             public MonitoringFilterResult FilterResult => null;
-            public Opc.Ua.MonitoringMode CurrentMonitoringMode { get; set; }
+            public Opc.Ua.MonitoringMode CurrentMonitoringMode
+            {
+                get => _currentMonitoringMode;
+                set
+                {
+                    _currentMonitoringMode = value;
+                    HasPendingChanges = false;
+                }
+            }
             public TimeSpan CurrentSamplingInterval => Options.SamplingInterval;
             public uint CurrentQueueSize => Options.QueueSize;
             public IEnumerable<IMonitoredItem> TriggeringItems => [];
@@ -2631,6 +3189,72 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             private readonly IDisposable _registration;
+            private Opc.Ua.MonitoringMode _currentMonitoringMode;
+        }
+
+        private sealed class FakeCyclicReadClient : IManagedCyclicReadClient
+        {
+            public int CallCount => Volatile.Read(ref _callCount);
+            public bool IgnoreCancellation { get; init; }
+
+            public ValueTask<CyclicReadCall> ReadNextAsync(
+                CancellationToken ct = default)
+            {
+                return _calls.Reader.ReadAsync(ct);
+            }
+
+            public ValueTask<IReadOnlyList<DataValue>> ReadAsync(
+                IReadOnlyList<ManagedCyclicReadRequest> requests,
+                TimeSpan samplingInterval,
+                TimeSpan maxAge,
+                CancellationToken ct)
+            {
+                var call = new CyclicReadCall(requests,
+                    samplingInterval, maxAge);
+                Interlocked.Increment(ref _callCount);
+                if (!_calls.Writer.TryWrite(call))
+                {
+                    throw new InvalidOperationException(
+                        "The cyclic-read test call could not be queued.");
+                }
+                return new ValueTask<IReadOnlyList<DataValue>>(
+                    IgnoreCancellation
+                        ? call.Completion.Task
+                        : call.Completion.Task.WaitAsync(ct));
+            }
+
+            public ValueTask DisposeAsync()
+            {
+                return ValueTask.CompletedTask;
+            }
+
+            private readonly Channel<CyclicReadCall> _calls =
+                Channel.CreateUnbounded<CyclicReadCall>();
+            private int _callCount;
+        }
+
+        private sealed class CyclicReadCall
+        {
+            public IReadOnlyList<ReadValueId> Nodes { get; }
+            public IReadOnlyList<bool> Register { get; }
+            public TimeSpan SamplingInterval { get; }
+            public TimeSpan MaxAge { get; }
+            public TaskCompletionSource<IReadOnlyList<DataValue>> Completion { get; } =
+                new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            public CyclicReadCall(IReadOnlyList<ManagedCyclicReadRequest> requests,
+                TimeSpan samplingInterval, TimeSpan maxAge)
+            {
+                Nodes = requests.Select(request => request.Value).ToArray();
+                Register = requests.Select(request => request.Register).ToArray();
+                SamplingInterval = samplingInterval;
+                MaxAge = maxAge;
+            }
+
+            public void Complete(params DataValue[] values)
+            {
+                Completion.TrySetResult(values);
+            }
         }
 
         private sealed class FakeSubscriber : ISubscriber
@@ -2646,6 +3270,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 DataDiagnostics { get; } = [];
             public List<ServiceResultModel> Updates { get; } = [];
             public IEnumerable<BaseMonitoredItemModel> MonitoredItems => [];
+
+            public ValueTask<OpcUaSubscriptionNotification> ReadCyclicAsync(
+                CancellationToken ct = default)
+            {
+                return _cyclicReads.Reader.ReadAsync(ct);
+            }
+
+            public bool TryReadCyclic(
+                [System.Diagnostics.CodeAnalysis.NotNullWhen(true)]
+                out OpcUaSubscriptionNotification notification)
+            {
+                return _cyclicReads.Reader.TryRead(out notification);
+            }
 
             public Task OnMonitoredItemSemanticsChangedAsync(CancellationToken ct = default)
             {
@@ -2670,7 +3307,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             public void OnSubscriptionCyclicReadCompleted(OpcUaSubscriptionNotification notification)
             {
-                DataChanges.Add(notification);
+                if (!_cyclicReads.Writer.TryWrite(notification))
+                {
+                    throw new InvalidOperationException(
+                        "The cyclic-read test notification could not be queued.");
+                }
             }
 
             public void OnSubscriptionEventReceived(OpcUaSubscriptionNotification notification)
@@ -2699,6 +3340,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 Updates.Add(serviceResult);
             }
+
+            private readonly Channel<OpcUaSubscriptionNotification> _cyclicReads =
+                Channel.CreateUnbounded<OpcUaSubscriptionNotification>();
         }
     }
 }

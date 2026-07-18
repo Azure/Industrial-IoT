@@ -777,7 +777,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 (period, name) => session.CreateBrowser(period, name, _logger),
                 _context.LoggerFactory.CreateLogger<ManagedSubscriptionAdapter>(),
                 _context.TimeProvider,
-                watchdogAction: HandleWatchdogAction);
+                watchdogAction: HandleWatchdogAction,
+                cyclicReadClient: new ManagedCyclicReadClient(
+                    session, _context.TimeProvider,
+                    _context.LoggerFactory.CreateLogger<ManagedCyclicReadClient>()));
         }
 
         private async ValueTask<ManagedRegistration> ReplaceRegistrationAsync(

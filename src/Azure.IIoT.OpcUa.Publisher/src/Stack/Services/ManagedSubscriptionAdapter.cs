@@ -56,7 +56,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ILogger<ManagedSubscriptionAdapter>? logger = null, TimeProvider? timeProvider = null,
             TimeSpan? periodicKeyFrameInterval = null,
             Action<ManagedSubscriptionAdapter, SubscriptionWatchdogBehavior, string>?
-                watchdogAction = null)
+                watchdogAction = null,
+            IManagedCyclicReadClient? cyclicReadClient = null)
         {
             ArgumentNullException.ThrowIfNull(manager);
             ArgumentNullException.ThrowIfNull(template);
@@ -84,6 +85,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _watchdogBehavior = _configuredWatchdogBehavior ??
                 SubscriptionWatchdogBehavior.Diagnostic;
             _watchdogAction = watchdogAction;
+            _cyclicReadClient = cyclicReadClient;
             var subscriptionOptions =
                 ManagedSubscriptionOptionsAdapter.ToManagedOptions(template, options);
             _subscriptionOptions =
@@ -216,6 +218,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             EnterSynchronousMutation();
             try
             {
+                if (ContainsCyclicReadTemplate(template))
+                {
+                    throw new InvalidOperationException(
+                        "Cyclic-read items require TryAddAsync for worker lifecycle synchronization.");
+                }
                 if (template.TriggeredItems is { Count: > 0 })
                 {
                     throw new InvalidOperationException(
@@ -263,13 +270,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             using var operation = CancellationTokenSource.CreateLinkedTokenSource(
                 ct, _disposeCts.Token);
             await _updateGate.WaitAsync(operation.Token).ConfigureAwait(false);
+            BeginMutation();
             try
             {
                 ThrowIfDisposed();
                 var added = new List<ManagedSubscriptionItemBinding>();
                 var completed = false;
+                PendingInitialApply? pendingApply = null;
                 try
                 {
+                    if (ContainsCyclicReadTemplate(template))
+                    {
+                        pendingApply = BeginPendingInitialApply();
+                    }
                     var root = CreateBinding(CreateName(template), owner, template, null, []);
                     if (!TryAddBinding(root, out var rootItem))
                     {
@@ -280,6 +293,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         operation.Token).ConfigureAwait(false);
                     if (itemsAdded)
                     {
+                        if (pendingApply != null)
+                        {
+                            var monitoredItems = added
+                                .Select(binding => TryGetMonitoredItem(binding,
+                                    out var monitoredItem) ? monitoredItem : null)
+                                .Where(monitoredItem => monitoredItem != null)
+                                .Cast<IMonitoredItem>()
+                                .ToArray();
+                            await WaitForInitialApplyAsync(pendingApply, monitoredItems,
+                                operation.Token).ConfigureAwait(false);
+                        }
+                        await SynchronizeCyclicReadGroupsAsync(operation.Token)
+                            .ConfigureAwait(false);
                         completed = true;
                         ApplyPublishingState();
                     }
@@ -287,9 +313,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 finally
                 {
+                    ClearPendingInitialApply(pendingApply);
                     if (!completed)
                     {
                         RemoveBindings(added);
+                        await SynchronizeCyclicReadGroupsAsync(CancellationToken.None)
+                            .ConfigureAwait(false);
                         ApplyPublishingState();
                     }
                 }
@@ -312,13 +341,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             EnterSynchronousMutation();
             try
             {
+                var desiredItems = items.ToArray();
+                if (GetBindings().Any(binding => binding.IsCyclicRead) ||
+                    desiredItems.Any(item => ContainsCyclicReadTemplate(item.Template)))
+                {
+                    throw new InvalidOperationException(
+                        "Cyclic-read item updates require UpdateAsync for worker lifecycle synchronization.");
+                }
                 if (GetBindings().Any(binding =>
                     binding.Template is MonitoredAddressSpaceModel))
                 {
                     throw new InvalidOperationException(
                         "Address-space monitoring updates require UpdateAsync for browser lifecycle synchronization.");
                 }
-                var desired = CreateDesiredBindings(items);
+                var desired = CreateDesiredBindings(desiredItems);
                 if (desired.Any(binding => binding.Template.TriggeredItems is { Count: > 0 }))
                 {
                     throw new InvalidOperationException(
@@ -354,6 +390,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             using var operation = CancellationTokenSource.CreateLinkedTokenSource(
                 ct, lifetimeCt, _disposeCts.Token);
             await _updateGate.WaitAsync(operation.Token).ConfigureAwait(false);
+            BeginMutation();
             try
             {
                 ThrowIfDisposed();
@@ -365,7 +402,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     var desired = CreateDesiredBindings(items, includeTriggeredItems: true);
                     if (desired.Any(binding =>
                         binding.Monitor.CurrentValue.MonitoringMode !=
-                            Opc.Ua.MonitoringMode.Disabled))
+                            Opc.Ua.MonitoringMode.Disabled ||
+                        binding.IsCyclicRead))
                     {
                         pendingApply = BeginPendingInitialApply();
                     }
@@ -381,6 +419,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     await ApplyTriggeringAsync(operation.Token).ConfigureAwait(false);
                     await SynchronizeModelChangeBrowsersAsync(operation.Token)
                         .ConfigureAwait(false);
+                    await SynchronizeCyclicReadGroupsAsync(operation.Token)
+                        .ConfigureAwait(false);
                     ApplyPublishingState();
                 }
                 catch (Exception updateException)
@@ -389,6 +429,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     try
                     {
                         RestoreBindings(previousItems);
+                        await SynchronizeCyclicReadGroupsAsync(CancellationToken.None)
+                            .ConfigureAwait(false);
                         if (!lifetimeCt.IsCancellationRequested &&
                             !_disposeCts.IsCancellationRequested)
                         {
@@ -436,6 +478,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     return false;
                 }
                 var bindings = GetDescendants(binding).ToArray();
+                if (binding.IsCyclicRead ||
+                    bindings.Any(candidate => candidate.IsCyclicRead))
+                {
+                    throw new InvalidOperationException(
+                        "Cyclic-read item removal requires UpdateAsync for worker lifecycle synchronization.");
+                }
                 if (binding.Template is MonitoredAddressSpaceModel ||
                     bindings.Any(candidate =>
                         candidate.Template is MonitoredAddressSpaceModel))
@@ -562,12 +610,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ReadOnlyMemory<DataValueChange> notification, PublishState publishStateMask,
             IReadOnlyList<string> stringTable)
         {
-            var deliveries = new Dictionary<(ISubscriber Owner, bool Cyclic),
+            var deliveries = new Dictionary<ISubscriber,
                 List<(ManagedSubscriptionItemBinding Binding, DataValue Value,
                     uint ItemSequenceNumber)>>();
             foreach (var change in notification.Span)
             {
                 if (!TryGetBinding(change.MonitoredItem, out var binding))
+                {
+                    continue;
+                }
+                if (binding.IsCyclicRead)
                 {
                     continue;
                 }
@@ -578,17 +630,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     continue;
                 }
-                var key = (binding.Owner, binding.Template is DataMonitoredItemModel data &&
-                    data.SamplingUsingCyclicRead == true);
-                if (!deliveries.TryGetValue(key, out var changes))
+                if (!deliveries.TryGetValue(binding.Owner, out var changes))
                 {
                     changes = [];
-                    deliveries.Add(key, changes);
+                    deliveries.Add(binding.Owner, changes);
                 }
                 changes.Add((binding, change.Value, itemSequenceNumber));
             }
 
-            foreach (var ((owner, cyclic), changes) in deliveries)
+            foreach (var (owner, changes) in deliveries)
             {
                 if (!IsLiveOwner(owner))
                 {
@@ -614,30 +664,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     continue;
                 }
                 MarkKeyFrameDelivered(owner, message.MessageType == MessageType.KeyFrame);
-                if (cyclic)
+                Deliver(owner, message,
+                    static (subscriber, notification) =>
+                        subscriber.OnSubscriptionDataChangeReceived(notification));
+                if (IsLiveOwner(owner))
                 {
-                    Deliver(owner, message,
-                        static (subscriber, notification) =>
-                            subscriber.OnSubscriptionCyclicReadCompleted(notification));
-                    if (IsLiveOwner(owner))
-                    {
-                        InvokeSubscriber(owner, subscriber =>
-                            subscriber.OnSubscriptionCyclicReadDiagnosticsChange(message.Notifications.Count,
-                                message.Notifications.Sum(item => item.Overflow)));
-                    }
-                }
-                else
-                {
-                    Deliver(owner, message,
-                        static (subscriber, notification) =>
-                            subscriber.OnSubscriptionDataChangeReceived(notification));
-                    if (IsLiveOwner(owner))
-                    {
-                        InvokeSubscriber(owner, subscriber =>
-                            subscriber.OnSubscriptionDataDiagnosticsChange(true,
-                                message.Notifications.Count,
-                                message.Notifications.Sum(item => item.Overflow), 0));
-                    }
+                    InvokeSubscriber(owner, subscriber =>
+                        subscriber.OnSubscriptionDataDiagnosticsChange(true,
+                            message.Notifications.Count,
+                            message.Notifications.Sum(item => item.Overflow), 0));
                 }
             }
             return ValueTask.CompletedTask;
@@ -742,7 +777,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             HandleWatchdogPublishState(subscription, state, publishStateMask);
             if (state is SubscriptionState.Created or SubscriptionState.Modified)
             {
-                TryCompletePendingInitialApply();
                 QueuePublishingStateEvaluation();
             }
             var bindings = GetBindings();
@@ -755,6 +789,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         subscriber.OnMonitoredItemUpdate(binding.Template,
                             ToServiceResult(monitoredItem!)));
                 }
+            }
+            TryCompletePendingInitialApply();
+            if (Volatile.Read(ref _disposed) == 0 && _updateGate.Wait(0))
+            {
+                BeginMutation();
+                try
+                {
+                    await SynchronizeCyclicReadGroupsAsync(ct).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                    when (ct.IsCancellationRequested ||
+                        _disposeCts.IsCancellationRequested)
+                {
+                }
+                catch (Exception ex)
+                {
+                    _logger.CyclicReadSynchronizationFailed(ex);
+                    QueueCyclicReadSynchronization();
+                }
+                finally
+                {
+                    ExitMutation();
+                }
+            }
+            else if (Volatile.Read(ref _disposed) == 0)
+            {
+                QueueCyclicReadSynchronization();
             }
 
             var recovering = publishStateMask.HasFlag(PublishState.Recovered) ||
@@ -875,6 +936,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             CancelPendingInitialApply();
             await _disposeCts.CancelAsync().ConfigureAwait(false);
+            var cyclicReadSynchronization = GetCyclicReadSynchronizationTask();
+            if (cyclicReadSynchronization != null)
+            {
+                await cyclicReadSynchronization.ConfigureAwait(false);
+            }
             await _updateGate.WaitAsync().ConfigureAwait(false);
             List<Exception>? exceptions = null;
             try
@@ -897,6 +963,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     exceptions ??= [];
                     exceptions.Add(ex);
+                }
+                try
+                {
+                    await DisposeCyclicReadGroupsAsync().ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    exceptions ??= [];
+                    exceptions.Add(ex);
+                }
+                if (_cyclicReadClient != null)
+                {
+                    try
+                    {
+                        await _cyclicReadClient.DisposeAsync().ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        exceptions ??= [];
+                        exceptions.Add(ex);
+                    }
                 }
                 ManagedSubscriptionItemBinding[] bindings;
                 lock (_bindingsLock)
@@ -1310,6 +1397,77 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ApplyPendingPublishingState();
         }
 
+        private void QueueCyclicReadSynchronization()
+        {
+            Interlocked.Exchange(ref _cyclicReadStateDirty, 1);
+            lock (_cyclicReadSyncLock)
+            {
+                if (_cyclicReadSyncTask == null &&
+                    Volatile.Read(ref _disposed) == 0)
+                {
+                    _cyclicReadSyncTask =
+                        RunPendingCyclicReadSynchronizationAsync();
+                }
+            }
+        }
+
+        private async Task RunPendingCyclicReadSynchronizationAsync()
+        {
+            await Task.Yield();
+            try
+            {
+                while (Volatile.Read(ref _disposed) == 0 &&
+                    Interlocked.Exchange(ref _cyclicReadStateDirty, 0) != 0)
+                {
+                    await _updateGate.WaitAsync(_disposeCts.Token)
+                        .ConfigureAwait(false);
+                    BeginMutation();
+                    try
+                    {
+                        if (Volatile.Read(ref _disposed) == 0)
+                        {
+                            await SynchronizeCyclicReadGroupsAsync(
+                                _disposeCts.Token).ConfigureAwait(false);
+                        }
+                    }
+                    finally
+                    {
+                        ExitMutation();
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+                when (_disposeCts.IsCancellationRequested)
+            {
+            }
+            catch (Exception ex)
+            {
+                _logger.CyclicReadSynchronizationFailed(ex);
+            }
+            finally
+            {
+                var restart = false;
+                lock (_cyclicReadSyncLock)
+                {
+                    _cyclicReadSyncTask = null;
+                    restart = Volatile.Read(ref _disposed) == 0 &&
+                        Volatile.Read(ref _cyclicReadStateDirty) != 0;
+                }
+                if (restart)
+                {
+                    QueueCyclicReadSynchronization();
+                }
+            }
+        }
+
+        private Task? GetCyclicReadSynchronizationTask()
+        {
+            lock (_cyclicReadSyncLock)
+            {
+                return _cyclicReadSyncTask;
+            }
+        }
+
         private void ApplyPendingPublishingState()
         {
             while (Volatile.Read(ref _disposed) == 0)
@@ -1343,11 +1501,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         private void ExitMutation()
         {
+            Interlocked.Increment(ref _mutationVersion);
             _updateGate.Release();
             if (Volatile.Read(ref _publishingStateDirty) != 0)
             {
                 ApplyPendingPublishingState();
             }
+            if (Volatile.Read(ref _cyclicReadStateDirty) != 0)
+            {
+                QueueCyclicReadSynchronization();
+            }
+        }
+
+        private void BeginMutation()
+        {
+            Interlocked.Increment(ref _mutationVersion);
         }
 
         private void SetPublishingEnabled(bool enabled)
@@ -1603,6 +1771,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 template.TriggeredItems?.Any(ContainsAddressSpaceTemplate) == true;
         }
 
+        private static bool HasPendingChanges(IMonitoredItem monitoredItem)
+        {
+            return monitoredItem is IMonitoredItemApplyState
+            {
+                HasPendingChanges: true
+            };
+        }
+
+        private bool ContainsCyclicReadTemplate(
+            BaseMonitoredItemModel template)
+        {
+            var effective = template.SetDefaults(_options);
+            return effective is DataMonitoredItemModel
+            {
+                SamplingUsingCyclicRead: true
+            } || effective.TriggeredItems?.Any(ContainsCyclicReadTemplate) == true;
+        }
+
         private PendingInitialApply BeginPendingInitialApply()
         {
             var pending = new PendingInitialApply();
@@ -1667,6 +1853,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             if (monitoredItems.All(item =>
                 !ServiceResult.IsGood(item.Item.Error) ||
+                !HasPendingChanges(item.Item) &&
                 item.Item.Created &&
                 item.Item.CurrentMonitoringMode == item.DesiredMonitoringMode))
             {
@@ -1700,6 +1887,203 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 nameof(ManagedSubscriptionAdapter)));
         }
 
+        private async ValueTask SynchronizeCyclicReadGroupsAsync(
+            CancellationToken ct)
+        {
+            await _cyclicReadGate.WaitAsync(ct).ConfigureAwait(false);
+            try
+            {
+                var desired = new Dictionary<CyclicReadGroupKey, List<CyclicReadItem>>();
+                foreach (ManagedSubscriptionItemBinding binding in GetBindings())
+                {
+                    if (binding.CyclicReadGroupKey is not { } key ||
+                        !binding.TryCaptureCyclicRead(out CyclicReadItem item))
+                    {
+                        continue;
+                    }
+                    if (!desired.TryGetValue(key, out List<CyclicReadItem>? items))
+                    {
+                        items = [];
+                        desired.Add(key, items);
+                    }
+                    items.Add(item);
+                }
+                foreach (List<CyclicReadItem> items in desired.Values)
+                {
+                    items.Sort(static (left, right) =>
+                        StringComparer.Ordinal.Compare(
+                            left.Binding.Name, right.Binding.Name));
+                }
+                if (desired.Count != 0 && _cyclicReadClient == null)
+                {
+                    throw new NotSupportedException(
+                        "Managed cyclic reads require a managed session read client.");
+                }
+
+                var replacement = new Dictionary<CyclicReadGroupKey, CyclicReadGroup>();
+                var created = new List<CyclicReadGroup>();
+                foreach (var (key, items) in desired)
+                {
+                    if (_cyclicReadGroups.TryGetValue(key, out CyclicReadGroup? group))
+                    {
+                        group.Update(items);
+                    }
+                    else
+                    {
+                        group = new CyclicReadGroup(this, _cyclicReadClient!,
+                            key, items, _timeProvider, _disposeCts.Token);
+                        created.Add(group);
+                    }
+                    replacement.Add(key, group);
+                }
+
+                KeyValuePair<CyclicReadGroupKey, CyclicReadGroup>[] removed =
+                    _cyclicReadGroups
+                    .Where(entry => !replacement.ContainsKey(entry.Key))
+                    .ToArray();
+                try
+                {
+                    foreach (var (key, group) in removed)
+                    {
+                        _cyclicReadGroups.Remove(key);
+                        await group.DisposeAsync().ConfigureAwait(false);
+                    }
+                }
+                catch
+                {
+                    foreach (CyclicReadGroup group in created)
+                    {
+                        await group.DisposeAsync().ConfigureAwait(false);
+                    }
+                    throw;
+                }
+                _cyclicReadGroups = replacement;
+                foreach (CyclicReadGroup group in created)
+                {
+                    group.Start();
+                }
+            }
+            finally
+            {
+                _cyclicReadGate.Release();
+            }
+        }
+
+        private async ValueTask DisposeCyclicReadGroupsAsync()
+        {
+            await _cyclicReadGate.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                CyclicReadGroup[] groups = [.. _cyclicReadGroups.Values];
+                _cyclicReadGroups.Clear();
+                List<Exception>? exceptions = null;
+                foreach (CyclicReadGroup group in groups)
+                {
+                    try
+                    {
+                        await group.DisposeAsync().ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        exceptions ??= [];
+                        exceptions.Add(ex);
+                    }
+                }
+                if (exceptions != null)
+                {
+                    throw new AggregateException(
+                        "One or more managed cyclic-read groups failed to stop.",
+                        exceptions);
+                }
+            }
+            finally
+            {
+                _cyclicReadGate.Release();
+            }
+        }
+
+        private void DeliverCyclicRead(
+            IReadOnlyList<CyclicReadItem> items,
+            IReadOnlyList<DataValue> values,
+            uint cycleSequenceNumber,
+            DateTime publishTime,
+            int missedCycles)
+        {
+            var mutationVersion = Volatile.Read(ref _mutationVersion);
+            if (Volatile.Read(ref _disposed) != 0 ||
+                (mutationVersion & 1) != 0)
+            {
+                return;
+            }
+            var deliveries = new Dictionary<ISubscriber,
+                List<(MonitoredItemNotificationModel Notification,
+                    DateTime SourceTimestamp, int Order)>>();
+            if (Volatile.Read(ref _disposed) != 0)
+            {
+                return;
+            }
+            var receivedAt = _timeProvider.GetUtcNow();
+            var count = Math.Min(items.Count, values.Count);
+            for (var index = 0; index < count; index++)
+            {
+                CyclicReadItem item = items[index];
+                DataValue value = Clone(values[index]);
+                if (missedCycles > 0)
+                {
+                    value = HeartbeatState.WithStatusCode(value,
+                        value.StatusCode.SetOverflow(true));
+                }
+                if (!item.Binding.TryRecordCyclicRead(item.Generation,
+                    item.SkipFirst, value, receivedAt,
+                    out uint itemSequenceNumber, out bool skip) ||
+                    skip ||
+                    !item.Binding.IsCurrentCyclicRead(item.Generation) ||
+                    !IsLiveOwner(item.Owner))
+                {
+                    continue;
+                }
+                if (!deliveries.TryGetValue(item.Owner, out var notifications))
+                {
+                    notifications = [];
+                    deliveries.Add(item.Owner, notifications);
+                }
+                notifications.Add((CreateCyclicReadNotification(item, value,
+                    itemSequenceNumber, missedCycles),
+                    (DateTime)value.SourceTimestamp, index));
+            }
+            if (mutationVersion != Volatile.Read(ref _mutationVersion) ||
+                Volatile.Read(ref _disposed) != 0)
+            {
+                return;
+            }
+
+            foreach (var (owner, valuesForOwner) in deliveries)
+            {
+                if (Volatile.Read(ref _disposed) != 0 ||
+                    !IsLiveOwner(owner))
+                {
+                    continue;
+                }
+                var notifications = valuesForOwner
+                    .OrderBy(value => value.SourceTimestamp)
+                    .ThenBy(value => value.Order)
+                    .Select(value => value.Notification)
+                    .ToList();
+                using var message = CreateNotification(notifications, publishTime,
+                    MessageType.DeltaFrame, cycleSequenceNumber);
+                Deliver(owner, message,
+                    static (subscriber, notification) =>
+                        subscriber.OnSubscriptionCyclicReadCompleted(notification));
+                if (IsLiveOwner(owner))
+                {
+                    InvokeSubscriber(owner, subscriber =>
+                        subscriber.OnSubscriptionCyclicReadDiagnosticsChange(
+                            notifications.Count,
+                            notifications.Sum(notification => notification.Overflow)));
+                }
+            }
+        }
+
         private void EnterSynchronousMutation()
         {
             ThrowIfDisposed();
@@ -1708,13 +2092,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 throw new InvalidOperationException(
                     "A managed subscription mutation is already in progress.");
             }
+            BeginMutation();
             try
             {
                 ThrowIfDisposed();
             }
             catch
             {
-                _updateGate.Release();
+                ExitMutation();
                 throw;
             }
         }
@@ -1911,6 +2296,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             };
         }
 
+        private MonitoredItemNotificationModel CreateCyclicReadNotification(
+            in CyclicReadItem item, in DataValue value,
+            uint sequenceNumber, int overflow)
+        {
+            return new MonitoredItemNotificationModel
+            {
+                Id = item.Id,
+                DataSetFieldName = item.DisplayName,
+                DataSetName = item.DisplayName,
+                NodeId = item.NodeId,
+                Value = Clone(value),
+                Flags = 0,
+                Overflow = overflow > 0
+                    ? overflow
+                    : value.StatusCode.Overflow ? 1 : 0,
+                SequenceNumber = sequenceNumber
+            };
+        }
+
         private void EmitHeartbeat(ManagedSubscriptionItemBinding binding, bool force = false)
         {
             if (Volatile.Read(ref _disposed) != 0 ||
@@ -2065,6 +2469,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var values = GetBindings()
                 .Where(binding => binding.Owner.Equals(owner) &&
                     binding.Template is DataMonitoredItemModel &&
+                    !binding.IsCyclicRead &&
                     !binding.DropDataChange)
                 .Select(binding => CreateDataNotification(binding,
                     binding.LastDataValue ?? DataValue.FromStatusCode(StatusCodes.BadNoData),
@@ -2444,6 +2849,200 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) != 0, this);
         }
 
+        private readonly record struct CyclicReadGroupKey(
+            TimeSpan SamplingInterval,
+            TimeSpan MaxAge);
+
+        private readonly record struct CyclicReadItem(
+            ManagedSubscriptionItemBinding Binding,
+            long Generation,
+            ManagedCyclicReadRequest Request,
+            ISubscriber Owner,
+            string Id,
+            string DisplayName,
+            string NodeId,
+            bool SkipFirst);
+
+        private sealed class CyclicReadGroup : IAsyncDisposable
+        {
+            public CyclicReadGroup(
+                ManagedSubscriptionAdapter adapter,
+                IManagedCyclicReadClient client,
+                CyclicReadGroupKey key,
+                IReadOnlyList<CyclicReadItem> items,
+                TimeProvider timeProvider,
+                CancellationToken lifetimeCt)
+            {
+                _adapter = adapter;
+                _client = client;
+                _key = key;
+                _items = [.. items];
+                _timeProvider = timeProvider;
+                _cts = CancellationTokenSource.CreateLinkedTokenSource(lifetimeCt);
+            }
+
+            public void Start()
+            {
+                if (Interlocked.Exchange(ref _started, 1) == 0)
+                {
+                    _worker = RunAsync(_cts.Token);
+                }
+            }
+
+            public void Update(IReadOnlyList<CyclicReadItem> items)
+            {
+                lock (_lock)
+                {
+                    _items = [.. items];
+                }
+            }
+
+            public async ValueTask DisposeAsync()
+            {
+                if (Interlocked.Exchange(ref _disposed, 1) != 0)
+                {
+                    return;
+                }
+                try
+                {
+                    await _cts.CancelAsync().ConfigureAwait(false);
+                    if (_worker != null)
+                    {
+                        await _worker.ConfigureAwait(false);
+                    }
+                }
+                catch (OperationCanceledException) when (_cts.IsCancellationRequested)
+                {
+                }
+                finally
+                {
+                    _cts.Dispose();
+                }
+            }
+
+            private async Task RunAsync(CancellationToken ct)
+            {
+                var delayUntilNext = _key.SamplingInterval;
+                var carriedMissedCycles = 0;
+                while (!ct.IsCancellationRequested)
+                {
+                    var cycleStarted = _timeProvider.GetTimestamp();
+                    await Task.Delay(delayUntilNext, _timeProvider, ct)
+                        .ConfigureAwait(false);
+
+                    CyclicReadItem[] items;
+                    lock (_lock)
+                    {
+                        items = [.. _items];
+                    }
+                    if (items.Length == 0)
+                    {
+                        delayUntilNext = _key.SamplingInterval;
+                        carriedMissedCycles = 0;
+                        continue;
+                    }
+
+                    IReadOnlyList<DataValue> values;
+                    try
+                    {
+                        values = await _client.ReadAsync(
+                            items.Select(item => item.Request).ToArray(),
+                            _key.SamplingInterval, _key.MaxAge, ct)
+                            .ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException) when (ct.IsCancellationRequested)
+                    {
+                        throw;
+                    }
+                    catch (Exception ex)
+                    {
+                        _adapter._logger.CyclicReadFailed(ex);
+                        var status = new ServiceResult(ex).StatusCode;
+                        values = Enumerable.Repeat(
+                            DataValue.FromStatusCode(status), items.Length).ToArray();
+                    }
+
+                    var readCompleted = _timeProvider.GetTimestamp();
+                    var elapsed = _timeProvider.GetElapsedTime(
+                        cycleStarted, readCompleted);
+                    var overrun = elapsed > delayUntilNext
+                        ? elapsed - delayUntilNext
+                        : TimeSpan.Zero;
+                    var readMissedCycles = (int)Math.Min(
+                        overrun.Ticks / _key.SamplingInterval.Ticks,
+                        int.MaxValue);
+                    var missedCycles = readMissedCycles >
+                        int.MaxValue - carriedMissedCycles
+                            ? int.MaxValue
+                            : readMissedCycles + carriedMissedCycles;
+                    var completedAt = _timeProvider.GetUtcNow();
+                    var cycleSequenceNumber =
+                        SequenceNumber.Increment32(ref _cycleSequenceNumber);
+                    try
+                    {
+                        _adapter.DeliverCyclicRead(items,
+                            Normalize(values, items.Length),
+                            cycleSequenceNumber, completedAt.UtcDateTime,
+                            missedCycles);
+                    }
+                    catch (Exception ex)
+                    {
+                        _adapter._logger.CyclicReadFailed(ex);
+                    }
+
+                    var cycleCompleted = _timeProvider.GetTimestamp();
+                    var totalElapsed = _timeProvider.GetElapsedTime(
+                        cycleStarted, cycleCompleted);
+                    var totalOverrun = totalElapsed > delayUntilNext
+                        ? totalElapsed - delayUntilNext
+                        : TimeSpan.Zero;
+                    var totalMissedCycles = Math.Min(
+                        totalOverrun.Ticks / _key.SamplingInterval.Ticks,
+                        int.MaxValue);
+                    carriedMissedCycles = (int)Math.Max(0,
+                        totalMissedCycles - readMissedCycles);
+                    var remainder = totalOverrun.Ticks %
+                        _key.SamplingInterval.Ticks;
+                    delayUntilNext = remainder == 0
+                        ? _key.SamplingInterval
+                        : _key.SamplingInterval - TimeSpan.FromTicks(remainder);
+                }
+            }
+
+            private static IReadOnlyList<DataValue> Normalize(
+                IReadOnlyList<DataValue> values, int expectedCount)
+            {
+                if (values.Count == expectedCount)
+                {
+                    return values;
+                }
+                var normalized = new DataValue[expectedCount];
+                var count = Math.Min(values.Count, expectedCount);
+                for (var index = 0; index < count; index++)
+                {
+                    normalized[index] = values[index];
+                }
+                for (var index = count; index < normalized.Length; index++)
+                {
+                    normalized[index] =
+                        DataValue.FromStatusCode(StatusCodes.BadUnexpectedError);
+                }
+                return normalized;
+            }
+
+            private readonly ManagedSubscriptionAdapter _adapter;
+            private readonly IManagedCyclicReadClient _client;
+            private readonly CancellationTokenSource _cts;
+            private readonly CyclicReadGroupKey _key;
+            private readonly Lock _lock = new();
+            private readonly TimeProvider _timeProvider;
+            private CyclicReadItem[] _items;
+            private Task? _worker;
+            private int _disposed;
+            private int _started;
+            private uint _cycleSequenceNumber;
+        }
+
         private sealed class ManagedSubscriptionItemBinding
         {
             public uint ClientHandle { get; set; }
@@ -2502,9 +3101,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         !ReferenceEquals(Monitor.CurrentValue.Filter, options.Filter));
                 var monitoringModeChanged =
                     Monitor.CurrentValue.MonitoringMode != options.MonitoringMode;
-                if (itemIdentityChanged || monitoringModeChanged)
+                lock (_dataLock)
                 {
-                    lock (_dataLock)
+                    if (itemIdentityChanged || monitoringModeChanged)
                     {
                         _lastDataValue = null;
                         _lastDataReceivedAt = null;
@@ -2517,11 +3116,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         _appliedMonitoringMode = Opc.Ua.MonitoringMode.Disabled;
                         _heartbeat?.Reset();
                         _heartbeat?.SetApplied(false);
+                        Interlocked.Exchange(ref _firstDataChange, 0);
                     }
-                    Interlocked.Exchange(ref _firstDataChange, 0);
+                    Owner = owner;
+                    Template = template;
+                    _cyclicReadGeneration++;
+                    _cyclicReadActivated = false;
                 }
-                Owner = owner;
-                Template = template;
                 Monitor.Update(options);
                 UpdateHeartbeat(template);
                 if (conditionChanged && Condition != null)
@@ -2547,6 +3148,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 lock (_dataLock)
                 {
                     Registered = true;
+                    _cyclicReadGeneration++;
                     _heartbeat?.SetActive(true);
                 }
             }
@@ -2557,6 +3159,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     Registered = false;
                     _isLate = false;
+                    _cyclicReadGeneration++;
+                    _cyclicReadActivated = false;
                     _heartbeat?.Dispose();
                     _heartbeat = null;
                 }
@@ -2609,12 +3213,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             public void UpdateMonitoredItemStatus(IMonitoredItem monitoredItem)
             {
-                var applied = monitoredItem.Created &&
+                var applied = !HasPendingChanges(monitoredItem) &&
+                    monitoredItem.Created &&
                     ServiceResult.IsGood(monitoredItem.Error);
                 lock (_dataLock)
                 {
                     _applied = applied;
                     _appliedMonitoringMode = monitoredItem.CurrentMonitoringMode;
+                    if (!_cyclicReadActivated && applied && IsCyclicRead &&
+                        _appliedMonitoringMode == Opc.Ua.MonitoringMode.Disabled)
+                    {
+                        _cyclicReadActivated = true;
+                        _cyclicReadGeneration++;
+                    }
                     if (!applied)
                     {
                         _isLate = false;
@@ -2663,6 +3274,108 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public bool IsHeartbeatCurrent(uint sequenceNumber)
             {
                 return _heartbeat?.IsCurrent(sequenceNumber) == true;
+            }
+
+            public bool IsCyclicRead =>
+                Template is DataMonitoredItemModel
+                {
+                    SamplingUsingCyclicRead: true
+                };
+
+            public CyclicReadGroupKey? CyclicReadGroupKey
+            {
+                get
+                {
+                    if (Template is not DataMonitoredItemModel
+                        {
+                            SamplingUsingCyclicRead: true
+                        } data)
+                    {
+                        return null;
+                    }
+                    return new CyclicReadGroupKey(
+                        data.SamplingInterval is { } interval &&
+                            interval > TimeSpan.Zero
+                                ? interval
+                                : TimeSpan.FromSeconds(1),
+                        data.CyclicReadMaxAge is { } maxAge &&
+                            maxAge > TimeSpan.Zero
+                                ? maxAge
+                                : TimeSpan.Zero);
+                }
+            }
+
+            public bool TryCaptureCyclicRead(out CyclicReadItem item)
+            {
+                lock (_dataLock)
+                {
+                    if (!Registered || !_cyclicReadActivated ||
+                        !IsCyclicRead)
+                    {
+                        item = default;
+                        return false;
+                    }
+                    MonitoredItemOptions options = Monitor.CurrentValue;
+                    var template = Template;
+                    item = new CyclicReadItem(this, _cyclicReadGeneration,
+                        new ManagedCyclicReadRequest(
+                            new ReadValueId
+                            {
+                                NodeId = options.StartNodeId,
+                                AttributeId = options.AttributeId,
+                                IndexRange = options.IndexRange,
+                                DataEncoding = options.Encoding ?? QualifiedName.Null
+                            },
+                            template is DataMonitoredItemModel
+                            {
+                                RegisterRead: true
+                            }),
+                        Owner,
+                        template.DataSetFieldId ?? string.Empty,
+                        template.DisplayName,
+                        template.StartNodeId,
+                        template is DataMonitoredItemModel
+                        {
+                            SkipFirst: true
+                        });
+                    return true;
+                }
+            }
+
+            public bool TryRecordCyclicRead(long generation,
+                bool skipFirst, in DataValue value,
+                DateTimeOffset receivedAt, out uint sequenceNumber,
+                out bool skip)
+            {
+                lock (_dataLock)
+                {
+                    if (generation != _cyclicReadGeneration ||
+                        !Registered || !_cyclicReadActivated || !IsCyclicRead)
+                    {
+                        sequenceNumber = 0;
+                        skip = false;
+                        return false;
+                    }
+                    sequenceNumber = NextSequenceNumber();
+                    skip = skipFirst &&
+                        Interlocked.Exchange(ref _firstDataChange, 1) == 0;
+                    _lastDataValue = value;
+                    _lastDataReceivedAt = receivedAt;
+                    _lastDataSequenceNumber = sequenceNumber;
+                    _lastActivityTimestamp = _timeProvider.GetTimestamp();
+                    _hasActivity = true;
+                    _isLate = false;
+                    return true;
+                }
+            }
+
+            public bool IsCurrentCyclicRead(long generation)
+            {
+                lock (_dataLock)
+                {
+                    return generation == _cyclicReadGeneration &&
+                        Registered && _cyclicReadActivated && IsCyclicRead;
+                }
             }
 
             public bool IsLate
@@ -2811,6 +3524,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private uint _lastDataSequenceNumber;
             private StatusCode? _lastConnectedStatusCode;
             private long _lastActivityTimestamp;
+            private long _cyclicReadGeneration;
+            private bool _cyclicReadActivated;
             private bool _hasActivity;
             private bool _applied;
             private Opc.Ua.MonitoringMode _appliedMonitoringMode;
@@ -3249,6 +3964,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly Dictionary<string, ManagedSubscriptionItemBinding> _bindingsByName =
             new(StringComparer.Ordinal);
         private readonly IVariantEncoder _codec;
+        private readonly IManagedCyclicReadClient? _cyclicReadClient;
+        private readonly Lock _cyclicReadSyncLock = new();
+#pragma warning disable CA2213 // Retained so pre-disposal waiters can release safely.
+        private readonly SemaphoreSlim _cyclicReadGate = new(1, 1);
+#pragma warning restore CA2213 // Disposable fields should be disposed
+        private Dictionary<CyclicReadGroupKey, CyclicReadGroup> _cyclicReadGroups = [];
         private readonly ITimer _conditionTimer;
         private readonly CancellationTokenSource _disposeCts = new();
         private readonly Lock _initialApplyLock = new();
@@ -3277,11 +3998,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly SemaphoreSlim _updateGate = new(1, 1);
 #pragma warning restore CA2213 // Disposable fields should be disposed
         private PendingInitialApply? _pendingInitialApply;
+        private Task? _cyclicReadSyncTask;
+        private int _cyclicReadStateDirty;
         private int _disposed;
         private int _nextItemName;
         private int _publishingStateDirty;
         private int _watchdogResetInProgress;
         private long _lastWatchdogCheckTimestamp;
+        private long _mutationVersion;
         private uint _sequenceNumber;
         private bool _created;
         private bool _watchdogConnected = true;
@@ -3338,5 +4062,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Message = "Managed monitored-item watchdog failed.")]
         public static partial void WatchdogFailed(this ILogger logger,
             Exception exception);
+
+        [LoggerMessage(EventId = 1126, Level = LogLevel.Error,
+            Message = "Managed cyclic read failed.")]
+        public static partial void CyclicReadFailed(this ILogger logger,
+            Exception exception);
+
+        [LoggerMessage(EventId = 1127, Level = LogLevel.Warning,
+            Message = "Managed cyclic read could not discover server operation limits; " +
+                "the read will use one unbounded batch.")]
+        public static partial void CyclicReadOperationLimitsUnavailable(
+            this ILogger logger, Exception exception);
+
+        [LoggerMessage(EventId = 1128, Level = LogLevel.Warning,
+            Message = "Managed cyclic read node registration failed; " +
+                "the original node id will be used.")]
+        public static partial void CyclicReadNodeRegistrationUnavailable(
+            this ILogger logger, Exception exception);
+
+        [LoggerMessage(EventId = 1129, Level = LogLevel.Warning,
+            Message = "Managed cyclic read node registration returned {Status}; " +
+                "the original node id will be used.")]
+        public static partial void CyclicReadNodeRegistrationRejected(
+            this ILogger logger, StatusCode status);
+
+        [LoggerMessage(EventId = 1130, Level = LogLevel.Error,
+            Message = "Managed cyclic-read state synchronization failed.")]
+        public static partial void CyclicReadSynchronizationFailed(
+            this ILogger logger, Exception exception);
     }
 }
