@@ -50,7 +50,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var createCall = _publishedNodesServices.Setup(s => s.CreateOrUpdateDataSetWriterEntryAsync(
                 It.IsAny<PublishedNodesEntryModel>(), It.IsAny<CancellationToken>()))
                 .Throws<BadRequestException>();
-            createCall.Verifiable(Times.Exactly(25));
+            createCall.Verifiable(Times.Exactly(37));
             var results = await _service(_publishedNodesServices.Object).CreateOrUpdateAsync(entry,
                 new PublishedNodeExpansionModel
                 {
@@ -60,7 +60,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
-            Assert.Equal(25, results.Count);
+            Assert.Equal(37, results.Count);
             Assert.All(results, r =>
             {
                 Assert.NotNull(r.ErrorInfo);
@@ -88,7 +88,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var createCall = _publishedNodesServices.Setup(s => s.CreateOrUpdateDataSetWriterEntryAsync(
                 It.IsAny<PublishedNodesEntryModel>(), It.IsAny<CancellationToken>()))
                 .Throws<BadRequestException>();
-            createCall.Verifiable(Times.Exactly(25));
+            createCall.Verifiable(Times.Exactly(37));
             var results = await _service(_publishedNodesServices.Object).CreateOrUpdateAsync(entry,
                 new PublishedNodeExpansionModel
                 {
@@ -134,7 +134,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal(StatusCodes.BadInvalidArgument, result.ErrorInfo.StatusCode);
             Assert.NotNull(result.Result);
             Assert.NotNull(result.Result.OpcNodes);
-            Assert.Equal(623, result.Result.OpcNodes.Count);
+            Assert.Equal(953, result.Result.OpcNodes.Count);
 
             _publishedNodesServices.Verify();
             _publishedNodesServices.VerifyNoOtherCalls();
@@ -154,7 +154,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     }
                 }
             };
-            _createCall.Verifiable(Times.Exactly(12));
+            _createCall.Verifiable(Times.Exactly(14));
             var results = await _service(_publishedNodesServices.Object).CreateOrUpdateAsync(entry,
                 new PublishedNodeExpansionModel
                 {
@@ -164,7 +164,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
-            Assert.Equal(12, results.Count);
+            Assert.Equal(14, results.Count);
             Assert.All(results, r =>
             {
                 Assert.Null(r.ErrorInfo);
@@ -204,7 +204,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(result.ErrorInfo);
             Assert.NotNull(result.Result);
             Assert.NotNull(result.Result.OpcNodes);
-            Assert.Equal(300, result.Result.OpcNodes.Count);
+            Assert.Equal(368, result.Result.OpcNodes.Count);
             Assert.All(result.Result.OpcNodes, result =>
             {
                 Assert.NotNull(result.DataSetFieldId);
@@ -224,7 +224,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Id = "http://test.org/UA/Data/#i=1974"
                 }
             };
-            _createCall.Verifiable(Times.Exactly(25));
+            _createCall.Verifiable(Times.Exactly(37));
             var results = await _service(_publishedNodesServices.Object).CreateOrUpdateAsync(entry,
                 new PublishedNodeExpansionModel
                 {
@@ -234,7 +234,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
-            Assert.Equal(25, results.Count);
+            Assert.Equal(37, results.Count);
             Assert.All(results, r =>
             {
                 Assert.Null(r.ErrorInfo);
@@ -270,7 +270,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(result.ErrorInfo);
             Assert.NotNull(result.Result);
             Assert.NotNull(result.Result.OpcNodes);
-            Assert.Equal(623, result.Result.OpcNodes.Count);
+            Assert.Equal(953, result.Result.OpcNodes.Count);
             _publishedNodesServices.Verify();
             _publishedNodesServices.VerifyNoOtherCalls();
         }
@@ -285,7 +285,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Id = Opc.Ua.ObjectIds.Server.ToString()
                 }
             };
-            _createCall.Verifiable(Times.Exactly(77));
+            _createCall.Verifiable(Times.Exactly(68));
             var results = await _service(_publishedNodesServices.Object).CreateOrUpdateAsync(entry,
                 new PublishedNodeExpansionModel
                 {
@@ -295,7 +295,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
-            Assert.Equal(77, results.Count);
+            Assert.Equal(68, results.Count);
             Assert.All(results, r =>
             {
                 Assert.Null(r.ErrorInfo);
@@ -317,7 +317,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Id = Opc.Ua.ObjectIds.Server.ToString()
                 }
             };
-            _createCall.Verifiable(Times.Exactly(78));
+            _createCall.Verifiable(Times.Exactly(69));
             var results = await _service(_publishedNodesServices.Object).CreateOrUpdateAsync(entry,
                 new PublishedNodeExpansionModel
                 {
@@ -327,7 +327,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
-            Assert.Equal(78, results.Count);
+            Assert.Equal(69, results.Count);
             Assert.All(results, r =>
             {
                 Assert.Null(r.ErrorInfo);
@@ -363,7 +363,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(result.ErrorInfo);
             Assert.NotNull(result.Result);
             Assert.NotNull(result.Result.OpcNodes);
-            Assert.Equal(940, result.Result.OpcNodes.Count);
+            Assert.Equal(1157, result.Result.OpcNodes.Count);
             _publishedNodesServices.Verify();
             _publishedNodesServices.VerifyNoOtherCalls();
         }
@@ -378,7 +378,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Id = Opc.Ua.ObjectIds.Server.ToString()
                 }
             };
-            _createCall.Verifiable(Times.Exactly(9));
+            _createCall.Verifiable(Times.Exactly(7));
             var results = await _service(_publishedNodesServices.Object).CreateOrUpdateAsync(entry,
                 new PublishedNodeExpansionModel
                 {
@@ -389,7 +389,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
-            Assert.Equal(9, results.Count);
+            Assert.Equal(7, results.Count);
             Assert.All(results, r =>
             {
                 Assert.Null(r.ErrorInfo);
@@ -427,7 +427,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(result.ErrorInfo);
             Assert.NotNull(result.Result);
             Assert.NotNull(result.Result.OpcNodes);
-            Assert.Equal(7, result.Result.OpcNodes.Count);
+            Assert.Equal(8, result.Result.OpcNodes.Count);
             _publishedNodesServices.Verify();
             _publishedNodesServices.VerifyNoOtherCalls();
         }
@@ -442,7 +442,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Id = Opc.Ua.ObjectTypeIds.BaseObjectType.ToString()
                 }
             };
-            _createCall.Verifiable(Times.Exactly(81));
+            _createCall.Verifiable(Times.Exactly(72));
             var results = await _service(_publishedNodesServices.Object).CreateOrUpdateAsync(entry,
                 new PublishedNodeExpansionModel
                 {
@@ -453,7 +453,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
-            Assert.Equal(81, results.Count);
+            Assert.Equal(72, results.Count);
             Assert.All(results, r =>
             {
                 Assert.Null(r.ErrorInfo);
@@ -519,7 +519,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     DataSetFieldId = "data"
                 }
             };
-            _createCall.Verifiable(Times.Exactly(184));
+            _createCall.Verifiable(Times.Exactly(178));
             var results = await _service(_publishedNodesServices.Object).CreateOrUpdateAsync(entry,
                 new PublishedNodeExpansionModel
                 {
@@ -530,7 +530,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
-            Assert.Equal(184, results.Count);
+            Assert.Equal(178, results.Count);
             Assert.All(results, r =>
             {
                 Assert.Null(r.ErrorInfo);
@@ -583,7 +583,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 new OpcNodeModel { Id = "http://test.org/UA/Data/#i=2041" },
                 new OpcNodeModel { Id = Opc.Ua.ObjectTypeIds.BaseObjectType.ToString() }
             };
-            _createCall.Verifiable(Times.Exactly(160));
+            _createCall.Verifiable(Times.Exactly(142));
             var results = await _service(_publishedNodesServices.Object).CreateOrUpdateAsync(entry,
                 new PublishedNodeExpansionModel
                 {
@@ -594,7 +594,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
-            Assert.Equal(160, results.Count);
+            Assert.Equal(142, results.Count);
             Assert.All(results, r =>
             {
                 Assert.Null(r.ErrorInfo);
@@ -629,7 +629,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.Result);
             Assert.Equal(Opc.Ua.VariableTypeIds.PropertyType + "/PropertyType", result.Result.DataSetWriterId);
             Assert.NotNull(result.Result.OpcNodes);
-            Assert.Equal(709, result.Result.OpcNodes.Count);
+            Assert.Equal(671, result.Result.OpcNodes.Count);
             _publishedNodesServices.Verify();
             _publishedNodesServices.VerifyNoOtherCalls();
         }
@@ -690,7 +690,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 Assert.NotNull(r.Result.OpcNodes);
                 total += r.Result.OpcNodes.Count;
             });
-            Assert.Equal(805, total);
+            Assert.Equal(767, total);
             _publishedNodesServices.Verify();
             _publishedNodesServices.VerifyNoOtherCalls();
         }

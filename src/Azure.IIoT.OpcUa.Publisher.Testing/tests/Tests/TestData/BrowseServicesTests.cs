@@ -216,13 +216,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             // Act
             var results = await browser.BrowseAsync(_connection, new BrowseFirstRequestModel
             {
-                NodeId = "http://opcfoundation.org/UA/Boiler/#i=1240",
+                NodeId = "http://opcfoundation.org/UA/Boiler/#i=1238",
                 TargetNodesOnly = true
             }, ct: ct).ConfigureAwait(false);
 
             // Assert
             Assert.NotNull(results.Node);
-            Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1240", results.Node.NodeId);
+            Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1238", results.Node.NodeId);
             Assert.Equal("Boilers", results.Node.DisplayName);
             Assert.Equal(true, results.Node.Children);
             Assert.Equal(NodeEventNotifier.SubscribeToEvents, results.Node.EventNotifier);
@@ -238,7 +238,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
                     Assert.Equal("Boiler #1", reference.Target.DisplayName);
                     Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
-                    Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1241",
+                    Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1239",
                         reference.Target.NodeId);
                     Assert.True(reference.Target.Children);
                 },
@@ -249,7 +249,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
                     Assert.Equal("Boiler #2", reference.Target.DisplayName);
                     Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
-                    Assert.Equal("http://opcfoundation.org/UA/Boiler//Instance#i=1",
+                    Assert.Equal("http://opcfoundation.org/UA/Boiler/Instance#i=1",
                         reference.Target.NodeId);
                     Assert.True(reference.Target.Children);
                 });
@@ -665,7 +665,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("SetPoint", reference.Target.DisplayName);
                     Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
                     Assert.Equal("nsu=DataAccess;s=1:FC1001?SetPoint", reference.Target.NodeId);
-                    Assert.True(reference.Target.Children);
+                    Assert.False(reference.Target.Children);
                 },
                 reference =>
                 {
@@ -678,7 +678,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("nsu=DataAccess;s=1:FC1001?Measurement", reference.Target.NodeId);
                     Assert.Equal("i=2365", reference.Target.TypeDefinitionId);
                     Assert.Equal("Float", reference.Target.DataType);
-                    Assert.True(reference.Target.Children);
+                    Assert.False(reference.Target.Children);
                 },
                 reference =>
                 {
@@ -691,7 +691,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("nsu=DataAccess;s=1:FC1001?Output", reference.Target.NodeId);
                     Assert.Equal("i=2365", reference.Target.TypeDefinitionId);
                     Assert.Equal("Float", reference.Target.DataType);
-                    Assert.True(reference.Target.Children);
+                    Assert.False(reference.Target.Children);
                 },
                 reference =>
                 {
@@ -742,7 +742,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
                     Assert.Equal("nsu=DataAccess;s=1:FC1001?SetPoint", reference.Target.NodeId);
                     Assert.False(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Children);
+                    Assert.False(reference.Target.Children);
                 },
                 reference =>
                 {
@@ -756,7 +756,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("i=2365", reference.Target.TypeDefinitionId);
                     Assert.Equal("Float", reference.Target.DataType);
                     Assert.False(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Children);
+                    Assert.False(reference.Target.Children);
                 },
                 reference =>
                 {
@@ -770,7 +770,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal("i=2365", reference.Target.TypeDefinitionId);
                     Assert.Equal("Float", reference.Target.DataType);
                     Assert.False(reference.Target.Value.IsNull());
-                    Assert.True(reference.Target.Children);
+                    Assert.False(reference.Target.Children);
                 },
                 reference =>
                 {
@@ -795,14 +795,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             // Act
             var results = await browser.BrowseAsync(_connection, new BrowseFirstRequestModel
             {
-                NodeId = "http://opcfoundation.org/UA/Boiler/#i=1240",
+                NodeId = "http://opcfoundation.org/UA/Boiler/#i=1238",
                 TargetNodesOnly = false
             }, ct: ct).ConfigureAwait(false);
 
             // Assert
 
             Assert.NotNull(results.Node);
-            Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1240", results.Node.NodeId);
+            Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1238", results.Node.NodeId);
             Assert.Equal("Boilers", results.Node.DisplayName);
             Assert.Equal(true, results.Node.Children);
             Assert.Equal(NodeEventNotifier.SubscribeToEvents, results.Node.EventNotifier);
@@ -819,13 +819,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     }
 
                     Assert.Equal("i=47", reference.ReferenceTypeId);
-                    Assert.Equal("http://opcfoundation.org/UA/Boiler/#Boiler+%231",
+                    Assert.Equal("http://opcfoundation.org/UA/Boiler/#Boiler%20%231",
                         reference.Target.BrowseName);
                     Assert.Equal(BrowseDirection.Forward, reference.Direction);
 
                     Assert.Equal("Boiler #1", reference.Target.DisplayName);
                     Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
-                    Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1241",
+                    Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1239",
                         reference.Target.NodeId);
                     Assert.True(reference.Target.Children);
                     return true;
@@ -839,13 +839,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     }
 
                     Assert.Equal("i=48", reference.ReferenceTypeId);
-                    Assert.Equal("http://opcfoundation.org/UA/Boiler/#Boiler+%231",
+                    Assert.Equal("http://opcfoundation.org/UA/Boiler/#Boiler%20%231",
                         reference.Target.BrowseName);
                     Assert.Equal(BrowseDirection.Forward, reference.Direction);
 
                     Assert.Equal("Boiler #1", reference.Target.DisplayName);
                     Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
-                    Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1241",
+                    Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1239",
                         reference.Target.NodeId);
                     Assert.True(reference.Target.Children);
                     return true;
@@ -859,13 +859,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     }
 
                     Assert.Equal("i=35", reference.ReferenceTypeId);
-                    Assert.Equal("http://opcfoundation.org/UA/Boiler//Instance#Boiler+%232",
+                    Assert.Equal("http://opcfoundation.org/UA/Boiler/Instance#Boiler%20%232",
                         reference.Target.BrowseName);
                     Assert.Equal(BrowseDirection.Forward, reference.Direction);
 
                     Assert.Equal("Boiler #2", reference.Target.DisplayName);
                     Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
-                    Assert.Equal("http://opcfoundation.org/UA/Boiler//Instance#i=1",
+                    Assert.Equal("http://opcfoundation.org/UA/Boiler/Instance#i=1",
                         reference.Target.NodeId);
                     Assert.True(reference.Target.Children);
                     return true;
@@ -1269,6 +1269,68 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 reference =>
                 {
+                    Assert.Equal("http://test.org/UA/Data/#i=2066",
+                        reference.Target.NodeId);
+                    Assert.Equal("http://test.org/UA/Data/#i=1888",
+                        reference.Target.DataType);
+                    Assert.Equal("http://test.org/UA/Data/#i=1889",
+                        reference.Target.TypeDefinitionId);
+                    Assert.Equal("VectorValue", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
+                    Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
+                        reference.Target.AccessLevel);
+                    Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
+                        reference.Target.UserAccessLevel);
+                    Assert.Equal(NodeValueRank.Scalar, reference.Target.ValueRank);
+                    Assert.True(reference.Target.Children);
+                },
+                reference =>
+                {
+                    Assert.Equal("http://test.org/UA/Data/#i=3586",
+                        reference.Target.NodeId);
+                    Assert.Equal("http://test.org/UA/Data/#i=3584",
+                        reference.Target.DataType);
+                    Assert.Equal("VectorUnionValue", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
+                    Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
+                        reference.Target.AccessLevel);
+                    Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
+                        reference.Target.UserAccessLevel);
+                    Assert.Equal(NodeValueRank.Scalar, reference.Target.ValueRank);
+                    Assert.False(reference.Target.Children);
+                },
+                reference =>
+                {
+                    Assert.Equal("http://test.org/UA/Data/#i=3587",
+                        reference.Target.NodeId);
+                    Assert.Equal("http://test.org/UA/Data/#i=3585",
+                        reference.Target.DataType);
+                    Assert.Equal("VectorWithOptionalFieldsValue", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
+                    Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
+                        reference.Target.AccessLevel);
+                    Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
+                        reference.Target.UserAccessLevel);
+                    Assert.Equal(NodeValueRank.Scalar, reference.Target.ValueRank);
+                    Assert.False(reference.Target.Children);
+                },
+                reference =>
+                {
+                    Assert.Equal("http://test.org/UA/Data/#i=3616",
+                        reference.Target.NodeId);
+                    Assert.Equal("http://test.org/UA/Data/#i=3615",
+                        reference.Target.DataType);
+                    Assert.Equal("MultipleVectorsValue", reference.Target.DisplayName);
+                    Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
+                    Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
+                        reference.Target.AccessLevel);
+                    Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
+                        reference.Target.UserAccessLevel);
+                    Assert.Equal(NodeValueRank.Scalar, reference.Target.ValueRank);
+                    Assert.False(reference.Target.Children);
+                },
+                reference =>
+                {
                     Assert.Equal("http://test.org/UA/Data/#i=1977",
                         reference.Target.NodeId);
                     Assert.Equal("Boolean", reference.Target.DataType);
@@ -1400,7 +1462,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal(NodeClass.Object, results.Node.NodeClass);
             Assert.True(results.Node.Children);
             Assert.NotNull(results.References);
-            Assert.True(results.References.Count == 30,
+            Assert.True(results.References.Count == 34,
                 Json.SerializeToString(
                     results.References.Select(r => r.Target.DisplayName)) + results.ErrorInfo?.ToString());
             Assert.Collection(results.References,
@@ -1866,6 +1928,78 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 reference =>
                 {
                     Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
+                    Assert.Equal("http://test.org/UA/Data/#i=2255",
+                        reference.Target.NodeId);
+                    Assert.Equal("http://test.org/UA/Data/#i=1888",
+                        reference.Target.DataType);
+                    Assert.Equal("VectorValue", reference.Target.DisplayName);
+                    Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
+                        reference.Target.AccessLevel);
+                    Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
+                        reference.Target.UserAccessLevel);
+                    Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
+                    Assert.NotNull(reference.Target.ArrayDimensions);
+                    Assert.Single(reference.Target.ArrayDimensions);
+                    Assert.Equal(0u, reference.Target.ArrayDimensions[0]);
+                    Assert.False(reference.Target.Children);
+                },
+                reference =>
+                {
+                    Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
+                    Assert.Equal("http://test.org/UA/Data/#i=3610",
+                        reference.Target.NodeId);
+                    Assert.Equal("http://test.org/UA/Data/#i=3584",
+                        reference.Target.DataType);
+                    Assert.Equal("VectorUnionValue", reference.Target.DisplayName);
+                    Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
+                        reference.Target.AccessLevel);
+                    Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
+                        reference.Target.UserAccessLevel);
+                    Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
+                    Assert.NotNull(reference.Target.ArrayDimensions);
+                    Assert.Single(reference.Target.ArrayDimensions);
+                    Assert.Equal(0u, reference.Target.ArrayDimensions[0]);
+                    Assert.False(reference.Target.Children);
+                },
+                reference =>
+                {
+                    Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
+                    Assert.Equal("http://test.org/UA/Data/#i=3611",
+                        reference.Target.NodeId);
+                    Assert.Equal("http://test.org/UA/Data/#i=3585",
+                        reference.Target.DataType);
+                    Assert.Equal("VectorWithOptionalFieldsValue", reference.Target.DisplayName);
+                    Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
+                        reference.Target.AccessLevel);
+                    Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
+                        reference.Target.UserAccessLevel);
+                    Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
+                    Assert.NotNull(reference.Target.ArrayDimensions);
+                    Assert.Single(reference.Target.ArrayDimensions);
+                    Assert.Equal(0u, reference.Target.ArrayDimensions[0]);
+                    Assert.False(reference.Target.Children);
+                },
+                reference =>
+                {
+                    Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
+                    Assert.Equal("http://test.org/UA/Data/#i=3628",
+                        reference.Target.NodeId);
+                    Assert.Equal("http://test.org/UA/Data/#i=3615",
+                        reference.Target.DataType);
+                    Assert.Equal("MultipleVectorsValue", reference.Target.DisplayName);
+                    Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
+                        reference.Target.AccessLevel);
+                    Assert.Equal(NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite,
+                        reference.Target.UserAccessLevel);
+                    Assert.Equal(NodeValueRank.OneDimension, reference.Target.ValueRank);
+                    Assert.NotNull(reference.Target.ArrayDimensions);
+                    Assert.Single(reference.Target.ArrayDimensions);
+                    Assert.Equal(0u, reference.Target.ArrayDimensions[0]);
+                    Assert.False(reference.Target.Children);
+                },
+                reference =>
+                {
+                    Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
                     Assert.Equal("http://test.org/UA/Data/#i=2166",
                         reference.Target.NodeId);
                     Assert.Equal("Boolean", reference.Target.DataType);
@@ -1919,7 +2053,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal(NodeClass.Object, results.Node.NodeClass);
             Assert.True(results.Node.Children);
             Assert.NotNull(results.References);
-            Assert.True(results.References.Count == 30,
+            Assert.True(results.References.Count == 34,
                 Json.SerializeToString(
                     results.References.Select(r => r.Target.DisplayName)) + results.ErrorInfo?.ToString());
             Assert.Collection(results.References,
@@ -1950,11 +2084,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         reference.Target.NodeId);
                     Assert.Equal("Byte", reference.Target.DataType);
                     Assert.Equal("ByteValue", reference.Target.DisplayName);
-                    // Assert.False(reference.Target.Value.IsNull());
-                    if (!reference.Target.Value.IsNull())
-                    {
-                        Assert.True(reference.Target.Value!.IsString());
-                    }
+                    Assert.False(reference.Target.Value.IsNull());
+                    Assert.True(reference.Target.Value!.IsListOfValues());
                 },
                 reference =>
                 {
@@ -2199,6 +2330,46 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 reference =>
                 {
                     Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
+                    Assert.Equal("http://test.org/UA/Data/#i=2255",
+                        reference.Target.NodeId);
+                    Assert.Equal("http://test.org/UA/Data/#i=1888",
+                        reference.Target.DataType);
+                    Assert.Equal("VectorValue", reference.Target.DisplayName);
+                    Assert.False(reference.Target.Value.IsNull());
+                },
+                reference =>
+                {
+                    Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
+                    Assert.Equal("http://test.org/UA/Data/#i=3610",
+                        reference.Target.NodeId);
+                    Assert.Equal("http://test.org/UA/Data/#i=3584",
+                        reference.Target.DataType);
+                    Assert.Equal("VectorUnionValue", reference.Target.DisplayName);
+                    Assert.False(reference.Target.Value.IsNull());
+                },
+                reference =>
+                {
+                    Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
+                    Assert.Equal("http://test.org/UA/Data/#i=3611",
+                        reference.Target.NodeId);
+                    Assert.Equal("http://test.org/UA/Data/#i=3585",
+                        reference.Target.DataType);
+                    Assert.Equal("VectorWithOptionalFieldsValue", reference.Target.DisplayName);
+                    Assert.False(reference.Target.Value.IsNull());
+                },
+                reference =>
+                {
+                    Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
+                    Assert.Equal("http://test.org/UA/Data/#i=3628",
+                        reference.Target.NodeId);
+                    Assert.Equal("http://test.org/UA/Data/#i=3615",
+                        reference.Target.DataType);
+                    Assert.Equal("MultipleVectorsValue", reference.Target.DisplayName);
+                    Assert.False(reference.Target.Value.IsNull());
+                },
+                reference =>
+                {
+                    Assert.Equal(NodeClass.Variable, reference.Target.NodeClass);
                     Assert.Equal("http://test.org/UA/Data/#i=2166",
                         reference.Target.NodeId);
                     Assert.Equal("Boolean", reference.Target.DataType);
@@ -2229,12 +2400,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             // Act
             var results = await browser.BrowseAsync(_connection, new BrowseFirstRequestModel
             {
-                NodeId = "http://opcfoundation.org/UA/Boiler/#i=1240",
+                NodeId = "http://opcfoundation.org/UA/Boiler/#i=1238",
                 NodeIdsOnly = true
             }, ct: ct).ConfigureAwait(false);
 
             // Assert
-            Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1240", results.Node.NodeId);
+            Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1238", results.Node.NodeId);
             Assert.Null(results.Node.DisplayName);
             Assert.Null(results.Node.Children);
             Assert.Null(results.Node.EventNotifier);
@@ -2251,10 +2422,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     }
 
                     Assert.Equal("i=47", reference.ReferenceTypeId);
-                    Assert.Equal("http://opcfoundation.org/UA/Boiler/#Boiler+%231",
+                    Assert.Equal("http://opcfoundation.org/UA/Boiler/#Boiler%20%231",
                         reference.Target.BrowseName);
                     Assert.Equal(BrowseDirection.Forward, reference.Direction);
-                    Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1241",
+                    Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1239",
                         reference.Target.NodeId);
                     Assert.NotNull(reference.Target.NodeClass);
                     Assert.Null(reference.Target.DataType);
@@ -2272,10 +2443,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 }
 
                 Assert.Equal("i=48", reference.ReferenceTypeId);
-                Assert.Equal("http://opcfoundation.org/UA/Boiler/#Boiler+%231",
+                Assert.Equal("http://opcfoundation.org/UA/Boiler/#Boiler%20%231",
                     reference.Target.BrowseName);
                 Assert.Equal(BrowseDirection.Forward, reference.Direction);
-                Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1241",
+                Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1239",
                     reference.Target.NodeId);
                 Assert.NotNull(reference.Target.NodeClass);
                 Assert.Null(reference.Target.DataType);
@@ -2293,11 +2464,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     }
 
                     Assert.Equal("i=35", reference.ReferenceTypeId);
-                    Assert.Equal("http://opcfoundation.org/UA/Boiler//Instance#Boiler+%232",
+                    Assert.Equal("http://opcfoundation.org/UA/Boiler/Instance#Boiler%20%232",
                         reference.Target.BrowseName);
                     Assert.Equal(BrowseDirection.Forward, reference.Direction);
 
-                    Assert.Equal("http://opcfoundation.org/UA/Boiler//Instance#i=1",
+                    Assert.Equal("http://opcfoundation.org/UA/Boiler/Instance#i=1",
                         reference.Target.NodeId);
                     Assert.NotNull(reference.Target.NodeClass);
                     Assert.Null(reference.Target.DataType);
@@ -2315,7 +2486,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             // Act
             var results = await browser.BrowseFirstAsync(_connection, new BrowseFirstRequestModel
             {
-                NodeId = "http://samples.org/UA/memorybuffer/Instance#s=UInt32",
+                NodeId = "http://samples.org/UA/MemoryBuffer/Instance#s=UInt32",
                 MaxReferencesToReturn = 5
             }, ct).ConfigureAwait(false);
 
@@ -2365,7 +2536,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             // Act
             var results = await browser.BrowseFirstAsync(_connection, new BrowseFirstRequestModel
             {
-                NodeId = "http://samples.org/UA/memorybuffer/Instance#s=UInt32",
+                NodeId = "http://samples.org/UA/MemoryBuffer/Instance#s=UInt32",
                 MaxReferencesToReturn = 200
             }, ct).ConfigureAwait(false);
 
@@ -2393,7 +2564,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             // Act
             var results = await browser.BrowseFirstAsync(_connection, new BrowseFirstRequestModel
             {
-                NodeId = "http://samples.org/UA/memorybuffer/Instance#s=UInt32",
+                NodeId = "http://samples.org/UA/MemoryBuffer/Instance#s=UInt32",
                 MaxReferencesToReturn = 1,
                 NodeIdsOnly = true
             }, ct).ConfigureAwait(false);
@@ -2411,7 +2582,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             // Act
             var results = await browser.BrowseFirstAsync(_connection, new BrowseFirstRequestModel
             {
-                NodeId = "http://samples.org/UA/memorybuffer/Instance#s=UInt32",
+                NodeId = "http://samples.org/UA/MemoryBuffer/Instance#s=UInt32",
                 MaxReferencesToReturn = maxCount,
                 Direction = BrowseDirection.Forward,
                 ReadVariableValues = false

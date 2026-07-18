@@ -170,7 +170,6 @@ namespace DataAccess
         protected override void PopulateBrowser(ISystemContext context, NodeBrowser browser)
         {
             base.PopulateBrowser(context, browser);
-
             // check if the parent segments need to be returned.
             if (browser.IsRequired(ReferenceTypeIds.Organizes, true))
             {
@@ -245,9 +244,8 @@ namespace DataAccess
                     }
             }
 
-            // set the symbolic name and reference types.
+            // set the symbolic name.
             variable.SymbolicName = tag.Name;
-            variable.ReferenceTypeId = ReferenceTypeIds.HasComponent;
 
             // initialize the variable from the type model.
             variable.Create(
@@ -256,6 +254,7 @@ namespace DataAccess
                 new QualifiedName(tag.Name, BrowseName.NamespaceIndex),
                 default,
                 true);
+            variable.ReferenceTypeId = ReferenceTypeIds.HasComponent;
 
             // update the variable values.
             UpdateVariable(context, tag, variable);
@@ -273,7 +272,7 @@ namespace DataAccess
         {
             System.Diagnostics.Contracts.Contract.Assume(context != null);
             variable.Description = (LocalizedText)tag.Description;
-            variable.Value = (Variant)tag.Value;
+            variable.Value = new Variant(tag.Value);
             variable.Timestamp = tag.Timestamp;
 
             switch (tag.DataType)

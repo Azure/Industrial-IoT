@@ -689,7 +689,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         (DateTime)dataValue.SourceTimestamp,
                     Status =  // Remove aggregate bits we are testing below.
                         (dataValue.StatusCode.Code & ~0x041Fu) == StatusCodes.Good.Code ? null :
-                         dataValue.StatusCode.CreateResultModel(),
+                         dataValue.StatusCode.CreateResultModel().WithSymbolicId(),
                     DataLocation = dataValue.StatusCode.AggregateBits.ToDataLocation(),
                     AdditionalData = dataValue.StatusCode.AggregateBits.ToAdditionalData(),
                     ModificationInfo = modification == null ? null : new ModificationInfoModel

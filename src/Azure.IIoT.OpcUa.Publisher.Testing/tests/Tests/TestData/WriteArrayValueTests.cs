@@ -546,7 +546,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     "J7sy1a7rAg%3d%3d\"," +
                 "\"http://samples.org/UA/memorybuffer/Instance#b=Sd3cIpMx8dJmHYZE57NO%2f97D6hXTRBk%3d\"," +
                 "\"http://test.org/UA/Data/#g=1ad3ae1c-1c15-e1b1-0f18-96aa0c4f3766\"]");
-            expected = await ReadCanonicalValueAsync(node).ConfigureAwait(false);
+            expected = NormalizeNullOpaqueNodeIds(
+                await ReadCanonicalValueAsync(node).ConfigureAwait(false));
 
             // Act
             var result = await browser.ValueWriteAsync(_connection, new ValueWriteRequestModel
@@ -1315,6 +1316,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
         {
             var value = await _readExpected(_connection, node).ConfigureAwait(false);
             return Assert.IsAssignableFrom<JsonNode>(value);
+        }
+
+        private static JsonNode NormalizeNullOpaqueNodeIds(JsonNode value)
+        {
+            if (value is JsonArray values)
+            {
+                for (var i = 0; i < values.Count; i++)
+                {
+                    if (values[i]?.GetValue<string>().EndsWith(";b=",
+                        StringComparison.Ordinal) == true)
+                    {
+                        values[i] = null;
+                    }
+                }
+            }
+            return value;
         }
 
         private static JsonNode AddTestDataStructureTypeId(JsonNode value)

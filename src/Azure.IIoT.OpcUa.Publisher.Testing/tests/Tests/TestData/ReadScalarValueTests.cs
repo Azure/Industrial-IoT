@@ -138,7 +138,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.Results);
             Assert.Equal(attributes.Count, result.Results.Count);
             Assert.All(result.Results, r => Assert.Null(r.ErrorInfo));
-            Assert.All(result.Results, r => Assert.Null(r.Value));
+            Assert.All(result.Results, r => Assert.Equal(0, (int)r.Value!));
         }
 
         public async Task NodeReadAllStaticScalarVariableWriteMaskTest2Async(CancellationToken ct = default)
@@ -174,7 +174,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.Results);
             Assert.Equal(attributes.Count, result.Results.Count);
             Assert.All(result.Results, r => Assert.Null(r.ErrorInfo));
-            Assert.All(result.Results, r => Assert.Null(r.Value));
+            Assert.All(result.Results, r => Assert.Equal(0, (int)r.Value!));
         }
 
         public async Task NodeReadStaticScalarBooleanValueVariableTestAsync(CancellationToken ct = default)

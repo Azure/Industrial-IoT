@@ -133,8 +133,10 @@ namespace System.Collections.Generic
             {
                 return false;
             }
-            return new HashSet<T>(seq, new FuncEqualityComparer<T>(func))
-                .SetEquals(that);
+            var first = seq.ToList();
+            var second = that.ToList();
+            return first.All(x => second.Any(y => func(x, y))) &&
+                second.All(y => first.Any(x => func(x, y)));
         }
 
         /// <summary>

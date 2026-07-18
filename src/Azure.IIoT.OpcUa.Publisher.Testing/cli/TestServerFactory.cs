@@ -178,11 +178,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                 string path, string pkiRootPath, string certStoreType, bool enableDiagnostics = false,
                 Action<ServerConfiguration> configure = null)
             {
-                var extensions = new List<object>
-                {
-                    QuickstartsNodeManagerFactories.CreateMemoryBufferConfiguration()
-                    /// ...
-                };
                 certStoreType ??= CertificateStoreType.Directory;
                 if (string.IsNullOrEmpty(pkiRootPath))
                 {
@@ -193,13 +188,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                 {
                     path = "/" + path;
                 }
-                var configuration = new ApplicationConfiguration
+                var configuration = new ApplicationConfiguration(kTelemetry)
                 {
                     ApplicationName = "UA Core Sample Server",
                     ApplicationType = ApplicationType.Server,
                     ApplicationUri = $"urn:{hostName ?? CoreUtils.GetHostName()}:OPCFoundation:CoreSampleServer",
-                    Extensions = [.. extensions.Select(e =>
-                        Opc.Ua.XmlElement.From(XmlElementEx.SerializeObject(e)))],
+                    Extensions = [],
 
                     ProductUri = "http://opcfoundation.org/UA/SampleServer",
                     SecurityConfiguration = new SecurityConfiguration
@@ -208,7 +202,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                         {
                             StoreType = certStoreType,
                             StorePath = $"{pkiRootPath}/own",
-                            SubjectName = "UA Core Sample Server"
+                            SubjectName = "CN=UA Core Sample Server"
                         },
                         TrustedPeerCertificates = new CertificateTrustList
                         {
@@ -322,6 +316,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Cli
                     }
                 };
                 configure?.Invoke(configuration.ServerConfiguration);
+                QuickstartsNodeManagerFactories.AddMemoryBufferConfiguration(configuration);
                 return configuration;
             }
 

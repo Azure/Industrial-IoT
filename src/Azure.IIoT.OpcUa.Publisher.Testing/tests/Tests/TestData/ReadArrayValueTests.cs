@@ -137,7 +137,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.Results);
             Assert.Equal(attributes.Count, result.Results.Count);
             Assert.All(result.Results, r => Assert.Null(r.ErrorInfo));
-            Assert.All(result.Results, r => Assert.Null(r.Value));
+            Assert.All(result.Results, r => Assert.Equal(0, (int)r.Value!));
         }
 
         public async Task NodeReadAllStaticArrayVariableWriteMaskTest2Async(CancellationToken ct = default)
@@ -173,7 +173,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.Results);
             Assert.Equal(attributes.Count, result.Results.Count);
             Assert.All(result.Results, r => Assert.Null(r.ErrorInfo));
-            Assert.All(result.Results, r => Assert.Null(r.Value));
+            Assert.All(result.Results, r => Assert.Equal(0, (int)r.Value!));
         }
 
         public async Task NodeReadStaticArrayBooleanValueVariableTestAsync(CancellationToken ct = default)
@@ -252,8 +252,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.Equal("ByteString", result.DataType);
-            Assert.True(result.Value.IsNull() || result.Value!.IsBytes());
+            Assert.Equal("Byte", result.DataType);
+            Assert.True(result.Value!.IsListOfValues());
+            Assert.All(result.Value.Values(), value =>
+                Assert.True(value!.IsInteger(), $"{value} is not an integer."));
         }
 
         public async Task NodeReadStaticArrayInt16ValueVariableTestAsync(CancellationToken ct = default)
@@ -889,8 +891,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             {
                 return;
             }
-            Assert.True(result.Value[0].IsDouble() || result.Value[0].IsDecimal(),
-                $"Not a number {result.Value[0]}");
+            Assert.True(result.Value[0].IsObject(), $"Not an object {result.Value[0]}");
+            Assert.NotNull(result.Value[0]!["Value"]);
         }
 
         public async Task NodeReadStaticArrayIntegerValueVariableTestAsync(CancellationToken ct = default)
@@ -918,7 +920,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 return;
             }
 
-            Assert.True(result.Value[0].IsInteger(), $"{result.Value[0]} is not an integer.");
+            Assert.True(result.Value[0].IsObject(), $"{result.Value[0]} is not an object.");
+            Assert.NotNull(result.Value[0]!["Value"]);
         }
 
         public async Task NodeReadStaticArrayUIntegerValueVariableTestAsync(CancellationToken ct = default)
@@ -946,7 +949,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 return;
             }
 
-            Assert.True(result.Value[0].IsInteger(), $"{result.Value[0]} is not an integer.");
+            Assert.True(result.Value[0].IsObject(), $"{result.Value[0]} is not an object.");
+            Assert.NotNull(result.Value[0]!["Value"]);
         }
 
         /// <summary>

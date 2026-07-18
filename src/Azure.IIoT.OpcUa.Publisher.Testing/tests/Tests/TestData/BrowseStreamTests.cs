@@ -210,7 +210,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             // Act
             var results = await browser.BrowseAsync(_connection, new BrowseStreamRequestModel
             {
-                NodeIds = new[] { "http://opcfoundation.org/UA/Boiler/#i=1240" },
+                NodeIds = new[] { "http://opcfoundation.org/UA/Boiler/#i=1238" },
                 Direction = BrowseDirection.Forward,
                 NoRecurse = true
             }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
@@ -226,9 +226,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
                     Assert.NotNull(node.Attributes);
                     Assert.Null(node.Reference);
-                    Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1240", node.SourceId);
+                    Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1238", node.SourceId);
 
-                    Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1240",
+                    Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1238",
                         node.Attributes.NodeId);
                     Assert.Equal("Boilers", node.Attributes.DisplayName);
                     Assert.Equal(NodeEventNotifier.SubscribeToEvents, node.Attributes.EventNotifier);
@@ -246,13 +246,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
                     Assert.Null(reference.Attributes);
                     Assert.NotNull(reference.Reference);
-                    Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1240", reference.SourceId);
+                    Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1238", reference.SourceId);
                     Assert.Equal(BrowseDirection.Forward, reference.Reference.Direction);
                     Assert.Equal("i=47", reference.Reference.ReferenceTypeId);
 
                     Assert.Equal("Boiler #1", reference.Reference.Target.DisplayName);
                     Assert.Null(reference.Reference.Target.NodeClass);
-                    Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1241",
+                    Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1239",
                         reference.Reference.Target.NodeId);
                     return true;
                 });
@@ -266,13 +266,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
                     Assert.Null(reference.Attributes);
                     Assert.NotNull(reference.Reference);
-                    Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1240", reference.SourceId);
+                    Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1238", reference.SourceId);
                     Assert.Equal(BrowseDirection.Forward, reference.Reference.Direction);
                     Assert.Equal("i=48", reference.Reference.ReferenceTypeId);
 
                     Assert.Equal("Boiler #1", reference.Reference.Target.DisplayName);
                     Assert.Null(reference.Reference.Target.NodeClass);
-                    Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1241",
+                    Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1239",
                         reference.Reference.Target.NodeId);
                     return true;
                 });
@@ -286,13 +286,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
                     Assert.Null(reference.Attributes);
                     Assert.NotNull(reference.Reference);
-                    Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1240", reference.SourceId);
+                    Assert.Equal("http://opcfoundation.org/UA/Boiler/#i=1238", reference.SourceId);
                     Assert.Equal(BrowseDirection.Forward, reference.Reference.Direction);
                     Assert.Equal("i=35", reference.Reference.ReferenceTypeId);
 
                     Assert.Equal("Boiler #2", reference.Reference.Target.DisplayName);
                     Assert.Null(reference.Reference.Target.NodeClass);
-                    Assert.Equal("http://opcfoundation.org/UA/Boiler//Instance#i=1",
+                    Assert.Equal("http://opcfoundation.org/UA/Boiler/Instance#i=1",
                         reference.Reference.Target.NodeId);
                     return true;
                 });
@@ -694,6 +694,42 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.NotNull(reference.Reference);
                     Assert.Equal("http://test.org/UA/Data/#i=1976", reference.SourceId);
                     Assert.Equal(BrowseDirection.Forward, reference.Reference.Direction);
+                    Assert.Equal("http://test.org/UA/Data/#i=2066",
+                        reference.Reference.Target.NodeId);
+                },
+                reference =>
+                {
+                    Assert.Null(reference.Attributes);
+                    Assert.NotNull(reference.Reference);
+                    Assert.Equal("http://test.org/UA/Data/#i=1976", reference.SourceId);
+                    Assert.Equal(BrowseDirection.Forward, reference.Reference.Direction);
+                    Assert.Equal("http://test.org/UA/Data/#i=3586",
+                        reference.Reference.Target.NodeId);
+                },
+                reference =>
+                {
+                    Assert.Null(reference.Attributes);
+                    Assert.NotNull(reference.Reference);
+                    Assert.Equal("http://test.org/UA/Data/#i=1976", reference.SourceId);
+                    Assert.Equal(BrowseDirection.Forward, reference.Reference.Direction);
+                    Assert.Equal("http://test.org/UA/Data/#i=3587",
+                        reference.Reference.Target.NodeId);
+                },
+                reference =>
+                {
+                    Assert.Null(reference.Attributes);
+                    Assert.NotNull(reference.Reference);
+                    Assert.Equal("http://test.org/UA/Data/#i=1976", reference.SourceId);
+                    Assert.Equal(BrowseDirection.Forward, reference.Reference.Direction);
+                    Assert.Equal("http://test.org/UA/Data/#i=3616",
+                        reference.Reference.Target.NodeId);
+                },
+                reference =>
+                {
+                    Assert.Null(reference.Attributes);
+                    Assert.NotNull(reference.Reference);
+                    Assert.Equal("http://test.org/UA/Data/#i=1976", reference.SourceId);
+                    Assert.Equal(BrowseDirection.Forward, reference.Reference.Direction);
                     Assert.Equal("http://test.org/UA/Data/#i=1977",
                         reference.Reference.Target.NodeId);
                 },
@@ -986,7 +1022,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 }
             }, ct).ToListAsync(cancellationToken: ct).ConfigureAwait(false);
 
-            Assert.Equal(2558, results.Count);
+            Assert.Equal(2494, results.Count);
         }
 
         public async Task NodeBrowseStaticArrayVariablesTestAsync(CancellationToken ct = default)
@@ -1254,6 +1290,42 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     Assert.Equal(BrowseDirection.Forward, reference.Reference.Direction);
                     Assert.Equal("http://test.org/UA/Data/#i=2165", reference.SourceId);
                     Assert.Equal("http://test.org/UA/Data/#i=2254",
+                        reference.Reference.Target.NodeId);
+                },
+                reference =>
+                {
+                    Assert.Null(reference.Attributes);
+                    Assert.NotNull(reference.Reference);
+                    Assert.Equal(BrowseDirection.Forward, reference.Reference.Direction);
+                    Assert.Equal("http://test.org/UA/Data/#i=2165", reference.SourceId);
+                    Assert.Equal("http://test.org/UA/Data/#i=2255",
+                        reference.Reference.Target.NodeId);
+                },
+                reference =>
+                {
+                    Assert.Null(reference.Attributes);
+                    Assert.NotNull(reference.Reference);
+                    Assert.Equal(BrowseDirection.Forward, reference.Reference.Direction);
+                    Assert.Equal("http://test.org/UA/Data/#i=2165", reference.SourceId);
+                    Assert.Equal("http://test.org/UA/Data/#i=3610",
+                        reference.Reference.Target.NodeId);
+                },
+                reference =>
+                {
+                    Assert.Null(reference.Attributes);
+                    Assert.NotNull(reference.Reference);
+                    Assert.Equal(BrowseDirection.Forward, reference.Reference.Direction);
+                    Assert.Equal("http://test.org/UA/Data/#i=2165", reference.SourceId);
+                    Assert.Equal("http://test.org/UA/Data/#i=3611",
+                        reference.Reference.Target.NodeId);
+                },
+                reference =>
+                {
+                    Assert.Null(reference.Attributes);
+                    Assert.NotNull(reference.Reference);
+                    Assert.Equal(BrowseDirection.Forward, reference.Reference.Direction);
+                    Assert.Equal("http://test.org/UA/Data/#i=2165", reference.SourceId);
+                    Assert.Equal("http://test.org/UA/Data/#i=3628",
                         reference.Reference.Target.NodeId);
                 },
                 reference =>

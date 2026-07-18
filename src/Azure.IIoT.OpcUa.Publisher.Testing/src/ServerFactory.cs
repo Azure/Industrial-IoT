@@ -171,10 +171,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             {
                 var extensions = new List<object>
                 {
-                    QuickstartsNodeManagerFactories.CreateMemoryBufferConfiguration(),
-
-                    // ...
-
                     new FolderConfiguration
                     {
                         CurrentDirectory = curDir
@@ -335,6 +331,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                     }
                 };
                 configure?.Invoke(configuration.ServerConfiguration);
+                QuickstartsNodeManagerFactories.AddMemoryBufferConfiguration(configuration);
                 return configuration;
             }
 

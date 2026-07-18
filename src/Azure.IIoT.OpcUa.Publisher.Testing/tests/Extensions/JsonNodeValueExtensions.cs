@@ -38,6 +38,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing
             => Json.FromObject(values);
 
         /// <summary>
+        /// Build an OPC UA 2.0 extension object envelope while preserving the
+        /// case-sensitive field names required by the stack decoder.
+        /// </summary>
+        public static JsonNode FromExtensionObject(
+            string? typeId, byte encoding, object body)
+        {
+            var extensionObject = new JsonObject
+            {
+                ["UaEncoding"] = encoding,
+                ["UaBody"] = body is XmlElement xmlElement
+                    ? JsonValue.Create(xmlElement.OuterXml)
+                    : FromObject(body)
+            };
+            if (typeId is not null)
+            {
+                extensionObject["UaTypeId"] = typeId;
+            }
+            return extensionObject;
+        }
+
+        /// <summary>
         /// Whether the node represents a null (missing) json value.
         /// </summary>
         public static bool IsNull(this JsonNode? node)

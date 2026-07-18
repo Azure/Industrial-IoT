@@ -182,8 +182,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
                 return false;
             }
             if (includeTriggeredNodes &&
-                model.TriggeredNodes?.SetEqualsSafe(that.TriggeredNodes,
-                    (a, b) => a.IsSame(b, false)) == false)
+                !(model.TriggeredNodes ?? Array.Empty<OpcNodeModel>()).SetEqualsSafe(
+                    that.TriggeredNodes ?? Array.Empty<OpcNodeModel>(),
+                    (a, b) => a.IsSame(b, false)))
             {
                 return false;
             }
@@ -198,13 +199,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
         public static int GetHashCode(this OpcNodeModel model, bool includeTriggerNodes = true)
         {
             var hash = new HashCode();
-            hash.Add(model.Id);
-            hash.Add(model.DisplayName);
-            hash.Add(model.DataSetFieldId);
+            hash.Add(model.Id ?? string.Empty, StringComparer.OrdinalIgnoreCase);
+            hash.Add(model.DisplayName ?? string.Empty, StringComparer.OrdinalIgnoreCase);
+            hash.Add(model.Topic ?? string.Empty, StringComparer.OrdinalIgnoreCase);
+            hash.Add(model.QualityOfService ?? QoS.AtLeastOnce);
+            hash.Add(model.DataSetFieldId ?? string.Empty, StringComparer.OrdinalIgnoreCase);
             hash.Add(model.DataSetClassFieldId);
-            hash.Add(model.ExpandedNodeId);
-            hash.Add(model.QualityOfService);
-            hash.Add(model.Topic);
+            hash.Add(model.ExpandedNodeId, StringComparer.OrdinalIgnoreCase);
             hash.Add(model.GetNormalizedPublishingInterval());
             hash.Add(model.GetNormalizedSamplingInterval());
             hash.Add(model.GetNormalizedHeartbeatInterval());
@@ -239,13 +240,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             hash.Add(model.ModelChangeHandling?.RebrowseIntervalTimespan);
             hash.Add(model.ConditionHandling?.UpdateInterval);
             hash.Add(model.ConditionHandling?.SnapshotInterval);
-            hash.Add(model.UseCyclicRead);
+            hash.Add(model.UseCyclicRead ?? false);
             hash.Add(model.GetNormalizedCyclicReadMaxAge());
-            hash.Add(model.RegisterNode);
+            hash.Add(model.RegisterNode ?? false);
 
             if (includeTriggerNodes)
             {
-                model.TriggeredNodes?.ForEach(n => hash.Add(GetHashCode(n, false)));
+                var triggerHashes = new HashSet<int>();
+                model.TriggeredNodes?.ForEach(n =>
+                    triggerHashes.Add(GetHashCode(n, false)));
+                var combinedHash = 0;
+                foreach (var triggerHash in triggerHashes)
+                {
+                    combinedHash = unchecked(combinedHash + triggerHash);
+                }
+                hash.Add(triggerHashes.Count);
+                hash.Add(combinedHash);
             }
 
             return hash.ToHashCode();

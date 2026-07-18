@@ -95,6 +95,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             };
         }
 
+        /// <summary>
+        /// Adds the standard upstream memory-buffer configuration.
+        /// </summary>
+        public static void AddMemoryBufferConfiguration(
+            ApplicationConfiguration configuration)
+        {
+            ArgumentNullException.ThrowIfNull(configuration);
+            configuration.UpdateExtension(null,
+                (Quickstarts::MemoryBuffer.MemoryBufferConfiguration)
+                CreateMemoryBufferConfiguration());
+        }
+
         private sealed class ReferenceNodeManagerFactory : IAsyncNodeManagerFactory
         {
             /// <inheritdoc/>

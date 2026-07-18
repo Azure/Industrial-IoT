@@ -56,7 +56,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
-            Assert.Equal(12, results.Count);
+            Assert.Equal(14, results.Count);
             Assert.All(results, r =>
             {
                 Assert.Null(r.ErrorInfo);
@@ -93,7 +93,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(result.ErrorInfo);
             Assert.NotNull(result.Result);
             Assert.NotNull(result.Result.OpcNodes);
-            Assert.Equal(300, result.Result.OpcNodes.Count);
+            Assert.Equal(368, result.Result.OpcNodes.Count);
             Assert.All(result.Result.OpcNodes, result =>
             {
                 Assert.NotNull(result.DataSetFieldId);
@@ -120,7 +120,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
-            Assert.Equal(25, results.Count);
+            Assert.Equal(37, results.Count);
             Assert.All(results, r =>
             {
                 Assert.Null(r.ErrorInfo);
@@ -153,7 +153,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(result.ErrorInfo);
             Assert.NotNull(result.Result);
             Assert.NotNull(result.Result.OpcNodes);
-            Assert.Equal(623, result.Result.OpcNodes.Count);
+            Assert.Equal(953, result.Result.OpcNodes.Count);
         }
 
         public async Task ExpandServerObjectTest1Async(CancellationToken ct = default)
@@ -175,7 +175,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
-            Assert.Equal(77, results.Count);
+            Assert.Equal(68, results.Count);
             Assert.All(results, r =>
             {
                 Assert.Null(r.ErrorInfo);
@@ -204,7 +204,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
-            Assert.Equal(78, results.Count);
+            Assert.Equal(69, results.Count);
             Assert.All(results, r =>
             {
                 Assert.Null(r.ErrorInfo);
@@ -237,7 +237,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(result.ErrorInfo);
             Assert.NotNull(result.Result);
             Assert.NotNull(result.Result.OpcNodes);
-            Assert.Equal(940, result.Result.OpcNodes.Count);
+            Assert.Equal(1157, result.Result.OpcNodes.Count);
         }
 
         public async Task ExpandServerObjectTest4Async(CancellationToken ct = default)
@@ -260,7 +260,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
-            Assert.Equal(9, results.Count);
+            Assert.Equal(7, results.Count);
             Assert.All(results, r =>
             {
                 Assert.Null(r.ErrorInfo);
@@ -295,7 +295,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Null(result.ErrorInfo);
             Assert.NotNull(result.Result);
             Assert.NotNull(result.Result.OpcNodes);
-            Assert.Equal(7, result.Result.OpcNodes.Count);
+            Assert.Equal(8, result.Result.OpcNodes.Count);
         }
 
         public async Task ExpandBaseObjectTypeTest1Async(CancellationToken ct = default)
@@ -319,7 +319,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
-            Assert.Equal(81, results.Count);
+            Assert.Equal(72, results.Count);
             Assert.All(results, r =>
             {
                 Assert.Null(r.ErrorInfo);
@@ -391,7 +391,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
-            Assert.Equal(184, results.Count);
+            Assert.Equal(178, results.Count);
             Assert.All(results, r =>
             {
                 Assert.Null(r.ErrorInfo);
@@ -421,7 +421,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
-            Assert.Equal(32, results.Count);
+            Assert.Equal(12, results.Count);
             Assert.All(results, r =>
             {
                 Assert.Null(r.ErrorInfo);
@@ -451,7 +451,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     FlattenTypeInstance = false,
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
-            Assert.Equal(36, results.Count);
+            Assert.Equal(13, results.Count);
             Assert.All(results, r =>
             {
                 Assert.Null(r.ErrorInfo);
@@ -462,7 +462,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var methods = results
                 .SelectMany(r => r.Result!.OpcNodes!).Where(n => n.MethodMetadata != null)
                 .ToList();
-            Assert.Equal(108, methods.Count);
+            Assert.Equal(13, methods.Count);
             Assert.All(methods, m =>
             {
                 Assert.NotNull(m.MethodMetadata?.InputArguments);
@@ -491,7 +491,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
-            Assert.Equal(7, results.Count);
+            Assert.Equal(2, results.Count);
             Assert.All(results, r =>
             {
                 Assert.Null(r.ErrorInfo);
@@ -521,7 +521,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
-            Assert.Equal(24, results.Count);
+            Assert.Equal(28, results.Count);
             Assert.All(results, r =>
             {
                 Assert.Null(r.ErrorInfo);
@@ -727,7 +727,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                     CreateSingleWriter = false
                 }, ct).ToListAsync(ct).ConfigureAwait(false);
 
-            Assert.Equal(162, results.Count);
+            Assert.Equal(144, results.Count);
             Assert.All(results, r =>
             {
                 Assert.Null(r.ErrorInfo);
@@ -759,7 +759,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.NotNull(result.Result);
             Assert.Equal(Opc.Ua.VariableTypeIds.PropertyType + "/PropertyType", result.Result.DataSetWriterId);
             Assert.NotNull(result.Result.OpcNodes);
-            Assert.Equal(709, result.Result.OpcNodes.Count);
+            Assert.Equal(671, result.Result.OpcNodes.Count);
         }
 
         public async Task ExpandVariableTypesTest2Async(CancellationToken ct = default)
@@ -815,7 +815,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 Assert.NotNull(r.Result.OpcNodes);
                 total += r.Result.OpcNodes.Count;
             });
-            Assert.Equal(805, total);
+            Assert.Equal(767, total);
         }
 
         public async Task ExpandObjectWithNoObjectsTest1Async(CancellationToken ct = default)

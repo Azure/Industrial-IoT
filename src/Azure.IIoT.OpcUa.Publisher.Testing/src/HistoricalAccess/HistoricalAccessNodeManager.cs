@@ -640,7 +640,8 @@ namespace HistoricalAccess
 
                     HistoryReadRequest request;
                     // load an exising request.
-                    if (!nodeToRead.ContinuationPoint.IsNull)
+                    if (!nodeToRead.ContinuationPoint.IsNull &&
+                        nodeToRead.ContinuationPoint.Length != 0)
                     {
                         request = LoadContinuationPoint(context, nodeToRead.ContinuationPoint);
 
@@ -711,7 +712,7 @@ namespace HistoricalAccess
                     }
 
                     // check if no data returned.
-                    else
+                    else if (dataValues.Count == 0)
                     {
                         errors[handle.Index] = StatusCodes.GoodNoData;
                     }
@@ -764,7 +765,8 @@ namespace HistoricalAccess
 
                     HistoryReadRequest request;
                     // load an exising request.
-                    if (!nodeToRead.ContinuationPoint.IsNull)
+                    if (!nodeToRead.ContinuationPoint.IsNull &&
+                        nodeToRead.ContinuationPoint.Length != 0)
                     {
                         request = LoadContinuationPoint(context, nodeToRead.ContinuationPoint);
 
@@ -820,7 +822,7 @@ namespace HistoricalAccess
                     }
 
                     // check if no data returned.
-                    else
+                    else if (dataValues.Count == 0)
                     {
                         errors[handle.Index] = StatusCodes.GoodNoData;
                     }
@@ -873,7 +875,8 @@ namespace HistoricalAccess
 
                     HistoryReadRequest request;
                     // load an exising request.
-                    if (!nodeToRead.ContinuationPoint.IsNull)
+                    if (!nodeToRead.ContinuationPoint.IsNull &&
+                        nodeToRead.ContinuationPoint.Length != 0)
                     {
                         request = LoadContinuationPoint(context, nodeToRead.ContinuationPoint);
 
@@ -921,7 +924,7 @@ namespace HistoricalAccess
                     }
 
                     // check if no data returned.
-                    else
+                    else if (dataValues.Count == 0)
                     {
                         errors[handle.Index] = StatusCodes.GoodNoData;
                     }
@@ -992,7 +995,6 @@ namespace HistoricalAccess
                         StatusCode error = item.UpdateHistory(context, nodeToUpdate.UpdateValues[jj], nodeToUpdate.PerformInsertReplace);
                         operationResults.Add(error);
                     }
-
                     result.OperationResults = operationResults;
 
                     errors[handle.Index] = ServiceResult.Good;
@@ -1356,7 +1358,6 @@ namespace HistoricalAccess
                     }
                 }
             }
-
             // add late bound.
             while (returnBounds && details.EndTime != DateTime.MinValue)
             {

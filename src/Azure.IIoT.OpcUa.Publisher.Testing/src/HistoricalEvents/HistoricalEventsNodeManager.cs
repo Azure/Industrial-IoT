@@ -294,7 +294,8 @@ namespace HistoricalEvents
                 HistoryReadRequest request;
 
                 // load an exising request.
-                if (!nodeToRead.ContinuationPoint.IsNull)
+                if (!nodeToRead.ContinuationPoint.IsNull &&
+                    nodeToRead.ContinuationPoint.Length != 0)
                 {
                     request = LoadContinuationPoint(context, nodeToRead.ContinuationPoint);
 

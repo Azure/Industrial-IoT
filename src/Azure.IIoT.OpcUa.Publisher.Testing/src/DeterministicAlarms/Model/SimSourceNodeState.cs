@@ -169,6 +169,7 @@ namespace DeterministicAlarms.Model
                 new QualifiedName(alarm.Name, BrowseName.NamespaceIndex),
                 default,
                 true);
+            node.ReferenceTypeId = ReferenceTypeIds.HasComponent;
 
             // initialize event information.node
             node.EventType.Value = node.TypeDefinitionId;
@@ -225,8 +226,6 @@ namespace DeterministicAlarms.Model
             node.EnabledState.EffectiveDisplayName = new PropertyState<LocalizedText>.Implementation<VariantBuilder>(node.EnabledState);
             node.EnabledState.Create(context, default, (QualifiedName)BrowseNames.EnabledState, default, false);
 
-            // specify reference type between the source and the alarm.
-            node.ReferenceTypeId = ReferenceTypeIds.HasComponent;
         }
 
         private void UpdateAlarm(ConditionState node, SimAlarmStateBackend alarm, string eventId = null)

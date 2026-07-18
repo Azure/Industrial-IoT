@@ -231,7 +231,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             Assert.Equal(2, result.TypeDefinition.TypeHierarchy!.Count);
             Assert.NotNull(result.TypeDefinition.Declarations);
             Assert.NotEmpty(result.TypeDefinition.Declarations);
-            Assert.Equal(35, result.TypeDefinition.Declarations.Count);
+            Assert.Equal(43, result.TypeDefinition.Declarations.Count);
         }
 
         public async Task NodeGetMetadataForServerStatusVariableTestAsync(CancellationToken ct = default)

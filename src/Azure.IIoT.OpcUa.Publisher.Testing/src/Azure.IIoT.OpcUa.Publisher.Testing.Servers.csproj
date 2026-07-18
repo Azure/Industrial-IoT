@@ -3,7 +3,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <AssemblyName>Azure.IIoT.OpcUa.Publisher.Testing.Servers</AssemblyName>
     <PackageId>Azure.IIoT.OpcUa.Publisher.Testing.Servers</PackageId>
-    <RootNamespace>Azure.IIoT.OpcUa.Publisher.Testing</RootNamespace>
+    <RootNamespace>$(AssemblyName)</RootNamespace>
     <Description>Contains several test servers to run tests against</Description>
     <IsPackable>false</IsPackable>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>

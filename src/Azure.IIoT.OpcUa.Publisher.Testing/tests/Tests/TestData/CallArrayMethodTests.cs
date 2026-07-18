@@ -764,9 +764,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         new sbyte[] { 1, 2, 3, 4, 5, -1, -2, -3 })
                 },
                 new() {
-                    DataType = "ByteString",
+                    DataType = "Byte",
                     Value = JsonNodeValueExtensions.FromObject(
-                        Encoding.UTF8.GetBytes("testtesttest"))
+                        Encoding.UTF8.GetBytes("testtesttest")
+                            .Select(value => (ushort)value).ToArray())
                 },
                 new() {
                     DataType = "Int16",
@@ -820,15 +821,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             // Assert
             Assert.Equal(new List<string> {
-                "Boolean", "SByte", "ByteString", "Int16", "UInt16",
+                "Boolean", "SByte", "Byte", "Int16", "UInt16",
                 "Int32", "UInt32", "Int64", "UInt64", "Float", "Double"
             }, result.Results.Select(arg => arg.DataType));
             JsonNodeAssert.AreSequenceEqual(
                 input.Select(arg => arg.Value),
                 result.Results.Select(arg => arg.Value),
                 "result.Values");
-            Assert.All(result.Results.Where(arg => arg.DataType != "ByteString"),
-                arg => Assert.True(arg.Value!.IsListOfValues()));
+            Assert.All(result.Results, arg => Assert.True(arg.Value!.IsListOfValues()));
         }
 
         public async Task NodeMethodCallStaticArrayMethod1Test2Async(CancellationToken ct = default)
@@ -849,9 +849,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         new sbyte[] { 1, 2, 3, 4, 5, -1, -2, -3 })
                 },
                 new() {
-                    DataType = "ByteString",
+                    DataType = "Byte",
                     Value = JsonNodeValueExtensions.FromObject(
-                        Encoding.UTF8.GetBytes("testtesttest"))
+                        Encoding.UTF8.GetBytes("testtesttest")
+                            .Select(value => (ushort)value).ToArray())
                 }
             };
 
@@ -865,7 +866,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             // Assert
             Assert.Equal(new List<string> {
-                "Boolean", "SByte", "ByteString", "Int16", "UInt16",
+                "Boolean", "SByte", "Byte", "Int16", "UInt16",
                 "Int32", "UInt32", "Int64", "UInt64", "Float", "Double"
             }, result.Results.Select(arg => arg.DataType));
             Assert.Collection(result.Results,
@@ -880,8 +881,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg => Assert.Empty(arg.Value!.Values()),
                 arg => Assert.Empty(arg.Value!.Values()),
                 arg => Assert.Empty(arg.Value!.Values()));
-            Assert.All(result.Results.Where(arg => arg.DataType != "ByteString"),
-                arg => Assert.True(arg.Value!.IsListOfValues()));
+            Assert.All(result.Results, arg => Assert.True(arg.Value!.IsListOfValues()));
         }
 
         public async Task NodeMethodCallStaticArrayMethod1Test3Async(CancellationToken ct = default)
@@ -899,13 +899,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             // Assert
             Assert.Equal(new List<string> {
-                "Boolean", "SByte", "ByteString", "Int16", "UInt16",
+                "Boolean", "SByte", "Byte", "Int16", "UInt16",
                 "Int32", "UInt32", "Int64", "UInt64", "Float", "Double"
             }, result.Results.Select(arg => arg.DataType));
-            Assert.All(result.Results.Where(arg => arg.DataType != "ByteString"),
-                arg => Assert.Empty(arg.Value!.Values()));
-            Assert.All(result.Results.Where(arg => arg.DataType != "ByteString"),
-                arg => Assert.True(arg.Value!.IsListOfValues()));
+            Assert.All(result.Results, arg => Assert.Empty(arg.Value!.Values()));
+            Assert.All(result.Results, arg => Assert.True(arg.Value!.IsListOfValues()));
         }
 
         public async Task NodeMethodCallStaticArrayMethod1Test4Async(CancellationToken ct = default)
@@ -954,7 +952,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             // Assert
             Assert.Equal(new List<string> {
-                "Boolean", "SByte", "ByteString", "Int16", "UInt16",
+                "Boolean", "SByte", "Byte", "Int16", "UInt16",
                 "Int32", "UInt32", "Int64", "UInt64", "Float", "Double"
             }, result.Results.Select(arg => arg.DataType));
             Assert.Collection(result.Results,
@@ -962,9 +960,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg => JsonNodeAssert.AreEqual(input[1]!.Value, arg.Value, "result[1]"),
                 arg =>
                 {
-                    JsonNodeAssert.AreEqual(JsonNodeValueExtensions.FromObject(
-                        new byte[] { 0, 1, 2, 3, 4, 5, 6, byte.MaxValue }),
-                        arg.Value, "result[2]");
+                    JsonNodeAssert.AreEqual(input[2]!.Value, arg.Value, "result[2]");
                 },
                 arg => Assert.Empty(arg.Value!.Values()),
                 arg => Assert.Empty(arg.Value!.Values()),
@@ -974,8 +970,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 arg => Assert.Empty(arg.Value!.Values()),
                 arg => Assert.Empty(arg.Value!.Values()),
                 arg => JsonNodeAssert.AreEqual(input[10]!.Value, arg.Value, "result[10]"));
-            Assert.All(result.Results.Where(arg => arg.DataType != "ByteString"),
-                arg => Assert.True(arg.Value!.IsListOfValues()));
+            Assert.All(result.Results, arg => Assert.True(arg.Value!.IsListOfValues()));
         }
 
         public async Task NodeMethodCallStaticArrayMethod1Test5Async(CancellationToken ct = default)
@@ -994,7 +989,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 },
                 new() {
                     DataType = "Byte",
-                    Value = JsonNodeValueExtensions.FromObject("[]")
+                    Value = JsonNodeValueExtensions.FromObject(Array.Empty<ushort>())
                 },
                 new() {
                     DataType = "Int16",
@@ -1040,15 +1035,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
             // Assert
             Assert.Equal(new List<string> {
-                "Boolean", "SByte", "ByteString", "Int16", "UInt16",
+                "Boolean", "SByte", "Byte", "Int16", "UInt16",
                 "Int32", "UInt32", "Int64", "UInt64", "Float", "Double"
             }, result.Results.Select(arg => arg.DataType));
-            Assert.All(result.Results.Where(arg => arg.DataType != "ByteString"),
-                arg => Assert.True(arg.Value!.IsListOfValues()));
+            Assert.All(result.Results, arg => Assert.True(arg.Value!.IsListOfValues()));
             Assert.Collection(result.Results,
                 arg => Assert.Empty(arg.Value!.Values()),
                 arg => Assert.Empty(arg.Value!.Values()),
-                arg => Assert.True(arg.Value.IsNull()),
+                arg => Assert.Empty(arg.Value!.Values()),
                 arg => Assert.Empty(arg.Value!.Values()),
                 arg => Assert.Empty(arg.Value!.Values()),
                 arg => Assert.Empty(arg.Value!.Values()),
@@ -1115,62 +1109,59 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 new() {
                     DataType = "NodeId",
                     Value = JsonNodeValueExtensions.FromObject(new string[]{
-                        "byte",
-                        "http://test.org/#i=23534",
-                        "http://muh.test/#s=35645",
-                        "http://test.org/test/#i=354"
+                        "i=3",
+                        "nsu=http://test.org/UA/Data/;i=23534",
+                        "nsu=http://test.org/UA/Data/;s=35645",
+                        "nsu=http://test.org/UA/Data/;i=354"
                     })
                 },
                 new() {
                     DataType = "ExpandedNodeId",
                     Value = JsonNodeValueExtensions.FromObject(new string[] {
-                        "byte",
-                        "http://test.org/#i=23534",
-                        "http://muh.test/#s=35645",
-                        "http://test.org/test/#i=354"
+                        "i=3",
+                        "nsu=http://test.org/UA/Data/;i=23534",
+                        "nsu=http://test.org/UA/Data/;s=35645",
+                        "nsu=http://test.org/UA/Data/;i=354"
                     })
                 },
                 new() {
                     DataType = "QualifiedName",
                     Value = JsonNodeValueExtensions.FromObject(new string[] {
-                        "http://test.org/#qn1",
-                        "http://test.org/#qn2",
-                        "http://test.org/#qn3",
+                        "nsu=http://test.org/UA/Data/;qn1",
+                        "nsu=http://test.org/UA/Data/;qn2",
+                        "nsu=http://test.org/UA/Data/;qn3",
                         "test"
                     })
                 },
                 new() {
                     DataType = "LocalizedText",
-                    Value = JsonNodeValueExtensions.FromObject(new object[] {
-                        new {
-                            Text = "Hällö",
-                            Locale = "de"
+                    Value = new JsonArray {
+                        new JsonObject {
+                            ["Text"] = "Hällö",
+                            ["Locale"] = "de"
                         },
-                        new {
-                            Text = "Hallo"
+                        new JsonObject {
+                            ["Text"] = "Hallo"
                         },
-                        new {
-                            Text = "Hello",
-                            Locale = "en"
+                        new JsonObject {
+                            ["Text"] = "Hello",
+                            ["Locale"] = "en"
                         }
-                    })
+                    }
                 },
                 new() {
                     DataType = "StatusCode",
-                    Value = JsonNodeValueExtensions.FromObject(new object[] {
-                        new {
-                            Symbol = "BadEndOfStream",
-                            Code = 0x80B00000
+                    Value = new JsonArray {
+                        new JsonObject {
+                            ["Code"] = 0x80B00000u
                         },
-                        new {
-                            Symbol = "BadWaitingForResponse",
-                            Code = 0x80B20000
+                        new JsonObject {
+                            ["Code"] = 0x80B20000u
                         },
-                        new {
-                            Symbol = "BadOperationAbandoned",
-                            Code = 0x80B30000
+                        new JsonObject {
+                            ["Code"] = 0x80B30000u
                         }
-                    })
+                    }
                 }
             };
 
@@ -1417,17 +1408,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 new() {
                     DataType = "ExtensionObject",
                     Value = JsonNodeValueExtensions.FromObject(new object[] {
-                        new {
-                            TypeId = "http://test.org/#s=test2",
-                            Body = new Opc.Ua.Argument("test1", new Opc.Ua.NodeId(Opc.Ua.DataTypes.String), -1, "desc1")
-                                .AsBinary(Opc.Ua.ServiceMessageContext.GlobalContext)
-                        },
-                        new {
-                            TypeId = "http://test.org/#s=test55",
-                            Encoding = "Xml",
-                            Body = new Opc.Ua.Argument("test2", new Opc.Ua.NodeId(Opc.Ua.DataTypes.String), -2, "desc1")
-                                .AsXmlElement(Opc.Ua.ServiceMessageContext.GlobalContext)
-                        }
+                        JsonNodeValueExtensions.FromExtensionObject(
+                            "i=296", 1,
+                            new Opc.Ua.Argument("test1",
+                                new Opc.Ua.NodeId(Opc.Ua.DataTypes.String), -1, "desc1")
+                                    .AsBinary(Opc.Ua.ServiceMessageContext.GlobalContext)),
+                        JsonNodeValueExtensions.FromExtensionObject(
+                            "i=296", 2,
+                            new Opc.Ua.Argument("test2",
+                                new Opc.Ua.NodeId(Opc.Ua.DataTypes.String), -2, "desc1")
+                                    .AsXmlElement(Opc.Ua.ServiceMessageContext.GlobalContext))
                     })
                 }
             };

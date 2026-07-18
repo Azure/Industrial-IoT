@@ -135,6 +135,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     request.Header.ToRequestHeader(_timeProvider), rootId, null, true, rawMode,
                     request.Header.GetNamespaceFormat(_options),
                     !excludeReferences ? references.Count != 0 : null, ct).ConfigureAwait(false);
+                node = NormalizeOptionalText(node);
 
                 return new BrowseFirstResponseModel
                 {
@@ -175,7 +176,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     return new BrowseNextResponseModel
                     {
                         References = references,
-                        ErrorInfo = results.ErrorInfo
+                        ErrorInfo = results.ErrorInfo.WithSymbolicId()
                     };
                 }
 
@@ -226,7 +227,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     new BrowsePath
                     {
                         StartingNode = rootId,
-                        RelativePath = p.ToRelativePath(context.Session.MessageContext)
+                        RelativePath = p.ToServiceRelativePath(context.Session.MessageContext)
                     }));
                 var response = await context.Session.Services.TranslateBrowsePathsToNodeIdsAsync(
                     request.Header.ToRequestHeader(_timeProvider), requests, context.Ct).ConfigureAwait(false);
@@ -278,6 +279,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var (node, errorInfo) = await context.Session.ReadNodeAsync(
                     request.Header.ToRequestHeader(_timeProvider), nodeId,
                     request.Header.GetNamespaceFormat(_options), ct: context.Ct).ConfigureAwait(false);
+                node = NormalizeOptionalText(node);
                 if (errorInfo != null || node.NodeClass == null)
                 {
                     return new NodeMetadataResponseModel
@@ -335,6 +337,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     (type, errorInfo) = await context.Session.ReadNodeAsync(
                         request.Header.ToRequestHeader(_timeProvider), typeId,
                         request.Header.GetNamespaceFormat(_options), ct: context.Ct).ConfigureAwait(false);
+                    type = NormalizeOptionalText(type);
                     if (errorInfo != null || type.NodeClass == null)
                     {
                         return new NodeMetadataResponseModel
@@ -571,6 +574,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             request.Header.ToRequestHeader(_timeProvider), argument.DataType, null,
                             false, false, request.Header.GetNamespaceFormat(_options),
                             false, context.Ct).ConfigureAwait(false);
+                        dataTypeIdNode = NormalizeOptionalText(dataTypeIdNode);
                         var arg = new MethodMetadataArgumentModel
                         {
                             Name = argument.Name,
@@ -1300,7 +1304,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 }
 
                 var history = encode(results[0].Result.HistoryData, context.Session);
-                var errorInfo = results[0].ErrorInfo;
+                var errorInfo = results[0].ErrorInfo?.WithSymbolicId();
                 if (errorInfo?.StatusCode == StatusCodes.GoodNoData &&
                     history is Array array && array.Length > 0)
                 {
@@ -1353,11 +1357,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     return new HistoryReadNextResponseModel<TResult>
                     {
                         History = null,
-                        ErrorInfo = results.ErrorInfo
+                        ErrorInfo = results.ErrorInfo.WithSymbolicId()
                     };
                 }
                 var history = encode(results[0].Result.HistoryData, context.Session);
-                var errorInfo = results[0].ErrorInfo;
+                var errorInfo = results[0].ErrorInfo?.WithSymbolicId();
                 if (errorInfo?.StatusCode == StatusCodes.GoodNoData &&
                     history is Array array && array.Length > 0)
                 {
@@ -1412,14 +1416,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     response.DiagnosticInfos, updates);
                 if (results.ErrorInfo != null)
                 {
-                    return new HistoryUpdateResponseModel { ErrorInfo = results.ErrorInfo };
+                    return new HistoryUpdateResponseModel
+                    {
+                        ErrorInfo = results.ErrorInfo.WithSymbolicId()
+                    };
+                }
+                if (results[0].ErrorInfo != null)
+                {
+                    return new HistoryUpdateResponseModel
+                    {
+                        ErrorInfo = results[0].ErrorInfo.WithSymbolicId()
+                    };
                 }
                 var inner = response.Validate(response.Results[0].OperationResults, s => s,
                     response.Results[0].DiagnosticInfos);
                 return new HistoryUpdateResponseModel
                 {
-                    Results = inner.Select(r => r.ResultInfo).ToList(),
-                    ErrorInfo = inner.ErrorInfo
+                    Results = inner.Select(r => r.ResultInfo.WithSymbolicId()).ToList(),
+                    ErrorInfo = inner.ErrorInfo?.WithSymbolicId()
                 };
             }, request.Header, ct).ConfigureAwait(false);
         }
@@ -1481,7 +1495,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             if (results.ErrorInfo == null && results.Count > 0)
                             {
                                 children = results[0].Result.References.Count != 0;
-                                if (results[0].Result.ContinuationPoint != null)
+                                if (!results[0].Result.ContinuationPoint.IsNull &&
+                                    results[0].Result.ContinuationPoint.Length != 0)
                                 {
                                     await session.Services.BrowseNextAsync(header.ToRequestHeader(_timeProvider),
                                         true,
@@ -1499,6 +1514,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     var (model, _) = await session.ReadNodeAsync(header.ToRequestHeader(_timeProvider), nodeId,
                         reference.NodeClass, !readValues, rawMode, header.GetNamespaceFormat(_options),
                         children, ct).ConfigureAwait(false);
+                    model = NormalizeOptionalText(model);
                     if (rawMode)
                     {
                         model = model with
@@ -1527,12 +1543,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         Target = model
                     });
                 }
-                catch
+                catch (Exception ex) when (ex is not OperationCanceledException)
                 {
-                    // TODO: Add trace result for trace.
+                    _logger.BrowseStreamChildInfoFailed(ex);
                 }
             }
-            return continuationPoint?.ToBase64String();
+            return continuationPoint is { Length: > 0 } ?
+                continuationPoint.ToBase64String() : null;
         }
 
         /// <summary>
@@ -1562,6 +1579,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         var (model, _) = await session.ReadNodeAsync(header.ToRequestHeader(_timeProvider),
                             nodeId, null, !readValues, rawMode, header.GetNamespaceFormat(_options), false,
                             ct).ConfigureAwait(false);
+                        model = NormalizeOptionalText(model);
                         result.Add(new NodePathTargetModel
                         {
                             BrowsePath = path,
@@ -1725,6 +1743,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     _request.Header.ToRequestHeader(_timeProvider), nodeId.Value,
                     _request.Header.GetNamespaceFormat(_options), null,
                     !(_request.ReadVariableValues ?? false), null, _ct).ConfigureAwait(false);
+                node = NormalizeOptionalText(node);
 
                 _visited.Add(nodeId.Value); // Mark as visited
 
@@ -1965,6 +1984,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             private readonly IOptions<PublisherOptions> _options;
             private readonly CancellationToken _ct;
             private readonly ActivitySource _activitySource;
+        }
+
+        private static NodeModel NormalizeOptionalText(NodeModel node)
+        {
+            if (string.IsNullOrEmpty(node.Description))
+            {
+                node.Description = null;
+            }
+            if (string.IsNullOrEmpty(node.InverseName))
+            {
+                node.InverseName = null;
+            }
+            return node;
         }
 
         private readonly ActivitySource _activitySource = Diagnostics.NewActivitySource();

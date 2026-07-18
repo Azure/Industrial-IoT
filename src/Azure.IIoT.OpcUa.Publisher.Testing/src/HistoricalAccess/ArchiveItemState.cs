@@ -93,8 +93,14 @@ namespace HistoricalAccess
             _configuration = new HistoricalDataConfigurationState(this);
             _configuration.MaxTimeInterval = new PropertyState<double>.Implementation<VariantBuilder>(_configuration);
             _configuration.MinTimeInterval = new PropertyState<double>.Implementation<VariantBuilder>(_configuration);
+            _configuration.ExceptionDeviation = new PropertyState<double>.Implementation<VariantBuilder>(_configuration);
+            _configuration.ExceptionDeviationFormat =
+                new PropertyState<ExceptionDeviationFormat>.Implementation<EnumerationBuilder<ExceptionDeviationFormat>>(
+                    _configuration);
             _configuration.StartOfArchive = new PropertyState<DateTimeUtc>.Implementation<VariantBuilder>(_configuration);
             _configuration.StartOfOnlineArchive = new PropertyState<DateTimeUtc>.Implementation<VariantBuilder>(_configuration);
+            _configuration.ServerTimestampSupported =
+                new PropertyState<bool>.Implementation<VariantBuilder>(_configuration);
 
             _configuration.Create(
                 context,
@@ -125,6 +131,9 @@ namespace HistoricalAccess
 
                 _configuration.MinTimeInterval.Value = ArchiveItem.SamplingInterval;
                 _configuration.MaxTimeInterval.Value = ArchiveItem.SamplingInterval;
+                _configuration.ExceptionDeviation.Value = 0;
+                _configuration.ExceptionDeviationFormat.Value = ExceptionDeviationFormat.AbsoluteValue;
+                _configuration.ServerTimestampSupported.Value = false;
                 _configuration.Stepped.Value = ArchiveItem.Stepped;
 
                 var configuration = ArchiveItem.AggregateConfiguration;
@@ -196,8 +205,8 @@ namespace HistoricalAccess
 
                 var row = ArchiveItem.DataSet.Tables[0].NewRow();
 
-                row[0] = value.SourceTimestamp;
-                row[1] = value.ServerTimestamp;
+                row[0] = (DateTime)value.SourceTimestamp;
+                row[1] = (DateTime)value.ServerTimestamp;
                 row[2] = value;
                 row[3] = value.WrappedValue.TypeInfo.BuiltInType;
                 row[4] = value.WrappedValue.TypeInfo.ValueRank;
@@ -288,8 +297,8 @@ namespace HistoricalAccess
 
                 var modifiedRow = ArchiveItem.DataSet.Tables[1].NewRow();
 
-                modifiedRow[0] = value.SourceTimestamp;
-                modifiedRow[1] = value.ServerTimestamp;
+                modifiedRow[0] = (DateTime)value.SourceTimestamp;
+                modifiedRow[1] = (DateTime)value.ServerTimestamp;
                 modifiedRow[2] = value;
 
                 if (!value.WrappedValue.TypeInfo.IsUnknown)
@@ -312,8 +321,8 @@ namespace HistoricalAccess
             }
 
             // add/update new record.
-            row[0] = value.SourceTimestamp;
-            row[1] = value.ServerTimestamp;
+            row[0] = (DateTime)value.SourceTimestamp;
+            row[1] = (DateTime)value.ServerTimestamp;
             row[2] = value;
 
             if (!value.WrappedValue.TypeInfo.IsUnknown)
@@ -392,8 +401,8 @@ namespace HistoricalAccess
             // add/update new record.
             if (performUpdateType != PerformUpdateType.Remove)
             {
-                row[0] = value.SourceTimestamp;
-                row[1] = value.ServerTimestamp;
+                row[0] = (DateTime)value.SourceTimestamp;
+                row[1] = (DateTime)value.ServerTimestamp;
                 row[2] = new DataValue(new ExtensionObject(annotation), StatusCodes.Good, value.SourceTimestamp, value.ServerTimestamp);
                 row[3] = BuiltInType.ExtensionObject;
                 row[4] = ValueRanks.Scalar;

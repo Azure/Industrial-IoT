@@ -10,11 +10,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Core.Exceptions;
+    using Azure.IIoT.OpcUa.Encoders.Utils;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -79,7 +81,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 new BrowsePath
                 {
                     StartingNode = rootId,
-                    RelativePath = paths.ToRelativePath(session.MessageContext)
+                    RelativePath = paths.ToServiceRelativePath(session.MessageContext)
                 }
             };
             var response = await session.Services.TranslateBrowsePathsToNodeIdsAsync(
@@ -101,6 +103,113 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
             return ExpandedNodeId.ToNodeId(results[0].Result.Targets[0].TargetId,
                 session.MessageContext.NamespaceUris);
+        }
+
+        /// <summary>
+        /// Convert service browse path elements to a relative path.
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        internal static RelativePath ToServiceRelativePath(this IReadOnlyList<string>? path,
+            IServiceMessageContext context)
+        {
+            if (path == null)
+            {
+                return new RelativePath();
+            }
+            return new RelativePath
+            {
+                Elements = path
+                    .Where(p => !string.IsNullOrEmpty(p))
+                    .Select(p => ParsePathElement(p, context))
+                    .ToArray()
+            };
+        }
+
+        /// <summary>
+        /// Parse a service browse path element.
+        /// </summary>
+        private static RelativePathElement ParsePathElement(string element,
+            IServiceMessageContext context)
+        {
+            var pathElement = new RelativePathElement
+            {
+                IncludeSubtypes = true,
+                IsInverse = false
+            };
+            var index = 0;
+            while (index < element.Length)
+            {
+                if (element[index] == '!')
+                {
+                    pathElement.IsInverse = true;
+                    index++;
+                    continue;
+                }
+                if (element[index] == '#')
+                {
+                    pathElement.IncludeSubtypes = false;
+                    index++;
+                    continue;
+                }
+                break;
+            }
+            if (index < element.Length && element[index] == '<')
+            {
+                index++;
+                while (index < element.Length)
+                {
+                    if (element[index] == '!')
+                    {
+                        pathElement.IsInverse = true;
+                        index++;
+                        continue;
+                    }
+                    if (element[index] == '#')
+                    {
+                        pathElement.IncludeSubtypes = false;
+                        index++;
+                        continue;
+                    }
+                    break;
+                }
+                var end = element.IndexOf('>', index);
+                if (end < 0)
+                {
+                    throw new FormatException(
+                        "Reference path starts in < but does not end in >");
+                }
+                var reference = element[index..end];
+                pathElement.ReferenceTypeId = reference.ToNodeId(context);
+                if (NodeIdCompat.IsNull(pathElement.ReferenceTypeId) &&
+                    TypeMaps.ReferenceTypes.Value.TryGetIdentifier(reference, out var id))
+                {
+                    pathElement.ReferenceTypeId = new NodeId(id);
+                }
+                index = end + 1;
+            }
+            else if (index < element.Length && element[index] == '/')
+            {
+                pathElement.ReferenceTypeId = ReferenceTypeIds.HierarchicalReferences;
+                index++;
+            }
+            else if (index < element.Length && element[index] == '.')
+            {
+                pathElement.ReferenceTypeId = ReferenceTypeIds.Aggregates;
+                index++;
+            }
+            else
+            {
+                pathElement.ReferenceTypeId = ReferenceTypeIds.References;
+            }
+            var target = element[index..];
+            if (string.IsNullOrEmpty(target))
+            {
+                throw new FormatException("Bad target name is empty");
+            }
+            pathElement.TargetName = target.ToQualifiedName(context);
+            return pathElement;
         }
     }
 }

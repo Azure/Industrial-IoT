@@ -59,8 +59,10 @@ namespace HistoricalAccess
 
             dataset.Tables.Add("CurrentData");
 
-            dataset.Tables[0].Columns.Add("SourceTimestamp", typeof(DateTime));
-            dataset.Tables[0].Columns.Add("ServerTimestamp", typeof(DateTime));
+            dataset.Tables[0].Columns.Add("SourceTimestamp", typeof(DateTime)).DateTimeMode =
+                DataSetDateTime.Utc;
+            dataset.Tables[0].Columns.Add("ServerTimestamp", typeof(DateTime)).DateTimeMode =
+                DataSetDateTime.Utc;
             dataset.Tables[0].Columns.Add("Value", typeof(DataValue));
             dataset.Tables[0].Columns.Add("DataType", typeof(BuiltInType));
             dataset.Tables[0].Columns.Add("ValueRank", typeof(int));
@@ -69,8 +71,10 @@ namespace HistoricalAccess
 
             dataset.Tables.Add("ModifiedData");
 
-            dataset.Tables[1].Columns.Add("SourceTimestamp", typeof(DateTime));
-            dataset.Tables[1].Columns.Add("ServerTimestamp", typeof(DateTime));
+            dataset.Tables[1].Columns.Add("SourceTimestamp", typeof(DateTime)).DateTimeMode =
+                DataSetDateTime.Utc;
+            dataset.Tables[1].Columns.Add("ServerTimestamp", typeof(DateTime)).DateTimeMode =
+                DataSetDateTime.Utc;
             dataset.Tables[1].Columns.Add("Value", typeof(DataValue));
             dataset.Tables[1].Columns.Add("DataType", typeof(BuiltInType));
             dataset.Tables[1].Columns.Add("ValueRank", typeof(int));
@@ -81,8 +85,10 @@ namespace HistoricalAccess
 
             dataset.Tables.Add("AnnotationData");
 
-            dataset.Tables[2].Columns.Add("SourceTimestamp", typeof(DateTime));
-            dataset.Tables[2].Columns.Add("ServerTimestamp", typeof(DateTime));
+            dataset.Tables[2].Columns.Add("SourceTimestamp", typeof(DateTime)).DateTimeMode =
+                DataSetDateTime.Utc;
+            dataset.Tables[2].Columns.Add("ServerTimestamp", typeof(DateTime)).DateTimeMode =
+                DataSetDateTime.Utc;
             dataset.Tables[2].Columns.Add("Value", typeof(DataValue));
             dataset.Tables[2].Columns.Add("DataType", typeof(BuiltInType));
             dataset.Tables[2].Columns.Add("ValueRank", typeof(int));

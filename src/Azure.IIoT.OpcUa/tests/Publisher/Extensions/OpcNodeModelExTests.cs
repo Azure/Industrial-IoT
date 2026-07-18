@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Config.Models
 {
+    using Azure.IIoT.OpcUa.Core.Messaging;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using System;
     using System.Globalization;
@@ -116,6 +117,94 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
 
             Assert.False(comparer.Equals(opcNode1, opcNode2));
             Assert.False(comparer.GetHashCode(opcNode1) == comparer.GetHashCode(opcNode2));
+        }
+
+        [Fact]
+        public void ComparerHashCodeUsesEqualityDefaults()
+        {
+            var comparer = OpcNodeModelEx.Comparer;
+            var opcNode1 = new OpcNodeModel
+            {
+                Id = "Node",
+                ExpandedNodeId = "Expanded",
+                EventFilter = new EventFilterModel
+                {
+                    SelectClauses =
+                    [
+                        new SimpleAttributeOperandModel
+                        {
+                            TypeDefinitionId = "i=2041",
+                            BrowsePath = ["EventId"]
+                        }
+                    ]
+                }
+            };
+            var opcNode2 = new OpcNodeModel
+            {
+                Id = "node",
+                DisplayName = string.Empty,
+                Topic = string.Empty,
+                DataSetFieldId = string.Empty,
+                ExpandedNodeId = "expanded",
+                QualityOfService = QoS.AtLeastOnce,
+                HeartbeatBehavior = HeartbeatBehavior.WatchdogLKV,
+                SkipFirst = false,
+                DiscardNew = false,
+                UseCyclicRead = false,
+                RegisterNode = false,
+                EventFilter = new EventFilterModel
+                {
+                    SelectClauses =
+                    [
+                        new SimpleAttributeOperandModel
+                        {
+                            TypeDefinitionId = "i=2041",
+                            BrowsePath = ["EventId"]
+                        }
+                    ]
+                }
+            };
+
+            Assert.True(comparer.Equals(opcNode1, opcNode2));
+            Assert.Equal(comparer.GetHashCode(opcNode1), comparer.GetHashCode(opcNode2));
+        }
+
+        [Fact]
+        public void ComparerHashCodeUsesTriggeredNodeSetSemantics()
+        {
+            var comparer = OpcNodeModelEx.Comparer;
+            var firstTrigger = new OpcNodeModel { Id = "first" };
+            var secondTrigger = new OpcNodeModel { Id = "second" };
+            var opcNode1 = new OpcNodeModel
+            {
+                Id = "node",
+                TriggeredNodes = [firstTrigger, secondTrigger, firstTrigger]
+            };
+            var opcNode2 = new OpcNodeModel
+            {
+                Id = "node",
+                TriggeredNodes = [secondTrigger, firstTrigger]
+            };
+
+            Assert.True(comparer.Equals(opcNode1, opcNode2));
+            Assert.True(comparer.Equals(opcNode2, opcNode1));
+            Assert.Equal(comparer.GetHashCode(opcNode1), comparer.GetHashCode(opcNode2));
+        }
+
+        [Fact]
+        public void ComparerTreatsMissingAndEmptyTriggeredNodesAsEqual()
+        {
+            var comparer = OpcNodeModelEx.Comparer;
+            var opcNode1 = new OpcNodeModel { Id = "node" };
+            var opcNode2 = new OpcNodeModel
+            {
+                Id = "node",
+                TriggeredNodes = []
+            };
+
+            Assert.True(comparer.Equals(opcNode1, opcNode2));
+            Assert.True(comparer.Equals(opcNode2, opcNode1));
+            Assert.Equal(comparer.GetHashCode(opcNode1), comparer.GetHashCode(opcNode2));
         }
     }
 }
