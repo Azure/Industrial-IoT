@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Moq;
     using Opc.Ua;
     using Opc.Ua.Client;
+    using Opc.Ua.Client.ComplexTypes;
     using Opc.Ua.Client.Subscriptions;
     using Opc.Ua.Client.Subscriptions.MonitoredItems;
     using System;
@@ -595,6 +596,96 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Assert.Null(typeSystem);
         }
 
+        [Fact]
+        public async Task FacadePreloadsAndReloadsComplexTypesAfterReconnectAsync()
+        {
+            var session = CreateSession(out _, out _, connected: true);
+            var connection = new FakeConnection(session.Object);
+            var loader = new FakeComplexTypeSystemLoader();
+            await using var facade = new ManagedOpcUaSession(connection,
+                CreateTelemetry(), preloadComplexTypes: true,
+                complexTypeSystemLoader: loader);
+
+            await facade.WaitForComplexTypePreloadAsync();
+            var first = await facade.GetComplexTypeSystemAsync();
+
+            Assert.Equal(1, loader.LoadCount);
+            Assert.Same(loader.TypeSystems[0], first);
+            Assert.True(facade.IsComplexTypeSystemLoaded);
+            Assert.True(facade.IsComplexTypeSystemFullyLoaded);
+            Assert.Null(facade.ComplexTypePreloadError);
+
+            connection.Raise(ConnectionState.Reconnecting);
+            Assert.False(facade.IsComplexTypeSystemLoaded);
+
+            connection.Raise(ConnectionState.Connected);
+            await facade.WaitForComplexTypePreloadAsync();
+            var second = await facade.GetComplexTypeSystemAsync();
+
+            Assert.Equal(2, loader.LoadCount);
+            Assert.Same(loader.TypeSystems[1], second);
+            Assert.NotSame(first, second);
+        }
+
+        [Fact]
+        public async Task FacadePreloadWaitsForConnectionAsync()
+        {
+            var connected = false;
+            var session = CreateSession(out _, out _);
+            session.SetupGet(item => item.Connected).Returns(() => connected);
+            var connection = new FakeConnection(session.Object);
+            var loader = new FakeComplexTypeSystemLoader();
+            await using var facade = new ManagedOpcUaSession(connection,
+                CreateTelemetry(), preloadComplexTypes: true,
+                complexTypeSystemLoader: loader);
+
+            await facade.WaitForComplexTypePreloadAsync();
+            Assert.Equal(0, loader.LoadCount);
+
+            connected = true;
+            connection.Raise(ConnectionState.Connected);
+            await facade.WaitForComplexTypePreloadAsync();
+
+            Assert.Equal(1, loader.LoadCount);
+            Assert.True(facade.IsComplexTypeSystemLoaded);
+        }
+
+        [Fact]
+        public async Task DisabledPreloadStillSupportsOnDemandLoadingAsync()
+        {
+            var session = CreateSession(out _, out _, connected: true);
+            var connection = new FakeConnection(session.Object);
+            var loader = new FakeComplexTypeSystemLoader();
+            await using var facade = new ManagedOpcUaSession(connection,
+                CreateTelemetry(), preloadComplexTypes: false,
+                complexTypeSystemLoader: loader);
+
+            await facade.WaitForComplexTypePreloadAsync();
+            Assert.Equal(0, loader.LoadCount);
+
+            var typeSystem = await facade.GetComplexTypeSystemAsync();
+
+            Assert.Equal(1, loader.LoadCount);
+            Assert.Same(loader.TypeSystems[0], typeSystem);
+        }
+
+        [Fact]
+        public async Task DisposalCancelsComplexTypePreloadAsync()
+        {
+            var session = CreateSession(out _, out _, connected: true);
+            var connection = new FakeConnection(session.Object);
+            var loader = new FakeComplexTypeSystemLoader(block: true);
+            var facade = new ManagedOpcUaSession(connection, CreateTelemetry(),
+                preloadComplexTypes: true, complexTypeSystemLoader: loader);
+            await loader.Started.Task.WaitAsync(TimeSpan.FromSeconds(2));
+
+            await facade.DisposeAsync().AsTask()
+                .WaitAsync(TimeSpan.FromSeconds(2));
+
+            Assert.True(loader.Canceled);
+            Assert.Equal(1, connection.DisposeCount);
+        }
+
         /// <summary>
         /// The pool reuses a connection identity and closes it only after the final lease.
         /// </summary>
@@ -1116,6 +1207,38 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             Assert.Equal(1, selector.CallCount);
             Assert.Same(selector.Endpoint, provider.Request.Endpoint.Description);
+            Assert.True(provider.Request.PreloadComplexTypes);
+            runtime.Dispose();
+        }
+
+        [Fact]
+        public async Task ManagedStrategyHonorsDisabledComplexTypePreloadingAsync()
+        {
+            var session = CreateSession(out _, out _);
+            var provider = new FakeProvider(new FakeConnection(session.Object));
+            var selector = new CapturingEndpointSelector
+            {
+                Endpoint = CreateRequest("opc.tcp://selected:4874").Endpoint.Description
+            };
+            await using var strategy = new ManagedSessionRuntimeStrategy(provider,
+                CreateTelemetry());
+            using var reverseConnectManager = new ReverseConnectManager(CreateTelemetry());
+            using var runtime = strategy.Create(CreateRuntimeContext(
+                CreateRequest("opc.tcp://localhost:4874").Connection,
+                Options.Create(new OpcUaClientOptions
+                {
+                    DisableComplexTypePreloading = true
+                }),
+                Options.Create(new OpcUaSubscriptionOptions()),
+                reverseConnectManager) with
+            {
+                EndpointSelector = selector
+            });
+            runtime.AddRef();
+
+            using var handle = await runtime.AcquireAsync(null, null, default);
+
+            Assert.False(provider.Request.PreloadComplexTypes);
             runtime.Dispose();
         }
 
@@ -1478,7 +1601,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             await using var pool = new ManagedSessionPool(provider, CreateTelemetry());
             var request = CreateRequest("opc.tcp://localhost:4867") with
             {
-                DisableComplexTypeLoading = true
+                DisableComplexTypeLoading = true,
+                PreloadComplexTypes = true
             };
 
             using var lease = await pool.AcquireAsync(request);
@@ -2209,6 +2333,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             identity = identityMock.Object;
             var session = new Mock<ISession>();
             session.SetupGet(s => s.MessageContext).Returns(context);
+            session.SetupGet(s => s.Factory).Returns(context.Factory);
+            session.SetupGet(s => s.NamespaceUris).Returns(context.NamespaceUris);
+            session.SetupGet(s => s.ServerUris).Returns(context.ServerUris);
             session.SetupGet(s => s.ConfiguredEndpoint).Returns(endpoint);
             session.SetupGet(s => s.Identity).Returns(identity);
             session.SetupGet(s => s.Connected).Returns(connected);
@@ -2366,6 +2493,45 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private static ITelemetryContext CreateTelemetry()
         {
             return new LoggerTelemetryContext(NullLoggerFactory.Instance);
+        }
+
+        private sealed class FakeComplexTypeSystemLoader :
+            IManagedComplexTypeSystemLoader
+        {
+            public FakeComplexTypeSystemLoader(bool block = false)
+            {
+                _block = block;
+            }
+
+            public int LoadCount => Volatile.Read(ref _loadCount);
+            public bool Canceled { get; private set; }
+            public List<ComplexTypeSystem> TypeSystems { get; } = [];
+            public TaskCompletionSource Started { get; } = new(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+
+            public async ValueTask<bool> LoadAsync(ComplexTypeSystem typeSystem,
+                CancellationToken ct)
+            {
+                Interlocked.Increment(ref _loadCount);
+                TypeSystems.Add(typeSystem);
+                Started.TrySetResult();
+                if (_block)
+                {
+                    try
+                    {
+                        await Task.Delay(Timeout.InfiniteTimeSpan, ct);
+                    }
+                    catch (OperationCanceledException) when (ct.IsCancellationRequested)
+                    {
+                        Canceled = true;
+                        throw;
+                    }
+                }
+                return true;
+            }
+
+            private int _loadCount;
+            private readonly bool _block;
         }
 
         private sealed class FakeConnection : IManagedSessionConnection

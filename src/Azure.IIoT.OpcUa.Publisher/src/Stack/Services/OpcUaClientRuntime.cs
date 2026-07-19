@@ -191,6 +191,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         context.Options.Value),
                 DisableComplexTypeLoading =
                     connection.Options.HasFlag(ConnectionOptions.NoComplexTypeSystem),
+                PreloadComplexTypes =
+                    !(context.Options.Value.DisableComplexTypePreloading ?? false),
                 ReverseConnectManager = connection.IsReverseConnect() ?
                     context.ReverseConnectManager : null,
                 ReverseConnectServerUri = connection.IsReverseConnect() ?

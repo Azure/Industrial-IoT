@@ -96,6 +96,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public bool DisableComplexTypeLoading { get; init; }
 
         /// <summary>
+        /// Whether Publisher should preload the complex type system after connect.
+        /// </summary>
+        public bool PreloadComplexTypes { get; init; }
+
+        /// <summary>
         /// Optional reverse-connect manager.
         /// </summary>
         public ReverseConnectManager? ReverseConnectManager { get; init; }

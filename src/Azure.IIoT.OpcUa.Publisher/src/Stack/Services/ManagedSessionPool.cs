@@ -221,7 +221,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 return new ManagedOpcUaSession(connection, _telemetry, _timeProvider,
                     _options.NodeCacheTimeout, _options.NodeCacheCapacity,
-                    request.DisableComplexTypeLoading);
+                    request.DisableComplexTypeLoading,
+                    request.PreloadComplexTypes);
             }
             catch (Exception ex) when (ex is not OutOfMemoryException)
             {

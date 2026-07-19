@@ -21,6 +21,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Threading;
     using System.Threading.Tasks;
 
+    internal interface IManagedComplexTypeSystemLoader
+    {
+        ValueTask<bool> LoadAsync(ComplexTypeSystem typeSystem,
+            CancellationToken ct);
+    }
+
+    internal sealed class ManagedComplexTypeSystemLoader :
+        IManagedComplexTypeSystemLoader
+    {
+        public static ManagedComplexTypeSystemLoader Instance { get; } = new();
+
+        private ManagedComplexTypeSystemLoader()
+        {
+        }
+
+        public ValueTask<bool> LoadAsync(ComplexTypeSystem typeSystem,
+            CancellationToken ct)
+        {
+            return typeSystem.LoadAsync(throwOnError: false, ct: ct);
+        }
+    }
+
     /// <summary>
     /// Publisher compatibility facade over a public <see cref="ManagedSession"/>.
     /// </summary>
@@ -38,7 +60,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public ManagedOpcUaSession(IManagedSessionConnection connection,
             ITelemetryContext telemetry, TimeProvider? timeProvider = null,
             TimeSpan? nodeCacheTimeout = null, int nodeCacheCapacity = 4096,
-            bool disableComplexTypeLoading = false)
+            bool disableComplexTypeLoading = false,
+            bool preloadComplexTypes = false,
+            IManagedComplexTypeSystemLoader? complexTypeSystemLoader = null)
         {
             _connection = connection ??
                 throw new ArgumentNullException(nameof(connection));
@@ -47,6 +71,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _timeProvider = timeProvider ??
                 TimeProvider.System;
             _disableComplexTypeLoading = disableComplexTypeLoading;
+            _preloadComplexTypes = preloadComplexTypes &&
+                !disableComplexTypeLoading;
+            _complexTypeSystemLoader = complexTypeSystemLoader ??
+                ManagedComplexTypeSystemLoader.Instance;
+            _logger = telemetry.CreateLogger<ManagedOpcUaSession>();
             ArgumentOutOfRangeException.ThrowIfNegativeOrZero(nodeCacheCapacity);
 
             var session = _connection.Session;
@@ -65,6 +94,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 subscriptions.PoolNotifications = false;
             }
+            session.SessionConfigurationChanged += OnSessionConfigurationChanged;
+            QueueComplexTypePreload();
         }
 
         /// <inheritdoc/>
@@ -159,6 +190,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
+        internal bool IsComplexTypeSystemLoaded =>
+            Volatile.Read(ref _complexTypeSystem) != null;
+
+        internal bool IsComplexTypeSystemFullyLoaded =>
+            Volatile.Read(ref _complexTypeSystemFullyLoaded) != 0;
+
+        internal Exception? ComplexTypePreloadError =>
+            Volatile.Read(ref _complexTypePreloadError);
+
         /// <summary>
         /// The current managed-session connectivity state mapped to Publisher state.
         /// </summary>
@@ -198,30 +238,82 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public async ValueTask<ComplexTypeSystem?> GetComplexTypeSystemAsync(
             CancellationToken ct = default)
         {
+            ObjectDisposedException.ThrowIf(
+                Volatile.Read(ref _disposed) != 0, this);
             if (_disableComplexTypeLoading || !_connection.Session.Connected)
             {
                 return null;
             }
 
-            await _complexTypeGate.WaitAsync(ct).ConfigureAwait(false);
+            using var operation =
+                CancellationTokenSource.CreateLinkedTokenSource(
+                    ct, _complexTypeLifetime.Token);
+            await _complexTypeGate.WaitAsync(operation.Token).ConfigureAwait(false);
             try
             {
-                if (_complexTypeSystem != null)
+                if (!_connection.Session.Connected)
                 {
-                    return _complexTypeSystem;
+                    return null;
+                }
+
+                var generation = Volatile.Read(ref _complexTypeGeneration);
+                var complexTypeSystem = Volatile.Read(ref _complexTypeSystem);
+                if (complexTypeSystem != null &&
+                    (Volatile.Read(ref _complexTypeSystemFullyLoaded) != 0 ||
+                        (Volatile.Read(ref _complexTypeLoadCompleted) != 0 &&
+                            _timeProvider.GetElapsedTime(
+                                Volatile.Read(ref _complexTypeLoadedTimestamp)) <
+                                kComplexTypeSystemReloadInterval)))
+                {
+                    return complexTypeSystem;
                 }
 
                 var typeSystem = new ComplexTypeSystem(new NodeCacheResolver(
                     _connection.Session, LruNodeCache.Inner, _telemetry, _timeProvider),
                     _telemetry);
-                await typeSystem.LoadAsync(throwOnError: false, ct: ct)
+                var fullyLoaded = await _complexTypeSystemLoader.LoadAsync(
+                    typeSystem, operation.Token)
                     .ConfigureAwait(false);
-                _complexTypeSystem = typeSystem;
+                if (generation != Volatile.Read(ref _complexTypeGeneration) ||
+                    !_connection.Session.Connected)
+                {
+                    return null;
+                }
+
+                Volatile.Write(ref _complexTypeSystem, typeSystem);
+                Volatile.Write(ref _complexTypeSystemFullyLoaded,
+                    fullyLoaded ? 1 : 0);
+                Volatile.Write(ref _complexTypeLoadedTimestamp,
+                    _timeProvider.GetTimestamp());
+                Volatile.Write(ref _complexTypeLoadCompleted, 1);
+                Volatile.Write(ref _complexTypePreloadError, null);
+                if (fullyLoaded)
+                {
+                    _logger.ManagedComplexTypeSystemLoaded();
+                }
+                else
+                {
+                    _logger.ManagedComplexTypeSystemPartiallyLoaded();
+                }
                 return typeSystem;
             }
             finally
             {
                 _complexTypeGate.Release();
+            }
+        }
+
+        internal async ValueTask WaitForComplexTypePreloadAsync(
+            CancellationToken ct = default)
+        {
+            Task? preload;
+            lock (_complexTypeTaskLock)
+            {
+                preload = _complexTypePreloadTask;
+            }
+            if (preload != null)
+            {
+                await preload.WaitAsync(ct).ConfigureAwait(false);
             }
         }
 
@@ -467,8 +559,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             _connection.ConnectionStateChanged -= OnConnectionStateChanged;
             _connection.Session.KeepAlive -= OnKeepAlive;
+            _connection.Session.SessionConfigurationChanged -=
+                OnSessionConfigurationChanged;
+            await _complexTypeLifetime.CancelAsync().ConfigureAwait(false);
+            Task? preload;
+            lock (_complexTypeTaskLock)
+            {
+                preload = _complexTypePreloadTask;
+            }
+            if (preload != null)
+            {
+                await preload.ConfigureAwait(false);
+            }
+            await _complexTypeGate.WaitAsync(CancellationToken.None)
+                .ConfigureAwait(false);
+            _complexTypeGate.Release();
             LruNodeCache.Clear();
             _complexTypeGate.Dispose();
+            _complexTypeLifetime.Dispose();
             List<Exception>? exceptions = null;
             OpcUaClient.Browser[] browsers;
             lock (_browsers)
@@ -520,6 +628,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             if (state != EndpointConnectivityState.Ready)
             {
                 Interlocked.Exchange(ref _keepAliveCounter, 0);
+                InvalidateComplexTypeSystem();
             }
             if (state == EndpointConnectivityState.Ready)
             {
@@ -530,9 +639,96 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         browser.OnConnected();
                     }
                 }
+                QueueComplexTypePreload();
             }
             _connectionStateChange?.Invoke(this,
                 new EndpointConnectivityStateEventArgs(state));
+        }
+
+        private void OnSessionConfigurationChanged(object? sender, EventArgs e)
+        {
+            _ = sender;
+            _ = e;
+            if (Volatile.Read(ref _disposed) != 0)
+            {
+                return;
+            }
+            InvalidateComplexTypeSystem();
+            QueueComplexTypePreload();
+        }
+
+        private void QueueComplexTypePreload()
+        {
+            if (!_preloadComplexTypes ||
+                Volatile.Read(ref _disposed) != 0 ||
+                !_connection.Session.Connected)
+            {
+                return;
+            }
+            lock (_complexTypeTaskLock)
+            {
+                if (_complexTypePreloadTask is { IsCompleted: false })
+                {
+                    return;
+                }
+                var generation = Volatile.Read(ref _complexTypeGeneration);
+                _complexTypePreloadTask = RunComplexTypePreloadAsync(generation);
+            }
+        }
+
+        private async Task RunComplexTypePreloadAsync(int generation)
+        {
+            await Task.Yield();
+            var restart = false;
+            try
+            {
+                if (generation != Volatile.Read(ref _complexTypeGeneration))
+                {
+                    return;
+                }
+                _ = await GetComplexTypeSystemAsync(_complexTypeLifetime.Token)
+                    .ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+                when (_complexTypeLifetime.IsCancellationRequested ||
+                    generation != Volatile.Read(ref _complexTypeGeneration))
+            {
+            }
+            catch (ObjectDisposedException)
+                when (Volatile.Read(ref _disposed) != 0)
+            {
+            }
+            catch (Exception ex)
+            {
+                Volatile.Write(ref _complexTypePreloadError, ex);
+                _logger.ManagedComplexTypeSystemPreloadFailed(ex);
+            }
+            finally
+            {
+                lock (_complexTypeTaskLock)
+                {
+                    _complexTypePreloadTask = null;
+                    restart =
+                        generation != Volatile.Read(ref _complexTypeGeneration) &&
+                        Volatile.Read(ref _disposed) == 0 &&
+                        _preloadComplexTypes &&
+                        _connection.Session.Connected;
+                }
+                if (restart)
+                {
+                    QueueComplexTypePreload();
+                }
+            }
+        }
+
+        private void InvalidateComplexTypeSystem()
+        {
+            Interlocked.Increment(ref _complexTypeGeneration);
+            Volatile.Write(ref _complexTypeSystem, null);
+            Volatile.Write(ref _complexTypeSystemFullyLoaded, 0);
+            Volatile.Write(ref _complexTypeLoadCompleted, 0);
+            Volatile.Write(ref _complexTypePreloadError, null);
+            LruNodeCache.Clear();
         }
 
         private void OnKeepAlive(ISession session, KeepAliveEventArgs e)
@@ -914,18 +1110,49 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         private ComplexTypeSystem? _complexTypeSystem;
+        private Exception? _complexTypePreloadError;
         private OperationLimitsModel? _operationLimits;
         private ServerCapabilitiesModel? _serverCapabilities;
         private HistoryServerCapabilitiesModel? _historyCapabilities;
         private EventHandler<EndpointConnectivityStateEventArgs>? _connectionStateChange;
+        private Task? _complexTypePreloadTask;
+        private int _complexTypeGeneration;
+        private int _complexTypeLoadCompleted;
+        private int _complexTypeSystemFullyLoaded;
         private int _disposed;
         private int _keepAliveCounter;
         private int _keepAliveTotal;
+        private long _complexTypeLoadedTimestamp;
         private readonly IManagedSessionConnection _connection;
         private readonly Dictionary<(string, TimeSpan), OpcUaClient.Browser> _browsers = [];
         private readonly bool _disableComplexTypeLoading;
+        private readonly bool _preloadComplexTypes;
+        private readonly IManagedComplexTypeSystemLoader _complexTypeSystemLoader;
+        private readonly CancellationTokenSource _complexTypeLifetime = new();
+        private readonly Lock _complexTypeTaskLock = new();
+        private readonly ILogger _logger;
         private readonly ITelemetryContext _telemetry;
         private readonly TimeProvider _timeProvider;
         private readonly SemaphoreSlim _complexTypeGate = new(1, 1);
+        private static readonly TimeSpan kComplexTypeSystemReloadInterval =
+            TimeSpan.FromMinutes(5);
+    }
+
+    internal static partial class ManagedOpcUaSessionLogging
+    {
+        [LoggerMessage(EventId = 1134, Level = LogLevel.Information,
+            Message = "Managed complex type system loaded.")]
+        public static partial void ManagedComplexTypeSystemLoaded(
+            this ILogger logger);
+
+        [LoggerMessage(EventId = 1135, Level = LogLevel.Warning,
+            Message = "Managed complex type system partially loaded.")]
+        public static partial void ManagedComplexTypeSystemPartiallyLoaded(
+            this ILogger logger);
+
+        [LoggerMessage(EventId = 1136, Level = LogLevel.Warning,
+            Message = "Managed complex type system preload failed.")]
+        public static partial void ManagedComplexTypeSystemPreloadFailed(
+            this ILogger logger, Exception exception);
     }
 }
