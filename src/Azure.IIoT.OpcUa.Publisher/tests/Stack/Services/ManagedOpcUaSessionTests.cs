@@ -1339,6 +1339,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var strategy = Assert.IsType<ClassicOpcUaClientRuntimeStrategy>(
                 field!.GetValue(manager));
             Assert.Same(ClassicOpcUaClientRuntimeStrategy.Instance, strategy);
+            Assert.Null(provider.GetService<IOpcUaClientRuntimeStrategy>());
+            Assert.IsType<ManagedSessionConnector>(
+                provider.GetRequiredService<IManagedSessionProvider>());
+            Assert.IsType<DefaultManagedSessionRequestFactory>(
+                provider.GetRequiredService<IManagedSessionRequestFactory>());
+            var managedStrategy =
+                provider.GetRequiredService<ManagedSessionRuntimeStrategy>();
+            Assert.Same(managedStrategy,
+                provider.GetRequiredService<ManagedSessionRuntimeStrategy>());
 
             var request = CreateRequest("opc.tcp://localhost:4858");
             using var reverseConnectManager = new ReverseConnectManager(CreateTelemetry());
@@ -1360,6 +1369,58 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 await runtime.CloseAsync(shutdown: true);
             }
+        }
+
+        [Fact]
+        public async Task ManagedDiSeamOwnsPoolAndDisposesConnectionsAsync()
+        {
+            var session = CreateSession(out _, out _, connected: true);
+            var connection = new FakeConnection(session.Object);
+            var managedProvider = new FakeProvider(connection);
+            var request = CreateRequest("opc.tcp://localhost:4861");
+            var configuration = new Mock<IOpcUaConfiguration>();
+            configuration.SetupGet(item => item.Value)
+                .Returns(CreateApplicationConfiguration());
+            var clientOptions = Options.Create(new OpcUaClientOptions());
+            var subscriptionOptions = Options.Create(new OpcUaSubscriptionOptions());
+            var services = new ServiceCollection();
+            services.AddLogging();
+            services.AddOptions();
+            services.AddSingleton<IManagedSessionProvider>(managedProvider);
+            services.AddSingleton<IManagedSessionRequestFactory>(
+                new FixedRequestFactory(request));
+            services.AddSingleton(new ManagedSessionPoolOptions
+            {
+                LingerTimeout = TimeSpan.FromHours(1)
+            });
+            services.AddOpcUaStack();
+            services.Replace(ServiceDescriptor.Singleton(configuration.Object));
+            services.AddSingleton<IOptions<OpcUaClientOptions>>(clientOptions);
+            services.AddSingleton<IOptions<OpcUaSubscriptionOptions>>(
+                subscriptionOptions);
+            var provider = services.BuildServiceProvider();
+            try
+            {
+                var strategy =
+                    provider.GetRequiredService<ManagedSessionRuntimeStrategy>();
+                using var reverseConnectManager =
+                    new ReverseConnectManager(CreateTelemetry());
+                using var runtime = strategy.Create(CreateRuntimeContext(
+                    request.Connection, clientOptions, subscriptionOptions,
+                    reverseConnectManager));
+                runtime.AddRef();
+                using (await runtime.AcquireAsync(null, null, default))
+                {
+                }
+                await runtime.CloseAsync(shutdown: true);
+
+                Assert.Equal(0, connection.DisposeCount);
+            }
+            finally
+            {
+                await provider.DisposeAsync();
+            }
+            Assert.Equal(1, connection.DisposeCount);
         }
 
         [Fact]

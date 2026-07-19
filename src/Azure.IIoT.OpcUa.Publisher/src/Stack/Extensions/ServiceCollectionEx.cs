@@ -18,6 +18,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     using Microsoft.Extensions.Options;
     using Opc.Ua;
     using Opc.Ua.Configuration;
+    using System;
 
     /// <summary>
     /// Service collection extensions
@@ -68,6 +69,38 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                 static sp => sp.GetRequiredService<OpcUaClientManager>());
             services.AddSingleton<IConnectionServices<ConnectionModel>>(
                 static sp => sp.GetRequiredService<OpcUaClientManager>());
+
+            services.TryAddSingleton<IOpcUaEndpointSelector>(
+                OpcUaEndpointSelector.Instance);
+            services.TryAddSingleton<ITelemetryContext>(static sp =>
+                new LoggerTelemetryContext(
+                    sp.GetRequiredService<Microsoft.Extensions.Logging.ILoggerFactory>()));
+            services.TryAddSingleton<IManagedSessionFactory,
+                DefaultManagedSessionFactory>();
+            services.TryAddSingleton<IManagedSessionRequestFactory>(
+                static sp => new DefaultManagedSessionRequestFactory(
+                    sp.GetRequiredService<IOpcUaEndpointSelector>()));
+            services.TryAddSingleton<IManagedSessionProvider>(static sp =>
+            {
+                var configuration =
+                    sp.GetRequiredService<IOpcUaConfiguration>().Value;
+                return new ManagedSessionConnector(configuration,
+                    sp.GetRequiredService<ITelemetryContext>(),
+                    sp.GetService<TimeProvider>(),
+                    sp.GetRequiredService<IManagedSessionFactory>());
+            });
+            services.TryAddSingleton<ManagedSessionRuntimeStrategy>(static sp =>
+            {
+                return new ManagedSessionRuntimeStrategy(
+                    sp.GetRequiredService<IManagedSessionProvider>(),
+                    sp.GetRequiredService<ITelemetryContext>(),
+                    sp.GetRequiredService<IManagedSessionRequestFactory>(),
+                    sp.GetService<ManagedSessionPoolOptions>(),
+                    sp.GetService<TimeProvider>());
+            });
+            // Do not register IOpcUaClientRuntimeStrategy here. The manager's
+            // optional constructor parameter must continue to select classic
+            // until the atomic production switch.
 
             services.AddTransient<OpcUaClientConfig>();
             services.AddTransient<IPostConfigureOptions<OpcUaClientOptions>>(
