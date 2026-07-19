@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
     using Azure.IIoT.OpcUa.Core.Exceptions;
+    using Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Core.Utils;
     using Azure.IIoT.OpcUa.Exceptions;
     using Azure.IIoT.OpcUa.Publisher.Models;
@@ -22,6 +23,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Globalization;
+    using System.IO;
     using System.Linq;
     using System.Runtime.CompilerServices;
     using System.Runtime.ExceptionServices;
@@ -262,6 +264,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Connection = context.Connection.Connection,
                 TimeStamp = context.TimeProvider.GetUtcNow()
             };
+            _diagnosticsDumper =
+                context.Connection.Connection.Options.HasFlag(
+                    ConnectionOptions.DumpDiagnostics)
+                    ? DumpDiagnosticsPeriodicallyAsync(_lifetimeToken)
+                    : null;
         }
 
         public ChannelDiagnosticModel LastDiagnostics
@@ -293,6 +300,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             GetDiagnosticSession()?.KeepAliveCounter ?? 0;
         public int KeepAliveTotal =>
             GetDiagnosticSession()?.KeepAliveTotal ?? 0;
+        internal bool DiagnosticsDumperEnabled => _diagnosticsDumper != null;
 
         public async Task<ISessionHandle> AcquireAsync(int? connectTimeout,
             int? serviceCallTimeout, CancellationToken ct)
@@ -464,6 +472,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public async Task<SessionDiagnosticsModel?> GetSessionDiagnosticsAsync(CancellationToken ct)
         {
             ManagedOpcUaSession? session;
+            ManagedSessionDiagnosticsModel? managed;
             using var operation = CancellationTokenSource.CreateLinkedTokenSource(
                 ct, _lifetimeToken);
             await _subscriptionGate.WaitAsync(operation.Token).ConfigureAwait(false);
@@ -471,14 +480,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 ThrowIfDisposed();
                 session = _subscriptions.Values.FirstOrDefault()?.Lease.Session
-                    as ManagedOpcUaSession;
+                    as ManagedOpcUaSession ?? GetDiagnosticSession();
+                managed = session == null ? null :
+                    CreateManagedDiagnostics(session);
             }
             finally
             {
                 _subscriptionGate.Release();
             }
-            return session == null ? null :
-                await session.GetServerDiagnosticAsync(ct).ConfigureAwait(false);
+            if (session == null)
+            {
+                return null;
+            }
+            var diagnostics = await session.GetServerDiagnosticAsync(ct)
+                .ConfigureAwait(false);
+            return diagnostics with
+            {
+                Managed = managed
+            };
         }
 
         public async ValueTask CloseAsync(bool shutdown = false,
@@ -493,7 +512,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return;
             }
             await _lifetimeCts.CancelAsync().ConfigureAwait(false);
-
+            if (_diagnosticsDumper != null)
+            {
+                await _diagnosticsDumper.ConfigureAwait(false);
+            }
             await _subscriptionGate.WaitAsync().ConfigureAwait(false);
             try
             {
@@ -1269,6 +1291,142 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
+        internal async Task DumpDiagnosticsAsync(TextWriter writer,
+            CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(writer);
+            var diagnostics = await GetSessionDiagnosticsAsync(ct)
+                .ConfigureAwait(false);
+            if (diagnostics == null)
+            {
+                return;
+            }
+            var json = Json.SerializeToString(diagnostics,
+                Json.GetTypeInfo<SessionDiagnosticsModel>(),
+                SerializeOption.Indented);
+            await writer.WriteLineAsync(json.AsMemory(), ct).ConfigureAwait(false);
+            Volatile.Write(ref _diagnosticsDumpError, null);
+        }
+
+        private async Task DumpDiagnosticsPeriodicallyAsync(CancellationToken ct)
+        {
+            using var timer = new PeriodicTimer(
+                kDiagnosticsDumpInterval, _context.TimeProvider);
+            try
+            {
+                while (await timer.WaitForNextTickAsync(ct).ConfigureAwait(false))
+                {
+                    try
+                    {
+                        await DumpDiagnosticsAsync(Console.Out, ct)
+                            .ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException) when (ct.IsCancellationRequested)
+                    {
+                        throw;
+                    }
+                    catch (Exception ex)
+                    {
+                        Volatile.Write(ref _diagnosticsDumpError, ex);
+                        _logger.LogWarning(ex,
+                            "Managed diagnostic dump failed.");
+                    }
+                }
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+            }
+        }
+
+        private ManagedSessionDiagnosticsModel CreateManagedDiagnostics(
+            ManagedOpcUaSession session)
+        {
+            var subscriptions = _subscriptions.Values
+                .Select(CreateManagedSubscriptionDiagnostics)
+                .ToArray();
+            var errors = subscriptions
+                .SelectMany(subscription => subscription.BackgroundErrors ?? [])
+                .ToList();
+            if (session.ComplexTypePreloadError is { } complexTypeError)
+            {
+                errors.Add(complexTypeError.ToString());
+            }
+            if (Volatile.Read(ref _diagnosticsDumpError) is { } dumpError)
+            {
+                errors.Add(dumpError.ToString());
+            }
+            return new ManagedSessionDiagnosticsModel
+            {
+                State = State,
+                ConnectCount = ConnectCount,
+                ReconnectCount = ReconnectCount,
+                ReconnectTriggered = ReconnectTriggered,
+                PublishWorkerCount = session.PublishWorkerCount,
+                GoodPublishRequestCount = session.GoodPublishRequestCount,
+                BadPublishRequestCount = session.BadPublishRequestCount,
+                OutstandingRequestCount = session.OutstandingRequestCount,
+                MinimumPublishRequestCount = session.MinPublishRequestCount,
+                KeepAliveCounter = session.KeepAliveCounter,
+                KeepAliveTotal = session.KeepAliveTotal,
+                ComplexTypeSystemLoaded = session.IsComplexTypeSystemLoaded,
+                ComplexTypeSystemFullyLoaded =
+                    session.IsComplexTypeSystemFullyLoaded,
+                BackgroundErrors = errors.Count == 0
+                    ? null
+                    : errors.Distinct(StringComparer.Ordinal).ToArray(),
+                Subscriptions = subscriptions.Length == 0
+                    ? null
+                    : subscriptions
+            };
+        }
+
+        private static ManagedSubscriptionDiagnosticsModel
+            CreateManagedSubscriptionDiagnostics(ManagedSubscriptionState state)
+        {
+            var snapshots = state.Registrations
+                .Select(registration =>
+                    state.Adapter.GetDiagnostics(registration.Owner))
+                .ToArray();
+            var first = snapshots.FirstOrDefault();
+            var ids = state.Adapter.Subscription is
+                IPartitionedSubscription partitioned
+                    ? partitioned.PartitionIds.ToArray()
+                    : [];
+            var errors = state.Adapter.GetBackgroundErrors()
+                .Select(error => error.ToString())
+                .ToArray();
+            return new ManagedSubscriptionDiagnosticsModel
+            {
+                SubscriptionIds = ids.Length == 0 ? null : ids,
+                RegistrationCount = state.Registrations.Count,
+                PartitionCount = first.PartitionCount != 0
+                    ? first.PartitionCount
+                    : state.Adapter.Subscription is IPartitionedSubscription value
+                        ? value.PartitionCount
+                        : 1,
+                MonitoredItems = snapshots.Sum(item => item.MonitoredItems),
+                AppliedMonitoredItems = snapshots.Sum(
+                    item => item.AppliedMonitoredItems),
+                PendingMonitoredItems = snapshots.Sum(
+                    item => item.PendingMonitoredItems),
+                RetryingMonitoredItems = snapshots.Sum(
+                    item => item.RetryingMonitoredItems),
+                TerminalMonitoredItems = snapshots.Sum(
+                    item => item.TerminalMonitoredItems),
+                CyclicMonitoredItems = snapshots.Sum(
+                    item => item.CyclicMonitoredItems),
+                CyclicWorkerCount = first.CyclicWorkerCount,
+                RetryCount = state.Adapter.RetryCount,
+                HeartbeatsEnabled = snapshots.Sum(item => item.HeartbeatsEnabled),
+                ConditionsEnabled = snapshots.Sum(item => item.ConditionsEnabled),
+                LateMonitoredItems = snapshots.Sum(item => item.LateMonitoredItems),
+                PublishingEnabled = first.PublishingEnabled,
+                WatchdogEnabled = first.WatchdogEnabled,
+                WatchdogResetInProgress = first.WatchdogResetInProgress,
+                BackgroundErrors = errors.Length == 0 ? null : errors
+            };
+        }
+
         private void UpdateDiagnostics(ManagedOpcUaSession session)
         {
             var diagnostics = new ChannelDiagnosticModel
@@ -1523,6 +1681,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private const int kContinuationTimeoutMilliseconds = 10000;
         private static readonly TimeSpan kContinuationTimeout =
             TimeSpan.FromMilliseconds(kContinuationTimeoutMilliseconds);
+        private static readonly TimeSpan kDiagnosticsDumpInterval =
+            TimeSpan.FromSeconds(10);
         private long _connectionStateVersion;
         private int _connectCount;
         private int _disposed;
@@ -1530,8 +1690,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private int _references;
         private int _subscriptionCount;
         private bool _closing;
+        private Exception? _diagnosticsDumpError;
         private ManagedOpcUaSession? _diagnosticSession;
         private ChannelDiagnosticModel _lastDiagnostics;
+        private readonly Task? _diagnosticsDumper;
         private EndpointConnectivityState _state = EndpointConnectivityState.Disconnected;
         private readonly OpcUaClientRuntimeContext _context;
         private readonly ILogger _logger;

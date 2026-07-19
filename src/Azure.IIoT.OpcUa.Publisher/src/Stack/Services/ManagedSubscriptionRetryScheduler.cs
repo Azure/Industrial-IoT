@@ -76,6 +76,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
+        public Exception? LastError => Volatile.Read(ref _lastError);
+
         public void Update(ManagedItemRetryTarget target)
         {
             if (Volatile.Read(ref _disposed) != 0)
@@ -285,6 +287,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (Exception ex)
             {
+                Volatile.Write(ref _lastError, ex);
                 _logger.ManagedRetryProcessingFailed(ex);
             }
             finally
@@ -345,6 +348,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                     catch (Exception ex)
                     {
+                        Volatile.Write(ref _lastError, ex);
                         _logger.ManagedRetryAttemptFailed(ex,
                             request.Name ?? kSubscriptionKey, request.Attempt);
                         outcome = ManagedRetryOutcome.Failed;
@@ -444,6 +448,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly SemaphoreSlim _runGate = new(1, 1);
         private readonly CancellationTokenSource _cts = new();
         private Task? _worker;
+        private Exception? _lastError;
         private int _disposed;
         private const string kSubscriptionKey = "\0subscription";
     }

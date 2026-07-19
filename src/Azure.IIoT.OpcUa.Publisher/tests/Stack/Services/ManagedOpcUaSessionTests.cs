@@ -21,8 +21,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Opc.Ua.Client.Subscriptions.MonitoredItems;
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Reflection;
+    using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
@@ -1070,6 +1072,51 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         [Fact]
+        public async Task ManagedRuntimePreservesDiagnosticDumpEnvelopeAsync()
+        {
+            var session = CreateSession(out _, out _, connected: true);
+            session.SetupGet(item => item.SessionId).Returns(new NodeId(77u, 2));
+            session.SetupGet(item => item.SessionName).Returns("managed-dump");
+            var request = CreateRequest("opc.tcp://localhost:4860",
+                ConnectionOptions.DumpDiagnostics);
+            var provider = new FakeProvider(new FakeConnection(session.Object));
+            await using var strategy = new ManagedSessionRuntimeStrategy(provider,
+                CreateTelemetry(), new FixedRequestFactory(request));
+            using var reverseConnectManager = new ReverseConnectManager(CreateTelemetry());
+            var closed = new TaskCompletionSource(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+            using var runtime = Assert.IsType<ManagedOpcUaClient>(
+                strategy.Create(CreateRuntimeContext(
+                    request.Connection,
+                    Options.Create(new OpcUaClientOptions()),
+                    Options.Create(new OpcUaSubscriptionOptions()),
+                    reverseConnectManager) with
+                {
+                    OnClose = () =>
+                    {
+                        closed.TrySetResult();
+                        return Task.CompletedTask;
+                    }
+                }));
+            runtime.AddRef();
+            using var handle = await runtime.AcquireAsync(null, null, default);
+            using var writer = new StringWriter();
+
+            await runtime.DumpDiagnosticsAsync(writer, default);
+
+            Assert.True(runtime.DiagnosticsDumperEnabled);
+            using var json = JsonDocument.Parse(writer.ToString());
+            Assert.Equal("managed-dump",
+                json.RootElement.GetProperty("sessionName").GetString());
+            var managed = json.RootElement.GetProperty("managed");
+            Assert.True(managed.TryGetProperty("state", out _));
+
+            handle.Dispose();
+            runtime.Dispose();
+            await closed.Task.WaitAsync(TimeSpan.FromSeconds(2));
+        }
+
+        [Fact]
         public async Task ManagedRegistrationProjectsAdapterDiagnosticsAsync()
         {
             var session = CreateSession(out _, out _, connected: true);
@@ -1101,10 +1148,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             collection.Setup(items => items.TryGetMonitoredItemByClientHandle(
                     1, out item))
                 .Returns(true);
-            var subscription = new Mock<Opc.Ua.Client.Subscriptions.ISubscription>();
+            var subscription = new Mock<IPartitionedSubscription>();
             subscription.SetupGet(item => item.Created).Returns(true);
             subscription.SetupGet(item => item.CurrentPublishingEnabled).Returns(true);
             subscription.SetupGet(item => item.MonitoredItems).Returns(collection.Object);
+            subscription.SetupGet(item => item.PartitionCount).Returns(2);
+            subscription.SetupGet(item => item.PartitionIds).Returns([41u, 42u]);
+            subscription.Setup(item => item.RecreateAsync(
+                    It.IsAny<CancellationToken>()))
+                .Returns(ValueTask.FromException(
+                    new InvalidOperationException("diagnostic-recreate")));
             var manager = new Mock<ISubscriptionManager>();
             ISubscriptionNotificationHandler? handler = null;
             manager.Setup(item => item.Add(
@@ -1115,6 +1168,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     IOptionsMonitor<Opc.Ua.Client.Subscriptions.SubscriptionOptions> _) =>
                     handler = value)
                 .Returns(subscription.Object);
+            manager.SetupGet(item => item.Items).Returns([subscription.Object]);
             ISubscriptionManager subscriptionManager = manager.Object;
             session.Setup(item => item.TryGetSubscriptionManager(out subscriptionManager))
                 .Returns(true);
@@ -1145,6 +1199,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             Assert.Equal(0, registration.Diagnostics.GoodMonitoredItems);
             Assert.Equal(1, registration.Diagnostics.BadMonitoredItems);
+
+            await handler.OnSubscriptionStateChangedAsync(subscription.Object,
+                Opc.Ua.Client.Subscriptions.SubscriptionState.Error, default);
+            var adapter = Assert.IsType<ManagedSubscriptionAdapter>(handler);
+            await adapter.FlushRetriesAsync();
+            var diagnostics = await runtime.GetSessionDiagnosticsAsync(default);
+
+            Assert.NotNull(diagnostics?.Managed);
+            var managedSubscription = Assert.Single(
+                diagnostics!.Managed!.Subscriptions);
+            Assert.Equal([41u, 42u], managedSubscription.SubscriptionIds);
+            Assert.Equal(2, managedSubscription.PartitionCount);
+            Assert.Equal(1, managedSubscription.MonitoredItems);
+            Assert.Equal(0, managedSubscription.AppliedMonitoredItems);
+            Assert.Equal(1, managedSubscription.TerminalMonitoredItems);
+            Assert.Equal(1, managedSubscription.RetryCount);
+            Assert.Contains(managedSubscription.BackgroundErrors!,
+                value => value.Contains("diagnostic-recreate",
+                    StringComparison.Ordinal));
         }
 
         /// <summary>

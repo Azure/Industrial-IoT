@@ -221,6 +221,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 Volatile.Read(ref _watchdogResetInProgress) != 0);
         }
 
+        internal IReadOnlyList<Exception> GetBackgroundErrors()
+        {
+            var errors = new List<Exception>(2);
+            var backgroundError = Volatile.Read(ref _backgroundError);
+            if (backgroundError != null)
+            {
+                errors.Add(backgroundError);
+            }
+            var retryError = _retryScheduler.LastError;
+            if (retryError != null && !ReferenceEquals(retryError, backgroundError))
+            {
+                errors.Add(retryError);
+            }
+            return errors;
+        }
+
         /// <summary>
         /// Gets the number of applied monitored items for an owner.
         /// </summary>
@@ -932,6 +948,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 catch (Exception ex)
                 {
+                    RecordBackgroundError(ex);
                     _logger.CyclicReadSynchronizationFailed(ex);
                     QueueCyclicReadSynchronization();
                 }
@@ -980,6 +997,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
+                    RecordBackgroundError(ex);
                     _logger.ConditionRefreshFailed(ex);
                 }
             }
@@ -1413,6 +1431,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
+                RecordBackgroundError(ex);
                 _logger.ConditionRefreshFailed(ex);
             }
         }
@@ -1578,6 +1597,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (Exception ex)
             {
+                RecordBackgroundError(ex);
                 _logger.CyclicReadSynchronizationFailed(ex);
             }
             finally
@@ -2345,6 +2365,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (Exception ex)
             {
+                RecordBackgroundError(ex);
                 _logger.HeartbeatFailed(ex, binding.Name);
             }
         }
@@ -2400,6 +2421,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                     catch (Exception ex) when (ex is not OperationCanceledException)
                     {
+                        RecordBackgroundError(ex);
                         _logger.ConditionRefreshFailed(ex);
                     }
                     return;
@@ -2876,6 +2898,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (Exception ex)
             {
+                RecordBackgroundError(ex);
                 _logger.WatchdogFailed(ex);
             }
         }
@@ -3054,6 +3077,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             catch (Exception ex)
             {
+                RecordBackgroundError(ex);
                 _logger.ModelChangeBrowserFailed(ex, binding.Owner.GetType().Name);
             }
         }
@@ -3061,6 +3085,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private void ThrowIfDisposed()
         {
             ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) != 0, this);
+        }
+
+        private void RecordBackgroundError(Exception exception)
+        {
+            Volatile.Write(ref _backgroundError, exception);
         }
 
         private readonly record struct CyclicReadGroupKey(
@@ -3170,6 +3199,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                     catch (Exception ex)
                     {
+                        _adapter.RecordBackgroundError(ex);
                         _adapter._logger.CyclicReadFailed(ex);
                         var status = new ServiceResult(ex).StatusCode;
                         values = Enumerable.Repeat(
@@ -3201,6 +3231,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                     catch (Exception ex)
                     {
+                        _adapter.RecordBackgroundError(ex);
                         _adapter._logger.CyclicReadFailed(ex);
                     }
 
@@ -4306,6 +4337,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 #pragma warning restore CA2213 // Disposable fields should be disposed
         private PendingInitialApply? _pendingInitialApply;
         private Task? _cyclicReadSyncTask;
+        private Exception? _backgroundError;
         private int _cyclicReadStateDirty;
         private int _disposed;
         private int _nextItemName;
