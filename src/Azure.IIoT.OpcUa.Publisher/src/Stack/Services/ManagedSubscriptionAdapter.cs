@@ -143,6 +143,102 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         internal int RetryCount => _retryScheduler.Count;
 
         /// <summary>
+        /// Captures the current managed subscription diagnostics for an owner.
+        /// </summary>
+        internal ManagedSubscriptionDiagnosticsSnapshot GetDiagnostics(
+            ISubscriber owner)
+        {
+            ArgumentNullException.ThrowIfNull(owner);
+            var monitoredItems = 0;
+            var applied = 0;
+            var pending = 0;
+            var retrying = 0;
+            var terminal = 0;
+            var cyclic = 0;
+            var heartbeats = 0;
+            var conditions = 0;
+            var late = 0;
+            foreach (var binding in GetBindings().Where(binding =>
+                binding.Owner.Equals(owner)))
+            {
+                var state = binding.CaptureApplyState(
+                    TryGetMonitoredItem(binding, out var monitoredItem)
+                        ? monitoredItem
+                        : null);
+                if (!state.Registered)
+                {
+                    continue;
+                }
+                monitoredItems++;
+                if (state.Applied)
+                {
+                    applied++;
+                }
+                else if (state.Pending)
+                {
+                    pending++;
+                }
+                else if (_retryScheduler.IsRetrying(binding.Name))
+                {
+                    retrying++;
+                }
+                else
+                {
+                    terminal++;
+                }
+                if (binding.IsCyclicRead)
+                {
+                    cyclic++;
+                }
+                if (binding.HeartbeatEnabled)
+                {
+                    heartbeats++;
+                }
+                if (state.Applied && binding.Condition != null)
+                {
+                    conditions++;
+                }
+                if (binding.WatchdogEligible && binding.IsLate)
+                {
+                    late++;
+                }
+            }
+            bool watchdogEnabled;
+            lock (_watchdogLock)
+            {
+                watchdogEnabled = _watchdogEnabled;
+            }
+            var groups = Volatile.Read(ref _cyclicReadGroups).Count;
+            var partitionCount = _subscription is IPartitionedSubscription partitioned
+                ? partitioned.PartitionCount
+                : 1;
+            return new ManagedSubscriptionDiagnosticsSnapshot(
+                monitoredItems, applied, pending, retrying, terminal,
+                cyclic, groups, heartbeats, conditions, late,
+                partitionCount, RetryCount,
+                _subscriptionOptions.CurrentValue.PublishingEnabled,
+                watchdogEnabled,
+                Volatile.Read(ref _watchdogResetInProgress) != 0);
+        }
+
+        /// <summary>
+        /// Gets the number of applied monitored items for an owner.
+        /// </summary>
+        internal int GetGoodMonitoredItems(ISubscriber owner)
+        {
+            return GetDiagnostics(owner).AppliedMonitoredItems;
+        }
+
+        /// <summary>
+        /// Gets the number of unapplied monitored items for an owner.
+        /// </summary>
+        internal int GetBadMonitoredItems(ISubscriber owner)
+        {
+            var diagnostics = GetDiagnostics(owner);
+            return diagnostics.MonitoredItems - diagnostics.AppliedMonitoredItems;
+        }
+
+        /// <summary>
         /// Gets the effective condition timing state for an item binding.
         /// </summary>
         internal bool TryGetConditionIntervals(uint clientHandle,
@@ -176,9 +272,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         internal int GetHeartbeatsEnabled(ISubscriber owner)
         {
-            ArgumentNullException.ThrowIfNull(owner);
-            return GetBindings().Count(binding =>
-                binding.Owner.Equals(owner) && binding.HeartbeatEnabled);
+            return GetDiagnostics(owner).HeartbeatsEnabled;
         }
 
         /// <summary>
@@ -186,10 +280,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         internal int GetLateMonitoredItems(ISubscriber owner)
         {
-            ArgumentNullException.ThrowIfNull(owner);
-            return GetBindings().Count(binding =>
-                binding.Owner.Equals(owner) && binding.WatchdogEligible &&
-                binding.IsLate);
+            return GetDiagnostics(owner).LateMonitoredItems;
+        }
+
+        /// <summary>
+        /// Gets the number of active condition items for an owner.
+        /// </summary>
+        internal int GetConditionsEnabled(ISubscriber owner)
+        {
+            return GetDiagnostics(owner).ConditionsEnabled;
         }
 
         /// <summary>
@@ -3384,6 +3483,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
 
+            public (bool Registered, bool Applied, bool Pending) CaptureApplyState(
+                IMonitoredItem? monitoredItem)
+            {
+                bool registered;
+                lock (_dataLock)
+                {
+                    registered = Registered;
+                    if (monitoredItem == null)
+                    {
+                        return (registered, _applied, _applyPending);
+                    }
+                }
+                var pending = HasPendingChanges(monitoredItem);
+                var applied = !pending &&
+                    monitoredItem.Created &&
+                    ServiceResult.IsGood(monitoredItem.Error) &&
+                    monitoredItem.CurrentMonitoringMode ==
+                        Monitor.CurrentValue.MonitoringMode;
+                return (registered, applied, pending);
+            }
+
             public ManagedItemRetryTarget CaptureRetryTarget()
             {
                 lock (_dataLock)
@@ -4216,6 +4336,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             "Change"
         ];
     }
+
+    internal readonly record struct ManagedSubscriptionDiagnosticsSnapshot(
+        int MonitoredItems,
+        int AppliedMonitoredItems,
+        int PendingMonitoredItems,
+        int RetryingMonitoredItems,
+        int TerminalMonitoredItems,
+        int CyclicMonitoredItems,
+        int CyclicWorkerCount,
+        int HeartbeatsEnabled,
+        int ConditionsEnabled,
+        int LateMonitoredItems,
+        int PartitionCount,
+        int RetryCount,
+        bool PublishingEnabled,
+        bool WatchdogEnabled,
+        bool WatchdogResetInProgress);
 
     /// <summary>
     /// Source-generated logging for the managed subscription adapter.

@@ -356,6 +356,42 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             session.SetupGet(s => s.LastKeepAliveTime).Returns(DateTime.UnixEpoch);
             session.SetupGet(s => s.SubscriptionCount).Returns(4);
             session.SetupGet(s => s.OutstandingRequestCount).Returns(5);
+            session.SetupGet(s => s.DefunctRequestCount).Returns(2);
+            session.SetupGet(s => s.GoodPublishRequestCount).Returns(3);
+            session.SetupGet(s => s.MinPublishRequestCount).Returns(4);
+            var monitoredItems = Enumerable.Range(0, 6)
+                .Select(index =>
+                {
+                    var item = new Mock<IMonitoredItem>();
+                    item.SetupGet(monitoredItem => monitoredItem.CurrentMonitoringMode)
+                        .Returns(index == 0
+                            ? Opc.Ua.MonitoringMode.Disabled
+                            : Opc.Ua.MonitoringMode.Reporting);
+                    return item.Object;
+                })
+                .ToArray();
+            var collection = new Mock<IMonitoredItemCollection>();
+            collection.SetupGet(items => items.Count).Returns(6);
+            collection.SetupGet(items => items.Items).Returns(monitoredItems);
+            var subscription = new Mock<IPartitionedSubscription>();
+            subscription.SetupGet(item => item.PartitionCount).Returns(4);
+            subscription.SetupGet(item => item.PartitionIds)
+                .Returns([100u, 101u, 102u, 103u]);
+            subscription.SetupGet(item => item.CurrentPriority).Returns(7);
+            subscription.SetupGet(item => item.CurrentPublishingInterval)
+                .Returns(TimeSpan.FromMilliseconds(500));
+            subscription.SetupGet(item => item.CurrentKeepAliveCount).Returns(10);
+            subscription.SetupGet(item => item.CurrentLifetimeCount).Returns(30);
+            subscription.SetupGet(item => item.CurrentMaxNotificationsPerPublish)
+                .Returns(50);
+            subscription.SetupGet(item => item.CurrentPublishingEnabled).Returns(true);
+            subscription.SetupGet(item => item.MonitoredItems).Returns(collection.Object);
+            subscription.SetupGet(item => item.RepublishMessageCount).Returns(9);
+            var subscriptions = new Mock<ISubscriptionManager>();
+            subscriptions.SetupGet(item => item.Items).Returns([subscription.Object]);
+            subscriptions.SetupGet(item => item.PublishWorkerCount).Returns(7);
+            ISubscriptionManager manager = subscriptions.Object;
+            session.Setup(item => item.TryGetSubscriptionManager(out manager)).Returns(true);
             SetupOperationLimitsRead(session);
             var connection = new FakeConnection(session.Object);
             await using var facade = new ManagedOpcUaSession(connection, CreateTelemetry());
@@ -369,7 +405,48 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Assert.Equal("managed", diagnostics.SessionName);
             Assert.Equal(2000, diagnostics.ActualSessionTimeout);
             Assert.Equal(4u, diagnostics.CurrentSubscriptionsCount);
+            Assert.Equal(6u, diagnostics.CurrentMonitoredItemsCount);
             Assert.Equal(5u, diagnostics.CurrentPublishRequestsInQueue);
+            var subscriptionDiagnostics = Assert.Single(diagnostics.Subscriptions);
+            Assert.Equal(100u, subscriptionDiagnostics.SubscriptionId);
+            Assert.Equal((byte)7, subscriptionDiagnostics.Priority);
+            Assert.Equal(500d, subscriptionDiagnostics.PublishingInterval);
+            Assert.Equal(6u, subscriptionDiagnostics.MonitoredItemCount);
+            Assert.Equal(1u, subscriptionDiagnostics.DisabledMonitoredItemCount);
+            Assert.Equal(9u, subscriptionDiagnostics.RepublishRequestCount);
+            Assert.Equal(2, facade.BadPublishRequestCount);
+            Assert.Equal(3, facade.GoodPublishRequestCount);
+            Assert.Equal(4, facade.MinPublishRequestCount);
+            Assert.Equal(5, facade.OutstandingRequestCount);
+            Assert.Equal(4, facade.ServerSubscriptionCount);
+            Assert.Equal(7, facade.PublishWorkerCount);
+        }
+
+        [Fact]
+        public async Task FacadeTracksKeepAliveDiagnosticsAsync()
+        {
+            var session = CreateSession(out _, out _, connected: true);
+            var connection = new FakeConnection(session.Object);
+            await using var facade = new ManagedOpcUaSession(connection, CreateTelemetry());
+
+            session.Raise(item => item.KeepAlive += null!,
+                session.Object,
+                new KeepAliveEventArgs(null, ServerState.Running, DateTime.UtcNow));
+            session.Raise(item => item.KeepAlive += null!,
+                session.Object,
+                new KeepAliveEventArgs(null, ServerState.Running, DateTime.UtcNow));
+
+            Assert.Equal(2, facade.KeepAliveCounter);
+            Assert.Equal(2, facade.KeepAliveTotal);
+
+            session.Raise(item => item.KeepAlive += null!,
+                session.Object,
+                new KeepAliveEventArgs(
+                    new ServiceResult(StatusCodes.BadNoCommunication),
+                    ServerState.Unknown, DateTime.UtcNow));
+
+            Assert.Equal(0, facade.KeepAliveCounter);
+            Assert.Equal(3, facade.KeepAliveTotal);
         }
 
         /// <summary>
@@ -850,6 +927,133 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Assert.Equal(42, result);
             Assert.Equal(1, provider.ConnectCount);
             Assert.Equal(1, closeCount);
+        }
+
+        [Fact]
+        public async Task ManagedRuntimeProjectsLiveClientDiagnosticsAsync()
+        {
+            var session = CreateSession(out _, out _, connected: true);
+            session.SetupGet(item => item.DefunctRequestCount).Returns(2);
+            session.SetupGet(item => item.GoodPublishRequestCount).Returns(3);
+            session.SetupGet(item => item.OutstandingRequestCount).Returns(4);
+            session.SetupGet(item => item.MinPublishRequestCount).Returns(5);
+            session.SetupGet(item => item.SubscriptionCount).Returns(6);
+            var connection = new FakeConnection(session.Object);
+            var provider = new FakeProvider(connection);
+            var request = CreateRequest("opc.tcp://localhost:4858");
+            await using var strategy = new ManagedSessionRuntimeStrategy(provider,
+                CreateTelemetry(), new FixedRequestFactory(request));
+            using var reverseConnectManager = new ReverseConnectManager(CreateTelemetry());
+            using var runtime = strategy.Create(CreateRuntimeContext(
+                request.Connection,
+                Options.Create(new OpcUaClientOptions()),
+                Options.Create(new OpcUaSubscriptionOptions()),
+                reverseConnectManager));
+            runtime.AddRef();
+
+            using var handle = await runtime.AcquireAsync(null, null, default);
+            var diagnostics = Assert.IsAssignableFrom<IOpcUaClientDiagnostics>(runtime);
+
+            Assert.Equal(2, diagnostics.BadPublishRequestCount);
+            Assert.Equal(3, diagnostics.GoodPublishRequestCount);
+            Assert.Equal(4, diagnostics.OutstandingRequestCount);
+            Assert.Equal(5, diagnostics.MinPublishRequestCount);
+            Assert.Equal(6, diagnostics.SubscriptionCount);
+            Assert.Equal(EndpointConnectivityState.Ready, diagnostics.State);
+            Assert.Equal(1, diagnostics.ConnectCount);
+
+            session.Raise(item => item.KeepAlive += null!,
+                session.Object,
+                new KeepAliveEventArgs(null, ServerState.Running, DateTime.UtcNow));
+            Assert.Equal(1, diagnostics.KeepAliveCounter);
+            Assert.Equal(1, diagnostics.KeepAliveTotal);
+
+            connection.Raise(ConnectionState.Reconnecting);
+            Assert.True(diagnostics.ReconnectTriggered);
+            Assert.Equal(1, diagnostics.ReconnectCount);
+            Assert.Equal(0, diagnostics.KeepAliveCounter);
+
+            connection.Raise(ConnectionState.Connected);
+            Assert.False(diagnostics.ReconnectTriggered);
+            Assert.Equal(2, diagnostics.ConnectCount);
+        }
+
+        [Fact]
+        public async Task ManagedRegistrationProjectsAdapterDiagnosticsAsync()
+        {
+            var session = CreateSession(out _, out _, connected: true);
+            var name = string.Empty;
+            var error = ServiceResult.Good;
+            var monitoredItem = new Mock<IMonitoredItem>();
+            monitoredItem.SetupGet(item => item.Name).Returns(() => name);
+            monitoredItem.SetupGet(item => item.ClientHandle).Returns(1);
+            monitoredItem.SetupGet(item => item.Created).Returns(true);
+            monitoredItem.SetupGet(item => item.Error).Returns(() => error);
+            monitoredItem.SetupGet(item => item.CurrentMonitoringMode)
+                .Returns(Opc.Ua.MonitoringMode.Reporting);
+            monitoredItem.As<IMonitoredItemApplyState>()
+                .SetupGet(item => item.HasPendingChanges).Returns(false);
+            var collection = new Mock<IMonitoredItemCollection>();
+            collection.SetupGet(items => items.Count).Returns(1);
+            collection.SetupGet(items => items.Items).Returns([monitoredItem.Object]);
+            collection.Setup(items => items.Update(It.IsAny<IReadOnlyList<(
+                    string Name,
+                    IOptionsMonitor<ManagedMonitoredItemOptions> Options)>>()))
+                .Returns((IReadOnlyList<(
+                    string Name,
+                    IOptionsMonitor<ManagedMonitoredItemOptions> Options)> state) =>
+                {
+                    name = state[0].Name;
+                    return [monitoredItem.Object];
+                });
+            IMonitoredItem item = monitoredItem.Object;
+            collection.Setup(items => items.TryGetMonitoredItemByClientHandle(
+                    1, out item))
+                .Returns(true);
+            var subscription = new Mock<Opc.Ua.Client.Subscriptions.ISubscription>();
+            subscription.SetupGet(item => item.Created).Returns(true);
+            subscription.SetupGet(item => item.CurrentPublishingEnabled).Returns(true);
+            subscription.SetupGet(item => item.MonitoredItems).Returns(collection.Object);
+            var manager = new Mock<ISubscriptionManager>();
+            ISubscriptionNotificationHandler? handler = null;
+            manager.Setup(item => item.Add(
+                    It.IsAny<ISubscriptionNotificationHandler>(),
+                    It.IsAny<IOptionsMonitor<
+                        Opc.Ua.Client.Subscriptions.SubscriptionOptions>>()))
+                .Callback((ISubscriptionNotificationHandler value,
+                    IOptionsMonitor<Opc.Ua.Client.Subscriptions.SubscriptionOptions> _) =>
+                    handler = value)
+                .Returns(subscription.Object);
+            ISubscriptionManager subscriptionManager = manager.Object;
+            session.Setup(item => item.TryGetSubscriptionManager(out subscriptionManager))
+                .Returns(true);
+            var request = CreateRequest("opc.tcp://localhost:4859");
+            var provider = new FakeProvider(new FakeConnection(session.Object));
+            await using var strategy = new ManagedSessionRuntimeStrategy(provider,
+                CreateTelemetry(), new FixedRequestFactory(request));
+            using var reverseConnectManager = new ReverseConnectManager(CreateTelemetry());
+            using var runtime = strategy.Create(CreateRuntimeContext(
+                request.Connection,
+                Options.Create(new OpcUaClientOptions()),
+                Options.Create(new OpcUaSubscriptionOptions()),
+                reverseConnectManager));
+            runtime.AddRef();
+            var subscriber = new Mock<ISubscriber>();
+            subscriber.SetupGet(item => item.MonitoredItems).Returns(
+                [new DataMonitoredItemModel { StartNodeId = "ns=2;s=value" }]);
+
+            await using var registration = await runtime.RegisterAsync(
+                new SubscriptionModel(), subscriber.Object, default);
+
+            Assert.Equal(1, registration.Diagnostics.GoodMonitoredItems);
+            Assert.Equal(0, registration.Diagnostics.BadMonitoredItems);
+
+            error = new ServiceResult(StatusCodes.BadNodeIdUnknown);
+            await handler!.OnSubscriptionStateChangedAsync(subscription.Object,
+                Opc.Ua.Client.Subscriptions.SubscriptionState.Modified, default);
+
+            Assert.Equal(0, registration.Diagnostics.GoodMonitoredItems);
+            Assert.Equal(1, registration.Diagnostics.BadMonitoredItems);
         }
 
         /// <summary>

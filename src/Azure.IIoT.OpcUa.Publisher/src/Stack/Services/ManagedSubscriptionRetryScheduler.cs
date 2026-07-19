@@ -67,6 +67,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
+        public bool IsRetrying(string name)
+        {
+            lock (_lock)
+            {
+                return _states.TryGetValue(name, out var state) &&
+                    state.Delay != TimeSpan.MaxValue;
+            }
+        }
+
         public void Update(ManagedItemRetryTarget target)
         {
             if (Volatile.Read(ref _disposed) != 0)

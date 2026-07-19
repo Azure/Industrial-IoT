@@ -136,6 +136,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Assert.Equal(Opc.Ua.MonitoringMode.Disabled,
                 monitoredItem.CurrentMonitoringMode);
             Assert.False(manager.CapturedOptionsMonitor!.CurrentValue.PublishingEnabled);
+            var diagnostics = adapter.GetDiagnostics(owner);
+            Assert.Equal(1, diagnostics.MonitoredItems);
+            Assert.Equal(1, diagnostics.AppliedMonitoredItems);
+            Assert.Equal(1, diagnostics.CyclicMonitoredItems);
+            Assert.Equal(1, diagnostics.CyclicWorkerCount);
+            Assert.False(diagnostics.PublishingEnabled);
 
             var call = await readClient.ReadNextAsync()
                 .AsTask().WaitAsync(TimeSpan.FromSeconds(5));
@@ -270,6 +276,67 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Assert.Equal(0, adapter.RetryCount);
             Assert.Equal(2, owner.Updates.Count);
             Assert.Null(owner.Updates[^1]);
+        }
+
+        [Fact]
+        public async Task DiagnosticsClassifyManagedItemLifecycle()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions());
+            manager.Subscription!.PartitionCount = 3;
+            var owner = new FakeSubscriber();
+            await adapter.UpdateAsync(
+            [
+                (owner, CreateDataItem("ns=2;s=heartbeat") with
+                {
+                    HeartbeatInterval = TimeSpan.FromMinutes(1)
+                }),
+                (owner, CreateConditionItem("condition", 1, 1)),
+                (owner, CreateDataItem("ns=2;s=terminal"))
+            ]);
+
+            var initial = adapter.GetDiagnostics(owner);
+            Assert.Equal(3, initial.MonitoredItems);
+            Assert.Equal(3, initial.AppliedMonitoredItems);
+            Assert.Equal(0, initial.PendingMonitoredItems);
+            Assert.Equal(0, initial.RetryingMonitoredItems);
+            Assert.Equal(0, initial.TerminalMonitoredItems);
+            Assert.Equal(1, initial.HeartbeatsEnabled);
+            Assert.Equal(1, initial.ConditionsEnabled);
+            Assert.Equal(3, initial.PartitionCount);
+            Assert.Equal(3, adapter.GetGoodMonitoredItems(owner));
+            Assert.Equal(0, adapter.GetBadMonitoredItems(owner));
+            Assert.Equal(1, adapter.GetConditionsEnabled(owner));
+
+            var items = manager.Subscription.Collection.Items
+                .Cast<FakeMonitoredItem>()
+                .ToArray();
+            var retrying = items.Single(item =>
+                item.Options.StartNodeId == new NodeId("conditions", 2));
+            retrying.Error = new ServiceResult(StatusCodes.BadNodeIdUnknown);
+            var terminal = items.Single(item =>
+                item.Options.StartNodeId == new NodeId("terminal", 2));
+            terminal.Error =
+                new ServiceResult(StatusCodes.BadTooManyMonitoredItems);
+            await manager.Handler.OnSubscriptionStateChangedAsync(
+                manager.Subscription, SubscriptionState.Modified, default);
+
+            var failed = adapter.GetDiagnostics(owner);
+            Assert.Equal(1, failed.AppliedMonitoredItems);
+            Assert.Equal(0, failed.PendingMonitoredItems);
+            Assert.Equal(1, failed.RetryingMonitoredItems);
+            Assert.Equal(1, failed.TerminalMonitoredItems);
+            Assert.Equal(1, adapter.GetGoodMonitoredItems(owner));
+            Assert.Equal(2, adapter.GetBadMonitoredItems(owner));
+
+            await adapter.FlushRetriesAsync();
+
+            var pending = adapter.GetDiagnostics(owner);
+            Assert.Equal(1, pending.AppliedMonitoredItems);
+            Assert.Equal(1, pending.PendingMonitoredItems);
+            Assert.Equal(0, pending.RetryingMonitoredItems);
+            Assert.Equal(1, pending.TerminalMonitoredItems);
         }
 
         [Fact]
@@ -915,6 +982,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             adapter.FlushWatchdog();
 
             Assert.Equal(1, adapter.GetLateMonitoredItems(owner));
+            var diagnostics = adapter.GetDiagnostics(owner);
+            Assert.True(diagnostics.WatchdogEnabled);
+            Assert.Equal(1, diagnostics.LateMonitoredItems);
             Assert.Empty(actions);
         }
 

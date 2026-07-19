@@ -272,17 +272,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
         }
-        public int BadPublishRequestCount => 0;
-        public int GoodPublishRequestCount => 0;
-        public int OutstandingRequestCount => 0;
-        public int SubscriptionCount => Volatile.Read(ref _subscriptionCount);
+        public int BadPublishRequestCount =>
+            GetDiagnosticSession()?.BadPublishRequestCount ?? 0;
+        public int GoodPublishRequestCount =>
+            GetDiagnosticSession()?.GoodPublishRequestCount ?? 0;
+        public int OutstandingRequestCount =>
+            GetDiagnosticSession()?.OutstandingRequestCount ?? 0;
+        public int SubscriptionCount =>
+            GetDiagnosticSession()?.ServerSubscriptionCount ??
+                Volatile.Read(ref _subscriptionCount);
         public EndpointConnectivityState State => _state;
-        public int ReconnectCount => _reconnectCount;
+        public int ReconnectCount => Volatile.Read(ref _reconnectCount);
         public bool ReconnectTriggered => _state == EndpointConnectivityState.Connecting;
-        public int ConnectCount => _connectCount;
-        public int MinPublishRequestCount => 0;
-        public int KeepAliveCounter => 0;
-        public int KeepAliveTotal => 0;
+        public int ConnectCount => Volatile.Read(ref _connectCount);
+        public int MinPublishRequestCount =>
+            GetDiagnosticSession()?.MinPublishRequestCount ?? 0;
+        public int KeepAliveCounter =>
+            GetDiagnosticSession()?.KeepAliveCounter ?? 0;
+        public int KeepAliveTotal =>
+            GetDiagnosticSession()?.KeepAliveTotal ?? 0;
 
         public async Task<ISessionHandle> AcquireAsync(int? connectTimeout,
             int? serviceCallTimeout, CancellationToken ct)
@@ -508,6 +516,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         session.OnConnectionStateChange -= OnConnectionStateChanged;
                     }
                     _observedSessions.Clear();
+                }
+                lock (_diagnosticsGate)
+                {
+                    _diagnosticSession = null;
                 }
                 _state = EndpointConnectivityState.Disconnected;
             }
@@ -1266,6 +1278,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             };
             lock (_diagnosticsGate)
             {
+                _diagnosticSession = session;
                 if (string.Equals(_lastDiagnostics.SessionId, diagnostics.SessionId,
                     StringComparison.Ordinal) &&
                     _lastDiagnostics.SessionCreated == diagnostics.SessionCreated)
@@ -1275,6 +1288,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _lastDiagnostics = diagnostics;
             }
             _context.DiagnosticsCallback(diagnostics);
+        }
+
+        private ManagedOpcUaSession? GetDiagnosticSession()
+        {
+            lock (_diagnosticsGate)
+            {
+                return _diagnosticSession;
+            }
         }
 
         private TimeSpan GetServiceCallTimeout(int? serviceCallTimeout)
@@ -1414,12 +1435,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             public IOpcUaClientDiagnostics ClientDiagnostics => _owner;
             public ISubscriptionDiagnostics Diagnostics => this;
-            public int GoodMonitoredItems => Owner.MonitoredItems.Count();
-            public int BadMonitoredItems => 0;
+            public int GoodMonitoredItems =>
+                State.Adapter.GetGoodMonitoredItems(Owner);
+            public int BadMonitoredItems =>
+                State.Adapter.GetBadMonitoredItems(Owner);
             public int LateMonitoredItems => State.Adapter.GetLateMonitoredItems(Owner);
             public int HeartbeatsEnabled => State.Adapter.GetHeartbeatsEnabled(Owner);
-            public int ConditionsEnabled => Owner.MonitoredItems.OfType<EventMonitoredItemModel>()
-                .Count(item => item.ConditionHandling?.SnapshotInterval != null);
+            public int ConditionsEnabled => State.Adapter.GetConditionsEnabled(Owner);
             public ISubscriber Owner { get; }
             public ManagedSubscriptionState State { get; }
 
@@ -1506,6 +1528,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private int _references;
         private int _subscriptionCount;
         private bool _closing;
+        private ManagedOpcUaSession? _diagnosticSession;
         private ChannelDiagnosticModel _lastDiagnostics;
         private EndpointConnectivityState _state = EndpointConnectivityState.Disconnected;
         private readonly OpcUaClientRuntimeContext _context;

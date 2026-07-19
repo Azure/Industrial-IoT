@@ -57,6 +57,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ConnectivityState = session.Connected ?
                 EndpointConnectivityState.Ready :
                 EndpointConnectivityState.Disconnected;
+            session.KeepAlive += OnKeepAlive;
             _connection.ConnectionStateChanged += OnConnectionStateChanged;
 
             // Do not allow pooled notification instances to outlive dispatch.
@@ -115,6 +116,48 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Time the facade was created.
         /// </summary>
         internal DateTimeOffset CreatedAt { get; }
+
+        internal int BadPublishRequestCount =>
+            Volatile.Read(ref _disposed) == 0
+                ? _connection.Session.DefunctRequestCount
+                : 0;
+
+        internal int GoodPublishRequestCount =>
+            Volatile.Read(ref _disposed) == 0
+                ? _connection.Session.GoodPublishRequestCount
+                : 0;
+
+        internal int OutstandingRequestCount =>
+            Volatile.Read(ref _disposed) == 0
+                ? _connection.Session.OutstandingRequestCount
+                : 0;
+
+        internal int MinPublishRequestCount =>
+            Volatile.Read(ref _disposed) == 0
+                ? _connection.Session.MinPublishRequestCount
+                : 0;
+
+        internal int KeepAliveCounter => Volatile.Read(ref _keepAliveCounter);
+
+        internal int KeepAliveTotal => Volatile.Read(ref _keepAliveTotal);
+
+        internal int ServerSubscriptionCount =>
+            Volatile.Read(ref _disposed) == 0
+                ? GetServerSubscriptionCount(_connection.Session)
+                : 0;
+
+        internal int PublishWorkerCount
+        {
+            get
+            {
+                if (Volatile.Read(ref _disposed) == 0 &&
+                    _connection.Session.TryGetSubscriptionManager(out var manager))
+                {
+                    return manager.PublishWorkerCount;
+                }
+                return 0;
+            }
+        }
 
         /// <summary>
         /// The current managed-session connectivity state mapped to Publisher state.
@@ -206,15 +249,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             ct.ThrowIfCancellationRequested();
             var session = _connection.Session;
+            ISubscriptionManager? manager = null;
+            var subscriptions = session.TryGetSubscriptionManager(out manager)
+                ? manager.Items.ToArray()
+                : [];
             return ValueTask.FromResult(new SessionDiagnosticsModel
             {
                 SessionId = session.SessionId.AsString(MessageContext, NamespaceFormat.Expanded),
                 SessionName = session.SessionName,
                 ServerUri = session.Endpoint.Server?.ApplicationUri,
                 ActualSessionTimeout = session.SessionTimeout,
+                ConnectTime = CreatedAt.UtcDateTime,
                 LastContactTime = session.LastKeepAliveTime,
-                CurrentSubscriptionsCount = (uint)session.SubscriptionCount,
-                CurrentPublishRequestsInQueue = (uint)session.OutstandingRequestCount
+                CurrentSubscriptionsCount = ToUInt32(manager == null
+                    ? session.SubscriptionCount
+                    : subscriptions.Sum(GetPartitionCount)),
+                CurrentMonitoredItemsCount = manager == null
+                    ? 0
+                    : ToUInt32(subscriptions.Sum(subscription =>
+                        (long)subscription.MonitoredItems.Count)),
+                CurrentPublishRequestsInQueue =
+                    ToUInt32(session.OutstandingRequestCount),
+                Subscriptions = subscriptions.Length == 0
+                    ? null
+                    : subscriptions.Select(ToDiagnostics).ToArray()
             });
         }
 
@@ -408,6 +466,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             _connection.ConnectionStateChanged -= OnConnectionStateChanged;
+            _connection.Session.KeepAlive -= OnKeepAlive;
             LruNodeCache.Clear();
             _complexTypeGate.Dispose();
             List<Exception>? exceptions = null;
@@ -458,6 +517,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _ => EndpointConnectivityState.Connecting
             };
             ConnectivityState = state;
+            if (state != EndpointConnectivityState.Ready)
+            {
+                Interlocked.Exchange(ref _keepAliveCounter, 0);
+            }
             if (state == EndpointConnectivityState.Ready)
             {
                 lock (_browsers)
@@ -470,6 +533,76 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             _connectionStateChange?.Invoke(this,
                 new EndpointConnectivityStateEventArgs(state));
+        }
+
+        private void OnKeepAlive(ISession session, KeepAliveEventArgs e)
+        {
+            _ = session;
+            if (Volatile.Read(ref _disposed) != 0)
+            {
+                return;
+            }
+            Interlocked.Increment(ref _keepAliveTotal);
+            if (ServiceResult.IsBad(e.Status))
+            {
+                Interlocked.Exchange(ref _keepAliveCounter, 0);
+            }
+            else
+            {
+                Interlocked.Increment(ref _keepAliveCounter);
+            }
+        }
+
+        private static int GetServerSubscriptionCount(ISession session)
+        {
+            return session.TryGetSubscriptionManager(out var manager)
+                ? manager.Items.Sum(GetPartitionCount)
+                : session.SubscriptionCount;
+        }
+
+        private static int GetPartitionCount(
+            Opc.Ua.Client.Subscriptions.ISubscription subscription)
+        {
+            return subscription is IPartitionedSubscription partitioned
+                ? partitioned.PartitionCount
+                : 1;
+        }
+
+        private static SubscriptionDiagnosticsModel ToDiagnostics(
+            Opc.Ua.Client.Subscriptions.ISubscription subscription)
+        {
+            var items = subscription.MonitoredItems.Items.ToArray();
+            var subscriptionId =
+                subscription is IPartitionedSubscription partitioned &&
+                partitioned.PartitionIds.Count != 0
+                    ? partitioned.PartitionIds[0]
+                    : 0;
+            return new SubscriptionDiagnosticsModel
+            {
+                SubscriptionId = subscriptionId,
+                Priority = subscription.CurrentPriority,
+                PublishingInterval =
+                    subscription.CurrentPublishingInterval.TotalMilliseconds,
+                MaxKeepAliveCount = subscription.CurrentKeepAliveCount,
+                MaxLifetimeCount = subscription.CurrentLifetimeCount,
+                MaxNotificationsPerPublish =
+                    subscription.CurrentMaxNotificationsPerPublish,
+                PublishingEnabled = subscription.CurrentPublishingEnabled,
+                MonitoredItemCount = (uint)items.Length,
+                DisabledMonitoredItemCount = (uint)items.Count(item =>
+                    item.CurrentMonitoringMode == Opc.Ua.MonitoringMode.Disabled),
+                RepublishRequestCount =
+                    ToUInt32(subscription.RepublishMessageCount)
+            };
+        }
+
+        private static uint ToUInt32(long value)
+        {
+            return value <= 0
+                ? 0
+                : value >= uint.MaxValue
+                    ? uint.MaxValue
+                    : (uint)value;
         }
 
         private async Task<OperationLimitsModel> FetchOperationLimitsAsync(
@@ -786,6 +919,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private HistoryServerCapabilitiesModel? _historyCapabilities;
         private EventHandler<EndpointConnectivityStateEventArgs>? _connectionStateChange;
         private int _disposed;
+        private int _keepAliveCounter;
+        private int _keepAliveTotal;
         private readonly IManagedSessionConnection _connection;
         private readonly Dictionary<(string, TimeSpan), OpcUaClient.Browser> _browsers = [];
         private readonly bool _disableComplexTypeLoading;
