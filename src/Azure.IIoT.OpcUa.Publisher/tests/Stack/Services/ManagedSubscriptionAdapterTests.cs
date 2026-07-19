@@ -178,7 +178,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         [Fact]
-        public async Task FailedDisabledCyclicItemDoesNotStartWorker()
+        public async Task FailedDisabledCyclicItemStartsOnlyAfterRetryApplies()
         {
             var manager = new FakeSubscriptionManager();
             var readClient = new FakeCyclicReadClient();
@@ -204,6 +204,72 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             await Task.Delay(100);
 
             Assert.Equal(0, readClient.CallCount);
+            Assert.Equal(1, adapter.RetryCount);
+            var failureUpdateCount = owner.Updates.Count;
+            Assert.True(failureUpdateCount > 0);
+            Assert.Equal(StatusCodes.BadNodeIdUnknown.Code,
+                owner.Updates[^1].StatusCode);
+
+            await adapter.FlushRetriesAsync();
+            Assert.Equal(1, manager.Subscription.Collection.RequeueCount);
+            Assert.True(monitoredItem.HasPendingChanges);
+            Assert.Equal(failureUpdateCount, owner.Updates.Count);
+
+            monitoredItem.Error = ServiceResult.Good;
+            monitoredItem.Created = true;
+            monitoredItem.CurrentMonitoringMode = Opc.Ua.MonitoringMode.Disabled;
+            await manager.Handler.OnSubscriptionStateChangedAsync(manager.Subscription,
+                SubscriptionState.Modified, default);
+            var call = await readClient.ReadNextAsync()
+                .AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+
+            Assert.Equal(new NodeId("cyclic", 2),
+                Assert.Single(call.Nodes).NodeId);
+            Assert.Equal(0, adapter.RetryCount);
+            Assert.Equal(failureUpdateCount + 1, owner.Updates.Count);
+            Assert.Null(owner.Updates[^1]);
+        }
+
+        [Fact]
+        public async Task UnappliedGoodItemRetriesWithoutReportingSuccess()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            manager.Subscription!.Collection.NewItemsCreated = false;
+
+            var update = adapter.UpdateAsync(
+                [(owner, CreateDataItem("ns=2;s=unapplied"))]).AsTask();
+            var monitoredItem = Assert.IsType<FakeMonitoredItem>(
+                Assert.Single(manager.Subscription.Collection.Items));
+            monitoredItem.CurrentMonitoringMode =
+                monitoredItem.Options.MonitoringMode;
+            await manager.Handler.OnSubscriptionStateChangedAsync(manager.Subscription,
+                SubscriptionState.Modified, default);
+            await update;
+
+            Assert.Equal(1, adapter.RetryCount);
+            var failure = Assert.Single(owner.Updates);
+            Assert.NotNull(failure);
+            Assert.Equal(StatusCodes.BadMonitoredItemIdInvalid.Code,
+                failure.StatusCode);
+
+            await adapter.FlushRetriesAsync();
+
+            Assert.Equal(1, manager.Subscription.Collection.RequeueCount);
+            Assert.True(monitoredItem.HasPendingChanges);
+            Assert.Single(owner.Updates);
+
+            monitoredItem.Created = true;
+            monitoredItem.CurrentMonitoringMode =
+                monitoredItem.Options.MonitoringMode;
+            await manager.Handler.OnSubscriptionStateChangedAsync(manager.Subscription,
+                SubscriptionState.Modified, default);
+
+            Assert.Equal(0, adapter.RetryCount);
+            Assert.Equal(2, owner.Updates.Count);
+            Assert.Null(owner.Updates[^1]);
         }
 
         [Fact]
@@ -608,6 +674,119 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 manager.Subscription!.Collection.Items).ClientHandle;
             Assert.Throws<InvalidOperationException>(() =>
                 adapter.TryRemove(handle));
+        }
+
+        [Fact]
+        public async Task RemovedFailedItemCancelsScheduledRetry()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            manager.Subscription!.Collection.NewItemsCreated = false;
+            var update = adapter.UpdateAsync(
+                [(owner, CreateDataItem("ns=2;s=failed"))]).AsTask();
+            var item = Assert.IsType<FakeMonitoredItem>(
+                Assert.Single(manager.Subscription.Collection.Items));
+            item.Error = new ServiceResult(StatusCodes.BadNodeIdUnknown);
+            await manager.Handler.OnSubscriptionStateChangedAsync(manager.Subscription,
+                SubscriptionState.Modified, default);
+            await update;
+            Assert.Equal(1, adapter.RetryCount);
+
+            await adapter.UpdateAsync([]);
+            await adapter.FlushRetriesAsync();
+
+            Assert.Equal(0, adapter.RetryCount);
+            Assert.Equal(0, manager.Subscription.Collection.RequeueCount);
+        }
+
+        [Fact]
+        public async Task DisabledInvalidRetryDoesNotRequeue()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions
+                {
+                    InvalidMonitoredItemRetryDelayDuration = TimeSpan.Zero
+                });
+            var owner = new FakeSubscriber();
+            manager.Subscription!.Collection.NewItemsCreated = false;
+            var update = adapter.UpdateAsync(
+                [(owner, CreateDataItem("ns=2;s=failed"))]).AsTask();
+            var item = Assert.IsType<FakeMonitoredItem>(
+                Assert.Single(manager.Subscription.Collection.Items));
+            item.Error = new ServiceResult(StatusCodes.BadNodeIdUnknown);
+            await manager.Handler.OnSubscriptionStateChangedAsync(manager.Subscription,
+                SubscriptionState.Modified, default);
+            await update;
+
+            await adapter.FlushRetriesAsync();
+
+            Assert.Equal(1, adapter.RetryCount);
+            Assert.Equal(0, manager.Subscription.Collection.RequeueCount);
+            Assert.False(item.HasPendingChanges);
+        }
+
+        [Fact]
+        public async Task UpdatedItemSupersedesScheduledRetry()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            manager.Subscription!.Collection.NewItemsCreated = false;
+            var failed = CreateDataItem("ns=2;s=old") with
+            {
+                DataSetFieldId = "stable"
+            };
+            var update = adapter.UpdateAsync([(owner, failed)]).AsTask();
+            var item = Assert.IsType<FakeMonitoredItem>(
+                Assert.Single(manager.Subscription.Collection.Items));
+            item.Error = new ServiceResult(StatusCodes.BadNodeIdUnknown);
+            await manager.Handler.OnSubscriptionStateChangedAsync(manager.Subscription,
+                SubscriptionState.Modified, default);
+            await update;
+            Assert.Equal(1, adapter.RetryCount);
+
+            item.Error = ServiceResult.Good;
+            item.Created = true;
+            await adapter.UpdateAsync(
+                [(owner, CreateDataItem("ns=2;s=new") with
+                {
+                    DataSetFieldId = "stable"
+                })]);
+            await adapter.FlushRetriesAsync();
+
+            Assert.Equal(0, adapter.RetryCount);
+            Assert.Equal(0, manager.Subscription.Collection.RequeueCount);
+        }
+
+        [Fact]
+        public async Task SubscriptionErrorSchedulesRecreateRetry()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            await adapter.UpdateAsync(
+                [(owner, CreateDataItem("ns=2;s=value"))]);
+            var item = Assert.IsType<FakeMonitoredItem>(
+                Assert.Single(manager.Subscription!.Collection.Items));
+            item.Error = new ServiceResult(StatusCodes.BadNotConnected);
+
+            await manager.Handler!.OnSubscriptionStateChangedAsync(
+                manager.Subscription!, SubscriptionState.Error, default);
+            Assert.Equal(1, adapter.RetryCount);
+
+            await adapter.FlushRetriesAsync();
+            Assert.Equal(1, manager.Subscription.RecreateCount);
+            Assert.Equal(0, manager.Subscription.Collection.RequeueCount);
+
+            item.Error = ServiceResult.Good;
+            await manager.Handler.OnSubscriptionStateChangedAsync(
+                manager.Subscription, SubscriptionState.Created, default);
+            Assert.Equal(0, adapter.RetryCount);
         }
 
         [Fact]
@@ -2590,6 +2769,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var update = owner.Updates.Last();
             Assert.NotNull(update);
             Assert.Equal(StatusCodes.BadTooManyMonitoredItems.Code, update!.StatusCode);
+            Assert.Equal(0, adapter.RetryCount);
 
             item.Error = ServiceResult.Good;
             await manager.Handler.OnSubscriptionStateChangedAsync(manager.Subscription,
@@ -2843,6 +3023,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public FakeCollection Collection { get; }
             public int DisposeCount { get; private set; }
             public int ConditionRefreshCount { get; private set; }
+            public int RecreateCount { get; private set; }
             public StatusCode TriggerServiceStatus { get; set; } = StatusCodes.Good;
             public StatusCode TriggerAddStatus { get; set; } = StatusCodes.Good;
             public StatusCode TriggerRemoveStatus { get; set; } = StatusCodes.Good;
@@ -2885,6 +3066,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             public ValueTask RecreateAsync(CancellationToken ct = default)
             {
+                RecreateCount++;
                 return ValueTask.CompletedTask;
             }
 
@@ -3048,11 +3230,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
-        private sealed class FakeCollection : IMonitoredItemCollection
+        private sealed class FakeCollection :
+            IMonitoredItemCollection,
+            IMonitoredItemRetryCollection
         {
             public uint Count => (uint)_items.Count;
             public IEnumerable<IMonitoredItem> Items => _items.Values;
             public bool NewItemsCreated { get; set; } = true;
+            public int RequeueCount { get; private set; }
 
             public FakeCollection(uint maxItems)
             {
@@ -3092,6 +3277,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     Created = NewItemsCreated
                 };
+                item.SetApplyPending(!NewItemsCreated);
                 _items.Add(item.ClientHandle, item);
                 monitoredItem = item;
                 return true;
@@ -3100,6 +3286,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public bool TryRemove(uint clientHandle)
             {
                 return _items.Remove(clientHandle);
+            }
+
+            public bool TryRequeue(uint clientHandle)
+            {
+                if (!_items.TryGetValue(clientHandle, out var item) ||
+                    item.HasPendingChanges)
+                {
+                    return false;
+                }
+                if (item.Created &&
+                    ServiceResult.IsGood(item.Error) &&
+                    item.CurrentMonitoringMode == item.Options.MonitoringMode)
+                {
+                    return false;
+                }
+                RequeueCount++;
+                item.Requeue();
+                return true;
             }
 
             public IReadOnlyList<IMonitoredItem> Update(
@@ -3136,7 +3340,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             public uint ClientHandle { get; }
             public string Name { get; }
-            public ServiceResult Error { get; set; } = ServiceResult.Good;
+            public ServiceResult Error
+            {
+                get => _error;
+                set
+                {
+                    _error = value;
+                    if (!ServiceResult.IsGood(value))
+                    {
+                        HasPendingChanges = false;
+                    }
+                }
+            }
             public MonitoredItemOptions Options { get; private set; }
             public bool ApplyOptionsImmediately { get; set; } = true;
             public bool HasPendingChanges { get; private set; }
@@ -3167,7 +3382,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             public uint Order => Options.Order;
             public uint ServerId => Created ? ClientHandle : 0;
-            public bool Created { get; set; } = true;
+            public bool Created
+            {
+                get => _created;
+                set
+                {
+                    _created = value;
+                    if (value)
+                    {
+                        HasPendingChanges = false;
+                    }
+                }
+            }
             public MonitoringFilterResult FilterResult => null;
             public Opc.Ua.MonitoringMode CurrentMonitoringMode
             {
@@ -3188,8 +3414,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 return ValueTask.CompletedTask;
             }
 
+            public void Requeue()
+            {
+                HasPendingChanges = true;
+            }
+
+            public void SetApplyPending(bool pending)
+            {
+                HasPendingChanges = pending;
+            }
+
             private readonly IDisposable _registration;
             private Opc.Ua.MonitoringMode _currentMonitoringMode;
+            private ServiceResult _error = ServiceResult.Good;
+            private bool _created = true;
         }
 
         private sealed class FakeCyclicReadClient : IManagedCyclicReadClient

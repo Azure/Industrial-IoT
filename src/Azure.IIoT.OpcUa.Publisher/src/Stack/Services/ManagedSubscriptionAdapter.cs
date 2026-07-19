@@ -91,6 +91,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _subscriptionOptions =
                 new MutableOptionsMonitor<ManagedSubscriptionOptions>(subscriptionOptions);
             _subscription = manager.Add(this, _subscriptionOptions);
+            _retryScheduler = new ManagedSubscriptionRetryScheduler(
+                options, _timeProvider, RetryAsync, _logger);
             if (periodicKeyFrameInterval.HasValue)
             {
                 _keyFrameTimer = _timeProvider.CreateTimer(OnKeyFrameTimer, null,
@@ -134,6 +136,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
         }
+
+        /// <summary>
+        /// The number of item or subscription retries currently tracked.
+        /// </summary>
+        internal int RetryCount => _retryScheduler.Count;
 
         /// <summary>
         /// Gets the effective condition timing state for an item binding.
@@ -583,6 +590,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
+        /// Runs all scheduled retries immediately.
+        /// </summary>
+        internal ValueTask FlushRetriesAsync(CancellationToken ct = default)
+        {
+            return _retryScheduler.ProcessAsync(force: true, ct);
+        }
+
+        /// <summary>
         /// Completes a previously started reset watchdog action.
         /// </summary>
         internal void CompleteWatchdogReset(bool succeeded)
@@ -775,19 +790,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             CancellationToken ct = default)
         {
             HandleWatchdogPublishState(subscription, state, publishStateMask);
+            Interlocked.Increment(ref _subscriptionStateVersion);
+            if (state == SubscriptionState.Error)
+            {
+                _retryScheduler.UpdateSubscription(failed: true);
+            }
+            else if (state is SubscriptionState.Created or SubscriptionState.Modified)
+            {
+                _retryScheduler.UpdateSubscription(failed: false);
+            }
             if (state is SubscriptionState.Created or SubscriptionState.Modified)
             {
                 QueuePublishingStateEvaluation();
             }
             var bindings = GetBindings();
+            var scheduleItemRetries = state != SubscriptionState.Error;
             foreach (var binding in bindings)
             {
                 if (TryGetMonitoredItem(binding, out var monitoredItem))
                 {
-                    binding.UpdateMonitoredItemStatus(monitoredItem!);
-                    InvokeSubscriber(binding.Owner, subscriber =>
-                        subscriber.OnMonitoredItemUpdate(binding.Template,
-                            ToServiceResult(monitoredItem!)));
+                    if (UpdateMonitoredItemStatus(binding, monitoredItem!,
+                        out var serviceResult, scheduleItemRetries))
+                    {
+                        InvokeSubscriber(binding.Owner, subscriber =>
+                            subscriber.OnMonitoredItemUpdate(binding.Template,
+                                serviceResult));
+                    }
                 }
             }
             TryCompletePendingInitialApply();
@@ -936,6 +964,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             CancelPendingInitialApply();
             await _disposeCts.CancelAsync().ConfigureAwait(false);
+            await _retryScheduler.DisposeAsync().ConfigureAwait(false);
             var cyclicReadSynchronization = GetCyclicReadSynchronizationTask();
             if (cyclicReadSynchronization != null)
             {
@@ -1232,16 +1261,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             foreach (var binding in removedBindings)
             {
+                _retryScheduler.Remove(binding.Name);
                 binding.Dispose();
             }
             foreach (var binding in GetBindings())
             {
                 if (TryGetMonitoredItem(binding, out var monitoredItem))
                 {
-                    binding.UpdateMonitoredItemStatus(monitoredItem!);
-                    InvokeSubscriber(binding.Owner, subscriber =>
-                        subscriber.OnMonitoredItemUpdate(binding.Template,
-                            ToServiceResult(monitoredItem!)));
+                    if (UpdateMonitoredItemStatus(binding, monitoredItem!,
+                        out var serviceResult))
+                    {
+                        InvokeSubscriber(binding.Owner, subscriber =>
+                            subscriber.OnMonitoredItemUpdate(binding.Template,
+                                serviceResult));
+                    }
                 }
             }
             if (requestConditionRefresh)
@@ -1332,10 +1365,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 GetOwnerState(binding.Owner).KeyFrameRequired = true;
             }
             var createdMonitoredItem = monitoredItem;
-            binding.UpdateMonitoredItemStatus(createdMonitoredItem);
-            InvokeSubscriber(binding.Owner, subscriber =>
-                subscriber.OnMonitoredItemUpdate(binding.Template,
-                    ToServiceResult(createdMonitoredItem!)));
+            if (UpdateMonitoredItemStatus(binding, createdMonitoredItem,
+                out var serviceResult))
+            {
+                InvokeSubscriber(binding.Owner, subscriber =>
+                    subscriber.OnMonitoredItemUpdate(binding.Template,
+                        serviceResult));
+            }
             return true;
         }
 
@@ -1356,6 +1392,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _bindingsByName.Remove(binding.Name);
                 PruneOwnerStates();
             }
+            _retryScheduler.Remove(binding.Name);
             binding.Dispose();
         }
 
@@ -1791,7 +1828,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         private PendingInitialApply BeginPendingInitialApply()
         {
-            var pending = new PendingInitialApply();
+            var pending = new PendingInitialApply(
+                Volatile.Read(ref _subscriptionStateVersion));
             lock (_initialApplyLock)
             {
                 if (_pendingInitialApply != null)
@@ -1851,11 +1889,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 return;
             }
+            var stateObserved =
+                Volatile.Read(ref _subscriptionStateVersion) !=
+                pending.StateVersion;
             if (monitoredItems.All(item =>
-                !ServiceResult.IsGood(item.Item.Error) ||
                 !HasPendingChanges(item.Item) &&
-                item.Item.Created &&
-                item.Item.CurrentMonitoringMode == item.DesiredMonitoringMode))
+                (!ServiceResult.IsGood(item.Item.Error) ||
+                    (item.Item.Created &&
+                        item.Item.CurrentMonitoringMode ==
+                            item.DesiredMonitoringMode) ||
+                    stateObserved)))
             {
                 pending.Completion.TrySetResult();
             }
@@ -2081,6 +2124,72 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             notifications.Count,
                             notifications.Sum(notification => notification.Overflow)));
                 }
+            }
+        }
+
+        private bool UpdateMonitoredItemStatus(
+            ManagedSubscriptionItemBinding binding,
+            IMonitoredItem monitoredItem,
+            out ServiceResultModel? serviceResult,
+            bool scheduleRetry = true)
+        {
+            var status = binding.UpdateMonitoredItemStatus(monitoredItem);
+            if (scheduleRetry)
+            {
+                _retryScheduler.Update(binding.CaptureRetryTarget());
+            }
+            else
+            {
+                _retryScheduler.Remove(binding.Name);
+            }
+            if (!binding.TryCaptureStatusReport(out status))
+            {
+                serviceResult = null;
+                return false;
+            }
+            serviceResult = ToServiceResult(monitoredItem, status);
+            return true;
+        }
+
+        private async ValueTask<ManagedRetryOutcome> RetryAsync(
+            ManagedRetryRequest request, CancellationToken ct)
+        {
+            await _updateGate.WaitAsync(ct).ConfigureAwait(false);
+            BeginMutation();
+            try
+            {
+                if (Volatile.Read(ref _disposed) != 0)
+                {
+                    return ManagedRetryOutcome.Obsolete;
+                }
+                if (request.Name == null)
+                {
+                    if (BindingCount == 0)
+                    {
+                        return ManagedRetryOutcome.Obsolete;
+                    }
+                    await _subscription.RecreateAsync(ct).ConfigureAwait(false);
+                    return ManagedRetryOutcome.Started;
+                }
+                if (!TryGetBindingByName(request.Name, out var binding) ||
+                    !binding.IsRetryCurrent(request.Generation,
+                        request.Kind, request.Status))
+                {
+                    return ManagedRetryOutcome.Obsolete;
+                }
+                if (_subscription.MonitoredItems is not
+                    IMonitoredItemRetryCollection retry)
+                {
+                    _logger.ManagedItemRetryUnsupported(request.Name);
+                    return ManagedRetryOutcome.Failed;
+                }
+                return retry.TryRequeue(request.ClientHandle)
+                    ? ManagedRetryOutcome.Started
+                    : ManagedRetryOutcome.Failed;
+            }
+            finally
+            {
+                ExitMutation();
             }
         }
 
@@ -2619,10 +2728,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             };
         }
 
-        private static ServiceResultModel? ToServiceResult(IMonitoredItem monitoredItem)
+        private static ServiceResultModel? ToServiceResult(
+            IMonitoredItem monitoredItem, StatusCode status)
         {
-            return ServiceResult.IsGood(monitoredItem.Error) ? null :
-                monitoredItem.Error.ToServiceResultModel();
+            if (StatusCode.IsGood(status))
+            {
+                return null;
+            }
+            return monitoredItem.Error?.StatusCode == status
+                ? monitoredItem.Error.ToServiceResultModel()
+                : new ServiceResult(status).ToServiceResultModel();
         }
 
         private void OnKeyFrameTimer(object? state)
@@ -3122,6 +3237,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     Template = template;
                     _cyclicReadGeneration++;
                     _cyclicReadActivated = false;
+                    _hasReportedApplyStatus = false;
                 }
                 Monitor.Update(options);
                 UpdateHeartbeat(template);
@@ -3211,14 +3327,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
 
-            public void UpdateMonitoredItemStatus(IMonitoredItem monitoredItem)
+            public StatusCode UpdateMonitoredItemStatus(
+                IMonitoredItem monitoredItem)
             {
-                var applied = !HasPendingChanges(monitoredItem) &&
+                var pending = HasPendingChanges(monitoredItem);
+                var status = monitoredItem.Error?.StatusCode ?? StatusCodes.Good;
+                var applied = !pending &&
                     monitoredItem.Created &&
-                    ServiceResult.IsGood(monitoredItem.Error);
+                    ServiceResult.IsGood(monitoredItem.Error) &&
+                    monitoredItem.CurrentMonitoringMode ==
+                        Monitor.CurrentValue.MonitoringMode;
+                if (!applied && !pending && StatusCode.IsGood(status))
+                {
+                    status = StatusCodes.BadMonitoredItemIdInvalid;
+                }
+                var retryKind = !applied && !pending
+                    ? ManagedSubscriptionRetryPolicy.Classify(status,
+                        ServiceResult.IsGood(monitoredItem.Error))
+                    : ManagedItemRetryKind.None;
                 lock (_dataLock)
                 {
                     _applied = applied;
+                    _applyPending = pending;
+                    _applyRetryKind = retryKind;
+                    _applyStatusCode = status;
                     _appliedMonitoringMode = monitoredItem.CurrentMonitoringMode;
                     if (!_cyclicReadActivated && applied && IsCyclicRead &&
                         _appliedMonitoringMode == Opc.Ua.MonitoringMode.Disabled)
@@ -3231,6 +3363,49 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         _isLate = false;
                     }
                     _heartbeat?.SetApplied(applied);
+                }
+                return status;
+            }
+
+            public bool TryCaptureStatusReport(out StatusCode status)
+            {
+                lock (_dataLock)
+                {
+                    status = _applyStatusCode;
+                    if (_applyPending ||
+                        (_hasReportedApplyStatus &&
+                            _reportedApplyStatusCode == status))
+                    {
+                        return false;
+                    }
+                    _hasReportedApplyStatus = true;
+                    _reportedApplyStatusCode = status;
+                    return true;
+                }
+            }
+
+            public ManagedItemRetryTarget CaptureRetryTarget()
+            {
+                lock (_dataLock)
+                {
+                    return new ManagedItemRetryTarget(Name, ClientHandle,
+                        _cyclicReadGeneration,
+                        _applyRetryKind,
+                        Registered ? _applyStatusCode : StatusCodes.Good,
+                        Registered && _applyPending,
+                        !Registered || _applied);
+                }
+            }
+
+            public bool IsRetryCurrent(long generation,
+                ManagedItemRetryKind kind, StatusCode status)
+            {
+                lock (_dataLock)
+                {
+                    return generation == _cyclicReadGeneration &&
+                        Registered && !_applyPending && !_applied &&
+                        _applyRetryKind == kind &&
+                        _applyStatusCode == status;
                 }
             }
 
@@ -3527,7 +3702,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private long _cyclicReadGeneration;
             private bool _cyclicReadActivated;
             private bool _hasActivity;
+            private bool _hasReportedApplyStatus;
             private bool _applied;
+            private bool _applyPending;
+            private ManagedItemRetryKind _applyRetryKind;
+            private StatusCode _reportedApplyStatusCode = StatusCodes.Good;
+            private StatusCode _applyStatusCode = StatusCodes.Good;
             private Opc.Ua.MonitoringMode _appliedMonitoringMode;
             private volatile bool _isLate;
             private readonly Lock _dataLock = new();
@@ -3881,6 +4061,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         private sealed class PendingInitialApply
         {
+            public PendingInitialApply(long stateVersion)
+            {
+                StateVersion = stateVersion;
+            }
+
+            public long StateVersion { get; }
             public TaskCompletionSource Completion { get; } = new(
                 TaskCreationOptions.RunContinuationsAsynchronously);
             public IReadOnlyList<PendingMonitoredItem>? MonitoredItems { get; set; }
@@ -3982,6 +4168,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly OpcUaSubscriptionOptions _options;
         private readonly Dictionary<ISubscriber, OwnerState> _ownerStates = [];
         private readonly TimeSpan? _periodicKeyFrameInterval;
+        private readonly ManagedSubscriptionRetryScheduler _retryScheduler;
         private readonly ISubscription _subscription;
         private readonly MutableOptionsMonitor<ManagedSubscriptionOptions> _subscriptionOptions;
         private readonly TimeProvider _timeProvider;
@@ -4006,6 +4193,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private int _watchdogResetInProgress;
         private long _lastWatchdogCheckTimestamp;
         private long _mutationVersion;
+        private long _subscriptionStateVersion;
         private uint _sequenceNumber;
         private bool _created;
         private bool _watchdogConnected = true;
@@ -4090,5 +4278,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Message = "Managed cyclic-read state synchronization failed.")]
         public static partial void CyclicReadSynchronizationFailed(
             this ILogger logger, Exception exception);
+
+        [LoggerMessage(EventId = 1133, Level = LogLevel.Error,
+            Message = "Managed monitored item {Item} cannot be retried because " +
+                "the V2 collection has no retry capability.")]
+        public static partial void ManagedItemRetryUnsupported(
+            this ILogger logger, string item);
     }
 }

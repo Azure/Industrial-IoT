@@ -86,13 +86,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 [nameof(OpcUaSubscriptionOptions.SubscriptionManagementIntervalDuration)] =
                     "PublisherOwned: V2 applies desired state asynchronously.",
                 [nameof(OpcUaSubscriptionOptions.BadMonitoredItemRetryDelayDuration)] =
-                    "PublisherOwned: V2 reacts to BadTooManyMonitoredItems by partitioning.",
+                    "PublisherOwned: locally unapplied items use the classic bad-item delay; " +
+                        "BadTooManyMonitoredItems remains owned by V2 partition placement.",
                 [nameof(OpcUaSubscriptionOptions.InvalidMonitoredItemRetryDelayDuration)] =
-                    "PublisherOwned: Publisher controls invalid-item retry timing.",
+                    "PublisherOwned: server-rejected items use the classic invalid-item delay.",
                 [nameof(OpcUaSubscriptionOptions.BadMonitoredItemRetryDelayDurationMax)] =
-                    "PublisherOwned: Publisher controls retry backoff.",
+                    "PublisherOwned: retained for configuration compatibility; classic retry " +
+                        "behavior does not select this maximum.",
                 [nameof(OpcUaSubscriptionOptions.InvalidMonitoredItemRetryDelayDurationMax)] =
-                    "PublisherOwned: Publisher controls retry backoff."
+                    "PublisherOwned: caps invalid and bad retry backoff to preserve classic behavior."
             });
 
         /// <summary>
