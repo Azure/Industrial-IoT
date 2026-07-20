@@ -5,7 +5,7 @@
         "DataSetWriterGroup": "{{DataSetWriterGroup}}",
         "OpcNodes": [
             {
-                "Id": "ns=23;i=1259",
+                "Id": "nsu=http://opcfoundation.org/UA/Boiler/;i=1257",
                 "OpcSamplingInterval": 200,
                 "OpcPublishingInterval": 200,
                 "DisplayName": "Output",

@@ -20,6 +20,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
     [Collection(MqttReferenceServerCollection.Name)]
     public class MqttConfigurationIntegrationTests : PublisherIntegrationTestBase, IClassFixture<ReferenceServer>
     {
+        private const string kBoilerOutputNodeId =
+            "nsu=http://opcfoundation.org/UA/Boiler/;i=1257";
         private readonly ITestOutputHelper _output;
         private readonly ReferenceServer _fixture;
 
@@ -50,7 +52,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
 
                 var messages = await WaitForMessagesAsync();
                 var message = Assert.Single(messages);
-                Assert.Equal("ns=23;i=1259", message.Message.GetProperty("NodeId").GetString());
+                Assert.Equal(kBoilerOutputNodeId,
+                    message.Message.GetProperty("NodeId").GetString());
                 Assert.InRange(message.Message.GetProperty("Value").GetProperty("Value").GetDouble(),
                     double.MinValue, double.MaxValue);
 
@@ -228,7 +231,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 _output.WriteLine("Waiting for remaining...");
                 var messages = await WaitForMessagesAsync(GetDataFrame);
                 var message = Assert.Single(messages);
-                Assert.Equal("ns=23;i=1259", message.Message.GetProperty("NodeId").GetString());
+                Assert.Equal(kBoilerOutputNodeId,
+                    message.Message.GetProperty("NodeId").GetString());
                 Assert.InRange(message.Message.GetProperty("Value").GetProperty("Value").GetDouble(),
                     double.MinValue, double.MaxValue);
 
@@ -324,11 +328,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
         private static JsonElement GetAlarmCondition(JsonElement jsonElement)
         {
             return jsonElement
-                .TryGetProperty("Value", out var node) && node
-                .TryGetProperty("SourceNode", out node) && node
-                .TryGetProperty("Value", out node) && node
-                .GetString().StartsWith("http://opcfoundation.org/AlarmCondition#s=1%3a",
-                    StringComparison.InvariantCulture) ? jsonElement : default;
+                .TryGetProperty("DisplayName", out var displayName) &&
+                displayName.GetString() == "PendingAlarms"
+                    ? jsonElement
+                    : default;
         }
     }
 }

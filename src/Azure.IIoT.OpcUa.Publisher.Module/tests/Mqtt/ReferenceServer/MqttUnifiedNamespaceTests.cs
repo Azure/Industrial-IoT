@@ -18,6 +18,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
     [Collection(MqttReferenceServerCollection.Name)]
     public class MqttUnifiedNamespaceTests : PublisherIntegrationTestBase, IClassFixture<ReferenceServer>
     {
+        private const string kBoilerOutputNodeId =
+            "nsu=http://opcfoundation.org/UA/Boiler/;i=1257";
         private readonly ReferenceServer _fixture;
         private readonly ITestOutputHelper _output;
 
@@ -44,8 +46,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 .EndsWith(nameof(CanSendAddressSpaceDataToUnifiedNamespaceAsync) + "/Objects/Server/ServerStatus/CurrentTime",
                 StringComparison.InvariantCulture)).ToList();
             var outputs = messages.Where(m => m.Topic
-                .EndsWith(nameof(CanSendAddressSpaceDataToUnifiedNamespaceAsync) + "/Objects/23:Boilers/23:Boiler \\x231/23:DrumX001/23:LIX001/23:Output",
+                .EndsWith(nameof(CanSendAddressSpaceDataToUnifiedNamespaceAsync) + "/Objects/2:Boilers/2:Boiler \\x231/2:DrumX001/2:LIX001/2:Output",
                 StringComparison.InvariantCulture)).ToList();
+            if (outputs.Count == 0)
+            {
+                messages.ForEach(m => _output.WriteLine(
+                    m.Topic + m.Message.ToJsonString()));
+            }
             Assert.NotEmpty(currentTimes);
             Assert.NotEmpty(outputs);
             if (currentTimes.Count + outputs.Count != messages.Count)
@@ -60,7 +67,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             });
             Assert.All(outputs, a =>
             {
-                Assert.True(a.Message.TryGetProperty("ns=23;i=1259", out var doubleValue));
+                Assert.True(a.Message.TryGetProperty(
+                    kBoilerOutputNodeId, out var doubleValue));
                 Assert.True(doubleValue.TryGetDouble(out _));
             });
         }
@@ -97,7 +105,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             });
             Assert.All(outputs, a =>
             {
-                Assert.True(a.Message.TryGetProperty("ns=23;i=1259", out var doubleValue));
+                Assert.True(a.Message.TryGetProperty(
+                    kBoilerOutputNodeId, out var doubleValue));
                 Assert.True(doubleValue.TryGetDouble(out _));
             });
         }
@@ -134,7 +143,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             });
             Assert.All(outputs, a =>
             {
-                Assert.True(a.Message.TryGetProperty("ns=23;i=1259", out var doubleValue));
+                Assert.True(a.Message.TryGetProperty(
+                    kBoilerOutputNodeId, out var doubleValue));
                 Assert.True(doubleValue.TryGetDouble(out _));
             });
         }

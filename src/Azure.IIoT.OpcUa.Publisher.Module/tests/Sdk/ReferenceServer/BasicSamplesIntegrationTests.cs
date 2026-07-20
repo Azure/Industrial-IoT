@@ -29,6 +29,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         private const string kMessage = "Message";
         private const string kCycleId = "http://opcfoundation.org/SimpleEvents#CycleId";
         private const string kCurrentStep = "http://opcfoundation.org/SimpleEvents#CurrentStep";
+        private const string kBoilerOutputNodeId =
+            "nsu=http://opcfoundation.org/UA/Boiler/;i=1257";
         private readonly ITestOutputHelper _output;
         private readonly ReferenceServer _fixture;
 
@@ -50,7 +52,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 
             // Assert
             var message = Assert.Single(messages);
-            Assert.Equal("ns=23;i=1259", message.Message.GetProperty("NodeId").GetString());
+            Assert.Equal(kBoilerOutputNodeId,
+                message.Message.GetProperty("NodeId").GetString());
             Assert.InRange(message.Message.GetProperty("Value").GetProperty("Value").GetDouble(),
                 double.MinValue, double.MaxValue);
         }
@@ -295,7 +298,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 
                 var messages = await WaitForMessagesAsync();
                 var message = Assert.Single(messages).Message;
-                Assert.Equal("ns=23;i=1259", message.GetProperty("NodeId").GetString());
+                Assert.Equal(kBoilerOutputNodeId,
+                    message.GetProperty("NodeId").GetString());
                 Assert.InRange(message.GetProperty("Value").GetProperty("Value").GetDouble(),
                     double.MinValue, double.MaxValue);
 
@@ -448,7 +452,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 
                 var messages1 = await WaitForMessagesAsync(GetDataFrame);
                 var message1 = Assert.Single(messages1).Message;
-                Assert.Equal("ns=23;i=1259", message1.GetProperty("NodeId").GetString());
+                Assert.Equal(kBoilerOutputNodeId,
+                    message1.GetProperty("NodeId").GetString());
                 Assert.InRange(message1.GetProperty("Value").GetProperty("Value").GetDouble(),
                     double.MinValue, double.MaxValue);
 
@@ -463,7 +468,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 _output.WriteLine("Waiting for remaining...");
                 var messages = await WaitForMessagesAsync(GetDataFrame);
                 var message = Assert.Single(messages).Message;
-                Assert.Equal("ns=23;i=1259", message.GetProperty("NodeId").GetString());
+                Assert.Equal(kBoilerOutputNodeId,
+                    message.GetProperty("NodeId").GetString());
                 Assert.InRange(message.GetProperty("Value").GetProperty("Value").GetDouble(),
                     double.MinValue, double.MaxValue);
 
@@ -556,11 +562,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         private static JsonElement GetAlarmCondition(JsonElement jsonElement)
         {
             return jsonElement
-                .TryGetProperty("Value", out var node) && node
-                .TryGetProperty("SourceNode", out node) && node
-                .TryGetProperty("Value", out node) && node
-                .GetString().StartsWith("http://opcfoundation.org/AlarmCondition#s=1%3a",
-                    StringComparison.InvariantCulture) ? jsonElement : default;
+                .TryGetProperty("DisplayName", out var displayName) &&
+                displayName.GetString() == "PendingAlarms"
+                    ? jsonElement
+                    : default;
         }
     }
 }

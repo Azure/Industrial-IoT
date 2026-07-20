@@ -7,7 +7,7 @@
         "DataSetRouting": "UseBrowseNames",
         "OpcNodes": [
             {
-                "Id": "ns=23;i=1259"
+                "Id": "nsu=http://opcfoundation.org/UA/Boiler/;i=1257"
             },
             {
                 "Id": "i=2258"

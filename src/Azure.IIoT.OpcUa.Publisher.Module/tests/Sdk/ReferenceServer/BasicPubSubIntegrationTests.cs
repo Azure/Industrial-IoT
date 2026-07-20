@@ -700,12 +700,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 ? default
                 : messages.EnumerateArray().FirstOrDefault(element =>
                 {
-                    return element.GetProperty("MessageType").GetString() == "ua-condition" &&
-                        element.GetProperty("Payload").TryGetProperty("SourceNode", out var node) &&
-                            node.TryGetProperty("Value", out node) &&
-                                node.ValueKind != JsonValueKind.Null &&
-                                node.GetString().StartsWith("http://opcfoundation.org/AlarmCondition#s=1%3a",
-                                    StringComparison.InvariantCulture);
+                    if (element.GetProperty("MessageType").GetString() != "ua-condition" ||
+                        !element.GetProperty("Payload")
+                            .TryGetProperty("SourceNode", out var node))
+                    {
+                        return false;
+                    }
+                    if (node.ValueKind == JsonValueKind.Object &&
+                        node.TryGetProperty("Value", out var value))
+                    {
+                        node = value;
+                    }
+                    return node.ValueKind != JsonValueKind.Null;
                 });
         }
 
@@ -740,7 +746,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 
             var namespaces = metadata.Value.Message.GetProperty("MetaData").GetProperty("Namespaces");
             Assert.Equal(JsonValueKind.Array, namespaces.ValueKind);
-            Assert.Equal(24, namespaces.GetArrayLength());
+            Assert.Equal(25, namespaces.GetArrayLength());
             var structureDataTypes = metadata.Value.Message.GetProperty("MetaData").GetProperty("StructureDataTypes");
             Assert.Equal(JsonValueKind.Array, structureDataTypes.ValueKind);
             var s = structureDataTypes.EnumerateArray().First().GetProperty("StructureDefinition");
@@ -789,7 +795,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 
             var namespaces = metadata.Value.Message.GetProperty("MetaData").GetProperty("Namespaces");
             Assert.Equal(JsonValueKind.Array, namespaces.ValueKind);
-            Assert.Equal(24, namespaces.GetArrayLength());
+            Assert.Equal(25, namespaces.GetArrayLength());
             var structureDataTypes = metadata.Value.Message.GetProperty("MetaData").GetProperty("StructureDataTypes");
             Assert.Equal(JsonValueKind.Array, structureDataTypes.ValueKind);
             var s = structureDataTypes.EnumerateArray().First().GetProperty("StructureDefinition");
