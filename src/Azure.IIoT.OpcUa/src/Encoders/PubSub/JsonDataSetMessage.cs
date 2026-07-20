@@ -68,14 +68,18 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="context"></param>
         /// <param name="publisherId"></param>
         /// <param name="withHeader"></param>
+        /// <param name="useAdvancedEncoding"></param>
+        /// <param name="namespaceFormat"></param>
         internal virtual JsonNode? EncodeToNode(IServiceMessageContext context,
-            string? publisherId, bool withHeader)
+            string? publisherId, bool withHeader, bool useAdvancedEncoding,
+            NamespaceFormat namespaceFormat)
         {
             var reversible = DataSetMessageContentMask.HasFlag(
                 DataSetMessageContentFlags.ReversibleFieldEncoding);
             if (!withHeader)
             {
-                return JsonPubSubCodec.EncodeDataSet(context, Payload, reversible);
+                return JsonPubSubCodec.EncodeDataSet(context, Payload, reversible,
+                    useAdvancedEncoding, namespaceFormat);
             }
 
             var message = new JsonObject();
@@ -103,8 +107,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             }
             if ((DataSetMessageContentMask & DataSetMessageContentFlags.Timestamp) != 0)
             {
-                message[nameof(Timestamp)] = JsonPubSubCodec.EncodeDateTime(context,
-                    Timestamp?.UtcDateTime ?? default);
+                var timestamp = JsonPubSubCodec.EncodeDateTime(
+                    context, Timestamp?.UtcDateTime ?? default);
+                if (timestamp != null)
+                {
+                    message[nameof(Timestamp)] = timestamp;
+                }
             }
             if ((DataSetMessageContentMask & DataSetMessageContentFlags.Status) != 0)
             {
@@ -134,7 +142,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 message[nameof(DataSetWriterName)] = DataSetWriterName;
             }
-            message[nameof(Payload)] = JsonPubSubCodec.EncodeDataSet(context, Payload, reversible);
+            message[nameof(Payload)] = JsonPubSubCodec.EncodeDataSet(
+                context, Payload, reversible, useAdvancedEncoding, namespaceFormat);
             return message;
         }
 

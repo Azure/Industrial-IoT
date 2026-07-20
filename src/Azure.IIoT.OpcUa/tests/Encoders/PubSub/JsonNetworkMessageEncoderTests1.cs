@@ -74,6 +74,31 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
 """), Json.Parse(buffer.ToArray())));
         }
 
+        [Fact]
+        public void NonReversibleEventDictionaryOmitsUaTypeArtifacts()
+        {
+            var dictionary = new EncodeableDictionary
+            {
+                new("EventId", new DataValue(new Variant("event"))),
+                new("Message", new DataValue(new Variant(
+                    new LocalizedText("en-US", "message")))),
+                new("Counter", new DataValue(new Variant(long.MaxValue)))
+            };
+
+            var encoded = JsonPubSubCodec.EncodeDataValue(
+                new ServiceMessageContext(),
+                new DataValue(new Variant(dictionary)),
+                reversible: false,
+                useAdvancedEncoding: true);
+
+            var result = Assert.IsType<JsonObject>(encoded);
+            Assert.Equal("event", result["EventId"]!.GetValue<string>());
+            Assert.Equal("message", result["Message"]!.GetValue<string>());
+            Assert.Equal(long.MaxValue, result["Counter"]!.GetValue<long>());
+            Assert.False(result.ContainsKey("UaType"));
+            Assert.False(result.ContainsKey("UaTypeId"));
+        }
+
         private static JsonNetworkMessage CreateMessage(uint messageMask, uint datasetMask, uint fieldMask)
         {
             return new JsonNetworkMessage

@@ -379,12 +379,15 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             if (HasSingleDataSetMessage)
             {
                 return messages.Length == 0 ? null : messages[0].EncodeToNode(
-                    context, publisherId, HasDataSetMessageHeader);
+                    context, publisherId, HasDataSetMessageHeader,
+                    UseAdvancedEncoding, NamespaceFormat);
             }
             var array = new JsonArray();
             foreach (var message in messages)
             {
-                array.Add(message.EncodeToNode(context, publisherId, HasDataSetMessageHeader));
+                array.Add(message.EncodeToNode(
+                    context, publisherId, HasDataSetMessageHeader,
+                    UseAdvancedEncoding, NamespaceFormat));
             }
             return array;
         }

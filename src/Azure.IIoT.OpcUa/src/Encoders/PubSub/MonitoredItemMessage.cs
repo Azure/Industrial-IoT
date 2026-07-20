@@ -90,8 +90,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="context"></param>
         /// <param name="publisherId"></param>
         /// <param name="withHeader"></param>
+        /// <param name="useAdvancedEncoding"></param>
+        /// <param name="namespaceFormat"></param>
         internal override JsonNode? EncodeToNode(IServiceMessageContext context,
-            string? publisherId, bool withHeader)
+            string? publisherId, bool withHeader, bool useAdvancedEncoding,
+            NamespaceFormat namespaceFormat)
         {
             //
             // If not writing with samples header we fail. This is a configuration error,
@@ -123,8 +126,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             }
             if (DataSetMessageContentMask.HasFlag(DataSetMessageContentFlags.Timestamp))
             {
-                samples[nameof(Timestamp)] = JsonPubSubCodec.EncodeDateTime(context,
-                    Timestamp?.UtcDateTime ?? default);
+                var timestamp = JsonPubSubCodec.EncodeDateTime(
+                    context, Timestamp?.UtcDateTime ?? default);
+                if (timestamp != null)
+                {
+                    samples[nameof(Timestamp)] = timestamp;
+                }
             }
             if (Heartbeat && fieldContentMask.HasFlag(DataSetFieldContentFlags.Heartbeat))
             {
@@ -172,7 +179,8 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             }
             var reversible = DataSetMessageContentMask.HasFlag(
                 DataSetMessageContentFlags.ReversibleFieldEncoding);
-            samples[nameof(Value)] = JsonPubSubCodec.EncodeDataValue(context, value, reversible);
+            samples[nameof(Value)] = JsonPubSubCodec.EncodeDataValue(
+                context, value, reversible, useAdvancedEncoding, namespaceFormat);
 
             if (DataSetMessageContentMask.HasFlag(DataSetMessageContentFlags.SequenceNumber))
             {

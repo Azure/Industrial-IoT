@@ -14,6 +14,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     using System.IO;
     using System.IO.Compression;
     using System.Text;
+    using System.Text.Json.Nodes;
 
     /// <summary>
     /// Json discovery metdata message
@@ -139,7 +140,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     {
                         return false;
                     }
-                    using var decoder = new Opc.Ua.JsonDecoder(json, context);
+                    var node = NormalizeMetaDataForDecoder(
+                        context, JsonNode.Parse(json));
+                    using var decoder = new Opc.Ua.JsonDecoder(
+                        node?.ToJsonString() ?? "null", context);
                     if (TryDecode(decoder))
                     {
                         reader.Dequeue();
@@ -214,7 +218,81 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             {
                 encoder.WriteString(nameof(DataSetWriterName), DataSetWriterName);
             }
-            return encoder.CloseAndReturnText();
+            var encoded = JsonNode.Parse(encoder.CloseAndReturnText());
+                return NormalizeMetaDataNode(context, encoded)?.ToJsonString() ?? "null";
+        }
+
+        private JsonNode? NormalizeMetaDataNode(
+            Opc.Ua.IServiceMessageContext context, JsonNode? node)
+        {
+            if (node is JsonArray array)
+            {
+                var normalized = new JsonArray();
+                foreach (var item in array)
+                {
+                    normalized.Add(NormalizeMetaDataNode(context, item));
+                }
+                return normalized;
+            }
+            if (node is not JsonObject obj)
+            {
+                return node?.DeepClone();
+            }
+
+            var result = new JsonObject();
+            foreach (var property in obj)
+            {
+                if (property.Key == "StructureType" &&
+                    property.Value is JsonValue structureType &&
+                    structureType.TryGetValue<int>(out var rawStructureType))
+                {
+                    result[property.Key] =
+                        $"{(Opc.Ua.StructureType)rawStructureType}_{rawStructureType}";
+                }
+                else if (kNodeIdFields.Contains(property.Key) &&
+                    property.Value is JsonValue value &&
+                    value.GetValueKind() == System.Text.Json.JsonValueKind.String)
+                {
+                    result[property.Key] = JsonPubSubCodec.NormalizeNodeId(
+                        context, property.Value, reversible: false,
+                        useAdvancedEncoding: UseAdvancedEncoding,
+                        namespaceFormat: NamespaceFormat);
+                }
+                else
+                {
+                    result[property.Key] =
+                        NormalizeMetaDataNode(context, property.Value);
+                }
+            }
+            return result;
+        }
+
+        private static JsonNode? NormalizeMetaDataForDecoder(
+            Opc.Ua.IServiceMessageContext context, JsonNode? node)
+        {
+            if (node is JsonArray array)
+            {
+                var normalized = new JsonArray();
+                foreach (var item in array)
+                {
+                    normalized.Add(NormalizeMetaDataForDecoder(context, item));
+                }
+                return normalized;
+            }
+            if (node is not JsonObject obj)
+            {
+                return node?.DeepClone();
+            }
+
+            var result = new JsonObject();
+            foreach (var property in obj)
+            {
+                result[property.Key] = kNodeIdFields.Contains(property.Key)
+                    ? JsonPubSubCodec.NormalizeNodeIdForDecoder(
+                        context, property.Value, expanded: false)
+                    : NormalizeMetaDataForDecoder(context, property.Value);
+            }
+            return result;
         }
 
         /// <summary>
@@ -237,5 +315,14 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             DataSetWriterName = decoder.ReadString(nameof(DataSetWriterName));
             return true;
         }
+
+        private static readonly HashSet<string> kNodeIdFields =
+        [
+            "DataType",
+            "DataTypeId",
+            "BaseDataType",
+            "DefaultEncodingId",
+            "TypeId"
+        ];
     }
 }
