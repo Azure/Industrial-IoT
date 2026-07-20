@@ -210,7 +210,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
 
             // Here we keep track of the paths we are exploring to allow us to backtrack
             var searchContext = browse.ToDictionary(b => b,
-                _ => new Stack<(Queue<ReferenceDescription> Next, HashSet<ExpandedNodeId> Seen)>());
+                _ => new Stack<(Queue<ReferenceDescription> Next, HashSet<ExpandedNodeId> Seen)>(),
+                (IEqualityComparer<BrowseDescription>)
+                    System.Collections.Generic.ReferenceEqualityComparer.Instance);
 
             var limits = await session.GetOperationLimitsAsync(ct).ConfigureAwait(false);
             foreach (var batch in searchContext.Keys.Batch(limits.GetMaxNodesPerRead()))
@@ -1413,7 +1415,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 }
                 var continuationPoints = firstResults
                     .Where(r => r.Result.ContinuationPoint.Length > 0)
-                    .Select(r => (r.Request, r.Result.ContinuationPoint));
+                    .Select(r => (r.Request, r.Result.ContinuationPoint))
+                    .ToList();
                 try
                 {
                     foreach (var result in firstResults)
@@ -1432,7 +1435,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                         var nextResponse = await session.Services.BrowseNextAsync(requestHeader,
                             false, new ByteStringCollection(next.Select(r => r.ContinuationPoint)),
                             ct).ConfigureAwait(false);
-                        var nextResults = firstResponse.Validate(nextResponse.Results,
+                        var nextResults = nextResponse.Validate(nextResponse.Results,
                             s => s.StatusCode, nextResponse.DiagnosticInfos, next);
 
                         if (nextResults.ErrorInfo != null)
@@ -1446,7 +1449,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                                 [.. result.Result.References], result.ErrorInfo);
                         }
 
-                        continuationPoints = continuationPoints.Concat(nextResults
+                        continuationPoints.RemoveRange(0, next.Count);
+                        continuationPoints.AddRange(nextResults
                             .Where(r => r.Result.ContinuationPoint.Length > 0)
                             .Select(r => (r.Request.Request, r.Result.ContinuationPoint)));
                     }
@@ -1508,5 +1512,3 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         }
     }
 }
-
-
