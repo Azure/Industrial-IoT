@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
     using System.Text.Json.Nodes;
     using System;
     using System.Collections.Generic;
+    using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Xml;
@@ -665,7 +666,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 return;
             }
 
-            Assert.True(result.Value[0].IsString(), $"{result.Value[0]} is not a string.");
+            AssertNodeIdElement(result.Value[0]);
             Assert.Equal("NodeId", result.DataType);
         }
 
@@ -694,8 +695,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 return;
             }
 
-            Assert.True(result.Value[0].IsString(), $"{result.Value[0]} is not a string.");
+            AssertNodeIdElement(result.Value[0]);
             Assert.Equal("ExpandedNodeId", result.DataType);
+        }
+
+        private static void AssertNodeIdElement(JsonNode? value)
+        {
+            if (value.IsString())
+            {
+                return;
+            }
+            Assert.True(value.IsObject(), $"{value} is not a node id.");
+            Assert.NotNull(value!["Id"]);
         }
 
         public async Task NodeReadStaticArrayQualifiedNameValueVariableTestAsync(CancellationToken ct = default)
@@ -920,8 +931,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 return;
             }
 
-            Assert.True(result.Value[0].IsObject(), $"{result.Value[0]} is not an object.");
-            Assert.NotNull(result.Value[0]!["Value"]);
+            AssertAbstractNumericElement(result.Value[0]);
         }
 
         public async Task NodeReadStaticArrayUIntegerValueVariableTestAsync(CancellationToken ct = default)
@@ -949,8 +959,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 return;
             }
 
-            Assert.True(result.Value[0].IsObject(), $"{result.Value[0]} is not an object.");
-            Assert.NotNull(result.Value[0]!["Value"]);
+            AssertAbstractNumericElement(result.Value[0]);
+        }
+
+        private static void AssertAbstractNumericElement(JsonNode? value)
+        {
+            if (value.IsObject())
+            {
+                Assert.NotNull(value!["Value"]);
+                return;
+            }
+            Assert.Equal(JsonValueKind.Number, value.GetValueKind());
         }
 
         /// <summary>

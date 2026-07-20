@@ -500,13 +500,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             var services = _services();
             const string node = "http://test.org/UA/Data/#i=2056";
 
-            var expected = await ReadCanonicalValueAsync(node).ConfigureAwait(false);
+            var value = JsonValue.Create(
+                "nsu=http://test.org/UA/Data/;i=84");
+            var expected = JsonValue.Create(
+                "nsu=http://test.org/UA/Data/;i=84");
 
             // Act
             var result = await services.ValueWriteAsync(_connection, new ValueWriteRequestModel
             {
                 NodeId = node,
-                Value = expected,
+                Value = value,
                 DataType = "ExpandedNodeId"
             }, ct).ConfigureAwait(false);
 

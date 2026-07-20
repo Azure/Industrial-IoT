@@ -250,6 +250,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 errorInfo = await context.Session.CloseAndUpdateAsync(
                     request.Header.ToRequestHeader(_timeProvider), nodeId.Value,
                     fileHandle.Value, context.Ct).ConfigureAwait(false);
+                if (errorInfo?.StatusCode == StatusCodes.BadDecodingError.Code)
+                {
+                    errorInfo = errorInfo with
+                    {
+                        StatusCode = StatusCodes.BadUnexpectedError.Code,
+                        SymbolicId = StatusCodes.BadUnexpectedError.AsString()
+                    };
+                }
                 return (entry, errorInfo);
             }, request.Header, ct).ConfigureAwait(false);
 
