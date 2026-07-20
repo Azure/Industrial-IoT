@@ -210,14 +210,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                         InputArguments = new []
                         {
                             new Variant(fileHandle),
-                            new Variant(buffer.ToArray())
+                            new Variant(ByteString.From(buffer.Span))
                         }
                     }
                 };
                 var response = await session.Services.CallAsync(header, request, ct).ConfigureAwait(false);
                 var results = response.Validate(response.Results, r => r.StatusCode,
                     response.DiagnosticInfos, request);
-                return results.ErrorInfo;
+                return results.ErrorInfo ?? results[0].ErrorInfo;
             }
             catch (Exception ex)
             {
@@ -258,13 +258,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 {
                     return (null, results.ErrorInfo);
                 }
-                if (results[0].Result?.OutputArguments == null ||
-                    results[0].Result.OutputArguments.Count == 0 ||
-                    results[0].Result.OutputArguments[0].Value is not byte[] byteString)
+                if (results[0].ErrorInfo != null)
                 {
-                    byteString = [];
+                    return (null, results[0].ErrorInfo);
                 }
-                return (byteString, null);
+                if (results[0].Result?.OutputArguments == null ||
+                    results[0].Result.OutputArguments.Count == 0)
+                {
+                    return ([], null);
+                }
+                var value = results[0].Result.OutputArguments[0].Value;
+                return (value switch
+                {
+                    ByteString byteString => byteString.ToArray(),
+                    byte[] bytes => bytes,
+                    _ => []
+                }, null);
             }
             catch (Exception ex)
             {
@@ -301,7 +310,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 var response = await session.Services.CallAsync(header, request, ct).ConfigureAwait(false);
                 var results = response.Validate(response.Results, r => r.StatusCode,
                     response.DiagnosticInfos, request);
-                return results.ErrorInfo;
+                return results.ErrorInfo ?? results[0].ErrorInfo;
             }
             catch (Exception ex)
             {

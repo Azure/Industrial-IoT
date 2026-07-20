@@ -170,7 +170,7 @@ namespace FileSystem
             }
 
             // create reference.
-            if (targetId != null)
+            if (!targetId.IsNull)
             {
                 return new NodeStateReference(ReferenceTypeIds.HasComponent, false, targetId);
             }
