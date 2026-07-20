@@ -43,12 +43,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
         /// <param name="tempPath"></param>
         /// <param name="nodes"></param>
         public ServerFactory(ILogger<ServerFactory> logger, string tempPath,
-            IEnumerable<INodeManagerFactory> nodes, TimeService timeService = null)
+            IEnumerable<INodeManagerFactory> nodes)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _nodes = nodes ?? throw new ArgumentNullException(nameof(nodes));
             _tempPath = tempPath;
-            _timeService = timeService ?? new TimeService();
         }
 
         /// <summary>
@@ -87,7 +86,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             IEnumerable<string> alternativeAddresses, string path,
             string certStoreType, Action<ServerConfiguration> configure)
         {
-            server = new Server(LogStatus, _nodes, _logger, _timeService);
+            server = new Server(LogStatus, _nodes, _logger);
             return Server.CreateServerConfiguration(_tempPath,
                 ports, listenHostName, alternativeAddresses, path,
                 pkiRootPath, certStoreType, EnableDiagnostics, configure);
@@ -143,8 +142,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
             /// <param name="nodes"></param>
             /// <param name="logger"></param>
             public Server(bool logStatus, IEnumerable<INodeManagerFactory> nodes,
-                ILogger logger, TimeService timeService)
-                : base(kTelemetry, new TimeServiceTimeProvider(timeService))
+                ILogger logger)
+                : base(kTelemetry)
             {
                 _logger = logger;
                 _logStatus = logStatus;
@@ -873,7 +872,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
         private readonly ILogger _logger;
         private readonly IEnumerable<INodeManagerFactory> _nodes;
         private readonly string _tempPath;
-        private readonly TimeService _timeService;
     }
 
     /// <summary>

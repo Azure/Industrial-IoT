@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
     using Opc.Ua.Server;
     using Opc.Ua.Test;
     using System;
+    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -57,7 +58,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
         public static INodeManagerFactory CreateAlarms()
         {
             return new AsyncNodeManagerFactoryAdapter(
-                new Quickstarts::Alarms.AlarmNodeManagerFactory());
+                new AutoStartingAlarmNodeManagerFactory());
         }
 
         /// <summary>
@@ -127,6 +128,68 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
                         configuration));
             }
         }
+
+        private sealed class AutoStartingAlarmNodeManagerFactory : IAsyncNodeManagerFactory
+        {
+            /// <inheritdoc/>
+            public ArrayOf<string> NamespacesUris =>
+            [
+                Quickstarts::Alarms.Namespaces.Alarms,
+                Quickstarts::Alarms.Namespaces.Alarms + "Instance"
+            ];
+
+            /// <inheritdoc/>
+            public ValueTask<IAsyncNodeManager> CreateAsync(
+                IServerInternal server,
+                ApplicationConfiguration configuration,
+                CancellationToken cancellationToken = default)
+            {
+                _ = cancellationToken;
+                return new ValueTask<IAsyncNodeManager>(
+                    new AutoStartingAlarmNodeManager(
+                        server,
+                        configuration,
+                        [
+                            Quickstarts::Alarms.Namespaces.Alarms,
+                            Quickstarts::Alarms.Namespaces.Alarms + "Instance"
+                        ]));
+            }
+        }
+
+        private sealed class AutoStartingAlarmNodeManager :
+            Quickstarts::Alarms.AlarmNodeManager
+        {
+            public AutoStartingAlarmNodeManager(
+                IServerInternal server,
+                ApplicationConfiguration configuration,
+                string[] namespaceUris)
+                : base(server, configuration, namespaceUris)
+            {
+            }
+
+            /// <inheritdoc/>
+            public override async ValueTask CreateAddressSpaceAsync(
+                IDictionary<NodeId, IList<IReference>> externalReferences,
+                CancellationToken cancellationToken = default)
+            {
+                await base.CreateAddressSpaceAsync(
+                    externalReferences,
+                    cancellationToken).ConfigureAwait(false);
+
+                var result = OnStart(
+                    SystemContext,
+                    new MethodState(null)
+                    {
+                        NodeId = new NodeId("Alarms.Start", NamespaceIndex)
+                    },
+                    [new Variant(uint.MaxValue)],
+                    []);
+                if (ServiceResult.IsBad(result))
+                {
+                    throw new ServiceResultException(result.StatusCode);
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -173,26 +236,4 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Sample
         }
     }
 
-    /// <summary>
-    /// Provides the fixture clock to upstream Quickstarts implementations.
-    /// </summary>
-    public sealed class TimeServiceTimeProvider : TimeProvider
-    {
-        /// <summary>
-        /// Initializes the provider.
-        /// </summary>
-        /// <param name="timeService">The fixture time service.</param>
-        public TimeServiceTimeProvider(TimeService timeService)
-        {
-            _timeService = timeService ?? throw new ArgumentNullException(nameof(timeService));
-        }
-
-        /// <inheritdoc/>
-        public override DateTimeOffset GetUtcNow()
-        {
-            return new DateTimeOffset(_timeService.UtcNow);
-        }
-
-        private readonly TimeService _timeService;
-    }
 }
