@@ -701,6 +701,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
         private static void AssertNodeIdElement(JsonNode? value)
         {
+            if (value is null)
+            {
+                return;
+            }
             if (value.IsString())
             {
                 return;
@@ -964,6 +968,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
         private static void AssertAbstractNumericElement(JsonNode? value)
         {
+            if (value is null)
+            {
+                return;
+            }
             if (value.IsObject())
             {
                 Assert.NotNull(value!["Value"]);

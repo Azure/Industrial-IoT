@@ -298,7 +298,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 EventClient = new InMemoryEventClient(outer, device);
                 Twin = new InMemoryTwin();
                 Twin.State[Constants.TwinPropertyApiKeyKey] =
-                    JsonValue.Create(Guid.NewGuid().ToString());
+                    JsonValue.Create(Convert.ToBase64String(
+                        Guid.NewGuid().ToByteArray()));
                 _isConnected = 1;
             }
 

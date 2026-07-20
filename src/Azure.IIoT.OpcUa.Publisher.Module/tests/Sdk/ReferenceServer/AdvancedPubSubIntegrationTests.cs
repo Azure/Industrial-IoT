@@ -32,7 +32,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             EndpointUrl = server.EndpointUrl;
             const string name = nameof(RestartServerTestAsync);
             StartPublisher(name, "./Resources/Fixedvalue.json",
-                arguments: ["--mm=PubSub", "--dm=false"], keepAliveInterval: 1);
+                arguments:
+                [
+                    "--mm=PubSub",
+                    "--dm=false",
+                    "--msi=5000"
+                ],
+                keepAliveInterval: 1);
             try
             {
                 // Arrange
