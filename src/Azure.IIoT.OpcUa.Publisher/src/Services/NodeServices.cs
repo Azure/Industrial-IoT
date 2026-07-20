@@ -909,11 +909,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     throw new ArgumentException("Node id missing", nameof(request));
                 }
-                NodeId? dataTypeId = request.DataType.ToNodeId(context.Session.MessageContext);
+                NodeId dataTypeId = request.DataType.ToNodeId(
+                    context.Session.MessageContext);
                 if (NodeIdCompat.IsNull(dataTypeId))
                 {
                     // Read data type
-                    (dataTypeId, _) = await context.Session.ReadAttributeAsync<NodeId?>(
+                    (dataTypeId, _) = await context.Session.ReadAttributeAsync<NodeId>(
                         request.Header.ToRequestHeader(_timeProvider), writeNode,
                         Attributes.DataType, context.Ct).ConfigureAwait(false);
                     if (NodeIdCompat.IsNull(dataTypeId))
@@ -922,7 +923,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
                 }
 
-                var builtinType = await context.Session.LruNodeCache.GetBuiltInTypeAsync(dataTypeId.Value,
+                var builtinType = await context.Session.LruNodeCache.GetBuiltInTypeAsync(dataTypeId,
                     context.Ct).ConfigureAwait(false);
                 var value = context.Session.Codec.Decode(request.Value, builtinType);
                 var nodesToWrite = new WriteValueCollection{

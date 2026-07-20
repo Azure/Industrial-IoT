@@ -96,7 +96,7 @@ namespace Opc.Ua.Extensions
                 switch (element[index])
                 {
                     case '<':
-                        if (pathElement.ReferenceTypeId == null)
+                        if (NodeIdCompat.IsNull(pathElement.ReferenceTypeId))
                         {
                             parseReference = true;
                             break;
@@ -109,7 +109,7 @@ namespace Opc.Ua.Extensions
                         pathElement.IncludeSubtypes = false;
                         break;
                     case '/':
-                        if (pathElement.ReferenceTypeId == null &&
+                        if (NodeIdCompat.IsNull(pathElement.ReferenceTypeId) &&
                             !parseReference)
                         {
                             pathElement.ReferenceTypeId =
@@ -118,7 +118,7 @@ namespace Opc.Ua.Extensions
                         }
                         throw new FormatException("Reference type set.");
                     case '.':
-                        if (pathElement.ReferenceTypeId == null &&
+                        if (NodeIdCompat.IsNull(pathElement.ReferenceTypeId) &&
                             !parseReference)
                         {
                             pathElement.ReferenceTypeId =
@@ -131,7 +131,7 @@ namespace Opc.Ua.Extensions
                         {
                             index++;
                         }
-                        if (pathElement.ReferenceTypeId == null &&
+                        if (NodeIdCompat.IsNull(pathElement.ReferenceTypeId) &&
                             !parseReference)
                         {
                             // Set to all references
