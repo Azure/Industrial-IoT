@@ -317,6 +317,22 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt
                 catch (Exception ex) { _logger.RpcServerStopFailed(ex); }
             }
             _handlers.Clear();
+            Task<IAsyncDisposable>[] rpcSubscriptions;
+            lock (_rpcSubscriptions)
+            {
+                rpcSubscriptions = _rpcSubscriptions.Values.ToArray();
+                _rpcSubscriptions.Clear();
+            }
+            foreach (var subscriptionTask in rpcSubscriptions)
+            {
+                try
+                {
+                    var subscription = await subscriptionTask.ConfigureAwait(false);
+                    await subscription.DisposeAsync().ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (_cts.IsCancellationRequested) { }
+                catch (Exception ex) { _logger.RpcServerStopFailed(ex); }
+            }
             EventFilterEntry[] entries;
             lock (_eventSubs)
             {
@@ -360,7 +376,6 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt
             await using var registration = ct.Register(() => tcs.TrySetCanceled()).ConfigureAwait(false);
 
             var requestId = Guid.NewGuid();
-            IAsyncDisposable? subscription = null;
             try
             {
                 int status;
@@ -368,8 +383,8 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt
                 if (_version != MqttVersion.v311)
                 {
                     var responseTopic = MqttRpcProtocol.V5ResponseTopic(Identity);
-                    subscription = await SubscribeRawAsync(responseTopic + "/#",
-                        HandleRpcAsync, ct).ConfigureAwait(false);
+                    await EnsureRpcSubscriptionAsync(
+                        responseTopic + "/#", ct).ConfigureAwait(false);
                     _pending.TryAdd(requestId, tcs);
 
                     await PublishRpcAsync(MqttRpcProtocol.V5RequestTopic(target, method),
@@ -385,9 +400,9 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt
                 }
                 else
                 {
-                    subscription = await SubscribeRawAsync(
+                    await EnsureRpcSubscriptionAsync(
                         MqttRpcProtocol.V311ResponseFilter(target),
-                        HandleRpcAsync, ct).ConfigureAwait(false);
+                        ct).ConfigureAwait(false);
                     _pending.TryAdd(requestId, tcs);
 
                     await PublishRpcAsync(
@@ -418,10 +433,45 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt
             finally
             {
                 _pending.TryRemove(requestId, out _);
-                if (subscription != null)
+            }
+        }
+
+        /// <summary>
+        /// Keep response filters for the connection lifetime. Per-call
+        /// subscribe/unsubscribe churn can race the next QoS 1 publish ack.
+        /// </summary>
+        private async Task EnsureRpcSubscriptionAsync(
+            string filter, CancellationToken ct)
+        {
+            Task<IAsyncDisposable> subscriptionTask;
+            lock (_rpcSubscriptions)
+            {
+                if (!_rpcSubscriptions.TryGetValue(filter, out subscriptionTask!))
                 {
-                    await subscription.DisposeAsync().ConfigureAwait(false);
+                    subscriptionTask = SubscribeRawAsync(
+                        filter, HandleRpcAsync, _cts.Token);
+                    _rpcSubscriptions.Add(filter, subscriptionTask);
                 }
+            }
+            try
+            {
+                await subscriptionTask.WaitAsync(ct).ConfigureAwait(false);
+            }
+            catch
+            {
+                if (subscriptionTask.IsCompleted &&
+                    !subscriptionTask.IsCompletedSuccessfully)
+                {
+                    lock (_rpcSubscriptions)
+                    {
+                        if (_rpcSubscriptions.TryGetValue(filter, out var current) &&
+                            ReferenceEquals(current, subscriptionTask))
+                        {
+                            _rpcSubscriptions.Remove(filter);
+                        }
+                    }
+                }
+                throw;
             }
         }
 
@@ -882,6 +932,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt
             (IRpcHandler, IAsyncDisposable)> _handlers = new();
         private readonly ConcurrentDictionary<Guid,
             TaskCompletionSource<(string, MqttInboundMessage)>> _pending = new();
+        private readonly Dictionary<string, Task<IAsyncDisposable>> _rpcSubscriptions = [];
         private readonly Dictionary<string, EventFilterEntry> _eventSubs = [];
         private bool _isDisposed;
     }
