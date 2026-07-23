@@ -16,6 +16,7 @@
 *.ts text eol=lf
 *.js text eol=lf
 *.py text eol=lf
+src/Azure.IIoT.OpcUa.Publisher.Testing/src/Generated/Isa95Jobs/Design/UAModel.ISA95_JOBCONTROL_V2.NodeSet2.xml text eol=lf
 
 # Denote all files that should not have line endings normalized, should not be
 # merged, and should not show in a textual diff.
