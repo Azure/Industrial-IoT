@@ -68,24 +68,24 @@
       of a consumer does not build it for net472 etc. (NETSDK1207). Do NOT modify the
       submodule csprojs.
     -->
-    <ProjectReference Include="..\..\..\external\UA-.NETStandard\Libraries\Opc.Ua.Server\Opc.Ua.Server.csproj"
+    <ProjectReference Include="..\..\..\external\UA-.NETStandard\src\Opc.Ua.Server\Opc.Ua.Server.csproj"
                       SetTargetFramework="TargetFramework=net10.0"
                       UndefineProperties="PublishAot" />
     <!-- Consume the authoritative generic server cohorts without allowing its
          multi-targeted build or AOT properties to leak into Publisher builds. -->
-    <ProjectReference Include="..\..\..\external\UA-.NETStandard\Applications\Quickstarts.Servers\Quickstarts.Servers.csproj"
+    <ProjectReference Include="..\..\..\external\UA-.NETStandard\samples\Quickstarts.Servers\Quickstarts.Servers.csproj"
                       SetTargetFramework="TargetFramework=net10.0"
                       UndefineProperties="PublishAot">
       <Aliases>Quickstarts</Aliases>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\external\UA-.NETStandard\Tools\Opc.Ua.SourceGeneration\Opc.Ua.SourceGeneration.csproj">
+    <ProjectReference Include="..\..\..\external\UA-.NETStandard\tools\Opc.Ua.SourceGeneration\Opc.Ua.SourceGeneration.csproj">
       <OutputItemType>Analyzer</OutputItemType>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>
-  <Import Project="..\..\..\external\UA-.NETStandard\Tools\Opc.Ua.SourceGeneration\OPCFoundation.Opc.Ua.SourceGeneration.props" />
+  <Import Project="..\..\..\external\UA-.NETStandard\tools\Opc.Ua.SourceGeneration\OPCFoundation.Opc.Ua.SourceGeneration.props" />
   <ItemGroup>
     <AdditionalFiles Include="Generated\HistoricalEvents\Design\ModelDesign.csv" />
     <AdditionalFiles Include="Generated\HistoricalEvents\Design\ModelDesign.xml" />

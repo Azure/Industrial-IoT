@@ -19,13 +19,13 @@
       not build them for net472 etc. and fail with NETSDK1207. Do NOT modify the
       submodule csprojs.
     -->
-    <ProjectReference Include="..\..\..\external\UA-.NETStandard\Libraries\Opc.Ua.Client.ComplexTypes\Opc.Ua.Client.ComplexTypes.csproj"
+    <ProjectReference Include="..\..\..\external\UA-.NETStandard\src\Opc.Ua.Client.ComplexTypes\Opc.Ua.Client.ComplexTypes.csproj"
                       SetTargetFramework="TargetFramework=net10.0"
                       UndefineProperties="PublishAot" />
-    <ProjectReference Include="..\..\..\external\UA-.NETStandard\Libraries\Opc.Ua.Client\Opc.Ua.Client.csproj"
+    <ProjectReference Include="..\..\..\external\UA-.NETStandard\src\Opc.Ua.Client\Opc.Ua.Client.csproj"
                       SetTargetFramework="TargetFramework=net10.0"
                       UndefineProperties="PublishAot" />
-    <ProjectReference Include="..\..\..\external\UA-.NETStandard\Libraries\Opc.Ua.PubSub\Opc.Ua.PubSub.csproj"
+    <ProjectReference Include="..\..\..\external\UA-.NETStandard\src\Opc.Ua.PubSub\Opc.Ua.PubSub.csproj"
                       SetTargetFramework="TargetFramework=net10.0"
                       UndefineProperties="PublishAot" />
   </ItemGroup>

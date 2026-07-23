@@ -10,7 +10,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Azure.IIoT.OpcUa.Publisher.Testing\src\Azure.IIoT.OpcUa.Publisher.Testing.Servers.csproj" />
-    <ProjectReference Include="..\..\..\external\UA-.NETStandard\Applications\Quickstarts.Servers\Quickstarts.Servers.csproj"
+    <ProjectReference Include="..\..\..\external\UA-.NETStandard\samples\Quickstarts.Servers\Quickstarts.Servers.csproj"
                       SetTargetFramework="TargetFramework=net10.0"
                       UndefineProperties="PublishAot">
       <Aliases>Quickstarts</Aliases>
