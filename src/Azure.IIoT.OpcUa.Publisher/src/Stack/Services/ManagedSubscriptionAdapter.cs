@@ -1634,15 +1634,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 try
                 {
-                    do
-                    {
-                        Interlocked.Exchange(ref _publishingStateDirty, 0);
-                        if (Volatile.Read(ref _disposed) == 0 && BindingCount != 0)
-                        {
-                            ApplyPublishingState();
-                        }
-                    }
-                    while (Volatile.Read(ref _publishingStateDirty) != 0);
+                    ApplyPendingPublishingStateUnderMutation();
                 }
                 finally
                 {
@@ -1657,16 +1649,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         private void ExitMutation()
         {
-            Interlocked.Increment(ref _mutationVersion);
-            _updateGate.Release();
-            if (Volatile.Read(ref _publishingStateDirty) != 0)
+            try
             {
-                ApplyPendingPublishingState();
+                Interlocked.Increment(ref _mutationVersion);
+                if (Volatile.Read(ref _publishingStateDirty) != 0)
+                {
+                    ApplyPendingPublishingStateUnderMutation();
+                }
+            }
+            finally
+            {
+                _updateGate.Release();
             }
             if (Volatile.Read(ref _cyclicReadStateDirty) != 0)
             {
                 QueueCyclicReadSynchronization();
             }
+        }
+
+        private void ApplyPendingPublishingStateUnderMutation()
+        {
+            do
+            {
+                Interlocked.Exchange(ref _publishingStateDirty, 0);
+                if (Volatile.Read(ref _disposed) == 0 && BindingCount != 0)
+                {
+                    ApplyPublishingState();
+                }
+            }
+            while (Volatile.Read(ref _publishingStateDirty) != 0);
         }
 
         private void BeginMutation()
