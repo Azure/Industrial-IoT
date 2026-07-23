@@ -906,8 +906,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
             {
                 return;
             }
-            Assert.True(result.Value[0].IsObject(), $"Not an object {result.Value[0]}");
-            Assert.NotNull(result.Value[0]!["Value"]);
+            AssertAbstractNumericElement(result.Value[0]);
         }
 
         public async Task NodeReadStaticArrayIntegerValueVariableTestAsync(CancellationToken ct = default)
