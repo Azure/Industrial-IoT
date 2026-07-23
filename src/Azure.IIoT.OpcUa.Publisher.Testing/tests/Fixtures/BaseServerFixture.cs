@@ -175,10 +175,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
             var nodes = nodesFactory(_container.GetRequiredService<ILoggerFactory>(), TimeService);
             ServerConsoleHost? serverHost = null;
             ServerConsoleHost? startedServerHost = null;
-            Exception? lastCollision = null;
+            Exception? lastStartupFailure = null;
             for (var attempt = 1; attempt <= kMaxStartupAttempts &&
                 sw.Elapsed < kStartupTimeout; attempt++)
             {
+                var readinessProbeInProgress = false;
                 try
                 {
                     // Serialize server construction/startup against other servers'
@@ -221,6 +222,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                     //
                     var endpoint =
                         _container.GetRequiredService<IConnectionServices<ConnectionModel>>();
+                    readinessProbeInProgress = true;
                     var result = endpoint.TestConnectionAsync(new ConnectionModel
                     {
                         Endpoint = new EndpointModel
@@ -235,6 +237,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                         throw new IOException(
                             result.ErrorInfo.ErrorMessage ?? "Failed testing connection.");
                     }
+                    readinessProbeInProgress = false;
 
                     if (!useReverseConnect)
                     {
@@ -257,10 +260,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
                         Try.Op(serverHost.Dispose);
                     }
                     serverHost = null;
-                    if (IsBindCollision(ex) && attempt < kMaxStartupAttempts &&
+                    if ((readinessProbeInProgress || IsBindCollision(ex)) &&
+                        attempt < kMaxStartupAttempts &&
                         sw.Elapsed < kStartupTimeout)
                     {
-                        lastCollision = ex;
+                        lastStartupFailure = ex;
                         logger.FailedToStartHost(ex, null, _port);
                         continue;
                     }
@@ -271,7 +275,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Fixtures
             }
             if (startedServerHost == null)
             {
-                var failure = CreateStartupFailure(lastCollision ??
+                var failure = CreateStartupFailure(lastStartupFailure ??
                     new TimeoutException("OPC UA server startup elapsed its time budget."),
                     kMaxStartupAttempts, sw.Elapsed);
                 CleanupStartupFailure();
