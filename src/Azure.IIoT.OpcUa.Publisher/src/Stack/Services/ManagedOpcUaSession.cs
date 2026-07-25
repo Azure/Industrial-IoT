@@ -140,7 +140,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         internal IOpcUaBrowser CreateBrowser(TimeSpan rebrowsePeriod,
             string subscriptionName, ILogger logger)
         {
-            return OpcUaClient.Browser.Register(InnerSession, logger, _timeProvider,
+            return OpcUaBrowser.Register(InnerSession, logger, _timeProvider,
                 _browsers, rebrowsePeriod, subscriptionName);
         }
 
@@ -594,7 +594,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _complexTypeGate.Dispose();
             _complexTypeLifetime.Dispose();
             List<Exception>? exceptions = null;
-            OpcUaClient.Browser[] browsers;
+            OpcUaBrowser[] browsers;
             lock (_browsers)
             {
                 browsers = [.. _browsers.Values];
@@ -1142,7 +1142,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private int _keepAliveTotal;
         private long _complexTypeLoadedTimestamp;
         private readonly IManagedSessionConnection _connection;
-        private readonly Dictionary<(string, TimeSpan), OpcUaClient.Browser> _browsers = [];
+        private readonly Dictionary<(string, TimeSpan), OpcUaBrowser> _browsers = [];
         private readonly bool _disableComplexTypeLoading;
         private readonly bool _preloadComplexTypes;
         private readonly IManagedComplexTypeSystemLoader _complexTypeSystemLoader;

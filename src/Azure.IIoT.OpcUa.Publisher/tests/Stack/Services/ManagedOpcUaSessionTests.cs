@@ -1602,8 +1602,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 field!.GetValue(manager));
             Assert.Same(strategy,
                 provider.GetRequiredService<ManagedSessionRuntimeStrategy>());
-            Assert.Same(strategy,
-                provider.GetRequiredService<IOpcUaClientRuntimeStrategy>());
             Assert.IsType<ManagedSessionConnector>(
                 provider.GetRequiredService<IManagedSessionProvider>());
             Assert.IsType<DefaultManagedSessionRequestFactory>(
@@ -1613,7 +1611,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         [Fact]
-        public void DirectManagerConstructionKeepsClassicRollbackRuntime()
+        public void DirectManagerConstructionUsesManagedRuntime()
         {
             var configuration = new Mock<IOpcUaConfiguration>();
             configuration.SetupGet(item => item.Value)
@@ -1626,8 +1624,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 BindingFlags.Instance | BindingFlags.NonPublic);
 
             Assert.NotNull(field);
-            Assert.Same(ClassicOpcUaClientRuntimeStrategy.Instance,
-                Assert.IsType<ClassicOpcUaClientRuntimeStrategy>(field!.GetValue(manager)));
+            Assert.IsType<ManagedSessionRuntimeStrategy>(field!.GetValue(manager));
         }
 
         [Fact]
@@ -1662,8 +1659,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 var strategy =
                     provider.GetRequiredService<ManagedSessionRuntimeStrategy>();
-                Assert.Same(strategy,
-                    provider.GetRequiredService<IOpcUaClientRuntimeStrategy>());
                 var manager = provider.GetRequiredService<OpcUaClientManager>();
                 using (await manager.AcquireSessionAsync(
                     request.Connection.Connection, header: null, ct: default))
@@ -1715,7 +1710,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         [Fact]
-        public async Task ConfiguredTimeoutResolversMatchAcrossRuntimesAsync()
+        public async Task ConfiguredTimeoutResolversHonorClientOptionsAsync()
         {
             var options = new OpcUaClientOptions
             {
@@ -1726,10 +1721,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var subscriptionOptions = Options.Create(new OpcUaSubscriptionOptions());
             var request = CreateRequest("opc.tcp://localhost:4860");
             using var reverseConnectManager = new ReverseConnectManager(CreateTelemetry());
-            IOpcUaClientRuntime classicRuntime =
-                ClassicOpcUaClientRuntimeStrategy.Instance.Create(
-                    CreateRuntimeContext(request.Connection, clientOptions,
-                        subscriptionOptions, reverseConnectManager));
             var session = CreateSession(out _, out _);
             var provider = new FakeProvider(new FakeConnection(session.Object));
             await using var managedStrategy = new ManagedSessionRuntimeStrategy(provider,
@@ -1739,47 +1730,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     subscriptionOptions, reverseConnectManager));
             try
             {
-                var classic = Assert.IsType<OpcUaClient>(classicRuntime);
                 var managed = Assert.IsType<ManagedOpcUaClient>(managedRuntime);
-                var classicDefaultService = InvokeTimeSpanMethod(
-                    classic, "GetServiceCallTimeout", [null]);
-                var managedDefaultService = InvokeTimeSpanMethod(
-                    managed, "GetServiceCallTimeout", [null]);
-                Assert.Equal(TimeSpan.FromSeconds(13), classicDefaultService);
-                Assert.Equal(TimeSpan.FromSeconds(13), managedDefaultService);
-
-                var classicExplicitService = InvokeTimeSpanMethod(
-                    classic, "GetServiceCallTimeout", [1234]);
-                var managedExplicitService = InvokeTimeSpanMethod(
-                    managed, "GetServiceCallTimeout", [1234]);
-                Assert.Equal(TimeSpan.FromMilliseconds(1234), classicExplicitService);
-                Assert.Equal(TimeSpan.FromMilliseconds(1234), managedExplicitService);
-
-                var classicDefaultConnect = InvokeTimeSpanMethod(
-                    classic, "GetConnectCallTimeout", [null, null]);
-                var managedDefaultConnect = InvokeTimeSpanMethod(
+                Assert.Equal(TimeSpan.FromSeconds(13), InvokeTimeSpanMethod(
+                    managed, "GetServiceCallTimeout", [null]));
+                Assert.Equal(TimeSpan.FromMilliseconds(1234), InvokeTimeSpanMethod(
+                    managed, "GetServiceCallTimeout", [1234]));
+                Assert.Equal(TimeSpan.FromSeconds(11), InvokeTimeSpanMethod(
                     typeof(DefaultManagedSessionRequestFactory),
-                    "GetConnectTimeout", [null, options]);
-                Assert.Equal(TimeSpan.FromSeconds(11), classicDefaultConnect);
-                Assert.Equal(TimeSpan.FromSeconds(11), managedDefaultConnect);
-
-                var classicExplicitConnect = InvokeTimeSpanMethod(
-                    classic, "GetConnectCallTimeout", [2345, null]);
-                var managedExplicitConnect = InvokeTimeSpanMethod(
+                    "GetConnectTimeout", [null, options]));
+                Assert.Equal(TimeSpan.FromMilliseconds(2345), InvokeTimeSpanMethod(
                     typeof(DefaultManagedSessionRequestFactory),
-                    "GetConnectTimeout", [2345, options]);
-                Assert.Equal(TimeSpan.FromMilliseconds(2345), classicExplicitConnect);
-                Assert.Equal(TimeSpan.FromMilliseconds(2345), managedExplicitConnect);
+                    "GetConnectTimeout", [2345, options]));
             }
             finally
             {
                 await managedRuntime.CloseAsync(shutdown: true);
-                await classicRuntime.CloseAsync(shutdown: true);
             }
         }
 
         [Fact]
-        public async Task PerCallServiceTimeoutIsConnectFallbackAcrossRuntimesAsync()
+        public async Task PerCallServiceTimeoutIsConnectFallbackAsync()
         {
             var options = new OpcUaClientOptions();
             var clientOptions = Options.Create(options);
@@ -1787,10 +1757,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var request = CreateRequest("opc.tcp://localhost:4863",
                 ConnectionOptions.NoComplexTypeSystem);
             using var reverseConnectManager = new ReverseConnectManager(CreateTelemetry());
-            IOpcUaClientRuntime classicRuntime =
-                ClassicOpcUaClientRuntimeStrategy.Instance.Create(
-                    CreateRuntimeContext(request.Connection, clientOptions,
-                        subscriptionOptions, reverseConnectManager));
             var session = CreateSession(out _, out _, connected: true);
             var provider = new FakeProvider(new FakeConnection(session.Object));
             await using var managedStrategy = new ManagedSessionRuntimeStrategy(provider,
@@ -1800,9 +1766,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     subscriptionOptions, reverseConnectManager));
             try
             {
-                var classic = Assert.IsType<OpcUaClient>(classicRuntime);
-                Assert.Equal(TimeSpan.FromSeconds(7),
-                    InvokeTimeSpanMethod(classic, "GetConnectCallTimeout", [null, 7000]));
                 using var handle = await managedRuntime.AcquireAsync(
                     connectTimeout: null, serviceCallTimeout: 7000, ct: default);
                 Assert.Equal(TimeSpan.FromSeconds(7), provider.Request.ConnectTimeout);
@@ -1810,7 +1773,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             finally
             {
                 await managedRuntime.CloseAsync(shutdown: true);
-                await classicRuntime.CloseAsync(shutdown: true);
             }
         }
 
@@ -1866,38 +1828,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             Assert.Equal(TimeSpan.FromMinutes(1),
                 DefaultManagedSessionRequestFactory.GetConnectTimeout(null, options));
-        }
-
-        [Theory]
-        [InlineData(ConnectionOptions.None, true)]
-        [InlineData(ConnectionOptions.NoSubscriptionTransfer, false)]
-        public async Task ConnectionOptionControlsClassicTransferIntentAsync(
-            ConnectionOptions connectionOptions, bool transferEnabled)
-        {
-            var request = CreateRequest("opc.tcp://localhost:4861", connectionOptions);
-            var clientOptions = Options.Create(new OpcUaClientOptions());
-            var subscriptionOptions = Options.Create(new OpcUaSubscriptionOptions());
-            using var reverseConnectManager = new ReverseConnectManager(CreateTelemetry());
-            IOpcUaClientRuntime runtime =
-                ClassicOpcUaClientRuntimeStrategy.Instance.Create(
-                    CreateRuntimeContext(request.Connection, clientOptions,
-                        subscriptionOptions, reverseConnectManager));
-            try
-            {
-                var classic = Assert.IsType<OpcUaClient>(runtime);
-                var channel = CreateTransportChannel();
-                using var classicSession = Assert.IsType<OpcUaSession>(
-                    classic.Create(channel.Object, CreateApplicationConfiguration(),
-                        request.Endpoint));
-
-                Assert.Equal(transferEnabled,
-                    classicSession.TransferSubscriptionsOnReconnect);
-                Assert.Equal(!transferEnabled, classicSession.DeleteSubscriptionsOnClose);
-            }
-            finally
-            {
-                await runtime.CloseAsync(shutdown: true);
-            }
         }
 
         [Theory]

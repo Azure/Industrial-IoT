@@ -34,12 +34,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using PublisherSubscription = Azure.IIoT.OpcUa.Publisher.Stack.ISubscription;
 
     /// <summary>
-    /// Internal runtime surface selected by the client-manager composition root.
+    /// Internal runtime surface created for one client connection.
     /// </summary>
-    /// <remarks>
-    /// Production DI selects the managed strategy. Direct construction can still omit
-    /// the strategy to exercise the classic rollback path until classic removal.
-    /// </remarks>
     internal interface IOpcUaClientRuntime : IDisposable
     {
         ChannelDiagnosticModel LastDiagnostics { get; }
@@ -59,16 +55,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     }
 
     /// <summary>
-    /// Factory for the runtime selected for one connection.
-    /// </summary>
-    internal interface IOpcUaClientRuntimeStrategy
-    {
-        IOpcUaClientRuntime Create(OpcUaClientRuntimeContext context);
-        ValueTask DisposeAsync();
-    }
-
-    /// <summary>
-    /// Inputs shared by the classic and managed client runtimes.
+    /// Inputs used by the client runtime.
     /// </summary>
     internal sealed record class OpcUaClientRuntimeContext
     {
@@ -277,7 +264,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// <summary>
     /// Production managed-session runtime strategy.
     /// </summary>
-    internal sealed class ManagedSessionRuntimeStrategy : IOpcUaClientRuntimeStrategy
+    internal sealed class ManagedSessionRuntimeStrategy
     {
         public ManagedSessionRuntimeStrategy(IManagedSessionProvider provider,
             ITelemetryContext telemetry, IManagedSessionRequestFactory? requestFactory = null,
@@ -981,7 +968,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     if (template is EventMonitoredItemModel events &&
                         !string.IsNullOrEmpty(eventTypeDefinitionId))
                     {
-                        var filter = await OpcUaMonitoredItem.Event
+                        var filter = await SimpleEventFilterBuilder
                             .CreateSimpleEventFilterAsync(events with
                             {
                                 EventFilter = events.EventFilter with

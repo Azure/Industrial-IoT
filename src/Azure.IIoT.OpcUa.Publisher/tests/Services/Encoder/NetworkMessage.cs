@@ -163,31 +163,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var seq = 1u;
 
             var subscriber = new Mock<ISubscriber>();
-#pragma warning disable CA2000 // Dispose objects before losing scope
-            var dataItem = new OpcUaMonitoredItem.DataChange(subscriber.Object, new DataMonitoredItemModel
-            {
-                StartNodeId = "i=2258"
-            }, Log.Console<OpcUaMonitoredItem.DataChange>(), TimeProvider.System);
-#pragma warning restore CA2000 // Dispose objects before losing scope
-#pragma warning disable CA2000 // Dispose objects before losing scope
-            var eventItem = new OpcUaMonitoredItem.Event(subscriber.Object, new EventMonitoredItemModel
-            {
-                StartNodeId = "i=2258",
-                EventFilter = new EventFilterModel()
-            }, Log.Console<OpcUaMonitoredItem.Event>(), TimeProvider.System);
-#pragma warning restore CA2000 // Dispose objects before losing scope
-            eventItem.Fields.Add(("1", default));
-            eventItem.Fields.Add(("2", default));
-            eventItem.Fields.Add(("3", default));
-            eventItem.Fields.Add(("4", default));
-            eventItem.Fields.Add(("5", default));
-            eventItem.Fields.Add(("6", default));
+            var eventFieldNames = new[] { "1", "2", "3", "4", "5", "6" };
+            var itemSequenceNumber = 0u;
 
             for (uint i = 0; i < numOfMessages; i++)
             {
                 var suffix = $"-{i}";
 
-                var notifications = new OpcUaMonitoredItem.MonitoredItemNotifications();
+                var notifications = new List<MonitoredItemNotificationModel>();
 
                 for (uint k = 0; k < i + 1; k++)
                 {
@@ -197,58 +180,46 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                     var nodeId = "NodeId" + notificationSuffix;
                     if (eventList)
                     {
-                        var eventFieldList = new EventFieldList
+                        var eventFields = new Variant[] { 1, 2, 3, 4, 5, 6 };
+                        //
+                        // Important - so the event is properly batched during encoding
+                        // the same sequence number must be used for all notifications!
+                        //
+                        var sequenceNumber = ++itemSequenceNumber;
+                        for (var f = 0; f < eventFields.Length; f++)
                         {
-                            ClientHandle = k,
-                            EventFields = new Variant[] { 1, 2, 3, 4, 5, 6 },
-                            Message = new NotificationMessage
+                            notifications.Add(new MonitoredItemNotificationModel
                             {
-                                SequenceNumber = seq++
-                            }
-                        };
-                        // Fake the item to be created as part of the subscription and grab the data
-                        eventItem.Template = eventItem.Template with
-                        {
-                            StartNodeId = nodeId,
-                            DataSetFieldId = nodeId,
-                            DataSetFieldName = displayName,
-                        };
-                        eventItem.DisplayName = displayName;
-                        eventItem.StartNodeId = new NodeId(nodeId, 0);
-                        eventItem.Handle = eventItem;
-                        eventItem.Valid = true;
-                        eventItem.TryGetMonitoredItemNotifications(DateTimeOffset.UtcNow, eventFieldList, notifications);
+                                Id = nodeId,
+                                DataSetName = displayName,
+                                DataSetFieldName = eventFieldNames[f],
+                                NodeId = nodeId,
+                                Value = new DataValue(eventFields[f]),
+                                Flags = 0,
+                                SequenceNumber = sequenceNumber
+                            });
+                        }
                     }
                     else
                     {
-                        var monitoredItemNotification = new MonitoredItemNotification
+                        notifications.Add(new MonitoredItemNotificationModel
                         {
-                            ClientHandle = k,
-                            Value = new DataValue(new Variant(k), new StatusCode(0), DateTime.UtcNow),
-                            Message = new NotificationMessage
-                            {
-                                SequenceNumber = seq++
-                            }
-                        };
-                        // Fake the item to be created as part of the subscription and grab the data
-                        dataItem.Template = dataItem.Template with
-                        {
-                            StartNodeId = nodeId,
-                            DataSetFieldId = nodeId,
+                            Id = nodeId,
+                            DataSetName = displayName,
                             DataSetFieldName = displayName,
-                        };
-                        dataItem.DisplayName = displayName;
-                        dataItem.StartNodeId = new NodeId(nodeId, 0);
-                        dataItem.Handle = dataItem;
-                        dataItem.Valid = true;
-                        dataItem.TryGetMonitoredItemNotifications(DateTimeOffset.UtcNow,
-                            monitoredItemNotification, notifications);
+                            NodeId = nodeId,
+                            Value = new DataValue(new Variant(k), new StatusCode(0),
+                                DateTime.UtcNow),
+                            Flags = 0,
+                            Overflow = 0,
+                            SequenceNumber = ++itemSequenceNumber
+                        });
                     }
                 }
 
 #pragma warning disable CA5394 // Do not use insecure randomness
                 var message = new OpcUaSubscriptionNotification(DateTimeOffset.UtcNow,
-                    notifications: notifications.Notifications[subscriber.Object])
+                    notifications: notifications)
                 {
                     Context = new DataSetWriterContext
                     {

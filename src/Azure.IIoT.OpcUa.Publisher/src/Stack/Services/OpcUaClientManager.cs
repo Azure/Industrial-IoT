@@ -60,7 +60,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             IOpcUaConfiguration configuration, IOptions<OpcUaClientOptions> clientOptions,
             IOptions<OpcUaSubscriptionOptions> subscriptionOptions,
             TimeProvider? timeProvider = null, IMetricsContext? metrics = null,
-            IOpcUaClientRuntimeStrategy? runtimeStrategy = null,
+            ManagedSessionRuntimeStrategy? runtimeStrategy = null,
             IOpcUaEndpointSelector? endpointSelector = null)
         {
             _metrics = metrics ??
@@ -75,18 +75,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 throw new ArgumentNullException(nameof(loggerFactory));
             _configuration = configuration ??
                 throw new ArgumentNullException(nameof(configuration));
-            _runtimeStrategy = runtimeStrategy ??
-                ClassicOpcUaClientRuntimeStrategy.Instance;
             _endpointSelector = endpointSelector ?? OpcUaEndpointSelector.Instance;
+
+            var messageContextTelemetry = _configuration.Value.CreateMessageContext().Telemetry;
+            _runtimeStrategy = runtimeStrategy ?? CreateManagedRuntimeStrategy(
+                messageContextTelemetry ?? new LoggerTelemetryContext(_loggerFactory));
 
             _logger = _loggerFactory.CreateLogger<OpcUaClientManager>();
 
-            _reverseConnectManager = new ReverseConnectManager(
-                _configuration.Value.CreateMessageContext().Telemetry);
+            _reverseConnectManager = new ReverseConnectManager(messageContextTelemetry);
             _reverseConnectStartException = new Lazy<Exception?>(
                 StartReverseConnectManager, isThreadSafe: true);
             _configuration.Validate += OnValidate;
             InitializeMetrics();
+        }
+
+        /// <summary>
+        /// Create the managed runtime used when none is injected by composition.
+        /// </summary>
+        /// <param name="telemetry"></param>
+        private ManagedSessionRuntimeStrategy CreateManagedRuntimeStrategy(
+            ITelemetryContext telemetry)
+        {
+            return new ManagedSessionRuntimeStrategy(
+                new ManagedSessionConnector(_configuration.Value, telemetry, _timeProvider),
+                telemetry, requestFactory: null,
+                ManagedSessionOptionsAdapter.CreatePoolOptions(_clientOptions.Value),
+                _timeProvider);
         }
 
         /// <inheritdoc/>
@@ -747,8 +762,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             AsyncProducerConsumerQueue<ChannelDiagnosticModel>, bool> _listeners = new();
         private readonly ConcurrentDictionary<ConnectionIdentifier, IOpcUaClientRuntime> _clients = new();
         private readonly Lock _clientsGate = new();
-        private readonly IOpcUaClientRuntimeStrategy _runtimeStrategy;
-        private readonly IMetricsContext _metrics;
+        private readonly ManagedSessionRuntimeStrategy _runtimeStrategy;        private readonly IMetricsContext _metrics;
         private readonly Meter _meter = Diagnostics.NewMeter();
     }
 

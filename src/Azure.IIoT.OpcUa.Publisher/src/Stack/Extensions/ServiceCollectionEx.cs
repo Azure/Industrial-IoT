@@ -101,8 +101,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                     sp.GetRequiredService<ManagedSessionPoolOptions>(),
                     sp.GetService<TimeProvider>());
             });
-            services.TryAddSingleton<IOpcUaClientRuntimeStrategy>(static sp =>
-                sp.GetRequiredService<ManagedSessionRuntimeStrategy>());
 
             services.AddTransient<OpcUaClientConfig>();
             services.AddTransient<IPostConfigureOptions<OpcUaClientOptions>>(

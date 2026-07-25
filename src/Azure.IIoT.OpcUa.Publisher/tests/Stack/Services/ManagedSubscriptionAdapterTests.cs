@@ -2100,7 +2100,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         [Fact]
-        public async Task SubscriptionDefaultsMatchClassicOptionResolutionAsync()
+        public void SubscriptionDefaultsResolveConfiguredOptions()
         {
             var options = new OpcUaSubscriptionOptions
             {
@@ -2112,40 +2112,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 MaxSubscriptionPartitions = 5
             };
             var template = new SubscriptionModel();
-            var client = CreateClassicClient(options);
-            try
-            {
-                await using var classic = new OpcUaSubscription(client, template,
-                    Options.Create(options), NullLoggerFactory.Instance, IMetricsContext.Empty);
 
-                var managed = ManagedSubscriptionOptionsAdapter.ToManagedOptions(
-                    template, options);
+            var managed = ManagedSubscriptionOptionsAdapter.ToManagedOptions(
+                template, options);
 
-                Assert.Equal(TimeSpan.FromSeconds(2), managed.PublishingInterval);
-                Assert.Equal(7u, managed.KeepAliveCount);
-                Assert.Equal(21u, managed.LifetimeCount);
-                Assert.Equal((byte)0, managed.Priority);
-                Assert.Equal(0u, managed.MaxNotificationsPerPublish);
-                Assert.True(managed.PublishingEnabled);
-                Assert.Equal(classic.DesiredPublishingInterval, managed.PublishingInterval);
-                Assert.Equal(classic.DesiredKeepAliveCount, managed.KeepAliveCount);
-                Assert.Equal(classic.DesiredLifetimeCount, managed.LifetimeCount);
-                Assert.Equal(classic.DesiredPriority, managed.Priority);
-                Assert.Equal(classic.DesiredMaxNotificationsPerPublish,
-                    managed.MaxNotificationsPerPublish);
-                Assert.True(classic.EnableImmediatePublishing);
-                Assert.True(managed.PublishingEnabled);
-                Assert.Equal(37u, managed.MaxMonitoredItemsPerPartition);
-                Assert.Equal(5u, managed.MaxPartitionCount);
-            }
-            finally
-            {
-                await client.CloseAsync(shutdown: true);
-            }
+            Assert.Equal(TimeSpan.FromSeconds(2), managed.PublishingInterval);
+            Assert.Equal(7u, managed.KeepAliveCount);
+            Assert.Equal(21u, managed.LifetimeCount);
+            Assert.Equal((byte)0, managed.Priority);
+            Assert.Equal(0u, managed.MaxNotificationsPerPublish);
+            Assert.True(managed.PublishingEnabled);
+            Assert.Equal(37u, managed.MaxMonitoredItemsPerPartition);
+            Assert.Equal(5u, managed.MaxPartitionCount);
         }
 
         [Fact]
-        public async Task PerSubscriptionOverridesMatchClassicPrecedenceAsync()
+        public void PerSubscriptionOverridesTakePrecedenceOverDefaults()
         {
             var options = new OpcUaSubscriptionOptions
             {
@@ -2163,34 +2145,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 MaxNotificationsPerPublish = 41,
                 EnableImmediatePublishing = false
             };
-            var client = CreateClassicClient(options);
-            try
-            {
-                await using var classic = new OpcUaSubscription(client, template,
-                    Options.Create(options), NullLoggerFactory.Instance, IMetricsContext.Empty);
 
-                var managed = ManagedSubscriptionOptionsAdapter.ToManagedOptions(
-                    template, options);
+            var managed = ManagedSubscriptionOptionsAdapter.ToManagedOptions(
+                template, options);
 
-                Assert.Equal(TimeSpan.FromMilliseconds(250), managed.PublishingInterval);
-                Assert.Equal(3u, managed.KeepAliveCount);
-                Assert.Equal(9u, managed.LifetimeCount);
-                Assert.Equal((byte)17, managed.Priority);
-                Assert.Equal(41u, managed.MaxNotificationsPerPublish);
-                Assert.False(managed.PublishingEnabled);
-                Assert.Equal(classic.DesiredPublishingInterval, managed.PublishingInterval);
-                Assert.Equal(classic.DesiredKeepAliveCount, managed.KeepAliveCount);
-                Assert.Equal(classic.DesiredLifetimeCount, managed.LifetimeCount);
-                Assert.Equal(classic.DesiredPriority, managed.Priority);
-                Assert.Equal(classic.DesiredMaxNotificationsPerPublish,
-                    managed.MaxNotificationsPerPublish);
-                Assert.False(classic.EnableImmediatePublishing);
-                Assert.False(managed.PublishingEnabled);
-            }
-            finally
-            {
-                await client.CloseAsync(shutdown: true);
-            }
+            Assert.Equal(TimeSpan.FromMilliseconds(250), managed.PublishingInterval);
+            Assert.Equal(3u, managed.KeepAliveCount);
+            Assert.Equal(9u, managed.LifetimeCount);
+            Assert.Equal((byte)17, managed.Priority);
+            Assert.Equal(41u, managed.MaxNotificationsPerPublish);
+            Assert.False(managed.PublishingEnabled);
         }
 
         [Fact]
@@ -3289,31 +3253,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             await adapter.UpdateAsync([]);
             Assert.Equal(0u, manager.Subscription.Collection.Count);
-        }
-
-        private static OpcUaClient CreateClassicClient(
-            OpcUaSubscriptionOptions subscriptionOptions)
-        {
-            var configuration = new ApplicationConfiguration
-            {
-                ApplicationName = "managed-subscription-parity-tests",
-                ApplicationUri = "urn:managed-subscription-parity-tests",
-                ApplicationType = Opc.Ua.ApplicationType.Client,
-                ClientConfiguration = new Opc.Ua.ClientConfiguration()
-            };
-            var connection = new ConnectionIdentifier(new ConnectionModel
-            {
-                Endpoint = new EndpointModel
-                {
-                    Url = "opc.tcp://localhost:4840"
-                }
-            });
-            return new OpcUaClient(configuration, connection,
-                NullLoggerFactory.Instance, TimeProvider.System, IMetricsContext.Empty,
-                () => Task.CompletedTask, notifier: null, reverseConnectManager: null,
-                diagnosticsCallback: _ => { },
-                Options.Create(new OpcUaClientOptions()),
-                Options.Create(subscriptionOptions));
         }
 
         private static Variant GetSingleValue(

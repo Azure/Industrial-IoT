@@ -32,19 +32,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             };
 
             // Act
-            var monitoredItem = await GetMonitoredItemAsync(template);
+            var eventFilter = await GetEventFilterAsync(template);
 
             // Assert
-            Assert.NotNull(monitoredItem.Filter);
-            Assert.IsType<EventFilter>(monitoredItem.Filter);
-            var eventFilter = (EventFilter)monitoredItem.Filter;
+            Assert.NotNull(eventFilter);
 
             Assert.NotNull(eventFilter.SelectClauses);
-            Assert.Equal(2, eventFilter.SelectClauses.Count);
+            //
+            // The managed runtime does not append a hidden internal EventType
+            // select clause for plain events; only condition handling adds it.
+            //
+            Assert.Single(eventFilter.SelectClauses.AsEnumerable());
             Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[0].TypeDefinitionId);
             Assert.Equal((QualifiedName)BrowseNames.Message, eventFilter.SelectClauses[0].BrowsePath.ElementAtOrDefault(0));
-            Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[1].TypeDefinitionId);
-            Assert.Equal((QualifiedName)BrowseNames.EventType, eventFilter.SelectClauses[1].BrowsePath.ElementAtOrDefault(0));
 
             Assert.NotNull(eventFilter.WhereClause);
             Assert.NotNull(eventFilter.WhereClause.Elements);
@@ -73,15 +73,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             };
 
             // Act
-            var monitoredItem = await GetMonitoredItemAsync(template);
+            var eventFilter = await GetEventFilterAsync(template);
 
             // Assert
-            Assert.NotNull(monitoredItem.Filter);
-            Assert.IsType<EventFilter>(monitoredItem.Filter);
-            var eventFilter = (EventFilter)monitoredItem.Filter;
+            Assert.NotNull(eventFilter);
 
             Assert.NotNull(eventFilter.SelectClauses);
-            Assert.Equal(7, eventFilter.SelectClauses.Count);
+            Assert.Equal(6, eventFilter.SelectClauses.Count);
             Assert.Equal(Attributes.NodeId, eventFilter.SelectClauses[0].AttributeId);
             Assert.Equal(ObjectTypeIds.ConditionType, eventFilter.SelectClauses[0].TypeDefinitionId);
             Assert.Empty(eventFilter.SelectClauses[0].BrowsePath.AsEnumerable());
@@ -96,8 +94,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             Assert.Equal((QualifiedName)BrowseNames.Id, eventFilter.SelectClauses[4].BrowsePath.ElementAtOrDefault(1));
             Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[5].TypeDefinitionId);
             Assert.Equal((QualifiedName)BrowseNames.Message, eventFilter.SelectClauses[5].BrowsePath.ElementAtOrDefault(0));
-            Assert.Equal(ObjectTypeIds.BaseEventType, eventFilter.SelectClauses[6].TypeDefinitionId);
-            Assert.Equal((QualifiedName)BrowseNames.EventType, eventFilter.SelectClauses[6].BrowsePath.ElementAtOrDefault(0));
 
             Assert.NotNull(eventFilter.WhereClause);
             Assert.NotNull(eventFilter.WhereClause.Elements);
@@ -130,12 +126,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             };
 
             // Act
-            var monitoredItem = await GetMonitoredItemAsync(template);
+            var eventFilter = await GetEventFilterAsync(template);
 
             // Assert
-            Assert.NotNull(monitoredItem.Filter);
-            Assert.IsType<EventFilter>(monitoredItem.Filter);
-            var eventFilter = (EventFilter)monitoredItem.Filter;
+            Assert.NotNull(eventFilter);
 
             Assert.NotNull(eventFilter.SelectClauses);
             Assert.Equal(8, eventFilter.SelectClauses.Count);

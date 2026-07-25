@@ -131,38 +131,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             return null;
         }
 
-        internal async Task<OpcUaMonitoredItem> GetMonitoredItemAsync(BaseMonitoredItemModel template,
+        /// <summary>
+        /// Runs the production event-filter pipeline: build the simple filter from
+        /// the type definition, encode it back into the template, and resolve the
+        /// final monitored-item filter through the managed options adapter.
+        /// </summary>
+        internal async Task<EventFilter> GetEventFilterAsync(EventMonitoredItemModel template,
             NamespaceTable namespaceUris = null)
         {
             var session = SetupMockedSession(namespaceUris).Object;
-            var subscriber = new Mock<ISubscriber>();
-            var monitoredItemWrapper = OpcUaMonitoredItem.Create(null!,
-                (subscriber.Object, template).YieldReturn(),
-                Log.ConsoleFactory(), TimeProvider.System).Single();
-            using var subscription = new SimpleSubscription();
-            monitoredItemWrapper.AddTo(subscription, session, out _);
-            if (monitoredItemWrapper.FinalizeAddTo != null)
+            var filter = await SimpleEventFilterBuilder.CreateSimpleEventFilterAsync(
+                template, session, default);
+            var resolved = template with
             {
-                await monitoredItemWrapper.FinalizeAddTo(session, default);
-            }
-            return monitoredItemWrapper;
-        }
-
-        internal sealed class SimpleSubscription : Subscription
-        {
-            public SimpleSubscription()
-            {
-            }
-
-            public SimpleSubscription(Subscription template, bool copyEventHandlers)
-                : base(template, copyEventHandlers)
-            {
-            }
-
-            public override Subscription CloneSubscription(bool copyEventHandlers)
-            {
-                throw new NotImplementedException();
-            }
+                EventFilter = session.Codec.Encode(filter, template.NamespaceFormat)!
+            };
+            var options = ManagedSubscriptionOptionsAdapter.ToManagedOptions(
+                resolved, new OpcUaSubscriptionOptions(), session.Codec);
+            return (EventFilter)options.Filter!;
         }
     }
 }
