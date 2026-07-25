@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Encoders.PubSub;
+    using Azure.IIoT.OpcUa.Encoders.Schemas;
     using Azure.IIoT.OpcUa.Core.Exceptions;
     using Azure.IIoT.OpcUa.Core.Messaging;
     using Microsoft.Extensions.Logging;
@@ -438,7 +439,7 @@ $"md_{DateTimeOffset.UtcNow.ToBinary()}_{writerGroup.Id}_{_metadataChanges}.json
 #endif
                 try
                 {
-                    if (PubSubMessage.TryCreateNetworkMessageSchema(encoding, input,
+                    if (NetworkMessageSchema.TryCreate(encoding, input,
                         out schema, _options.Value.SchemaOptions))
                     {
                         schemaGroup = new SchemaGroup(topic, (ulong)_metadataChanges, schema);

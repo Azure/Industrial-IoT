@@ -357,34 +357,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <summary>
-        /// Create network message schema
-        /// </summary>
-        /// <param name="encoding"></param>
-        /// <param name="networkMessage"></param>
-        /// <param name="schema"></param>
-        /// <param name="options"></param>
-        /// <returns></returns>
-        public static bool TryCreateNetworkMessageSchema(MessageEncoding encoding,
-            PublishedNetworkMessageSchemaModel networkMessage,
-            [NotNullWhen(true)] out IEventSchema? schema, SchemaOptions? options = null)
-        {
-            if (encoding.HasFlag(MessageEncoding.Json))
-            {
-                schema = new Schemas.Json.JsonNetworkMessage(networkMessage, options);
-            }
-            else if (encoding.HasFlag(MessageEncoding.Uadp))
-            {
-                schema = new Schemas.Uadp.UadpNetworkMessage(networkMessage);
-            }
-            else
-            {
-                schema = default;
-                return false;
-            }
-            return true;
-        }
-
-        /// <summary>
         /// Decode pub sub messages from a single network buffer. If the message
         /// was chunked, the message might not be fully reconstituted.
         /// </summary>
