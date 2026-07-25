@@ -80,6 +80,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             services.TryAddSingleton<IManagedSessionRequestFactory>(
                 static sp => new DefaultManagedSessionRequestFactory(
                     sp.GetRequiredService<IOpcUaEndpointSelector>()));
+            services.TryAddSingleton(static sp =>
+                ManagedSessionOptionsAdapter.CreatePoolOptions(
+                    sp.GetRequiredService<IOptions<OpcUaClientOptions>>().Value));
             services.TryAddSingleton<IManagedSessionProvider>(static sp =>
             {
                 var configuration =
@@ -95,12 +98,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                     sp.GetRequiredService<IManagedSessionProvider>(),
                     sp.GetRequiredService<ITelemetryContext>(),
                     sp.GetRequiredService<IManagedSessionRequestFactory>(),
-                    sp.GetService<ManagedSessionPoolOptions>(),
+                    sp.GetRequiredService<ManagedSessionPoolOptions>(),
                     sp.GetService<TimeProvider>());
             });
-            // Do not register IOpcUaClientRuntimeStrategy here. The manager's
-            // optional constructor parameter must continue to select classic
-            // until the atomic production switch.
+            services.TryAddSingleton<IOpcUaClientRuntimeStrategy>(static sp =>
+                sp.GetRequiredService<ManagedSessionRuntimeStrategy>());
 
             services.AddTransient<OpcUaClientConfig>();
             services.AddTransient<IPostConfigureOptions<OpcUaClientOptions>>(

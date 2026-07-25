@@ -121,6 +121,44 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 context, ct).ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// Add metadata for an event monitored-item model.
+        /// </summary>
+        public async ValueTask BuildEventAsync(IOpcUaSession session,
+            ComplexTypeSystem? typeSystem, EventMonitoredItemModel template,
+            EventFilter filter, IReadOnlyList<string?> fieldNames,
+            IReadOnlyList<Guid> fieldIds,
+            List<PublishedFieldMetaDataModel> fields,
+            NodeIdDictionary<object> dataTypes, CancellationToken ct)
+        {
+            ArgumentNullException.ThrowIfNull(template);
+            ArgumentNullException.ThrowIfNull(filter);
+            ArgumentNullException.ThrowIfNull(fieldNames);
+            ArgumentNullException.ThrowIfNull(fieldIds);
+            var count = Math.Min(filter.SelectClauses.Count,
+                Math.Min(fieldNames.Count, fieldIds.Count));
+            for (var index = 0; index < count; index++)
+            {
+                var fieldName = fieldNames[index];
+                if (fieldName == null)
+                {
+                    continue;
+                }
+                var clause = filter.SelectClauses[index];
+                var targetNode = await FindNodeWithBrowsePathAsync(session,
+                    new QualifiedNameCollection(clause.BrowsePath.ToArray() ?? []),
+                    clause.TypeDefinitionId, ct).ConfigureAwait(false);
+                var variable = targetNode as VariableNode ?? new VariableNode
+                {
+                    DataType = (NodeId)(uint)BuiltInType.Variant
+                };
+                await AddVariableFieldAsync(fields, dataTypes, session, typeSystem,
+                    variable, fieldName,
+                    (Uuid)fieldIds[index],
+                    template, ct).ConfigureAwait(false);
+            }
+        }
+
         private async ValueTask AddDataTypesAsync(NodeIdDictionary<object> dataTypes,
             NodeId dataTypeId, IOpcUaSession session, ComplexTypeSystem? typeSystem,
             object context, CancellationToken ct)
@@ -329,6 +367,44 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                 }
             }
+        }
+
+        private static async ValueTask<INode?> FindNodeWithBrowsePathAsync(
+            IOpcUaSession session, QualifiedNameCollection browsePath,
+            NodeId nodeId, CancellationToken ct)
+        {
+            INode? found = null;
+            foreach (var browseName in browsePath)
+            {
+                found = null;
+                while (true)
+                {
+                    var references = await session.LruNodeCache.GetReferencesAsync(nodeId,
+                        ReferenceTypeIds.HierarchicalReferences, false, true, ct)
+                        .ConfigureAwait(false);
+                    foreach (var target in references)
+                    {
+                        if (target.BrowseName == browseName)
+                        {
+                            found = target;
+                            break;
+                        }
+                    }
+                    if (found != null)
+                    {
+                        break;
+                    }
+                    nodeId = await session.LruNodeCache.GetSuperTypeAsync(nodeId, ct)
+                        .ConfigureAwait(false);
+                    if (Opc.Ua.NodeIdCompat.IsNull(nodeId))
+                    {
+                        return null;
+                    }
+                }
+                nodeId = ExpandedNodeId.ToNodeId(found.NodeId,
+                    session.MessageContext.NamespaceUris);
+            }
+            return found;
         }
 
         private static bool IsBuiltInType(NodeId dataTypeId)

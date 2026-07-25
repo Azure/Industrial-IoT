@@ -28,7 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
             using var handle = await _server.Client.AcquireSessionAsync(
                 _server.GetConnection(), ct: cts.Token);
-            var session = Assert.IsType<OpcUaSession>(handle.Session);
+            var session = Assert.IsType<ManagedOpcUaSession>(handle.Session).InnerSession;
             uint subscriptionId = 0;
 
             try

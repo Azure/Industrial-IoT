@@ -15,14 +15,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Settings for the unused managed-session pool seam.
+    /// Settings for the managed-session pool.
     /// </summary>
     internal sealed class ManagedSessionPoolOptions
     {
         /// <summary>
-        /// Duration for which an unreferenced connection remains reusable.
+        /// Duration for which an unreferenced connection remains reusable. A short
+        /// default prevents discovery and session churn between back-to-back calls.
         /// </summary>
-        public TimeSpan LingerTimeout { get; init; } = TimeSpan.Zero;
+        public TimeSpan LingerTimeout { get; init; } = TimeSpan.FromSeconds(10);
 
         /// <summary>
         /// Default timeout assigned to leases.
@@ -92,16 +93,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <summary>
         /// Acquire a reference-counted session lease.
         /// </summary>
-        public async Task<ISessionHandle> AcquireAsync(
+        public Task<ISessionHandle> AcquireAsync(
             ManagedSessionConnectionRequest request, CancellationToken ct = default)
         {
             ArgumentNullException.ThrowIfNull(request);
+            return AcquireAsync(request.Connection, request.ConnectTimeout,
+                _ => Task.FromResult(request), ct);
+        }
 
+        internal async Task<ISessionHandle> AcquireAsync(ConnectionIdentifier connection,
+            TimeSpan connectTimeout,
+            Func<CancellationToken, Task<ManagedSessionConnectionRequest>> requestFactory,
+            CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(connection);
+            ArgumentNullException.ThrowIfNull(requestFactory);
             while (true)
             {
+                ct.ThrowIfCancellationRequested();
                 ThrowIfDisposed();
-                var entry = _sessions.GetOrAdd(request.Connection,
-                    key => new Entry(this, key, request));
+                var entry = _sessions.GetOrAdd(connection,
+                    key => new Entry(this, key, connectTimeout, requestFactory));
                 try
                 {
                     var lease = await entry.AcquireAsync(ct).ConfigureAwait(false);
@@ -120,7 +132,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 catch (OperationCanceledException) when (ct.IsCancellationRequested)
                 {
                     // Caller cancellation must not remove or close the shared connect.
+                    if (await entry.TryStartClosingIfNeverStartedAsync()
+                        .ConfigureAwait(false) && Remove(entry))
+                    {
+                        await entry.CloseAsync().ConfigureAwait(false);
+                    }
                     throw;
+                }
+                catch (TimeoutException) when (!ct.IsCancellationRequested &&
+                    connectTimeout > entry.ConnectTimeout)
+                {
+                    // A longer-lived waiter joined an attempt created by a caller
+                    // with a shorter deadline. Retry under this caller's timeout.
+                    if (Remove(entry))
+                    {
+                        await CloseEntryAsync(entry).ConfigureAwait(false);
+                    }
                 }
                 catch
                 {
@@ -177,24 +204,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
         }
 
-        private async Task<ManagedOpcUaSession> ConnectAsync(
-            ManagedSessionConnectionRequest request)
+        private async Task<ManagedOpcUaSession> ConnectAsync(TimeSpan connectTimeout,
+            Func<CancellationToken, Task<ManagedSessionConnectionRequest>> requestFactory)
         {
-            ConnectionAttempt? attempt = new ConnectionAttempt(_provider, request,
+            ConnectionAttempt? attempt = new ConnectionAttempt(_provider, requestFactory,
                 _shutdown.Token);
             try
             {
                 var connect = attempt.Connect;
-                if (request.ConnectTimeout <= TimeSpan.Zero)
+                if (connectTimeout <= TimeSpan.Zero)
                 {
-                    return await CreateFacadeAsync(connect, request).ConfigureAwait(false);
+                    return await CreateFacadeAsync(connect).ConfigureAwait(false);
                 }
 
-                var timeoutTask = Task.Delay(request.ConnectTimeout, _timeProvider,
+                var timeoutTask = Task.Delay(connectTimeout, _timeProvider,
                     _shutdown.Token);
                 if (await Task.WhenAny(connect, timeoutTask).ConfigureAwait(false) == connect)
                 {
-                    return await CreateFacadeAsync(connect, request).ConfigureAwait(false);
+                    return await CreateFacadeAsync(connect).ConfigureAwait(false);
                 }
 
                 await attempt.CancelAsync().ConfigureAwait(false);
@@ -213,22 +240,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         private async Task<ManagedOpcUaSession> CreateFacadeAsync(
-            Task<IManagedSessionConnection> connect,
-            ManagedSessionConnectionRequest request)
+            Task<ManagedSessionActivation> connect)
         {
-            var connection = await connect.ConfigureAwait(false);
+            var activation = await connect.ConfigureAwait(false);
             try
             {
-                return new ManagedOpcUaSession(connection, _telemetry, _timeProvider,
+                return new ManagedOpcUaSession(activation.Connection, _telemetry, _timeProvider,
                     _options.NodeCacheTimeout, _options.NodeCacheCapacity,
-                    request.DisableComplexTypeLoading,
-                    request.PreloadComplexTypes);
+                    activation.Request.DisableComplexTypeLoading,
+                    activation.Request.PreloadComplexTypes);
             }
             catch (Exception ex) when (ex is not OutOfMemoryException)
             {
                 try
                 {
-                    await connection.DisposeAsync().ConfigureAwait(false);
+                    await activation.Connection.DisposeAsync().ConfigureAwait(false);
                 }
                 catch (Exception disposeException) when (
                     disposeException is not OutOfMemoryException)
@@ -296,14 +322,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private sealed class Entry : IDisposable
         {
             public Entry(ManagedSessionPool owner, ConnectionIdentifier key,
-                ManagedSessionConnectionRequest request)
+                TimeSpan connectTimeout,
+                Func<CancellationToken, Task<ManagedSessionConnectionRequest>> requestFactory)
             {
                 _owner = owner;
                 Key = key;
-                _request = request;
+                _connectTimeout = connectTimeout;
+                _requestFactory = requestFactory;
             }
 
             public ConnectionIdentifier Key { get; }
+            public TimeSpan ConnectTimeout => _connectTimeout;
 
             public async Task<ISessionHandle> AcquireAsync(CancellationToken ct)
             {
@@ -316,7 +345,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         throw new EntryClosingException();
                     }
                     Interlocked.Increment(ref _generation);
-                    _connect ??= _owner.ConnectAsync(_request);
+                    if (_connect == null)
+                    {
+                        Volatile.Write(ref _connectStarted, 1);
+                        _connect = _owner.ConnectAsync(_connectTimeout, _requestFactory);
+                    }
                     _observeConnect ??= ObserveConnectAsync(_connect);
                     _pendingAcquires++;
                     connect = _connect;
@@ -364,6 +397,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     if (_closing || _references != 0 || _pendingAcquires != 0 ||
                         Volatile.Read(ref _generation) != generation)
+                    {
+                        return false;
+                    }
+                    _closing = true;
+                    return true;
+                }
+                finally
+                {
+                    _gate.Release();
+                }
+            }
+
+            public async Task<bool> TryStartClosingIfNeverStartedAsync()
+            {
+                await _gate.WaitAsync().ConfigureAwait(false);
+                try
+                {
+                    if (_closing || _connect != null ||
+                        Volatile.Read(ref _connectStarted) != 0)
                     {
                         return false;
                     }
@@ -571,6 +623,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
 
             private int _disposed;
+            private int _connectStarted;
             private int _gateDisposed;
             private int _generation;
             private int _references;
@@ -581,7 +634,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private Task<ManagedOpcUaSession>? _connect;
             private Task? _observeConnect;
             private readonly ManagedSessionPool _owner;
-            private readonly ManagedSessionConnectionRequest _request;
+            private readonly TimeSpan _connectTimeout;
+            private readonly Func<CancellationToken,
+                Task<ManagedSessionConnectionRequest>> _requestFactory;
             private readonly SemaphoreSlim _gate = new(1, 1);
             private readonly TaskCompletionSource _noPendingAcquires = new(
                 TaskCreationOptions.RunContinuationsAsynchronously);
@@ -590,12 +645,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private sealed class ConnectionAttempt : IDisposable
         {
             public ConnectionAttempt(IManagedSessionProvider provider,
-                ManagedSessionConnectionRequest request, CancellationToken shutdown)
+                Func<CancellationToken, Task<ManagedSessionConnectionRequest>> requestFactory,
+                CancellationToken shutdown)
             {
                 _cancellation = CancellationTokenSource.CreateLinkedTokenSource(shutdown);
                 try
                 {
-                    Connect = provider.ConnectAsync(request, _cancellation.Token);
+                    Connect = ConnectAsync(provider, requestFactory, _cancellation.Token);
                 }
                 catch
                 {
@@ -604,7 +660,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
 
-            public Task<IManagedSessionConnection> Connect { get; }
+            public Task<ManagedSessionActivation> Connect { get; }
 
             public Task CancelAsync()
             {
@@ -620,8 +676,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 try
                 {
-                    var connection = await Connect.ConfigureAwait(false);
-                    await connection.DisposeAsync().ConfigureAwait(false);
+                    var activation = await Connect.ConfigureAwait(false);
+                    await activation.Connection.DisposeAsync().ConfigureAwait(false);
                 }
                 catch (Exception ex) when (ex is not OutOfMemoryException)
                 {
@@ -642,7 +698,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             private int _disposed;
             private readonly CancellationTokenSource _cancellation;
+
+            private static async Task<ManagedSessionActivation> ConnectAsync(
+                IManagedSessionProvider provider,
+                Func<CancellationToken, Task<ManagedSessionConnectionRequest>> requestFactory,
+                CancellationToken ct)
+            {
+                var request = await requestFactory(ct).ConfigureAwait(false);
+                var connection = await provider.ConnectAsync(request, ct).ConfigureAwait(false);
+                return new ManagedSessionActivation(connection, request);
+            }
         }
+
+        private sealed record class ManagedSessionActivation(
+            IManagedSessionConnection Connection,
+            ManagedSessionConnectionRequest Request);
 
         private sealed class ManagedSessionLease : ISessionHandle
         {

@@ -5,6 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
+    using Azure.IIoT.OpcUa.Exceptions;
     using Azure.IIoT.OpcUa.Publisher.Stack.Extensions;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Opc.Ua;
@@ -12,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Opc.Ua.Client.Subscriptions;
     using Opc.Ua.Extensions;
     using System;
+    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -33,6 +35,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Endpoint selected for the connection.
         /// </summary>
         public required ConfiguredEndpoint Endpoint { get; init; }
+
+        /// <summary>
+        /// Alternative configured endpoints tried when activation of the primary
+        /// endpoint fails.
+        /// </summary>
+        public IReadOnlyList<ConfiguredEndpoint> AlternativeEndpoints { get; init; } = [];
 
         /// <summary>
         /// User identity resolved from the connection credentials.
@@ -250,16 +258,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         {
             ArgumentNullException.ThrowIfNull(request);
 
-            if (request.ReverseConnectManager != null &&
-                request.ReverseConnectServerUri != null)
-            {
-                request.Endpoint.ReverseConnect = new ReverseConnectEndpoint
-                {
-                    Enabled = true,
-                    ServerUri = request.ReverseConnectServerUri.ToString()
-                };
-            }
-
             var sessionFactory = new DefaultSessionFactory(_telemetry)
             {
                 SubscriptionEngineFactory = request.SubscriptionEngineFactory,
@@ -267,52 +265,98 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             };
             var identity = request.Identity ?? await request.Connection.Connection.User
                 .ToUserIdentityAsync(_configuration, ct).ConfigureAwait(false);
-            ManagedSession? session = null;
-            try
+            Exception? activationError = null;
+            ConfiguredEndpoint[] endpoints =
+                [request.Endpoint, .. request.AlternativeEndpoints];
+            foreach (var endpoint in endpoints)
             {
-                session = await _managedSessionFactory.CreateAsync(_configuration, request,
-                    sessionFactory, identity, _telemetry, _timeProvider, ct)
-                    .ConfigureAwait(false);
-                if (request.KeepAliveInterval is { } keepAliveInterval)
+                var endpointRequest = request with
                 {
-                    session.KeepAliveInterval = (int)Math.Clamp(
-                        keepAliveInterval.TotalMilliseconds, 1, int.MaxValue);
+                    Endpoint = endpoint,
+                    AlternativeEndpoints = []
+                };
+                if (endpointRequest.ReverseConnectManager != null &&
+                    endpointRequest.ReverseConnectServerUri != null)
+                {
+                    endpoint.ReverseConnect = new ReverseConnectEndpoint
+                    {
+                        Enabled = true,
+                        ServerUri = endpointRequest.ReverseConnectServerUri.ToString()
+                    };
                 }
-                session.OperationLimits.Override(request.OperationLimitOverrides);
 
-                // Publisher handlers may retain values after dispatch. Keep pooling disabled
-                // until their ownership contract is changed to deep-copy those values.
-                if (!session.TryGetSubscriptionManager(
-                    out ISubscriptionManager? subscriptions))
+                var retryAttempt = 0;
+                while (true)
                 {
-                    throw new InvalidOperationException(
-                        "The managed session did not expose the required V2 subscription manager.");
-                }
-                subscriptions.PoolNotifications = false;
-                subscriptions.MinPublishWorkerCount = request.MinPublishWorkerCount;
-                subscriptions.MaxPublishWorkerCount = request.MaxPublishWorkerCount;
-                return new ManagedSessionConnection(session);
-            }
-            catch (Exception ex) when (ex is not OutOfMemoryException)
-            {
-                if (session != null)
-                {
+                    ManagedSession? session = null;
                     try
                     {
-                        await session.DisposeAsync().ConfigureAwait(false);
+                        session = await _managedSessionFactory.CreateAsync(_configuration,
+                            endpointRequest, sessionFactory, identity, _telemetry,
+                            _timeProvider, ct).ConfigureAwait(false);
+                        if (endpointRequest.KeepAliveInterval is { } keepAliveInterval)
+                        {
+                            session.KeepAliveInterval = (int)Math.Clamp(
+                                keepAliveInterval.TotalMilliseconds, 1, int.MaxValue);
+                        }
+                        session.OperationLimits.Override(
+                            endpointRequest.OperationLimitOverrides);
+
+                        // Publisher handlers may retain values after dispatch. Keep pooling disabled
+                        // until their ownership contract is changed to deep-copy those values.
+                        if (!session.TryGetSubscriptionManager(
+                            out ISubscriptionManager? subscriptions))
+                        {
+                            throw new InvalidOperationException(
+                                "The managed session did not expose the required V2 subscription manager.");
+                        }
+                        subscriptions.PoolNotifications = false;
+                        subscriptions.MinPublishWorkerCount =
+                            endpointRequest.MinPublishWorkerCount;
+                        subscriptions.MaxPublishWorkerCount =
+                            endpointRequest.MaxPublishWorkerCount;
+                        return new ManagedSessionConnection(session);
                     }
-                    catch (Exception disposeException) when (
-                        disposeException is not OutOfMemoryException)
+                    catch (Exception ex) when (ex is not OutOfMemoryException)
                     {
-                        throw new AggregateException(
-                            "Managed session activation and cleanup both failed.",
-                            ex, disposeException);
+                        var retry = ex is ServiceResultException serviceException &&
+                            serviceException.StatusCode == StatusCodes.BadNotConnected &&
+                            !ct.IsCancellationRequested;
+                        if (session != null)
+                        {
+                            try
+                            {
+                                await session.DisposeAsync().ConfigureAwait(false);
+                            }
+                            catch (Exception disposeException) when (
+                                disposeException is not OutOfMemoryException)
+                            {
+                                throw new AggregateException(
+                                    "Managed session activation and cleanup both failed.",
+                                    ex, disposeException);
+                            }
+                        }
+                        if (!retry)
+                        {
+                            activationError = ex;
+                            break;
+                        }
+                        var retryDelayMilliseconds = Math.Min(
+                            kDisconnectedSessionRetryDelayMilliseconds *
+                                (1 << Math.Min(retryAttempt++, 4)),
+                            kMaxDisconnectedSessionRetryDelayMilliseconds);
+                        await Task.Delay(TimeSpan.FromMilliseconds(retryDelayMilliseconds),
+                                _timeProvider, ct)
+                            .ConfigureAwait(false);
                     }
                 }
-                throw;
             }
+            throw activationError ?? new ConnectionException(
+                "No managed OPC UA endpoint could be activated.");
         }
 
+        private const int kDisconnectedSessionRetryDelayMilliseconds = 100;
+        private const int kMaxDisconnectedSessionRetryDelayMilliseconds = 1000;
         private readonly ApplicationConfiguration _configuration;
         private readonly IManagedSessionFactory _managedSessionFactory;
         private readonly ITelemetryContext _telemetry;

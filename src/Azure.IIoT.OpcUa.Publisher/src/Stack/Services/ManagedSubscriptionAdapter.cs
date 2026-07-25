@@ -15,7 +15,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Opc.Ua;
     using Opc.Ua.Client.Subscriptions;
     using Opc.Ua.Client.Subscriptions.MonitoredItems;
+    using Opc.Ua.Extensions;
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.IO;
@@ -28,10 +30,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// Publisher-owned adapter for the public V2 subscription APIs.
     /// </summary>
     /// <remarks>
-    /// This seam deliberately has no registration in the production client
-    /// path. A later cutover supplies it with the V2 manager exposed by the
-    /// managed session facade. It uses only the public V2 contracts so it
-    /// remains independent from the V2 implementation's internal types.
+    /// Uses only the public V2 contracts so it remains independent from the
+    /// subscription implementation's internal types.
     /// </remarks>
     internal sealed class ManagedSubscriptionAdapter : ISubscriptionNotificationHandler,
         IAsyncDisposable, IKeyFrameSnapshotProvider
@@ -49,6 +49,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="timeProvider">The time provider for notification creation.</param>
         /// <param name="periodicKeyFrameInterval">Optional Publisher key-frame period.</param>
         /// <param name="watchdogAction">Runs non-diagnostic watchdog actions.</param>
+        /// <param name="cyclicReadClient">Runs Publisher-owned cyclic reads.</param>
+        /// <param name="endpointUrlProvider">Provides the connected endpoint URL.</param>
+        /// <param name="applicationUriProvider">Provides the server application URI.</param>
+        /// <param name="monitoredItemPreparation">Prepares one monitored-item template.</param>
+        /// <param name="browsePathFromRootResolver">Resolves a node path from Objects.</param>
         public ManagedSubscriptionAdapter(ISubscriptionManager manager,
             SubscriptionModel template, OpcUaSubscriptionOptions options,
             IVariantEncoder codec,
@@ -57,7 +62,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             TimeSpan? periodicKeyFrameInterval = null,
             Action<ManagedSubscriptionAdapter, SubscriptionWatchdogBehavior, string>?
                 watchdogAction = null,
-            IManagedCyclicReadClient? cyclicReadClient = null)
+            IManagedCyclicReadClient? cyclicReadClient = null,
+            Func<string?>? endpointUrlProvider = null,
+            Func<string?>? applicationUriProvider = null,
+            Func<BaseMonitoredItemModel, CancellationToken,
+                ValueTask<BaseMonitoredItemModel>>? monitoredItemPreparation = null,
+            Func<string, CancellationToken, ValueTask<RelativePath?>>?
+                browsePathFromRootResolver = null)
         {
             ArgumentNullException.ThrowIfNull(manager);
             ArgumentNullException.ThrowIfNull(template);
@@ -86,6 +97,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 SubscriptionWatchdogBehavior.Diagnostic;
             _watchdogAction = watchdogAction;
             _cyclicReadClient = cyclicReadClient;
+            _endpointUrlProvider = endpointUrlProvider;
+            _applicationUriProvider = applicationUriProvider;
+            _monitoredItemPreparation = monitoredItemPreparation;
+            _browsePathFromRootResolver = browsePathFromRootResolver;
+            _resolveBrowsePathFromRoot = template.ResolveBrowsePathFromRoot ??
+                options.FetchOpcBrowsePathFromRoot ?? false;
             var subscriptionOptions =
                 ManagedSubscriptionOptionsAdapter.ToManagedOptions(template, options);
             _subscriptionOptions =
@@ -100,6 +117,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             _conditionTimer = _timeProvider.CreateTimer(OnConditionTimer, null,
                 TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+            _preparationRetryTimer = _timeProvider.CreateTimer(
+                OnPreparationRetryTimer, null,
+                Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
             _watchdogTimer = _timeProvider.CreateTimer(OnWatchdogTimer, null,
                 Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         }
@@ -359,6 +379,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     CreateBinding(CreateName(template), owner, template, null, []), out _);
                 if (added)
                 {
+                    CommitBindingMetadata();
                     ApplyPublishingState();
                 }
                 return added;
@@ -429,6 +450,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         await SynchronizeCyclicReadGroupsAsync(operation.Token)
                             .ConfigureAwait(false);
                         completed = true;
+                        CommitBindingMetadata();
                         ApplyPublishingState();
                     }
                     return completed;
@@ -488,6 +510,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         "Address-space monitoring updates require UpdateAsync for browser lifecycle synchronization.");
                 }
                 UpdateBindings(desired, requestConditionRefresh: true);
+                CommitBindingMetadata();
                 ApplyPublishingState();
             }
             finally
@@ -508,20 +531,52 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             CancellationToken ct = default, CancellationToken lifetimeCt = default)
         {
             ArgumentNullException.ThrowIfNull(items);
+            var requestedItems = items.ToArray();
+            var requestVersion = Interlocked.Increment(ref _preparationRequestVersion);
+            try
+            {
+                await UpdateAsync(requestedItems, requestVersion, ct, lifetimeCt)
+                    .ConfigureAwait(false);
+            }
+            catch
+            {
+                RestorePreparationRetryAfterFailedUpdate(requestVersion);
+                throw;
+            }
+        }
+
+        private async ValueTask UpdateAsync(
+            (ISubscriber Owner, BaseMonitoredItemModel Template)[] requestedItems,
+            long requestVersion, CancellationToken ct, CancellationToken lifetimeCt)
+        {
             ThrowIfDisposed();
             using var operation = CancellationTokenSource.CreateLinkedTokenSource(
                 ct, lifetimeCt, _disposeCts.Token);
             await _updateGate.WaitAsync(operation.Token).ConfigureAwait(false);
+            if (requestVersion != Volatile.Read(ref _preparationRequestVersion))
+            {
+                _updateGate.Release();
+                return;
+            }
             BeginMutation();
             try
             {
                 ThrowIfDisposed();
+                var notifySemantics = Volatile.Read(ref _hasSynchronized) != 0;
                 var previousPublishingEnabled = _subscriptionOptions.CurrentValue.PublishingEnabled;
                 var previousItems = SnapshotDesiredItems();
+                var previousBindingMetadata = SnapshotBindingMetadata();
+                var dataSetClassFieldIds = new ConcurrentDictionary<string, Guid>(
+                    _dataSetClassFieldIds, StringComparer.Ordinal);
                 PendingInitialApply? pendingApply = null;
                 try
                 {
-                    var desired = CreateDesiredBindings(items, includeTriggeredItems: true);
+                    var (desiredItems, preparationFailed) =
+                        await PrepareMonitoredItemsAsync(requestedItems,
+                            dataSetClassFieldIds, operation.Token)
+                        .ConfigureAwait(false);
+                    var desired = CreatePreparedBindings(desiredItems,
+                        dataSetClassFieldIds);
                     if (desired.Any(binding =>
                         binding.Monitor.CurrentValue.MonitoringMode !=
                             Opc.Ua.MonitoringMode.Disabled ||
@@ -530,6 +585,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         pendingApply = BeginPendingInitialApply();
                     }
                     var monitoredItems = UpdateBindings(desired, requestConditionRefresh: false);
+                    await ResolveBrowsePathsFromRootAsync(desired, operation.Token)
+                        .ConfigureAwait(false);
                     if (pendingApply != null)
                     {
                         await WaitForInitialApplyAsync(pendingApply, monitoredItems,
@@ -543,14 +600,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         .ConfigureAwait(false);
                     await SynchronizeCyclicReadGroupsAsync(operation.Token)
                         .ConfigureAwait(false);
+                    CommitBindingMetadata();
+                    CommitDataSetClassFieldIds(dataSetClassFieldIds,
+                        prune: !preparationFailed);
                     ApplyPublishingState();
+                    Volatile.Write(ref _hasSynchronized, 1);
+                    Volatile.Write(ref _preparationCommittedVersion, requestVersion);
+                    UpdatePreparationRetry(requestedItems, preparationFailed,
+                        requestVersion);
+                    if (notifySemantics)
+                    {
+                        foreach (var owner in previousItems.Select(item => item.Owner)
+                            .Concat(requestedItems.Select(item => item.Owner))
+                            .Distinct())
+                        {
+                            await InvokeSubscriberAsync(owner, subscriber =>
+                                subscriber.OnMonitoredItemSemanticsChangedAsync(operation.Token))
+                                .ConfigureAwait(false);
+                        }
+                    }
                 }
                 catch (Exception updateException)
                 {
                     ClearPendingInitialApply(pendingApply);
                     try
                     {
-                        RestoreBindings(previousItems);
+                        RestoreBindings(previousItems, previousBindingMetadata);
                         await SynchronizeCyclicReadGroupsAsync(CancellationToken.None)
                             .ConfigureAwait(false);
                         if (!lifetimeCt.IsCancellationRequested &&
@@ -616,6 +691,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 var removed = _subscription.MonitoredItems.TryRemove(clientHandle);
                 RemoveBinding(binding);
                 RemoveBindings(bindings.Where(candidate => candidate.ClientHandle != clientHandle));
+                CommitBindingMetadata();
                 ApplyPublishingState();
                 return removed;
             }
@@ -639,6 +715,28 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     state.KeyFrameRequired = true;
                 }
+            }
+        }
+
+        internal IReadOnlyList<ManagedEventMetadata> GetEventMetadata(ISubscriber owner)
+        {
+            ArgumentNullException.ThrowIfNull(owner);
+            lock (_bindingsLock)
+            {
+                return _publishedEventMetadata.TryGetValue(owner, out var metadata)
+                    ? metadata
+                    : [];
+            }
+        }
+
+        internal IReadOnlyList<DataMonitoredItemModel> GetDataMetadata(ISubscriber owner)
+        {
+            ArgumentNullException.ThrowIfNull(owner);
+            lock (_bindingsLock)
+            {
+                return _publishedDataMetadata.TryGetValue(owner, out var metadata)
+                    ? metadata
+                    : [];
             }
         }
 
@@ -814,7 +912,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ReadOnlyMemory<EventNotification> notification, PublishState publishStateMask,
             IReadOnlyList<string> stringTable)
         {
-            var deliveries = new Dictionary<ISubscriber, List<MonitoredItemNotificationModel>>();
+            var deliveries = new Dictionary<(ISubscriber Owner, string? EventTypeName),
+                List<MonitoredItemNotificationModel>>();
             var eventNotifications = notification.ToArray();
             foreach (var item in eventNotifications)
             {
@@ -835,22 +934,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         publishTime, item.Fields).ConfigureAwait(false);
                     continue;
                 }
-                if (!deliveries.TryGetValue(binding.Owner, out var notifications))
+                var delivery = (binding.Owner, binding.Template.DisplayName);
+                if (!deliveries.TryGetValue(delivery, out var notifications))
                 {
                     notifications = [];
-                    deliveries.Add(binding.Owner, notifications);
+                    deliveries.Add(delivery, notifications);
                 }
                 AddEventNotifications(notifications, binding, item.Fields);
             }
 
-            foreach (var (owner, notifications) in deliveries)
+            foreach (var ((owner, eventTypeName), notifications) in deliveries)
             {
                 if (notifications.Count == 0 || !IsLiveOwner(owner))
                 {
                     continue;
                 }
                 using var message = CreateNotification(notifications, publishTime,
-                    MessageType.Event, sequenceNumber);
+                    MessageType.Event, sequenceNumber, eventTypeName);
                 Deliver(owner, message,
                     static (subscriber, notification) =>
                         subscriber.OnSubscriptionEventReceived(notification));
@@ -866,6 +966,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public ValueTask OnKeepAliveNotificationAsync(ISubscription subscription,
             uint sequenceNumber, DateTime publishTime, PublishState publishStateMask)
         {
+            if (publishStateMask.HasFlag(PublishState.Stopped) ||
+                publishStateMask.HasFlag(PublishState.Timeout) ||
+                publishStateMask.HasFlag(PublishState.Completed))
+            {
+                return ValueTask.CompletedTask;
+            }
             foreach (var owner in GetBindings().Select(binding => binding.Owner).Distinct())
             {
                 if (!IsLiveOwner(owner))
@@ -874,7 +980,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 if (RequiresKeyFrame(owner))
                 {
-                    var keyFrame = CreateKeyFrame(owner, publishTime, sequenceNumber);
+                    var keyFrame = CreateKeyFrame(owner, publishTime);
                     if (keyFrame != null && IsLiveOwner(owner))
                     {
                         MarkKeyFrameDelivered(owner, true);
@@ -891,7 +997,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     continue;
                 }
                 using var keepAlive = CreateNotification([], publishTime,
-                    MessageType.KeepAlive, sequenceNumber);
+                    MessageType.KeepAlive);
                 Deliver(owner, keepAlive,
                     static (subscriber, notification) =>
                         subscriber.OnSubscriptionKeepAlive(notification));
@@ -1082,6 +1188,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             CancelPendingInitialApply();
             await _disposeCts.CancelAsync().ConfigureAwait(false);
             await _retryScheduler.DisposeAsync().ConfigureAwait(false);
+            Task? preparationRetry;
+            lock (_preparationRetryLock)
+            {
+                preparationRetry = _preparationRetryTask;
+            }
+            if (preparationRetry != null)
+            {
+                await preparationRetry.ConfigureAwait(false);
+            }
             var cyclicReadSynchronization = GetCyclicReadSynchronizationTask();
             if (cyclicReadSynchronization != null)
             {
@@ -1095,6 +1210,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     _conditionTimer.Dispose();
                     _keyFrameTimer?.Dispose();
+                    _preparationRetryTimer.Dispose();
                 }
                 catch (Exception ex)
                 {
@@ -1305,13 +1421,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             return desired;
         }
 
+        private List<ManagedSubscriptionItemBinding> CreatePreparedBindings(
+            IEnumerable<(string Name, ISubscriber Owner,
+                BaseMonitoredItemModel Template)> items,
+            IDictionary<string, Guid> dataSetClassFieldIds)
+        {
+            var desired = new List<ManagedSubscriptionItemBinding>();
+            foreach (var (name, owner, template) in items)
+            {
+                AddDesiredBinding(owner, template, name, null, [], desired,
+                    includeTriggeredItems: true,
+                    dataSetClassFieldIds: dataSetClassFieldIds);
+            }
+            return desired;
+        }
+
         private void AddDesiredBinding(ISubscriber owner, BaseMonitoredItemModel template,
             string name, string? rootName, IReadOnlyList<string> triggeredByNames,
-            List<ManagedSubscriptionItemBinding> desired, bool includeTriggeredItems)
+            List<ManagedSubscriptionItemBinding> desired, bool includeTriggeredItems,
+            IDictionary<string, Guid>? dataSetClassFieldIds = null)
         {
             var effective = template.SetDefaults(_options);
-            var binding = TryGetBindingByName(name, out var current) ? current :
-                CreateBinding(name, owner, effective, rootName, triggeredByNames);
+            ManagedSubscriptionItemBinding binding;
+            if (TryGetBindingByName(name, out var current))
+            {
+                effective = EnsureDataSetClassFieldId(effective, name,
+                    current.Template, dataSetClassFieldIds);
+                binding = current;
+            }
+            else
+            {
+                effective = EnsureDataSetClassFieldId(effective, name,
+                    dataSetClassFieldIds: dataSetClassFieldIds);
+                binding = CreateBinding(name, owner, effective, rootName,
+                    triggeredByNames, dataSetClassFieldIds);
+            }
             binding.Update(owner, effective, ManagedSubscriptionOptionsAdapter.ToManagedOptions(
                 effective, _options, _codec, rootName ?? name, triggeredByNames));
             desired.Add(binding);
@@ -1323,7 +1467,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 var child = effective.TriggeredItems[index];
                 AddDesiredBinding(owner, child, $"{name}/triggered/{index}:{GetNamePrefix(child)}",
-                    rootName ?? name, [name], desired, true);
+                    rootName ?? name, [name], desired, true, dataSetClassFieldIds);
             }
         }
 
@@ -1716,11 +1860,57 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             return GetBindings()
                 .Where(binding => binding.ParentName == null)
                 .Select(binding => new DesiredItemSnapshot(
-                    binding.Name, binding.Owner, binding.Template))
+                    binding.Name, binding.Owner,
+                    binding.PublishedMetadata.Template))
                 .ToArray();
         }
 
-        private void RestoreBindings(IEnumerable<DesiredItemSnapshot> items)
+        private IReadOnlyDictionary<string, BindingMetadataSnapshot>
+            SnapshotBindingMetadata()
+        {
+            return GetBindings().ToDictionary(binding => binding.Name,
+                binding => binding.PublishedMetadata,
+                StringComparer.Ordinal);
+        }
+
+        private void CommitBindingMetadata()
+        {
+            var bindings = GetBindings();
+            foreach (var binding in bindings)
+            {
+                binding.CommitMetadata();
+            }
+            var data = bindings
+                .Where(binding =>
+                    binding.PublishedMetadata.Template is DataMonitoredItemModel)
+                .GroupBy(binding => binding.Owner)
+                .ToDictionary(group => group.Key,
+                    group => (IReadOnlyList<DataMonitoredItemModel>)group
+                        .Select(binding =>
+                            (DataMonitoredItemModel)binding.PublishedMetadata.Template)
+                        .ToList());
+            var events = bindings
+                .Select(binding => (binding.Owner, binding.PublishedMetadata))
+                .Where(item => item.PublishedMetadata.Template is EventMonitoredItemModel &&
+                    item.PublishedMetadata.EventFilter != null)
+                .GroupBy(item => item.Owner)
+                .ToDictionary(group => group.Key,
+                    group => (IReadOnlyList<ManagedEventMetadata>)group
+                        .Select(item => new ManagedEventMetadata(
+                            (EventMonitoredItemModel)item.PublishedMetadata.Template,
+                            item.PublishedMetadata.EventFilter!,
+                            item.PublishedMetadata.EventFieldNames,
+                            item.PublishedMetadata.EventFieldIds))
+                        .ToList());
+            lock (_bindingsLock)
+            {
+                _publishedDataMetadata = data;
+                _publishedEventMetadata = events;
+            }
+        }
+
+        private void RestoreBindings(IEnumerable<DesiredItemSnapshot> items,
+            IReadOnlyDictionary<string, BindingMetadataSnapshot> metadata)
         {
             var desired = new List<ManagedSubscriptionItemBinding>();
             foreach (var item in items)
@@ -1729,6 +1919,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     desired, includeTriggeredItems: true);
             }
             UpdateBindings(desired, requestConditionRefresh: false);
+            foreach (var binding in GetBindings())
+            {
+                if (metadata.TryGetValue(binding.Name, out var snapshot))
+                {
+                    binding.RestoreMetadata(snapshot);
+                }
+            }
         }
 
         private async ValueTask SynchronizeModelChangeBrowsersAsync(CancellationToken ct)
@@ -2358,14 +2555,323 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         private ManagedSubscriptionItemBinding CreateBinding(string name,
             ISubscriber owner, BaseMonitoredItemModel template, string? rootName,
-            IReadOnlyList<string> triggeredByNames)
+            IReadOnlyList<string> triggeredByNames,
+            IDictionary<string, Guid>? dataSetClassFieldIds = null)
         {
-            var effective = template.SetDefaults(_options);
+            var effective = EnsureDataSetClassFieldId(template.SetDefaults(_options),
+                name, dataSetClassFieldIds: dataSetClassFieldIds);
             return new ManagedSubscriptionItemBinding(name, owner, effective,
                 ManagedSubscriptionOptionsAdapter.ToManagedOptions(effective, _options, _codec,
                     rootName ?? name, triggeredByNames),
-                rootName ?? name, triggeredByNames, _timeProvider,
+                rootName ?? name, triggeredByNames, _codec.Context, _timeProvider,
                 OnHeartbeatTimer);
+        }
+
+        private async ValueTask<(List<(string Name, ISubscriber Owner,
+            BaseMonitoredItemModel Template)> Items, bool HasFailures)>
+            PrepareMonitoredItemsAsync(
+            IEnumerable<(ISubscriber Owner, BaseMonitoredItemModel Template)> items,
+            IDictionary<string, Guid> dataSetClassFieldIds, CancellationToken ct)
+        {
+            var prepared = new List<(string Name, ISubscriber Owner,
+                BaseMonitoredItemModel Template)>();
+            var preparationFailures = 0;
+            var names = new Dictionary<string, int>(StringComparer.Ordinal);
+            var pending = new List<(string Name, ISubscriber Owner,
+                BaseMonitoredItemModel Template)>();
+            foreach (var (owner, template) in items)
+            {
+                var prefix = GetNamePrefix(template);
+                names.TryGetValue(prefix, out var ordinal);
+                names[prefix] = ordinal + 1;
+                var rootName = $"{prefix}:{ordinal}";
+                pending.Add((rootName, owner, template));
+            }
+            for (var offset = 0; offset < pending.Count;
+                offset += kPreparationBatchSize)
+            {
+                var count = Math.Min(kPreparationBatchSize,
+                    pending.Count - offset);
+                var tasks = new Task<(string Name, ISubscriber Owner,
+                    BaseMonitoredItemModel? Template)>[count];
+                for (var index = 0; index < count; index++)
+                {
+                    var item = pending[offset + index];
+                    tasks[index] = PrepareRootAsync(item);
+                }
+                foreach (var result in await Task.WhenAll(tasks).ConfigureAwait(false))
+                {
+                    if (result.Template != null)
+                    {
+                        prepared.Add((result.Name, result.Owner, result.Template));
+                    }
+                }
+            }
+            return (prepared, Volatile.Read(ref preparationFailures) != 0);
+
+            async Task<(string Name, ISubscriber Owner,
+                BaseMonitoredItemModel? Template)> PrepareRootAsync(
+                (string Name, ISubscriber Owner,
+                    BaseMonitoredItemModel Template) item)
+            {
+                var result = await PrepareMonitoredItemAsync(item.Owner,
+                    item.Template, item.Name, ct).ConfigureAwait(false);
+                return (item.Name, item.Owner, result);
+            }
+
+            async ValueTask<BaseMonitoredItemModel?> PrepareMonitoredItemAsync(
+                ISubscriber owner, BaseMonitoredItemModel template,
+                string name, CancellationToken cancellationToken)
+            {
+                template = EnsureDataSetClassFieldId(template, name,
+                    dataSetClassFieldIds: dataSetClassFieldIds);
+                BaseMonitoredItemModel result;
+                try
+                {
+                    result = _monitoredItemPreparation == null ? template :
+                        await _monitoredItemPreparation(template, cancellationToken)
+                            .ConfigureAwait(false);
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    Interlocked.Exchange(ref preparationFailures, 1);
+                    InvokeSubscriber(owner, subscriber => subscriber.OnMonitoredItemUpdate(
+                        template, new ServiceResult(ex).ToServiceResultModel()));
+                    return null;
+                }
+                if (result.TriggeredItems == null)
+                {
+                    return result;
+                }
+                var triggeredItems = new List<BaseMonitoredItemModel>(
+                    result.TriggeredItems.Count);
+                for (var index = 0; index < result.TriggeredItems.Count; index++)
+                {
+                    var triggered = result.TriggeredItems[index];
+                    var preparedTriggered = await PrepareMonitoredItemAsync(owner,
+                        triggered, $"{name}/triggered/{index}:{GetNamePrefix(triggered)}",
+                        cancellationToken).ConfigureAwait(false);
+                    if (preparedTriggered != null)
+                    {
+                        triggeredItems.Add(preparedTriggered);
+                    }
+                }
+                return result with
+                {
+                    TriggeredItems = triggeredItems
+                };
+            }
+        }
+
+        private void UpdatePreparationRetry(
+            (ISubscriber Owner, BaseMonitoredItemModel Template)[] requestedItems,
+            bool preparationFailed, long requestVersion)
+        {
+            lock (_preparationRetryLock)
+            {
+                if (requestVersion != Volatile.Read(ref _preparationRequestVersion) ||
+                    requestVersion != Volatile.Read(ref _preparationCommittedVersion) ||
+                    Volatile.Read(ref _disposed) != 0)
+                {
+                    return;
+                }
+                if (!preparationFailed)
+                {
+                    _preparationRetryPending = false;
+                    _preparationRetryAttempt = 0;
+                    _preparationRetryItems = [];
+                    _preparationRetryTimer.Change(
+                        Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+                    return;
+                }
+                var delay = ManagedSubscriptionRetryPolicy.GetDelay(
+                    ManagedItemRetryKind.Invalid, _options,
+                    _preparationRetryAttempt);
+                if (_preparationRetryAttempt < int.MaxValue)
+                {
+                    _preparationRetryAttempt++;
+                }
+                _preparationRetryItems = requestedItems;
+                _preparationRetryVersion = requestVersion;
+                _preparationRetryPending = delay != TimeSpan.MaxValue;
+                _preparationRetryTimer.Change(
+                    _preparationRetryPending ? delay : Timeout.InfiniteTimeSpan,
+                    Timeout.InfiniteTimeSpan);
+            }
+        }
+
+        private void OnPreparationRetryTimer(object? state)
+        {
+            _ = state;
+            lock (_preparationRetryLock)
+            {
+                if (!_preparationRetryPending ||
+                    Volatile.Read(ref _disposed) != 0 ||
+                    _preparationRetryTask is { IsCompleted: false })
+                {
+                    if (_preparationRetryPending &&
+                        _preparationRetryTask is { IsCompleted: false })
+                    {
+                        _preparationRetryTimerMissed = true;
+                    }
+                    return;
+                }
+                _preparationRetryPending = false;
+                var items = _preparationRetryItems;
+                var version = _preparationRetryVersion;
+                _preparationRetryTask = RunPreparationRetryAsync(items, version);
+            }
+        }
+
+        private async Task RunPreparationRetryAsync(
+            (ISubscriber Owner, BaseMonitoredItemModel Template)[] items,
+            long requestVersion)
+        {
+            try
+            {
+                await UpdateAsync(items, requestVersion, _disposeCts.Token,
+                    _disposeCts.Token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (
+                _disposeCts.IsCancellationRequested ||
+                requestVersion != Volatile.Read(ref _preparationRequestVersion))
+            {
+            }
+            catch (ObjectDisposedException) when (Volatile.Read(ref _disposed) != 0)
+            {
+            }
+            catch (Exception ex)
+            {
+                RecordBackgroundError(ex);
+                _logger.PreparationRetryFailed(ex);
+                UpdatePreparationRetry(items, preparationFailed: true,
+                    requestVersion);
+            }
+            finally
+            {
+                lock (_preparationRetryLock)
+                {
+                    _preparationRetryTask = null;
+                    if (_preparationRetryTimerMissed &&
+                        _preparationRetryPending &&
+                        Volatile.Read(ref _disposed) == 0)
+                    {
+                        _preparationRetryTimerMissed = false;
+                        _preparationRetryTimer.Change(TimeSpan.Zero,
+                            Timeout.InfiniteTimeSpan);
+                    }
+                }
+            }
+        }
+
+        private void RestorePreparationRetryAfterFailedUpdate(long requestVersion)
+        {
+            var committedVersion = Volatile.Read(ref _preparationCommittedVersion);
+            if (Interlocked.CompareExchange(ref _preparationRequestVersion,
+                committedVersion, requestVersion) != requestVersion)
+            {
+                return;
+            }
+            lock (_preparationRetryLock)
+            {
+                if (_preparationRetryItems.Length == 0 ||
+                    _preparationRetryVersion != committedVersion ||
+                    Volatile.Read(ref _disposed) != 0)
+                {
+                    return;
+                }
+                var delay = ManagedSubscriptionRetryPolicy.GetDelay(
+                    ManagedItemRetryKind.Invalid, _options,
+                    _preparationRetryAttempt);
+                if (_preparationRetryAttempt < int.MaxValue)
+                {
+                    _preparationRetryAttempt++;
+                }
+                _preparationRetryPending = delay != TimeSpan.MaxValue;
+                _preparationRetryTimer.Change(
+                    _preparationRetryPending ? delay : Timeout.InfiniteTimeSpan,
+                    Timeout.InfiniteTimeSpan);
+            }
+        }
+
+        private void CommitDataSetClassFieldIds(
+            IDictionary<string, Guid> dataSetClassFieldIds, bool prune)
+        {
+            if (prune)
+            {
+                var active = GetBindings()
+                    .Where(binding => binding.Template is DataMonitoredItemModel)
+                    .Select(binding => binding.Name)
+                    .ToHashSet(StringComparer.Ordinal);
+                foreach (var name in dataSetClassFieldIds.Keys
+                    .Where(name => !active.Contains(name))
+                    .ToArray())
+                {
+                    dataSetClassFieldIds.Remove(name);
+                }
+            }
+            _dataSetClassFieldIds.Clear();
+            foreach (var (name, fieldId) in dataSetClassFieldIds)
+            {
+                _dataSetClassFieldIds.Add(name, fieldId);
+            }
+        }
+
+        private BaseMonitoredItemModel EnsureDataSetClassFieldId(
+            BaseMonitoredItemModel template, string name,
+            BaseMonitoredItemModel? previous = null,
+            IDictionary<string, Guid>? dataSetClassFieldIds = null)
+        {
+            dataSetClassFieldIds ??= _dataSetClassFieldIds;
+            if (template is not DataMonitoredItemModel data)
+            {
+                return template;
+            }
+            if (data.DataSetClassFieldId != Guid.Empty)
+            {
+                if (!dataSetClassFieldIds.ContainsKey(name))
+                {
+                    dataSetClassFieldIds[name] = data.DataSetClassFieldId;
+                }
+                return template;
+            }
+            var fieldId = previous is DataMonitoredItemModel existing &&
+                    existing.DataSetClassFieldId != Guid.Empty
+                ? existing.DataSetClassFieldId
+                : dataSetClassFieldIds.TryGetValue(name, out var cached)
+                    ? cached
+                    : Guid.NewGuid();
+            dataSetClassFieldIds[name] = fieldId;
+            return data with
+            {
+                DataSetClassFieldId = fieldId
+            };
+        }
+
+        private async ValueTask ResolveBrowsePathsFromRootAsync(
+            IEnumerable<ManagedSubscriptionItemBinding> bindings, CancellationToken ct)
+        {
+            if (!_resolveBrowsePathFromRoot || _browsePathFromRootResolver == null)
+            {
+                return;
+            }
+            var allBindings = bindings.ToArray();
+            for (var offset = 0; offset < allBindings.Length;
+                offset += kPreparationBatchSize)
+            {
+                var batch = allBindings
+                    .Skip(offset)
+                    .Take(kPreparationBatchSize)
+                    .ToArray();
+                var paths = await Task.WhenAll(batch.Select(async binding =>
+                    (Binding: binding, Path: await _browsePathFromRootResolver(
+                        binding.Template.StartNodeId, ct).ConfigureAwait(false))))
+                    .ConfigureAwait(false);
+                foreach (var (binding, path) in paths)
+                {
+                    binding.PathFromRoot = path;
+                }
+            }
         }
 
         private void OnHeartbeatTimer(ManagedSubscriptionItemBinding binding)
@@ -2463,6 +2969,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     return;
                 }
+                foreach (var notification in notifications)
+                {
+                    if (notification.Value is { } dataValue)
+                    {
+                        notification.Value = new DataValue(dataValue.WrappedValue,
+                            dataValue.StatusCode, publishTime, dataValue.ServerTimestamp,
+                            dataValue.SourcePicoseconds, dataValue.ServerPicoseconds);
+                    }
+                }
                 condition.Active[id] = notifications.Select(CloneNotification).ToList();
                 condition.Dirty = true;
             }
@@ -2503,7 +3018,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     IsLiveOwner(binding.Owner))
                 {
                     using var message = CreateNotification(notifications,
-                        now.UtcDateTime, MessageType.Condition);
+                        now.UtcDateTime, MessageType.Condition,
+                        eventTypeName: binding.Template.DisplayName);
                     Deliver(binding.Owner, message,
                         static (owner, notification) => owner.OnSubscriptionEventReceived(notification));
                     InvokeSubscriber(binding.Owner,
@@ -2530,6 +3046,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 DataSetFieldName = binding.Template.DisplayName,
                 DataSetName = binding.Template.DisplayName,
                 NodeId = binding.Template.StartNodeId,
+                PathFromRoot = binding.PathFromRoot,
                 Value = Clone(value),
                 Flags = 0,
                 Overflow = value.StatusCode.Overflow ? 1 : 0,
@@ -2547,6 +3064,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 DataSetFieldName = item.DisplayName,
                 DataSetName = item.DisplayName,
                 NodeId = item.NodeId,
+                PathFromRoot = item.Binding.PathFromRoot,
                 Value = Clone(value),
                 Flags = 0,
                 Overflow = overflow > 0
@@ -2613,6 +3131,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 DataSetFieldName = binding.Template.DisplayName,
                 DataSetName = binding.Template.DisplayName,
                 NodeId = binding.Template.StartNodeId,
+                PathFromRoot = binding.PathFromRoot,
                 Value = Clone(heartbeatValue),
                 Flags = MonitoredItemSourceFlags.Heartbeat,
                 Overflow = 0,
@@ -2622,6 +3141,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 heartbeat.SignalTime, _codec.Context as ServiceMessageContext,
                 [notification], keyFrameSnapshotProvider: this)
             {
+                ApplicationUri = _applicationUriProvider?.Invoke(),
+                EndpointUrl = _endpointUrlProvider?.Invoke(),
                 MessageType = MessageType.DeltaFrame,
                 SequenceNumber = NextSequenceNumber()
             };
@@ -2679,6 +3200,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     DataSetName = binding.Template.DisplayName,
                     DataSetFieldName = names[index],
                     NodeId = binding.Template.StartNodeId,
+                    PathFromRoot = binding.PathFromRoot,
                     Value = Clone(new DataValue(fields[index])),
                     SequenceNumber = itemSequenceNumber
                 });
@@ -2728,12 +3250,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private OpcUaSubscriptionNotification CreateNotification(
             IList<MonitoredItemNotificationModel> notifications,
             DateTime publishTime, MessageType messageType,
-            uint? publishSequenceNumber = null)
+            uint? publishSequenceNumber = null, string? eventTypeName = null)
         {
             return new OpcUaSubscriptionNotification(_timeProvider.GetUtcNow(),
                 _codec.Context as ServiceMessageContext, notifications,
                 publishSequenceNumber, keyFrameSnapshotProvider: this)
             {
+                ApplicationUri = _applicationUriProvider?.Invoke(),
+                EndpointUrl = _endpointUrlProvider?.Invoke(),
+                EventTypeName = eventTypeName,
                 MessageType = messageType,
                 PublishTimestamp = new DateTimeOffset(publishTime),
                 SequenceNumber = NextSequenceNumber()
@@ -3309,7 +3834,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public BaseMonitoredItemModel Template { get; private set; }
             public MutableOptionsMonitor<MonitoredItemOptions> Monitor { get; }
             public IReadOnlyList<string?> EventFieldNames { get; private set; }
+            public IReadOnlyList<Guid> EventFieldIds { get; private set; }
             public ConditionState? Condition { get; private set; }
+            public RelativePath? PathFromRoot { get; set; }
+            public BindingMetadataSnapshot PublishedMetadata =>
+                Volatile.Read(ref _publishedMetadata);
             public DataValue? LastDataValue
             {
                 get
@@ -3327,6 +3856,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public ManagedSubscriptionItemBinding(string name, ISubscriber owner,
                 BaseMonitoredItemModel template, MonitoredItemOptions options,
                 string rootName, IReadOnlyList<string> triggeredByNames,
+                IServiceMessageContext messageContext,
                 TimeProvider timeProvider,
                 Action<ManagedSubscriptionItemBinding> heartbeatCallback)
             {
@@ -3336,7 +3866,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 RootName = rootName;
                 ParentName = triggeredByNames.Count == 0 ? null : triggeredByNames[0];
                 Monitor = new MutableOptionsMonitor<MonitoredItemOptions>(options);
-                (EventFieldNames, Condition) = CreateEventLayout(template, options);
+                _messageContext = messageContext;
+                (EventFieldNames, Condition) = CreateEventLayout(template, options,
+                    _messageContext);
+                EventFieldIds = CreateEventFieldIds(template as EventMonitoredItemModel,
+                    EventFieldNames);
+                _publishedMetadata = CreateMetadataSnapshot();
                 _timeProvider = timeProvider;
                 _heartbeatCallback = heartbeatCallback;
                 UpdateHeartbeat(template);
@@ -3391,13 +3926,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                 }
 
+                var previousEventFieldNames = EventFieldNames;
+                var previousEventFieldIds = EventFieldIds;
                 (EventFieldNames, Condition) = CreateEventLayout(template, options,
+                    _messageContext,
                     conditionChanged ? null : Condition);
+                EventFieldIds = CreateEventFieldIds(
+                    template as EventMonitoredItemModel, EventFieldNames,
+                    previousEventFieldNames, previousEventFieldIds);
                 if (conditionChanged && Condition != null)
                 {
                     Condition.Refreshing = true;
                     Condition.RefreshRequested = true;
                 }
+            }
+
+            public void RestoreMetadata(BindingMetadataSnapshot snapshot)
+            {
+                PathFromRoot = snapshot.PathFromRoot;
+                EventFieldNames = snapshot.EventFieldNames;
+                EventFieldIds = snapshot.EventFieldIds;
+                Volatile.Write(ref _publishedMetadata, snapshot);
+            }
+
+            public void CommitMetadata()
+            {
+                Volatile.Write(ref _publishedMetadata, CreateMetadataSnapshot());
             }
 
             public void Activate()
@@ -3779,6 +4333,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             private static (IReadOnlyList<string?> Fields, ConditionState? Condition) CreateEventLayout(
                 BaseMonitoredItemModel template, MonitoredItemOptions options,
+                IServiceMessageContext messageContext,
                 ConditionState? existing = null)
             {
                 if (options.Filter is not EventFilter filter)
@@ -3821,12 +4376,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             continue;
                         }
                     }
-                    fields.Add(GetFieldName(eventTemplate, clause, index));
+
+                    fields.Add(GetFieldName(eventTemplate, clause, index, messageContext));
                 }
                 return (fields, condition);
 
                 static string? GetFieldName(EventMonitoredItemModel? template,
-                    SimpleAttributeOperand clause, int index)
+                    SimpleAttributeOperand clause, int index,
+                    IServiceMessageContext messageContext)
                 {
                     SimpleAttributeOperandModel? configured = null;
                     if (template?.EventFilter.SelectClauses is { } configuredClauses &&
@@ -3834,11 +4391,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     {
                         configured = configuredClauses[index];
                     }
-                    if (configured != null)
+                    if (!string.IsNullOrEmpty(configured?.DisplayName))
                     {
-                        return configured.DisplayName ??
-                            (configured.BrowsePath is { Count: > 0 } ?
-                                string.Join("/", configured.BrowsePath) : null);
+                        return configured.DisplayName;
                     }
                     if (clause.BrowsePath.Count == 0)
                     {
@@ -3847,16 +4402,61 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     var names = new string[clause.BrowsePath.Count];
                     for (var pathIndex = 0; pathIndex < clause.BrowsePath.Count; pathIndex++)
                     {
-                        names[pathIndex] = clause.BrowsePath[pathIndex].Name ?? string.Empty;
+                        names[pathIndex] = clause.BrowsePath[pathIndex].AsString(messageContext,
+                            template?.NamespaceFormat ?? NamespaceFormat.Uri);
                     }
                     return string.Join("/", names);
                 }
+            }
+
+            private static IReadOnlyList<Guid> CreateEventFieldIds(
+                EventMonitoredItemModel? template, IReadOnlyList<string?> fieldNames,
+                IReadOnlyList<string?>? previousFieldNames = null,
+                IReadOnlyList<Guid>? previousFieldIds = null)
+            {
+                var ids = new Guid[fieldNames.Count];
+                for (var index = 0; index < fieldNames.Count; index++)
+                {
+                    var fieldName = fieldNames[index];
+                    if (fieldName == null)
+                    {
+                        continue;
+                    }
+
+                    var configuredId = template?.EventFilter.SelectClauses?
+                        .ElementAtOrDefault(index)?.DataSetClassFieldId ?? Guid.Empty;
+                    if (configuredId != Guid.Empty)
+                    {
+                        ids[index] = configuredId;
+                    }
+                    else if (previousFieldNames != null && previousFieldIds != null &&
+                        index < previousFieldNames.Count && index < previousFieldIds.Count &&
+                        string.Equals(previousFieldNames[index], fieldName,
+                            StringComparison.Ordinal) &&
+                        previousFieldIds[index] != Guid.Empty)
+                    {
+                        ids[index] = previousFieldIds[index];
+                    }
+                    else
+                    {
+                        ids[index] = Guid.NewGuid();
+                    }
+                }
+                return ids;
+            }
+
+            private BindingMetadataSnapshot CreateMetadataSnapshot()
+            {
+                return new BindingMetadataSnapshot(Template, PathFromRoot,
+                    Monitor.CurrentValue.Filter as EventFilter,
+                    [.. EventFieldNames], [.. EventFieldIds]);
             }
 
             private int _firstDataChange;
             private uint _sequenceNumber;
             private HeartbeatState? _heartbeat;
             private DataValue? _lastDataValue;
+            private BindingMetadataSnapshot _publishedMetadata;
             private DateTimeOffset? _lastDataReceivedAt;
             private uint _lastDataSequenceNumber;
             private StatusCode? _lastConnectedStatusCode;
@@ -3873,6 +4473,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             private Opc.Ua.MonitoringMode _appliedMonitoringMode;
             private volatile bool _isLate;
             private readonly Lock _dataLock = new();
+            private readonly IServiceMessageContext _messageContext;
             private readonly TimeProvider _timeProvider;
             private readonly Action<ManagedSubscriptionItemBinding> _heartbeatCallback;
         }
@@ -4165,6 +4766,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ISubscriber Owner,
             BaseMonitoredItemModel Template);
 
+        private sealed record class BindingMetadataSnapshot(
+            BaseMonitoredItemModel Template,
+            RelativePath? PathFromRoot,
+            EventFilter? EventFilter,
+            IReadOnlyList<string?> EventFieldNames,
+            IReadOnlyList<Guid> EventFieldIds);
+
+        internal sealed record class ManagedEventMetadata(
+            EventMonitoredItemModel Template,
+            EventFilter Filter,
+            IReadOnlyList<string?> FieldNames,
+            IReadOnlyList<Guid> FieldIds);
+
         private sealed record class PendingMonitoredItem(
             IMonitoredItem Item,
             Opc.Ua.MonitoringMode DesiredMonitoringMode);
@@ -4234,7 +4848,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public IReadOnlyList<PendingMonitoredItem>? MonitoredItems { get; set; }
         }
 
-        private sealed class MutableOptionsMonitor<T> : IOptionsMonitor<T> where T : class
+        private sealed class MutableOptionsMonitor<
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
+            T> : IOptionsMonitor<T> where T : class
         {
             public T CurrentValue
             {
@@ -4311,7 +4927,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly Dictionary<uint, ManagedSubscriptionItemBinding> _bindingsByHandle = [];
         private readonly Dictionary<string, ManagedSubscriptionItemBinding> _bindingsByName =
             new(StringComparer.Ordinal);
+        private readonly Dictionary<string, Guid> _dataSetClassFieldIds =
+            new(StringComparer.Ordinal);
+        private Dictionary<ISubscriber, IReadOnlyList<DataMonitoredItemModel>>
+            _publishedDataMetadata = [];
+        private Dictionary<ISubscriber, IReadOnlyList<ManagedEventMetadata>>
+            _publishedEventMetadata = [];
         private readonly IVariantEncoder _codec;
+        private readonly Func<string?>? _endpointUrlProvider;
+        private readonly Func<string?>? _applicationUriProvider;
+        private readonly Func<BaseMonitoredItemModel, CancellationToken,
+            ValueTask<BaseMonitoredItemModel>>? _monitoredItemPreparation;
+        private readonly Func<string, CancellationToken, ValueTask<RelativePath?>>?
+            _browsePathFromRootResolver;
+        private readonly bool _resolveBrowsePathFromRoot;
         private readonly IManagedCyclicReadClient? _cyclicReadClient;
         private readonly Lock _cyclicReadSyncLock = new();
 #pragma warning disable CA2213 // Retained so pre-disposal waiters can release safely.
@@ -4329,6 +4958,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly string _modelChangeSubscriptionName = Guid.NewGuid().ToString("N");
         private readonly OpcUaSubscriptionOptions _options;
         private readonly Dictionary<ISubscriber, OwnerState> _ownerStates = [];
+        private readonly Lock _preparationRetryLock = new();
+        private readonly ITimer _preparationRetryTimer;
         private readonly TimeSpan? _periodicKeyFrameInterval;
         private readonly ManagedSubscriptionRetryScheduler _retryScheduler;
         private readonly ISubscription _subscription;
@@ -4348,14 +4979,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 #pragma warning restore CA2213 // Disposable fields should be disposed
         private PendingInitialApply? _pendingInitialApply;
         private Task? _cyclicReadSyncTask;
+        private Task? _preparationRetryTask;
+        private (ISubscriber Owner, BaseMonitoredItemModel Template)[]
+            _preparationRetryItems = [];
         private Exception? _backgroundError;
         private int _cyclicReadStateDirty;
         private int _disposed;
+        private int _hasSynchronized;
         private int _nextItemName;
+        private int _preparationRetryAttempt;
+        private bool _preparationRetryPending;
+        private bool _preparationRetryTimerMissed;
         private int _publishingStateDirty;
         private int _watchdogResetInProgress;
         private long _lastWatchdogCheckTimestamp;
         private long _mutationVersion;
+        private long _preparationCommittedVersion;
+        private long _preparationRequestVersion;
+        private long _preparationRetryVersion;
         private long _subscriptionStateVersion;
         private uint _sequenceNumber;
         private bool _created;
@@ -4366,6 +5007,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private bool _watchdogPublishingEnabled;
         private bool _watchdogPublishingStopped;
         private bool _watchdogTimerDisposed;
+        private const int kPreparationBatchSize = 32;
         private static readonly ExpandedNodeId kReferenceChangeType
             = new("ReferenceChange", "http://www.microsoft.com/opc-publisher");
         private static readonly ExpandedNodeId kNodeChangeType
@@ -4464,5 +5106,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 "the V2 collection has no retry capability.")]
         public static partial void ManagedItemRetryUnsupported(
             this ILogger logger, string item);
+
+        [LoggerMessage(EventId = 1134, Level = LogLevel.Error,
+            Message = "Managed monitored-item preparation retry failed.")]
+        public static partial void PreparationRetryFailed(
+            this ILogger logger, Exception exception);
     }
 }

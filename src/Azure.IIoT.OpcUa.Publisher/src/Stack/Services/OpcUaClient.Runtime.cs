@@ -80,7 +80,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     }
 
     /// <summary>
-    /// The production runtime strategy. It has no configuration surface by design.
+    /// Classic rollback runtime retained for explicit direct construction.
     /// </summary>
     internal sealed class ClassicOpcUaClientRuntimeStrategy : IOpcUaClientRuntimeStrategy
     {

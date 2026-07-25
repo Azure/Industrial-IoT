@@ -49,7 +49,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// <remarks>
     /// This type owns its managed inner session. Notification pooling is disabled because
     /// Publisher callers can retain received values after a notification callback returns.
-    /// It is an unused composition seam; the classic session remains the production default.
     /// </remarks>
     internal sealed class ManagedOpcUaSession : IOpcUaSession, ISessionServices,
         IAsyncDisposable
@@ -122,6 +121,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// The configured endpoint selected for the managed inner session.
         /// </summary>
         internal ConfiguredEndpoint Endpoint => _connection.Session.ConfiguredEndpoint;
+
+        /// <summary>
+        /// Complex type system already loaded for the current connection.
+        /// </summary>
+        internal ComplexTypeSystem? LoadedComplexTypeSystem =>
+            Volatile.Read(ref _complexTypeSystem);
+        internal bool ComplexTypeLoadingDisabled => _disableComplexTypeLoading;
 
         /// <summary>
         /// Stable managed session used by Publisher-owned runtime policies.
@@ -306,14 +312,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         internal async ValueTask WaitForComplexTypePreloadAsync(
             CancellationToken ct = default)
         {
-            Task? preload;
-            lock (_complexTypeTaskLock)
+            while (true)
             {
-                preload = _complexTypePreloadTask;
-            }
-            if (preload != null)
-            {
+                Task? preload;
+                int generation;
+                lock (_complexTypeTaskLock)
+                {
+                    preload = _complexTypePreloadTask;
+                    generation = _complexTypePreloadGeneration;
+                }
+                if (preload == null)
+                {
+                    return;
+                }
                 await preload.WaitAsync(ct).ConfigureAwait(false);
+                if (generation == Volatile.Read(ref _complexTypeGeneration))
+                {
+                    return;
+                }
             }
         }
 
@@ -672,6 +688,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     return;
                 }
                 var generation = Volatile.Read(ref _complexTypeGeneration);
+                _complexTypePreloadGeneration = generation;
                 _complexTypePreloadTask = RunComplexTypePreloadAsync(generation);
             }
         }
@@ -1117,6 +1134,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private EventHandler<EndpointConnectivityStateEventArgs>? _connectionStateChange;
         private Task? _complexTypePreloadTask;
         private int _complexTypeGeneration;
+        private int _complexTypePreloadGeneration;
         private int _complexTypeLoadCompleted;
         private int _complexTypeSystemFullyLoaded;
         private int _disposed;

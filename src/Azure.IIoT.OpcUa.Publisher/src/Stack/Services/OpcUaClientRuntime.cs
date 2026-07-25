@@ -19,6 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Opc.Ua;
     using Opc.Ua.Client;
     using Opc.Ua.Client.Subscriptions;
+    using Opc.Ua.Extensions;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -36,9 +37,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// Internal runtime surface selected by the client-manager composition root.
     /// </summary>
     /// <remarks>
-    /// It deliberately is not registered in production DI. The default strategy below
-    /// remains classic; tests can supply the managed strategy through the internal
-    /// <see cref="OpcUaClientManager"/> constructor.
+    /// Production DI selects the managed strategy. Direct construction can still omit
+    /// the strategy to exercise the classic rollback path until classic removal.
     /// </remarks>
     internal interface IOpcUaClientRuntime : IDisposable
     {
@@ -61,13 +61,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// <summary>
     /// Factory for the runtime selected for one connection.
     /// </summary>
-    internal interface IOpcUaClientRuntimeStrategy : IAsyncDisposable
+    internal interface IOpcUaClientRuntimeStrategy
     {
         IOpcUaClientRuntime Create(OpcUaClientRuntimeContext context);
+        ValueTask DisposeAsync();
     }
 
     /// <summary>
-    /// Inputs shared by the classic and test-only managed client runtimes.
+    /// Inputs shared by the classic and managed client runtimes.
     /// </summary>
     internal sealed record class OpcUaClientRuntimeContext
     {
@@ -90,8 +91,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// Creates the managed-session request for a managed runtime connection.
     /// </summary>
     /// <remarks>
-    /// This is a narrow test seam which lets comparison tests use deterministic
-    /// managed-connection fakes without exposing a production option or switch.
+    /// This seam lets production composition and comparison tests translate
+    /// connection data without exposing a public runtime switch.
     /// </remarks>
     internal interface IManagedSessionRequestFactory
     {
@@ -123,9 +124,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// Create the default request factory.
         /// </summary>
         public DefaultManagedSessionRequestFactory(
-            IOpcUaEndpointSelector? endpointSelector = null)
+            IOpcUaEndpointSelector? endpointSelector = null,
+            Func<ReverseConnectManager, Uri, CancellationToken,
+                Task<ITransportWaitingConnection>>? reverseConnectionWaiter = null)
         {
             _endpointSelector = endpointSelector ?? OpcUaEndpointSelector.Instance;
+            _reverseConnectionWaiter = reverseConnectionWaiter ??
+                ((manager, endpointUrl, ct) =>
+                    manager.WaitForConnectionAsync(endpointUrl, null, ct));
         }
 
         public async Task<ManagedSessionConnectionRequest> CreateAsync(
@@ -134,18 +140,59 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var connection = context.Connection.Connection;
             var endpointModel = connection.Endpoint ??
                 throw new ArgumentException("Missing endpoint.", nameof(context));
-            var endpointUrl = endpointModel.Url ??
-                throw new ArgumentException("Missing endpoint url.", nameof(context));
             var securityMode = endpointModel.SecurityMode ?? SecurityMode.NotNone;
-            var endpointDescription = await _endpointSelector.SelectAsync(context.Configuration,
-                new Uri(endpointUrl), null, securityMode, endpointModel.SecurityPolicy,
-                context.Logger, context.Connection, ct: ct).ConfigureAwait(false) ??
-                throw new ConnectionException("No matching endpoint was found.");
-            var endpointConfiguration = EndpointConfiguration.Create(context.Configuration);
             var connectTimeout = GetConnectTimeout(context.ConnectTimeout, context.Options.Value);
-            endpointConfiguration.OperationTimeout =
-                ManagedSessionOptionsAdapter.GetEndpointOperationTimeout(context, connectTimeout);
-            var endpoint = new ConfiguredEndpoint(null, endpointDescription, endpointConfiguration);
+            var endpoints = new List<ConfiguredEndpoint>();
+            Exception? lastError = null;
+            foreach (var endpointUrl in connection.GetEndpointUrls())
+            {
+                try
+                {
+                    ITransportWaitingConnection? waitingConnection = null;
+                    if (connection.IsReverseConnect())
+                    {
+                        var reverseConnectManager = context.ReverseConnectManager ??
+                            throw new InvalidOperationException(
+                                "Reverse connect requires a reverse connect manager.");
+                        waitingConnection = await _reverseConnectionWaiter(
+                            reverseConnectManager, endpointUrl, ct).ConfigureAwait(false);
+                    }
+                    var description = await _endpointSelector.SelectAsync(
+                        context.Configuration, endpointUrl, waitingConnection, securityMode,
+                        endpointModel.SecurityPolicy, context.Logger, context.Connection,
+                        ct: ct).ConfigureAwait(false);
+                    if (description == null)
+                    {
+                        continue;
+                    }
+                    var endpointConfiguration =
+                        EndpointConfiguration.Create(context.Configuration);
+                    endpointConfiguration.OperationTimeout =
+                        ManagedSessionOptionsAdapter.GetEndpointOperationTimeout(
+                            context, connectTimeout);
+                    endpoints.Add(new ConfiguredEndpoint(null, description,
+                        endpointConfiguration));
+                    if (connection.IsReverseConnect())
+                    {
+                        break;
+                    }
+                }
+                catch (OperationCanceledException) when (ct.IsCancellationRequested)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    lastError = ex;
+                }
+            }
+            if (endpoints.Count == 0)
+            {
+                throw lastError ?? new ConnectionException(
+                    "No matching endpoint was found.");
+            }
+            var endpoint = endpoints[0];
+            var endpointDescription = endpoint.Description;
 
             var credential = connection.User;
             if (securityMode == SecurityMode.Best &&
@@ -169,6 +216,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             {
                 Connection = context.Connection,
                 Endpoint = endpoint,
+                AlternativeEndpoints = endpoints.Skip(1).ToArray(),
                 Identity = identity,
                 PreferredLocales = locales,
                 SessionTimeout = context.Options.Value.DefaultSessionTimeoutDuration ??
@@ -197,27 +245,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     !(context.Options.Value.DisableComplexTypePreloading ?? false),
                 ReverseConnectManager = connection.IsReverseConnect() ?
                     context.ReverseConnectManager : null,
-                ReverseConnectServerUri = connection.IsReverseConnect() ?
-                    endpoint.EndpointUrl : null
+                ReverseConnectServerUri = null
             };
         }
 
-        private static TimeSpan GetConnectTimeout(int? connectTimeout,
+        internal static TimeSpan GetConnectTimeout(int? connectTimeout,
             OpcUaClientOptions options)
         {
-            return connectTimeout is > 0 ?
-                TimeSpan.FromMilliseconds(connectTimeout.Value) :
-                options.DefaultConnectTimeoutDuration ??
-                options.DefaultServiceCallTimeoutDuration ??
-                TimeSpan.FromMinutes(1);
+            if (connectTimeout is > 0)
+            {
+                return TimeSpan.FromMilliseconds(connectTimeout.Value);
+            }
+            if (options.DefaultConnectTimeoutDuration is { } defaultConnectTimeout &&
+                defaultConnectTimeout > TimeSpan.Zero)
+            {
+                return defaultConnectTimeout;
+            }
+            if (options.DefaultServiceCallTimeoutDuration is { } defaultServiceCallTimeout &&
+                defaultServiceCallTimeout > TimeSpan.Zero)
+            {
+                return defaultServiceCallTimeout;
+            }
+            return TimeSpan.FromMinutes(1);
         }
 
         private readonly IOpcUaEndpointSelector _endpointSelector;
+        private readonly Func<ReverseConnectManager, Uri, CancellationToken,
+            Task<ITransportWaitingConnection>> _reverseConnectionWaiter;
     }
 
     /// <summary>
-    /// Test-only managed runtime strategy. Callers must opt in through the internal
-    /// manager constructor; production registration always selects the classic runtime.
+    /// Production managed-session runtime strategy.
     /// </summary>
     internal sealed class ManagedSessionRuntimeStrategy : IOpcUaClientRuntimeStrategy
     {
@@ -246,8 +304,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     }
 
     /// <summary>
-    /// Managed-session client runtime used only by comparison tests until the
-    /// upstream managed-session artifact has passed the production gate.
+    /// Managed-session client runtime.
     /// </summary>
     internal sealed class ManagedOpcUaClient : IOpcUaClientRuntime, IOpcUaClientDiagnostics
     {
@@ -306,16 +363,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             int? serviceCallTimeout, CancellationToken ct)
         {
             ThrowIfDisposed();
-            var lease = await AcquireLeaseAsync(connectTimeout, ct).ConfigureAwait(false);
+            ISessionHandle? lease = null;
             try
             {
+                lease = await AcquireLeaseAsync(
+                    GetConnectTimeoutOverride(connectTimeout, serviceCallTimeout), ct)
+                    .ConfigureAwait(false);
                 AddRef();
                 return new ManagedSessionHandle(lease, GetServiceCallTimeout(serviceCallTimeout),
                     Dispose);
             }
+            catch (OperationCanceledException) when (!ct.IsCancellationRequested &&
+                !_lifetimeToken.IsCancellationRequested)
+            {
+                lease?.Dispose();
+                throw new TimeoutException(
+                    "Connecting to the managed OPC UA session timed out.");
+            }
             catch
             {
-                lease.Dispose();
+                lease?.Dispose();
                 throw;
             }
         }
@@ -326,28 +393,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             ArgumentNullException.ThrowIfNull(service);
             ThrowIfDisposed();
             var timeout = GetServiceCallTimeout(serviceCallTimeout);
-            using var call = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            ISessionHandle? lease = await AcquireLeaseAsync(
+                GetConnectTimeoutOverride(connectTimeout, serviceCallTimeout), ct)
+                .ConfigureAwait(false);
+            using var call = CancellationTokenSource.CreateLinkedTokenSource(
+                ct, _lifetimeToken);
             call.CancelAfter(timeout);
             try
             {
-                ISessionHandle? lease = await AcquireLeaseAsync(connectTimeout, call.Token)
-                    .ConfigureAwait(false);
-                try
-                {
-                    using var context = new ServiceCallContext(lease.Session, timeout, call.Token);
-                    var result = await service(context).ConfigureAwait(false);
-                    CompleteServiceCall(context, ref lease);
-                    return result;
-                }
-                finally
-                {
-                    lease?.Dispose();
-                }
+                using var context = new ServiceCallContext(lease.Session, timeout, call.Token);
+                var result = await service(context).ConfigureAwait(false);
+                CompleteServiceCall(context, ref lease);
+                return result;
             }
-            catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+            catch (OperationCanceledException) when (!ct.IsCancellationRequested &&
+                !_lifetimeToken.IsCancellationRequested)
             {
-                throw new TimeoutException(
-                    "Connecting to the endpoint or the request itself timed out.");
+                throw new TimeoutException("The request operation timed out.");
+            }
+            finally
+            {
+                lease?.Dispose();
             }
         }
 
@@ -603,28 +669,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             while (operation.HasMore)
             {
                 ThrowIfDisposed();
-                using var call = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                ISessionHandle? lease = await AcquireLeaseAsync(
+                    GetConnectTimeoutOverride(connectTimeout, serviceCallTimeout), ct)
+                    .ConfigureAwait(false);
+                using var call = CancellationTokenSource.CreateLinkedTokenSource(
+                    ct, _lifetimeToken);
                 call.CancelAfter(timeout);
                 IEnumerable<T> results;
                 try
                 {
-                    ISessionHandle? lease = await AcquireLeaseAsync(connectTimeout, call.Token)
-                        .ConfigureAwait(false);
-                    try
-                    {
-                        using var context = new ServiceCallContext(lease.Session, timeout, call.Token);
-                        results = await operation.ExecuteAsync(context).ConfigureAwait(false);
-                        CompleteServiceCall(context, ref lease);
-                    }
-                    finally
-                    {
-                        lease?.Dispose();
-                    }
+                    using var context = new ServiceCallContext(lease.Session, timeout, call.Token);
+                    results = await operation.ExecuteAsync(context).ConfigureAwait(false);
+                    CompleteServiceCall(context, ref lease);
                 }
-                catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+                catch (OperationCanceledException) when (!ct.IsCancellationRequested &&
+                    !_lifetimeToken.IsCancellationRequested)
                 {
-                    throw new TimeoutException(
-                        "Connecting to the endpoint or a request operation timed out.");
+                    throw new TimeoutException("The request operation timed out.");
+                }
+                finally
+                {
+                    lease?.Dispose();
                 }
                 foreach (var result in results)
                 {
@@ -636,7 +701,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private async Task<ISessionHandle> AcquireLeaseAsync(int? connectTimeout,
             CancellationToken ct)
         {
-            var request = await _requestFactory.CreateAsync(new ManagedSessionClientContext
+            var context = new ManagedSessionClientContext
             {
                 Configuration = _context.Configuration,
                 Connection = _context.Connection,
@@ -645,20 +710,61 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 ReverseConnectManager = _context.ReverseConnectManager,
                 TimeProvider = _context.TimeProvider,
                 ConnectTimeout = connectTimeout
-            }, ct).ConfigureAwait(false);
-            var lease = await _pool.AcquireAsync(request, ct).ConfigureAwait(false);
-            if (lease.Session is ManagedOpcUaSession session)
+            };
+            var requestFactory = _requestFactory;
+            var timeout = DefaultManagedSessionRequestFactory.GetConnectTimeout(
+                connectTimeout, _context.ClientOptions.Value);
+            using var caller = CancellationTokenSource.CreateLinkedTokenSource(
+                ct, _lifetimeToken);
+            caller.CancelAfter(timeout);
+            ISessionHandle lease;
+            try
             {
-                lock (_observedSessions)
-                {
-                    if (_observedSessions.Add(session))
-                    {
-                        session.OnConnectionStateChange += OnConnectionStateChanged;
-                    }
-                }
-                UpdateDiagnostics(session);
+                lease = await _pool.AcquireAsync(_context.Connection, timeout,
+                    token => requestFactory.CreateAsync(context, token), caller.Token)
+                    .ConfigureAwait(false);
             }
-            return lease;
+            catch (OperationCanceledException) when (!ct.IsCancellationRequested &&
+                !_lifetimeToken.IsCancellationRequested)
+            {
+                throw new TimeoutException(
+                    "Connecting to the managed OPC UA session timed out.");
+            }
+            caller.CancelAfter(timeout);
+            try
+            {
+                if (lease.Session is ManagedOpcUaSession session)
+                {
+                    await session.WaitForComplexTypePreloadAsync(caller.Token)
+                        .ConfigureAwait(false);
+                    if (!session.ComplexTypeLoadingDisabled)
+                    {
+                        _ = await session.GetComplexTypeSystemAsync(caller.Token)
+                            .ConfigureAwait(false);
+                    }
+                    lock (_observedSessions)
+                    {
+                        if (_observedSessions.Add(session))
+                        {
+                            session.OnConnectionStateChange += OnConnectionStateChanged;
+                        }
+                    }
+                    UpdateDiagnostics(session);
+                }
+                return lease;
+            }
+            catch (OperationCanceledException) when (!ct.IsCancellationRequested &&
+                !_lifetimeToken.IsCancellationRequested)
+            {
+                lease.Dispose();
+                throw new TimeoutException(
+                    "Managed OPC UA session readiness timed out.");
+            }
+            catch
+            {
+                lease.Dispose();
+                throw;
+            }
         }
 
         private void CompleteServiceCall(ServiceCallContext context,
@@ -758,8 +864,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var registered = false;
             try
             {
-                if (lease.Session is not ManagedOpcUaSession session ||
-                    !session.TryGetSubscriptionManager(out var manager))
+                if (lease.Session is not ManagedOpcUaSession session)
+                {
+                    throw new InvalidOperationException(
+                        "The managed pool returned a non-managed session facade.");
+                }
+                if (!session.TryGetSubscriptionManager(out var manager))
                 {
                     throw new InvalidOperationException(
                         "The managed session does not expose a subscription manager.");
@@ -816,7 +926,110 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 watchdogAction: HandleWatchdogAction,
                 cyclicReadClient: new ManagedCyclicReadClient(
                     session, _context.TimeProvider,
-                    _context.LoggerFactory.CreateLogger<ManagedCyclicReadClient>()));
+                    _context.LoggerFactory.CreateLogger<ManagedCyclicReadClient>()),
+                endpointUrlProvider: () => session.Endpoint.EndpointUrl?.ToString(),
+                applicationUriProvider: () =>
+                    session.InnerSession.Endpoint.Server.ApplicationUri ??
+                    _context.Configuration.ApplicationUri,
+                monitoredItemPreparation: async (template, ct) =>
+                {
+                    var eventTypeDefinitionId =
+                        (template as EventMonitoredItemModel)?.EventFilter.TypeDefinitionId;
+                    if (template.RelativePath is { Count: > 0 })
+                    {
+                        var startingNode = template.StartNodeId.ToNodeId(
+                            session.MessageContext);
+                        if (Opc.Ua.NodeIdCompat.IsNull(startingNode))
+                        {
+                            throw new ServiceResultException(
+                                StatusCodes.BadNodeIdInvalid,
+                                $"Invalid monitored-item start node '{template.StartNodeId}'.");
+                        }
+                        var response = await session.Services
+                            .TranslateBrowsePathsToNodeIdsAsync(new RequestHeader(),
+                                new BrowsePathCollection
+                                {
+                                    new BrowsePath
+                                    {
+                                        StartingNode = startingNode,
+                                        RelativePath = template.RelativePath.ToRelativePath(
+                                            session.MessageContext)
+                                    }
+                                }, ct).ConfigureAwait(false);
+                        if (StatusCode.IsBad(response.ResponseHeader.ServiceResult) ||
+                            response.Results.Count != 1 ||
+                            StatusCode.IsBad(response.Results[0].StatusCode) ||
+                            response.Results[0].Targets.Count != 1)
+                        {
+                            var statusCode = response.Results.Count == 1 ?
+                                response.Results[0].StatusCode :
+                                response.ResponseHeader.ServiceResult;
+                            throw ServiceResultException.Create(statusCode,
+                                $"Failed to resolve monitored-item path from " +
+                                $"'{template.StartNodeId}'.");
+                        }
+                        var resolvedNodeId = ExpandedNodeId.ToNodeId(
+                            response.Results[0].Targets[0].TargetId,
+                            session.MessageContext.NamespaceUris);
+                        template = template with
+                        {
+                            StartNodeId = resolvedNodeId.AsString(session.MessageContext,
+                                template.NamespaceFormat) ?? string.Empty,
+                            RelativePath = null
+                        };
+                    }
+                    if (template is EventMonitoredItemModel events &&
+                        !string.IsNullOrEmpty(eventTypeDefinitionId))
+                    {
+                        var filter = await OpcUaMonitoredItem.Event
+                            .CreateSimpleEventFilterAsync(events with
+                            {
+                                EventFilter = events.EventFilter with
+                                {
+                                    TypeDefinitionId = eventTypeDefinitionId
+                                }
+                            }, session, ct)
+                            .ConfigureAwait(false);
+                        template = events with
+                        {
+                            EventFilter = session.Codec.Encode(filter,
+                                events.NamespaceFormat)!
+                        };
+                    }
+                    if (template.FetchDataSetFieldName != true)
+                    {
+                        return template;
+                    }
+                    var displayNodeId = template is EventMonitoredItemModel ?
+                        eventTypeDefinitionId : template.StartNodeId;
+                    if (string.IsNullOrEmpty(displayNodeId))
+                    {
+                        return template;
+                    }
+                    var nodeId = displayNodeId.ToNodeId(session.MessageContext);
+                    if (Opc.Ua.NodeIdCompat.IsNull(nodeId))
+                    {
+                        return template;
+                    }
+                    var node = await session.LruNodeCache.GetNodeAsync(nodeId, ct)
+                        .ConfigureAwait(false);
+                    return template with
+                    {
+                        DataSetFieldName = node?.DisplayName.ToString() ?? string.Empty
+                    };
+                },
+                browsePathFromRootResolver: async (nodeIdValue, ct) =>
+                {
+                    var nodeId = nodeIdValue.ToNodeId(session.MessageContext);
+                    if (Opc.Ua.NodeIdCompat.IsNull(nodeId))
+                    {
+                        return null;
+                    }
+                    var paths = await session.GetBrowsePathsFromRootAsync(
+                        new RequestHeader(), new[] { nodeId }, ct).ConfigureAwait(false);
+                    return paths.Count == 0 || paths[0].ErrorInfo != null ?
+                        null : paths[0].Path;
+                });
         }
 
         private async ValueTask<ManagedRegistration> ReplaceRegistrationAsync(
@@ -1466,6 +1679,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 TimeSpan.FromMinutes(5);
         }
 
+        private int? GetConnectTimeoutOverride(int? connectTimeout,
+            int? serviceCallTimeout)
+        {
+            if (connectTimeout is > 0 ||
+                _context.ClientOptions.Value.DefaultConnectTimeoutDuration is { } configured &&
+                    configured > TimeSpan.Zero)
+            {
+                return connectTimeout;
+            }
+            return serviceCallTimeout is > 0 ? serviceCallTimeout : connectTimeout;
+        }
+
         private void ThrowIfDisposed()
         {
             ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) != 0, this);
@@ -1625,25 +1850,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 DataSetMetaDataModel dataSetMetaData, uint minorVersion,
                 CancellationToken ct = default)
             {
-                return new ValueTask<PublishedDataSetMetaDataModel>(CollectMetaDataCoreAsync(owner,
-                    dataSetMetaData, minorVersion, ct));
+                return CollectMetaDataCoreAsync(owner, dataSetMetaData, minorVersion, ct);
             }
 
-            private async Task<PublishedDataSetMetaDataModel> CollectMetaDataCoreAsync(
+            private async ValueTask<PublishedDataSetMetaDataModel> CollectMetaDataCoreAsync(
                 ISubscriber owner, DataSetMetaDataModel dataSetMetaData, uint minorVersion,
                 CancellationToken ct)
             {
                 ArgumentNullException.ThrowIfNull(owner);
-                var session = State.Lease.Session;
-                var typeSystem = await session.GetComplexTypeSystemAsync(ct).ConfigureAwait(false);
+                var session = State.Lease.Session as ManagedOpcUaSession ??
+                    throw new InvalidOperationException(
+                        "The managed subscription lease returned a non-managed session.");
+                var typeSystem = await session.GetComplexTypeSystemAsync(ct)
+                    .ConfigureAwait(false);
                 var dataTypes = new NodeIdDictionary<object>();
                 var fields = new List<PublishedFieldMetaDataModel>();
                 var metadataBuilder = new MonitoredItemMetaDataBuilder(NullLogger.Instance);
-                foreach (var item in EnumerateDataItems(owner.MonitoredItems))
+                var dataItems = State.Adapter.GetDataMetadata(owner);
+                foreach (var item in dataItems)
                 {
                     await metadataBuilder.BuildDataChangeAsync(session, typeSystem,
                         item, fields, dataTypes, ct)
                         .ConfigureAwait(false);
+                }
+                var eventItems = State.Adapter.GetEventMetadata(owner);
+                foreach (var item in eventItems)
+                {
+                    await metadataBuilder.BuildEventAsync(session, typeSystem,
+                        item.Template, item.Filter, item.FieldNames, item.FieldIds,
+                        fields, dataTypes, ct).ConfigureAwait(false);
                 }
                 return new PublishedDataSetMetaDataModel
                 {
@@ -1655,24 +1890,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     MinorVersion = minorVersion
                 };
 
-                static IEnumerable<DataMonitoredItemModel> EnumerateDataItems(
-                    IEnumerable<BaseMonitoredItemModel> items)
-                {
-                    foreach (var item in items)
-                    {
-                        if (item is DataMonitoredItemModel data)
-                        {
-                            yield return data;
-                        }
-                        if (item.TriggeredItems != null)
-                        {
-                            foreach (var triggered in EnumerateDataItems(item.TriggeredItems))
-                            {
-                                yield return triggered;
-                            }
-                        }
-                    }
-                }
             }
 
             private readonly ManagedOpcUaClient _owner;

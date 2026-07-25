@@ -265,13 +265,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 apiKeyStore != null &&
                 apiKeyStore.State.TryGetValue(OpcUa.Constants.TwinPropertyCertificateKey,
                     out var cert) && cert is JsonValue certValue &&
-                    certValue.TryGetValue<byte[]>(out _))
+                    certValue.TryGetValue<string>(out var encodedCertificate))
             {
                 try
                 {
                     // Load certificate
                     Certificate?.Dispose();
-                    Certificate = X509CertificateLoader.LoadPkcs12(cert!.GetValue<byte[]>(), ApiKey);
+                    Certificate = X509CertificateLoader.LoadPkcs12(
+                        Convert.FromBase64String(encodedCertificate), ApiKey);
                     var now = _timeProvider.GetUtcNow().AddDays(1);
                     if (now < Certificate.NotAfter && Certificate.HasPrivateKey &&
                         Certificate.SubjectName.EnumerateRelativeDistinguishedNames()
@@ -365,7 +366,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             var pfxCertificate = Certificate.Export(X509ContentType.Pfx, ApiKey);
             apiKeyStore.State[OpcUa.Constants.TwinPropertyCertificateKey] =
-                JsonValue.Create(pfxCertificate);
+                Convert.ToBase64String(pfxCertificate);
 
             var renewalDuration = Certificate.NotAfter - nowOffset.Date - TimeSpan.FromDays(1);
             _renewalTimer.Change(renewalDuration, Timeout.InfiniteTimeSpan);

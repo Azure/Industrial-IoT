@@ -79,6 +79,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
         }
 
         [Fact]
+        public async Task CertificateIsPersistedAsBase64AndReusedTestAsync()
+        {
+            var client = new Mock<IEventClient>();
+            var collector = new Mock<IDiagnosticCollector>();
+            var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
+            var store = new MemoryKVStore();
+            var logger = Log.Console<RuntimeStateReporter>();
+
+            string thumbprint;
+            using (var reporter = new RuntimeStateReporter(
+                client.Object.YieldReturn(), store.YieldReturn(), options,
+                collector.Object, logger))
+            {
+                await reporter.SendRestartAnnouncementAsync(default);
+
+                Assert.NotNull(reporter.Certificate);
+                thumbprint = reporter.Certificate.Thumbprint;
+                var encoded = (string?)store.State[
+                    OpcUa.Constants.TwinPropertyCertificateKey];
+                Assert.False(string.IsNullOrEmpty(encoded));
+                Assert.NotEmpty(Convert.FromBase64String(encoded));
+            }
+
+            using var restarted = new RuntimeStateReporter(
+                client.Object.YieldReturn(), store.YieldReturn(), options,
+                collector.Object, logger);
+            await restarted.SendRestartAnnouncementAsync(default);
+
+            Assert.NotNull(restarted.Certificate);
+            Assert.Equal(thumbprint, restarted.Certificate.Thumbprint);
+        }
+
+        [Fact]
         public async Task ReportingTestAsync()
         {
             var _client = new Mock<IEventClient>();

@@ -89,6 +89,295 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         [Fact]
+        public async Task PreparesMonitoredItemsBeforeCreatingBindings()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions(),
+                monitoredItemPreparation: (template, _) =>
+                {
+                    template.DataSetFieldName = "Resolved";
+                    return ValueTask.FromResult(template);
+                });
+            var owner = new FakeSubscriber();
+
+            await adapter.UpdateAsync(
+                [(owner, CreateDataItem("ns=2;s=value") with
+                {
+                    FetchDataSetFieldName = true
+                })]);
+            var item = Assert.Single(
+                manager.Subscription!.Collection.Items.Cast<FakeMonitoredItem>());
+            await manager.Handler!.OnDataChangeNotificationAsync(manager.Subscription, 1,
+                DateTime.UtcNow,
+                new DataValueChange[]
+                {
+                    new DataValueChange(item, new DataValue(new Variant(42)), null)
+                },
+                PublishState.None, []);
+
+            Assert.Equal("Resolved", Assert.Single(
+                Assert.Single(owner.DataChanges).Notifications).DataSetFieldName);
+        }
+
+        [Fact]
+        public async Task PreparationFailureDoesNotRejectValidMonitoredItems()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions(),
+                monitoredItemPreparation: (template, _) =>
+                {
+                    if (template.StartNodeId == "ns=2;s=bad")
+                    {
+                        throw new ServiceResultException(StatusCodes.BadBrowseNameInvalid);
+                    }
+                    return ValueTask.FromResult(template);
+                });
+            var owner = new FakeSubscriber();
+            await adapter.UpdateAsync(
+            [
+                (owner, CreateDataItem("ns=2;s=bad")),
+                (owner, CreateDataItem("ns=2;s=good"))
+            ]);
+
+            var item = Assert.Single(
+                manager.Subscription!.Collection.Items.Cast<FakeMonitoredItem>());
+            Assert.Equal("ns=2;s=good", item.Options.StartNodeId.ToString());
+            var update = Assert.Single(owner.Updates.Where(update => update != null));
+            Assert.Equal(StatusCodes.BadBrowseNameInvalid.Code, update.StatusCode);
+        }
+
+        [Fact]
+        public async Task PreparationFailureRetriesAndNotifiesRecoveredSemantics()
+        {
+            var manager = new FakeSubscriptionManager();
+            var attempts = 0;
+            var firstRetry = new TaskCompletionSource(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+            var secondRetry = new TaskCompletionSource(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions
+            {
+                InvalidMonitoredItemRetryDelayDuration = TimeSpan.FromMilliseconds(10),
+                InvalidMonitoredItemRetryDelayDurationMax = TimeSpan.FromMilliseconds(10)
+            }, monitoredItemPreparation: (template, _) =>
+            {
+                if (template.StartNodeId != "ns=2;s=bad")
+                {
+                    return ValueTask.FromResult(template);
+                }
+                var attempt = Interlocked.Increment(ref attempts);
+                if (attempt is 1 or 3)
+                {
+                    throw new ServiceResultException(StatusCodes.BadBrowseNameInvalid);
+                }
+                if (attempt == 2)
+                {
+                    firstRetry.TrySetResult();
+                }
+                else
+                {
+                    secondRetry.TrySetResult();
+                }
+                return ValueTask.FromResult(template);
+            });
+            var owner = new FakeSubscriber();
+            var badItem = CreateDataItem("ns=2;s=bad") with
+            {
+                DataSetFieldId = "duplicate"
+            };
+            var goodItem = CreateDataItem("ns=2;s=good") with
+            {
+                DataSetFieldId = "duplicate"
+            };
+
+            await adapter.UpdateAsync(
+            [
+                (owner, badItem),
+                (owner, goodItem)
+            ]);
+            Assert.Equal(1, adapter.BindingCount);
+            Assert.Equal(0, owner.SemanticsChanges);
+
+            await firstRetry.Task.WaitAsync(TimeSpan.FromSeconds(2));
+            var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(2);
+            while ((adapter.BindingCount != 2 || owner.SemanticsChanges != 1) &&
+                DateTime.UtcNow < deadline)
+            {
+                await Task.Delay(10);
+            }
+
+            Assert.Equal(2, adapter.BindingCount);
+            Assert.Equal(1, owner.SemanticsChanges);
+            Assert.Equal(2, adapter.GetDataMetadata(owner)
+                .Select(item => item.DataSetClassFieldId).Distinct().Count());
+            var fieldId = adapter.GetDataMetadata(owner)
+                .Single(item => item.StartNodeId == "ns=2;s=bad")
+                .DataSetClassFieldId;
+
+            await adapter.UpdateAsync(
+            [
+                (owner, badItem),
+                (owner, goodItem)
+            ]);
+            Assert.Equal(1, adapter.BindingCount);
+            await secondRetry.Task.WaitAsync(TimeSpan.FromSeconds(2));
+            deadline = DateTime.UtcNow + TimeSpan.FromSeconds(2);
+            while (adapter.BindingCount != 2 && DateTime.UtcNow < deadline)
+            {
+                await Task.Delay(10);
+            }
+
+            Assert.Equal(fieldId, adapter.GetDataMetadata(owner)
+                .Single(item => item.StartNodeId == "ns=2;s=bad")
+                .DataSetClassFieldId);
+        }
+
+        [Fact]
+        public async Task PreparationRetrySurvivesCanceledSupersedingUpdate()
+        {
+            var manager = new FakeSubscriptionManager();
+            var attempts = 0;
+            var retried = new TaskCompletionSource(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions
+            {
+                InvalidMonitoredItemRetryDelayDuration = TimeSpan.FromMilliseconds(20),
+                InvalidMonitoredItemRetryDelayDurationMax = TimeSpan.FromMilliseconds(20)
+            }, monitoredItemPreparation: (template, _) =>
+            {
+                if (Interlocked.Increment(ref attempts) == 1)
+                {
+                    throw new ServiceResultException(StatusCodes.BadBrowseNameInvalid);
+                }
+                retried.TrySetResult();
+                return ValueTask.FromResult(template);
+            });
+            var owner = new FakeSubscriber();
+            var item = CreateDataItem("ns=2;s=bad");
+            await adapter.UpdateAsync([(owner, item)]);
+            using var cancellation = new CancellationTokenSource();
+            cancellation.Cancel();
+
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+                adapter.UpdateAsync([(owner, item)], cancellation.Token).AsTask());
+            await retried.Task.WaitAsync(TimeSpan.FromSeconds(2));
+            var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(2);
+            while (adapter.BindingCount != 1 && DateTime.UtcNow < deadline)
+            {
+                await Task.Delay(10);
+            }
+
+            Assert.Equal(1, adapter.BindingCount);
+        }
+
+        [Fact]
+        public async Task TriggeredPreparationRetryPreservesDuplicatePrefixFieldIds()
+        {
+            var manager = new FakeSubscriptionManager();
+            var attempts = 0;
+            var retried = new TaskCompletionSource(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions
+            {
+                InvalidMonitoredItemRetryDelayDuration = TimeSpan.FromMilliseconds(10),
+                InvalidMonitoredItemRetryDelayDurationMax = TimeSpan.FromMilliseconds(10)
+            }, monitoredItemPreparation: (template, _) =>
+            {
+                if (template.StartNodeId == "ns=2;s=child0" &&
+                    Interlocked.Increment(ref attempts) == 1)
+                {
+                    throw new ServiceResultException(StatusCodes.BadBrowseNameInvalid);
+                }
+                if (template.StartNodeId == "ns=2;s=child0")
+                {
+                    retried.TrySetResult();
+                }
+                return ValueTask.FromResult(template);
+            });
+            var owner = new FakeSubscriber();
+            var root = CreateDataItem("ns=2;s=root") with
+            {
+                TriggeredItems =
+                [
+                    CreateDataItem("ns=2;s=child0") with
+                    {
+                        DataSetFieldId = "duplicate"
+                    },
+                    CreateDataItem("ns=2;s=child1") with
+                    {
+                        DataSetFieldId = "duplicate"
+                    }
+                ]
+            };
+
+            await adapter.UpdateAsync([(owner, root)]);
+            Assert.Equal(2, adapter.BindingCount);
+            await retried.Task.WaitAsync(TimeSpan.FromSeconds(2));
+            var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(2);
+            while (adapter.BindingCount != 3 && DateTime.UtcNow < deadline)
+            {
+                await Task.Delay(10);
+            }
+
+            var childIds = adapter.GetDataMetadata(owner)
+                .Where(item => item.StartNodeId is "ns=2;s=child0" or "ns=2;s=child1")
+                .Select(item => item.DataSetClassFieldId)
+                .ToArray();
+            Assert.Equal(2, childIds.Length);
+            Assert.Equal(2, childIds.Distinct().Count());
+        }
+
+        [Fact]
+        public async Task UpdateNotifiesSemanticsAndPreservesGeneratedDataFieldId()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            var item = CreateDataItem("ns=2;s=value");
+
+            await adapter.UpdateAsync([(owner, item)]);
+            var fieldId = Assert.Single(adapter.GetDataMetadata(owner)).DataSetClassFieldId;
+            Assert.NotEqual(Guid.Empty, fieldId);
+            Assert.Equal(0, owner.SemanticsChanges);
+
+            await adapter.UpdateAsync([(owner, item)]);
+
+            Assert.Equal(fieldId,
+                Assert.Single(adapter.GetDataMetadata(owner)).DataSetClassFieldId);
+            Assert.Equal(1, owner.SemanticsChanges);
+        }
+
+        [Fact]
+        public async Task AddsResolvedBrowsePathToNotifications()
+        {
+            var manager = new FakeSubscriptionManager();
+            var path = new RelativePath();
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions(),
+                template: new SubscriptionModel
+                {
+                    ResolveBrowsePathFromRoot = true
+                },
+                browsePathFromRootResolver: (_, _) =>
+                    ValueTask.FromResult<RelativePath?>(path));
+            var owner = new FakeSubscriber();
+
+            await adapter.UpdateAsync([(owner, CreateDataItem("ns=2;s=value"))]);
+            var item = Assert.Single(
+                manager.Subscription!.Collection.Items.Cast<FakeMonitoredItem>());
+            await manager.Handler!.OnDataChangeNotificationAsync(manager.Subscription, 1,
+                DateTime.UtcNow,
+                new DataValueChange[]
+                {
+                    new DataValueChange(item, new DataValue(new Variant(42)), null)
+                },
+                PublishState.None, []);
+
+            Assert.Same(path, Assert.Single(
+                Assert.Single(owner.DataChanges).Notifications).PathFromRoot);
+        }
+
+        [Fact]
         public async Task FailedInitialTriggerSynchronizationRollsBackWithoutPublishing()
         {
             var manager = new FakeSubscriptionManager();
@@ -1946,7 +2235,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public async Task CachesConditionsAndEmitsRefreshSnapshots()
         {
             var manager = new FakeSubscriptionManager();
-            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions(),
+                endpointUrlProvider: () => "opc.tcp://localhost:4840",
+                applicationUriProvider: () => "urn:managed-subscription-tests");
             var owner = new FakeSubscriber();
             Assert.True(adapter.TryAdd(owner, new EventMonitoredItemModel
             {
@@ -1965,8 +2256,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }));
             var items = manager.Subscription!.Collection.Items.Cast<FakeMonitoredItem>().ToArray();
 
+            var publishTime = new DateTime(2026, 7, 24, 1, 2, 3, DateTimeKind.Utc);
             await manager.Handler!.OnEventDataNotificationAsync(manager.Subscription, 11,
-                DateTime.UtcNow,
+                publishTime,
                 new EventNotification[]
                 {
                     new EventNotification(items[0], ArrayOf.Wrapped(
@@ -1979,7 +2271,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             var notification = Assert.Single(owner.Events);
             Assert.Equal(MessageType.Condition, notification.MessageType);
-            Assert.Single(notification.Notifications);
+            Assert.Equal("opc.tcp://localhost:4840", notification.EndpointUrl);
+            Assert.Equal("urn:managed-subscription-tests", notification.ApplicationUri);
+            var value = Assert.IsType<DataValue>(
+                Assert.Single(notification.Notifications).Value);
+            Assert.Equal(publishTime, value.SourceTimestamp.ToDateTime());
 
             await manager.Handler.OnEventDataNotificationAsync(manager.Subscription, 12,
                 DateTime.UtcNow,
@@ -2004,6 +2300,111 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             Assert.Equal(2, owner.Events.Count);
             Assert.Equal(MessageType.Condition, owner.Events[1].MessageType);
+        }
+
+        [Fact]
+        public async Task FormatsEventFieldsAndAddsConnectionMetadata()
+        {
+            var manager = new FakeSubscriptionManager();
+            var context = new ServiceMessageContext();
+            context.NamespaceUris.Append("http://opcfoundation.org/SimpleEvents");
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions(),
+                messageContext: context,
+                endpointUrlProvider: () => "opc.tcp://localhost:4840",
+                applicationUriProvider: () => "urn:managed-subscription-tests");
+            var owner = new FakeSubscriber();
+            var eventItem = new EventMonitoredItemModel
+            {
+                StartNodeId = "i=2253",
+                DataSetFieldName = "SimpleEvents",
+                NamespaceFormat = NamespaceFormat.Uri,
+                EventFilter = new EventFilterModel
+                {
+                    SelectClauses =
+                    [
+                        new SimpleAttributeOperandModel
+                        {
+                            TypeDefinitionId =
+                                "nsu=http://opcfoundation.org/SimpleEvents;i=235",
+                            BrowsePath =
+                            [
+                                "nsu=http://opcfoundation.org/SimpleEvents;CycleId"
+                            ]
+                        }
+                    ]
+                }
+            };
+            await adapter.UpdateAsync([(owner, eventItem)]);
+            var item = Assert.Single(
+                manager.Subscription!.Collection.Items.Cast<FakeMonitoredItem>());
+
+            await manager.Handler!.OnEventDataNotificationAsync(manager.Subscription, 1,
+                DateTime.UtcNow,
+                new EventNotification[]
+                {
+                    new EventNotification(item, ArrayOf.Wrapped(Variant.From("cycle")))
+                },
+                PublishState.None, []);
+
+            var notification = Assert.Single(owner.Events);
+            Assert.Equal("SimpleEvents", notification.EventTypeName);
+            Assert.Equal("opc.tcp://localhost:4840", notification.EndpointUrl);
+            Assert.Equal("urn:managed-subscription-tests", notification.ApplicationUri);
+            Assert.Equal("http://opcfoundation.org/SimpleEvents#CycleId",
+                Assert.Single(notification.Notifications).DataSetFieldName);
+            var firstFieldId = Assert.Single(
+                Assert.Single(adapter.GetEventMetadata(owner)).FieldIds);
+
+            await adapter.UpdateAsync([(owner, eventItem)]);
+
+            Assert.Equal(firstFieldId, Assert.Single(
+                Assert.Single(adapter.GetEventMetadata(owner)).FieldIds));
+        }
+
+        [Fact]
+        public async Task RollbackRestoresEventFieldIdsAndRootPath()
+        {
+            var manager = new FakeSubscriptionManager();
+            var originalPath = new RelativePath();
+            var updatedPath = new RelativePath();
+            var currentPath = originalPath;
+            await using var adapter = CreateAdapter(manager,
+                new OpcUaSubscriptionOptions(),
+                template: new SubscriptionModel
+                {
+                    ResolveBrowsePathFromRoot = true
+                },
+                browsePathFromRootResolver: (_, _) =>
+                    ValueTask.FromResult<RelativePath?>(currentPath));
+            var owner = new FakeSubscriber();
+            var eventItem = CreateEventItem("ns=2;s=events");
+            await adapter.UpdateAsync([(owner, eventItem)]);
+            var fieldId = Assert.Single(
+                Assert.Single(adapter.GetEventMetadata(owner)).FieldIds);
+
+            currentPath = updatedPath;
+            manager.Subscription!.TriggerAddStatus =
+                StatusCodes.BadMonitoredItemIdInvalid;
+            await Assert.ThrowsAsync<ServiceResultException>(() =>
+                adapter.UpdateAsync([(owner, eventItem with
+                {
+                    TriggeredItems = [CreateDataItem("ns=2;s=child")]
+                })]).AsTask());
+
+            Assert.Equal(fieldId, Assert.Single(
+                Assert.Single(adapter.GetEventMetadata(owner)).FieldIds));
+            var item = Assert.Single(
+                manager.Subscription.Collection.Items.Cast<FakeMonitoredItem>());
+            await manager.Handler!.OnEventDataNotificationAsync(
+                manager.Subscription, 1, DateTime.UtcNow,
+                new EventNotification[]
+                {
+                    new(item, ArrayOf.Wrapped(Variant.From("value")))
+                },
+                PublishState.None, []);
+
+            Assert.Same(originalPath, Assert.Single(
+                Assert.Single(owner.Events).Notifications).PathFromRoot);
         }
 
         [Fact]
@@ -2548,8 +2949,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             await manager.Handler!.OnKeepAliveNotificationAsync(manager.Subscription, 1,
                 DateTime.UtcNow, PublishState.KeepAlive);
 
+            Assert.Null(Assert.Single(first.KeepAlives).PublishSequenceNumber);
             Assert.Equal(1, adapter.OwnerStateCount);
             Assert.Equal(1u, manager.Subscription.Collection.Count);
+        }
+
+        [Fact]
+        public async Task LifecycleStopDoesNotEmitKeepAliveOrKeyFrame()
+        {
+            var manager = new FakeSubscriptionManager();
+            await using var adapter = CreateAdapter(manager, new OpcUaSubscriptionOptions());
+            var owner = new FakeSubscriber();
+            Assert.True(adapter.TryAdd(owner, CreateDataItem("ns=2;s=value")));
+
+            await manager.Handler!.OnKeepAliveNotificationAsync(manager.Subscription!, 1,
+                DateTime.UtcNow, PublishState.KeepAlive | PublishState.Stopped);
+
+            Assert.Empty(owner.KeepAlives);
+            Assert.Empty(owner.DataChanges);
         }
 
         [Fact]
@@ -2651,6 +3068,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Assert.Equal(2, owner.DataChanges[0].Notifications.Count);
             Assert.Equal(MessageType.DeltaFrame, owner.DataChanges[1].MessageType);
             Assert.Equal(MessageType.KeyFrame, owner.DataChanges[2].MessageType);
+            Assert.Null(owner.DataChanges[2].PublishSequenceNumber);
             Assert.Equal(MessageType.KeyFrame, owner.DataChanges[3].MessageType);
         }
 
@@ -2912,15 +3330,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             SubscriptionModel template = null,
             Action<SubscriptionWatchdogBehavior, string> watchdogAction = null,
             TimeProvider timeProvider = null,
-            IManagedCyclicReadClient cyclicReadClient = null)
+            IManagedCyclicReadClient cyclicReadClient = null,
+            ServiceMessageContext messageContext = null,
+            Func<string?> endpointUrlProvider = null,
+            Func<string?> applicationUriProvider = null,
+            Func<BaseMonitoredItemModel, CancellationToken,
+                ValueTask<BaseMonitoredItemModel>>
+                monitoredItemPreparation = null,
+            Func<string, CancellationToken, ValueTask<RelativePath?>>
+                browsePathFromRootResolver = null)
         {
             return new ManagedSubscriptionAdapter(manager, template ?? new SubscriptionModel(), options,
-                new JsonVariantEncoder(new ServiceMessageContext()),
+                new JsonVariantEncoder(messageContext ?? new ServiceMessageContext()),
                 modelChangeBrowserFactory,
                 timeProvider: timeProvider,
                 watchdogAction: watchdogAction == null ? null :
                     (_, behavior, message) => watchdogAction(behavior, message),
-                cyclicReadClient: cyclicReadClient);
+                cyclicReadClient: cyclicReadClient,
+                endpointUrlProvider: endpointUrlProvider,
+                applicationUriProvider: applicationUriProvider,
+                monitoredItemPreparation: monitoredItemPreparation,
+                browsePathFromRootResolver: browsePathFromRootResolver);
         }
 
         private static DataMonitoredItemModel CreateDataItem(string nodeId)
@@ -3574,6 +4004,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             public bool ThrowOnData { get; set; }
             public List<OpcUaSubscriptionNotification> DataChanges { get; } = [];
             public List<OpcUaSubscriptionNotification> Events { get; } = [];
+            public List<OpcUaSubscriptionNotification> KeepAlives { get; } = [];
             public List<(bool LiveData, int ValueChanges, int Overflow, int Heartbeats)>
                 DataDiagnostics { get; } = [];
             public List<ServiceResultModel> Updates { get; } = [];
@@ -3600,6 +4031,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             public void OnSubscriptionKeepAlive(OpcUaSubscriptionNotification notification)
             {
+                KeepAlives.Add(notification);
                 OnKeepAliveAction?.Invoke();
             }
 

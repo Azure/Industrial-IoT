@@ -149,27 +149,42 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 .Where(message => message.Message.GetProperty("DisplayName").GetString() == "DoubleValues" &&
                     message.Message.GetProperty("Value").TryGetProperty("Value", out _));
             double? dvalue = null;
+            DateTimeOffset? dsourceTimestamp = null;
             foreach (var message in doubleValues)
             {
                 Assert.Equal("http://test.org/UA/Data/#i=3307", message.Message.GetProperty("NodeId").GetString());
-                var value1 = message.Message.GetProperty("Value").GetProperty("Value").GetDouble();
+                var value = message.Message.GetProperty("Value");
+                var value1 = value.GetProperty("Value").GetDouble();
                 _output.WriteLine(JsonSerializer.Serialize(message));
+                var sourceTimestamp = value.GetProperty("SourceTimestamp").GetDateTimeOffset();
+                if (sourceTimestamp == dsourceTimestamp)
+                {
+                    continue;
+                }
                 if (dvalue != null)
                 {
                     var abs = Math.Abs(dvalue.Value - value1);
                     Assert.True(abs >= 5.0, $"Value within absolute deadband limit {abs} < 5 ({dvalue.Value}/{value1})");
                 }
                 dvalue = value1;
+                dsourceTimestamp = sourceTimestamp;
             }
             var int64Values = messages
                 .Where(message => message.Message.GetProperty("DisplayName").GetString() == "Int64Values" &&
                     message.Message.GetProperty("Value").TryGetProperty("Value", out _));
             long? lvalue = null;
+            DateTimeOffset? lsourceTimestamp = null;
             foreach (var message in int64Values)
             {
                 Assert.Equal("http://test.org/UA/Data/#i=3289", message.Message.GetProperty("NodeId").GetString());
-                var value1 = message.Message.GetProperty("Value").GetProperty("Value").GetInt64();
+                var value = message.Message.GetProperty("Value");
+                var value1 = value.GetProperty("Value").GetInt64();
                 _output.WriteLine(JsonSerializer.Serialize(message));
+                var sourceTimestamp = value.GetProperty("SourceTimestamp").GetDateTimeOffset();
+                if (sourceTimestamp == lsourceTimestamp)
+                {
+                    continue;
+                }
                 if (lvalue != null)
                 {
                     var abs = Math.Abs(lvalue.Value - value1);
@@ -177,6 +192,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                     Assert.True(abs >= 3, $"Value within percent deadband limit {abs} < 3% ({lvalue.Value}/{value1})");
                 }
                 lvalue = value1;
+                lsourceTimestamp = sourceTimestamp;
             }
         }
 

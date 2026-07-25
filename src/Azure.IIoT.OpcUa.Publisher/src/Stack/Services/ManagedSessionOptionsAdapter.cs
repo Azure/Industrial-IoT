@@ -101,6 +101,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             };
         }
 
+        internal static ManagedSessionPoolOptions CreatePoolOptions(
+            PublisherClientOptions options)
+        {
+            ArgumentNullException.ThrowIfNull(options);
+            return new ManagedSessionPoolOptions
+            {
+                LingerTimeout = options.LingerTimeoutDuration ??
+                    TimeSpan.FromSeconds(10),
+                ServiceCallTimeout = options.DefaultServiceCallTimeoutDuration ??
+                    TimeSpan.FromSeconds(30),
+                NodeCacheTimeout = options.NodeCacheTimeout ??
+                    TimeSpan.FromMinutes(1),
+                NodeCacheCapacity = options.NodeCacheCapacity ?? 4096
+            };
+        }
+
         internal static int GetEndpointOperationTimeout(ManagedSessionClientContext context,
             TimeSpan connectTimeout)
         {

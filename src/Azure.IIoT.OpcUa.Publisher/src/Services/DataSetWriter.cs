@@ -543,6 +543,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 writer.Subscription = await group._clients.CreateSubscriptionAsync(
                     writer._connection.Connection, writer._template, writer, ct).ConfigureAwait(false);
+                await writer.ReloadMetadataIfStartedAsync(ct).ConfigureAwait(false);
 
                 writer.InitializeMetaDataTrigger();
                 writer.InitializeKeepAlive();
@@ -596,6 +597,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     //
                     Subscription = await _group._clients.CreateSubscriptionAsync(
                         _connection.Connection, _template, this, ct).ConfigureAwait(false);
+                    await ReloadMetadataIfStartedAsync(ct).ConfigureAwait(false);
 
                     _logger.RecreatedSubscription(Id, _group.Id);
                 }
@@ -606,7 +608,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                     _logger.UpdatedMonitoredItems(Id, _group.Id);
                 }
-
                 _frameCount = 0;
                 InitializeMetaDataTrigger();
                 InitializeKeepAlive();
@@ -869,6 +870,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         _metadataTimer.Dispose();
                         _metadataTimer = null;
                     }
+                }
+            }
+
+            private async Task ReloadMetadataIfStartedAsync(CancellationToken ct)
+            {
+                if (!_metaDataLoader.IsValueCreated)
+                {
+                    return;
+                }
+                _metaDataLoader.Value.Reload();
+                var timeout = _group._options.Value.AsyncMetaDataLoadTimeout ??
+                    TimeSpan.FromMinutes(1);
+                if (timeout != TimeSpan.Zero)
+                {
+                    await _metaDataLoader.Value.BlockUntilLoadedAsync(timeout, ct)
+                        .ConfigureAwait(false);
                 }
             }
 
@@ -1167,7 +1184,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 /// <summary>
                 /// Current meta data
                 /// </summary>
-                public PublishedDataSetMessageSchemaModel? MetaData { get; private set; }
+                public PublishedDataSetMessageSchemaModel? MetaData =>
+                    Volatile.Read(ref _metaData);
 
                 /// <summary>
                 /// Create loader
@@ -1176,7 +1194,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 public MetaDataLoader(DataSetWriterSubscription subscription)
                 {
                     _writer = subscription;
-                    _tcs = new TaskCompletionSource();
+                    _tcs = CreateCompletion();
                     _loader = Task.Factory.StartNew(() => StartAsync(_cts.Token),
                         default, TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
                 }
@@ -1201,6 +1219,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 /// </summary>
                 public void Reload()
                 {
+                    lock (_completionLock)
+                    {
+                        _requestedVersion++;
+                        Volatile.Write(ref _metaData, null);
+                        if (_tcs.Task.IsCompleted)
+                        {
+                            _tcs = CreateCompletion();
+                        }
+                    }
                     _trigger.Set();
                 }
 
@@ -1213,7 +1240,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     try
                     {
-                        return _tcs.Task.Wait(timeout);
+                        return GetCompletionTask().Wait(timeout);
                     }
                     catch
                     {
@@ -1231,7 +1258,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     try
                     {
-                        await _tcs.Task.WaitAsync(timeout, ct).ConfigureAwait(false);
+                        await GetCompletionTask().WaitAsync(timeout, ct).ConfigureAwait(false);
                         return true;
                     }
                     catch
@@ -1247,26 +1274,65 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 /// <returns></returns>
                 private async Task StartAsync(CancellationToken ct)
                 {
+                    var first = true;
                     while (!ct.IsCancellationRequested)
                     {
+                        if (!first)
+                        {
+                            await _trigger.WaitAsync(ct).ConfigureAwait(false);
+                        }
+                        first = false;
+                        long version;
+                        lock (_completionLock)
+                        {
+                            version = _requestedVersion;
+                        }
+                        Exception? error = null;
+                        var canceled = false;
+                        PublishedDataSetMessageSchemaModel? metadata = null;
                         try
                         {
-                            await UpdateMetaDataAsync(ct).ConfigureAwait(false);
-                            _tcs.TrySetResult();
+                            metadata = await BuildMetaDataAsync(ct).ConfigureAwait(false);
                             Interlocked.Increment(ref _writer._group._metadataLoadSuccess);
                         }
                         catch (OperationCanceledException)
                         {
-                            _tcs.TrySetCanceled(ct);
+                            canceled = true;
                         }
                         catch (Exception ex)
                         {
                             _writer._logger.FailedToGetMetadata(_writer._writer, ex.Message);
-                            _tcs.TrySetException(ex);
+                            error = ex;
                             Interlocked.Increment(ref _writer._group._metadataLoadFailures);
                         }
-                        Interlocked.Exchange(ref _tcs, new TaskCompletionSource());
-                        await _trigger.WaitAsync(ct).ConfigureAwait(false);
+                        lock (_completionLock)
+                        {
+                            if (version != _requestedVersion)
+                            {
+                                continue;
+                            }
+                            if (canceled)
+                            {
+                                _tcs.TrySetCanceled(ct);
+                            }
+                            else if (error != null)
+                            {
+                                _tcs.TrySetException(error);
+                            }
+                            else
+                            {
+                                Volatile.Write(ref _metaData, metadata);
+                                _tcs.TrySetResult();
+                            }
+                        }
+                    }
+                }
+
+                private Task GetCompletionTask()
+                {
+                    lock (_completionLock)
+                    {
+                        return _tcs.Task;
                     }
                 }
 
@@ -1275,7 +1341,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 /// </summary>
                 /// <param name="ct"></param>
                 /// <returns></returns>
-                internal async Task UpdateMetaDataAsync(CancellationToken ct = default)
+                private async Task<PublishedDataSetMessageSchemaModel?> BuildMetaDataAsync(
+                    CancellationToken ct = default)
                 {
                     var dataSetName = _writer._writer.Writer.DataSet?.Name
                         ?? _writer._writer.Writer.DataSetWriterName
@@ -1287,8 +1354,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     if (dataSetMetaData == null || subscription == null || dataSetName == null)
                     {
                         // Metadata disabled
-                        MetaData = null;
-                        return;
+                        return null;
                     }
 
                     //
@@ -1312,7 +1378,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         id, sw.Elapsed);
 
                     var msgMask = _writer._writer.Writer.MessageSettings?.DataSetMessageContentMask;
-                    MetaData = new PublishedDataSetMessageSchemaModel
+                    return new PublishedDataSetMessageSchemaModel
                     {
                         Id = id,
                         MetaData = metaData with
@@ -1325,10 +1391,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     };
                 }
 
+                private static TaskCompletionSource CreateCompletion()
+                {
+                    return new TaskCompletionSource(
+                        TaskCreationOptions.RunContinuationsAsynchronously);
+                }
+
+                private PublishedDataSetMessageSchemaModel? _metaData;
                 private TaskCompletionSource _tcs;
+                private long _requestedVersion;
                 private readonly Task _loader;
                 private readonly CancellationTokenSource _cts = new();
                 private readonly AsyncAutoResetEvent _trigger = new();
+                private readonly Lock _completionLock = new();
                 private readonly DataSetWriterSubscription _writer;
             }
 

@@ -512,7 +512,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 EventFilter? eventFilter;
                 if (!string.IsNullOrEmpty(Template.EventFilter.TypeDefinitionId))
                 {
-                    eventFilter = await GetSimpleEventFilterAsync(session, ct).ConfigureAwait(false);
+                    eventFilter = await CreateSimpleEventFilterAsync(Template, session, ct)
+                        .ConfigureAwait(false);
                 }
                 else
                 {
@@ -542,11 +543,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="session"></param>
             /// <param name="ct"></param>
             /// <returns></returns>
-            private async ValueTask<EventFilter> GetSimpleEventFilterAsync(IOpcUaSession session,
-                CancellationToken ct)
+            internal static async ValueTask<EventFilter> CreateSimpleEventFilterAsync(
+                EventMonitoredItemModel template, IOpcUaSession session, CancellationToken ct)
             {
-                Debug.Assert(Template != null);
-                var typeDefinitionId = Template.EventFilter.TypeDefinitionId.ToNodeId(
+                ArgumentNullException.ThrowIfNull(template);
+                var typeDefinitionId = template.EventFilter.TypeDefinitionId.ToNodeId(
                     session.MessageContext);
                 var nodes = new List<INode>();
                 NodeId superType;
@@ -669,7 +670,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             /// <param name="node"></param>
             /// <param name="browsePathPrefix"></param>
             /// <param name="ct"></param>
-            protected static async ValueTask ParseFieldsAsync(IOpcUaSession session, List<QualifiedName> fieldNames,
+            internal static async ValueTask ParseFieldsAsync(IOpcUaSession session, List<QualifiedName> fieldNames,
                 INode node, string browsePathPrefix, CancellationToken ct)
             {
                 var references = await session.LruNodeCache.GetReferencesAsync(
