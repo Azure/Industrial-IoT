@@ -1725,7 +1725,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var provider = new FakeProvider(new FakeConnection(session.Object));
             await using var managedStrategy = new ManagedSessionRuntimeStrategy(provider,
                 CreateTelemetry(), new FixedRequestFactory(request));
-            IOpcUaClientRuntime managedRuntime = managedStrategy.Create(
+            ManagedOpcUaClient managedRuntime = managedStrategy.Create(
                 CreateRuntimeContext(request.Connection, clientOptions,
                     subscriptionOptions, reverseConnectManager));
             try
@@ -1761,7 +1761,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var provider = new FakeProvider(new FakeConnection(session.Object));
             await using var managedStrategy = new ManagedSessionRuntimeStrategy(provider,
                 CreateTelemetry(), new FixedRequestFactory(request));
-            IOpcUaClientRuntime managedRuntime = managedStrategy.Create(
+            ManagedOpcUaClient managedRuntime = managedStrategy.Create(
                 CreateRuntimeContext(request.Connection, clientOptions,
                     subscriptionOptions, reverseConnectManager));
             try

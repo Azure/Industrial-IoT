@@ -611,7 +611,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
-        private IOpcUaClientRuntime GetOrAddClient(ConnectionModel connection)
+        private ManagedOpcUaClient GetOrAddClient(ConnectionModel connection)
         {
             // Lazy start connect manager
             var reverseConnect = connection.IsReverseConnect();
@@ -623,7 +623,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var id = new ConnectionIdentifier(connection);
             while (true)
             {
-                IOpcUaClientRuntime client;
+                ManagedOpcUaClient client;
                 lock (_clientsGate)
                 {
                     ObjectDisposedException.ThrowIf(_disposed, this);
@@ -653,8 +653,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         return client;
                     }
 
-                    ((ICollection<KeyValuePair<ConnectionIdentifier, IOpcUaClientRuntime>>)_clients)
-                        .Remove(new KeyValuePair<ConnectionIdentifier, IOpcUaClientRuntime>(id,
+                    ((ICollection<KeyValuePair<ConnectionIdentifier, ManagedOpcUaClient>>)_clients)
+                        .Remove(new KeyValuePair<ConnectionIdentifier, ManagedOpcUaClient>(id,
                             client));
                 }
             }
@@ -667,12 +667,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <returns></returns>
         private async Task OnClientClosedAsync(ConnectionIdentifier id)
         {
-            IOpcUaClientRuntime? client;
+            ManagedOpcUaClient? client;
             lock (_clientsGate)
             {
                 if (!_clients.TryGetValue(id, out client) ||
-                    !((ICollection<KeyValuePair<ConnectionIdentifier, IOpcUaClientRuntime>>)_clients)
-                        .Remove(new KeyValuePair<ConnectionIdentifier, IOpcUaClientRuntime>(id,
+                    !((ICollection<KeyValuePair<ConnectionIdentifier, ManagedOpcUaClient>>)_clients)
+                        .Remove(new KeyValuePair<ConnectionIdentifier, ManagedOpcUaClient>(id,
                             client)))
                 {
                     return;
@@ -760,7 +760,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly Lazy<Exception?> _reverseConnectStartException;
         private readonly ConcurrentDictionary<
             AsyncProducerConsumerQueue<ChannelDiagnosticModel>, bool> _listeners = new();
-        private readonly ConcurrentDictionary<ConnectionIdentifier, IOpcUaClientRuntime> _clients = new();
+        private readonly ConcurrentDictionary<ConnectionIdentifier, ManagedOpcUaClient> _clients = new();
         private readonly Lock _clientsGate = new();
         private readonly ManagedSessionRuntimeStrategy _runtimeStrategy;        private readonly IMetricsContext _metrics;
         private readonly Meter _meter = Diagnostics.NewMeter();

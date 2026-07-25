@@ -34,27 +34,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using PublisherSubscription = Azure.IIoT.OpcUa.Publisher.Stack.ISubscription;
 
     /// <summary>
-    /// Internal runtime surface created for one client connection.
-    /// </summary>
-    internal interface IOpcUaClientRuntime : IDisposable
-    {
-        ChannelDiagnosticModel LastDiagnostics { get; }
-        Task<ISessionHandle> AcquireAsync(int? connectTimeout,
-            int? serviceCallTimeout, CancellationToken ct);
-        Task<T> RunAsync<T>(Func<ServiceCallContext, Task<T>> service,
-            int? connectTimeout, int? serviceCallTimeout, CancellationToken ct);
-        IAsyncEnumerable<T> RunAsync<T>(AsyncEnumerableBase<T> operation,
-            int? connectTimeout, int? serviceCallTimeout, CancellationToken ct);
-        ValueTask<PublisherSubscription> RegisterAsync(SubscriptionModel subscription,
-            ISubscriber subscriber, CancellationToken ct);
-        Task ResetAsync(CancellationToken ct);
-        Task<SessionDiagnosticsModel?> GetSessionDiagnosticsAsync(CancellationToken ct);
-        ValueTask CloseAsync(bool shutdown = false, bool fromManagementLoop = false);
-        bool TryAddRef();
-        void AddRef(string? token = null, TimeSpan? expiresAfter = null);
-    }
-
-    /// <summary>
     /// Inputs used by the client runtime.
     /// </summary>
     internal sealed record class OpcUaClientRuntimeContext
@@ -274,7 +253,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _requestFactory = requestFactory;
         }
 
-        public IOpcUaClientRuntime Create(OpcUaClientRuntimeContext context)
+        public ManagedOpcUaClient Create(OpcUaClientRuntimeContext context)
         {
             return new ManagedOpcUaClient(context, _pool,
                 _requestFactory ?? new DefaultManagedSessionRequestFactory(
@@ -293,7 +272,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// <summary>
     /// Managed-session client runtime.
     /// </summary>
-    internal sealed class ManagedOpcUaClient : IOpcUaClientRuntime, IOpcUaClientDiagnostics
+    internal sealed class ManagedOpcUaClient : IDisposable, IOpcUaClientDiagnostics
     {
         public ManagedOpcUaClient(OpcUaClientRuntimeContext context, ManagedSessionPool pool,
             IManagedSessionRequestFactory requestFactory)
