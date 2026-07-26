@@ -242,58 +242,6 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         }
 
         /// <summary>
-        /// Create monitored item message
-        /// </summary>
-        /// <param name="encoding"></param>
-        /// <param name="writerGroupName"></param>
-        /// <param name="dataSetMessageContentFlags"></param>
-        /// <param name="messageType"></param>
-        /// <param name="timestamp"></param>
-        /// <param name="sequenceNumber"></param>
-        /// <param name="payload"></param>
-        /// <param name="nodeId"></param>
-        /// <param name="endpointUrl"></param>
-        /// <param name="applicationUri"></param>
-        /// <param name="standardsCompliant"></param>
-        /// <param name="extensionFields"></param>
-        /// <param name="heartbeat"></param>
-        /// <param name="message"></param>
-        /// <returns></returns>
-        public static bool TryCreateMonitoredItemMessage(MessageEncoding encoding,
-            string? writerGroupName, DataSetMessageContentFlags? dataSetMessageContentFlags,
-            MessageType messageType, DateTimeOffset? timestamp, uint sequenceNumber,
-            DataSet payload, string? nodeId, string? endpointUrl, string? applicationUri,
-            bool standardsCompliant, IReadOnlyList<ExtensionFieldModel>? extensionFields,
-            bool heartbeat, [NotNullWhen(true)] out BaseDataSetMessage? message)
-        {
-            if (encoding.HasFlag(MessageEncoding.Json))
-            {
-                message = new MonitoredItemMessage
-                {
-                    UseCompatibilityMode = !standardsCompliant,
-                    ApplicationUri = applicationUri,
-                    Heartbeat = heartbeat,
-                    EndpointUrl = endpointUrl,
-                    NodeId = nodeId,
-                    ExtensionFields = extensionFields,
-                    WriterGroupId = writerGroupName,
-                    MessageType = messageType,
-                    DataSetMessageContentMask = dataSetMessageContentFlags
-                      ?? DefaultDataSetMessageContentFlags,
-                    Timestamp = timestamp,
-                    SequenceNumber = sequenceNumber,
-                    Payload = payload
-                };
-            }
-            else
-            {
-                message = default;
-                return false;
-            }
-            return true;
-        }
-
-        /// <summary>
         /// Create network message
         /// </summary>
         /// <param name="encoding"></param>

@@ -118,7 +118,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             uint numOfMessages, bool eventList = false,
             MessageEncoding encoding = MessageEncoding.Json,
             NetworkMessageContentFlags extraNetworkMessageMask = 0,
-            bool isSampleMode = false, bool randomTopic = false)
+            bool randomTopic = false)
         {
             var messages = new List<OpcUaSubscriptionNotification>();
             const string publisherId = "Publisher";
@@ -154,7 +154,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                         NetworkMessageContentFlags.PayloadHeader |
                         NetworkMessageContentFlags.Timestamp |
                         NetworkMessageContentFlags.DataSetClassId |
-                        (isSampleMode ? NetworkMessageContentFlags.MonitoredItemMessage : NetworkMessageContentFlags.NetworkMessageHeader) |
+                        NetworkMessageContentFlags.NetworkMessageHeader |
                         NetworkMessageContentFlags.DataSetMessageHeader |
                         extraNetworkMessageMask
                 },

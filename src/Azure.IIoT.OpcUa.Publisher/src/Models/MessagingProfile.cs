@@ -374,10 +374,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// From published nodes jobs converter
         /// </summary>
         /// <param name="fullFeaturedMessage"></param>
-        /// <param name="isSampleMessage"></param>
         /// <returns></returns>
         private static DataSetFieldContentFlags BuildDataSetFieldContentMask(
-            bool fullFeaturedMessage = false, bool isSampleMessage = false)
+            bool fullFeaturedMessage = false)
         {
             return
                 DataSetFieldContentFlags.StatusCode |
@@ -388,17 +387,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                       DataSetFieldContentFlags.Heartbeat |
                       DataSetFieldContentFlags.EndpointUrl |
                       DataSetFieldContentFlags.ExtensionFields) : 0) |
-                (isSampleMessage ?
-                     (DataSetFieldContentFlags.NodeId |
-                      DataSetFieldContentFlags.DisplayName |
-                      DataSetFieldContentFlags.EndpointUrl) :
-                      DataSetFieldContentFlags.ServerTimestamp)
+                DataSetFieldContentFlags.ServerTimestamp
                 ;
         }
 
         private static DataSetMessageContentFlags BuildDataSetContentMask(
-            bool fullFeaturedMessage = false, bool reversibleEncoding = false,
-            bool isSampleMessage = false)
+            bool fullFeaturedMessage = false, bool reversibleEncoding = false)
         {
             return
                 (reversibleEncoding ?
@@ -407,9 +401,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                     (DataSetMessageContentFlags.Timestamp |
                      DataSetMessageContentFlags.DataSetWriterId |
                      DataSetMessageContentFlags.SequenceNumber) : 0) |
-                (!isSampleMessage ?
-                    (DataSetMessageContentFlags.Timestamp |
-                     DataSetMessageContentFlags.SequenceNumber) : 0) |
+                DataSetMessageContentFlags.Timestamp |
+                DataSetMessageContentFlags.SequenceNumber |
                 DataSetMessageContentFlags.MetaDataVersion |
                 DataSetMessageContentFlags.MajorVersion |
                 DataSetMessageContentFlags.MinorVersion |
@@ -417,19 +410,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                 DataSetMessageContentFlags.MessageType;
         }
 
-        private static NetworkMessageContentFlags BuildNetworkMessageContentMask(
-            bool isSampleMessage = false)
+        private static NetworkMessageContentFlags BuildNetworkMessageContentMask()
         {
-            return (isSampleMessage ?
-                NetworkMessageContentFlags.MonitoredItemMessage
-                 : (NetworkMessageContentFlags.NetworkMessageHeader |
-                    NetworkMessageContentFlags.PublisherId |
-                    NetworkMessageContentFlags.SequenceNumber |
-                    NetworkMessageContentFlags.Timestamp |
-                    NetworkMessageContentFlags.WriterGroupId |
-                    NetworkMessageContentFlags.PayloadHeader |
-                    NetworkMessageContentFlags.DataSetClassId |
-                    NetworkMessageContentFlags.NetworkMessageNumber)) |
+            return NetworkMessageContentFlags.NetworkMessageHeader |
+                NetworkMessageContentFlags.PublisherId |
+                NetworkMessageContentFlags.SequenceNumber |
+                NetworkMessageContentFlags.Timestamp |
+                NetworkMessageContentFlags.WriterGroupId |
+                NetworkMessageContentFlags.PayloadHeader |
+                NetworkMessageContentFlags.DataSetClassId |
+                NetworkMessageContentFlags.NetworkMessageNumber |
                 NetworkMessageContentFlags.DataSetMessageHeader;
         }
 

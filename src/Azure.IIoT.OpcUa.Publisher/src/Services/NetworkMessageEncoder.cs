@@ -277,12 +277,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         var encoding = writerGroup.MessageType ?? MessageEncoding.Json;
                         var networkMessageContentMask =
                             writerGroup.MessageSettings.NetworkMessageContentMask;
-                        var hasSamplesPayload =
-                            (networkMessageContentMask & NetworkMessageContentFlags.MonitoredItemMessage) != 0;
-                        if (hasSamplesPayload && !isBatched)
-                        {
-                            networkMessageContentMask |= NetworkMessageContentFlags.SingleDataSetMessage;
-                        }
                         var namespaceFormat =
                             writerGroup.MessageSettings?.NamespaceFormat ??
                             _options.Value.DefaultNamespaceFormat ??
@@ -295,10 +289,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             var currentNotifications = new List<OpcUaSubscriptionNotification>();
                             foreach (var (Notification, Context) in dataSetClass)
                             {
-                                if (Context.Writer == null ||
-                                    (hasSamplesPayload && !encoding.HasFlag(MessageEncoding.Json)))
+                                if (Context.Writer == null)
                                 {
-                                    // Must have a writer or if samples mode, must be json
+                                    // Must have a writer
                                     Drop(Notification.YieldReturn());
                                     continue;
                                 }
@@ -310,7 +303,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                                 if (Notification.MessageType == MessageType.Metadata)
                                 {
-                                    if (Context.MetaData?.MetaData != null && !hasSamplesPayload)
+                                    if (Context.MetaData?.MetaData != null)
                                     {
                                         if (currentMessage?.Messages.Count > 0)
                                         {
@@ -364,12 +357,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 else if (Notification.MessageType == MessageType.KeepAlive)
                                 {
                                     Debug.Assert(Notification.Notifications.Count == 0);
-                                    if (hasSamplesPayload)
-                                    {
-                                        Drop(Notification.YieldReturn());
-                                        continue;
-                                    }
-
                                     // Create regular data set messages
                                     if (!PubSubMessage.TryCreateDataSetMessage(encoding,
                                         GetDataSetWriterName(Notification, Context),
@@ -420,104 +407,24 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                             ;
                                         notComplete = notificationQueues.Any(q => q.Count > 0);
 
-                                        if (!hasSamplesPayload)
+                                        // Create regular data set messages
+                                        if (!PubSubMessage.TryCreateDataSetMessage(encoding,
+                                            GetDataSetWriterName(Notification, Context), Context.DataSetWriterId,
+                                            dataSetMessageContentMask, Notification.MessageType,
+                                            new DataSet(orderedNotifications
+                                                .Select(s => (s.DataSetFieldName!, s.Value))
+                                                .Concat(Context.ExtensionFields)
+                                                .ToList(), dataSetFieldContentMask),
+                                            GetTimestamp(Notification), Context.NextWriterSequenceNumber(),
+                                            standardsCompliant, Notification.EndpointUrl, Notification.ApplicationUri,
+                                            Context.MetaData?.MetaData, out var dataSetMessage))
                                         {
-                                            // Create regular data set messages
-                                            if (!PubSubMessage.TryCreateDataSetMessage(encoding,
-                                                GetDataSetWriterName(Notification, Context), Context.DataSetWriterId,
-                                                dataSetMessageContentMask, Notification.MessageType,
-                                                new DataSet(orderedNotifications
-                                                    .Select(s => (s.DataSetFieldName!, s.Value))
-                                                    .Concat(Context.ExtensionFields)
-                                                    .ToList(), dataSetFieldContentMask),
-                                                GetTimestamp(Notification), Context.NextWriterSequenceNumber(),
-                                                standardsCompliant, Notification.EndpointUrl, Notification.ApplicationUri,
-                                                Context.MetaData?.MetaData, out var dataSetMessage))
-                                            {
-                                                Drop(Notification.YieldReturn());
-                                                continue;
-                                            }
-
-                                            AddMessage(dataSetMessage);
-                                            LogNotification(Notification, false);
+                                            Drop(Notification.YieldReturn());
+                                            continue;
                                         }
-                                        else
-                                        {
-                                            // Add monitored item message payload to network message to handle backcompat
-                                            foreach (var itemNotifications in orderedNotifications
-                                                .GroupBy(f => f.Id + f.MessageId))
-                                            {
-                                                var notificationsInGroup = itemNotifications.ToList();
-                                                Debug.Assert(notificationsInGroup.Count != 0);
-                                                //
-                                                // Special monitored item handling for events and conditions. Collate all
-                                                // values into a single key value data dictionary extension object value.
-                                                // Regular notifications we send as single messages.
-                                                //
-                                                if (notificationsInGroup.Count > 1)
-                                                {
-                                                    if (Notification.MessageType == MessageType.Event ||
-                                                        Notification.MessageType == MessageType.Condition)
-                                                    {
-                                                        Debug.Assert(notificationsInGroup
-                                                            .Select(n => n.DataSetFieldName).Distinct().Count() == notificationsInGroup.Count,
-                                                            "There should not be duplicates in fields in a group.");
-                                                        Debug.Assert(notificationsInGroup
-                                                            .All(n => n.SequenceNumber == notificationsInGroup[0].SequenceNumber),
-                                                            "All notifications in the group should have the same sequence number.");
 
-                                                        var eventNotification = notificationsInGroup[0] with
-                                                        {
-                                                            Value = new DataValue(new Variant(
-                                                                new EncodeableDictionary(notificationsInGroup
-                                                                    .Select(n => new KeyDataValuePair(
-                                                                        n.DataSetFieldName!, n.Value))))),
-                                                            DataSetFieldName = notificationsInGroup[0].DataSetName
-                                                        };
-                                                        notificationsInGroup = new List<MonitoredItemNotificationModel>
-                                                        {
-                                                            eventNotification
-                                                        };
-                                                    }
-                                                    else if (_options.Value.RemoveDuplicatesFromBatch ?? false)
-                                                    {
-                                                        var pruned = notificationsInGroup
-                                                            .OrderByDescending(k => k.Value?.SourceTimestamp) // Descend from latest
-                                                            .DistinctBy(k => k.DataSetFieldName) // Only leave the latest values
-                                                            .ToList();
-                                                        if (pruned.Count != notificationsInGroup.Count)
-                                                        {
-                                                            if (_logNotifications)
-                                                            {
-                                                                _logger.RemovedDuplicates(notificationsInGroup.Count - pruned.Count);
-                                                            }
-                                                            notificationsInGroup = pruned;
-                                                        }
-                                                    }
-                                                }
-                                                foreach (var notification in notificationsInGroup)
-                                                {
-                                                    if (notification.DataSetFieldName != null)
-                                                    {
-                                                        if (!PubSubMessage.TryCreateMonitoredItemMessage(encoding,
-                                                            writerGroup.Name, dataSetMessageContentMask, Notification.MessageType,
-                                                            GetTimestamp(Notification), Context.NextWriterSequenceNumber(),
-                                                            new DataSet(notification.DataSetFieldName, notification.Value,
-                                                                dataSetFieldContentMask),
-                                                            notification.NodeId, Notification.EndpointUrl, Notification.ApplicationUri,
-                                                            standardsCompliant, Context.Writer.DataSet?.ExtensionFields,
-                                                            (notification.Flags & MonitoredItemSourceFlags.Heartbeat) != 0,
-                                                            out var dataSetMessage))
-                                                        {
-                                                            LogNotification(notification, true);
-                                                            continue;
-                                                        }
-                                                        AddMessage(dataSetMessage);
-                                                        LogNotification(notification, false);
-                                                    }
-                                                }
-                                            }
-                                        }
+                                        AddMessage(dataSetMessage);
+                                        LogNotification(Notification, false);
                                     }
                                     currentNotifications.Add(Notification);
                                 }

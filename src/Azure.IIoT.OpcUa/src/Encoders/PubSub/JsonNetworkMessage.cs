@@ -24,8 +24,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     public class JsonNetworkMessage : BaseNetworkMessage
     {
         /// <inheritdoc/>
-        public override string MessageSchema => HasSamplesPayload ?
-            MessageSchemaTypes.MonitoredItemMessageJson : MessageSchemaTypes.NetworkMessageJson;
+        public override string MessageSchema => MessageSchemaTypes.NetworkMessageJson;
 
         /// <inheritdoc/>
         public override string ContentType => UseGzipCompression ?
@@ -68,39 +67,12 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             => (NetworkMessageContentMask & NetworkMessageContentFlags.DataSetMessageHeader) != 0;
 
         /// <summary>
-        /// Flag that indicates if the Network message payload is monitored item samples
-        /// </summary>
-        public bool HasSamplesPayload
-        {
-            get
-            {
-                if (_hasSamplesPayload == null)
-                {
-                    if (Messages.Count > 0)
-                    {
-                        _hasSamplesPayload = Messages.Any(m => m is MonitoredItemMessage);
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-                return _hasSamplesPayload.Value;
-            }
-            set => _hasSamplesPayload = value;
-        }
-
-        /// <summary>
         /// Sets the message schema to use
         /// </summary>
         internal string? MessageSchemaToUse
         {
             get => MessageSchema;
-            set
-            {
-                HasSamplesPayload = value?.Equals(
-                    MessageSchemaTypes.MonitoredItemMessageJson, StringComparison.OrdinalIgnoreCase) == true;
-            }
+            set { }
         }
 
         /// <summary>
@@ -424,7 +396,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="node"></param>
         private bool TryReadNetworkMessage(Opc.Ua.IServiceMessageContext context, JsonNode? node)
         {
-            if (!HasSamplesPayload && node is JsonObject obj &&
+            if (node is JsonObject obj &&
                 TryReadNetworkMessageHeader(obj, out var networkMessageContentMask))
             {
                 var messagesNode = obj[nameof(Messages)];
@@ -474,13 +446,9 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 ? (IEnumerable<JsonNode?>)array : new[] { node };
             foreach (var element in elements)
             {
-                BaseDataSetMessage message = !HasSamplesPayload
-                    ? new JsonDataSetMessage() : new MonitoredItemMessage();
-                var decoded = message is MonitoredItemMessage samples
-                    ? samples.TryDecodeFromNode(context, element,
-                        ref hasDataSetMessageHeader, ref publisherId)
-                    : ((JsonDataSetMessage)message).TryDecodeFromNode(context, element,
-                        ref hasDataSetMessageHeader, ref publisherId);
+                BaseDataSetMessage message = new JsonDataSetMessage();
+                var decoded = ((JsonDataSetMessage)message).TryDecodeFromNode(context, element,
+                    ref hasDataSetMessageHeader, ref publisherId);
                 if (!decoded)
                 {
                     Messages.Clear();
@@ -509,8 +477,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             out NetworkMessageContentFlags networkMessageContentMask)
         {
             networkMessageContentMask = 0;
-            if (!obj.TryGetPropertyValue(nameof(MessageId), out var messageIdNode) ||
-                HasSamplesPayload)
+            if (!obj.TryGetPropertyValue(nameof(MessageId), out var messageIdNode))
             {
                 return false;
             }
@@ -562,7 +529,5 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             }
             return obj.ContainsKey(nameof(Messages));
         }
-
-        private bool? _hasSamplesPayload;
     }
 }

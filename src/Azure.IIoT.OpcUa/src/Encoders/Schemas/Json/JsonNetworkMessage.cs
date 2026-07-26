@@ -95,12 +95,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
             var dataSetMessages = networkMessage.DataSetMessages;
             var networkMessageContentFlags = networkMessage.NetworkMessageContentFlags
                 ?? PubSubMessage.DefaultNetworkMessageContentFlags;
-            var MonitoredItemMessage = networkMessageContentFlags
-                .HasFlag(NetworkMessageContentFlags.MonitoredItemMessage);
-            if (MonitoredItemMessage)
-            {
-                networkMessageContentFlags &= ~NetworkMessageContentFlags.NetworkMessageHeader;
-            }
 
             var dataSetSchemas = dataSetMessages
                 .Where(dataSet => dataSet != null)
@@ -111,11 +105,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
             if (dataSetSchemas.Count == 0)
             {
                 return null;
-            }
-
-            if (MonitoredItemMessage)
-            {
-                return CollapseUnions(dataSetSchemas);
             }
 
             var dataSetMessageSchemas = dataSetSchemas.Count > 1 ?
@@ -129,8 +118,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
                 dataSetMessageSchemas : dataSetMessageSchemas.AsArray();
             if ((networkMessageContentFlags &
                 ~(NetworkMessageContentFlags.SingleDataSetMessage |
-                  NetworkMessageContentFlags.DataSetMessageHeader |
-                  NetworkMessageContentFlags.MonitoredItemMessage)) == 0u)
+                  NetworkMessageContentFlags.DataSetMessageHeader)) == 0u)
             {
                 // No network message header
                 return payloadType;
@@ -181,33 +169,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
         }
 
         /// <summary>
-        /// Collapse the unions into one
-        /// </summary>
-        /// <param name="dataSets"></param>
-        /// <returns></returns>
-        private JsonSchema CollapseUnions(List<JsonSchema> dataSets)
-        {
-            // Collapse all unions into one
-            var messages = new List<JsonSchema>();
-            foreach (var dataSet in dataSets)
-            {
-                if (dataSet.OneOf == null)
-                {
-                    messages.Add(dataSet);
-                    continue;
-                }
-                // Remove dataset schema from definitions
-                messages.AddRange(dataSet.OneOf);
-                if (dataSet.Reference?.Fragment != null)
-                {
-                    Definitions.Remove(dataSet.Reference.Fragment);
-                }
-            }
-            return messages.AsUnion(Definitions, id: _options.GetSchemaId(
-                MakeUnique(nameof(MonitoredItemMessage) + "s")));
-        }
-
-        /// <summary>
         /// Get data set message schema
         /// </summary>
         /// <param name="dataSetMessage"></param>
@@ -216,12 +177,6 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
         private JsonSchema GetSchema(PublishedDataSetMessageSchemaModel dataSetMessage,
             NetworkMessageContentFlags networkMessageContentFlags)
         {
-            if (networkMessageContentFlags.HasFlag(NetworkMessageContentFlags.MonitoredItemMessage))
-            {
-                return new MonitoredItemMessage(dataSetMessage,
-                    networkMessageContentFlags.HasFlag(NetworkMessageContentFlags.DataSetMessageHeader),
-                    _options, Definitions, _uniqueNames).Ref!;
-            }
             return new JsonDataSetMessage(dataSetMessage,
                 networkMessageContentFlags.HasFlag(NetworkMessageContentFlags.DataSetMessageHeader),
                 _options, Definitions, UseCompatibilityMode, _uniqueNames).Ref!;

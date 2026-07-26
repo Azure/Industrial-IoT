@@ -231,7 +231,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 {
                     if (evt.Properties.TryGetValue(Constants.MessagePropertySchemaKey, out var schematype) &&
                         schematype != MessageSchemaTypes.NetworkMessageJson &&
-                        schematype != MessageSchemaTypes.MonitoredItemMessageJson &&
                         schematype != MessageSchemaTypes.NetworkMessageUadp)
                     {
                         continue;

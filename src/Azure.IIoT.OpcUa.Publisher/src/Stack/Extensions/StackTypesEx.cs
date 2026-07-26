@@ -588,11 +588,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
                 // If not set, bits 3, 4 and 5 can also not be set
                 result = JsonNetworkMessageContentMask.None;
             }
-            if ((mask & NetworkMessageContentFlags.MonitoredItemMessage) != 0)
-            {
-                // If monitored item message, then no network message header
-                result = JsonNetworkMessageContentMask.None;
-            }
             if ((mask & NetworkMessageContentFlags.DataSetMessageHeader) != 0)
             {
                 result |= JsonNetworkMessageContentMask.DataSetMessageHeader;

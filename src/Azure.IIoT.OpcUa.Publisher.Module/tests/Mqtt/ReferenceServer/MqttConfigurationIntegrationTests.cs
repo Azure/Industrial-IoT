@@ -20,8 +20,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
     [Collection(MqttReferenceServerCollection.Name)]
     public class MqttConfigurationIntegrationTests : PublisherIntegrationTestBase, IClassFixture<ReferenceServer>
     {
-        private const string kBoilerOutputNodeId =
-            "nsu=http://opcfoundation.org/UA/Boiler/;i=1257";
+        private const string kEventId = "EventId";
+        private const string kOutput = "Output";
         private readonly ITestOutputHelper _output;
         private readonly ReferenceServer _fixture;
 
@@ -40,7 +40,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
         {
             var name = nameof(CanSendDataItemToTopicConfiguredWithMethodAsync) + (useMqtt5 ? "v5" : "v311");
             var testInput = GetEndpointsFromFile(name, "./Resources/DataItems.json");
-            StartPublisher(name, arguments: ["--mm=FullSamples"], // Alternative to --fm=True
+            StartPublisher(name, arguments: ["--mm=FullNetworkMessages"],
                 version: useMqtt5 ? MqttVersion.v5 : MqttVersion.v311);
             try
             {
@@ -51,11 +51,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 Assert.NotNull(result);
 
                 var messages = await WaitForMessagesAsync();
-                var message = Assert.Single(messages);
-                Assert.Equal(kBoilerOutputNodeId,
-                    message.Message.GetProperty("NodeId").GetString());
-                Assert.InRange(message.Message.GetProperty("Value").GetProperty("Value").GetDouble(),
-                    double.MinValue, double.MaxValue);
+                AssertDataItemNetworkMessage(Assert.Single(messages).Message);
 
                 endpoints = await PublisherApi.GetConfiguredEndpointsAsync(ct: Ct);
                 var e = Assert.Single(endpoints.Endpoints);
@@ -83,7 +79,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
         {
             var name = nameof(CanSendEventToTopicConfiguredWithMethodAsync) + (useMqtt5 ? "v5" : "v311");
             var testInput = GetEndpointsFromFile(name, "./Resources/SimpleEvents.json");
-            StartPublisher(name, version: useMqtt5 ? MqttVersion.v5 : MqttVersion.v311);
+            StartPublisher(name, arguments: ["--mm=PubSub"],
+                version: useMqtt5 ? MqttVersion.v5 : MqttVersion.v311);
             try
             {
                 var endpoints = await PublisherApi.GetConfiguredEndpointsAsync(ct: Ct);
@@ -93,9 +90,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 Assert.NotNull(result);
 
                 var messages = await WaitForMessagesAsync();
-                var message = Assert.Single(messages);
-                Assert.Equal("i=2253", message.Message.GetProperty("NodeId").GetString());
-                Assert.NotEmpty(message.Message.GetProperty("Value").GetProperty("EventId").GetString());
+                var payload = AssertSimpleEventNetworkMessage(messages);
+                Assert.NotEmpty(payload.GetProperty(kEventId).GetProperty("Value").GetString());
 
                 endpoints = await PublisherApi.GetConfiguredEndpointsAsync(ct: Ct);
                 var e = Assert.Single(endpoints.Endpoints);
@@ -126,7 +122,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
         {
             var name = nameof(CanSendPendingConditionsToTopicConfiguredWithMethodAsync) + (useMqtt5 ? "v5" : "v311");
             var testInput = GetEndpointsFromFile(name, "./Resources/PendingAlarms.json");
-            StartPublisher(name, version: useMqtt5 ? MqttVersion.v5 : MqttVersion.v311);
+            StartPublisher(name, arguments: ["--mm=PubSub"],
+                version: useMqtt5 ? MqttVersion.v5 : MqttVersion.v311);
             try
             {
                 var endpoints = await PublisherApi.GetConfiguredEndpointsAsync(ct: Ct);
@@ -138,15 +135,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 var messages = await WaitForMessagesAsync(GetAlarmCondition);
                 messages.ForEach(m => _output.WriteLine(m.Topic + m.Message.ToJsonString()));
 
-                var evt = Assert.Single(messages).Message;
-                Assert.Equal(JsonValueKind.Object, evt.ValueKind);
-                Assert.Equal("i=2253", evt.GetProperty("NodeId").GetString());
-                Assert.Equal("PendingAlarms", evt.GetProperty("DisplayName").GetString());
-
-                Assert.True(evt.TryGetProperty("Value", out var sev));
-                Assert.True(sev.TryGetProperty("Severity", out sev));
-                Assert.True(sev.TryGetProperty("Value", out sev));
-                Assert.True(sev.GetInt32() >= 0);
+                AssertPendingAlarmDataSetMessage(Assert.Single(messages).Message);
 
                 _output.WriteLine("GetConfigured 1");
                 endpoints = await PublisherApi.GetConfiguredEndpointsAsync(ct: Ct);
@@ -179,7 +168,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             var testInput1 = GetEndpointsFromFile(name, "./Resources/DataItems.json");
             var testInput2 = GetEndpointsFromFile(name, "./Resources/SimpleEvents.json");
             var testInput3 = GetEndpointsFromFile(name, "./Resources/PendingAlarms.json");
-            StartPublisher(name, version: useMqtt5 ? MqttVersion.v5 : MqttVersion.v311);
+            StartPublisher(name, arguments: ["--mm=PubSub"],
+                version: useMqtt5 ? MqttVersion.v5 : MqttVersion.v311);
             try
             {
                 var endpoints = await PublisherApi.GetConfiguredEndpointsAsync(ct: Ct);
@@ -230,11 +220,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
 
                 _output.WriteLine("Waiting for remaining...");
                 var messages = await WaitForMessagesAsync(GetDataFrame);
-                var message = Assert.Single(messages);
-                Assert.Equal(kBoilerOutputNodeId,
-                    message.Message.GetProperty("NodeId").GetString());
-                Assert.InRange(message.Message.GetProperty("Value").GetProperty("Value").GetDouble(),
-                    double.MinValue, double.MaxValue);
+                AssertDataItemDataSetMessage(Assert.Single(messages).Message);
 
                 var diagnostics = await PublisherApi.GetDiagnosticInfoAsync(Ct);
                 var diag = Assert.Single(diagnostics);
@@ -254,7 +240,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             var name = nameof(CanSendPendingConditionsToTopicConfiguredWithMethod2Async) + (useMqtt5 ? "v5" : "v311");
             var testInput = GetEndpointsFromFile(name, "./Resources/PendingAlarms.json");
 
-            StartPublisher(name, version: useMqtt5 ? MqttVersion.v5 : MqttVersion.v311);
+            StartPublisher(name, arguments: ["--mm=PubSub"],
+                version: useMqtt5 ? MqttVersion.v5 : MqttVersion.v311);
             try
             {
                 var endpoints = await PublisherApi.GetConfiguredEndpointsAsync(ct: Ct);
@@ -265,16 +252,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
 
                 var messages = await WaitForMessagesAsync(GetAlarmCondition);
                 messages.ForEach(m => _output.WriteLine(m.Topic + m.Message.ToJsonString()));
-                var evt = Assert.Single(messages).Message;
-
-                Assert.Equal(JsonValueKind.Object, evt.ValueKind);
-                Assert.Equal("i=2253", evt.GetProperty("NodeId").GetString());
-                Assert.Equal("PendingAlarms", evt.GetProperty("DisplayName").GetString());
-
-                Assert.True(evt.TryGetProperty("Value", out var sev));
-                Assert.True(sev.TryGetProperty("Severity", out sev));
-                Assert.True(sev.TryGetProperty("Value", out sev));
-                Assert.True(sev.GetInt32() >= 0);
+                AssertPendingAlarmDataSetMessage(Assert.Single(messages).Message);
 
                 // Disable pending alarms
                 testInput[0].OpcNodes[0].ConditionHandling = null;
@@ -287,25 +265,22 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 var e = Assert.Single(endpoints.Endpoints);
 
                 var nodes = await PublisherApi.GetConfiguredNodesOnEndpointAsync(e, Ct);
-                var n = Assert.Single(nodes.OpcNodes);
-
-                // TODO: Fix
-                if (n != null) return;
+                Assert.Single(nodes.OpcNodes);
 
                 // Wait until it was applied and we receive normal events again
-                messages = await WaitForMessagesAsync(
-                    message => message.GetProperty("DisplayName").GetString() == "SimpleEvents"
-                        && message.GetProperty("Value").GetProperty("ReceiveTime").ValueKind
-                            == JsonValueKind.String ? message : default);
+                messages = await WaitForMessagesAsync(GetSimpleEvent);
                 messages.ForEach(m => _output.WriteLine(m.Topic + m.Message.ToJsonString()));
 
-                var message = Assert.Single(messages);
-                Assert.Equal("i=2253", message.Message.GetProperty("NodeId").GetString());
-                Assert.Equal("SimpleEvents", message.Message.GetProperty("DisplayName").GetString());
+                var message = Assert.Single(messages).Message;
+                var payload = message.GetProperty("Payload");
+                if (message.TryGetProperty("DataSetWriterName", out var writerName))
+                {
+                    Assert.True(writerName.GetString()?.EndsWith("|SimpleEvents", StringComparison.Ordinal),
+                        $"{message.ToJsonString()}");
+                }
 
-                Assert.True(message.Message.TryGetProperty("Value", out sev));
-                Assert.True(sev.TryGetProperty("Severity", out sev));
-                Assert.True(sev.GetInt32() > 0, $"{message.Message.ToJsonString()}");
+                Assert.True(payload.TryGetProperty("Severity", out var sev));
+                Assert.True(sev.GetProperty("Value").GetInt32() > 0, $"{message.ToJsonString()}");
 
                 result = await PublisherApi.UnpublishNodesAsync(testInput[0], Ct);
                 Assert.NotNull(result);
@@ -319,19 +294,115 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             }
         });
 
-        private JsonElement GetDataFrame(JsonElement jsonElement)
+        private static void AssertDataItemNetworkMessage(JsonElement message)
         {
-            return jsonElement.GetProperty("NodeId").GetString() != "i=2253"
-                    ? jsonElement : default;
+            Assert.Equal("ua-data", message.GetProperty("MessageType").GetString());
+            AssertDataItemPayload(message.GetProperty("Messages")[0].GetProperty("Payload"));
+        }
+
+        private static void AssertDataItemDataSetMessage(JsonElement message)
+        {
+            AssertDataItemPayload(message.GetProperty("Payload"));
+        }
+
+        private static void AssertDataItemPayload(JsonElement payload)
+        {
+            var output = payload.GetProperty(kOutput);
+            Assert.NotEqual(JsonValueKind.Null, output.ValueKind);
+            Assert.InRange(output.GetProperty("Value").GetDouble(), double.MinValue, double.MaxValue);
+        }
+
+        private static JsonElement AssertSimpleEventNetworkMessage(List<JsonMessage> messages)
+        {
+            var message = Assert.Single(messages).Message;
+            Assert.Equal("ua-data", message.GetProperty("MessageType").GetString());
+            var dataSetMessage = message.GetProperty("Messages")[0];
+            if (dataSetMessage.TryGetProperty("DataSetWriterName", out var writerName))
+            {
+                Assert.True(writerName.GetString()?.EndsWith("|SimpleEvents", StringComparison.Ordinal),
+                    $"{message.ToJsonString()}");
+            }
+            return dataSetMessage.GetProperty("Payload");
+        }
+
+        private static void AssertPendingAlarmDataSetMessage(JsonElement message)
+        {
+            Assert.Equal(JsonValueKind.Object, message.ValueKind);
+            var payload = message.GetProperty("Payload");
+            Assert.True(payload.GetProperty("SourceNode").ValueKind != JsonValueKind.Null);
+            Assert.True(payload.GetProperty("Severity").GetProperty("Value").GetInt32() >= 0);
+            if (message.TryGetProperty("DataSetWriterName", out var writerName))
+            {
+                Assert.True(writerName.GetString()?.EndsWith("|PendingAlarms", StringComparison.Ordinal),
+                    $"{message.ToJsonString()}");
+            }
+        }
+
+        private static JsonElement GetDataFrame(JsonElement jsonElement)
+        {
+            if (!jsonElement.TryGetProperty("Messages", out var messages) ||
+                messages.ValueKind != JsonValueKind.Array)
+            {
+                return default;
+            }
+
+            foreach (var element in messages.EnumerateArray())
+            {
+                if (element.TryGetProperty("Payload", out var payload) &&
+                    payload.TryGetProperty(kOutput, out _))
+                {
+                    return element;
+                }
+            }
+            return default;
         }
 
         private static JsonElement GetAlarmCondition(JsonElement jsonElement)
         {
-            return jsonElement
-                .TryGetProperty("DisplayName", out var displayName) &&
-                displayName.GetString() == "PendingAlarms"
-                    ? jsonElement
-                    : default;
+            if (!jsonElement.TryGetProperty("Messages", out var messages) ||
+                messages.ValueKind != JsonValueKind.Array)
+            {
+                return default;
+            }
+
+            foreach (var element in messages.EnumerateArray())
+            {
+                if (element.GetProperty("MessageType").GetString() != "ua-condition" ||
+                    !element.GetProperty("Payload").TryGetProperty("SourceNode", out var node))
+                {
+                    continue;
+                }
+                if (node.ValueKind == JsonValueKind.Object &&
+                    node.TryGetProperty("Value", out var value))
+                {
+                    node = value;
+                }
+                if (node.ValueKind != JsonValueKind.Null)
+                {
+                    return element;
+                }
+            }
+            return default;
+        }
+
+        private static JsonElement GetSimpleEvent(JsonElement jsonElement)
+        {
+            if (!jsonElement.TryGetProperty("Messages", out var messages) ||
+                messages.ValueKind != JsonValueKind.Array)
+            {
+                return default;
+            }
+
+            foreach (var element in messages.EnumerateArray())
+            {
+                if (element.TryGetProperty("Payload", out var payload) &&
+                    payload.TryGetProperty("ReceiveTime", out var receiveTime) &&
+                    receiveTime.GetProperty("Value").ValueKind == JsonValueKind.String)
+                {
+                    return element;
+                }
+            }
+            return default;
         }
     }
 }
