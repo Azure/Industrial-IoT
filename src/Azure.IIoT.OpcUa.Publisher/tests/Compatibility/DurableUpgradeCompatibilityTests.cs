@@ -7,7 +7,8 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Tests.Compatibility
 {
-    using Azure.IIoT.OpcUa.Core.Logging;
+    using Azure.IIoT.OpcUa.Core.Exceptions;
+using Azure.IIoT.OpcUa.Core.Logging;
     using Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.PubSub;
@@ -101,6 +102,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Compatibility
             Assert.Equal(credential?.Value?.User, configuredCredential?.Value?.User);
             Assert.Equal(credential?.Value?.Password,
                 configuredCredential?.Value?.Password);
+        }
+
+        [Theory]
+        [InlineData("Samples", "PubSub")]
+        [InlineData("FullSamples", "FullNetworkMessages")]
+        public void TwoXConfigurationNamingARemovedModeReportsItsReplacement(
+            string removed, string replacement)
+        {
+            //
+            // The proprietary sample modes were removed in 3.0. Reading a 2.x
+            // file that names one must explain the migration rather than fail
+            // as an unrecognized enum value or silently change the wire format.
+            //
+            var converter = CreateConverter();
+            var content = $$"""
+                [
+                  {
+                    "EndpointUrl": "opc.tcp://legacy-a:50000",
+                    "DataSetWriterGroup": "legacy-group-a",
+                    "DataSetWriterId": "legacy-writer-a",
+                    "MessagingMode": "{{removed}}",
+                    "MessageEncoding": "Json",
+                    "OpcNodes": [ { "Id": "i=2258" } ]
+                  }
+                ]
+                """;
+
+            var exception = Assert.Throws<SerializerException>(
+                () => converter.Read(content));
+
+            Assert.Contains(removed, exception.InnerException!.Message,
+                StringComparison.Ordinal);
+            Assert.Contains(replacement, exception.InnerException!.Message,
+                StringComparison.Ordinal);
         }
 
         [Fact]
@@ -375,7 +410,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Compatibility
             var options = new PublisherConfig(
                 new ConfigurationBuilder().Build()).ToOptions();
             options.Value.MessagingProfile = MessagingProfile.Get(
-                MessagingMode.Samples, MessageEncoding.Json);
+                MessagingMode.PubSub, MessageEncoding.Json);
             return new PublishedNodesConverter(
                 Log.Console<PublishedNodesConverter>(), options);
         }
@@ -397,7 +432,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Compatibility
                 entryA.OpcAuthenticationMode);
             Assert.Null(entryA.OpcAuthenticationUsername);
             Assert.Null(entryA.OpcAuthenticationPassword);
-            Assert.Equal(MessagingMode.FullSamples, entryA.MessagingMode);
+            Assert.Equal(MessagingMode.FullNetworkMessages, entryA.MessagingMode);
             Assert.Equal(MessageEncoding.Json, entryA.MessageEncoding);
             Assert.Equal((uint)4, entryA.BatchSize);
             Assert.Equal(TimeSpan.FromSeconds(2),
@@ -457,7 +492,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Compatibility
                 entryA.OpcAuthenticationMode);
             Assert.Null(entryA.OpcAuthenticationUsername);
             Assert.Null(entryA.OpcAuthenticationPassword);
-            Assert.Equal(MessagingMode.FullSamples, entryA.MessagingMode);
+            Assert.Equal(MessagingMode.FullNetworkMessages, entryA.MessagingMode);
             Assert.Equal(MessageEncoding.Json, entryA.MessageEncoding);
             Assert.Equal((uint)4, entryA.BatchSize);
             Assert.Equal(TimeSpan.FromSeconds(2),
@@ -510,7 +545,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Compatibility
                 group => group.Name == "legacy-group-a");
             Assert.Equal(kWriterGroupAIdentity, groupA.Id);
             Assert.Equal(MessageEncoding.Json, groupA.MessageType);
-            Assert.Equal("FullSamples", groupA.HeaderLayoutUri);
+            Assert.Equal("FullNetworkMessages", groupA.HeaderLayoutUri);
             Assert.Equal((uint)4, groupA.NotificationPublishThreshold);
             Assert.Equal(TimeSpan.FromSeconds(2), groupA.PublishingInterval);
             var writerA = Assert.Single(groupA.DataSetWriters!);
@@ -578,7 +613,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Compatibility
             Assert.Equal("Anonymous", entryA.OpcAuthenticationMode);
             Assert.Null(entryA.OpcAuthenticationUsername);
             Assert.Null(entryA.OpcAuthenticationPassword);
-            Assert.Equal("FullSamples", entryA.MessagingMode);
+            Assert.Equal("FullNetworkMessages", entryA.MessagingMode);
             Assert.Equal("Json", entryA.MessageEncoding);
             Assert.Equal((uint)4, entryA.BatchSize);
             Assert.Equal(TimeSpan.FromSeconds(2),
@@ -636,7 +671,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Compatibility
             Assert.Equal("Anonymous", entryA.OpcAuthenticationMode);
             Assert.Null(entryA.OpcAuthenticationUsername);
             Assert.Null(entryA.OpcAuthenticationPassword);
-            Assert.Equal("FullSamples", entryA.MessagingMode);
+            Assert.Equal("FullNetworkMessages", entryA.MessagingMode);
             Assert.Equal("Json", entryA.MessageEncoding);
             Assert.Equal((uint)4, entryA.BatchSize);
             Assert.Equal(TimeSpan.FromSeconds(2),
@@ -808,7 +843,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Compatibility
         private const string kNodeB =
             "nsu=urn:example:durable-upgrade;s=Pressure";
         private const string kWriterGroupAIdentity =
-            "55afa8512376ccb9ee67e672a5ffc6bf1dd2c55e";
+            "39a02ad0f4cfe8c6bfe0b15822d1447af3ab537f";
         private const string kWriterGroupBIdentity =
             "7cd4955d0555d76ba2de0a51a69c727ec7068f47";
         private const string kDataSetWriterAIdentity =

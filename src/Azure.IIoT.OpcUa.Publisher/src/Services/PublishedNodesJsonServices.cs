@@ -1194,7 +1194,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 found = entry;
             }
             found.MessageEncoding = MessageEncoding.Json;
-            found.MessagingMode = MessagingMode.FullSamples;
+            found.MessagingMode = MessagingMode.FullNetworkMessages;
             found.OpcNodes ??= [];
             var node = found.OpcNodes.FirstOrDefault(n => n.Id == item.NodeId);
             if (node == null)

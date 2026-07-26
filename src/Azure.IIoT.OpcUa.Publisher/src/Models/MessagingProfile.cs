@@ -31,8 +31,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             {
                 switch (MessagingMode)
                 {
-                    case MessagingMode.FullSamples:
-                    case MessagingMode.Samples:
                     case MessagingMode.RawDataSets:
                         return false;
                     default:
@@ -44,38 +42,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <summary>
         /// Returns true if messaging profiles supports keyframes
         /// </summary>
-        public bool SupportsKeyFrames
-        {
-            get
-            {
-                switch (MessagingMode)
-                {
-                    case MessagingMode.FullSamples:
-                    case MessagingMode.Samples:
-                        return false;
-                    default:
-                        return true;
-                }
-            }
-        }
+        public bool SupportsKeyFrames => true;
 
         /// <summary>
         /// Returns true if messaging profiles supports keep alive
         /// </summary>
-        public bool SupportsKeepAlive
-        {
-            get
-            {
-                switch (MessagingMode)
-                {
-                    case MessagingMode.FullSamples:
-                    case MessagingMode.Samples:
-                        return false;
-                    default:
-                        return true;
-                }
-            }
-        }
+        public bool SupportsKeepAlive => true;
 
         /// <summary>
         /// Messaging encoding
@@ -235,20 +207,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         static MessagingProfile()
         {
             //
-            // New message profiles supported in 2.5
-            //
-
-            // Sample mode
-            AddProfile(MessagingMode.Samples, BuildDataSetContentMask(false, false, true),
-                    BuildNetworkMessageContentMask(true),
-                    BuildDataSetFieldContentMask(false, true),
-                    MessageEncoding.Json);
-            AddProfile(MessagingMode.FullSamples, BuildDataSetContentMask(true, false, true),
-                    BuildNetworkMessageContentMask(true),
-                    BuildDataSetFieldContentMask(true, true),
-                    MessageEncoding.Json);
-
-            //
             // New message profiles supported in 2.6
             //
 
@@ -284,14 +242,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
             AddProfile(MessagingMode.FullNetworkMessages, BuildDataSetContentMask(true, true),
                     BuildNetworkMessageContentMask(),
                     BuildDataSetFieldContentMask(true),
-                    MessageEncoding.JsonReversible, MessageEncoding.JsonReversibleGzip);
-            AddProfile(MessagingMode.Samples, BuildDataSetContentMask(false, true, true),
-                    BuildNetworkMessageContentMask(true),
-                    BuildDataSetFieldContentMask(false, true),
-                    MessageEncoding.JsonReversible, MessageEncoding.JsonReversibleGzip);
-            AddProfile(MessagingMode.FullSamples, BuildDataSetContentMask(true, true, true),
-                    BuildNetworkMessageContentMask(true),
-                    BuildDataSetFieldContentMask(true, true),
                     MessageEncoding.JsonReversible, MessageEncoding.JsonReversibleGzip);
 
             // Without network message header

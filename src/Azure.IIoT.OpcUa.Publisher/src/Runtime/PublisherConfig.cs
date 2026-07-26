@@ -184,23 +184,17 @@ namespace Azure.IIoT.OpcUa.Publisher
 
             if (options.MessagingProfile == null)
             {
-                if (!Enum.TryParse<MessagingMode>(GetStringOrDefault(MessagingModeKey),
-                    out var messagingMode))
+                var configuredMode = GetStringOrDefault(MessagingModeKey);
+                ThrowIfRemovedMessagingMode(configuredMode);
+                if (!Enum.TryParse<MessagingMode>(configuredMode, out var messagingMode))
                 {
-                    messagingMode = options.UseStandardsCompliantEncoding == true ?
-                        MessagingMode.PubSub : MessagingMode.Samples;
+                    messagingMode = MessagingMode.PubSub;
                 }
 
-                if (GetBoolOrDefault(FullFeaturedMessageKey, false))
+                if (GetBoolOrDefault(FullFeaturedMessageKey, false) &&
+                    messagingMode == MessagingMode.PubSub)
                 {
-                    if (messagingMode == MessagingMode.PubSub)
-                    {
-                        messagingMode = MessagingMode.FullNetworkMessages;
-                    }
-                    if (messagingMode == MessagingMode.Samples)
-                    {
-                        messagingMode = MessagingMode.FullSamples;
-                    }
+                    messagingMode = MessagingMode.FullNetworkMessages;
                 }
 
                 if (!Enum.TryParse<MessageEncoding>(GetStringOrDefault(MessageEncodingKey),
@@ -610,6 +604,39 @@ namespace Azure.IIoT.OpcUa.Publisher
                 options.AioNetworkDiscovery.Locales = discovery.Locales;
             }
             return options;
+        }
+
+        /// <summary>
+        /// The proprietary sample messaging modes were removed in 3.0 because
+        /// they have no OPC UA PubSub representation and cannot be produced by
+        /// the standard PubSub runtime. Reject them explicitly instead of
+        /// silently publishing a different message format.
+        /// </summary>
+        /// <param name="configuredMode"></param>
+        /// <exception cref="ConfigurationErrorsException"></exception>
+        private static void ThrowIfRemovedMessagingMode(string? configuredMode)
+        {
+            if (string.IsNullOrWhiteSpace(configuredMode))
+            {
+                return;
+            }
+            var replacement = configuredMode.Trim() switch
+            {
+                var mode when StringComparer.OrdinalIgnoreCase.Equals(mode, "Samples")
+                    => nameof(MessagingMode.PubSub),
+                var mode when StringComparer.OrdinalIgnoreCase.Equals(mode, "FullSamples")
+                    => nameof(MessagingMode.FullNetworkMessages),
+                _ => null
+            };
+            if (replacement is null)
+            {
+                return;
+            }
+            throw new ConfigurationErrorsException(
+                $"The messaging mode '{configuredMode.Trim()}' was removed in OPC Publisher 3.0. " +
+                $"It emitted a proprietary message format that the OPC UA PubSub runtime " +
+                $"cannot produce. Configure '{replacement}' instead, or set an explicit " +
+                $"messaging profile.");
         }
 
         private TEnum? GetEnumOrNull<TEnum>(string key) where TEnum : struct, Enum

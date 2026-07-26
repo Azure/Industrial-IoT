@@ -2952,7 +2952,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
         private static IOptions<PublisherOptions> GetOptions()
         {
             var options = new PublisherConfig(new ConfigurationBuilder().Build()).ToOptions();
-            options.Value.MessagingProfile = MessagingProfile.Get(MessagingMode.Samples, MessageEncoding.Json);
+            options.Value.MessagingProfile = MessagingProfile.Get(MessagingMode.PubSub, MessageEncoding.Json);
             return options;
         }
 

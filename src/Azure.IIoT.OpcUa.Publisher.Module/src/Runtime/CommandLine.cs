@@ -132,7 +132,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                     $"The format to use when serializing node ids and qualified names containing a namespace uri into a string.\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames<NamespaceFormat>())}`\nDefault: `{nameof(NamespaceFormat.Expanded)}` if `-c` is specified, otherwise `{nameof(NamespaceFormat.Uri)}` for backwards compatibility.\n",
                     (NamespaceFormat m) => this[PublisherConfig.DefaultNamespaceFormatKey] = m.ToString() },
                 { $"mm|messagingmode=|{PublisherConfig.MessagingModeKey}=",
-                    $"The messaging mode for messages\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames<MessagingMode>())}`\nDefault: `{nameof(MessagingMode.PubSub)}` if `-c` is specified, otherwise `{nameof(MessagingMode.Samples)}` for backwards compatibility.\n",
+                    $"The messaging mode for messages\nAllowed values:\n    `{string.Join("`\n    `", Enum.GetNames<MessagingMode>())}`\nDefault: `{nameof(MessagingMode.PubSub)}`.\n",
                     (MessagingMode m) => this[PublisherConfig.MessagingModeKey] = m.ToString() },
                 { $"ode|optimizeddatasetencoding:|{PublisherConfig.WriteValueWhenDataSetHasSingleEntryKey}:",
                     "When a data set has a single entry the encoder will write only the value of a data set entry and omit the key.\nThis is not compliant with OPC UA Part 14.\nDefault: `false`.\n",

@@ -867,7 +867,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             entries[0].UseSecurity.Should().BeFalse();
             entries[0].OpcNodes.Count.Should().Be(1);
             entries[0].MessageEncoding.Should().Be(MessageEncoding.Json);
-            entries[0].MessagingMode.Should().Be(MessagingMode.FullSamples);
+            entries[0].MessagingMode.Should().Be(MessagingMode.FullNetworkMessages);
             var node = entries[0].OpcNodes[0];
             node.Id.Should().Be("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt0");
             node.HeartbeatInterval.Should().BeNull();
@@ -930,7 +930,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             {
                 DataSetWriterGroup = null,
                 MessageEncoding = MessageEncoding.Json,
-                MessagingMode = MessagingMode.FullSamples,
+                MessagingMode = MessagingMode.FullNetworkMessages,
                 DataSetWriterId = null,
                 DataSetPublishingInterval = null
             }).ToList();
@@ -969,7 +969,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             var entry = entries.Find(e => e.EndpointUrl == results[0].EndpointUrl);
             entry.Should().NotBeNull();
             entry.MessageEncoding.Should().Be(MessageEncoding.Json);
-            entry.MessagingMode.Should().Be(MessagingMode.FullSamples);
+            entry.MessagingMode.Should().Be(MessagingMode.FullNetworkMessages);
             entry.OpcNodes.Count.Should().Be(2);
             var node = entry.OpcNodes[0];
             node.Id.Should().Be("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt0");
@@ -991,7 +991,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             entries.Count.Should().Be(100);
             entry = entries.Find(e => e.EndpointUrl == results[0].EndpointUrl);
             entry.MessageEncoding.Should().Be(MessageEncoding.Json);
-            entry.MessagingMode.Should().Be(MessagingMode.FullSamples);
+            entry.MessagingMode.Should().Be(MessagingMode.FullNetworkMessages);
             entry.OpcNodes.Count.Should().Be(1);
         }
 
