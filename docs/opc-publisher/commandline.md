@@ -134,17 +134,14 @@ Messaging configuration
                              The messaging mode for messages
                                Allowed values:
                                    `PubSub`
-                                   `Samples`
                                    `FullNetworkMessages`
-                                   `FullSamples`
                                    `DataSetMessages`
                                    `SingleDataSetMessage`
                                    `DataSets`
                                    `SingleDataSet`
                                    `RawDataSets`
                                    `SingleRawDataSet`
-                               Default: `PubSub` if `-c` is specified,
-                               otherwise `Samples` for backwards compatibility.
+                               Default: `PubSub`.
       --ode, --optimizeddatasetencoding, --WriteValueWhenDataSetHasSingleEntry[=VALUE]
                              When a data set has a single entry the encoder
                                will write only the value of a data set entry
@@ -184,11 +181,10 @@ Messaging configuration
                                Default: `50`.
       --rdb, --removedupsinbatch, --RemoveDuplicatesFromBatch[=VALUE]
                              Use this option to remove values with the same
-                               node id from batch messages in legacy `Samples`
-                               mode. Sends only the latest value as per the
-                               value's source timestamp.
-                               Only applies to `Samples` mode, otherwise this
-                               setting is ignored.
+                               node id from batch messages. This applied only
+                               to the `Samples` mode that was removed in 3.0,
+                               so the option no longer has an effect.
+                               Deprecated, it is scheduled for removal.
                                Default: `false` (keep all duplicate values).
       --ms, --maxmessagesize, --iothubmessagesize, --IoTHubMaxMessageSize=VALUE
                              The maximum size of the messages to emit. In case

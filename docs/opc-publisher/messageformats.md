@@ -14,7 +14,7 @@
   - [Reversible encoding](#reversible-encoding)
   - [Pending Alarm snapshots](#pending-alarm-snapshots)
   - [Keep Alive messages](#keep-alive-messages)
-- [Samples mode encoding (Legacy)](#samples-mode-encoding-legacy)
+- [Samples mode encoding (Removed in 3.0)](#samples-mode-encoding-removed-in-30)
   - [Value change messages in Samples mode](#value-change-messages-in-samples-mode)
   - [Event messages in Samples mode](#event-messages-in-samples-mode)
 
@@ -24,8 +24,6 @@ OPC Publisher supports a rich set of message formats, including legacy formats s
 
 | Messaging Mode<br>(--mm) | Message Encoding<br>(--me) | NetworkMessageContentMask | DataSetMessageContentMask | DataSetFieldContentMask | Metadata supported | KeyFrames supported | KeepAlive supported | Schema publishing |
    |--------------------------|----------------------------|---------------------------|---------------------------|-------------------------|--------------------|---------------------|---------------------|-------------------|
-| Samples | Json | DataSetMessageHeader, MonitoredItemMessage<br>(0x2) | MetaDataVersion, MajorVersion, MinorVersion, MessageType, DataSetWriterName<br>(0xB0000062) | StatusCode, SourceTimestamp, NodeId, DisplayName, EndpointUrl<br>(0x3) |   |   |   |
-| FullSamples | Json | DataSetMessageHeader, MonitoredItemMessage<br>(0x2) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName<br>(0xF200006F) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) |   |   |   |
 | PubSub | Json | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader<br>(0x1B) | MetaDataVersion, MajorVersion, MinorVersion, MessageType, DataSetWriterName<br>(0xB0000062) | StatusCode, SourceTimestamp, NodeId, DisplayName, EndpointUrl<br>(0x3) | X | X | X |
 | FullNetworkMessages | Json | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader<br>(0x1B) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName<br>(0xF200006F) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X | X |
 | PubSub | JsonGzip | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader<br>(0x1B) | MetaDataVersion, MajorVersion, MinorVersion, MessageType, DataSetWriterName<br>(0xB0000062) | StatusCode, SourceTimestamp, NodeId, DisplayName, EndpointUrl<br>(0x3) | X | X | X |
@@ -34,10 +32,6 @@ OPC Publisher supports a rich set of message formats, including legacy formats s
 | PubSub | JsonReversibleGzip | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader<br>(0x1B) | MetaDataVersion, MajorVersion, MinorVersion, MessageType, DataSetWriterName, ReversibleFieldEncoding<br>(0xB00000E2) | StatusCode, SourceTimestamp, NodeId, DisplayName, EndpointUrl<br>(0x3) | X | X | X |
 | FullNetworkMessages | JsonReversible | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader<br>(0x1B) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName, ReversibleFieldEncoding<br>(0xF20000EF) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X | X |
 | FullNetworkMessages | JsonReversibleGzip | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader<br>(0x1B) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName, ReversibleFieldEncoding<br>(0xF20000EF) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X | X |
-| Samples | JsonReversible | DataSetMessageHeader, MonitoredItemMessage<br>(0x2) | MetaDataVersion, MajorVersion, MinorVersion, MessageType, DataSetWriterName, ReversibleFieldEncoding<br>(0xB00000E2) | StatusCode, SourceTimestamp, NodeId, DisplayName, EndpointUrl<br>(0x3) |   |   |   |
-| Samples | JsonReversibleGzip | DataSetMessageHeader, MonitoredItemMessage<br>(0x2) | MetaDataVersion, MajorVersion, MinorVersion, MessageType, DataSetWriterName, ReversibleFieldEncoding<br>(0xB00000E2) | StatusCode, SourceTimestamp, NodeId, DisplayName, EndpointUrl<br>(0x3) |   |   |   |
-| FullSamples | JsonReversible | DataSetMessageHeader, MonitoredItemMessage<br>(0x2) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName, ReversibleFieldEncoding<br>(0xF20000EF) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) |   |   |   |
-| FullSamples | JsonReversibleGzip | DataSetMessageHeader, MonitoredItemMessage<br>(0x2) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName, ReversibleFieldEncoding<br>(0xF20000EF) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) |   |   |   |
 | DataSetMessages | Json | DataSetMessageHeader<br>(0x2) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName<br>(0xF200006F) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X | X |
 | DataSetMessages | JsonGzip | DataSetMessageHeader<br>(0x2) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName<br>(0xF200006F) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X | X |
 | DataSetMessages | JsonReversible | DataSetMessageHeader<br>(0x2) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName, ReversibleFieldEncoding<br>(0xF20000EF) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X | X |
@@ -71,7 +65,7 @@ OPC Publisher supports a rich set of message formats, including legacy formats s
 
 ## OPC UA Pub Sub Encoding
 
-To use the OPC UA PubSub format specify a value for `--mm` on the command line. This needs to be done because the OPC publisher defaults to `--mm=Samples` mode which existed before the introduction of OPC UA standards compliant PubSub format. You should always use PubSub format specified in the OPC UA Standard. We will not support the non standards compliant Samples mode in versions greater than 2.*.
+To select an OPC UA PubSub message layout specify a value for `--mm` on the command line. OPC Publisher 3.0 defaults to `--mm=PubSub`. The non standards compliant `Samples` and `FullSamples` modes that were the default in 2.x have been removed, see [Samples mode encoding](#samples-mode-encoding-removed-in-30).
 
 ### Standards compliance
 
@@ -83,7 +77,7 @@ The following are the key differences between strict compliance and the compatib
 
 | Strict mode | Compatibility mode |
 |-------------|--------------------|
-| `PubSub` is the default encoding mode if nothing else is specified | `Samples` is the default encoding mode and `--mm=PubSub` must be explicitly specified |
+| `PubSub` is the default encoding mode if nothing else is specified | `PubSub` is also the default in 3.0; the `Samples` default of 2.x was removed |
 | `DataSetWriterId` is a unique integer in the `DataSetWriterGroup` | `DataSetWriterId` is the writer name string |
 | `DataSetWriterName` is the writer name string | `DataSetWriterName` is not used |
 | Network messages contain array of data set messages when batching | Array of network messages is sent when batching |
@@ -213,7 +207,7 @@ IMPORTANT: Depending on the number of nodes in a subscription, a Metadata messag
 
 This section describes what the output looks like when listening for events in the OPC Publisher.
 
-To use the OPC UA PubSub format specify the `--mm=PubSub` command line. This needs to be done because the OPC publisher defaults to `--mm=Samples` [mode](#samples-mode-encoding-legacy) which existed before the introduction of OPC UA standards compliant PubSub format.
+OPC Publisher 3.0 defaults to `--mm=PubSub`. The `Samples` [mode](#samples-mode-encoding-removed-in-30) that was the default in 2.x has been removed.
 
 Events should be produced in the PubSub format specified in the OPC UA Standard. The payload is an event which consists of fields selected in the select clause and its values.
 
@@ -517,7 +511,7 @@ The important part to highlight here is that the payload is an array of events w
 
 ### Keep Alive messages
 
-Keep alive messages must be explicitly enabled (since they potentially consume bandwidth and cost). To Enable them for the OPC Publisher use the `--ka` [command line](./commandline.md) argument or enable it for a specific `DataSetWriter` in the [configuration](./readme.md#configuration-schema). [Samples](#samples-mode-encoding-legacy) mode does not support keep alive messages even when enabled.
+Keep alive messages must be explicitly enabled (since they potentially consume bandwidth and cost). To Enable them for the OPC Publisher use the `--ka` [command line](./commandline.md) argument or enable it for a specific `DataSetWriter` in the [configuration](./readme.md#configuration-schema). The removed [Samples](#samples-mode-encoding-removed-in-30) mode did not support keep alive messages even when enabled.
 
 Keep alive messages are part of the network message. A network message can contain more data sets from other writers that are also keep alive messages or of other message types.  A simple keep alive message is shown here:
 
@@ -544,9 +538,22 @@ Keep alive messages are part of the network message. A network message can conta
 }
 ```
 
-## Samples mode encoding (Legacy)
+## Samples mode encoding (Removed in 3.0)
 
-> IMPORTANT: Legacy `Samples` encoding mode is a message format that predates OPC UA PubSub message encoding and is thus considered legacy and not standards conform. We might decide to not support the non standards compliant Samples mode in future versions of OPC Publisher.
+> IMPORTANT: The `Samples` and `FullSamples` messaging modes were **removed in OPC Publisher 3.0**. They emitted a `MonitoredItemMessage` format that predates OPC UA PubSub and has no representation in the OPC UA Part 14 standard, so the standards compliant PubSub runtime cannot produce it.
+>
+> Configuring a removed mode fails at startup with a message naming its replacement. Reading a 2.x `published_nodes.json` or configuration file that names one reports the same guidance instead of failing as an unrecognized value.
+>
+> | Removed mode | Use instead |
+> | --- | --- |
+> | `Samples` | `PubSub` |
+> | `FullSamples` | `FullNetworkMessages` |
+>
+> A configuration that does not specify `--mm` now defaults to `PubSub`. In 2.x it defaulted to `Samples`.
+>
+> Note that writer group and dataset writer identities are derived from the resolved configuration, so changing the messaging mode changes them. Consumers that key on the generated identities, and retained metadata topics, are re-created after the migration.
+
+The remainder of this section documents the removed format for reference only, so that existing consumers can be adapted.
 
 ### Value change messages in Samples mode
 
