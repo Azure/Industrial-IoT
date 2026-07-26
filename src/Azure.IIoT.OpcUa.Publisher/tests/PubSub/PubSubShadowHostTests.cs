@@ -384,9 +384,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
 
             await using var reader = buffer.ReadAllAsync().GetAsyncEnumerator();
             Assert.True(await reader.MoveNextAsync());
-            Assert.Equal(new byte[] { 1 }, reader.Current.Payload.ToArray());
+            Assert.Equal(new byte[] { 1 }, reader.Current.Value.WrappedValue.Value);
             Assert.True(await reader.MoveNextAsync());
-            Assert.Equal(new byte[] { 2 }, reader.Current.Payload.ToArray());
+            Assert.Equal(new byte[] { 2 }, reader.Current.Value.WrappedValue.Value);
         }
 
         [Fact]

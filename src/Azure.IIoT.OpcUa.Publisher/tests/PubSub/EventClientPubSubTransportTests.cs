@@ -13,7 +13,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Opc.Ua;
+    using Opc.Ua.PubSub.DataSets;
     using Opc.Ua.PubSub.Diagnostics;
+    using Opc.Ua.PubSub.Encoding;
     using Opc.Ua.PubSub.Transports;
     using System;
     using System.Buffers;
@@ -1243,6 +1245,130 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                     }
                 ]
             };
+        }
+
+        [Fact]
+        public async Task ManagedSourcePublishesTypedValuesAndDerivedMetaDataAsync()
+        {
+            var buffer = new ManagedPubSubNotificationBuffer(8);
+            await using var provider = new ManagedPubSubNotificationDataSourceProvider(buffer);
+            var managed = Assert.IsAssignableFrom<IManagedPubSubDataSource>(
+                await provider.CreateAsync(new PublishedDataSetModel { Name = "data" }));
+            await using var source = new ManagedPubSubDataSetSource("data", managed);
+            source.Start();
+            var metadata = source.BuildMetaData();
+
+            await buffer.EnqueueAsync(new ManagedPubSubNotification("data", "counter",
+                DateTimeOffset.UnixEpoch, new DataValue(new Variant(42),
+                    StatusCodes.Good, DateTimeUtc.From(DateTimeOffset.UnixEpoch))));
+            await buffer.EnqueueAsync(new ManagedPubSubNotification("data", "label",
+                DateTimeOffset.UnixEpoch.AddSeconds(1), new DataValue(new Variant("ok"),
+                    StatusCodes.Good, DateTimeUtc.From(DateTimeOffset.UnixEpoch))));
+
+            var first = await ReadFieldAsync(source, metadata);
+            Assert.Equal("counter", first.Name);
+            Assert.Equal(42, Assert.IsType<int>(first.Value.Value));
+
+            var second = await ReadFieldAsync(source, metadata);
+            Assert.Equal("label", second.Name);
+            Assert.Equal("ok", Assert.IsType<string>(second.Value.Value));
+
+            // Metadata must describe the real field types, not opaque byte strings.
+            metadata = source.BuildMetaData();
+            var counter = Assert.Single(metadata.Fields.AsEnumerable(),
+                field => field.Name == "counter");
+            Assert.Equal((byte)BuiltInType.Int32, counter.BuiltInType);
+            Assert.Equal(ValueRanks.Scalar, counter.ValueRank);
+            var label = Assert.Single(metadata.Fields.AsEnumerable(),
+                field => field.Name == "label");
+            Assert.Equal((byte)BuiltInType.String, label.BuiltInType);
+        }
+
+        [Fact]
+        public async Task ManagedSourcePreservesBadStatusOnPublishedFieldAsync()
+        {
+            var buffer = new ManagedPubSubNotificationBuffer(8);
+            await using var provider = new ManagedPubSubNotificationDataSourceProvider(buffer);
+            var managed = Assert.IsAssignableFrom<IManagedPubSubDataSource>(
+                await provider.CreateAsync(new PublishedDataSetModel { Name = "data" }));
+            await using var source = new ManagedPubSubDataSetSource("data", managed);
+            source.Start();
+            var metadata = source.BuildMetaData();
+
+            await buffer.EnqueueAsync(new ManagedPubSubNotification("data", "faulted",
+                DateTimeOffset.UnixEpoch, new DataValue(default,
+                    StatusCodes.BadNotConnected, DateTimeUtc.From(DateTimeOffset.UnixEpoch))));
+
+            var field = await ReadFieldAsync(source, metadata);
+            Assert.Equal("faulted", field.Name);
+            Assert.Equal(StatusCodes.BadNotConnected, field.StatusCode.Code);
+        }
+
+        [Fact]
+        public async Task ManagedSourcePrefersMetaDataDeclaredBySourceAsync()
+        {
+            var declared = new DataSetMetaDataType
+            {
+                Name = "declared",
+                Fields =
+                [
+                    new FieldMetaData
+                    {
+                        Name = "temperature",
+                        BuiltInType = (byte)BuiltInType.Double,
+                        DataType = DataTypeIds.Double,
+                        ValueRank = ValueRanks.Scalar
+                    }
+                ],
+                ConfigurationVersion = new ConfigurationVersionDataType { MajorVersion = 7 }
+            };
+            var buffer = new ManagedPubSubNotificationBuffer(8);
+            await using var source = new ManagedPubSubDataSetSource("data",
+                new DeclaredMetaDataSource(buffer, declared));
+            source.Start();
+
+            var metadata = source.BuildMetaData();
+
+            Assert.Equal("declared", metadata.Name);
+            Assert.Equal(7u, metadata.ConfigurationVersion.MajorVersion);
+            var field = Assert.Single(metadata.Fields.AsEnumerable());
+            Assert.Equal("temperature", field.Name);
+            Assert.Equal((byte)BuiltInType.Double, field.BuiltInType);
+        }
+
+        private sealed class DeclaredMetaDataSource : IManagedPubSubDataSource
+        {
+            public DeclaredMetaDataSource(ManagedPubSubNotificationBuffer buffer,
+                DataSetMetaDataType metaData)
+            {
+                _buffer = buffer;
+                MetaData = metaData;
+            }
+
+            public DataSetMetaDataType? MetaData { get; }
+
+            public IAsyncEnumerable<ManagedPubSubNotification> ReadNotificationsAsync(
+                CancellationToken cancellationToken = default)
+            {
+                return _buffer.ReadAllAsync(cancellationToken);
+            }
+
+            private readonly ManagedPubSubNotificationBuffer _buffer;
+        }
+
+        private static async Task<DataSetField> ReadFieldAsync(
+            ManagedPubSubDataSetSource source, DataSetMetaDataType metadata)
+        {
+            for (var attempt = 0; attempt < 100; attempt++)
+            {
+                var snapshot = await source.SampleAsync(metadata);
+                if (snapshot.Fields.Count != 0)
+                {
+                    return snapshot.Fields[0];
+                }
+                await Task.Delay(10);
+            }
+            throw new Xunit.Sdk.XunitException("The managed source did not receive its notification.");
         }
 
         private static async Task<byte[]> ReadPayloadAsync(ManagedPubSubDataSetSource source,

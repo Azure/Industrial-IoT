@@ -31,20 +31,20 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
 
     /// <summary>
     /// An individual source notification retained for managed PubSub
-    /// processing. The instance owns a deep copy of its payload.
+    /// processing.
     /// </summary>
     public sealed class ManagedPubSubNotification
     {
         /// <summary>
-        /// Initializes a notification with an owned copy of
-        /// <paramref name="payload"/>.
+        /// Initializes a notification carrying a typed OPC UA value.
         /// </summary>
         /// <param name="dataSetName">Published dataset name.</param>
         /// <param name="fieldName">Dataset field name.</param>
         /// <param name="timestamp">Source timestamp.</param>
-        /// <param name="payload">Notification payload to copy.</param>
+        /// <param name="value">Notification value.</param>
+        /// <param name="kind">Notification kind.</param>
         public ManagedPubSubNotification(string dataSetName, string fieldName,
-            DateTimeOffset timestamp, ReadOnlySpan<byte> payload,
+            DateTimeOffset timestamp, DataValue value,
             ManagedPubSubNotificationKind kind = ManagedPubSubNotificationKind.Data)
         {
             DataSetName = string.IsNullOrWhiteSpace(dataSetName)
@@ -55,7 +55,25 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 : fieldName;
             Timestamp = timestamp;
             Kind = kind;
-            _payload = payload.ToArray();
+            Value = value;
+        }
+
+        /// <summary>
+        /// Initializes a notification carrying an opaque payload. The payload
+        /// is copied and surfaced as a byte string value.
+        /// </summary>
+        /// <param name="dataSetName">Published dataset name.</param>
+        /// <param name="fieldName">Dataset field name.</param>
+        /// <param name="timestamp">Source timestamp.</param>
+        /// <param name="payload">Notification payload to copy.</param>
+        /// <param name="kind">Notification kind.</param>
+        public ManagedPubSubNotification(string dataSetName, string fieldName,
+            DateTimeOffset timestamp, ReadOnlySpan<byte> payload,
+            ManagedPubSubNotificationKind kind = ManagedPubSubNotificationKind.Data)
+            : this(dataSetName, fieldName, timestamp,
+                new DataValue(new Variant(payload.ToArray()), StatusCodes.Good,
+                    DateTimeUtc.From(timestamp)), kind)
+        {
         }
 
         /// <summary>
@@ -80,18 +98,18 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         public ManagedPubSubNotificationKind Kind { get; }
 
         /// <summary>
-        /// Gets the owned payload. Consumers must treat this memory as immutable.
+        /// Gets the notification value. Consumers must treat it as immutable.
         /// </summary>
-        public ReadOnlyMemory<byte> Payload => _payload;
+        public DataValue Value { get; }
 
         /// <summary>
-        /// Creates another notification with its own payload copy.
+        /// Creates another notification referring to the same value.
         /// </summary>
-        /// <returns>A deep copy of this notification.</returns>
+        /// <returns>A copy of this notification.</returns>
         public ManagedPubSubNotification Clone()
         {
             return _barrier is null
-                ? new ManagedPubSubNotification(DataSetName, FieldName, Timestamp, _payload, Kind)
+                ? new ManagedPubSubNotification(DataSetName, FieldName, Timestamp, Value, Kind)
                 : new ManagedPubSubNotification(DataSetName, _barrier);
         }
 
@@ -113,11 +131,10 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             DataSetName = dataSetName;
             FieldName = string.Empty;
             Timestamp = default;
-            _payload = [];
+            Value = new DataValue();
             _barrier = barrier;
         }
 
-        private readonly byte[] _payload;
         private readonly TaskCompletionSource? _barrier;
     }
 
@@ -187,6 +204,12 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     /// </summary>
     public interface IManagedPubSubDataSource
     {
+        /// <summary>
+        /// Gets the dataset metadata declared by the source, or
+        /// <see langword="null"/> to derive it from observed values.
+        /// </summary>
+        DataSetMetaDataType? MetaData => null;
+
         /// <summary>
         /// Reads source notifications without coalescing intermediate values.
         /// </summary>
@@ -510,17 +533,21 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         {
             lock (_stateGate)
             {
+                if (_source.MetaData is { } declared)
+                {
+                    return declared;
+                }
                 return new DataSetMetaDataType
                 {
                     Name = _dataSetName,
-                    Fields = _knownFields.Keys
-                        .OrderBy(name => name, StringComparer.Ordinal)
-                        .Select(name => new FieldMetaData
+                    Fields = _knownFields
+                        .OrderBy(field => field.Key, StringComparer.Ordinal)
+                        .Select(field => new FieldMetaData
                         {
-                            Name = name,
-                            BuiltInType = (byte)DataTypes.ByteString,
-                            DataType = DataTypeIds.ByteString,
-                            ValueRank = ValueRanks.Scalar
+                            Name = field.Key,
+                            BuiltInType = (byte)field.Value.BuiltInType,
+                            DataType = field.Value.DataType,
+                            ValueRank = field.Value.ValueRank
                         })
                         .ToArray(),
                     ConfigurationVersion = new ConfigurationVersionDataType
@@ -572,7 +599,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                         new DataSetField
                         {
                             Name = notification.FieldName,
-                            Value = new Variant(notification.Payload.ToArray()),
+                            Value = notification.Value.WrappedValue,
+                            StatusCode = notification.Value.StatusCode,
                             SourceTimestamp = DateTimeUtc.From(notification.Timestamp)
                         }
                     ],
@@ -648,7 +676,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                         _currentData.AddOrUpdate(copy.FieldName,
                             new ManagedCurrentData(copy, sequence), (_, _) =>
                                 new ManagedCurrentData(copy, sequence));
-                        metadataChanged = _knownFields.TryAdd(copy.FieldName, 0);
+                        metadataChanged = _knownFields.TryAdd(copy.FieldName,
+                            ManagedFieldType.From(copy.Value));
                     }
                 }
                 else
@@ -656,7 +685,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                     sequence = Interlocked.Increment(ref _sequence);
                     lock (_stateGate)
                     {
-                        metadataChanged = _knownFields.TryAdd(copy.FieldName, 0);
+                        metadataChanged = _knownFields.TryAdd(copy.FieldName,
+                            ManagedFieldType.From(copy.Value));
                     }
                 }
                 if (metadataChanged)
@@ -701,7 +731,10 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                     Name = name,
                     Value = notification is null
                         ? new Variant()
-                        : new Variant(notification.Payload.ToArray()),
+                        : notification.Value.WrappedValue,
+                    StatusCode = notification is null
+                        ? StatusCodes.Good
+                        : notification.Value.StatusCode,
                     SourceTimestamp = notification is null
                         ? default
                         : DateTimeUtc.From(notification.Timestamp)
@@ -717,7 +750,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         private readonly Channel<ManagedPendingNotification> _pending;
         private readonly ConcurrentDictionary<string, ManagedCurrentData> _currentData =
             new(StringComparer.Ordinal);
-        private readonly ConcurrentDictionary<string, byte> _knownFields =
+        private readonly ConcurrentDictionary<string, ManagedFieldType> _knownFields =
             new(StringComparer.Ordinal);
         private readonly string _dataSetName;
         private readonly IManagedPubSubDataSource _source;
@@ -734,6 +767,24 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
 
         private sealed record class ManagedCurrentData(
             ManagedPubSubNotification Notification, long Sequence);
+
+        private sealed record class ManagedFieldType(BuiltInType BuiltInType,
+            NodeId DataType, int ValueRank)
+        {
+            public static ManagedFieldType From(DataValue value)
+            {
+                var typeInfo = value.WrappedValue.TypeInfo;
+                if (typeInfo.BuiltInType == BuiltInType.Null)
+                {
+                    return new ManagedFieldType(BuiltInType.Variant,
+                        DataTypeIds.BaseDataType, ValueRanks.Scalar);
+                }
+                return new ManagedFieldType(typeInfo.BuiltInType,
+                    new NodeId((uint)typeInfo.BuiltInType),
+                    typeInfo.ValueRank == ValueRanks.Scalar
+                        ? ValueRanks.Scalar : ValueRanks.OneDimension);
+            }
+        }
     }
 
     /// <summary>
