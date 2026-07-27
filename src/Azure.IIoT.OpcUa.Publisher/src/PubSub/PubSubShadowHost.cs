@@ -122,8 +122,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
 
         /// <summary>
         /// Registers the event-client transport for an explicit composition.
-        /// The current native preview supports a single application-wide event
-        /// client; writer-specific transport configuration is not represented.
+        /// Every writer group publishes through the supplied client.
         /// </summary>
         internal static IServiceCollection AddPubSubShadowEgressHost(
             this IServiceCollection services, IEventClient eventClient,
@@ -131,32 +130,25 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         {
             ArgumentNullException.ThrowIfNull(services);
             ArgumentNullException.ThrowIfNull(eventClient);
-            if (services.Any(descriptor =>
-                descriptor.ServiceType == typeof(PubSubShadowEgressRegistration)))
-            {
-                throw new InvalidOperationException(
-                    "The PubSub shadow egress transport is already registered.");
-            }
-            var options = new PubSubShadowEgressOptions();
-            configure?.Invoke(options);
-            services.AddPubSubShadowHost();
-            services.AddSingleton(new PubSubShadowEgressRegistration(eventClient, options));
-            return services;
+            return services.AddPubSubShadowEgressHost(
+                _ => new PubSubShadowSingleEventClientSelector(eventClient),
+                configure is null ? null : (_, options) => configure(options));
         }
 
         /// <summary>
         /// Registers the event-client transport for an explicit composition.
         /// </summary>
         /// <param name="services">Service collection.</param>
-        /// <param name="eventClientFactory">Application-wide event client factory.</param>
+        /// <param name="selectorFactory">Per writer group transport selector.</param>
         /// <param name="configure">Optional egress option configuration.</param>
         /// <returns>The original service collection.</returns>
         internal static IServiceCollection AddPubSubShadowEgressHost(
-            this IServiceCollection services, Func<IServiceProvider, IEventClient> eventClientFactory,
+            this IServiceCollection services,
+            Func<IServiceProvider, IPubSubShadowEventClientSelector> selectorFactory,
             Action<IServiceProvider, PubSubShadowEgressOptions>? configure = null)
         {
             ArgumentNullException.ThrowIfNull(services);
-            ArgumentNullException.ThrowIfNull(eventClientFactory);
+            ArgumentNullException.ThrowIfNull(selectorFactory);
             if (services.Any(descriptor =>
                 descriptor.ServiceType == typeof(PubSubShadowEgressRegistration)))
             {
@@ -174,7 +166,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 var options = new PubSubShadowEgressOptions();
                 configure?.Invoke(provider, options);
                 return new PubSubShadowEgressRegistration(
-                    eventClientFactory(provider), options);
+                    selectorFactory(provider), options);
             });
             return services;
         }
@@ -316,9 +308,10 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                         foreach (var tombstone in tombstones)
                         {
                             EventClientPubSubTransportFactory.ValidateTombstoneCapability(
-                                _egress.EventClient);
+                                tombstone.Settings.EventClient);
                             EventClientPubSubTransportFactory.ValidateCapabilities(
-                                _egress.EventClient, tombstone.Settings.RequiredCapabilities);
+                                tombstone.Settings.EventClient,
+                                tombstone.Settings.RequiredCapabilities);
                         }
                         egressGeneration = _egress.Tombstones.NextGeneration();
                         foreach (var topic in GetRetainedMetaDataTopics(replacement,
@@ -552,10 +545,10 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             {
                 builder
                     .AddTransportFactory(new EventClientPubSubTransportFactory(
-                        Profiles.PubSubMqttJsonTransport, egress.EventClient,
+                        Profiles.PubSubMqttJsonTransport,
                         egress.Settings, egress.Options))
                     .AddTransportFactory(new EventClientPubSubTransportFactory(
-                        Profiles.PubSubUdpUadpTransport, egress.EventClient,
+                        Profiles.PubSubUdpUadpTransport,
                         egress.Settings, egress.Options));
             }
             return builder.Build();

@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Logging.Abstractions;
     using Microsoft.Extensions.Options;
     using Opc.Ua;
     using Opc.Ua.PubSub.DataSets;
@@ -41,6 +42,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             await using var transport = CreateTransport(client, new PubSubShadowEgressSettings
             {
                 ConnectionName = "shadow-group",
+                EventClient = client,
                 Encoding = PubSubShadowEncoding.Json,
                 Topic = "configured/topic",
                 ContentType = "application/json",
@@ -454,6 +456,64 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
         }
 
         [Fact]
+        public void EgressDropsASchemaTheTransportCannotCarryButKeepsDeliverySemantics()
+        {
+            //
+            // A schema describes the message, not its delivery, so a transport
+            // that cannot carry one still publishes every byte of telemetry
+            // under the requested guarantees. Refusing to start there would
+            // leave IoT Hub users unable to enable schema publishing at all.
+            //
+            var withSchema = CreateSettings() with
+            {
+                Schema = new PubSubShadowEventSchema("group", PubSubShadowEncoding.Json)
+            };
+            var client = new RecordingEventClient
+            {
+                Capabilities = EventClientCapabilities.Payload
+                    | EventClientCapabilities.Topic
+                    | EventClientCapabilities.ContentType
+                    | EventClientCapabilities.QualityOfService
+            };
+
+            var degraded = EventClientPubSubTransportFactory.DegradeUnsupportedCapabilities(
+                client, withSchema, NullLogger.Instance);
+
+            Assert.Null(degraded.Schema);
+            Assert.Equal(withSchema.Topic, degraded.Topic);
+            Assert.Equal(withSchema.QualityOfService, degraded.QualityOfService);
+            EventClientPubSubTransportFactory.ValidateCapabilities(client,
+                degraded.RequiredCapabilities);
+
+            //
+            // Delivery guarantees the user asked for are never dropped.
+            //
+            var retained = withSchema with { Retain = true };
+            var refused = EventClientPubSubTransportFactory.DegradeUnsupportedCapabilities(
+                client, retained, NullLogger.Instance);
+            Assert.Throws<NotSupportedException>(() =>
+                EventClientPubSubTransportFactory.ValidateCapabilities(client,
+                    refused.RequiredCapabilities));
+        }
+
+        [Fact]
+        public void EgressKeepsASchemaTheTransportCanCarry()
+        {
+            var withSchema = CreateSettings() with
+            {
+                Schema = new PubSubShadowEventSchema("group", PubSubShadowEncoding.Json)
+            };
+            var client = new RecordingEventClient
+            {
+                Capabilities = withSchema.RequiredCapabilities
+            };
+
+            Assert.Same(withSchema,
+                EventClientPubSubTransportFactory.DegradeUnsupportedCapabilities(
+                    client, withSchema, NullLogger.Instance));
+        }
+
+        [Fact]
         public async Task EgressUsesPerWriterMetadataPublishingSettingsAsync()
         {
             var client = new RecordingEventClient();
@@ -679,8 +739,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 InitialRetryDelay = TimeSpan.FromMilliseconds(1),
                 MaximumRetryDelay = TimeSpan.FromMilliseconds(5)
             };
-            await using var tombstones = new PubSubShadowTombstoneQueue(client, options);
-            var settings = CreateSettings(retain: true);
+            await using var tombstones = new PubSubShadowTombstoneQueue(options);
+            var settings = CreateSettings(retain: true, eventClient: client);
             const string topic = "metadata/reactivated";
             client.BlockSuccessfulSends();
             var removedGeneration = tombstones.NextGeneration();
@@ -711,8 +771,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 InitialRetryDelay = TimeSpan.FromMilliseconds(1),
                 MaximumRetryDelay = TimeSpan.FromMilliseconds(5)
             };
-            await using var tombstones = new PubSubShadowTombstoneQueue(client, options);
-            var settings = CreateSettings(retain: true);
+            await using var tombstones = new PubSubShadowTombstoneQueue(options);
+            var settings = CreateSettings(retain: true, eventClient: client);
             const string topic = "metadata/rollback";
             client.BlockSuccessfulSends();
             var removedGeneration = tombstones.NextGeneration();
@@ -1186,11 +1246,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             PubSubShadowEncoding encoding = PubSubShadowEncoding.Json,
             string? contentEncoding = null,
             IReadOnlyList<PubSubShadowMetadataWriterSettings>? metadataWriters = null,
-            bool retain = false)
+            bool retain = false,
+            IEventClient? eventClient = null)
         {
             return new PubSubShadowEgressSettings
             {
                 ConnectionName = "shadow-group",
+                EventClient = eventClient ?? new RecordingEventClient(),
                 Encoding = encoding,
                 Topic = "configured/topic",
                 ContentType = "application/json",
@@ -1271,7 +1333,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 writerGroup.PublisherId = groupPublisherId;
                 writerGroup.Name = groupName;
 
-                var registry = new PubSubShadowEgressSettingsRegistry();
+                var registry = new PubSubShadowEgressSettingsRegistry(
+                    new PubSubShadowSingleEventClientSelector(new RecordingEventClient()));
                 registry.Replace([writerGroup], options, new PubSubShadowEgressOptions());
                 var settings = Assert.Single(registry.Snapshot().Values);
 
@@ -1315,11 +1378,59 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             {
                 QueueName = "explicit/topic"
             };
-            var registry = new PubSubShadowEgressSettingsRegistry();
+            var registry = new PubSubShadowEgressSettingsRegistry(
+                new PubSubShadowSingleEventClientSelector(new RecordingEventClient()));
             registry.Replace([writerGroup], new PublisherOptions(),
                 new PubSubShadowEgressOptions());
 
             Assert.Equal("explicit/topic", Assert.Single(registry.Snapshot().Values).Topic);
+        }
+
+        [Fact]
+        public void EgressResolvesTheTransportPerWriterGroup()
+        {
+            //
+            // Writer groups may name their own transport, so two groups must be
+            // able to publish through two different clients. Sharing one
+            // application-wide client would silently route a group to the wrong
+            // transport.
+            //
+            var mqtt = new RecordingEventClient();
+            var hub = new RecordingEventClient();
+            var registry = new PubSubShadowEgressSettingsRegistry(
+                new PerGroupEventClientSelector(new Dictionary<string, IEventClient>
+                {
+                    ["group-a"] = mqtt,
+                    ["group-b"] = hub
+                }));
+
+            registry.Replace(
+                [
+                    CreateManagedWriterGroup(groupId: "group-a", writerId: "writer-a",
+                        dataSetName: "data-a"),
+                    CreateManagedWriterGroup(groupId: "group-b", writerId: "writer-b",
+                        dataSetName: "data-b")
+                ],
+                new PublisherOptions(), new PubSubShadowEgressOptions());
+
+            var snapshot = registry.Snapshot();
+            Assert.Same(mqtt, snapshot["shadow-group-a"].EventClient);
+            Assert.Same(hub, snapshot["shadow-group-b"].EventClient);
+        }
+
+        private sealed class PerGroupEventClientSelector : IPubSubShadowEventClientSelector
+        {
+            public PerGroupEventClientSelector(Dictionary<string, IEventClient> clients)
+            {
+                _clients = clients;
+            }
+
+            public IEventClient Select(WriterGroupModel writerGroup)
+            {
+                return _clients[writerGroup.Id!];
+            }
+
+            private readonly Dictionary<string, IEventClient> _clients;
         }
 
         [Fact]

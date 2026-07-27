@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
 {
     using Azure.IIoT.OpcUa.Core.Messaging;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Opc.Ua;
     using Opc.Ua.PubSub.Encoding;
@@ -72,9 +73,17 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         PubSubShadowEgressMetrics Metrics { get; }
     }
 
-    internal sealed class PubSubShadowEgressSettings
+    internal sealed record class PubSubShadowEgressSettings
     {
         public required string ConnectionName { get; init; }
+
+        /// <summary>
+        /// Transport this connection publishes through. Writer groups may
+        /// select different transports, so the client is resolved per
+        /// connection rather than shared application wide.
+        /// </summary>
+        public required IEventClient EventClient { get; init; }
+
         public required PubSubShadowEncoding Encoding { get; init; }
         public required string Topic { get; init; }
         public required string ContentType { get; init; }
@@ -137,22 +146,12 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         public PubSubShadowEgressSettings WithTransportSettings(
             string topic, PublishingQueueSettingsModel? publishing, bool defaultRetain)
         {
-            return new PubSubShadowEgressSettings
+            return this with
             {
-                ConnectionName = ConnectionName,
-                Encoding = Encoding,
                 Topic = topic,
-                ContentType = ContentType,
-                ContentEncoding = ContentEncoding,
                 QualityOfService = publishing?.RequestedDeliveryGuarantee ?? QualityOfService,
                 Retain = publishing?.Retain ?? defaultRetain,
-                TimeToLive = publishing?.Ttl ?? TimeToLive,
-                UseCloudEvents = UseCloudEvents,
-                CloudEventSource = CloudEventSource,
-                CloudEventType = CloudEventType,
-                CloudEventSubject = CloudEventSubject,
-                Schema = Schema,
-                Properties = Properties
+                TimeToLive = publishing?.Ttl ?? TimeToLive
             };
         }
     }
@@ -168,12 +167,53 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     }
 
     /// <summary>
+    /// Selects the transport a writer group publishes through. Writer groups
+    /// may name their own transport, so the native egress resolves a client per
+    /// connection instead of sharing one application wide.
+    /// </summary>
+    internal interface IPubSubShadowEventClientSelector
+    {
+        /// <summary>
+        /// Selects the client for a writer group.
+        /// </summary>
+        /// <param name="writerGroup">Writer group being configured.</param>
+        /// <returns>The transport to publish the group through.</returns>
+        IEventClient Select(WriterGroupModel writerGroup);
+    }
+
+    /// <summary>
+    /// Selector that publishes every writer group through one client.
+    /// </summary>
+    internal sealed class PubSubShadowSingleEventClientSelector :
+        IPubSubShadowEventClientSelector
+    {
+        public PubSubShadowSingleEventClientSelector(IEventClient eventClient)
+        {
+            _eventClient = eventClient ?? throw new ArgumentNullException(nameof(eventClient));
+        }
+
+        public IEventClient Select(WriterGroupModel writerGroup)
+        {
+            return _eventClient;
+        }
+
+        private readonly IEventClient _eventClient;
+    }
+
+    /// <summary>
     /// Atomically swaps the egress settings used by new native connections.
     /// The registry mirrors the encoding-generation rule: an old connection
     /// holds its resolved settings while a replacement receives a new snapshot.
     /// </summary>
     internal sealed class PubSubShadowEgressSettingsRegistry
     {
+        public PubSubShadowEgressSettingsRegistry(
+            IPubSubShadowEventClientSelector eventClients)
+        {
+            _eventClients = eventClients
+                ?? throw new ArgumentNullException(nameof(eventClients));
+        }
+
         public void Replace(IEnumerable<WriterGroupModel> writerGroups,
             PublisherOptions publisherOptions, PubSubShadowEgressOptions options)
         {
@@ -186,7 +226,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             foreach (var writerGroup in writerGroups)
             {
                 ArgumentNullException.ThrowIfNull(writerGroup);
-                var settings = CreateSettings(writerGroup, publisherOptions, options);
+                var settings = CreateSettings(writerGroup, publisherOptions, options,
+                    _eventClients.Select(writerGroup));
                 if (!replacement.TryAdd(settings.ConnectionName, settings))
                 {
                     throw new ArgumentException(
@@ -266,7 +307,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         }
 
         private static PubSubShadowEgressSettings CreateSettings(WriterGroupModel writerGroup,
-            PublisherOptions publisherOptions, PubSubShadowEgressOptions options)
+            PublisherOptions publisherOptions, PubSubShadowEgressOptions options,
+            IEventClient eventClient)
         {
             if (string.IsNullOrWhiteSpace(writerGroup.Id))
             {
@@ -328,6 +370,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             return new PubSubShadowEgressSettings
             {
                 ConnectionName = "shadow-" + writerGroup.Id,
+                EventClient = eventClient,
                 Encoding = encoding,
                 Topic = topic,
                 ContentType = isJson ? "application/json" : "application/octet-stream",
@@ -368,6 +411,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         }
 
         private readonly Lock _gate = new();
+        private readonly IPubSubShadowEventClientSelector _eventClients;
         private Dictionary<string, PubSubShadowEgressSettings> _settings =
             new(StringComparer.Ordinal);
     }
@@ -377,17 +421,20 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     /// </summary>
     internal sealed class PubSubShadowEgressRegistration : IAsyncDisposable
     {
-        public PubSubShadowEgressRegistration(IEventClient eventClient,
+        public PubSubShadowEgressRegistration(
+            IPubSubShadowEventClientSelector eventClients,
             PubSubShadowEgressOptions options)
         {
-            EventClient = eventClient ?? throw new ArgumentNullException(nameof(eventClient));
+            EventClients = eventClients
+                ?? throw new ArgumentNullException(nameof(eventClients));
             Options = options ?? throw new ArgumentNullException(nameof(options));
-            Tombstones = new PubSubShadowTombstoneQueue(EventClient, Options);
+            Settings = new PubSubShadowEgressSettingsRegistry(EventClients);
+            Tombstones = new PubSubShadowTombstoneQueue(Options);
         }
 
-        public IEventClient EventClient { get; }
+        public IPubSubShadowEventClientSelector EventClients { get; }
         public PubSubShadowEgressOptions Options { get; }
-        public PubSubShadowEgressSettingsRegistry Settings { get; } = new();
+        public PubSubShadowEgressSettingsRegistry Settings { get; }
         public PubSubShadowTombstoneQueue Tombstones { get; }
 
         public ValueTask DisposeAsync()
@@ -404,10 +451,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     /// </summary>
     internal sealed class PubSubShadowTombstoneQueue : IAsyncDisposable
     {
-        public PubSubShadowTombstoneQueue(IEventClient eventClient,
-            PubSubShadowEgressOptions options)
+        public PubSubShadowTombstoneQueue(PubSubShadowEgressOptions options)
         {
-            _eventClient = eventClient ?? throw new ArgumentNullException(nameof(eventClient));
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _timeProvider = TimeProvider.System;
             _worker = Task.Run(ProcessAsync);
@@ -569,8 +614,9 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                         try
                         {
                             await EventClientPubSubTransportFactory.SendMetadataTombstoneAsync(
-                                _eventClient, tombstone.Settings, tombstone.Topic,
-                                _timeProvider, sendCancellation!.Token).ConfigureAwait(false);
+                                tombstone.Settings.EventClient, tombstone.Settings,
+                                tombstone.Topic, _timeProvider,
+                                sendCancellation!.Token).ConfigureAwait(false);
                             lock (_gate)
                             {
                                 if (_pending.TryGetValue(tombstone.Topic, out var current)
@@ -651,7 +697,6 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         private readonly SemaphoreSlim _wake = new(0);
         private readonly Dictionary<string, PendingTombstone> _pending =
             new(StringComparer.Ordinal);
-        private readonly IEventClient _eventClient;
         private readonly PubSubShadowEgressOptions _options;
         private readonly TimeProvider _timeProvider;
         private readonly Task _worker;
@@ -671,18 +716,17 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     }
 
     /// <summary>
-    /// Factory that binds native PubSub connections to an existing IIoT
-    /// <see cref="IEventClient"/>. It is registered only by the test seam.
+    /// Factory that binds native PubSub connections to the IIoT
+    /// <see cref="IEventClient"/> selected for the connection's writer group.
     /// </summary>
     internal sealed class EventClientPubSubTransportFactory : IPubSubTransportFactory
     {
         public EventClientPubSubTransportFactory(string transportProfileUri,
-            IEventClient eventClient, PubSubShadowEgressSettingsRegistry settings,
+            PubSubShadowEgressSettingsRegistry settings,
             PubSubShadowEgressOptions options)
         {
             TransportProfileUri = transportProfileUri ??
                 throw new ArgumentNullException(nameof(transportProfileUri));
-            _eventClient = eventClient ?? throw new ArgumentNullException(nameof(eventClient));
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
             _options = options ?? throw new ArgumentNullException(nameof(options));
         }
@@ -696,17 +740,46 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             ArgumentNullException.ThrowIfNull(telemetry);
             ArgumentNullException.ThrowIfNull(timeProvider);
             var settings = _settings.Resolve(connection);
-            ValidateCapabilities(_eventClient, settings.RequiredCapabilities);
+            var eventClient = settings.EventClient;
+            settings = DegradeUnsupportedCapabilities(eventClient, settings,
+                telemetry.CreateLogger<EventClientPubSubTransportFactory>());
+            ValidateCapabilities(eventClient, settings.RequiredCapabilities);
             var metadata = CreateMetadataRouting(connection, settings);
             foreach (var route in metadata.ByTopic.Values)
             {
-                ValidateCapabilities(_eventClient, route.RequiredCapabilities);
+                ValidateCapabilities(eventClient, route.RequiredCapabilities);
             }
             var direction = connection.WriterGroups.IsNull || connection.WriterGroups.Count == 0
                 ? PubSubTransportDirection.None
                 : PubSubTransportDirection.Send;
-            return new EventClientPubSubTransport(TransportProfileUri, direction, _eventClient,
+            return new EventClientPubSubTransport(TransportProfileUri, direction, eventClient,
                 settings, metadata, _options, timeProvider);
+        }
+
+        /// <summary>
+        /// Drops capabilities that describe the message rather than its
+        /// delivery when the selected transport cannot carry them, so a
+        /// transport such as IoT Hub can publish telemetry without a schema
+        /// reference instead of refusing to start. Delivery semantics the user
+        /// explicitly asked for - a quality of service above at most once,
+        /// retain, and time to live - are never dropped, because silently
+        /// losing a delivery guarantee is worse than failing to start.
+        /// </summary>
+        /// <param name="eventClient"></param>
+        /// <param name="settings"></param>
+        /// <param name="logger"></param>
+        internal static PubSubShadowEgressSettings DegradeUnsupportedCapabilities(
+            IEventClient eventClient, PubSubShadowEgressSettings settings, ILogger logger)
+        {
+            if (settings.Schema is null ||
+                eventClient is not IEventClientCapabilities declared ||
+                (declared.Capabilities & EventClientCapabilities.Schema) != 0)
+            {
+                return settings;
+            }
+            logger.EgressCapabilityDegraded(settings.ConnectionName, eventClient.Name,
+                EventClientCapabilities.Schema);
+            return settings with { Schema = null };
         }
 
         internal static void ValidateCapabilities(IEventClient eventClient,
@@ -794,7 +867,6 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             return new PubSubShadowMetadataRouting(byTopic, byWriter);
         }
 
-        private readonly IEventClient _eventClient;
         private readonly PubSubShadowEgressSettingsRegistry _settings;
         private readonly PubSubShadowEgressOptions _options;
     }
@@ -1447,5 +1519,20 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         }
 
         public int Attempts { get; }
+    }
+
+    /// <summary>
+    /// Source-generated logging definitions for the native PubSub egress.
+    /// </summary>
+    internal static partial class EventClientPubSubTransportLogging
+    {
+        private const int EventClass = 760;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Warning,
+            Message = "Native PubSub connection {Connection} publishes without " +
+            "{Capability} because the selected event client {Transport} cannot " +
+            "carry it. Telemetry and delivery guarantees are unaffected.")]
+        public static partial void EgressCapabilityDegraded(this ILogger logger,
+            string connection, string transport, EventClientCapabilities capability);
     }
 }

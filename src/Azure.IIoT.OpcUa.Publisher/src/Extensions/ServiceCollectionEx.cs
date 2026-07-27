@@ -22,7 +22,9 @@ namespace Azure.IIoT.OpcUa.Publisher
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
+    using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
 
     /// <summary>
     /// Service collection extensions
@@ -131,16 +133,17 @@ namespace Azure.IIoT.OpcUa.Publisher
             if (useNativePubSub)
             {
                 services.AddPubSubShadowHost();
+                services.AddSingleton<NativePubSubEventClientSelector>();
                 services.AddPubSubShadowEgressHost(
-                    static sp => ResolveNativePubSubEventClient(sp),
+                    static sp => sp.GetRequiredService<NativePubSubEventClientSelector>(),
                     static (sp, options) =>
                     {
                         //
                         // PublishMessageSchema gates whether schema options are
                         // bound at all, so their presence is the signal that the
-                        // user asked for schemas. Attaching one unconditionally
-                        // would demand the Schema capability from every
-                        // transport, which most cannot declare.
+                        // user asked for schemas. When they did and the selected
+                        // transport cannot carry one, the egress drops the schema
+                        // with a warning rather than refusing to publish.
                         //
                         options.IncludeSchema = sp
                             .GetRequiredService<IOptions<PublisherOptions>>()
@@ -250,24 +253,67 @@ namespace Azure.IIoT.OpcUa.Publisher
             };
         }
 
-        private static IEventClient ResolveNativePubSubEventClient(IServiceProvider services)
+        /// <summary>
+        /// Applies the writer path transport selection to the native PubSub
+        /// egress, so a writer group that names its own transport publishes
+        /// through that transport instead of an application-wide default.
+        /// </summary>
+        private sealed class NativePubSubEventClientSelector :
+            IPubSubShadowEventClientSelector, IDisposable
         {
-            var eventClients = services.GetServices<IEventClient>().Reverse().ToList();
-            if (eventClients.Count == 0)
+            public NativePubSubEventClientSelector(IServiceProvider services)
             {
-                throw new InvalidOperationException("No transports registered.");
+                _services = services;
             }
 
-            // Preview limitation: native PubSub egress accepts a single application-wide
-            // event client, so writer-specific transport overrides are not applied here.
-            using var transport = new NetworkMessageSink.TransportOptions(
-                new WriterGroupModel { Id = "native-pubsub-preview" },
-                eventClients,
-                services.GetServices<IEventClientFactory>()
-                    .ToDictionary(f => f.Name, StringComparer.OrdinalIgnoreCase),
-                services.GetRequiredService<IOptions<PublisherOptions>>(),
-                services.GetRequiredService<ILogger<NetworkMessageSink>>());
-            return transport.EventClient;
+            public IEventClient Select(WriterGroupModel writerGroup)
+            {
+                ArgumentNullException.ThrowIfNull(writerGroup);
+                var eventClients = _services.GetServices<IEventClient>().Reverse().ToList();
+                if (eventClients.Count == 0)
+                {
+                    throw new InvalidOperationException("No transports registered.");
+                }
+                //
+                // A writer group specific transport configuration makes the
+                // options own the client they build, so the selection is cached
+                // per group and disposed with the selector rather than at the
+                // end of this call.
+                //
+                lock (_gate)
+                {
+                    var key = writerGroup.Id ?? string.Empty;
+                    if (_selected.TryGetValue(key, out var existing))
+                    {
+                        return existing.EventClient;
+                    }
+                    var transport = new NetworkMessageSink.TransportOptions(writerGroup,
+                        eventClients,
+                        _services.GetServices<IEventClientFactory>()
+                            .ToDictionary(f => f.Name, StringComparer.OrdinalIgnoreCase),
+                        _services.GetRequiredService<IOptions<PublisherOptions>>(),
+                        _services.GetRequiredService<ILogger<NetworkMessageSink>>());
+                    _selected[key] = transport;
+                    return transport.EventClient;
+                }
+            }
+
+            public void Dispose()
+            {
+                lock (_gate)
+                {
+                    foreach (var transport in _selected.Values)
+                    {
+                        transport.Dispose();
+                    }
+                    _selected.Clear();
+                }
+            }
+
+            private readonly Lock _gate = new();
+            private readonly Dictionary<string, NetworkMessageSink.TransportOptions> _selected =
+                new(StringComparer.Ordinal);
+            private readonly IServiceProvider _services;
         }
     }
 }
