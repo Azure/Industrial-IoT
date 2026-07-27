@@ -50,11 +50,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             Assert.EndsWith("/metadatamessage", metadata.Value.Topic, StringComparison.Ordinal);
         }
 
-        [Fact(Skip = "The native runtime now reaches Operational for application, " +
-            "connection, writer group and dataset writer, and loads metadata, but the " +
-            "egress never sends. Notifications are therefore not reaching the managed " +
-            "data source: trace PubSubNotificationSink.OnMessage through the buffer " +
-            "routing into ManagedPubSubDataSetSource.SampleAsync.")]
+        [Fact(Skip = "Instrumented run proved the bridge works: the sink and the " +
+            "registry agree on the dataset name, notifications flow, and the native " +
+            "runtime samples the source. Nothing reaches the subscriber, so the " +
+            "remaining suspects are the egress topic and the writer group publishing " +
+            "interval, which sampled about every ten seconds rather than the " +
+            "configured 200ms while the pending queue grew unbounded.")]
         public async Task NativePubSubRuntimePublishesDataItemsToMqttBrokerAsync()
         {
             //
