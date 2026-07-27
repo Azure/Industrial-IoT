@@ -329,5 +329,113 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
 
             Assert.NotNull(metadata);
         }
+
+        /// <summary>
+        /// Compares the wire shape the native runtime produces against the shape
+        /// the custom encoder produces for the same configuration. Structure is
+        /// compared rather than values, because timestamps, sequence numbers and
+        /// identifiers legitimately differ between two runs, while a missing
+        /// envelope member or a value written as a bare number instead of a
+        /// DataValue envelope is a real break for every consumer.
+        /// </summary>
+        /// <remarks>
+        /// Skipped: the native writer group builds its JSON messages without the
+        /// configured content masks, so every messaging mode currently produces
+        /// the same shape. Closing that is stack work rather than Publisher work,
+        /// and this theory is the gate that proves it is closed. See the 8d gap
+        /// list in the migration plan.
+        /// </remarks>
+        /// <param name="messagingMode"></param>
+        [Theory(Skip = "Native writer group ignores the JSON content masks; see 8d gap list.")]
+        [InlineData("PubSub")]
+        [InlineData("FullNetworkMessages")]
+        [InlineData("DataSetMessages")]
+        [InlineData("SingleDataSetMessage")]
+        [InlineData("RawDataSets")]
+        public async Task NativePubSubMatchesTheCustomEncoderWireShapeAsync(string messagingMode)
+        {
+            var custom = await CaptureShapeAsync(messagingMode, native: false);
+            var native = await CaptureShapeAsync(messagingMode, native: true);
+
+            _output.WriteLine("custom: " + custom);
+            _output.WriteLine("native: " + native);
+            Assert.Equal(custom, native);
+        }
+
+        private async Task<string> CaptureShapeAsync(string messagingMode, bool native)
+        {
+            string[] arguments = native
+                ? ["--mm=" + messagingMode, "--dm=False", "--ps=False", "--unp=True"]
+                : ["--mm=" + messagingMode, "--dm=False", "--ps=False"];
+            var (_, messages) = await ProcessMessagesAndMetadataAsync(
+                nameof(NativePubSubMatchesTheCustomEncoderWireShapeAsync) + messagingMode + native,
+                "./Resources/DataItems.json", TimeSpan.FromMinutes(2), 20,
+                arguments: arguments, version: MqttVersion.v5);
+
+            //
+            // The runtime may emit an initial key frame before any value has been
+            // observed, so the first message carrying the field is the one that
+            // describes the wire shape.
+            //
+            var carrying = messages
+                .Select(message => message.Message)
+                .FirstOrDefault(message => FindOutput(message).ValueKind != JsonValueKind.Undefined);
+            Assert.NotEqual(JsonValueKind.Undefined, carrying.ValueKind);
+            return Shape(carrying);
+        }
+
+        private static JsonElement FindOutput(JsonElement element)
+        {
+            if (element.ValueKind == JsonValueKind.Object)
+            {
+                if (element.TryGetProperty("Output", out var output))
+                {
+                    return output;
+                }
+                foreach (var property in element.EnumerateObject())
+                {
+                    var found = FindOutput(property.Value);
+                    if (found.ValueKind != JsonValueKind.Undefined)
+                    {
+                        return found;
+                    }
+                }
+            }
+            else if (element.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var item in element.EnumerateArray())
+                {
+                    var found = FindOutput(item);
+                    if (found.ValueKind != JsonValueKind.Undefined)
+                    {
+                        return found;
+                    }
+                }
+            }
+            return default;
+        }
+
+        private static string Shape(JsonElement element)
+        {
+            switch (element.ValueKind)
+            {
+                case JsonValueKind.Object:
+                    return "{" + string.Join(",", element.EnumerateObject()
+                        .OrderBy(property => property.Name, StringComparer.Ordinal)
+                        .Select(property => property.Name + ":" + Shape(property.Value))) + "}";
+                case JsonValueKind.Array:
+                    //
+                    // Message counts differ between runs, so only the shape of the
+                    // first element is compared.
+                    //
+                    return element.GetArrayLength() == 0
+                        ? "[]" : "[" + Shape(element[0]) + "]";
+                case JsonValueKind.True:
+                case JsonValueKind.False:
+                    return "Boolean";
+                default:
+                    return element.ValueKind.ToString();
+            }
+        }
     }
 }
