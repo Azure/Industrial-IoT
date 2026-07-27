@@ -60,7 +60,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Utils
         /// Initialize map
         /// </summary>
         /// <param name="type"></param>
-        private TypeMaps(Type type)
+        private TypeMaps(
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] Type type)
         {
             var fields = type.GetFields(
                 BindingFlags.Public | BindingFlags.Static);
