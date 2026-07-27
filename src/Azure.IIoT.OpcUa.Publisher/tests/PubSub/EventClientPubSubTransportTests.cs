@@ -806,7 +806,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             await using var provider = new ManagedPubSubNotificationDataSourceProvider(buffer);
             var model = new PublishedDataSetModel { Name = "data" };
             var managed = Assert.IsAssignableFrom<IManagedPubSubDataSource>(
-                await provider.CreateAsync(model));
+                await provider.CreateAsync("data", model));
             await using var source = new ManagedPubSubDataSetSource("data", managed);
             source.Start();
             var metadata = source.BuildMetaData();
@@ -832,7 +832,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             var buffer = new ManagedPubSubNotificationBuffer(8);
             await using var provider = new ManagedPubSubNotificationDataSourceProvider(buffer);
             var managed = Assert.IsAssignableFrom<IManagedPubSubDataSource>(
-                await provider.CreateAsync(new PublishedDataSetModel { Name = "data" }));
+                await provider.CreateAsync("data", new PublishedDataSetModel { Name = "data" }));
             await using var source = new ManagedPubSubDataSetSource("data", managed);
             source.Start();
             var metadata = source.BuildMetaData();
@@ -864,7 +864,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             var buffer = new ManagedPubSubNotificationBuffer(8);
             await using var provider = new ManagedPubSubNotificationDataSourceProvider(buffer);
             var managed = Assert.IsAssignableFrom<IManagedPubSubDataSource>(
-                await provider.CreateAsync(new PublishedDataSetModel { Name = "data" }));
+                await provider.CreateAsync("data", new PublishedDataSetModel { Name = "data" }));
             await using var source = new ManagedPubSubDataSetSource("data", managed);
             source.Start();
             await buffer.EnqueueAsync(new ManagedPubSubNotification(
@@ -903,7 +903,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             var buffer = new ManagedPubSubNotificationBuffer(8);
             await using var provider = new ManagedPubSubNotificationDataSourceProvider(buffer);
             var managed = Assert.IsAssignableFrom<IManagedPubSubDataSource>(
-                await provider.CreateAsync(new PublishedDataSetModel { Name = "data" }));
+                await provider.CreateAsync("data", new PublishedDataSetModel { Name = "data" }));
             var observer = new BlockingDataPublicationObserver();
             await using var source = new ManagedPubSubDataSetSource("data", managed,
                 observer: observer);
@@ -1253,7 +1253,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             var buffer = new ManagedPubSubNotificationBuffer(8);
             await using var provider = new ManagedPubSubNotificationDataSourceProvider(buffer);
             var managed = Assert.IsAssignableFrom<IManagedPubSubDataSource>(
-                await provider.CreateAsync(new PublishedDataSetModel { Name = "data" }));
+                await provider.CreateAsync("data", new PublishedDataSetModel { Name = "data" }));
             await using var source = new ManagedPubSubDataSetSource("data", managed);
             source.Start();
             var metadata = source.BuildMetaData();
@@ -1290,7 +1290,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             var buffer = new ManagedPubSubNotificationBuffer(8);
             await using var provider = new ManagedPubSubNotificationDataSourceProvider(buffer);
             var managed = Assert.IsAssignableFrom<IManagedPubSubDataSource>(
-                await provider.CreateAsync(new PublishedDataSetModel { Name = "data" }));
+                await provider.CreateAsync("data", new PublishedDataSetModel { Name = "data" }));
             await using var source = new ManagedPubSubDataSetSource("data", managed);
             source.Start();
             var metadata = source.BuildMetaData();

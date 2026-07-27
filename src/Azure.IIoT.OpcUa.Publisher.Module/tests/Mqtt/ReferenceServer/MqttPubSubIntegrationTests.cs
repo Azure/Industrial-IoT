@@ -50,11 +50,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             Assert.EndsWith("/metadatamessage", metadata.Value.Topic, StringComparison.Ordinal);
         }
 
-        [Fact(Skip = "Native connections, writer groups and dataset writers are now " +
-            "enabled when an egress transport is registered, and the pipeline starts " +
-            "without errors, but no telemetry is produced yet. The remaining gap is " +
-            "in the activation path between the started native application and the " +
-            "managed data sources.")]
+        [Fact(Skip = "The native runtime now reaches Operational for application, " +
+            "connection, writer group and dataset writer, and loads metadata, but the " +
+            "egress never sends. Notifications are therefore not reaching the managed " +
+            "data source: trace PubSubNotificationSink.OnMessage through the buffer " +
+            "routing into ManagedPubSubDataSetSource.SampleAsync.")]
         public async Task NativePubSubRuntimePublishesDataItemsToMqttBrokerAsync()
         {
             //

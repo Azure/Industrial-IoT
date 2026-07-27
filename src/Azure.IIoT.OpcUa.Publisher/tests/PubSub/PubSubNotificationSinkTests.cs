@@ -138,7 +138,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             var buffer = new ManagedPubSubNotificationBuffer(16);
             await using var provider = new ManagedPubSubNotificationDataSourceProvider(buffer);
             var managed = Assert.IsAssignableFrom<IManagedPubSubDataSource>(
-                await provider.CreateAsync(new PublishedDataSetModel { Name = "dataset" }));
+                await provider.CreateAsync("dataset", new PublishedDataSetModel { Name = "dataset" }));
             await using var source = new ManagedPubSubDataSetSource("dataset", managed);
             source.Start();
             var metadata = source.BuildMetaData();

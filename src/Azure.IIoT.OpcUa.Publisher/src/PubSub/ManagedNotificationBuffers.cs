@@ -229,11 +229,19 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         /// Creates a source for a dataset, or returns <see langword="null"/>
         /// when the provider does not own that dataset.
         /// </summary>
+        /// <remarks>
+        /// The name is supplied by the caller rather than derived from
+        /// <paramref name="dataSet"/>, because a dataset need not be named and
+        /// the registry falls back to the writer group and writer identifiers.
+        /// Deriving it twice would let the two disagree and silently route
+        /// notifications to a source that does not exist.
+        /// </remarks>
+        /// <param name="dataSetName">Resolved dataset name.</param>
         /// <param name="dataSet">Public Publisher dataset model.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>The managed source, if the provider can create one.</returns>
-        ValueTask<IManagedPubSubDataSource?> CreateAsync(PublishedDataSetModel dataSet,
-            CancellationToken cancellationToken = default);
+        ValueTask<IManagedPubSubDataSource?> CreateAsync(string dataSetName,
+            PublishedDataSetModel dataSet, CancellationToken cancellationToken = default);
     }
 
     internal interface IManagedPubSubDataSourceLifecycle
@@ -324,22 +332,21 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             _capacity = capacity;
         }
 
-        public ValueTask<IManagedPubSubDataSource?> CreateAsync(PublishedDataSetModel dataSet,
-            CancellationToken cancellationToken = default)
+        public ValueTask<IManagedPubSubDataSource?> CreateAsync(string dataSetName,
+            PublishedDataSetModel dataSet, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(dataSet);
             cancellationToken.ThrowIfCancellationRequested();
-            var name = dataSet.Name ?? dataSet.DataSetMetaData?.Name;
-            if (string.IsNullOrWhiteSpace(name))
+            if (string.IsNullOrWhiteSpace(dataSetName))
             {
                 return new ValueTask<IManagedPubSubDataSource?>((IManagedPubSubDataSource?)null);
             }
-            if (_sources.TryGetValue(name, out var active))
+            if (_sources.TryGetValue(dataSetName, out var active))
             {
                 return new ValueTask<IManagedPubSubDataSource?>(active);
             }
             return new ValueTask<IManagedPubSubDataSource?>(
-                new RoutedDataSource(_capacity, route => Activate(name, route)));
+                new RoutedDataSource(_capacity, route => Activate(dataSetName, route)));
         }
 
         public async ValueTask RemoveAsync(string dataSetName,
@@ -847,7 +854,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 IManagedPubSubDataSource? managedSource = null;
                 foreach (var provider in _providers)
                 {
-                    managedSource = await provider.CreateAsync(dataSet.Writer.DataSet!,
+                    managedSource = await provider.CreateAsync(name, dataSet.Writer.DataSet!,
                         cancellationToken).ConfigureAwait(false);
                     if (managedSource is not null)
                     {
