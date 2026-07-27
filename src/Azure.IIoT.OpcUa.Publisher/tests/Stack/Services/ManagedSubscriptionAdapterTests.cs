@@ -2100,6 +2100,66 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         [Fact]
+        public void PlainEventItemsKeepTheConfiguredFilterUntouched()
+        {
+            //
+            // The managed runtime must not append an internal EventType select
+            // clause for a plain event. Doing so shifts every configured field
+            // index by one, which silently renames every published field.
+            // Condition handling is the only case that legitimately adds one,
+            // because it needs the event type to correlate snapshots.
+            //
+            var configured = new EventFilterModel
+            {
+                SelectClauses =
+                [
+                    new SimpleAttributeOperandModel
+                    {
+                        TypeDefinitionId = "i=2041",
+                        BrowsePath = ["Severity"]
+                    }
+                ]
+            };
+
+            var plain = ManagedSubscriptionOptionsAdapter.ToManagedOptions(
+                new EventMonitoredItemModel
+                {
+                    StartNodeId = "ns=2;s=source",
+                    EventFilter = configured
+                }, new OpcUaSubscriptionOptions(),
+                new JsonVariantEncoder(new ServiceMessageContext()));
+
+            var filter = Assert.IsType<EventFilter>(plain.Filter);
+            var clause = Assert.Single(filter.SelectClauses.AsEnumerable());
+            Assert.Equal("Severity", Assert.Single(clause.BrowsePath.AsEnumerable()).Name);
+            Assert.DoesNotContain(filter.SelectClauses.AsEnumerable(),
+                candidate => candidate.BrowsePath.Count != 0 &&
+                    candidate.BrowsePath[0].Name == BrowseNames.EventType);
+
+            //
+            // Condition handling is the contrast case that proves the assertion
+            // above is about the plain path and not about the filter being
+            // ignored altogether.
+            //
+            var condition = ManagedSubscriptionOptionsAdapter.ToManagedOptions(
+                new EventMonitoredItemModel
+                {
+                    StartNodeId = "ns=2;s=source",
+                    EventFilter = configured,
+                    ConditionHandling = new ConditionHandlingOptionsModel
+                    {
+                        SnapshotInterval = 10
+                    }
+                }, new OpcUaSubscriptionOptions(),
+                new JsonVariantEncoder(new ServiceMessageContext()));
+
+            var conditionFilter = Assert.IsType<EventFilter>(condition.Filter);
+            Assert.Contains(conditionFilter.SelectClauses.AsEnumerable(),
+                candidate => candidate.BrowsePath.Count != 0 &&
+                    candidate.BrowsePath[0].Name == BrowseNames.EventType);
+        }
+
+        [Fact]
         public void SubscriptionDefaultsResolveConfiguredOptions()
         {
             var options = new OpcUaSubscriptionOptions
