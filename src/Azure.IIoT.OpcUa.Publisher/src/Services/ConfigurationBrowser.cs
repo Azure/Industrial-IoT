@@ -1108,7 +1108,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     {
                         Name = argument.Name,
                         DefaultValue = argument.Value == null ? null :
-                            context.Session.Codec.Encode(new Variant(argument.Value), out var type),
+                            context.Session.Codec.Encode(TypeInfoEx.ToVariant(argument.Value), out var type),
                         ValueRank = argument.ValueRank == ValueRanks.Scalar ?
                             null : (global::Azure.IIoT.OpcUa.Publisher.Models.NodeValueRank)argument.ValueRank,
                         ArrayDimensions = argument.ArrayDimensions.Count > 0 ?

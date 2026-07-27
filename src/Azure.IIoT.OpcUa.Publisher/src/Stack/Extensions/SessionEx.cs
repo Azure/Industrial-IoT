@@ -424,7 +424,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     {
                         // Update result with default and set status to good.
                         fixedResults[i] = new DataValue(
-                            new Variant(AttributeMap.GetDefaultValue(
+                            TypeInfoEx.ToVariant(AttributeMap.GetDefaultValue(
                                 nodeClass.Value, results[i].Request, true)),
                             StatusCodes.Good);
                     }
@@ -1028,7 +1028,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                         {
                             Name = argument.Name,
                             DefaultValue = argument.Value == null ? null :
-                                session.Codec.Encode(new Variant(argument.Value), out var tmp),
+                                session.Codec.Encode(TypeInfoEx.ToVariant(argument.Value), out var tmp),
                             ValueRank = argument.ValueRank == ValueRanks.Scalar ?
                                 null : (NodeValueRank)argument.ValueRank,
                             ArrayDimensions = argument.ArrayDimensions.Count == 0

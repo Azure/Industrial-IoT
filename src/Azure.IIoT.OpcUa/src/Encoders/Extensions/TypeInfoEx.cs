@@ -44,6 +44,31 @@ namespace Opc.Ua
         }
 
         /// <summary>
+        /// Create a variant from a value whose type is only known at run time.
+        /// </summary>
+        /// <remarks>
+        /// The single argument <see cref="Variant"/> constructor falls back to
+        /// reflection for types it cannot cast directly, which requires dynamic
+        /// code and is not available when the application is compiled ahead of
+        /// time. Deriving the type info first selects the same non-reflective
+        /// cast the constructor uses for every type it can handle.
+        /// </remarks>
+        /// <param name="value">Value to wrap.</param>
+        /// <returns>The variant holding the value.</returns>
+        public static Variant ToVariant(object value)
+        {
+            if (value is null)
+            {
+                return Variant.Null;
+            }
+            if (value is Variant variant)
+            {
+                return variant;
+            }
+            return new Variant(value, TypeInfo.Construct(value));
+        }
+
+        /// <summary>
         /// Create Variant
         /// </summary>
         /// <param name="typeInfo"></param>

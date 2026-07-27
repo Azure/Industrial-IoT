@@ -579,7 +579,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         {
                             Name = argument.Name,
                             DefaultValue = argument.Value == null ? null :
-                                context.Session.Codec.Encode(new Variant(argument.Value), out var type),
+                                context.Session.Codec.Encode(TypeInfoEx.ToVariant(argument.Value), out var type),
                             ValueRank = argument.ValueRank == ValueRanks.Scalar ?
                                 null : (global::Azure.IIoT.OpcUa.Publisher.Models.NodeValueRank)argument.ValueRank,
                             ArrayDimensions = argument.ArrayDimensions.ToArray(),
@@ -791,7 +791,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         (outputs?.Count ?? 0) > i && outputs![i].Item2 != null)
                     {
                         // return default value
-                        arg = new Variant(outputs[i].Item2);
+                        arg = TypeInfoEx.ToVariant(outputs[i].Item2);
                     }
                     var value = context.Session.Codec.Encode(arg, out var type);
                     if (type == BuiltInType.Null && (outputs?.Count ?? 0) > i)
