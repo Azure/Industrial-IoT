@@ -50,10 +50,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             Assert.EndsWith("/metadatamessage", metadata.Value.Topic, StringComparison.Ordinal);
         }
 
-        [Fact(Skip = "The shadow host still creates native connections and writer " +
-            "groups disabled, because it was built as an inert shadow; only the " +
-            "test-only keyframe control enables them. Production activation must " +
-            "enable them so they publish on their configured interval.")]
+        [Fact(Skip = "Native connections, writer groups and dataset writers are now " +
+            "enabled when an egress transport is registered, and the pipeline starts " +
+            "without errors, but no telemetry is produced yet. The remaining gap is " +
+            "in the activation path between the started native application and the " +
+            "managed data sources.")]
         public async Task NativePubSubRuntimePublishesDataItemsToMqttBrokerAsync()
         {
             //

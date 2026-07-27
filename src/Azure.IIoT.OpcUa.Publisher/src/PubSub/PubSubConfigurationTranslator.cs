@@ -16,6 +16,13 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
 
     internal sealed class PubSubConfigurationTranslator
     {
+        /// <summary>
+        /// Whether the translated configuration is activated. The shadow host
+        /// is inert by default so it can be hosted without publishing; the
+        /// production composition enables it once an egress transport exists.
+        /// </summary>
+        public bool Activate { get; set; }
+
         public PubSubConfigurationTranslator(IOptions<PublisherOptions>? options = null)
         {
             _defaultPublishingInterval = NormalizePublishingInterval(
@@ -95,7 +102,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             {
                 Name = source.Name ?? source.Id,
                 WriterGroupId = identities.GetOrAllocate("writer-group", source.Id),
-                Enabled = false,
+                Enabled = Activate,
                 PublishingInterval = NormalizePublishingInterval(source.PublishingInterval
                     ?? _defaultPublishingInterval).TotalMilliseconds,
                 KeepAliveTime = source.KeepAliveTime?.TotalMilliseconds ?? 0,
@@ -105,13 +112,13 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 MessageSettings = new ExtensionObject(isUadp
                     ? CreateUadpWriterGroupSettings(source)
                     : CreateJsonWriterGroupSettings(source)),
-                DataSetWriters = TranslateWriters(source, dataSets, identities, isUadp)
+                DataSetWriters = TranslateWriters(source, dataSets, identities, isUadp, Activate)
             };
 
             return new PubSubConnectionDataType
             {
                 Name = "shadow-" + source.Id,
-                Enabled = false,
+                Enabled = Activate,
                 PublisherId = new Variant(source.PublisherId ?? source.Id),
                 TransportProfileUri = GetTransportProfile(encoding),
                 Address = new ExtensionObject(new NetworkAddressUrlDataType
@@ -129,7 +136,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         private static ArrayOf<DataSetWriterDataType> TranslateWriters(
             WriterGroupModel group,
             Dictionary<string, PublishedDataSetDataType> dataSets,
-            IPubSubIdentityTransaction identities, bool isUadp)
+            IPubSubIdentityTransaction identities, bool isUadp, bool activate)
         {
             if (group.DataSetWriters is null)
             {
@@ -160,7 +167,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 {
                     Name = source.DataSetWriterName ?? source.Id,
                     DataSetWriterId = identities.GetOrAllocate("data-set-writer", source.Id),
-                    Enabled = false,
+                    Enabled = activate,
                     DataSetName = dataSetName,
                     KeyFrameCount = source.KeyFrameCount ?? 1,
                     DataSetFieldContentMask = (uint)source.DataSetFieldContentMask.ToStackType(),

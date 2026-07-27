@@ -199,6 +199,12 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             _managedDataSources = services.GetRequiredService<
                 ManagedPubSubDataSetSourceRegistry>();
             _egress = services.GetService<PubSubShadowEgressRegistration>();
+            //
+            // Without an egress transport the host is a shadow: it accepts
+            // configuration but must not publish. An egress registration is the
+            // signal that this composition is expected to produce telemetry.
+            //
+            _translator.Activate = _egress is not null;
         }
 
         internal PubSubShadowHost(IPubSubIdentityRegistry identityRegistry,
