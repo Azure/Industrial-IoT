@@ -21,6 +21,8 @@ namespace Opc.Ua
         public static object GetDefaultValue(this TypeInfo typeInfo)
         {
             var builtInType = typeInfo.BuiltInType;
+            var elementType = TypeInfo.GetSystemType(builtInType)?.Type ??
+                typeof(object);
             if (typeInfo.ValueRank == ValueRanks.Scalar)
             {
                 // For scalar values, try to retrieve a default.
@@ -28,16 +30,17 @@ namespace Opc.Ua
             }
             if (typeInfo.ValueRank <= 1)
             {
-                return Array.CreateInstance(
-                    TypeInfo.GetSystemType(builtInType)?.Type ??
-                    typeof(object), 0);
+                return Array.CreateInstance(elementType, 0);
             }
-            return new Matrix(
-                Array.CreateInstance(
-                    TypeInfo.GetSystemType(builtInType)?.Type ??
-                        typeof(object),
-                    new int[typeInfo.ValueRank]),
-                builtInType);
+            //
+            // A matrix is built from a flat element array and its dimensions
+            // rather than from a multidimensional array, because creating one
+            // from a runtime type requires dynamic code and is not available
+            // when the application is compiled ahead of time. Every dimension
+            // is zero here, so the flat array is empty either way.
+            //
+            return new Matrix(Array.CreateInstance(elementType, 0), builtInType,
+                new int[typeInfo.ValueRank]);
         }
 
         /// <summary>
@@ -57,17 +60,9 @@ namespace Opc.Ua
                 {
                     typeInfo = new TypeInfo(BuiltInType.Int32, typeInfo.ValueRank);
                 }
-                var elementType = TypeInfo.GetSystemType(typeInfo.BuiltInType)?.Type ??
-                    typeof(object);
-                var systemType = typeInfo.ValueRank == ValueRanks.Scalar ?
-                    elementType : elementType.MakeArrayType();
                 if (typeInfo.BuiltInType == BuiltInType.Null)
                 {
-                    if (typeInfo.ValueRank == 1)
-                    {
-                        systemType = typeof(object[]);
-                    }
-                    else
+                    if (typeInfo.ValueRank != 1)
                     {
                         return Variant.Null; // Matrix or scalar
                     }
@@ -88,24 +83,15 @@ namespace Opc.Ua
                         value = arr;
                     }
                 }
-                if (typeInfo.ValueRank >= 2)
-                {
-                    systemType = typeof(Matrix);
-                }
-                var constructor = typeof(Variant).GetConstructor([
-                    systemType
-                ]);
-                try
-                {
-                    if (constructor != null)
-                    {
-                        return (Variant)constructor.Invoke([value]);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    aex.Add(ex);
-                }
+                //
+                // The variant is constructed from the value and its type info
+                // rather than by locating the matching constructor overload
+                // for the runtime system type. Constructing an array type from
+                // a runtime type and invoking a constructor reflectively both
+                // require dynamic code, which is not available when the
+                // application is compiled ahead of time, and the type info
+                // already carries everything the variant needs.
+                //
                 try
                 {
                     return new Variant(value, typeInfo);
@@ -114,7 +100,7 @@ namespace Opc.Ua
                 {
                     aex.Add(ex);
                     throw new ArgumentException($"Cannot convert {value} " +
-                        $"({value.GetType()}/{systemType}/{typeInfo}) to Variant.",
+                        $"({value.GetType()}/{typeInfo}) to Variant.",
                         new AggregateException(aex));
                 }
             }
