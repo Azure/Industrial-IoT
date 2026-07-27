@@ -356,11 +356,27 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             }
         }
 
-        private sealed class InMemoryEventClient : IEventClient, IProcessIdentity
+        private sealed class InMemoryEventClient : IEventClient, IProcessIdentity,
+            IEventClientCapabilities
         {
             public string Name => "IoTHub";
 
             public int MaxEventPayloadSizeInBytes => 256 * 1024;
+
+            //
+            // Mirrors IoTEdgeTransport so the mock is a faithful stand in for
+            // the real client, including for consumers that reject clients
+            // which do not declare their capabilities.
+            //
+            public EventClientCapabilities Capabilities =>
+                EventClientCapabilities.Payload
+                | EventClientCapabilities.Topic
+                | EventClientCapabilities.ContentType
+                | EventClientCapabilities.ContentEncoding
+                | EventClientCapabilities.CustomProperties
+                | EventClientCapabilities.CloudEvents
+                | EventClientCapabilities.TransportSecurity
+                | EventClientCapabilities.Authentication;
 
             public string Identity { get; }
 

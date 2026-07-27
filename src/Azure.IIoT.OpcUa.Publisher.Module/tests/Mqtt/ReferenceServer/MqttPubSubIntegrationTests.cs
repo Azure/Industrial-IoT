@@ -50,6 +50,33 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             Assert.EndsWith("/metadatamessage", metadata.Value.Topic, StringComparison.Ordinal);
         }
 
+        [Fact(Skip = "Native egress requires the Schema capability whenever the " +
+            "writer group carries a schema, but transports declare Schema only when a " +
+            "schema message topic is configured. Enable once that mismatch is resolved.")]
+        public async Task NativePubSubRuntimePublishesDataItemsToMqttBrokerAsync()
+        {
+            //
+            // Preview path: the same scenario routed through the native OPC UA
+            // PubSub runtime instead of the custom encoder sink. MQTT is used
+            // because the native egress requires a transport that declares
+            // quality of service and schema capabilities.
+            //
+            // Act
+            var (_, messages) = await ProcessMessagesAndMetadataAsync(
+                nameof(NativePubSubRuntimePublishesDataItemsToMqttBrokerAsync),
+                "./Resources/DataItems.json", messageType: "ua-data",
+                arguments: ["--mm=PubSub", "--dm=False", "--ps=False", "--unp=True"],
+                version: MqttVersion.v5);
+
+            // Assert
+            var message = Assert.Single(messages);
+            var output = message.Message.GetProperty("Messages")[0]
+                .GetProperty("Payload").GetProperty("Output");
+            Assert.NotEqual(JsonValueKind.Null, output.ValueKind);
+            Assert.InRange(output.GetProperty("Value").GetDouble(),
+                double.MinValue, double.MaxValue);
+        }
+
         [Fact]
         public async Task CanSendDataItemButNotMetaDataWhenMetaDataIsDisabledTestAsync()
         {

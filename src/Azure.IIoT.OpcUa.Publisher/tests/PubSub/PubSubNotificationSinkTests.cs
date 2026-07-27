@@ -155,6 +155,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             Assert.Equal(0, sink.Dropped);
         }
 
+        [Fact]
+        public void SupportsSynchronousDisposalFromAContainerScope()
+        {
+            //
+            // Writer group scopes are disposed synchronously; an async-only
+            // disposable makes the container throw when the scope is torn down.
+            //
+            var buffer = new ManagedPubSubNotificationBuffer(4);
+            var sink = new PubSubNotificationSink(buffer,
+                NullLogger<PubSubNotificationSink>.Instance);
+
+            sink.Dispose();
+            sink.Dispose();
+        }
+
+        [Fact]
+        public async Task SupportsAsynchronousDisposalAsync()
+        {
+            var buffer = new ManagedPubSubNotificationBuffer(4);
+            var sink = new PubSubNotificationSink(buffer,
+                NullLogger<PubSubNotificationSink>.Instance);
+
+            await sink.DisposeAsync();
+            await sink.DisposeAsync();
+        }
+
         private static async Task<DataSetField> ReadFieldAsync(
             ManagedPubSubDataSetSource source, DataSetMetaDataType metadata)
         {

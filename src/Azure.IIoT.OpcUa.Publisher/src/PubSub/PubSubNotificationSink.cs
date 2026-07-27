@@ -27,7 +27,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     /// encoder sink queues work, so a slow transport never blocks a
     /// subscription callback.
     /// </remarks>
-    public sealed class PubSubNotificationSink : IMessageSink, IAsyncDisposable
+    public sealed class PubSubNotificationSink : IMessageSink, IDisposable, IAsyncDisposable
     {
         /// <summary>
         /// Create the sink.
@@ -77,18 +77,52 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         public long Dropped => Interlocked.Read(ref _dropped);
 
         /// <inheritdoc/>
-        public async ValueTask DisposeAsync()
+        public void Dispose()
         {
-            _queue.Writer.TryComplete();
-            await _stop.CancelAsync().ConfigureAwait(false);
+            //
+            // Writer group scopes are disposed synchronously, so the sink must
+            // support both disposal styles or the container throws.
+            //
+            if (!BeginDispose())
+            {
+                return;
+            }
             try
             {
-                await _pump.ConfigureAwait(false);
+                _pump.Wait(kDisposeTimeout);
             }
-            catch (OperationCanceledException)
+            catch (AggregateException)
             {
             }
             _stop.Dispose();
+        }
+
+        /// <inheritdoc/>
+        public async ValueTask DisposeAsync()
+        {
+            if (!BeginDispose())
+            {
+                return;
+            }
+            try
+            {
+                await _pump.WaitAsync(kDisposeTimeout).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)
+            {
+            }
+            _stop.Dispose();
+        }
+
+        private bool BeginDispose()
+        {
+            if (Interlocked.Exchange(ref _disposed, 1) != 0)
+            {
+                return false;
+            }
+            _queue.Writer.TryComplete();
+            _stop.Cancel();
+            return true;
         }
 
         /// <summary>
@@ -203,6 +237,9 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         private readonly CancellationTokenSource _stop = new();
         private readonly Task _pump;
         private long _dropped;
+        private int _disposed;
+
+        private static readonly TimeSpan kDisposeTimeout = TimeSpan.FromSeconds(5);
     }
 
     /// <summary>

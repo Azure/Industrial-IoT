@@ -96,9 +96,20 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             {
                 var capabilities = EventClientCapabilities.Payload
                     | EventClientCapabilities.Topic
-                    | EventClientCapabilities.QualityOfService
-                    | EventClientCapabilities.Retain
                     | EventClientCapabilities.ContentType;
+                if (QualityOfService != QoS.AtMostOnce)
+                {
+                    //
+                    // At most once is fire and forget, which every transport
+                    // honours. Only a stronger delivery guarantee needs the
+                    // client to actually implement quality of service.
+                    //
+                    capabilities |= EventClientCapabilities.QualityOfService;
+                }
+                if (Retain)
+                {
+                    capabilities |= EventClientCapabilities.Retain;
+                }
                 if (!string.IsNullOrEmpty(ContentEncoding))
                 {
                     capabilities |= EventClientCapabilities.ContentEncoding;
