@@ -56,8 +56,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     }
 
     /// <summary>
-    /// Registers the isolated shadow PubSub host. Publisher does not call
-    /// this extension in production; it is currently activated by tests only.
+    /// Registers the isolated shadow PubSub host. Production enables it only
+    /// when the preview native PubSub option is explicitly set.
     /// </summary>
     public static class PubSubShadowServiceCollectionEx
     {
@@ -121,8 +121,9 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         }
 
         /// <summary>
-        /// Registers the event-client transport only for an explicit test
-        /// composition. No Publisher configuration path invokes this method.
+        /// Registers the event-client transport for an explicit composition.
+        /// The current native preview supports a single application-wide event
+        /// client; writer-specific transport configuration is not represented.
         /// </summary>
         internal static IServiceCollection AddPubSubShadowEgressHost(
             this IServiceCollection services, IEventClient eventClient,
@@ -134,12 +135,39 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 descriptor.ServiceType == typeof(PubSubShadowEgressRegistration)))
             {
                 throw new InvalidOperationException(
-                    "The test-only PubSub shadow egress transport is already registered.");
+                    "The PubSub shadow egress transport is already registered.");
             }
             var options = new PubSubShadowEgressOptions();
             configure?.Invoke(options);
             services.AddPubSubShadowHost();
             services.AddSingleton(new PubSubShadowEgressRegistration(eventClient, options));
+            return services;
+        }
+
+        /// <summary>
+        /// Registers the event-client transport for an explicit composition.
+        /// </summary>
+        /// <param name="services">Service collection.</param>
+        /// <param name="eventClientFactory">Application-wide event client factory.</param>
+        /// <param name="configure">Optional egress option configuration.</param>
+        /// <returns>The original service collection.</returns>
+        internal static IServiceCollection AddPubSubShadowEgressHost(
+            this IServiceCollection services, Func<IServiceProvider, IEventClient> eventClientFactory,
+            Action<PubSubShadowEgressOptions>? configure = null)
+        {
+            ArgumentNullException.ThrowIfNull(services);
+            ArgumentNullException.ThrowIfNull(eventClientFactory);
+            if (services.Any(descriptor =>
+                descriptor.ServiceType == typeof(PubSubShadowEgressRegistration)))
+            {
+                throw new InvalidOperationException(
+                    "The PubSub shadow egress transport is already registered.");
+            }
+            var options = new PubSubShadowEgressOptions();
+            configure?.Invoke(options);
+            services.AddPubSubShadowHost();
+            services.AddSingleton(provider => new PubSubShadowEgressRegistration(
+                eventClientFactory(provider), options));
             return services;
         }
     }

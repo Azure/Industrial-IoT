@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 {
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Publisher.PubSub;
     using Azure.IIoT.OpcUa.Core.Exceptions;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
@@ -53,16 +54,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="options"></param>
         /// <param name="logger"></param>
         /// <param name="timeProvider"></param>
+        /// <param name="pubSubShadowHost"></param>
         /// <exception cref="ArgumentNullException"></exception>
         public PublisherService(IWriterGroupScopeFactory factory,
             IOptions<PublisherOptions> options, ILogger<PublisherService> logger,
-            TimeProvider? timeProvider = null)
+            TimeProvider? timeProvider = null, IPubSubShadowHost? pubSubShadowHost = null)
         {
             PublisherId = options?.Value.PublisherId ??
                 throw new ArgumentNullException(nameof(options));
             _factory = factory;
             _logger = logger;
             _timeProvider = timeProvider ?? TimeProvider.System;
+            _pubSubShadowHost = pubSubShadowHost;
             LastChange = _timeProvider.GetUtcNow();
             _currentJobs = [];
 
@@ -287,20 +290,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
             if (exceptions.Count == 0)
             {
-                // Update writer groups
-                LastChange = _timeProvider.GetUtcNow();
-                WriterGroups = _currentJobs.Values
+                var writerGroups = _currentJobs.Values
                     .Select(j => j.WriterGroup)
                     .ToImmutableList();
-                // Complete
-                task.TrySetResult();
+                try
+                {
+                    if (_pubSubShadowHost is not null)
+                    {
+                        await _pubSubShadowHost.ReplaceConfigurationAsync(writerGroups, ct)
+                            .ConfigureAwait(false);
+                    }
+
+                    // Update writer groups
+                    LastChange = _timeProvider.GetUtcNow();
+                    WriterGroups = writerGroups;
+                    // Complete
+                    task.TrySetResult();
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    exceptions.Add(ex);
+                    _logger.FailedToUpdatePubSubShadowHost(ex);
+                }
             }
-            else if (exceptions.Count == 1)
+            if (exceptions.Count == 1)
             {
                 // Fail
                 task.TrySetException(exceptions[0]);
             }
-            else
+            else if (exceptions.Count > 1)
             {
                 // Fail
                 task.TrySetException(new AggregateException(
@@ -462,6 +480,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private readonly IWriterGroupScopeFactory _factory;
         private readonly ILogger _logger;
         private readonly TimeProvider _timeProvider;
+        private readonly IPubSubShadowHost? _pubSubShadowHost;
         private readonly Task _processor;
         private readonly ConcurrentDictionary<string, WriterGroupJob> _currentJobs;
         private readonly TaskCompletionSource _completedTask;
@@ -519,5 +538,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         [LoggerMessage(EventId = EventClass + 11, Level = LogLevel.Error,
             Message = "Failed to send key frame for writer group job {Name}.")]
         public static partial void FailedToSendWriterGroupKeyFrame(this ILogger logger, Exception ex, string name);
+
+        [LoggerMessage(EventId = EventClass + 12, Level = LogLevel.Error,
+            Message = "Failed to update native PubSub shadow host configuration.")]
+        public static partial void FailedToUpdatePubSubShadowHost(this ILogger logger, Exception ex);
     }
 }

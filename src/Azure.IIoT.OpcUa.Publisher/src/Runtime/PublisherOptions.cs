@@ -37,6 +37,11 @@ namespace Azure.IIoT.OpcUa.Publisher
         public bool? UseFileChangePolling { get; set; }
 
         /// <summary>
+        /// Use the native OPC UA PubSub runtime for telemetry publishing.
+        /// </summary>
+        public bool? UseNativePubSub { get; set; }
+
+        /// <summary>
         /// Create the configuration file if it does not exist
         /// </summary>
         public bool? CreatePublishFileIfNotExist { get; set; }

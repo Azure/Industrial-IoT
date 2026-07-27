@@ -34,6 +34,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string SiteIdKey = "SiteId";
         public const string PublishedNodesFileKey = "PublishedNodesFile";
         public const string UseFileChangePollingKey = "UseFileChangePolling";
+        public const string UseNativePubSubKey = "UseNativePubSub";
         public const string CreatePublishFileIfNotExistKey = "CreatePublishFileIfNotExist";
         public const string MessagingModeKey = "MessagingMode";
         public const string MessageEncodingKey = "MessageEncoding";
@@ -145,6 +146,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string RuntimeStateRoutingInfoDefault = "runtimeinfo";
         public const bool EnableRuntimeStateReportingDefault = false;
         public const bool UseStandardsCompliantEncodingDefault = false;
+        public const bool UseNativePubSubDefault = false;
         public const bool EnableDataSetRoutingInfoDefault = false;
         public const bool EnableCloudEventsDefault = false;
         public const MessageEncoding MessageEncodingDefault = MessageEncoding.Json;
@@ -172,6 +174,8 @@ namespace Azure.IIoT.OpcUa.Publisher
 
             options.PublishedNodesFile ??= GetStringOrDefault(PublishedNodesFileKey);
             options.UseFileChangePolling ??= GetBoolOrNull(UseFileChangePollingKey);
+            options.UseNativePubSub ??= GetBoolOrDefault(UseNativePubSubKey,
+                UseNativePubSubDefault);
 
             if (options.DefaultTransport == null && Enum.TryParse<WriterGroupTransport>(
                 GetStringOrDefault(DefaultTransportKey), out var transport))
@@ -476,6 +480,7 @@ namespace Azure.IIoT.OpcUa.Publisher
                 SiteId = GetStringOrDefault(nameof(PublisherOptions.SiteId)),
                 PublishedNodesFile = GetStringOrDefault(nameof(PublisherOptions.PublishedNodesFile)),
                 UseFileChangePolling = GetBoolOrNull(nameof(PublisherOptions.UseFileChangePolling)),
+                UseNativePubSub = GetBoolOrNull(nameof(PublisherOptions.UseNativePubSub)),
                 CreatePublishFileIfNotExist = GetBoolOrNull(
                     nameof(PublisherOptions.CreatePublishFileIfNotExist)),
                 RenewTlsCertificateOnStartup = GetBoolOrNull(

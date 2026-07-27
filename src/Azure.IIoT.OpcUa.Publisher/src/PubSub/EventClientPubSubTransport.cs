@@ -25,7 +25,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     using System.Threading.Tasks;
 
     /// <summary>
-    /// The handling used when the test-only egress queue reaches its bound.
+    /// The handling used when the egress queue reaches its bound.
     /// </summary>
     internal enum PubSubShadowEgressOverflowPolicy
     {
@@ -34,8 +34,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     }
 
     /// <summary>
-    /// Test-only egress transport options. This is deliberately not bound to
-    /// Publisher configuration: production continues to use NetworkMessageSink.
+    /// Egress transport options. This is deliberately not bound to Publisher
+    /// configuration; production uses it only when native PubSub preview is enabled.
     /// </summary>
     internal sealed class PubSubShadowEgressOptions
     {
@@ -334,9 +334,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     }
 
     /// <summary>
-    /// Explicit test registration for event-client egress. Keeping this
-    /// registration separate from PublisherOptions prevents an accidental
-    /// production cutover through application configuration.
+    /// Explicit registration for event-client egress.
     /// </summary>
     internal sealed class PubSubShadowEgressRegistration : IAsyncDisposable
     {

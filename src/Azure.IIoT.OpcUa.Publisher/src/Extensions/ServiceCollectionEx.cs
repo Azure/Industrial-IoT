@@ -10,15 +10,19 @@ namespace Azure.IIoT.OpcUa.Publisher
     using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Publisher.Stack;
     using Azure.IIoT.OpcUa.Publisher.Storage;
+    using Azure.IIoT.OpcUa.Publisher.PubSub;
     using Azure.IIoT.OpcUa.Core;
     using Azure.IIoT.OpcUa.Core.IoTEdge;
     using Azure.IIoT.OpcUa.Core.Messaging;
+    using Azure.IIoT.OpcUa.Core.Messaging.Clients;
+    using Microsoft.Extensions.Configuration;
     using Azure.IIoT.OpcUa.Core.Storage;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
+    using System.Linq;
 
     /// <summary>
     /// Service collection extensions
@@ -123,7 +127,15 @@ namespace Azure.IIoT.OpcUa.Publisher
             services.AddTransient<IDiscoveryProgress>(
                 static sp => sp.GetRequiredService<ProgressPublisher>());
 
-            services.AddWriterGroupProcessing();
+            var useNativePubSub = IsNativePubSubEnabled(services);
+            if (useNativePubSub)
+            {
+                services.AddPubSubShadowHost();
+                services.AddPubSubShadowEgressHost(
+                    static sp => ResolveNativePubSubEventClient(sp));
+            }
+
+            services.AddWriterGroupProcessing(useNativePubSub);
             return services;
         }
 
@@ -137,7 +149,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// </summary>
         /// <param name="services"></param>
         private static IServiceCollection AddWriterGroupProcessing(
-            this IServiceCollection services)
+            this IServiceCollection services, bool useNativePubSub)
         {
             services.AddScoped<WriterGroupScopeContext>();
 
@@ -151,20 +163,29 @@ namespace Azure.IIoT.OpcUa.Publisher
                     sp.GetService<TimeProvider>());
             });
 
-            services.AddScoped<IMessageSink>(sp =>
+            if (useNativePubSub)
             {
-                var context = sp.GetRequiredService<WriterGroupScopeContext>();
-                return new NetworkMessageSink(
-                    context.WriterGroup,
-                    sp.GetServices<IEventClient>(),
-                    sp.GetServices<IEventClientFactory>(),
-                    sp.GetRequiredService<IMessageEncoder>(),
-                    sp.GetRequiredService<IOptions<PublisherOptions>>(),
-                    sp.GetRequiredService<ILogger<NetworkMessageSink>>(),
-                    context,
-                    context,
-                    sp.GetService<TimeProvider>());
-            });
+                services.AddScoped<IMessageSink>(static sp => new PubSubNotificationSink(
+                    sp.GetRequiredService<IManagedPubSubNotificationBuffer>(),
+                    sp.GetRequiredService<ILogger<PubSubNotificationSink>>()));
+            }
+            else
+            {
+                services.AddScoped<IMessageSink>(sp =>
+                {
+                    var context = sp.GetRequiredService<WriterGroupScopeContext>();
+                    return new NetworkMessageSink(
+                        context.WriterGroup,
+                        sp.GetServices<IEventClient>(),
+                        sp.GetServices<IEventClientFactory>(),
+                        sp.GetRequiredService<IMessageEncoder>(),
+                        sp.GetRequiredService<IOptions<PublisherOptions>>(),
+                        sp.GetRequiredService<ILogger<NetworkMessageSink>>(),
+                        context,
+                        context,
+                        sp.GetService<TimeProvider>());
+                });
+            }
 
             services.AddScoped<IWriterGroupControl>(sp =>
             {
@@ -179,6 +200,61 @@ namespace Azure.IIoT.OpcUa.Publisher
                     sp.GetService<TimeProvider>());
             });
             return services;
+        }
+
+        private static bool IsNativePubSubEnabled(IServiceCollection services)
+        {
+            foreach (var descriptor in services)
+            {
+                if (descriptor.ServiceType == typeof(IConfiguration) &&
+                    descriptor.ImplementationInstance is IConfiguration configuration &&
+                    IsTrue(configuration[PublisherConfig.UseNativePubSubKey]))
+                {
+                    return true;
+                }
+                if (descriptor.ServiceType == typeof(IConfigurationRoot) &&
+                    descriptor.ImplementationInstance is IConfiguration configurationRoot &&
+                    IsTrue(configurationRoot[PublisherConfig.UseNativePubSubKey]))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private static bool IsTrue(string? value)
+        {
+            //
+            // Must accept the same aliases as ConfigureOptionBase.GetBoolOrNull,
+            // otherwise a value such as "1" would enable the option in
+            // PublisherOptions while leaving the services unregistered, and the
+            // flag would be silently ignored.
+            //
+            return value != null && value.ToUpperInvariant() switch
+            {
+                "TRUE" or "YES" or "Y" or "1" => true,
+                _ => false
+            };
+        }
+
+        private static IEventClient ResolveNativePubSubEventClient(IServiceProvider services)
+        {
+            var eventClients = services.GetServices<IEventClient>().Reverse().ToList();
+            if (eventClients.Count == 0)
+            {
+                throw new InvalidOperationException("No transports registered.");
+            }
+
+            // Preview limitation: native PubSub egress accepts a single application-wide
+            // event client, so writer-specific transport overrides are not applied here.
+            using var transport = new NetworkMessageSink.TransportOptions(
+                new WriterGroupModel { Id = "native-pubsub-preview" },
+                eventClients,
+                services.GetServices<IEventClientFactory>()
+                    .ToDictionary(f => f.Name, StringComparer.OrdinalIgnoreCase),
+                services.GetRequiredService<IOptions<PublisherOptions>>(),
+                services.GetRequiredService<ILogger<NetworkMessageSink>>());
+            return transport.EventClient;
         }
     }
 }
