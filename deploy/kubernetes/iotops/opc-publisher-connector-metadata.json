@@ -1071,7 +1071,7 @@
         },
         {
             "key": "RemoveDuplicatesFromBatch",
-            "description": "Use this option to remove values with the same node id from batch messages in legacy `Samples` mode. Sends only the latest value as per the value's source timestamp.\nOnly applies to `Samples` mode, otherwise this setting is ignored.\nDefault: `false` (keep all duplicate values).\n"
+            "description": "Removed in 3.0. This only ever applied to the `Samples` mode, which no longer exists, so the option is accepted and ignored so existing configurations keep working.\nDeprecated, it is scheduled for removal.\n"
         },
         {
             "key": "MessageTimestamp",

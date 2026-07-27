@@ -253,7 +253,6 @@ namespace Azure.IIoT.OpcUa.Publisher
 
             options.WriteValueWhenDataSetHasSingleEntry
                 ??= GetBoolOrNull(WriteValueWhenDataSetHasSingleEntryKey);
-            options.RemoveDuplicatesFromBatch ??= GetBoolOrNull(RemoveDuplicatesFromBatchKey);
 
             options.MaxNetworkMessageSendQueueSize ??= GetIntOrDefault(MaxNetworkMessageSendQueueSizeKey,
                     MaxNetworkMessageSendQueueSizeDefault);
@@ -489,8 +488,6 @@ namespace Azure.IIoT.OpcUa.Publisher
                 BatchSize = GetIntOrNull(nameof(PublisherOptions.BatchSize)),
                 BatchTriggerInterval = GetDurationOrNull(
                     nameof(PublisherOptions.BatchTriggerInterval)),
-                RemoveDuplicatesFromBatch = GetBoolOrNull(
-                    nameof(PublisherOptions.RemoveDuplicatesFromBatch)),
                 MaxNetworkMessageSize = GetIntOrNull(
                     nameof(PublisherOptions.MaxNetworkMessageSize)),
                 DiagnosticsInterval = GetDurationOrNull(

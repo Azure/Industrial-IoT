@@ -180,12 +180,11 @@ Messaging configuration
                                soon as notifications arrive.
                                Default: `50`.
       --rdb, --removedupsinbatch, --RemoveDuplicatesFromBatch[=VALUE]
-                             Use this option to remove values with the same
-                               node id from batch messages. This applied only
-                               to the `Samples` mode that was removed in 3.0,
-                               so the option no longer has an effect.
+                             Removed in 3.0. This only ever applied to the
+                               `Samples` mode, which no longer exists, so the
+                               option is accepted and ignored so existing
+                               command lines keep working.
                                Deprecated, it is scheduled for removal.
-                               Default: `false` (keep all duplicate values).
       --ms, --maxmessagesize, --iothubmessagesize, --IoTHubMaxMessageSize=VALUE
                              The maximum size of the messages to emit. In case
                                the encoder cannot encode a message because the
