@@ -132,7 +132,20 @@ namespace Azure.IIoT.OpcUa.Publisher
             {
                 services.AddPubSubShadowHost();
                 services.AddPubSubShadowEgressHost(
-                    static sp => ResolveNativePubSubEventClient(sp));
+                    static sp => ResolveNativePubSubEventClient(sp),
+                    static (sp, options) =>
+                    {
+                        //
+                        // PublishMessageSchema gates whether schema options are
+                        // bound at all, so their presence is the signal that the
+                        // user asked for schemas. Attaching one unconditionally
+                        // would demand the Schema capability from every
+                        // transport, which most cannot declare.
+                        //
+                        options.IncludeSchema = sp
+                            .GetRequiredService<IOptions<PublisherOptions>>()
+                            .Value.SchemaOptions is not null;
+                    });
             }
 
             services.AddWriterGroupProcessing(useNativePubSub);

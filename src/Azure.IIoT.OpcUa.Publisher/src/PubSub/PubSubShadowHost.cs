@@ -153,7 +153,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         /// <returns>The original service collection.</returns>
         internal static IServiceCollection AddPubSubShadowEgressHost(
             this IServiceCollection services, Func<IServiceProvider, IEventClient> eventClientFactory,
-            Action<PubSubShadowEgressOptions>? configure = null)
+            Action<IServiceProvider, PubSubShadowEgressOptions>? configure = null)
         {
             ArgumentNullException.ThrowIfNull(services);
             ArgumentNullException.ThrowIfNull(eventClientFactory);
@@ -163,11 +163,19 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 throw new InvalidOperationException(
                     "The PubSub shadow egress transport is already registered.");
             }
-            var options = new PubSubShadowEgressOptions();
-            configure?.Invoke(options);
             services.AddPubSubShadowHost();
-            services.AddSingleton(provider => new PubSubShadowEgressRegistration(
-                eventClientFactory(provider), options));
+            services.AddSingleton(provider =>
+            {
+                //
+                // The options are built inside the factory so they can be
+                // derived from configuration that is only bound once the
+                // provider exists.
+                //
+                var options = new PubSubShadowEgressOptions();
+                configure?.Invoke(provider, options);
+                return new PubSubShadowEgressRegistration(
+                    eventClientFactory(provider), options);
+            });
             return services;
         }
     }
@@ -723,6 +731,33 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             return _writerGroupEncodings.TryGetValue(writerGroupId, out encoding);
         }
 
+        /// <summary>
+        /// Gets the single encoding in use, when every writer group in this
+        /// generation shares one. A JSON network message only carries a writer
+        /// group identity when the content mask asks for it, so an unambiguous
+        /// generation must still resolve.
+        /// </summary>
+        /// <param name="encoding"></param>
+        internal bool TryGetUnambiguousEncoding(out PubSubShadowEncoding encoding)
+        {
+            encoding = default;
+            var first = true;
+            foreach (var candidate in _writerGroupEncodings.Values)
+            {
+                if (first)
+                {
+                    encoding = candidate;
+                    first = false;
+                    continue;
+                }
+                if (candidate != encoding)
+                {
+                    return false;
+                }
+            }
+            return !first;
+        }
+
         internal PubSubShadowEncodingRegistrySnapshot Clone()
         {
             var copy = new PubSubShadowEncodingRegistrySnapshot();
@@ -772,8 +807,21 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         {
             if (writerGroupId is not { } id)
             {
+                //
+                // The message only carries a writer group identity when the
+                // configured content mask includes it, which the standard
+                // PubSub profile does not. Fall back to the generation's
+                // encoding when it is unambiguous.
+                //
+                if (_snapshot.TryGetUnambiguousEncoding(out var single))
+                {
+                    return new PubSubShadowEncodingMarker(this, single);
+                }
                 throw new InvalidOperationException(
-                    "The JSON NetworkMessage does not carry a writer group identity.");
+                    "The JSON NetworkMessage does not carry a writer group identity " +
+                    "and this configuration uses more than one encoding, so the " +
+                    "encoding cannot be resolved. Include WriterGroupId in the " +
+                    "network message content mask.");
             }
             if (_snapshot.TryGetWriterGroupEncoding(id, out var encoding))
             {

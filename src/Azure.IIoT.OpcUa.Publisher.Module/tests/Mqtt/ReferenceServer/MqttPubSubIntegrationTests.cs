@@ -50,9 +50,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             Assert.EndsWith("/metadatamessage", metadata.Value.Topic, StringComparison.Ordinal);
         }
 
-        [Fact(Skip = "Native egress requires the Schema capability whenever the " +
-            "writer group carries a schema, but transports declare Schema only when a " +
-            "schema message topic is configured. Enable once that mismatch is resolved.")]
+        [Fact(Skip = "The shadow host still creates native connections and writer " +
+            "groups disabled, because it was built as an inert shadow; only the " +
+            "test-only keyframe control enables them. Production activation must " +
+            "enable them so they publish on their configured interval.")]
         public async Task NativePubSubRuntimePublishesDataItemsToMqttBrokerAsync()
         {
             //
