@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.PubSub
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Publisher.Stack;
     using Microsoft.Extensions.Options;
     using Opc.Ua;
     using Opc.Ua.PubSub.DataSets;
@@ -18,6 +19,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
+    using UaDataSetFieldContentMask = Opc.Ua.DataSetFieldContentMask;
 
     /// <summary>
     /// Managed source notification kind.
@@ -515,13 +517,15 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     {
         public ManagedPubSubDataSetSource(string dataSetName,
             IManagedPubSubDataSource source, int capacity = 1024,
-            IManagedPubSubDataPublicationObserver? observer = null)
+            IManagedPubSubDataPublicationObserver? observer = null,
+            PubSubFieldEncoding fieldEncoding = PubSubFieldEncoding.DataValue)
         {
             _dataSetName = string.IsNullOrWhiteSpace(dataSetName)
                 ? throw new ArgumentException("A dataset name is required.", nameof(dataSetName))
                 : dataSetName;
             _source = source ?? throw new ArgumentNullException(nameof(source));
             _observer = observer;
+            _fieldEncoding = fieldEncoding;
             if (capacity <= 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(capacity));
@@ -608,7 +612,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                             Name = notification.FieldName,
                             Value = notification.Value.WrappedValue,
                             StatusCode = notification.Value.StatusCode,
-                            SourceTimestamp = DateTimeUtc.From(notification.Timestamp)
+                            SourceTimestamp = DateTimeUtc.From(notification.Timestamp),
+                            Encoding = _fieldEncoding
                         }
                     ],
                     DateTimeUtc.From(notification.Timestamp)));
@@ -744,7 +749,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                         : notification.Value.StatusCode,
                     SourceTimestamp = notification is null
                         ? default
-                        : DateTimeUtc.From(notification.Timestamp)
+                        : DateTimeUtc.From(notification.Timestamp),
+                    Encoding = _fieldEncoding
                 });
             }
             return [.. fields];
@@ -762,6 +768,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         private readonly string _dataSetName;
         private readonly IManagedPubSubDataSource _source;
         private readonly IManagedPubSubDataPublicationObserver? _observer;
+        private readonly PubSubFieldEncoding _fieldEncoding;
         private Task? _pump;
         private int _keyFrameRequested;
         private int _pendingCount;
@@ -865,7 +872,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 {
                     continue;
                 }
-                var source = new ManagedPubSubDataSetSource(name, managedSource, _capacity);
+                var source = new ManagedPubSubDataSetSource(name, managedSource, _capacity,
+                    fieldEncoding: ResolveFieldEncoding(dataSet.Writer.DataSetFieldContentMask));
                 replacement.Add(name, source);
                 created.Add(source);
                 createdNames.Add(name);
@@ -983,6 +991,27 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             return writer.DataSet?.Name
                 ?? writer.DataSet?.DataSetMetaData?.Name
                 ?? $"{group.Id}:{writer.Id}";
+        }
+
+        /// <summary>
+        /// Selects how a field is written on the wire. The native encoders take
+        /// this from the field rather than the writer, so a source that leaves it
+        /// unset silently emits bare variants and drops the status code and
+        /// source timestamp the writer's content mask asked for.
+        /// </summary>
+        /// <param name="mask">Configured field content mask.</param>
+        /// <returns>The field encoding to stamp on produced fields.</returns>
+        internal static PubSubFieldEncoding ResolveFieldEncoding(
+            DataSetFieldContentFlags? mask)
+        {
+            var resolved = mask.ToStackType();
+            if ((resolved & UaDataSetFieldContentMask.RawData) != 0)
+            {
+                return PubSubFieldEncoding.RawData;
+            }
+            return resolved == UaDataSetFieldContentMask.None
+                ? PubSubFieldEncoding.Variant
+                : PubSubFieldEncoding.DataValue;
         }
 
         private readonly Lock _gate = new();

@@ -50,12 +50,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             Assert.EndsWith("/metadatamessage", metadata.Value.Topic, StringComparison.Ordinal);
         }
 
-        [Fact(Skip = "Instrumented run proved the bridge works: the sink and the " +
-            "registry agree on the dataset name, notifications flow, and the native " +
-            "runtime samples the source. Nothing reaches the subscriber, so the " +
-            "remaining suspects are the egress topic and the writer group publishing " +
-            "interval, which sampled about every ten seconds rather than the " +
-            "configured 200ms while the pending queue grew unbounded.")]
+        [Fact]
         public async Task NativePubSubRuntimePublishesDataItemsToMqttBrokerAsync()
         {
             //
@@ -67,15 +62,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             // Act
             var (_, messages) = await ProcessMessagesAndMetadataAsync(
                 nameof(NativePubSubRuntimePublishesDataItemsToMqttBrokerAsync),
-                "./Resources/DataItems.json", messageType: "ua-data",
+                "./Resources/DataItems.json", TimeSpan.FromMinutes(2), 20,
+                messageType: "ua-data",
                 arguments: ["--mm=PubSub", "--dm=False", "--ps=False", "--unp=True"],
                 version: MqttVersion.v5);
 
             // Assert
-            var message = Assert.Single(messages);
-            var output = message.Message.GetProperty("Messages")[0]
-                .GetProperty("Payload").GetProperty("Output");
-            Assert.NotEqual(JsonValueKind.Null, output.ValueKind);
+            Assert.NotEmpty(messages);
+            //
+            // The runtime emits an initial key frame before any value has been
+            // observed, so the first message carries an empty payload.
+            //
+            var output = messages
+                .Select(message => message.Message.GetProperty("Messages")[0]
+                    .GetProperty("Payload"))
+                .Where(payload => payload.TryGetProperty("Output", out _))
+                .Select(payload => payload.GetProperty("Output"))
+                .FirstOrDefault();
+
+            Assert.NotEqual(JsonValueKind.Undefined, output.ValueKind);
             Assert.InRange(output.GetProperty("Value").GetDouble(),
                 double.MinValue, double.MaxValue);
         }

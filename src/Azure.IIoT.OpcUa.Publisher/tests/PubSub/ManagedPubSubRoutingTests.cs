@@ -43,6 +43,50 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             await AssertRoutesAsync(dataSetName: "named");
         }
 
+        [Fact]
+        public async Task StampsTheFieldEncodingTheContentMaskAsksForAsync()
+        {
+            //
+            // The native encoders take the wire shape from the field, not from
+            // the writer. A source that leaves it unset emits a bare variant and
+            // silently drops the status code and source timestamp the writer's
+            // content mask asked for.
+            //
+            foreach (var (mask, expected) in new (DataSetFieldContentFlags?, PubSubFieldEncoding)[]
+            {
+                (null, PubSubFieldEncoding.DataValue),
+                (DataSetFieldContentFlags.StatusCode, PubSubFieldEncoding.DataValue),
+                (DataSetFieldContentFlags.SourceTimestamp, PubSubFieldEncoding.DataValue),
+                (DataSetFieldContentFlags.RawData, PubSubFieldEncoding.RawData),
+                (DataSetFieldContentFlags.RawData | DataSetFieldContentFlags.StatusCode,
+                    PubSubFieldEncoding.RawData),
+                ((DataSetFieldContentFlags)0, PubSubFieldEncoding.Variant)
+            })
+            {
+                var writerGroup = CreateWriterGroup("named");
+                writerGroup.DataSetWriters![0].DataSetFieldContentMask = mask;
+                var buffer = new ManagedPubSubNotificationBuffer(16);
+                await using var provider = new ManagedPubSubNotificationDataSourceProvider(buffer);
+                await using var registry = new ManagedPubSubDataSetSourceRegistry([provider]);
+
+                await using (var transaction = await registry.PrepareAsync([writerGroup]))
+                {
+                    transaction.Install();
+                    await transaction.CommitAsync();
+                }
+
+                Assert.True(registry.TryGetSource("named", out var published));
+                var source = Assert.IsType<ManagedPubSubDataSetSource>(published);
+
+                await using var sink = new PubSubNotificationSink(buffer,
+                    NullLogger<PubSubNotificationSink>.Instance);
+                sink.OnMessage(CreateNotification(writerGroup));
+
+                var field = await ReadFieldAsync(source, source.BuildMetaData());
+                Assert.Equal(expected, field.Encoding);
+            }
+        }
+
         private static async Task AssertRoutesAsync(string? dataSetName)
         {
             var writerGroup = CreateWriterGroup(dataSetName);

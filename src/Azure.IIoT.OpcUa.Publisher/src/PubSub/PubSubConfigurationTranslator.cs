@@ -25,8 +25,9 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
 
         public PubSubConfigurationTranslator(IOptions<PublisherOptions>? options = null)
         {
-            _defaultPublishingInterval = NormalizePublishingInterval(
+            _defaultPublishingInterval = ResolvePublishingInterval(
                 options?.Value.BatchTriggerInterval);
+            _publisherId = options?.Value.PublisherId;
         }
 
         public PubSubConfigurationDataType Translate(
@@ -103,8 +104,9 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 Name = source.Name ?? source.Id,
                 WriterGroupId = identities.GetOrAllocate("writer-group", source.Id),
                 Enabled = Activate,
-                PublishingInterval = NormalizePublishingInterval(source.PublishingInterval
-                    ?? _defaultPublishingInterval).TotalMilliseconds,
+                PublishingInterval = (source.PublishingInterval is { } configured
+                    ? ResolvePublishingInterval(configured)
+                    : _defaultPublishingInterval).TotalMilliseconds,
                 KeepAliveTime = source.KeepAliveTime?.TotalMilliseconds ?? 0,
                 MaxNetworkMessageSize = source.MaxNetworkMessageSize ?? 1500,
                 SecurityMode = MessageSecurityMode.None,
@@ -119,7 +121,14 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             {
                 Name = "shadow-" + source.Id,
                 Enabled = Activate,
-                PublisherId = new Variant(source.PublisherId ?? source.Id),
+                //
+                // The publisher identity carried on the wire must match the one
+                // the writer path publishes, which falls back to the configured
+                // publisher id and only then to a well-known placeholder. Falling
+                // back to the writer group id would emit its hash instead.
+                //
+                PublisherId = new Variant(source.PublisherId ?? _publisherId
+                    ?? Constants.DefaultPublisherId),
                 TransportProfileUri = GetTransportProfile(encoding),
                 Address = new ExtensionObject(new NetworkAddressUrlDataType
                 {
@@ -291,15 +300,38 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             };
         }
 
-        private static TimeSpan NormalizePublishingInterval(TimeSpan? interval)
+        private static TimeSpan ResolvePublishingInterval(TimeSpan? interval)
         {
-            if (interval is { } value && value > TimeSpan.Zero)
+            if (interval is not { } value)
             {
-                return value;
+                //
+                // Not configured at all, so keep the historical batching cadence.
+                //
+                return TimeSpan.FromMilliseconds(
+                    PublisherConfig.BatchTriggerIntervalLLegacyDefaultMillis);
             }
-            return TimeSpan.FromMilliseconds(PublisherConfig.BatchTriggerIntervalLLegacyDefaultMillis);
+            //
+            // Configured as zero means publish as soon as data is available.
+            // Publisher sets it to zero whenever a transport is configured, so
+            // substituting the legacy default here would silently batch every
+            // message for ten seconds. The native runtime rejects an interval of
+            // zero outright, so immediate publishing is expressed as the
+            // smallest practical positive interval instead.
+            //
+            return value > TimeSpan.Zero ? value : ImmediatePublishingInterval;
         }
 
+        /// <summary>
+        /// Interval used to express immediate publishing. The native runtime
+        /// publishes on a timer and rejects an interval of zero, so immediate
+        /// becomes a short interval. It is not made shorter than this because
+        /// the timer fires whether or not data is pending, and a very small
+        /// value floods the broker with empty network messages.
+        /// </summary>
+        internal static readonly TimeSpan ImmediatePublishingInterval =
+            TimeSpan.FromMilliseconds(100);
+
         private readonly TimeSpan _defaultPublishingInterval;
+        private readonly string? _publisherId;
     }
 }

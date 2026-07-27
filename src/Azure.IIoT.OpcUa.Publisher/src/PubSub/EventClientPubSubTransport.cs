@@ -234,6 +234,37 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 $"No event-client egress settings were committed for connection '{name}'.");
         }
 
+        /// <summary>
+        /// Resolve the topic the writer group publishes to. An explicitly
+        /// configured queue name wins, otherwise the Publisher topic templates
+        /// are applied exactly as the writer path applies them, so the native
+        /// runtime publishes where consumers already listen.
+        /// </summary>
+        /// <param name="writerGroup"></param>
+        /// <param name="publisherOptions"></param>
+        /// <param name="queueName"></param>
+        /// <param name="publisherId"></param>
+        private static string ResolveTelemetryTopic(WriterGroupModel writerGroup,
+            PublisherOptions publisherOptions, string? queueName, string publisherId)
+        {
+            if (!string.IsNullOrWhiteSpace(queueName))
+            {
+                return queueName;
+            }
+            var writerGroupName = TopicFilter.Escape(writerGroup.Name
+                ?? Constants.DefaultWriterGroupName);
+            var builder = new TopicBuilder(publisherOptions, writerGroup.MessageType,
+                new TopicTemplatesOptions(),
+                new Dictionary<string, string>
+                {
+                    [PublisherConfig.PublisherIdKey] = TopicFilter.Escape(publisherId),
+                    [PublisherConfig.WriterGroupIdVariableName] = writerGroup.Id,
+                    [PublisherConfig.DataSetWriterGroupVariableName] = writerGroupName,
+                    [PublisherConfig.WriterGroupVariableName] = writerGroupName
+                });
+            return builder.TelemetryTopic;
+        }
+
         private static PubSubShadowEgressSettings CreateSettings(WriterGroupModel writerGroup,
             PublisherOptions publisherOptions, PubSubShadowEgressOptions options)
         {
@@ -267,11 +298,10 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
 
             var encoding = PubSubConfigurationTranslator.GetShadowEncoding(writerGroup.MessageType);
             var isJson = encoding != PubSubShadowEncoding.Uadp;
-            var topic = queue?.QueueName;
-            if (string.IsNullOrWhiteSpace(topic))
-            {
-                topic = "shadow/" + writerGroup.Id;
-            }
+            var publisherId = writerGroup.PublisherId ?? publisherOptions.PublisherId
+                ?? Constants.DefaultPublisherId;
+            var topic = ResolveTelemetryTopic(writerGroup, publisherOptions,
+                queue?.QueueName, publisherId);
             var properties = new Dictionary<string, string?>(StringComparer.Ordinal)
             {
                 ["writerGroupId"] = writerGroup.Id,
@@ -285,8 +315,6 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 }
             }
 
-            var publisherId = writerGroup.PublisherId ?? publisherOptions.PublisherId
-                ?? "publisher";
             var schema = options.IncludeSchema
                 ? new PubSubShadowEventSchema(writerGroup.Id, encoding)
                 : null;

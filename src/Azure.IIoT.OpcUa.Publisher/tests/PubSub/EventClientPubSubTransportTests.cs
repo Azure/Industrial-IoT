@@ -1148,10 +1148,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             await hosted.StopAsync(default);
 
             var published = client.Events.Skip(priorEvents).ToList();
-            Assert.True(published.Any(captured => captured.Topic == "shadow/group"),
-                string.Join(", ", published.Select(captured =>
-                    captured.Topic + ":" + Encoding.UTF8.GetString(captured.Payload))));
-            var publication = published.Single(captured => captured.Topic == "shadow/group");
+            var expectedTopic = ExpectedTelemetryTopic(new PublisherOptions(),
+                CreateManagedWriterGroup(MessageEncoding.JsonGzip));
+            Assert.True(published.Any(captured => captured.Topic == expectedTopic),
+                string.Join(", ", published.Select(captured => captured.Topic)));
+            var publication = published.Single(captured => captured.Topic == expectedTopic);
             Assert.Equal("gzip", publication.ContentEncoding);
             var decoded = Decompress(publication.Payload);
             Assert.Contains("\"payload\"", Encoding.UTF8.GetString(decoded),
@@ -1245,6 +1246,80 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                     }
                 ]
             };
+        }
+
+        [Fact]
+        public void EgressPublishesToTheSameTopicTheWriterPathComputes()
+        {
+            //
+            // The native runtime must publish where the custom path publishes,
+            // otherwise no consumer receives the telemetry. The custom path
+            // resolves the writer group topic through the Publisher topic
+            // templates, so both must agree for the same configuration.
+            //
+            foreach (var (publisherId, groupPublisherId, groupName) in
+                new (string?, string?, string?)[]
+                {
+                    (null, null, null),
+                    ("publisher", null, null),
+                    ("publisher", null, "the group"),
+                    ("publisher", "group-owned", "the group")
+                })
+            {
+                var options = new PublisherOptions { PublisherId = publisherId };
+                var writerGroup = CreateManagedWriterGroup();
+                writerGroup.PublisherId = groupPublisherId;
+                writerGroup.Name = groupName;
+
+                var registry = new PubSubShadowEgressSettingsRegistry();
+                registry.Replace([writerGroup], options, new PubSubShadowEgressOptions());
+                var settings = Assert.Single(registry.Snapshot().Values);
+
+                var expected = ExpectedTelemetryTopic(options, writerGroup);
+
+                Assert.Equal(expected, settings.Topic);
+                Assert.DoesNotContain("shadow/", settings.Topic, StringComparison.Ordinal);
+            }
+        }
+
+        /// <summary>
+        /// Computes the topic the custom writer path resolves for a writer
+        /// group, so the native egress can be asserted against it rather than
+        /// against a hard-coded literal.
+        /// </summary>
+        /// <param name="options"></param>
+        /// <param name="writerGroup"></param>
+        private static string ExpectedTelemetryTopic(PublisherOptions options,
+            WriterGroupModel writerGroup)
+        {
+            var writerGroupName = TopicFilter.Escape(writerGroup.Name
+                ?? Constants.DefaultWriterGroupName);
+            return new TopicBuilder(options, writerGroup.MessageType,
+                new TopicTemplatesOptions(),
+                new Dictionary<string, string>
+                {
+                    [PublisherConfig.PublisherIdKey] = TopicFilter.Escape(
+                        writerGroup.PublisherId ?? options.PublisherId
+                            ?? Constants.DefaultPublisherId),
+                    [PublisherConfig.WriterGroupIdVariableName] = writerGroup.Id,
+                    [PublisherConfig.DataSetWriterGroupVariableName] = writerGroupName,
+                    [PublisherConfig.WriterGroupVariableName] = writerGroupName
+                }).TelemetryTopic;
+        }
+
+        [Fact]
+        public void EgressPrefersAnExplicitlyConfiguredQueueName()
+        {
+            var writerGroup = CreateManagedWriterGroup();
+            writerGroup.Publishing = new PublishingQueueSettingsModel
+            {
+                QueueName = "explicit/topic"
+            };
+            var registry = new PubSubShadowEgressSettingsRegistry();
+            registry.Replace([writerGroup], new PublisherOptions(),
+                new PubSubShadowEgressOptions());
+
+            Assert.Equal("explicit/topic", Assert.Single(registry.Snapshot().Values).Topic);
         }
 
         [Fact]

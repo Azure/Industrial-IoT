@@ -136,22 +136,74 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
         }
 
         [Fact]
-        public async Task TranslatorNormalizesEveryNonPositivePublishingIntervalAsync()
+        public async Task TranslatorCarriesTheConfiguredPublisherIdAsync()
         {
-            foreach (var interval in new TimeSpan?[]
-            {
-                null,
-                TimeSpan.Zero,
-                TimeSpan.FromMilliseconds(-1),
-                TimeSpan.FromMilliseconds(25)
-            })
+            //
+            // The publisher identity on the wire must match the one the writer
+            // path emits. Falling back to the writer group id would publish its
+            // hash and break every consumer that correlates on publisher id.
+            //
+            foreach (var (configured, groupPublisherId, expected) in
+                new (string?, string?, string)[]
+                {
+                    (null, null, Constants.DefaultPublisherId),
+                    ("configured", null, "configured"),
+                    ("configured", "group-owned", "group-owned"),
+                    (null, "group-owned", "group-owned")
+                })
             {
                 var translator = new PubSubConfigurationTranslator(Options.Create(
-                    new PublisherOptions { BatchTriggerInterval = TimeSpan.Zero }));
+                    new PublisherOptions { PublisherId = configured }));
                 var registry = new PubSubIdentityRegistry(new PubSubTestIdentityStore());
-                var group = CreateWriterGroup("group-" + interval, "writer-" + interval,
+                var suffix = Guid.NewGuid().ToString("N");
+                var group = CreateWriterGroup("group-" + suffix, "writer-" + suffix,
+                    MessageEncoding.Json);
+                group.PublisherId = groupPublisherId;
+                PubSubConfigurationDataType configuration;
+                await using (var transaction = await registry.BeginAsync())
+                {
+                    configuration = translator.Translate([group], transaction);
+                    await transaction.CommitAsync();
+                }
+
+                Assert.Equal(expected,
+                    Single(configuration.Connections).PublisherId.Value as string);
+            }
+        }
+
+        [Fact]
+        public async Task TranslatorDistinguishesAbsentFromZeroPublishingIntervalAsync()
+        {
+            //
+            // Publisher sets the batch trigger interval to zero whenever a
+            // transport is configured, meaning publish as soon as data arrives.
+            // Substituting the legacy ten second default for that would batch
+            // every message, so only an absent interval falls back.
+            //
+            var legacy = TimeSpan.FromMilliseconds(
+                PublisherConfig.BatchTriggerIntervalLLegacyDefaultMillis);
+            var immediate = PubSubConfigurationTranslator.ImmediatePublishingInterval;
+            foreach (var (batchInterval, groupInterval, expected) in
+                new (TimeSpan?, TimeSpan?, TimeSpan)[]
+                {
+                    (null, null, legacy),
+                    (null, TimeSpan.Zero, immediate),
+                    (null, TimeSpan.FromMilliseconds(25), TimeSpan.FromMilliseconds(25)),
+                    (TimeSpan.Zero, null, immediate),
+                    (TimeSpan.Zero, TimeSpan.Zero, immediate),
+                    (TimeSpan.Zero, TimeSpan.FromMilliseconds(-1), immediate),
+                    (TimeSpan.Zero, TimeSpan.FromMilliseconds(25), TimeSpan.FromMilliseconds(25)),
+                    (TimeSpan.FromSeconds(3), null, TimeSpan.FromSeconds(3)),
+                    (TimeSpan.FromSeconds(3), TimeSpan.Zero, immediate)
+                })
+            {
+                var translator = new PubSubConfigurationTranslator(Options.Create(
+                    new PublisherOptions { BatchTriggerInterval = batchInterval }));
+                var registry = new PubSubIdentityRegistry(new PubSubTestIdentityStore());
+                var suffix = Guid.NewGuid().ToString("N");
+                var group = CreateWriterGroup("group-" + suffix, "writer-" + suffix,
                     MessageEncoding.Uadp);
-                group.PublishingInterval = interval;
+                group.PublishingInterval = groupInterval;
                 PubSubConfigurationDataType configuration;
                 await using (var transaction = await registry.BeginAsync())
                 {
@@ -160,11 +212,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 }
 
                 var nativeGroup = Single(configuration.Connections).WriterGroups[0];
+                Assert.Equal(expected.TotalMilliseconds, nativeGroup.PublishingInterval);
                 Assert.True(nativeGroup.PublishingInterval > 0);
-                Assert.Equal(interval is { } value && value > TimeSpan.Zero
-                    ? value.TotalMilliseconds
-                    : PublisherConfig.BatchTriggerIntervalLLegacyDefaultMillis,
-                    nativeGroup.PublishingInterval);
                 new PubSubConfigurationValidator([Profiles.PubSubUdpUadpTransport])
                     .Validate(configuration)
                     .ThrowIfInvalid();
