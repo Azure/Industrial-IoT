@@ -56,16 +56,40 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         public ManagedPubSubNotification(string dataSetName, string fieldName,
             DateTimeOffset timestamp, DataValue value,
             ManagedPubSubNotificationKind kind = ManagedPubSubNotificationKind.Data)
+            : this(dataSetName, timestamp, kind,
+                [new ManagedPubSubField(string.IsNullOrWhiteSpace(fieldName)
+                    ? throw new ArgumentException("The field name must not be empty.",
+                        nameof(fieldName))
+                    : fieldName, value)])
         {
+        }
+
+        /// <summary>
+        /// Initializes a notification carrying all fields of a single
+        /// occurrence. An occurrence is the unit the writer path emits as one
+        /// message, so the fields of one notification must never be split
+        /// across messages: for an event or a condition snapshot the field set
+        /// <em>is</em> the occurrence, and for data it is one publish.
+        /// </summary>
+        /// <param name="dataSetName">Published dataset name.</param>
+        /// <param name="timestamp">Source timestamp.</param>
+        /// <param name="kind">Notification kind.</param>
+        /// <param name="fields">The fields of the occurrence.</param>
+        public ManagedPubSubNotification(string dataSetName, DateTimeOffset timestamp,
+            ManagedPubSubNotificationKind kind, IReadOnlyList<ManagedPubSubField> fields)
+        {
+            ArgumentNullException.ThrowIfNull(fields);
             DataSetName = string.IsNullOrWhiteSpace(dataSetName)
                 ? throw new ArgumentException("The dataset name must not be empty.", nameof(dataSetName))
                 : dataSetName;
-            FieldName = string.IsNullOrWhiteSpace(fieldName)
-                ? throw new ArgumentException("The field name must not be empty.", nameof(fieldName))
-                : fieldName;
+            if (fields.Count == 0)
+            {
+                throw new ArgumentException("The occurrence must carry at least one field.",
+                    nameof(fields));
+            }
+            Fields = fields;
             Timestamp = timestamp;
             Kind = kind;
-            Value = value;
         }
 
         /// <summary>
@@ -92,9 +116,15 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         public string DataSetName { get; }
 
         /// <summary>
-        /// Gets the dataset field name.
+        /// Gets the fields of this occurrence.
         /// </summary>
-        public string FieldName { get; }
+        public IReadOnlyList<ManagedPubSubField> Fields { get; }
+            = Array.Empty<ManagedPubSubField>();
+
+        /// <summary>
+        /// Gets the name of the first field of the occurrence.
+        /// </summary>
+        public string FieldName => Fields.Count == 0 ? string.Empty : Fields[0].Name;
 
         /// <summary>
         /// Gets the source timestamp.
@@ -108,18 +138,19 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         public ManagedPubSubNotificationKind Kind { get; }
 
         /// <summary>
-        /// Gets the notification value. Consumers must treat it as immutable.
+        /// Gets the value of the first field of the occurrence. Consumers must
+        /// treat it as immutable.
         /// </summary>
-        public DataValue Value { get; }
+        public DataValue Value => Fields.Count == 0 ? new DataValue() : Fields[0].Value;
 
         /// <summary>
-        /// Creates another notification referring to the same value.
+        /// Creates another notification referring to the same values.
         /// </summary>
         /// <returns>A copy of this notification.</returns>
         public ManagedPubSubNotification Clone()
         {
             return _barrier is null
-                ? new ManagedPubSubNotification(DataSetName, FieldName, Timestamp, Value, Kind)
+                ? new ManagedPubSubNotification(DataSetName, Timestamp, Kind, Fields)
                 : new ManagedPubSubNotification(DataSetName, _barrier);
         }
 
@@ -139,14 +170,19 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         private ManagedPubSubNotification(string dataSetName, TaskCompletionSource barrier)
         {
             DataSetName = dataSetName;
-            FieldName = string.Empty;
             Timestamp = default;
-            Value = new DataValue();
             _barrier = barrier;
         }
 
         private readonly TaskCompletionSource? _barrier;
     }
+
+    /// <summary>
+    /// A single field of a managed PubSub notification.
+    /// </summary>
+    /// <param name="Name">Dataset field name.</param>
+    /// <param name="Value">Field value. Consumers must treat it as immutable.</param>
+    public sealed record class ManagedPubSubField(string Name, DataValue Value);
 
     /// <summary>
     /// An ordered buffer for individual managed PubSub notifications. The
@@ -614,16 +650,16 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                     {
                         MajorVersion = 1
                     },
-                    WithExtensionFields(
-                        new DataSetField
-                        {
-                            Name = notification.FieldName,
-                            Value = notification.Value.WrappedValue,
-                            StatusCode = notification.Value.StatusCode,
-                            SourceTimestamp = ResolveSourceTimestamp(notification),
-                            ServerTimestamp = notification.Value.ServerTimestamp,
-                            Encoding = _fieldEncoding
-                        }),
+                    //
+                    // Every field of the occurrence is published as one payload.
+                    // Splitting them would destroy an event or condition
+                    // occurrence and would emit one message per changed value
+                    // for data, where the writer path emits one per publish.
+                    //
+                    WithExtensionFields(notification.Fields
+                        .Select(field => ToField(field.Name, new ManagedRetainedField(
+                            field, notification.Timestamp, notification.Kind)))
+                        .ToList()),
                     DateTimeUtc.From(notification.Timestamp)));
             }
 
@@ -698,9 +734,13 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                     //
                     lock (_stateGate)
                     {
-                        _extensionFields[copy.FieldName] = copy;
-                        metadataChanged = _knownFields.TryAdd(copy.FieldName,
-                            ManagedFieldType.From(copy.Value));
+                        foreach (var field in copy.Fields)
+                        {
+                            _extensionFields[field.Name] = new ManagedRetainedField(
+                                field, copy.Timestamp, copy.Kind);
+                            metadataChanged |= _knownFields.TryAdd(field.Name,
+                                ManagedFieldType.From(field.Value));
+                        }
                     }
                     if (metadataChanged)
                     {
@@ -714,11 +754,21 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                     {
                         sequence = Interlocked.Increment(ref _sequence);
                         _observer?.AfterSequenceAllocated(sequence);
-                        _currentData.AddOrUpdate(copy.FieldName,
-                            new ManagedCurrentData(copy, sequence), (_, _) =>
-                                new ManagedCurrentData(copy, sequence));
-                        metadataChanged = _knownFields.TryAdd(copy.FieldName,
-                            ManagedFieldType.From(copy.Value));
+                        //
+                        // Retained current data is per field even though the
+                        // occurrence is the published unit, so a key frame
+                        // still reports the latest value of every field.
+                        //
+                        foreach (var field in copy.Fields)
+                        {
+                            var retained = new ManagedRetainedField(field,
+                                copy.Timestamp, copy.Kind);
+                            _currentData.AddOrUpdate(field.Name,
+                                new ManagedCurrentData(retained, sequence), (_, _) =>
+                                    new ManagedCurrentData(retained, sequence));
+                            metadataChanged |= _knownFields.TryAdd(field.Name,
+                                ManagedFieldType.From(field.Value));
+                        }
                     }
                 }
                 else
@@ -726,8 +776,11 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                     sequence = Interlocked.Increment(ref _sequence);
                     lock (_stateGate)
                     {
-                        metadataChanged = _knownFields.TryAdd(copy.FieldName,
-                            ManagedFieldType.From(copy.Value));
+                        foreach (var field in copy.Fields)
+                        {
+                            metadataChanged |= _knownFields.TryAdd(field.Name,
+                                ManagedFieldType.From(field.Value));
+                        }
                     }
                 }
                 if (metadataChanged)
@@ -765,35 +818,33 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         /// only the time the sample was routed, so it is a fallback for values
         /// the server did not stamp.
         /// </summary>
-        /// <param name="notification"></param>
-        private static DateTimeUtc ResolveSourceTimestamp(
-            ManagedPubSubNotification notification)
+        /// <param name="retained"></param>
+        private static DateTimeUtc ResolveSourceTimestamp(ManagedRetainedField retained)
         {
-            var sourceTimestamp = notification.Value.SourceTimestamp;
+            var sourceTimestamp = retained.Field.Value.SourceTimestamp;
             return sourceTimestamp == DateTimeUtc.MinValue
-                ? DateTimeUtc.From(notification.Timestamp)
+                ? DateTimeUtc.From(retained.Timestamp)
                 : sourceTimestamp;
         }
 
         /// <summary>
         /// Appends the constant fields the writer contributes to every payload.
         /// The writer path includes them in each message, so a delta that
-        /// carried only the changed field would not reproduce it.
+        /// carried only the changed fields would not reproduce it.
         /// </summary>
-        /// <param name="field">The field that changed.</param>
-        private ArrayOf<DataSetField> WithExtensionFields(DataSetField field)
+        /// <param name="fields">The fields of the occurrence.</param>
+        private ArrayOf<DataSetField> WithExtensionFields(List<DataSetField> fields)
         {
             lock (_stateGate)
             {
                 if (_extensionFields.IsEmpty)
                 {
-                    return [field];
+                    return [.. fields];
                 }
-                var fields = new List<DataSetField>(_extensionFields.Count + 1) { field };
                 foreach (var name in _extensionFields.Keys.OrderBy(name => name,
                     StringComparer.Ordinal))
                 {
-                    if (name == field.Name ||
+                    if (fields.Exists(field => field.Name == name) ||
                         !_extensionFields.TryGetValue(name, out var extension))
                     {
                         continue;
@@ -804,30 +855,30 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             }
         }
 
-        private DataSetField ToField(string name, ManagedPubSubNotification? notification)
+        private DataSetField ToField(string name, ManagedRetainedField? retained)
         {
             return new DataSetField
             {
                 Name = name,
-                Value = notification is null
+                Value = retained is null
                     ? new Variant()
-                    : notification.Value.WrappedValue,
-                StatusCode = notification is null
+                    : retained.Field.Value.WrappedValue,
+                StatusCode = retained is null
                     ? StatusCodes.Good
-                    : notification.Value.StatusCode,
+                    : retained.Field.Value.StatusCode,
                 //
                 // A constant field has no sample time, so it keeps whatever the
                 // value carries and never falls back to the routing time. The
                 // writer path publishes extension fields as a bare value.
                 //
-                SourceTimestamp = notification is null
+                SourceTimestamp = retained is null
                     ? default
-                    : notification.Kind == ManagedPubSubNotificationKind.Extension
-                        ? notification.Value.SourceTimestamp
-                        : ResolveSourceTimestamp(notification),
-                ServerTimestamp = notification is null
+                    : retained.Kind == ManagedPubSubNotificationKind.Extension
+                        ? retained.Field.Value.SourceTimestamp
+                        : ResolveSourceTimestamp(retained),
+                ServerTimestamp = retained is null
                     ? default
-                    : notification.Value.ServerTimestamp,
+                    : retained.Field.Value.ServerTimestamp,
                 Encoding = _fieldEncoding
             };
         }
@@ -844,12 +895,12 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 // that has not been observed yet.
                 //
                 _ = _currentData.TryGetValue(name, out var current);
-                var notification = current?.Notification;
-                if (notification is null)
+                var retained = current?.Field;
+                if (retained is null)
                 {
-                    _ = _extensionFields.TryGetValue(name, out notification);
+                    _ = _extensionFields.TryGetValue(name, out retained);
                 }
-                fields.Add(ToField(name, notification));
+                fields.Add(ToField(name, retained));
             }
             return [.. fields];
         }
@@ -861,7 +912,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         private readonly Channel<ManagedPendingNotification> _pending;
         private readonly ConcurrentDictionary<string, ManagedCurrentData> _currentData =
             new(StringComparer.Ordinal);
-        private readonly ConcurrentDictionary<string, ManagedPubSubNotification> _extensionFields =
+        private readonly ConcurrentDictionary<string, ManagedRetainedField> _extensionFields =
             new(StringComparer.Ordinal);
         private readonly ConcurrentDictionary<string, ManagedFieldType> _knownFields =
             new(StringComparer.Ordinal);
@@ -880,7 +931,14 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             ManagedPubSubNotification Notification, long Sequence);
 
         private sealed record class ManagedCurrentData(
-            ManagedPubSubNotification Notification, long Sequence);
+            ManagedRetainedField Field, long Sequence);
+
+        /// <summary>
+        /// A field retained by the source, together with the routing time and
+        /// kind of the occurrence it arrived on.
+        /// </summary>
+        private sealed record class ManagedRetainedField(ManagedPubSubField Field,
+            DateTimeOffset Timestamp, ManagedPubSubNotificationKind Kind);
 
         private sealed record class ManagedFieldType(BuiltInType BuiltInType,
             NodeId DataType, int ValueRank)

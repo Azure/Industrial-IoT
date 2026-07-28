@@ -21,7 +21,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
     public sealed class PubSubNotificationSinkTests
     {
         [Fact]
-        public void TranslatesEachFieldIntoATypedManagedNotification()
+        public void TranslatesAllFieldsOfOneNotificationIntoOneOccurrence()
         {
             var notification = CreateNotification(MessageType.DeltaFrame,
             [
@@ -29,16 +29,43 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 CreateItem("label", new DataValue(new Variant("ok")))
             ]);
 
-            var managed = PubSubNotificationSink.Translate(notification).ToList();
+            var managed = Assert.Single(PubSubNotificationSink.Translate(notification));
 
-            Assert.Equal(2, managed.Count);
-            Assert.All(managed, item => Assert.Equal("dataset", item.DataSetName));
-            Assert.All(managed, item =>
-                Assert.Equal(ManagedPubSubNotificationKind.Data, item.Kind));
-            Assert.Equal("counter", managed[0].FieldName);
-            Assert.Equal(42, Assert.IsType<int>(managed[0].Value.WrappedValue.Value));
-            Assert.Equal("label", managed[1].FieldName);
-            Assert.Equal("ok", Assert.IsType<string>(managed[1].Value.WrappedValue.Value));
+            //
+            // The fields of one notification are the unit the writer path emits
+            // as one message. Splitting them would destroy an event or condition
+            // occurrence and would emit one message per changed value for data.
+            //
+            Assert.Equal("dataset", managed.DataSetName);
+            Assert.Equal(ManagedPubSubNotificationKind.Data, managed.Kind);
+            Assert.Equal(2, managed.Fields.Count);
+            Assert.Equal("counter", managed.Fields[0].Name);
+            Assert.Equal(42, Assert.IsType<int>(managed.Fields[0].Value.WrappedValue.Value));
+            Assert.Equal("label", managed.Fields[1].Name);
+            Assert.Equal("ok", Assert.IsType<string>(managed.Fields[1].Value.WrappedValue.Value));
+        }
+
+        [Theory]
+        [InlineData(MessageType.Event)]
+        [InlineData(MessageType.Condition)]
+        public void KeepsAllFieldsOfAnEventOccurrenceTogether(MessageType messageType)
+        {
+            //
+            // An event occurrence is exactly a set of fields that belong
+            // together, so it must never be split across messages.
+            //
+            var notification = CreateNotification(messageType,
+            [
+                CreateItem("EventId", new DataValue(new Variant(new byte[] { 1 }))),
+                CreateItem("Severity", new DataValue(new Variant((ushort)500))),
+                CreateItem("Message", new DataValue(new Variant("alarm")))
+            ]);
+
+            var managed = Assert.Single(PubSubNotificationSink.Translate(notification));
+
+            Assert.Equal(3, managed.Fields.Count);
+            Assert.Equal(["EventId", "Severity", "Message"],
+                managed.Fields.Select(field => field.Name));
         }
 
         [Theory]
@@ -86,13 +113,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             withNodeId.NodeId = "i=2258";
             var unnamed = CreateItem(null, new DataValue(new Variant(3)));
 
-            var managed = PubSubNotificationSink.Translate(
+            var managed = Assert.Single(PubSubNotificationSink.Translate(
                 CreateNotification(MessageType.DeltaFrame,
-                    [withId, withNodeId, unnamed])).ToList();
+                    [withId, withNodeId, unnamed])));
 
-            Assert.Equal(2, managed.Count);
-            Assert.Equal("identifier", managed[0].FieldName);
-            Assert.Equal("i=2258", managed[1].FieldName);
+            Assert.Equal(2, managed.Fields.Count);
+            Assert.Equal("identifier", managed.Fields[0].Name);
+            Assert.Equal("i=2258", managed.Fields[1].Name);
         }
 
         [Fact]

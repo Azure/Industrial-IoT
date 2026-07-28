@@ -135,6 +135,48 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             Assert.Equal(DateTimeUtc.From(sourceTimestamp), keyFrame.SourceTimestamp);
         }
 
+        [Fact]
+        public async Task PublishesEveryFieldOfAnOccurrenceInOnePayloadAsync()
+        {
+            //
+            // The writer path emits one message per publish carrying every
+            // changed field. A source that emits one field per message would
+            // destroy an event or condition occurrence outright and would split
+            // a multi-variable data publish into one message per value.
+            //
+            var writerGroup = CreateWriterGroup("named");
+            var buffer = new ManagedPubSubNotificationBuffer(16);
+            await using var provider = new ManagedPubSubNotificationDataSourceProvider(buffer);
+            await using var registry = new ManagedPubSubDataSetSourceRegistry([provider]);
+
+            await using (var transaction = await registry.PrepareAsync([writerGroup]))
+            {
+                transaction.Install();
+                await transaction.CommitAsync();
+            }
+
+            Assert.True(registry.TryGetSource("named", out var published));
+            var source = Assert.IsType<ManagedPubSubDataSetSource>(published);
+
+            await using var sink = new PubSubNotificationSink(buffer,
+                NullLogger<PubSubNotificationSink>.Instance);
+            sink.OnMessage(CreateEventNotification(writerGroup));
+
+            var snapshot = await ReadSnapshotAsync(source, source.BuildMetaData());
+
+            Assert.Equal(["EventId", "Severity", "Message"],
+                snapshot.Fields.Select(field => field.Name));
+            Assert.Equal((ushort)500,
+                Assert.IsType<ushort>(snapshot.Fields[1].Value.Value));
+
+            //
+            // The occurrence is the only pending unit, so nothing is left to
+            // publish afterwards. A per-field source would still have two.
+            //
+            Assert.Empty((await source.SampleAsync(source.BuildMetaData()))
+                .Fields.AsEnumerable());
+        }
+
         private static async Task AssertRoutesAsync(string? dataSetName)
         {
             var writerGroup = CreateWriterGroup(dataSetName);
@@ -166,12 +208,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
         private static async Task<DataSetField> ReadFieldAsync(
             ManagedPubSubDataSetSource source, DataSetMetaDataType metadata)
         {
+            return (await ReadSnapshotAsync(source, metadata)).Fields[0];
+        }
+
+        private static async Task<PublishedDataSetSnapshot> ReadSnapshotAsync(
+            ManagedPubSubDataSetSource source, DataSetMetaDataType metadata)
+        {
             for (var attempt = 0; attempt < 200; attempt++)
             {
                 var snapshot = await source.SampleAsync(metadata);
                 if (snapshot.Fields.Count != 0)
                 {
-                    return snapshot.Fields[0];
+                    return snapshot;
                 }
                 await Task.Delay(10);
             }
@@ -213,6 +261,49 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 ])
             {
                 MessageType = MessageType.DeltaFrame,
+                Context = new DataSetWriterContext
+                {
+                    DataSetWriterId = 1,
+                    Topic = "topic",
+                    Qos = null,
+                    PublisherId = "publisher",
+                    Writer = writer,
+                    WriterName = "writer",
+                    MetaData = null,
+                    ExtensionFields = [],
+                    NextWriterSequenceNumber = () => 1,
+                    WriterGroup = writerGroup,
+                    Schema = null,
+                    CloudEvent = null
+                }
+            };
+        }
+
+        private static OpcUaSubscriptionNotification CreateEventNotification(
+            WriterGroupModel writerGroup)
+        {
+            var writer = writerGroup.DataSetWriters![0];
+            return new OpcUaSubscriptionNotification(DateTimeOffset.UnixEpoch,
+                notifications:
+                [
+                    new MonitoredItemNotificationModel
+                    {
+                        DataSetFieldName = "EventId",
+                        Value = new DataValue(new Variant(new byte[] { 1, 2 }))
+                    },
+                    new MonitoredItemNotificationModel
+                    {
+                        DataSetFieldName = "Severity",
+                        Value = new DataValue(new Variant((ushort)500))
+                    },
+                    new MonitoredItemNotificationModel
+                    {
+                        DataSetFieldName = "Message",
+                        Value = new DataValue(new Variant("alarm"))
+                    }
+                ])
+            {
+                MessageType = MessageType.Event,
                 Context = new DataSetWriterContext
                 {
                     DataSetWriterId = 1,

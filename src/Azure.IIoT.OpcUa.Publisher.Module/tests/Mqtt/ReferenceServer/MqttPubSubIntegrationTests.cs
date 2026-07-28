@@ -373,9 +373,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
         /// <remarks>
         /// The theory normalises three recorded differences rather than
         /// asserting on them - see the comments on the normalisation helpers.
-        /// `FullNetworkMessages` remains skipped because the extension fields
-        /// `ApplicationUri` and `EndpointUrl` are dataset content the
-        /// notification bridge does not carry yet.
+        /// The fixture publishes two variables so the comparison is anchored on
+        /// a multi-field frame; a single-variable dataset cannot distinguish a
+        /// source that publishes an occurrence from one that publishes a field.
+        /// It publishes the same node twice rather than two different nodes,
+        /// because the simulated nodes do not all stamp a server timestamp on
+        /// every update, which makes the envelope shape differ between runs
+        /// rather than between paths.
         /// </remarks>
         /// <param name="messagingMode"></param>
         [Theory]
@@ -400,34 +404,46 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 : ["--mm=" + messagingMode, "--dm=False", "--ps=False", "--unp=False"];
             var (_, messages) = await ProcessMessagesAndMetadataAsync(
                 nameof(NativePubSubMatchesTheCustomEncoderWireShapeAsync) + messagingMode + native,
-                "./Resources/DataItems.json", TimeSpan.FromMinutes(2), 20,
+                "./Resources/MultipleDataItems.json", TimeSpan.FromMinutes(2), 20,
                 arguments: arguments, version: MqttVersion.v5);
 
             //
+            // The dataset publishes two variables so that the multi-field frame
+            // is actually exercised. A source that emits one field per message
+            // would otherwise reproduce a single-variable dataset exactly and
+            // this gate would report parity it does not have.
+            //
             // The runtime may emit an initial key frame before any value has been
-            // observed, so the first message carrying the field is the one that
+            // observed and a delta may legitimately carry only the field that
+            // changed, so the first message carrying both fields is the one that
             // describes the wire shape.
             //
             var carrying = messages
                 .Select(message => message.Message)
-                .FirstOrDefault(message => FindOutput(message).ValueKind != JsonValueKind.Undefined);
+                .FirstOrDefault(message => FindPayload(message).ValueKind != JsonValueKind.Undefined);
             Assert.NotEqual(JsonValueKind.Undefined, carrying.ValueKind);
             _output.WriteLine((native ? "native " : "custom ") + messagingMode +
                 " raw: " + carrying.ToJsonString());
             return Shape(carrying);
         }
 
-        private static JsonElement FindOutput(JsonElement element)
+        /// <summary>
+        /// Finds the payload object carrying every published field, so that the
+        /// comparison is anchored on a complete multi-field frame on both paths.
+        /// </summary>
+        /// <param name="element"></param>
+        private static JsonElement FindPayload(JsonElement element)
         {
             if (element.ValueKind == JsonValueKind.Object)
             {
-                if (element.TryGetProperty("Output", out var output))
+                if (element.TryGetProperty("Output1", out _) &&
+                    element.TryGetProperty("Output2", out _))
                 {
-                    return output;
+                    return element;
                 }
                 foreach (var property in element.EnumerateObject())
                 {
-                    var found = FindOutput(property.Value);
+                    var found = FindPayload(property.Value);
                     if (found.ValueKind != JsonValueKind.Undefined)
                     {
                         return found;
@@ -438,7 +454,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             {
                 foreach (var item in element.EnumerateArray())
                 {
-                    var found = FindOutput(item);
+                    var found = FindPayload(item);
                     if (found.ValueKind != JsonValueKind.Undefined)
                     {
                         return found;

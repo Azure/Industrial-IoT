@@ -126,8 +126,12 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         }
 
         /// <summary>
-        /// Translate a writer notification into individual managed
-        /// notifications, one per published field.
+        /// Translate a writer notification into managed notifications. An
+        /// occurrence maps to exactly one notification carrying all of its
+        /// fields, because the fields of one notification are the unit the
+        /// writer path emits as one message. Splitting them would destroy an
+        /// event or condition occurrence and would produce one message per
+        /// changed value for data.
         /// </summary>
         /// <param name="notification">Writer notification to translate.</param>
         /// <returns>The managed notifications to publish.</returns>
@@ -156,6 +160,14 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 _ => ManagedPubSubNotificationKind.Data
             };
             var fallback = notification.PublishTimestamp ?? notification.CreatedTimestamp;
+            var fields = new List<ManagedPubSubField>(notification.Notifications.Count);
+            //
+            // The occurrence is stamped with the earliest source timestamp its
+            // fields carry, so a message reports when the occurrence happened
+            // rather than when the last of its fields was encoded.
+            //
+            var timestamp = fallback;
+            var stamped = false;
             foreach (var item in notification.Notifications)
             {
                 var fieldName = item.DataSetFieldName ?? item.Id ?? item.NodeId;
@@ -171,10 +183,22 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 // latter never detects one and publishes 1601 as if it were the
                 // sample time.
                 //
-                var timestamp = value.SourceTimestamp == DateTimeUtc.MinValue
-                    ? fallback : new DateTimeOffset(value.SourceTimestamp, TimeSpan.Zero);
-                yield return new ManagedPubSubNotification(dataSetName, fieldName,
-                    timestamp, value, kind);
+                if (value.SourceTimestamp != DateTimeUtc.MinValue)
+                {
+                    var sourceTimestamp = new DateTimeOffset(value.SourceTimestamp,
+                        TimeSpan.Zero);
+                    if (!stamped || sourceTimestamp < timestamp)
+                    {
+                        timestamp = sourceTimestamp;
+                        stamped = true;
+                    }
+                }
+                fields.Add(new ManagedPubSubField(fieldName, value));
+            }
+            if (fields.Count > 0)
+            {
+                yield return new ManagedPubSubNotification(dataSetName, timestamp,
+                    kind, fields);
             }
 
             //
