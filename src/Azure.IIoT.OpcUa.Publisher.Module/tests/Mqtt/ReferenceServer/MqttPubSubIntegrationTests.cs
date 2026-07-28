@@ -73,12 +73,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             // The runtime emits an initial key frame before any value has been
             // observed, so the first message carries an empty payload.
             //
-            var output = messages
-                .Select(message => message.Message.GetProperty("Messages")[0]
-                    .GetProperty("Payload"))
-                .Where(payload => payload.TryGetProperty("Output", out _))
-                .Select(payload => payload.GetProperty("Output"))
-                .FirstOrDefault();
+            var carrying = messages
+                .Select(message => message.Message)
+                .First(message => message.GetProperty("Messages")[0]
+                    .GetProperty("Payload").TryGetProperty("Output", out _));
+            _output.WriteLine("native raw: " + carrying.ToJsonString());
+            var output = carrying.GetProperty("Messages")[0]
+                .GetProperty("Payload").GetProperty("Output");
 
             Assert.NotEqual(JsonValueKind.Undefined, output.ValueKind);
             Assert.InRange(output.GetProperty("Value").GetDouble(),
