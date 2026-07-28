@@ -101,9 +101,20 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             }
             return new PubSubShadowMessageProfile
             {
-                NetworkMessageContentMask = translated.MessageSettings
+                //
+                // The shared JSON mapping does not translate WriterGroupId,
+                // because the writer path emits the group under its own member
+                // name rather than through the stack's mask. The native encoder
+                // needs the WriterGroupName bit to emit it at all, so it is
+                // added here rather than in the shared mapping, which the
+                // writer path also uses.
+                //
+                NetworkMessageContentMask = (translated.MessageSettings
                     .TryGetValue(out JsonWriterGroupMessageDataType? group) && group is not null
-                        ? group.NetworkMessageContentMask : 0,
+                        ? group.NetworkMessageContentMask : 0)
+                    | ((source.MessageSettings?.NetworkMessageContentMask
+                        & NetworkMessageContentFlags.WriterGroupId) != 0
+                        ? (uint)JsonNetworkMessageContentMask.WriterGroupName : 0),
                 WriterGroupName = source.Name ?? Constants.DefaultWriterGroupName,
                 DataSetClassId = new Uuid(source.DataSetWriters?
                     .Select(writer => writer.DataSet?.DataSetMetaData?.DataSetClassId ?? Guid.Empty)
