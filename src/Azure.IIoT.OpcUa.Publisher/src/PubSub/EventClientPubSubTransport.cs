@@ -99,6 +99,15 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         public required IReadOnlyDictionary<string, string?> Properties { get; init; }
         public IReadOnlyList<PubSubShadowMetadataWriterSettings> MetadataWriters { get; init; } = [];
 
+        /// <summary>
+        /// Capabilities that only annotate the message and that the selected
+        /// transport cannot carry. They are removed from the required set so
+        /// the transport is used rather than refused. The values are still
+        /// offered to the client, which drops what its protocol has no field
+        /// for, exactly as the writer path does.
+        /// </summary>
+        public EventClientCapabilities DegradedCapabilities { get; init; }
+
         public EventClientCapabilities RequiredCapabilities
         {
             get
@@ -139,7 +148,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 {
                     capabilities |= EventClientCapabilities.Schema;
                 }
-                return capabilities;
+                return capabilities & ~DegradedCapabilities;
             }
         }
 
@@ -760,9 +769,10 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         /// Drops capabilities that describe the message rather than its
         /// delivery when the selected transport cannot carry them, so a
         /// transport such as IoT Hub can publish telemetry without a schema
-        /// reference instead of refusing to start. Delivery semantics the user
-        /// explicitly asked for - a quality of service above at most once,
-        /// retain, and time to live - are never dropped, because silently
+        /// reference, and MQTT 3.1.1 can publish without a content type or
+        /// user properties, instead of refusing to start. Delivery semantics
+        /// the user explicitly asked for - a quality of service above at most
+        /// once, retain, and time to live - are never dropped, because silently
         /// losing a delivery guarantee is worse than failing to start.
         /// </summary>
         /// <param name="eventClient"></param>
@@ -771,15 +781,36 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         internal static PubSubShadowEgressSettings DegradeUnsupportedCapabilities(
             IEventClient eventClient, PubSubShadowEgressSettings settings, ILogger logger)
         {
-            if (settings.Schema is null ||
-                eventClient is not IEventClientCapabilities declared ||
-                (declared.Capabilities & EventClientCapabilities.Schema) != 0)
+            if (eventClient is not IEventClientCapabilities declared)
+            {
+                return settings;
+            }
+            if (settings.Schema is not null &&
+                (declared.Capabilities & EventClientCapabilities.Schema) == 0)
+            {
+                logger.EgressCapabilityDegraded(settings.ConnectionName, eventClient.Name,
+                    EventClientCapabilities.Schema);
+                settings = settings with { Schema = null };
+            }
+            //
+            // A content type and custom properties describe the message, they
+            // do not deliver it. MQTT 3.1.1 has no field for either, and the
+            // writer path publishes over it regardless, so requiring them here
+            // would refuse a transport the Publisher has always supported.
+            //
+            var annotations = settings.RequiredCapabilities & ~declared.Capabilities
+                & (EventClientCapabilities.ContentType
+                    | EventClientCapabilities.CustomProperties);
+            if (annotations == 0)
             {
                 return settings;
             }
             logger.EgressCapabilityDegraded(settings.ConnectionName, eventClient.Name,
-                EventClientCapabilities.Schema);
-            return settings with { Schema = null };
+                annotations);
+            return settings with
+            {
+                DegradedCapabilities = settings.DegradedCapabilities | annotations
+            };
         }
 
         internal static void ValidateCapabilities(IEventClient eventClient,
@@ -1242,6 +1273,17 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
 
         private async ValueTask SendFrameAsync(PendingFrame frame, CancellationToken cancellationToken)
         {
+            if (frame.Payload.Length == 0)
+            {
+                //
+                // The shadow encoders return an empty buffer for a network
+                // message that carries no field, because the native runtime
+                // samples on its own timer and produces one whether or not the
+                // sources had data. Publishing it would put an empty key frame
+                // on the wire that the writer path never emits.
+                //
+                return;
+            }
             var maximum = _eventClient.MaxEventPayloadSizeInBytes;
             if (maximum <= 0)
             {

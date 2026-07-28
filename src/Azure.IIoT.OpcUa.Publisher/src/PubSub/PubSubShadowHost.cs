@@ -967,9 +967,37 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             CancellationToken cancellationToken = default);
     }
 
-    internal sealed class ShadowJsonEncoder : INetworkMessageEncoder
+    internal static class PubSubShadowMessageEx
     {
-        public ShadowJsonEncoder(PubSubShadowEncodingRegistry encodings,
+        /// <summary>
+        /// A network message that carries no field is nothing to publish. The
+        /// native runtime samples on its own timer and produces a message
+        /// whether or not the sources had data, while the writer path only
+        /// publishes when a notification arrived. Left unsuppressed the
+        /// difference reaches every consumer as an empty key frame the writer
+        /// path never emits. A metadata announcement carries no field by
+        /// definition and is never suppressed.
+        /// </summary>
+        /// <param name="networkMessage"></param>
+        public static bool CarriesNothing(this PubSubNetworkMessage networkMessage)
+        {
+            if (networkMessage.MetaData is not null)
+            {
+                return false;
+            }
+            foreach (var dataSetMessage in networkMessage.DataSetMessages)
+            {
+                if (dataSetMessage.Fields.Count != 0)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+
+    internal sealed class ShadowJsonEncoder : INetworkMessageEncoder
+    {        public ShadowJsonEncoder(PubSubShadowEncodingRegistry encodings,
             IPubSubShadowEncodingObserver? observer = null)
         {
             _encodings = encodings ?? throw new ArgumentNullException(nameof(encodings));
@@ -984,11 +1012,14 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             PubSubNetworkMessageContext context, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(networkMessage);
+            if (networkMessage.CarriesNothing())
+            {
+                return ReadOnlyMemory<byte>.Empty;
+            }
             var marker = _encodings.ActiveGeneration.ResolveForWriterGroup(
                 networkMessage.WriterGroupId);
             if (_observer is not null)
-            {
-                await _observer.BeforeEncodeAsync(marker, networkMessage, cancellationToken)
+            {                await _observer.BeforeEncodeAsync(marker, networkMessage, cancellationToken)
                     .ConfigureAwait(false);
             }
             networkMessage = ApplyProfile(networkMessage, marker.Profile);
@@ -1084,6 +1115,10 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             PubSubNetworkMessageContext context, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(networkMessage);
+            if (networkMessage.CarriesNothing())
+            {
+                return new ValueTask<ReadOnlyMemory<byte>>(ReadOnlyMemory<byte>.Empty);
+            }
             var marker = _encodings.ActiveGeneration.ResolveForWriterGroup(
                 networkMessage.WriterGroupId);
             return _inner.EncodeAsync(ApplyProfile(networkMessage, marker.Profile),

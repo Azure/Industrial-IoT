@@ -497,6 +497,54 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
         }
 
         [Fact]
+        public void EgressPublishesOverATransportWithoutContentTypeOrProperties()
+        {
+            //
+            // MQTT 3.1.1 has no field for a content type or user properties.
+            // They annotate the message rather than delivering it, and the
+            // writer path publishes over 3.1.1 regardless, so requiring them
+            // would refuse a transport the Publisher has always supported.
+            //
+            var settings = CreateSettings() with
+            {
+                Properties = new Dictionary<string, string?>(StringComparer.Ordinal)
+                {
+                    ["writerGroupId"] = "group"
+                }
+            };
+            var client = new RecordingEventClient
+            {
+                Capabilities = EventClientCapabilities.Payload
+                    | EventClientCapabilities.Topic
+                    | EventClientCapabilities.QualityOfService
+                    | EventClientCapabilities.Retain
+            };
+
+            var degraded = EventClientPubSubTransportFactory.DegradeUnsupportedCapabilities(
+                client, settings, NullLogger.Instance);
+
+            EventClientPubSubTransportFactory.ValidateCapabilities(client,
+                degraded.RequiredCapabilities);
+
+            //
+            // The values are still offered to the client, which drops what its
+            // protocol has no field for.
+            //
+            Assert.Equal(settings.ContentType, degraded.ContentType);
+            Assert.Equal(settings.Properties, degraded.Properties);
+
+            //
+            // A time to live is a delivery semantic and is still refused.
+            //
+            var withTtl = settings with { TimeToLive = TimeSpan.FromMinutes(1) };
+            var stillRefused = EventClientPubSubTransportFactory.DegradeUnsupportedCapabilities(
+                client, withTtl, NullLogger.Instance);
+            Assert.Throws<NotSupportedException>(() =>
+                EventClientPubSubTransportFactory.ValidateCapabilities(client,
+                    stillRefused.RequiredCapabilities));
+        }
+
+        [Fact]
         public void EgressKeepsASchemaTheTransportCanCarry()
         {
             var withSchema = CreateSettings() with
