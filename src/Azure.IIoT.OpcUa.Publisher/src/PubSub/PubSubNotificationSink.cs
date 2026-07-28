@@ -12,6 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
@@ -126,12 +127,15 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         }
 
         /// <summary>
-        /// Translate a writer notification into managed notifications. An
-        /// occurrence maps to exactly one notification carrying all of its
-        /// fields, because the fields of one notification are the unit the
-        /// writer path emits as one message. Splitting them would destroy an
-        /// event or condition occurrence and would produce one message per
-        /// changed value for data.
+        /// Translate a writer notification into managed notifications, one per
+        /// occurrence. One writer notification can carry several occurrences -
+        /// several events raised in the same publish, or several queued values
+        /// of the same variable - which appear as repeated field names. The
+        /// writer path separates them by grouping on the field name, ordering
+        /// each group by source timestamp, and taking one value from each group
+        /// per message, so the same rule is applied here. The fields of one
+        /// occurrence are never split across messages: for an event or a
+        /// condition snapshot the field set <em>is</em> the occurrence.
         /// </summary>
         /// <param name="notification">Writer notification to translate.</param>
         /// <returns>The managed notifications to publish.</returns>
@@ -160,14 +164,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 _ => ManagedPubSubNotificationKind.Data
             };
             var fallback = notification.PublishTimestamp ?? notification.CreatedTimestamp;
-            var fields = new List<ManagedPubSubField>(notification.Notifications.Count);
-            //
-            // The occurrence is stamped with the earliest source timestamp its
-            // fields carry, so a message reports when the occurrence happened
-            // rather than when the last of its fields was encoded.
-            //
-            var timestamp = fallback;
-            var stamped = false;
+            var queues = new List<(string Name, List<DataValue> Values)>();
+            var byName = new Dictionary<string, int>(StringComparer.Ordinal);
             foreach (var item in notification.Notifications)
             {
                 var fieldName = item.DataSetFieldName ?? item.Id ?? item.NodeId;
@@ -175,28 +173,58 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 {
                     continue;
                 }
-                var value = item.Value ?? new DataValue(Variant.Null,
-                    StatusCodes.BadNoData, DateTimeUtc.From(fallback));
-                //
-                // An unset source timestamp is DateTimeUtc.MinValue, which is
-                // 1601 rather than DateTime.MinValue, so comparing against the
-                // latter never detects one and publishes 1601 as if it were the
-                // sample time.
-                //
-                if (value.SourceTimestamp != DateTimeUtc.MinValue)
+                if (!byName.TryGetValue(fieldName, out var position))
                 {
-                    var sourceTimestamp = new DateTimeOffset(value.SourceTimestamp,
-                        TimeSpan.Zero);
-                    if (!stamped || sourceTimestamp < timestamp)
-                    {
-                        timestamp = sourceTimestamp;
-                        stamped = true;
-                    }
+                    position = queues.Count;
+                    byName.Add(fieldName, position);
+                    queues.Add((fieldName, []));
                 }
-                fields.Add(new ManagedPubSubField(fieldName, value));
+                queues[position].Values.Add(item.Value ?? new DataValue(Variant.Null,
+                    StatusCodes.BadNoData, DateTimeUtc.From(fallback)));
             }
-            if (fields.Count > 0)
+            var ordered = queues
+                .Select(queue => (queue.Name,
+                    Values: queue.Values.OrderBy(value => value.SourceTimestamp).ToArray()))
+                .ToArray();
+            for (var round = 0; ; round++)
             {
+                var fields = new List<ManagedPubSubField>(ordered.Length);
+                //
+                // The occurrence is stamped with the earliest source timestamp
+                // its fields carry, so a message reports when the occurrence
+                // happened rather than when the last of its fields was encoded.
+                //
+                var timestamp = fallback;
+                var stamped = false;
+                foreach (var (name, values) in ordered)
+                {
+                    if (round >= values.Length)
+                    {
+                        continue;
+                    }
+                    var value = values[round];
+                    //
+                    // An unset source timestamp is DateTimeUtc.MinValue, which
+                    // is 1601 rather than DateTime.MinValue, so comparing
+                    // against the latter never detects one and publishes 1601
+                    // as if it were the sample time.
+                    //
+                    if (value.SourceTimestamp != DateTimeUtc.MinValue)
+                    {
+                        var sourceTimestamp = new DateTimeOffset(value.SourceTimestamp,
+                            TimeSpan.Zero);
+                        if (!stamped || sourceTimestamp < timestamp)
+                        {
+                            timestamp = sourceTimestamp;
+                            stamped = true;
+                        }
+                    }
+                    fields.Add(new ManagedPubSubField(name, value));
+                }
+                if (fields.Count == 0)
+                {
+                    break;
+                }
                 yield return new ManagedPubSubNotification(dataSetName, timestamp,
                     kind, fields);
             }

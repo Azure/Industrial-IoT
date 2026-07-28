@@ -45,6 +45,53 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             Assert.Equal("ok", Assert.IsType<string>(managed.Fields[1].Value.WrappedValue.Value));
         }
 
+        [Fact]
+        public void SeparatesRepeatedFieldNamesIntoOneOccurrenceEach()
+        {
+            //
+            // A single writer notification can carry several occurrences, which
+            // appear as repeated field names. Merging them would produce one
+            // payload with duplicate keys where the writer path produces one
+            // message per occurrence.
+            //
+            var notification = CreateNotification(MessageType.Event,
+            [
+                CreateItem("CycleId", new DataValue(new Variant("9"))),
+                CreateItem("Severity", new DataValue(new Variant((ushort)100))),
+                CreateItem("CycleId", new DataValue(new Variant("10"))),
+                CreateItem("Severity", new DataValue(new Variant((ushort)200)))
+            ]);
+
+            var managed = PubSubNotificationSink.Translate(notification).ToList();
+
+            Assert.Equal(2, managed.Count);
+            Assert.All(managed, item => Assert.Equal(
+                ["CycleId", "Severity"], item.Fields.Select(field => field.Name)));
+            Assert.Equal("9", managed[0].Fields[0].Value.WrappedValue.Value);
+            Assert.Equal("10", managed[1].Fields[0].Value.WrappedValue.Value);
+        }
+
+        [Fact]
+        public void KeepsAnUnevenOccurrenceRatherThanPaddingIt()
+        {
+            //
+            // A queued monitored item can report more values than another in
+            // the same publish, so the last rounds carry fewer fields.
+            //
+            var notification = CreateNotification(MessageType.DeltaFrame,
+            [
+                CreateItem("fast", new DataValue(new Variant(1))),
+                CreateItem("slow", new DataValue(new Variant(2))),
+                CreateItem("fast", new DataValue(new Variant(3)))
+            ]);
+
+            var managed = PubSubNotificationSink.Translate(notification).ToList();
+
+            Assert.Equal(2, managed.Count);
+            Assert.Equal(["fast", "slow"], managed[0].Fields.Select(field => field.Name));
+            Assert.Equal(["fast"], managed[1].Fields.Select(field => field.Name));
+        }
+
         [Theory]
         [InlineData(MessageType.Event)]
         [InlineData(MessageType.Condition)]
