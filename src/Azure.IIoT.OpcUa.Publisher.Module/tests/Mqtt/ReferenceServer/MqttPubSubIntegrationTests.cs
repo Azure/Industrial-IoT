@@ -349,6 +349,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
         /// <param name="messagingMode"></param>
         [Theory]
         [InlineData("PubSub")]
+        [InlineData("FullNetworkMessages")]
         [InlineData("DataSetMessages")]
         [InlineData("SingleDataSetMessage")]
         [InlineData("RawDataSets")]

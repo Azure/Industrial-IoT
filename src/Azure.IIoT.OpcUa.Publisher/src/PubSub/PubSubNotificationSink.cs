@@ -176,6 +176,27 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 yield return new ManagedPubSubNotification(dataSetName, fieldName,
                     timestamp, value, kind);
             }
+
+            //
+            // Extension fields belong to every payload the writer path emits,
+            // and the context carries them already resolved, including the
+            // synthetic EndpointUrl and ApplicationUri the full featured profile
+            // appends. They are published as constants so the source retains
+            // them and appends them to each message rather than emitting one of
+            // their own.
+            //
+            if (notification.Context is DataSetWriterContext context)
+            {
+                foreach (var (fieldName, value) in context.ExtensionFields)
+                {
+                    if (string.IsNullOrWhiteSpace(fieldName) || value is not { } resolved)
+                    {
+                        continue;
+                    }
+                    yield return new ManagedPubSubNotification(dataSetName, fieldName,
+                        fallback, resolved, ManagedPubSubNotificationKind.Extension);
+                }
+            }
         }
 
         /// <summary>

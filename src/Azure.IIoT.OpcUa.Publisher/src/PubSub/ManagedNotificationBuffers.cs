@@ -28,7 +28,15 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     {
         Data,
         Event,
-        Condition
+        Condition,
+
+        /// <summary>
+        /// A constant field the writer contributes to every payload, such as a
+        /// configured extension field or the endpoint and application uri the
+        /// full featured profile appends. It updates retained state but never
+        /// produces a message of its own.
+        /// </summary>
+        Extension
     }
 
     /// <summary>
@@ -606,7 +614,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                     {
                         MajorVersion = 1
                     },
-                    [
+                    WithExtensionFields(
                         new DataSetField
                         {
                             Name = notification.FieldName,
@@ -615,8 +623,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                             SourceTimestamp = ResolveSourceTimestamp(notification),
                             ServerTimestamp = notification.Value.ServerTimestamp,
                             Encoding = _fieldEncoding
-                        }
-                    ],
+                        }),
                     DateTimeUtc.From(notification.Timestamp)));
             }
 
@@ -680,6 +687,27 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 }
                 long sequence;
                 var metadataChanged = false;
+                if (copy.Kind == ManagedPubSubNotificationKind.Extension)
+                {
+                    //
+                    // A constant field contributes to every payload rather than
+                    // producing one, so it updates retained state and metadata
+                    // and is never queued as pending. Queuing it would emit a
+                    // delta frame carrying only that field, which the writer
+                    // path never produces.
+                    //
+                    lock (_stateGate)
+                    {
+                        _extensionFields[copy.FieldName] = copy;
+                        metadataChanged = _knownFields.TryAdd(copy.FieldName,
+                            ManagedFieldType.From(copy.Value));
+                    }
+                    if (metadataChanged)
+                    {
+                        MetaDataChanged?.Invoke(this, EventArgs.Empty);
+                    }
+                    continue;
+                }
                 if (copy.Kind == ManagedPubSubNotificationKind.Data)
                 {
                     lock (_stateGate)
@@ -747,30 +775,81 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 : sourceTimestamp;
         }
 
-        private ArrayOf<DataSetField> SnapshotCurrentData()        {
+        /// <summary>
+        /// Appends the constant fields the writer contributes to every payload.
+        /// The writer path includes them in each message, so a delta that
+        /// carried only the changed field would not reproduce it.
+        /// </summary>
+        /// <param name="field">The field that changed.</param>
+        private ArrayOf<DataSetField> WithExtensionFields(DataSetField field)
+        {
+            lock (_stateGate)
+            {
+                if (_extensionFields.IsEmpty)
+                {
+                    return [field];
+                }
+                var fields = new List<DataSetField>(_extensionFields.Count + 1) { field };
+                foreach (var name in _extensionFields.Keys.OrderBy(name => name,
+                    StringComparer.Ordinal))
+                {
+                    if (name == field.Name ||
+                        !_extensionFields.TryGetValue(name, out var extension))
+                    {
+                        continue;
+                    }
+                    fields.Add(ToField(name, extension));
+                }
+                return [.. fields];
+            }
+        }
+
+        private DataSetField ToField(string name, ManagedPubSubNotification? notification)
+        {
+            return new DataSetField
+            {
+                Name = name,
+                Value = notification is null
+                    ? new Variant()
+                    : notification.Value.WrappedValue,
+                StatusCode = notification is null
+                    ? StatusCodes.Good
+                    : notification.Value.StatusCode,
+                //
+                // A constant field has no sample time, so it keeps whatever the
+                // value carries and never falls back to the routing time. The
+                // writer path publishes extension fields as a bare value.
+                //
+                SourceTimestamp = notification is null
+                    ? default
+                    : notification.Kind == ManagedPubSubNotificationKind.Extension
+                        ? notification.Value.SourceTimestamp
+                        : ResolveSourceTimestamp(notification),
+                ServerTimestamp = notification is null
+                    ? default
+                    : notification.Value.ServerTimestamp,
+                Encoding = _fieldEncoding
+            };
+        }
+
+        private ArrayOf<DataSetField> SnapshotCurrentData()
+        {
             var fields = new List<DataSetField>();
             foreach (var name in _knownFields.Keys.OrderBy(name => name,
                 StringComparer.Ordinal))
             {
+                //
+                // A constant field is retained separately from sampled data, so
+                // both maps are consulted before the field is treated as one
+                // that has not been observed yet.
+                //
                 _ = _currentData.TryGetValue(name, out var current);
                 var notification = current?.Notification;
-                fields.Add(new DataSetField
+                if (notification is null)
                 {
-                    Name = name,
-                    Value = notification is null
-                        ? new Variant()
-                        : notification.Value.WrappedValue,
-                    StatusCode = notification is null
-                        ? StatusCodes.Good
-                        : notification.Value.StatusCode,
-                    SourceTimestamp = notification is null
-                        ? default
-                        : ResolveSourceTimestamp(notification),
-                    ServerTimestamp = notification is null
-                        ? default
-                        : notification.Value.ServerTimestamp,
-                    Encoding = _fieldEncoding
-                });
+                    _ = _extensionFields.TryGetValue(name, out notification);
+                }
+                fields.Add(ToField(name, notification));
             }
             return [.. fields];
         }
@@ -781,6 +860,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         private readonly CancellationTokenSource _pendingWrite = new();
         private readonly Channel<ManagedPendingNotification> _pending;
         private readonly ConcurrentDictionary<string, ManagedCurrentData> _currentData =
+            new(StringComparer.Ordinal);
+        private readonly ConcurrentDictionary<string, ManagedPubSubNotification> _extensionFields =
             new(StringComparer.Ordinal);
         private readonly ConcurrentDictionary<string, ManagedFieldType> _knownFields =
             new(StringComparer.Ordinal);
