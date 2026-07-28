@@ -397,7 +397,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
         private async Task<string> CaptureShapeAsync(string messagingMode, bool native)        {
             string[] arguments = native
                 ? ["--mm=" + messagingMode, "--dm=False", "--ps=False", "--unp=True"]
-                : ["--mm=" + messagingMode, "--dm=False", "--ps=False"];
+                : ["--mm=" + messagingMode, "--dm=False", "--ps=False", "--unp=False"];
             var (_, messages) = await ProcessMessagesAndMetadataAsync(
                 nameof(NativePubSubMatchesTheCustomEncoderWireShapeAsync) + messagingMode + native,
                 "./Resources/DataItems.json", TimeSpan.FromMinutes(2), 20,

@@ -382,6 +382,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 },
             ];
 
+            //
+            // Selects the telemetry path for a whole run without a code change,
+            // so the same suite validates the custom and the native encoder and
+            // CI can run both. A test that names the path itself keeps it, which
+            // is what lets the wire parity gate capture both paths in one run.
+            //
+            var nativePubSub = Environment.GetEnvironmentVariable("IIOT_TEST_USE_NATIVE_PUBSUB");
+            if (!string.IsNullOrEmpty(nativePubSub) &&
+                !arguments.Any(argument => argument.StartsWith("--unp", StringComparison.Ordinal)))
+            {
+                arguments = [.. arguments, "--unp=" + nativePubSub];
+            }
+
             // Use the polling file-change watcher on all platforms in tests.
             // The native FileSystemWatcher's change-notification callback can
             // hit an access violation under the heavy create/modify/delete and
