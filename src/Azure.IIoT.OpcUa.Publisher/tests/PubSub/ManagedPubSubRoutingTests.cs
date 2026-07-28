@@ -87,6 +87,54 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             }
         }
 
+        [Fact]
+        public async Task CarriesTheSourceTimestampAndStatusOntoTheFieldAsync()
+        {
+            //
+            // The stack writes a DataValue flattened as
+            // {UaType, Value, StatusCode, SourceTimestamp} and omits the members
+            // that are still at their default. A field that loses the source
+            // timestamp is therefore indistinguishable on the wire from a bare
+            // variant, which is exactly the difference the parity gate reports
+            // against the custom encoder.
+            //
+            var sourceTimestamp = new DateTimeOffset(2026, 3, 4, 5, 6, 7,
+                TimeSpan.Zero);
+            var writerGroup = CreateWriterGroup("named");
+            var buffer = new ManagedPubSubNotificationBuffer(16);
+            await using var provider = new ManagedPubSubNotificationDataSourceProvider(buffer);
+            await using var registry = new ManagedPubSubDataSetSourceRegistry([provider]);
+
+            await using (var transaction = await registry.PrepareAsync([writerGroup]))
+            {
+                transaction.Install();
+                await transaction.CommitAsync();
+            }
+
+            Assert.True(registry.TryGetSource("named", out var published));
+            var source = Assert.IsType<ManagedPubSubDataSetSource>(published);
+
+            await using var sink = new PubSubNotificationSink(buffer,
+                NullLogger<PubSubNotificationSink>.Instance);
+            sink.OnMessage(CreateNotification(writerGroup, sourceTimestamp));
+
+            var delta = await ReadFieldAsync(source, source.BuildMetaData());
+            Assert.Equal(PubSubFieldEncoding.DataValue, delta.Encoding);
+            Assert.Equal(DateTimeUtc.From(sourceTimestamp), delta.SourceTimestamp);
+            Assert.Equal(StatusCodes.Good, delta.StatusCode);
+
+            //
+            // A key frame is built from the retained current values rather than
+            // from the pending notification, so it has to preserve the same
+            // members independently.
+            //
+            source.RequestKeyFrame();
+            var keyFrame = Assert.Single(
+                (await source.SampleAsync(source.BuildMetaData())).Fields.AsEnumerable());
+            Assert.Equal(PubSubFieldEncoding.DataValue, keyFrame.Encoding);
+            Assert.Equal(DateTimeUtc.From(sourceTimestamp), keyFrame.SourceTimestamp);
+        }
+
         private static async Task AssertRoutesAsync(string? dataSetName)
         {
             var writerGroup = CreateWriterGroup(dataSetName);
@@ -148,7 +196,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
         }
 
         private static OpcUaSubscriptionNotification CreateNotification(
-            WriterGroupModel writerGroup)
+            WriterGroupModel writerGroup, DateTimeOffset? sourceTimestamp = null)
         {
             var writer = writerGroup.DataSetWriters![0];
             return new OpcUaSubscriptionNotification(DateTimeOffset.UnixEpoch,
@@ -157,7 +205,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                     new MonitoredItemNotificationModel
                     {
                         DataSetFieldName = "Output",
-                        Value = new DataValue(new Variant(42))
+                        Value = sourceTimestamp is { } timestamp
+                            ? new DataValue(new Variant(42), StatusCodes.Good,
+                                DateTimeUtc.From(timestamp))
+                            : new DataValue(new Variant(42))
                     }
                 ])
             {

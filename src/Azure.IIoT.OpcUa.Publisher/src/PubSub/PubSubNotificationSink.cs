@@ -165,7 +165,13 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 }
                 var value = item.Value ?? new DataValue(Variant.Null,
                     StatusCodes.BadNoData, DateTimeUtc.From(fallback));
-                var timestamp = value.SourceTimestamp == DateTime.MinValue
+                //
+                // An unset source timestamp is DateTimeUtc.MinValue, which is
+                // 1601 rather than DateTime.MinValue, so comparing against the
+                // latter never detects one and publishes 1601 as if it were the
+                // sample time.
+                //
+                var timestamp = value.SourceTimestamp == DateTimeUtc.MinValue
                     ? fallback : new DateTimeOffset(value.SourceTimestamp, TimeSpan.Zero);
                 yield return new ManagedPubSubNotification(dataSetName, fieldName,
                     timestamp, value, kind);

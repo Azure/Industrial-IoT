@@ -612,7 +612,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                             Name = notification.FieldName,
                             Value = notification.Value.WrappedValue,
                             StatusCode = notification.Value.StatusCode,
-                            SourceTimestamp = DateTimeUtc.From(notification.Timestamp),
+                            SourceTimestamp = ResolveSourceTimestamp(notification),
+                            ServerTimestamp = notification.Value.ServerTimestamp,
                             Encoding = _fieldEncoding
                         }
                     ],
@@ -730,8 +731,23 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             }
         }
 
-        private ArrayOf<DataSetField> SnapshotCurrentData()
+        /// <summary>
+        /// Resolves the source timestamp a field is published with. The value's
+        /// own source timestamp is authoritative; the notification timestamp is
+        /// only the time the sample was routed, so it is a fallback for values
+        /// the server did not stamp.
+        /// </summary>
+        /// <param name="notification"></param>
+        private static DateTimeUtc ResolveSourceTimestamp(
+            ManagedPubSubNotification notification)
         {
+            var sourceTimestamp = notification.Value.SourceTimestamp;
+            return sourceTimestamp == DateTimeUtc.MinValue
+                ? DateTimeUtc.From(notification.Timestamp)
+                : sourceTimestamp;
+        }
+
+        private ArrayOf<DataSetField> SnapshotCurrentData()        {
             var fields = new List<DataSetField>();
             foreach (var name in _knownFields.Keys.OrderBy(name => name,
                 StringComparer.Ordinal))
@@ -749,7 +765,10 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                         : notification.Value.StatusCode,
                     SourceTimestamp = notification is null
                         ? default
-                        : DateTimeUtc.From(notification.Timestamp),
+                        : ResolveSourceTimestamp(notification),
+                    ServerTimestamp = notification is null
+                        ? default
+                        : notification.Value.ServerTimestamp,
                     Encoding = _fieldEncoding
                 });
             }
