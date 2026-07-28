@@ -301,18 +301,62 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             {
                 return queueName;
             }
+            return CreateTopicBuilder(writerGroup, publisherOptions, queueName,
+                publisherId, writer: null).TelemetryTopic;
+        }
+
+        /// <summary>
+        /// Resolves the topic a writer publishes its dataset metadata to. The
+        /// writer path applies the metadata topic template, so a configuration
+        /// naming one through --mdt must reach the same topic here or every
+        /// consumer of the metadata stops receiving it.
+        /// </summary>
+        /// <param name="writerGroup"></param>
+        /// <param name="writer"></param>
+        /// <param name="publisherOptions"></param>
+        /// <param name="queueName"></param>
+        /// <param name="publisherId"></param>
+        private static string? ResolveMetaDataTopic(WriterGroupModel writerGroup,
+            DataSetWriterModel writer, PublisherOptions publisherOptions,
+            string? queueName, string publisherId)
+        {
+            if (!string.IsNullOrWhiteSpace(writer.MetaData?.QueueName))
+            {
+                return writer.MetaData.QueueName;
+            }
+            var topic = CreateTopicBuilder(writerGroup, publisherOptions, queueName,
+                publisherId, writer).DataSetMetaDataTopic;
+            return string.IsNullOrWhiteSpace(topic) ? null : topic;
+        }
+
+        private static TopicBuilder CreateTopicBuilder(WriterGroupModel writerGroup,
+            PublisherOptions publisherOptions, string? queueName, string publisherId,
+            DataSetWriterModel? writer)
+        {
             var writerGroupName = TopicFilter.Escape(writerGroup.Name
                 ?? Constants.DefaultWriterGroupName);
-            var builder = new TopicBuilder(publisherOptions, writerGroup.MessageType,
-                new TopicTemplatesOptions(),
-                new Dictionary<string, string>
+            var variables = new Dictionary<string, string>
+            {
+                [PublisherConfig.PublisherIdKey] = TopicFilter.Escape(publisherId),
+                [PublisherConfig.WriterGroupIdVariableName] = writerGroup.Id,
+                [PublisherConfig.DataSetWriterGroupVariableName] = writerGroupName,
+                [PublisherConfig.WriterGroupVariableName] = writerGroupName
+            };
+            if (writer is not null)
+            {
+                var writerName = TopicFilter.Escape(writer.DataSetWriterName ?? writer.Id);
+                variables[PublisherConfig.DataSetWriterIdVariableName] = writer.Id;
+                variables[PublisherConfig.DataSetWriterVariableName] = writerName;
+                variables[PublisherConfig.DataSetWriterNameVariableName] = writerName;
+                variables[PublisherConfig.DataSetNameVariableName] = TopicFilter.Escape(
+                    writer.DataSet?.Name ?? string.Empty);
+            }
+            return new TopicBuilder(publisherOptions, writerGroup.MessageType,
+                new TopicTemplatesOptions
                 {
-                    [PublisherConfig.PublisherIdKey] = TopicFilter.Escape(publisherId),
-                    [PublisherConfig.WriterGroupIdVariableName] = writerGroup.Id,
-                    [PublisherConfig.DataSetWriterGroupVariableName] = writerGroupName,
-                    [PublisherConfig.WriterGroupVariableName] = writerGroupName
-                });
-            return builder.TelemetryTopic;
+                    Telemetry = queueName,
+                    DataSetMetaData = writer?.MetaData?.QueueName
+                }, variables);
         }
 
         private static PubSubShadowEgressSettings CreateSettings(WriterGroupModel writerGroup,
@@ -373,7 +417,13 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 .Select(writer => new PubSubShadowMetadataWriterSettings
                 {
                     WriterName = writer.DataSetWriterName ?? writer.Id,
-                    Publishing = writer.MetaData
+                    Publishing = ResolveMetaDataTopic(writerGroup, writer, publisherOptions,
+                        queue?.QueueName, publisherId) is { } metadataTopic
+                        ? (writer.MetaData ?? new PublishingQueueSettingsModel()) with
+                        {
+                            QueueName = metadataTopic
+                        }
+                        : writer.MetaData
                 })
                 .ToArray();
             return new PubSubShadowEgressSettings

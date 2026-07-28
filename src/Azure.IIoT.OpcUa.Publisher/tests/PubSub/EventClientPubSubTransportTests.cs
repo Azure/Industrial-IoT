@@ -1435,6 +1435,51 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
         }
 
         [Fact]
+        public void EgressResolvesTheMetaDataTopicTheWriterPathComputes()
+        {
+            //
+            // The writer path applies the metadata topic template, so a
+            // configuration naming one through --mdt must reach the same topic
+            // here. Falling back to a synthetic topic silently stops every
+            // consumer of the metadata stream.
+            //
+            var writerGroup = CreateManagedWriterGroup();
+            var options = new PublisherOptions
+            {
+                PublisherId = "publisher"
+            };
+            options.TopicTemplates.DataSetMetaData = "{TelemetryTopic}/metadatamessage";
+            var registry = new PubSubShadowEgressSettingsRegistry(
+                new PubSubShadowSingleEventClientSelector(new RecordingEventClient()));
+
+            registry.Replace([writerGroup], options, new PubSubShadowEgressOptions());
+
+            var settings = Assert.Single(registry.Snapshot().Values);
+            var metadata = Assert.Single(settings.MetadataWriters);
+            Assert.Equal(settings.Topic + "/metadatamessage", metadata.Publishing?.QueueName);
+        }
+
+        [Fact]
+        public void EgressPrefersAnExplicitlyConfiguredMetaDataQueueName()
+        {
+            var writerGroup = CreateManagedWriterGroup();
+            writerGroup.DataSetWriters![0].MetaData = new PublishingQueueSettingsModel
+            {
+                QueueName = "explicit/metadata"
+            };
+            var options = new PublisherOptions();
+            options.TopicTemplates.DataSetMetaData = "{TelemetryTopic}/metadatamessage";
+            var registry = new PubSubShadowEgressSettingsRegistry(
+                new PubSubShadowSingleEventClientSelector(new RecordingEventClient()));
+
+            registry.Replace([writerGroup], options, new PubSubShadowEgressOptions());
+
+            var metadata = Assert.Single(
+                Assert.Single(registry.Snapshot().Values).MetadataWriters);
+            Assert.Equal("explicit/metadata", metadata.Publishing?.QueueName);
+        }
+
+        [Fact]
         public void EgressResolvesTheTransportPerWriterGroup()
         {
             //
