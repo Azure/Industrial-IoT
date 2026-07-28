@@ -697,10 +697,32 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         public PubSubShadowEncodingRegistrySnapshot Encodings { get; }
     }
 
+    /// <summary>
+    /// The message header members and content masks a writer group's messages
+    /// must carry. The native writer group builds its messages without them, so
+    /// the Publisher stamps them on immediately before encoding.
+    /// </summary>
+    internal sealed record class PubSubShadowMessageProfile
+    {
+        public required uint NetworkMessageContentMask { get; init; }
+        public required string WriterGroupName { get; init; }
+        public required Uuid DataSetClassId { get; init; }
+        public required IReadOnlyDictionary<ushort, PubSubShadowWriterProfile> Writers { get; init; }
+    }
+
+    /// <summary>
+    /// The per data set writer members a message must carry.
+    /// </summary>
+    internal sealed record class PubSubShadowWriterProfile
+    {
+        public required uint DataSetMessageContentMask { get; init; }
+        public required string DataSetWriterName { get; init; }
+    }
+
     internal sealed class PubSubShadowEncodingRegistrySnapshot
     {
         public void Add(string connectionName, ushort writerGroupId,
-            PubSubShadowEncoding encoding)
+            PubSubShadowEncoding encoding, PubSubShadowMessageProfile? profile = null)
         {
             if (string.IsNullOrWhiteSpace(connectionName))
             {
@@ -716,6 +738,37 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 throw new ArgumentException(
                     "A shadow PubSub encoding marker already exists for this connection or writer group.");
             }
+            if (profile is not null)
+            {
+                _writerGroupProfiles[writerGroupId] = profile;
+            }
+        }
+
+        internal bool TryGetWriterGroupProfile(ushort writerGroupId,
+            out PubSubShadowMessageProfile? profile)
+        {
+            return _writerGroupProfiles.TryGetValue(writerGroupId, out profile);
+        }
+
+        /// <summary>
+        /// Gets the single message profile in use, when every writer group in
+        /// this generation shares one. A JSON network message only carries a
+        /// writer group identity when the content mask asks for it, so an
+        /// unambiguous generation must still resolve.
+        /// </summary>
+        /// <param name="profile"></param>
+        internal bool TryGetUnambiguousProfile(out PubSubShadowMessageProfile? profile)
+        {
+            profile = null;
+            if (_writerGroupProfiles.Count != 1)
+            {
+                return false;
+            }
+            foreach (var candidate in _writerGroupProfiles.Values)
+            {
+                profile = candidate;
+            }
+            return true;
         }
 
         internal bool TryGetConnectionEncoding(string connectionName,
@@ -768,26 +821,38 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             {
                 copy._writerGroupEncodings.Add(entry.Key, entry.Value);
             }
+            foreach (var entry in _writerGroupProfiles)
+            {
+                copy._writerGroupProfiles.Add(entry.Key, entry.Value);
+            }
             return copy;
         }
 
         private readonly Dictionary<string, PubSubShadowEncoding> _connectionEncodings =
             new(StringComparer.Ordinal);
         private readonly Dictionary<ushort, PubSubShadowEncoding> _writerGroupEncodings = [];
+        private readonly Dictionary<ushort, PubSubShadowMessageProfile> _writerGroupProfiles = [];
     }
 
     internal sealed class PubSubShadowEncodingMarker
     {
         public PubSubShadowEncodingMarker(PubSubShadowEncodingGeneration? generation,
-            PubSubShadowEncoding encoding)
+            PubSubShadowEncoding encoding, PubSubShadowMessageProfile? profile = null)
         {
             Generation = generation;
             Encoding = encoding;
+            Profile = profile;
         }
 
         public PubSubShadowEncodingGeneration? Generation { get; }
 
         public PubSubShadowEncoding Encoding { get; }
+
+        /// <summary>
+        /// Gets the header members and content masks the writer group's
+        /// messages must carry, when the generation resolved one.
+        /// </summary>
+        public PubSubShadowMessageProfile? Profile { get; }
     }
 
     internal sealed class PubSubShadowEncodingGeneration
@@ -814,7 +879,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 //
                 if (_snapshot.TryGetUnambiguousEncoding(out var single))
                 {
-                    return new PubSubShadowEncodingMarker(this, single);
+                    _ = _snapshot.TryGetUnambiguousProfile(out var singleProfile);
+                    return new PubSubShadowEncodingMarker(this, single, singleProfile);
                 }
                 throw new InvalidOperationException(
                     "The JSON NetworkMessage does not carry a writer group identity " +
@@ -824,7 +890,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             }
             if (_snapshot.TryGetWriterGroupEncoding(id, out var encoding))
             {
-                return new PubSubShadowEncodingMarker(this, encoding);
+                _ = _snapshot.TryGetWriterGroupProfile(id, out var profile);
+                return new PubSubShadowEncodingMarker(this, encoding, profile);
             }
             throw new InvalidOperationException(
                 $"No shadow PubSub encoding marker exists for writer group '{id}'.");
@@ -924,6 +991,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 await _observer.BeforeEncodeAsync(marker, networkMessage, cancellationToken)
                     .ConfigureAwait(false);
             }
+            networkMessage = ApplyProfile(networkMessage, marker.Profile);
             return marker.Encoding switch
             {
                 PubSubShadowEncoding.Json or PubSubShadowEncoding.JsonGzip =>
@@ -934,6 +1002,56 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                         .ConfigureAwait(false),
                 _ => throw new InvalidOperationException(
                     $"Shadow JSON encoder cannot encode '{marker.Encoding}' messages.")
+            };
+        }
+
+        /// <summary>
+        /// Stamps the configured header members and content masks onto the
+        /// message. The native writer group builds a JSON message without them,
+        /// so without this every messaging mode emits the same envelope and the
+        /// network message header members never appear.
+        /// </summary>
+        /// <param name="networkMessage">Message about to be encoded.</param>
+        /// <param name="profile">Profile resolved for its writer group.</param>
+        private static PubSubNetworkMessage ApplyProfile(
+            PubSubNetworkMessage networkMessage, PubSubShadowMessageProfile? profile)
+        {
+            if (profile is null ||
+                networkMessage is not Opc.Ua.PubSub.Encoding.Json.JsonNetworkMessage json)
+            {
+                return networkMessage;
+            }
+            var dataSetMessages = json.DataSetMessages;
+            if (dataSetMessages.Count != 0)
+            {
+                var stamped = new List<PubSubDataSetMessage>(dataSetMessages.Count);
+                foreach (var dataSetMessage in dataSetMessages)
+                {
+                    stamped.Add(dataSetMessage is
+                        Opc.Ua.PubSub.Encoding.Json.JsonDataSetMessage jsonDataSet &&
+                        profile.Writers.TryGetValue(jsonDataSet.DataSetWriterId, out var writer)
+                        ? jsonDataSet with
+                        {
+                            //
+                            // The name is deliberately not supplied. The mask
+                            // carries the DataSetWriterName bit, but the writer
+                            // path never emits the member, and the encoder only
+                            // writes it when a non-empty name is present, so
+                            // leaving it empty is what reproduces that.
+                            //
+                            ContentMask = (JsonDataSetMessageContentMask)
+                                writer.DataSetMessageContentMask
+                        }
+                        : dataSetMessage);
+                }
+                json = json with { DataSetMessages = stamped };
+            }
+            return json with
+            {
+                ContentMask = (JsonNetworkMessageContentMask)profile.NetworkMessageContentMask,
+                MessageId = Guid.NewGuid().ToString(),
+                WriterGroupName = profile.WriterGroupName,
+                DataSetClassId = profile.DataSetClassId
             };
         }
 

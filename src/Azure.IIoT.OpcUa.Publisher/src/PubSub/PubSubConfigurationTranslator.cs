@@ -63,7 +63,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 var connection = TranslateWriterGroup(writerGroup, dataSets, identities, encoding);
                 connections.Add(connection);
                 encodings.Add(connection.Name ?? string.Empty,
-                    connection.WriterGroups[0].WriterGroupId, encoding);
+                    connection.WriterGroups[0].WriterGroupId, encoding,
+                    CreateMessageProfile(writerGroup, connection.WriterGroups[0]));
             }
 
             return new PubSubShadowConfigurationTranslation(
@@ -77,8 +78,41 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 encodings);
         }
 
-        public static PubSubConfigurationDataType CreateEmpty()
+        /// <summary>
+        /// Collects the header members and content masks the writer group's
+        /// messages must carry, so the Publisher can stamp them on before
+        /// encoding. The native writer group builds its messages without them.
+        /// </summary>
+        /// <param name="source">Public writer group model.</param>
+        /// <param name="translated">Translated native writer group.</param>
+        private static PubSubShadowMessageProfile CreateMessageProfile(
+            WriterGroupModel source, WriterGroupDataType translated)
         {
+            var writers = new Dictionary<ushort, PubSubShadowWriterProfile>();
+            foreach (var writer in translated.DataSetWriters)
+            {
+                writers[writer.DataSetWriterId] = new PubSubShadowWriterProfile
+                {
+                    DataSetMessageContentMask = writer.MessageSettings
+                        .TryGetValue(out JsonDataSetWriterMessageDataType? json) && json is not null
+                            ? json.DataSetMessageContentMask : 0,
+                    DataSetWriterName = writer.Name ?? string.Empty
+                };
+            }
+            return new PubSubShadowMessageProfile
+            {
+                NetworkMessageContentMask = translated.MessageSettings
+                    .TryGetValue(out JsonWriterGroupMessageDataType? group) && group is not null
+                        ? group.NetworkMessageContentMask : 0,
+                WriterGroupName = source.Name ?? Constants.DefaultWriterGroupName,
+                DataSetClassId = new Uuid(source.DataSetWriters?
+                    .Select(writer => writer.DataSet?.DataSetMetaData?.DataSetClassId ?? Guid.Empty)
+                    .FirstOrDefault(id => id != Guid.Empty) ?? Guid.Empty),
+                Writers = writers
+            };
+        }
+
+        public static PubSubConfigurationDataType CreateEmpty()        {
             return new PubSubConfigurationDataType
             {
                 Enabled = true,

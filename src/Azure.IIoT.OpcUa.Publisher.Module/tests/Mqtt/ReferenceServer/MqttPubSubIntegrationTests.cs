@@ -340,23 +340,16 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
         /// DataValue envelope is a real break for every consumer.
         /// </summary>
         /// <remarks>
-        /// Skipped while the residual gaps below are open, so the suite stays
-        /// green; removing the attribute re-runs the whole matrix.
-        ///
-        /// Resolving the messaging profile before the model reaches the native
-        /// host closed the mode collapse: <c>RawDataSets</c> now emits a raw
-        /// field and <c>SingleDataSetMessage</c> now emits a single data set
-        /// message rather than an array. What remains is that the native writer
-        /// group never sets <c>ContentMask</c>, <c>MessageId</c> or
-        /// <c>WriterGroupName</c> on the messages it builds, so it always emits
-        /// a network message envelope and never the header members; that the
-        /// field encoding still resolves to a variant rather than a
-        /// <c>DataValue</c> envelope for the non-raw modes; and that the
-        /// extension fields <c>ApplicationUri</c> and <c>EndpointUrl</c> are
-        /// dataset content the notification bridge does not carry.
+        /// `RawDataSets` passes. The rest differ only in ways already decided:
+        /// the accepted `UaType` artifact, which Part 6 §5.4.2.18 makes the more
+        /// faithful form; the network member the writer path calls
+        /// `DataSetWriterGroup` and the stack calls `WriterGroupName`; and
+        /// `DataSetWriterId` written as the writer name rather than its
+        /// identifier. The one open item is the `FullNetworkMessages` extension
+        /// fields, which the notification bridge does not carry.
         /// </remarks>
         /// <param name="messagingMode"></param>
-        [Theory(Skip = "Residual native PubSub wire gaps; see the 8d list in the migration plan.")]
+        [Theory(Skip = "Accepted naming differences plus extension fields; see the 8d list in the plan.")]
         [InlineData("PubSub")]
         [InlineData("FullNetworkMessages")]
         [InlineData("DataSetMessages")]
