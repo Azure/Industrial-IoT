@@ -339,14 +339,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
         /// DataValue envelope is a real break for every consumer.
         /// </summary>
         /// <remarks>
-        /// Skipped: the native writer group builds its JSON messages without the
-        /// configured content masks, so every messaging mode currently produces
-        /// the same shape. Closing that is stack work rather than Publisher work,
-        /// and this theory is the gate that proves it is closed. See the 8d gap
-        /// list in the migration plan.
+        /// Skipped while the residual gaps below are open, so the suite stays
+        /// green; removing the attribute re-runs the whole matrix.
+        ///
+        /// Resolving the messaging profile before the model reaches the native
+        /// host closed the mode collapse: <c>RawDataSets</c> now emits a raw
+        /// field and <c>SingleDataSetMessage</c> now emits a single data set
+        /// message rather than an array. What remains is that the native writer
+        /// group never sets <c>ContentMask</c>, <c>MessageId</c> or
+        /// <c>WriterGroupName</c> on the messages it builds, so it always emits
+        /// a network message envelope and never the header members; that the
+        /// field encoding still resolves to a variant rather than a
+        /// <c>DataValue</c> envelope for the non-raw modes; and that the
+        /// extension fields <c>ApplicationUri</c> and <c>EndpointUrl</c> are
+        /// dataset content the notification bridge does not carry.
         /// </remarks>
         /// <param name="messagingMode"></param>
-        [Theory(Skip = "Native writer group ignores the JSON content masks; see 8d gap list.")]
+        [Theory(Skip = "Residual native PubSub wire gaps; see the 8d list in the migration plan.")]
         [InlineData("PubSub")]
         [InlineData("FullNetworkMessages")]
         [InlineData("DataSetMessages")]
@@ -362,8 +371,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             Assert.Equal(custom, native);
         }
 
-        private async Task<string> CaptureShapeAsync(string messagingMode, bool native)
-        {
+        private async Task<string> CaptureShapeAsync(string messagingMode, bool native)        {
             string[] arguments = native
                 ? ["--mm=" + messagingMode, "--dm=False", "--ps=False", "--unp=True"]
                 : ["--mm=" + messagingMode, "--dm=False", "--ps=False"];
@@ -381,6 +389,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 .Select(message => message.Message)
                 .FirstOrDefault(message => FindOutput(message).ValueKind != JsonValueKind.Undefined);
             Assert.NotEqual(JsonValueKind.Undefined, carrying.ValueKind);
+            _output.WriteLine((native ? "native " : "custom ") + messagingMode +
+                " raw: " + carrying.ToJsonString());
             return Shape(carrying);
         }
 

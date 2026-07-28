@@ -64,6 +64,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 throw new ArgumentNullException(nameof(options));
             _factory = factory;
             _logger = logger;
+            _options = options;
             _timeProvider = timeProvider ?? TimeProvider.System;
             _pubSubShadowHost = pubSubShadowHost;
             LastChange = _timeProvider.GetUtcNow();
@@ -297,7 +298,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     if (_pubSubShadowHost is not null)
                     {
-                        await _pubSubShadowHost.ReplaceConfigurationAsync(writerGroups, ct)
+                        //
+                        // The native host must see the same resolved model the
+                        // writer path encodes from. An unresolved model carries
+                        // no content masks, so every messaging mode would
+                        // translate to the same defaults and collapse onto one
+                        // wire format.
+                        //
+                        var resolved = writerGroups
+                            .ConvertAll(writerGroup => writerGroup
+                                .CopyAndResolve(_options.Value));
+                        await _pubSubShadowHost.ReplaceConfigurationAsync(resolved, ct)
                             .ConfigureAwait(false);
                     }
 
@@ -479,6 +490,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         private bool _isDisposed;
         private readonly IWriterGroupScopeFactory _factory;
         private readonly ILogger _logger;
+        private readonly IOptions<PublisherOptions> _options;
         private readonly TimeProvider _timeProvider;
         private readonly IPubSubShadowHost? _pubSubShadowHost;
         private readonly Task _processor;

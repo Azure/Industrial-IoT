@@ -300,67 +300,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         }
 
         /// <summary>
-        /// Safe clone the writer group model
+        /// Safe clone the writer group model and resolve its messaging profile
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
         private WriterGroupModel Copy(WriterGroupModel model)
         {
-            var writerGroup = model with
-            {
-                DataSetWriters = model.DataSetWriters == null ?
-                    Array.Empty<DataSetWriterModel>() :
-                    model.DataSetWriters
-                        .Where(w => w.HasDataToPublish())
-                        .Select(f => f.Clone())
-                        .ToList(),
-                LocaleIds = model.LocaleIds?.ToList(),
-                MessageSettings = model.MessageSettings == null ? null :
-                    model.MessageSettings with { },
-                SecurityKeyServices = model.SecurityKeyServices?
-                    .Select(c => c.Clone())
-                    .ToList()
-            };
-
-            // Set the messaging profile settings
-            var defaultMessagingProfile = _options.Value.MessagingProfile ??
-                MessagingProfile.Get(MessagingMode.PubSub, MessageEncoding.Json);
-            if (writerGroup.HeaderLayoutUri != null)
-            {
-                defaultMessagingProfile = MessagingProfile.Get(
-                    Enum.Parse<MessagingMode>(writerGroup.HeaderLayoutUri),
-                    writerGroup.MessageType ?? defaultMessagingProfile.MessageEncoding);
-            }
-
-            writerGroup.MessageType ??= defaultMessagingProfile.MessageEncoding;
-
-            // Set the messaging settings for the encoder
-            if (writerGroup.MessageSettings?.NetworkMessageContentMask == null)
-            {
-                writerGroup.MessageSettings ??= new WriterGroupMessageSettingsModel();
-                writerGroup.MessageSettings.NetworkMessageContentMask =
-                    defaultMessagingProfile.NetworkMessageContentMask;
-            }
-
-            foreach (var dataSetWriter in writerGroup.DataSetWriters)
-            {
-                if (dataSetWriter.MessageSettings?.DataSetMessageContentMask == null)
-                {
-                    dataSetWriter.MessageSettings ??= new DataSetWriterMessageSettingsModel();
-                    dataSetWriter.MessageSettings.DataSetMessageContentMask =
-                        defaultMessagingProfile.DataSetMessageContentMask;
-                }
-                dataSetWriter.DataSetFieldContentMask ??=
-                        defaultMessagingProfile.DataSetFieldContentMask;
-
-                if (_options.Value.WriteValueWhenDataSetHasSingleEntry == true)
-                {
-                    dataSetWriter.DataSetFieldContentMask
-                        |= Models.DataSetFieldContentFlags.SingleFieldDegradeToValue;
-                }
-            }
-
-            return writerGroup;
+            return model.CopyAndResolve(_options.Value);
         }
 
         /// <summary>
