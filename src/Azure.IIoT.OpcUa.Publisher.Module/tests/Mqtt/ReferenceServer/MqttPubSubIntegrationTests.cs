@@ -332,6 +332,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
         }
 
         /// <summary>
+        /// The native runtime publishing UADP over the broker. UADP is binary,
+        /// so this asserts the path functionally rather than comparing it
+        /// against the writer path: the message must arrive, decode, and carry
+        /// the writer group the configuration named.
+        /// </summary>
+        /// <remarks>
+        /// The recorded decision is that UADP is validated functionally. The
+        /// cost is stated plainly: this would not catch a content mask
+        /// regression of the kind the JSON parity gate caught.
+        /// </remarks>
+        [Fact]
+        public async Task NativePubSubRuntimePublishesUadpToMqttBrokerAsync()
+        {
+            var messages = await ProcessRawMessagesAsync(
+                nameof(NativePubSubRuntimePublishesUadpToMqttBrokerAsync),
+                "./Resources/DataItems.json", TimeSpan.FromMinutes(2), 1,
+                arguments: ["--mm=PubSub", "--me=Uadp", "--dm=False", "--ps=False", "--unp=True"],
+                version: MqttVersion.v5);
+
+            var message = Assert.Single(messages);
+            Assert.Equal("application/octet-stream", message.ContentType);
+            Assert.NotEmpty(message.Payload);
+            //
+            // The low nibble of the first header byte is the UADP version,
+            // which the encoder always writes as 1, so a payload that does not
+            // start with it is not a UADP network message at all.
+            //
+            Assert.Equal(1, message.Payload[0] & 0x0F);
+        }
+
+        /// <summary>
         /// Compares the wire shape the native runtime produces against the shape
         /// the custom encoder produces for the same configuration. Structure is
         /// compared rather than values, because timestamps, sequence numbers and

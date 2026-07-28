@@ -181,6 +181,51 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         }
 
         /// <summary>
+        /// Start publisher and collect raw telemetry payloads without
+        /// interpreting them. Binary encodings such as UADP cannot go through
+        /// the JSON collector, which parses every payload it receives.
+        /// </summary>
+        /// <param name="test"></param>
+        /// <param name="publishedNodesFile"></param>
+        /// <param name="messageCollectionTimeout"></param>
+        /// <param name="messageCount"></param>
+        /// <param name="arguments"></param>
+        /// <param name="version"></param>
+        protected async Task<List<(string Topic, string ContentType, byte[] Payload)>>
+            ProcessRawMessagesAsync(string test, string publishedNodesFile,
+            TimeSpan messageCollectionTimeout, int messageCount,
+            string[] arguments = default, MqttVersion? version = null)
+        {
+            StartPublisher(test, publishedNodesFile, arguments, version);
+            try
+            {
+                var payloads = new List<(string, string, byte[])>();
+                using var cts = new CancellationTokenSource(messageCollectionTimeout);
+                try
+                {
+                    await foreach (var evt in _publisher.ReadTelemetryAsync(cts.Token))
+                    {
+                        if (evt.Data.IsEmpty)
+                        {
+                            continue;
+                        }
+                        payloads.Add((evt.Topic, evt.ContentType, evt.Data.ToArray()));
+                        if (payloads.Count >= messageCount)
+                        {
+                            break;
+                        }
+                    }
+                }
+                catch (OperationCanceledException) { }
+                return payloads;
+            }
+            finally
+            {
+                await StopPublisherAsync();
+            }
+        }
+
+        /// <summary>
         /// Wait for one message
         /// </summary>
         /// <param name="predicate"></param>

@@ -526,7 +526,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 .WithApplicationId("azure-iiot-publisher-shadow")
                 .UseConfiguration(configuration)
                 .AddEncoder(new ShadowJsonEncoder(encodingRegistry))
-                .AddEncoder(new Opc.Ua.PubSub.Encoding.Uadp.UadpEncoder())
+                .AddEncoder(new ShadowUadpEncoder(encodingRegistry))
                 .AddDecoder(new Opc.Ua.PubSub.Encoding.Json.JsonDecoder())
                 .AddDecoder(new Opc.Ua.PubSub.Encoding.Uadp.UadpDecoder())
                 .WithDataSetSourceProvider(services.GetRequiredService<
@@ -1061,6 +1061,70 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             new(JsonEncodingMode.Compact);
         private readonly Opc.Ua.PubSub.Encoding.Json.JsonEncoder _verbose =
             new(JsonEncodingMode.Verbose);
+    }
+
+    /// <summary>
+    /// Wraps the native UADP encoder so the configured content masks and header
+    /// members reach the message, exactly as the JSON encoder does. Without it
+    /// the UADP path has the defect the JSON path had: the native writer group
+    /// builds a message carrying none of them.
+    /// </summary>
+    internal sealed class ShadowUadpEncoder : INetworkMessageEncoder
+    {
+        public ShadowUadpEncoder(PubSubShadowEncodingRegistry encodings)
+        {
+            _encodings = encodings ?? throw new ArgumentNullException(nameof(encodings));
+        }
+
+        public string TransportProfileUri => _inner.TransportProfileUri;
+
+        public int EstimatedHeaderOverhead => _inner.EstimatedHeaderOverhead;
+
+        public ValueTask<ReadOnlyMemory<byte>> EncodeAsync(PubSubNetworkMessage networkMessage,
+            PubSubNetworkMessageContext context, CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(networkMessage);
+            var marker = _encodings.ActiveGeneration.ResolveForWriterGroup(
+                networkMessage.WriterGroupId);
+            return _inner.EncodeAsync(ApplyProfile(networkMessage, marker.Profile),
+                context, cancellationToken);
+        }
+
+        private static PubSubNetworkMessage ApplyProfile(
+            PubSubNetworkMessage networkMessage, PubSubShadowMessageProfile? profile)
+        {
+            if (profile is null ||
+                networkMessage is not Opc.Ua.PubSub.Encoding.Uadp.UadpNetworkMessage uadp)
+            {
+                return networkMessage;
+            }
+            var dataSetMessages = uadp.DataSetMessages;
+            if (dataSetMessages.Count != 0)
+            {
+                var stamped = new List<PubSubDataSetMessage>(dataSetMessages.Count);
+                foreach (var dataSetMessage in dataSetMessages)
+                {
+                    stamped.Add(dataSetMessage is
+                        Opc.Ua.PubSub.Encoding.Uadp.UadpDataSetMessage jsonDataSet &&
+                        profile.Writers.TryGetValue(jsonDataSet.DataSetWriterId, out var writer)
+                        ? jsonDataSet with
+                        {
+                            ContentMask = (UadpDataSetMessageContentMask)
+                                writer.DataSetMessageContentMask
+                        }
+                        : dataSetMessage);
+                }
+                uadp = uadp with { DataSetMessages = stamped };
+            }
+            return uadp with
+            {
+                ContentMask = (UadpNetworkMessageContentMask)profile.NetworkMessageContentMask,
+                DataSetClassId = profile.DataSetClassId
+            };
+        }
+
+        private readonly PubSubShadowEncodingRegistry _encodings;
+        private readonly Opc.Ua.PubSub.Encoding.Uadp.UadpEncoder _inner = new();
     }
 
     internal sealed class NoEgressPubSubTransportFactory : IPubSubTransportFactory
