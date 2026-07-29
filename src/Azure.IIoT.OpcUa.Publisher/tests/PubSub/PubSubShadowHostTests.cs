@@ -813,6 +813,53 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 TimeProvider.System);
         }
 
+        [Fact]
+        public async Task EncoderSuppressesAnEmptyDataMessageButNeverAnAnnouncementAsync()
+        {
+            //
+            // The runtime samples on its own timer and builds a message whether
+            // or not the sources had data, so a message carrying no field is
+            // suppressed. A metadata announcement carries no field by
+            // definition, and the runtime's metadata publisher populates only
+            // the message's own payload property and leaves the base MetaData
+            // null, so recognising an announcement by that property alone
+            // silently stops the entire metadata stream.
+            //
+            var encodings = new PubSubShadowEncodingRegistry();
+            var snapshot = new PubSubShadowEncodingRegistrySnapshot();
+            snapshot.Add("connection", 1, PubSubShadowEncoding.Json);
+            encodings.Replace(snapshot);
+            var encoder = new ShadowJsonEncoder(encodings);
+
+            var empty = await encoder.EncodeAsync(new JsonNetworkMessage
+            {
+                WriterGroupId = 1,
+                DataSetMessages = []
+            }, CreateContext());
+            Assert.True(empty.IsEmpty);
+
+            var announcement = await encoder.EncodeAsync(
+                new Opc.Ua.PubSub.Encoding.Json.JsonMetaDataMessage
+                {
+                    MessageId = "message",
+                    WriterGroupId = 1,
+                    DataSetWriterId = 1,
+                    MetaDataPayload = new DataSetMetaDataType
+                    {
+                        Name = "dataset",
+                        Fields = [],
+                        ConfigurationVersion = new ConfigurationVersionDataType
+                        {
+                            MajorVersion = 1
+                        }
+                    }
+                }, CreateContext());
+
+            Assert.False(announcement.IsEmpty);
+            Assert.Contains("ua-metadata", Encoding.UTF8.GetString(announcement.Span),
+                StringComparison.Ordinal);
+        }
+
         private sealed class ValueDataSetSource : IPublishedDataSetSource
         {
             public ValueDataSetSource(string name = "dataset-writer", int value = 42)

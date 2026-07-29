@@ -975,13 +975,21 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         /// whether or not the sources had data, while the writer path only
         /// publishes when a notification arrived. Left unsuppressed the
         /// difference reaches every consumer as an empty key frame the writer
-        /// path never emits. A metadata announcement carries no field by
-        /// definition and is never suppressed.
+        /// path never emits.
         /// </summary>
+        /// <remarks>
+        /// A metadata announcement carries no field by definition and is never
+        /// suppressed. It must be recognised by its type rather than by the
+        /// base <see cref="PubSubNetworkMessage.MetaData"/> property, because
+        /// the runtime's metadata publisher populates only the message's own
+        /// payload property and leaves the base one null.
+        /// </remarks>
         /// <param name="networkMessage"></param>
         public static bool CarriesNothing(this PubSubNetworkMessage networkMessage)
         {
-            if (networkMessage.MetaData is not null)
+            if (networkMessage.MetaData is not null ||
+                networkMessage is Opc.Ua.PubSub.Encoding.Json.JsonMetaDataMessage or
+                    Opc.Ua.PubSub.Encoding.Uadp.UadpDiscoveryResponseMessage)
             {
                 return false;
             }
