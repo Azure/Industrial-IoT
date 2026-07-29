@@ -173,6 +173,14 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     {
         public required string WriterName { get; init; }
         public PublishingQueueSettingsModel? Publishing { get; init; }
+
+        /// <summary>
+        /// Whether the writer announces its dataset metadata at all. The writer
+        /// path suppresses the announcement when metadata is disabled, and the
+        /// native runtime announces on its own schedule, so the egress has to
+        /// drop what the configuration asked not to publish.
+        /// </summary>
+        public bool Enabled { get; init; } = true;
     }
 
     /// <summary>
@@ -413,10 +421,13 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             var schema = options.IncludeSchema
                 ? new PubSubShadowEventSchema(writerGroup.Id, encoding)
                 : null;
+            var metadataEnabled = publisherOptions.DisableDataSetMetaData != true;
             var metadataWriters = (writerGroup.DataSetWriters ?? [])
                 .Select(writer => new PubSubShadowMetadataWriterSettings
                 {
                     WriterName = writer.DataSetWriterName ?? writer.Id,
+                    Enabled = metadataEnabled
+                        && writer.DataSet?.DataSetMetaData is not null,
                     Publishing = ResolveMetaDataTopic(writerGroup, writer, publisherOptions,
                         queue?.QueueName, publisherId) is { } metadataTopic
                         ? (writer.MetaData ?? new PublishingQueueSettingsModel()) with
@@ -923,6 +934,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             var byTopic = new Dictionary<string, PubSubShadowEgressSettings>(
                 StringComparer.Ordinal);
             var byWriter = new Dictionary<(ushort WriterGroupId, ushort DataSetWriterId), string>();
+            var suppressed = new HashSet<string>(StringComparer.Ordinal);
             foreach (var group in connection.WriterGroups)
             {
                 foreach (var writer in group.DataSetWriters)
@@ -943,9 +955,17 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                             $"Metadata topic '{topic}' is configured more than once.");
                     }
                     byWriter.Add((group.WriterGroupId, writer.DataSetWriterId), topic);
+                    if (configured is not null && !configured.Enabled)
+                    {
+                        //
+                        // The topic is still resolved so the runtime can address
+                        // the writer, but nothing is published to it.
+                        //
+                        _ = suppressed.Add(topic);
+                    }
                 }
             }
-            return new PubSubShadowMetadataRouting(byTopic, byWriter);
+            return new PubSubShadowMetadataRouting(byTopic, byWriter, suppressed);
         }
 
         private readonly PubSubShadowEgressSettingsRegistry _settings;
@@ -956,14 +976,21 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     {
         public PubSubShadowMetadataRouting(
             IReadOnlyDictionary<string, PubSubShadowEgressSettings> byTopic,
-            IReadOnlyDictionary<(ushort WriterGroupId, ushort DataSetWriterId), string> byWriter)
+            IReadOnlyDictionary<(ushort WriterGroupId, ushort DataSetWriterId), string> byWriter,
+            IReadOnlySet<string>? suppressed = null)
         {
             ByTopic = byTopic ?? throw new ArgumentNullException(nameof(byTopic));
             ByWriter = byWriter ?? throw new ArgumentNullException(nameof(byWriter));
+            Suppressed = suppressed ?? new HashSet<string>(StringComparer.Ordinal);
         }
 
         public IReadOnlyDictionary<string, PubSubShadowEgressSettings> ByTopic { get; }
         public IReadOnlyDictionary<(ushort WriterGroupId, ushort DataSetWriterId), string> ByWriter { get; }
+
+        /// <summary>
+        /// Metadata topics belonging to writers whose metadata is disabled.
+        /// </summary>
+        public IReadOnlySet<string> Suppressed { get; }
     }
 
     /// <summary>
@@ -1136,6 +1163,15 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             }
             cancellationToken.ThrowIfCancellationRequested();
             var resolvedTopic = string.IsNullOrWhiteSpace(topic) ? _settings.Topic : topic!;
+            if (_metadata.Suppressed.Contains(resolvedTopic))
+            {
+                //
+                // The configuration disabled this writer's dataset metadata.
+                // The native runtime announces on its own schedule and has no
+                // per-writer switch, so the announcement is dropped here.
+                //
+                return;
+            }
             var settings = _metadata.ByTopic.TryGetValue(resolvedTopic, out var metadata)
                 ? metadata
                 : _settings;

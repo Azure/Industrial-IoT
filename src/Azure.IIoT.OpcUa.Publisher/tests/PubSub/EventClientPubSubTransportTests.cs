@@ -1460,6 +1460,29 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
         }
 
         [Fact]
+        public void EgressSuppressesMetaDataWhenTheConfigurationDisablesIt()
+        {
+            //
+            // The writer path suppresses the announcement when metadata is
+            // disabled, but the native runtime announces on its own schedule
+            // and has no per-writer switch, so the egress has to drop what the
+            // configuration asked not to publish.
+            //
+            var writerGroup = CreateManagedWriterGroup();
+            var registry = new PubSubShadowEgressSettingsRegistry(
+                new PubSubShadowSingleEventClientSelector(new RecordingEventClient()));
+
+            registry.Replace([writerGroup], new PublisherOptions
+            {
+                DisableDataSetMetaData = true
+            }, new PubSubShadowEgressOptions());
+
+            var metadata = Assert.Single(
+                Assert.Single(registry.Snapshot().Values).MetadataWriters);
+            Assert.False(metadata.Enabled);
+        }
+
+        [Fact]
         public void EgressPrefersAnExplicitlyConfiguredMetaDataQueueName()
         {
             var writerGroup = CreateManagedWriterGroup();
