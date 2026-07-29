@@ -144,12 +144,28 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             OpcUaSubscriptionNotification notification)
         {
             ArgumentNullException.ThrowIfNull(notification);
-            if (notification.MessageType is MessageType.KeepAlive or MessageType.Metadata)
+            if (notification.MessageType == MessageType.Metadata)
             {
                 //
-                // Keep alives carry no fields and metadata is produced by the
-                // native runtime from the dataset metadata, so neither maps to
-                // a field notification.
+                // The writer resolved the dataset metadata from the server.
+                // The native runtime builds its announcement from the source's
+                // description, so it is handed over rather than dropped;
+                // otherwise the source can only describe the dataset from the
+                // values it happens to have seen.
+                //
+                if (GetDataSetName(notification) is { } metaDataSetName &&
+                    notification.Context is DataSetWriterContext metaContext &&
+                    metaContext.MetaData?.MetaData is { } resolved)
+                {
+                    yield return new ManagedPubSubNotification(metaDataSetName,
+                        resolved.ToStackModel(notification.ServiceMessageContext));
+                }
+                yield break;
+            }
+            if (notification.MessageType == MessageType.KeepAlive)
+            {
+                //
+                // Keep alives carry no fields, so they map to no notification.
                 //
                 yield break;
             }

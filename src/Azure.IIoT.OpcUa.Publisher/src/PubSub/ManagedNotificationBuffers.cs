@@ -36,7 +36,14 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         /// full featured profile appends. It updates retained state but never
         /// produces a message of its own.
         /// </summary>
-        Extension
+        Extension,
+
+        /// <summary>
+        /// The dataset metadata the writer resolved from the server. It
+        /// replaces the description the source would otherwise infer from the
+        /// values it has observed, and never produces a message of its own.
+        /// </summary>
+        MetaData
     }
 
     /// <summary>
@@ -113,6 +120,28 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         }
 
         /// <summary>
+        /// Initializes a notification carrying the dataset metadata the writer
+        /// resolved from the server.
+        /// </summary>
+        /// <param name="dataSetName">Published dataset name.</param>
+        /// <param name="metaData">Resolved dataset metadata.</param>
+        public ManagedPubSubNotification(string dataSetName, DataSetMetaDataType metaData)
+        {
+            ArgumentNullException.ThrowIfNull(metaData);
+            DataSetName = string.IsNullOrWhiteSpace(dataSetName)
+                ? throw new ArgumentException("The dataset name must not be empty.", nameof(dataSetName))
+                : dataSetName;
+            Kind = ManagedPubSubNotificationKind.MetaData;
+            ResolvedMetaData = metaData;
+        }
+
+        /// <summary>
+        /// Gets the dataset metadata the writer resolved from the server, when
+        /// this notification carries it.
+        /// </summary>
+        public DataSetMetaDataType? ResolvedMetaData { get; }
+
+        /// <summary>
         /// Gets the published dataset name.
         /// </summary>
         public string DataSetName { get; }
@@ -161,7 +190,9 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         public ManagedPubSubNotification Clone()
         {
             return _barrier is null
-                ? new ManagedPubSubNotification(DataSetName, Timestamp, Kind, Fields, Frame)
+                ? ResolvedMetaData is { } metaData
+                    ? new ManagedPubSubNotification(DataSetName, metaData)
+                    : new ManagedPubSubNotification(DataSetName, Timestamp, Kind, Fields, Frame)
                 : new ManagedPubSubNotification(DataSetName, _barrier);
         }
 
@@ -599,6 +630,19 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         {
             lock (_stateGate)
             {
+                //
+                // The writer resolves the real dataset metadata from the server
+                // - resolved type identifiers, namespaces, and structure and
+                // enum definitions a consumer needs to decode a structure at
+                // all - and in the configured field order, which raw data set
+                // encoding depends on because it is positional. What is derived
+                // from observed values below is only a fallback for a source
+                // that never supplies it.
+                //
+                if (_resolvedMetaData is { } resolved)
+                {
+                    return resolved;
+                }
                 if (_source.MetaData is { } declared)
                 {
                     return declared;
@@ -741,6 +785,26 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 }
                 long sequence;
                 var metadataChanged = false;
+                if (copy.Kind == ManagedPubSubNotificationKind.MetaData)
+                {
+                    //
+                    // The writer resolved the dataset metadata, so it replaces
+                    // whatever was derived from observed values. It describes
+                    // the dataset rather than reporting a sample and so is
+                    // never queued as pending.
+                    //
+                    lock (_stateGate)
+                    {
+                        metadataChanged = !ReferenceEquals(
+                            _resolvedMetaData, copy.ResolvedMetaData);
+                        _resolvedMetaData = copy.ResolvedMetaData;
+                    }
+                    if (metadataChanged)
+                    {
+                        MetaDataChanged?.Invoke(this, EventArgs.Empty);
+                    }
+                    continue;
+                }
                 if (copy.Kind == ManagedPubSubNotificationKind.Extension)
                 {
                     //
@@ -938,6 +1002,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         private readonly IManagedPubSubDataSource _source;
         private readonly IManagedPubSubDataPublicationObserver? _observer;
         private readonly PubSubFieldEncoding _fieldEncoding;
+        private DataSetMetaDataType? _resolvedMetaData;
         private Task? _pump;
         private int _keyFrameRequested;
         private int _pendingCount;
