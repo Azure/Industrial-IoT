@@ -730,7 +730,14 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 {
                     MajorVersion = 1
                 },
-                [], DateTimeUtc.From(DateTimeOffset.UtcNow)));
+                //
+                // Nothing was pending this cycle. Declaring a delta with no
+                // fields says exactly that, so the runtime skips the cycle
+                // rather than publishing an empty message and consuming a
+                // sequence number a receiver would read as a dropped one.
+                //
+                [], DateTimeUtc.From(DateTimeOffset.UtcNow),
+                PubSubDataSetMessageType.DeltaFrame));
         }
 
         public void Start()
