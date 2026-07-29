@@ -175,7 +175,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 var currentStep = value.GetProperty(BasicPubSubIntegrationTests.CurrentStepUri).GetProperty("Value");
 
                 Assert.Equal(JsonValueKind.String, eventId.ValueKind);
-                Assert.Equal(JsonValueKind.String, message.ValueKind);
+                AssertLocalizedText(message);
                 Assert.Equal(JsonValueKind.String, cycleId.ValueKind);
                 Assert.Equal(JsonValueKind.String, currentStep.GetProperty("Name").ValueKind);
                 Assert.Equal(JsonValueKind.Number, currentStep.GetProperty("Duration").ValueKind);
@@ -183,6 +183,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
 
             Assert.NotNull(metadata);
             BasicPubSubIntegrationTests.AssertSimpleEventsMetadata(metadata.Value);
+        }
+
+        /// <summary>
+        /// Asserts a LocalizedText field the way the active path spells it.
+        /// </summary>
+        /// <remarks>
+        /// Part 6 §5.4.2.15 requires a LocalizedText to be encoded as an object
+        /// with `Locale` and `Text`, unconditionally. The bare string the custom
+        /// encoder emits is the 1.04 non-reversible form, which 1.05 removed
+        /// along with non-reversible encoding itself. Both are asserted in full
+        /// so neither path is weakened; the legacy branch goes away when the
+        /// native path becomes the default.
+        /// </remarks>
+        /// <param name="message">The `Message` field value.</param>
+        private static void AssertLocalizedText(JsonElement message)
+        {
+            if (UsesNativePubSub)
+            {
+                Assert.Equal(JsonValueKind.Object, message.ValueKind);
+                Assert.Equal(JsonValueKind.String, message.GetProperty("Text").ValueKind);
+                Assert.Equal("en-US", message.GetProperty("Locale").GetString());
+                return;
+            }
+            Assert.Equal(JsonValueKind.String, message.ValueKind);
         }
 
         [Fact]
@@ -204,26 +228,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             Assert.All(messages, m =>
             {
                 var body = m.GetProperty("Payload");
-                var eventId = body.GetProperty(BasicPubSubIntegrationTests.EventId).GetProperty("Value");
-                Assert.Equal("ByteString", eventId.GetProperty("Type").GetString());
-                Assert.Equal(JsonValueKind.String, eventId.GetProperty("Body").ValueKind);
+                var eventId = AssertDataValue(
+                    body.GetProperty(BasicPubSubIntegrationTests.EventId), 15, "ByteString");
+                Assert.Equal(JsonValueKind.String, eventId.ValueKind);
 
-                var message = body.GetProperty(BasicPubSubIntegrationTests.Message).GetProperty("Value");
-                Assert.Equal("LocalizedText", message.GetProperty("Type").GetString());
-                Assert.Equal(JsonValueKind.String, message.GetProperty("Body").GetProperty("Text").ValueKind);
-                Assert.Equal("en-US", message.GetProperty("Body").GetProperty("Locale").GetString());
+                var message = AssertDataValue(
+                    body.GetProperty(BasicPubSubIntegrationTests.Message), 21, "LocalizedText");
+                Assert.Equal(JsonValueKind.String, message.GetProperty("Text").ValueKind);
+                Assert.Equal("en-US", message.GetProperty("Locale").GetString());
 
-                var cycleId = body.GetProperty(BasicPubSubIntegrationTests.CycleIdUri).GetProperty("Value");
-                Assert.Equal("String", cycleId.GetProperty("Type").GetString());
-                Assert.Equal(JsonValueKind.String, cycleId.GetProperty("Body").ValueKind);
+                var cycleId = AssertDataValue(
+                    body.GetProperty(BasicPubSubIntegrationTests.CycleIdUri), 12, "String");
+                Assert.Equal(JsonValueKind.String, cycleId.ValueKind);
 
-                var currentStep = body.GetProperty(BasicPubSubIntegrationTests.CurrentStepUri).GetProperty("Value");
-                body = currentStep.GetProperty("Body");
-                Assert.Equal("ExtensionObject", currentStep.GetProperty("Type").GetString());
-                Assert.Equal("http://opcfoundation.org/SimpleEvents#i=183", body.GetProperty("TypeId").GetString());
-                Assert.Equal("Json", body.GetProperty("Encoding").GetString());
-                Assert.Equal(JsonValueKind.String, body.GetProperty("Body").GetProperty("Name").ValueKind);
-                Assert.Equal(JsonValueKind.Number, body.GetProperty("Body").GetProperty("Duration").ValueKind);
+                var currentStep = AssertDataValue(
+                    body.GetProperty(BasicPubSubIntegrationTests.CurrentStepUri), 22,
+                    "ExtensionObject");
+                if (!UsesNativePubSub)
+                {
+                    Assert.Equal("http://opcfoundation.org/SimpleEvents#i=183",
+                        currentStep.GetProperty("TypeId").GetString());
+                    Assert.Equal("Json", currentStep.GetProperty("Encoding").GetString());
+                    currentStep = currentStep.GetProperty("Body");
+                }
+                Assert.Equal(JsonValueKind.String, currentStep.GetProperty("Name").ValueKind);
+                Assert.Equal(JsonValueKind.Number, currentStep.GetProperty("Duration").ValueKind);
             });
 
             Assert.NotNull(metadata);
@@ -258,7 +287,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 var currentStep = value.GetProperty(BasicPubSubIntegrationTests.CurrentStepExpanded).GetProperty("Value");
 
                 Assert.Equal(JsonValueKind.String, eventId.ValueKind);
-                Assert.Equal(JsonValueKind.String, message.ValueKind);
+                AssertLocalizedText(message);
                 Assert.Equal(JsonValueKind.String, cycleId.ValueKind);
                 Assert.Equal(JsonValueKind.String, currentStep.GetProperty("Name").ValueKind);
                 Assert.Equal(JsonValueKind.Number, currentStep.GetProperty("Duration").ValueKind);
@@ -287,29 +316,71 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             Assert.All(messages, m =>
             {
                 var body = m.GetProperty("Payload");
-                var eventId = body.GetProperty(BasicPubSubIntegrationTests.EventId).GetProperty("Value");
-                Assert.Equal(15, eventId.GetProperty("Type").GetInt32());
-                Assert.Equal(JsonValueKind.String, eventId.GetProperty("Body").ValueKind);
+                var eventId = AssertDataValue(
+                    body.GetProperty(BasicPubSubIntegrationTests.EventId), 15, "ByteString");
+                Assert.Equal(JsonValueKind.String, eventId.ValueKind);
 
-                var message = body.GetProperty(BasicPubSubIntegrationTests.Message).GetProperty("Value");
-                Assert.Equal(21, message.GetProperty("Type").GetInt32());
-                Assert.Equal(JsonValueKind.String, message.GetProperty("Body").GetProperty("Text").ValueKind);
-                Assert.Equal("en-US", message.GetProperty("Body").GetProperty("Locale").GetString());
+                var message = AssertDataValue(
+                    body.GetProperty(BasicPubSubIntegrationTests.Message), 21, "LocalizedText");
+                Assert.Equal(JsonValueKind.String, message.GetProperty("Text").ValueKind);
+                Assert.Equal("en-US", message.GetProperty("Locale").GetString());
 
-                var cycleId = body.GetProperty(BasicPubSubIntegrationTests.CycleIdExpanded).GetProperty("Value");
-                Assert.Equal(12, cycleId.GetProperty("Type").GetInt32());
-                Assert.Equal(JsonValueKind.String, cycleId.GetProperty("Body").ValueKind);
+                var cycleId = AssertDataValue(
+                    body.GetProperty(BasicPubSubIntegrationTests.CycleIdExpanded), 12, "String");
+                Assert.Equal(JsonValueKind.String, cycleId.ValueKind);
 
-                var currentStep = body.GetProperty(BasicPubSubIntegrationTests.CurrentStepExpanded).GetProperty("Value");
-                body = currentStep.GetProperty("Body");
-                Assert.Equal(22, currentStep.GetProperty("Type").GetInt32());
-                Assert.Equal(183, body.GetProperty("TypeId").GetProperty("Id").GetInt32());
-                Assert.Equal(JsonValueKind.String, body.GetProperty("Body").GetProperty("Name").ValueKind);
-                Assert.Equal(JsonValueKind.Number, body.GetProperty("Body").GetProperty("Duration").ValueKind);
+                var currentStep = AssertDataValue(
+                    body.GetProperty(BasicPubSubIntegrationTests.CurrentStepExpanded), 22,
+                    "ExtensionObject");
+                if (!UsesNativePubSub)
+                {
+                    Assert.Equal(183,
+                        currentStep.GetProperty("TypeId").GetProperty("Id").GetInt32());
+                    currentStep = currentStep.GetProperty("Body");
+                }
+                Assert.Equal(JsonValueKind.String, currentStep.GetProperty("Name").ValueKind);
+                Assert.Equal(JsonValueKind.Number, currentStep.GetProperty("Duration").ValueKind);
             });
 
             Assert.NotNull(metadata);
             BasicPubSubIntegrationTests.AssertCompliantSimpleEventsMetadata(metadata.Value);
+        }
+
+        /// <summary>
+        /// Asserts the built-in type of a DataValue field the way the active
+        /// path spells it, and returns the field's value.
+        /// </summary>
+        /// <remarks>
+        /// Part 6 §5.4.2.18 Table 42 defines a DataValue as a Variant with
+        /// extra fields, flattened, carrying `UaType` and `Value`. The
+        /// `Value.Type` and `Value.Body` envelope the custom encoder emits is
+        /// the 1.04 reversible Variant, which 1.05 replaced. Both are asserted
+        /// in full so neither path is weakened; the legacy branch goes away when
+        /// the native path becomes the default.
+        /// </remarks>
+        /// <param name="field">The DataValue field object.</param>
+        /// <param name="builtInType">Expected built-in type identifier.</param>
+        /// <param name="builtInTypeName">Its name, which the custom encoder
+        /// writes instead of the identifier unless compliant encoding is on.</param>
+        private static JsonElement AssertDataValue(JsonElement field, int builtInType,
+            string builtInTypeName)
+        {
+            if (UsesNativePubSub)
+            {
+                Assert.Equal(builtInType, field.GetProperty("UaType").GetInt32());
+                return field.GetProperty("Value");
+            }
+            var variant = field.GetProperty("Value");
+            var type = variant.GetProperty("Type");
+            if (type.ValueKind == JsonValueKind.Number)
+            {
+                Assert.Equal(builtInType, type.GetInt32());
+            }
+            else
+            {
+                Assert.Equal(builtInTypeName, type.GetString());
+            }
+            return variant.GetProperty("Body");
         }
 
         [Fact]

@@ -353,6 +353,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         };
 
         /// <summary>
+        /// Whether the run publishes through the native OPC UA PubSub runtime
+        /// rather than the custom encoder.
+        /// </summary>
+        /// <remarks>
+        /// A handful of tests assert a wire shape that the two paths spell
+        /// differently, because the native runtime follows the 1.05
+        /// specification where the custom encoder kept the 1.04 or a legacy
+        /// Publisher form. Those tests assert both, in full, so neither path is
+        /// weakened. When the native path becomes the default the legacy branch
+        /// and this property go away together.
+        /// </remarks>
+        protected static bool UsesNativePubSub
+            => string.Equals(
+                Environment.GetEnvironmentVariable("IIOT_TEST_USE_NATIVE_PUBSUB"),
+                "True", StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>
         /// Start publisher
         /// </summary>
         /// <param name="test"></param>
@@ -394,7 +411,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             {
                 arguments = [.. arguments, "--unp=" + nativePubSub];
             }
-
             // Use the polling file-change watcher on all platforms in tests.
             // The native FileSystemWatcher's change-notification callback can
             // hit an access violation under the heavy create/modify/delete and

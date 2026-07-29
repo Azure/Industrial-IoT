@@ -695,12 +695,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 
         internal static JsonElement GetAlarmCondition(JsonElement jsonElement)
         {
+            //
+            // Part 14 §7.2.5.4 defines only ua-keyframe, ua-deltaframe,
+            // ua-event and ua-keepalive. ua-condition is a Publisher extension,
+            // so the native runtime publishes a condition snapshot as the event
+            // occurrence it is. Both are accepted here; the legacy value goes
+            // away when the native path becomes the default.
+            //
+            var conditionType = UsesNativePubSub ? "ua-event" : "ua-condition";
             var messages = jsonElement.GetProperty("Messages");
             return messages.ValueKind != JsonValueKind.Array
                 ? default
                 : messages.EnumerateArray().FirstOrDefault(element =>
                 {
-                    if (element.GetProperty("MessageType").GetString() != "ua-condition" ||
+                    if (element.GetProperty("MessageType").GetString() != conditionType ||
                         !element.GetProperty("Payload")
                             .TryGetProperty("SourceNode", out var node))
                     {
