@@ -707,6 +707,36 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 "The replacement did not activate a new encoding generation.");
         }
 
+        [Theory]
+        [InlineData(MessageEncoding.Json, PubSubShadowEncoding.Json)]
+        [InlineData(MessageEncoding.JsonReversible, PubSubShadowEncoding.JsonReversible)]
+        [InlineData(MessageEncoding.JsonGzip, PubSubShadowEncoding.JsonGzip)]
+        [InlineData(MessageEncoding.JsonReversibleGzip, PubSubShadowEncoding.JsonReversibleGzip)]
+        public void ResolutionCarriesTheConfiguredEncodingToTheEncodingMarker(
+            MessageEncoding configured, PubSubShadowEncoding expected)
+        {
+            //
+            // A configuration that names --me only reaches the encoder through
+            // the resolved writer group's message type. If resolution loses it,
+            // every mode encodes compact and the reversible encodings become
+            // unreachable without anything failing.
+            //
+            var options = new PublisherOptions
+            {
+                MessagingProfile = MessagingProfile.Get(MessagingMode.PubSub, configured)
+            };
+            var writerGroup = CreateWriterGroup("group", "writer", configured) with
+            {
+                MessageType = null
+            };
+
+            var resolved = writerGroup.CopyAndResolve(options);
+
+            Assert.Equal(configured, resolved.MessageType);
+            Assert.Equal(expected,
+                PubSubConfigurationTranslator.GetShadowEncoding(resolved.MessageType));
+        }
+
         private static WriterGroupModel CreateWriterGroup(string groupId,
             string writerId, MessageEncoding encoding)
         {

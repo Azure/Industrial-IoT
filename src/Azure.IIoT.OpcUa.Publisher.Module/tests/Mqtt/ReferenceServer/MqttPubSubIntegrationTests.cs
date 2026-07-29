@@ -498,13 +498,25 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
         // path introduced and the native stack does not reproduce, and they are
         // documented as 3.0 wire changes.
         //
-        //   UaType             the native stack writes the type byte of a
-        //                      DataValue, which Part 6 5.4.2.18 describes as an
-        //                      encoded variant with extra fields
+        //   UaType             Part 6 5.4.2.18 Table 42 defines a DataValue as
+        //                      a Variant with extra fields, flattened, carrying
+        //                      UaType and Value in both compact and verbose.
+        //                      The writer path's Type/Body envelope is the 1.04
+        //                      reversible Variant, which 1.05 replaced
         //   DataSetWriterGroup the writer path's name for the member the stack
         //                      calls WriterGroupName
         //   DataSetWriterId    written as the writer name by the writer path and
         //                      as its numeric identifier by the stack
+        //
+        // Two further differences are outside this gate because they are not
+        // reachable from a data set of variables:
+        //
+        //   LocalizedText      Part 6 5.4.2.15 requires the object form with
+        //                      Locale and Text unconditionally; the bare string
+        //                      was the 1.04 non-reversible form
+        //   ua-condition       not a Part 14 7.2.5.4 message type, so a
+        //                      condition snapshot is published as the event
+        //                      occurrence it is
         //
         private static bool IsAcceptedArtifact(string name)
         {
