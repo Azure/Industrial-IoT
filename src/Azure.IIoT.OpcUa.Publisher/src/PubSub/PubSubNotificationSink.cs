@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Microsoft.Extensions.Logging;
     using Opc.Ua;
+    using Opc.Ua.PubSub.Encoding;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -163,6 +164,19 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 MessageType.Condition => ManagedPubSubNotificationKind.Condition,
                 _ => ManagedPubSubNotificationKind.Data
             };
+            //
+            // The subscription already knows what it produced, so the native
+            // runtime is told rather than left to derive it. A condition
+            // snapshot is an event occurrence on the wire; Part 14 §7.2.5.4
+            // has no separate condition message type.
+            //
+            var frame = notification.MessageType switch
+            {
+                MessageType.Event or MessageType.Condition =>
+                    PubSubDataSetMessageType.Event,
+                MessageType.DeltaFrame => PubSubDataSetMessageType.DeltaFrame,
+                _ => PubSubDataSetMessageType.KeyFrame
+            };
             var fallback = notification.PublishTimestamp ?? notification.CreatedTimestamp;
             var queues = new List<(string Name, List<DataValue> Values)>();
             var byName = new Dictionary<string, int>(StringComparer.Ordinal);
@@ -226,7 +240,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                     break;
                 }
                 yield return new ManagedPubSubNotification(dataSetName, timestamp,
-                    kind, fields);
+                    kind, fields, frame);
             }
 
             //

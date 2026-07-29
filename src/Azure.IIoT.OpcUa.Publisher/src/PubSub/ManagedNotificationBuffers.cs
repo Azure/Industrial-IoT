@@ -76,7 +76,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         /// <param name="kind">Notification kind.</param>
         /// <param name="fields">The fields of the occurrence.</param>
         public ManagedPubSubNotification(string dataSetName, DateTimeOffset timestamp,
-            ManagedPubSubNotificationKind kind, IReadOnlyList<ManagedPubSubField> fields)
+            ManagedPubSubNotificationKind kind, IReadOnlyList<ManagedPubSubField> fields,
+            PubSubDataSetMessageType frame = PubSubDataSetMessageType.KeyFrame)
         {
             ArgumentNullException.ThrowIfNull(fields);
             DataSetName = string.IsNullOrWhiteSpace(dataSetName)
@@ -90,6 +91,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             Fields = fields;
             Timestamp = timestamp;
             Kind = kind;
+            Frame = frame;
         }
 
         /// <summary>
@@ -138,6 +140,15 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         public ManagedPubSubNotificationKind Kind { get; }
 
         /// <summary>
+        /// Gets the kind of message this occurrence is published as. The
+        /// subscription already knows whether it produced a key frame, a delta
+        /// or an event, so the native runtime is told rather than left to
+        /// derive it by comparing unrelated occurrences.
+        /// </summary>
+        public PubSubDataSetMessageType Frame { get; }
+            = PubSubDataSetMessageType.KeyFrame;
+
+        /// <summary>
         /// Gets the value of the first field of the occurrence. Consumers must
         /// treat it as immutable.
         /// </summary>
@@ -150,7 +161,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         public ManagedPubSubNotification Clone()
         {
             return _barrier is null
-                ? new ManagedPubSubNotification(DataSetName, Timestamp, Kind, Fields)
+                ? new ManagedPubSubNotification(DataSetName, Timestamp, Kind, Fields, Frame)
                 : new ManagedPubSubNotification(DataSetName, _barrier);
         }
 
@@ -632,7 +643,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                             MajorVersion = 1
                         },
                         SnapshotCurrentData(),
-                        DateTimeUtc.From(DateTimeOffset.UtcNow)));
+                        DateTimeUtc.From(DateTimeOffset.UtcNow),
+                        PubSubDataSetMessageType.KeyFrame));
                 }
             }
             while (_pending.Reader.TryRead(out var pending))
@@ -660,7 +672,13 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                         .Select(field => ToField(field.Name, new ManagedRetainedField(
                             field, notification.Timestamp, notification.Kind)))
                         .ToList()),
-                    DateTimeUtc.From(notification.Timestamp)));
+                    DateTimeUtc.From(notification.Timestamp),
+                    //
+                    // The subscription already classified this occurrence, so
+                    // the runtime is told rather than left to derive a delta by
+                    // comparing two unrelated occurrences positionally.
+                    //
+                    notification.Frame));
             }
 
             return new ValueTask<PublishedDataSetSnapshot>(new PublishedDataSetSnapshot(
