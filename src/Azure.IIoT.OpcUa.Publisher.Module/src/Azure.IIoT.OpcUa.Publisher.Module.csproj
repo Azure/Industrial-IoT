@@ -38,6 +38,23 @@
     which would fail with NETSDK1207. The submodule assemblies are still trim/AOT
     analyzed at this root publish.
       dotnet publish ...Module.csproj -c Release -r linux-x64 -p:IIoTPublishAot=true (self-contained)
+
+    Native-AOT compiles to a real target binary, so it cannot cross an OS boundary:
+    publishing a linux RID from Windows fails with "Cross-OS native compilation is
+    not supported". Build the linux images from a Linux host (or a Linux SDK
+    container - the `-aot` SDK tags carry the clang/zlib prerequisites).
+
+    linux-arm64 additionally needs the aarch64 cross toolchain, because ILC links
+    through clang with an aarch64-linux-gnu target and the bfd linker:
+      apt-get install binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu libc6-dev-arm64-cross
+      dotnet publish ...Module.csproj -c Release -r linux-arm64 -p:IIoTPublishAot=true \
+        -p:ObjCopyName=aarch64-linux-gnu-objcopy
+    Do not pass -p:SysRoot - those packages install into clang's default target
+    search path, and the libc linker scripts hold absolute paths that a sysroot
+    prefix would resolve a second time ("cannot find libm.so.6 inside ...").
+
+    Add `-t:PublishContainer -p:ContainerArchiveOutputPath=<file>.tar.gz` to emit the
+    distroless image as an OCI archive that `docker load` accepts.
   -->
   <PropertyGroup Condition="'$(IIoTPublishAot)' == 'true'">
     <PublishAot>true</PublishAot>

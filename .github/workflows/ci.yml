@@ -309,6 +309,93 @@ jobs:
           retention-days: 14
 
   # --------------------------------------------------------------------------
+  # aot_publish_arm64: cross-compilation gate for the linux-arm64 Native-AOT
+  # image. The x64 gate above cannot catch host/target architecture problems
+  # because there the host and target agree. Cross-compiling surfaces a whole
+  # class of defects that are invisible otherwise - most notably a build-time
+  # tool (source generator / analyzer) picking up the consuming project's
+  # RuntimeIdentifier and being emitted for the target architecture, which the
+  # compiler process then cannot load. That failure shows up as a CS8034
+  # warning followed by hard CS0246 errors for every generated type.
+  #
+  # Native-AOT cannot cross-compile from Windows at all ("Cross-OS native
+  # compilation is not supported"), so linux-arm64 is only reachable from a
+  # Linux host with the aarch64 cross toolchain installed. Deliberately no
+  # warning-baseline enforcement here: the trim/AOT inventory is architecture
+  # independent and is already enforced by the linux-x64 job.
+  # --------------------------------------------------------------------------
+  aot_publish_arm64:
+    name: AOT publish gate (Publisher.Module / linux-arm64)
+    needs: version
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+      - name: Install aarch64 cross toolchain
+        # ILC links through `clang --target=aarch64-linux-gnu -fuse-ld=bfd`, so
+        # it needs the cross binutils, the cross gcc, and the arm64 libc
+        # development files. libc6-dev-arm64-cross is the one that provides
+        # Scrt1.o/crti.o and libdl/librt/libm; without it the link fails.
+        # Do not pass -p:SysRoot: these packages install into the compiler's
+        # default target search path, and the libc linker scripts use absolute
+        # paths that a sysroot prefix would resolve twice.
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            binutils-aarch64-linux-gnu \
+            gcc-aarch64-linux-gnu \
+            libc6-dev-arm64-cross
+        shell: bash
+      - name: Restore (linux-arm64)
+        run: |
+          set -o pipefail
+          mkdir -p artifacts/aot-arm64
+          dotnet restore src/Azure.IIoT.OpcUa.Publisher.Module/src -r linux-arm64 \
+            -p:IIoTPublishAot=true -s https://api.nuget.org/v3/index.json \
+            2>&1 | tee artifacts/aot-arm64/restore.log
+        shell: bash
+      - name: AOT publish (self-contained, Native-AOT, linux-arm64)
+        run: |
+          set -o pipefail
+          dotnet publish src/Azure.IIoT.OpcUa.Publisher.Module/src \
+            -c Release -r linux-arm64 --self-contained --no-restore \
+            -p:IIoTPublishAot=true \
+            -p:ObjCopyName=aarch64-linux-gnu-objcopy \
+            2>&1 | tee artifacts/aot-arm64/publish.log
+        shell: bash
+      - name: Verify the produced binary is aarch64
+        # A silent fallback to the host architecture would make this gate
+        # pass while shipping an unusable image, so assert the ELF machine.
+        run: |
+          set -euo pipefail
+          binary=$(find src/Azure.IIoT.OpcUa.Publisher.Module/src/bin -type f \
+            -name 'Azure.IIoT.OpcUa.Publisher.Module' -path '*native*' | head -1)
+          if [ -z "$binary" ]; then
+            echo "::error::Native-AOT linux-arm64 binary was not produced."
+            exit 1
+          fi
+          file "$binary"
+          file "$binary" | grep -q 'ARM aarch64'
+        shell: bash
+      - name: Upload arm64 AOT logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aot-arm64-logs
+          path: artifacts/aot-arm64
+          if-no-files-found: warn
+          retention-days: 14
+
+  # --------------------------------------------------------------------------
   # report, render a markdown summary into $GITHUB_STEP_SUMMARY, and
   # upload the merged HTML report as an artifact.
   # --------------------------------------------------------------------------
