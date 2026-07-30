@@ -28,6 +28,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             _defaultPublishingInterval = ResolvePublishingInterval(
                 options?.Value.BatchTriggerInterval);
             _publisherId = options?.Value.PublisherId;
+            _standardsCompliant = options?.Value.UseStandardsCompliantEncoding ?? false;
         }
 
         public PubSubConfigurationDataType Translate(
@@ -85,20 +86,19 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         /// </summary>
         /// <param name="source">Public writer group model.</param>
         /// <param name="translated">Translated native writer group.</param>
-        private static PubSubShadowMessageProfile CreateMessageProfile(
+        private PubSubShadowMessageProfile CreateMessageProfile(
             WriterGroupModel source, WriterGroupDataType translated)
         {
             var writers = new Dictionary<ushort, PubSubShadowWriterProfile>();
             //
-            // In compatibility mode the writer path writes the writer's name
-            // into DataSetWriterId and never emits DataSetWriterName; only in
-            // standards compliant mode does it emit the name under its own
-            // member. The native encoder has no notion of compatibility mode,
-            // so the distinction is made here by withholding the name, which
-            // is what stops the member being emitted.
+            // Outside standards compliant encoding the writer path runs in
+            // compatibility mode, where it writes the writer's name into
+            // DataSetWriterId and never emits DataSetWriterName; only when
+            // compliant does it emit the name under its own member. The native
+            // encoder has no notion of compatibility mode, so the distinction
+            // is made here by withholding the name, which is what stops the
+            // member being emitted.
             //
-            var compatibilityMode = (source.MessageSettings?.NetworkMessageContentMask
-                & NetworkMessageContentFlags.UseCompatibilityMode) != 0;
             foreach (var writer in translated.DataSetWriters)
             {
                 //
@@ -116,8 +116,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                             : writer.MessageSettings
                                 .TryGetValue(out UadpDataSetWriterMessageDataType? uadp)
                                 && uadp is not null ? uadp.DataSetMessageContentMask : 0,
-                    DataSetWriterName = compatibilityMode
-                        ? string.Empty : writer.Name ?? string.Empty
+                    DataSetWriterName = _standardsCompliant
+                        ? writer.Name ?? string.Empty : string.Empty
                 };
             }
             var networkMessageContentMask = translated.MessageSettings
@@ -403,5 +403,6 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
 
         private readonly TimeSpan _defaultPublishingInterval;
         private readonly string? _publisherId;
+        private readonly bool _standardsCompliant;
     }
 }
