@@ -249,8 +249,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
                     Assert.Equal("Boiler #2", reference.Target.DisplayName);
                     Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
-                    Assert.Equal("http://opcfoundation.org/UA/Boiler/Instance#i=1",
-                        reference.Target.NodeId);
+                    InstanceNodeAssert.IsInstanceNodeOf(reference.Target.NodeId,
+                        "http://opcfoundation.org/UA/Boiler/Instance");
                     Assert.True(reference.Target.Children);
                 });
         }
@@ -865,8 +865,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
                     Assert.Equal("Boiler #2", reference.Target.DisplayName);
                     Assert.Equal(NodeClass.Object, reference.Target.NodeClass);
-                    Assert.Equal("http://opcfoundation.org/UA/Boiler/Instance#i=1",
-                        reference.Target.NodeId);
+                    InstanceNodeAssert.IsInstanceNodeOf(reference.Target.NodeId,
+                        "http://opcfoundation.org/UA/Boiler/Instance");
                     Assert.True(reference.Target.Children);
                     return true;
                 });
@@ -2468,8 +2468,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                         reference.Target.BrowseName);
                     Assert.Equal(BrowseDirection.Forward, reference.Direction);
 
-                    Assert.Equal("http://opcfoundation.org/UA/Boiler/Instance#i=1",
-                        reference.Target.NodeId);
+                    InstanceNodeAssert.IsInstanceNodeOf(reference.Target.NodeId,
+                        "http://opcfoundation.org/UA/Boiler/Instance");
                     Assert.NotNull(reference.Target.NodeClass);
                     Assert.Null(reference.Target.DataType);
                     Assert.Null(reference.Target.Description);

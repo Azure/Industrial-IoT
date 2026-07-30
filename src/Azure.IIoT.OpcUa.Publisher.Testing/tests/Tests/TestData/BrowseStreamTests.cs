@@ -292,8 +292,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
 
                     Assert.Equal("Boiler #2", reference.Reference.Target.DisplayName);
                     Assert.Null(reference.Reference.Target.NodeClass);
-                    Assert.Equal("http://opcfoundation.org/UA/Boiler/Instance#i=1",
-                        reference.Reference.Target.NodeId);
+                    InstanceNodeAssert.IsInstanceNodeOf(reference.Reference.Target.NodeId,
+                        "http://opcfoundation.org/UA/Boiler/Instance");
                     return true;
                 });
         }

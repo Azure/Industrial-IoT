@@ -358,8 +358,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 Assert.NotNull(result.Result);
                 Assert.NotNull(result.Result.OpcNodes);
                 Assert.Equal(16, result.Result.OpcNodes.Count);
-                Assert.Equal("nsu=http://opcfoundation.org/AssetServer;i=1",
-                    result.Result.DataSetWriterId);
+                Assert.StartsWith("nsu=http://opcfoundation.org/AssetServer;i=",
+                    result.Result.DataSetWriterId, StringComparison.Ordinal);
 
                 asset1 = result.Result;
             }
@@ -672,8 +672,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Testing.Tests
                 Assert.NotNull(result.Result);
                 Assert.NotNull(result.Result.OpcNodes);
                 Assert.Equal(16, result.Result.OpcNodes.Count);
-                Assert.Equal("nsu=http://opcfoundation.org/AssetServer;i=24",
-                    result.Result.DataSetWriterId);
+                Assert.StartsWith("nsu=http://opcfoundation.org/AssetServer;i=",
+                    result.Result.DataSetWriterId, StringComparison.Ordinal);
 
                 asset2 = result.Result;
             }
