@@ -174,9 +174,23 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 Name = source.Name ?? source.Id,
                 WriterGroupId = identities.GetOrAllocate("writer-group", source.Id),
                 Enabled = Activate,
-                PublishingInterval = (source.PublishingInterval is { } configured
-                    ? ResolvePublishingInterval(configured)
-                    : _defaultPublishingInterval).TotalMilliseconds,
+                //
+                // The runtime samples the source once per publishing interval
+                // and each sample yields at most one message, so this interval
+                // is a hard ceiling on the message rate.
+                //
+                // What the model calls a writer group publishing interval is
+                // the writer path's batch trigger: a flush timer over a queue
+                // whose every entry becomes a message of its own. Mapping it
+                // here turned a latency bound into a rate cap of one message
+                // per interval, and under the 2.8 compatibility default of ten
+                // seconds that starved the sampler - values arrived twice a
+                // second and left once every ten, so the queue grew until it
+                // backpressured the subscription. Batching stays a concern of
+                // the transport, which still applies it.
+                //
+                PublishingInterval = ResolveGroupPublishingInterval(
+                    source).TotalMilliseconds,
                 KeepAliveTime = source.KeepAliveTime?.TotalMilliseconds ?? 0,
                 MaxNetworkMessageSize = source.MaxNetworkMessageSize ?? 1500,
                 SecurityMode = MessageSecurityMode.None,
@@ -368,6 +382,40 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                     $"Message encoding '{encoding}' is not supported by the inert PubSub host.",
                     nameof(encoding))
             };
+        }
+
+        /// <summary>
+        /// Resolve the publishing interval for a translated writer group.
+        /// </summary>
+        /// <remarks>
+        /// The runtime samples each source once per publishing interval and a
+        /// sample yields at most one message, so this interval is a ceiling on
+        /// the message rate rather than a batching hint.
+        ///
+        /// The model's writer group publishing interval is the writer path's
+        /// batch trigger, a flush timer over a queue whose entries each become
+        /// a message. Carrying it over made the runtime sample once every ten
+        /// seconds under the 2.8 compatibility default while values arrived
+        /// several times a second, so the queue grew until it backpressured
+        /// the subscription. Sampling promptly is therefore the only faithful
+        /// mapping, and it is what every deployment that names a transport or
+        /// asks for compliant encoding already gets, because those set the
+        /// batch trigger to zero.
+        ///
+        /// A configured interval is honoured when it is faster, since that
+        /// only asks the runtime to sample more often. The visible consequence
+        /// is that the 2.8 compatibility corner now emits a message per
+        /// occurrence instead of a ten second batch of them.
+        /// </remarks>
+        /// <param name="source">The writer group being translated.</param>
+        private static TimeSpan ResolveGroupPublishingInterval(WriterGroupModel source)
+        {
+            if (source.PublishingInterval is { } configured &&
+                configured > TimeSpan.Zero && configured < ImmediatePublishingInterval)
+            {
+                return configured;
+            }
+            return ImmediatePublishingInterval;
         }
 
         private static TimeSpan ResolvePublishingInterval(TimeSpan? interval)

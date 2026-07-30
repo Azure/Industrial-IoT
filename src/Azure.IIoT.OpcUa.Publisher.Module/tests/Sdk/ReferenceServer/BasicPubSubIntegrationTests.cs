@@ -349,8 +349,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 .SelectMany(x => x.Message.GetProperty("Messages").EnumerateArray())
                 .ToArray();
 
-            dataSetWriterNames.Select(d => d.Split('|')[1])
-                .Should().Contain("CycleStarted");
+            dataSetWriterNames.Should().NotBeEmpty();
+            if (!UsesNativePubSub)
+            {
+                dataSetWriterNames.Select(d => d.Split('|')[1])
+                    .Should().Contain("CycleStarted");
+            }
 
             // Assert
             Assert.NotEmpty(messages);
@@ -365,7 +369,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 var currentStep = value.GetProperty(CurrentStepExpanded).GetProperty("Value");
 
                 Assert.Equal(JsonValueKind.String, eventId.ValueKind);
-                Assert.Equal(JsonValueKind.String, message.ValueKind);
+                AssertLocalizedText(message);
                 Assert.Equal(JsonValueKind.String, cycleId.ValueKind);
                 Assert.Equal(JsonValueKind.String, currentStep.GetProperty("Name").ValueKind);
                 Assert.Equal(JsonValueKind.Number, currentStep.GetProperty("Duration").ValueKind);
@@ -388,7 +392,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                         dataSetWriterNames.Add(dataSetWriterName);
                     }
 
-                    if (!dataSetWriterName.EndsWith("|CycleStarted", StringComparison.Ordinal))
+                    if (!IsCycleStarted(element, dataSetWriterName))
                     {
                         isAllCycleStarted = false;
                     }
@@ -401,6 +405,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 // CycleStarted-only batch so we still exercise the dual-writer
                 // configuration path.
                 return isAllCycleStarted ? jsonElement : default;
+            }
+
+            //
+            // Both event types are configured on one writer, and the custom
+            // encoder told them apart by appending the event type name to the
+            // writer name, which effectively gave each event type a writer of
+            // its own. The native path emits the writer's configured name, so
+            // the payload is what distinguishes them: only a CycleStarted event
+            // carries the SimpleEvents cycle fields.
+            //
+            static bool IsCycleStarted(JsonElement dataSetMessage, string? dataSetWriterName)
+            {
+                if (!UsesNativePubSub)
+                {
+                    return dataSetWriterName?.EndsWith("|CycleStarted",
+                        StringComparison.Ordinal) == true;
+                }
+                return dataSetMessage.TryGetProperty("Payload", out var payload)
+                    && payload.TryGetProperty(CycleIdExpanded, out _)
+                    && payload.TryGetProperty(CurrentStepExpanded, out _);
             }
         }
 
@@ -599,20 +623,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             Assert.False(appuri);
 
             //
-            // Asserted here rather than through AssertBooleanField, because
-            // that helper reads the non-reversible shape. See its remarks for
-            // why the member is absent on the native path.
+            // Compact encoding is what omits a value equal to its type default,
+            // and this configuration is reversible rather than compact, so the
+            // member is present on both paths here. See AssertBooleanField for
+            // the compact case.
             //
-            var important = payload.GetProperty("Important");
-            if (UsesNativePubSub)
-            {
-                Assert.Equal(1, important.GetProperty("UaType").GetInt32());
-                Assert.False(important.TryGetProperty("Value", out _));
-            }
-            else
-            {
-                Assert.False(important.GetProperty("Value").GetProperty("Body").GetBoolean());
-            }
+            Assert.False(AssertDataValue(
+                payload.GetProperty("Important"), 1, "Boolean").GetBoolean());
             Assert.Equal("5", AssertDataValue(
                 payload.GetProperty("AssetId"), 8, "Int64").GetString());
             Assert.Equal("mm/sec", AssertDataValue(
@@ -775,10 +792,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         /// Compact JSON omits a value that equals its type's default
         /// (Part 6 §5.4.1), so a false boolean arrives carrying only its type
         /// and a decoder reconstructs the value from it. The custom encoder
-        /// always writes the member. This one matters more than the other
-        /// accepted differences, because whether the member is present depends
-        /// on the value rather than on the configuration: a consumer reading
-        /// it works until the value first goes false.
+        /// always writes the member. This is a property of compact encoding
+        /// rather than of the native path - the same path writes the member
+        /// under reversible encoding - so this helper is for the compact
+        /// configurations only.
+        ///
+        /// It matters more than the other accepted differences, because whether
+        /// the member is present then depends on the value rather than on the
+        /// configuration: a consumer reading it works until the value first
+        /// goes false.
         /// </remarks>
         /// <param name="payload">The data set payload.</param>
         /// <param name="name">Field name.</param>
