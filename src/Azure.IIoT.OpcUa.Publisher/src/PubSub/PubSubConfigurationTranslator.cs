@@ -89,6 +89,16 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             WriterGroupModel source, WriterGroupDataType translated)
         {
             var writers = new Dictionary<ushort, PubSubShadowWriterProfile>();
+            //
+            // In compatibility mode the writer path writes the writer's name
+            // into DataSetWriterId and never emits DataSetWriterName; only in
+            // standards compliant mode does it emit the name under its own
+            // member. The native encoder has no notion of compatibility mode,
+            // so the distinction is made here by withholding the name, which
+            // is what stops the member being emitted.
+            //
+            var compatibilityMode = (source.MessageSettings?.NetworkMessageContentMask
+                & NetworkMessageContentFlags.UseCompatibilityMode) != 0;
             foreach (var writer in translated.DataSetWriters)
             {
                 //
@@ -106,7 +116,8 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                             : writer.MessageSettings
                                 .TryGetValue(out UadpDataSetWriterMessageDataType? uadp)
                                 && uadp is not null ? uadp.DataSetMessageContentMask : 0,
-                    DataSetWriterName = writer.Name ?? string.Empty
+                    DataSetWriterName = compatibilityMode
+                        ? string.Empty : writer.Name ?? string.Empty
                 };
             }
             var networkMessageContentMask = translated.MessageSettings

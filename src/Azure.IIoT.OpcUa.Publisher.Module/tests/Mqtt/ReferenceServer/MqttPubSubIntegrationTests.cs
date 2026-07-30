@@ -185,30 +185,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             BasicPubSubIntegrationTests.AssertSimpleEventsMetadata(metadata.Value);
         }
 
-        /// <summary>
-        /// Asserts a LocalizedText field the way the active path spells it.
-        /// </summary>
-        /// <remarks>
-        /// Part 6 §5.4.2.15 requires a LocalizedText to be encoded as an object
-        /// with `Locale` and `Text`, unconditionally. The bare string the custom
-        /// encoder emits is the 1.04 non-reversible form, which 1.05 removed
-        /// along with non-reversible encoding itself. Both are asserted in full
-        /// so neither path is weakened; the legacy branch goes away when the
-        /// native path becomes the default.
-        /// </remarks>
-        /// <param name="message">The `Message` field value.</param>
-        private static void AssertLocalizedText(JsonElement message)
-        {
-            if (UsesNativePubSub)
-            {
-                Assert.Equal(JsonValueKind.Object, message.ValueKind);
-                Assert.Equal(JsonValueKind.String, message.GetProperty("Text").ValueKind);
-                Assert.Equal("en-US", message.GetProperty("Locale").GetString());
-                return;
-            }
-            Assert.Equal(JsonValueKind.String, message.ValueKind);
-        }
-
         [Fact]
         public async Task CanEncodeWithReversibleEncodingTestAsync()
         {
@@ -347,17 +323,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
         }
 
         /// <summary>
-        /// Asserts the built-in type of a DataValue field the way the active
-        /// path spells it, and returns the field's value.
+        /// Asserts a DataValue field the way the active path spells it.
         /// </summary>
-        /// <remarks>
-        /// Part 6 §5.4.2.18 Table 42 defines a DataValue as a Variant with
-        /// extra fields, flattened, carrying `UaType` and `Value`. The
-        /// `Value.Type` and `Value.Body` envelope the custom encoder emits is
-        /// the 1.04 reversible Variant, which 1.05 replaced. Both are asserted
-        /// in full so neither path is weakened; the legacy branch goes away when
-        /// the native path becomes the default.
-        /// </remarks>
         /// <param name="field">The DataValue field object.</param>
         /// <param name="builtInType">Expected built-in type identifier.</param>
         /// <param name="builtInTypeName">Its name, which the custom encoder
@@ -365,22 +332,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
         private static JsonElement AssertDataValue(JsonElement field, int builtInType,
             string builtInTypeName)
         {
-            if (UsesNativePubSub)
-            {
-                Assert.Equal(builtInType, field.GetProperty("UaType").GetInt32());
-                return field.GetProperty("Value");
-            }
-            var variant = field.GetProperty("Value");
-            var type = variant.GetProperty("Type");
-            if (type.ValueKind == JsonValueKind.Number)
-            {
-                Assert.Equal(builtInType, type.GetInt32());
-            }
-            else
-            {
-                Assert.Equal(builtInTypeName, type.GetString());
-            }
-            return variant.GetProperty("Body");
+            return BasicPubSubIntegrationTests.AssertDataValue(field, builtInType,
+                builtInTypeName);
+        }
+
+        /// <summary>
+        /// Asserts a LocalizedText field the way the active path spells it.
+        /// </summary>
+        /// <param name="message">The `Message` field value.</param>
+        private static void AssertLocalizedText(JsonElement message)
+        {
+            BasicPubSubIntegrationTests.AssertLocalizedText(message);
         }
 
         [Fact]

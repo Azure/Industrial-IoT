@@ -1072,12 +1072,15 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                         ? jsonDataSet with
                         {
                             //
-                            // The name is deliberately not supplied. The mask
-                            // carries the DataSetWriterName bit, but the writer
-                            // path never emits the member, and the encoder only
-                            // writes it when a non-empty name is present, so
-                            // leaving it empty is what reproduces that.
+                            // The name is empty in compatibility mode, where
+                            // the writer path carries it in DataSetWriterId
+                            // instead and never emits this member. The encoder
+                            // only writes it when a non-empty name is present,
+                            // so withholding it there reproduces that, and
+                            // supplying it in standards compliant mode
+                            // reproduces the member the writer path emits.
                             //
+                            DataSetWriterName = writer.DataSetWriterName,
                             ContentMask = (JsonDataSetMessageContentMask)
                                 writer.DataSetMessageContentMask
                         }
