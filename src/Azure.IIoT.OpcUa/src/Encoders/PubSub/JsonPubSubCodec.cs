@@ -853,6 +853,13 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// Decode a dataset field which may be encoded either as a bare variant
         /// or as a DataValue object.
         /// </summary>
+        /// <remarks>
+        /// Part 6 §5.4.2.18 Table 42 names the status member <c>Status</c>, and
+        /// the stack encoder was corrected to match. Messages produced before
+        /// that correction spell it <c>StatusCode</c>, so both are recognised
+        /// here: decoding tolerantly costs nothing and keeps historic payloads
+        /// readable.
+        /// </remarks>
         /// <param name="context"></param>
         /// <param name="value"></param>
         internal static DataValue DecodeField(IServiceMessageContext context,
@@ -860,6 +867,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         {
             if (value is JsonObject o &&
                 (o.ContainsKey("Value") ||
+                    o.ContainsKey("Status") ||
                     o.ContainsKey("StatusCode") ||
                     o.ContainsKey("SourceTimestamp") ||
                     o.ContainsKey("ServerTimestamp")))
@@ -876,7 +884,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 return 0;
             }
             DataSetFieldContentFlags mask = 0;
-            if (obj.ContainsKey("StatusCode"))
+            if (obj.ContainsKey("Status") || obj.ContainsKey("StatusCode"))
             {
                 mask |= DataSetFieldContentFlags.StatusCode;
             }
