@@ -120,8 +120,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 
                 Assert.NotEmpty(payload.GetProperty("ApplicationUri").GetProperty("Value").GetString());
                 Assert.True(dataSetMessage.GetProperty("SequenceNumber").GetUInt32() > 0);
+                //
+                // Part 6 §5.4.2.18 Table 42 names this member Status. The stack
+                // wrote StatusCode until the conformance issue raised against it
+                // was accepted upstream, and the custom encoder takes the name
+                // from the stack, so both paths now spell it the specification's
+                // way. Recorded as a 3.0 wire change rather than pinned back,
+                // because pinning it would make the two paths disagree and turn
+                // the native default switch into a second silent change.
+                //
                 statusSymbols.Add(GetOnlyDataField(payload)
-                    .GetProperty("StatusCode").GetProperty("Symbol").GetString());
+                    .GetProperty("Status").GetProperty("Symbol").GetString());
             }
             Assert.Contains("BadNodeIdUnknown", statusSymbols);
         }
