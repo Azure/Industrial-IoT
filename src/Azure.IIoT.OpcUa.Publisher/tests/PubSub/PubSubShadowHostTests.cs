@@ -127,7 +127,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             }
 
             var nativeGroup = Single(configuration.Connections).WriterGroups[0];
-            Assert.Equal(TimeSpan.FromSeconds(3).TotalMilliseconds,
+            //
+            // The batch trigger is not a publishing cadence, so it does not
+            // become one - see TranslatorNeverPublishesSlowerThanImmediateAsync.
+            //
+            Assert.Equal(
+                PubSubConfigurationTranslator.ImmediatePublishingInterval.TotalMilliseconds,
                 nativeGroup.PublishingInterval);
             Assert.True(nativeGroup.PublishingInterval > 0);
             new PubSubConfigurationValidator([Profiles.PubSubUdpUadpTransport])
@@ -172,29 +177,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
         }
 
         [Fact]
-        public async Task TranslatorDistinguishesAbsentFromZeroPublishingIntervalAsync()
+        public async Task TranslatorNeverPublishesSlowerThanImmediateAsync()
         {
             //
-            // Publisher sets the batch trigger interval to zero whenever a
-            // transport is configured, meaning publish as soon as data arrives.
-            // Substituting the legacy ten second default for that would batch
-            // every message, so only an absent interval falls back.
+            // The runtime samples a source once per publishing interval and a
+            // sample yields at most one message, so this interval caps the
+            // message rate. The batch trigger it used to be taken from is a
+            // flush timer over a queue whose entries each become a message, so
+            // carrying it across starved the sampler. Only a faster interval is
+            // honoured, because asking to sample more often cannot starve it.
             //
-            var legacy = TimeSpan.FromMilliseconds(
-                PublisherConfig.BatchTriggerIntervalLLegacyDefaultMillis);
             var immediate = PubSubConfigurationTranslator.ImmediatePublishingInterval;
             foreach (var (batchInterval, groupInterval, expected) in
                 new (TimeSpan?, TimeSpan?, TimeSpan)[]
                 {
-                    (null, null, legacy),
+                    (null, null, immediate),
                     (null, TimeSpan.Zero, immediate),
                     (null, TimeSpan.FromMilliseconds(25), TimeSpan.FromMilliseconds(25)),
                     (TimeSpan.Zero, null, immediate),
                     (TimeSpan.Zero, TimeSpan.Zero, immediate),
                     (TimeSpan.Zero, TimeSpan.FromMilliseconds(-1), immediate),
                     (TimeSpan.Zero, TimeSpan.FromMilliseconds(25), TimeSpan.FromMilliseconds(25)),
-                    (TimeSpan.FromSeconds(3), null, TimeSpan.FromSeconds(3)),
-                    (TimeSpan.FromSeconds(3), TimeSpan.Zero, immediate)
+                    (TimeSpan.FromSeconds(3), null, immediate),
+                    (TimeSpan.FromSeconds(3), TimeSpan.Zero, immediate),
+                    (TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(30), immediate)
                 })
             {
                 var translator = new PubSubConfigurationTranslator(Options.Create(
