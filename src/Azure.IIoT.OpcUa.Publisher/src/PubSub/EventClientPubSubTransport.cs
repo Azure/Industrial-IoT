@@ -943,6 +943,22 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         internal static PubSubShadowMetadataRouting CreateMetadataRouting(
             PubSubConnectionDataType connection, PubSubShadowEgressSettings settings)
         {
+            //
+            // Metadata is retained where retaining is possible, so a late
+            // subscriber immediately receives the schema for the data it is
+            // about to see. That is our default, not something the caller
+            // asked for, so it must not become a requirement the transport has
+            // to satisfy: demanding it refused IoT Hub outright, which has no
+            // retain concept at all and simply ignores the flag - which is
+            // exactly what the writer path relies on when it publishes
+            // metadata over the same transport.
+            //
+            // An explicitly configured retain still flows through below and is
+            // still refused when it cannot be honoured, because that one the
+            // caller did ask for and silently dropping it loses function.
+            //
+            var defaultRetain = settings.EventClient is IEventClientCapabilities declared
+                && (declared.Capabilities & EventClientCapabilities.Retain) != 0;
             var byTopic = new Dictionary<string, PubSubShadowEgressSettings>(
                 StringComparer.Ordinal);
             var byWriter = new Dictionary<(ushort WriterGroupId, ushort DataSetWriterId), string>();
@@ -960,7 +976,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                             group.WriterGroupId, "/", writer.DataSetWriterId);
                     }
                     var metadataSettings = settings.WithTransportSettings(topic,
-                        configured?.Publishing, defaultRetain: true);
+                        configured?.Publishing, defaultRetain);
                     if (!byTopic.TryAdd(topic, metadataSettings))
                     {
                         throw new InvalidOperationException(
