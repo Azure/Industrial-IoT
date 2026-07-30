@@ -1435,6 +1435,46 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
         }
 
         [Fact]
+        public void EgressPublishesOverATransportWithoutAQualityOfServiceKnob()
+        {
+            //
+            // The QualityOfService capability means the client exposes a
+            // per-message delivery setting, not that it can deliver reliably.
+            // IoT Hub is queued and acknowledged with no per-message knob, so
+            // demanding the capability refused the transport the module is
+            // normally deployed with, for a guarantee it already provides.
+            // Retain and time to live are still refused, because a message
+            // that is not retained or that outlives its deadline is a real
+            // loss of function.
+            //
+            var client = new RecordingEventClient
+            {
+                Capabilities = EventClientCapabilities.Payload
+                    | EventClientCapabilities.Topic
+                    | EventClientCapabilities.ContentType
+            };
+            var settings = CreateSettings() with { QualityOfService = QoS.AtLeastOnce };
+
+            var degraded = EventClientPubSubTransportFactory.DegradeUnsupportedCapabilities(
+                client, settings, NullLogger.Instance);
+            EventClientPubSubTransportFactory.ValidateCapabilities(client,
+                degraded.RequiredCapabilities);
+
+            //
+            // The delivery guarantee is still carried to the client, which
+            // applies whatever its protocol supports.
+            //
+            Assert.Equal(QoS.AtLeastOnce, degraded.QualityOfService);
+
+            var retained = settings with { Retain = true };
+            var refused = EventClientPubSubTransportFactory.DegradeUnsupportedCapabilities(
+                client, retained, NullLogger.Instance);
+            Assert.Throws<NotSupportedException>(() =>
+                EventClientPubSubTransportFactory.ValidateCapabilities(client,
+                    refused.RequiredCapabilities));
+        }
+
+        [Fact]
         public void EgressResolvesTheMetaDataTopicTheWriterPathComputes()
         {
             //

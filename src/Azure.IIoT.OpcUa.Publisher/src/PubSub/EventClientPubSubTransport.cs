@@ -827,15 +827,32 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         }
 
         /// <summary>
-        /// Drops capabilities that describe the message rather than its
-        /// delivery when the selected transport cannot carry them, so a
-        /// transport such as IoT Hub can publish telemetry without a schema
-        /// reference, and MQTT 3.1.1 can publish without a content type or
-        /// user properties, instead of refusing to start. Delivery semantics
-        /// the user explicitly asked for - a quality of service above at most
-        /// once, retain, and time to live - are never dropped, because silently
-        /// losing a delivery guarantee is worse than failing to start.
+        /// Drops capabilities the selected transport cannot express when doing
+        /// so does not lose a delivery guarantee, so a transport such as IoT
+        /// Hub can publish telemetry rather than refusing to start. Retain and
+        /// time to live are never dropped, because a message that is not
+        /// retained, or that outlives its deadline, is a real loss of function
+        /// that the caller asked for explicitly.
         /// </summary>
+        /// <remarks>
+        /// <para>
+        /// A content type, custom properties and a schema reference annotate a
+        /// message rather than delivering it, and the writer path publishes
+        /// over transports that carry none of them.
+        /// </para>
+        /// <para>
+        /// Quality of service is subtler.
+        /// <see cref="EventClientCapabilities.QualityOfService"/> means the
+        /// client exposes a per-message delivery setting, not that it can
+        /// deliver reliably: IoT Hub is a queued and acknowledged service with
+        /// no per-message knob to set. Demanding the capability therefore
+        /// refused the transport the module is normally deployed with, for a
+        /// guarantee that transport already provides. It is dropped with a
+        /// warning naming the transport, and the message is delivered with the
+        /// transport's own semantics - which is exactly what the writer path
+        /// has always done.
+        /// </para>
+        /// </remarks>
         /// <param name="eventClient"></param>
         /// <param name="settings"></param>
         /// <param name="logger"></param>
@@ -853,24 +870,19 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                     EventClientCapabilities.Schema);
                 settings = settings with { Schema = null };
             }
-            //
-            // A content type and custom properties describe the message, they
-            // do not deliver it. MQTT 3.1.1 has no field for either, and the
-            // writer path publishes over it regardless, so requiring them here
-            // would refuse a transport the Publisher has always supported.
-            //
-            var annotations = settings.RequiredCapabilities & ~declared.Capabilities
+            var degradable = settings.RequiredCapabilities & ~declared.Capabilities
                 & (EventClientCapabilities.ContentType
-                    | EventClientCapabilities.CustomProperties);
-            if (annotations == 0)
+                    | EventClientCapabilities.CustomProperties
+                    | EventClientCapabilities.QualityOfService);
+            if (degradable == 0)
             {
                 return settings;
             }
             logger.EgressCapabilityDegraded(settings.ConnectionName, eventClient.Name,
-                annotations);
+                degradable);
             return settings with
             {
-                DegradedCapabilities = settings.DegradedCapabilities | annotations
+                DegradedCapabilities = settings.DegradedCapabilities | degradable
             };
         }
 
