@@ -310,6 +310,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 {
                     try
                     {
+                        await AnnounceMetaDataAsync(notification).ConfigureAwait(false);
                         foreach (var managed in Translate(notification))
                         {
                             await _notifications.EnqueueAsync(managed, _stop.Token)
@@ -340,10 +341,58 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             }
         }
 
+        /// <summary>
+        /// Hands the writer's resolved metadata over before the data it
+        /// describes, so the runtime resolves and announces it ahead of the
+        /// first payload rather than as a consequence of publishing one.
+        /// </summary>
+        /// <remarks>
+        /// The writer path attaches the resolved metadata to every notification
+        /// and blocks a message until it has loaded, so it is available before
+        /// the first value is published. The native path only learned about it
+        /// from the separate metadata notification, which arrives in the same
+        /// stream as the data: by the time it was processed the first payload
+        /// had already been queued, and a consumer could receive values before
+        /// the definitions needed to decode them.
+        ///
+        /// The metadata cannot be waited for further downstream. It is produced
+        /// as a consequence of the data flowing, so holding data back to wait
+        /// for it deadlocks until whatever deadline breaks the tie - measured
+        /// directly, with the announcement arriving 29ms after a 30 second
+        /// deadline released the first frame.
+        ///
+        /// Dedupe is on the writer's own metadata instance, which is stable
+        /// until the metadata actually changes, so the common path is one
+        /// reference comparison and nothing is converted or enqueued.
+        /// </remarks>
+        /// <param name="notification"></param>
+        private async ValueTask AnnounceMetaDataAsync(
+            OpcUaSubscriptionNotification notification)
+        {
+            if (notification.MessageType == MessageType.Metadata ||
+                notification.Context is not DataSetWriterContext context ||
+                context.MetaData?.MetaData is not { } resolved ||
+                GetDataSetName(notification) is not { } dataSetName)
+            {
+                return;
+            }
+            if (_announced.TryGetValue(dataSetName, out var announced) &&
+                ReferenceEquals(announced, resolved))
+            {
+                return;
+            }
+            _announced[dataSetName] = resolved;
+            await _notifications.EnqueueAsync(new ManagedPubSubNotification(dataSetName,
+                resolved.ToStackModel(notification.ServiceMessageContext)), _stop.Token)
+                .ConfigureAwait(false);
+        }
+
         private readonly IManagedPubSubNotificationBuffer _notifications;
         private readonly ILogger<PubSubNotificationSink> _logger;
         private readonly Channel<OpcUaSubscriptionNotification> _queue;
         private readonly CancellationTokenSource _stop = new();
+        private readonly Dictionary<string, PublishedDataSetMetaDataModel> _announced =
+            new(StringComparer.Ordinal);
         private readonly Task _pump;
         private long _dropped;
         private int _disposed;
