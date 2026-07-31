@@ -385,3 +385,102 @@ and the two `OpcUaApplicationTests` X509 comments changed.
 → V2 `IManagedSubscription`/`DefaultSubscriptionEngine`) as a dedicated future pass;
 `ISA95Jobs` server (permanent documented descope); the residual `TODO(Phase 5)`
 `EncodeableDictionary.Decode` / `JsonMetadataMessage` stream-decode (off the live path).
+
+## OPC Publisher 3.0 — JSON telemetry wire changes
+
+3.0 publishes telemetry through the OPC UA stack's own PubSub runtime instead of
+the encoder OPC Publisher carried in-tree. The runtime follows OPC UA Part 6
+1.05, where the previous encoder had accumulated 1.04 forms and Publisher
+extensions, so some payload members are spelled differently.
+
+Everything below is a **deliberate** change, verified against the specification
+rather than adopted by accident. They are ordered by how quietly each one breaks
+a consumer, not by how large the change looks.
+
+### 1. A value equal to its type default is omitted entirely
+
+Under compact encoding (`--me=Json`, the default) a field whose value equals its
+type's default carries only its type:
+
+```jsonc
+// 2.x
+"Important": { "Value": false }
+// 3.0
+"Important": { "UaType": 1 }
+```
+
+Part 6 §5.4.1 permits this and a conformant decoder reconstructs `false` from
+the type. **This is listed first because whether the member is present depends
+on the value rather than on your configuration** — code reading
+`Payload.<field>.Value` keeps working until the value first goes false, then
+starts throwing or reading null in production.
+
+It is a property of *compact* encoding, not of the new runtime: the same field
+carries `Value` under reversible encoding (`--me=JsonReversible`).
+
+### 2. `Status` replaces `StatusCode` on a data value
+
+```jsonc
+// 2.x
+"Output": { "Value": 1.0, "StatusCode": { "Symbol": "BadNodeIdUnknown" } }
+// 3.0
+"Output": { "Value": 1.0, "Status":     { "Symbol": "BadNodeIdUnknown" } }
+```
+
+Part 6 §5.4.2.18 Table 42 names the member `Status`. A consumer reading
+`StatusCode` for error handling silently stops seeing errors, which is why this
+ranks second.
+
+### 3. `ua-event` replaces `ua-condition`
+
+Part 14 §7.2.5.4 defines only `ua-keyframe`, `ua-deltaframe`, `ua-event` and
+`ua-keepalive`. `ua-condition` was a Publisher extension; a condition snapshot
+is an event occurrence on the wire. **A consumer filtering on `ua-condition`
+stops matching entirely.**
+
+### 4. A DataValue is flattened, not wrapped in a Variant
+
+```jsonc
+// 2.x reversible
+"CycleId": { "Value": { "Type": 12, "Body": "abc" } }
+// 3.0
+"CycleId": { "UaType": 12, "Value": "abc" }
+```
+
+Part 6 §5.4.2.18 Table 42 defines a DataValue as a Variant with extra fields,
+flattened. The `Type`/`Body` envelope was the 1.04 reversible Variant. Every
+payload read through that envelope needs updating.
+
+### 5. Smaller spelling changes
+
+| Member | 2.x | 3.0 | Basis |
+| --- | --- | --- | --- |
+| `LocalizedText` | bare string | `{ "Locale", "Text" }` | Part 6 §5.4.2.15, unconditionally an object |
+| Node identifiers | `<uri>#s=<id>` | `nsu=<uri>;s=<id>` | the standard string form |
+| Writer group | `DataSetWriterGroup` | `WriterGroupName` | Part 14 naming |
+| `DataSetWriterId` | writer name | numeric identifier | Part 14; the name is carried in `DataSetWriterName` under `--strict` |
+| Int64 extension fields | JSON number | JSON string | Part 6 §5.4.2.3 requires Int64 as a string |
+
+### 6. An event's `DataSetWriterName` no longer carries its event type
+
+2.x appended the event type to the writer name per message, so a writer
+configured with two event types appeared as two writers
+(`<writer>|CycleStarted`). Part 14 means the *writer's* configured name by that
+member, so 3.0 emits it unchanged.
+
+**If you configured several event types on one writer and told them apart by
+writer name, distinguish them by their payload instead** — the fields of a
+`CycleStarted` event differ from those of an alarm.
+
+### 7. Batching no longer caps the message rate
+
+`--bi`/`BatchTriggerInterval` is a flush timer over a queue whose entries each
+become their own message. In 2.x, with no transport named and without
+`--strict`, it defaulted to ten seconds for 2.8 compatibility. Applying that as
+a publishing cadence to the new runtime capped the message rate at one message
+per interval and discarded the rest, so it is no longer carried across.
+
+In that compatibility configuration 3.0 emits a message per occurrence rather
+than a ten second batch of them. Every configuration that names a transport or
+asks for compliant encoding already behaved this way, because those set the
+trigger to zero.
