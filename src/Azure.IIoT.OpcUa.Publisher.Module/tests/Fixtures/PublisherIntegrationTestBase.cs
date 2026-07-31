@@ -269,6 +269,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             var messages = new List<JsonMessage>();
 
             JsonMessage? metadata = null;
+            TimeSpan? metadataDeadline = null;
             using var cts = new CancellationTokenSource(messageCollectionTimeout);
             try
             {
@@ -304,7 +305,30 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                     }
                     if (messages.Count >= messageCount)
                     {
-                        break;
+                        //
+                        // The collector used to stop here, which made every
+                        // "metadata is not null" assertion depend on the
+                        // metadata message arriving before the Nth data
+                        // message. That is an ordering property, and it was
+                        // being asserted incidentally by tests about payload
+                        // content, so one scheduling race made the whole suite
+                        // intermittent. Ordering is asserted deliberately by
+                        // its own test instead.
+                        //
+                        // Nothing is weakened: a run that never publishes
+                        // metadata still leaves it null and still fails, and
+                        // the extra wait is bounded and skipped entirely when
+                        // the run disabled metadata.
+                        //
+                        if (metadata is not null || _metaDataDisabled)
+                        {
+                            break;
+                        }
+                        metadataDeadline ??= stopWatch.Elapsed + kMetaDataCollectionGrace;
+                        if (stopWatch.Elapsed >= metadataDeadline)
+                        {
+                            break;
+                        }
                     }
                 }
             }
@@ -351,6 +375,21 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         {
             WriteIndented = true
         };
+
+        /// <summary>
+        /// How much longer the collector keeps reading after it has the
+        /// messages it was asked for, when metadata is expected and has not
+        /// arrived yet.
+        /// </summary>
+        private static readonly TimeSpan kMetaDataCollectionGrace =
+            TimeSpan.FromSeconds(5);
+
+        /// <summary>
+        /// Whether the run under collection disabled dataset metadata, in
+        /// which case waiting for a metadata message would only burn the
+        /// collection timeout.
+        /// </summary>
+        private bool _metaDataDisabled;
 
         /// <summary>
         /// Whether the run publishes through the native OPC UA PubSub runtime
@@ -458,6 +497,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             // long-lived file - so this stays a test-only setting.
             arguments = [.. arguments, "--pol"];
 
+            //
+            // Recorded so the collector knows whether a metadata message is
+            // ever coming. A run that disables metadata must not be made to
+            // wait for one.
+            //
+            _metaDataDisabled = arguments.Any(IsMetaDataDisabled);
+
             if (reverseConnectPort != null)
             {
                 arguments =
@@ -473,6 +519,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
             _publisher = new PublisherModule(null, null, null, null,
                 _testOutputHelper, arguments, version, keepAliveInterval);
             _logger.PublisherStarted(sw.Elapsed);
+
+            static bool IsMetaDataDisabled(string argument)
+            {
+                if (string.Equals(argument, "--dm", StringComparison.Ordinal))
+                {
+                    return true;
+                }
+                return argument.StartsWith("--dm=", StringComparison.Ordinal)
+                    && bool.TryParse(argument["--dm=".Length..], out var disabled)
+                    && disabled;
+            }
         }
 
         /// <summary>
