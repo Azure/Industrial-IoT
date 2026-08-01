@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
     using Azure.IIoT.OpcUa.Encoders.Schemas.Json;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Json.Schema;
+    using System;
     using System.IO;
     using System.Linq;
     using System.Text.Json;
@@ -89,6 +90,38 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             Assert.NotNull(schema2);
             // var schema2 = global::Json.Schema.JsonSchema.FromText(json);
             //Assert.Equal(schema.Schema, schema2);
+        }
+
+        [Theory]
+        [MemberData(nameof(GetMessageMetaDataFiles))]
+        public async Task NetworkMessageHeaderNamesTheWriterGroupTheWayItIsPublishedAsync(
+            string messageMetaDataFile)
+        {
+            //
+            // Every other case here sets SingleDataSetMessage, which returns
+            // the payload schema before a network message header is described
+            // at all, so none of them reaches the members below. That gap is
+            // why the schema went on naming this member DataSetWriterGroup -
+            // the name it took, with nameof, from the custom encoder's message
+            // class - long after 3.0 started publishing WriterGroupName.
+            //
+            var messageMetaData = await LoadAsync<PublishedNetworkMessageSchemaModel>(
+                messageMetaDataFile);
+            messageMetaData = messageMetaData with
+            {
+                NetworkMessageContentFlags =
+                    NetworkMessageContentFlags.NetworkMessageHeader |
+                    NetworkMessageContentFlags.DataSetMessageHeader |
+                    NetworkMessageContentFlags.PublisherId
+            };
+
+            var json = new JsonNetworkMessage(messageMetaData).ToString();
+
+            Assert.Contains("\"WriterGroupName\"", json, StringComparison.Ordinal);
+            Assert.DoesNotContain("DataSetWriterGroup", json, StringComparison.Ordinal);
+            Assert.Contains("\"PublisherId\"", json, StringComparison.Ordinal);
+            Assert.Contains("\"MessageId\"", json, StringComparison.Ordinal);
+            Assert.NotNull(SchemaReader.ReadSchema(json, "."));
         }
 
         private static async ValueTask<T> LoadAsync<T>(string file)
