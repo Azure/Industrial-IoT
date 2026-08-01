@@ -535,13 +535,20 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         /// </remarks>
         public void Dispose()
         {
-            Tombstones.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            //
+            // Bounded for the same reason the sink's is: a tombstone may be
+            // mid-send to a broker that has stopped answering, and a shutdown
+            // that gives up beats a shutdown that hangs.
+            //
+            Tombstones.DisposeAsync().AsTask().Wait(kDisposeTimeout);
         }
 
         public ValueTask DisposeAsync()
         {
             return Tombstones.DisposeAsync();
         }
+
+        private static readonly TimeSpan kDisposeTimeout = TimeSpan.FromSeconds(5);
     }
 
     /// <summary>

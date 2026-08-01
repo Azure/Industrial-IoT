@@ -472,12 +472,16 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         /// A service provider refuses to dispose synchronously if anything it
         /// owns is async-only, so a container-owned singleton has to carry
         /// both. Blocking is safe here because teardown is
-        /// ConfigureAwait(false) throughout and does not post back.
+        /// ConfigureAwait(false) throughout and does not post back, and it is
+        /// bounded because the dispatch loop may be waiting on a source that
+        /// never completes.
         /// </remarks>
         public void Dispose()
         {
-            DisposeAsync().AsTask().GetAwaiter().GetResult();
+            DisposeAsync().AsTask().Wait(kDisposeTimeout);
         }
+
+        private static readonly TimeSpan kDisposeTimeout = TimeSpan.FromSeconds(5);
 
         public async ValueTask DisposeAsync()
         {
@@ -1151,12 +1155,16 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         /// A service provider refuses to dispose synchronously if anything it
         /// owns is async-only, so a container-owned singleton has to carry
         /// both. Blocking is safe here because source teardown is
-        /// ConfigureAwait(false) throughout and does not post back.
+        /// ConfigureAwait(false) throughout and does not post back, and it is
+        /// bounded because a source may be waiting on work that never
+        /// completes.
         /// </remarks>
         public void Dispose()
         {
-            DisposeAsync().AsTask().GetAwaiter().GetResult();
+            DisposeAsync().AsTask().Wait(kDisposeTimeout);
         }
+
+        private static readonly TimeSpan kDisposeTimeout = TimeSpan.FromSeconds(5);
 
         public async ValueTask DisposeAsync()
         {

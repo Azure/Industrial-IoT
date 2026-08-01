@@ -29,6 +29,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 options?.Value.BatchTriggerInterval);
             _publisherId = options?.Value.PublisherId;
             _standardsCompliant = options?.Value.UseStandardsCompliantEncoding ?? false;
+            _maxNetworkMessageSize = options?.Value.MaxNetworkMessageSize;
         }
 
         public PubSubConfigurationDataType Translate(
@@ -186,13 +187,17 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 // per interval, and under the 2.8 compatibility default of ten
                 // seconds that starved the sampler - values arrived twice a
                 // second and left once every ten, so the queue grew until it
-                // backpressured the subscription. Batching stays a concern of
-                // the transport, which still applies it.
+                // backpressured the subscription.
+                //
+                // Batching itself is not carried over: the native egress emits
+                // a message per sample and does not coalesce, so BatchSize and
+                // the send queue bounds no longer apply. That is a recorded
+                // 3.0 change, not an oversight.
                 //
                 PublishingInterval = ResolveGroupPublishingInterval(
                     source).TotalMilliseconds,
                 KeepAliveTime = source.KeepAliveTime?.TotalMilliseconds ?? 0,
-                MaxNetworkMessageSize = source.MaxNetworkMessageSize ?? 1500,
+                MaxNetworkMessageSize = ResolveMaxNetworkMessageSize(source),
                 SecurityMode = MessageSecurityMode.None,
                 SecurityGroupId = string.Empty,
                 MessageSettings = new ExtensionObject(isUadp
@@ -409,8 +414,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         /// </remarks>
         /// <param name="source">The writer group being translated.</param>
         private static TimeSpan ResolveGroupPublishingInterval(WriterGroupModel source)
-        {
-            if (source.PublishingInterval is { } configured &&
+        {            if (source.PublishingInterval is { } configured &&
                 configured > TimeSpan.Zero && configured < ImmediatePublishingInterval)
             {
                 return configured;
@@ -451,6 +455,32 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
 
         private readonly TimeSpan _defaultPublishingInterval;
         private readonly string? _publisherId;
+        /// <summary>
+        /// How large a network message the runtime may build for this group.
+        /// </summary>
+        /// <remarks>
+        /// The group's own limit wins, then the application-wide limit that
+        /// <c>--ms</c> sets, and only then the 1500 byte fallback. The global
+        /// option is consulted because the native egress does not chunk: a
+        /// frame larger than the transport accepts is rejected outright, so a
+        /// deployment that raised or lowered the limit for its transport needs
+        /// that to reach the runtime that decides how much to put in a frame.
+        /// </remarks>
+        /// <param name="source">The writer group being translated.</param>
+        private uint ResolveMaxNetworkMessageSize(WriterGroupModel source)
+        {
+            if (source.MaxNetworkMessageSize is > 0 and var group)
+            {
+                return (uint)group;
+            }
+            if (_maxNetworkMessageSize is > 0 and var global)
+            {
+                return (uint)global;
+            }
+            return 1500u;
+        }
+
         private readonly bool _standardsCompliant;
+        private readonly int? _maxNetworkMessageSize;
     }
 }

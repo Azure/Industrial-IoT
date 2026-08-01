@@ -103,25 +103,42 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas
             // at all, so none of them reaches the members below. That gap is
             // why the schema went on naming this member DataSetWriterGroup -
             // the name it took, with nameof, from the custom encoder's message
-            // class - long after 3.0 started publishing WriterGroupName.
+            // class - long after 3.0 started publishing WriterGroupName, and
+            // why it went on requiring the member unconditionally when the
+            // runtime writes it only on request.
             //
             var messageMetaData = await LoadAsync<PublishedNetworkMessageSchemaModel>(
                 messageMetaDataFile);
-            messageMetaData = messageMetaData with
+            var header =
+                NetworkMessageContentFlags.NetworkMessageHeader |
+                NetworkMessageContentFlags.DataSetMessageHeader |
+                NetworkMessageContentFlags.PublisherId;
+
+            var withGroup = new JsonNetworkMessage(messageMetaData with
             {
-                NetworkMessageContentFlags =
-                    NetworkMessageContentFlags.NetworkMessageHeader |
-                    NetworkMessageContentFlags.DataSetMessageHeader |
-                    NetworkMessageContentFlags.PublisherId
-            };
+                NetworkMessageContentFlags = header | NetworkMessageContentFlags.WriterGroupId
+            }).ToString();
 
-            var json = new JsonNetworkMessage(messageMetaData).ToString();
+            Assert.Contains("\"WriterGroupName\"", withGroup, StringComparison.Ordinal);
+            Assert.DoesNotContain("DataSetWriterGroup", withGroup, StringComparison.Ordinal);
+            Assert.Contains("\"PublisherId\"", withGroup, StringComparison.Ordinal);
+            Assert.Contains("\"MessageId\"", withGroup, StringComparison.Ordinal);
+            Assert.NotNull(SchemaReader.ReadSchema(withGroup, "."));
 
-            Assert.Contains("\"WriterGroupName\"", json, StringComparison.Ordinal);
-            Assert.DoesNotContain("DataSetWriterGroup", json, StringComparison.Ordinal);
-            Assert.Contains("\"PublisherId\"", json, StringComparison.Ordinal);
-            Assert.Contains("\"MessageId\"", json, StringComparison.Ordinal);
-            Assert.NotNull(SchemaReader.ReadSchema(json, "."));
+            //
+            // Without the flag the runtime does not write the member, and the
+            // schema closes AdditionalProperties and requires everything it
+            // lists - so naming it here would make a strict consumer reject
+            // telemetry that is perfectly valid.
+            //
+            var withoutGroup = new JsonNetworkMessage(messageMetaData with
+            {
+                NetworkMessageContentFlags = header
+            }).ToString();
+
+            Assert.DoesNotContain("WriterGroupName", withoutGroup, StringComparison.Ordinal);
+            Assert.Contains("\"PublisherId\"", withoutGroup, StringComparison.Ordinal);
+            Assert.NotNull(SchemaReader.ReadSchema(withoutGroup, "."));
         }
 
         private static async ValueTask<T> LoadAsync<T>(string file)

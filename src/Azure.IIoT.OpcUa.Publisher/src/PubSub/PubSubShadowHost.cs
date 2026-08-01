@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Opc.Ua;
     using Opc.Ua.PubSub.Application;
@@ -191,6 +192,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             _managedDataSources = services.GetRequiredService<
                 ManagedPubSubDataSetSourceRegistry>();
             _egress = services.GetService<PubSubShadowEgressRegistration>();
+            _logger = services.GetService<ILogger<PubSubShadowHost>>();
             //
             // Without an egress transport the host is a shadow: it accepts
             // configuration but must not publish. An egress registration is the
@@ -506,9 +508,10 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         /// <remarks>
         /// A service provider refuses to dispose synchronously if anything it
         /// owns is async-only, so declaring only <see cref="IAsyncDisposable"/>
-        /// makes every synchronous container teardown throw - which is exactly
-        /// what happened once the host became part of the default composition
-        /// rather than something the preview option added. The sink already
+        /// makes every synchronous container teardown throw. That is not the
+        /// hosted path - <c>Host</c> forwards its disposal to the asynchronous
+        /// one - but it is what an embedder building its own provider does,
+        /// and it is what the container validation tests do. The sink already
         /// carries both for the same reason.
         /// </remarks>
         public void Dispose()
@@ -520,9 +523,16 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             //
             // Blocking here is safe because teardown does not post back to a
             // captured context: StopAsync and the application's own disposal
-            // are both ConfigureAwait(false) throughout.
+            // are both ConfigureAwait(false) throughout. It is bounded because
+            // it is not safe to block forever - the lifecycle gate can be held
+            // by a configuration replacement, and a send in flight can be
+            // waiting on a broker that has stopped answering. A shutdown that
+            // gives up and logs beats a shutdown that hangs.
             //
-            DisposeCoreAsync().AsTask().GetAwaiter().GetResult();
+            if (!DisposeCoreAsync().AsTask().Wait(kDisposeTimeout))
+            {
+                _logger?.PubSubShadowHostDisposeTimedOut(kDisposeTimeout);
+            }
         }
 
         public async ValueTask DisposeAsync()
@@ -531,7 +541,15 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             {
                 return;
             }
-            await DisposeCoreAsync().ConfigureAwait(false);
+            try
+            {
+                await DisposeCoreAsync().AsTask().WaitAsync(kDisposeTimeout)
+                    .ConfigureAwait(false);
+            }
+            catch (TimeoutException)
+            {
+                _logger?.PubSubShadowHostDisposeTimedOut(kDisposeTimeout);
+            }
         }
 
         private async ValueTask DisposeCoreAsync()
@@ -540,6 +558,12 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             await _application.DisposeAsync().ConfigureAwait(false);
             _gate.Dispose();
         }
+
+        /// <summary>
+        /// How long shutdown waits for the host to stop before giving up. The
+        /// sink uses the same bound for the same reason.
+        /// </summary>
+        private static readonly TimeSpan kDisposeTimeout = TimeSpan.FromSeconds(5);
 
         private static IPubSubApplication CreateApplication(IServiceProvider services,
             IPubSubShadowCaptureSink captureSink, PubSubShadowRuntimeStateProvider state,
@@ -695,9 +719,25 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         private IOptions<PublisherOptions>? _publisherOptions;
         private ManagedPubSubDataSetSourceRegistry? _managedDataSources;
         private PubSubShadowEgressRegistration? _egress;
+        private ILogger? _logger;
         private PubSubConfigurationDataType _configuration;
         private bool _started;
         private int _disposed;
+    }
+
+    /// <summary>
+    /// Source-generated logging definitions for the PubSub shadow host
+    /// </summary>
+    internal static partial class PubSubShadowHostLogging
+    {
+        private const int EventClass = 770;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Warning,
+            Message = "The native PubSub host did not stop within {Timeout}. Shutdown " +
+            "continues without it - a configuration update or an unanswered send may " +
+            "still have been in flight.")]
+        public static partial void PubSubShadowHostDisposeTimedOut(this ILogger logger,
+            TimeSpan timeout);
     }
 
     internal sealed class PubSubShadowRollbackException : Exception

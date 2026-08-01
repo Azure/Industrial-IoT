@@ -143,8 +143,20 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
                     encoding.GetSchemaForBuiltInType(BuiltInType.Guid));
             }
 
-            properties.Add(PubSubMessageMembers.WriterGroupName,
-                encoding.GetSchemaForBuiltInType(BuiltInType.String));
+            //
+            // The runtime writes this member only when the writer group asks
+            // for it - see the WriterGroupName content mask the translator
+            // derives from WriterGroupId - and the default mask does not. A
+            // schema that lists it unconditionally therefore requires a member
+            // the publisher will never send, and because AdditionalProperties
+            // is closed and every listed property is required, a strict
+            // consumer rejects perfectly valid telemetry.
+            //
+            if (networkMessageContentFlags.HasFlag(NetworkMessageContentFlags.WriterGroupId))
+            {
+                properties.Add(PubSubMessageMembers.WriterGroupName,
+                    encoding.GetSchemaForBuiltInType(BuiltInType.String));
+            }
 
             // Now write messages - this is either one of or array of one of
             properties.Add(PubSubMessageMembers.Messages, payloadType);

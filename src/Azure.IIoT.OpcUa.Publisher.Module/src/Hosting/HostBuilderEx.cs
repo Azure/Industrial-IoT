@@ -23,11 +23,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Hosting
         /// Build the host and run it.
         /// </summary>
         /// <remarks>
-        /// The host is disposed asynchronously because the publisher owns
-        /// services that only tear down asynchronously - the native PubSub
-        /// host and its data set sources among them. Disposing the host
-        /// synchronously makes the service provider refuse outright, so this
-        /// would throw on every shutdown rather than at some later point.
+        /// The host is disposed explicitly rather than with <c>using</c>
+        /// because the publisher owns services that only tear down
+        /// asynchronously - the native PubSub host and its data set sources
+        /// among them. <c>Microsoft.Extensions.Hosting.Host</c> happens to
+        /// forward its synchronous disposal to the asynchronous one, so this
+        /// is belt and braces for that implementation, but an
+        /// <see cref="IHost"/> that does not would make the service provider
+        /// refuse to dispose at all.
         /// </remarks>
         /// <param name="builder"></param>
         /// <param name="ct"></param>
