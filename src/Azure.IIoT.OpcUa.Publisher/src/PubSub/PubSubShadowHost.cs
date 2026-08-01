@@ -276,7 +276,15 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
             try
             {
-                var groups = writerGroups.ToArray();
+                //
+                // Separated before anything downstream sees the groups, so the
+                // translator, the egress settings and the data sources all
+                // agree on what a writer group is. A routing mode puts writers
+                // with different topics in one group, which a native group -
+                // one network message, one topic - cannot represent.
+                //
+                var groups = WriterGroupDestinationSplitter.Split(
+                    writerGroups.ToArray());
                 await using var transaction = await _identityRegistry.BeginAsync(cancellationToken)
                     .ConfigureAwait(false);
                 var translation = _translator.TranslateWithEncodingRegistry(groups, transaction);
