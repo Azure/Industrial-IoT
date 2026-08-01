@@ -410,6 +410,22 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 ["writerGroupId"] = writerGroup.Id,
                 ["encoding"] = encoding.ToString()
             };
+            //
+            // The writer path stamps the message schema on every telemetry
+            // message, and routing on it is a standard way to wire an IoT Hub
+            // deployment up. Publishing without it would silently stop those
+            // routes matching, and no test would notice because the collector
+            // only looks at the property when it is present.
+            //
+            properties[OpcUa.Constants.MessagePropertySchemaKey] =
+                encoding is PubSubShadowEncoding.Uadp
+                    ? Encoders.MessageSchemaTypes.NetworkMessageUadp
+                    : Encoders.MessageSchemaTypes.NetworkMessageJson;
+            if (publisherOptions.EnableDataSetRoutingInfo ?? false)
+            {
+                properties[OpcUa.Constants.MessagePropertyRoutingKey] =
+                    writerGroup.Name ?? Constants.DefaultWriterGroupName;
+            }
             if (writerGroup.Properties is not null)
             {
                 foreach (var property in writerGroup.Properties)
