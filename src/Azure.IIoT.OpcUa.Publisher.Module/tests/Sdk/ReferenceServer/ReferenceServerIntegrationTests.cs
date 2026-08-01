@@ -110,7 +110,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 
             // Assert
             Assert.True(messages.Count > 1);
-            var statusSymbols = new List<string>();
+            var statusCodes = new List<uint>();
             foreach (var item in messages)
             {
                 var message = item.Message;
@@ -129,11 +129,35 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 // because pinning it would make the two paths disagree and turn
                 // the native default switch into a second silent change.
                 //
-                statusSymbols.Add(GetOnlyDataField(payload)
-                    .GetProperty("Status").GetProperty("Symbol").GetString());
+                // The code is asserted rather than the symbolic name because
+                // Symbol is a verbose-encoding member - Part 6 §5.4.2.6 - and
+                // this test publishes compact, where a status is
+                // {"Code":n} and Good is {}. The custom encoder wrote the
+                // symbol under either encoding; that is another 3.0 change.
+                // The code identifies the status exactly, so this is the
+                // stronger assertion as well as the encoding-independent one.
+                //
+                statusCodes.Add(GetStatusCode(GetOnlyDataField(payload)));
             }
-            Assert.Contains("BadNodeIdUnknown", statusSymbols);
+            Assert.Contains(kBadNodeIdUnknown, statusCodes);
+
+            static uint GetStatusCode(JsonElement field)
+            {
+                if (!field.TryGetProperty("Status", out var status))
+                {
+                    return 0u;
+                }
+                return status.ValueKind == JsonValueKind.Number
+                    ? status.GetUInt32()
+                    : status.TryGetProperty("Code", out var code) ? code.GetUInt32() : 0u;
+            }
         }
+
+        /// <summary>
+        /// <c>BadNodeIdUnknown</c>, spelled out because the assertion above is
+        /// on the wire value rather than on a name the encoding may not carry.
+        /// </summary>
+        private const uint kBadNodeIdUnknown = 0x80340000;
 
         [Fact]
         public async Task CanSendDeadbandItemsToIoTHubTestAsync()
@@ -158,9 +182,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 
             var int64Values = payloads.Where(payload => payload.TryGetProperty(kInt64Values, out var value) &&
                 value.TryGetProperty("Value", out _));
-            AssertDeadband<long>(int64Values, kInt64Values, value => value.GetInt64(),
+            AssertDeadband<long>(int64Values, kInt64Values, ReadInt64,
                 (previous, current) => Math.Abs(previous - current) >= 3,
                 (previous, current) => Math.Abs(previous - current), "percent deadband limit {0} < 3% ({1}/{2})");
+
+            //
+            // Part 6 5.4.2.3 has a 64 bit integer written as a JSON string, so
+            // that a consumer whose numbers are doubles cannot silently lose
+            // precision on a value it cannot represent. The number form is
+            // still accepted because a value small enough is legal either way
+            // and this assertion is about the deadband, not the spelling.
+            //
+            static long ReadInt64(JsonElement value)
+            {
+                return value.ValueKind == JsonValueKind.String
+                    ? long.Parse(value.GetString()!, CultureInfo.InvariantCulture)
+                    : value.GetInt64();
+            }
         }
 
         [Fact]
