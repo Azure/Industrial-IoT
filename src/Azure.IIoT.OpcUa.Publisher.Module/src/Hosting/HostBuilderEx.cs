@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Module.Hosting
 {
     using Microsoft.Extensions.Hosting;
+    using System;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -21,14 +22,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Hosting
         /// <summary>
         /// Build the host and run it.
         /// </summary>
+        /// <remarks>
+        /// The host is disposed asynchronously because the publisher owns
+        /// services that only tear down asynchronously - the native PubSub
+        /// host and its data set sources among them. Disposing the host
+        /// synchronously makes the service provider refuse outright, so this
+        /// would throw on every shutdown rather than at some later point.
+        /// </remarks>
         /// <param name="builder"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         public static async Task RunAsync(this IHostBuilder builder,
             CancellationToken ct = default)
         {
-            using var host = builder.Build();
-            await host.RunAsync(ct).ConfigureAwait(false);
+            var host = builder.Build();
+            try
+            {
+                await host.RunAsync(ct).ConfigureAwait(false);
+            }
+            finally
+            {
+                //
+                // IHost itself does not declare IAsyncDisposable, so the
+                // asynchronous path has to be asked for rather than assumed.
+                //
+                if (host is IAsyncDisposable disposable)
+                {
+                    await disposable.DisposeAsync().ConfigureAwait(false);
+                }
+                else
+                {
+                    host.Dispose();
+                }
+            }
         }
     }
 }

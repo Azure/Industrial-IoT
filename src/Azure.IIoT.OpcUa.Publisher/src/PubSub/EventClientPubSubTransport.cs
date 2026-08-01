@@ -505,7 +505,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     /// <summary>
     /// Explicit registration for event-client egress.
     /// </summary>
-    internal sealed class PubSubShadowEgressRegistration : IAsyncDisposable
+    internal sealed class PubSubShadowEgressRegistration : IDisposable, IAsyncDisposable
     {
         public PubSubShadowEgressRegistration(
             IPubSubShadowEventClientSelector eventClients,
@@ -522,6 +522,21 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         public PubSubShadowEgressOptions Options { get; }
         public PubSubShadowEgressSettingsRegistry Settings { get; }
         public PubSubShadowTombstoneQueue Tombstones { get; }
+
+        /// <summary>
+        /// Drain the tombstone queue when the container is disposed
+        /// synchronously.
+        /// </summary>
+        /// <remarks>
+        /// A service provider refuses to dispose synchronously if anything it
+        /// owns is async-only, so a container-owned singleton has to carry
+        /// both. Blocking is safe here because the queue's teardown is
+        /// ConfigureAwait(false) throughout and does not post back.
+        /// </remarks>
+        public void Dispose()
+        {
+            Tombstones.DisposeAsync().AsTask().GetAwaiter().GetResult();
+        }
 
         public ValueTask DisposeAsync()
         {

@@ -405,7 +405,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     /// </summary>
     internal sealed class ManagedPubSubNotificationDataSourceProvider :
         IManagedPubSubDataSourceProvider, IManagedPubSubDataSourceLifecycle,
-        IAsyncDisposable
+        IDisposable, IAsyncDisposable
     {
         public ManagedPubSubNotificationDataSourceProvider(
             IManagedPubSubNotificationBuffer notifications,
@@ -463,6 +463,20 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 ManagedPubSubNotification.CreateBarrier(dataSetName, barrier),
                 cancellationToken).ConfigureAwait(false);
             await barrier.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Stop dispatching when the container is disposed synchronously.
+        /// </summary>
+        /// <remarks>
+        /// A service provider refuses to dispose synchronously if anything it
+        /// owns is async-only, so a container-owned singleton has to carry
+        /// both. Blocking is safe here because teardown is
+        /// ConfigureAwait(false) throughout and does not post back.
+        /// </remarks>
+        public void Dispose()
+        {
+            DisposeAsync().AsTask().GetAwaiter().GetResult();
         }
 
         public async ValueTask DisposeAsync()
@@ -1056,7 +1070,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     /// consuming until the native replacement has committed.
     /// </summary>
     internal sealed class ManagedPubSubDataSetSourceRegistry : IDataSetSourceProvider,
-        IAsyncDisposable
+        IDisposable, IAsyncDisposable
     {
         public ManagedPubSubDataSetSourceRegistry(
             IEnumerable<IManagedPubSubDataSourceProvider> providers,
@@ -1128,6 +1142,20 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             }
             return new ManagedPubSubDataSetSourceTransaction(this, current, replacement, created,
                 createdNames);
+        }
+
+        /// <summary>
+        /// Dispose every source when the container is disposed synchronously.
+        /// </summary>
+        /// <remarks>
+        /// A service provider refuses to dispose synchronously if anything it
+        /// owns is async-only, so a container-owned singleton has to carry
+        /// both. Blocking is safe here because source teardown is
+        /// ConfigureAwait(false) throughout and does not post back.
+        /// </remarks>
+        public void Dispose()
+        {
+            DisposeAsync().AsTask().GetAwaiter().GetResult();
         }
 
         public async ValueTask DisposeAsync()

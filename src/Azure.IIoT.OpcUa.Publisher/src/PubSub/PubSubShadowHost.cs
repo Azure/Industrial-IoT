@@ -174,7 +174,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
 
     internal sealed class PubSubShadowHost : IHostedService, IPubSubShadowHost,
         IPubSubKeyFrameControl,
-        IAsyncDisposable
+        IDisposable, IAsyncDisposable
     {
         public PubSubShadowHost(IPubSubIdentityRegistry identityRegistry,
             PubSubConfigurationTranslator translator,
@@ -500,12 +500,42 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             }
         }
 
+        /// <summary>
+        /// Tear the host down when the container is disposed synchronously.
+        /// </summary>
+        /// <remarks>
+        /// A service provider refuses to dispose synchronously if anything it
+        /// owns is async-only, so declaring only <see cref="IAsyncDisposable"/>
+        /// makes every synchronous container teardown throw - which is exactly
+        /// what happened once the host became part of the default composition
+        /// rather than something the preview option added. The sink already
+        /// carries both for the same reason.
+        /// </remarks>
+        public void Dispose()
+        {
+            if (Interlocked.Exchange(ref _disposed, 1) != 0)
+            {
+                return;
+            }
+            //
+            // Blocking here is safe because teardown does not post back to a
+            // captured context: StopAsync and the application's own disposal
+            // are both ConfigureAwait(false) throughout.
+            //
+            DisposeCoreAsync().AsTask().GetAwaiter().GetResult();
+        }
+
         public async ValueTask DisposeAsync()
         {
             if (Interlocked.Exchange(ref _disposed, 1) != 0)
             {
                 return;
             }
+            await DisposeCoreAsync().ConfigureAwait(false);
+        }
+
+        private async ValueTask DisposeCoreAsync()
+        {
             await StopAsync(CancellationToken.None).ConfigureAwait(false);
             await _application.DisposeAsync().ConfigureAwait(false);
             _gate.Dispose();
