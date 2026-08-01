@@ -99,7 +99,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     var direction = (request.Direction ?? BrowseDirection.Forward)
                         .ToStackType();
-                    var browseDescriptions = new BrowseDescriptionCollection
+                    var browseDescriptions = new List<BrowseDescription>
                     {
                         new BrowseDescription
                         {
@@ -163,7 +163,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 var references = new List<NodeReferenceModel>();
 
-                var continuationPoints = new ByteStringCollection { (ByteString)continuationPoint };
+                var continuationPoints = new List<ByteString> { (ByteString)continuationPoint };
                 var response = await context.Session.Services.BrowseNextAsync(
                     request.Header.ToRequestHeader(_timeProvider), request.Abort ?? false,
                     continuationPoints, ct).ConfigureAwait(false);
@@ -223,7 +223,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     rootId = ObjectIds.RootFolder;
                 }
                 var targets = new List<NodePathTargetModel>();
-                var requests = new BrowsePathCollection(request.BrowsePaths.Select(p =>
+                var requests = new List<BrowsePath>(request.BrowsePaths.Select(p =>
                     new BrowsePath
                     {
                         StartingNode = rootId,
@@ -502,7 +502,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     throw new ArgumentException(nameof(request.MethodId));
                 }
-                var browseDescriptions = new BrowseDescriptionCollection
+                var browseDescriptions = new List<BrowseDescription>
                 {
                     new BrowseDescription
                     {
@@ -657,7 +657,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     throw new ArgumentException("Method id missing", nameof(request));
                 }
 
-                var browseDescriptions = new BrowseDescriptionCollection {
+                var browseDescriptions = new List<BrowseDescription> {
                     new BrowseDescription {
                         BrowseDirection = Opc.Ua.BrowseDirection.Forward,
                         IncludeSubtypes = true,
@@ -757,7 +757,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
                 }
 
-                var requests = new CallMethodRequestCollection {
+                var requests = new List<CallMethodRequest> {
                     new CallMethodRequest {
                         ObjectId = objectId,
                         MethodId = methodId,
@@ -836,7 +836,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     throw new ArgumentException("Node id missing", nameof(request));
                 }
 
-                var nodesToRead = new ReadValueIdCollection {
+                var nodesToRead = new List<ReadValueId> {
                     new ReadValueId {
                         NodeId = readNode,
                         AttributeId = Attributes.Value,
@@ -926,7 +926,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var builtinType = await context.Session.LruNodeCache.GetBuiltInTypeAsync(dataTypeId,
                     context.Ct).ConfigureAwait(false);
                 var value = context.Session.Codec.Decode(request.Value, builtinType);
-                var nodesToWrite = new WriteValueCollection{
+                var nodesToWrite = new List<WriteValue>{
                     new WriteValue {
                         NodeId = writeNode,
                         AttributeId = Attributes.Value,
@@ -963,7 +963,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             using var trace = _activitySource.StartActivity("Read");
             return await _client.ExecuteAsync(endpoint, async context =>
             {
-                var requests = new ReadValueIdCollection(request.Attributes
+                var requests = new List<ReadValueId>(request.Attributes
                     .Select(a => new ReadValueId
                     {
                         AttributeId = (uint)a.Attribute,
@@ -1015,7 +1015,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             using var trace = _activitySource.StartActivity("Write");
             return await _client.ExecuteAsync(endpoint, async context =>
             {
-                var requests = new WriteValueCollection(request.Attributes
+                var requests = new List<WriteValue>(request.Attributes
                     .Select(a => new WriteValue
                     {
                         AttributeId = (uint)a.Attribute,
@@ -1280,7 +1280,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     throw new ArgumentException("Bad node id", nameof(request));
                 }
                 var readDetails = decode(request.Details, context.Session);
-                var historytoread = new HistoryReadValueIdCollection
+                var historytoread = new List<HistoryReadValueId>
                 {
                     new HistoryReadValueId
                     {
@@ -1338,7 +1338,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             using var trace = _activitySource.StartActivity("HistoryReadNext");
             return await _client.ExecuteAsync(connectionId, async context =>
             {
-                var historytoread = new HistoryReadValueIdCollection
+                var historytoread = new List<HistoryReadValueId>
                 {
                     new HistoryReadValueId
                     {
@@ -1409,7 +1409,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     throw new ArgumentException("Bad details", nameof(request));
                 }
-                var updates = new ExtensionObjectCollection { details };
+                var updates = new List<ExtensionObject> { details };
                 var response = await context.Session.Services.HistoryUpdateAsync(
                     request.Header.ToRequestHeader(_timeProvider), updates,
                     context.Ct).ConfigureAwait(false);
@@ -1477,7 +1477,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         // Check for children
                         try
                         {
-                            var browseDescriptions = new BrowseDescriptionCollection {
+                            var browseDescriptions = new List<BrowseDescription> {
                                 new BrowseDescription {
                                     BrowseDirection = Opc.Ua.BrowseDirection.Forward,
                                     IncludeSubtypes = true,
@@ -1567,7 +1567,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <returns></returns>
         private async Task AddTargetsToBrowseResultAsync(IOpcUaSession session,
             RequestHeaderModel? header, bool readValues, bool rawMode,
-            List<NodePathTargetModel> result, BrowsePathTargetCollection targets,
+            List<NodePathTargetModel> result, List<BrowsePathTarget> targets,
             string[] path, CancellationToken ct)
         {
             if (targets != null)
@@ -1615,7 +1615,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             bool first, TimeProvider timeProvider, CancellationToken ct)
         {
             // do it the hard way (may take a long time with some servers).
-            var nodesToRead = new HistoryReadValueIdCollection {
+            var nodesToRead = new List<HistoryReadValueId> {
                 new HistoryReadValueId {
                     NodeId = nodeId
                 }
@@ -1792,7 +1792,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
                 }
                 _view ??= _request.View.ToStackModel(context.Session.MessageContext);
-                var browseDescriptions = new BrowseDescriptionCollection
+                var browseDescriptions = new List<BrowseDescription>
                 {
                     new BrowseDescription
                     {
@@ -1850,7 +1850,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 using var trace = _activitySource.StartActivity("BrowseNext");
 
-                var continuationPoints = new ByteStringCollection { (ByteString)continuationPoint };
+                var continuationPoints = new List<ByteString> { (ByteString)continuationPoint };
                 var response = await context.Session.Services.BrowseNextAsync(
                     _request.Header.ToRequestHeader(_timeProvider), false, continuationPoints,
                     _ct).ConfigureAwait(false);

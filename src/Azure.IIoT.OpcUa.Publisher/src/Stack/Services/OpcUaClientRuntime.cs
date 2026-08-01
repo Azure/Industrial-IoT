@@ -913,7 +913,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                         }
                         var response = await session.Services
                             .TranslateBrowsePathsToNodeIdsAsync(new RequestHeader(),
-                                new BrowsePathCollection
+                                new List<BrowsePath>
                                 {
                                     new BrowsePath
                                     {

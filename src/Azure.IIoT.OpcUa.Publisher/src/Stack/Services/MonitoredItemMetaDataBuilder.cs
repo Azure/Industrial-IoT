@@ -146,7 +146,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
                 var clause = filter.SelectClauses[index];
                 var targetNode = await FindNodeWithBrowsePathAsync(session,
-                    new QualifiedNameCollection(clause.BrowsePath.ToArray() ?? []),
+                    new List<QualifiedName>(clause.BrowsePath.ToArray() ?? []),
                     clause.TypeDefinitionId, ct).ConfigureAwait(false);
                 var variable = targetNode as VariableNode ?? new VariableNode
                 {
@@ -256,7 +256,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                                                     StructureType =
                                                         s.StructureType.ToServiceType(),
                                                     Fields = GetFields(
-                                                        new StructureFieldCollection(
+                                                        new List<StructureField>(
                                                             s.Fields.ToArray() ?? []),
                                                         typesToResolve,
                                                         session.MessageContext,
@@ -339,7 +339,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
 
                 static IEnumerable<StructureFieldDescriptionModel> GetFields(
-                    StructureFieldCollection? fields, Queue<NodeId> typesToResolve,
+                    List<StructureField>? fields, Queue<NodeId> typesToResolve,
                     IServiceMessageContext messageContext,
                     NamespaceFormat namespaceFormat)
                 {
@@ -370,7 +370,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         private static async ValueTask<INode?> FindNodeWithBrowsePathAsync(
-            IOpcUaSession session, QualifiedNameCollection browsePath,
+            IOpcUaSession session, List<QualifiedName> browsePath,
             NodeId nodeId, CancellationToken ct)
         {
             INode? found = null;

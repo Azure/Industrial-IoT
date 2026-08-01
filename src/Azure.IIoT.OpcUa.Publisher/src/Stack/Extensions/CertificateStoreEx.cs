@@ -99,7 +99,7 @@ namespace Opc.Ua
         /// <exception cref="ArgumentNullException"><paramref name="certificateIdentifiers"/>
         /// is <c>null</c>.</exception>
         public static void ApplyLocalConfig(
-            this CertificateIdentifierCollection certificateIdentifiers,
+            this List<CertificateIdentifier> certificateIdentifiers,
             CertificateInfo? certificateStore)
         {
             ArgumentNullException.ThrowIfNull(certificateIdentifiers);
@@ -153,7 +153,7 @@ namespace Opc.Ua
         /// <exception cref="ArgumentNullException"><paramref name="certificateIdentifiers"/>
         /// is <c>null</c>.</exception>
         public static ICertificateStore OpenStore(
-            this CertificateIdentifierCollection certificateIdentifiers,
+            this List<CertificateIdentifier> certificateIdentifiers,
             SecurityOptions options, bool noPrivateKey = false)
         {
             ArgumentNullException.ThrowIfNull(certificateIdentifiers);

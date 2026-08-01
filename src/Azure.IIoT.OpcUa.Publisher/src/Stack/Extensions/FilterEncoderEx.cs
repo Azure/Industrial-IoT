@@ -9,7 +9,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     using Azure.IIoT.OpcUa.Encoders;
     using Opc.Ua;
     using Opc.Ua.Extensions;
-    using System;
+    using System;
+    using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
 
@@ -156,7 +157,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             }
             return new ContentFilterElement
             {
-                FilterOperands = new ExtensionObjectCollection(model.FilterOperands == null ?
+                FilterOperands = new List<ExtensionObject>(model.FilterOperands == null ?
                     [] : model.FilterOperands
                         .Select(e => new ExtensionObject(
                             encoder.Decode(e, onlySimpleAttributeOperands)))),
@@ -252,7 +253,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             {
                 TypeDefinitionId = model.NodeId.ToNodeId(encoder.Context),
                 AttributeId = (uint)(model.AttributeId ?? NodeAttribute.Value),
-                BrowsePath = new QualifiedNameCollection(model.BrowsePath == null ?
+                BrowsePath = new List<QualifiedName>(model.BrowsePath == null ?
                     [] :
                     model.BrowsePath.Select(n => n.ToQualifiedName(encoder.Context))),
                 IndexRange = model.IndexRange

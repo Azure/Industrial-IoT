@@ -9,7 +9,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
-    using System;
+    using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -42,7 +43,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             try
             {
                 // Call create method
-                var request = new CallMethodRequestCollection
+                var request = new List<CallMethodRequest>
                 {
                     new CallMethodRequest
                     {
@@ -147,7 +148,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             try
             {
                 // Call create method
-                var request = new CallMethodRequestCollection
+                var request = new List<CallMethodRequest>
                 {
                     new CallMethodRequest
                     {

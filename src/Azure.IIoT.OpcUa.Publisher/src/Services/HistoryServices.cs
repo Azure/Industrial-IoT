@@ -55,7 +55,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     return Task.FromResult(new ExtensionObject(new DeleteEventDetails
                     {
                         NodeId = nodeId,
-                        EventIds = new ByteStringCollection(details.EventIds.Select(e => (ByteString)e))
+                        EventIds = new List<ByteString>(details.EventIds.Select(e => (ByteString)e))
                     }));
                 }, ct);
         }
@@ -238,7 +238,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     EndTime = details.EndTime ?? DateTime.MinValue,
                     StartTime = details.StartTime ?? DateTime.MinValue,
                     AggregateType = aggregateId == null ? null :
-                        new NodeIdCollection(aggregateId.GetValueOrDefault().YieldReturn()),
+                        new List<NodeId>(aggregateId.GetValueOrDefault().YieldReturn()),
                     ProcessingInterval = details.ProcessingInterval == null ? 0 :
                         details.ProcessingInterval.Value.TotalMilliseconds,
                     AggregateConfiguration = details.AggregateConfiguration.ToStackModel()

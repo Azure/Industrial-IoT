@@ -70,7 +70,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var session = CreateSession(out _, out _);
             var expected = new ReadResponse();
             var request = new RequestHeader();
-            var nodes = new ReadValueIdCollection
+            var nodes = new List<ReadValueId>
             {
                 new()
                 {

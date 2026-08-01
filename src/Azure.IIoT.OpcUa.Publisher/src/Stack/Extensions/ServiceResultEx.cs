@@ -8,7 +8,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
     using Azure.IIoT.OpcUa.Core.Exceptions;
     using Opc.Ua;
     using System;
-
+
+    using System.Collections.Generic;
     /// <summary>
     /// Service result model extensions
     /// </summary>
@@ -88,7 +89,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="stringTable"></param>
         /// <returns></returns>
         public static ServiceResultModel CreateResultModel(this StatusCode statusCode,
-            DiagnosticInfo? diagnostics = null, StringCollection? stringTable = null)
+            DiagnosticInfo? diagnostics = null, List<string>? stringTable = null)
         {
             // The reference server in OPC Foundation 1.5.378.x no longer
             // populates LocalizedText / Locale entries in the per-operation
@@ -132,7 +133,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <param name="index"></param>
         /// <returns></returns>
         private static string? GetStringFromTable(
-            this StringCollection stringTable, int? index)
+            this List<string> stringTable, int? index)
         {
             if (index == null || stringTable == null ||
                 index.Value >= stringTable.Count ||

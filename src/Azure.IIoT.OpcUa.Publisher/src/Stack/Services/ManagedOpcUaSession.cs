@@ -426,7 +426,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public ValueTask<AddNodesResponse> AddNodesAsync(RequestHeader requestHeader,
-            AddNodesItemCollection nodesToAdd, CancellationToken ct)
+            List<AddNodesItem> nodesToAdd, CancellationToken ct)
         {
             return _connection.Session.AddNodesAsync(requestHeader,
                 new ArrayOf<AddNodesItem>(nodesToAdd.ToArray()), ct);
@@ -434,7 +434,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public ValueTask<AddReferencesResponse> AddReferencesAsync(RequestHeader requestHeader,
-            AddReferencesItemCollection referencesToAdd, CancellationToken ct)
+            List<AddReferencesItem> referencesToAdd, CancellationToken ct)
         {
             return _connection.Session.AddReferencesAsync(requestHeader,
                 new ArrayOf<AddReferencesItem>(referencesToAdd.ToArray()), ct);
@@ -443,7 +443,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public ValueTask<BrowseResponse> BrowseAsync(RequestHeader requestHeader,
             ViewDescription? view, uint requestedMaxReferencesPerNode,
-            BrowseDescriptionCollection nodesToBrowse, CancellationToken ct)
+            List<BrowseDescription> nodesToBrowse, CancellationToken ct)
         {
             return _connection.Session.BrowseAsync(requestHeader, view,
                 requestedMaxReferencesPerNode,
@@ -452,7 +452,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public ValueTask<BrowseNextResponse> BrowseNextAsync(RequestHeader requestHeader,
-            bool releaseContinuationPoints, ByteStringCollection continuationPoints,
+            bool releaseContinuationPoints, List<ByteString> continuationPoints,
             CancellationToken ct)
         {
             return _connection.Session.BrowseNextAsync(requestHeader,
@@ -462,7 +462,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public ValueTask<CallResponse> CallAsync(RequestHeader requestHeader,
-            CallMethodRequestCollection methodsToCall, CancellationToken ct)
+            List<CallMethodRequest> methodsToCall, CancellationToken ct)
         {
             return _connection.Session.CallAsync(requestHeader,
                 new ArrayOf<CallMethodRequest>(methodsToCall.ToArray()), ct);
@@ -470,7 +470,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public ValueTask<DeleteNodesResponse> DeleteNodesAsync(RequestHeader requestHeader,
-            DeleteNodesItemCollection nodesToDelete, CancellationToken ct)
+            List<DeleteNodesItem> nodesToDelete, CancellationToken ct)
         {
             return _connection.Session.DeleteNodesAsync(requestHeader,
                 new ArrayOf<DeleteNodesItem>(nodesToDelete.ToArray()), ct);
@@ -478,7 +478,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public ValueTask<DeleteReferencesResponse> DeleteReferencesAsync(RequestHeader requestHeader,
-            DeleteReferencesItemCollection referencesToDelete, CancellationToken ct)
+            List<DeleteReferencesItem> referencesToDelete, CancellationToken ct)
         {
             return _connection.Session.DeleteReferencesAsync(requestHeader,
                 new ArrayOf<DeleteReferencesItem>(referencesToDelete.ToArray()), ct);
@@ -487,7 +487,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public ValueTask<HistoryReadResponse> HistoryReadAsync(RequestHeader requestHeader,
             ExtensionObject? historyReadDetails, Opc.Ua.TimestampsToReturn timestampsToReturn,
-            bool releaseContinuationPoints, HistoryReadValueIdCollection nodesToRead,
+            bool releaseContinuationPoints, List<HistoryReadValueId> nodesToRead,
             CancellationToken ct)
         {
             return _connection.Session.HistoryReadAsync(requestHeader,
@@ -498,7 +498,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public ValueTask<HistoryUpdateResponse> HistoryUpdateAsync(RequestHeader requestHeader,
-            ExtensionObjectCollection historyUpdateDetails, CancellationToken ct)
+            List<ExtensionObject> historyUpdateDetails, CancellationToken ct)
         {
             return _connection.Session.HistoryUpdateAsync(requestHeader,
                 new ArrayOf<ExtensionObject>(historyUpdateDetails.ToArray()), ct);
@@ -506,7 +506,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public ValueTask<QueryFirstResponse> QueryFirstAsync(RequestHeader requestHeader,
-            ViewDescription view, NodeTypeDescriptionCollection nodeTypes, ContentFilter filter,
+            ViewDescription view, List<NodeTypeDescription> nodeTypes, ContentFilter filter,
             uint maxDataSetsToReturn, uint maxReferencesToReturn, CancellationToken ct)
         {
             return _connection.Session.QueryFirstAsync(requestHeader, view,
@@ -524,7 +524,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public ValueTask<ReadResponse> ReadAsync(RequestHeader requestHeader, double maxAge,
-            Opc.Ua.TimestampsToReturn timestampsToReturn, ReadValueIdCollection nodesToRead,
+            Opc.Ua.TimestampsToReturn timestampsToReturn, List<ReadValueId> nodesToRead,
             CancellationToken ct)
         {
             return _connection.Session.ReadAsync(requestHeader, maxAge,
@@ -534,7 +534,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public ValueTask<RegisterNodesResponse> RegisterNodesAsync(RequestHeader requestHeader,
-            NodeIdCollection nodesToRegister, CancellationToken ct)
+            List<NodeId> nodesToRegister, CancellationToken ct)
         {
             return _connection.Session.RegisterNodesAsync(requestHeader,
                 new ArrayOf<NodeId>(nodesToRegister.ToArray()), ct);
@@ -542,7 +542,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public ValueTask<UnregisterNodesResponse> UnregisterNodesAsync(RequestHeader requestHeader,
-            NodeIdCollection nodesToUnregister, CancellationToken ct)
+            List<NodeId> nodesToUnregister, CancellationToken ct)
         {
             return _connection.Session.UnregisterNodesAsync(requestHeader,
                 new ArrayOf<NodeId>(nodesToUnregister.ToArray()), ct);
@@ -551,7 +551,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <inheritdoc/>
         public ValueTask<TranslateBrowsePathsToNodeIdsResponse>
             TranslateBrowsePathsToNodeIdsAsync(RequestHeader requestHeader,
-                BrowsePathCollection browsePaths, CancellationToken ct)
+                List<BrowsePath> browsePaths, CancellationToken ct)
         {
             return _connection.Session.TranslateBrowsePathsToNodeIdsAsync(
                 requestHeader, new ArrayOf<BrowsePath>(browsePaths.ToArray()), ct);
@@ -559,7 +559,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         /// <inheritdoc/>
         public ValueTask<WriteResponse> WriteAsync(RequestHeader requestHeader,
-            WriteValueCollection nodesToWrite, CancellationToken ct)
+            List<WriteValue> nodesToWrite, CancellationToken ct)
         {
             return _connection.Session.WriteAsync(requestHeader,
                 new ArrayOf<WriteValue>(nodesToWrite.ToArray()), ct);
@@ -848,7 +848,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             var maxNodesPerRead = Math.Max(1, (int)stackLimits.MaxNodesPerRead);
             foreach (var batch in nodeIds.Batch(maxNodesPerRead))
             {
-                var requests = new ReadValueIdCollection(batch.Select(nodeId => new ReadValueId
+                var requests = new List<ReadValueId>(batch.Select(nodeId => new ReadValueId
                 {
                     NodeId = new NodeId(nodeId),
                     AttributeId = Attributes.Value

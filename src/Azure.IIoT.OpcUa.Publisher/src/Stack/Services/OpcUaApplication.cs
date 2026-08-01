@@ -844,7 +844,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             }
             var storeType = securityOptions.ApplicationCertificates?.StoreType;
             var storePath = securityOptions.ApplicationCertificates?.StorePath;
-            var applicationCerts = new CertificateIdentifierCollection
+            var applicationCerts = new List<CertificateIdentifier>
             {
                 new CertificateIdentifier
                 {

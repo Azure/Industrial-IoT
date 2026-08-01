@@ -230,7 +230,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                             node.Id, node.BrowsePath, nameof(node.BrowsePath), TimeProvider,
                             context.Ct).ConfigureAwait(false);
 
-                        var readValueIds = new ReadValueIdCollection
+                        var readValueIds = new List<ReadValueId>
                         {
                             new ReadValueId
                             {
@@ -945,7 +945,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     if (browseDescriptions.Length != 0)
                     {
                         await foreach (var result in context.Session.BrowseAsync(requestHeader, null,
-                            new BrowseDescriptionCollection(browseDescriptions), context.Ct).ConfigureAwait(false))
+                            new List<BrowseDescription>(browseDescriptions), context.Ct).ConfigureAwait(false))
                         {
                             if (result.ErrorInfo != null)
                             {
@@ -986,7 +986,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         if (readValueIds.Length != 0)
                         {
                             var response = await context.Session.Services.ReadAsync(requestHeader, 0,
-                                Opc.Ua.TimestampsToReturn.Neither, new ReadValueIdCollection(readValueIds),
+                                Opc.Ua.TimestampsToReturn.Neither, new List<ReadValueId>(readValueIds),
                                 context.Ct).ConfigureAwait(false);
                             var readResults = response.Validate(response.Results, s => s.StatusCode,
                                 response.DiagnosticInfos, readValueIds);

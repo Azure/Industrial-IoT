@@ -239,7 +239,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 CreateDiscoveryUri(discoveryUrl.ToString(), 4840)
             };
             var queue = new Queue<Tuple<Uri, List<string>>>();
-            var localeIds = locales != null ? new StringCollection(locales) : null;
+            var localeIds = locales != null ? new List<string>(locales) : null;
             queue.Enqueue(Tuple.Create(discoveryUrl, new List<string>()));
             ct.ThrowIfCancellationRequested();
             while (queue.Count > 0)
@@ -415,7 +415,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="result"></param>
         /// <param name="findServersOnNetwork"></param>
         /// <param name="ct"></param>
-        private async Task DiscoverAsync(Uri discoveryUrl, StringCollection? localeIds,
+        private async Task DiscoverAsync(Uri discoveryUrl, List<string>? localeIds,
             IEnumerable<string> caps, int timeout, HashSet<string> visitedUris,
             Queue<Tuple<Uri, List<string>>> queue, HashSet<DiscoveredEndpointModel> result,
             bool findServersOnNetwork, CancellationToken ct)

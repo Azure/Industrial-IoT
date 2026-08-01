@@ -57,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
                         DiscovererId = discovererId,
                         Id = string.Empty,
                         SecurityLevel = result.Description.SecurityLevel,
-                        AuthenticationMethods = new Opc.Ua.UserTokenPolicyCollection(
+                        AuthenticationMethods = new List<Opc.Ua.UserTokenPolicy>(
                             result.Description.UserIdentityTokens.ToArray() ?? [])
                             .ToServiceModel(),
                         EndpointUrl = result.Description.EndpointUrl, // Reported

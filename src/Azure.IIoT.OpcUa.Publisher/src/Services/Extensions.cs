@@ -76,7 +76,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             {
                 rootId = ObjectIds.RootFolder;
             }
-            var browsepaths = new BrowsePathCollection
+            var browsepaths = new List<BrowsePath>
             {
                 new BrowsePath
                 {

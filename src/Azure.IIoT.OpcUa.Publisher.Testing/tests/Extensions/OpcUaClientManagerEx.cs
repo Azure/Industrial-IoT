@@ -12,6 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     using System.Threading;
     using System.Threading.Tasks;
 
+    using System.Collections.Generic;
     /// <summary>
     /// Session provider extensions
     /// </summary>
@@ -31,7 +32,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         {
             return client.ExecuteAsync(connection, async context =>
             {
-                var nodesToRead = new ReadValueIdCollection
+                var nodesToRead = new List<ReadValueId>
                 {
                     new ReadValueId
                     {

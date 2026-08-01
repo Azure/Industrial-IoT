@@ -102,7 +102,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     /// <param name="ct"></param>
     /// <returns></returns>
     private static async ValueTask<INode?> FindNodeWithBrowsePathAsync(IOpcUaSession session,
-        QualifiedNameCollection browsePath, NodeId nodeId, CancellationToken ct)
+        List<QualifiedName> browsePath, NodeId nodeId, CancellationToken ct)
     {
         INode? found = null;
         foreach (var browseName in browsePath)

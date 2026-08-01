@@ -226,13 +226,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                     bool repeatBrowse;
                     var allBrowseResults = new List<(NodeId, RelativePath, BrowseResult)>();
-                    var unprocessedOperations = new BrowseDescriptionCollection();
+                    var unprocessedOperations = new List<BrowseDescription>();
                     BrowseResult[] browseResultCollection = [];
                     do
                     {
                         var browseCollection = maxNodesPerBrowse == 0
                             ? browseDescriptionCollection
-                            : new BrowseDescriptionCollection(
+                            : new List<BrowseDescription>(
                                 browseDescriptionCollection.Take((int)maxNodesPerBrowse));
                         repeatBrowse = false;
                         try
@@ -285,7 +285,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                     // Browse next
                     var (nodeIds, continuationPoints) = PrepareBrowseNext(
-                        new NodeIdCollection(browseDescriptionCollection
+                        new List<NodeId>(browseDescriptionCollection
                             .Take(browseResultCollection.Length).Select(r => r.NodeId)),
                         browseResultCollection);
                     while (continuationPoints.Count != 0)
@@ -310,15 +310,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                     else
                     {
-                        browseDescriptionCollection = new BrowseDescriptionCollection(
+                        browseDescriptionCollection = new List<BrowseDescription>(
                             browseDescriptionCollection.Skip(browseResultCollection.Length));
                     }
 
-                    static (NodeIdCollection, ByteStringCollection) PrepareBrowseNext(
-                        NodeIdCollection browseSourceCollection, IReadOnlyList<BrowseResult> results)
+                    static (List<NodeId>, List<ByteString>) PrepareBrowseNext(
+                        List<NodeId> browseSourceCollection, IReadOnlyList<BrowseResult> results)
                     {
-                        var continuationPoints = new ByteStringCollection();
-                        var nodeIdCollection = new NodeIdCollection();
+                        var continuationPoints = new List<ByteString>();
+                        var nodeIdCollection = new List<NodeId>();
                         for (var i = 0; i < results.Count; i++)
                         {
                             var browseResult = results[i];
@@ -400,10 +400,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 _knownNodes = foundNodes;
             }
 
-            static BrowseDescriptionCollection CreateBrowseDescriptionCollection(
+            static List<BrowseDescription> CreateBrowseDescriptionCollection(
                 IEnumerable<(NodeId NodeId, RelativePath Position)> items)
             {
-                return new BrowseDescriptionCollection(items.Select(
+                return new List<BrowseDescription>(items.Select(
                     item => new BrowseDescription
                     {
                         Handle = item.Position,

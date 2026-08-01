@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -10,7 +10,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
     using Opc.Ua.Extensions;
-    using System;
+    using System;
+    using System.Collections.Generic;
     using System.Buffers;
     using System.Diagnostics;
     using System.Linq;
@@ -150,7 +151,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             try
             {
                 // Call open method
-                var request = new CallMethodRequestCollection
+                var request = new List<CallMethodRequest>
                 {
                     new CallMethodRequest
                     {
@@ -201,7 +202,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             try
             {
                 // Call write method
-                var request = new CallMethodRequestCollection
+                var request = new List<CallMethodRequest>
                 {
                     new CallMethodRequest
                     {
@@ -242,7 +243,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             try
             {
                 // Call read method
-                var request = new CallMethodRequestCollection
+                var request = new List<CallMethodRequest>
                 {
                     new CallMethodRequest
                     {
@@ -298,7 +299,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             // Call close method
             try
             {
-                var request = new CallMethodRequestCollection
+                var request = new List<CallMethodRequest>
                 {
                     new CallMethodRequest
                     {

@@ -175,7 +175,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
             {
                 TypeDefinitionId = model.TypeDefinitionId.ToNodeId(context),
                 AttributeId = (uint)(model.AttributeId ?? NodeAttribute.Value),
-                BrowsePath = new QualifiedNameCollection(model.BrowsePath == null ?
+                BrowsePath = new List<QualifiedName>(model.BrowsePath == null ?
                     [] :
                     model.BrowsePath.Select(n => n.ToQualifiedName(context))),
                 IndexRange = model.IndexRange
@@ -215,7 +215,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
         /// <param name="policies"></param>
         /// <returns></returns>
         public static IReadOnlyList<AuthenticationMethodModel> ToServiceModel(
-            this UserTokenPolicyCollection policies)
+            this List<UserTokenPolicy> policies)
         {
             if (policies == null || policies.Count == 0)
             {

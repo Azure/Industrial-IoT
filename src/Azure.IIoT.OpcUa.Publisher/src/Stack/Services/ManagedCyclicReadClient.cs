@@ -96,7 +96,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             for (var offset = 0; offset < nodesToRead.Count; offset += maxNodesPerRead)
             {
                 var count = Math.Min(maxNodesPerRead, nodesToRead.Count - offset);
-                var batch = new ReadValueIdCollection();
+                var batch = new List<ReadValueId>();
                 for (var index = 0; index < count; index++)
                 {
                     batch.Add(nodesToRead[offset + index]);
@@ -190,7 +190,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     offset += maxNodesPerRegister)
                 {
                     var count = Math.Min(maxNodesPerRegister, missing.Length - offset);
-                    var batch = new NodeIdCollection();
+                    var batch = new List<NodeId>();
                     for (var index = 0; index < count; index++)
                     {
                         batch.Add(missing[offset + index]);

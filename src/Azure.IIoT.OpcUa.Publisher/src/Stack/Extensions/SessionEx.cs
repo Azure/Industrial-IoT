@@ -58,7 +58,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             this IOpcUaSession session, RequestHeader header, IEnumerable<NodeId> nodeIds,
             uint attributeId, CancellationToken ct = default)
         {
-            var itemsToRead = new ReadValueIdCollection(nodeIds.Select(nodeId => new ReadValueId
+            var itemsToRead = new List<ReadValueId>(nodeIds.Select(nodeId => new ReadValueId
             {
                 NodeId = nodeId,
                 AttributeId = attributeId
@@ -101,7 +101,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             Dictionary<NodeId, Dictionary<uint, DataValue>> results,
             CancellationToken ct = default)
         {
-            var itemsToRead = new ReadValueIdCollection(nodeIds
+            var itemsToRead = new List<ReadValueId>(nodeIds
                 .SelectMany(nodeId => attributeIds
                     .Select(attributeId =>
                         new ReadValueId
@@ -143,7 +143,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             this IOpcUaSession session, RequestHeader header,
             NodeId nodeId, CancellationToken ct = default)
         {
-            var itemsToRead = new ReadValueIdCollection {
+            var itemsToRead = new List<ReadValueId> {
                 new ReadValueId {
                     NodeId = nodeId,
                     AttributeId = Attributes.Value
@@ -218,7 +218,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             foreach (var batch in searchContext.Keys.Batch(limits.GetMaxNodesPerRead()))
             {
                 var response = await session.Services.ReadAsync(requestHeader,
-                    0, Opc.Ua.TimestampsToReturn.Neither, new ReadValueIdCollection(
+                    0, Opc.Ua.TimestampsToReturn.Neither, new List<ReadValueId>(
                         batch.Select(b => new ReadValueId
                         {
                             NodeId = b.NodeId,
@@ -253,7 +253,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             while (searchContext.Count != 0)
             {
                 await foreach (var result in session.BrowseAsync(requestHeader, null,
-                    new BrowseDescriptionCollection(searchContext.Keys), ct).ConfigureAwait(false))
+                    new List<BrowseDescription>(searchContext.Keys), ct).ConfigureAwait(false))
                 {
                     if (result.Description == null)
                     {
@@ -375,7 +375,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             if (nodeClass == null || nodeClass.Value == Opc.Ua.NodeClass.Unspecified)
             {
                 // First read node class
-                var nodeClassRead = new ReadValueIdCollection {
+                var nodeClassRead = new List<ReadValueId> {
                     new ReadValueId {
                         NodeId = nodeId,
                         AttributeId = Attributes.NodeClass
@@ -396,7 +396,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             }
             var attributes = TypeMaps.Attributes.Value.Identifiers
                 .Where(a => !skipValueRead || a != Attributes.Value);
-            var readValueCollection = new ReadValueIdCollection(attributes
+            var readValueCollection = new List<ReadValueId>(attributes
                 .Select(a => new ReadValueId
                 {
                     NodeId = nodeId,
@@ -465,7 +465,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             {
                 // translate browse paths.
                 var response = await session.Services.TranslateBrowsePathsToNodeIdsAsync(
-                    requestHeader, new BrowsePathCollection(batch), ct).ConfigureAwait(false);
+                    requestHeader, new List<BrowsePath>(batch), ct).ConfigureAwait(false);
                 var results = response.Validate(response.Results, s => s.StatusCode,
                     response.DiagnosticInfos, batch);
                 if (results.ErrorInfo != null)
@@ -547,7 +547,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                 {
                     // Browse folders with objects and variables in it
                     await foreach (var (description, references, errorInfo) in session.BrowseAsync(
-                        requestHeader, null, new BrowseDescriptionCollection(batch),
+                        requestHeader, null, new List<BrowseDescription>(batch),
                         ct).ConfigureAwait(false))
                     {
                         var obj = (BaseObjectState?)description?.Handle;
@@ -604,7 +604,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                     // read the values.
                     var readResponse = await session.Services.ReadAsync(
                         requestHeader, 0, Opc.Ua.TimestampsToReturn.Neither,
-                        new ReadValueIdCollection(batch), ct).ConfigureAwait(false);
+                        new List<ReadValueId>(batch), ct).ConfigureAwait(false);
                     var readResults = readResponse.Validate(readResponse.Results,
                         s => s.StatusCode, readResponse.DiagnosticInfos,
                         batch);
@@ -640,7 +640,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             CancellationToken ct = default)
         {
             // find all of the children of the field.
-            var nodeToBrowse = new BrowseDescriptionCollection {
+            var nodeToBrowse = new List<BrowseDescription> {
                 new BrowseDescription {
                     NodeId = typeId,
                     BrowseDirection = Opc.Ua.BrowseDirection.Inverse,
@@ -696,7 +696,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             CancellationToken ct = default)
         {
             // find the children of the type.
-            var nodeToBrowse = new BrowseDescriptionCollection
+            var nodeToBrowse = new List<BrowseDescription>
             {
                 new BrowseDescription
                 {
@@ -958,7 +958,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             {
                 return null;
             }
-            var browseDescriptions = new BrowseDescriptionCollection(nodeIds.Select(nodeId =>
+            var browseDescriptions = new List<BrowseDescription>(nodeIds.Select(nodeId =>
                 new BrowseDescription
                 {
                     BrowseDirection = Opc.Ua.BrowseDirection.Both,
@@ -1260,7 +1260,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
             CancellationToken ct = default)
         {
             // construct browse request.
-            var nodesToBrowse = new BrowseDescriptionCollection(nodeIds
+            var nodesToBrowse = new List<BrowseDescription>(nodeIds
                 .Select(nodeId => new BrowseDescription
                 {
                     NodeId = nodeId,
@@ -1276,7 +1276,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                         (uint)BrowseResultMask.TypeDefinition
                 }));
 
-            var continuationPoints = new ByteStringCollection();
+            var continuationPoints = new List<ByteString>();
             try
             {
                 var response = await session.Services.BrowseAsync(requestHeader, null,
@@ -1384,7 +1384,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <param name="References"></param>
         /// <param name="ErrorInfo"></param>
         internal record struct BrowseResult(BrowseDescription? Description,
-            ReferenceDescriptionCollection? References, ServiceResultModel? ErrorInfo);
+            List<ReferenceDescription>? References, ServiceResultModel? ErrorInfo);
 
         /// <summary>
         /// Enumerates browse results inline
@@ -1397,14 +1397,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
         /// <returns></returns>
         internal static async IAsyncEnumerable<BrowseResult> BrowseAsync(
             this IOpcUaSession session, RequestHeader requestHeader,
-            ViewDescription? view, BrowseDescriptionCollection nodesToBrowse,
+            ViewDescription? view, List<BrowseDescription> nodesToBrowse,
             [EnumeratorCancellation] CancellationToken ct = default)
         {
             var limits = await session.GetOperationLimitsAsync(ct).ConfigureAwait(false);
             var maxContinuationPoints = limits.GetMaxBrowseContinuationPoints();
             foreach (var nodesToBrowseBatch in nodesToBrowse.Batch(limits.GetMaxNodesPerBrowse()))
             {
-                var browseDescriptions = new BrowseDescriptionCollection(nodesToBrowseBatch);
+                var browseDescriptions = new List<BrowseDescription>(nodesToBrowseBatch);
                 var firstResponse = await session.Services.BrowseAsync(requestHeader, view,
                     0, browseDescriptions, ct).ConfigureAwait(false);
                 var firstResults = firstResponse.Validate(firstResponse.Results,
@@ -1433,7 +1433,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                         }
 
                         var nextResponse = await session.Services.BrowseNextAsync(requestHeader,
-                            false, new ByteStringCollection(next.Select(r => r.ContinuationPoint)),
+                            false, new List<ByteString>(next.Select(r => r.ContinuationPoint)),
                             ct).ConfigureAwait(false);
                         var nextResults = nextResponse.Validate(nextResponse.Results,
                             s => s.StatusCode, nextResponse.DiagnosticInfos, next);
@@ -1463,7 +1463,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Extensions
                         .Batch(maxContinuationPoints))
                     {
                         await session.Services.BrowseNextAsync(requestHeader,
-                            true, new ByteStringCollection(batch), ct).ConfigureAwait(false);
+                            true, new List<ByteString>(batch), ct).ConfigureAwait(false);
                     }
                 }
             }

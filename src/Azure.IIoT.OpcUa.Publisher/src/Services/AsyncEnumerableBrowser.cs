@@ -151,7 +151,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 return HandleCompletion(context);
             }
 
-            var browseDescriptions = new BrowseDescriptionCollection
+            var browseDescriptions = new List<BrowseDescription>
             {
                 new BrowseDescription
                 {
@@ -176,7 +176,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 return HandleError(context, results.ErrorInfo);
             }
             var refs = MatchReferences(frame, context,
-                new ReferenceDescriptionCollection(results[0].Result.References.ToArray() ?? []),
+                new List<ReferenceDescription>(results[0].Result.References.ToArray() ?? []),
                 results[0].ErrorInfo);
             var continuation = results[0].Result.ContinuationPoint.ToArray();
             if (continuation.Length > 0)
@@ -202,7 +202,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         {
             using var trace = _activitySource.StartActivity("BrowseNext");
 
-            var continuationPoints = new ByteStringCollection { (ByteString)continuationPoint };
+            var continuationPoints = new List<ByteString> { (ByteString)continuationPoint };
             var response = await context.Session.Services.BrowseNextAsync(
                 Header.ToRequestHeader(TimeProvider), false, continuationPoints,
                 context.Ct).ConfigureAwait(false);
@@ -215,7 +215,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             }
 
             var refs = MatchReferences(frame, context,
-                new ReferenceDescriptionCollection(results[0].Result.References.ToArray() ?? []),
+                new List<ReferenceDescription>(results[0].Result.References.ToArray() ?? []),
                 results[0].ErrorInfo);
 
             var continuation = results[0].Result.ContinuationPoint.ToArray();
@@ -239,7 +239,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
         /// <param name="errorInfo"></param>
         /// <returns></returns>
         private IEnumerable<T> MatchReferences(BrowseFrame frame, ServiceCallContext context,
-            ReferenceDescriptionCollection refs, ServiceResultModel? errorInfo)
+            List<ReferenceDescription> refs, ServiceResultModel? errorInfo)
         {
             if (errorInfo != null)
             {

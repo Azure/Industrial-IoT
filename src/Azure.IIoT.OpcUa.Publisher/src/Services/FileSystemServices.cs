@@ -187,7 +187,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 {
                     return new ServiceResponse<FileSystemObjectModel> { ErrorInfo = argInfo };
                 }
-                var requests = new CallMethodRequestCollection
+                var requests = new List<CallMethodRequest>
                 {
                     new CallMethodRequest
                     {
@@ -242,7 +242,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     return new ServiceResponse<FileSystemObjectModel> { ErrorInfo = argInfo };
                 }
 
-                var requests = new CallMethodRequestCollection
+                var requests = new List<CallMethodRequest>
                 {
                     new CallMethodRequest
                     {
@@ -381,7 +381,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         };
                     }
                 }
-                var requests = new CallMethodRequestCollection
+                var requests = new List<CallMethodRequest>
                 {
                     new CallMethodRequest
                     {
