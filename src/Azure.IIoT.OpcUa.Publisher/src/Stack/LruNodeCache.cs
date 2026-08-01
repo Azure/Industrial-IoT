@@ -3,11 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-// TODO(Phase 4b): Compatibility surface bridging the removed published
-// Opc.Ua.Client.ILruNodeCache / LruNodeCache onto the UA-.NETStandard 2.0
-// INodeCache / NodeCache. Once the Publisher stack layer is migrated to the
-// classic-or-managed session model in Phase 4b, the call sites should consume
-// the 2.0 INodeCache directly and this shim can be deleted.
+// This is not a compatibility shim any more, despite its shape. It is where
+// the Publisher's node-lookup policy lives: GetNodeAsync returns null for a
+// node the server does not have, rather than throwing, and a dozen call sites
+// in the metadata and event-filter builders are written against that. Removing
+// it would push a try/catch into every one of them - more code, not less - so
+// it stays until those call sites can be made to want the 2.0 behaviour.
+//
+// The one thing that should still go is IsTypeOf, which blocks on an async
+// call because AsyncEnumerableBrowser's callers are synchronous.
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack
 {
@@ -19,9 +23,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Backwards compatible node cache surface used by the Publisher stack
-    /// layer. Re-exposes the old published <c>ILruNodeCache</c> members on top
-    /// of the UA-.NETStandard 2.0 <see cref="INodeCache"/>.
+    /// Node cache surface used by the Publisher stack layer, wrapping the
+    /// <see cref="INodeCache"/> so that a node the server does not have reads
+    /// back as null instead of raising.
     /// </summary>
     public interface ILruNodeCache
     {

@@ -16,6 +16,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
     using Nito.AsyncEx;
     using Opc.Ua;
     using Opc.Ua.Client;
+    using Opc.Ua.Security.Certificates;
     using OpcUaClientOptions = Azure.IIoT.OpcUa.Publisher.Stack.OpcUaClientOptions;
     using System;
     using System.Collections.Concurrent;
@@ -86,7 +87,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             _reverseConnectManager = new ReverseConnectManager(messageContextTelemetry);
             _reverseConnectStartException = new Lazy<Exception?>(
                 StartReverseConnectManager, isThreadSafe: true);
-            _configuration.Validate += OnValidate;
+            _configuration.AcceptError = OnAcceptError;
             InitializeMetrics();
         }
 
@@ -251,7 +252,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 {
                     await Retry.Do(_logger, ct, () => DiscoverAsync(discoveryUrl,
                             localeIds, nextServer.Item2, 20000, visitedUris,
-                            queue, results, findServersOnNetwork),
+                            queue, results, findServersOnNetwork, ct),
                         _ => !ct.IsCancellationRequested, Retry.NoBackoff,
                         kMaxDiscoveryAttempts - 1).ConfigureAwait(false);
                 }
@@ -282,7 +283,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             using var client = DiscoveryClient.Create(discoveryUrl, endpointConfiguration);
             // Get endpoint descriptions from endpoint url
             var endpoints = await client.GetEndpointsAsync(new RequestHeader(),
-                client.Endpoint.EndpointUrl, null, null).ConfigureAwait(false);
+                client.Endpoint.EndpointUrl, default, default, ct).ConfigureAwait(false);
 
             // Match to provided endpoint info
             var ep = endpoints.Endpoints.ToArray()?.FirstOrDefault(e => e.IsSameAs(endpoint));
@@ -368,7 +369,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 _reverseConnectManager.Dispose();
 
-                _configuration.Validate -= OnValidate;
+                _configuration.AcceptError = null;
             }
         }
 
@@ -413,10 +414,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <param name="queue"></param>
         /// <param name="result"></param>
         /// <param name="findServersOnNetwork"></param>
+        /// <param name="ct"></param>
         private async Task DiscoverAsync(Uri discoveryUrl, StringCollection? localeIds,
             IEnumerable<string> caps, int timeout, HashSet<string> visitedUris,
             Queue<Tuple<Uri, List<string>>> queue, HashSet<DiscoveredEndpointModel> result,
-            bool findServersOnNetwork)
+            bool findServersOnNetwork, CancellationToken ct)
         {
             var endpointConfiguration = EndpointConfiguration.Create(_configuration.Value);
             endpointConfiguration.OperationTimeout = timeout;
@@ -425,7 +427,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // Get endpoints from current discovery server
             //
             var endpoints = await client.GetEndpointsAsync(new RequestHeader(),
-                client.Endpoint.EndpointUrl, localeIds, null).ConfigureAwait(false);
+                client.Endpoint.EndpointUrl, localeIds, default, ct).ConfigureAwait(false);
             if (endpoints.Endpoints.Count == 0)
             {
                 _logger.NoEndpoints(discoveryUrl);
@@ -459,7 +461,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             try
             {
                 var response = await client.FindServersOnNetworkAsync(new RequestHeader(),
-                    0, 1000, []).ConfigureAwait(false);
+                    0, 1000, [], ct).ConfigureAwait(false);
                 foreach (var server in response?.Servers ?? [])
                 {
                     var url = CreateDiscoveryUri(server.DiscoveryUrl, discoveryUrl.Port);
@@ -482,7 +484,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             // into the discovery queue
             //
             var found = await client.FindServersAsync(new RequestHeader(),
-                client.Endpoint.EndpointUrl, localeIds, null).ConfigureAwait(false);
+                client.Endpoint.EndpointUrl, localeIds, default, ct).ConfigureAwait(false);
             if (found?.Servers != null)
             {
                 foreach (var server in (found.Servers.ToArray() ?? [])
@@ -546,39 +548,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
-        /// Load kv configuration
+        /// Decide whether to accept a peer certificate the stack could not
+        /// validate.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        /// <returns></returns>
-        private void OnValidate(object? sender, CertificateValidationEventArgs e)
+        /// <param name="certificate"></param>
+        /// <param name="error"></param>
+        private bool OnAcceptError(Certificate certificate, ServiceResult error)
         {
-            if (e.Accept || e.AcceptAll)
-            {
-                return;
-            }
-            if (e.Error.StatusCode == StatusCodes.BadCertificateUntrusted)
+            if (error.StatusCode == StatusCodes.BadCertificateUntrusted)
             {
                 if (_configuration.Value.SecurityConfiguration.AutoAcceptUntrustedCertificates)
                 {
-                    _logger.AcceptingUntrustedCert(e.Certificate.Thumbprint, e.Certificate.Subject);
-                    e.AcceptAll = true;
-                    e.Accept = true;
+                    _logger.AcceptingUntrustedCert(certificate.Thumbprint, certificate.Subject);
+                    return true;
                 }
 
                 // Validate thumbprint
-                else if (e.Certificate.RawData != null &&
-                    !string.IsNullOrWhiteSpace(e.Certificate.Thumbprint) &&
+                if (certificate.RawData != null &&
+                    !string.IsNullOrWhiteSpace(certificate.Thumbprint) &&
                     _clients.Keys.Any(id => id?.Connection?.Endpoint?.Certificate != null &&
-                    e.Certificate.Thumbprint == id.Connection.Endpoint.Certificate))
+                    certificate.Thumbprint == id.Connection.Endpoint.Certificate))
                 {
-                    e.Accept = true;
-
-                    _logger.AcceptingUntrustedCertByThumbprint(e.Certificate.Thumbprint, e.Certificate.Subject);
+                    _logger.AcceptingUntrustedCertByThumbprint(certificate.Thumbprint, certificate.Subject);
 
                     // add the certificate to trusted store
                     _configuration.Value.SecurityConfiguration
-                        .AddTrustedPeer(e.Certificate.RawData);
+                        .AddTrustedPeer(certificate.RawData);
                     try
                     {
                         var store = _configuration.Value.
@@ -586,8 +581,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                         try
                         {
-                            store.DeleteAsync(e.Certificate.Thumbprint);
-                            store.AddAsync(e.Certificate);
+                            store.DeleteAsync(certificate.Thumbprint);
+                            store.AddAsync(certificate);
                         }
                         finally
                         {
@@ -596,14 +591,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     }
                     catch (Exception ex)
                     {
-                        _logger.AddPeerCertToTrustedStoreFailed(ex, e.Certificate.Thumbprint, e.Certificate.Subject);
+                        _logger.AddPeerCertToTrustedStoreFailed(ex, certificate.Thumbprint, certificate.Subject);
                     }
+                    return true;
                 }
             }
-            if (!e.Accept)
-            {
-                _logger.RejectingPeerCert(e.Certificate.Thumbprint, e.Certificate.Subject, e.Error.StatusCode);
-            }
+            _logger.RejectingPeerCert(certificate.Thumbprint, certificate.Subject, error.StatusCode);
+            return false;
         }
 
         /// <summary>

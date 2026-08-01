@@ -1021,7 +1021,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         AttributeId = (uint)a.Attribute,
                         NodeId = a.NodeId.ToNodeId(context.Session.MessageContext),
                         Value = new DataValue(context.Session.Codec.Decode(a.Value,
-                            AttributeMap.GetBuiltInType((uint)a.Attribute)))
+                            Attributes.GetBuiltInType((uint)a.Attribute)))
                     }));
                 var response = await context.Session.Services.WriteAsync(
                     request.Header.ToRequestHeader(_timeProvider), requests,

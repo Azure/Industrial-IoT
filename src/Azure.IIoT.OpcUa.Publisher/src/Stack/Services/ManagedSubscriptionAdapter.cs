@@ -3562,7 +3562,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
         private uint NextSequenceNumber()
         {
-            return SequenceNumber.Increment32(ref _sequenceNumber);
+            return IncrementSequenceNumber(ref _sequenceNumber);
+        }
+
+        /// <summary>
+        /// Advance a sequence number, skipping zero.
+        /// </summary>
+        /// <remarks>
+        /// Part 6 reserves zero as "unknown", so a counter that wraps has to
+        /// step over it rather than hand it out. This was the only surviving
+        /// member of a sequence-number helper that also tracked gaps and
+        /// republish; upstream
+        /// <c>Opc.Ua.Client\Subscription\MessageProcessor</c> owns that now, so
+        /// the rest went with it.
+        /// </remarks>
+        /// <param name="sequenceNumber">The counter to advance.</param>
+        private static uint IncrementSequenceNumber(ref uint sequenceNumber)
+        {
+            while (true)
+            {
+                var result = Interlocked.Increment(ref sequenceNumber);
+                if (result != 0)
+                {
+                    return result;
+                }
+            }
         }
 
         private void InvokeSubscriber(ISubscriber owner, Action<ISubscriber> callback)
@@ -3756,7 +3780,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                             : readMissedCycles + carriedMissedCycles;
                     var completedAt = _timeProvider.GetUtcNow();
                     var cycleSequenceNumber =
-                        SequenceNumber.Increment32(ref _cycleSequenceNumber);
+                        IncrementSequenceNumber(ref _cycleSequenceNumber);
                     try
                     {
                         _adapter.DeliverCyclicRead(items,
@@ -4298,7 +4322,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
             public uint NextSequenceNumber()
             {
-                return SequenceNumber.Increment32(ref _sequenceNumber);
+                return IncrementSequenceNumber(ref _sequenceNumber);
             }
 
             private void UpdateHeartbeat(BaseMonitoredItemModel template)

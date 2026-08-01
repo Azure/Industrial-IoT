@@ -38,19 +38,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         public ApplicationConfiguration Value => _configuration.Result;
 
         /// <inheritdoc/>
-        public event CertificateValidationEventHandler Validate
+        public Func<Certificate, ServiceResult, bool>? AcceptError
         {
-            add
+            get => _acceptError;
+            set
             {
-                _validate += value;
-                EnsureAcceptErrorHook();
+                _acceptError = value;
+                if (value != null)
+                {
+                    EnsureAcceptErrorHook();
+                }
             }
-            remove => _validate -= value;
         }
 
         /// <summary>
-        /// Install the 2.0 certificate manager accept-error hook once so that
-        /// the classic <see cref="Validate"/> event continues to work.
+        /// Install the certificate manager accept-error hook once. Touching
+        /// <see cref="Value"/> forces the configuration to be built, so it is
+        /// deferred until something actually wants to decide.
         /// </summary>
         private void EnsureAcceptErrorHook()
         {
@@ -61,22 +65,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
-        /// Bridge the 2.0 accept-error callback onto the classic multicast
-        /// validation event. Returns true when the certificate should be
-        /// accepted for this validation.
+        /// Ask whoever is deciding whether this certificate is acceptable.
         /// </summary>
         /// <param name="certificate"></param>
         /// <param name="error"></param>
         private bool OnAcceptError(Certificate certificate, ServiceResult error)
         {
-            var handler = _validate;
-            if (handler == null)
-            {
-                return false;
-            }
-            var args = new CertificateValidationEventArgs(error, certificate);
-            handler(this, args);
-            return args.Accept || args.AcceptAll;
+            return _acceptError?.Invoke(certificate, error) ?? false;
         }
 
         private string Password =>
@@ -1040,7 +1035,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         private readonly TimeProvider _timeProvider;
         private readonly string? _identity;
         private bool _disposed;
-        private CertificateValidationEventHandler? _validate;
+        private Func<Certificate, ServiceResult, bool>? _acceptError;
         private int _acceptErrorHooked;
     }
 
