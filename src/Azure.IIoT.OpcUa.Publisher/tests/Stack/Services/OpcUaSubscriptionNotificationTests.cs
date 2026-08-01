@@ -5,7 +5,7 @@
 
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Models
 {
-    using Azure.IIoT.OpcUa.Encoders.PubSub;
+    using Azure.IIoT.OpcUa.Encoders;
     using Moq;
     using System;
     using System.Collections.Generic;

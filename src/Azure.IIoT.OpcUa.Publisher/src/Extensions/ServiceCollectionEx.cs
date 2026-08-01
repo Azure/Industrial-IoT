@@ -129,29 +129,31 @@ namespace Azure.IIoT.OpcUa.Publisher
             services.AddTransient<IDiscoveryProgress>(
                 static sp => sp.GetRequiredService<ProgressPublisher>());
 
-            var useNativePubSub = IsNativePubSubEnabled(services);
-            if (useNativePubSub)
-            {
-                services.AddPubSubShadowHost();
-                services.AddSingleton<NativePubSubEventClientSelector>();
-                services.AddPubSubShadowEgressHost(
-                    static sp => sp.GetRequiredService<NativePubSubEventClientSelector>(),
-                    static (sp, options) =>
-                    {
-                        //
-                        // PublishMessageSchema gates whether schema options are
-                        // bound at all, so their presence is the signal that the
-                        // user asked for schemas. When they did and the selected
-                        // transport cannot carry one, the egress drops the schema
-                        // with a warning rather than refusing to publish.
-                        //
-                        options.IncludeSchema = sp
-                            .GetRequiredService<IOptions<PublisherOptions>>()
-                            .Value.SchemaOptions is not null;
-                    });
-            }
+            //
+            // 3.0 publishes through the native PubSub runtime. The option and
+            // its command line switch are still read so an existing
+            // configuration keeps working, but the custom encoder they used to
+            // select is gone, so there is nothing left to branch on here.
+            //
+            services.AddPubSubShadowHost();
+            services.AddSingleton<NativePubSubEventClientSelector>();
+            services.AddPubSubShadowEgressHost(
+                static sp => sp.GetRequiredService<NativePubSubEventClientSelector>(),
+                static (sp, options) =>
+                {
+                    //
+                    // PublishMessageSchema gates whether schema options are
+                    // bound at all, so their presence is the signal that the
+                    // user asked for schemas. When they did and the selected
+                    // transport cannot carry one, the egress drops the schema
+                    // with a warning rather than refusing to publish.
+                    //
+                    options.IncludeSchema = sp
+                        .GetRequiredService<IOptions<PublisherOptions>>()
+                        .Value.SchemaOptions is not null;
+                });
 
-            services.AddWriterGroupProcessing(useNativePubSub);
+            services.AddWriterGroupProcessing();
             return services;
         }
 
@@ -165,43 +167,13 @@ namespace Azure.IIoT.OpcUa.Publisher
         /// </summary>
         /// <param name="services"></param>
         private static IServiceCollection AddWriterGroupProcessing(
-            this IServiceCollection services, bool useNativePubSub)
+            this IServiceCollection services)
         {
             services.AddScoped<WriterGroupScopeContext>();
 
-            services.AddScoped<IMessageEncoder>(sp =>
-            {
-                var context = sp.GetRequiredService<WriterGroupScopeContext>();
-                return new NetworkMessageEncoder(
-                    sp.GetRequiredService<IOptions<PublisherOptions>>(),
-                    context,
-                    sp.GetRequiredService<ILogger<NetworkMessageEncoder>>(),
-                    sp.GetService<TimeProvider>());
-            });
-
-            if (useNativePubSub)
-            {
-                services.AddScoped<IMessageSink>(static sp => new PubSubNotificationSink(
-                    sp.GetRequiredService<IManagedPubSubNotificationBuffer>(),
-                    sp.GetRequiredService<ILogger<PubSubNotificationSink>>()));
-            }
-            else
-            {
-                services.AddScoped<IMessageSink>(sp =>
-                {
-                    var context = sp.GetRequiredService<WriterGroupScopeContext>();
-                    return new NetworkMessageSink(
-                        context.WriterGroup,
-                        sp.GetServices<IEventClient>(),
-                        sp.GetServices<IEventClientFactory>(),
-                        sp.GetRequiredService<IMessageEncoder>(),
-                        sp.GetRequiredService<IOptions<PublisherOptions>>(),
-                        sp.GetRequiredService<ILogger<NetworkMessageSink>>(),
-                        context,
-                        context,
-                        sp.GetService<TimeProvider>());
-                });
-            }
+            services.AddScoped<IMessageSink>(static sp => new PubSubNotificationSink(
+                sp.GetRequiredService<IManagedPubSubNotificationBuffer>(),
+                sp.GetRequiredService<ILogger<PubSubNotificationSink>>()));
 
             services.AddScoped<IWriterGroupControl>(sp =>
             {
@@ -216,55 +188,6 @@ namespace Azure.IIoT.OpcUa.Publisher
                     sp.GetService<TimeProvider>());
             });
             return services;
-        }
-
-        private static bool IsNativePubSubEnabled(IServiceCollection services)
-        {
-            foreach (var descriptor in services)
-            {
-                if (descriptor.ServiceType != typeof(IConfiguration) &&
-                    descriptor.ServiceType != typeof(IConfigurationRoot))
-                {
-                    continue;
-                }
-                if (descriptor.ImplementationInstance is not IConfiguration configuration)
-                {
-                    continue;
-                }
-                var configured = IsTrue(configuration[PublisherConfig.UseNativePubSubKey]);
-                if (configured != null)
-                {
-                    return configured.Value;
-                }
-            }
-            //
-            // Nothing configured the option, so the product default decides.
-            // This must read the same default PublisherConfig binds, because a
-            // registration that disagrees with the bound option leaves the
-            // publisher composed for one telemetry path while configured for
-            // the other, which fails as missing telemetry rather than as a
-            // configuration error.
-            //
-            return PublisherConfig.UseNativePubSubDefault;
-        }
-
-        private static bool? IsTrue(string? value)
-        {
-            //
-            // Must accept the same aliases as ConfigureOptionBase.GetBoolOrNull,
-            // otherwise a value such as "1" would enable the option in
-            // PublisherOptions while leaving the services unregistered, and the
-            // flag would be silently ignored.
-            //
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                return null;
-            }
-            return value.Trim().ToUpperInvariant() switch
-            {
-                "TRUE" or "YES" or "Y" or "1" => true,
-                _ => false
-            };
         }
 
         /// <summary>
@@ -301,12 +224,12 @@ namespace Azure.IIoT.OpcUa.Publisher
                     {
                         return existing.EventClient;
                     }
-                    var transport = new NetworkMessageSink.TransportOptions(writerGroup,
+                    var transport = new WriterGroupTransportOptions(writerGroup,
                         eventClients,
                         _services.GetServices<IEventClientFactory>()
                             .ToDictionary(f => f.Name, StringComparer.OrdinalIgnoreCase),
                         _services.GetRequiredService<IOptions<PublisherOptions>>(),
-                        _services.GetRequiredService<ILogger<NetworkMessageSink>>());
+                        _services.GetRequiredService<ILogger<WriterGroupTransportOptions>>());
                     _selected[key] = transport;
                     return transport.EventClient;
                 }
@@ -325,7 +248,7 @@ namespace Azure.IIoT.OpcUa.Publisher
             }
 
             private readonly Lock _gate = new();
-            private readonly Dictionary<string, NetworkMessageSink.TransportOptions> _selected =
+            private readonly Dictionary<string, WriterGroupTransportOptions> _selected =
                 new(StringComparer.Ordinal);
             private readonly IServiceProvider _services;
         }

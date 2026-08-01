@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher.Services
 {
     using Azure.IIoT.OpcUa.Encoders;
-    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Publisher;
     using Azure.IIoT.OpcUa.Publisher.Config.Models;
     using Azure.IIoT.OpcUa.Publisher.Models;

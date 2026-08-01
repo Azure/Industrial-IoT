@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
 {
     using Azure.IIoT.OpcUa.Encoders.Schemas;
-    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Core;
     using Azure.IIoT.OpcUa.Core.Messaging;
@@ -77,7 +76,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
             Id = dataSetMessage.Id;
             Name = GetName(dataSetMessage.TypeName, uniqueNames);
             Ref = Compile(dataSetMessage.DataSetMessageContentFlags
-                ?? PubSubMessage.DefaultDataSetMessageContentFlags);
+                ?? PubSubMessageDefaults.DefaultDataSetMessageContentFlags);
         }
 
         /// <inheritdoc/>
@@ -178,7 +177,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
                     encoding.GetSchemaForBuiltInType(BuiltInType.String));
             }
 
-            properties.Add(nameof(PubSub.JsonDataSetMessage.Payload), _dataSet.Ref);
+            properties.Add(PubSubMessageMembers.Payload, _dataSet.Ref);
 
             return Definitions.Reference(_options.GetSchemaId(Name), id => new JsonSchema
             {
@@ -200,7 +199,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
         {
             // Type name of the message record
             typeName ??= string.Empty;
-            typeName += BaseDataSetMessage.MessageTypeName;
+            typeName += PubSubMessageMembers.DataSetMessageTypeName;
             if (uniqueNames != null)
             {
                 var uniqueName = typeName;

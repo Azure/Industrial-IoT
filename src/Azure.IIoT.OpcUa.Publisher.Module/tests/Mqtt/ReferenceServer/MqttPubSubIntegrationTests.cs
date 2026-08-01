@@ -64,7 +64,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 nameof(NativePubSubRuntimePublishesDataItemsToMqttBrokerAsync),
                 "./Resources/DataItems.json", TimeSpan.FromMinutes(2), 20,
                 messageType: "ua-data",
-                arguments: ["--mm=PubSub", "--dm=False", "--ps=False", "--unp=True"],
+                arguments: ["--mm=PubSub", "--dm=False", "--ps=False"],
                 version: MqttVersion.v5);
 
             // Assert
@@ -381,7 +381,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
             var messages = await ProcessRawMessagesAsync(
                 nameof(NativePubSubRuntimePublishesUadpToMqttBrokerAsync),
                 "./Resources/DataItems.json", TimeSpan.FromMinutes(2), 1,
-                arguments: ["--mm=PubSub", "--me=Uadp", "--dm=False", "--ps=False", "--unp=True"],
+                arguments: ["--mm=PubSub", "--me=Uadp", "--dm=False", "--ps=False"],
                 version: MqttVersion.v5);
 
             var message = Assert.Single(messages);
@@ -396,15 +396,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
         }
 
         /// <summary>
-        /// Compares the wire shape the native runtime produces against the shape
-        /// the custom encoder produces for the same configuration. Structure is
-        /// compared rather than values, because timestamps, sequence numbers and
-        /// identifiers legitimately differ between two runs, while a missing
-        /// envelope member or a value written as a bare number instead of a
-        /// DataValue envelope is a real break for every consumer.
+        /// Asserts the wire shape the native runtime publishes for each retained
+        /// messaging mode. Structure is compared rather than values, because
+        /// timestamps, sequence numbers and identifiers legitimately differ
+        /// between runs, while a missing envelope member or a value written as a
+        /// bare number instead of a DataValue envelope is a real break for every
+        /// consumer.
         /// </summary>
         /// <remarks>
-        /// The theory normalises three recorded differences rather than
+        /// Every expected shape here was captured from the custom encoder, on
+        /// this fixture, immediately before 3.0 removed it, and each was
+        /// observed to match the native runtime exactly at that point. The gate
+        /// used to run both paths and compare them; with only one path left the
+        /// captured shape is what carries the comparison forward, and it is
+        /// written out in full rather than stored as a fixture so that changing
+        /// it is a visible edit to an assertion.
+        ///
+        /// The shapes normalise three recorded differences rather than
         /// asserting on them - see the comments on the normalisation helpers.
         /// The fixture publishes two variables so the comparison is anchored on
         /// a multi-field frame; a single-variable dataset cannot distinguish a
@@ -413,30 +421,54 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
         /// because the simulated nodes do not all stamp a server timestamp on
         /// every update, which makes the envelope shape differ between runs
         /// rather than between paths.
+        ///
+        /// DataSetMessages and SingleDataSetMessage expect the same shape. Both
+        /// publish a bare data set message with no network message envelope, and
+        /// the difference between them is whether several are batched into one
+        /// message, which a single frame cannot show.
         /// </remarks>
         /// <param name="messagingMode"></param>
+        /// <param name="expected"></param>
         [Theory]
-        [InlineData("PubSub")]
-        [InlineData("FullNetworkMessages")]
-        [InlineData("DataSetMessages")]
-        [InlineData("SingleDataSetMessage")]
-        [InlineData("RawDataSets")]
-        public async Task NativePubSubMatchesTheCustomEncoderWireShapeAsync(string messagingMode)
+        [InlineData("PubSub",
+            "{MessageId:String,MessageType:String,Messages:[{MessageType:String," +
+            "MetaDataVersion:{MajorVersion:Number,MinorVersion:Number}," +
+            "Payload:{Output1:{ServerTimestamp:String,SourceTimestamp:String,Value:Number}," +
+            "Output2:{ServerTimestamp:String,SourceTimestamp:String,Value:Number}}," +
+            "SequenceNumber:Number,Timestamp:String}],PublisherId:String,WriterGroupName:String}")]
+        [InlineData("FullNetworkMessages",
+            "{MessageId:String,MessageType:String,Messages:[{DataSetWriterId:Accepted," +
+            "MessageType:String,MetaDataVersion:{MajorVersion:Number,MinorVersion:Number}," +
+            "Payload:{ApplicationUri:{Value:String},EndpointUrl:{Value:String}," +
+            "Output1:{ServerTimestamp:String,SourceTimestamp:String,Value:Number}," +
+            "Output2:{ServerTimestamp:String,SourceTimestamp:String,Value:Number}}," +
+            "SequenceNumber:Number,Timestamp:String}],PublisherId:String,WriterGroupName:String}")]
+        [InlineData("DataSetMessages",
+            "{MessageType:String,MetaDataVersion:{MajorVersion:Number,MinorVersion:Number}," +
+            "Payload:{Output1:{ServerTimestamp:String,SourceTimestamp:String,Value:Number}," +
+            "Output2:{ServerTimestamp:String,SourceTimestamp:String,Value:Number}}," +
+            "SequenceNumber:Number,Timestamp:String}")]
+        [InlineData("SingleDataSetMessage",
+            "{MessageType:String,MetaDataVersion:{MajorVersion:Number,MinorVersion:Number}," +
+            "Payload:{Output1:{ServerTimestamp:String,SourceTimestamp:String,Value:Number}," +
+            "Output2:{ServerTimestamp:String,SourceTimestamp:String,Value:Number}}," +
+            "SequenceNumber:Number,Timestamp:String}")]
+        [InlineData("RawDataSets", "{Output1:Number,Output2:Number}")]
+        public async Task NativePubSubMatchesTheCustomEncoderWireShapeAsync(
+            string messagingMode, string expected)
         {
-            var custom = await CaptureShapeAsync(messagingMode, native: false);
-            var native = await CaptureShapeAsync(messagingMode, native: true);
+            var native = await CaptureShapeAsync(messagingMode);
 
-            _output.WriteLine("custom: " + custom);
-            _output.WriteLine("native: " + native);
-            Assert.Equal(custom, native);
+            _output.WriteLine("expected: " + expected);
+            _output.WriteLine("native:   " + native);
+            Assert.Equal(expected, native);
         }
 
-        private async Task<string> CaptureShapeAsync(string messagingMode, bool native)        {
-            string[] arguments = native
-                ? ["--mm=" + messagingMode, "--dm=False", "--ps=False", "--unp=True"]
-                : ["--mm=" + messagingMode, "--dm=False", "--ps=False", "--unp=False"];
+        private async Task<string> CaptureShapeAsync(string messagingMode)
+        {
+            string[] arguments = ["--mm=" + messagingMode, "--dm=False", "--ps=False"];
             var (_, messages) = await ProcessMessagesAndMetadataAsync(
-                nameof(NativePubSubMatchesTheCustomEncoderWireShapeAsync) + messagingMode + native,
+                nameof(NativePubSubMatchesTheCustomEncoderWireShapeAsync) + messagingMode,
                 "./Resources/MultipleDataItems.json", TimeSpan.FromMinutes(2), 20,
                 arguments: arguments, version: MqttVersion.v5);
 
@@ -455,7 +487,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
                 .Select(message => message.Message)
                 .FirstOrDefault(message => FindPayload(message).ValueKind != JsonValueKind.Undefined);
             Assert.NotEqual(JsonValueKind.Undefined, carrying.ValueKind);
-            _output.WriteLine((native ? "native " : "custom ") + messagingMode +
+            _output.WriteLine("native " + messagingMode +
                 " raw: " + carrying.ToJsonString());
             return Shape(carrying);
         }

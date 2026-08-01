@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 {
     using Azure.IIoT.OpcUa.Encoders;
-    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack.Models;
     using Microsoft.Extensions.Logging;

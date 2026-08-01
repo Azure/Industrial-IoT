@@ -31,7 +31,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     using System.Text.Json.Nodes;
     using System.Threading;
     using System.Threading.Tasks;
-    using Azure.IIoT.OpcUa.Encoders.PubSub;
 
     /// <summary>
     /// This class manages reporting of runtime state.

@@ -6,7 +6,6 @@
 namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
 {
     using Azure.IIoT.OpcUa.Encoders.Schemas;
-    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Core;
     using Azure.IIoT.OpcUa.Core.Messaging;
@@ -94,7 +93,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
         {
             var dataSetMessages = networkMessage.DataSetMessages;
             var networkMessageContentFlags = networkMessage.NetworkMessageContentFlags
-                ?? PubSubMessage.DefaultNetworkMessageContentFlags;
+                ?? PubSubMessageDefaults.DefaultNetworkMessageContentFlags;
 
             var dataSetSchemas = dataSetMessages
                 .Where(dataSet => dataSet != null)
@@ -127,28 +126,28 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
             var encoding = new JsonBuiltInSchemas(true, false, Definitions);
             var properties = new Dictionary<string, JsonSchema>
             {
-                [nameof(PubSub.JsonNetworkMessage.MessageId)] =
+                [PubSubMessageMembers.MessageId] =
                     encoding.GetSchemaForBuiltInType(BuiltInType.String),
-                [nameof(PubSub.JsonNetworkMessage.MessageType)] =
+                [PubSubMessageMembers.MessageType] =
                     encoding.GetSchemaForBuiltInType(BuiltInType.String)
             };
 
             if (networkMessageContentFlags.HasFlag(NetworkMessageContentFlags.PublisherId))
             {
-                properties.Add(nameof(PubSub.JsonNetworkMessage.PublisherId),
+                properties.Add(PubSubMessageMembers.PublisherId,
                     encoding.GetSchemaForBuiltInType(BuiltInType.String));
             }
             if (networkMessageContentFlags.HasFlag(NetworkMessageContentFlags.DataSetClassId))
             {
-                properties.Add(nameof(PubSub.JsonNetworkMessage.DataSetClassId),
+                properties.Add(PubSubMessageMembers.DataSetClassId,
                     encoding.GetSchemaForBuiltInType(BuiltInType.Guid));
             }
 
-            properties.Add(nameof(PubSub.JsonNetworkMessage.DataSetWriterGroup),
+            properties.Add(PubSubMessageMembers.WriterGroupName,
                 encoding.GetSchemaForBuiltInType(BuiltInType.String));
 
             // Now write messages - this is either one of or array of one of
-            properties.Add(nameof(PubSub.JsonNetworkMessage.Messages), payloadType);
+            properties.Add(PubSubMessageMembers.Messages, payloadType);
 
             var messageSchema = Definitions.Reference(_options.GetSchemaId(Name),
                 id => new JsonSchema
@@ -163,7 +162,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
             if (networkMessageContentFlags
                 .HasFlag(NetworkMessageContentFlags.UseArrayEnvelope))
             {
-                return messageSchema.AsArray(BaseNetworkMessage.MessageTypeName + "s");
+                return messageSchema.AsArray(PubSubMessageMembers.NetworkMessageTypeName + "s");
             }
             return messageSchema;
         }
@@ -191,7 +190,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
         {
             // Type name of the message record
             typeName ??= string.Empty;
-            typeName += BaseNetworkMessage.MessageTypeName;
+            typeName += PubSubMessageMembers.NetworkMessageTypeName;
             return MakeUnique(typeName);
         }
 

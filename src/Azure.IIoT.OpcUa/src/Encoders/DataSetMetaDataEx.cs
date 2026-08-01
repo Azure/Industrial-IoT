@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.PubSub
+namespace Azure.IIoT.OpcUa.Encoders
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
@@ -13,9 +13,18 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     using System.Linq;
 
     /// <summary>
-    /// Metadata extensions
+    /// Converts published data set metadata between its service model and the
+    /// stack's <see cref="DataSetMetaDataType"/>, and compares two service
+    /// models for equivalence.
     /// </summary>
-    internal static class StackExtensions
+    /// <remarks>
+    /// This is public rather than internal because the Publisher's native
+    /// PubSub bridge converts the metadata it resolves from the server into
+    /// the form the PubSub runtime announces. It previously sat beside the
+    /// custom encoder and was reached through InternalsVisibleTo, which meant
+    /// the encoder's removal would have taken a live conversion with it.
+    /// </remarks>
+    public static class DataSetMetaDataEx
     {
         /// <summary>
         /// Compare

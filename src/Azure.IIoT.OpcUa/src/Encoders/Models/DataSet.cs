@@ -1,11 +1,10 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
 namespace Azure.IIoT.OpcUa.Encoders.Models
 {
-    using Azure.IIoT.OpcUa.Encoders.PubSub;
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
     using System;
@@ -71,7 +70,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         public DataSet(DataSetFieldContentFlags? fieldContentMask = null)
         {
             DataSetFieldContentMask = fieldContentMask ??
-                PubSubMessage.DefaultDataSetFieldContentFlags;
+                PubSubMessageDefaults.DefaultDataSetFieldContentFlags;
             DataSetFields = Array.Empty<(string, DataValue?)>();
         }
 

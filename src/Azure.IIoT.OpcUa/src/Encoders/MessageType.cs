@@ -3,10 +3,11 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Azure.IIoT.OpcUa.Encoders.PubSub
+namespace Azure.IIoT.OpcUa.Encoders
 {
     /// <summary>
-    /// Message type
+    /// The kind of notification a subscription raised, and with it the kind of
+    /// data set message it is published as.
     /// </summary>
     public enum MessageType
     {

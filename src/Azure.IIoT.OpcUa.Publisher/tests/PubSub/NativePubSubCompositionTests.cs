@@ -66,21 +66,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 scope.ServiceProvider.GetRequiredService<IMessageSink>());
         }
 
-        [Fact]
-        public void DisabledOptionKeepsTheCustomEncoderSink()
+        [Theory]
+        [InlineData("false")]
+        [InlineData("NO")]
+        [InlineData("n")]
+        [InlineData("0")]
+        [InlineData("nonsense")]
+        public async Task DisablingTheOptionNoLongerSelectsAnythingElseAsync(string value)
         {
-            using var provider = CreateProvider(new Dictionary<string, string?>
+            //
+            // The custom encoder this option used to select is gone in 3.0, so
+            // a configuration that still disables it keeps working and
+            // publishes natively rather than failing to start. This is
+            // asserted rather than left implicit because the option is still
+            // read and bound, which makes it look like it still branches.
+            //
+            await using var provider = CreateProvider(new Dictionary<string, string?>
             {
-                [PublisherConfig.UseNativePubSubKey] = "false"
+                [PublisherConfig.UseNativePubSubKey] = value
             });
 
-            Assert.Null(provider.GetService<IPubSubShadowHost>());
-            using var scope = provider.CreateScope();
+            Assert.NotNull(provider.GetService<IPubSubShadowHost>());
+            await using var scope = provider.CreateAsyncScope();
             InitializeWriterGroupScope(scope.ServiceProvider, provider);
 
-            var sink = scope.ServiceProvider.GetRequiredService<IMessageSink>();
-
-            Assert.IsType<NetworkMessageSink>(sink);
+            Assert.IsType<PubSubNotificationSink>(
+                scope.ServiceProvider.GetRequiredService<IMessageSink>());
         }
 
         [Fact]
@@ -122,27 +133,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
             InitializeWriterGroupScope(scope.ServiceProvider, provider);
 
             Assert.IsType<PubSubNotificationSink>(
-                scope.ServiceProvider.GetRequiredService<IMessageSink>());
-        }
-
-        [Theory]
-        [InlineData("false")]
-        [InlineData("NO")]
-        [InlineData("n")]
-        [InlineData("0")]
-        [InlineData("nonsense")]
-        public void DisabledOptionAliasesKeepTheCustomEncoderSink(string value)
-        {
-            using var provider = CreateProvider(new Dictionary<string, string?>
-            {
-                [PublisherConfig.UseNativePubSubKey] = value
-            });
-
-            Assert.Null(provider.GetService<IPubSubShadowHost>());
-            using var scope = provider.CreateScope();
-            InitializeWriterGroupScope(scope.ServiceProvider, provider);
-
-            Assert.IsType<NetworkMessageSink>(
                 scope.ServiceProvider.GetRequiredService<IMessageSink>());
         }
 
