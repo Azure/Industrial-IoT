@@ -173,9 +173,71 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// <inheritdoc/>
         public IDisposable Register(IIoTHubTelemetryHandler listener)
         {
-            _listeners[listener] = listener;
+            //
+            // Telemetry published before a listener registers is replayed to
+            // the first one that does. The module fixture starts the host - and
+            // with it publishing - before it registers, so anything sent in
+            // between used to be dropped on the floor. Data hides that, because
+            // more of it keeps arriving; a one-shot message such as the dataset
+            // metadata announcement is simply lost, which reads as the
+            // publisher never having sent it.
+            //
+            List<PendingTelemetry>? replay = null;
+            lock (_bufferLock)
+            {
+                _listeners[listener] = listener;
+                if (_buffered.Count != 0)
+                {
+                    replay = [.. _buffered];
+                    _buffered.Clear();
+                }
+            }
+            if (replay is not null)
+            {
+                foreach (var telemetry in replay)
+                {
+                    listener.HandleAsync(telemetry.DeviceId, telemetry.ModuleId,
+                        telemetry.Topic, telemetry.Data, telemetry.ContentType,
+                        telemetry.ContentEncoding, telemetry.Properties)
+                        .AsTask().GetAwaiter().GetResult();
+                }
+            }
             return new Registration(() => _listeners.TryRemove(listener, out _));
         }
+
+        /// <summary>
+        /// Dispatches telemetry, holding it back until someone is listening.
+        /// </summary>
+        /// <param name="telemetry"></param>
+        /// <param name="ct"></param>
+        internal async ValueTask DispatchAsync(PendingTelemetry telemetry,
+            CancellationToken ct)
+        {
+            IIoTHubTelemetryHandler[] listeners;
+            lock (_bufferLock)
+            {
+                listeners = [.. _listeners.Values];
+                if (listeners.Length == 0)
+                {
+                    _buffered.Add(telemetry);
+                    return;
+                }
+            }
+            foreach (var listener in listeners)
+            {
+                await listener.HandleAsync(telemetry.DeviceId, telemetry.ModuleId,
+                    telemetry.Topic, telemetry.Data, telemetry.ContentType,
+                    telemetry.ContentEncoding, telemetry.Properties, ct)
+                    .ConfigureAwait(false);
+            }
+        }
+
+        /// <summary>
+        /// Telemetry awaiting a listener.
+        /// </summary>
+        internal sealed record class PendingTelemetry(string DeviceId, string? ModuleId,
+            string Topic, ReadOnlySequence<byte> Data, string ContentType,
+            string ContentEncoding, IReadOnlyDictionary<string, string> Properties);
 
         /// <inheritdoc/>
         public IIoTHubConnection Connect(string deviceId, string moduleId)
@@ -448,12 +510,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 {
                     foreach (var buffer in _buffers)
                     {
-                        foreach (var listener in _outer._outer._listeners.Values)
-                        {
-                            await listener.HandleAsync(_outer._device.Id,
-                                _outer._device.ModuleId, _topic, buffer, _contentType,
-                                _contentEncoding, _properties, ct).ConfigureAwait(false);
-                        }
+                        await _outer._outer.DispatchAsync(new PendingTelemetry(
+                            _outer._device.Id, _outer._device.ModuleId, _topic, buffer,
+                            _contentType, _contentEncoding, _properties), ct)
+                            .ConfigureAwait(false);
                     }
                 }
 
@@ -549,6 +609,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         private readonly object _connectionsLock = new();
         private readonly ConcurrentDictionary<IIoTHubTelemetryHandler,
             IIoTHubTelemetryHandler> _listeners = new();
+        private readonly List<PendingTelemetry> _buffered = [];
+        private readonly object _bufferLock = new();
     }
 
     /// <summary>
