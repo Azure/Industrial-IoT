@@ -222,23 +222,33 @@ namespace Azure.IIoT.OpcUa.Publisher
         {
             foreach (var descriptor in services)
             {
-                if (descriptor.ServiceType == typeof(IConfiguration) &&
-                    descriptor.ImplementationInstance is IConfiguration configuration &&
-                    IsTrue(configuration[PublisherConfig.UseNativePubSubKey]))
+                if (descriptor.ServiceType != typeof(IConfiguration) &&
+                    descriptor.ServiceType != typeof(IConfigurationRoot))
                 {
-                    return true;
+                    continue;
                 }
-                if (descriptor.ServiceType == typeof(IConfigurationRoot) &&
-                    descriptor.ImplementationInstance is IConfiguration configurationRoot &&
-                    IsTrue(configurationRoot[PublisherConfig.UseNativePubSubKey]))
+                if (descriptor.ImplementationInstance is not IConfiguration configuration)
                 {
-                    return true;
+                    continue;
+                }
+                var configured = IsTrue(configuration[PublisherConfig.UseNativePubSubKey]);
+                if (configured != null)
+                {
+                    return configured.Value;
                 }
             }
-            return false;
+            //
+            // Nothing configured the option, so the product default decides.
+            // This must read the same default PublisherConfig binds, because a
+            // registration that disagrees with the bound option leaves the
+            // publisher composed for one telemetry path while configured for
+            // the other, which fails as missing telemetry rather than as a
+            // configuration error.
+            //
+            return PublisherConfig.UseNativePubSubDefault;
         }
 
-        private static bool IsTrue(string? value)
+        private static bool? IsTrue(string? value)
         {
             //
             // Must accept the same aliases as ConfigureOptionBase.GetBoolOrNull,
@@ -246,7 +256,11 @@ namespace Azure.IIoT.OpcUa.Publisher
             // PublisherOptions while leaving the services unregistered, and the
             // flag would be silently ignored.
             //
-            return value != null && value.ToUpperInvariant() switch
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return null;
+            }
+            return value.Trim().ToUpperInvariant() switch
             {
                 "TRUE" or "YES" or "Y" or "1" => true,
                 _ => false

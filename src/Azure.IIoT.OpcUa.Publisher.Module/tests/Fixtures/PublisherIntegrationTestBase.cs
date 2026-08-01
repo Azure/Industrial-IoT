@@ -402,8 +402,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// Publisher form. Those tests assert both, in full, so neither path is
         /// weakened. When the native path becomes the default the legacy branch
         /// and this property go away together.
+        ///
+        /// The native path is now the default, so a run that does not select a
+        /// path is a native run. This deliberately reads the same default the
+        /// product applies rather than assuming the legacy shape, because the
+        /// two disagreeing silently would make every one of those assertions
+        /// check the wrong path's spelling.
         /// </remarks>
-        protected static bool UsesNativePubSub => NativePubSubSelected == true;
+        protected static bool UsesNativePubSub =>
+            NativePubSubSelected ?? PublisherConfig.UseNativePubSubDefault;
 
         /// <summary>
         /// How the run selected the telemetry path, or null when it did not

@@ -21,17 +21,49 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
     public sealed class NativePubSubCompositionTests
     {
         [Fact]
-        public void AbsentOptionKeepsTheCustomEncoderSink()
+        public async Task AbsentOptionUsesTheNativePubSubSinkAsync()
         {
-            using var provider = CreateProvider(new Dictionary<string, string?>());
+            //
+            // Absent means the product default applies, and in 3.0 that is the
+            // native path. This asserts the registration and the bound option
+            // agree on the default: if they diverge the publisher composes one
+            // telemetry path while configured for the other, and the symptom is
+            // missing telemetry rather than a configuration error.
+            //
+            await using var provider = CreateProvider(new Dictionary<string, string?>());
 
-            Assert.Null(provider.GetService<IPubSubShadowHost>());
-            using var scope = provider.CreateScope();
+            Assert.NotNull(provider.GetService<IPubSubShadowHost>());
+            await using var scope = provider.CreateAsyncScope();
             InitializeWriterGroupScope(scope.ServiceProvider, provider);
 
             var sink = scope.ServiceProvider.GetRequiredService<IMessageSink>();
 
-            Assert.IsType<NetworkMessageSink>(sink);
+            Assert.IsType<PubSubNotificationSink>(sink);
+            Assert.True(PublisherConfig.UseNativePubSubDefault);
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("   ")]
+        public async Task BlankOptionUsesTheProductDefaultAsync(string value)
+        {
+            //
+            // An empty value is not a configured "false". Treating it as one
+            // would let an unset environment variable that still materialises
+            // as an empty string silently select the path the product no
+            // longer defaults to.
+            //
+            await using var provider = CreateProvider(new Dictionary<string, string?>
+            {
+                [PublisherConfig.UseNativePubSubKey] = value
+            });
+
+            Assert.NotNull(provider.GetService<IPubSubShadowHost>());
+            await using var scope = provider.CreateAsyncScope();
+            InitializeWriterGroupScope(scope.ServiceProvider, provider);
+
+            Assert.IsType<PubSubNotificationSink>(
+                scope.ServiceProvider.GetRequiredService<IMessageSink>());
         }
 
         [Fact]

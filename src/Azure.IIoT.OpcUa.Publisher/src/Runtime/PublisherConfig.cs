@@ -146,7 +146,7 @@ namespace Azure.IIoT.OpcUa.Publisher
         public const string RuntimeStateRoutingInfoDefault = "runtimeinfo";
         public const bool EnableRuntimeStateReportingDefault = false;
         public const bool UseStandardsCompliantEncodingDefault = false;
-        public const bool UseNativePubSubDefault = false;
+        public const bool UseNativePubSubDefault = true;
         public const bool EnableDataSetRoutingInfoDefault = false;
         public const bool EnableCloudEventsDefault = false;
         public const MessageEncoding MessageEncodingDefault = MessageEncoding.Json;
