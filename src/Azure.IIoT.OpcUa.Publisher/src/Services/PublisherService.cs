@@ -305,6 +305,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         // translate to the same defaults and collapse onto one
                         // wire format.
                         //
+                        // It must also see the same WRITERS, which it does not
+                        // yet: a routing mode expands one configured writer
+                        // into one per published item, and the host registers a
+                        // source per writer, so today it is told about a writer
+                        // that never produces anything and discards the ones
+                        // that do. WriterGroupDataSource.ExpandRouting is the
+                        // other half of that fix and is deliberately not wired
+                        // here yet - it makes the egress reject the group for a
+                        // reason that is not yet understood, and a rejection
+                        // retries in a loop, which is worse than the silent
+                        // drop it replaces. See the todo.
+                        //
                         var resolved = writerGroups
                             .ConvertAll(writerGroup => writerGroup
                                 .CopyAndResolve(_options.Value));

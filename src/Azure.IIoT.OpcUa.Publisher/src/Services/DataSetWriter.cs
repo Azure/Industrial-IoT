@@ -124,7 +124,37 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             public static IEnumerable<DataSetWriter> GetDataSetWriters(WriterGroupDataSource group,
                 DataSetWriterModel dataSetWriter)
             {
-                var options = group._options.Value;
+                var routing = dataSetWriter?.DataSet?.Routing
+                    ?? group._options.Value.DefaultDataSetRouting
+                    ?? DataSetRoutingMode.None;
+                return Expand(group._options.Value, group._writerGroup, group.Id, dataSetWriter!)
+                    .Select(writer => new DataSetWriter(group, routing, writer));
+            }
+
+            /// <summary>
+            /// Split a writer into the writers its publish settings call for,
+            /// as models.
+            /// </summary>
+            /// <remarks>
+            /// A routing mode turns one configured writer into one writer per
+            /// published item, each with its own resolved topic. That
+            /// expansion has to be visible to anything that needs to know what
+            /// writers exist - not just to the data source that runs them -
+            /// because the native PubSub host registers a data set source per
+            /// writer and drops notifications from writers it was never told
+            /// about. Sharing the expansion is what keeps the two from
+            /// disagreeing; deriving the topics twice would let them drift.
+            /// </remarks>
+            /// <param name="options"></param>
+            /// <param name="writerGroup"></param>
+            /// <param name="writerGroupId"></param>
+            /// <param name="dataSetWriter"></param>
+            /// <returns></returns>
+            /// <exception cref="ArgumentException"></exception>
+            public static IEnumerable<DataSetWriterModel> Expand(PublisherOptions options,
+                WriterGroupModel writerGroup, string writerGroupId,
+                DataSetWriterModel dataSetWriter)
+            {
                 if (dataSetWriter?.DataSet?.DataSetSource == null)
                 {
                     throw new ArgumentException("DataSet source missing", nameof(dataSetWriter));
@@ -140,9 +170,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 var escWriterName = TopicFilter.Escape(
                     dataSetWriter.DataSetWriterName ?? Constants.DefaultDataSetWriterName);
                 var escWriterGroup = TopicFilter.Escape(
-                    group._writerGroup.Name ?? Constants.DefaultWriterGroupName);
+                    writerGroup.Name ?? Constants.DefaultWriterGroupName);
                 var escPublisherId = TopicFilter.Escape(
-                    group._writerGroup.PublisherId ?? options.PublisherId
+                    writerGroup.PublisherId ?? options.PublisherId
                         ?? Constants.DefaultPublisherId);
                 var escDataSetTopicPath = escWriterName;
                 var escDataSetName = escWriterName;
@@ -172,7 +202,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     [PublisherConfig.DataSetTopicPathVariableName] = escDataSetTopicPath,
                     [PublisherConfig.DataSetWriterNameVariableName] = escWriterName,
                     [PublisherConfig.DataSetClassIdVariableName] = dataSetClassId.ToString(),
-                    [PublisherConfig.WriterGroupIdVariableName] = group.Id,
+                    [PublisherConfig.WriterGroupIdVariableName] = writerGroupId,
                     [PublisherConfig.DataSetWriterGroupVariableName] = escWriterGroup,
                     [PublisherConfig.WriterGroupVariableName] = escWriterGroup
                     // ...
@@ -180,7 +210,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 // No auto routing - group variables and events by publish settings
                 var data = source.PublishedVariables?.PublishedData?
-                    .GroupBy(d => Resolve(options, group._writerGroup, dataSetWriter,
+                    .GroupBy(d => Resolve(options, writerGroup, dataSetWriter,
                             d.Publishing, d.Id, routing, variables));
                 if (data != null)
                 {
@@ -203,7 +233,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
                 }
                 var evts = source.PublishedEvents?.PublishedData?
-                    .GroupBy(d => Resolve(options, group._writerGroup, dataSetWriter,
+                    .GroupBy(d => Resolve(options, writerGroup, dataSetWriter,
                             d.Publishing, d.Id, routing, variables));
                 if (evts != null)
                 {
@@ -225,11 +255,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     }
                 }
 
-                DataSetWriter CreateDataSetWriter(string id,
+                DataSetWriterModel CreateDataSetWriter(string id,
                     (PublishingQueueSettingsModel? Metadata, PublishingQueueSettingsModel? Messages) publishSettings,
                     IReadOnlyList<PublishedDataSetVariableModel> data)
                 {
-                    return new DataSetWriter(group, routing, dataSetWriter with
+                    return dataSetWriter with
                     {
                         Id = id,
                         MetaData = publishSettings.Metadata,
@@ -249,14 +279,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 }
                             }
                         }
-                    });
+                    };
                 }
 
-                DataSetWriter CreateEventWriter(string id,
+                DataSetWriterModel CreateEventWriter(string id,
                     (PublishingQueueSettingsModel? Metadata, PublishingQueueSettingsModel? Messages) publishSettings,
                     IReadOnlyList<PublishedDataSetEventModel> data)
                 {
-                    return new DataSetWriter(group, routing, dataSetWriter with
+                    return dataSetWriter with
                     {
                         Id = id,
                         MetaData = publishSettings.Metadata,
@@ -276,7 +306,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                 PublishedVariables = null
                             }
                         }
-                    });
+                    };
                 }
 
                 // Resolve the publish queue settings with the data set writer provided settings.

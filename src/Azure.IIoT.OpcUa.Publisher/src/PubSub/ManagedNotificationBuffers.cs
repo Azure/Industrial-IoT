@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
+    using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Opc.Ua;
     using Opc.Ua.PubSub.DataSets;
@@ -409,9 +410,11 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
     {
         public ManagedPubSubNotificationDataSourceProvider(
             IManagedPubSubNotificationBuffer notifications,
-            IOptions<ManagedPubSubNotificationBufferOptions>? options = null)
+            IOptions<ManagedPubSubNotificationBufferOptions>? options = null,
+            ILogger<ManagedPubSubNotificationDataSourceProvider>? logger = null)
         {
             _notifications = notifications ?? throw new ArgumentNullException(nameof(notifications));
+            _logger = logger;
             var capacity = options?.Value.Capacity ?? 1024;
             if (capacity <= 0)
             {
@@ -557,6 +560,50 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                         // A hot replacement removed the route after lookup.
                     }
                 }
+                else
+                {
+                    ReportUnroutable(notification.DataSetName);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Report a notification that arrived for a data set nothing is
+        /// listening to.
+        /// </summary>
+        /// <remarks>
+        /// This used to be an empty else, and telemetry vanished here without
+        /// a log, a counter or any other trace - the publisher looked healthy,
+        /// the subscription reported values arriving, and nothing was ever
+        /// published. Finding that needed a debugger. It should need a log
+        /// line.
+        ///
+        /// The registered names are listed with the first occurrence because
+        /// the interesting part is almost always how the arriving name differs
+        /// from them, and rate limited afterwards because an unroutable data
+        /// set produces one of these per sample.
+        /// </remarks>
+        /// <param name="dataSetName">The data set that has no source.</param>
+        private void ReportUnroutable(string dataSetName)
+        {
+            var total = Interlocked.Increment(ref _unroutableCount);
+            if (_logger is null)
+            {
+                return;
+            }
+            if (_unroutableNames.TryAdd(dataSetName, 0))
+            {
+                _logger.NotificationHasNoDataSetSource(dataSetName,
+                    string.Join(", ", _sources.Keys.Order()));
+                return;
+            }
+            //
+            // Powers of ten rather than a timer, so a steady drop stays quiet
+            // while its scale is still visible in the log.
+            //
+            if (total % 1000 == 0)
+            {
+                _logger.NotificationsStillUnroutable(total, dataSetName);
             }
         }
 
@@ -606,7 +653,11 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         private readonly IManagedPubSubNotificationBuffer _notifications;
         private readonly ConcurrentDictionary<string, RoutedDataSource> _sources =
             new(StringComparer.Ordinal);
+        private readonly ConcurrentDictionary<string, byte> _unroutableNames =
+            new(StringComparer.Ordinal);
+        private readonly ILogger? _logger;
         private readonly int _capacity;
+        private long _unroutableCount;
         private Task? _dispatch;
     }
 
@@ -1373,5 +1424,27 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             private bool _installed;
             private bool _completed;
         }
+    }
+
+    /// <summary>
+    /// Source-generated logging definitions for the managed notification
+    /// routing.
+    /// </summary>
+    internal static partial class ManagedNotificationBufferLogging
+    {
+        private const int EventClass = 780;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Warning,
+            Message = "Notifications arrived for data set {DataSetName} but nothing is " +
+            "publishing it, so they are being discarded. Data sets with a source: " +
+            "[{Registered}].")]
+        public static partial void NotificationHasNoDataSetSource(this ILogger logger,
+            string dataSetName, string registered);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Warning,
+            Message = "{Count} notifications discarded so far because no data set source " +
+            "is publishing them (most recently {DataSetName}).")]
+        public static partial void NotificationsStillUnroutable(this ILogger logger,
+            long count, string dataSetName);
     }
 }

@@ -75,6 +75,59 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             InitializeMetrics();
         }
 
+        /// <summary>
+        /// Expand a writer group's writers the way the data source will run
+        /// them, so that anything downstream sees the same writers.
+        /// </summary>
+        /// <remarks>
+        /// A routing mode turns one configured writer into one writer per
+        /// published item, each with its own topic, and until now that
+        /// happened only inside this class when the group was started. The
+        /// native PubSub host registers a data set source per writer from the
+        /// model it is handed, so it was told about the unexpanded writer and
+        /// then silently discarded every notification the expanded ones
+        /// produced - the publisher looked healthy and published nothing.
+        /// </remarks>
+        /// <param name="writerGroup">The group to expand.</param>
+        /// <param name="options">Publisher options supplying the defaults.</param>
+        internal static WriterGroupModel ExpandRouting(WriterGroupModel writerGroup,
+            PublisherOptions options)
+        {
+            ArgumentNullException.ThrowIfNull(writerGroup);
+            ArgumentNullException.ThrowIfNull(options);
+            if (writerGroup.DataSetWriters is not { Count: > 0 } writers)
+            {
+                return writerGroup;
+            }
+            var expanded = new List<DataSetWriterModel>(writers.Count);
+            var changed = false;
+            foreach (var writer in writers)
+            {
+                if (writer?.DataSet?.DataSetSource is null)
+                {
+                    expanded.Add(writer!);
+                    continue;
+                }
+                var partitions = DataSetWriter.Expand(options, writerGroup,
+                    writerGroup.Id, writer).ToList();
+                //
+                // A writer that does not route expands to itself, and the
+                // common case must stay identical: writer ids key the durable
+                // identity registry, so a rewrite that changed them for no
+                // reason would move identities across an upgrade.
+                //
+                if (partitions.Count == 1 &&
+                    string.Equals(partitions[0].Id, writer.Id, StringComparison.Ordinal))
+                {
+                    expanded.Add(writer);
+                    continue;
+                }
+                changed = true;
+                expanded.AddRange(partitions);
+            }
+            return changed ? writerGroup with { DataSetWriters = expanded } : writerGroup;
+        }
+
         /// <inheritdoc/>
         public async ValueTask StartAsync(CancellationToken ct)
         {

@@ -395,7 +395,11 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                     throw new InvalidOperationException(
                         $"Writer group '{writerGroup.Id}' has writer-specific egress settings. "
                         + "The native runtime emits a group network message, so it cannot "
-                        + "silently split that message across topics or QoS queues.");
+                        + "silently split that message across topics or QoS queues. "
+                        + $"Group '{Describe(writerGroup.Publishing)}'; "
+                        + $"{writerGroup.DataSetWriters?.Count ?? 0} writer(s): "
+                        + string.Join(", ", (writerGroup.DataSetWriters ?? [])
+                            .Select(w => $"{w.Id} '{Describe(w.Publishing)}'")));
                 }
             }
 
@@ -484,6 +488,23 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 && left.RequestedDeliveryGuarantee == right.RequestedDeliveryGuarantee
                 && left.Retain == right.Retain
                 && left.Ttl == right.Ttl;
+        }
+
+        /// <summary>
+        /// Describe a destination for a diagnostic, in the same terms the
+        /// comparison uses, so a rejection says which of them differed.
+        /// </summary>
+        /// <param name="settings"></param>
+        private static string Describe(PublishingQueueSettingsModel? settings)
+        {
+            if (settings is null)
+            {
+                return "<none>";
+            }
+            return $"queue={settings.QueueName ?? "<null>"}, " +
+                $"qos={settings.RequestedDeliveryGuarantee?.ToString() ?? "<null>"}, " +
+                $"retain={settings.Retain?.ToString() ?? "<null>"}, " +
+                $"ttl={settings.Ttl?.ToString() ?? "<null>"}";
         }
 
         private static string? ToPropertyValue(JsonNode? value)
