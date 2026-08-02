@@ -15,69 +15,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
     /// <summary>
     /// Selects and configures the event client a writer group publishes
-    /// through, and resolves the limits that bound how much it publishes at a
-    /// time.
+    /// through.
     /// </summary>
     /// <remarks>
     /// This is how a writer group's <c>Transport</c> and
     /// <c>TransportConfiguration</c> become an actual client, including the
     /// factory-created client a group-specific configuration asks for and the
-    /// scope that owns it. It was a nested type of the custom encoder's sink;
-    /// the native PubSub egress resolves its client the same way, so it
-    /// outlived the sink and now stands on its own.
+    /// scope that owns it.
+    ///
+    /// It was a nested type of the custom encoder's sink and also computed
+    /// that sink's batching and queue limits. Those went with the sink: the
+    /// native runtime emits a message per sample rather than batching, and its
+    /// send queue is bounded by the egress options instead. Only the client
+    /// selection outlived it.
     /// </remarks>
-    internal record class WriterGroupTransportOptions : IDisposable
+    internal sealed record class WriterGroupTransportOptions : IDisposable
     {
         /// <summary>
         /// Event client selected
         /// </summary>
         public IEventClient EventClient { get; }
-
-        /// <summary>
-        /// Notifications per message
-        /// </summary>
-        public int MaxNotificationsPerMessage { get; }
-
-        /// <summary>
-        /// Max network messages
-        /// </summary>
-        public int MaxNetworkMessageSize { get; }
-
-        /// <summary>
-        /// Max publish queue size
-        /// </summary>
-        public int MaxPublishQueueSize { get; }
-
-        /// <summary>
-        /// Max batch trigger interval
-        /// </summary>
-        public TimeSpan BatchTriggerInterval { get; }
-
-        /// <summary>
-        /// Iot edge configured
-        /// </summary>
-        public bool IsIoTEdge
-            => EventClient.Name.Equals(nameof(WriterGroupTransport.IoTHub),
-                    StringComparison.OrdinalIgnoreCase);
-
-        /// <summary>
-        /// Max publish queue partitions
-        /// </summary>
-        public int MaxPublishQueuePartitions { get; }
-
-        /// <summary>
-        /// Create null options
-        /// </summary>
-        public WriterGroupTransportOptions()
-        {
-            EventClient = new NullEventClient();
-        }
-
-        /// <inheritdoc/>
-        public void Dispose()
-        {
-            _scope?.Dispose();
-        }
 
         /// <summary>
         /// Create options
@@ -100,106 +57,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         StringComparison.OrdinalIgnoreCase))
                 ?? eventClients[0];
 
-            if (!string.IsNullOrEmpty(writerGroup.TransportConfiguration))
+            if (string.IsNullOrEmpty(writerGroup.TransportConfiguration))
             {
-                if (!factories.TryGetValue(EventClient.Name, out var factory))
-                {
-                    logger.CustomWriterGroupConfigurationCouldNotBeApplied(
-                        EventClient.Name);
-                }
-                else
-                {
-                    // Create event client with configuration from factory.
-                    try
-                    {
-                        _scope = factory.CreateEventClient(
-                            writerGroup.TransportConfiguration, out var client);
-
-                        EventClient = client;
-                        logger.UsingTransportWithCustomWriterGroupConfiguration(
-                            EventClient.Name);
-                    }
-                    catch (Exception e)
-                    {
-                        logger.CustomWriterGroupConfigurationCouldNotBeAppliedWithError(
-                            EventClient.Name, e.Message);
-                    }
-                }
+                return;
             }
-
-            MaxNotificationsPerMessage = (int?)writerGroup.NotificationPublishThreshold
-                ?? options.Value.BatchSize ?? 0;
-            MaxNetworkMessageSize = (int?)writerGroup.MaxNetworkMessageSize
-                ?? options.Value.MaxNetworkMessageSize ?? 0;
-
-            if (MaxNetworkMessageSize <= 0)
+            if (!factories.TryGetValue(EventClient.Name, out var factory))
             {
-                MaxNetworkMessageSize = int.MaxValue;
+                logger.CustomWriterGroupConfigurationCouldNotBeApplied(
+                    EventClient.Name);
+                return;
             }
-            if (MaxNetworkMessageSize > EventClient.MaxEventPayloadSizeInBytes)
+            // Create event client with configuration from factory.
+            try
             {
-                MaxNetworkMessageSize = EventClient.MaxEventPayloadSizeInBytes;
-            }
+                _scope = factory.CreateEventClient(
+                    writerGroup.TransportConfiguration, out var client);
 
-            BatchTriggerInterval = writerGroup.PublishingInterval
-                ?? options.Value.BatchTriggerInterval ?? TimeSpan.Zero;
-            //
-            // If the max notification per message is 1 then there is no need to
-            // have an interval publishing as the messages are emitted as soon
-            // as they arrive anyway
-            //
-            if (MaxNotificationsPerMessage == 1)
+                EventClient = client;
+                logger.UsingTransportWithCustomWriterGroupConfiguration(
+                    EventClient.Name);
+            }
+            catch (Exception e)
             {
-                BatchTriggerInterval = TimeSpan.Zero;
+                logger.CustomWriterGroupConfigurationCouldNotBeAppliedWithError(
+                    EventClient.Name, e.Message);
             }
-            MaxPublishQueueSize = (int?)writerGroup.PublishQueueSize
-                ?? options.Value.MaxNetworkMessageSendQueueSize ?? kMaxQueueSize;
-
-            //
-            // If undefined, set notification buffer to 1 if no publishing interval
-            // otherwise queue as much as reasonable
-            //
-            if (MaxNotificationsPerMessage <= 0)
-            {
-                MaxNotificationsPerMessage = BatchTriggerInterval == TimeSpan.Zero ?
-                    1 : MaxPublishQueueSize;
-            }
-
-            MaxPublishQueuePartitions = writerGroup.PublishQueuePartitions ??
-                options.Value.DefaultWriterGroupPartitions ?? 0;
         }
 
-        /// <summary>
-        /// Log the transportation options
-        /// </summary>
-        /// <param name="writerGroup"></param>
-        /// <param name="logger"></param>
-        public void Log(WriterGroupModel writerGroup, ILogger logger)
+        /// <inheritdoc/>
+        public void Dispose()
         {
-            var interval = BatchTriggerInterval == TimeSpan.Zero ?
-                "as soon as they arrive" : $"every {BatchTriggerInterval} (hh:mm:ss)";
-            var batching = MaxNotificationsPerMessage == 1 ?
-                "and individually" :
-                $"or when a batch of {MaxNotificationsPerMessage} notifications is ready";
-            var maxSize = MaxNetworkMessageSize == int.MaxValue ?
-                "unlimited size" : $"at most {MaxNetworkMessageSize / 1024} kb";
-
-            logger.WriterGroupSetup(
-                writerGroup.Name ?? Constants.DefaultWriterGroupName,
-                interval,
-                batching,
-                maxSize,
-                EventClient.Name,
-                writerGroup.HeaderLayoutUri ?? "unknown",
-                writerGroup.MessageType ?? MessageEncoding.Json,
-                MaxPublishQueueSize);
+            _scope?.Dispose();
         }
 
-        /// <summary>
-        /// With 256k limit this is 1 GB.
-        /// TODO: Must be related to the actual limit size
-        /// </summary>
-        private const int kMaxQueueSize = 4096;
         private readonly IDisposable? _scope;
     }
 
@@ -209,14 +99,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
     internal static partial class WriterGroupTransportLogging
     {
         private const int EventClass = 200;
-
-        [LoggerMessage(EventId = EventClass + 12, Level = LogLevel.Information,
-            Message = "Writer group {WriterGroup} set up to publish notifications {Interval} {Batching} with {MaxSize} to" +
-            " {Transport} with {HeaderLayout} layout and {MessageType} encoding (queuing at most {MaxQueueSize} subscription" +
-            " notifications)...")]
-        public static partial void WriterGroupSetup(this ILogger logger, string writerGroup, string interval,
-            string batching, string maxSize, string transport, string headerLayout,
-            MessageEncoding messageType, int maxQueueSize);
 
         [LoggerMessage(EventId = EventClass + 13, Level = LogLevel.Information,
             Message = "Using transport {Transport} with custom writer group configuration.")]

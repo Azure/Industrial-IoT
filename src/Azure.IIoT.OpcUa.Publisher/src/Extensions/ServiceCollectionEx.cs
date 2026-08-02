@@ -141,6 +141,8 @@ namespace Azure.IIoT.OpcUa.Publisher
                 static sp => sp.GetRequiredService<NativePubSubEventClientSelector>(),
                 static (sp, options) =>
                 {
+                    var publisherOptions = sp
+                        .GetRequiredService<IOptions<PublisherOptions>>().Value;
                     //
                     // PublishMessageSchema gates whether schema options are
                     // bound at all, so their presence is the signal that the
@@ -148,9 +150,25 @@ namespace Azure.IIoT.OpcUa.Publisher
                     // transport cannot carry one, the egress drops the schema
                     // with a warning rather than refusing to publish.
                     //
-                    options.IncludeSchema = sp
-                        .GetRequiredService<IOptions<PublisherOptions>>()
-                        .Value.SchemaOptions is not null;
+                    options.IncludeSchema = publisherOptions.SchemaOptions is not null;
+                    //
+                    // The egress queue is what stands between a broker that
+                    // has stopped answering and unbounded growth, and its
+                    // depth is the operator's tuning knob for that - a bigger
+                    // queue rides out a longer outage, a smaller one applies
+                    // backpressure to the subscription sooner. It was left at
+                    // its built-in default, so the option said one thing and
+                    // the publisher did another - and the built-in default was
+                    // 64 where the writer path queued 4096.
+                    //
+                    // A non-positive value is treated as unset rather than as
+                    // a queue of nothing, because the egress rejects a
+                    // capacity of zero outright.
+                    //
+                    options.QueueCapacity =
+                        publisherOptions.MaxNetworkMessageSendQueueSize is > 0 and var queue
+                            ? queue
+                            : PublisherConfig.MaxNetworkMessageSendQueueSizeDefault;
                 });
 
             services.AddWriterGroupProcessing();

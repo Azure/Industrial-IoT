@@ -136,6 +136,50 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 scope.ServiceProvider.GetRequiredService<IMessageSink>());
         }
 
+        [Theory]
+        [InlineData("512", 512)]
+        [InlineData("1", 1)]
+        public async Task SendQueueSizeReachesTheEgressAsync(string configured, int expected)
+        {
+            //
+            // The egress queue is what stands between a broker that has
+            // stopped answering and unbounded growth, and its depth is the
+            // operator's knob for that. It was left at the egress default, so
+            // --om documented a bound the publisher never applied.
+            //
+            await using var provider = CreateProvider(new Dictionary<string, string?>
+            {
+                [PublisherConfig.MaxNetworkMessageSendQueueSizeKey] = configured
+            });
+
+            var registration = provider.GetRequiredService<PubSubShadowEgressRegistration>();
+
+            Assert.Equal(expected, registration.Options.QueueCapacity);
+        }
+
+        [Fact]
+        public async Task SendQueueSizeFallsBackToTheDocumentedDefaultAsync()
+        {
+            //
+            // Zero means unset rather than a queue of nothing - a capacity of
+            // zero is rejected by the egress outright - and unset must mean the
+            // default the option documents, not whatever the egress happens to
+            // start with.
+            //
+            await using var unset = CreateProvider(new Dictionary<string, string?>());
+            await using var zero = CreateProvider(new Dictionary<string, string?>
+            {
+                [PublisherConfig.MaxNetworkMessageSendQueueSizeKey] = "0"
+            });
+
+            Assert.Equal(PublisherConfig.MaxNetworkMessageSendQueueSizeDefault,
+                unset.GetRequiredService<PubSubShadowEgressRegistration>()
+                    .Options.QueueCapacity);
+            Assert.Equal(PublisherConfig.MaxNetworkMessageSendQueueSizeDefault,
+                zero.GetRequiredService<PubSubShadowEgressRegistration>()
+                    .Options.QueueCapacity);
+        }
+
         private static ServiceProvider CreateProvider(
             Dictionary<string, string?> configurationValues)
         {
