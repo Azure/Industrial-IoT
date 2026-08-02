@@ -981,17 +981,30 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             CancellationToken cancellationToken)
         {
             ValidateTombstoneCapability(eventClient);
+            //
+            // Only retain is load-bearing here: a tombstone is an empty
+            // retained message whose entire purpose is to clear the retained
+            // one underneath it. The content type annotates a body that does
+            // not exist, so requiring it refused the whole configuration
+            // replacement on a transport that simply has no such field - MQTT
+            // 3.1.1 has neither content type nor user properties, and the
+            // writer path published over it happily by leaving them out.
+            //
             ValidateCapabilities(eventClient, EventClientCapabilities.Payload
-                | EventClientCapabilities.Topic | EventClientCapabilities.Retain
-                | EventClientCapabilities.ContentType);
+                | EventClientCapabilities.Topic | EventClientCapabilities.Retain);
+            var annotate = eventClient is IEventClientCapabilities declared
+                && (declared.Capabilities & EventClientCapabilities.ContentType) != 0;
             using var @event = eventClient.CreateEvent();
             var configured = @event
                 .SetTimestamp(timeProvider.GetUtcNow())
                 .SetTopic(topic)
-                .SetContentType(settings.ContentType)
                 .SetRetain(true)
                 .SetQoS(settings.QualityOfService)
                 .AddBuffers([ReadOnlySequence<byte>.Empty]);
+            if (annotate)
+            {
+                configured = configured.SetContentType(settings.ContentType);
+            }
             if (settings.TimeToLive.HasValue)
             {
                 configured = configured.SetTtl(settings.TimeToLive.Value);

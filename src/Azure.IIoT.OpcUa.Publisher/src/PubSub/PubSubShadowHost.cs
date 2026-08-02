@@ -317,11 +317,22 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                             replacement, _egress.Settings.Snapshot());
                         foreach (var tombstone in tombstones)
                         {
+                            //
+                            // Checked against what a tombstone actually needs,
+                            // not against the telemetry requirements of the
+                            // writer it belongs to. An empty retained message
+                            // needs a topic and retain; content type and custom
+                            // properties annotate a body it does not have, and
+                            // demanding them refused the whole configuration
+                            // replacement on MQTT 3.1.1, which has neither.
+                            //
                             EventClientPubSubTransportFactory.ValidateTombstoneCapability(
                                 tombstone.Settings.EventClient);
                             EventClientPubSubTransportFactory.ValidateCapabilities(
                                 tombstone.Settings.EventClient,
-                                tombstone.Settings.RequiredCapabilities);
+                                EventClientCapabilities.Payload
+                                    | EventClientCapabilities.Topic
+                                    | EventClientCapabilities.Retain);
                         }
                         egressGeneration = _egress.Tombstones.NextGeneration();
                         foreach (var topic in GetRetainedMetaDataTopics(replacement,
