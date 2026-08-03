@@ -186,6 +186,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
         /// <param name="endpointUrl"></param>
         /// <param name="applicationUri"></param>
         /// <param name="metaData"></param>
+        /// <param name="heartbeat"></param>
         /// <param name="message"></param>
         /// <returns></returns>
         public static bool TryCreateDataSetMessage(MessageEncoding encoding,
@@ -194,7 +195,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
             MessageType messageType, DataSet payload, DateTimeOffset? timestamp,
             uint sequenceNumber, bool standardsCompliant, string? endpointUrl,
             string? applicationUri, PublishedDataSetMetaDataModel? metaData,
-            [NotNullWhen(true)] out BaseDataSetMessage? message)
+            bool heartbeat, [NotNullWhen(true)] out BaseDataSetMessage? message)
         {
             dataSetMessageContentFlags ??= DefaultDataSetMessageContentFlags;
             var version = new Opc.Ua.ConfigurationVersionDataType
@@ -210,6 +211,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                     UseCompatibilityMode = !standardsCompliant,
                     DataSetWriterName = dataSetWriterName,
                     DataSetWriterId = dataSetWriterId,
+                    Heartbeat = heartbeat,
                     MessageType = messageType,
                     MetaDataVersion = version,
                     ApplicationUri = applicationUri,
