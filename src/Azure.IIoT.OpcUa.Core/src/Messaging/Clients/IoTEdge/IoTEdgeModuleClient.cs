@@ -11,6 +11,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
+    using System.Diagnostics.CodeAnalysis;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
@@ -18,6 +19,16 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
     /// <summary>
     /// Shared IoTHubby module client holder.
     /// </summary>
+    /// <remarks>
+    /// Excluded from coverage. Every member either constructs or delegates to a
+    /// concrete <c>IoTHubModuleClient</c>, which is sealed and built internally
+    /// with no factory or interface to substitute, so nothing here is reachable
+    /// without a live IoT Edge runtime. Introducing a seam purely to measure it
+    /// was judged the larger risk at release-candidate stage; the trade is
+    /// recorded here rather than hidden in a coverage filter.
+    /// </remarks>
+    [ExcludeFromCodeCoverage(Justification =
+        "Wraps the sealed IoTHubModuleClient; reachable only against a live edge runtime.")]
     public sealed class IoTEdgeModuleClient : IAsyncDisposable
     {
         /// <summary>

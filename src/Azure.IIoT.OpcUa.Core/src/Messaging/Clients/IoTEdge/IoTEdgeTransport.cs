@@ -12,6 +12,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
     using global::IoTHubby;
     using Microsoft.Extensions.Logging;
     using System;
+    using System.Diagnostics.CodeAnalysis;
     using System.Buffers;
     using System.Collections.Generic;
     using System.Linq;
@@ -22,6 +23,13 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
     /// <summary>
     /// IoT Hub/Edge transport backed by IoTHubby.
     /// </summary>
+    /// <remarks>
+    /// Excluded from coverage for the same reason as
+    /// <see cref="IoTEdgeModuleClient"/>: every path runs through that sealed
+    /// client, so none of it is reachable without a live IoT Edge runtime.
+    /// </remarks>
+    [ExcludeFromCodeCoverage(Justification =
+        "Runs entirely through the sealed IoTEdgeModuleClient; reachable only against a live edge runtime.")]
     public sealed class IoTEdgeTransport : IEventClient, IEventSubscriber,
         IRpcServer, IRpcClient, IProcessIdentity, IEventClientCapabilities,
         IAsyncDisposable

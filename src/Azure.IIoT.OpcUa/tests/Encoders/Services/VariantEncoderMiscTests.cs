@@ -10,6 +10,7 @@ namespace Azure.IIoT.OpcUa.Encoders
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using System.Xml;
+    using System.Text.Json;
     using System.Text.Json.Nodes;
     using Xunit;
 
@@ -285,5 +286,108 @@ namespace Azure.IIoT.OpcUa.Encoders
             Assert.Equal((int)reversible, (int)defaulted);
         }
 
+        [Fact]
+        public void EncodeNullVariantReturnsNullAndNullBuiltInType()
+        {
+            var codec = new JsonVariantEncoder(new ServiceMessageContext());
+
+            var encoded = codec.Encode(null, out var builtInType);
+
+            Assert.Null(encoded);
+            Assert.Equal(BuiltInType.Null, builtInType);
+        }
+
+        [Theory]
+        [InlineData(9223372036854775807L)]
+        [InlineData(-9223372036854775808L)]
+        public void EncodeInt64KeepsJsonNumberContract(long value)
+        {
+            var codec = new JsonVariantEncoder(new ServiceMessageContext());
+
+            var encoded = codec.Encode(new Variant(value), out var builtInType);
+
+            Assert.Equal(BuiltInType.Int64, builtInType);
+            Assert.NotNull(encoded);
+            var jsonValue = Assert.IsType<JsonValue>(encoded);
+            Assert.Equal(JsonValueKind.Number, jsonValue.GetValueKind());
+            Assert.Equal(value, jsonValue.GetValue<long>());
+        }
+
+        [Fact]
+        public void EncodeUInt64ArrayKeepsJsonNumberContract()
+        {
+            var codec = new JsonVariantEncoder(new ServiceMessageContext());
+
+            var encoded = codec.Encode(new Variant(new ulong[] { 1, ulong.MaxValue }),
+                out var builtInType);
+
+            var array = Assert.IsType<JsonArray>(encoded);
+            Assert.Equal(BuiltInType.UInt64, builtInType);
+            Assert.Equal(1ul, array[0]!.GetValue<ulong>());
+            Assert.Equal(ulong.MaxValue, array[1]!.GetValue<ulong>());
+        }
+
+        [Fact]
+        public void EncodeNonReversibleReturnsBodyWithoutVariantEnvelope()
+        {
+            var codec = new JsonVariantEncoder(new ServiceMessageContext());
+
+            var encoded = codec.Encode(new Variant(42), out var builtInType,
+                ValueEncoding.NonReversible);
+
+            Assert.Equal(BuiltInType.Int32, builtInType);
+            Assert.NotNull(encoded);
+            Assert.Equal(42, encoded!.GetValue<int>());
+        }
+
+        [Theory]
+        [InlineData("""{"Type":"Int64","Body":9223372036854775807}""",
+            9223372036854775807L)]
+        [InlineData("""{"DataType":"Int64","Value":"9223372036854775807"}""",
+            9223372036854775807L)]
+        [InlineData("""{"type":8,"body":-12}""", -12L)]
+        [InlineData("""{"TYPE":"8","BODY":"-12"}""", -12L)]
+        public void DecodeAcceptsLegacyVariantEnvelopeShapes(string json, long expected)
+        {
+            var codec = new JsonVariantEncoder(new ServiceMessageContext());
+
+            var variant = codec.Decode(JsonNode.Parse(json), BuiltInType.Variant);
+
+            Assert.Equal(new Variant(expected), variant);
+        }
+
+        [Fact]
+        public void DecodeLeavesAlreadyNormalizedVariantEnvelopeToDecoder()
+        {
+            var codec = new JsonVariantEncoder(new ServiceMessageContext());
+            var json = JsonNode.Parse("""{"UaType":6,"Value":123}""");
+
+            var variant = codec.Decode(json, BuiltInType.Variant);
+
+            Assert.Equal(new Variant(123), variant);
+        }
+
+        [Theory]
+        [InlineData("true", true)]
+        [InlineData("false", false)]
+        public void DecodeBareBooleanDefaultTypesVariant(string json, bool expected)
+        {
+            var codec = new JsonVariantEncoder(new ServiceMessageContext());
+
+            var variant = codec.Decode(JsonNode.Parse(json), BuiltInType.Variant);
+
+            Assert.Equal(new Variant(expected), variant);
+        }
+
+        [Fact]
+        public void DecodeBareStringArrayDefaultTypesVariant()
+        {
+            var codec = new JsonVariantEncoder(new ServiceMessageContext());
+
+            var variant = codec.Decode(JsonNode.Parse("""["a","b"]"""),
+                BuiltInType.Variant);
+
+            Assert.Equal(new Variant(new[] { "a", "b" }), variant);
+        }
     }
 }

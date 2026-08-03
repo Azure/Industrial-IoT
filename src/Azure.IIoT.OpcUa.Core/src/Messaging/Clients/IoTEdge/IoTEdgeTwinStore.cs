@@ -8,6 +8,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
     using Azure.IIoT.OpcUa.Core.Messaging.Clients.Dapr;
     using Microsoft.Extensions.Logging;
     using System;
+    using System.Diagnostics.CodeAnalysis;
     using System.Collections.Generic;
     using System.Text.Json.Nodes;
     using System.Threading;
@@ -16,6 +17,15 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
     /// <summary>
     /// IoT Hub twin reported-property state store.
     /// </summary>
+    /// <remarks>
+    /// Excluded from coverage for the same reason as
+    /// <see cref="IoTEdgeModuleClient"/>. The syncing behaviour it inherits is
+    /// covered on the base <see cref="SyncingKeyValueStore"/>, which is
+    /// testable; what remains here is the twin traffic through that sealed
+    /// client.
+    /// </remarks>
+    [ExcludeFromCodeCoverage(Justification =
+        "Twin traffic through the sealed IoTEdgeModuleClient; the syncing behaviour is covered on the base class.")]
     public sealed class IoTEdgeTwinStore : SyncingKeyValueStore
     {
         /// <inheritdoc/>

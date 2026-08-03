@@ -7,9 +7,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
 {
     using Azure.IIoT.OpcUa.Publisher.Models;
     using Azure.IIoT.OpcUa.Publisher.Stack;
+    using Azure.IIoT.OpcUa.Publisher.Stack.Services;
     using Azure.IIoT.OpcUa.Core.Exceptions;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging.Abstractions;
+    using Microsoft.Extensions.Options;
     using Opc.Ua;
     using System;
     using System.Linq;
@@ -18,8 +21,76 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
     using System.Threading.Tasks;
     using Xunit;
 
-    public class OpcUaApplicationTests
+    public sealed class OpcUaApplicationTests
     {
+        [Theory]
+        [InlineData("Application certificate missing")]
+        [InlineData("Trusted issuer certificates missing")]
+        [InlineData("Trusted peer certificates missing")]
+        [InlineData("Rejected certificate store missing")]
+        [InlineData("Trusted user certificates store missing")]
+        [InlineData("Https issuer certificate store missing")]
+        [InlineData("Trusted https certificates store missing")]
+        [InlineData("User issuer certificates store missing")]
+        public void ConstructorRejectsIncompleteSecurityOptions(string expectedMessage)
+        {
+            var options = CreateClientOptions();
+            switch (expectedMessage)
+            {
+                case "Application certificate missing":
+                    options.Security.ApplicationCertificates = null;
+                    break;
+                case "Trusted issuer certificates missing":
+                    options.Security.TrustedIssuerCertificates = null;
+                    break;
+                case "Trusted peer certificates missing":
+                    options.Security.TrustedPeerCertificates = null;
+                    break;
+                case "Rejected certificate store missing":
+                    options.Security.RejectedCertificateStore = null;
+                    break;
+                case "Trusted user certificates store missing":
+                    options.Security.TrustedUserCertificates = null;
+                    break;
+                case "Https issuer certificate store missing":
+                    options.Security.HttpsIssuerCertificates = null;
+                    break;
+                case "Trusted https certificates store missing":
+                    options.Security.TrustedHttpsCertificates = null;
+                    break;
+                default:
+                    options.Security.UserIssuerCertificates = null;
+                    break;
+            }
+
+            var exception = Assert.Throws<ArgumentException>(() =>
+                new OpcUaApplication(Options.Create(options),
+                    NullLogger<OpcUaApplication>.Instance));
+
+            Assert.Equal("options", exception.ParamName);
+            Assert.Equal(expectedMessage + " (Parameter 'options')",
+                exception.Message);
+        }
+
+        [Fact]
+        public void ConstructorRejectsApplicationCertificateWithoutSubject()
+        {
+            var options = CreateClientOptions();
+            options.Security.ApplicationCertificates = new CertificateInfo
+            {
+                StorePath = "pki\\own",
+                StoreType = "Directory"
+            };
+
+            var exception = Assert.Throws<ArgumentException>(() =>
+                new OpcUaApplication(Options.Create(options),
+                    NullLogger<OpcUaApplication>.Instance));
+
+            Assert.Equal("options", exception.ParamName);
+            Assert.StartsWith("Application certificate missing", exception.Message,
+                StringComparison.Ordinal);
+        }
+
         [Fact]
         public async Task GetApplicationCertificateTest1Async()
         {
@@ -408,6 +479,38 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack
             var req = new CertificateRequest("DC=" + name, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pss);
             req.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature, false));
             return req.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddHours(5));
+        }
+
+        private static OpcUaClientOptions CreateClientOptions()
+        {
+            static CertificateStore Store(string path)
+            {
+                return new CertificateStore
+                {
+                    StorePath = path,
+                    StoreType = "Directory"
+                };
+            }
+
+            return new OpcUaClientOptions
+            {
+                Security =
+                {
+                    ApplicationCertificates = new CertificateInfo
+                    {
+                        SubjectName = "CN=OpcUaApplicationTests",
+                        StorePath = "pki\\own",
+                        StoreType = "Directory"
+                    },
+                    TrustedIssuerCertificates = Store("pki\\issuer"),
+                    TrustedPeerCertificates = Store("pki\\trusted"),
+                    RejectedCertificateStore = Store("pki\\rejected"),
+                    TrustedUserCertificates = Store("pki\\user"),
+                    HttpsIssuerCertificates = Store("pki\\httpsissuer"),
+                    TrustedHttpsCertificates = Store("pki\\https"),
+                    UserIssuerCertificates = Store("pki\\userissuer")
+                }
+            };
         }
 
         private static ServiceProvider Build()
