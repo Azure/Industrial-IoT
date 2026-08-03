@@ -68,6 +68,7 @@ The following table shows the supported features of OPC Publisher and planned fe
 | | Heartbeat (Periodic resending of last known value) |X|X||
 | | Configurable heartbeat behavior (LKG, LKV) ||X||
 | | Heartbeat message timestamp source configuration ||X||
+| | [Heartbeat indicator](./readme.md#heartbeat-indicator) in Json messages ||X||
 | Subscribe to [events](./readme.md#configuring-event-subscriptions) |||||
 | | Using browse path to event notifier |-|X||
 | | Simple (get all events of a type from event notifier)|-|X||
