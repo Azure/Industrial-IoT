@@ -392,68 +392,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         private bool _metaDataDisabled;
 
         /// <summary>
-        /// Whether the run publishes through the native OPC UA PubSub runtime
-        /// rather than the custom encoder.
-        /// </summary>
-        /// <remarks>
-        /// A handful of tests assert a wire shape that the two paths spell
-        /// differently, because the native runtime follows the 1.05
-        /// specification where the custom encoder kept the 1.04 or a legacy
-        /// Publisher form. Those tests assert both, in full, so neither path is
-        /// weakened. When the native path becomes the default the legacy branch
-        /// and this property go away together.
-        ///
-        /// The native path is now the default, so a run that does not select a
-        /// path is a native run. This deliberately reads the same default the
-        /// product applies rather than assuming the legacy shape, because the
-        /// two disagreeing silently would make every one of those assertions
-        /// check the wrong path's spelling.
-        /// </remarks>
-        protected static bool UsesNativePubSub =>
-            NativePubSubSelected ?? PublisherConfig.UseNativePubSubDefault;
-
-        /// <summary>
-        /// How the run selected the telemetry path, or null when it did not
-        /// select one and the product default applies.
-        /// </summary>
-        /// <remarks>
-        /// Parsed once so the argument handed to the publisher and the shape
-        /// the assertions expect can never disagree. An unparseable value is
-        /// rejected loudly here: forwarding it verbatim made the publisher
-        /// fail its own argument parsing during startup, which takes the whole
-        /// test host down with an error that names neither this variable nor
-        /// the value that set it.
-        /// </remarks>
-        private static bool? NativePubSubSelected
-        {
-            get
-            {
-                var value = Environment.GetEnvironmentVariable(
-                    "IIOT_TEST_USE_NATIVE_PUBSUB");
-                if (string.IsNullOrWhiteSpace(value))
-                {
-                    return null;
-                }
-                value = value.Trim();
-                if (bool.TryParse(value, out var parsed))
-                {
-                    return parsed;
-                }
-                if (value is "1" or "yes" or "on")
-                {
-                    return true;
-                }
-                if (value is "0" or "no" or "off")
-                {
-                    return false;
-                }
-                throw new InvalidOperationException(
-                    $"IIOT_TEST_USE_NATIVE_PUBSUB is set to '{value}', which is " +
-                    "not a boolean. Use True or False.");
-            }
-        }
-
-        /// <summary>
         /// Start publisher
         /// </summary>
         /// <param name="test"></param>
@@ -483,18 +421,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
                 },
             ];
 
-            //
-            // Selects the telemetry path for a whole run without a code change,
-            // so the same suite validates the custom and the native encoder and
-            // CI can run both. A test that names the path itself keeps it, which
-            // is what lets the wire parity gate capture both paths in one run.
-            //
-            var nativePubSub = NativePubSubSelected;
-            if (nativePubSub != null &&
-                !arguments.Any(argument => argument.StartsWith("--unp", StringComparison.Ordinal)))
-            {
-                arguments = [.. arguments, "--unp=" + nativePubSub.Value];
-            }
             // Use the polling file-change watcher on all platforms in tests.
             // The native FileSystemWatcher's change-notification callback can
             // hit an access violation under the heavy create/modify/delete and

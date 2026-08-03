@@ -276,13 +276,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 var currentStep = BasicPubSubIntegrationTests.AssertDataValue(
                     body.GetProperty(BasicPubSubIntegrationTests.CurrentStepUri), 22,
                     "ExtensionObject");
-                if (!UsesNativePubSub)
-                {
-                    Assert.Equal("http://opcfoundation.org/SimpleEvents#i=183",
-                        currentStep.GetProperty("TypeId").GetString());
-                    Assert.Equal("Json", currentStep.GetProperty("Encoding").GetString());
-                    currentStep = currentStep.GetProperty("Body");
-                }
                 Assert.Equal(JsonValueKind.String, currentStep.GetProperty("Name").ValueKind);
                 Assert.Equal(JsonValueKind.Number, currentStep.GetProperty("Duration").ValueKind);
             });

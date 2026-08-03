@@ -236,13 +236,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 
                 var currentStep = AssertDataValue(body.GetProperty(CurrentStepUri), 22,
                     "ExtensionObject");
-                if (!UsesNativePubSub)
-                {
-                    Assert.Equal("http://opcfoundation.org/SimpleEvents#i=183",
-                        currentStep.GetProperty("TypeId").GetString());
-                    Assert.Equal("Json", currentStep.GetProperty("Encoding").GetString());
-                    currentStep = currentStep.GetProperty("Body");
-                }
                 Assert.Equal(JsonValueKind.String, currentStep.GetProperty("Name").ValueKind);
                 Assert.Equal(JsonValueKind.Number, currentStep.GetProperty("Duration").ValueKind);
             });
@@ -319,11 +312,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 
                 var currentStep = AssertDataValue(body.GetProperty(CurrentStepExpanded), 22,
                     "ExtensionObject");
-                if (!UsesNativePubSub)
-                {
-                    Assert.Equal(183, currentStep.GetProperty("TypeId").GetProperty("Id").GetInt32());
-                    currentStep = currentStep.GetProperty("Body");
-                }
                 Assert.Equal(JsonValueKind.String, currentStep.GetProperty("Name").ValueKind);
                 Assert.Equal(JsonValueKind.Number, currentStep.GetProperty("Duration").ValueKind);
             });
@@ -350,11 +338,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                 .ToArray();
 
             dataSetWriterNames.Should().NotBeEmpty();
-            if (!UsesNativePubSub)
-            {
-                dataSetWriterNames.Select(d => d.Split('|')[1])
-                    .Should().Contain("CycleStarted");
-            }
 
             // Assert
             Assert.NotEmpty(messages);
@@ -392,7 +375,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
                         dataSetWriterNames.Add(dataSetWriterName);
                     }
 
-                    if (!IsCycleStarted(element, dataSetWriterName))
+                    if (!IsCycleStarted(element))
                     {
                         isAllCycleStarted = false;
                     }
@@ -408,20 +391,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             }
 
             //
-            // Both event types are configured on one writer, and the custom
-            // encoder told them apart by appending the event type name to the
-            // writer name, which effectively gave each event type a writer of
-            // its own. The native path emits the writer's configured name, so
-            // the payload is what distinguishes them: only a CycleStarted event
-            // carries the SimpleEvents cycle fields.
+            // Both event types are configured on one writer, and 2.x told them
+            // apart by appending the event type name to the writer name, which
+            // effectively gave each event type a writer of its own. 3.0 emits
+            // the writer's configured name, so the payload is what
+            // distinguishes them: only a CycleStarted event carries the
+            // SimpleEvents cycle fields.
             //
-            static bool IsCycleStarted(JsonElement dataSetMessage, string? dataSetWriterName)
+            static bool IsCycleStarted(JsonElement dataSetMessage)
             {
-                if (!UsesNativePubSub)
-                {
-                    return dataSetWriterName?.EndsWith("|CycleStarted",
-                        StringComparison.Ordinal) == true;
-                }
                 return dataSetMessage.TryGetProperty("Payload", out var payload)
                     && payload.TryGetProperty(CycleIdExpanded, out _)
                     && payload.TryGetProperty(CurrentStepExpanded, out _);
@@ -727,62 +705,43 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         }
 
         /// <summary>
-        /// Asserts the built-in type of a DataValue field the way the active
-        /// path spells it, and returns the field's value.
+        /// Asserts the built-in type of a DataValue field and returns its value.
         /// </summary>
         /// <remarks>
         /// Part 6 §5.4.2.18 Table 42 defines a DataValue as a Variant with
         /// extra fields, flattened, carrying `UaType` and `Value`. The
-        /// `Value.Type` and `Value.Body` envelope the custom encoder emits is
-        /// the 1.04 reversible Variant, which 1.05 replaced. Both are asserted
-        /// in full so neither path is weakened; the legacy branch goes away when
-        /// the native path becomes the default.
+        /// `Value.Type` and `Value.Body` envelope 2.x emitted was the 1.04
+        /// reversible Variant, which 1.05 replaced.
         /// </remarks>
         /// <param name="field">The DataValue field object.</param>
         /// <param name="builtInType">Expected built-in type identifier.</param>
-        /// <param name="builtInTypeName">Its name, which the custom encoder
-        /// writes instead of the identifier unless compliant encoding is on.</param>
+        /// <param name="builtInTypeName">Its name. Named at the call site
+        /// because the identifier alone says nothing, and checked against the
+        /// identifier here so the two cannot disagree.</param>
         internal static JsonElement AssertDataValue(JsonElement field, int builtInType,
             string builtInTypeName)
         {
-            if (UsesNativePubSub)
-            {
-                Assert.Equal(builtInType, field.GetProperty("UaType").GetInt32());
-                return field.GetProperty("Value");
-            }
-            var variant = field.GetProperty("Value");
-            var type = variant.GetProperty("Type");
-            if (type.ValueKind == JsonValueKind.Number)
-            {
-                Assert.Equal(builtInType, type.GetInt32());
-            }
-            else
-            {
-                Assert.Equal(builtInTypeName, type.GetString());
-            }
-            return variant.GetProperty("Body");
+            Assert.Equal(Enum.Parse<Opc.Ua.BuiltInType>(builtInTypeName),
+                (Opc.Ua.BuiltInType)builtInType);
+            Assert.Equal(builtInType, field.GetProperty("UaType").GetInt32());
+            return field.GetProperty("Value");
         }
 
         /// <summary>
-        /// Asserts a LocalizedText field value the way the active path writes it.
+        /// Asserts a LocalizedText field value.
         /// </summary>
         /// <remarks>
         /// Part 6 §5.4.2.15 requires a LocalizedText to be encoded as an object
-        /// with `Locale` and `Text`, unconditionally. The bare string the custom
-        /// encoder emits is the 1.04 non-reversible form, which 1.05 removed
-        /// along with non-reversible encoding itself.
+        /// with `Locale` and `Text`, unconditionally. The bare string 2.x
+        /// emitted was the 1.04 non-reversible form, which 1.05 removed along
+        /// with non-reversible encoding itself.
         /// </remarks>
         /// <param name="message">The `Message` field value.</param>
         internal static void AssertLocalizedText(JsonElement message)
         {
-            if (UsesNativePubSub)
-            {
-                Assert.Equal(JsonValueKind.Object, message.ValueKind);
-                Assert.Equal(JsonValueKind.String, message.GetProperty("Text").ValueKind);
-                Assert.Equal("en-US", message.GetProperty("Locale").GetString());
-                return;
-            }
-            Assert.Equal(JsonValueKind.String, message.ValueKind);
+            Assert.Equal(JsonValueKind.Object, message.ValueKind);
+            Assert.Equal(JsonValueKind.String, message.GetProperty("Text").ValueKind);
+            Assert.Equal("en-US", message.GetProperty("Locale").GetString());
         }
 
         /// <summary>
@@ -809,14 +768,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             bool expected)
         {
             var field = payload.GetProperty(name);
-            if (UsesNativePubSub)
+            Assert.Equal(1, field.GetProperty("UaType").GetInt32());
+            if (!expected)
             {
-                Assert.Equal(1, field.GetProperty("UaType").GetInt32());
-                if (!expected)
-                {
-                    Assert.False(field.TryGetProperty("Value", out _));
-                    return;
-                }
+                Assert.False(field.TryGetProperty("Value", out _));
+                return;
             }
             Assert.Equal(expected, field.GetProperty("Value").GetBoolean());
         }
@@ -836,23 +792,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             long expected)
         {
             var value = payload.GetProperty(name).GetProperty("Value");
-            if (UsesNativePubSub)
-            {
-                Assert.Equal(8, payload.GetProperty(name).GetProperty("UaType").GetInt32());
-                Assert.Equal(expected.ToString(CultureInfo.InvariantCulture), value.GetString());
-                return;
-            }
-            Assert.Equal(expected, value.GetInt64());
+            Assert.Equal(8, payload.GetProperty(name).GetProperty("UaType").GetInt32());
+            Assert.Equal(expected.ToString(CultureInfo.InvariantCulture), value.GetString());
         }
 
         /// <summary>
-        /// Asserts a model change event's type node identifier the way the
-        /// active path writes it.
+        /// Asserts a model change event's type node identifier.
         /// </summary>
         /// <remarks>
-        /// The native stack writes a NodeId in the standard string form, so a
-        /// namespace qualified string identifier is `nsu=&lt;uri&gt;;s=&lt;id&gt;` where
-        /// the custom encoder wrote the Publisher's own `&lt;uri&gt;#s=&lt;id&gt;` form.
+        /// A NodeId is written in the standard string form, so a namespace
+        /// qualified string identifier is `nsu=&lt;uri&gt;;s=&lt;id&gt;` where
+        /// 2.x wrote the Publisher's own `&lt;uri&gt;#s=&lt;id&gt;` form.
         /// </remarks>
         /// <param name="payload">The event payload.</param>
         /// <param name="identifier">Expected string identifier.</param>
@@ -860,27 +810,23 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
         {
             const string ns = "http://www.microsoft.com/opc-publisher";
             var actual = payload.GetProperty("EventType").GetProperty("Value").GetString();
-            Assert.Equal(UsesNativePubSub
-                ? $"nsu={ns};s={identifier}"
-                : $"{ns}#s={identifier}", actual);
+            Assert.Equal($"nsu={ns};s={identifier}", actual);
         }
 
         internal static JsonElement GetAlarmCondition(JsonElement jsonElement)
         {
             //
             // Part 14 §7.2.5.4 defines only ua-keyframe, ua-deltaframe,
-            // ua-event and ua-keepalive. ua-condition is a Publisher extension,
-            // so the native runtime publishes a condition snapshot as the event
-            // occurrence it is. Both are accepted here; the legacy value goes
-            // away when the native path becomes the default.
+            // ua-event and ua-keepalive. ua-condition was a Publisher
+            // extension, so a condition snapshot is published as the event
+            // occurrence it is.
             //
-            var conditionType = UsesNativePubSub ? "ua-event" : "ua-condition";
             var messages = jsonElement.GetProperty("Messages");
             return messages.ValueKind != JsonValueKind.Array
                 ? default
                 : messages.EnumerateArray().FirstOrDefault(element =>
                 {
-                    if (element.GetProperty("MessageType").GetString() != conditionType ||
+                    if (element.GetProperty("MessageType").GetString() != "ua-event" ||
                         !element.GetProperty("Payload")
                             .TryGetProperty("SourceNode", out var node))
                     {
