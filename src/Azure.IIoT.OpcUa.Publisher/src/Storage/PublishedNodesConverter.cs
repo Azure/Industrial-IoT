@@ -116,6 +116,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                             MessageEncoding = item.WriterGroup.MessageType,
                             WriterGroupTransport = item.WriterGroup.Transport,
                             WriterGroupTransportConfiguration = item.WriterGroup.TransportConfiguration,
+                            WriterGroupNamespaceFormat = item.WriterGroup.MessageSettings?.NamespaceFormat,
                             WriterGroupQualityOfService = item.WriterGroup.Publishing?.RequestedDeliveryGuarantee,
                             WriterGroupMessageTtlTimepan = item.WriterGroup.Publishing?.Ttl,
                             WriterGroupMessageRetention = item.WriterGroup.Publishing?.Retain,
@@ -556,7 +557,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Storage
                                 .ToList(),
                         KeepAliveTime = null,
                         MaxNetworkMessageSize = null,
-                        MessageSettings = null,
+                        MessageSettings = group.Header.WriterGroupNamespaceFormat == null ? null
+                            : new WriterGroupMessageSettingsModel
+                            {
+                                NamespaceFormat = group.Header.WriterGroupNamespaceFormat
+                            },
                         Priority = null,
                         PublishQueueSize = null,
                         SecurityGroupId = null,
