@@ -121,6 +121,9 @@ jobs:
           - name: Models
             path: src/Azure.IIoT.OpcUa.Publisher.Models/tests/Azure.IIoT.OpcUa.Publisher.Models.Tests.csproj
             category: Fast
+          - name: Sdk
+            path: src/Azure.IIoT.OpcUa.Publisher.Sdk/tests/Azure.IIoT.OpcUa.Publisher.Sdk.Tests.csproj
+            category: Fast
           - name: Core
             path: src/Azure.IIoT.OpcUa.Core/tests/Azure.IIoT.OpcUa.Core.Tests.csproj
             category: Fast
@@ -180,6 +183,7 @@ jobs:
             --blame-hang-timeout $blameTimeout --blame-hang-dump-type none `
             --logger "trx;LogFileName=test-results.trx" `
             --results-directory ./testresults/${{ matrix.project.name }} `
+            --settings coverage.runsettings `
             --collect:"XPlat Code Coverage;Format=cobertura"
       - name: Upload test results
         if: always()
@@ -450,6 +454,17 @@ jobs:
           path: ./coverage
           if-no-files-found: warn
           retention-days: 14
+      # Per-assembly floors, ratcheted. The floors live in
+      # tools/scripts/coverage-thresholds.json and only ever move up: while an
+      # assembly is being brought to the 85% line / 70% branch target its floor
+      # sits at whatever was last measured, so the work cannot silently regress
+      # while it is in progress. This runs against ReportGenerator's merged
+      # Cobertura rather than the raw per-job files, because an assembly appears
+      # in the report of every suite that touched it and the runs have to be
+      # unioned rather than summed.
+      - name: Check coverage floors
+        run: pwsh ./tools/scripts/check-coverage.ps1 -ReportPath ./coverage/Cobertura.xml
+        shell: bash
 
   # --------------------------------------------------------------------------
   # images_build: build a tarball per linux architecture using the existing

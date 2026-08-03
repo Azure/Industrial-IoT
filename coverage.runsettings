@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Coverage scope for the Industrial-IoT solution.
+
+  Coverage is measured per shipping assembly against a floor of 85% line and
+  70% branch. The floor is per assembly rather than aggregate on purpose: an
+  aggregate is satisfied by covering the ~300 DTO records in
+  Azure.IIoT.OpcUa.Publisher.Models while the Stack layer stays thin, which is
+  the opposite of what the number is meant to tell us.
+
+  Everything not shipped is excluded, because including it moves the number
+  without changing the product:
+    - Azure.IIoT.OpcUa.Publisher.Testing.Servers is the OPC UA test harness,
+      and roughly a tenth of it is machine generated nodeset code that no one
+      will ever hand test.
+    - The *.Cli projects are developer tooling.
+    - Azure.IIoT.OpcUa.Core.Rpc.Generator is a build time source generator; its
+      output is covered through the assemblies that consume it.
+
+  Compiler generated members are excluded. Without this the Models project is
+  dominated by the Equals, GetHashCode, PrintMembers and copy constructors that
+  the compiler emits for every `record`, and the reported number would describe
+  the C# compiler rather than the tests.
+-->
+<RunSettings>
+  <RunConfiguration>
+    <!--
+      OPC UA test servers contend on ports and PKI directories, so a project's
+      tests share one process. This mirrors how the suites are run serially.
+    -->
+    <MaxCpuCount>1</MaxCpuCount>
+  </RunConfiguration>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat code coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+          <!--
+            Inclusion list rather than an exclusion list: a new shipping
+            assembly should have to be added here deliberately, whereas a new
+            sample or tool should not silently start counting.
+          -->
+          <Include>
+            [Azure.IIoT.OpcUa]*,
+            [Azure.IIoT.OpcUa.Core]*,
+            [Azure.IIoT.OpcUa.Publisher]*,
+            [Azure.IIoT.OpcUa.Publisher.Models]*,
+            [Azure.IIoT.OpcUa.Publisher.Module]*,
+            [Azure.IIoT.OpcUa.Publisher.Sdk]*
+          </Include>
+          <Exclude>
+            [*.Tests]*,
+            [Azure.IIoT.OpcUa.Publisher.Testing*]*,
+            [*.Cli]*,
+            [Azure.IIoT.OpcUa.Core.Rpc.Generator]*,
+            [Quickstarts.*]*,
+            [Opc.Ua.*]*
+          </Exclude>
+          <ExcludeByAttribute>
+            Obsolete,
+            GeneratedCodeAttribute,
+            CompilerGeneratedAttribute,
+            ExcludeFromCodeCoverageAttribute
+          </ExcludeByAttribute>
+          <ExcludeByFile>
+            **/Generated/**/*.cs,
+            **/*.Designer.cs,
+            **/*.g.cs,
+            **/*.g.i.cs
+          </ExcludeByFile>
+          <SingleHit>false</SingleHit>
+          <UseSourceLink>true</UseSourceLink>
+          <IncludeTestAssembly>false</IncludeTestAssembly>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>
