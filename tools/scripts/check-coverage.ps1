@@ -72,7 +72,19 @@ foreach ($file in $reportFiles) {
             $branchHits[$name] = @{}
         }
         foreach ($class in $package.classes.class) {
+            #
+            # SourceLink filenames embed the commit, so the same file appears
+            # under two names once reports from different commits are mixed and
+            # the union counts it twice. Normalising to the repository relative
+            # path makes a report mergeable regardless of which commit produced
+            # it - and makes stale data show up as an unchanged total rather
+            # than a doubled one.
+            #
             $fileName = $class.filename
+            if ($fileName -match '^https?://.*?/[0-9a-fA-F]{40}/(.+)$') {
+                $fileName = $Matches[1]
+            }
+            $fileName = $fileName -replace '\\', '/'
             foreach ($line in $class.lines.line) {
                 $key = "$fileName`:$($line.number)"
                 $hits = [int] $line.hits
@@ -145,14 +157,22 @@ foreach ($name in $measured.Keys) {
 Write-Host ''
 
 if ($UpdateBaseline) {
+    #
+    # A floor never exceeds the target. Ratcheting to the measured value is
+    # what stops regression while an assembly is being brought up, but once it
+    # is at the target, pinning the floor to a peak of 97% would fail the build
+    # for deleting a covered line - which is not what the number is for.
+    #
+    $targetLine = 85.0
+    $targetBranch = 70.0
     $existing = @{}
     if (Test-Path $ThresholdPath) {
         $existing = Get-Content -LiteralPath $ThresholdPath -Raw | ConvertFrom-Json -AsHashtable
     }
     $updated = [ordered]@{}
     foreach ($name in $measured.Keys) {
-        $line = $measured[$name].line
-        $branch = $measured[$name].branch
+        $line = [math]::Min($measured[$name].line, $targetLine)
+        $branch = [math]::Min($measured[$name].branch, $targetBranch)
         if ($existing.ContainsKey($name)) {
             # A floor only ever moves up.
             if ($existing[$name].line -gt $line) { $line = $existing[$name].line }
