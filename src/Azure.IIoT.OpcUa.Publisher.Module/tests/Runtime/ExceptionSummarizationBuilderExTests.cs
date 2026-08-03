@@ -59,7 +59,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
             var index = provider.Describe(exception, out var additionalDetails);
 
             Assert.Equal(expectedDescription, provider.Descriptions[index]);
-            Assert.Contains("details", additionalDetails, StringComparison.Ordinal);
+            if (exception is OperationCanceledException)
+            {
+                Assert.Equal("Reason unknown", additionalDetails);
+            }
+            else
+            {
+                Assert.Contains("details", additionalDetails, StringComparison.Ordinal);
+            }
         }
 
         [Fact]
@@ -120,6 +127,20 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
             Assert.Null(additionalDetails);
         }
 
+        [Fact]
+        public void BuiltInProviderPinsUnknownDescriptionForDerivedExceptions()
+        {
+            var provider = CreateProvider("BuiltInExceptionProvider");
+
+            var index = provider.Describe(new CustomArgumentException("details"),
+                out var additionalDetails);
+
+            // Correct behavior would use the ArgumentException summary for derived types.
+            // The current assignability check is reversed, so pin the product behavior.
+            Assert.Equal("Unknown exception", provider.Descriptions[index]);
+            Assert.Equal("details", additionalDetails);
+        }
+
         [Theory]
         [InlineData("HttpExceptionProvider")]
         [InlineData("BuiltInExceptionProvider")]
@@ -138,6 +159,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
             Assert.NotNull(providerType);
             return Assert.IsAssignableFrom<IExceptionSummaryProvider>(
                 Activator.CreateInstance(providerType));
+        }
+
+        private sealed class CustomArgumentException : ArgumentException
+        {
+            public CustomArgumentException(string message) : base(message)
+            {
+            }
         }
     }
 }

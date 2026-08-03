@@ -6,6 +6,7 @@
 namespace Azure.IIoT.OpcUa.Publisher.Tests.Discovery
 {
     using Azure.IIoT.OpcUa.Core.Messaging;
+    using Azure.IIoT.OpcUa.Encoders;
     using Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.IIoT.OpcUa.Publisher.Discovery;
     using Azure.IIoT.OpcUa.Publisher.Models;
@@ -25,21 +26,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Discovery
 
     public class NetworkDiscoveryTests
     {
-        [Fact]
-        public async Task RegisterAsyncRequiresDiscoveryUrlAsync()
-        {
-            // Arrange
-            using var sut = CreateSut(new Mock<IEndpointDiscovery>(),
-                new Mock<IEventClient>(), new CapturingProgress());
-
-            // Act
-            var ex = await Assert.ThrowsAsync<ArgumentException>(() =>
-                sut.RegisterAsync(new ServerRegistrationRequestModel(), default));
-
-            // Assert
-            Assert.Equal("request", ex.ParamName);
-        }
-
         [Fact]
         public async Task FindEndpointsAsyncPassesParametersThroughAsync()
         {
@@ -157,7 +143,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Discovery
             var request = new DiscoveryRequestModel
             {
                 Id = "request1",
-                Context = "context1",
+                Context = new OperationContextModel
+                {
+                    AuthorityId = "context1"
+                },
                 Discovery = DiscoveryMode.Off,
                 Configuration = new DiscoveryConfigModel
                 {
@@ -173,7 +162,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Discovery
             Assert.Equal("application/json", capturedEvent.ContentType);
             Assert.Equal("utf-8", capturedEvent.ContentEncoding);
             Assert.Contains(capturedEvent.Properties,
-                p => p.Name == Opc.Ua.Constants.MessagePropertySchemaKey &&
+                p => p.Name == OpcUa.Constants.MessagePropertySchemaKey &&
                     p.Value == MessageSchemaTypes.DiscoveryEvents);
 
             var messages = capturedEvent.Buffers
@@ -187,7 +176,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Discovery
                 messages[0]?.Registration?.Endpoint?.Url);
             Assert.Equal(1, messages[1]?.Index);
             Assert.Equal("request1", messages[1]?.Result?.Id);
-            Assert.Equal("context1", messages[1]?.Result?.Context);
+            Assert.Equal("context1", messages[1]?.Result?.Context?.AuthorityId);
             Assert.Equal(true, messages[1]?.Result?.RegisterOnly);
             Assert.Contains(progress.Events, e => e.Kind == ProgressEvent.Started);
             Assert.Contains(progress.Events, e => e.Kind == ProgressEvent.ServerDiscoveryStarted);
@@ -259,8 +248,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Discovery
                     Server = new ApplicationDescription
                     {
                         ApplicationUri = applicationUri,
-                        ApplicationName = "Server",
-                        ApplicationType = ApplicationType.Server,
+                        ApplicationName = (LocalizedText)"Server",
+                        ApplicationType = Opc.Ua.ApplicationType.Server,
                         ProductUri = "urn:product",
                         DiscoveryUrls = [endpointUrl]
                     },

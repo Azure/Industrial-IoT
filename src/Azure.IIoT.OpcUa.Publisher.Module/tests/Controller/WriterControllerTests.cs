@@ -137,10 +137,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         {
             var configuration = new Mock<IConfigurationServices>(MockBehavior.Strict);
             var controller = CreateController(configuration: configuration);
-            var entry = new PublishedNodesEntryModel();
+            var entry = CreateEntry();
             var expected = new ServiceResponse<PublishedNodesEntryModel>
             {
-                Result = new PublishedNodesEntryModel()
+                Result = CreateEntry()
             };
 
             configuration.Setup(c => c.ExpandAsync(entry,
@@ -164,7 +164,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         {
             var configuration = new Mock<IConfigurationServices>(MockBehavior.Strict);
             var controller = CreateController(configuration: configuration);
-            var entry = new PublishedNodesEntryModel();
+            var entry = CreateEntry();
             var expected = new ServiceResponse<PublishedNodesEntryModel>
             {
                 ErrorInfo = new ServiceResultModel { StatusCode = 1 }
@@ -195,7 +195,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             PublishedNodeCreateAssetRequestModel<byte[]> captured = null!;
             var expected = new ServiceResponse<PublishedNodesEntryModel>
             {
-                Result = new PublishedNodesEntryModel()
+                Result = CreateEntry()
             };
 
             assets.Setup(a => a.CreateOrUpdateAssetAsync(
@@ -206,7 +206,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 .ReturnsAsync(expected)
                 .Verifiable();
 
-            var entry = new PublishedNodesEntryModel();
+            var entry = CreateEntry();
             var response = await controller.CreateOrUpdateAssetAsync(
                 new PublishedNodeCreateAssetRequestModel<JsonNode>
                 {
@@ -245,7 +245,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             var controller = CreateController(assets: assets);
             var request = new PublishedNodeDeleteAssetRequestModel
             {
-                Entry = new PublishedNodesEntryModel()
+                Entry = CreateEntry()
             };
             var expected = new ServiceResultModel { StatusCode = 7 };
 
@@ -268,6 +268,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
                 (publisher ?? new Mock<IPublishedNodesServices>()).Object,
                 (configuration ?? new Mock<IConfigurationServices>()).Object,
                 (assets ?? new Mock<IAssetConfiguration<byte[]>>()).Object);
+        }
+
+        private static PublishedNodesEntryModel CreateEntry()
+        {
+            return new PublishedNodesEntryModel
+            {
+                EndpointUrl = "opc.tcp://localhost:4840"
+            };
         }
 
         private static async IAsyncEnumerable<T> ToAsyncEnumerable<T>(T item)

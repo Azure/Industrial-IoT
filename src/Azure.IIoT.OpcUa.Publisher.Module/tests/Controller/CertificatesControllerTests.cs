@@ -41,7 +41,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
         public async Task ListCertificateRevocationListsParsesStoreAsync()
         {
             var service = new Mock<IOpcUaCertificates>(MockBehavior.Strict);
-            var expected = new List<byte[]> { [1, 2, 3] };
+            var expected = new List<byte[]> { new byte[] { 1, 2, 3 } };
             service.Setup(s => s.ListCertificateRevocationListsAsync(
                     CertificateStoreName.Issuer, It.IsAny<CancellationToken>()))
                 .Returns(new ValueTask<IReadOnlyList<byte[]>>(expected))

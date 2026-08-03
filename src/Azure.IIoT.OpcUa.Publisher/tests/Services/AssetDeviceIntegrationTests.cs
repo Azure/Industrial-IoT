@@ -839,7 +839,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 
             var @event = Assert.Single(result, e => e.DataSetWriterId == "events1");
             Assert.Equal("events1", @event.DataSetName);
-            Assert.Equal("event-type", @event.DataSetType);
+            Assert.Equal("event-group-type", @event.DataSetType);
             Assert.Equal("asset-ext/events1/event1", @event.DataSetSubject);
             Assert.Equal("telemetry/events1", @event.QueueName);
             Assert.Equal(7u, @event.OpcNodes?.Single().QueueSize);
