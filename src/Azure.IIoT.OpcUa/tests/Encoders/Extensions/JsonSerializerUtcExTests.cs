@@ -86,8 +86,13 @@ namespace Azure.IIoT.OpcUa.Encoders
 
             var result = dataValue.ToOpcUaUniversalTime();
 
-            Assert.Equal(source.ToUniversalTime(), result.SourceTimestamp.ToDateTime());
-            Assert.Equal(server.ToUniversalTime(), result.ServerTimestamp.ToDateTime());
+            // DateTime equality ignores Kind, so assert the OPC UA timestamps are UTC.
+            Assert.Equal(DateTimeKind.Utc, result.SourceTimestamp.ToDateTime().Kind);
+            Assert.Equal(DateTimeKind.Utc, result.ServerTimestamp.ToDateTime().Kind);
+            Assert.Equal(source.ToUniversalTime(),
+                result.SourceTimestamp.ToDateTime());
+            Assert.Equal(server.ToUniversalTime(),
+                result.ServerTimestamp.ToDateTime());
         }
     }
 }

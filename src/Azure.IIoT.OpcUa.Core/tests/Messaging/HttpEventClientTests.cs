@@ -138,6 +138,128 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients
                     .SendAsync(cancellation.Token).ConfigureAwait(false));
         }
 
+        [Fact]
+        public async Task SendWithoutBuffersReturnsWithoutCreatingRequestAsync()
+        {
+            using var handler = new CapturingHandler();
+            using var httpClient = new HttpClient(handler);
+            var client = new HttpEventClient(Options.Create(new HttpEventClientOptions
+            {
+                HostName = "localhost"
+            }), new TestHttpClientFactory(httpClient));
+            using var @event = client.CreateEvent();
+
+            await @event.SetTopic("events").SendAsync(default);
+
+            Assert.Null(handler.Method);
+            Assert.Null(handler.Uri);
+        }
+
+        [Fact]
+        public async Task SendWithPayloadWithoutTopicThrowsAsync()
+        {
+            using var handler = new CapturingHandler();
+            using var httpClient = new HttpClient(handler);
+            var client = new HttpEventClient(Options.Create(new HttpEventClientOptions
+            {
+                HostName = "localhost"
+            }), new TestHttpClientFactory(httpClient));
+            using var @event = client.CreateEvent();
+
+            await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                await @event.AddBuffers(
+                    [new ReadOnlySequence<byte>(new byte[] { 1 })])
+                    .SendAsync(default).ConfigureAwait(false));
+            Assert.Null(handler.Method);
+        }
+
+        [Fact]
+        public async Task TopicMustContainHostWhenHostIsNotConfiguredAsync()
+        {
+            using var handler = new CapturingHandler();
+            using var httpClient = new HttpClient(handler);
+            var client = new HttpEventClient(Options.Create(new HttpEventClientOptions()),
+                new TestHttpClientFactory(httpClient));
+            using var @event = client.CreateEvent();
+
+            await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                await @event.SetTopic("events").AddBuffers(
+                    [new ReadOnlySequence<byte>(new byte[] { 1 })])
+                    .SendAsync(default).ConfigureAwait(false));
+            Assert.Null(handler.Method);
+        }
+
+        [Fact]
+        public async Task ConfigureCallbackCanAddHeadersAsync()
+        {
+            using var handler = new CapturingHandler();
+            using var httpClient = new HttpClient(handler);
+            var client = new HttpEventClient(Options.Create(new HttpEventClientOptions
+            {
+                HostName = "localhost",
+                Configure = headers =>
+                {
+                    headers.Add("x-configured", "yes");
+                    return Task.CompletedTask;
+                }
+            }), new TestHttpClientFactory(httpClient));
+            using var @event = client.CreateEvent();
+
+            await @event.SetTopic("events").AddBuffers(
+                [new ReadOnlySequence<byte>(new byte[] { 1 })])
+                .SendAsync(default);
+
+            Assert.Equal("yes", Assert.Single(handler.Headers["x-configured"]));
+        }
+
+        [Fact]
+        public async Task MultipleBuffersUseMultipartContentAsync()
+        {
+            using var handler = new CapturingHandler();
+            using var httpClient = new HttpClient(handler);
+            var client = new HttpEventClient(Options.Create(new HttpEventClientOptions
+            {
+                HostName = "localhost"
+            }), new TestHttpClientFactory(httpClient));
+            using var @event = client.CreateEvent();
+
+            await @event.SetTopic("events").AddBuffers(
+                [
+                    new ReadOnlySequence<byte>(Encoding.UTF8.GetBytes("one")),
+                    new ReadOnlySequence<byte>(Encoding.UTF8.GetBytes("two"))
+                ]).SendAsync(default);
+
+            Assert.Equal("multipart/mixed", handler.ContentType);
+            var payload = Encoding.UTF8.GetString(handler.Payload);
+            Assert.Contains("one", payload);
+            Assert.Contains("two", payload);
+        }
+
+        [Fact]
+        public async Task CloudEventDataContentTypeSetsPayloadContentTypeAsync()
+        {
+            using var handler = new CapturingHandler();
+            using var httpClient = new HttpClient(handler);
+            var client = new HttpEventClient(Options.Create(new HttpEventClientOptions
+            {
+                HostName = "localhost"
+            }), new TestHttpClientFactory(httpClient));
+            using var @event = client.CreateEvent();
+
+            await @event.SetTopic("events").AsCloudEvent(new CloudEventHeader
+            {
+                Id = "id",
+                Source = new Uri("urn:test"),
+                Type = "type",
+                DataContentType = "application/cloudevents+json"
+            }).AddBuffers([new ReadOnlySequence<byte>(new byte[] { 1 })])
+                .SendAsync(default);
+
+            Assert.Equal("application/cloudevents+json", handler.ContentType);
+            Assert.DoesNotContain("ce-datacontenttype", handler.Headers.Keys,
+                StringComparer.OrdinalIgnoreCase);
+        }
+
         private sealed class TestHttpClientFactory : IHttpClientFactory
         {
             public TestHttpClientFactory(HttpClient client)

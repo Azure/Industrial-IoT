@@ -95,12 +95,17 @@ namespace System.Linq
             {
                 if (item is IEnumerable contained)
                 {
+                    //
+                    // Continue rather than break. Breaking here abandoned every
+                    // element after the first nested one, so flattening
+                    // [[1,[2,3]], 4] silently lost the 4.
+                    //
                     contained = contained.Flatten();
                     foreach (var cont in contained)
                     {
                         yield return cont;
                     }
-                    yield break;
+                    continue;
                 }
                 yield return item;
             }

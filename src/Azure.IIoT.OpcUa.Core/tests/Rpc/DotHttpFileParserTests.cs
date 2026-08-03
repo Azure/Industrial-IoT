@@ -79,6 +79,9 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Servers
                 """, Capture(invocations)).ConfigureAwait(false);
 
             Assert.Single(invocations);
+            // Verify the parser's dictionary comparer, not one supplied by the test.
+            Assert.Same(StringComparer.OrdinalIgnoreCase,
+                invocations[0].Headers.Comparer);
             Assert.Equal("application/json", invocations[0].Headers["Content-Type"]);
             Assert.Equal("42", invocations[0].Headers["x-correlation-id"]);
         }
@@ -327,9 +330,7 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Servers
         {
             return (method, request, headers, ct) =>
             {
-                invocations.Add(new Invocation(method, request.ToArray(),
-                    new Dictionary<string, string>(headers,
-                        StringComparer.OrdinalIgnoreCase)));
+                invocations.Add(new Invocation(method, request.ToArray(), headers));
                 return Task.FromResult((nextStatus?.Invoke() ?? status,
                     new ReadOnlySequence<byte>(Encoding.UTF8.GetBytes(response))));
             };

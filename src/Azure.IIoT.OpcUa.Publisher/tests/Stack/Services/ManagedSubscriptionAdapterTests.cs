@@ -221,7 +221,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             Assert.Equal(1, adapter.BindingCount);
             await secondRetry.Task.WaitAsync(TimeSpan.FromSeconds(2));
             deadline = DateTime.UtcNow + TimeSpan.FromSeconds(2);
-            while (adapter.BindingCount != 2 && DateTime.UtcNow < deadline)
+            //
+            // Wait for the metadata the assertion below reads, not just for the
+            // binding count. The count reaches two before the metadata is
+            // rebuilt, so waiting on the count alone left a window in which
+            // Single found no "bad" item - which made this test fail about one
+            // run in three.
+            //
+            while (DateTime.UtcNow < deadline &&
+                (adapter.BindingCount != 2 ||
+                 !adapter.GetDataMetadata(owner)
+                    .Any(item => item.StartNodeId == "ns=2;s=bad")))
             {
                 await Task.Delay(10);
             }

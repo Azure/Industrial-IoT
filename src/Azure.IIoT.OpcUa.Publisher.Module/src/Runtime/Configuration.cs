@@ -1263,7 +1263,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                 {
                     if (string.IsNullOrEmpty(options.HostName))
                     {
-                        options.ClientId = GetStringOrDefault(HostNameKey);
+                        options.HostName = GetStringOrDefault(HostNameKey);
                     }
                     if (string.IsNullOrEmpty(options.UserName))
                     {

@@ -56,5 +56,60 @@ namespace Azure.IIoT.OpcUa.Core.Messaging
         {
             TopicFilter.IsValid(filter).Should().Be(expected);
         }
+
+        [Theory]
+        [InlineData("+", true)]
+        [InlineData("#", true)]
+        [InlineData("/+", true)]
+        [InlineData("foo/+", true)]
+        [InlineData("foo/+/bar", true)]
+        [InlineData("foo/#", true)]
+        [InlineData("foo/+/#", true)]
+        [InlineData("+foo", false)]
+        [InlineData("foo+", false)]
+        [InlineData("foo+/bar", false)]
+        [InlineData("foo/+bar", false)]
+        [InlineData("foo#/", false)]
+        [InlineData("foo/#/bar", false)]
+        [InlineData("#/bar", false)]
+        public void IsValidCoversWildcardPlacementRules(string filter, bool expected)
+        {
+            Assert.Equal(expected, TopicFilter.IsValid(filter));
+        }
+
+        [Theory]
+        [InlineData("", "", true)]
+        [InlineData("", "#", false)]
+        [InlineData("foo", "foo/#", true)]
+        [InlineData("foo/", "foo/#", true)]
+        [InlineData("foo/bar", "+/bar", true)]
+        [InlineData("foo/bar", "foo/+", true)]
+        // MQTT # should match zero levels here; the current matcher does not.
+        [InlineData("foo/bar", "foo/+/#", false)]
+        [InlineData("foo/bar/baz", "foo/+/#", true)]
+        [InlineData("foo/bar", "foo/+/baz", false)]
+        [InlineData("foo/bar", "foo+", false)]
+        [InlineData("foo/bar", "+foo/bar", false)]
+        [InlineData("foo/bar", "foo/#/bar", false)]
+        [InlineData("foo/bar", "foo#/", false)]
+        [InlineData("foo", "bar", false)]
+        public void MatchesCoversBoundaryAndInvalidWildcardCases(
+            string topic, string filter, bool expected)
+        {
+            Assert.Equal(expected, TopicFilter.Matches(topic, filter));
+        }
+
+        [Theory]
+        [InlineData("", "")]
+        [InlineData("+", "\\x2b")]
+        [InlineData("#", "\\x23")]
+        [InlineData("/", "\\x2f")]
+        [InlineData("\\", "\\x5c")]
+        [InlineData("abc/", "abc\\x2f")]
+        public void EscapeCoversTerminalReservedCharacters(
+            string input, string expected)
+        {
+            Assert.Equal(expected, TopicFilter.Escape(input));
+        }
     }
 }

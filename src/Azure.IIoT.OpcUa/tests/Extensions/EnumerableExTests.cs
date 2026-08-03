@@ -22,8 +22,9 @@ namespace System.Collections.Generic
         public void SequenceGetHashSafe_WithCustomHash_UsesItemsInOrder()
         {
             var hash = new[] { 1, 2 }.SequenceGetHashSafe(value => value);
+            var reverseHash = new[] { 2, 1 }.SequenceGetHashSafe(value => value);
 
-            Assert.NotEqual(-932366343, hash);
+            Assert.NotEqual(reverseHash, hash);
         }
 
         [Fact]
@@ -128,8 +129,10 @@ namespace System.Collections.Generic
             var comparer = Compare.Using<string>(
                 (x, y) => string.Equals(x, y, StringComparison.OrdinalIgnoreCase));
 
+            // Exercise the supplied equality delegate and the explicit null hash path.
             Assert.True(comparer.Equals("A", "a"));
-            Assert.Equal("A".GetHashCode(), comparer.GetHashCode("A"));
+            Assert.False(comparer.Equals("A", "b"));
+            Assert.Equal(0, comparer.GetHashCode(null!));
         }
     }
 }

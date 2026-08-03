@@ -17,10 +17,20 @@
     - Azure.IIoT.OpcUa.Core.Rpc.Generator is a build time source generator; its
       output is covered through the assemblies that consume it.
 
-  Compiler generated members are excluded. Without this the Models project is
-  dominated by the Equals, GetHashCode, PrintMembers and copy constructors that
-  the compiler emits for every `record`, and the reported number would describe
-  the C# compiler rather than the tests.
+  Compiler generated members are NOT excluded by attribute, deliberately.
+  Excluding them looks attractive - a `record` emits Equals, GetHashCode,
+  PrintMembers and a copy constructor, and counting those measures the C#
+  compiler rather than the tests - but `[CompilerGenerated]` is also on every
+  async state machine and every lambda closure. Excluding by that attribute
+  removes the body of every `async` method from both the numerator and the
+  denominator, which in a codebase this asynchronous means measuring almost
+  nothing: the client SDK, which is nothing but async methods, scored 97% with
+  its two constructors as the only surviving code.
+
+  So auto-property noise is handled by SkipAutoProps instead, and the record
+  members are simply counted. That makes the Models project's figure less
+  meaningful than the others, which is stated in the plan rather than papered
+  over by an exclusion that silently takes the rest of the codebase with it.
 -->
 <RunSettings>
   <RunConfiguration>
@@ -59,7 +69,6 @@
           <ExcludeByAttribute>
             Obsolete,
             GeneratedCodeAttribute,
-            CompilerGeneratedAttribute,
             ExcludeFromCodeCoverageAttribute
           </ExcludeByAttribute>
           <ExcludeByFile>
@@ -68,6 +77,7 @@
             **/*.g.cs,
             **/*.g.i.cs
           </ExcludeByFile>
+          <SkipAutoProps>true</SkipAutoProps>
           <SingleHit>false</SingleHit>
           <UseSourceLink>true</UseSourceLink>
           <IncludeTestAssembly>false</IncludeTestAssembly>

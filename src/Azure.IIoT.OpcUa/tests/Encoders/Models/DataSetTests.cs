@@ -78,7 +78,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         {
             var dataSet = new DataSet();
 
-            Assert.NotEqual(new object(), dataSet);
+            // Call Equals directly so the non-DataSet branch is exercised.
+            Assert.False(dataSet.Equals(new object()));
         }
 
         [Fact]
@@ -118,13 +119,29 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         }
 
         [Fact]
-        public void GetHashCode_ReturnsHashValue()
+        public void GetHashCodeIsStableAndAgreesWithEquals()
         {
+            //
+            // The contract, not the return type: a hash that changes between
+            // calls, or disagrees for two equal instances, silently breaks any
+            // use as a dictionary key. Combining the Select result rather than
+            // the names it yields did exactly that - it hashed the iterator.
+            //
             var dataSet = CreateDataSet("temperature", 42);
+            var same = CreateDataSet("temperature", 42);
 
-            var hash = dataSet.GetHashCode();
+            Assert.Equal(dataSet.GetHashCode(), dataSet.GetHashCode());
+            Assert.Equal(dataSet, same);
+            Assert.Equal(dataSet.GetHashCode(), same.GetHashCode());
+        }
 
-            Assert.IsType<int>(hash);
+        [Fact]
+        public void GetHashCodeDistinguishesDifferentFieldNames()
+        {
+            var temperature = CreateDataSet("temperature", 42);
+            var pressure = CreateDataSet("pressure", 42);
+
+            Assert.NotEqual(temperature.GetHashCode(), pressure.GetHashCode());
         }
 
         [Fact]

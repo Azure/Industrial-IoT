@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
     using System.Collections.Generic;
     using Xunit;
 
+    [Collection("EnvironmentVariables")]
     public sealed class KubernetesEnvironmentTests
     {
         [Fact]

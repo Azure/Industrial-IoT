@@ -87,8 +87,12 @@ namespace System.Linq
         }
 
         [Fact]
-        public void Flatten_NestedEnumerable_ReturnsFirstNestedSequenceFlattened()
+        public void FlattenKeepsGoingPastANestedSequence()
         {
+            //
+            // The element after a nested one used to be dropped: the loop broke
+            // out after emitting the first nested subtree instead of continuing.
+            //
             IEnumerable nested = new object[]
             {
                 new object[] { 1, new[] { 2, 3 } },
@@ -97,7 +101,7 @@ namespace System.Linq
 
             var result = nested.Flatten().Cast<object>().ToArray();
 
-            Assert.Equal([1, 2, 3], result);
+            Assert.Equal([1, 2, 3, 4], result);
         }
 
         [Fact]

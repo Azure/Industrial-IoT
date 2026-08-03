@@ -96,5 +96,89 @@ namespace Azure.IIoT.OpcUa.Core.Exceptions
             restored.Details.Extensions.Should().ContainKey("traceId");
             restored.Details.Extensions["traceId"].GetString().Should().Be("abc123");
         }
+
+        [Fact]
+        public void ConstructorsPopulateStatusMessageAndInnerException()
+        {
+            var inner = new InvalidOperationException("inner");
+
+            var defaultStatus = new MethodCallStatusException("message");
+            var withInner = new MethodCallStatusException("message", inner);
+            var explicitStatus = new MethodCallStatusException(503, inner,
+                "unavailable", "Unavailable", "urn:unavailable");
+
+            Assert.Equal(500, defaultStatus.Status);
+            Assert.Equal("message", defaultStatus.Details.Detail);
+            Assert.Same(inner, withInner.InnerException);
+            Assert.Equal(500, withInner.Status);
+            Assert.Equal(503, explicitStatus.Status);
+            Assert.Same(inner, explicitStatus.InnerException);
+            Assert.Equal("Unavailable", explicitStatus.Details.Title);
+            Assert.Equal("urn:unavailable", explicitStatus.Details.Type);
+        }
+
+        [Fact]
+        public void DetailsConstructorUsesProblemDetailsAsMessage()
+        {
+            var details = new ErrorDetails
+            {
+                Status = 451,
+                Detail = "legal",
+                Title = "Unavailable"
+            };
+
+            var exception = new MethodCallStatusException(details);
+
+            Assert.Same(details, exception.Details);
+            Assert.Equal(451, exception.Status);
+            Assert.Contains("\"status\":451", exception.Message);
+            Assert.Equal(exception.Message, exception.ToString());
+        }
+
+        [Fact]
+        public void DetailsConstructorPreservesInnerException()
+        {
+            var inner = new InvalidOperationException("inner");
+            var details = new ErrorDetails { Status = 400, Detail = "bad" };
+
+            var exception = new MethodCallStatusException(details, inner);
+
+            Assert.Same(details, exception.Details);
+            Assert.Same(inner, exception.InnerException);
+        }
+
+        [Fact]
+        public void DeserializePlainTextPayloadUsesPayloadAsDetail()
+        {
+            var payload = Encoding.UTF8.GetBytes("plain error");
+
+            var restored = MethodCallStatusException.Deserialize(payload, 502);
+
+            Assert.Equal(502, restored.Status);
+            Assert.Equal("plain error", restored.Details.Detail);
+        }
+
+        [Fact]
+        public void ThrowInvalidJsonPayloadWrapsParserException()
+        {
+            var payload = Encoding.UTF8.GetBytes("{");
+
+            var ex = Assert.Throws<MethodCallStatusException>(() =>
+                MethodCallStatusException.Throw(payload, 500));
+
+            Assert.Equal(500, ex.Status);
+            Assert.NotNull(ex.InnerException);
+            Assert.Equal(ex.InnerException.Message, ex.Details.Detail);
+        }
+
+        [Fact]
+        public void ThrowPayloadStartingWithZeroUsesEmptyDetail()
+        {
+            var ex = Assert.Throws<MethodCallStatusException>(() =>
+                MethodCallStatusException.Throw(new byte[] { 0 }, 503));
+
+            Assert.Equal(503, ex.Status);
+            Assert.Equal(string.Empty, ex.Details.Detail);
+        }
     }
 }

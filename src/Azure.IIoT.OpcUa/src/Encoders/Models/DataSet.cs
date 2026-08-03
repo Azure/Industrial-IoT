@@ -91,9 +91,31 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         }
 
         /// <inheritdoc/>
+        /// <remarks>
+        /// The field names are folded in one at a time. Passing the
+        /// <c>Select</c> result to <see cref="HashCode.Combine{T1}(T1)"/>
+        /// hashed the iterator object rather than the names it yields, so the
+        /// same instance produced a different hash on every call and two equal
+        /// data sets never agreed - which silently breaks any use as a
+        /// dictionary key or set member.
+        /// <para>
+        /// Only the names participate, while <see cref="Equals(object?)"/> also
+        /// compares values. That is allowed and deliberate: equal data sets
+        /// have equal names and so hash alike, which is the contract; data sets
+        /// that differ only by value merely collide.
+        /// </para>
+        /// </remarks>
         public override int GetHashCode()
         {
-            return HashCode.Combine(DataSetFields.Select(s => s.Name));
+            var hash = new HashCode();
+            if (DataSetFields != null)
+            {
+                foreach (var field in DataSetFields)
+                {
+                    hash.Add(field.Name);
+                }
+            }
+            return hash.ToHashCode();
         }
 
         /// <summary>

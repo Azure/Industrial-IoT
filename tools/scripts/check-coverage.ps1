@@ -60,7 +60,8 @@ if ($reportFiles.Count -eq 0) {
 # one of three suites as a third of a line.
 #
 $lineHits = @{}      # package -> "file:line" -> max hits
-$branchHits = @{}    # package -> "file:line" -> [covered, total]
+$branchHits = @{}    # package -> "file:line" -> total
+$branchCovered = @{} # package -> "file:line" -> max covered
 
 foreach ($file in $reportFiles) {
     [xml] $doc = Get-Content -LiteralPath $file.FullName -Raw
@@ -70,6 +71,7 @@ foreach ($file in $reportFiles) {
         if (-not $lineHits.ContainsKey($name)) {
             $lineHits[$name] = @{}
             $branchHits[$name] = @{}
+            $branchCovered[$name] = @{}
         }
         foreach ($class in $package.classes.class) {
             #
@@ -96,9 +98,19 @@ foreach ($file in $reportFiles) {
                     $line.'condition-coverage' -match '\((\d+)/(\d+)\)') {
                     $covered = [int] $Matches[1]
                     $total = [int] $Matches[2]
-                    if (-not $branchHits[$name].ContainsKey($key) -or
-                        $branchHits[$name][$key][0] -lt $covered) {
-                        $branchHits[$name][$key] = @($covered, $total)
+                    $branchHits[$name][$key] = $total
+                    #
+                    # Cobertura reports how many of a line's branches a run
+                    # took, not which ones, so two runs that each took a
+                    # different branch of the same two-way cannot be unioned -
+                    # the best available answer is the run that took the most.
+                    # That makes the branch figure a lower bound rather than an
+                    # exact union. Lines do not have this problem: hit counts
+                    # are per line, so max hits is a true union.
+                    #
+                    if (-not $branchCovered[$name].ContainsKey($key) -or
+                        $branchCovered[$name][$key] -lt $covered) {
+                        $branchCovered[$name][$key] = $covered
                     }
                 }
             }
@@ -114,11 +126,9 @@ foreach ($name in $lineHits.Keys) {
         if ($hits -gt 0) { $linesCovered++ }
     }
     $branchesValid = 0
+    foreach ($total in $branchHits[$name].Values) { $branchesValid += $total }
     $branchesCovered = 0
-    foreach ($pair in $branchHits[$name].Values) {
-        $branchesCovered += $pair[0]
-        $branchesValid += $pair[1]
-    }
+    foreach ($covered in $branchCovered[$name].Values) { $branchesCovered += $covered }
     $stats[$name] = [ordered]@{
         LinesCovered = $linesCovered; LinesValid = $linesValid
         BranchesCovered = $branchesCovered; BranchesValid = $branchesValid
@@ -178,6 +188,18 @@ if ($UpdateBaseline) {
         $existing = Get-Content -LiteralPath $ThresholdPath -Raw | ConvertFrom-Json -AsHashtable
     }
     $updated = [ordered]@{}
+    #
+    # Seed from what is already recorded. Rewriting only from what was measured
+    # would silently drop the floor for any assembly missing from this report -
+    # one run against a partial result set would ungate it entirely, which is
+    # the opposite of a ratchet and exactly what the absent-assembly check
+    # below exists to catch.
+    #
+    foreach ($name in ($existing.Keys | Sort-Object)) {
+        $updated[$name] = [ordered]@{
+            line = $existing[$name].line; branch = $existing[$name].branch
+        }
+    }
     foreach ($name in $measured.Keys) {
         $line = [math]::Round([math]::Max(0.0, $measured[$name].line - $margin), 2)
         $branch = [math]::Round([math]::Max(0.0, $measured[$name].branch - $margin), 2)

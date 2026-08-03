@@ -69,8 +69,12 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Servers
                 {"value":1}
                 """).ConfigureAwait(false);
 
+            var responseProvider = factory.GetProvider(Path.GetDirectoryName(responsePath)!);
+            var responseWritten = responseProvider.GetWriteTask(
+                Path.GetFileName(responsePath));
             factory.GetProvider(Path.GetDirectoryName(requestPath)!).TriggerChange();
-            await handler.Invoked.ConfigureAwait(false);
+            // Wait for the response stream to close before disposal cancels writes.
+            await responseWritten.ConfigureAwait(false);
             await server.DisposeAsync().ConfigureAwait(false);
 
             Assert.Equal("Echo", handler.Calls[0].Method);
@@ -166,8 +170,12 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Servers
                 """).ConfigureAwait(false);
 
             server.Start();
+            var responseProvider = factory.GetProvider(Path.GetDirectoryName(responsePath)!);
+            var responseWritten = responseProvider.GetWriteTask(
+                Path.GetFileName(responsePath));
             factory.GetProvider(Path.GetDirectoryName(requestPath)!).TriggerChange();
-            await handler.Invoked.ConfigureAwait(false);
+            // Wait for the response stream to close before disposal cancels writes.
+            await responseWritten.ConfigureAwait(false);
             await server.DisposeAsync().ConfigureAwait(false);
 
             var response = await File.ReadAllTextAsync(responsePath)
@@ -190,8 +198,12 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Servers
                 """).ConfigureAwait(false);
 
             server.Start();
+            var responseProvider = factory.GetProvider(Path.GetDirectoryName(responsePath)!);
+            var responseWritten = responseProvider.GetWriteTask(
+                Path.GetFileName(responsePath));
             factory.GetProvider(Path.GetDirectoryName(requestPath)!).TriggerChange();
-            await handler.Invoked.ConfigureAwait(false);
+            // Wait for the response stream to close before disposal cancels writes.
+            await responseWritten.ConfigureAwait(false);
             await server.DisposeAsync().ConfigureAwait(false);
 
             Assert.Contains("405",
@@ -211,8 +223,12 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Servers
                 """).ConfigureAwait(false);
 
             server.Start();
+            var responseProvider = factory.GetProvider(Path.GetDirectoryName(responsePath)!);
+            var responseWritten = responseProvider.GetWriteTask(
+                Path.GetFileName(responsePath));
             factory.GetProvider(Path.GetDirectoryName(requestPath)!).TriggerChange();
-            await handler.Invoked.ConfigureAwait(false);
+            // Wait for the response stream to close before disposal cancels writes.
+            await responseWritten.ConfigureAwait(false);
             await server.DisposeAsync().ConfigureAwait(false);
 
             Assert.Contains("501",
