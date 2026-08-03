@@ -163,22 +163,35 @@ if ($UpdateBaseline) {
     # is at the target, pinning the floor to a peak of 97% would fail the build
     # for deleting a covered line - which is not what the number is for.
     #
+    # A floor also sits slightly below what was measured. Coverage here is not
+    # perfectly reproducible: two clean runs of the same commit differed by
+    # over a point on one assembly's branch coverage, because some tests race
+    # over paths that a timing difference decides. A floor set to the exact
+    # measurement would fail the next honest run, and a gate that cries wolf
+    # gets disabled.
+    #
     $targetLine = 85.0
     $targetBranch = 70.0
+    $margin = 2.0
     $existing = @{}
     if (Test-Path $ThresholdPath) {
         $existing = Get-Content -LiteralPath $ThresholdPath -Raw | ConvertFrom-Json -AsHashtable
     }
     $updated = [ordered]@{}
     foreach ($name in $measured.Keys) {
-        $line = [math]::Min($measured[$name].line, $targetLine)
-        $branch = [math]::Min($measured[$name].branch, $targetBranch)
+        $line = [math]::Round([math]::Max(0.0, $measured[$name].line - $margin), 2)
+        $branch = [math]::Round([math]::Max(0.0, $measured[$name].branch - $margin), 2)
         if ($existing.ContainsKey($name)) {
             # A floor only ever moves up.
             if ($existing[$name].line -gt $line) { $line = $existing[$name].line }
             if ($existing[$name].branch -gt $branch) { $branch = $existing[$name].branch }
         }
-        $updated[$name] = [ordered]@{ line = $line; branch = $branch }
+        # The cap wins over the ratchet, including over a floor recorded before
+        # the cap existed.
+        $updated[$name] = [ordered]@{
+            line = [math]::Min($line, $targetLine)
+            branch = [math]::Min($branch, $targetBranch)
+        }
     }
     $updated | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $ThresholdPath -Encoding utf8
     Write-Host "Wrote floors to $ThresholdPath"
