@@ -548,6 +548,8 @@ Keep alive messages are part of the network message. A network message can conta
 
 ### Heartbeat messages
 
+> This feature is in preview
+
 A [heartbeat](./readme.md#heartbeat) re-sends the last known (good) value of a node when the node did not report a new value within the configured `HeartbeatInterval`. Because the re-sent value is identical to the previously reported one (including its `SourceTimestamp` and `ServerTimestamp`), a consumer cannot tell a heartbeat apart from a real value change. To disambiguate the two, OPC Publisher can add a `Heartbeat` indicator to the message.
 
 The indicator is controlled through the `Heartbeat` flag (`0x400000`) of the `DataSetFieldContentMask`. It is part of the `FullSamples` and `FullNetworkMessages` [messaging profiles](#messaging-profiles-supported-by-opc-publisher) with `Json` encoding, which are selected using the `--mm` or the `--fm=True` [command line](./commandline.md) options, or the `MessagingMode` property of a writer entry in the [configuration](./readme.md#configuration-schema).
@@ -882,6 +884,8 @@ In this case, if OPC Publisher is started in bulk mode with `--bs=5` argument a 
 ```
 
 ### Heartbeat messages in Samples mode
+
+> This feature is in preview
 
 Samples mode messages carry the same [heartbeat indicator](#heartbeat-messages). It is emitted as a top level `Heartbeat` member of the message and is only present (and then always `true`) when the message was produced by a heartbeat. As in PubSub mode the indicator must be enabled through the `Heartbeat` flag of the `DataSetFieldContentMask`, e.g., by using the `FullSamples` messaging profile or the `--fm=True` [command line](./commandline.md) option.
 

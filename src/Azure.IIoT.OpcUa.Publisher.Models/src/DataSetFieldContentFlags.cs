@@ -98,6 +98,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// was produced by a heartbeat rather than a value change
         /// received from the server. Only supported with Json
         /// encoding (samples and pub sub message formats).
+        /// This feature is in preview.
         /// </summary>
         [EnumMember(Value = "Heartbeat")]
         Heartbeat = 0x400000

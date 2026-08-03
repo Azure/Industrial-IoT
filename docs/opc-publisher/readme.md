@@ -755,6 +755,8 @@ The heartbeat behavior `WatchdogLKVDiagnosticsOnly` is special, it allows you to
 
 ##### Heartbeat indicator
 
+> This feature is in preview
+
 A heartbeat re-sends the last known (good) value, including the original `SourceTimestamp` and `ServerTimestamp` of that value. A consumer therefore cannot distinguish a heartbeat from a real value change of the node, which can lead to wrong values being recorded in a historian (see issue [#2441](https://github.com/Azure/Industrial-IoT/issues/2441)).
 
 To be able to tell both apart, OPC Publisher can add a `Heartbeat` indicator to the outgoing message. The indicator is emitted as part of the [message](./messageformats.md#heartbeat-messages) and is only present (and then always `true`) when the message was produced by a heartbeat. Messages resulting from real value changes do not contain the member.
