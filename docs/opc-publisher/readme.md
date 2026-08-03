@@ -37,7 +37,7 @@ Here you find information about
     - [Simple event filter](#simple-event-filter)
     - [Advanced event filter configuration](#advanced-event-filter-configuration)
     - [Condition handling options](#condition-handling-options)
-- [Publish to a Unified Namespace](#publish-to-a-unified-namespace)
+- [Publish to a topic hierarchy](#publish-to-a-topic-hierarchy)
 - [OPC Publisher Telemetry Formats](#opc-publisher-telemetry-formats)
 - [Programming against OPC Publisher using the OPC Publisher API](#programming-against-opc-publisher-using-the-opc-publisher-api)
   - [Using IoT Edge Simulation environment](#using-iot-edge-simulation-environment)
@@ -1002,15 +1002,13 @@ One or both of these must be set for condition handling to be in effect. You can
 
 Conditions are sent as `ua-condition` data set messages. This is a message type not part of the official standard but allows separating condition snapshots from regular `ua-event` data set messages.
 
-## Publish to a Unified Namespace
-
-> This feature is in preview
+## Publish to a topic hierarchy
 
 OPC Publisher allows you to map values and events obtained from the OPC UA address space to MQTT topics up to the granularity of the subscribed node id (monitored item).
 
 Specify topic templates at the level of `WriterGroup`, `DataSetWriter` or `Node` as part of the [configuration](#configuration-schema) to configure routing that meets your needs. Topic templates can apply not just to MQTT but to any transport supporting topic or queue name based routing, however, the default templates that apply use the MQTT topic format with `/` path delimiter and escape only MQTT topic reserved characters (using `\x<ascii-code>`).
 
-For extra convenience use the automatic routing feature which leverages the OPC UA browse paths inside the address space to automatically create the topic structure. The [browse paths](#browse-paths) from the root folder (`i=84`) is used as it maps well with how clients visualize the address space. To use this feature, configure the `DataSetRouting` option in the configuration or set a default on the [command line](./commandline.md). For example when configuring the `UseBrowseNames` option all Events and data changes are routed to topics that match the browse path of the source node effectively mapping the address space into the MQTT topic structure with limited configuration overhead.
+> **Removed in 3.0: automatic routing from browse paths.** Earlier versions could derive the topic from the OPC UA browse path of the source node (`DataSetRouting` / `--uns`). That topic was built for each notification from a path discovered from the server at run time, and the OPC UA PubSub runtime that 3.0 publishes through has no per-message topic - a writer group publishes to the topic it is configured with. The option is accepted and ignored so an existing configuration still starts. To get a topic hierarchy, write it into the topic template: templates support variables such as the writer group, the writer name and the data set name, which cover the cases browse-path routing was used for without depending on the server's address space layout.
 
 When publishing value changes to topics best choose a [Message format](./messageformats.md) that has limited overhead, e.g., `SingleRawDataSet` or `SingleDataSetMessage`.
 

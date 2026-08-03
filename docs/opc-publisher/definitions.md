@@ -451,10 +451,17 @@ Indicate the data location
 
 <a name="datasetroutingmode"></a>
 ### DataSetRoutingMode
-Specifies how OPC UA node paths are mapped to message routing paths/topics.
-Controls automatic topic structure generation from OPC UA address space.
-Used to create a unified namespace when publishing to message brokers
-that support hierarchical routing like MQTT.
+Removed in 3.0 - accepted and ignored.
+
+Earlier versions used this to generate a topic structure automatically from
+the OPC UA address space, appending the browse path of the source node to the
+telemetry topic. The topic was built for each notification from a path
+discovered from the server at run time, and the OPC UA PubSub runtime that 3.0
+publishes through has no per-message topic - a writer group publishes to the
+topic it is configured with.
+
+A configuration that still sets this value loads and starts; the value has no
+effect. Use topic templates to build a topic hierarchy instead.
 
 *Type* : enum (None, UseBrowseNames, UseBrowseNamesWithNamespaceIndex)
 

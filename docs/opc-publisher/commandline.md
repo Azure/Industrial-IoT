@@ -2,7 +2,7 @@
 
 [Home](./readme.md)
 
-> This documentation applies to version 2.9
+> This documentation applies to version 3.0
 
 The following OPC Publisher configuration can be applied by Command Line Interface (CLI) options or as environment variable settings. Any CamelCase options can also be provided using environment variables (without the preceding `--`). When both environment variable and CLI argument are provided, the command line option will override the environment variable.
 
@@ -173,17 +173,25 @@ Messaging configuration
                                environment variable in the form of a duration
                                string in the form `[d.]hh:mm:ss[.fffffff]`.
       --bs, --batchsize, --BatchSize=VALUE
-                             The number of incoming OPC UA subscription
-                               notifications to collect until sending a network
-                               messages. When `--bs` is set to 1 and `--bi` is
-                               0 batching is disabled and messages are sent as
-                               soon as notifications arrive.
-                               Default: `50`.
+                             Removed in 3.0. The native PubSub runtime emits a
+                               message per sample and does not coalesce, so
+                               there is nothing to collect into a batch.
+                               Accepted and ignored so existing command lines
+                               keep working. Use `--bi` to control how often
+                               the runtime samples.
+                               Deprecated, it is scheduled for removal.
       --rdb, --removedupsinbatch, --RemoveDuplicatesFromBatch[=VALUE]
                              Removed in 3.0. This only ever applied to the
                                `Samples` mode, which no longer exists, so the
                                option is accepted and ignored so existing
                                command lines keep working.
+                               Deprecated, it is scheduled for removal.
+      --unp, --usenativepubsub, --UseNativePubSub[=VALUE]
+                             Removed in 3.0. Telemetry is published through the
+                               native OPC UA PubSub runtime, and the custom
+                               encoder this selected no longer exists, so the
+                               option is accepted and ignored to keep existing
+                               command lines working.
                                Deprecated, it is scheduled for removal.
       --ms, --maxmessagesize, --iothubmessagesize, --IoTHubMaxMessageSize=VALUE
                              The maximum size of the messages to emit. In case
@@ -306,14 +314,18 @@ Messaging configuration
                                Default: `false`.
       --om, --maxsendqueuesize, --MaxNetworkMessageSendQueueSize=VALUE
                              The maximum number of messages to buffer on the
-                               send path before messages are dropped.
+                               send path before the publisher applies
+                               backpressure to the subscription. A larger queue
+                               rides out a longer broker outage; a smaller one
+                               pushes back sooner.
                                Default: `4096`
       --wgp, --writergrouppartitions, --DefaultWriterGroupPartitionCount=VALUE
-                             The number of partitions to split the writer group
-                               into. Each partition represents a data flow to
-                               the transport sink. The partition is selected by
-                               topic hash.
-                               Default: `0` (partitioning is disabled)
+                             Removed in 3.0. The native PubSub runtime
+                               publishes a writer group through a single
+                               transport connection, so there is nothing to
+                               partition. Accepted and ignored so existing
+                               command lines keep working.
+                               Deprecated, it is scheduled for removal.
   -t, --dmt, --defaultmessagetransport, --DefaultTransport=VALUE
                              The desired transport to use to publish network
                                messages with.
@@ -540,20 +552,19 @@ Routing configuration
                                the schema is sent to a sub topic where the
                                telemetry message is sent to.
       --uns, --datasetrouting, --DefaultDataSetRouting=VALUE
-                             Configures whether messages should automatically
-                               be routed using the browse path of the monitored
-                               item inside the address space starting from the
-                               RootFolder.
-                               The browse path is appended as topic structure
-                               to the telemetry topic root which can be
-                               configured using `--ttt`. Reserved characters in
-                               browse names are escaped with their hex ASCII
-                               code.
+                             Removed in 3.0. Messages are no longer routed
+                               using the browse path of the monitored item:
+                               that topic was built per notification from a
+                               path discovered at runtime, which the native
+                               PubSub runtime cannot express. The option is
+                               accepted and ignored so existing command lines
+                               keep working. Configure topics with `--ttt` or
+                               per writer instead.
                                Allowed values:
                                    `None`
                                    `UseBrowseNames`
                                    `UseBrowseNamesWithNamespaceIndex`
-                               Default: `None` (Topics must be configured).
+                               Deprecated, it is scheduled for removal.
       --ri, --enableroutinginfo, --EnableRoutingInfo[=VALUE]
                              Add routing information to messages. The name of
                                the property is `$$RoutingInfo` and the value is
@@ -622,6 +633,10 @@ Subscription settings
                              (Experimental) Explicitly disable or enable
                                retrieving relative paths from root for
                                monitored items.
+                               Note: the only consumer of these paths was the
+                               automatic topic routing removed in 3.0, so
+                               enabling this now costs browse calls at startup
+                               without changing what is published.
                                Default: `false` (disabled).
       --qs, --queuesize, --DefaultQueueSize=VALUE
                              Default queue size for all monitored items if

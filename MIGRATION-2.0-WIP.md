@@ -484,3 +484,54 @@ In that compatibility configuration 3.0 emits a message per occurrence rather
 than a ten second batch of them. Every configuration that names a transport or
 asks for compliant encoding already behaved this way, because those set the
 trigger to zero.
+
+## OPC Publisher 3.0 — features removed
+
+The full picture is in the feature matrix, which now carries a 3.0 column:
+[docs/opc-publisher/features.md](./docs/opc-publisher/features.md). What
+follows is why the removals happened, since a table can only say *that* they
+did.
+
+Everything below is **accepted and ignored** rather than rejected. A 2.x
+command line or published nodes file still starts. The one exception is the
+sample messaging modes, which fail loudly on purpose — see below.
+
+### Automatic topic routing from browse paths (`--uns` / `DataSetRouting`)
+
+The topic was built for each notification by appending the source node's browse
+path, and that path is discovered from the server at run time rather than
+configured. The OPC UA PubSub runtime 3.0 publishes through has no per-message
+topic: a writer group publishes to the topic it is configured with, and only
+metadata carries a topic of its own. There was nothing to hand it in advance.
+
+To build a topic hierarchy, put it in the topic template. Templates already
+support the writer group, writer name and data set name, which covers what
+browse-path routing was used for without depending on the server's address
+space layout.
+
+Note this also leaves `--fp`/`FetchOpcBrowsePathFromRoot` with no consumer.
+It still works if asked for, but it now costs browse calls at startup without
+changing what is published.
+
+### Batching and partitioning (`--bs`, `--wgp`)
+
+The native runtime emits a message per sample and does not coalesce, so there
+is nothing for a batch size to collect; `--bi` still controls how often it
+samples. A writer group publishes through a single transport connection, so
+there is nothing for a partition count to split.
+
+`--om` is unaffected and, unlike in earlier previews of 3.0, now actually
+reaches the transport — it bounds the send queue and applies backpressure.
+
+### The `Samples` and `FullSamples` messaging modes
+
+These are the exception: a configuration naming one **fails to start**, with an
+error naming the replacement (`PubSub` and `FullNetworkMessages`). They are
+treated differently from the options above because they changed the *wire
+format*. Silently switching a deployment's message shape is worse than refusing
+to start, whereas silently ignoring a topic-shaping hint is not.
+
+### The custom encoder (`--unp`)
+
+3.0 publishes only through the native runtime; the custom encoder it replaced
+is deleted, so there is no longer a path for the flag to select.
