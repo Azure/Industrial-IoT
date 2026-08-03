@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
     using AutoFixture.Kernel;
     using FluentAssertions;
     using System;
+    using System.ComponentModel.DataAnnotations;
     using System.Text.Json.Nodes;
     using System.Collections;
     using System.Collections.Generic;
@@ -147,6 +148,87 @@ namespace Azure.IIoT.OpcUa.Publisher.Models.Tests
 
             Assert.NotNull(result);
             Assert.Null(result.EndpointUrl);
+        }
+
+        [Theory]
+        [InlineData("\"pubsub\"", MessagingMode.PubSub)]
+        [InlineData("\"FullNetworkMessages\"", MessagingMode.FullNetworkMessages)]
+        [InlineData("2", MessagingMode.FullNetworkMessages)]
+        [InlineData("\"SingleRawDataSet\"", MessagingMode.SingleRawDataSet)]
+        public void MessagingModeConverterReadsNamesCaseInsensitivelyAndDefinedNumbers(
+            string json, MessagingMode expected)
+        {
+            var result = JsonSerializer.Deserialize<MessagingMode>(json, Json.Options);
+
+            Assert.Equal(expected, result);
+        }
+
+        [Fact]
+        public void MessagingModeConverterWritesEnumName()
+        {
+            var json = JsonSerializer.Serialize(MessagingMode.SingleDataSet, Json.Options);
+
+            Assert.Equal("\"SingleDataSet\"", json);
+        }
+
+        [Theory]
+        [InlineData("\"Samples\"", "PubSub")]
+        [InlineData("\"fullsamples\"", "FullNetworkMessages")]
+        public void MessagingModeConverterRejectsRemovedSampleModesWithReplacement(
+            string json, string replacement)
+        {
+            var exception = Assert.Throws<JsonException>(() =>
+                JsonSerializer.Deserialize<MessagingMode>(json, Json.Options));
+
+            Assert.Contains("was removed in OPC Publisher 3.0", exception.Message,
+                StringComparison.Ordinal);
+            Assert.Contains($"Use '{replacement}' instead.", exception.Message,
+                StringComparison.Ordinal);
+        }
+
+        [Theory]
+        [InlineData("true", "A messaging mode must be written as a string.")]
+        [InlineData("1", "A messaging mode must be written as a string.")]
+        [InlineData("\"unknown\"", "'unknown' is not a known messaging mode.")]
+        public void MessagingModeConverterRejectsUnsupportedJsonValues(
+            string json, string expectedMessage)
+        {
+            var exception = Assert.Throws<JsonException>(() =>
+                JsonSerializer.Deserialize<MessagingMode>(json, Json.Options));
+
+            Assert.Contains(expectedMessage, exception.Message,
+                StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void RemovedMessagingModeReplacementLookupHandlesNullAndKnownNames()
+        {
+            var result = MessagingModeJsonConverter.TryGetRemovedModeReplacement(
+                null, out var replacement);
+
+            Assert.Equal(false, result);
+            Assert.Equal(string.Empty, replacement);
+
+            result = MessagingModeJsonConverter.TryGetRemovedModeReplacement(
+                "Samples", out replacement);
+
+            Assert.Equal(true, result);
+            Assert.Equal(nameof(MessagingMode.PubSub), replacement);
+
+            result = MessagingModeJsonConverter.TryGetRemovedModeReplacement(
+                "FullSamples", out replacement);
+
+            Assert.Equal(true, result);
+            Assert.Equal(nameof(MessagingMode.FullNetworkMessages), replacement);
+        }
+
+        [Fact]
+        public void SkipValidationAttributeAlwaysReturnsValid()
+        {
+            var attribute = new SkipValidationAttribute();
+
+            Assert.Equal(true, attribute.IsValid(null));
+            Assert.Equal(true, attribute.IsValid(new object()));
         }
 
         private sealed class ReflectionOnlyModel

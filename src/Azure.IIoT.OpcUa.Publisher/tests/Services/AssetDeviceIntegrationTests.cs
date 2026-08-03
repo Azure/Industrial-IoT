@@ -9,6 +9,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
     using Azure.IIoT.OpcUa.Publisher.Services;
     using Azure.IIoT.OpcUa.Core.Serialization;
     using Azure.Iot.Operations.Services.AssetAndDeviceRegistry.Models;
+    using Azure.Iot.Operations.Services.SchemaRegistry.SchemaRegistry;
+    using IEventSchema = Azure.IIoT.OpcUa.Core.Messaging.IEventSchema;
     using AssetModel = Iot.Operations.Services.AssetAndDeviceRegistry.Models.Asset;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
@@ -700,6 +702,228 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             // No assert, just ensure no exception and internal state updated
         }
 
+        [Fact]
+        public async Task OnSchemaRegisteredAsyncUpdatesDatasetSchemaReferenceAsync()
+        {
+            // Arrange
+            var sut = CreateSut();
+            var asset = CreateAssetWithSchemaResources(displayName: "Boiler");
+            sut.OnDeviceCreated("dev1", "ep1", CreateDevice("opc.tcp://localhost:4840"));
+            sut.OnAssetCreated("dev1", "ep1", "asset1", asset);
+
+            AssetStatus? captured = null;
+#pragma warning disable CA2012 // Use ValueTasks correctly
+            _clientMock
+                .Setup(c => c.UpdateAssetStatusAsync("dev1", "ep1", "asset1",
+                    It.IsAny<AssetStatus>(), It.IsAny<TimeSpan?>(),
+                    It.IsAny<CancellationToken>()))
+                .Callback<string, string, string, AssetStatus, TimeSpan?, CancellationToken>(
+                    (_, _, _, status, _, _) => captured = status)
+                .Returns(ValueTask.FromResult<AssetStatus>(null));
+#pragma warning restore CA2012 // Use ValueTasks correctly
+
+            // Act
+            await sut.OnSchemaRegisteredAsync(CreateSchema("Boiler|ds1"),
+                CreateRegistration(), default);
+
+            // Assert
+            var dataset = Assert.Single(captured?.Datasets ??
+                throw new InvalidOperationException("Missing dataset status."));
+            Assert.Equal("ds1", dataset.Name);
+            Assert.Equal("schema1", dataset.MessageSchemaReference?.SchemaName);
+            Assert.Equal("namespace1", dataset.MessageSchemaReference?.SchemaRegistryNamespace);
+            Assert.Equal("1.0.0", dataset.MessageSchemaReference?.SchemaVersion);
+        }
+
+        [Fact]
+        public async Task OnSchemaRegisteredAsyncUsesAssetNameFallbackAndUpdatesEventSchemaReferenceAsync()
+        {
+            // Arrange
+            var sut = CreateSut();
+            var asset = CreateAssetWithSchemaResources(displayName: "Display", model: "Model");
+            sut.OnDeviceCreated("dev1", "ep1", CreateDevice("opc.tcp://localhost:4840"));
+            sut.OnAssetCreated("dev1", "ep1", "asset1", asset);
+
+            AssetStatus? captured = null;
+#pragma warning disable CA2012 // Use ValueTasks correctly
+            _clientMock
+                .Setup(c => c.UpdateAssetStatusAsync("dev1", "ep1", "asset1",
+                    It.IsAny<AssetStatus>(), It.IsAny<TimeSpan?>(),
+                    It.IsAny<CancellationToken>()))
+                .Callback<string, string, string, AssetStatus, TimeSpan?, CancellationToken>(
+                    (_, _, _, status, _, _) => captured = status)
+                .Returns(ValueTask.FromResult<AssetStatus>(null));
+#pragma warning restore CA2012 // Use ValueTasks correctly
+
+            // Act
+            await sut.OnSchemaRegisteredAsync(CreateSchema("asset1|ev1"),
+                CreateRegistration(), default);
+
+            // Assert
+            var eventGroup = Assert.Single(captured?.EventGroups ??
+                throw new InvalidOperationException("Missing event group status."));
+            var @event = Assert.Single(eventGroup.Events ??
+                throw new InvalidOperationException("Missing event status."));
+            Assert.Equal("ev1", @event.Name);
+            Assert.Equal("schema1", @event.MessageSchemaReference?.SchemaName);
+            Assert.Equal("namespace1", @event.MessageSchemaReference?.SchemaRegistryNamespace);
+            Assert.Equal("1.0.0", @event.MessageSchemaReference?.SchemaVersion);
+        }
+
+        [Theory]
+        [InlineData(null, "namespace1", "1.0.0", "Boiler|ds1")]
+        [InlineData("schema1", null, "1.0.0", "Boiler|ds1")]
+        [InlineData("schema1", "namespace1", null, "Boiler|ds1")]
+        [InlineData("schema1", "namespace1", "1.0.0", null)]
+        [InlineData("schema1", "namespace1", "1.0.0", "x|ds1")]
+        public async Task OnSchemaRegisteredAsyncRejectsInvalidRegistrationsAsync(
+            string? name, string? @namespace, string? version, string? schemaId)
+        {
+            // Arrange
+            var sut = CreateSut();
+            sut.OnDeviceCreated("dev1", "ep1", CreateDevice("opc.tcp://localhost:4840"));
+            sut.OnAssetCreated("dev1", "ep1", "asset1",
+                CreateAssetWithSchemaResources(displayName: "Boiler"));
+
+            // Act
+            await sut.OnSchemaRegisteredAsync(CreateSchema(schemaId),
+                new Schema { Name = name!, Namespace = @namespace!, Version = version! },
+                default);
+
+            // Assert
+            _clientMock.Verify(c => c.UpdateAssetStatusAsync(It.IsAny<string>(),
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AssetStatus>(),
+                It.IsAny<TimeSpan?>(), It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task ToPublishedNodesAsyncMapsDatasetsEventsManagementAndDestinationsAsync()
+        {
+            // Arrange
+            var sut = CreateSut();
+            var deviceModel = CreateDevice("opc.tcp://localhost:4840");
+            deviceModel.ExternalDeviceId = "device-ext";
+            sut.OnDeviceCreated("dev1", "ep1", deviceModel);
+            var device = new AssetDeviceIntegration.DeviceResource("dev1", deviceModel);
+            var assetModel = CreateAssetWithAllResources();
+            var asset = new AssetDeviceIntegration.AssetResource("asset1", assetModel);
+            var errors = new AssetDeviceIntegration.ValidationErrors(sut);
+
+            // Act
+            var result = await sut.ToPublishedNodesAsync([device], [asset], errors, default);
+
+            // Assert
+            Assert.Equal(4, result.Count);
+
+            var dataset = Assert.Single(result, e => e.DataSetWriterId == "dataset1");
+            Assert.Equal("opc.tcp://localhost:4840", dataset.EndpointUrl);
+            Assert.Equal("asset1", dataset.DataSetWriterGroup);
+            Assert.Equal("dev1", dataset.PublisherId);
+            Assert.Equal("asset-type", dataset.WriterGroupType);
+            Assert.Equal("ns=2;s=Asset1", dataset.WriterGroupRootNodeId);
+            Assert.Equal("dataset1", dataset.DataSetName);
+            Assert.Equal("ns=2;s=Dataset", dataset.DataSetRootNodeId);
+            Assert.Equal("dataset-type", dataset.DataSetType);
+            Assert.Equal("ms-aio:device-ext_ep1/ns%3D2%3Bs%3DDataset",
+                dataset.DataSetSourceUri);
+            Assert.Equal("asset-ext/dataset1", dataset.DataSetSubject);
+            Assert.Equal(100, dataset.DataSetPublishingInterval);
+            Assert.Equal(50, dataset.OpcNodes?.Single().OpcSamplingInterval);
+            Assert.Equal(WriterGroupTransport.AioMqtt, dataset.WriterGroupTransport);
+            Assert.Equal(Azure.IIoT.OpcUa.Core.Messaging.QoS.AtLeastOnce,
+                dataset.QualityOfService);
+            Assert.Equal(true, dataset.MessageRetention);
+            Assert.Equal("telemetry/dataset1", dataset.QueueName);
+            Assert.Equal(TimeSpan.FromSeconds(42), dataset.MessageTtlTimespan);
+            Assert.Equal(3u, dataset.DataSetKeyFrameCount);
+
+            var @event = Assert.Single(result, e => e.DataSetWriterId == "events1");
+            Assert.Equal("events1", @event.DataSetName);
+            Assert.Equal("event-type", @event.DataSetType);
+            Assert.Equal("asset-ext/events1/event1", @event.DataSetSubject);
+            Assert.Equal("telemetry/events1", @event.QueueName);
+            Assert.Equal(7u, @event.OpcNodes?.Single().QueueSize);
+            Assert.Equal("event-type", @event.OpcNodes?.Single().EventFilter?.TypeDefinitionId);
+
+            var managementA = Assert.Single(result, e => e.QueueName == "cmd/a");
+            Assert.Equal("mgmt1", managementA.DataSetName);
+            Assert.Equal("asset-ext/mgmt1", managementA.DataSetSubject);
+            Assert.Equal("action1", managementA.OpcNodes?.Single().DisplayName);
+            Assert.NotNull(managementA.OpcNodes?.Single().MethodMetadata);
+
+            var managementB = Assert.Single(result, e => e.QueueName == "cmd/default");
+            Assert.Equal("action2", managementB.OpcNodes?.Single().DisplayName);
+        }
+
+        [Fact]
+        public void ConvertActionConfigurationRoundTripsCompressedMethodMetadata()
+        {
+            // Arrange
+            var sut = CreateSut();
+            var errors = new AssetDeviceIntegration.ValidationErrors(sut);
+            var resource = new AssetDeviceIntegration.ManagementActionResource(
+                "asset1", CreateAssetWithSchemaResources(), new AssetManagementGroup
+                {
+                    Name = "mgmt1"
+                }, new AssetManagementGroupAction
+                {
+                    Name = "action1"
+                });
+            var metadata = new MethodMetadataModel
+            {
+                ObjectId = "ns=2;s=Object",
+                InputArguments =
+                [
+                    new MethodMetadataArgumentModel
+                    {
+                        Name = "temperature",
+                        Type = new NodeModel { NodeId = "i=11" }
+                    }
+                ],
+                OutputArguments =
+                [
+                    new MethodMetadataArgumentModel
+                    {
+                        Name = "accepted",
+                        Type = new NodeModel { NodeId = "i=1" }
+                    }
+                ]
+            };
+
+            // Act
+            var json = sut.ConvertActionConfiguration(metadata);
+            var roundTripped = sut.ConvertActionConfiguration(json, errors, resource);
+
+            // Assert
+            Assert.NotNull(json);
+            Assert.Equal("ns=2;s=Object", roundTripped.ObjectId);
+            Assert.Equal("temperature", Assert.Single(roundTripped.InputArguments!).Name);
+            Assert.Equal("accepted", Assert.Single(roundTripped.OutputArguments!).Name);
+        }
+
+        [Fact]
+        public void ConvertActionConfigurationReturnsEmptyMetadataForInvalidJson()
+        {
+            // Arrange
+            var sut = CreateSut();
+            var errors = new AssetDeviceIntegration.ValidationErrors(sut);
+            var resource = new AssetDeviceIntegration.ManagementActionResource(
+                "asset1", CreateAssetWithSchemaResources(), new AssetManagementGroup
+                {
+                    Name = "mgmt1"
+                }, new AssetManagementGroupAction
+                {
+                    Name = "action1"
+                });
+
+            // Act
+            var metadata = sut.ConvertActionConfiguration("{not-json", errors, resource);
+
+            // Assert
+            Assert.NotNull(metadata);
+            Assert.Null(metadata.ObjectId);
+        }
+
         private static void AssertGeneratedRoundTrip<T>(T configuration)
         {
             var typeInfo = Json.GetTypeInfo<T>();
@@ -727,6 +951,236 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                 (System.Threading.Channels.Channel<(string, AssetDeviceIntegration.Resource)>)
                     field.GetValue(sut);
             channel.Writer.TryComplete();
+        }
+
+        private static Device CreateDevice(string endpointUrl)
+        {
+            return new Device
+            {
+                Endpoints = new DeviceEndpoints
+                {
+                    Inbound = new Dictionary<string, InboundEndpointSchemaMapValue>
+                    {
+                        ["ep1"] = new()
+                        {
+                            Address = endpointUrl
+                        }
+                    }
+                }
+            };
+        }
+
+        private static AssetModel CreateAssetWithSchemaResources(
+            string? displayName = null, string? model = null)
+        {
+            return new AssetModel
+            {
+                DeviceRef = new AssetDeviceRef
+                {
+                    DeviceName = "dev1",
+                    EndpointName = "ep1"
+                },
+                DisplayName = displayName,
+                Model = model,
+                Datasets =
+                [
+                    new AssetDataset
+                    {
+                        Name = "ds1",
+                        DataPoints =
+                        [
+                            new AssetDatasetDataPoint
+                            {
+                                Name = "dp1",
+                                DataSource = "ns=2;s=dp1"
+                            }
+                        ]
+                    }
+                ],
+                EventGroups =
+                [
+                    new AssetEventGroup
+                    {
+                        Name = "eg1",
+                        Events =
+                        [
+                            new AssetEvent
+                            {
+                                Name = "ev1",
+                                DataSource = "ns=2;s=ev1"
+                            }
+                        ]
+                    }
+                ]
+            };
+        }
+
+        private static AssetModel CreateAssetWithAllResources()
+        {
+            return new AssetModel
+            {
+                DeviceRef = new AssetDeviceRef
+                {
+                    DeviceName = "dev1",
+                    EndpointName = "ep1"
+                },
+                ExternalAssetId = "asset-ext",
+                AssetTypeRefs = ["asset-type"],
+                Attributes = new Dictionary<string, string>
+                {
+                    ["AssetId"] = "ns=2;s=Asset1"
+                },
+                DefaultDatasetsConfiguration = Serialize(new PublishedNodesEntryModel
+                {
+                    EndpointUrl = string.Empty,
+                    WriterGroupQueueName = "removed"
+                }),
+                DefaultEventsConfiguration = Serialize(new PublishedNodesEntryModel
+                {
+                    EndpointUrl = string.Empty,
+                    WriterGroupQueueName = "removed"
+                }),
+                DefaultManagementGroupsConfiguration = Serialize(new PublishedNodesEntryModel
+                {
+                    EndpointUrl = string.Empty,
+                    WriterGroupQueueName = "removed"
+                }),
+                Datasets =
+                [
+                    new AssetDataset
+                    {
+                        Name = "dataset1",
+                        DataSource = "ns=2;s=Dataset",
+                        TypeRef = "dataset-type",
+                        DatasetConfiguration = Serialize(new DataSetConfiguration
+                        {
+                            PublishingInterval = 100,
+                            KeyFrameCount = 3,
+                            MessageEncoding = MessageEncoding.Avro
+                        }),
+                        Destinations =
+                        [
+                            new DatasetDestination
+                            {
+                                Target = DatasetTarget.Mqtt,
+                                Configuration = new DestinationConfiguration
+                                {
+                                    Topic = "telemetry/dataset1",
+                                    Qos = QoS.Qos1,
+                                    Retain = Retain.Keep,
+                                    Ttl = 42
+                                }
+                            }
+                        ],
+                        DataPoints =
+                        [
+                            new AssetDatasetDataPoint
+                            {
+                                Name = "temperature",
+                                DataSource = "ns=2;s=Temperature",
+                                TypeRef = "double-type",
+                                DataPointConfiguration = Serialize(new DataSetDataPointConfiguration
+                                {
+                                    SamplingInterval = 50
+                                })
+                            }
+                        ]
+                    }
+                ],
+                EventGroups =
+                [
+                    new AssetEventGroup
+                    {
+                        Name = "events1",
+                        DataSource = "ns=2;s=Events",
+                        TypeRef = "event-group-type",
+                        EventGroupConfiguration = Serialize(new EventGroupConfiguration
+                        {
+                            SamplingInterval = 250
+                        }),
+                        DefaultDestinations =
+                        [
+                            new EventStreamDestination
+                            {
+                                Target = EventStreamTarget.Mqtt,
+                                Configuration = new DestinationConfiguration
+                                {
+                                    Topic = "telemetry/events1",
+                                    Qos = QoS.Qos0,
+                                    Retain = Retain.Never,
+                                    Ttl = 17
+                                }
+                            }
+                        ],
+                        Events =
+                        [
+                            new AssetEvent
+                            {
+                                Name = "event1",
+                                DataSource = "ns=2;s=EventNotifier",
+                                TypeRef = "event-type",
+                                EventConfiguration = Serialize(new EventConfiguration
+                                {
+                                    QueueSize = 7
+                                })
+                            }
+                        ]
+                    }
+                ],
+                ManagementGroups =
+                [
+                    new AssetManagementGroup
+                    {
+                        Name = "mgmt1",
+                        DataSource = "ns=2;s=Object",
+                        TypeRef = "object-type",
+                        DefaultTopic = "cmd/default",
+                        ManagementGroupConfiguration = Serialize(new ManagementGroupConfiguration
+                        {
+                            Priority = 5
+                        }),
+                        Actions =
+                        [
+                            new AssetManagementGroupAction
+                            {
+                                Name = "action1",
+                                TargetUri = "ns=2;s=Method1",
+                                TypeRef = "method-type",
+                                Topic = "cmd/a"
+                            },
+                            new AssetManagementGroupAction
+                            {
+                                Name = "action2",
+                                TargetUri = "ns=2;s=Method2",
+                                TypeRef = "method-type"
+                            }
+                        ]
+                    }
+                ]
+            };
+        }
+
+        private static IEventSchema CreateSchema(string? id)
+        {
+            var schema = new Mock<IEventSchema>();
+            schema.SetupGet(s => s.Id).Returns(id!);
+            schema.SetupGet(s => s.Name).Returns("eventSchema");
+            return schema.Object;
+        }
+
+        private static Schema CreateRegistration()
+        {
+            return new Schema
+            {
+                Name = "schema1",
+                Namespace = "namespace1",
+                Version = "1.0.0"
+            };
+        }
+
+        private static string Serialize<T>(T value)
+        {
+            return Json.SerializeToString(value, Json.GetTypeInfo<T>());
         }
 
         private AssetDeviceIntegration CreateSut()

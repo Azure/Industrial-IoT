@@ -457,6 +457,113 @@ namespace Opc.Ua.Extensions
             AssertEqual(expected, result1, result2);
         }
 
+        [Theory]
+        [InlineData("i=42", 42)]
+        [InlineData("i_42", 42)]
+        [InlineData("Boolean", (int)BuiltInType.Boolean)]
+        [InlineData("UInt32", (int)BuiltInType.UInt32)]
+        public void DecodeNodeIdFromNumericFormsAndDataTypeNamesNoUri(
+            string value, int expected)
+        {
+            var context = new ServiceMessageContext();
+
+            var result = value.ToNodeId(context);
+
+            Assert.Equal((uint)expected, result.Identifier);
+            Assert.Equal(0, result.NamespaceIndex);
+        }
+
+        [Theory]
+        [InlineData("x=1")]
+        [InlineData("i=not-a-number")]
+        [InlineData("not-a-data-type")]
+        public void DecodeMalformedNodeIdUriFallsBackToNullNodeId(string value)
+        {
+            var context = new ServiceMessageContext();
+
+            var result = value.ToNodeId(context);
+
+            Assert.Equal(NodeId.Null, result);
+        }
+
+        [Theory]
+        [InlineData("http://contoso.com/UA")]
+        [InlineData("http://contoso.com/UA#i=1&bad=server")]
+        public void DecodeBadAbsoluteNodeIdUriThrowsFormatException(string value)
+        {
+            var context = new ServiceMessageContext();
+
+            Assert.Throws<FormatException>(() => value.ToNodeId(context));
+        }
+
+        [Fact]
+        public void ExpandedNodeIdToNodeIdHandlesNullAndUnknownNamespaces()
+        {
+            var namespaces = new NamespaceTable();
+            var expanded = new ExpandedNodeId("node", 0, "urn:missing", 0);
+
+            Assert.Equal(NodeId.Null, ExpandedNodeId.Null.ToNodeId(namespaces));
+            Assert.Throws<ArgumentException>(() => expanded.ToNodeId(namespaces));
+
+            var result = expanded.ToNodeId(namespaces, allowUnknownNamespace: true);
+
+            Assert.Equal("node", result.Identifier);
+            Assert.Equal(0, result.NamespaceIndex);
+        }
+
+        [Fact]
+        public void NodeIdToExpandedNodeIdRequiresNamespaceTableForNamespaceIndex()
+        {
+            var nodeId = new NodeId("node", 1);
+
+            Assert.Throws<ArgumentNullException>(() => nodeId.ToExpandedNodeId(null));
+        }
+
+        [Fact]
+        public void ExpandedNodeIdAsStringIncludesServerUriForUriFormat()
+        {
+            var context = new ServiceMessageContext();
+            //
+            // Index zero is the local server, for which no server uri is
+            // emitted. A remote reference has to sit above it for the suffix
+            // to appear at all.
+            //
+            context.ServerUris.GetIndexOrAppend("urn:local");
+            var serverIndex = context.ServerUris.GetIndexOrAppend("urn:server");
+            Assert.NotEqual(0u, serverIndex);
+            var nodeId = new ExpandedNodeId("node", 0, "http://contoso.com/UA", serverIndex);
+
+            var value = nodeId.AsString(context, NamespaceFormat.Uri);
+            var result = value.ToExpandedNodeId(context);
+
+            Assert.Equal("http://contoso.com/UA#s=node&srv=urn:server", value);
+            Assert.Equal("node", result.Identifier);
+            Assert.Equal("http://contoso.com/UA", result.NamespaceUri);
+            Assert.Equal((uint)serverIndex, result.ServerIndex);
+        }
+
+        [Fact]
+        public void ExpandedNodeIdAsStringEscapesSemicolonsInExpandedNamespaceUri()
+        {
+            var context = new ServiceMessageContext();
+            var nodeId = new ExpandedNodeId("node", 0, "urn:has;semicolon", 0);
+
+            var value = nodeId.AsString(context, NamespaceFormat.Expanded);
+
+            Assert.Equal("nsu=urn:has%3bsemicolon;s=node", value);
+        }
+
+        [Fact]
+        public void NodeIdAsStringUsesDataTypeNameForDefaultNamespaceNumericId()
+        {
+            var context = new ServiceMessageContext();
+            var nodeId = new NodeId((uint)BuiltInType.Boolean, 0);
+
+            var value = nodeId.AsString(context, NamespaceFormat.Uri);
+
+            Assert.Equal("Boolean", value);
+        }
+
         private static void AssertEqual(NodeId expected,
             NodeId result1, NodeId result2)
         {

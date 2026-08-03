@@ -206,5 +206,128 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             Assert.True(comparer.Equals(opcNode2, opcNode1));
             Assert.Equal(comparer.GetHashCode(opcNode1), comparer.GetHashCode(opcNode2));
         }
+
+        [Fact]
+        public void TryGetIdReturnsFirstAvailableIdentity()
+        {
+            var node = new OpcNodeModel
+            {
+                Id = " id ",
+                ExpandedNodeId = "expanded"
+            };
+
+            var result = node.TryGetId(out var id);
+
+            Assert.Equal(true, result);
+            Assert.Equal(" id ", id);
+
+            node = new OpcNodeModel
+            {
+                Id = " ",
+                ExpandedNodeId = "expanded"
+            };
+
+            result = node.TryGetId(out id);
+
+            Assert.Equal(true, result);
+            Assert.Equal("expanded", id);
+
+            node = new OpcNodeModel
+            {
+                BrowsePath = ["Objects", "Server"]
+            };
+
+            result = node.TryGetId(out id);
+
+            Assert.Equal(true, result);
+            Assert.Equal(Opc.Ua.ObjectIds.RootFolder.ToString(), id);
+
+            node = new OpcNodeModel
+            {
+                ModelChangeHandling = new ModelChangeHandlingOptionsModel()
+            };
+
+            result = node.TryGetId(out id);
+
+            Assert.Equal(true, result);
+            Assert.Equal(Opc.Ua.ObjectIds.Server.ToString(), id);
+        }
+
+        [Fact]
+        public void TryGetIdReturnsFalseWhenNoIdentityIsAvailable()
+        {
+            var node = new OpcNodeModel
+            {
+                Id = " ",
+                BrowsePath = []
+            };
+
+            var result = node.TryGetId(out var id);
+
+            Assert.Equal(false, result);
+            Assert.Null(id);
+        }
+
+        [Fact]
+        public void NormalizedIntervalsPreferTimeSpanThenLegacyIntegerThenDefault()
+        {
+            var node = new OpcNodeModel
+            {
+                HeartbeatInterval = 2,
+                HeartbeatIntervalTimespan = TimeSpan.FromSeconds(3),
+                OpcPublishingInterval = 100,
+                OpcPublishingIntervalTimespan = TimeSpan.FromMilliseconds(200),
+                OpcSamplingInterval = 300,
+                OpcSamplingIntervalTimespan = TimeSpan.FromMilliseconds(400),
+                CyclicReadMaxAge = 500,
+                CyclicReadMaxAgeTimespan = TimeSpan.FromMilliseconds(600)
+            };
+
+            Assert.Equal(TimeSpan.FromSeconds(3),
+                node.GetNormalizedHeartbeatInterval(TimeSpan.FromSeconds(4)));
+            Assert.Equal(TimeSpan.FromMilliseconds(200),
+                node.GetNormalizedPublishingInterval(TimeSpan.FromMilliseconds(700)));
+            Assert.Equal(TimeSpan.FromMilliseconds(400),
+                node.GetNormalizedSamplingInterval(TimeSpan.FromMilliseconds(800)));
+            Assert.Equal(TimeSpan.FromMilliseconds(600),
+                node.GetNormalizedCyclicReadMaxAge(TimeSpan.FromMilliseconds(900)));
+
+            node = new OpcNodeModel
+            {
+                HeartbeatInterval = 2,
+                OpcPublishingInterval = 100,
+                OpcSamplingInterval = 300,
+                CyclicReadMaxAge = 500
+            };
+
+            Assert.Equal(TimeSpan.FromSeconds(2),
+                node.GetNormalizedHeartbeatInterval(TimeSpan.FromSeconds(4)));
+            Assert.Equal(TimeSpan.FromMilliseconds(100),
+                node.GetNormalizedPublishingInterval(TimeSpan.FromMilliseconds(700)));
+            Assert.Equal(TimeSpan.FromMilliseconds(300),
+                node.GetNormalizedSamplingInterval(TimeSpan.FromMilliseconds(800)));
+            Assert.Equal(TimeSpan.FromMilliseconds(500),
+                node.GetNormalizedCyclicReadMaxAge(TimeSpan.FromMilliseconds(900)));
+
+            node = new OpcNodeModel();
+
+            Assert.Equal(TimeSpan.FromSeconds(4),
+                node.GetNormalizedHeartbeatInterval(TimeSpan.FromSeconds(4)));
+            Assert.Equal(TimeSpan.FromMilliseconds(700),
+                node.GetNormalizedPublishingInterval(TimeSpan.FromMilliseconds(700)));
+            Assert.Equal(TimeSpan.FromMilliseconds(800),
+                node.GetNormalizedSamplingInterval(TimeSpan.FromMilliseconds(800)));
+            Assert.Equal(TimeSpan.FromMilliseconds(900),
+                node.GetNormalizedCyclicReadMaxAge(TimeSpan.FromMilliseconds(900)));
+        }
+
+        [Fact]
+        public void TimeSpanConversionHelpersReturnNullWithoutValueOrDefault()
+        {
+            TimeSpan? timespan = null;
+
+            Assert.Null(timespan.GetTimeSpanFromSeconds(null));
+            Assert.Null(timespan.GetTimeSpanFromMiliseconds(null));
+        }
     }
 }

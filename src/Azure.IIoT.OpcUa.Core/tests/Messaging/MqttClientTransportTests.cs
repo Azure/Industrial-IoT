@@ -8,6 +8,8 @@
 namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt
 {
     using FluentAssertions;
+    using Microsoft.Extensions.Logging.Abstractions;
+    using Microsoft.Extensions.Options;
     using System;
     using System.IO;
     using System.Text;
@@ -39,6 +41,58 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.Mqtt
         {
             MqttClientTransportLimits.GetPayloadSizeLimit(configuredLimit)
                 .Should().Be(expectedLimit);
+        }
+
+        [Fact]
+        public void ConstructorRejectsNullDependencies()
+        {
+            Assert.Throws<ArgumentNullException>(() =>
+                new MqttClientTransport(null!, NullLogger<MqttClientTransport>.Instance));
+            Assert.Throws<ArgumentNullException>(() =>
+                new MqttClientTransport(Options.Create(new MqttOptions()), null!));
+        }
+
+        [Theory]
+        [InlineData(MqttVersion.v311, false,
+            EventClientCapabilities.Payload |
+            EventClientCapabilities.Topic |
+            EventClientCapabilities.QualityOfService |
+            EventClientCapabilities.Retain |
+            EventClientCapabilities.TransportSecurity |
+            EventClientCapabilities.Authentication)]
+        [InlineData(MqttVersion.v5, false,
+            EventClientCapabilities.Payload |
+            EventClientCapabilities.Topic |
+            EventClientCapabilities.QualityOfService |
+            EventClientCapabilities.Retain |
+            EventClientCapabilities.TimeToLive |
+            EventClientCapabilities.ContentType |
+            EventClientCapabilities.ContentEncoding |
+            EventClientCapabilities.CustomProperties |
+            EventClientCapabilities.CloudEvents |
+            EventClientCapabilities.TransportSecurity |
+            EventClientCapabilities.Authentication)]
+        [InlineData(MqttVersion.v5, true,
+            EventClientCapabilities.Payload |
+            EventClientCapabilities.Topic |
+            EventClientCapabilities.QualityOfService |
+            EventClientCapabilities.Retain |
+            EventClientCapabilities.TimeToLive |
+            EventClientCapabilities.ContentType |
+            EventClientCapabilities.ContentEncoding |
+            EventClientCapabilities.CustomProperties |
+            EventClientCapabilities.CloudEvents |
+            EventClientCapabilities.Schema |
+            EventClientCapabilities.TransportSecurity |
+            EventClientCapabilities.Authentication)]
+        public void GetCapabilitiesReflectsProtocolAndSchemaSupport(
+            MqttVersion version, bool supportsSchema,
+            EventClientCapabilities expected)
+        {
+            var capabilities = MqttClientTransport.GetCapabilities(
+                version, supportsSchema);
+
+            Assert.Equal(expected, capabilities);
         }
 
         [Theory]

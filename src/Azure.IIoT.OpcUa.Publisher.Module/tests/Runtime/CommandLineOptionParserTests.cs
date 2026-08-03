@@ -7,6 +7,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
 {
     using Azure.IIoT.OpcUa.Publisher.Module.Runtime;
     using FluentAssertions;
+    using System;
     using System.Collections.Generic;
     using System.IO;
     using Xunit;
@@ -226,6 +227,133 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
 ]
 
 """);
+        }
+
+        [Fact]
+        public void RequiredPrototypeTakesPrecedenceOverOptionalAliases()
+        {
+            var parser = new CommandLineOptionParser
+            {
+                { "short:|required=", "Required wins.\n", _ => { } }
+            };
+
+            var descriptor = Assert.Single(parser);
+
+            Assert.Equal(CommandLineOptionValueType.Required, descriptor.OptionValueType);
+            Assert.Equal(["short", "required"], descriptor.GetNames());
+        }
+
+        [Theory]
+        [InlineData("-o", null)]
+        [InlineData("-ovalue", "value")]
+        public void OptionalShortBundleValueIsOptional(string argument, string expected)
+        {
+            string result = "unchanged";
+            var parser = new CommandLineOptionParser
+            {
+                { "o|option:", "Optional value.\n", value => result = value }
+            };
+
+            parser.Parse([argument]).Should().BeEmpty();
+
+            Assert.Equal(expected, result);
+        }
+
+        [Fact]
+        public void MissingRequiredBundleValueReportsShortOptionName()
+        {
+            var parser = new CommandLineOptionParser
+            {
+                { "i|id=", "Identifier.\n", _ => { } }
+            };
+
+            var action = () => parser.Parse(["-i"]);
+
+            action.Should().Throw<CommandLineOptionException>()
+                .WithMessage("Missing required value for option '-i'.");
+        }
+
+        [Fact]
+        public void LongSwitchIgnoresProvidedValueForNoValueOption()
+        {
+            string result = null;
+            var parser = new CommandLineOptionParser
+            {
+                { "h|help", "Show help.\n", value => result = value }
+            };
+
+            parser.Parse(["--help=ignored"]).Should().BeEmpty();
+
+            Assert.Equal("help", result);
+        }
+
+        [Fact]
+        public void ParseValueSupportsPublisherOptionTypes()
+        {
+            uint? uintValue = null;
+            ushort? ushortValue = null;
+            ushort? nullableUshortValue = 12;
+            TimeSpan? timeSpanValue = null;
+            DayOfWeek? enumValue = null;
+            double? doubleValue = null;
+            var parser = new CommandLineOptionParser
+            {
+                { "uint=", "Unsigned int.\n", (uint value) => uintValue = value },
+                { "ushort=", "Unsigned short.\n", (ushort value) => ushortValue = value },
+                { "nullable:", "Optional unsigned short.\n", (ushort? value) => nullableUshortValue = value },
+                { "timespan=", "Time span.\n", (TimeSpan value) => timeSpanValue = value },
+                { "day=", "Enum.\n", (DayOfWeek value) => enumValue = value },
+                { "double=", "Fallback conversion.\n", (double value) => doubleValue = value }
+            };
+
+            parser.Parse([
+                "--uint=4294967295",
+                "--ushort=65535",
+                "--nullable",
+                "--timespan=00:00:03",
+                "--day=friday",
+                "--double=1.5"
+            ]).Should().BeEmpty();
+
+            Assert.Equal(4294967295u, uintValue);
+            Assert.Equal((ushort)65535, ushortValue);
+            Assert.Null(nullableUshortValue);
+            Assert.Equal(TimeSpan.FromSeconds(3), timeSpanValue);
+            Assert.Equal(DayOfWeek.Friday, enumValue);
+            Assert.Equal(1.5d, doubleValue);
+        }
+
+        [Fact]
+        public void InvalidConvertedValueIsReportedWithPrototype()
+        {
+            var parser = new CommandLineOptionParser
+            {
+                { "port=", "Port.\n", (ushort _) => { } }
+            };
+
+            var action = () => parser.Parse(["--port=not-a-port"]);
+
+            action.Should().Throw<CommandLineOptionException>()
+                .WithMessage("Could not convert value 'not-a-port' for option 'port='.")
+                .WithInnerException<FormatException>();
+        }
+
+        [Fact]
+        public void LongHelpDescriptionsWrapWithContinuationIndent()
+        {
+            var parser = new CommandLineOptionParser
+            {
+                { "very-long-option-name=", "one two three four five six seven " +
+                    "eight nine ten eleven twelve thirteen fourteen fifteen sixteen.\n",
+                    _ => { } }
+            };
+
+            using var help = new StringWriter();
+            parser.WriteOptionDescriptions(help);
+
+            Assert.Contains("  --very-long-option-name=VALUE", help.ToString());
+            Assert.Contains(Environment.NewLine + "                               eleven",
+                help.ToString());
         }
     }
 }
