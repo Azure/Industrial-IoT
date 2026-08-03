@@ -55,7 +55,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Filters
 
             var response = await ExecuteAsync(httpContext, result);
 
-            Assert.Equal((int)HttpStatusCode.OK, httpContext.Response.StatusCode);
+            //
+            // The status travels on the response as well as in the body. A
+            // problem-details payload describing a 418 under a 200 response
+            // would tell an HTTP client the call succeeded.
+            //
+            Assert.Equal(418, httpContext.Response.StatusCode);
             using var json = JsonDocument.Parse(response);
             Assert.Equal(418, json.RootElement.GetProperty("status").GetInt32());
             Assert.Equal("Teapot", json.RootElement.GetProperty("title").GetString());

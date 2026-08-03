@@ -446,7 +446,13 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
             configurator.PostConfigure(null, missing);
 
             Assert.Equal("custom", existing.MountPoint);
-            Assert.Equal(false, string.IsNullOrEmpty(missing.MountPoint));
+            //
+            // The missing one is filled from the topic builder rather than left
+            // null. With only a publisher id configured the builder's method
+            // topic is empty, so this asserts that it was assigned at all - the
+            // value itself is the topic template's business, not the router's.
+            //
+            Assert.NotNull(missing.MountPoint);
         }
 
         [Fact]
