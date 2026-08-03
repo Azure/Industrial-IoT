@@ -82,9 +82,18 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
         }
 
         /// <inheritdoc/>
+        /// <remarks>
+        /// The entries are compared one by one rather than by handing this
+        /// instance to <see cref="Utils.IsEqual(object, object)"/>. That helper
+        /// dispatches an <see cref="IEncodeable"/> back to its own
+        /// <c>IsEqual</c>, so passing <c>this</c> to it called straight back
+        /// into here and any comparison of two distinct dictionaries recursed
+        /// until the stack ran out. <see cref="KeyDataValuePair"/> avoids this
+        /// by comparing its fields, and so does this now.
+        /// </remarks>
         public virtual bool IsEqual(IEncodeable encodeable)
         {
-            if (this == encodeable)
+            if (ReferenceEquals(this, encodeable))
             {
                 return true;
             }
@@ -92,9 +101,26 @@ namespace Azure.IIoT.OpcUa.Encoders.Models
             {
                 return false;
             }
-            if (!Utils.IsEqual(this, encodableDictionary))
+            if (Count != encodableDictionary.Count)
             {
                 return false;
+            }
+            for (var index = 0; index < Count; index++)
+            {
+                var entry = this[index];
+                var other = encodableDictionary[index];
+                if (entry is null || other is null)
+                {
+                    if (!ReferenceEquals(entry, other))
+                    {
+                        return false;
+                    }
+                    continue;
+                }
+                if (!entry.IsEqual(other))
+                {
+                    return false;
+                }
             }
             return true;
         }

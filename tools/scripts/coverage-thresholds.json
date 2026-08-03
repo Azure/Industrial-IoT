@@ -1,11 +1,11 @@
 {
   "Azure.IIoT.OpcUa": {
-    "line": 59.78,
-    "branch": 51.23
+    "line": 67.11,
+    "branch": 57.55
   },
   "Azure.IIoT.OpcUa.Core": {
-    "line": 44.49,
-    "branch": 40.9
+    "line": 56.12,
+    "branch": 53.29
   },
   "Azure.IIoT.OpcUa.Publisher": {
     "line": 72.76,
