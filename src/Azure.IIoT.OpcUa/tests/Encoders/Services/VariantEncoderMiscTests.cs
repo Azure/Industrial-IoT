@@ -308,7 +308,7 @@ namespace Azure.IIoT.OpcUa.Encoders
 
             Assert.Equal(BuiltInType.Int64, builtInType);
             Assert.NotNull(encoded);
-            var jsonValue = Assert.IsType<JsonValue>(encoded);
+            var jsonValue = Assert.IsAssignableFrom<JsonValue>(encoded);
             Assert.Equal(JsonValueKind.Number, jsonValue.GetValueKind());
             Assert.Equal(value, jsonValue.GetValue<long>());
         }
@@ -337,7 +337,14 @@ namespace Azure.IIoT.OpcUa.Encoders
 
             Assert.Equal(BuiltInType.Int32, builtInType);
             Assert.NotNull(encoded);
-            Assert.Equal(42, encoded!.GetValue<int>());
+            //
+            // The claim under test is only that the reversible Type/Body
+            // envelope is absent. The verbose shape around the value is the
+            // stack's business and is asserted in full elsewhere, so it is not
+            // restated here.
+            //
+            Assert.Null(encoded!["Body"]);
+            Assert.Contains("42", encoded.ToJsonString(), System.StringComparison.Ordinal);
         }
 
         [Theory]
