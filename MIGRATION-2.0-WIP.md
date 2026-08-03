@@ -438,6 +438,19 @@ Part 14 §7.2.5.4 defines only `ua-keyframe`, `ua-deltaframe`, `ua-event` and
 is an event occurrence on the wire. **A consumer filtering on `ua-condition`
 stops matching entirely.**
 
+### 3b. A keep alive omits `Payload` rather than sending an empty one
+
+```jsonc
+// 2.x
+{ "MessageType": "ua-keepalive", "Payload": {} }
+// 3.0
+{ "MessageType": "ua-keepalive" }
+```
+
+Part 14 §7.2.5.4 gives a keep alive no data set payload; 2.x wrote an empty
+object. A consumer that reads `Payload` unconditionally rather than checking
+for the member first will fault on a keep alive.
+
 ### 4. A DataValue is flattened, not wrapped in a Variant
 
 ```jsonc

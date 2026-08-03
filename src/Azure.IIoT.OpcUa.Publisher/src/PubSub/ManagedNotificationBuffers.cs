@@ -44,7 +44,15 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         /// replaces the description the source would otherwise infer from the
         /// values it has observed, and never produces a message of its own.
         /// </summary>
-        MetaData
+        MetaData,
+
+        /// <summary>
+        /// The subscription reported a keep alive and the writer asked for it
+        /// to be published. It carries no value of its own; the source
+        /// publishes its retained fields under the keep alive message type,
+        /// whose payload the encoder does not write.
+        /// </summary>
+        KeepAlive
     }
 
     /// <summary>
@@ -137,6 +145,31 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         }
 
         /// <summary>
+        /// Initializes a keep alive the subscription reported and the writer
+        /// asked to publish. It carries no fields of its own - the source
+        /// supplies its retained ones when it samples, so that the message is
+        /// distinguishable from the empty one the runtime's own idle timer
+        /// produces.
+        /// </summary>
+        /// <param name="dataSetName">Published dataset name.</param>
+        /// <param name="timestamp">Keep alive timestamp.</param>
+        public static ManagedPubSubNotification KeepAlive(string dataSetName,
+            DateTimeOffset timestamp)
+        {
+            return new ManagedPubSubNotification(dataSetName, timestamp);
+        }
+
+        private ManagedPubSubNotification(string dataSetName, DateTimeOffset timestamp)
+        {
+            DataSetName = string.IsNullOrWhiteSpace(dataSetName)
+                ? throw new ArgumentException("The dataset name must not be empty.", nameof(dataSetName))
+                : dataSetName;
+            Timestamp = timestamp;
+            Kind = ManagedPubSubNotificationKind.KeepAlive;
+            Frame = PubSubDataSetMessageType.KeepAlive;
+        }
+
+        /// <summary>
         /// Gets the dataset metadata the writer resolved from the server, when
         /// this notification carries it.
         /// </summary>
@@ -190,11 +223,21 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         /// <returns>A copy of this notification.</returns>
         public ManagedPubSubNotification Clone()
         {
-            return _barrier is null
-                ? ResolvedMetaData is { } metaData
-                    ? new ManagedPubSubNotification(DataSetName, metaData)
-                    : new ManagedPubSubNotification(DataSetName, Timestamp, Kind, Fields, Frame)
-                : new ManagedPubSubNotification(DataSetName, _barrier);
+            if (_barrier is not null)
+            {
+                return new ManagedPubSubNotification(DataSetName, _barrier);
+            }
+            if (ResolvedMetaData is { } metaData)
+            {
+                return new ManagedPubSubNotification(DataSetName, metaData);
+            }
+            //
+            // A keep alive carries no fields, so it cannot go through the
+            // occurrence constructor, which requires at least one.
+            //
+            return Kind == ManagedPubSubNotificationKind.KeepAlive
+                ? KeepAlive(DataSetName, Timestamp)
+                : new ManagedPubSubNotification(DataSetName, Timestamp, Kind, Fields, Frame);
         }
 
         internal static ManagedPubSubNotification CreateBarrier(string dataSetName,
@@ -770,6 +813,36 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
                 }
 
                 var notification = pending.Notification;
+                if (notification.Kind == ManagedPubSubNotificationKind.KeepAlive)
+                {
+                    //
+                    // The subscription reported a keep alive. It is published
+                    // with the retained fields rather than empty, because the
+                    // runtime skips a declared sample that carries none - that
+                    // is how "nothing occurred this cycle" is said. The encoder
+                    // writes no payload for a keep alive, so the fields stay
+                    // off the wire; they only make the message exist.
+                    //
+                    var retained = SnapshotCurrentData();
+                    if (retained.Count == 0)
+                    {
+                        //
+                        // Nothing has been observed yet, so there is no state
+                        // to hold the message up. Skipping is the same outcome
+                        // as the writer path's, which has nothing to publish
+                        // either until the first value arrives.
+                        //
+                        continue;
+                    }
+                    return new ValueTask<PublishedDataSetSnapshot>(new PublishedDataSetSnapshot(
+                        metaData.ConfigurationVersion ?? new ConfigurationVersionDataType
+                        {
+                            MajorVersion = 1
+                        },
+                        retained,
+                        DateTimeUtc.From(notification.Timestamp),
+                        PubSubDataSetMessageType.KeepAlive));
+                }
                 return new ValueTask<PublishedDataSetSnapshot>(new PublishedDataSetSnapshot(
                     metaData.ConfigurationVersion ?? new ConfigurationVersionDataType
                     {

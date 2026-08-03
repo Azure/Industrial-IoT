@@ -115,8 +115,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
 
                 // Assert
                 var message = Assert.Single(messages).Message;
-                Assert.True(message.GetProperty("Messages")[0].TryGetProperty("Payload", out var payload));
-                Assert.Empty(payload.EnumerateObject());
+                //
+                // A keep alive carries no data set payload. The writer path
+                // wrote an empty object; the native runtime omits the member,
+                // which is a documented 3.0 wire change. Either says the same
+                // thing, and a keep alive carrying fields would not.
+                //
+                var dataSetMessage = message.GetProperty("Messages")[0];
+                if (dataSetMessage.TryGetProperty("Payload", out var payload))
+                {
+                    Assert.Empty(payload.EnumerateObject());
+                }
 
                 var diagnostics = await PublisherApi.GetDiagnosticInfoAsync();
                 var diag = Assert.Single(diagnostics);

@@ -165,8 +165,17 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
             if (notification.MessageType == MessageType.KeepAlive)
             {
                 //
-                // Keep alives carry no fields, so they map to no notification.
+                // A keep alive says the subscription is alive and nothing
+                // changed. The writer only raises it when the configuration
+                // asked for one to be published, so it is carried rather than
+                // dropped; the source turns it into a keep alive message when
+                // it samples. It carries no value of its own.
                 //
+                if (GetDataSetName(notification) is { } keepAliveDataSetName)
+                {
+                    yield return ManagedPubSubNotification.KeepAlive(keepAliveDataSetName,
+                        notification.PublishTimestamp ?? notification.CreatedTimestamp);
+                }
                 yield break;
             }
             var dataSetName = GetDataSetName(notification);

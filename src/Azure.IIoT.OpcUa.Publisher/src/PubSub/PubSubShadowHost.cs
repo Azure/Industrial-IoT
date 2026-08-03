@@ -1072,6 +1072,14 @@ namespace Azure.IIoT.OpcUa.Publisher.PubSub
         /// base <see cref="PubSubNetworkMessage.MetaData"/> property, because
         /// the runtime's metadata publisher populates only the message's own
         /// payload property and leaves the base one null.
+        /// <para>
+        /// A keep alive the Publisher asked for is not suppressed either,
+        /// because it arrives carrying the source's retained fields. The
+        /// encoder writes no payload for a keep alive, so they never reach the
+        /// wire; they are what distinguishes a requested keep alive from the
+        /// empty message the runtime's own idle timer produces, which this
+        /// still suppresses.
+        /// </para>
         /// </remarks>
         /// <param name="networkMessage"></param>
         public static bool CarriesNothing(this PubSubNetworkMessage networkMessage)

@@ -21,9 +21,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
     public class ReferenceServerIntegrationTests : PublisherIntegrationTestBase, IClassFixture<ReferenceServer>
     {
         private const string kEventId = "EventId";
-        private const string kMessage = "Message";
-        private const string kCycleId = "http://opcfoundation.org/SimpleEvents#CycleId";
-        private const string kCurrentStep = "http://opcfoundation.org/SimpleEvents#CurrentStep";
         private const string kOutput = "Output";
         private const string kDoubleValues = "DoubleValues";
         private const string kInt64Values = "Int64Values";
@@ -255,27 +252,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             Assert.NotEmpty(messages);
             Assert.All(messages, m =>
             {
+                //
+                // Deliberately the shared assertions. This class had its own
+                // copy still expecting the 1.04 reversible Variant envelope
+                // {Type, Body}; Part 6 §5.4.2.18 Table 42 flattens a DataValue
+                // to UaType and Value in both compact and verbose form, which
+                // the shared helper already knows.
+                //
                 var body = m.GetProperty("Payload");
-                var eventId = body.GetProperty(kEventId).GetProperty("Value");
-                Assert.Equal("ByteString", eventId.GetProperty("Type").GetString());
-                Assert.Equal(JsonValueKind.String, eventId.GetProperty("Body").ValueKind);
+                var eventId = BasicPubSubIntegrationTests.AssertDataValue(
+                    body.GetProperty(BasicPubSubIntegrationTests.EventId), 15, "ByteString");
+                Assert.Equal(JsonValueKind.String, eventId.ValueKind);
 
-                var message = body.GetProperty(kMessage).GetProperty("Value");
-                Assert.Equal("LocalizedText", message.GetProperty("Type").GetString());
-                Assert.Equal(JsonValueKind.String, message.GetProperty("Body").GetProperty("Text").ValueKind);
-                Assert.Equal("en-US", message.GetProperty("Body").GetProperty("Locale").GetString());
+                var message = BasicPubSubIntegrationTests.AssertDataValue(
+                    body.GetProperty(BasicPubSubIntegrationTests.Message), 21, "LocalizedText");
+                Assert.Equal(JsonValueKind.String, message.GetProperty("Text").ValueKind);
+                Assert.Equal("en-US", message.GetProperty("Locale").GetString());
 
-                var cycleId = body.GetProperty(kCycleId).GetProperty("Value");
-                Assert.Equal("String", cycleId.GetProperty("Type").GetString());
-                Assert.Equal(JsonValueKind.String, cycleId.GetProperty("Body").ValueKind);
+                var cycleId = BasicPubSubIntegrationTests.AssertDataValue(
+                    body.GetProperty(BasicPubSubIntegrationTests.CycleIdUri), 12, "String");
+                Assert.Equal(JsonValueKind.String, cycleId.ValueKind);
 
-                var currentStep = body.GetProperty(kCurrentStep).GetProperty("Value");
-                body = currentStep.GetProperty("Body");
-                Assert.Equal("ExtensionObject", currentStep.GetProperty("Type").GetString());
-                Assert.Equal("http://opcfoundation.org/SimpleEvents#i=183", body.GetProperty("TypeId").GetString());
-                Assert.Equal("Json", body.GetProperty("Encoding").GetString());
-                Assert.Equal(JsonValueKind.String, body.GetProperty("Body").GetProperty("Name").ValueKind);
-                Assert.Equal(JsonValueKind.Number, body.GetProperty("Body").GetProperty("Duration").ValueKind);
+                var currentStep = BasicPubSubIntegrationTests.AssertDataValue(
+                    body.GetProperty(BasicPubSubIntegrationTests.CurrentStepUri), 22,
+                    "ExtensionObject");
+                if (!UsesNativePubSub)
+                {
+                    Assert.Equal("http://opcfoundation.org/SimpleEvents#i=183",
+                        currentStep.GetProperty("TypeId").GetString());
+                    Assert.Equal("Json", currentStep.GetProperty("Encoding").GetString());
+                    currentStep = currentStep.GetProperty("Body");
+                }
+                Assert.Equal(JsonValueKind.String, currentStep.GetProperty("Name").ValueKind);
+                Assert.Equal(JsonValueKind.Number, currentStep.GetProperty("Duration").ValueKind);
             });
 
             BasicPubSubIntegrationTests.AssertSimpleEventsMetadata(metadata);

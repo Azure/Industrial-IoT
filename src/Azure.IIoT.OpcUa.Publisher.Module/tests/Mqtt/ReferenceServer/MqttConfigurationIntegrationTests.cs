@@ -359,30 +359,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Mqtt.ReferenceServer
 
         private static JsonElement GetAlarmCondition(JsonElement jsonElement)
         {
-            if (!jsonElement.TryGetProperty("Messages", out var messages) ||
-                messages.ValueKind != JsonValueKind.Array)
-            {
-                return default;
-            }
-
-            foreach (var element in messages.EnumerateArray())
-            {
-                if (element.GetProperty("MessageType").GetString() != "ua-condition" ||
-                    !element.GetProperty("Payload").TryGetProperty("SourceNode", out var node))
-                {
-                    continue;
-                }
-                if (node.ValueKind == JsonValueKind.Object &&
-                    node.TryGetProperty("Value", out var value))
-                {
-                    node = value;
-                }
-                if (node.ValueKind != JsonValueKind.Null)
-                {
-                    return element;
-                }
-            }
-            return default;
+            //
+            // Deliberately the shared predicate rather than a copy. This class
+            // had its own, and it kept filtering on the legacy ua-condition
+            // message type after the shared one learned that the native
+            // runtime publishes a condition snapshot as the ua-event
+            // occurrence it is, so these tests saw an empty collection.
+            //
+            return Sdk.ReferenceServer.BasicPubSubIntegrationTests
+                .GetAlarmCondition(jsonElement);
         }
 
         private static JsonElement GetSimpleEvent(JsonElement jsonElement)

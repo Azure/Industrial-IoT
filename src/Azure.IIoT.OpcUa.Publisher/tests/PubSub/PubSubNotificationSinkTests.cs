@@ -132,7 +132,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
         }
 
         [Theory]
-        [InlineData(MessageType.KeepAlive)]
         [InlineData(MessageType.Metadata)]
         public void SkipsMessageTypesThatCarryNoFields(MessageType messageType)
         {
@@ -140,6 +139,46 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.PubSub
                 [CreateItem("field", new DataValue(new Variant(1)))]);
 
             Assert.Empty(PubSubNotificationSink.Translate(notification));
+        }
+
+        [Fact]
+        public void CarriesAKeepAliveWithNoFieldsOfItsOwn()
+        {
+            //
+            // The writer only raises a keep alive when the configuration asked
+            // for one to be published, so dropping it silences the message
+            // whose entire purpose is to arrive when nothing else does. It
+            // reports no value: the source supplies its retained fields when it
+            // samples, and the encoder writes no payload for a keep alive.
+            //
+            var notification = CreateNotification(MessageType.KeepAlive,
+                [CreateItem("field", new DataValue(new Variant(1)))]);
+
+            var managed = Assert.Single(PubSubNotificationSink.Translate(notification));
+
+            Assert.Equal(ManagedPubSubNotificationKind.KeepAlive, managed.Kind);
+            Assert.Equal(PubSubDataSetMessageType.KeepAlive, managed.Frame);
+            Assert.Empty(managed.Fields);
+        }
+
+        [Fact]
+        public void AKeepAliveSurvivesBeingCloned()
+        {
+            //
+            // The source's pump clones every notification before queuing it,
+            // and the occurrence constructor rejects an empty field list, so a
+            // keep alive that took that route threw inside the pump and was
+            // never published.
+            //
+            var managed = Assert.Single(PubSubNotificationSink.Translate(
+                CreateNotification(MessageType.KeepAlive,
+                    [CreateItem("field", new DataValue(new Variant(1)))])));
+
+            var clone = managed.Clone();
+
+            Assert.Equal(ManagedPubSubNotificationKind.KeepAlive, clone.Kind);
+            Assert.Equal(PubSubDataSetMessageType.KeepAlive, clone.Frame);
+            Assert.Equal(managed.DataSetName, clone.DataSetName);
         }
 
         [Fact]
