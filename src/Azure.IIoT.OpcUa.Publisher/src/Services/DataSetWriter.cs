@@ -89,11 +89,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 ?? true;
 
             /// <summary>
-            /// Resolved routing
-            /// </summary>
-            public DataSetRoutingMode Routing { get; }
-
-            /// <summary>
             /// Full cloned configuration
             /// </summary>
             public DataSetWriterModel Writer { get; }
@@ -124,11 +119,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             public static IEnumerable<DataSetWriter> GetDataSetWriters(WriterGroupDataSource group,
                 DataSetWriterModel dataSetWriter)
             {
-                var routing = dataSetWriter?.DataSet?.Routing
-                    ?? group._options.Value.DefaultDataSetRouting
-                    ?? DataSetRoutingMode.None;
                 return Expand(group._options.Value, group._writerGroup, group.Id, dataSetWriter!)
-                    .Select(writer => new DataSetWriter(group, routing, writer));
+                    .Select(writer => new DataSetWriter(group, writer));
             }
 
             /// <summary>
@@ -136,14 +128,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// as models.
             /// </summary>
             /// <remarks>
-            /// A routing mode turns one configured writer into one writer per
-            /// published item, each with its own resolved topic. That
-            /// expansion has to be visible to anything that needs to know what
-            /// writers exist - not just to the data source that runs them -
-            /// because the native PubSub host registers a data set source per
-            /// writer and drops notifications from writers it was never told
-            /// about. Sharing the expansion is what keeps the two from
-            /// disagreeing; deriving the topics twice would let them drift.
+            /// A dataset yields one writer per distinct destination. It used
+            /// to yield one per published item when a routing mode was set,
+            /// which 3.0 removes.
+            ///
+            /// The expansion is shared rather than done inside the data source
+            /// because anything that needs to know what writers exist has to
+            /// agree with what actually runs - the native PubSub host
+            /// registers a data set source per writer and discards
+            /// notifications from writers it was never told about.
             /// </remarks>
             /// <param name="options"></param>
             /// <param name="writerGroup"></param>
@@ -162,8 +155,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                 var dataset = dataSetWriter.DataSet;
                 var source = dataset.DataSetSource;
-                var routing = dataset.Routing ?? options.DefaultDataSetRouting
-                    ?? DataSetRoutingMode.None;
 
                 var dataSetClassId = dataset.DataSetMetaData?.DataSetClassId
                     ?? Guid.Empty;
@@ -208,50 +199,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     // ...
                 };
 
-                // No auto routing - group variables and events by publish settings
+                //
+                // Grouped by publish settings. A dataset yields one writer per
+                // distinct destination; it never yields one per published item.
+                // That was the automatic routing mode, which 3.0 removes - see
+                // Resolve for why.
+                //
                 var data = source.PublishedVariables?.PublishedData?
                     .GroupBy(d => Resolve(options, writerGroup, dataSetWriter,
-                            d.Publishing, d.Id, routing, variables));
+                            d.Publishing, d.Id, variables));
                 if (data != null)
                 {
-                    if (routing == DataSetRoutingMode.None)
+                    foreach (var items in data)
                     {
-                        foreach (var items in data)
-                        {
-                            var id = dataSetWriter.Id;
-                            yield return CreateDataSetWriter(id, items.Key, items.ToList());
-                        }
-                    }
-                    else
-                    {
-                        foreach (var (p, item) in data.SelectMany(d => d.Select(i => (d.Key, i))))
-                        {
-                            var id = $"{dataSetWriter.Id}_{item.Id
-                                ?? item.GetHashCode().ToString(CultureInfo.InvariantCulture)}";
-                            yield return CreateDataSetWriter(id, p, new[] { item });
-                        }
+                        yield return CreateDataSetWriter(dataSetWriter.Id, items.Key,
+                            items.ToList());
                     }
                 }
                 var evts = source.PublishedEvents?.PublishedData?
                     .GroupBy(d => Resolve(options, writerGroup, dataSetWriter,
-                            d.Publishing, d.Id, routing, variables));
+                            d.Publishing, d.Id, variables));
                 if (evts != null)
                 {
-                    if (routing == DataSetRoutingMode.None)
+                    foreach (var items in evts)
                     {
-                        foreach (var items in evts)
-                        {
-                            var id = dataSetWriter.Id;
-                            yield return CreateEventWriter(id, items.Key, items.ToList());
-                        }
-                    }
-                    else
-                    {
-                        foreach (var (p, item) in evts.SelectMany(d => d.Select(i => (d.Key, i))))
-                        {
-                            var id = $"{dataSetWriter.Id}_{item.Id ?? item.GetHashCode().ToString(CultureInfo.InvariantCulture)}";
-                            yield return CreateEventWriter(id, p, new[] { item });
-                        }
+                        yield return CreateEventWriter(dataSetWriter.Id, items.Key,
+                            items.ToList());
                     }
                 }
 
@@ -313,7 +286,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 static (PublishingQueueSettingsModel?, PublishingQueueSettingsModel?) Resolve(
                     PublisherOptions options, WriterGroupModel group, DataSetWriterModel dataSetWriter,
                     PublishingQueueSettingsModel? settings, string? fieldId,
-                    DataSetRoutingMode routing, Dictionary<string, string> variables)
+                    Dictionary<string, string> variables)
                 {
                     var builder = new TopicBuilder(options, group.MessageType,
                         new TopicTemplatesOptions
@@ -330,7 +303,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
 
                     var telemetryTopic = builder.TelemetryTopic;
                     var metadataTopic = builder.DataSetMetaDataTopic;
-                    if (string.IsNullOrWhiteSpace(metadataTopic) || routing != DataSetRoutingMode.None)
+                    if (string.IsNullOrWhiteSpace(metadataTopic))
                     {
                         metadataTopic = telemetryTopic;
                     }
@@ -399,13 +372,11 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
             /// Create id from a DataSetWriterModel template
             /// </summary>
             /// <param name="group"></param>
-            /// <param name="routing"></param>
             /// <param name="dataSetWriter"></param>
-            private DataSetWriter(WriterGroupDataSource group, DataSetRoutingMode routing,
+            private DataSetWriter(WriterGroupDataSource group,
                 DataSetWriterModel dataSetWriter)
             {
                 Writer = dataSetWriter;
-                Routing = routing;
 
                 PublishingInterval =
                     group._options.Value.IgnoreConfiguredPublishingIntervals == true
@@ -425,8 +396,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     writer.MetadataTopic == MetadataTopic &&
                     writer.MetadataQos == MetadataQos &&
                     writer.MetadataTtl == MetadataTtl &&
-                    writer.MetadataRetain == MetadataRetain &&
-                    writer.Routing == Routing)
+                    writer.MetadataRetain == MetadataRetain)
                 {
                     return true;
                 }
@@ -444,8 +414,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     Topic,
                     HashCode.Combine(Qos, Ttl, Retain),
                     MetadataTopic,
-                    HashCode.Combine(MetadataQos, MetadataTtl, MetadataRetain),
-                    Routing);
+                    HashCode.Combine(MetadataQos, MetadataTtl, MetadataRetain));
             }
 
             /// <inheritdoc/>
@@ -549,7 +518,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _extensionFields = new ExtensionFields(
                     _writer.DataSet.ExtensionFields, _writer.Writer.DataSetFieldContentMask);
                 _template = _writer.Source.SubscriptionSettings.ToSubscriptionModel(
-                    _writer.Routing != DataSetRoutingMode.None,
+                    null,
                     _group._options.Value.IgnoreConfiguredPublishingIntervals);
                 _connection = _writer.Writer.GetConnection(_group.Id, _group._options.Value);
             }
@@ -611,7 +580,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                 _extensionFields = new ExtensionFields(
                     _writer.DataSet.ExtensionFields, _writer.Writer.DataSetFieldContentMask);
                 var template = _writer.Source.SubscriptionSettings.ToSubscriptionModel(
-                    _writer.Routing != DataSetRoutingMode.None,
+                    null,
                     _group._options.Value.IgnoreConfiguredPublishingIntervals);
                 var connection = _writer.Writer.GetConnection(_group.Id, _group._options.Value);
 
@@ -1089,7 +1058,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                     WriterGroup = writerGroup,
                     Schema = networkMessageSchema,
                     CloudEvent = GetCloudEventHeader(writerGroup, notification, isMetadata),
-                    Topic = GetTopic(_writer.Routing, topic, single?.PathFromRoot),
+                    Topic = topic,
                     Retain = retain,
                     Ttl = ttl,
                     Qos = qos
@@ -1127,27 +1096,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                         Source = source,
                         Subject = _writer.Writer.DataSet?.Subject
                     };
-                }
-
-                static string GetTopic(DataSetRoutingMode routing, string topic, Opc.Ua.RelativePath? subpath)
-                {
-                    if (subpath == null || routing == DataSetRoutingMode.None)
-                    {
-                        return topic;
-                    }
-                    // Append subpath to topic (use browse names with namespace index if requested
-                    var sb = new StringBuilder().Append(topic);
-                    foreach (var path in subpath.Elements)
-                    {
-                        sb.Append('/');
-                        if (path.TargetName.NamespaceIndex != 0 &&
-                            routing == DataSetRoutingMode.UseBrowseNamesWithNamespaceIndex)
-                        {
-                            sb.Append(path.TargetName.NamespaceIndex).Append(':');
-                        }
-                        sb.Append(TopicFilter.Escape(path.TargetName.Name));
-                    }
-                    return sb.ToString();
                 }
             }
 

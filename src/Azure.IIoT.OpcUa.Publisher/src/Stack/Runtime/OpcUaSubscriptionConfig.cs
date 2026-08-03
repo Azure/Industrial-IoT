@@ -227,9 +227,14 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Runtime
                 }
             }
 
-            var unsMode = _options.Value.DefaultDataSetRouting ?? DataSetRoutingMode.None;
-            options.FetchOpcBrowsePathFromRoot ??= unsMode != DataSetRoutingMode.None
-                ? true : GetBoolOrNull(FetchOpcBrowsePathFromRootKey);
+            //
+            // Only what the user asked for. This used to be forced on by the
+            // automatic routing mode, which needed the browse path to build a
+            // topic from; 3.0 removes that mode, so nothing turns the fetch on
+            // by itself any more.
+            //
+            options.FetchOpcBrowsePathFromRoot ??=
+                GetBoolOrNull(FetchOpcBrowsePathFromRootKey);
 
             if (options.DefaultDataChangeTrigger == null &&
                 Enum.TryParse<DataChangeTriggerType>(GetStringOrDefault(DefaultDataChangeTriggerKey),

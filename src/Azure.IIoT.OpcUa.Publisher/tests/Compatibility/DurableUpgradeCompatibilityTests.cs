@@ -138,6 +138,44 @@ using Azure.IIoT.OpcUa.Core.Logging;
                 StringComparison.Ordinal);
         }
 
+        [Theory]
+        [InlineData("UseBrowseNames")]
+        [InlineData("UseBrowseNamesWithNamespaceIndex")]
+        public void TwoXConfigurationNamingARemovedRoutingModeStillLoads(string routing)
+        {
+            //
+            // Automatic topic routing was removed in 3.0 - the topic was built
+            // per notification from a browse path discovered at runtime, which
+            // the native runtime cannot express. Unlike the removed sample
+            // modes, this does not change the wire format of what is
+            // published, it only stops adding a path to the topic. So a 2.x
+            // file naming it must still LOAD: rejecting it would stop a
+            // publisher that upgrades in place, for a setting whose absence it
+            // can carry on without.
+            //
+            var converter = CreateConverter();
+            var content = $$"""
+                [
+                  {
+                    "EndpointUrl": "opc.tcp://legacy-a:50000",
+                    "DataSetWriterGroup": "legacy-group-a",
+                    "DataSetWriterId": "legacy-writer-a",
+                    "MessagingMode": "PubSub",
+                    "MessageEncoding": "Json",
+                    "DataSetRouting": "{{routing}}",
+                    "OpcNodes": [ { "Id": "i=2258" } ]
+                  }
+                ]
+                """;
+
+            var entries = converter.Read(content);
+
+            var groups = converter.ToWriterGroups(entries).ToList();
+            var group = Assert.Single(groups);
+            var writer = Assert.Single(group.DataSetWriters!);
+            Assert.NotNull(writer.DataSet?.DataSetSource);
+        }
+
         [Fact]
         public async Task NativeIdentityFixtureUsesPublishedNodesRuntimeKeysAsync()
         {
