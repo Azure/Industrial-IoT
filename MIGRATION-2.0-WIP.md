@@ -535,3 +535,29 @@ to start, whereas silently ignoring a topic-shaping hint is not.
 
 3.0 publishes only through the native runtime; the custom encoder it replaced
 is deleted, so there is no longer a path for the flag to select.
+
+## OPC Publisher 3.0 — features gained
+
+### Server side triggering (`TriggeredNodes`) now works
+
+`TriggeredNodes` is a documented field on a published node — "read atomically
+when parent node changes" — and until 3.0 it did nothing. The converter that
+turns a published node into a monitored item discarded the triggers it was
+given, so `SetTriggering` was never called and the configured nodes were never
+subscribed. Nothing caught it because every test set the monitored item's
+triggered items directly and none went through the converter.
+
+Two consequences for anyone who has this in a configuration file today:
+
+- **The triggered nodes start being published.** They were absent before, so a
+  consumer will see data set fields it has never seen. This is the configured
+  behaviour finally taking effect, not a change of shape.
+- **A triggered node is monitored in `Sampling` mode**, not `Reporting`. Part 4
+  5.12.1.6 only reports a triggered item on its trigger while it is sampling; a
+  reporting item publishes whenever it changes and the link changes nothing. So
+  a triggered node is published exactly when its trigger fires, which is what
+  "read atomically when parent node changes" promises.
+
+Note that the server has to support it. A server whose monitored items are not
+triggerable answers `BadNotSupported`, and the publisher now names both ends of
+the refused link rather than reporting the bare status.

@@ -80,7 +80,7 @@ Rows marked `Removed in 3.0` describe features that earlier versions supported a
 | | All Objects and variables of an object type |-|X|X|Preview|
 | | All Variables of a variable type |-|X|X|Preview|
 | Triggering ||||||
-| | Using Server side triggering service (SetTriggering) |-|-|-||
+| | Using Server side triggering service (SetTriggering) |-|-|X||
 | | Client side sampling of values on event |-|-|-||
 | Re-evaluate subscriptions ||||||
 | | Periodically |-|X|X||

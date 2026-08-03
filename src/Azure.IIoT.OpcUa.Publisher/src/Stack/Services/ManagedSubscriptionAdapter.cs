@@ -1388,7 +1388,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 if (!TryApplyTriggeringResult(parent, [binding], result,
                     out var failureStatus))
                 {
-                    throw new ServiceResultException(failureStatus);
+                    //
+                    // Name both ends of the link. A bare status says a
+                    // triggering link was refused but not which one, and a
+                    // configuration can carry many.
+                    //
+                    throw new ServiceResultException(failureStatus,
+                        $"Server refused to trigger '{binding.Name}' " +
+                        $"({binding.Template.StartNodeId}) from '{parent.Name}' " +
+                        $"({parent.Template.StartNodeId}).");
                 }
             }
         }
