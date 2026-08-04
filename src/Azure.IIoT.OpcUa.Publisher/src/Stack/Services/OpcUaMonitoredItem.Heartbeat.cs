@@ -296,13 +296,41 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     return;
                 }
 
-                if (!AttachedToSubscription)
+                if (Subscription is not OpcUaSubscription subscription)
                 {
                     _logger.MissingSubscription(this);
                     return;
                 }
 
+                //
+                // Capture the sequence number of the last value seen before
+                // contending for the notification lock. Heartbeats and value
+                // changes run on different threads (timer vs. publish callback)
+                // and must be serialized, otherwise a heartbeat carrying an
+                // older value can be sent after a newer value (#2515). If a
+                // value change was dispatched while we waited for the lock the
+                // heartbeat is stale and is dropped instead of being sent.
+                //
                 var lastSequenceNumber = _lastSequenceNumber;
+                lock (subscription.NotificationLock)
+                {
+                    SendHeartbeatNotification(e, lastSequenceNumber);
+                }
+            }
+
+            /// <summary>
+            /// Send the heartbeat notification. Must be called under the
+            /// subscription notification lock.
+            /// </summary>
+            /// <param name="e"></param>
+            /// <param name="lastSequenceNumber"></param>
+            private void SendHeartbeatNotification(ElapsedEventArgs e, uint lastSequenceNumber)
+            {
+                if (lastSequenceNumber != _lastSequenceNumber)
+                {
+                    // A new value was published while we waited - drop heartbeat
+                    return;
+                }
                 var lastNotification = LastReceivedValue as MonitoredItemNotification;
                 if ((_heartbeatBehavior & HeartbeatBehavior.WatchdogLKG)
                         == HeartbeatBehavior.WatchdogLKG &&
@@ -354,11 +382,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     Flags = MonitoredItemSourceFlags.Heartbeat,
                     SequenceNumber = lastSequenceNumber
                 };
-                if (lastSequenceNumber != _lastSequenceNumber)
-                {
-                    // New value came in while running the timer callback - no need to send heartbeat
-                    return;
-                }
                 Publish(Owner, MessageType.DeltaFrame, heartbeat.YieldReturn().ToList(),
                     diagnosticsOnly: (_heartbeatBehavior & HeartbeatBehavior.WatchdogLKVDiagnosticsOnly)
                         == HeartbeatBehavior.WatchdogLKVDiagnosticsOnly, timestamp: e.SignalTime);
