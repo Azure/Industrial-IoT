@@ -30,6 +30,36 @@ $ git commit -m "A brief summary of the commit
 
 Finally, push the commits to your fork, submit a pull request, wait for all gates to pass and fix any issues found as part of the gate process.  The team might ask for some [changes](https://help.github.com/articles/committing-changes-to-a-pull-request-branch-created-from-a-fork) before merging the pull request.
 
+Code coverage
+=============
+
+CI enforces a coverage floor **per shipping assembly**, not across the solution. An aggregate number is satisfied by covering the several hundred DTO records in `Azure.IIoT.OpcUa.Publisher.Models` while the Stack layer stays untested, which is the opposite of what the measurement is for.
+
+The target is **85% line and 70% branch** for each of the six shipping assemblies. The scope — which assemblies count, and which harness, CLI and generated sources are excluded — is declared in `coverage.runsettings`.
+
+Floors are data rather than policy baked into CI, in `tools/scripts/coverage-thresholds.json`. While an assembly is being brought up to the target its floor sits a couple of points below whatever was last measured, so it can only ever ratchet upwards. Lowering an entry needs a stated reason.
+
+To measure locally:
+
+```pwsh
+# The whole solution must be rebuilt first -- see below.
+dotnet build Industrial-IoT.slnx
+
+# Then run each test project (serially) with the shared settings, e.g.
+dotnet test <project> --no-build --settings coverage.runsettings `
+  --collect:"XPlat Code Coverage;Format=cobertura" --results-directory ./testresults
+
+./tools/scripts/check-coverage.ps1 -ReportPath ./testresults
+```
+
+Three things about the measurement are worth knowing, because each of them produced a confidently wrong number at some point:
+
+* **Rebuild everything before measuring.** Coverage is merged across all seven suites, and a test project whose `bin` holds an older copy of a product assembly contributes a different set of lines for it. The merge then counts lines that no longer exist. `check-coverage.ps1` fails loudly when one assembly reports different totals across reports, which is the signature of exactly this.
+* **The runs are unioned, not summed.** A line covered by any suite is covered. Summing the per-run totals scores a line covered by one of three suites as a third of a line.
+* **The branch figure is a lower bound.** Cobertura reports per-line branch counts rather than branch identities, so branches merged across suites can only be combined conservatively. Treat a branch number as "at least this".
+
+Coverage also varies slightly between runs of the same commit, which is why the floors carry a small margin rather than sitting exactly at the last measurement.
+
 GitHub Actions CI
 =================
 
