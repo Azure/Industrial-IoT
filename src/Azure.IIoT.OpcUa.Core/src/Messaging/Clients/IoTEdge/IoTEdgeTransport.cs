@@ -12,7 +12,6 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
     using global::IoTHubby;
     using Microsoft.Extensions.Logging;
     using System;
-    using System.Diagnostics.CodeAnalysis;
     using System.Buffers;
     using System.Collections.Generic;
     using System.Linq;
@@ -23,13 +22,6 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
     /// <summary>
     /// IoT Hub/Edge transport backed by IoTHubby.
     /// </summary>
-    /// <remarks>
-    /// Excluded from coverage for the same reason as
-    /// <see cref="IoTEdgeModuleClient"/>: every path runs through that sealed
-    /// client, so none of it is reachable without a live IoT Edge runtime.
-    /// </remarks>
-    [ExcludeFromCodeCoverage(Justification =
-        "Runs entirely through the sealed IoTEdgeModuleClient; reachable only against a live edge runtime.")]
     public sealed class IoTEdgeTransport : IEventClient, IEventSubscriber,
         IRpcServer, IRpcClient, IProcessIdentity, IEventClientCapabilities,
         IAsyncDisposable
@@ -129,7 +121,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
             {
                 _handlers.Add(server);
             }
-            await _client.Client.SetMethodHandlerAsync(InvokeMethodAsync, ct)
+            await _client.SetMethodHandlerAsync(InvokeMethodAsync, ct)
                 .ConfigureAwait(false);
             return new RpcSubscription(server, this);
         }
@@ -172,7 +164,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
                     try { await _receiver.ConfigureAwait(false); }
                     catch (OperationCanceledException) { }
                 }
-                await _client.Client.SetMethodHandlerAsync(null).ConfigureAwait(false);
+                await _client.SetMethodHandlerAsync(null).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -204,11 +196,11 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
             }
             if (string.IsNullOrEmpty(message.Topic))
             {
-                await _client.Client.SendTelemetryAsync(telemetry, ct).ConfigureAwait(false);
+                await _client.SendTelemetryAsync(telemetry, ct).ConfigureAwait(false);
             }
             else
             {
-                await _client.Client.SendToOutputAsync(message.Topic, telemetry, ct)
+                await _client.SendToOutputAsync(message.Topic, telemetry, ct)
                     .ConfigureAwait(false);
             }
         }
@@ -217,7 +209,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
         {
             try
             {
-                await foreach (var message in _client.Client
+                await foreach (var message in _client
                     .ReceiveInputMessagesAsync(string.Empty, ct).ConfigureAwait(false))
                 {
                     var topic = message.InputName ?? string.Empty;
@@ -295,7 +287,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
             }
             if (_handlers.Count == 0)
             {
-                await _client.Client.SetMethodHandlerAsync(null).ConfigureAwait(false);
+                await _client.SetMethodHandlerAsync(null).ConfigureAwait(false);
             }
         }
 

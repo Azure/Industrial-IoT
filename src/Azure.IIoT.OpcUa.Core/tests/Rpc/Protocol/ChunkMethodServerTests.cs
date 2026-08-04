@@ -149,6 +149,24 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Protocol
         }
 
         [Fact]
+        public async Task ChunkInvokerSerializesUnexpectedDelegateExceptionAsync()
+        {
+            using var server = CreateServer();
+            server.Delegate = new ThrowingHandler();
+            var request = CreateInitialRequest("throw", "payload",
+                maxChunkLength: 1024);
+
+            var response = await InvokeChunkAsync(server, request);
+
+            Assert.Equal(500, response.Status);
+            Assert.NotNull(response.Payload);
+            var exception = MethodCallStatusException.Deserialize(
+                response.Payload!.Unzip());
+            Assert.Equal(500, exception.Details.Status);
+            Assert.Equal("boom", exception.Details.Detail);
+        }
+
+        [Fact]
         public async Task ChunkInvokerReassemblesUploadContinuationsAsync()
         {
             using var server = CreateServer();
@@ -305,6 +323,17 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Protocol
             }
 
             private readonly byte[] _response;
+        }
+
+        private sealed class ThrowingHandler : IRpcHandler
+        {
+            public string MountPoint => string.Empty;
+
+            public ValueTask<ReadOnlySequence<byte>> InvokeAsync(string method,
+                ReadOnlySequence<byte> payload, string contentType, CancellationToken ct)
+            {
+                throw new InvalidOperationException("boom");
+            }
         }
     }
 }

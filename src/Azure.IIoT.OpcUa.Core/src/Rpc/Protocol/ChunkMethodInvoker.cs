@@ -216,6 +216,8 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Protocol
                     {
                         // Unexpected
                         status = (int)HttpStatusCode.InternalServerError;
+                        _payload = new MethodCallStatusException(status, ex.Message,
+                            "Internal Server Error").Serialize().ToArray().Zip();
                         _outer._logger.ProcessingError(ex);
                     }
                     _sent = 0;

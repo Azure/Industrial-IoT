@@ -84,8 +84,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging
         [InlineData("foo/", "foo/#", true)]
         [InlineData("foo/bar", "+/bar", true)]
         [InlineData("foo/bar", "foo/+", true)]
-        // MQTT # should match zero levels here; the current matcher does not.
-        [InlineData("foo/bar", "foo/+/#", false)]
+        [InlineData("foo/bar", "foo/+/#", true)]
         [InlineData("foo/bar/baz", "foo/+/#", true)]
         [InlineData("foo/bar", "foo/+/baz", false)]
         [InlineData("foo/bar", "foo+", false)]

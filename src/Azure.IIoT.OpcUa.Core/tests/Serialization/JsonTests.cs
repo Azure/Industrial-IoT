@@ -185,17 +185,16 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
         }
 
         [Fact]
-        public void ParseStringAllowsTrailingCommasButMemoryRejectsThem()
+        public void ParseStringAndMemoryAllowTrailingCommas()
         {
             const string payload = """{"Value":1,}""";
 
             var fromString = Assert.IsType<JsonObject>(Json.Parse(payload));
+            var fromMemory = Assert.IsType<JsonObject>(
+                Json.Parse(Encoding.UTF8.GetBytes(payload)));
 
             Assert.Equal(1, (int)fromString["value"]!);
-            // The memory overload should use the same trailing-comma options as
-            // the string overload, but the current implementation rejects it.
-            Assert.Throws<SerializerException>(() =>
-                Json.Parse(Encoding.UTF8.GetBytes(payload)));
+            Assert.Equal(1, (int)fromMemory["value"]!);
         }
 
         [Fact]

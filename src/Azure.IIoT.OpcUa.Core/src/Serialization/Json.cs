@@ -519,7 +519,7 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
         {
             try
             {
-                var reader = new Utf8JsonReader(buffer.Span);
+                var reader = new Utf8JsonReader(buffer.Span, kReaderOptions);
                 return JsonNode.Parse(ref reader, kNodeOptions);
             }
             catch (JsonException ex)
@@ -597,6 +597,12 @@ namespace Azure.IIoT.OpcUa.Core.Serialization
         };
 
         private static readonly JsonDocumentOptions kDocumentOptions = new()
+        {
+            AllowTrailingCommas = true,
+            MaxDepth = 64
+        };
+
+        private static readonly JsonReaderOptions kReaderOptions = new()
         {
             AllowTrailingCommas = true,
             MaxDepth = 64

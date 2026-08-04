@@ -225,6 +225,26 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Servers
         }
 
         [Fact]
+        public async Task RetriesDirectiveUsesDirectiveNameForLookupAsync()
+        {
+            var invocations = new List<Invocation>();
+            var statusCodes = new Queue<int>([500, 204]);
+
+            var output = await ParseAsync("""
+                // @retries 1
+                RetryMethod
+
+                """, Capture(invocations, nextStatus: () => statusCodes.Dequeue()))
+                .ConfigureAwait(false);
+
+            Assert.Equal(2, invocations.Count);
+            Assert.Equal("RetryMethod", invocations[0].Method.String);
+            Assert.Equal("RetryMethod", invocations[1].Method.String);
+            Assert.Contains("// @retry attempt = 1", output);
+            Assert.Contains("// @retry attempt = 2", output);
+        }
+
+        [Fact]
         public async Task ReadsRequestBodyFromFileAsync()
         {
             var invocations = new List<Invocation>();

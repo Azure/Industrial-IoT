@@ -291,7 +291,7 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Servers
                     _logger.UnknownDirectiveWarning(directive, _lineNumber);
                     return;
             }
-            _directives[comment] = value;
+            _directives[directive] = value;
         }
 
         /// <summary>

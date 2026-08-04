@@ -156,6 +156,14 @@ namespace Azure.IIoT.OpcUa.Core.Messaging
                         {
                             return true;
                         }
+
+                        if (tPos == tLen
+                                && sPos == sLen - 2
+                                && filter[sPos] == kLevelSeparator
+                                && filter[sPos + 1] == kMultiLevelWildcard)
+                        {
+                            return true;
+                        }
                     }
                     else if (filter[sPos] == kMultiLevelWildcard)
                     {

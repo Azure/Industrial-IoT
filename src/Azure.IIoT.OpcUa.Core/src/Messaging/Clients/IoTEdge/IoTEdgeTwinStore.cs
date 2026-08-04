@@ -8,7 +8,6 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
     using Azure.IIoT.OpcUa.Core.Messaging.Clients.Dapr;
     using Microsoft.Extensions.Logging;
     using System;
-    using System.Diagnostics.CodeAnalysis;
     using System.Collections.Generic;
     using System.Text.Json.Nodes;
     using System.Threading;
@@ -17,15 +16,6 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
     /// <summary>
     /// IoT Hub twin reported-property state store.
     /// </summary>
-    /// <remarks>
-    /// Excluded from coverage for the same reason as
-    /// <see cref="IoTEdgeModuleClient"/>. The syncing behaviour it inherits is
-    /// covered on the base <see cref="SyncingKeyValueStore"/>, which is
-    /// testable; what remains here is the twin traffic through that sealed
-    /// client.
-    /// </remarks>
-    [ExcludeFromCodeCoverage(Justification =
-        "Twin traffic through the sealed IoTEdgeModuleClient; the syncing behaviour is covered on the base class.")]
     public sealed class IoTEdgeTwinStore : SyncingKeyValueStore
     {
         /// <inheritdoc/>
@@ -47,7 +37,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
             CancellationToken ct = default)
         {
             await _client.EnsureConnectedAsync(ct).ConfigureAwait(false);
-            var twin = await _client.Client.GetTwinAsync(ct).ConfigureAwait(false);
+            var twin = await _client.GetTwinAsync(ct).ConfigureAwait(false);
             var desired = JsonNode.Parse(twin.Desired.RawJson.Span);
             var reported = JsonNode.Parse(twin.Reported.RawJson.Span);
             var value = reported?[key] ?? desired?[key];
@@ -67,7 +57,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
                 {
                     patch[item.Key] = item.Value?.DeepClone();
                 }
-                await _client.Client.UpdateReportedPropertiesAsync(
+                await _client.UpdateReportedPropertiesAsync(
                     patch.ToJsonString(), ct).ConfigureAwait(false);
             }
             catch (Exception ex)
@@ -82,7 +72,7 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
             try
             {
                 await _client.EnsureConnectedAsync(ct).ConfigureAwait(false);
-                var twin = await _client.Client.GetTwinAsync(ct).ConfigureAwait(false);
+                var twin = await _client.GetTwinAsync(ct).ConfigureAwait(false);
                 var reported = JsonNode.Parse(twin.Reported.RawJson.Span) as JsonObject;
                 var desired = JsonNode.Parse(twin.Desired.RawJson.Span) as JsonObject;
                 ModifyState(state =>

@@ -7,11 +7,9 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
 {
     using Azure.IIoT.OpcUa.Core.IoTEdge;
     using global::IoTHubby;
-    using global::IoTHubby.Edge;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
-    using System.Diagnostics.CodeAnalysis;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
@@ -19,22 +17,15 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
     /// <summary>
     /// Shared IoTHubby module client holder.
     /// </summary>
-    /// <remarks>
-    /// Excluded from coverage. Every member either constructs or delegates to a
-    /// concrete <c>IoTHubModuleClient</c>, which is sealed and built internally
-    /// with no factory or interface to substitute, so nothing here is reachable
-    /// without a live IoT Edge runtime. Introducing a seam purely to measure it
-    /// was judged the larger risk at release-candidate stage; the trade is
-    /// recorded here rather than hidden in a coverage filter.
-    /// </remarks>
-    [ExcludeFromCodeCoverage(Justification =
-        "Wraps the sealed IoTHubModuleClient; reachable only against a live edge runtime.")]
     public sealed class IoTEdgeModuleClient : IAsyncDisposable
     {
         /// <summary>
         /// Module client.
         /// </summary>
-        public IoTHubModuleClient Client { get; }
+        public IoTHubModuleClient Client => _client is IoTHubModuleClientFactory.Adapter adapter ?
+            adapter.Client :
+            throw new InvalidOperationException(
+                "The concrete IoTHubby module client is not available.");
 
         /// <summary>
         /// Identity.
@@ -47,7 +38,8 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
         public IoTEdgeModuleClient(IOptions<IoTEdgeClientOptions> options,
             IIoTEdgeDeviceIdentity identity,
             IEnumerable<IIoTEdgeClientState> stateHandlers,
-            ILoggerFactory? loggerFactory = null)
+            ILoggerFactory? loggerFactory = null,
+            IIoTHubModuleClientFactory? clientFactory = null)
         {
             ArgumentNullException.ThrowIfNull(options);
             Identity = identity ?? throw new ArgumentNullException(nameof(identity));
@@ -68,12 +60,9 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
                 }
             }
 
-            Client = string.IsNullOrEmpty(options.Value.EdgeHubConnectionString)
-                ? EdgeModuleClient.CreateFromEnvironmentAsync(Configure)
-                    .GetAwaiter().GetResult()
-                : IoTHubModuleClient.CreateFromConnectionString(
-                    options.Value.EdgeHubConnectionString, Configure);
-            Client.ConnectionStateChanged += OnConnectionStateChanged;
+            _client = (clientFactory ?? IoTHubModuleClientFactory.Instance)
+                .Create(options.Value, Configure);
+            _client.ConnectionStateChanged += OnConnectionStateChanged;
         }
 
         /// <summary>
@@ -81,16 +70,16 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
         /// </summary>
         public async Task EnsureConnectedAsync(CancellationToken ct)
         {
-            if (Client.State == IoTHubConnectionState.Connected)
+            if (_client.State == IoTHubConnectionState.Connected)
             {
                 return;
             }
             await _connectLock.WaitAsync(ct).ConfigureAwait(false);
             try
             {
-                if (Client.State != IoTHubConnectionState.Connected)
+                if (_client.State != IoTHubConnectionState.Connected)
                 {
-                    await Client.ConnectAsync(ct).ConfigureAwait(false);
+                    await _client.ConnectAsync(ct).ConfigureAwait(false);
                 }
             }
             finally
@@ -102,8 +91,8 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
         /// <inheritdoc/>
         public async ValueTask DisposeAsync()
         {
-            Client.ConnectionStateChanged -= OnConnectionStateChanged;
-            await Client.DisposeAsync().ConfigureAwait(false);
+            _client.ConnectionStateChanged -= OnConnectionStateChanged;
+            await _client.DisposeAsync().ConfigureAwait(false);
             foreach (var handler in _stateHandlers)
             {
                 handler.OnClosed(_counter, Identity.DeviceId, Identity.ModuleId,
@@ -148,6 +137,42 @@ namespace Azure.IIoT.OpcUa.Core.Messaging.Clients.IoTEdge
             }
         }
 
+        internal Task SetMethodHandlerAsync(Func<DirectMethodRequest, CancellationToken,
+            ValueTask<DirectMethodResponse>>? handler, CancellationToken ct = default)
+        {
+            return _client.SetMethodHandlerAsync(handler, ct);
+        }
+
+        internal ValueTask SendTelemetryAsync(TelemetryMessage message,
+            CancellationToken ct)
+        {
+            return _client.SendTelemetryAsync(message, ct);
+        }
+
+        internal ValueTask SendToOutputAsync(string outputName,
+            TelemetryMessage message, CancellationToken ct)
+        {
+            return _client.SendToOutputAsync(outputName, message, ct);
+        }
+
+        internal IAsyncEnumerable<CloudToDeviceMessage> ReceiveInputMessagesAsync(
+            string inputName, CancellationToken ct)
+        {
+            return _client.ReceiveInputMessagesAsync(inputName, ct);
+        }
+
+        internal Task<Twin> GetTwinAsync(CancellationToken ct)
+        {
+            return _client.GetTwinAsync(ct);
+        }
+
+        internal Task<long?> UpdateReportedPropertiesAsync(string json,
+            CancellationToken ct)
+        {
+            return _client.UpdateReportedPropertiesAsync(json, ct);
+        }
+
+        private readonly IIoTHubModuleClient _client;
         private readonly IEnumerable<IIoTEdgeClientState> _stateHandlers;
         private readonly SemaphoreSlim _connectLock = new(1, 1);
         private int _counter;
