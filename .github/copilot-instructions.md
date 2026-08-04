@@ -22,8 +22,14 @@ dotnet test src/Azure.IIoT.OpcUa.Publisher.Testing/tests/Azure.IIoT.OpcUa.Publis
 dotnet test src/Azure.IIoT.OpcUa.Publisher/tests/Azure.IIoT.OpcUa.Publisher.Tests.csproj --no-build --verbosity normal --blame-hang-timeout 10m --blame-hang-dump-type none
 dotnet test src/Azure.IIoT.OpcUa.Publisher.Module/tests/Azure.IIoT.OpcUa.Publisher.Module.Tests.csproj --no-build --verbosity normal --blame-hang-timeout 10m --blame-hang-dump-type none
 
-# Coverage, scoped to the shipping assemblies by the repo root .runsettings
+# Coverage, scoped to the shipping assemblies by the repo root .runsettings.
+# Build the WHOLE solution first: a test project running against a stale copy of
+# a shared assembly silently changes the measured denominator, and the resulting
+# number looks entirely plausible. check-coverage.ps1 fails loudly if it detects
+# this, but only after the suites have already run.
+dotnet build Industrial-IoT.slnx --no-restore
 dotnet test <project> --no-build --settings coverage.runsettings --collect:"XPlat Code Coverage;Format=cobertura"
+pwsh ./tools/scripts/check-coverage.ps1 -ReportPath <results-dir>
 
 # Run a single test by name
 dotnet test src/Azure.IIoT.OpcUa.Publisher/tests/Azure.IIoT.OpcUa.Publisher.Tests.csproj --no-build --blame-hang-timeout 10m --filter "FullyQualifiedName~YourTestName"

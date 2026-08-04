@@ -62,6 +62,10 @@ if ($reportFiles.Count -eq 0) {
 $lineHits = @{}      # package -> "file:line" -> max hits
 $branchHits = @{}    # package -> "file:line" -> total
 $branchCovered = @{} # package -> "file:line" -> max covered
+#
+# package -> report -> countable line total, used only to detect a stale build.
+#
+$perReportTotals = @{}
 
 foreach ($file in $reportFiles) {
     [xml] $doc = Get-Content -LiteralPath $file.FullName -Raw
@@ -72,6 +76,14 @@ foreach ($file in $reportFiles) {
             $lineHits[$name] = @{}
             $branchHits[$name] = @{}
             $branchCovered[$name] = @{}
+            $perReportTotals[$name] = @{}
+        }
+        $reportTotal = 0
+        foreach ($class in $package.classes.class) {
+            $reportTotal += $class.lines.line.Count
+        }
+        if ($reportTotal -gt 0) {
+            $perReportTotals[$name][$file.FullName] = $reportTotal
         }
         foreach ($class in $package.classes.class) {
             #
@@ -116,6 +128,51 @@ foreach ($file in $reportFiles) {
             }
         }
     }
+}
+
+#
+# An assembly must present the same countable lines to every suite that touched
+# it. When it does not, at least one test project's output folder is holding a
+# stale copy, and the union quietly restores whatever that copy still contains -
+# code since deleted, or excluded, or moved. This was not hypothetical: after
+# three files were marked ExcludeFromCodeCoverage, two test projects were not
+# rebuilt and their stale copies put 445 excluded lines back into the
+# denominator, understating one assembly by seven points.
+#
+# It is reported as a failure rather than a warning because the resulting
+# number looks entirely plausible - there is nothing else about it that says
+# the build was stale.
+#
+$staleAssemblies = @()
+foreach ($name in ($perReportTotals.Keys | Sort-Object)) {
+    $totals = $perReportTotals[$name]
+    $distinct = $totals.Values | Sort-Object -Unique
+    if ($distinct.Count -le 1) { continue }
+    $detail = ($totals.GetEnumerator() | Sort-Object Value | ForEach-Object {
+        #
+        # Results land in <dir>/<suite>/<guid>/coverage.cobertura.xml, so the
+        # suite is two levels above the file. Naming it is the whole point -
+        # it says which test project to rebuild.
+        #
+        $suite = Split-Path -Leaf (Split-Path -Parent (Split-Path -Parent $_.Key))
+        "      {0,6} lines  {1}" -f $_.Value, $suite
+    }) -join "`n"
+    $staleAssemblies += "  $name reports $($distinct -join ' / ') lines across reports:`n$detail"
+}
+
+if ($staleAssemblies.Count -gt 0) {
+    Write-Host ''
+    Write-Host 'Stale build detected - refusing to report coverage.' -ForegroundColor Red
+    Write-Host ''
+    $staleAssemblies | ForEach-Object { Write-Host $_ -ForegroundColor Red }
+    Write-Host ''
+    Write-Host 'The same assembly was measured with different content, so at least one'
+    Write-Host 'test project is running against an out of date copy of it. Rebuild'
+    Write-Host 'everything and measure again:'
+    Write-Host ''
+    Write-Host '    dotnet build Industrial-IoT.slnx --no-restore'
+    Write-Host ''
+    exit 1
 }
 
 $stats = @{}
