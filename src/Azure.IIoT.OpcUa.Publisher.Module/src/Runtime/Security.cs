@@ -85,7 +85,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Runtime
                         return Task.FromResult(AuthenticateResult.NoResult());
                     }
 
-                    if (_apiKeyProvider.ApiKey != header.Parameter?.Trim())
+                    var configured = _apiKeyProvider.ApiKey;
+                    if (string.IsNullOrEmpty(configured))
+                    {
+                        //
+                        // No key configured means nothing can present a valid
+                        // one. Comparing against null instead let a request
+                        // carrying a bare "ApiKey" header with no parameter
+                        // match - null equals null - and authenticate.
+                        //
+                        throw new UnauthorizedAccessException();
+                    }
+                    if (!string.Equals(configured, header.Parameter?.Trim(),
+                        StringComparison.Ordinal))
                     {
                         throw new UnauthorizedAccessException();
                     }
