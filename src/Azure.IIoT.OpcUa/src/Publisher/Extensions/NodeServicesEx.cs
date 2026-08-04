@@ -9,6 +9,7 @@ namespace Azure.IIoT.OpcUa.Publisher
     using Azure.IIoT.OpcUa.Core.Utils;
     using System;
     using System.Collections.Generic;
+    using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -84,6 +85,37 @@ namespace Azure.IIoT.OpcUa.Publisher
                 References = references,
                 ContinuationToken = null
             };
+        }
+
+        /// <summary>
+        /// Browse stream with eager argument validation.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="service"></param>
+        /// <param name="connection"></param>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        public static IAsyncEnumerable<BrowseStreamChunkModel> BrowseAsync<T>(
+            this INodeServices<T> service, T connection, BrowseStreamRequestModel request,
+            CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(service);
+            ArgumentNullException.ThrowIfNull(request);
+
+            return BrowseAsyncCore(service, connection, request, ct);
+        }
+
+        private static async IAsyncEnumerable<BrowseStreamChunkModel> BrowseAsyncCore<T>(
+            INodeServices<T> service, T connection, BrowseStreamRequestModel request,
+            [EnumeratorCancellation] CancellationToken ct = default)
+        {
+            await foreach (var chunk in service.BrowseAsync(connection, request, ct)
+                .ConfigureAwait(false))
+            {
+                yield return chunk;
+            }
         }
     }
 }

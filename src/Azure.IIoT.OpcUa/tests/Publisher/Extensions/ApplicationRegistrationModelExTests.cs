@@ -108,16 +108,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         }
 
         [Fact]
-        public void UnionWithAppendsRatherThanFillingAnEntryWhoseEndpointIsNull()
+        public void UnionWithAppendsWhenExistingEntryEndpointIsNull()
         {
-            //
-            // UnionWith has a branch that fills in a matched entry whose
-            // Endpoint is null, but nothing can reach it: matching runs through
-            // IsSameAs, which compares the endpoints' security properties, and
-            // a null endpoint never matches a real one. So the server's entry
-            // is appended as a new registration and the null one is left alone.
-            // Asserted as it behaves rather than as the branch suggests.
-            //
             var model = CreateRegistration("urn:server", "opc.tcp://one");
             var existing = model.Endpoints!.Single();
             existing.Endpoint = null;

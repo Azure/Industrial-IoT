@@ -74,11 +74,6 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
                         }
                         foreach (var existing in found)
                         {
-                            if (existing.Endpoint == null)
-                            {
-                                existing.Endpoint = ep.Endpoint;
-                                continue;
-                            }
                             existing.Endpoint?.UnionWith(ep.Endpoint);
                         }
                     }

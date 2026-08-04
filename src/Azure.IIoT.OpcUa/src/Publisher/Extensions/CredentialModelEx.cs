@@ -19,7 +19,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <returns></returns>
         public static string? GetPassword(this CredentialModel? model)
         {
-            if (model?.Type == CredentialType.UserName &&
+            if ((model?.Type == CredentialType.UserName ||
+                model?.Type == CredentialType.X509Certificate) &&
                 model.Value != null)
             {
                 return model.Value.Password;
@@ -34,7 +35,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         /// <returns></returns>
         public static string? GetUserName(this CredentialModel? model)
         {
-            if (model?.Type == CredentialType.UserName &&
+            if ((model?.Type == CredentialType.UserName ||
+                model?.Type == CredentialType.X509Certificate) &&
                 model.Value != null)
             {
                 return model.Value.User;

@@ -87,6 +87,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
                 ReadOnly = true,
                 MinLength = 2,
                 MaxLength = 8,
+                Pattern = "^[a-z]+$",
                 Definitions = new Dictionary<string, JsonSchema>
                 {
                     ["child"] = new() { Reference = new UriOrFragment("name") }
@@ -135,6 +136,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
             Assert.Equal(4, root.GetProperty("default").GetInt32());
             Assert.Equal(6, root.GetProperty("const").GetInt32());
             Assert.Equal(true, root.GetProperty("readOnly").GetBoolean());
+            Assert.Equal("^[a-z]+$", root.GetProperty("pattern").GetString());
             Assert.Equal("#/definitions/name", root.GetProperty("definitions")
                 .GetProperty("child").GetProperty("$ref").GetString());
         }

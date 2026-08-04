@@ -170,6 +170,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
 
                     Write(JsonSchemaVocabulary.MinLength, schema.MinLength);
                     Write(JsonSchemaVocabulary.MaxLength, schema.MaxLength);
+                    Write(JsonSchemaVocabulary.Pattern, schema.Pattern);
                 }
                 finally
                 {

@@ -12,6 +12,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
     using Microsoft.Extensions.Hosting;
     using System;
     using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.Linq;
     using System.Threading;
@@ -20,6 +21,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Module
     /// <summary>
     /// Module
     /// </summary>
+    [ExcludeFromCodeCoverage(Justification =
+        "Host bootstrap; exercising it requires starting the application host.")]
     public static class Program
     {
         /// <summary>

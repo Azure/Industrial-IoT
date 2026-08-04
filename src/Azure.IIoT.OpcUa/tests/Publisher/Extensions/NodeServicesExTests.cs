@@ -104,26 +104,19 @@ namespace Azure.IIoT.OpcUa.Publisher
         }
 
         [Fact]
-        public async Task BrowseAsyncGuardsTheServiceButNotTheRequestAsync()
+        public async Task BrowseAsyncGuardsServiceAndRequestEagerlyAsync()
         {
             var service = new Mock<INodeServices<string>>();
 
-            //
-            // The two overloads disagree, and the second is pinned as it
-            // behaves rather than as it should. A null request ought to raise
-            // ArgumentNullException naming it; instead the stream overload
-            // dereferences and raises NullReferenceException, and only on
-            // enumeration, since that is when an async iterator first runs.
-            //
             await Assert.ThrowsAsync<ArgumentNullException>(async () =>
                 await NodeServicesEx.BrowseAsync<string>(null!, "endpoint",
                     new BrowseFirstRequestModel()));
-            await Assert.ThrowsAsync<NullReferenceException>(async () =>
-            {
-                await foreach (var _ in service.Object.BrowseAsync("endpoint", null!))
-                {
-                }
-            });
+            Assert.Throws<ArgumentNullException>(() =>
+                NodeServicesEx.BrowseAsync<string>(null!, "endpoint",
+                    new BrowseStreamRequestModel()));
+            Assert.Throws<ArgumentNullException>(() =>
+                NodeServicesEx.BrowseAsync(service.Object, "endpoint",
+                    (BrowseStreamRequestModel)null!));
         }
 
         private static BrowseFirstResponseModel FirstResponse(string nodeId,

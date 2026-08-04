@@ -128,16 +128,15 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
         }
 
         [Fact]
-        public void BuiltInProviderPinsUnknownDescriptionForDerivedExceptions()
+        public void BuiltInProviderSummarizesDerivedExceptionsAsRegisteredBaseType()
         {
             var provider = CreateProvider("BuiltInExceptionProvider");
 
-            var index = provider.Describe(new CustomArgumentException("details"),
+            var index = provider.Describe(new CustomResourceNotFoundException("details"),
                 out var additionalDetails);
 
-            // Correct behavior would use the ArgumentException summary for derived types.
-            // The current assignability check is reversed, so pin the product behavior.
-            Assert.Equal("Unknown exception", provider.Descriptions[index]);
+            Assert.Equal("The requested resource could not be found.",
+                provider.Descriptions[index]);
             Assert.Equal("details", additionalDetails);
         }
 
@@ -161,9 +160,9 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
                 Activator.CreateInstance(providerType));
         }
 
-        private sealed class CustomArgumentException : ArgumentException
+        private sealed class CustomResourceNotFoundException : ResourceNotFoundException
         {
-            public CustomArgumentException(string message) : base(message)
+            public CustomResourceNotFoundException(string message) : base(message)
             {
             }
         }

@@ -105,7 +105,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 }
                 foreach (var supportedType in kSupported)
                 {
-                    if (exception.GetType().IsAssignableFrom(supportedType.Key))
+                    if (supportedType.Key.IsAssignableFrom(exception.GetType()))
                     {
                         return supportedType.Value;
                     }

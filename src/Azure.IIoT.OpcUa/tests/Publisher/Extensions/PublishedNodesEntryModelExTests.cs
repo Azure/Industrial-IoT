@@ -266,7 +266,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
         [InlineData(SecurityMode.None, false, null)]
         [InlineData(SecurityMode.NotNone, true, null)]
         [InlineData(SecurityMode.Sign, null, SecurityMode.Sign)]
-        public void ToPublishedNodesEntryMapsSecurityModeAndDropsCertificateCredentials(
+        public void ToPublishedNodesEntryMapsSecurityModeAndCertificateCredentials(
             SecurityMode securityMode,
             bool? expectedUseSecurity, SecurityMode? expectedSecurityMode)
         {
@@ -300,10 +300,8 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             Assert.Equal(expectedSecurityMode, entry.EndpointSecurityMode);
             Assert.Equal("policy", entry.EndpointSecurityPolicy);
             Assert.Equal(OpcAuthenticationMode.Certificate, entry.OpcAuthenticationMode);
-            // Certificate credentials should be preserved, but GetUserName and
-            // GetPassword currently only map username/password credentials.
-            Assert.Null(entry.OpcAuthenticationUsername);
-            Assert.Null(entry.OpcAuthenticationPassword);
+            Assert.Equal("cert", entry.OpcAuthenticationUsername);
+            Assert.Equal("secret", entry.OpcAuthenticationPassword);
             Assert.Equal("group", entry.DataSetWriterGroup);
             Assert.Equal(true, entry.UseReverseConnect);
             Assert.Equal(true, entry.DisableSubscriptionTransfer);

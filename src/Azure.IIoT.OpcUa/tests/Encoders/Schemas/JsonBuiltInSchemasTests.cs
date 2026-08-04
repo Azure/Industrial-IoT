@@ -115,8 +115,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
         [InlineData(false, true, BuiltInType.NodeId, SchemaType.String, "opcuaNodeId")]
         [InlineData(false, false, BuiltInType.ExpandedNodeId, SchemaType.Object, null)]
         [InlineData(false, true, BuiltInType.ExpandedNodeId, SchemaType.String, "opcuaExpandedNodeId")]
-        // QualifiedName has object members but currently omits the schema type.
-        [InlineData(false, false, BuiltInType.QualifiedName, SchemaType.None, null)]
+        [InlineData(false, false, BuiltInType.QualifiedName, SchemaType.Object, null)]
         [InlineData(false, true, BuiltInType.QualifiedName, SchemaType.String, "opcuaQualifiedName")]
         [InlineData(false, false, BuiltInType.LocalizedText, SchemaType.String, null)]
         [InlineData(true, false, BuiltInType.LocalizedText, SchemaType.Object, null)]
