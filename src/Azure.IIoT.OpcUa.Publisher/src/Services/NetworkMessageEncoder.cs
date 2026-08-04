@@ -1,4 +1,4 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -383,7 +383,7 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                         GetTimestamp(Notification), Context.NextWriterSequenceNumber(),
                                         standardsCompliant, Notification.EndpointUrl,
                                         Notification.ApplicationUri, Context.MetaData?.MetaData,
-                                        out var dataSetMessage))
+                                        false, out var dataSetMessage))
                                     {
                                         Drop(Notification.YieldReturn());
                                         continue;
@@ -432,7 +432,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Services
                                                     .ToList(), dataSetFieldContentMask),
                                                 GetTimestamp(Notification), Context.NextWriterSequenceNumber(),
                                                 standardsCompliant, Notification.EndpointUrl, Notification.ApplicationUri,
-                                                Context.MetaData?.MetaData, out var dataSetMessage))
+                                                Context.MetaData?.MetaData, orderedNotifications.Count > 0 &&
+                                                orderedNotifications.TrueForAll(
+                                                    n => (n.Flags & MonitoredItemSourceFlags.Heartbeat) != 0),
+                                                out var dataSetMessage))
                                             {
                                                 Drop(Notification.YieldReturn());
                                                 continue;

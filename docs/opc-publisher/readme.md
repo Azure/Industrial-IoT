@@ -27,6 +27,7 @@ Here you find information about
     - [Key frames, delta frames and extension fields](#key-frames-delta-frames-and-extension-fields)
     - [Status codes](#status-codes)
     - [Heartbeat](#heartbeat)
+      - [Heartbeat indicator](#heartbeat-indicator)
       - [Timestamps](#timestamps)
       - [Legacy behavior](#legacy-behavior)
     - [Cyclic reading (Client side sampling)](#cyclic-reading-client-side-sampling)
@@ -751,6 +752,24 @@ option of the node entry. The behavior can be set to watch dog behavior with Las
 A continuous periodic sending of the last known value (`PeriodicLKV`) or last good value (`PeriodicLKG`) can also be selected. In some cases periodic reporting is all that is needed, and the actual value read that is reported out of period should be dropped. Use the `PeriodicLKVDropValue` or `PeriodicLKGDropValue` behavior to achieve this behavior. The outcome is similar to the [cyclic read](#cyclic-reading-client-side-sampling) mode but using a periodic timer over server side sampled nodes.
 
 The heartbeat behavior `WatchdogLKVDiagnosticsOnly` is special, it allows you to log heartbeat in the diagnostics output without sending heartbeats as part of the outgoing messages.
+
+##### Heartbeat indicator
+
+> This feature is in preview
+
+A heartbeat re-sends the last known (good) value, including the original `SourceTimestamp` and `ServerTimestamp` of that value. A consumer therefore cannot distinguish a heartbeat from a real value change of the node, which can lead to wrong values being recorded in a historian (see issue [#2441](https://github.com/Azure/Industrial-IoT/issues/2441)).
+
+To be able to tell both apart, OPC Publisher can add a `Heartbeat` indicator to the outgoing message. The indicator is emitted as part of the [message](./messageformats.md#heartbeat-messages) and is only present (and then always `true`) when the message was produced by a heartbeat. Messages resulting from real value changes do not contain the member.
+
+The indicator is controlled by the `Heartbeat` flag (`0x400000`) of the `DataSetFieldContentMask` of a data set writer. It is part of all *full featured* [messaging profiles](./messageformats.md#messaging-profiles-supported-by-opc-publisher). The easiest way to enable it is to use the `--fm=True` [command line](./commandline.md) option, or to select the `FullSamples` or `FullNetworkMessages` messaging mode using the `--mm` option. The messaging mode can also be set per writer entry using the `MessagingMode` property in the [configuration](#configuration-schema):
+
+``` json
+  "MessagingMode": "FullNetworkMessages",
+```
+
+The indicator is supported in `Json` encoding, both in [PubSub](./messageformats.md#heartbeat-messages) and in legacy [Samples](./messageformats.md#heartbeat-messages-in-samples-mode) mode. It is not available with `Uadp` or `Avro` encoding.
+
+> Alternatively you can use the `PeriodicLKVDropValue` or `PeriodicLKGDropValue` heartbeat behavior described above to only ever emit periodic values and drop the actual value changes, or configure the node twice, once with and once without heartbeat.
 
 ##### Timestamps
 

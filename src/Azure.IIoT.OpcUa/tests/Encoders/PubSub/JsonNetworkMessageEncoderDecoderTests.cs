@@ -13,6 +13,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text;
     using Xunit;
 
     /// <summary>
@@ -367,6 +368,34 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 .ToList()));
 
             Assert.Equal(expected, result);
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void EncodeDecodeNetworkMessageWithHeartbeatIndicator(bool heartbeat)
+        {
+            var dataSetMessage = CreateDataSetMessage(false, 3,
+                dataSetFieldContentMask: DataSetFieldContentFlagsDefault |
+                    DataSetFieldContentFlags.Heartbeat);
+            dataSetMessage.Heartbeat = heartbeat;
+            var networkMessage = CreateNetworkMessage(NetworkMessageContentMaskDefault,
+                new List<BaseDataSetMessage> { dataSetMessage });
+
+            var context = new ServiceMessageContext();
+            var buffer = Assert.Single(networkMessage.Encode(context, 256 * 1000));
+
+            // The indicator is only written when the message is a heartbeat
+            var json = Encoding.UTF8.GetString(buffer);
+            Assert.Equal(heartbeat, json.Contains("\"Heartbeat\":true", StringComparison.Ordinal));
+
+            ConvertToOpcUaUniversalTime(networkMessage);
+
+            var result = PubSubMessage.Decode(buffer, networkMessage.ContentType, context);
+            Assert.Equal(networkMessage, result);
+            var decoded = Assert.IsType<JsonDataSetMessage>(Assert.Single(
+                Assert.IsType<JsonNetworkMessage>(result).Messages));
+            Assert.Equal(heartbeat, decoded.Heartbeat);
         }
 
         /// <summary>

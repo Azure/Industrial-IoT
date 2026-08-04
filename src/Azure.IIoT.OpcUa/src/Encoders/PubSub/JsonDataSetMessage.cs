@@ -129,6 +129,11 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 {
                     encoder.WriteString(nameof(DataSetWriterName), DataSetWriterName);
                 }
+                if (Heartbeat &&
+                    (Payload.DataSetFieldContentMask & DataSetFieldContentFlags.Heartbeat) != 0)
+                {
+                    encoder.WriteBoolean(nameof(Heartbeat), Heartbeat);
+                }
                 WritePayload(encoder, nameof(Payload));
             }
             else
@@ -169,6 +174,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 {
                     Payload = payload;
                 }
+                if (Heartbeat)
+                {
+                    Payload.DataSetFieldContentMask |= DataSetFieldContentFlags.Heartbeat;
+                }
                 return true;
             }
             else if (withHeader)
@@ -185,6 +194,7 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 DataSetWriterName = null;
                 SequenceNumber = 0;
                 MetaDataVersion = null;
+                Heartbeat = false;
                 Timestamp = DateTimeOffset.MinValue;
 
                 var payload = property != null && jsonDecoder.HasField(property) ?
@@ -310,6 +320,10 @@ namespace Azure.IIoT.OpcUa.Encoders.PubSub
                 {
                     DataSetWriterName = jsonDecoder.ReadString(nameof(DataSetWriterName));
                     dataSetMessageContentMask |= DataSetMessageContentFlags.DataSetWriterName;
+                }
+                if (jsonDecoder.HasField(nameof(Heartbeat)))
+                {
+                    Heartbeat = jsonDecoder.ReadBoolean(nameof(Heartbeat));
                 }
                 return jsonDecoder.HasField(nameof(Payload));
             }

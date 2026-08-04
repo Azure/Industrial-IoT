@@ -73,6 +73,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
             _withDataSetMessageHeader = withDataSetMessageHeader;
             _dataSet = new JsonDataSet(dataSetMessage.Id, dataSetMessage.MetaData,
                 dataSetMessage.DataSetFieldContentFlags, options, definitions, uniqueNames);
+            _dataSetFieldContentMask = dataSetMessage.DataSetFieldContentFlags
+                ?? PubSubMessage.DefaultDataSetFieldContentFlags;
             UseCompatibilityMode = useCompatibilityMode;
             Id = dataSetMessage.Id;
             Name = GetName(dataSetMessage.TypeName, uniqueNames);
@@ -178,7 +180,20 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
                     encoding.GetSchemaForBuiltInType(BuiltInType.String));
             }
 
+            //
+            // The heartbeat indicator is optional, it is only written when the data set
+            // message was produced by a heartbeat. It is therefore not added to the list
+            // of required properties below.
+            //
+            var required = properties.Keys.ToList();
+            if (_dataSetFieldContentMask.HasFlag(DataSetFieldContentFlags.Heartbeat))
+            {
+                properties.Add(nameof(PubSub.JsonDataSetMessage.Heartbeat),
+                    encoding.GetSchemaForBuiltInType(BuiltInType.Boolean));
+            }
+
             properties.Add(nameof(PubSub.JsonDataSetMessage.Payload), _dataSet.Ref);
+            required.Add(nameof(PubSub.JsonDataSetMessage.Payload));
 
             return Definitions.Reference(_options.GetSchemaId(Name), id => new JsonSchema
             {
@@ -186,7 +201,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
                 Type = SchemaType.Object,
                 AdditionalProperties = new JsonSchema { Allowed = false },
                 Properties = properties,
-                Required = properties.Keys.ToList()
+                Required = required
             });
         }
 
@@ -215,6 +230,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
         }
 
         private readonly JsonDataSet _dataSet;
+        private readonly DataSetFieldContentFlags _dataSetFieldContentMask;
         private readonly SchemaOptions _options;
         private readonly bool _withDataSetMessageHeader;
     }
