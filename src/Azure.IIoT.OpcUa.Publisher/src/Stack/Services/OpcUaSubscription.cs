@@ -513,6 +513,18 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         }
 
         /// <summary>
+        /// Serializes the dispatch of notifications to the subscribers of
+        /// this subscription. Heartbeats are produced on timer threads while
+        /// value changes are produced on the publish callback thread. Without
+        /// serialization a heartbeat carrying an older value can overtake a
+        /// newly received value (#2515). Taking this lock around the point
+        /// where the last received value is captured and the notification is
+        /// handed to the subscriber ensures a total order without having to
+        /// serialize the entire (potentially slow) processing pipeline.
+        /// </summary>
+        internal Lock NotificationLock { get; } = new();
+
+        /// <summary>
         /// Notify session disconnected/reconnecting. This is called
         /// on all subscriptions in the session and takes child subscriptions
         /// into account
@@ -521,9 +533,12 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
         /// <returns></returns>
         internal void NotifySessionConnectionState(bool disconnected)
         {
-            foreach (var item in CurrentlyMonitored)
+            lock (NotificationLock)
             {
-                item.NotifySessionConnectionState(disconnected);
+                foreach (var item in CurrentlyMonitored)
+                {
+                    item.NotifySessionConnectionState(disconnected);
+                }
             }
         }
 
@@ -2246,36 +2261,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
             try
             {
                 var collector = new OpcUaMonitoredItem.MonitoredItemNotifications();
-                foreach (var cyclicDataChange in values.OrderBy(m => m.Value?.SourceTimestamp))
+                lock (NotificationLock)
                 {
-                    if (TryGetMonitoredItemForNotification(cyclicDataChange.ClientHandle, out var monitoredItem) &&
-                        !monitoredItem.TryGetMonitoredItemNotifications(publishTime, cyclicDataChange, collector))
+                    foreach (var cyclicDataChange in values.OrderBy(m => m.Value?.SourceTimestamp))
                     {
-                        _logger.SkippingCyclicRead(this);
+                        if (TryGetMonitoredItemForNotification(cyclicDataChange.ClientHandle, out var monitoredItem) &&
+                            !monitoredItem.TryGetMonitoredItemNotifications(publishTime, cyclicDataChange, collector))
+                        {
+                            _logger.SkippingCyclicRead(this);
+                        }
                     }
-                }
 
-                foreach (var (callback, notifications) in collector.Notifications)
-                {
-#pragma warning disable CA2000 // Dispose objects before losing scope
-                    var message = new OpcUaSubscriptionNotification(this, session.MessageContext, notifications,
-                        _timeProvider, null, sequenceNumber)
+                    foreach (var (callback, notifications) in collector.Notifications)
                     {
-                        ApplicationUri = session.Endpoint?.Server?.ApplicationUri
-                            ?? _client.ApplicationUri,
-                        EndpointUrl = session.Endpoint?.EndpointUrl,
-                        PublishTimestamp = publishTime,
-                        SequenceNumber = Opc.Ua.SequenceNumber.Increment32(ref _sequenceNumber),
-                        MessageType = MessageType.DeltaFrame
-                    };
+#pragma warning disable CA2000 // Dispose objects before losing scope
+                        var message = new OpcUaSubscriptionNotification(this, session.MessageContext, notifications,
+                            _timeProvider, null, sequenceNumber)
+                        {
+                            ApplicationUri = session.Endpoint?.Server?.ApplicationUri
+                                ?? _client.ApplicationUri,
+                            EndpointUrl = session.Endpoint?.EndpointUrl,
+                            PublishTimestamp = publishTime,
+                            SequenceNumber = Opc.Ua.SequenceNumber.Increment32(ref _sequenceNumber),
+                            MessageType = MessageType.DeltaFrame
+                        };
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
-                    callback.OnSubscriptionCyclicReadCompleted(message);
-                    Debug.Assert(message.Notifications != null);
-                    var count = message.GetDiagnosticCounters(out var _, out _, out var overflows);
-                    if (count > 0)
-                    {
-                        callback.OnSubscriptionCyclicReadDiagnosticsChange(count, overflows);
+                        callback.OnSubscriptionCyclicReadCompleted(message);
+                        Debug.Assert(message.Notifications != null);
+                        var count = message.GetDiagnosticCounters(out var _, out _, out var overflows);
+                        if (count > 0)
+                        {
+                            callback.OnSubscriptionCyclicReadDiagnosticsChange(count, overflows);
+                        }
                     }
                 }
             }
@@ -2340,49 +2358,52 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
 
                 // Collect notifications
                 var collector = new OpcUaMonitoredItem.MonitoredItemNotifications();
-                foreach (var item in notification.MonitoredItems)
+                lock (NotificationLock)
                 {
-                    Debug.Assert(item != null);
-                    if (TryGetMonitoredItemForNotification(item.ClientHandle, out var monitoredItem) &&
-                        !monitoredItem.TryGetMonitoredItemNotifications(publishTime, item, collector))
+                    foreach (var item in notification.MonitoredItems)
                     {
-                        _logger.SkippingDataChangeNotification(this);
+                        Debug.Assert(item != null);
+                        if (TryGetMonitoredItemForNotification(item.ClientHandle, out var monitoredItem) &&
+                            !monitoredItem.TryGetMonitoredItemNotifications(publishTime, item, collector))
+                        {
+                            _logger.SkippingDataChangeNotification(this);
+                        }
                     }
-                }
 
-                if (_sendFakeKeepAlives)
-                {
-                    // Send fake keep alives to all the other subscribers
-                    SendFakeKeepAlives(session);
-                }
-
-                // Send to listeners
-#pragma warning disable CA2000 // Dispose objects before losing scope
-                var advance = new Advance(this, sequenceNumber, collector.Notifications.Count);
-#pragma warning restore CA2000 // Dispose objects before losing scope
-                foreach (var (callback, notifications) in collector.Notifications)
-                {
-#pragma warning disable CA2000 // Dispose objects before losing scope
-                    var message = new OpcUaSubscriptionNotification(this, session.MessageContext,
-                        notifications, _timeProvider, advance, sequenceNumber)
+                    if (_sendFakeKeepAlives)
                     {
-                        ApplicationUri = session.Endpoint?.Server?.ApplicationUri
-                            ?? _client.ApplicationUri,
-                        EndpointUrl = session.Endpoint?.EndpointUrl,
-                        PublishTimestamp = publishTime,
-                        SequenceNumber = Opc.Ua.SequenceNumber.Increment32(ref _sequenceNumber),
-                        MessageType =
-                            firstDataChangeReceived ? MessageType.DeltaFrame : MessageType.KeyFrame
-                    };
-#pragma warning restore CA2000 // Dispose objects before losing scope
-                    Debug.Assert(notification.MonitoredItems != null);
+                        // Send fake keep alives to all the other subscribers
+                        SendFakeKeepAlives(session);
+                    }
 
-                    callback.OnSubscriptionDataChangeReceived(message);
-                    Debug.Assert(message.Notifications != null);
-                    var count = message.GetDiagnosticCounters(out var _, out var heartbeats, out var overflows);
-                    if (count > 0)
+                    // Send to listeners
+#pragma warning disable CA2000 // Dispose objects before losing scope
+                    var advance = new Advance(this, sequenceNumber, collector.Notifications.Count);
+#pragma warning restore CA2000 // Dispose objects before losing scope
+                    foreach (var (callback, notifications) in collector.Notifications)
                     {
-                        callback.OnSubscriptionDataDiagnosticsChange(true, count, overflows, heartbeats);
+#pragma warning disable CA2000 // Dispose objects before losing scope
+                        var message = new OpcUaSubscriptionNotification(this, session.MessageContext,
+                            notifications, _timeProvider, advance, sequenceNumber)
+                        {
+                            ApplicationUri = session.Endpoint?.Server?.ApplicationUri
+                                ?? _client.ApplicationUri,
+                            EndpointUrl = session.Endpoint?.EndpointUrl,
+                            PublishTimestamp = publishTime,
+                            SequenceNumber = Opc.Ua.SequenceNumber.Increment32(ref _sequenceNumber),
+                            MessageType =
+                                firstDataChangeReceived ? MessageType.DeltaFrame : MessageType.KeyFrame
+                        };
+#pragma warning restore CA2000 // Dispose objects before losing scope
+                        Debug.Assert(notification.MonitoredItems != null);
+
+                        callback.OnSubscriptionDataChangeReceived(message);
+                        Debug.Assert(message.Notifications != null);
+                        var count = message.GetDiagnosticCounters(out var _, out var heartbeats, out var overflows);
+                        if (count > 0)
+                        {
+                            callback.OnSubscriptionDataDiagnosticsChange(true, count, overflows, heartbeats);
+                        }
                     }
                 }
             }
