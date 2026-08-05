@@ -160,10 +160,14 @@ jobs:
         # coverlet.msbuild, which crashes the Publisher project run with
         # "Unable to read beyond the end of the stream" during result
         # serialization.
+        #
+        # `Category!=LongRunning` excludes the multi-minute telemetry
+        # quality soak tests; they are run by soak.yml on a schedule.
         shell: pwsh
         run: |
           dotnet test "${{ matrix.project.path }}" --no-build -c Release `
             --blame-hang-timeout 30m --blame-hang-dump-type none `
+            --filter "Category!=LongRunning" `
             --logger "trx;LogFileName=test-results.trx" `
             --results-directory ./testresults/${{ matrix.project.name }} `
             --collect:"XPlat Code Coverage;Format=cobertura"

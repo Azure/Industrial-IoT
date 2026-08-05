@@ -307,6 +307,72 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         };
 
         /// <summary>
+        /// <para>
+        /// Stream telemetry into a sink for a bounded duration without
+        /// buffering it. <see cref="WaitForMessagesAndMetadataAsync"/>
+        /// accumulates every message into a list, which is fine for the
+        /// short functional tests but exhausts memory in the long running
+        /// telemetry quality tests where millions of messages are produced.
+        /// </para>
+        /// <para>
+        /// The sink is invoked once per data set message; network messages
+        /// that carry an array of messages are flattened. The
+        /// <see cref="JsonElement"/> handed to the sink is only valid for
+        /// the duration of the call, so the sink has to extract everything
+        /// it needs before returning.
+        /// </para>
+        /// </summary>
+        /// <param name="duration"></param>
+        /// <param name="sink"></param>
+        /// <param name="ct"></param>
+        /// <returns>Number of messages that were handed to the sink</returns>
+        protected async Task<long> ConsumeMessagesAsync(TimeSpan duration,
+            Action<JsonElement> sink, CancellationToken ct = default)
+        {
+            ArgumentNullException.ThrowIfNull(sink);
+
+            var stopWatch = Stopwatch.StartNew();
+            var count = 0L;
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            cts.CancelAfter(duration);
+            try
+            {
+                await foreach (var evt in _publisher.ReadTelemetryAsync(cts.Token))
+                {
+                    if (evt.Properties.TryGetValue(Constants.MessagePropertySchemaKey, out var schematype) &&
+                        schematype != MessageSchemaTypes.NetworkMessageJson &&
+                        schematype != MessageSchemaTypes.MonitoredItemMessageJson &&
+                        schematype != MessageSchemaTypes.NetworkMessageUadp)
+                    {
+                        continue;
+                    }
+                    if (evt.Data.IsEmpty)
+                    {
+                        continue;
+                    }
+                    using var document = JsonDocument.Parse(evt.Data.ToArray());
+                    var element = document.RootElement;
+                    if (element.ValueKind == JsonValueKind.Array)
+                    {
+                        foreach (var item in element.EnumerateArray())
+                        {
+                            sink(item);
+                            count++;
+                        }
+                    }
+                    else if (element.ValueKind == JsonValueKind.Object)
+                    {
+                        sink(element);
+                        count++;
+                    }
+                }
+            }
+            catch (OperationCanceledException) { }
+            _logger.MessagesReceived((int)Math.Min(count, int.MaxValue), stopWatch.Elapsed);
+            return count;
+        }
+
+        /// <summary>
         /// Start publisher
         /// </summary>
         /// <param name="test"></param>
@@ -387,6 +453,17 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures
         /// Get publisher api
         /// </summary>
         protected IPublisherApi PublisherApi => _publisher?.ClientContainer?.Resolve<IPublisherApi>();
+
+        /// <summary>
+        /// Resolve a service from the running publisher module. Used to read
+        /// the publisher's own diagnostics, e.g. the dropped notification and
+        /// server queue overflow counters, from inside a test.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        protected T ResolveFromPublisher<T>()
+        {
+            return _publisher.Resolve<T>();
+        }
 
         /// <summary>
         /// Stop publisher

@@ -51,6 +51,16 @@ on:
         required: false
         type: string
         default: '1.4'
+      soak_minutes:
+        description: 'Observation window for the long running telemetry quality tests, in minutes'
+        required: false
+        type: string
+        default: ''
+      soak_nodes:
+        description: 'Number of counter nodes for the long running telemetry quality tests'
+        required: false
+        type: string
+        default: ''
 
 permissions:
   id-token: write
@@ -164,6 +174,10 @@ jobs:
           AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
           AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
           IOT_EDGE_VERSION: ${{ inputs.edge_version }}
+          # Only consumed by the long running telemetry quality tests; empty
+          # values leave the in-code defaults (30 minutes, 100 nodes) in place.
+          IIOT_E2E_SOAK_MINUTES: ${{ inputs.soak_minutes }}
+          IIOT_E2E_SOAK_NODES: ${{ inputs.soak_nodes }}
         run: |
           set -euo pipefail
           mkdir -p e2e-tests/results

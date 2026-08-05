@@ -91,13 +91,20 @@ Write-Host "Setting KeyVault Secret 'iothub-eventhub-connectionstring' to '***'.
 $secret = ConvertTo-SecureString $ehConnectionString -AsPlainText -Force
 Set-AzKeyVaultSecret -VaultName $keyVault.VaultName -Name "iothub-eventhub-connectionstring" -SecretValue $secret | Out-Null
 
-# Ensure Event Hub additional consumer group for tests
+# Ensure Event Hub additional consumer groups for tests.
+#
+# TestConsumer is shared by the functional tests. The Soak* groups belong to the
+# long running telemetry quality tests, which run in parallel with the A&E job and
+# with each other and hold a reader open on every partition for the whole
+# observation window; the built-in endpoint permits five concurrent readers per
+# partition and per consumer group.
 
-$cgName = "TestConsumer"
-$iotHubCg = Get-AzIotHubEventHubConsumerGroup -ResourceGroupName $ResourceGroupName -Name $IoTHubName | Where-Object Name -eq $cgName
-if (!$iotHubCg) {
-    Write-Host "Creating IoT Hub $($IoTHubName) Event Hub Consumer Group $($cgName)..."
-    $iotHubCg = Add-AzIotHubEventHubConsumerGroup -ResourceGroupName $ResourceGroupName -Name $IoTHubName -EventHubConsumerGroupName $cgName
+foreach ($cgName in @("TestConsumer", "SoakCounters", "SoakHeartbeat")) {
+    $iotHubCg = Get-AzIotHubEventHubConsumerGroup -ResourceGroupName $ResourceGroupName -Name $IoTHubName | Where-Object Name -eq $cgName
+    if (!$iotHubCg) {
+        Write-Host "Creating IoT Hub $($IoTHubName) Event Hub Consumer Group $($cgName)..."
+        $iotHubCg = Add-AzIotHubEventHubConsumerGroup -ResourceGroupName $ResourceGroupName -Name $IoTHubName -EventHubConsumerGroupName $cgName
+    }
 }
 
 # NOTE: Storage account + Azure Files share `acishare` were previously created here to

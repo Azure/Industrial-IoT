@@ -20,12 +20,14 @@ namespace OpcPublisherAEE2ETests.Deploy
         }
 
         /// <inheritdoc />
-        public async Task<bool> CreateOrUpdateLayeredDeploymentAsync(CancellationToken token)
+        public async Task<bool> CreateOrUpdateLayeredDeploymentAsync(CancellationToken token,
+            bool replaceExisting = true)
         {
             var deploymentConfiguration = GetDeploymentConfiguration();
 
             var configuration = await _context.RegistryHelper
-                .CreateOrUpdateConfigurationAsync(deploymentConfiguration, token).ConfigureAwait(false);
+                .CreateOrUpdateConfigurationAsync(deploymentConfiguration, token, replaceExisting)
+                .ConfigureAwait(false);
 
             _context.OutputHelper.WriteLine($"Created deployment {configuration.Id}.");
             return configuration != null;
