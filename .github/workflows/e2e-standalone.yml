@@ -144,12 +144,17 @@ jobs:
   # init: compute the resource group name once so every other job uses the
   # same value. <generated> mirrors the internal pipeline's date+counter
   # pattern: e2etesting<YYYYMMDD><run_number>.
+  #
+  # It also derives the job timeout of the telemetry quality soaks from the
+  # configured observation window. GitHub Actions expressions have no
+  # arithmetic operators, so this cannot be done inline in the job's `with:`.
   # --------------------------------------------------------------------------
   init:
     name: Compute run variables
     runs-on: ubuntu-latest
     outputs:
       resource_group_name: ${{ steps.compute.outputs.rg }}
+      soak_timeout_minutes: ${{ steps.compute.outputs.soak_timeout }}
     steps:
       - id: compute
         shell: bash
@@ -164,6 +169,13 @@ jobs:
           fi
           echo "rg=${rg}" >> "$GITHUB_OUTPUT"
           echo "Resource group: ${rg}"
+
+          # Observation window plus headroom for restoring and building the
+          # test solution, deploying the publisher module, creating the
+          # simulation container, warming up and tearing everything down.
+          soak_minutes="${{ inputs.soak_minutes || '30' }}"
+          echo "soak_timeout=$((soak_minutes + 60))" >> "$GITHUB_OUTPUT"
+          echo "Soak job timeout: $((soak_minutes + 60)) minutes"
 
   # --------------------------------------------------------------------------
   # deploy_standalone: deploys the standalone IIoT infrastructure (KeyVault,
@@ -369,9 +381,7 @@ jobs:
       key_vault_name: ${{ needs.deploy_standalone.outputs.key_vault_name }}
       filter_name: PublisherMode
       filter_value: soakcounters
-      # Observation window plus headroom for module deployment, simulation
-      # container creation, warm up and teardown.
-      timeout_minutes: ${{ fromJSON(inputs.soak_minutes || '30') + 60 }}
+      timeout_minutes: ${{ fromJSON(needs.init.outputs.soak_timeout_minutes) }}
       result_label: soak-counters
       image_registry: ${{ inputs.image_registry || 'ghcr.io' }}
       image_namespace: ${{ inputs.image_namespace || 'azure' }}
@@ -396,7 +406,7 @@ jobs:
       key_vault_name: ${{ needs.deploy_standalone.outputs.key_vault_name }}
       filter_name: PublisherMode
       filter_value: soakheartbeat
-      timeout_minutes: ${{ fromJSON(inputs.soak_minutes || '30') + 60 }}
+      timeout_minutes: ${{ fromJSON(needs.init.outputs.soak_timeout_minutes) }}
       result_label: soak-heartbeat
       image_registry: ${{ inputs.image_registry || 'ghcr.io' }}
       image_namespace: ${{ inputs.image_namespace || 'azure' }}
