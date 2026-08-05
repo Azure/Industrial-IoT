@@ -104,6 +104,26 @@ resource testConsumerGroup 'Microsoft.Devices/IotHubs/eventHubEndpoints/Consumer
   }
 }
 
+// The long running telemetry quality tests run in parallel with the A&E job and
+// with each other, and each keeps a reader open on every partition for the whole
+// observation window. The built-in endpoint permits five concurrent readers per
+// partition and per consumer group, so each soak gets its own group.
+resource soakCountersConsumerGroup 'Microsoft.Devices/IotHubs/eventHubEndpoints/ConsumerGroups@2023-06-30' = {
+  parent: iotHub
+  name: 'events/SoakCounters'
+  properties: {
+    name: 'SoakCounters'
+  }
+}
+
+resource soakHeartbeatConsumerGroup 'Microsoft.Devices/IotHubs/eventHubEndpoints/ConsumerGroups@2023-06-30' = {
+  parent: iotHub
+  name: 'events/SoakHeartbeat'
+  properties: {
+    name: 'SoakHeartbeat'
+  }
+}
+
 resource testAcr 'Microsoft.ContainerRegistry/registries@2023-11-01-preview' = {
   name: 'e2etestacr${testSuffix}'
   location: location

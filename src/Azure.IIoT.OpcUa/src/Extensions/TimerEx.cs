@@ -169,6 +169,28 @@ namespace Azure.IIoT.OpcUa
         }
 
         /// <summary>
+        /// Re-arm the timer so that it elapses after <paramref name="dueTime"/>
+        /// once, while keeping <see cref="Interval"/> as the period of all
+        /// subsequent elapses. Assigning <see cref="Interval"/> restarts the
+        /// countdown with a full interval, which is not what a caller wants
+        /// when it only needs to postpone the next elapse by the remainder of
+        /// a period.
+        /// </summary>
+        /// <param name="dueTime">
+        /// Time until the next elapse. Must be greater than zero.
+        /// </param>
+        /// <exception cref="ArgumentException"></exception>
+        public void Rearm(TimeSpan dueTime)
+        {
+            if (dueTime <= TimeSpan.Zero)
+            {
+                throw new ArgumentException("Bad due time", nameof(dueTime));
+            }
+            _timer?.Change(dueTime,
+                _autoReset ? _interval : Timeout.InfiniteTimeSpan);
+        }
+
+        /// <summary>
         /// Closes the current timer object.
         /// </summary>
         public void Close()

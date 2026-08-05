@@ -1,0 +1,161 @@
+name: Soak
+
+# ----------------------------------------------------------------------------
+# Long running telemetry quality soak.
+#
+# Reproduces the customer scenario of thousands of variables
+# published with a two second publishing interval, a two second sampling
+# interval, a queue size larger than one and a two second heartbeat, in samples
+# encoding. The counter test server makes the expected stream decidable -- every
+# variable counts up from zero by exactly one every update interval, so the
+# value carries its own sequence number and its own expected source timestamp.
+#
+# The run fails when any of the four symptoms the customer reported reappears:
+#   (a) a counter value is lost
+#   (b) a counter goes backwards
+#   (c) two consecutive source timestamps are not one update interval apart
+#   (d) a value is repeated after a newer one was already delivered
+#
+# These tests carry [Trait("Category", "LongRunning")] and are excluded from the
+# pull request build in ci.yml.
+# ----------------------------------------------------------------------------
+
+on:
+  schedule:
+    # Nightly at 02:00 UTC, well clear of the 10:00 UTC CI build.
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      nodes:
+        description: 'Number of counter variables to publish'
+        type: string
+        default: '500'
+      minutes:
+        description: 'Minutes of telemetry to analyse per scenario'
+        type: string
+        default: '30'
+      full_scale:
+        description: 'Also run the 3000 node customer scale scenario'
+        type: boolean
+        default: false
+
+concurrency:
+  group: soak-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  PROJECT: src/Azure.IIoT.OpcUa.Publisher.Module/tests/Azure.IIoT.OpcUa.Publisher.Module.Tests.csproj
+
+jobs:
+  # --------------------------------------------------------------------------
+  # One job per scenario so that a 30 minute analysis window per scenario still
+  # fits comfortably inside the job timeout and the scenarios run in parallel.
+  # --------------------------------------------------------------------------
+  soak:
+    name: Soak (${{ matrix.scenario.name }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario:
+          - name: Samples
+            test: SamplesModeStreamIsCompleteOrderedAndEvenlySpacedAsync
+          - name: PubSub
+            test: PubSubModeStreamIsCompleteOrderedAndEvenlySpacedAsync
+          - name: QueuedValues
+            test: QueuedValuesArriveCompleteAndInOrderAsync
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+      - name: Restore
+        # Restore against nuget.org explicitly; the repo Nuget.Config points
+        # only at the internal Azure Artifacts feed.
+        run: dotnet restore "$PROJECT" -s https://api.nuget.org/v3/index.json
+        shell: bash
+      - name: Build
+        run: dotnet build "$PROJECT" -c Release --no-restore
+        shell: bash
+      - name: Soak
+        env:
+          IIOT_TELEMETRY_SOAK_NODES: ${{ inputs.nodes || '500' }}
+          IIOT_TELEMETRY_SOAK_MINUTES: ${{ inputs.minutes || '30' }}
+        shell: bash
+        run: |
+          dotnet test "$PROJECT" --no-build -c Release \
+            --blame-hang-timeout 90m --blame-hang-dump-type none \
+            --filter "FullyQualifiedName~${{ matrix.scenario.test }}" \
+            --logger "trx;LogFileName=soak-results.trx" \
+            --logger "console;verbosity=detailed" \
+            --results-directory ./testresults/${{ matrix.scenario.name }} \
+            | tee ./soak-${{ matrix.scenario.name }}.log
+          exit ${PIPESTATUS[0]}
+      - name: Upload soak results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: soak-${{ matrix.scenario.name }}
+          path: |
+            ./testresults
+            ./soak-*.log
+          if-no-files-found: warn
+          retention-days: 30
+
+  # --------------------------------------------------------------------------
+  # The reported scale of three thousand nodes. Opt in only, because hosting the
+  # test server and the publisher side by side at that scale is heavy for a
+  # GitHub hosted runner.
+  # --------------------------------------------------------------------------
+  full_scale:
+    name: Soak (3000 nodes)
+    if: inputs.full_scale
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+      - name: Restore
+        run: dotnet restore "$PROJECT" -s https://api.nuget.org/v3/index.json
+        shell: bash
+      - name: Build
+        run: dotnet build "$PROJECT" -c Release --no-restore
+        shell: bash
+      - name: Soak
+        env:
+          IIOT_TELEMETRY_SOAK_FULLSCALE: '1'
+          IIOT_TELEMETRY_SOAK_MINUTES: ${{ inputs.minutes || '30' }}
+        shell: bash
+        run: |
+          dotnet test "$PROJECT" --no-build -c Release \
+            --blame-hang-timeout 150m --blame-hang-dump-type none \
+            --filter "FullyQualifiedName~CustomerScenarioAtFullScaleAsync" \
+            --logger "trx;LogFileName=soak-results.trx" \
+            --logger "console;verbosity=detailed" \
+            --results-directory ./testresults/FullScale \
+            | tee ./soak-fullscale.log
+          exit ${PIPESTATUS[0]}
+      - name: Upload soak results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: soak-fullscale
+          path: |
+            ./testresults
+            ./soak-*.log
+          if-no-files-found: warn
+          retention-days: 30

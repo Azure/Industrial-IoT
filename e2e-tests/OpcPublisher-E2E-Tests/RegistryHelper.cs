@@ -169,7 +169,12 @@ namespace OpcPublisherAEE2ETests
         {
             // Create base edge deployment.
             var edgeBase = new IoTHubEdgeBaseDeployment(_context);
-            var baseDeploymentResult = await edgeBase.CreateOrUpdateLayeredDeploymentAsync(ct);
+            // The base deployment is shared by every test job targeting this edge
+            // device. Recreating it would restart edgeAgent and edgeHub and with
+            // them the modules of any job running in parallel, so leave an
+            // existing one alone.
+            var baseDeploymentResult = await edgeBase.CreateOrUpdateLayeredDeploymentAsync(
+                ct, replaceExisting: false);
             Assert.True(baseDeploymentResult, "Failed to create/update new edge base deployment.");
             _context.OutputHelper.WriteLine("Created/Updated new edge base deployment.");
 
@@ -217,7 +222,12 @@ namespace OpcPublisherAEE2ETests
 
             // Create base edge deployment (idempotent - shared with the default publisher).
             var edgeBase = new IoTHubEdgeBaseDeployment(_context);
-            var baseDeploymentResult = await edgeBase.CreateOrUpdateLayeredDeploymentAsync(ct);
+            // The base deployment is shared by every test job targeting this edge
+            // device. Recreating it would restart edgeAgent and edgeHub and with
+            // them the modules of any job running in parallel, so leave an
+            // existing one alone.
+            var baseDeploymentResult = await edgeBase.CreateOrUpdateLayeredDeploymentAsync(
+                ct, replaceExisting: false);
             Assert.True(baseDeploymentResult, "Failed to create/update new edge base deployment.");
             _context.OutputHelper.WriteLine("Created/Updated new edge base deployment.");
 
@@ -398,9 +408,18 @@ namespace OpcPublisherAEE2ETests
         /// </summary>
         /// <param name="configuration"></param>
         /// <param name="ct"> Cancellation token </param>
+        /// <param name="replaceExisting">
+        /// When false an already existing configuration with the same
+        /// identifier is returned unchanged instead of being recreated.
+        /// <see cref="Configuration"/> has no value equality, so an existing
+        /// configuration always compares as different and would otherwise be
+        /// removed and re-added on every call - which restarts the modules of
+        /// any test job running against the same edge device in parallel.
+        /// </param>
         public async Task<Configuration> CreateOrUpdateConfigurationAsync(
             Configuration configuration,
-            CancellationToken ct = default
+            CancellationToken ct = default,
+            bool replaceExisting = true
         )
         {
             try
@@ -417,6 +436,13 @@ namespace OpcPublisherAEE2ETests
                     }
                     catch (DeviceAlreadyExistsException)
                     {
+                        if (!replaceExisting)
+                        {
+                            // Another job created it concurrently - use theirs.
+                            _context.OutputHelper.WriteLine(
+                                "IoT Hub device configuration was created concurrently, reusing it");
+                            return await RegistryManager.GetConfigurationAsync(configuration.Id, ct).ConfigureAwait(false);
+                        }
                         // Technically update below should now work but for some reason it does not.
                         // Remove and re-add in case we are forcing updates.
                         _context.OutputHelper.WriteLine("IoT Hub device configuration already existed, remove and recreate it");
@@ -425,7 +451,7 @@ namespace OpcPublisherAEE2ETests
                     }
                 }
 
-                if (Equals(configuration, getConfig))
+                if (!replaceExisting || Equals(configuration, getConfig))
                 {
                     return getConfig;
                 }

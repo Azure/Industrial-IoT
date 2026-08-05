@@ -58,7 +58,15 @@ namespace OpcPublisherAEE2ETests
         {
             var registryManager = context.RegistryHelper.RegistryManager;
             var twin = await registryManager.GetTwinAsync(context.DeviceConfig.DeviceId, ct).ConfigureAwait(false);
-            await registryManager.UpdateTwinAsync(twin.DeviceId, patch, twin.ETag, ct).ConfigureAwait(false);
+            //
+            // Patch unconditionally rather than against the etag read above.
+            // The only patch applied here marks the device as an unmanaged
+            // iiotedge gateway, which every test applies with identical
+            // content, and several test jobs run against the same device in
+            // parallel. Using the read etag would make all but one of them
+            // fail with a precondition failure for no benefit.
+            //
+            await registryManager.UpdateTwinAsync(twin.DeviceId, patch, "*", ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -406,8 +414,18 @@ namespace OpcPublisherAEE2ETests
         /// account key (which we no longer mint anywhere).
         /// </param>
         /// <param name="numInstances">Number of instances</param>
+        /// <param name="nameDiscriminator">
+        /// Optional discriminator that is appended to the container group name and DNS
+        /// label. The default name is derived from a resource group tag and is therefore
+        /// identical for every test run against the same resource group, so two jobs
+        /// running in parallel would collide on it. Supply a distinct value per scenario.
+        /// </param>
+        /// <param name="cpuCores">Requested vCPU cores. Defaults to 0.5.</param>
+        /// <param name="memoryInGB">Requested memory in GB. Defaults to 0.5.</param>
         public static async Task CreateSimulationContainerAsync(IIoTPlatformTestContext context,
-            List<string> commandLine, CancellationToken cancellationToken, string fileToUpload = null, int numInstances = 1)
+            List<string> commandLine, CancellationToken cancellationToken, string fileToUpload = null,
+            int numInstances = 1, string nameDiscriminator = null,
+            double cpuCores = 0.5, double memoryInGB = 0.5)
         {
             var resourceGroup = await GetResourceGroupAsync(context, cancellationToken).ConfigureAwait(false);
 
@@ -423,16 +441,20 @@ namespace OpcPublisherAEE2ETests
                     .ConfigureAwait(false));
             }
 
+            var suffix = string.IsNullOrEmpty(nameDiscriminator)
+                ? "dynamic" : "dynamic-" + nameDiscriminator;
             context.PlcAciDynamicUrls = await Task.WhenAll(
                 Enumerable.Range(0, numInstances)
                     .Select(i =>
                         CreatePlcContainerGroupAsync(resourceGroup,
-                            $"e2etesting-simulation-aci-{i}-{context.TestingSuffix}-dynamic",
+                            $"e2etesting-simulation-aci-{i}-{context.TestingSuffix}-{suffix}",
                             context,
                             commandLine[0],
                             commandLine.GetRange(1, commandLine.Count - 1).ToArray(),
                             configFileName,
                             configFileB64,
+                            cpuCores,
+                            memoryInGB,
                             cancellationToken))).ConfigureAwait(false);
         }
 
@@ -453,13 +475,16 @@ namespace OpcPublisherAEE2ETests
         /// argument. When null, the command runs as-is and no env var is added.
         /// </param>
         /// <param name="configFileB64">Base64-encoded contents of the config file, or null.</param>
+        /// <param name="cpuCores">Requested vCPU cores.</param>
+        /// <param name="memoryInGB">Requested memory in GB.</param>
         /// <param name="cancellationToken"></param>
         private static async Task<string> CreatePlcContainerGroupAsync(ResourceGroupResource resGroup,
             string containerGroupName, IIoTPlatformTestContext context, string executable,
-            string[] commandLine, string configFileName, string configFileB64, CancellationToken cancellationToken)
+            string[] commandLine, string configFileName, string configFileB64,
+            double cpuCores, double memoryInGB, CancellationToken cancellationToken)
         {
             var container = new ContainerInstanceContainer(containerGroupName, context.PLCImage,
-                new ContainerResourceRequirements(new ContainerResourceRequestsContent(0.5, 0.5)));
+                new ContainerResourceRequirements(new ContainerResourceRequestsContent(memoryInGB, cpuCores)));
             container.Command.Add(executable);
             if (configFileB64 != null)
             {

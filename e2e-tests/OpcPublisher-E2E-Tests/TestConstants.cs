@@ -5,6 +5,9 @@
 
 namespace OpcPublisherAEE2ETests
 {
+    using System;
+    using System.Globalization;
+
     /// <summary>
     /// Contains constants using for End 2 End testing
     /// </summary>
@@ -60,6 +63,135 @@ namespace OpcPublisherAEE2ETests
         /// IoT Hub Event Hubs endpoint consumer group for tests
         /// </summary>
         public const string TestConsumerGroupName = "TestConsumer";
+
+        /// <summary>
+        /// <para>
+        /// Dedicated IoT Hub Event Hubs consumer groups for the long running
+        /// telemetry quality tests.
+        /// </para>
+        /// <para>
+        /// They run in parallel with the A&amp;E job and with each other, and
+        /// each of them keeps a reader open on every partition for the whole
+        /// observation window. The built-in endpoint permits five concurrent
+        /// readers per partition and per consumer group, so giving each soak
+        /// its own group keeps them clear of that budget and of each other.
+        /// </para>
+        /// </summary>
+        public const string SoakCountersConsumerGroupName = "SoakCounters";
+
+        /// <inheritdoc cref="SoakCountersConsumerGroupName"/>
+        public const string SoakHeartbeatConsumerGroupName = "SoakHeartbeat";
+
+        /// <summary>
+        /// Contains constants for the long running telemetry quality tests.
+        /// </summary>
+        internal static class Soak
+        {
+            /// <summary>
+            /// How long telemetry is observed, in minutes, after the warm up.
+            /// </summary>
+            public const string DurationMinutesVariable = "IIOT_E2E_SOAK_MINUTES";
+
+            /// <summary>
+            /// Number of counter nodes to publish.
+            /// </summary>
+            public const string NodeCountVariable = "IIOT_E2E_SOAK_NODES";
+
+            /// <summary>
+            /// Default observation window.
+            /// </summary>
+            public const int DefaultDurationMinutes = 30;
+
+            /// <summary>
+            /// Default number of fast counter nodes. Bounded by the IoT Hub
+            /// S1 daily message quota, which is shared with the A&amp;E job,
+            /// and by the two vCPU IoT Edge VM. Scale beyond this is covered
+            /// by the in-process soak, not by the end to end test.
+            /// </summary>
+            public const int DefaultFastNodeCount = 100;
+
+            /// <summary>
+            /// Number of slow counter nodes used by the heartbeat scenario.
+            /// </summary>
+            public const int SlowNodeCount = 20;
+
+            /// <summary>
+            /// Interval at which the fast counters increment.
+            /// </summary>
+            public static readonly TimeSpan FastUpdateInterval = TimeSpan.FromSeconds(2);
+
+            /// <summary>
+            /// Interval at which the slow counters increment.
+            /// </summary>
+            public static readonly TimeSpan SlowUpdateInterval = TimeSpan.FromMinutes(2);
+
+            /// <summary>
+            /// Publishing and sampling interval used by both scenarios.
+            /// </summary>
+            public static readonly TimeSpan PublishingInterval = TimeSpan.FromSeconds(2);
+
+            /// <summary>
+            /// Heartbeat interval for the counter scenario. Equal to the
+            /// publishing interval, which is exactly the configuration that
+            /// used to make the watchdog race the value it waits for.
+            /// </summary>
+            public static readonly TimeSpan FastHeartbeatInterval = TimeSpan.FromSeconds(2);
+
+            /// <summary>
+            /// Heartbeat interval for the slow scenario. Chosen so that
+            /// roughly eleven heartbeats fall between two value changes
+            /// without multiplying the IoT Hub message volume.
+            /// </summary>
+            public static readonly TimeSpan SlowHeartbeatInterval = TimeSpan.FromSeconds(10);
+
+            /// <summary>
+            /// Queue size configured on every monitored item.
+            /// </summary>
+            public const uint QueueSize = 10;
+
+            /// <summary>
+            /// Node id of the n-th fast counter exposed by OPC PLC. The value
+            /// increments by exactly one every <c>--fr</c> seconds.
+            /// </summary>
+            /// <param name="index">One based node index</param>
+            public static string FastNodeId(int index)
+            {
+                return string.Create(CultureInfo.InvariantCulture,
+                    $"nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt{index}");
+            }
+
+            /// <summary>
+            /// Node id of the n-th slow counter exposed by OPC PLC.
+            /// </summary>
+            /// <param name="index">One based node index</param>
+            public static string SlowNodeId(int index)
+            {
+                return string.Create(CultureInfo.InvariantCulture,
+                    $"nsu=http://microsoft.com/Opc/OpcPlc/;s=SlowUInt{index}");
+            }
+
+            /// <summary>
+            /// Observation window, overridable through
+            /// <see cref="DurationMinutesVariable"/>.
+            /// </summary>
+            public static TimeSpan Duration
+                => TimeSpan.FromMinutes(GetPositiveInt(DurationMinutesVariable,
+                    DefaultDurationMinutes));
+
+            /// <summary>
+            /// Number of fast counter nodes, overridable through
+            /// <see cref="NodeCountVariable"/>.
+            /// </summary>
+            public static int FastNodeCount
+                => GetPositiveInt(NodeCountVariable, DefaultFastNodeCount);
+
+            private static int GetPositiveInt(string variable, int fallback)
+            {
+                return int.TryParse(Environment.GetEnvironmentVariable(variable),
+                    CultureInfo.InvariantCulture, out var value) && value > 0
+                        ? value : fallback;
+            }
+        }
 
         /// <summary>
         /// Contains constants for OPC PLC
@@ -225,6 +357,23 @@ namespace OpcPublisherAEE2ETests
             /// The trait value for PublisherMode = standalone
             /// </summary>
             public const string PublisherModeStandaloneTraitValue = "standaloneX";
+
+            /// <summary>
+            /// <para>
+            /// The trait value for the long running counter telemetry quality
+            /// test. It gets its own value so that the soak runs in its own
+            /// <c>dotnet test</c> process, and therefore in parallel with the
+            /// A&amp;E job, rather than being serialized behind it by the
+            /// <c>parallelizeTestCollections: false</c> runner setting.
+            /// </para>
+            /// </summary>
+            public const string PublisherModeSoakCountersTraitValue = "soakcounters";
+
+            /// <summary>
+            /// The trait value for the long running heartbeat telemetry
+            /// quality test.
+            /// </summary>
+            public const string PublisherModeSoakHeartbeatTraitValue = "soakheartbeat";
         }
 
         /// <summary>

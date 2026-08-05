@@ -104,14 +104,18 @@ if (!$iotHub) {
     $iotHub = New-AzIotHub -ResourceGroupName $ResourceGroupName -Name $iotHubName -SkuName S1 -Units 1 -Location $resourceGroup.Location
 }
 
-# Ensure Event Hub additional consumer group for tests
+# Ensure Event Hub additional consumer groups for tests. The Soak* groups belong
+# to the long running telemetry quality tests, which run in parallel with the A&E
+# job and with each other; the built-in endpoint permits five concurrent readers
+# per partition and per consumer group.
 
-$cgName = "TestConsumer"
-$iotHubCg = Get-AzIotHubEventHubConsumerGroup -ResourceGroupName $ResourceGroupName -Name $iotHubName | Where-Object Name -eq $cgName
+foreach ($cgName in @("TestConsumer", "SoakCounters", "SoakHeartbeat")) {
+    $iotHubCg = Get-AzIotHubEventHubConsumerGroup -ResourceGroupName $ResourceGroupName -Name $iotHubName | Where-Object Name -eq $cgName
 
-if (!$iotHubCg) {
-    Write-Host "Creating IoT Hub Event Hub Consumer Group $($cgName)..."
-    $iotHubCg = Add-AzIotHubEventHubConsumerGroup -ResourceGroupName $ResourceGroupName -Name $iotHubName -EventHubConsumerGroupName $cgName
+    if (!$iotHubCg) {
+        Write-Host "Creating IoT Hub Event Hub Consumer Group $($cgName)..."
+        $iotHubCg = Add-AzIotHubEventHubConsumerGroup -ResourceGroupName $ResourceGroupName -Name $iotHubName -EventHubConsumerGroupName $cgName
+    }
 }
 
 ## Ensure KeyVault

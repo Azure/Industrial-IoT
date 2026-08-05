@@ -753,6 +753,14 @@ A continuous periodic sending of the last known value (`PeriodicLKV`) or last go
 
 The heartbeat behavior `WatchdogLKVDiagnosticsOnly` is special, it allows you to log heartbeat in the diagnostics output without sending heartbeats as part of the outgoing messages.
 
+##### Watchdog grace period
+
+A watchdog heartbeat is only emitted when *no* value was received for the heartbeat interval. The watchdog countdown is restarted whenever a value is received, so it expires exactly one heartbeat interval after that value. The *next* value however can only arrive one publishing interval later, plus the network round trip and the time it takes to process the publish response. Without an allowance for this, a heartbeat interval that is at or below the publishing interval (for example a heartbeat of 2 seconds on a node published every 2 seconds) makes the watchdog win that race on nearly every cycle, and the previous value is re-sent with its now stale `SourceTimestamp`. A consumer sees this as an old value arriving right after a new one, and as a source timestamp cadence broken by zero length gaps.
+
+Because values can only be delivered on publish boundaries, the absence of data cannot be established any earlier than one publishing interval after the heartbeat interval expired. OPC Publisher therefore waits for the heartbeat interval **plus one publishing interval** before it declares a node silent and emits the watchdog heartbeat. The grace period is never longer than the heartbeat interval itself, so a heartbeat configured much shorter than the publishing interval keeps the requested cadence. Once values genuinely stop, the first heartbeat is emitted after this grace period and all following ones follow the configured heartbeat interval.
+
+> This only applies to the `Watchdog*` behaviors. `PeriodicLKV` and `PeriodicLKG` send on a fixed period by design, regardless of whether values are arriving.
+
 ##### Heartbeat indicator
 
 > This feature is in preview

@@ -331,6 +331,39 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                     // A new value was published while we waited - drop heartbeat
                     return;
                 }
+
+                //
+                // Watchdog semantics: a heartbeat is only due when no value
+                // was received for the heartbeat interval. The countdown is
+                // restarted whenever a value is processed, so it elapses
+                // exactly one heartbeat interval after that, while the next
+                // value can only arrive one publishing interval later plus
+                // the round trip and processing time. With a heartbeat
+                // interval at or below the publishing interval the watchdog
+                // therefore wins that race on nearly every cycle and re-sends
+                // the previous value with its now stale source timestamp,
+                // which a consumer sees as an old value arriving right after
+                // a new one.
+                //
+                // Whether the interval really passed without data can only be
+                // established one publishing interval after it expired,
+                // because that is the granularity at which the server is able
+                // to deliver. Postpone the decision until then instead of
+                // sending, and re-arm for exactly the remaining time so that
+                // the heartbeat is still emitted promptly once the values
+                // genuinely stop.
+                //
+                if (!IsPeriodic && LastReceivedTime.HasValue)
+                {
+                    var idle = TimeProvider.GetUtcNow() - LastReceivedTime.Value;
+                    if (!IsWatchdogDue(idle, _heartbeatInterval, PublishingInterval,
+                        out var remaining))
+                    {
+                        RearmHeartbeatTimer(remaining);
+                        return;
+                    }
+                }
+
                 var lastNotification = LastReceivedValue as MonitoredItemNotification;
                 if ((_heartbeatBehavior & HeartbeatBehavior.WatchdogLKG)
                         == HeartbeatBehavior.WatchdogLKG &&
@@ -447,6 +480,117 @@ namespace Azure.IIoT.OpcUa.Publisher.Stack.Services
                 }
             }
 
+            /// <summary>
+            /// Postpone the next elapse of the watchdog without restarting a
+            /// full countdown. Used when the watchdog elapsed while a value
+            /// was still legitimately in flight.
+            /// </summary>
+            /// <param name="dueTime"></param>
+            private void RearmHeartbeatTimer(TimeSpan dueTime)
+            {
+                if (dueTime < kMinimumRearmDelay)
+                {
+                    dueTime = kMinimumRearmDelay;
+                }
+                lock (_timerLock)
+                {
+                    if (_disposed || !TimerEnabled)
+                    {
+                        return;
+                    }
+                    _heartbeatTimer?.Rearm(dueTime);
+                }
+            }
+
+            /// <summary>
+            /// <para>
+            /// Decide whether a watchdog heartbeat is really due. A heartbeat
+            /// must only be sent when no value was received for the heartbeat
+            /// interval. The watchdog countdown is restarted when a value is
+            /// processed, so it elapses exactly one heartbeat interval later,
+            /// while the next value can only arrive one publishing interval
+            /// after the previous one plus the round trip and processing time.
+            /// With a heartbeat interval at or below the publishing interval
+            /// the watchdog would therefore win that race on nearly every
+            /// cycle and re-send the previous value with its now stale source
+            /// timestamp.
+            /// </para>
+            /// <para>
+            /// Values can only be delivered on publish boundaries, so the
+            /// absence of data cannot be established any earlier than one
+            /// publishing interval after the heartbeat interval expired. The
+            /// grace period is never longer than the heartbeat interval
+            /// itself so that a heartbeat configured much shorter than the
+            /// publishing interval keeps its cadence.
+            /// </para>
+            /// </summary>
+            /// <param name="idle">Time since the last value was received</param>
+            /// <param name="heartbeatInterval">Configured heartbeat interval</param>
+            /// <param name="publishingInterval">
+            /// Publishing interval of the owning subscription, or
+            /// <see cref="TimeSpan.Zero"/> when it is not known.
+            /// </param>
+            /// <param name="remaining">
+            /// Time to wait before deciding again when not due yet.
+            /// </param>
+            /// <returns>Whether the heartbeat should be sent now</returns>
+            internal static bool IsWatchdogDue(TimeSpan idle, TimeSpan heartbeatInterval,
+                TimeSpan publishingInterval, out TimeSpan remaining)
+            {
+                var grace = publishingInterval > heartbeatInterval
+                    ? heartbeatInterval : publishingInterval;
+                if (grace < kMinimumGracePeriod)
+                {
+                    grace = kMinimumGracePeriod;
+                }
+                var due = heartbeatInterval + grace;
+                if (idle >= due)
+                {
+                    remaining = TimeSpan.Zero;
+                    return true;
+                }
+                remaining = due - idle;
+                if (remaining < kMinimumRearmDelay)
+                {
+                    remaining = kMinimumRearmDelay;
+                }
+                return false;
+            }
+
+            /// <summary>
+            /// Whether the behavior sends on a fixed period regardless of
+            /// value arrival rather than acting as a watchdog.
+            /// </summary>
+            private bool IsPeriodic
+                => (_heartbeatBehavior & HeartbeatBehavior.PeriodicLKV)
+                    == HeartbeatBehavior.PeriodicLKV;
+
+            /// <summary>
+            /// Publishing interval of the owning subscription, or
+            /// <see cref="TimeSpan.Zero"/> when it cannot be determined.
+            /// </summary>
+            private TimeSpan PublishingInterval
+            {
+                get
+                {
+                    if (Subscription is not Subscription subscription)
+                    {
+                        return TimeSpan.Zero;
+                    }
+                    var interval = subscription.CurrentPublishingInterval;
+                    if (interval <= 0)
+                    {
+                        interval = subscription.PublishingInterval;
+                    }
+                    return interval > 0 ?
+                        TimeSpan.FromMilliseconds(interval) : TimeSpan.Zero;
+                }
+            }
+
+            private static readonly TimeSpan kMinimumGracePeriod
+                = TimeSpan.FromMilliseconds(100);
+            private static readonly TimeSpan kMinimumRearmDelay
+                = TimeSpan.FromMilliseconds(1);
             private TimerEx? _heartbeatTimer;
             private HeartbeatBehavior _heartbeatBehavior;
             private TimeSpan _heartbeatInterval;

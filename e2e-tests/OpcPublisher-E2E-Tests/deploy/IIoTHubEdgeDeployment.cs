@@ -15,8 +15,15 @@ namespace OpcPublisherAEE2ETests.Deploy
         /// Create a new layered deployment or update an existing one.
         /// </summary>
         /// <param name="token">The token to cancel the async task</param>
+        /// <param name="replaceExisting">
+        /// When false an already existing deployment with the same identifier
+        /// is left untouched. Use this for deployments that are shared by
+        /// several test jobs - recreating them would restart the modules of
+        /// the jobs running in parallel.
+        /// </param>
         /// <returns>true if create or update was successful otherwise false</returns>
-        Task<bool> CreateOrUpdateLayeredDeploymentAsync(CancellationToken token);
+        Task<bool> CreateOrUpdateLayeredDeploymentAsync(CancellationToken token,
+            bool replaceExisting = true);
 
         /// <summary>
         /// Get deployment configuration.

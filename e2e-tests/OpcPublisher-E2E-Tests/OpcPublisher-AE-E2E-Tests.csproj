@@ -36,6 +36,17 @@
     <ProjectReference Include="..\..\src\Azure.IIoT.OpcUa.Publisher.Sdk\src\Azure.IIoT.OpcUa.Publisher.Sdk.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <!--
+      The telemetry quality validator is shared verbatim with the in process
+      soak tests in src/Azure.IIoT.OpcUa.Publisher.Module/tests. It is linked
+      rather than pulled in through a project reference so that this project
+      does not take a dependency on the publisher or the OPC UA server stack;
+      the file itself only needs System.Text.Json.
+    -->
+    <Compile Include="..\..\src\Azure.IIoT.OpcUa.Publisher.Testing\shared\*.cs"
+             LinkBase="Telemetry" />
+  </ItemGroup>
+  <ItemGroup>
     <None Update="opc-plc-files\sc001.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

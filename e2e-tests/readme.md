@@ -45,6 +45,58 @@ class.
 
 Use and extend the `TestHelper` class.
 
+## Long running telemetry quality tests
+
+Two soak tests validate the quality of the telemetry stream produced by an OPC Publisher
+module that is actually deployed to IoT Edge, complementing the in-process soak in
+`src/Azure.IIoT.OpcUa.Publisher.Module/tests` (which is run by `.github/workflows/soak.yml`).
+They use OPC PLC counter nodes, which increment by exactly one per cycle, so the value is
+its own sequence number: a lost value is a gap, a reordered value is a decrease, and the
+expected source timestamp distance is exactly one update interval.
+
+| Test | Trait | Scenario | Asserts |
+| --- | --- | --- | --- |
+| `FTelemetryQualityCountersTestTheory` | `PublisherMode=soakcounters` | 100 nodes counting up every **2 s**, published with 2 s publishing/sampling interval, queue size 10 and a **2 s heartbeat** | Nothing is lost, reordered, repeated or unevenly spaced, and **no heartbeat fires** — a value arrives on every publish cycle, so the watchdog must stay silent |
+| `FTelemetryQualityHeartbeatTestTheory` | `PublisherMode=soakheartbeat` | 20 nodes counting up every **2 min**, with a **10 s heartbeat** | Heartbeats **do** fire on every node at the configured cadence and never before the watchdog grace period; every repeat carries the `Heartbeat` indicator; heartbeats never alter the source timestamp; and with heartbeats excluded the value stream is complete, ordered and exactly 2 minutes apart |
+
+### Infrastructure
+
+Both tests **reuse the deployed resource group, IoT Hub and IoT Edge VM**. Standing up a
+second environment would roughly double the Azure spend and the resource-leak surface
+without adding coverage — the code under test is the publisher module, not the hub.
+Everything that could cause interference is isolated per scenario instead:
+
+* its own publisher **module identity** (`publisher_soak_fast` / `publisher_soak_slow`)
+  and layered deployment, with its own `--pf` published nodes file and `--pki` folder,
+* its own **OPC PLC simulation container** (distinct name, DNS label and sizing — pass
+  `nameDiscriminator` to `TestHelper.CreateSimulationContainerAsync`),
+* its own `DataSetWriterGroup` / `DataSetWriterId`, and
+* its own Event Hub **consumer group** (`SoakCounters` / `SoakHeartbeat`), because the
+  IoT Hub built-in endpoint allows only five concurrent readers per partition and group.
+
+Telemetry is attributed by the `iothub-connection-module-id` system property, so each
+scenario only ever sees its own publisher's messages.
+
+Because each trait value is run by its own `dotnet test` process, the two soaks run **in
+parallel with each other and with the A&E job** — the xUnit runner is configured with
+`parallelizeTestCollections: false`, so putting them in the same process would serialize
+them instead.
+
+### Configuration
+
+| Environment variable | Default | Meaning |
+| --- | --- | --- |
+| `IIOT_E2E_SOAK_MINUTES` | `30` | How long telemetry is observed after the warm up |
+| `IIOT_E2E_SOAK_NODES` | `100` | Number of 2-second counter nodes |
+
+Both are surfaced as the `soak_minutes` and `soak_nodes` inputs of
+`.github/workflows/e2e-standalone.yml`.
+
+> The node count is bounded by the **IoT Hub S1 daily message quota**, which is shared
+> with the A&E job, and by the two vCPU IoT Edge VM. At the default of 100 nodes the soak
+> produces roughly one network message per second. Raising it much above 250 needs an IoT
+> Hub SKU bump. Scale itself is covered by the in-process soak, which runs 3000 nodes.
+
 ## Authentication
 
 The tests use federated identity (workload identity federation) end to end:
