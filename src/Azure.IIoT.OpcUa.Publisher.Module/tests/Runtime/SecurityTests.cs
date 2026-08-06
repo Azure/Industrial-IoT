@@ -137,6 +137,51 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Runtime
             Assert.False(result.Succeeded);
         }
 
+        [Theory]
+        [InlineData("secre")]        // a correct prefix, one character short
+        [InlineData("secrets")]      // the correct key with a character appended
+        [InlineData("Secret")]       // right length, differs only in case
+        [InlineData("xecret")]       // right length, differs in the first byte
+        [InlineData("secreT")]       // right length, differs in the last byte
+        public async Task AuthenticateFailsForKeysThatDifferOnlySlightlyAsync(string offered)
+        {
+            //
+            // The comparison is fixed-time, which is easy to get subtly wrong -
+            // a length mismatch, a case difference, or a difference in the very
+            // first or very last byte are the cases where a hand-rolled
+            // constant-time compare tends to fall back to accepting. Each of
+            // these must be rejected.
+            //
+            var (service, accessor, provider) = CreateAuthenticationService("secret");
+            var context = CreateContext(provider);
+            context.Request.Headers.Authorization = $"{Security.ApiKeyScheme} {offered}";
+            accessor.HttpContext = context;
+
+            var result = await service.AuthenticateAsync(context, Security.ApiKeyScheme);
+
+            Assert.False(result.Succeeded);
+            Assert.IsType<UnauthorizedAccessException>(result.Failure);
+        }
+
+        [Fact]
+        public async Task AuthenticateSucceedsForANonAsciiKeyAsync()
+        {
+            //
+            // The comparison runs over UTF-8 bytes rather than chars, so a key
+            // whose characters encode to more than one byte has to keep working.
+            //
+            const string key = "schl\u00fcssel-\u4e2d\u6587";
+            var (service, accessor, provider) = CreateAuthenticationService(key);
+            var context = CreateContext(provider);
+            context.Request.Headers.Authorization = $"{Security.ApiKeyScheme} {key}";
+            accessor.HttpContext = context;
+
+            var result = await service.AuthenticateAsync(context, Security.ApiKeyScheme);
+
+            Assert.Null(result.Failure);
+            Assert.True(result.Succeeded);
+        }
+
         private static (IAuthenticationService Service, IHttpContextAccessor Accessor,
             IServiceProvider Provider)
             CreateAuthenticationService(string? apiKey)
