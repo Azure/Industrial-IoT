@@ -1,0 +1,19 @@
+[
+    {
+        "EndpointUrl": "{{EndpointUrl}}",
+        "UseSecurity": false,
+        "DataSetWriterGroup": "{{DataSetWriterGroup}}",
+        "OpcNodes": [
+            {
+                "DisplayName": "PendingAlarms",
+                "Id": "i=2253",
+                "EventFilter": {
+                    "TypeDefinitionId": "i=2041"
+                },
+                "ConditionHandling": {
+                    "RefreshRetainedConditionsOnStart": true
+                }
+            }
+        ]
+    }
+]

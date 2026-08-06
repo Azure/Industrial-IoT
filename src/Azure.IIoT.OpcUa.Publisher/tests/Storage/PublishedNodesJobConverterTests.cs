@@ -135,6 +135,110 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Storage
             Assert.Empty(entry.OpcNodes);
         }
 
+        [Fact]
+        public void PnPlcWriterGroupNamespaceFormatTest()
+        {
+            const string pn = """
+
+[
+    {
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "WriterGroupNamespaceFormat": "ExpandedWithNamespace0",
+        "OpcNodes": [
+            {
+                "Id": "i=2258"
+            }
+        ]
+    }
+]
+
+""";
+            var logger = Log.Console<PublishedNodesConverter>();
+            var converter = new PublishedNodesConverter(logger, GetOptions(), null);
+
+            var entries = converter.Read(pn);
+            var entry = Assert.Single(entries);
+            Assert.Equal(NamespaceFormat.ExpandedWithNamespace0, entry.WriterGroupNamespaceFormat);
+
+            var writerGroups = converter.ToWriterGroups(entries);
+            var group = Assert.Single(writerGroups);
+            Assert.NotNull(group.MessageSettings);
+            Assert.Equal(NamespaceFormat.ExpandedWithNamespace0, group.MessageSettings.NamespaceFormat);
+
+            entries = converter.ToPublishedNodes(3, DateTimeOffset.UtcNow, writerGroups);
+            entry = Assert.Single(entries);
+            Assert.Equal(NamespaceFormat.ExpandedWithNamespace0, entry.WriterGroupNamespaceFormat);
+        }
+
+        [Fact]
+        public void PnPlcWriterGroupNamespaceFormatNotSetTest()
+        {
+            const string pn = """
+
+[
+    {
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
+            {
+                "Id": "i=2258"
+            }
+        ]
+    }
+]
+
+""";
+            var logger = Log.Console<PublishedNodesConverter>();
+            var converter = new PublishedNodesConverter(logger, GetOptions(), null);
+
+            var entries = converter.Read(pn);
+            var entry = Assert.Single(entries);
+            Assert.Null(entry.WriterGroupNamespaceFormat);
+
+            var writerGroups = converter.ToWriterGroups(entries);
+            var group = Assert.Single(writerGroups);
+            Assert.Null(group.MessageSettings);
+
+            entries = converter.ToPublishedNodes(3, DateTimeOffset.UtcNow, writerGroups);
+            entry = Assert.Single(entries);
+            Assert.Null(entry.WriterGroupNamespaceFormat);
+        }
+
+        [Fact]
+        public void PnPlcWriterGroupNamespaceFormatSplitsGroupsTest()
+        {
+            const string pn = """
+
+[
+    {
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "WriterGroupNamespaceFormat": "ExpandedWithNamespace0",
+        "OpcNodes": [
+            {
+                "Id": "i=2258"
+            }
+        ]
+    },
+    {
+        "EndpointUrl": "opc.tcp://localhost:50000",
+        "OpcNodes": [
+            {
+                "Id": "i=2259"
+            }
+        ]
+    }
+]
+
+""";
+            var logger = Log.Console<PublishedNodesConverter>();
+            var converter = new PublishedNodesConverter(logger, GetOptions(), null);
+
+            var writerGroups = converter.ToWriterGroups(converter.Read(pn)).ToList();
+            Assert.Equal(2, writerGroups.Count);
+            Assert.Single(writerGroups, g => g.MessageSettings?.NamespaceFormat
+                == NamespaceFormat.ExpandedWithNamespace0);
+            Assert.Single(writerGroups, g => g.MessageSettings == null);
+        }
+
         [Theory]
         [InlineData(false, false)]
         [InlineData(true, false)]

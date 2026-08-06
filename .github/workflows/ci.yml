@@ -174,6 +174,9 @@ jobs:
         # coverlet.msbuild, which crashes the Publisher project run with
         # "Unable to read beyond the end of the stream" during result
         # serialization.
+        #
+        # `Category!=LongRunning` excludes the multi-minute telemetry
+        # quality soak tests; they are run by soak.yml on a schedule.
         shell: pwsh
         run: |
           $blameTimeout = if (
@@ -181,6 +184,7 @@ jobs:
             "${{ runner.os }}" -eq "Linux") { "30m" } else { "10m" }
           dotnet test "${{ matrix.project.path }}" --no-build -c Release `
             --blame-hang-timeout $blameTimeout --blame-hang-dump-type none `
+            --filter "Category!=LongRunning" `
             --logger "trx;LogFileName=test-results.trx" `
             --results-directory ./testresults/${{ matrix.project.name }} `
             --settings coverage.runsettings `
@@ -672,15 +676,31 @@ jobs:
           dotnet-version: |
             8.0.x
             10.0.x
-      - name: Pack solution
-        # Pin restore + pack to nuget.org because the repo Nuget.Config only
+      - name: Restore solution
+        # Pin restore to nuget.org because the repo Nuget.Config only
         # configures the internal Azure Artifacts feed.
+        shell: bash
+        run: |
+          dotnet restore Industrial-IoT.slnx \
+            -s https://api.nuget.org/v3/index.json
+      - name: Build solution
+        # Pack does not build the projects when run against the solution
+        # (the packable project outputs would be missing -> NU5026), so build
+        # the Release outputs explicitly before packing with --no-build.
+        shell: bash
+        run: |
+          dotnet build Industrial-IoT.slnx \
+            -c Release \
+            --no-restore \
+            /p:ContinuousIntegrationBuild=true
+      - name: Pack solution
         shell: bash
         run: |
           dotnet pack Industrial-IoT.slnx \
             -c Release \
             -o ./nupkgs \
-            -s https://api.nuget.org/v3/index.json \
+            --no-restore \
+            --no-build \
             /p:ContinuousIntegrationBuild=true
       - name: Validate produced packages
         shell: bash

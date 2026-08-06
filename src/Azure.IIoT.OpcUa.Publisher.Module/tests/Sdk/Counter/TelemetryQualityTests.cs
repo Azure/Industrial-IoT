@@ -1,0 +1,375 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
+
+namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.Counter
+{
+    using Azure.IIoT.OpcUa.Publisher.Module.Tests.Fixtures;
+    using Azure.IIoT.OpcUa.Publisher.Models;
+    using Azure.IIoT.OpcUa.Publisher.Testing.Fixtures;
+    using Azure.IIoT.OpcUa.Publisher.Testing.Telemetry;
+    using Azure.IIoT.OpcUa.Core.Logging;
+    using Microsoft.Extensions.Logging;
+    using System;
+    using System.Diagnostics;
+    using System.Globalization;
+    using System.IO;
+    using System.Text;
+    using System.Text.Json;
+    using System.Threading.Tasks;
+    using Xunit;
+    using Xunit.Abstractions;
+
+    /// <summary>
+    /// <para>
+    /// Long running telemetry quality tests. They reproduce the customer
+    /// scenario of thousands of variables published with a two second
+    /// publishing interval, a two second sampling interval, a queue size
+    /// larger than one and a two second heartbeat, and assert that the
+    /// resulting telemetry stream is
+    /// </para>
+    /// <list type="number">
+    /// <item>complete - no counter value is lost,</item>
+    /// <item>ordered - a counter never goes backwards,</item>
+    /// <item>evenly spaced - consecutive source timestamps are exactly one
+    /// update interval apart, and</item>
+    /// <item>free of stale values - a value is never repeated after a newer
+    /// one was already delivered.</item>
+    /// </list>
+    /// <para>
+    /// The counter server makes this decidable: every variable counts up
+    /// from zero by exactly one, so the value carries its own sequence and
+    /// its own expected timestamp.
+    /// </para>
+    /// </summary>
+    [Trait(TestCategories.Name, TestCategories.LongRunning)]
+    public sealed class TelemetryQualityTests : PublisherIntegrationTestBase
+    {
+        public TelemetryQualityTests(ITestOutputHelper output)
+            : base(output, kTestTimeout, nameof(TelemetryQualityTests))
+        {
+            _output = output;
+        }
+
+        /// <summary>
+        /// The customer scenario in full network message encoding: publishing
+        /// interval, sampling interval and heartbeat interval all two seconds,
+        /// queue size larger than one, against a server whose variables count
+        /// up every two seconds.
+        /// </summary>
+        /// <remarks>
+        /// This was the FullSamples scenario up to 2.9. That profile was
+        /// removed in 3.0, and FullNetworkMessages is its closest equivalent:
+        /// it carries the same per message header fields and is the only
+        /// profile that still emits the heartbeat indicator.
+        /// </remarks>
+        [Fact]
+        public async Task FullNetworkMessagesStreamIsCompleteOrderedAndEvenlySpacedAsync()
+        {
+            var report = await RunScenarioAsync(
+                nameof(FullNetworkMessagesStreamIsCompleteOrderedAndEvenlySpacedAsync),
+                MessagingMode.FullNetworkMessages, NodeCount, kInterval, kInterval, kInterval,
+                kQueueSize, (int)kInterval.TotalSeconds, RunDuration).ConfigureAwait(false);
+
+            AssertClean(report);
+        }
+
+        /// <summary>
+        /// The same scenario in the plain PubSub profile, as a control that
+        /// the behaviour is not specific to the fuller header set.
+        /// </summary>
+        [Fact]
+        public async Task PubSubModeStreamIsCompleteOrderedAndEvenlySpacedAsync()
+        {
+            var report = await RunScenarioAsync(
+                nameof(PubSubModeStreamIsCompleteOrderedAndEvenlySpacedAsync),
+                MessagingMode.PubSub, NodeCount, kInterval, kInterval, kInterval,
+                kQueueSize, (int)kInterval.TotalSeconds, RunDuration).ConfigureAwait(false);
+
+            AssertClean(report);
+        }
+
+        /// <summary>
+        /// Same scenario but with the server producing values four times
+        /// faster than the publishing interval, so every publish carries
+        /// several queued values per monitored item. This is what a queue
+        /// size larger than one is actually for and it exercises the
+        /// ordering of queued values through the encoder.
+        /// </summary>
+        [Fact]
+        public async Task QueuedValuesArriveCompleteAndInOrderAsync()
+        {
+            var updateInterval = TimeSpan.FromMilliseconds(500);
+            var report = await RunScenarioAsync(
+                nameof(QueuedValuesArriveCompleteAndInOrderAsync),
+                MessagingMode.FullNetworkMessages, NodeCount, updateInterval,
+                publishingInterval: kInterval, samplingInterval: updateInterval,
+                queueSize: kQueueSize, heartbeatSeconds: (int)kInterval.TotalSeconds,
+                duration: RunDuration).ConfigureAwait(false);
+
+            AssertClean(report);
+        }
+
+        /// <summary>
+        /// The customer scenario at the reported scale of three thousand
+        /// nodes. Opt in because it needs a machine that can host the server
+        /// and the publisher side by side.
+        /// </summary>
+        [SkippableFact]
+        public async Task CustomerScenarioAtFullScaleAsync()
+        {
+            Skip.IfNot(FullScaleEnabled,
+                $"Set {kFullScaleVariable}=1 to run the full scale scenario.");
+
+            var report = await RunScenarioAsync(
+                nameof(CustomerScenarioAtFullScaleAsync),
+                MessagingMode.FullNetworkMessages, kFullScaleNodeCount, kInterval, kInterval,
+                kInterval, kQueueSize, (int)kInterval.TotalSeconds,
+                RunDuration).ConfigureAwait(false);
+
+            AssertClean(report);
+        }
+
+        /// <summary>
+        /// Run one scenario and return the resulting quality report.
+        /// </summary>
+        /// <param name="test"></param>
+        /// <param name="mode"></param>
+        /// <param name="nodeCount"></param>
+        /// <param name="updateInterval">Rate at which the server counts up</param>
+        /// <param name="publishingInterval"></param>
+        /// <param name="samplingInterval"></param>
+        /// <param name="queueSize"></param>
+        /// <param name="heartbeatSeconds"></param>
+        /// <param name="duration">How long telemetry is analysed</param>
+        private async Task<TelemetryQualityReport> RunScenarioAsync(string test,
+            MessagingMode mode, int nodeCount, TimeSpan updateInterval,
+            TimeSpan publishingInterval, TimeSpan samplingInterval, uint queueSize,
+            int heartbeatSeconds, TimeSpan duration)
+        {
+            using var loggerFactory = Log.ConsoleFactory(LogLevel.Warning);
+            using var server = CounterServer.Create(nodeCount, updateInterval, loggerFactory);
+            EndpointUrl = server.EndpointUrl;
+
+            var configuration = WriteConfiguration(nodeCount, publishingInterval,
+                samplingInterval, queueSize, heartbeatSeconds);
+            try
+            {
+                StartPublisher(test, configuration,
+                [
+                    $"--mm={mode}",
+                    "--me=Json",
+                    //
+                    // Pin the batching defaults so the scenario does not
+                    // silently change when the shipped defaults change.
+                    //
+                    "--bs=50",
+                    "--bi=10000"
+                ]);
+
+                var validator = new TelemetryQualityValidator(new TelemetryQualityOptions
+                {
+                    UpdateInterval = updateInterval,
+                    ExpectedNodeCount = nodeCount,
+                    HeartbeatInterval = TimeSpan.FromSeconds(heartbeatSeconds),
+                    PublishingInterval = publishingInterval
+                });
+                //
+                // 3.0 removed the Samples and FullSamples profiles, so every
+                // message the module can now emit is a PubSub message.
+                //
+
+                //
+                // Skip the warm up. Creating thousands of monitored items
+                // takes time and until all of them exist the stream is
+                // legitimately partial.
+                //
+                var warmup = WarmupFor(nodeCount);
+                var stopWatch = Stopwatch.StartNew();
+                var total = await ConsumeMessagesAsync(warmup + duration, message =>
+                {
+                    if (stopWatch.Elapsed < warmup)
+                    {
+                        return;
+                    }
+                    validator.AddPubSubMessage(message);
+                }, Ct).ConfigureAwait(false);
+
+                var report = validator.CreateReport();
+                _output.WriteLine($"--- {test} ({mode}, {nodeCount} nodes, " +
+                    $"{updateInterval.TotalMilliseconds} ms update, {duration} analysed, " +
+                    $"{total} messages) ---");
+                _output.WriteLine(report.ToString());
+                _output.WriteLine(DumpDiagnostics());
+                _output.WriteLine($"Server produced values 0..{server.NodeManager.CurrentValue}");
+                return report;
+            }
+            finally
+            {
+                await StopPublisherAsync().ConfigureAwait(false);
+                if (File.Exists(configuration))
+                {
+                    File.Delete(configuration);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Assert that none of the four reported symptoms occurred.
+        /// </summary>
+        /// <param name="report"></param>
+        private static void AssertClean(TelemetryQualityReport report)
+        {
+            Assert.True(report.TotalSamples > 0, "No telemetry was received at all.");
+            Assert.True(report.NodesMissing == 0,
+                $"{report.NodesMissing} node(s) never reported a value.\n{report}");
+
+            // (a) values the customer expects but never sees
+            Assert.True(report.MissingValues == 0,
+                $"{report.MissingValues} value(s) were lost.\n{report}");
+
+            // (b) values arriving out of order
+            Assert.True(report.OutOfOrderValues == 0,
+                $"{report.OutOfOrderValues} value(s) arrived out of order.\n{report}");
+            Assert.True(report.OutOfOrderIncludingHeartbeats == 0,
+                $"{report.OutOfOrderIncludingHeartbeats} message(s) carried a value older " +
+                $"than one already delivered.\n{report}");
+
+            // (c) source timestamps not one interval apart
+            Assert.True(report.SamplesWithoutSourceTimestamp == 0,
+                $"{report.SamplesWithoutSourceTimestamp} message(s) had no source " +
+                $"timestamp.\n{report}");
+            Assert.True(report.ValueIntervalViolations == 0,
+                $"{report.ValueIntervalViolations} value(s) were not one update interval " +
+                $"apart from their predecessor.\n{report}");
+            Assert.True(report.MessageIntervalViolations == 0,
+                $"{report.MessageIntervalViolations} message(s) broke the expected source " +
+                $"timestamp cadence.\n{report}");
+
+            // (d) an old value shortly after a new one
+            Assert.True(report.RepeatedValues == 0,
+                $"{report.RepeatedValues} message(s) repeated an already delivered value " +
+                $"({report.RepeatedValuesFromHeartbeat} of them heartbeats).\n{report}");
+        }
+
+        /// <summary>
+        /// Render the publisher's own view of the run so a failure can be
+        /// attributed to a dropped notification or a server side queue
+        /// overflow rather than to the encoder.
+        /// </summary>
+        private string DumpDiagnostics()
+        {
+            var collector = ResolveFromPublisher<IDiagnosticCollector>();
+            if (collector == null)
+            {
+                return "No diagnostics available.";
+            }
+            var builder = new StringBuilder();
+            foreach (var (writerGroup, diagnostic) in collector.EnumerateDiagnostics())
+            {
+                builder
+                    .AppendLine(CultureInfo.InvariantCulture, $"Writer group '{writerGroup}':")
+                    .AppendLine(CultureInfo.InvariantCulture, $"  ingress data changes      : {diagnostic.IngressDataChanges}")
+                    .AppendLine(CultureInfo.InvariantCulture, $"  ingress value changes     : {diagnostic.IngressValueChanges}")
+                    .AppendLine(CultureInfo.InvariantCulture, $"  ingress heartbeats        : {diagnostic.IngressHeartbeats}")
+                    .AppendLine(CultureInfo.InvariantCulture, $"  ingress dropped           : {diagnostic.IngressNotificationsDropped}")
+                    .AppendLine(CultureInfo.InvariantCulture, $"  encoder dropped           : {diagnostic.EncoderNotificationsDropped}")
+                    .AppendLine(CultureInfo.InvariantCulture, $"  outgress buffer dropped   : {diagnostic.OutgressInputBufferDropped}")
+                    .AppendLine(CultureInfo.InvariantCulture, $"  server queue overflows    : {diagnostic.ServerQueueOverflows}")
+                    .AppendLine(CultureInfo.InvariantCulture, $"  messages sent             : {diagnostic.OutgressIoTMessageCount}")
+                    .AppendLine(CultureInfo.InvariantCulture, $"  monitored nodes ok/bad    : {diagnostic.MonitoredOpcNodesSucceededCount}/{diagnostic.MonitoredOpcNodesFailedCount}");
+            }
+            return builder.Length == 0 ? "No writer group diagnostics." : builder.ToString();
+        }
+
+        /// <summary>
+        /// Write a published nodes configuration reproducing the customer
+        /// configuration for the given number of counter nodes.
+        /// </summary>
+        /// <param name="nodeCount"></param>
+        /// <param name="publishingInterval"></param>
+        /// <param name="samplingInterval"></param>
+        /// <param name="queueSize"></param>
+        /// <param name="heartbeatSeconds"></param>
+        private static string WriteConfiguration(int nodeCount, TimeSpan publishingInterval,
+            TimeSpan samplingInterval, uint queueSize, int heartbeatSeconds)
+        {
+            var path = Path.Combine(Path.GetTempPath(),
+                Path.GetRandomFileName() + ".pn.json");
+            using (var stream = File.Create(path))
+            {
+                using var writer = new Utf8JsonWriter(stream);
+                writer.WriteStartArray();
+                writer.WriteStartObject();
+                writer.WriteString("EndpointUrl", "{{EndpointUrl}}");
+                writer.WriteBoolean("UseSecurity", false);
+                writer.WriteString("DataSetWriterGroup", "{{DataSetWriterGroup}}");
+                writer.WriteStartArray("OpcNodes");
+                for (var index = 0; index < nodeCount; index++)
+                {
+                    writer.WriteStartObject();
+                    writer.WriteString("Id", CounterServer.GetNodeId(index));
+                    writer.WriteNumber("OpcPublishingInterval",
+                        (int)publishingInterval.TotalMilliseconds);
+                    writer.WriteNumber("OpcSamplingInterval",
+                        (int)samplingInterval.TotalMilliseconds);
+                    writer.WriteNumber("HeartbeatInterval", heartbeatSeconds);
+                    writer.WriteNumber("QueueSize", queueSize);
+                    writer.WriteEndObject();
+                }
+                writer.WriteEndArray();
+                writer.WriteEndObject();
+                writer.WriteEndArray();
+                writer.Flush();
+            }
+            return path;
+        }
+
+        /// <summary>
+        /// Time given to the publisher to create every monitored item before
+        /// telemetry is analysed.
+        /// </summary>
+        /// <param name="nodeCount"></param>
+        private static TimeSpan WarmupFor(int nodeCount)
+        {
+            return TimeSpan.FromSeconds(30) +
+                TimeSpan.FromMilliseconds(10 * nodeCount);
+        }
+
+        /// <summary>
+        /// Number of counter nodes to publish
+        /// </summary>
+        private static int NodeCount
+            => GetPositiveInt("IIOT_TELEMETRY_SOAK_NODES", kDefaultNodeCount);
+
+        /// <summary>
+        /// How long telemetry is analysed after the warm up
+        /// </summary>
+        private static TimeSpan RunDuration
+            => TimeSpan.FromMinutes(GetPositiveInt("IIOT_TELEMETRY_SOAK_MINUTES",
+                kDefaultDurationMinutes));
+
+        /// <summary>
+        /// Whether the full scale scenario was opted into
+        /// </summary>
+        private static bool FullScaleEnabled
+            => Environment.GetEnvironmentVariable(kFullScaleVariable) == "1";
+
+        private static int GetPositiveInt(string variable, int fallback)
+        {
+            return int.TryParse(Environment.GetEnvironmentVariable(variable),
+                CultureInfo.InvariantCulture, out var value) && value > 0
+                    ? value : fallback;
+        }
+
+        private const string kFullScaleVariable = "IIOT_TELEMETRY_SOAK_FULLSCALE";
+        private const int kDefaultNodeCount = 500;
+        private const int kDefaultDurationMinutes = 2;
+        private const int kFullScaleNodeCount = 3000;
+        private const uint kQueueSize = 10;
+        private static readonly TimeSpan kInterval = TimeSpan.FromSeconds(2);
+        private static readonly TimeSpan kTestTimeout = TimeSpan.FromHours(4);
+        private readonly ITestOutputHelper _output;
+    }
+}

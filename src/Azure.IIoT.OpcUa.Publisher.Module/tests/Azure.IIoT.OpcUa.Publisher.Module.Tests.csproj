@@ -39,6 +39,16 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <!--
+      The telemetry quality validator is shared verbatim with the IoT Edge
+      end to end soak tests in e2e-tests/. It is linked rather than pulled in
+      through a project reference so that neither test project gains a
+      dependency on the other; the file itself only needs System.Text.Json.
+    -->
+    <Compile Include="..\..\Azure.IIoT.OpcUa.Publisher.Testing\shared\*.cs"
+             LinkBase="Telemetry" />
+  </ItemGroup>
+  <ItemGroup>
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
   </ItemGroup>
 </Project>

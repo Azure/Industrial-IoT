@@ -41,15 +41,24 @@ namespace OpcPublisherAEE2ETests.Deploy
         /// pki folder. Supply a distinct path so a second publisher module does not share
         /// the certificate store of the default one.
         /// </param>
+        /// <param name="createFileIfNotExist">
+        /// When true, pass the --cf argument so the publisher is permitted to create the
+        /// configured --pf file if it does not yet exist. Required when a module is driven
+        /// exclusively through direct methods (which persist to that file) and the file is
+        /// never transferred to the edge VM beforehand; otherwise the first persist fails
+        /// with a FileNotFoundException because the file is opened with FileMode.Open.
+        /// </param>
         public IoTHubPublisherDeployment(IIoTPlatformTestContext context, MessagingMode messagingMode,
             string moduleName = kModuleName, string deploymentName = kDeploymentName,
-            string publishedNodesFile = null, string pkiPath = null) : base(context)
+            string publishedNodesFile = null, string pkiPath = null,
+            bool createFileIfNotExist = false) : base(context)
         {
             MessagingMode = messagingMode;
             DeploymentName = deploymentName;
             ModuleName = moduleName;
             _publishedNodesFile = publishedNodesFile ?? TestConstants.PublishedNodesFullName;
             _pkiPath = pkiPath ?? (TestConstants.PublishedNodesFolder + "/pki");
+            _createFileIfNotExist = createFileIfNotExist;
         }
 
         /// <inheritdoc />
@@ -95,19 +104,28 @@ namespace OpcPublisherAEE2ETests.Deploy
             }
 
             // Configure create options per os specified
+            var cmd = new List<string>
+            {
+                "--pki=" + _pkiPath,
+                "--dm", // Disable metadata support
+                "--aa",
+                "--pf=" + _publishedNodesFile,
+                "--mm=" + MessagingMode.ToString(),
+                "--fm=true",
+                "--RuntimeStateReporting=true"
+            };
+            if (_createFileIfNotExist)
+            {
+                // Permit the module to create the --pf file if it does not exist yet. Without
+                // this a module driven only through direct methods fails the first persist
+                // (e.g. UnpublishAllNodes) with a FileNotFoundException.
+                cmd.Add("--cf=true");
+            }
             var createOptions = JsonConvert.SerializeObject(new
             {
                 Hostname = ModuleName,
                 User = "root",
-                Cmd = new[] {
-                    "--pki=" + _pkiPath,
-                    "--dm", // Disable metadata support
-                    "--aa",
-                    "--pf=" + _publishedNodesFile,
-                    "--mm=" + MessagingMode.ToString(),
-                    "--fm=true",
-                    "--RuntimeStateReporting=true"
-                },
+                Cmd = cmd.ToArray(),
                 HostConfig = new
                 {
                     Binds = new[] {
@@ -170,6 +188,7 @@ namespace OpcPublisherAEE2ETests.Deploy
 
         private readonly string _publishedNodesFile;
         private readonly string _pkiPath;
+        private readonly bool _createFileIfNotExist;
         private const string kModuleName = "publisher_standalone";
         private const string kDeploymentName = "__default-opcpublisher-standalone";
         private const string kTargetCondition = "(tags.__type__ = 'iiotedge' AND IS_DEFINED(tags.unmanaged))";

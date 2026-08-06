@@ -56,6 +56,10 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             {
                 id.Append(model.WriterGroupQueueName);
             }
+            if (model.WriterGroupNamespaceFormat != null)
+            {
+                id.Append(model.WriterGroupNamespaceFormat.Value);
+            }
             if (model.MessageEncoding != null)
             {
                 id.Append(model.MessageEncoding.Value);

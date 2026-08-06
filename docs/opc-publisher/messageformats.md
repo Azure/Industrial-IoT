@@ -14,8 +14,10 @@
   - [Reversible encoding](#reversible-encoding)
   - [Pending Alarm snapshots](#pending-alarm-snapshots)
   - [Keep Alive messages](#keep-alive-messages)
+  - [Heartbeat messages](#heartbeat-messages)
 - [Samples mode encoding (Removed in 3.0)](#samples-mode-encoding-removed-in-30)
   - [Value change messages in Samples mode](#value-change-messages-in-samples-mode)
+  - [Heartbeat messages in Samples mode](#heartbeat-messages-in-samples-mode)
   - [Event messages in Samples mode](#event-messages-in-samples-mode)
 
 OPC Publisher supports a rich set of message formats, including legacy formats supported.
@@ -56,10 +58,10 @@ OPC Publisher supports a rich set of message formats, including legacy formats s
 | RawDataSets | JsonReversibleGzip | 0<br>(0x0) | 0<br>(0x0) | RawData<br>(0x20) |   | X | X |
 | SingleRawDataSet | JsonReversible | SingleDataSetMessage<br>(0x4) | 0<br>(0x0) | RawData<br>(0x20) | X | X | X |
 | SingleRawDataSet | JsonReversibleGzip | SingleDataSetMessage<br>(0x4) | 0<br>(0x0) | RawData<br>(0x20) | X | X | X |
-| PubSub | Uadp | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader<br>(0x2F5) | MetaDataVersion, MajorVersion, MinorVersion, MessageType, DataSetWriterName<br>(0x18) | StatusCode, SourceTimestamp, NodeId, DisplayName, EndpointUrl<br>(0x3) | X | X | X |
-| FullNetworkMessages | Uadp | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader<br>(0x2F5) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName<br>(0x39) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X | X |
-| DataSetMessages | Uadp | DataSetMessageHeader<br>(0x0) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName<br>(0x39) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X | X |
-| SingleDataSetMessage | Uadp | DataSetMessageHeader, SingleDataSetMessage<br>(0x0) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName<br>(0x39) | StatusCode, SourceTimestamp, ServerTimestamp, NodeId, DisplayName, EndpointUrl, ApplicationUri, ExtensionFields<br>(0x7) | X | X | X |
+| PubSub | Uadp | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader<br>(0x2F5) | Timestamp, MetaDataVersion, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName<br>(0x39) | StatusCode, SourceTimestamp, ServerTimestamp<br>(0x7) | X | X | X |
+| FullNetworkMessages | Uadp | PublisherId, WriterGroupId, NetworkMessageNumber, SequenceNumber, PayloadHeader, Timestamp, DataSetClassId, NetworkMessageHeader, DataSetMessageHeader<br>(0x2F5) | Timestamp, MetaDataVersion, DataSetWriterId, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName<br>(0x39) | StatusCode, SourceTimestamp, ServerTimestamp<br>(0x7) | X | X | X |
+| DataSetMessages | Uadp | DataSetMessageHeader<br>(0x0) | Timestamp, MetaDataVersion, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName<br>(0x39) | StatusCode, SourceTimestamp, ServerTimestamp<br>(0x7) | X | X | X |
+| SingleDataSetMessage | Uadp | DataSetMessageHeader, SingleDataSetMessage<br>(0x0) | Timestamp, MetaDataVersion, MajorVersion, MinorVersion, SequenceNumber, MessageType, DataSetWriterName<br>(0x39) | StatusCode, SourceTimestamp, ServerTimestamp<br>(0x7) | X | X | X |
 | RawDataSets | Uadp | 0<br>(0x0) | 0<br>(0x0) | RawData<br>(0x20) |   | X | X |
 | SingleRawDataSet | Uadp | SingleDataSetMessage<br>(0x0) | 0<br>(0x0) | RawData<br>(0x20) | X | X | X |
 
@@ -538,6 +540,53 @@ Keep alive messages are part of the network message. A network message can conta
 }
 ```
 
+### Heartbeat messages
+
+> This feature is in preview
+
+A [heartbeat](./readme.md#heartbeat) re-sends the last known (good) value of a node when the node did not report a new value within the configured `HeartbeatInterval`. Because the re-sent value is identical to the previously reported one (including its `SourceTimestamp` and `ServerTimestamp`), a consumer cannot tell a heartbeat apart from a real value change. To disambiguate the two, OPC Publisher can add a `Heartbeat` indicator to the message.
+
+The indicator is controlled through the `Heartbeat` flag (`0x400000`) of the `DataSetFieldContentMask`. It is part of the `FullNetworkMessages` [messaging profile](#messaging-profiles-supported-by-opc-publisher) with `Json` encoding, which is selected using the `--mm` or the `--fm=True` [command line](./commandline.md) options, or the `MessagingMode` property of a writer entry in the [configuration](./readme.md#configuration-schema).
+
+> In 2.9 the indicator was also part of the `FullSamples` profile. That profile was [removed in 3.0](#samples-mode-encoding-removed-in-30), so `Json` encoded `FullNetworkMessages` is now the only way to obtain it.
+
+The `Heartbeat` member is only present when the data set message was produced by a heartbeat, and it is then always `true`. Regular value changes and key frames do not contain the member at all. This keeps the message size of regular messages unchanged and remains backwards compatible with consumers that are not aware of the indicator.
+
+```json
+{
+  "body": {
+    "MessageId": "27",
+    "MessageType": "ua-data",
+    "PublisherId": "opc.tcp://opcplc:50000_70FB9F43",
+    "Messages": [
+      {
+        "DataSetWriterId": 1,
+        "DataSetWriterName": "1000",
+        "SequenceNumber": 27,
+        "MetaDataVersion": {
+          "MajorVersion": 1,
+          "MinorVersion": 0
+        },
+        "MessageType": "ua-deltaframe",
+        "Timestamp": "2022-03-18T12:55:21.3424136Z",
+        "Heartbeat": true,
+        "Payload": {
+          "StepUp": {
+            "Value": 23305,
+            "SourceTimestamp": "2022-03-18T12:55:21.3313539Z",
+            "ServerTimestamp": "2022-03-18T12:55:21.3313638Z"
+          }
+        }
+      }
+    ]
+  }
+}
+```
+
+> IMPORTANT: The indicator is a message level indicator, it is only set if *all* fields of the data set message were produced by a heartbeat. Since heartbeats are emitted by a per node watchdog timer, a heartbeat data set message contains exactly the fields of the nodes whose heartbeat timer expired.
+
+The `Heartbeat` member is an optional member of the data set message header in the JSON schema published for the writer (`--ps` [command line](./commandline.md) option). It is not supported in `Uadp` (binary) encoding and not part of the Avro schema of a data set message, as both are strict, position based encodings which cannot carry an optional member. Use `Json` encoding if you need the heartbeat indicator.
+
 ## Samples mode encoding (Removed in 3.0)
 
 > IMPORTANT: The `Samples` and `FullSamples` messaging modes were **removed in OPC Publisher 3.0**. They emitted a `MonitoredItemMessage` format that predates OPC UA PubSub and has no representation in the OPC UA Part 14 standard, so the standards compliant PubSub runtime cannot produce it.
@@ -839,6 +888,30 @@ In this case, if OPC Publisher is started in bulk mode with `--bs=5` argument a 
     "$$ContentType": "application/x-monitored-item-json-v1",
     "iothub-message-schema": "application/json",
     "$$ContentEncoding": "utf-8"
+  }
+}
+```
+
+### Heartbeat messages in Samples mode
+
+> This feature is in preview
+
+Samples mode messages carry the same [heartbeat indicator](#heartbeat-messages). It is emitted as a top level `Heartbeat` member of the message and is only present (and then always `true`) when the message was produced by a heartbeat. As in PubSub mode the indicator must be enabled through the `Heartbeat` flag of the `DataSetFieldContentMask`, e.g., by using the `FullSamples` messaging profile or the `--fm=True` [command line](./commandline.md) option.
+
+```json
+{
+  "body": {
+    "NodeId": "nsu=http://microsoft.com/Opc/OpcPlc/;s=StepUp",
+    "EndpointUrl": "opc.tcp://opcplc:50000/",
+    "ApplicationUri": "urn:OpcPlc:opcplc",
+    "Timestamp": "2022-03-18T12:58:45.6660994Z",
+    "Heartbeat": true,
+    "Value": {
+      "Value": 1059185306,
+      "SourceTimestamp": "2022-03-18T12:58:45.6329923Z",
+      "ServerTimestamp": "2022-03-18T12:58:45.6331823Z"
+    },
+    "SequenceNumber": 22
   }
 }
 ```

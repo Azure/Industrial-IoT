@@ -57,6 +57,16 @@ on:
         required: false
         type: string
         default: ''
+      soak_minutes:
+        description: 'Observation window of the long running telemetry quality tests, in minutes'
+        required: false
+        type: string
+        default: '30'
+      soak_nodes:
+        description: 'Number of 2 second counter nodes for the telemetry quality soak'
+        required: false
+        type: string
+        default: '100'
   workflow_dispatch:
     inputs:
       image_tag:
@@ -89,6 +99,16 @@ on:
         required: false
         type: boolean
         default: true
+      soak_minutes:
+        description: 'Observation window of the long running telemetry quality tests, in minutes'
+        required: false
+        type: string
+        default: '30'
+      soak_nodes:
+        description: 'Number of 2 second counter nodes for the telemetry quality soak'
+        required: false
+        type: string
+        default: '100'
 
 permissions:
   id-token: write   # OIDC federation to Azure
@@ -124,12 +144,17 @@ jobs:
   # init: compute the resource group name once so every other job uses the
   # same value. <generated> mirrors the internal pipeline's date+counter
   # pattern: e2etesting<YYYYMMDD><run_number>.
+  #
+  # It also derives the job timeout of the telemetry quality soaks from the
+  # configured observation window. GitHub Actions expressions have no
+  # arithmetic operators, so this cannot be done inline in the job's `with:`.
   # --------------------------------------------------------------------------
   init:
     name: Compute run variables
     runs-on: ubuntu-latest
     outputs:
       resource_group_name: ${{ steps.compute.outputs.rg }}
+      soak_timeout_minutes: ${{ steps.compute.outputs.soak_timeout }}
     steps:
       - id: compute
         shell: bash
@@ -144,6 +169,13 @@ jobs:
           fi
           echo "rg=${rg}" >> "$GITHUB_OUTPUT"
           echo "Resource group: ${rg}"
+
+          # Observation window plus headroom for restoring and building the
+          # test solution, deploying the publisher module, creating the
+          # simulation container, warming up and tearing everything down.
+          soak_minutes="${{ inputs.soak_minutes || '30' }}"
+          echo "soak_timeout=$((soak_minutes + 60))" >> "$GITHUB_OUTPUT"
+          echo "Soak job timeout: $((soak_minutes + 60)) minutes"
 
   # --------------------------------------------------------------------------
   # deploy_standalone: deploys the standalone IIoT infrastructure (KeyVault,
@@ -328,12 +360,69 @@ jobs:
     secrets: inherit
 
   # --------------------------------------------------------------------------
+  # run_tests_soak_counters / run_tests_soak_heartbeat: long running telemetry
+  # quality soaks. They depend only on the deploy jobs, NOT on run_tests_ae, so
+  # they run in parallel with the A&E job -- each deploys its own publisher
+  # module into the shared IoT Edge gateway, creates its own OPC PLC simulation
+  # and reads from its own Event Hub consumer group, so nothing is contended.
+  #
+  # The counter soak reproduces the customer configuration (2 s publishing,
+  # sampling and heartbeat interval, queue size > 1, samples encoding) against
+  # nodes that count up every 2 s. A value arrives on every cycle, so the
+  # heartbeat watchdog must never fire and the stream must be complete,
+  # ordered, free of repeats and evenly spaced.
+  # --------------------------------------------------------------------------
+  run_tests_soak_counters:
+    name: Run telemetry quality soak (counters)
+    needs: [init, deploy_standalone, deploy_test_resources]
+    uses: ./.github/workflows/e2e-run-tests.yml
+    with:
+      resource_group_name: ${{ needs.init.outputs.resource_group_name }}
+      key_vault_name: ${{ needs.deploy_standalone.outputs.key_vault_name }}
+      filter_name: PublisherMode
+      filter_value: soakcounters
+      timeout_minutes: ${{ fromJSON(needs.init.outputs.soak_timeout_minutes) }}
+      result_label: soak-counters
+      image_registry: ${{ inputs.image_registry || 'ghcr.io' }}
+      image_namespace: ${{ inputs.image_namespace || 'azure' }}
+      image_tag: ${{ inputs.image_tag || 'latest' }}
+      edge_version: '1.4'
+      soak_minutes: ${{ inputs.soak_minutes || '30' }}
+      soak_nodes: ${{ inputs.soak_nodes || '100' }}
+    secrets: inherit
+
+  # --------------------------------------------------------------------------
+  # The complement: nodes that change only every 2 minutes with a 10 s
+  # heartbeat, so heartbeats must fire. Asserts that they fire at the right
+  # cadence and that they do not produce stale or unevenly spaced values for a
+  # consumer that honours the heartbeat indicator.
+  # --------------------------------------------------------------------------
+  run_tests_soak_heartbeat:
+    name: Run telemetry quality soak (heartbeat)
+    needs: [init, deploy_standalone, deploy_test_resources]
+    uses: ./.github/workflows/e2e-run-tests.yml
+    with:
+      resource_group_name: ${{ needs.init.outputs.resource_group_name }}
+      key_vault_name: ${{ needs.deploy_standalone.outputs.key_vault_name }}
+      filter_name: PublisherMode
+      filter_value: soakheartbeat
+      timeout_minutes: ${{ fromJSON(needs.init.outputs.soak_timeout_minutes) }}
+      result_label: soak-heartbeat
+      image_registry: ${{ inputs.image_registry || 'ghcr.io' }}
+      image_namespace: ${{ inputs.image_namespace || 'azure' }}
+      image_tag: ${{ inputs.image_tag || 'latest' }}
+      edge_version: '1.4'
+      soak_minutes: ${{ inputs.soak_minutes || '30' }}
+    secrets: inherit
+
+  # --------------------------------------------------------------------------
   # cleanup: always-on resource group teardown. Skip when the operator opts
   # out via the cleanup=false input (for triage of a failed run).
   # --------------------------------------------------------------------------
   cleanup:
     name: Delete resource group
-    needs: [init, deploy_standalone, deploy_test_resources, run_tests_ae, run_tests_basic]
+    needs: [init, deploy_standalone, deploy_test_resources, run_tests_ae, run_tests_basic,
+            run_tests_soak_counters, run_tests_soak_heartbeat]
     if: always() && (inputs.cleanup == null || inputs.cleanup == true) && !cancelled()
     runs-on: ubuntu-latest
     timeout-minutes: 30

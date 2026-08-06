@@ -72,6 +72,8 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
             _withDataSetMessageHeader = withDataSetMessageHeader;
             _dataSet = new JsonDataSet(dataSetMessage.Id, dataSetMessage.MetaData,
                 dataSetMessage.DataSetFieldContentFlags, options, definitions, uniqueNames);
+            _dataSetFieldContentMask = dataSetMessage.DataSetFieldContentFlags
+                ?? PubSubMessageDefaults.DefaultDataSetFieldContentFlags;
             UseCompatibilityMode = useCompatibilityMode;
             Id = dataSetMessage.Id;
             Name = GetName(dataSetMessage.TypeName, uniqueNames);
@@ -177,7 +179,21 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
                     encoding.GetSchemaForBuiltInType(BuiltInType.String));
             }
 
+            //
+            // The heartbeat indicator is optional: it is written only when the
+            // data set message was produced by a heartbeat rather than by a
+            // value change from the server, so it is deliberately left out of
+            // the required list that was captured just above.
+            //
+            var required = properties.Keys.ToList();
+            if (_dataSetFieldContentMask.HasFlag(DataSetFieldContentFlags.Heartbeat))
+            {
+                properties.Add(PubSubMessageMembers.Heartbeat,
+                    encoding.GetSchemaForBuiltInType(BuiltInType.Boolean));
+            }
+
             properties.Add(PubSubMessageMembers.Payload, _dataSet.Ref);
+            required.Add(PubSubMessageMembers.Payload);
 
             return Definitions.Reference(_options.GetSchemaId(Name), id => new JsonSchema
             {
@@ -185,7 +201,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
                 Type = SchemaType.Object,
                 AdditionalProperties = new JsonSchema { Allowed = false },
                 Properties = properties,
-                Required = properties.Keys.ToList()
+                Required = required
             });
         }
 
@@ -214,6 +230,7 @@ namespace Azure.IIoT.OpcUa.Encoders.Schemas.Json
         }
 
         private readonly JsonDataSet _dataSet;
+        private readonly DataSetFieldContentFlags _dataSetFieldContentMask;
         private readonly SchemaOptions _options;
         private readonly bool _withDataSetMessageHeader;
     }

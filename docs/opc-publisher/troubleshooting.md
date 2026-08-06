@@ -15,6 +15,7 @@ In this document you find information about
   - [Check data arriving in IoT Hub](#check-data-arriving-in-iot-hub)
     - [IoT Hub Metrics](#iot-hub-metrics)
       - [Use Azure IoT Explorer](#use-azure-iot-explorer)
+  - [Duplicated, stale or unevenly spaced values](#duplicated-stale-or-unevenly-spaced-values)
 - [Restart the module](#restart-the-module)
 - [Analyzing network capture files](#analyzing-network-capture-files)
   - [Netcap](#netcap)
@@ -152,6 +153,29 @@ As a next step the Azure IoT Explorer can be used to validate that messages for 
 To view the telemetry of OPC Publisher in Azure IoT Explorer, go to its Telemetry and start monitoring telemetry from that publisher module of choice. If you do not receive any messages for that device after a long period since starting monitoring, then there is a problem which causes telemetry messages not to be delivered to IoT Hub.
 
 ![Azure IoT Explorer](./media/image34.png)
+
+### Duplicated, stale or unevenly spaced values
+
+If a consumer observes any of the following on nodes that are configured with a `HeartbeatInterval`, the cause is almost always the heartbeat and not lost or reordered data:
+
+- the same value arriving twice in a row,
+- an "old" value arriving shortly after a newer one,
+- a `SourceTimestamp` distance of zero between two consecutive messages instead of the expected sampling interval.
+
+A heartbeat re-sends the last known value **including its original `SourceTimestamp`**, so it is indistinguishable from a real value change unless the [heartbeat indicator](./readme.md#heartbeat-indicator) is enabled. The indicator is only part of the *full featured* messaging profiles, so with `--mm=Samples` or `--mm=PubSub` it is not emitted. Use `--mm=FullSamples` or `--mm=FullNetworkMessages` (or `--fm=True`) and drop or specially handle every message that carries `"Heartbeat": true`.
+
+To confirm how many heartbeats are being produced, check the `# Generated Heartbeat Notifications` line of the [diagnostics output](./observability.md) (`ingressHeartbeats`) and compare it with `# Ingress value changes` (`ingressValueChanges`). If the number of heartbeats is of the same order of magnitude as the number of value changes, then heartbeats are firing while data is flowing. Note that OPC Publisher applies a [watchdog grace period](./readme.md#watchdog-grace-period) so that a heartbeat configured at or below the publishing interval does not race the value it is waiting for.
+
+To rule out that values were actually dropped or that the server queue overflowed, check these counters in the same diagnostics output:
+
+| Counter | Meaning when non-zero |
+| --- | --- |
+| `ingressNotificationsDropped` | Notifications were dropped before encoding because the send queue was saturated. Increase `--om` or reduce the load. |
+| `encoderNotificationsDropped` | Notifications could not be encoded, e.g. because of a configuration mismatch. |
+| `outgressInputBufferDropped` | Encoded messages were dropped because the transport could not keep up. |
+| `serverQueueOverflows` | The OPC UA server dropped queued values. Increase `QueueSize` or the publishing interval. |
+
+If all of these are zero, no value was lost inside OPC Publisher.
 
 ## Restart the module
 

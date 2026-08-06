@@ -27,6 +27,7 @@ Here you find information about
     - [Key frames, delta frames and extension fields](#key-frames-delta-frames-and-extension-fields)
     - [Status codes](#status-codes)
     - [Heartbeat](#heartbeat)
+      - [Heartbeat indicator](#heartbeat-indicator)
       - [Timestamps](#timestamps)
       - [Legacy behavior](#legacy-behavior)
     - [Cyclic reading (Client side sampling)](#cyclic-reading-client-side-sampling)
@@ -462,7 +463,8 @@ The configuration consists a JSON array of [entries](./definitions.md#publishedn
       },
       "ConditionHandling": {
         "UpdateInterval": "integer",
-        "SnapshotInterval": "integer"
+        "SnapshotInterval": "integer",
+        "RefreshRetainedConditionsOnStart": "boolean"
       },
       "EventFilter": {
         (*)
@@ -751,6 +753,32 @@ A continuous periodic sending of the last known value (`PeriodicLKV`) or last go
 
 The heartbeat behavior `WatchdogLKVDiagnosticsOnly` is special, it allows you to log heartbeat in the diagnostics output without sending heartbeats as part of the outgoing messages.
 
+##### Watchdog grace period
+
+A watchdog heartbeat is only emitted when *no* value was received for the heartbeat interval. The watchdog countdown is restarted whenever a value is received, so it expires exactly one heartbeat interval after that value. The *next* value however can only arrive one publishing interval later, plus the network round trip and the time it takes to process the publish response. Without an allowance for this, a heartbeat interval that is at or below the publishing interval (for example a heartbeat of 2 seconds on a node published every 2 seconds) makes the watchdog win that race on nearly every cycle, and the previous value is re-sent with its now stale `SourceTimestamp`. A consumer sees this as an old value arriving right after a new one, and as a source timestamp cadence broken by zero length gaps.
+
+Because values can only be delivered on publish boundaries, the absence of data cannot be established any earlier than one publishing interval after the heartbeat interval expired. OPC Publisher therefore waits for the heartbeat interval **plus one publishing interval** before it declares a node silent and emits the watchdog heartbeat. The grace period is never longer than the heartbeat interval itself, so a heartbeat configured much shorter than the publishing interval keeps the requested cadence. Once values genuinely stop, the first heartbeat is emitted after this grace period and all following ones follow the configured heartbeat interval.
+
+> This only applies to the `Watchdog*` behaviors. `PeriodicLKV` and `PeriodicLKG` send on a fixed period by design, regardless of whether values are arriving.
+
+##### Heartbeat indicator
+
+> This feature is in preview
+
+A heartbeat re-sends the last known (good) value, including the original `SourceTimestamp` and `ServerTimestamp` of that value. A consumer therefore cannot distinguish a heartbeat from a real value change of the node, which can lead to wrong values being recorded in a historian (see issue [#2441](https://github.com/Azure/Industrial-IoT/issues/2441)).
+
+To be able to tell both apart, OPC Publisher can add a `Heartbeat` indicator to the outgoing message. The indicator is emitted as part of the [message](./messageformats.md#heartbeat-messages) and is only present (and then always `true`) when the message was produced by a heartbeat. Messages resulting from real value changes do not contain the member.
+
+The indicator is controlled by the `Heartbeat` flag (`0x400000`) of the `DataSetFieldContentMask` of a data set writer. It is part of all *full featured* [messaging profiles](./messageformats.md#messaging-profiles-supported-by-opc-publisher). The easiest way to enable it is to use the `--fm=True` [command line](./commandline.md) option, or to select the `FullSamples` or `FullNetworkMessages` messaging mode using the `--mm` option. The messaging mode can also be set per writer entry using the `MessagingMode` property in the [configuration](#configuration-schema):
+
+``` json
+  "MessagingMode": "FullNetworkMessages",
+```
+
+The indicator is supported in `Json` encoding, both in [PubSub](./messageformats.md#heartbeat-messages) and in legacy [Samples](./messageformats.md#heartbeat-messages-in-samples-mode) mode. It is not available with `Uadp` or `Avro` encoding.
+
+> Alternatively you can use the `PeriodicLKVDropValue` or `PeriodicLKGDropValue` heartbeat behavior described above to only ever emit periodic values and drop the actual value changes, or configure the node twice, once with and once without heartbeat.
+
 ##### Timestamps
 
 The OPC UA data value contains a source and server timestamp. These are reported by the server and are based on the OPC UA server clock. The server is free to send whatever timestamp it wants, including none even though the OPC Publisher is setting up all monitored items to report both timestamps.
@@ -997,10 +1025,11 @@ The `ConditionHandling` section consists of the following properties:
 
 - `UpdateInterval` - the interval, in seconds, which a message is sent if anything has been updated during this interval.
 - `SnapshotInterval` - the interval, in seconds, that triggers a message to be sent regardless of if there has been an update or not.
+- `RefreshRetainedConditionsOnStart` - a boolean that, when set to `true`, issues a single `ConditionRefresh` when the event subscription is established (and again after a reconnect) so that conditions with the `Retain` flag already present on the server are delivered once. Unlike `SnapshotInterval`/`UpdateInterval` it does not cache conditions or periodically re-send snapshots, so no duplicate messages are produced. This is useful when you only want to pick up the alarms and conditions that already exist on the server at startup and then continue receiving new event changes normally. This option is ignored when `SnapshotInterval` is set, because snapshotting already performs the initial refresh.
 
-One or both of these must be set for condition handling to be in effect. You can use the condition handling configuration regardless if you are using advanced or simple event filters. If you specify the`ConditionHandling` option property without an `EventFilter` property it is ignored, as condition handling has no effect for data change subscriptions.
+For the snapshotting behavior, one or both of `UpdateInterval` and `SnapshotInterval` must be set for condition handling to be in effect. Alternatively, set `RefreshRetainedConditionsOnStart` to `true` for the one-time refresh behavior. You can use the condition handling configuration regardless if you are using advanced or simple event filters. If you specify the`ConditionHandling` option property without an `EventFilter` property it is ignored, as condition handling has no effect for data change subscriptions.
 
-Conditions are sent as `ua-condition` data set messages. This is a message type not part of the official standard but allows separating condition snapshots from regular `ua-event` data set messages.
+Condition snapshots (produced through `SnapshotInterval`/`UpdateInterval`) are sent as `ua-condition` data set messages. This is a message type not part of the official standard but allows separating condition snapshots from regular `ua-event` data set messages. Retained conditions delivered through `RefreshRetainedConditionsOnStart` are surfaced once as regular `ua-event` messages (the `RefreshStart`/`RefreshEnd` envelope events are suppressed).
 
 ## Publish to a topic hierarchy
 

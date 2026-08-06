@@ -780,6 +780,19 @@ namespace Azure.IIoT.OpcUa.Publisher.Models
         public string? WriterGroupTransportConfiguration { get; set; }
 
         /// <summary>
+        /// The namespace format to use when serializing node ids and
+        /// qualified names as keys in the payload of the network
+        /// messages of this writer group. By default namespace uris
+        /// are only expanded for namespaces other than the OPC UA
+        /// namespace (index 0). Use ExpandedWithNamespace0 to also
+        /// expand the OPC UA namespace uri and obtain consistent
+        /// keys across all fields.
+        /// </summary>
+        [DataMember(Name = "WriterGroupNamespaceFormat", Order = 70,
+            EmitDefaultValue = false)]
+        public NamespaceFormat? WriterGroupNamespaceFormat { get; set; }
+
+        /// <summary>
         /// Enables detailed server diagnostics logging for the
         /// connection. When enabled, provides additional diagnostic
         /// information useful for troubleshooting connectivity,

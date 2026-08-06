@@ -363,6 +363,7 @@ Condition handling options model
 
 |Name|Description|Schema|
 |---|---|---|
+|**refreshRetainedConditionsOnStart**  <br>*optional*|Issue a single ConditionRefresh when the event subscription is<br>established (and again after a reconnect) so retained conditions<br>already present on the server are delivered once as regular events.<br>Unlike snapshotInterval this does not cache conditions or<br>periodically re-send snapshots. Ignored when snapshotInterval is set.|boolean|
 |**snapshotInterval**  <br>*optional*|Time interval for sending pending interval snapshot in seconds.|integer (int32)|
 |**updateInterval**  <br>*optional*|Time interval for sending pending interval updates in seconds.|integer (int32)|
 

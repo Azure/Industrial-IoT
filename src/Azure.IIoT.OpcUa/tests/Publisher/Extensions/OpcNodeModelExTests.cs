@@ -329,5 +329,40 @@ namespace Azure.IIoT.OpcUa.Publisher.Config.Models
             Assert.Null(timespan.GetTimeSpanFromSeconds(null));
             Assert.Null(timespan.GetTimeSpanFromMiliseconds(null));
         }
+
+        [Fact]
+        public void ConditionHandlingRefreshRetainedConditionsOnStartAffectsEquality()
+        {
+            var comparer = OpcNodeModelEx.Comparer;
+
+            static OpcNodeModel NewNode(bool? refreshOnStart) => new()
+            {
+                Id = "id",
+                ConditionHandling = new ConditionHandlingOptionsModel
+                {
+                    RefreshRetainedConditionsOnStart = refreshOnStart
+                }
+            };
+
+            // Same value -> equal with matching hash code.
+            var a = NewNode(true);
+            var b = NewNode(true);
+            Assert.True(comparer.Equals(a, b));
+            Assert.True(comparer.GetHashCode(a) == comparer.GetHashCode(b));
+
+            // Different value -> not equal and hash codes differ.
+            var c = NewNode(false);
+            Assert.False(comparer.Equals(a, c));
+            Assert.False(comparer.GetHashCode(a) == comparer.GetHashCode(c));
+
+            // Null vs set -> not equal.
+            var d = NewNode(null);
+            Assert.False(comparer.Equals(a, d));
+
+            // The IsSameAs extension honors the new field directly.
+            Assert.True(a.ConditionHandling.IsSameAs(b.ConditionHandling));
+            Assert.False(a.ConditionHandling.IsSameAs(c.ConditionHandling));
+            Assert.False(a.ConditionHandling.IsSameAs(d.ConditionHandling));
+        }
     }
 }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -641,6 +641,26 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Sdk.ReferenceServer
             Assert.NotEqual(JsonValueKind.Null, output.ValueKind);
             Assert.InRange(output.GetProperty("Value").GetDouble(), double.MinValue, double.MaxValue);
             Assert.NotNull(metadata);
+        }
+
+        [Fact]
+        public async Task HeartbeatIndicatorTestAsync()
+        {
+            // Arrange
+            // Act
+            var messages = await ProcessMessagesAsync(
+                nameof(HeartbeatIndicatorTestAsync), "./Resources/Heartbeat.json",
+                TimeSpan.FromMinutes(2), 5, messageType: "ua-data",
+                arguments: ["--mm=PubSub", "--fm=True"]);
+
+            // Assert
+            Assert.True(messages.Count > 1);
+
+            var heartbeats = messages
+                .SelectMany(m => m.Message.GetProperty("Messages").EnumerateArray())
+                .Where(m => m.TryGetProperty("Heartbeat", out var hb) && hb.GetBoolean())
+                .ToList();
+            Assert.True(heartbeats.Count > 0, "No heartbeat indicator was sent");
         }
 
         [Fact]
