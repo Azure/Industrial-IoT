@@ -1,0 +1,1015 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ThreatModel xmlns="http://schemas.microsoft.com/sdl/2014/12/ThreatModel" xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+  <DrawingSurfaceList>
+    <DrawingSurfaceModel>
+      <GenericTypeId>DFD</GenericTypeId>
+      <Guid>11133988-704f-5fce-b45c-0484ffa58779</Guid>
+      <Header>OPC Publisher - Level 1</Header>
+      <Borders>
+        <KeyValueOfguidanyType>
+          <Key>86cf6ad1-58a1-5fd2-9d7a-e9418ac0c09d</Key>
+          <Value i:type="BorderBoundary">
+            <GenericTypeId>GE.TB.B</GenericTypeId>
+            <Guid>86cf6ad1-58a1-5fd2-9d7a-e9418ac0c09d</Guid>
+            <Height>220</Height>
+            <Left>20</Left>
+            <Properties>
+              <anyType i:type="HeaderDisplayAttribute">
+                <DisplayName>Name</DisplayName>
+                <Name>Name</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">OT / plant network boundary</Value>
+              </anyType>
+            </Properties>
+            <StrokeDashArray i:nil="true" />
+            <StrokeThickness>1</StrokeThickness>
+            <Top>240</Top>
+            <TypeId>GE.TB.B</TypeId>
+            <Width>290</Width>
+          </Value>
+        </KeyValueOfguidanyType>
+        <KeyValueOfguidanyType>
+          <Key>833dd321-01db-5ddc-86fc-a687fde6c6c0</Key>
+          <Value i:type="BorderBoundary">
+            <GenericTypeId>GE.TB.B</GenericTypeId>
+            <Guid>833dd321-01db-5ddc-86fc-a687fde6c6c0</Guid>
+            <Height>420</Height>
+            <Left>310</Left>
+            <Properties>
+              <anyType i:type="HeaderDisplayAttribute">
+                <DisplayName>Name</DisplayName>
+                <Name>Name</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">opcpublisher container boundary</Value>
+              </anyType>
+            </Properties>
+            <StrokeDashArray i:nil="true" />
+            <StrokeThickness>1</StrokeThickness>
+            <Top>20</Top>
+            <TypeId>GE.TB.B</TypeId>
+            <Width>470</Width>
+          </Value>
+        </KeyValueOfguidanyType>
+        <KeyValueOfguidanyType>
+          <Key>0c3ceabd-e1c6-5da0-81c6-9a38a084a505</Key>
+          <Value i:type="BorderBoundary">
+            <GenericTypeId>GE.TB.B</GenericTypeId>
+            <Guid>0c3ceabd-e1c6-5da0-81c6-9a38a084a505</Guid>
+            <Height>170</Height>
+            <Left>310</Left>
+            <Properties>
+              <anyType i:type="HeaderDisplayAttribute">
+                <DisplayName>Name</DisplayName>
+                <Name>Name</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Mounted volume (host filesystem) boundary</Value>
+              </anyType>
+            </Properties>
+            <StrokeDashArray i:nil="true" />
+            <StrokeThickness>1</StrokeThickness>
+            <Top>570</Top>
+            <TypeId>GE.TB.B</TypeId>
+            <Width>460</Width>
+          </Value>
+        </KeyValueOfguidanyType>
+        <KeyValueOfguidanyType>
+          <Key>15133370-b8e6-5cc2-a1da-ced537e2ca53</Key>
+          <Value i:type="BorderBoundary">
+            <GenericTypeId>GE.TB.B</GenericTypeId>
+            <Guid>15133370-b8e6-5cc2-a1da-ced537e2ca53</Guid>
+            <Height>600</Height>
+            <Left>1000</Left>
+            <Properties>
+              <anyType i:type="HeaderDisplayAttribute">
+                <DisplayName>Name</DisplayName>
+                <Name>Name</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Cloud boundary</Value>
+              </anyType>
+            </Properties>
+            <StrokeDashArray i:nil="true" />
+            <StrokeThickness>1</StrokeThickness>
+            <Top>140</Top>
+            <TypeId>GE.TB.B</TypeId>
+            <Width>200</Width>
+          </Value>
+        </KeyValueOfguidanyType>
+        <KeyValueOfguidanyType>
+          <Key>fe9a8bb1-151f-5788-b140-0cde746d0e18</Key>
+          <Value i:type="Stencil">
+            <GenericTypeId>GE.EI</GenericTypeId>
+            <Guid>fe9a8bb1-151f-5788-b140-0cde746d0e18</Guid>
+            <Height>90</Height>
+            <Left>40</Left>
+            <Properties>
+              <anyType i:type="HeaderDisplayAttribute">
+                <DisplayName>Name</DisplayName>
+                <Name>Name</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">OPC UA Server (field device)</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Code Type</DisplayName>
+                <Name>CodeType</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Unmanaged</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Running As</DisplayName>
+                <Name>RunningAs</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Not Selected</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Accepts Input From</DisplayName>
+                <Name>AcceptsInputFrom</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Untrusted OT network</Value>
+              </anyType>
+            </Properties>
+            <StrokeDashArray i:nil="true" />
+            <StrokeThickness>1</StrokeThickness>
+            <Top>300</Top>
+            <TypeId>GE.EI</TypeId>
+            <Width>160</Width>
+          </Value>
+        </KeyValueOfguidanyType>
+        <KeyValueOfguidanyType>
+          <Key>1b8c1ec9-abb4-593e-bc83-f8a0f733c5c2</Key>
+          <Value i:type="Stencil">
+            <GenericTypeId>GE.EI</GenericTypeId>
+            <Guid>1b8c1ec9-abb4-593e-bc83-f8a0f733c5c2</Guid>
+            <Height>90</Height>
+            <Left>40</Left>
+            <Properties>
+              <anyType i:type="HeaderDisplayAttribute">
+                <DisplayName>Name</DisplayName>
+                <Name>Name</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Operator / Engineer</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Code Type</DisplayName>
+                <Name>CodeType</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Not Applicable</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Running As</DisplayName>
+                <Name>RunningAs</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Not Selected</Value>
+              </anyType>
+            </Properties>
+            <StrokeDashArray i:nil="true" />
+            <StrokeThickness>1</StrokeThickness>
+            <Top>60</Top>
+            <TypeId>GE.EI</TypeId>
+            <Width>160</Width>
+          </Value>
+        </KeyValueOfguidanyType>
+        <KeyValueOfguidanyType>
+          <Key>020ac0e9-2add-5327-9039-f1ab08a0861a</Key>
+          <Value i:type="Stencil">
+            <GenericTypeId>GE.EI</GenericTypeId>
+            <Guid>020ac0e9-2add-5327-9039-f1ab08a0861a</Guid>
+            <Height>90</Height>
+            <Left>1020</Left>
+            <Properties>
+              <anyType i:type="HeaderDisplayAttribute">
+                <DisplayName>Name</DisplayName>
+                <Name>Name</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Container Registry</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Code Type</DisplayName>
+                <Name>CodeType</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Not Applicable</Value>
+              </anyType>
+            </Properties>
+            <StrokeDashArray i:nil="true" />
+            <StrokeThickness>1</StrokeThickness>
+            <Top>620</Top>
+            <TypeId>GE.EI</TypeId>
+            <Width>160</Width>
+          </Value>
+        </KeyValueOfguidanyType>
+        <KeyValueOfguidanyType>
+          <Key>cf549394-eb96-5872-8e03-dbacd6981d44</Key>
+          <Value i:type="Stencil">
+            <GenericTypeId>GE.EI</GenericTypeId>
+            <Guid>cf549394-eb96-5872-8e03-dbacd6981d44</Guid>
+            <Height>90</Height>
+            <Left>1020</Left>
+            <Properties>
+              <anyType i:type="HeaderDisplayAttribute">
+                <DisplayName>Name</DisplayName>
+                <Name>Name</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Azure Device Registry</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Code Type</DisplayName>
+                <Name>CodeType</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Not Applicable</Value>
+              </anyType>
+            </Properties>
+            <StrokeDashArray i:nil="true" />
+            <StrokeThickness>1</StrokeThickness>
+            <Top>500</Top>
+            <TypeId>GE.EI</TypeId>
+            <Width>160</Width>
+          </Value>
+        </KeyValueOfguidanyType>
+        <KeyValueOfguidanyType>
+          <Key>fdf80f6c-d5fd-5813-b3be-679bdb2d3ee5</Key>
+          <Value i:type="Stencil">
+            <GenericTypeId>GE.P</GenericTypeId>
+            <Guid>fdf80f6c-d5fd-5813-b3be-679bdb2d3ee5</Guid>
+            <Height>100</Height>
+            <Left>330</Left>
+            <Properties>
+              <anyType i:type="HeaderDisplayAttribute">
+                <DisplayName>Name</DisplayName>
+                <Name>Name</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">OPC UA Client Stack</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Code Type</DisplayName>
+                <Name>CodeType</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Managed</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Running As</DisplayName>
+                <Name>RunningAs</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Standard User</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Isolation Level</DisplayName>
+                <Name>IsolationLevel</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Sandbox</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Accepts Input From</DisplayName>
+                <Name>AcceptsInputFrom</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Untrusted OT network</Value>
+              </anyType>
+            </Properties>
+            <StrokeDashArray i:nil="true" />
+            <StrokeThickness>1</StrokeThickness>
+            <Top>300</Top>
+            <TypeId>GE.P</TypeId>
+            <Width>170</Width>
+          </Value>
+        </KeyValueOfguidanyType>
+        <KeyValueOfguidanyType>
+          <Key>9127e0f7-7268-5579-8c5f-67de2275c17e</Key>
+          <Value i:type="Stencil">
+            <GenericTypeId>GE.P</GenericTypeId>
+            <Guid>9127e0f7-7268-5579-8c5f-67de2275c17e</Guid>
+            <Height>100</Height>
+            <Left>570</Left>
+            <Properties>
+              <anyType i:type="HeaderDisplayAttribute">
+                <DisplayName>Name</DisplayName>
+                <Name>Name</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Publisher Engine (encode / batch / publish)</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Code Type</DisplayName>
+                <Name>CodeType</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Managed</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Running As</DisplayName>
+                <Name>RunningAs</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Standard User</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Isolation Level</DisplayName>
+                <Name>IsolationLevel</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Sandbox</Value>
+              </anyType>
+            </Properties>
+            <StrokeDashArray i:nil="true" />
+            <StrokeThickness>1</StrokeThickness>
+            <Top>300</Top>
+            <TypeId>GE.P</TypeId>
+            <Width>190</Width>
+          </Value>
+        </KeyValueOfguidanyType>
+        <KeyValueOfguidanyType>
+          <Key>769a363f-7cb6-521a-97fe-1d0ede1a68bb</Key>
+          <Value i:type="Stencil">
+            <GenericTypeId>GE.P</GenericTypeId>
+            <Guid>769a363f-7cb6-521a-97fe-1d0ede1a68bb</Guid>
+            <Height>100</Height>
+            <Left>330</Left>
+            <Properties>
+              <anyType i:type="HeaderDisplayAttribute">
+                <DisplayName>Name</DisplayName>
+                <Name>Name</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">REST API Host (ASP.NET Core)</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Code Type</DisplayName>
+                <Name>CodeType</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Managed</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Running As</DisplayName>
+                <Name>RunningAs</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Standard User</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Authentication Scheme</DisplayName>
+                <Name>AuthenticationScheme</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">API key</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Isolation Level</DisplayName>
+                <Name>IsolationLevel</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Sandbox</Value>
+              </anyType>
+            </Properties>
+            <StrokeDashArray i:nil="true" />
+            <StrokeThickness>1</StrokeThickness>
+            <Top>60</Top>
+            <TypeId>GE.P</TypeId>
+            <Width>170</Width>
+          </Value>
+        </KeyValueOfguidanyType>
+        <KeyValueOfguidanyType>
+          <Key>d1bd97a5-6938-5a4f-a5c8-36cc5fb5d053</Key>
+          <Value i:type="Stencil">
+            <GenericTypeId>GE.P</GenericTypeId>
+            <Guid>d1bd97a5-6938-5a4f-a5c8-36cc5fb5d053</Guid>
+            <Height>100</Height>
+            <Left>570</Left>
+            <Properties>
+              <anyType i:type="HeaderDisplayAttribute">
+                <DisplayName>Name</DisplayName>
+                <Name>Name</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Configuration Service</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Code Type</DisplayName>
+                <Name>CodeType</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Managed</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Running As</DisplayName>
+                <Name>RunningAs</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Standard User</Value>
+              </anyType>
+            </Properties>
+            <StrokeDashArray i:nil="true" />
+            <StrokeThickness>1</StrokeThickness>
+            <Top>60</Top>
+            <TypeId>GE.P</TypeId>
+            <Width>170</Width>
+          </Value>
+        </KeyValueOfguidanyType>
+        <KeyValueOfguidanyType>
+          <Key>5a758ace-5ed1-5576-abe2-eaefeb169f4f</Key>
+          <Value i:type="Stencil">
+            <GenericTypeId>GE.P</GenericTypeId>
+            <Guid>5a758ace-5ed1-5576-abe2-eaefeb169f4f</Guid>
+            <Height>100</Height>
+            <Left>820</Left>
+            <Properties>
+              <anyType i:type="HeaderDisplayAttribute">
+                <DisplayName>Name</DisplayName>
+                <Name>Name</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">edgeHub (IoT Edge runtime)</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Code Type</DisplayName>
+                <Name>CodeType</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Managed</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Running As</DisplayName>
+                <Name>RunningAs</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Standard User</Value>
+              </anyType>
+            </Properties>
+            <StrokeDashArray i:nil="true" />
+            <StrokeThickness>1</StrokeThickness>
+            <Top>180</Top>
+            <TypeId>GE.P</TypeId>
+            <Width>170</Width>
+          </Value>
+        </KeyValueOfguidanyType>
+        <KeyValueOfguidanyType>
+          <Key>93bea3db-983e-517e-a7c2-411faa23133f</Key>
+          <Value i:type="Stencil">
+            <GenericTypeId>GE.DS</GenericTypeId>
+            <Guid>93bea3db-983e-517e-a7c2-411faa23133f</Guid>
+            <Height>90</Height>
+            <Left>570</Left>
+            <Properties>
+              <anyType i:type="HeaderDisplayAttribute">
+                <DisplayName>Name</DisplayName>
+                <Name>Name</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">published_nodes.json</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Store Type</DisplayName>
+                <Name>StoreType</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">File</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Encrypted</DisplayName>
+                <Name>Encrypted</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">No</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Signed</DisplayName>
+                <Name>Signed</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">No</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Write Access</DisplayName>
+                <Name>WriteAccess</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Yes</Value>
+              </anyType>
+            </Properties>
+            <StrokeDashArray i:nil="true" />
+            <StrokeThickness>1</StrokeThickness>
+            <Top>620</Top>
+            <TypeId>GE.DS</TypeId>
+            <Width>170</Width>
+          </Value>
+        </KeyValueOfguidanyType>
+        <KeyValueOfguidanyType>
+          <Key>68689e93-4381-51fe-8ea1-11db1074d381</Key>
+          <Value i:type="Stencil">
+            <GenericTypeId>GE.DS</GenericTypeId>
+            <Guid>68689e93-4381-51fe-8ea1-11db1074d381</Guid>
+            <Height>90</Height>
+            <Left>330</Left>
+            <Properties>
+              <anyType i:type="HeaderDisplayAttribute">
+                <DisplayName>Name</DisplayName>
+                <Name>Name</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">PKI stores (own / trusted / issuer / rejected)</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Store Type</DisplayName>
+                <Name>StoreType</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">File</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Encrypted</DisplayName>
+                <Name>Encrypted</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">No</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Signed</DisplayName>
+                <Name>Signed</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Yes</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Write Access</DisplayName>
+                <Name>WriteAccess</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Yes</Value>
+              </anyType>
+            </Properties>
+            <StrokeDashArray i:nil="true" />
+            <StrokeThickness>1</StrokeThickness>
+            <Top>620</Top>
+            <TypeId>GE.DS</TypeId>
+            <Width>170</Width>
+          </Value>
+        </KeyValueOfguidanyType>
+        <KeyValueOfguidanyType>
+          <Key>f3036193-e42f-57ef-909f-cfbdf7e6e535</Key>
+          <Value i:type="Stencil">
+            <GenericTypeId>GE.P</GenericTypeId>
+            <Guid>f3036193-e42f-57ef-909f-cfbdf7e6e535</Guid>
+            <Height>90</Height>
+            <Left>1020</Left>
+            <Properties>
+              <anyType i:type="HeaderDisplayAttribute">
+                <DisplayName>Name</DisplayName>
+                <Name>Name</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Azure IoT Hub</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Code Type</DisplayName>
+                <Name>CodeType</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Not Applicable</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Running As</DisplayName>
+                <Name>RunningAs</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Not Selected</Value>
+              </anyType>
+            </Properties>
+            <StrokeDashArray i:nil="true" />
+            <StrokeThickness>1</StrokeThickness>
+            <Top>180</Top>
+            <TypeId>GE.P</TypeId>
+            <Width>160</Width>
+          </Value>
+        </KeyValueOfguidanyType>
+        <KeyValueOfguidanyType>
+          <Key>560b4144-67c9-5178-8c07-e15fd137b1e4</Key>
+          <Value i:type="Stencil">
+            <GenericTypeId>GE.P</GenericTypeId>
+            <Guid>560b4144-67c9-5178-8c07-e15fd137b1e4</Guid>
+            <Height>90</Height>
+            <Left>1020</Left>
+            <Properties>
+              <anyType i:type="HeaderDisplayAttribute">
+                <DisplayName>Name</DisplayName>
+                <Name>Name</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">MQTT broker / HTTP / Dapr sink</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Code Type</DisplayName>
+                <Name>CodeType</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Not Applicable</Value>
+              </anyType>
+            </Properties>
+            <StrokeDashArray i:nil="true" />
+            <StrokeThickness>1</StrokeThickness>
+            <Top>320</Top>
+            <TypeId>GE.P</TypeId>
+            <Width>160</Width>
+          </Value>
+        </KeyValueOfguidanyType>
+      </Borders>
+      <Lines>
+        <KeyValueOfguidanyType>
+          <Key>8a603045-05e1-5de8-97cf-e35df7efae09</Key>
+          <Value i:type="Connector">
+            <GenericTypeId>GE.DF</GenericTypeId>
+            <Guid>8a603045-05e1-5de8-97cf-e35df7efae09</Guid>
+            <Properties>
+              <anyType i:type="HeaderDisplayAttribute">
+                <DisplayName>Name</DisplayName>
+                <Name>Name</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">(1) DataChange / Event notifications (opc.tcp)</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Authentication Mechanism</DisplayName>
+                <Name>AuthenticationMechanism</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Certificate / anonymous</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Provides Confidentiality</DisplayName>
+                <Name>ProvidesConfidentiality</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Depends on SecurityMode</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Provides Integrity</DisplayName>
+                <Name>ProvidesIntegrity</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Depends on SecurityMode</Value>
+              </anyType>
+            </Properties>
+            <SourceGuid>fe9a8bb1-151f-5788-b140-0cde746d0e18</SourceGuid>
+            <SourceX>0</SourceX>
+            <SourceY>0</SourceY>
+            <StrokeDashArray i:nil="true" />
+            <StrokeThickness>1</StrokeThickness>
+            <TargetGuid>fdf80f6c-d5fd-5813-b3be-679bdb2d3ee5</TargetGuid>
+            <TargetX>0</TargetX>
+            <TargetY>0</TargetY>
+            <TypeId>GE.DF</TypeId>
+          </Value>
+        </KeyValueOfguidanyType>
+        <KeyValueOfguidanyType>
+          <Key>b1be4ef1-60ec-55ed-a4e9-336267a493be</Key>
+          <Value i:type="Connector">
+            <GenericTypeId>GE.DF</GenericTypeId>
+            <Guid>b1be4ef1-60ec-55ed-a4e9-336267a493be</Guid>
+            <Properties>
+              <anyType i:type="HeaderDisplayAttribute">
+                <DisplayName>Name</DisplayName>
+                <Name>Name</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">(2) Browse / Read / Write / Call</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Authentication Mechanism</DisplayName>
+                <Name>AuthenticationMechanism</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Certificate / username / anonymous</Value>
+              </anyType>
+            </Properties>
+            <SourceGuid>fdf80f6c-d5fd-5813-b3be-679bdb2d3ee5</SourceGuid>
+            <SourceX>0</SourceX>
+            <SourceY>0</SourceY>
+            <StrokeDashArray i:nil="true" />
+            <StrokeThickness>1</StrokeThickness>
+            <TargetGuid>fe9a8bb1-151f-5788-b140-0cde746d0e18</TargetGuid>
+            <TargetX>0</TargetX>
+            <TargetY>0</TargetY>
+            <TypeId>GE.DF</TypeId>
+          </Value>
+        </KeyValueOfguidanyType>
+        <KeyValueOfguidanyType>
+          <Key>0b37e066-4c36-517d-9d36-38a002c94504</Key>
+          <Value i:type="Connector">
+            <GenericTypeId>GE.DF</GenericTypeId>
+            <Guid>0b37e066-4c36-517d-9d36-38a002c94504</Guid>
+            <Properties>
+              <anyType i:type="HeaderDisplayAttribute">
+                <DisplayName>Name</DisplayName>
+                <Name>Name</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">(3) REST API over HTTPS</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Authentication Mechanism</DisplayName>
+                <Name>AuthenticationMechanism</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">API key</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Provides Confidentiality</DisplayName>
+                <Name>ProvidesConfidentiality</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Yes</Value>
+              </anyType>
+            </Properties>
+            <SourceGuid>1b8c1ec9-abb4-593e-bc83-f8a0f733c5c2</SourceGuid>
+            <SourceX>0</SourceX>
+            <SourceY>0</SourceY>
+            <StrokeDashArray i:nil="true" />
+            <StrokeThickness>1</StrokeThickness>
+            <TargetGuid>769a363f-7cb6-521a-97fe-1d0ede1a68bb</TargetGuid>
+            <TargetX>0</TargetX>
+            <TargetY>0</TargetY>
+            <TypeId>GE.DF</TypeId>
+          </Value>
+        </KeyValueOfguidanyType>
+        <KeyValueOfguidanyType>
+          <Key>3c4131d3-3359-5009-aa8f-0a9d78e0adcd</Key>
+          <Value i:type="Connector">
+            <GenericTypeId>GE.DF</GenericTypeId>
+            <Guid>3c4131d3-3359-5009-aa8f-0a9d78e0adcd</Guid>
+            <Properties>
+              <anyType i:type="HeaderDisplayAttribute">
+                <DisplayName>Name</DisplayName>
+                <Name>Name</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">(4) Direct methods / twin desired properties</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Authentication Mechanism</DisplayName>
+                <Name>AuthenticationMechanism</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">IoT Hub module identity</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Provides Confidentiality</DisplayName>
+                <Name>ProvidesConfidentiality</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Yes</Value>
+              </anyType>
+            </Properties>
+            <SourceGuid>f3036193-e42f-57ef-909f-cfbdf7e6e535</SourceGuid>
+            <SourceX>0</SourceX>
+            <SourceY>0</SourceY>
+            <StrokeDashArray i:nil="true" />
+            <StrokeThickness>1</StrokeThickness>
+            <TargetGuid>5a758ace-5ed1-5576-abe2-eaefeb169f4f</TargetGuid>
+            <TargetX>0</TargetX>
+            <TargetY>0</TargetY>
+            <TypeId>GE.DF</TypeId>
+          </Value>
+        </KeyValueOfguidanyType>
+        <KeyValueOfguidanyType>
+          <Key>3969bfec-11ce-5d00-be37-992ed03eb8f6</Key>
+          <Value i:type="Connector">
+            <GenericTypeId>GE.DF</GenericTypeId>
+            <Guid>3969bfec-11ce-5d00-be37-992ed03eb8f6</Guid>
+            <Properties>
+              <anyType i:type="HeaderDisplayAttribute">
+                <DisplayName>Name</DisplayName>
+                <Name>Name</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">(4) Method invocation</Value>
+              </anyType>
+            </Properties>
+            <SourceGuid>5a758ace-5ed1-5576-abe2-eaefeb169f4f</SourceGuid>
+            <SourceX>0</SourceX>
+            <SourceY>0</SourceY>
+            <StrokeDashArray i:nil="true" />
+            <StrokeThickness>1</StrokeThickness>
+            <TargetGuid>769a363f-7cb6-521a-97fe-1d0ede1a68bb</TargetGuid>
+            <TargetX>0</TargetX>
+            <TargetY>0</TargetY>
+            <TypeId>GE.DF</TypeId>
+          </Value>
+        </KeyValueOfguidanyType>
+        <KeyValueOfguidanyType>
+          <Key>b15bf9ee-b3b9-55ed-a203-9b8ebaa2531f</Key>
+          <Value i:type="Connector">
+            <GenericTypeId>GE.DF</GenericTypeId>
+            <Guid>b15bf9ee-b3b9-55ed-a203-9b8ebaa2531f</Guid>
+            <Properties>
+              <anyType i:type="HeaderDisplayAttribute">
+                <DisplayName>Name</DisplayName>
+                <Name>Name</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">(5) Network messages (telemetry)</Value>
+              </anyType>
+            </Properties>
+            <SourceGuid>9127e0f7-7268-5579-8c5f-67de2275c17e</SourceGuid>
+            <SourceX>0</SourceX>
+            <SourceY>0</SourceY>
+            <StrokeDashArray i:nil="true" />
+            <StrokeThickness>1</StrokeThickness>
+            <TargetGuid>5a758ace-5ed1-5576-abe2-eaefeb169f4f</TargetGuid>
+            <TargetX>0</TargetX>
+            <TargetY>0</TargetY>
+            <TypeId>GE.DF</TypeId>
+          </Value>
+        </KeyValueOfguidanyType>
+        <KeyValueOfguidanyType>
+          <Key>270f6323-6f37-545c-a4d6-c7375dcc0776</Key>
+          <Value i:type="Connector">
+            <GenericTypeId>GE.DF</GenericTypeId>
+            <Guid>270f6323-6f37-545c-a4d6-c7375dcc0776</Guid>
+            <Properties>
+              <anyType i:type="HeaderDisplayAttribute">
+                <DisplayName>Name</DisplayName>
+                <Name>Name</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">(5) D2C telemetry</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Provides Confidentiality</DisplayName>
+                <Name>ProvidesConfidentiality</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Yes</Value>
+              </anyType>
+            </Properties>
+            <SourceGuid>5a758ace-5ed1-5576-abe2-eaefeb169f4f</SourceGuid>
+            <SourceX>0</SourceX>
+            <SourceY>0</SourceY>
+            <StrokeDashArray i:nil="true" />
+            <StrokeThickness>1</StrokeThickness>
+            <TargetGuid>f3036193-e42f-57ef-909f-cfbdf7e6e535</TargetGuid>
+            <TargetX>0</TargetX>
+            <TargetY>0</TargetY>
+            <TypeId>GE.DF</TypeId>
+          </Value>
+        </KeyValueOfguidanyType>
+        <KeyValueOfguidanyType>
+          <Key>77e9d9a3-b056-5b6d-9276-83b1f1f2ef78</Key>
+          <Value i:type="Connector">
+            <GenericTypeId>GE.DF</GenericTypeId>
+            <Guid>77e9d9a3-b056-5b6d-9276-83b1f1f2ef78</Guid>
+            <Properties>
+              <anyType i:type="HeaderDisplayAttribute">
+                <DisplayName>Name</DisplayName>
+                <Name>Name</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">(6) Telemetry via direct transport</Value>
+              </anyType>
+              <anyType i:type="StringDisplayAttribute">
+                <DisplayName>Authentication Mechanism</DisplayName>
+                <Name>AuthenticationMechanism</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">Per transport</Value>
+              </anyType>
+            </Properties>
+            <SourceGuid>9127e0f7-7268-5579-8c5f-67de2275c17e</SourceGuid>
+            <SourceX>0</SourceX>
+            <SourceY>0</SourceY>
+            <StrokeDashArray i:nil="true" />
+            <StrokeThickness>1</StrokeThickness>
+            <TargetGuid>560b4144-67c9-5178-8c07-e15fd137b1e4</TargetGuid>
+            <TargetX>0</TargetX>
+            <TargetY>0</TargetY>
+            <TypeId>GE.DF</TypeId>
+          </Value>
+        </KeyValueOfguidanyType>
+        <KeyValueOfguidanyType>
+          <Key>f8965444-b184-5f10-aaa0-7f0e3976e375</Key>
+          <Value i:type="Connector">
+            <GenericTypeId>GE.DF</GenericTypeId>
+            <Guid>f8965444-b184-5f10-aaa0-7f0e3976e375</Guid>
+            <Properties>
+              <anyType i:type="HeaderDisplayAttribute">
+                <DisplayName>Name</DisplayName>
+                <Name>Name</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">(7) Read / write published nodes</Value>
+              </anyType>
+            </Properties>
+            <SourceGuid>d1bd97a5-6938-5a4f-a5c8-36cc5fb5d053</SourceGuid>
+            <SourceX>0</SourceX>
+            <SourceY>0</SourceY>
+            <StrokeDashArray i:nil="true" />
+            <StrokeThickness>1</StrokeThickness>
+            <TargetGuid>93bea3db-983e-517e-a7c2-411faa23133f</TargetGuid>
+            <TargetX>0</TargetX>
+            <TargetY>0</TargetY>
+            <TypeId>GE.DF</TypeId>
+          </Value>
+        </KeyValueOfguidanyType>
+        <KeyValueOfguidanyType>
+          <Key>72358ab1-2661-5f52-85a0-31d1414a0e18</Key>
+          <Value i:type="Connector">
+            <GenericTypeId>GE.DF</GenericTypeId>
+            <Guid>72358ab1-2661-5f52-85a0-31d1414a0e18</Guid>
+            <Properties>
+              <anyType i:type="HeaderDisplayAttribute">
+                <DisplayName>Name</DisplayName>
+                <Name>Name</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">(7) Load configuration on start / change</Value>
+              </anyType>
+            </Properties>
+            <SourceGuid>93bea3db-983e-517e-a7c2-411faa23133f</SourceGuid>
+            <SourceX>0</SourceX>
+            <SourceY>0</SourceY>
+            <StrokeDashArray i:nil="true" />
+            <StrokeThickness>1</StrokeThickness>
+            <TargetGuid>d1bd97a5-6938-5a4f-a5c8-36cc5fb5d053</TargetGuid>
+            <TargetX>0</TargetX>
+            <TargetY>0</TargetY>
+            <TypeId>GE.DF</TypeId>
+          </Value>
+        </KeyValueOfguidanyType>
+        <KeyValueOfguidanyType>
+          <Key>61ed1436-8080-5a87-abb9-e6ab0f582b05</Key>
+          <Value i:type="Connector">
+            <GenericTypeId>GE.DF</GenericTypeId>
+            <Guid>61ed1436-8080-5a87-abb9-e6ab0f582b05</Guid>
+            <Properties>
+              <anyType i:type="HeaderDisplayAttribute">
+                <DisplayName>Name</DisplayName>
+                <Name>Name</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">(8) Store rejected / own certificates</Value>
+              </anyType>
+            </Properties>
+            <SourceGuid>fdf80f6c-d5fd-5813-b3be-679bdb2d3ee5</SourceGuid>
+            <SourceX>0</SourceX>
+            <SourceY>0</SourceY>
+            <StrokeDashArray i:nil="true" />
+            <StrokeThickness>1</StrokeThickness>
+            <TargetGuid>68689e93-4381-51fe-8ea1-11db1074d381</TargetGuid>
+            <TargetX>0</TargetX>
+            <TargetY>0</TargetY>
+            <TypeId>GE.DF</TypeId>
+          </Value>
+        </KeyValueOfguidanyType>
+        <KeyValueOfguidanyType>
+          <Key>73bff74f-53bc-5a7b-8491-be16f30e3dad</Key>
+          <Value i:type="Connector">
+            <GenericTypeId>GE.DF</GenericTypeId>
+            <Guid>73bff74f-53bc-5a7b-8491-be16f30e3dad</Guid>
+            <Properties>
+              <anyType i:type="HeaderDisplayAttribute">
+                <DisplayName>Name</DisplayName>
+                <Name>Name</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">(8) Load trust list, CRLs</Value>
+              </anyType>
+            </Properties>
+            <SourceGuid>68689e93-4381-51fe-8ea1-11db1074d381</SourceGuid>
+            <SourceX>0</SourceX>
+            <SourceY>0</SourceY>
+            <StrokeDashArray i:nil="true" />
+            <StrokeThickness>1</StrokeThickness>
+            <TargetGuid>fdf80f6c-d5fd-5813-b3be-679bdb2d3ee5</TargetGuid>
+            <TargetX>0</TargetX>
+            <TargetY>0</TargetY>
+            <TypeId>GE.DF</TypeId>
+          </Value>
+        </KeyValueOfguidanyType>
+        <KeyValueOfguidanyType>
+          <Key>ae943137-8905-5ceb-984f-0385b3036fc4</Key>
+          <Value i:type="Connector">
+            <GenericTypeId>GE.DF</GenericTypeId>
+            <Guid>ae943137-8905-5ceb-984f-0385b3036fc4</Guid>
+            <Properties>
+              <anyType i:type="HeaderDisplayAttribute">
+                <DisplayName>Name</DisplayName>
+                <Name>Name</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">(9) Asset / device definitions</Value>
+              </anyType>
+            </Properties>
+            <SourceGuid>cf549394-eb96-5872-8e03-dbacd6981d44</SourceGuid>
+            <SourceX>0</SourceX>
+            <SourceY>0</SourceY>
+            <StrokeDashArray i:nil="true" />
+            <StrokeThickness>1</StrokeThickness>
+            <TargetGuid>d1bd97a5-6938-5a4f-a5c8-36cc5fb5d053</TargetGuid>
+            <TargetX>0</TargetX>
+            <TargetY>0</TargetY>
+            <TypeId>GE.DF</TypeId>
+          </Value>
+        </KeyValueOfguidanyType>
+        <KeyValueOfguidanyType>
+          <Key>0f17e7d3-1995-51d7-bf17-787b55470f28</Key>
+          <Value i:type="Connector">
+            <GenericTypeId>GE.DF</GenericTypeId>
+            <Guid>0f17e7d3-1995-51d7-bf17-787b55470f28</Guid>
+            <Properties>
+              <anyType i:type="HeaderDisplayAttribute">
+                <DisplayName>Name</DisplayName>
+                <Name>Name</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">(10) Module image pull</Value>
+              </anyType>
+            </Properties>
+            <SourceGuid>020ac0e9-2add-5327-9039-f1ab08a0861a</SourceGuid>
+            <SourceX>0</SourceX>
+            <SourceY>0</SourceY>
+            <StrokeDashArray i:nil="true" />
+            <StrokeThickness>1</StrokeThickness>
+            <TargetGuid>9127e0f7-7268-5579-8c5f-67de2275c17e</TargetGuid>
+            <TargetX>0</TargetX>
+            <TargetY>0</TargetY>
+            <TypeId>GE.DF</TypeId>
+          </Value>
+        </KeyValueOfguidanyType>
+        <KeyValueOfguidanyType>
+          <Key>b5373a8b-34a3-54b3-a4df-994a9f8a13ed</Key>
+          <Value i:type="Connector">
+            <GenericTypeId>GE.DF</GenericTypeId>
+            <Guid>b5373a8b-34a3-54b3-a4df-994a9f8a13ed</Guid>
+            <Properties>
+              <anyType i:type="HeaderDisplayAttribute">
+                <DisplayName>Name</DisplayName>
+                <Name>Name</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">(11) Diagnostics / runtime state / logs</Value>
+              </anyType>
+            </Properties>
+            <SourceGuid>9127e0f7-7268-5579-8c5f-67de2275c17e</SourceGuid>
+            <SourceX>0</SourceX>
+            <SourceY>0</SourceY>
+            <StrokeDashArray i:nil="true" />
+            <StrokeThickness>1</StrokeThickness>
+            <TargetGuid>5a758ace-5ed1-5576-abe2-eaefeb169f4f</TargetGuid>
+            <TargetX>0</TargetX>
+            <TargetY>0</TargetY>
+            <TypeId>GE.DF</TypeId>
+          </Value>
+        </KeyValueOfguidanyType>
+        <KeyValueOfguidanyType>
+          <Key>611a5770-077a-5f19-91cd-8daa97b15447</Key>
+          <Value i:type="Connector">
+            <GenericTypeId>GE.DF</GenericTypeId>
+            <Guid>611a5770-077a-5f19-91cd-8daa97b15447</Guid>
+            <Properties>
+              <anyType i:type="HeaderDisplayAttribute">
+                <DisplayName>Name</DisplayName>
+                <Name>Name</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">(12) Applied subscription configuration</Value>
+              </anyType>
+            </Properties>
+            <SourceGuid>d1bd97a5-6938-5a4f-a5c8-36cc5fb5d053</SourceGuid>
+            <SourceX>0</SourceX>
+            <SourceY>0</SourceY>
+            <StrokeDashArray i:nil="true" />
+            <StrokeThickness>1</StrokeThickness>
+            <TargetGuid>fdf80f6c-d5fd-5813-b3be-679bdb2d3ee5</TargetGuid>
+            <TargetX>0</TargetX>
+            <TargetY>0</TargetY>
+            <TypeId>GE.DF</TypeId>
+          </Value>
+        </KeyValueOfguidanyType>
+        <KeyValueOfguidanyType>
+          <Key>a7837bc6-4fd3-51bb-bc08-1284bc5a8e81</Key>
+          <Value i:type="Connector">
+            <GenericTypeId>GE.DF</GenericTypeId>
+            <Guid>a7837bc6-4fd3-51bb-bc08-1284bc5a8e81</Guid>
+            <Properties>
+              <anyType i:type="HeaderDisplayAttribute">
+                <DisplayName>Name</DisplayName>
+                <Name>Name</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">(13) Notifications to writer groups</Value>
+              </anyType>
+            </Properties>
+            <SourceGuid>fdf80f6c-d5fd-5813-b3be-679bdb2d3ee5</SourceGuid>
+            <SourceX>0</SourceX>
+            <SourceY>0</SourceY>
+            <StrokeDashArray i:nil="true" />
+            <StrokeThickness>1</StrokeThickness>
+            <TargetGuid>9127e0f7-7268-5579-8c5f-67de2275c17e</TargetGuid>
+            <TargetX>0</TargetX>
+            <TargetY>0</TargetY>
+            <TypeId>GE.DF</TypeId>
+          </Value>
+        </KeyValueOfguidanyType>
+        <KeyValueOfguidanyType>
+          <Key>423f79d1-9711-51d8-ab4f-b32eea90f141</Key>
+          <Value i:type="Connector">
+            <GenericTypeId>GE.DF</GenericTypeId>
+            <Guid>423f79d1-9711-51d8-ab4f-b32eea90f141</Guid>
+            <Properties>
+              <anyType i:type="HeaderDisplayAttribute">
+                <DisplayName>Name</DisplayName>
+                <Name>Name</Name>
+                <Value i:type="x:string" xmlns:x="http://www.w3.org/2001/XMLSchema">(14) Configuration API calls</Value>
+              </anyType>
+            </Properties>
+            <SourceGuid>769a363f-7cb6-521a-97fe-1d0ede1a68bb</SourceGuid>
+            <SourceX>0</SourceX>
+            <SourceY>0</SourceY>
+            <StrokeDashArray i:nil="true" />
+            <StrokeThickness>1</StrokeThickness>
+            <TargetGuid>d1bd97a5-6938-5a4f-a5c8-36cc5fb5d053</TargetGuid>
+            <TargetX>0</TargetX>
+            <TargetY>0</TargetY>
+            <TypeId>GE.DF</TypeId>
+          </Value>
+        </KeyValueOfguidanyType>
+      </Lines>
+      <Zoom>1</Zoom>
+    </DrawingSurfaceModel>
+  </DrawingSurfaceList>
+  <MetaInformation>
+    <Assumptions>1. The OT network is untrusted: an OPC UA server may be malicious, compromised or faulty and can return hostile or malformed data. 2. The IoT Edge gateway host is trusted; an attacker with root on the host can already read the module's mounted volume, PKI store and module identity. 3. published_nodes.json and the PKI directory live on a host-shared mounted volume; their confidentiality and integrity are the host's responsibility. 4. IoT Hub is trusted to authenticate the caller of a direct method; the module does not independently authenticate that caller. 5. The REST API is reachable only from the edge network and is protected by the configured API key; it is not intended for internet exposure.</Assumptions>
+    <Contributors>Azure Industrial IoT</Contributors>
+    <ExternalDependencies>OPC UA .NET Standard stack (OPCFoundation.NetStandard.Opc.Ua); Azure IoT Edge runtime (edgeAgent, edgeHub); Azure IoT Hub; Furly transport abstractions (MQTT, HTTP, Dapr, Event Hubs); ASP.NET Core; the host container runtime.</ExternalDependencies>
+    <HighLevelSystemDescription>OPC Publisher is an Azure IoT Edge module that connects to OPC UA servers on an operational technology network, subscribes to data changes and events, and publishes the resulting telemetry to Azure IoT Hub, an MQTT broker, or an HTTP/Dapr endpoint. It is configured through a mounted published_nodes.json file, an authenticated REST API, and IoT Hub direct methods. It maintains an OPC UA PKI store on a mounted volume.</HighLevelSystemDescription>
+    <Owner>Azure Industrial IoT</Owner>
+    <Reviewer />
+    <ThreatModelName>Azure IIoT OPC Publisher</ThreatModelName>
+  </MetaInformation>
+  <Notes />
+  <ThreatInstances />
+  <ThreatGenerationEnabled>true</ThreatGenerationEnabled>
+  <Validations />
+  <Version>4.1</Version>
+</ThreatModel>
