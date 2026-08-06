@@ -87,6 +87,7 @@ jobs:
         shell: bash
       - name: Soak
         env:
+          IIOT_TELEMETRY_SOAK: '1'
           IIOT_TELEMETRY_SOAK_NODES: ${{ inputs.nodes || '500' }}
           IIOT_TELEMETRY_SOAK_MINUTES: ${{ inputs.minutes || '30' }}
         shell: bash
@@ -137,6 +138,7 @@ jobs:
         shell: bash
       - name: Soak
         env:
+          IIOT_TELEMETRY_SOAK: '1'
           IIOT_TELEMETRY_SOAK_FULLSCALE: '1'
           IIOT_TELEMETRY_SOAK_MINUTES: ${{ inputs.minutes || '30' }}
         shell: bash
