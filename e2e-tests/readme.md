@@ -92,6 +92,18 @@ them instead.
 Both are surfaced as the `soak_minutes` and `soak_nodes` inputs of
 `.github/workflows/e2e-standalone.yml`.
 
+> The in-process soak (`src/Azure.IIoT.OpcUa.Publisher.Module/tests`) is gated separately and
+> skips unless `IIOT_TELEMETRY_SOAK=1` (or a node count / duration / full-scale override) is
+> set. It runs for minutes and is sensitive to machine load, so it must not run as part of an
+> ordinary solution-wide test pass — in particular the internal build, which runs the whole
+> solution and cannot be filtered from this repository.
+>
+> It is still exercised on every pull request by the `soak_smoke` job in
+> `.github/workflows/ci.yml`, at a deliberately small 50-node / 1-minute size (~5 minutes).
+> That is ample signal: with the pre-fix watchdog this configuration reports ~900 early
+> heartbeats per scenario against an expected zero. The full 500-node / 30-minute runs stay
+> in the nightly `soak.yml`.
+
 > The node count is bounded by the **IoT Hub S1 daily message quota**, which is shared
 > with the A&E job, and by the two vCPU IoT Edge VM. At the default of 100 nodes the soak
 > produces roughly one network message per second. Raising it much above 250 needs an IoT
