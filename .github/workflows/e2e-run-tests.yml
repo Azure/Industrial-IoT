@@ -71,6 +71,11 @@ jobs:
   run:
     name: ${{ inputs.filter_name }}=${{ inputs.filter_value }}
     runs-on: windows-latest
+    # This job authenticates to Azure and reads Key Vault secrets, so it is
+    # gated behind the `e2e` environment like every other Azure-touching job.
+    # `environment` cannot be set on the calling `uses:` job, so it has to be
+    # declared here in the reusable workflow.
+    environment: e2e
     timeout-minutes: ${{ inputs.timeout_minutes }}
     env:
       ResourceGroupName: ${{ inputs.resource_group_name }}

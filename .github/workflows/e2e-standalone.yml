@@ -152,6 +152,13 @@ jobs:
   init:
     name: Compute run variables
     runs-on: ubuntu-latest
+    # This job only computes strings; it never talks to Azure. Drop the
+    # workflow-level `id-token: write` so it cannot mint an OIDC assertion for
+    # the E2E service principal. That closes the escalation path structurally:
+    # even if a future edit reintroduces an unsafe `${{ }}` interpolation into
+    # the script below, there is no token for injected code to steal.
+    permissions:
+      contents: read
     outputs:
       resource_group_name: ${{ steps.compute.outputs.rg }}
       soak_timeout_minutes: ${{ steps.compute.outputs.soak_timeout }}
@@ -209,6 +216,11 @@ jobs:
     name: Deploy standalone resources
     needs: init
     runs-on: windows-latest
+    # Gate every job that authenticates to Azure behind the `e2e` environment,
+    # matching e2e-gc.yml. The environment is where the deployment credentials
+    # and any required-reviewer rules live, so a workflow_dispatch alone is not
+    # sufficient to reach the subscription.
+    environment: e2e
     timeout-minutes: 60
     outputs:
       key_vault_name: ${{ steps.kv.outputs.KeyVaultName }}
@@ -267,6 +279,7 @@ jobs:
     name: Deploy test resources (PLCs + IoT Edge VM)
     needs: [init, deploy_standalone]
     runs-on: windows-latest
+    environment: e2e
     timeout-minutes: 90
     outputs:
       fqdn: ${{ steps.deploy_edge.outputs.Fqdn }}
@@ -447,6 +460,7 @@ jobs:
             run_tests_soak_counters, run_tests_soak_heartbeat]
     if: always() && (inputs.cleanup == null || inputs.cleanup == true) && !cancelled()
     runs-on: ubuntu-latest
+    environment: e2e
     timeout-minutes: 30
     env:
       ResourceGroupName: ${{ needs.init.outputs.resource_group_name }}

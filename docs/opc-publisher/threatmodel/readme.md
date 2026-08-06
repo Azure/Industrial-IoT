@@ -56,8 +56,9 @@ description of the system, not a to-do list; the open items are called out in
 | T14 | (12) OIDC federation | **S**, **E** | A workflow change that runs untrusted code could use the federated identity against the test subscription. | Mitigated: federated OIDC with no stored client secret, and E2E runs on `push`/`schedule`/`workflow_dispatch`, not on `pull_request` from forks. |
 | T15 | (13) Key Vault → `$GITHUB_ENV` | **I** | Test secrets (IoT Hub connection string, SSH keys, Event Hub SAS) reach the runner environment. | Mitigated: values are `::add-mask::`ed and written via heredoc. Anything that echoes them defeats the mask. |
 | T16 | (17) build artifacts | **I** | `.trx` files and captured module logs are uploaded as artifacts and can contain endpoint URLs, node ids and payloads. | Retention is bounded (14–30 days). Do not enable payload logging in CI. |
-| T17 | Workflow `run:` blocks | **T**, **E** | Script injection through `${{ }}` interpolation of an input into a shell. GitHub substitutes textually *before* bash parses, so a quote in the value breaks out and executes — in a job holding `id-token: write`, which can mint an Azure OIDC assertion for the E2E service principal. | **Found and fixed.** `e2e-standalone.yml`'s `init` step interpolated `inputs.soak_minutes` and `inputs.resource_group_name` directly. Both now arrive via `env:` and are validated against a strict pattern before use. Reachable only via `workflow_dispatch`, so exploitable by a principal that can dispatch but not push. |
+| T17 | Workflow `run:` blocks | **T**, **E** | Script injection through `${{ }}` interpolation of an input into a shell. GitHub substitutes textually *before* bash parses, so a quote in the value breaks out and executes — and if the job holds `id-token: write` it can mint an Azure OIDC assertion for the E2E service principal. | **Found and fixed**, in three layers: (a) `e2e-standalone.yml`'s `init` step now takes `soak_minutes` and `resource_group_name` through `env:` and validates both against strict patterns; (b) `init` no longer inherits `id-token: write`, so even a future injection there has no token to steal; (c) every job that authenticates to Azure is gated behind the `e2e` environment. |
 | T18 | `ci.yml` `images_build` | **T** | `github.ref_name` is interpolated into a `run:` block; git allows shell metacharacters in branch names. | Low: the job carries `if: github.event_name != 'pull_request'`, so creating such a branch requires write access, and the value is passed as a PowerShell argument rather than into `sh -c`. Pre-existing; worth tightening opportunistically. |
+| T19 | `e2e` environment | **E** | The environment referenced by the Azure-touching jobs currently has **no protection rules and no deployment branch policy**, so gating on it does not by itself restrict who can reach the subscription. | Open — see [Residual risk](#residual-risk). The gate is now wired so that adding required reviewers or a branch policy is a settings change, not a workflow change. |
 
 ## Residual risk
 
@@ -72,6 +73,13 @@ Accepted, with the reasoning:
    usability. Host filesystem permissions are the control.
 3. **T1 — `--aa` disables server certificate validation.** Intentionally
    available for commissioning; it must not be left on.
+4. **T19 — the `e2e` environment has no protection rules.** The Azure-touching
+   jobs are now gated behind it, but the environment itself declares no
+   required reviewers and no deployment branch policy, so today the gate is a
+   hook rather than a control. Closing this is a repository-settings change:
+   add required reviewers, or restrict deployments to `main` and `release/*`.
+   Until then, `workflow_dispatch` on `e2e-standalone.yml` remains reachable by
+   anyone holding `actions: write`.
 
 ## Maintaining this model
 
