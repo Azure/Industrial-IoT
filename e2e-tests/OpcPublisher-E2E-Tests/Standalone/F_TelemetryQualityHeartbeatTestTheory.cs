@@ -154,16 +154,22 @@ namespace OpcPublisherAEE2ETests.Standalone
                 $"timestamp.{Environment.NewLine}{report}");
 
             //
-            // Timing assertions carry a small budget: the simulator derives
-            // its source timestamps from a wall clock timer and shares the
-            // edge VM and IoT Hub with the other test jobs.
+            // A heartbeat that fired before the item had been silent for the
+            // heartbeat interval plus one publishing interval is always a
+            // defect, and unlike the counters below this is independent of
+            // how loaded the machine is: a stall only ever makes the idle
+            // time longer, never shorter. So this one is strict.
             //
+            Assert.True(report.EarlyHeartbeats == 0,
+                $"{report.EarlyHeartbeats} heartbeat(s) arrived before the watchdog grace " +
+                $"period elapsed.{Environment.NewLine}{report}");
 
-            // Heartbeats must never arrive before the watchdog grace period.
-            AssertWithinBudget(report.EarlyHeartbeats, report.HeartbeatSamples,
-                "heartbeat(s) arrived before the watchdog grace period elapsed", report);
-
-            // ... and must keep the configured cadence once they do.
+            //
+            // The remaining timing assertions carry a budget: the simulator
+            // derives its source timestamps from a wall clock timer and
+            // shares the edge VM and IoT Hub with the other test jobs, so a
+            // heartbeat or a value can legitimately arrive late.
+            //
             AssertWithinBudget(report.HeartbeatCadenceViolations, report.HeartbeatSamples,
                 $"gap(s) between consecutive heartbeats did not match the configured " +
                 $"{heartbeatInterval}", report);
