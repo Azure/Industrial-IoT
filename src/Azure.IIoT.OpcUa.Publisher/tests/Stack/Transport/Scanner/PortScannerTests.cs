@@ -108,5 +108,31 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack.Transport.Scanner
             var ex = Record.Exception(() => scanner.Dispose());
             Assert.Null(ex);
         }
+
+        [Fact]
+        public async Task FourArgConstructorDelegatesToFullConstructorAsync()
+        {
+            // Exercises the 4-arg overload: PortScanner(logger, source, target, ct)
+            var logger = Mock.Of<ILogger<PortScanner>>();
+            using var scanner = new PortScanner(logger, [],
+                (s, ep) => { }, CancellationToken.None);
+
+            await scanner.WaitToCompleteAsync().ConfigureAwait(false);
+
+            Assert.Equal(0, scanner.ScanCount);
+        }
+
+        [Fact]
+        public async Task FiveArgConstructorWithPortProbeDelegatesToFullConstructorAsync()
+        {
+            // Exercises the 5-arg overload: PortScanner(logger, source, target, portProbe, ct)
+            var logger = Mock.Of<ILogger<PortScanner>>();
+            using var scanner = new PortScanner(logger, [],
+                (s, ep) => { }, null, CancellationToken.None);
+
+            await scanner.WaitToCompleteAsync().ConfigureAwait(false);
+
+            Assert.Equal(0, scanner.ScanCount);
+        }
     }
 }

@@ -6,9 +6,12 @@
 namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
 {
     using Azure.IIoT.OpcUa.Publisher.Services;
+    using Azure.IIoT.OpcUa.Publisher.Stack;
+    using Moq;
     using Opc.Ua;
     using System;
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using Xunit;
 
     /// <summary>
@@ -237,6 +240,72 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
             Assert.Equal(ReferenceTypeIds.HierarchicalReferences,
                 result.Elements[0].ReferenceTypeId);
             Assert.Equal(ReferenceTypeIds.Aggregates, result.Elements[1].ReferenceTypeId);
+        }
+
+        // ── ResolveBrowsePathToNodeAsync — empty / null paths ─────────────────
+
+        [Fact]
+        public async Task ResolveBrowsePathToNodeAsync_NullPaths_ReturnsRootIdAsync()
+        {
+            var session = new Mock<IOpcUaSession>(MockBehavior.Strict);
+            var rootId = new NodeId(2253u); // Server
+
+            var result = await session.Object.ResolveBrowsePathToNodeAsync(
+                null, rootId, null!, "param", TimeProvider.System);
+
+            Assert.Equal(rootId, result);
+        }
+
+        [Fact]
+        public async Task ResolveBrowsePathToNodeAsync_EmptyPaths_ReturnsRootIdAsync()
+        {
+            var session = new Mock<IOpcUaSession>(MockBehavior.Strict);
+            var rootId = new NodeId(2253u); // Server
+
+            var result = await session.Object.ResolveBrowsePathToNodeAsync(
+                null, rootId, Array.Empty<string>(), "param", TimeProvider.System);
+
+            Assert.Equal(rootId, result);
+        }
+
+        // ── ResolveNodeIdAsync — empty / null browsePath ──────────────────────
+
+        [Fact]
+        public async Task ResolveNodeIdAsync_NullBrowsePath_ReturnsConvertedRootIdAsync()
+        {
+            var session = new Mock<IOpcUaSession>(MockBehavior.Loose);
+            session.Setup(s => s.MessageContext).Returns(ServiceMessageContext.GlobalContext);
+            var nodeIdStr = "ns=2;i=42";
+
+            var result = await session.Object.ResolveNodeIdAsync(
+                null, nodeIdStr, null, "param", TimeProvider.System);
+
+            Assert.Equal(new NodeId(42u, 2), result);
+        }
+
+        [Fact]
+        public async Task ResolveNodeIdAsync_EmptyBrowsePath_ReturnsConvertedRootIdAsync()
+        {
+            var session = new Mock<IOpcUaSession>(MockBehavior.Loose);
+            session.Setup(s => s.MessageContext).Returns(ServiceMessageContext.GlobalContext);
+            var nodeIdStr = "ns=2;i=42";
+
+            var result = await session.Object.ResolveNodeIdAsync(
+                null, nodeIdStr, new List<string>(), "param", TimeProvider.System);
+
+            Assert.Equal(new NodeId(42u, 2), result);
+        }
+
+        [Fact]
+        public async Task ResolveNodeIdAsync_NullRootIdAndNullBrowsePath_ReturnsNullNodeIdAsync()
+        {
+            var session = new Mock<IOpcUaSession>(MockBehavior.Loose);
+            session.Setup(s => s.MessageContext).Returns(ServiceMessageContext.GlobalContext);
+
+            var result = await session.Object.ResolveNodeIdAsync(
+                null, null, null, "param", TimeProvider.System);
+
+            Assert.True(NodeIdCompat.IsNull(result));
         }
     }
 }

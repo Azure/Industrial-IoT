@@ -259,6 +259,204 @@ namespace Azure.IIoT.OpcUa.Publisher.Module.Tests.Controller
             assets.Verify();
         }
 
+        [Fact]
+        public async Task CreateOrUpdateDataSetWriterEntryDelegatesToPublisherAsync()
+        {
+            var publisher = new Mock<IPublishedNodesServices>(MockBehavior.Strict);
+            var controller = CreateController(publisher: publisher);
+            var entry = CreateEntry();
+
+            publisher.Setup(p => p.CreateOrUpdateDataSetWriterEntryAsync(
+                    entry, It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask)
+                .Verifiable();
+
+            await controller.CreateOrUpdateDataSetWriterEntryAsync(entry);
+
+            publisher.Verify();
+        }
+
+        [Fact]
+        public async Task CreateOrUpdateDataSetWriterEntryThrowsOnNullEntryAsync()
+        {
+            var controller = CreateController();
+            await Assert.ThrowsAsync<ArgumentNullException>(() =>
+                controller.CreateOrUpdateDataSetWriterEntryAsync(null!));
+        }
+
+        [Fact]
+        public async Task GetDataSetWriterEntryDelegatesToPublisherAsync()
+        {
+            var publisher = new Mock<IPublishedNodesServices>(MockBehavior.Strict);
+            var controller = CreateController(publisher: publisher);
+            var expected = CreateEntry();
+
+            publisher.Setup(p => p.GetDataSetWriterEntryAsync(
+                    "group", "writer", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expected)
+                .Verifiable();
+
+            var actual = await controller.GetDataSetWriterEntryAsync("group", "writer");
+
+            Assert.Same(expected, actual);
+            publisher.Verify();
+        }
+
+        [Fact]
+        public async Task GetDataSetWriterEntryThrowsOnNullGroupAsync()
+        {
+            var controller = CreateController();
+            await Assert.ThrowsAsync<ArgumentNullException>(() =>
+                controller.GetDataSetWriterEntryAsync(null!, "writer"));
+        }
+
+        [Fact]
+        public async Task AddOrUpdateNodesDelegatesToPublisherAsync()
+        {
+            var publisher = new Mock<IPublishedNodesServices>(MockBehavior.Strict);
+            var controller = CreateController(publisher: publisher);
+            var nodes = new List<OpcNodeModel> { new() { Id = "ns=2;s=Temp" } };
+
+            publisher.Setup(p => p.AddOrUpdateNodesAsync(
+                    "group", "writer", nodes, null, It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask)
+                .Verifiable();
+
+            await controller.AddOrUpdateNodesAsync("group", "writer", nodes);
+
+            publisher.Verify();
+        }
+
+        [Fact]
+        public async Task AddOrUpdateNodesThrowsOnNullGroupAsync()
+        {
+            var controller = CreateController();
+            await Assert.ThrowsAsync<ArgumentNullException>(() =>
+                controller.AddOrUpdateNodesAsync(null!, "writer",
+                    new List<OpcNodeModel>()));
+        }
+
+        [Fact]
+        public async Task RemoveNodesDelegatesToPublisherAsync()
+        {
+            var publisher = new Mock<IPublishedNodesServices>(MockBehavior.Strict);
+            var controller = CreateController(publisher: publisher);
+            var ids = new List<string> { "field1", "field2" };
+
+            publisher.Setup(p => p.RemoveNodesAsync(
+                    "group", "writer", ids, It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask)
+                .Verifiable();
+
+            await controller.RemoveNodesAsync("group", "writer", ids);
+
+            publisher.Verify();
+        }
+
+        [Fact]
+        public async Task RemoveNodesThrowsOnNullFieldIdsAsync()
+        {
+            var controller = CreateController();
+            await Assert.ThrowsAsync<ArgumentNullException>(() =>
+                controller.RemoveNodesAsync("group", "writer", null!));
+        }
+
+        [Fact]
+        public async Task GetNodeDelegatesToPublisherAsync()
+        {
+            var publisher = new Mock<IPublishedNodesServices>(MockBehavior.Strict);
+            var controller = CreateController(publisher: publisher);
+            var expected = new OpcNodeModel { Id = "ns=2;s=Temp" };
+
+            publisher.Setup(p => p.GetNodeAsync(
+                    "group", "writer", "field1", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expected)
+                .Verifiable();
+
+            var actual = await controller.GetNodeAsync("group", "writer", "field1");
+
+            Assert.Same(expected, actual);
+            publisher.Verify();
+        }
+
+        [Fact]
+        public async Task GetNodeThrowsOnNullFieldIdAsync()
+        {
+            var controller = CreateController();
+            await Assert.ThrowsAsync<ArgumentNullException>(() =>
+                controller.GetNodeAsync("group", "writer", null!));
+        }
+
+        [Fact]
+        public async Task CreateOrUpdateAsset2DelegatesToAssetServiceAsync()
+        {
+            var assets = new Mock<IAssetConfiguration<byte[]>>(MockBehavior.Strict);
+            var controller = CreateController(assets: assets);
+            var request = new PublishedNodeCreateAssetRequestModel<byte[]>
+            {
+                Entry = CreateEntry(),
+                Configuration = new byte[] { 1, 2, 3 }
+            };
+            var expected = new ServiceResponse<PublishedNodesEntryModel>
+            {
+                Result = CreateEntry()
+            };
+
+            assets.Setup(a => a.CreateOrUpdateAssetAsync(
+                    request, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expected)
+                .Verifiable();
+
+            var actual = await controller.CreateOrUpdateAsset2Async(request);
+
+            Assert.Same(expected, actual);
+            assets.Verify();
+        }
+
+        [Fact]
+        public async Task CreateOrUpdateAsset2ThrowsOnNullRequestAsync()
+        {
+            var controller = CreateController();
+            await Assert.ThrowsAsync<ArgumentNullException>(() =>
+                controller.CreateOrUpdateAsset2Async(null!));
+        }
+
+        [Fact]
+        public async Task GetAllAssetsDelegatesToAssetServiceAsync()
+        {
+            var assets = new Mock<IAssetConfiguration<byte[]>>(MockBehavior.Strict);
+            var controller = CreateController(assets: assets);
+            var entry = CreateEntry();
+            var header = new RequestHeaderModel();
+            var expected = new ServiceResponse<PublishedNodesEntryModel>
+            {
+                Result = CreateEntry()
+            };
+
+            assets.Setup(a => a.GetAllAssetsAsync(
+                    entry, header, It.IsAny<CancellationToken>()))
+                .Returns(ToAsyncEnumerable(expected))
+                .Verifiable();
+
+            var actual = await ToListAsync(controller.GetAllAssetsAsync(
+                new PublishedNodesEntryRequestModel<RequestHeaderModel>
+                {
+                    Entry = entry,
+                    Request = header
+                }));
+
+            Assert.Same(expected, Assert.Single(actual));
+            assets.Verify();
+        }
+
+        [Fact]
+        public void GetAllAssetsThrowsOnNullRequest()
+        {
+            var controller = CreateController();
+            Assert.Throws<ArgumentNullException>(() =>
+                controller.GetAllAssetsAsync(null!));
+        }
+
         private static WriterController CreateController(
             Mock<IPublishedNodesServices>? publisher = null,
             Mock<IConfigurationServices>? configuration = null,

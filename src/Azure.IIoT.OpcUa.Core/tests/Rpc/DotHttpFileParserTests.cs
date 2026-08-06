@@ -472,6 +472,113 @@ namespace Azure.IIoT.OpcUa.Core.Rpc.Servers
             }
         }
 
+        [Fact]
+        public async Task ParsesHttpOptionsAndHeadMethodsAsync()
+        {
+            foreach (var method in new[] { "OPTIONS", "HEAD", "TRACE" })
+            {
+                var invocations = new List<Invocation>();
+                await ParseAsync($"""
+                    {method} http://localhost/resource HTTP/1.1
+
+                    """, Capture(invocations)).ConfigureAwait(false);
+
+                Assert.Single(invocations);
+                Assert.Equal(method, invocations[0].Method.String);
+            }
+        }
+
+        [Fact]
+        public async Task DelayDirectiveWithNonIntegerThrowsFormatExceptionAsync()
+        {
+            await Assert.ThrowsAsync<FormatException>(async () =>
+                await ParseAsync("""
+                    // @delay notanumber
+                    Method
+
+                    """).ConfigureAwait(false)).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task TimeoutDirectiveWithNonIntegerThrowsFormatExceptionAsync()
+        {
+            await Assert.ThrowsAsync<FormatException>(async () =>
+                await ParseAsync("""
+                    // @timeout notanumber
+                    Method
+
+                    """).ConfigureAwait(false)).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task NoCookieJarDirectiveIsSkippedAsync()
+        {
+            var invocations = new List<Invocation>();
+
+            await ParseAsync("""
+                // @no-cookie-jar
+                Method
+
+                """, Capture(invocations)).ConfigureAwait(false);
+
+            Assert.Single(invocations);
+        }
+
+        [Fact]
+        public async Task NoRedirectDirectiveIsSkippedAsync()
+        {
+            var invocations = new List<Invocation>();
+
+            await ParseAsync("""
+                // @no-redirect
+                Method
+
+                """, Capture(invocations)).ConfigureAwait(false);
+
+            Assert.Single(invocations);
+        }
+
+        [Fact]
+        public async Task OnErrorDirectiveRunsRequestAfterPreviousFailureAsync()
+        {
+            var invocations = new List<Invocation>();
+            var statusCodes = new Queue<int>([500, 204]);
+
+            await ParseAsync("""
+                FailingMethod
+
+                ###
+                // @on-error
+                ErrorHandler
+
+                """, Capture(invocations, nextStatus: () => statusCodes.Dequeue()))
+                .ConfigureAwait(false);
+
+            Assert.Equal(2, invocations.Count);
+            Assert.Equal("FailingMethod", invocations[0].Method.String);
+            Assert.Equal("ErrorHandler", invocations[1].Method.String);
+        }
+
+        [Fact]
+        public async Task RetriesExhaustedLeaveExecutionInFailedStateAsync()
+        {
+            var invocations = new List<Invocation>();
+
+            var output = await ParseAsync("""
+                // @retries 1
+                RetryMethod
+
+                ###
+                AfterExhausted
+
+                """, Capture(invocations, status: 500)).ConfigureAwait(false);
+
+            // Both retry attempts ran, then next request is skipped due to failure.
+            Assert.Equal(2, invocations.Count);
+            Assert.Equal("RetryMethod", invocations[0].Method.String);
+            Assert.Contains("// @skipped reason = error", output);
+        }
+
         private static Task<string> ParseAsync(string request, Execute? execute = null,
             string? root = null, CancellationToken ct = default)
         {

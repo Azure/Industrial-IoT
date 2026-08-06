@@ -469,5 +469,85 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Services
                     (_, __, ___) => Task.FromResult(default(ExtensionObject)),
                     CancellationToken.None));
         }
+
+        // ── Public JsonNode wrappers (cover the delegation path) ─────────────
+
+        [Fact]
+        public async Task HistoryReadPublicThrowsForNullRequestAsync()
+        {
+            var sut = CreateSut();
+            await Assert.ThrowsAsync<ArgumentNullException>(() =>
+                sut.HistoryReadAsync("ep", (HistoryReadRequestModel<JsonNode>)null!,
+                    CancellationToken.None));
+        }
+
+        [Fact]
+        public async Task HistoryReadPublicThrowsWhenDetailsAreNullAsync()
+        {
+            var sut = CreateSut();
+            var request = new HistoryReadRequestModel<JsonNode>
+            {
+                Details = null!,
+                NodeId = "ns=1;i=1"
+            };
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                sut.HistoryReadAsync("ep", request, CancellationToken.None));
+        }
+
+        [Fact]
+        public async Task HistoryReadPublicThrowsWhenNodeIdAndBrowsePathMissingAsync()
+        {
+            var sut = CreateSut();
+            var request = new HistoryReadRequestModel<JsonNode>
+            {
+                Details = JsonNode.Parse("{}")!,
+                NodeId = null,
+                BrowsePath = null
+            };
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                sut.HistoryReadAsync("ep", request, CancellationToken.None));
+        }
+
+        [Fact]
+        public async Task HistoryReadNextPublicThrowsForNullRequestAsync()
+        {
+            var sut = CreateSut();
+            await Assert.ThrowsAsync<ArgumentNullException>(() =>
+                sut.HistoryReadNextAsync("ep", null!, CancellationToken.None));
+        }
+
+        [Fact]
+        public async Task HistoryReadNextPublicThrowsWhenContinuationTokenEmptyAsync()
+        {
+            var sut = CreateSut();
+            var request = new HistoryReadNextRequestModel { ContinuationToken = "" };
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                sut.HistoryReadNextAsync("ep", request, CancellationToken.None));
+        }
+
+        [Fact]
+        public async Task HistoryUpdatePublicThrowsForNullRequestAsync()
+        {
+            var sut = CreateSut();
+            await Assert.ThrowsAsync<ArgumentNullException>(() =>
+                sut.HistoryUpdateAsync("ep", (HistoryUpdateRequestModel<JsonNode>)null!,
+                    CancellationToken.None));
+        }
+
+        [Fact]
+        public async Task HistoryUpdatePublicThrowsWhenDetailsAreNullAsync()
+        {
+            var sut = CreateSut();
+            var request = new HistoryUpdateRequestModel<JsonNode>
+            {
+                Details = null!
+            };
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                sut.HistoryUpdateAsync("ep", request, CancellationToken.None));
+        }
     }
 }

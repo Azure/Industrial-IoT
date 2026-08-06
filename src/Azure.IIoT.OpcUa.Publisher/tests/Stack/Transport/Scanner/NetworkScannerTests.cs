@@ -125,5 +125,32 @@ namespace Azure.IIoT.OpcUa.Publisher.Tests.Stack.Transport.Scanner
 
             await scanner.WaitToCompleteAsync().ConfigureAwait(false);
         }
+
+        [Fact]
+        public async Task ThreeArgConstructorPreCancelledCompletes()
+        {
+            // Exercises the 3-arg overload: NetworkScanner(logger, replies, ct)
+            var logger = Mock.Of<ILogger<NetworkScanner>>();
+            using var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            using var scanner = new NetworkScanner(logger, (s, r) => { }, cts.Token);
+
+            await scanner.WaitToCompleteAsync().ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task FourArgConstructorWithNetClassPreCancelledCompletes()
+        {
+            // Exercises the 4-arg overload: NetworkScanner(logger, replies, netclass, ct)
+            var logger = Mock.Of<ILogger<NetworkScanner>>();
+            using var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            using var scanner = new NetworkScanner(
+                logger, (s, r) => { }, NetworkClass.Wired, cts.Token);
+
+            await scanner.WaitToCompleteAsync().ConfigureAwait(false);
+        }
     }
 }
